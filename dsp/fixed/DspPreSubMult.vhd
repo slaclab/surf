@@ -1,16 +1,16 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Generalized DSP inferred multiplier with pre-adder 
+-- Description: Generalized DSP inferred multiplier with pre-adder
 --              configured as subtractor (based on UG901)
 -- Equation: p = (a - b) x c
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -90,7 +90,7 @@ begin
 
       --------------------------------------------------------------------
       -- 1st latency cycle
-      --------------------------------------------------------------------      
+      --------------------------------------------------------------------
 
       -- Reset the flags
       v.ibReady := '0';
@@ -140,7 +140,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
+      -- Outputs
       p <= std_logic_vector(r.p);
 
    end process comb;
@@ -159,7 +159,7 @@ begin
          DATA_WIDTH_G   => (B_WIDTH_G + C_WIDTH_G + 1),
          PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
-         -- Slave Port         
+         -- Slave Port
          sData  => p,
          sValid => r.tValid(1),
          sRdEn  => tReady(1),

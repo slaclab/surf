@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the Salt7Series
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ architecture testbed of Salt7SeriesTb is
    -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
    constant PRBS_TAPS_C      : NaturalArray := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-   constant FORCE_EOFE_C     : sl           := '0';  -- Forces an error (testing tUser field MUX-ing)   
+   constant FORCE_EOFE_C     : sl           := '0';  -- Forces an error (testing tUser field MUX-ing)
 
    -- FIFO configurations
    constant MEMORY_TYPE_C       : string  := "block";
@@ -86,7 +86,7 @@ architecture testbed of Salt7SeriesTb is
    signal ibSaltSlave  : AxiStreamSlaveType;
    signal obSaltMaster : AxiStreamMasterType;
    signal obSaltSlave  : AxiStreamSlaveType;
-   
+
 begin
 
    -----------------------------
@@ -101,7 +101,7 @@ begin
          clkP => clk625MHz,
          clkN => open,
          rst  => open,
-         rstL => open);   
+         rstL => open);
 
    ClkRst_204MHz : entity surf.ClkRst
       generic map (
@@ -112,7 +112,7 @@ begin
          clkP => clk208MHz,
          clkN => open,
          rst  => clk208MHzRst,
-         rstL => open);   
+         rstL => open);
 
    ClkRst_104MHz : entity surf.ClkRst
       generic map (
@@ -123,7 +123,7 @@ begin
          clkP => clk104MHz,
          clkN => open,
          rst  => open,
-         rstL => open);            
+         rstL => open);
 
    ClkRst_125MHz : entity surf.ClkRst
       generic map (
@@ -134,7 +134,7 @@ begin
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => open);          
+         rstL => open);
 
    SaltDelayCtrl_Inst : entity surf.SaltDelayCtrl
       generic map (
@@ -143,7 +143,7 @@ begin
       port map (
          iDelayCtrlRdy => iDelayCtrlRdy,
          refClk        => clk208MHz,
-         refRst        => clk208MHzRst);         
+         refRst        => clk208MHzRst);
 
    -----------------
    -- Data Generator
@@ -163,7 +163,7 @@ begin
          PRBS_TAPS_G                => PRBS_TAPS_C,
          -- AXI Stream Configurations
          MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),
-         MASTER_AXI_PIPE_STAGES_G   => 1)        
+         MASTER_AXI_PIPE_STAGES_G   => 1)
       port map (
          -- Master Port (mAxisClk)
          mAxisClk     => clk,
@@ -178,20 +178,20 @@ begin
          forceEofe    => FORCE_EOFE_C,
          busy         => open,
          tDest        => (others => '0'),
-         tId          => (others => '0'));    
+         tId          => (others => '0'));
 
    linkUpL <= not(linkUp);
 
-   ----------------------         
+   ----------------------
    -- Module to be tested
-   ----------------------   
+   ----------------------
    Salt7Series_Inst : entity surf.Salt7Series
       generic map (
          TPD_G               => TPD_C,
          TX_ENABLE_G         => true,
          RX_ENABLE_G         => true,
          COMMON_TX_CLK_G     => true,   -- Set to true if sAxisClk and clk are the same clock
-         COMMON_RX_CLK_G     => true,   -- Set to true if mAxisClk and clk are the same clock      
+         COMMON_RX_CLK_G     => true,   -- Set to true if mAxisClk and clk are the same clock
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
@@ -218,7 +218,7 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => obSaltMaster,
-         mAxisSlave  => obSaltSlave);    
+         mAxisSlave  => obSaltSlave);
 
    ---------------
    -- Data Checker
@@ -243,7 +243,7 @@ begin
          MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),  -- unused
          MASTER_AXI_PIPE_STAGES_G   => 0)                      -- unused
       port map (
-         -- Streaming RX Data Interface (sAxisClk domain) 
+         -- Streaming RX Data Interface (sAxisClk domain)
          sAxisClk        => clk,
          sAxisRst        => rst,
          sAxisMaster     => obSaltMaster,
@@ -269,7 +269,7 @@ begin
          errWordCnt      => errWordCnt,
          errbitCnt       => errbitCnt,
          packetRate      => open,
-         packetLength    => open);    
+         packetLength    => open);
 
    process(clk)
    begin

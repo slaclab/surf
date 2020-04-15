@@ -25,7 +25,7 @@ entity UartTx is
       TPD_G        : time                  := 1 ns;
       STOP_BITS_G  : integer range 1 to 2  := 1;
       PARITY_G     : string                := "NONE";  -- "NONE" "ODD" "EVEN"
-      BAUD_MULT_G  : integer range 1 to 16 := 16;
+      BAUD_MULT_G  : integer range 2 to 16 := 16;
       DATA_WIDTH_G : integer range 5 to 8  := 8);
    port (
       clk      : in  sl;
@@ -108,12 +108,13 @@ begin  -- architecture RTL
                v.txState       := WAIT_S;
             end if;
 
-            -- Wait BAUD_MULT_G counts (the baud rate)
+            -- Wait BAUD_MULT_G-1 counts (the baud rate)
             -- When shifted all bits, wait for next tx data
          when WAIT_S =>
             if (clkEn = '1') then
                v.clkEnCount := r.clkEnCount + 1;
-               if (r.clkEnCount = (BAUD_MULT_G-1)) then
+               if (r.clkEnCount = (BAUD_MULT_G-2)) then
+                  v.clkEnCount := (others => '0');
                   v.txState := TX_BIT_S;
                   if (r.shiftCount = SHIFT_REG_WIDTH_C-1) then
                      v.txState := WAIT_DATA_S;

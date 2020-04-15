@@ -5,11 +5,11 @@
 -- Polynomial: x^32 + x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 + x^2 + x^1 + 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ begin
       variable xorBitMapB : Slv192Array(31 downto 0);
       variable prevCrc    : slv(31 downto 0);
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset the variables
@@ -141,7 +141,7 @@ begin
          end if;
       end if;
 
-      -- Calculate CRC in parallel - implementation used depends on the byte width in use.      
+      -- Calculate CRC in parallel - implementation used depends on the byte width in use.
       if (r.valid = '1') then
          case(r.byteWidth) is
             ---------------------------------------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ begin
       rin <= v;
 
       -- Transpose each byte in the data out and invert
-      -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF 
+      -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF
       for byte in 0 to 3 loop
          for b in 0 to 7 loop
             if (USE_DSP_G) then
@@ -340,7 +340,7 @@ begin
          end loop;
       end loop;
 
-      -- Outputs      
+      -- Outputs
       dspInA <= xorBitMapA;
       dspInB <= xorBitMapB;
 

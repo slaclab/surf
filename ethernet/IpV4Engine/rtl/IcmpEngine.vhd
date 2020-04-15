@@ -4,11 +4,11 @@
 -- Description: ICMP Engine (A.K.A. "ping" protocol)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ entity IcmpEngine is
       TPD_G : time := 1 ns);
    port (
       -- Local Configurations
-      localIp      : in  slv(31 downto 0);  --  big-Endian configuration   
+      localIp      : in  slv(31 downto 0);  --  big-Endian configuration
       -- Interface to ICMP Engine
       ibIcmpMaster : in  AxiStreamMasterType;
       ibIcmpSlave  : out AxiStreamSlaveType;
@@ -46,7 +46,7 @@ architecture rtl of IcmpEngine is
       IDLE_S,
       RX_HDR_S,
       TX_HDR_S,
-      MOVE_S); 
+      MOVE_S);
 
    type RegType is record
       tData        : slv(127 downto 0);
@@ -60,13 +60,13 @@ architecture rtl of IcmpEngine is
       checksum     => (others => '0'),
       ibIcmpSlave  => AXI_STREAM_SLAVE_INIT_C,
       obIcmpMaster => AXI_STREAM_MASTER_INIT_C,
-      state        => IDLE_S);      
+      state        => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";   
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -94,7 +94,7 @@ begin
       ------------------------------------------------
       -- tData[0][47:0]   = Remote MAC Address
       -- tData[0][63:48]  = zeros
-      -- tData[0][95:64]  = Remote IP Address 
+      -- tData[0][95:64]  = Remote IP Address
       -- tData[0][127:96] = Local IP address
       -- tData[1][7:0]    = zeros
       -- tData[1][15:8]   = Protocol Type = ICMP
@@ -102,9 +102,9 @@ begin
       -- tData[1][39:32]  = Type of message
       -- tData[1][47:40]  = Code
       -- tData[1][63:48]  = Checksum
-      -- tData[1][95:64]  = ICMP Header 
-      -- tData[1][127:96] = ICMP Datagram 
-      ------------------------------------------------         
+      -- tData[1][95:64]  = ICMP Header
+      -- tData[1][127:96] = ICMP Datagram
+      ------------------------------------------------
 
       -- State Machine
       case r.state is
@@ -139,11 +139,11 @@ begin
                   -- Update the checksum for outbound data packet
                   v.checksum              := v.checksum + x"0800";
                   ---------------------------------------------------------
-                  -- Note: To save FPGA resources, we do NOT cache the data 
-                  --       for properly calculating the checksum.  Instead, 
-                  --       we calculate the outbound checksum with respect 
-                  --       to the inbound checksum and assume that the 
-                  --       computer interface will probably check our 
+                  -- Note: To save FPGA resources, we do NOT cache the data
+                  --       for properly calculating the checksum.  Instead,
+                  --       we calculate the outbound checksum with respect
+                  --       to the inbound checksum and assume that the
+                  --       computer interface will probably check our
                   --       outbound packet.
                   ---------------------------------------------------------
                   -- Send the IPv4 base header
@@ -173,7 +173,7 @@ begin
                v.obIcmpMaster.tKeep                := ibIcmpMaster.tKeep;
                v.obIcmpMaster.tLast                := ibIcmpMaster.tLast;
                if ibIcmpMaster.tLast = '1' then
-                  -- Echo back EOFE 
+                  -- Echo back EOFE
                   ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.obIcmpMaster, eofe);
                   -- Next state
                   v.state := IDLE_S;
@@ -194,7 +194,7 @@ begin
                v.obIcmpMaster.tKeep  := ibIcmpMaster.tKeep;
                v.obIcmpMaster.tLast  := ibIcmpMaster.tLast;
                if ibIcmpMaster.tLast = '1' then
-                  -- Echo back EOFE 
+                  -- Echo back EOFE
                   ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.obIcmpMaster, eofe);
                   -- Next state
                   v.state := IDLE_S;
@@ -202,7 +202,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       ibIcmpSlave <= v.ibIcmpSlave;
 
@@ -214,7 +214,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs       
+      -- Registered Outputs
       obIcmpMaster <= r.obIcmpMaster;
 
    end process comb;

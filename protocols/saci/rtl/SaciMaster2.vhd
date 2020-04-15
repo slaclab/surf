@@ -6,11 +6,11 @@
 -- Description: New and improved version of the SaciMaster.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ begin
             if (r.saciClkRising = '1') then
                v.saciCmd := '0';
             end if;
-            
+
             -- Wait for saciRsp start bit
             v.shiftCount := (others => '0');
             if (saciRspSync(rspIndex) = '1' and r.saciClkFalling = '1') then

@@ -8,8 +8,8 @@
 --                   bit 0: Open connection request (Default '0')
 --                   bit 1: Close connection request (Default '0')
 --                   bit 2: Mode (Default '0'):
---                            - '0': Use internal parameters from generics  
---                            - '1': Use parameters from Axil 
+--                            - '0': Use internal parameters from generics
+--                            - '1': Use parameters from Axil
 --                   bit 3: Header checksum enable (Default '1')
 --                   bit 4: Inject fault to the next packet header checksum (Default '0')
 --                            Acts on rising edge - injects exactly one fault in next segment (ACK, NULL, or DATA)
@@ -30,8 +30,8 @@
 --               0x08 (RW)- Maximum number of retransmissions [7:0](Default x"02")
 --                            How many times segments are retransmitted before the connection gets broken.
 --               0x09 (RW)- Maximum cumulative acknowledgments [7:0](Default x"03")
---                            When more than maxCumAck are received and not acknowledged the 
---                            ACK packet will be sent to acknowledge the received packets. Even though the 
+--                            When more than maxCumAck are received and not acknowledged the
+--                            ACK packet will be sent to acknowledge the received packets. Even though the
 --                            cumulative acknowledgment timeout has not been reached yet!
 --               0x0A (RW)- Max out of sequence segments (EACK) [7:0](Default x"03")
 --                            Currently not used TBD
@@ -39,13 +39,13 @@
 --                            Every connection should have unique connection ID.
 --               Statuses
 --               0x10 (R)- Status register [5:0]:
---                   bit(0) : Connection Active          
+--                   bit(0) : Connection Active
 --                   bit(1) : Maximum retransmissions exceeded retransMax
 --                   bit(2) : Null timeout reached (server) r.nullTout
---                   bit(3) : Error in acknowledgment mechanism   
+--                   bit(3) : Error in acknowledgment mechanism
 --                   bit(4) : SSI Frame length too long
 --                   bit(5) : Connection to peer timed out
---                   bit(6) : Parameters from peer rejected (Client) or new proposed(Server) 
+--                   bit(6) : Parameters from peer rejected (Client) or new proposed(Server)
 --                0x11 (R)- Number of valid segments [31:0]:
 --                   The value rests to 0 when new connection open is requested.
 --                0x12 (R)- Number of dropped segments [31:0]:
@@ -56,11 +56,11 @@
 --                   The value rests to 0 when module is reset.
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -89,9 +89,9 @@ entity RssiAxiLiteRegItf is
       HEADER_CHKSUM_EN_G    : boolean  := true;
       MAX_NUM_OUTS_SEG_G    : positive := 8;  --   <=(2**WINDOW_ADDR_SIZE_G)
       MAX_SEG_SIZE_G        : positive := 1024;   -- Number of bytes
-      RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  
-      ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G  
-      NULL_TOUT_G           : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  
+      RETRANS_TOUT_G        : positive := 50;  -- unit depends on TIMEOUT_UNIT_G
+      ACK_TOUT_G            : positive := 25;  -- unit depends on TIMEOUT_UNIT_G
+      NULL_TOUT_G           : positive := 200;  -- unit depends on TIMEOUT_UNIT_G
       MAX_RETRANS_CNT_G     : positive := 2;
       MAX_CUM_ACK_CNT_G     : positive := 3;
       MAX_OUT_OF_SEQUENCE_G : natural  := 3);
@@ -112,7 +112,7 @@ entity RssiAxiLiteRegItf is
       devRst_i : in sl;
 
       -- Registers
-      -- Control (RW)   
+      -- Control (RW)
       openRq_o      : out sl;
       closeRq_o     : out sl;
       mode_o        : out sl;
@@ -139,7 +139,7 @@ architecture rtl of RssiAxiLiteRegItf is
       -- Control (RW)
       control : slv(4 downto 0);
 
-      -- Parameters (RW)  
+      -- Parameters (RW)
       initSeqN     : slv(7 downto 0);
       appRssiParam : RssiParamType;
 
@@ -153,7 +153,7 @@ architecture rtl of RssiAxiLiteRegItf is
       -- Control (RW)
       control => "01000",
 
-      -- Parameters (RW)  
+      -- Parameters (RW)
       initSeqN        => toSlv(INIT_SEQ_N_G, 8),
       appRssiParam    => (
          version      => toSlv(VERSION_G, 4),
@@ -169,7 +169,7 @@ architecture rtl of RssiAxiLiteRegItf is
          maxOutofseq  => toSlv(MAX_OUT_OF_SEQUENCE_G, 8),
          connectionId => toSlv(CONN_ID_G, 32)),
 
-      -- AXI lite      
+      -- AXI lite
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 

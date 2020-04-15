@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Cell Receive interface module for the Pretty Good Protocol core. 
+-- Cell Receive interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-entity Pgp2bRx is 
+entity Pgp2bRx is
    generic (
       TPD_G             : time                 := 1 ns;
       RX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-2
@@ -89,12 +89,12 @@ architecture Pgp2bRx of Pgp2bRx is
    signal overflow         : slv(3 downto 0);
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       U_Pgp2bRxPhy,
       U_Pgp2bRxCell,
       Rx_CRC : label is "TRUE";
-   
-begin 
+
+begin
 
    -- Status
    pgpRxOut.linkReady    <= intRxLinkReady;
@@ -117,8 +117,8 @@ begin
 
 
    -- PHY Logic
-   U_Pgp2bRxPhy: entity surf.Pgp2bRxPhy 
-      generic map ( 
+   U_Pgp2bRxPhy: entity surf.Pgp2bRxPhy
+      generic map (
          TPD_G            => TPD_G,
          RX_LANE_CNT_G    => RX_LANE_CNT_G
       ) port map (
@@ -146,14 +146,14 @@ begin
          phyRxDecErr      => intPhyRxDecErr,
          phyRxReady       => phyRxReady,
          phyRxInit        => phyRxInit
-      ); 
+      );
 
 
    -- Cell Receiver
-   U_Pgp2bRxCell: entity surf.Pgp2bRxCell 
-      generic map ( 
+   U_Pgp2bRxCell: entity surf.Pgp2bRxCell
+      generic map (
          TPD_G                => TPD_G,
-         RX_LANE_CNT_G        => RX_LANE_CNT_G, 
+         RX_LANE_CNT_G        => RX_LANE_CNT_G,
          EN_SHORT_CELLS_G     => 1,
          PAYLOAD_CNT_TOP_G    => PAYLOAD_CNT_TOP_G
       ) port map (
@@ -210,7 +210,7 @@ begin
          intMaster := AXI_STREAM_MASTER_INIT_C;
 
          if pgpRxClkEn = '1' then
-            
+
             intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
             intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
             intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
@@ -221,10 +221,10 @@ begin
             axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof,0);
 
             pgpRxOut.frameRx    <= uOr(intRxVcValid) and intRxEof and (not intRxEofe) after TPD_G;
-            pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G; 
+            pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G;
 
             -- Generate valid and dest values
-            case intRxVcValid is 
+            case intRxVcValid is
                when "0001" =>
                   intMaster.tValid            := '1';
                   intMaster.tDest(3 downto 0) := "0000";
@@ -240,7 +240,7 @@ begin
                when others =>
                   intMaster.tValid            := '0';
             end case;
-         
+
          end if;
 
          if pgpRxClkRst = '1' then

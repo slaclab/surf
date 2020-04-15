@@ -4,11 +4,11 @@
 -- Description: Heartbeat LED output
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ entity Heartbeat is
 end entity Heartbeat;
 
 architecture rtl of Heartbeat is
-   
+
    constant CNT_MAX_C  : natural := getTimeRatio(PERIOD_OUT_G, (2.0 * PERIOD_IN_G));
    constant CNT_SIZE_C : natural := bitSize(CNT_MAX_C);
 
@@ -53,7 +53,7 @@ architecture rtl of Heartbeat is
    -- Attribute for XST
    attribute use_dsp      : string;
    attribute use_dsp of r : signal is USE_DSP_G;
-   
+
 begin
 
    comb : process (r, rst) is
@@ -77,7 +77,7 @@ begin
 
       rin <= v;
       o   <= r.o;
-      
+
    end process comb;
 
    seq : process (clk) is

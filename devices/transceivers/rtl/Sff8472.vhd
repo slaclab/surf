@@ -4,11 +4,11 @@
 -- Description: Optical Module SFF-8472 Wrapper (I2C for SFP, QSFP, etc)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -50,14 +50,14 @@ architecture mapping of Sff8472 is
          i2cAddress  => "1010000",      -- Configuration PROM
          dataSize    => 8,              -- in units of bits
          addrSize    => 8,              -- in units of bits
-         endianness  => '0',            -- Little endian                   
-         repeatStart => '0'),           -- Repeat start    
+         endianness  => '0',            -- Little endian
+         repeatStart => '0'),           -- Repeat start
       1              => MakeI2cAxiLiteDevType(  -- Enhanced interface
-         i2cAddress  => "1010001",      -- Diagnostic Monitoring 
+         i2cAddress  => "1010001",      -- Diagnostic Monitoring
          dataSize    => 8,              -- in units of bits
          addrSize    => 8,              -- in units of bits
-         endianness  => '0',            -- Little endian   
-         repeatStart => '0'));          -- Repeat Start  
+         endianness  => '0',            -- Little endian
+         repeatStart => '0'));          -- Repeat Start
 
 begin
 

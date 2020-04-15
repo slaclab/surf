@@ -4,11 +4,11 @@
 -- Description: Ethernet MAC Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ package EthMacPkg is
 
    -- DHCP Constants
    constant DHCP_CPORT : slv(15 downto 0) := x"4400";  -- Port = 68 = 0x0044
-   constant DHCP_SPORT : slv(15 downto 0) := x"4300";  -- Port = 67 = 0x0043   
+   constant DHCP_SPORT : slv(15 downto 0) := x"4300";  -- Port = 67 = 0x0043
 
    -- First TUSER Bits
    constant EMAC_FRAG_BIT_C : integer := 0;
@@ -61,7 +61,7 @@ package EthMacPkg is
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 4,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-      
+
    -- Ethernet AXI Stream Configuration that's optimized for 141-bit FIFO interface (2 x 72b input BRAMs)
    constant INT_EMAC_AXIS_CONFIG_C : AxiStreamConfigType := (
       -- TDEST_INTERLEAVE_C => EMAC_AXIS_CONFIG_C.TDEST_INTERLEAVE_C,
@@ -71,7 +71,7 @@ package EthMacPkg is
       TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
       TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
       TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);      
+      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    -- Generic XMAC Configuration
    type EthMacConfigType is record
@@ -138,12 +138,12 @@ package EthMacPkg is
    function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array;
 
    procedure GetEthMacCsum (
-      -- Input 
+      -- Input
       udpDet  : in    sl;
       last    : in    sl;
       hdr     : in    Slv8Array(19 downto 0);  -- IPv4 Header
       tKeep   : in    slv(15 downto 0);        -- TCP/Data tKeep
-      tData   : in    slv(127 downto 0);       -- TCP/Data tKeep      
+      tData   : in    slv(127 downto 0);       -- TCP/Data tKeep
       len     : in    slv(15 downto 0);
       ibcsum  : in    slv(15 downto 0);        -- TCP/UDP checksum to compare
       -- Summation/Accumulation Signals
@@ -175,13 +175,13 @@ package body EthMacPkg is
    end function;
 
    procedure GetEthMacCsum (
-      -- Input 
+      -- Input
       udpDet  : in    sl;
       last    : in    sl;
       hdr     : in    Slv8Array(19 downto 0);  -- IPv4 Header
       tKeep   : in    slv(15 downto 0);        -- TCP/Data tKeep
-      tData   : in    slv(127 downto 0);       -- TCP/Data tData      
-      len     : in    slv(15 downto 0);        -- TCP/Data length      
+      tData   : in    slv(127 downto 0);       -- TCP/Data tData
+      len     : in    slv(15 downto 0);        -- TCP/Data length
       ibcsum  : in    slv(15 downto 0);        -- TCP/UDP checksum to compare
       -- Summation/Accumulation Signals
       r       : in    EthMacCsumAccumArray(1 downto 0);
@@ -225,7 +225,7 @@ package body EthMacPkg is
          if tKeep((2*i)+0) = '1' then
             data(i)(15 downto 8) := tData((8*((2*i)+0))+7 downto (8*((2*i)+0))+0);
          end if;
-         -- Check tKeep for big Endian lower byte of 16-bit word 
+         -- Check tKeep for big Endian lower byte of 16-bit word
          if tKeep((2*i)+1) = '1' then
             data(i)(7 downto 0) := tData((8*((2*i)+1))+7 downto (8*((2*i)+1))+0);
          end if;
@@ -252,14 +252,14 @@ package body EthMacPkg is
       sum2A(1)     := header(8) + header(9);
       sum2B        := r(1).sum1(0) + r(1).sum1(1);
 
-      -- Summation: Level3      
+      -- Summation: Level3
       v(0).sum3 := sum2A(0) + sum2A(1);
 
       -- Check if we need to reset the accumulator
       if r(0).step(1) = '1' then
          v(1).sum3 := (others => '0');
       else
-         -- Summation/Accumulation: Level3 
+         -- Summation/Accumulation: Level3
          v(1).sum3 := r(1).sum3 + sum2B;
       end if;
 
@@ -288,8 +288,8 @@ package body EthMacPkg is
       csum         := not(r(1).sum5);
 
       -- UDP checksum is calculated using one's complement arithmetic (RFC 793).
-      -- UDP has a special case where 0x0000 is reserved for "no checksum computed". 
-      -- Thus 0x0000 is illegal and when calculated following the standard 
+      -- UDP has a special case where 0x0000 is reserved for "no checksum computed".
+      -- Thus 0x0000 is illegal and when calculated following the standard
       -- algorithm, replaced with 0xFFFF.
       if (udpDet = '1') and (csum = x"0000") then
          csum := x"FFFF";

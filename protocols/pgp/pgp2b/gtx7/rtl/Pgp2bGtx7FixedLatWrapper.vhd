@@ -6,11 +6,11 @@
 -- Description: Gtx7 Fixed Latency Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -105,11 +105,11 @@ entity Pgp2bGtx7FixedLatWrapper is
       gtTxN            : out sl;
       gtRxP            : in  sl;
       gtRxN            : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor      : in  slv(4 downto 0)                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                  := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk          : in  sl                               := '0';
       axilRst          : in  sl                               := '0';
       axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
@@ -200,7 +200,7 @@ begin
                 stableClkRefG;
 
 
-   -- Power Up Reset      
+   -- Power Up Reset
    PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
@@ -379,7 +379,7 @@ begin
          pgpTxReset       => pgpTxReset,
          pgpTxClk         => pgpTxClk,
          -- Rx clocking
-         pgpRxReset       => pgpRxReset,   --extRst,    
+         pgpRxReset       => pgpRxReset,   --extRst,
          pgpRxRecClk      => pgpRxRecClk,
          pgpRxRecClkRst   => pgpRxRecClkRst,
          pgpRxClk         => pgpRxClkLoc,  -- RecClk fed back, optionally though MMCM
@@ -398,11 +398,11 @@ begin
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => pgpRxMasterMuxed,
          pgpRxCtrl        => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk          => axilClk,
          axilRst          => axilRst,
          axilReadMaster   => axilReadMaster,

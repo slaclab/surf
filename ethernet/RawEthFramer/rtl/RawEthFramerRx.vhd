@@ -4,11 +4,11 @@
 -- Description: Raw L2 Ethernet Framer's RX Engine
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -146,7 +146,7 @@ begin
                elsif (v.minByteCnt /= 0) and (v.minByteCnt <= 16) then
                   -- Next state
                   v.state := IDLE_S;
-               -- Check for invalid broadcast message   
+               -- Check for invalid broadcast message
                elsif (v.bcf = '1') and ((v.ibAppMaster.tDest /= x"FF") or (r.dstMac /= BC_MAC_C)) then
                   -- Next state
                   v.state := IDLE_S;
@@ -172,7 +172,7 @@ begin
                   -- Remove the header offset
                   v.minByteCnt := r.minByteCnt - 16;
                end if;
-               -- Check for valid SRC MAC or broadcast 
+               -- Check for valid SRC MAC or broadcast
                if ((remoteMac /= 0) and (remoteMac = r.srcMac)) or (r.bcf = '1') then
                   -- Next state
                   v.state := MOVE_S;
@@ -230,7 +230,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       obMacSlave <= v.obMacSlave;
       tDest      <= v.ibAppMaster.tDest;
@@ -244,7 +244,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs   
+      -- Registered Outputs
       ibAppMaster <= r.ibAppMaster;
 
    end process comb;

@@ -4,11 +4,11 @@
 -- Description: Simulation Package file for i2cRegMasterPkg
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -207,7 +207,7 @@ package body i2cRegMasterPkg is
     wait until clk = '1';
 
     print(debug, "readI2cReg: i2c: " & str(i2cAddr) & ", addr: " & hstr(regAddr) & " Data: " & hstr(regOut.regRdData(regData'range)));
-    
+
   end procedure readI2cReg;
 
   procedure readI2cBurst8 (
@@ -250,12 +250,12 @@ package body i2cRegMasterPkg is
     regData(1) := regOut.regRdData(15 downto 8);
     regData(2) := regOut.regRdData(23 downto 16);
     regData(3) := regOut.regRdData(31 downto 24);
-    
+
     wait until regOut.regAck = '0';
     wait until clk = '1';
 
     print(debug, "readI2cBurst8: i2c: " & str(i2cAddr) & ", addr: " & hstr(regAddr) & " Data: " & hstr(regOut.regRdData));
-    
+
   end procedure;
 
 end package body i2cRegMasterPkg;

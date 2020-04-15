@@ -6,11 +6,11 @@
 -- Description: 10B12B Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -122,7 +122,7 @@ package Code10b12bPkg is
       ("000011", 1, -1),
       ("100010", 1, -1),                -- ("011101", -1, 1),
       ("100001", 1, -1),                -- ("011110", -1, 1),
-      ("001010", 1, -1));               -- ("110101", -1, 1));   
+      ("001010", 1, -1));               -- ("110101", -1, 1));
 
    procedure encode10b12b (
       dataIn  : in  slv(9 downto 0);
@@ -323,7 +323,7 @@ package body Code10b12bPkg is
 --         print(">>>>Run Disp Error");
 --          print("dataIn: " & str(dataIn));
 --          print("inputDisp: " & str(inputDisp));
---          print("runDisp: " & str(runDisp));         
+--          print("runDisp: " & str(runDisp));
          dispError := '1';
       end if;
 

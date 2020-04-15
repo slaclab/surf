@@ -5,11 +5,11 @@
 --                with respect to a stable reference clock.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -95,9 +95,9 @@ begin
       end if;
    end process;
 
-   ------------------------------------------------     
-   -- Calculate the frequency of the input clock 
-   ------------------------------------------------               
+   ------------------------------------------------
+   -- Calculate the frequency of the input clock
+   ------------------------------------------------
    SynchronizerFifo_In : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,

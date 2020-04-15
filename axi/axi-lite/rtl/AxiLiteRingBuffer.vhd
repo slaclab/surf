@@ -4,11 +4,11 @@
 -- Description: Wrapper for simple BRAM based ring buffer with AXI-Lite interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ begin
          wr_clk => dataClk,
          din    => dataR.bufferLength,
          rd_clk => axilClk,
-         dout   => axilLength);   
+         dout   => axilLength);
 
    Synchronizer_dataBufferEn : entity surf.Synchronizer
       generic map (
@@ -313,7 +313,7 @@ begin
             -- LUTRAM + !REG_EN_G = 1 Cycle
             -- LUTRAM + REG_EN_G = 2 Cycles
             -- BRAM + !REG_EN_G = 2 Cycles
-            -- BRAM + REG_EN_G = 3 Cycles            
+            -- BRAM + REG_EN_G = 3 Cycles
             v.axilRdEn(0) := '1';
             if (axilR.axilRdEn(2) = '1') then
                -- Reset the shift register

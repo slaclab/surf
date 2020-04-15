@@ -3,22 +3,22 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- This is an implementation of a generic N-byte input CRC32 calculation.
--- The polynomial and CRC register initialization are generic configurable, but 
+-- The polynomial and CRC register initialization are generic configurable, but
 -- default to the commonly used 0x04C11DB7 and 0xFFFFFFFF, respectively.
 -- This implementation is direct, so no bytes need to be appended to the data.
--- Bytes are reversed on input before being used for the CRC calculation, 
--- and the CRC register is reversed on output just before a final XOR with 
--- 0xFFFFFFFF. 
+-- Bytes are reversed on input before being used for the CRC calculation,
+-- and the CRC register is reversed on output just before a final XOR with
+-- 0xFFFFFFFF.
 --
 -- With a data input size of 4 bytes, this module is compatible with the
 -- previous CRC32Rtl.vhdl module in the StdLib.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ begin
          v.crc := crcInit;
       end if;
 
-      -- Calculate CRC byte-by-byte 
+      -- Calculate CRC byte-by-byte
       if (valid = '1') then
          for byte in BYTE_WIDTH_G-1 downto 0 loop
             if (byteWidth >= BYTE_WIDTH_G-byte-1) then
@@ -134,7 +134,7 @@ begin
       -- Outputs
       crcRem <= r.crc;
       -- Transpose each byte in the data out and invert
-      -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF 
+      -- This inversion is equivalent to an XOR of the CRC register with xFFFFFFFF
       for byte in 0 to 3 loop
          for b in 0 to 7 loop
             crcOut(byte*8+b) <= not(r.crc((byte+1)*8-1-b));

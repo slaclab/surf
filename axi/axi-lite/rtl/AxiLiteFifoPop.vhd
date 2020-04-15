@@ -5,19 +5,19 @@
 -- Supports reading of general purpose FIFOs from the AxiLite bus.
 -- One address location per FIFO.
 -- Address map depends on the POP and LOOP FIFO counts.
--- RANGE_LSB_G sets the address bit which seperates the 
--- POP FIFO address space from the loop FIFO address space. 
+-- RANGE_LSB_G sets the address bit which seperates the
+-- POP FIFO address space from the loop FIFO address space.
 -- RANGE_LSB_G must be large enough for the number of POP and LOOP FIFOs
 -- enabled. I.E. if POP_FIFO_COUNT_C is 8, RANGE_FIFO_G must be > 5.
--- POP Fifos exist at 0x0, 0x4, 0x8, 0xC ... 
+-- POP Fifos exist at 0x0, 0x4, 0x8, 0xC ...
 -- LOOP Fifos exist at 2^(RANGE_LSB_C) + 0x0, + 0x4, etc.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ begin
    -- pop FIFOs
    -----------------------------------------
    U_ReadFifo : for i in 0 to POP_FIFO_COUNT_G-1 generate
-      U_FIfo : entity surf.FifoCascade 
+      U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -176,7 +176,7 @@ begin
    -----------------------------------------
    U_LoopFifoEn : if LOOP_FIFO_EN_G generate
       U_LoopFifo : for i in 0 to LOOP_FIFO_COUNT_G-1 generate
-         U_FIfo : entity surf.FifoCascade 
+         U_FIfo : entity surf.FifoCascade
             generic map (
                TPD_G              => TPD_G,
                CASCADE_SIZE_G     => 1,
@@ -261,7 +261,7 @@ begin
       -- Write
       if (axiStatus.writeEnable = '1') then
 
-         if axiWriteMaster.awaddr(RANGE_LSB_G) = '1' then 
+         if axiWriteMaster.awaddr(RANGE_LSB_G) = '1' then
             v.loopFifoDin := axiWriteMaster.wdata;
 
             v.loopFifoWrite(conv_integer(axiWriteMaster.awaddr(LOOP_SIZE_C+1 downto 2))) := '1';
@@ -275,11 +275,11 @@ begin
       if (axiStatus.readEnable = '1') then
 
 
-         if axiReadMaster.araddr(RANGE_LSB_G) = '0' then 
+         if axiReadMaster.araddr(RANGE_LSB_G) = '0' then
 
             v.axiReadSlave.rdata := ipopFifoDout(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not ipopFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
 
             v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) :=
@@ -289,10 +289,10 @@ begin
 
             v.axiReadSlave.rdata := iloopFifoDout(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
 
-            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := 
+            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) :=
                iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
          end if;
@@ -317,7 +317,7 @@ begin
       iloopFifoDin   <= r.loopFifoDin;
       iloopFifoWrite <= r.loopFifoWrite;
       iloopFifoRead  <= r.loopFifoRead;
-      
+
    end process;
 
 end architecture structure;

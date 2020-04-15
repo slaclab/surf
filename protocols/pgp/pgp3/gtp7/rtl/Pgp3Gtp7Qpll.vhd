@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTP7 QPLL Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ architecture mapping of Pgp3Gtp7Qpll is
    ----------------------------------------------------------------
    -- | Ref Clk | FBDIV_IN_C | FBDIV_45_IN_C | REFCLK_DIV_IN_C | --
    ----------------------------------------------------------------
-   -- |   312   |     4      |      5        |        2        | -- 
+   -- |   312   |     4      |      5        |        2        | --
    -- |   156   |     4      |      5        |        1        | --
    -- |   250   |     5      |      5        |        2        | --
    -- |   125   |     5      |      5        |        1        | --

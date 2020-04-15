@@ -5,11 +5,11 @@
 -- https://forums.xilinx.com/t5/Versal-and-UltraScale/IDELAY-ODELAY-Usage/td-p/812362
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ entity Delaye3PatchFsm is
    port (
       -- Inputs
       CLK           : in  sl;           -- 1-bit input: Clock input
-      RST           : in  sl;  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE   
+      RST           : in  sl;  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       LOAD          : in  sl;           -- 1-bit input: Load DELAY_VALUE input
       CNTVALUEIN    : in  slv(8 downto 0);  -- 9-bit input: Counter value input
       CNTVALUEOUT   : in  slv(8 downto 0);  -- 9-bit output: Counter value output
@@ -153,7 +153,7 @@ begin
                r <= rin after TPD_G;
             end if;
          end if;
-         -- Asynchronous Reset to the DELAY_VALUE 
+         -- Asynchronous Reset to the DELAY_VALUE
          if ((RST = '1') and (IS_RST_INVERTED = '0')) or ((RST = '0') and (IS_RST_INVERTED = '1')) then
             r <= REG_INIT_C after TPD_G;
          end if;

@@ -3,11 +3,11 @@
 -- Description: Simulation Testbed for clink framer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ begin
          clkP => sysClk,
          clkN => open,
          rst  => sysRst,
-         rstL => open);  
+         rstL => open);
 
    linkMode <= CLM_DECA_C;
    dataMode <= CDM_8BIT_C;
@@ -97,7 +97,7 @@ begin
                else
                   testCount <= testCount + 1 after TPD_G;
                end if;
-   
+
                if testCount > 10 and testCount <= 20 then
                   parData(0)(25) <= '1' after TPD_G; -- fv
                   parData(0)(24) <= '1' after TPD_G; -- lv

@@ -4,17 +4,17 @@
 -- Description: A Proxy module for sending transactions on an AXI-Lite bus.
 --
 -- Usefull for situations with long transactions times, such as when the
--- AXI-Lite bus is bridged to I2C. In this case, the AXI-Lite bus Master 
--- could be locked out for some time while waiting for the I2C transaction to 
+-- AXI-Lite bus is bridged to I2C. In this case, the AXI-Lite bus Master
+-- could be locked out for some time while waiting for the I2C transaction to
 -- complete. This module allows the transaction to be kicked off and then the
 -- response to be polled for later.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ end AxiLiteMasterProxy;
 architecture mapping of AxiLiteMasterProxy is
 
    type StateType is ( READY_S, ACK_S );
-   
+
    type RegType is record
       sAxiWriteSlave  : AxiLiteWriteSlaveType;
       sAxiReadSlave   : AxiLiteReadSlaveType;
@@ -90,9 +90,9 @@ begin
       -- Latch the current value
       v := r;
 
-      ------------------------      
+      ------------------------
       -- AXI-Lite Transactions
-      ------------------------ 
+      ------------------------
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, sAxiWriteMaster, sAxiReadMaster, v.sAxiWriteSlave, v.sAxiReadSlave);
@@ -104,7 +104,7 @@ begin
       axiSlaveRegister (axilEp,  X"0C", 0, v.data);
       newCmd := '0';
       axiWrDetect     (axilEp,  X"00", newcmd);
-      
+
       -- Close out the transaction
       axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_OK_C);
 
@@ -130,7 +130,7 @@ begin
                v.done        := '1';
                v.data        := ack.rdData;
                v.resp        := ack.resp;
-               -- Next state      
+               -- Next state
                v.state := READY_S;
             end if;
       end case;
@@ -143,7 +143,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       sAxiReadSlave  <= r.sAxiReadSlave;
       sAxiWriteSlave <= r.sAxiWriteSlave;
 

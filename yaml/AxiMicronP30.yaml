@@ -1,16 +1,16 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
 #once AxiMicronP30.yaml
 
-AxiMicronP30: &AxiMicronP30 
+AxiMicronP30: &AxiMicronP30
   name: AxiMicronP30
   description: AXI-Lite Micron P30 PROM
   class: MMIODev
@@ -22,7 +22,7 @@ AxiMicronP30: &AxiMicronP30
     #########################################################
     WrData:
       at:
-        offset: 0x00 
+        offset: 0x00
       class: IntField
       name: WrData
       sizeBits: 16
@@ -31,7 +31,7 @@ AxiMicronP30: &AxiMicronP30
     ##########################################################
     WrData:
       at:
-        offset: 0x00 
+        offset: 0x00
       class: IntField
       sizeBits: 16
       mode: RW
@@ -39,7 +39,7 @@ AxiMicronP30: &AxiMicronP30
     ##########################################################
     WrCmd:
       at:
-        offset: 0x02 
+        offset: 0x02
       class: IntField
       sizeBits: 16
       mode: RW

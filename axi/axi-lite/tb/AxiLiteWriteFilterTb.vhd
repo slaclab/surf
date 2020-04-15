@@ -4,11 +4,11 @@
 -- Description: Testbench for design "AxiLiteAsync"
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -64,8 +64,8 @@ begin
       wait for 1 us;
       wait until axilClk = '1';
       report "Should be two DECODE_ERROR";
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"11111111", true);      
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);      
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"11111111", true);
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);
       report "###################################################################################";
       report "###################################################################################";
       report "###################################################################################";
@@ -75,11 +75,11 @@ begin
       wait for 1 us;
       wait until axilClk = '1';
       report "Should be one DECODE_ERROR";
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"FFFFFFFF", true);      
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);   
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"FFFFFFFF", true);
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);
       report "###################################################################################";
       report "###################################################################################";
-      report "###################################################################################";     
+      report "###################################################################################";
 
       wait for 1 us;
       wait until axilClk = '1';
@@ -88,7 +88,7 @@ begin
       axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"000001A0", data, true);
       report "###################################################################################";
       report "###################################################################################";
-      report "###################################################################################";      
+      report "###################################################################################";
 
       wait for 1 us;
       enFilter <= '0';
@@ -99,7 +99,7 @@ begin
       report "###################################################################################";
       report "###################################################################################";
       report "###################################################################################";
-      
+
       wait for 1 us;
       wait until axilClk = '1';
       report "Read back the data";
@@ -107,7 +107,7 @@ begin
       axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"000001A0", data, true);
       report "###################################################################################";
       report "###################################################################################";
-      report "###################################################################################";      
+      report "###################################################################################";
 
    end process test;
 

@@ -4,11 +4,11 @@
 -- Description: Programmable One-Shot Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ architecture rtl of OneShot is
    signal rin : RegType;
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";      
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -72,14 +72,14 @@ begin
 
       -- State Machine
       case r.state is
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for trigger
             if (trigIn = IN_POLARITY_G) then
                -- Next state
                v.state := CNT_S;
             end if;
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when CNT_S =>
             -- Set the flag
             v.pulseOut := OUT_POLARITY_G;
@@ -105,14 +105,14 @@ begin
                end if;
 
             end if;
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when WAIT_S =>
             -- Check for trigger
             if (trigIn /= IN_POLARITY_G) then
                -- Next state
                v.state := IDLE_S;
             end if;
-      ----------------------------------------------------------------------   
+      ----------------------------------------------------------------------
       end case;
 
       -- Outputs

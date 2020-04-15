@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGP Ethernet Transmitter 
+-- Description: PGP Ethernet Transmitter
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -299,7 +299,7 @@ begin
                   -- BYTE[18] = Virtual Channel Index
                   v.txMaster.tData(151 downto 144) := pgpTxMaster.tDest;
 
-                  -- BYTE[19] = SOF 
+                  -- BYTE[19] = SOF
                   v.txMaster.tData(152) := r.sof(conv_integer(pgpTxMaster.tDest));
 
                   -- Reset the flag
@@ -325,7 +325,7 @@ begin
 
                -- BYTE[31:30] = Header Checksum
                --------------------------------
-               -- // Processed at the end // -- 
+               -- // Processed at the end // --
                --------------------------------
 
                -- BYTE[47:32] = OpCodeData
@@ -369,7 +369,7 @@ begin
                   v.state          := IDLE_S;
                end if;
 
-               -- Calculate the checksum 
+               -- Calculate the checksum
                for i in 29 downto 0 loop
                   hdrXsum := hdrXsum + v.txMaster.tData(8*i+7 downto 8*i);
                end loop;
@@ -507,7 +507,7 @@ begin
 
       end loop;
 
-      -- Outputs        
+      -- Outputs
       pgpTxSlave <= v.pgpTxSlave;
 
       pgpTxOut             <= r.pgpTxOut;

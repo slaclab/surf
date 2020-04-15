@@ -4,11 +4,11 @@
 -- Description: Testbench for design "UartAxiLiteMaster"
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ begin
          rdValid => rdValid,            -- [out]
          rdReady => rdReady,            -- [in]
          tx      => tx,                 -- [out]
-         rx      => rx);                -- [in]  
+         rx      => rx);                -- [in]
 
    -- component instantiation
    U_UartAxiLiteMaster : entity surf.UartAxiLiteMaster
@@ -114,7 +114,7 @@ begin
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "xpm",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          COMMON_CLK_G => true,
@@ -172,18 +172,18 @@ begin
       begin
          print("Sending: " & s);
          wait until clk = '1';
-         wait until clk = '1';         
-         
+         wait until clk = '1';
+
          for i in s'range loop
             wrData  <= toSlv(character'pos(s(i)), 8);
             wrValid <= '1';
             wait until clk = '1';
-            
+
             if (wrReady = '1') then
                wrValid <= '0';
                wait until clk = '1';
             else
-               wait until clk = '1';                              
+               wait until clk = '1';
                while (wrReady = '0') loop
                   wait until clk = '1';
                end loop;
@@ -252,9 +252,9 @@ begin
       wait until clk = '1';
 
       uartRegWrite(X"12345670", X"08765432");
-      uartRegWrite(X"03030300", X"12345678");      
+      uartRegWrite(X"03030300", X"12345678");
       uartRegRead(X"12345670", data);
-      uartRegRead(X"03030300", data);      
+      uartRegRead(X"03030300", data);
 
 
    end process test;

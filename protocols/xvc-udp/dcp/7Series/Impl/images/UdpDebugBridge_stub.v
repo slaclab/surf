@@ -13,11 +13,11 @@
 // This empty module with port declaration file causes synthesis tools to infer a black box for IP.
 // The synthesis directives are for Synopsys Synplify support to prevent IO buffer insertion.
 // Please paste the declaration into a Verilog source file or add the file as an additional source.
-module UdpDebugBridge(axisClk, axisRst, \mAxisReq[tValid] , 
-  \mAxisReq[tData] , \mAxisReq[tStrb] , \mAxisReq[tKeep] , \mAxisReq[tLast] , 
-  \mAxisReq[tDest] , \mAxisReq[tId] , \mAxisReq[tUser] , \sAxisReq[tReady] , 
-  \mAxisTdo[tValid] , \mAxisTdo[tData] , \mAxisTdo[tStrb] , \mAxisTdo[tKeep] , 
-  \mAxisTdo[tLast] , \mAxisTdo[tDest] , \mAxisTdo[tId] , \mAxisTdo[tUser] , 
+module UdpDebugBridge(axisClk, axisRst, \mAxisReq[tValid] ,
+  \mAxisReq[tData] , \mAxisReq[tStrb] , \mAxisReq[tKeep] , \mAxisReq[tLast] ,
+  \mAxisReq[tDest] , \mAxisReq[tId] , \mAxisReq[tUser] , \sAxisReq[tReady] ,
+  \mAxisTdo[tValid] , \mAxisTdo[tData] , \mAxisTdo[tStrb] , \mAxisTdo[tKeep] ,
+  \mAxisTdo[tLast] , \mAxisTdo[tDest] , \mAxisTdo[tId] , \mAxisTdo[tUser] ,
   \sAxisTdo[tReady] )
 /* synthesis syn_black_box black_box_pad_pin="axisClk,axisRst,\mAxisReq[tValid] ,\mAxisReq[tData] [511:0],\mAxisReq[tStrb] [63:0],\mAxisReq[tKeep] [63:0],\mAxisReq[tLast] ,\mAxisReq[tDest] [7:0],\mAxisReq[tId] [7:0],\mAxisReq[tUser] [511:0],\sAxisReq[tReady] ,\mAxisTdo[tValid] ,\mAxisTdo[tData] [511:0],\mAxisTdo[tStrb] [63:0],\mAxisTdo[tKeep] [63:0],\mAxisTdo[tLast] ,\mAxisTdo[tDest] [7:0],\mAxisTdo[tId] [7:0],\mAxisTdo[tUser] [511:0],\sAxisTdo[tReady] " */;
   input axisClk;
