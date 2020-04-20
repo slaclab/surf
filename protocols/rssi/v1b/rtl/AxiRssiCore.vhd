@@ -57,8 +57,8 @@ entity AxiRssiCore is
       MAX_SEG_SIZE_G      : positive            := 1024;  --! max. payload size (units of bytes)
       AXI_CONFIG_G        : AxiConfigType;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire memory address space
       -- AXIS Configurations
-      APP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
-      TSP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
+      APP_AXIS_CONFIG_G   : AxiStreamConfigType;
+      TSP_AXIS_CONFIG_G   : AxiStreamConfigType;
       -- RSSI Timeouts
       CLK_FREQUENCY_G     : real                := 156.25E+6;  --! In units of Hz
       TIMEOUT_UNIT_G      : real                := 1.0E-3;  --! In units of seconds

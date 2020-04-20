@@ -44,9 +44,9 @@ entity SsiPrbsRx is
       PRBS_SEED_SIZE_G           : positive range 32 to 512 := 32;
       PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
-      SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType      := ssiAxiStreamConfig(4);
+      SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType
       SLAVE_AXI_PIPE_STAGES_G    : natural                  := 0;
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(4);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(16);
       MASTER_AXI_PIPE_STAGES_G   : natural                  := 0);
    port (
       -- Streaming RX Data Interface (sAxisClk domain)

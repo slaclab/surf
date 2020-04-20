@@ -54,9 +54,8 @@ entity AxiStreamFifo is
       CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
 
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
-      );
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Slave Port

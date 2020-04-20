@@ -37,7 +37,7 @@ entity AxiStreamDmaV2 is
       AXIL_BASE_ADDR_G   : slv(31 downto 0)         := x"00000000";
       AXI_READY_EN_G     : boolean                  := false;
       AXIS_READY_EN_G    : boolean                  := false;
-      AXIS_CONFIG_G      : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G      : AxiStreamConfigType;
       AXI_DMA_CONFIG_G   : AxiConfigType;
       CHAN_COUNT_G       : positive range 1 to 16   := 1;
       BURST_BYTES_G      : positive range 1 to 4096 := 4096;

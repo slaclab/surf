@@ -40,7 +40,7 @@ entity SsiPrbsTxOld is
       PRBS_SEED_SIZE_G           : natural range 32 to 128    := 32;
       PRBS_TAPS_G                : NaturalArray               := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream Configurations
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(16, TKEEP_COMP_C);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16      := 0);
    port (
       -- Master Port (mAxisClk)

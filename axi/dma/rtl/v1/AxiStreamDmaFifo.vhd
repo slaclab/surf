@@ -39,7 +39,7 @@ entity AxiStreamDmaFifo is
       MAX_FRAME_WIDTH_G  : positive            := 14;  -- Maximum AXI Stream frame size (units of address bits)
       AXI_BUFFER_WIDTH_G : positive            := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
       -- AXI Stream Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigType := AXIS_WRITE_DMA_CONFIG_C;
+      AXIS_CONFIG_G      : AxiStreamConfigType;
       -- AXI4 Configurations
       AXI_BASE_ADDR_G    : slv(63 downto 0)    := x"0000_0000_0000_0000";  -- Memory Base Address Offset
       AXI_CONFIG_G       : AxiConfigType;

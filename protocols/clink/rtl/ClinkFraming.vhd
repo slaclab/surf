@@ -28,7 +28,7 @@ entity ClinkFraming is
    generic (
       TPD_G              : time                := 1 ns;
       COMMON_DATA_CLK_G  : boolean             := false;  -- true if dataClk=sysClk
-      DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      DATA_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
       sysClk     : in  sl;

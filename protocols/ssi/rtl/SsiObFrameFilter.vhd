@@ -32,7 +32,7 @@ entity SsiObFrameFilter is
       TPD_G         : time                := 1 ns;
       VALID_THOLD_G : natural             := 1;
       PIPE_STAGES_G : natural             := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType := SSI_CONFIG_INIT_C);
+      AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port (AXIS FIFO Read Interface)
       sAxisMaster    : in  AxiStreamMasterType;

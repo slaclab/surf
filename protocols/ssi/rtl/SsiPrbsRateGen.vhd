@@ -38,7 +38,7 @@ entity SsiPrbsRateGen is
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       -- AXI Stream Configurations
       AXIS_CLK_FREQ_G            : real                       := 156.25E+6;  -- units of Hz
-      AXIS_CONFIG_G              : AxiStreamConfigType        := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G              : AxiStreamConfigType);
    port (
       -- Master Port (mAxisClk)
       mAxisClk        : in  sl;

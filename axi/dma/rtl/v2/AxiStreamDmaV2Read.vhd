@@ -30,7 +30,7 @@ entity AxiStreamDmaV2Read is
    generic (
       TPD_G           : time                     := 1 ns;
       AXIS_READY_EN_G : boolean                  := false;
-      AXIS_CONFIG_G   : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G   : AxiStreamConfigType;
       AXI_CONFIG_G    : AxiConfigType;
       PIPE_STAGES_G   : natural                  := 1;
       BURST_BYTES_G   : positive range 1 to 4096 := 4096;

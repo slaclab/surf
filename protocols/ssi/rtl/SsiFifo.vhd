@@ -62,8 +62,8 @@ entity SsiFifo is
       CASCADE_PAUSE_SEL_G    : natural             := 0;
       CASCADE_SIZE_G         : positive            := 1;
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G     : AxiStreamConfigType := SSI_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G    : AxiStreamConfigType := SSI_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G     : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G    : AxiStreamConfigType);
    port (
       -- Slave Interface (sAxisClk domain)
       sAxisClk        : in  sl;
