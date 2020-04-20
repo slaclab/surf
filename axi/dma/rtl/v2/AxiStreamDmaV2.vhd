@@ -38,7 +38,7 @@ entity AxiStreamDmaV2 is
       AXI_READY_EN_G     : boolean                  := false;
       AXIS_READY_EN_G    : boolean                  := false;
       AXIS_CONFIG_G      : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
-      AXI_DMA_CONFIG_G   : AxiConfigType            := AXI_CONFIG_INIT_C;
+      AXI_DMA_CONFIG_G   : AxiConfigType;
       CHAN_COUNT_G       : positive range 1 to 16   := 1;
       BURST_BYTES_G      : positive range 1 to 4096 := 4096;
       WR_PIPE_STAGES_G   : natural                  := 1;

@@ -31,7 +31,7 @@ entity AxiStreamDmaV2Write is
       TPD_G             : time                    := 1 ns;
       AXI_READY_EN_G    : boolean                 := false;
       AXIS_CONFIG_G     : AxiStreamConfigType     := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G      : AxiConfigType           := AXI_CONFIG_INIT_C;
+      AXI_CONFIG_G      : AxiConfigType
       PIPE_STAGES_G     : natural                 := 1;
       BURST_BYTES_G     : integer range 1 to 4096 := 4096;
       ACK_WAIT_BVALID_G : boolean                 := true);

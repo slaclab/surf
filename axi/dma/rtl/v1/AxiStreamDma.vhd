@@ -35,7 +35,7 @@ entity AxiStreamDma is
       AXI_READY_EN_G    : boolean              := false;
       AXIS_READY_EN_G   : boolean              := false;
       AXIS_CONFIG_G     : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G      : AxiConfigType        := AXI_CONFIG_INIT_C;
+      AXI_CONFIG_G      : AxiConfigType;
       AXI_BURST_G       : slv(1 downto 0)      := "01";
       AXI_CACHE_G       : slv(3 downto 0)      := "1111";
       PEND_THRESH_G     : natural              := 0;

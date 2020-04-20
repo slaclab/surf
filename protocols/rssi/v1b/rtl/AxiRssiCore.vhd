@@ -55,7 +55,7 @@ entity AxiRssiCore is
       SERVER_G            : boolean             := true;  --! Module is server or client
       -- AXI Configurations
       MAX_SEG_SIZE_G      : positive            := 1024;  --! max. payload size (units of bytes)
-      AXI_CONFIG_G        : AxiConfigType       := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire memory address space
+      AXI_CONFIG_G        : AxiConfigType;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire memory address space
       -- AXIS Configurations
       APP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
       TSP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);

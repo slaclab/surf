@@ -39,7 +39,7 @@ entity AxiStreamDmaRingRead is
       AXI_CACHE_G           : slv(3 downto 0)          := "0011";  -- Cacheable
       AXI_STREAM_READY_EN_G : boolean                  := true;
       AXI_STREAM_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
-      AXI_READ_CONFIG_G     : AxiConfigType            := axiConfig(32, 8, 1, 8));
+      AXI_READ_CONFIG_G     : AxiConfigType);
    port (
       -- AXI-Lite Interface for local registers
       axilClk         : in  sl;

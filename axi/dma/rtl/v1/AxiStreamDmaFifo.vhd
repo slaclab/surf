@@ -42,7 +42,7 @@ entity AxiStreamDmaFifo is
       AXIS_CONFIG_G      : AxiStreamConfigType := AXIS_WRITE_DMA_CONFIG_C;
       -- AXI4 Configurations
       AXI_BASE_ADDR_G    : slv(63 downto 0)    := x"0000_0000_0000_0000";  -- Memory Base Address Offset
-      AXI_CONFIG_G       : AxiConfigType       := axiConfig(32, 8, 4, 4);
+      AXI_CONFIG_G       : AxiConfigType;
       AXI_BURST_G        : slv(1 downto 0)     := "01";
       AXI_CACHE_G        : slv(3 downto 0)     := "1111");
    port (

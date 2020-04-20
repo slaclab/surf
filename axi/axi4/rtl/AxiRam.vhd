@@ -28,7 +28,7 @@ entity AxiRam is
       SYNTH_MODE_G   : string               := "inferred";
       MEMORY_TYPE_G  : string               := "block";
       READ_LATENCY_G : natural range 0 to 2 := 2;
-      AXI_CONFIG_G   : AxiConfigType        := axiConfig(16, 8, 4, 8));
+      AXI_CONFIG_G   : AxiConfigType);
    port (
       -- Clock and Reset
       axiClk          : in  sl;
