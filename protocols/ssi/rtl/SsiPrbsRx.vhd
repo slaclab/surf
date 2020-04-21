@@ -45,9 +45,7 @@ entity SsiPrbsRx is
       PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
       SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType;
-      SLAVE_AXI_PIPE_STAGES_G    : natural                  := 0;
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(16);
-      MASTER_AXI_PIPE_STAGES_G   : natural                  := 0);
+      SLAVE_AXI_PIPE_STAGES_G    : natural                  := 0);
    port (
       -- Streaming RX Data Interface (sAxisClk domain)
       sAxisClk        : in  sl;
@@ -247,10 +245,10 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
+         PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
+         MASTER_AXI_CONFIG_G => SLAVE_AXI_STREAM_CONFIG_G)
       port map (
          -- Clock and reset
          axisClk     => sAxisClk,
