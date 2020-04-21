@@ -3,11 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
---
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
---       For non 32-bit aligned addresses or non 32-bit transactions, use
---       the SrpV3Axi.vhd module with the AxiToAxiLite.vhd bridge
+-- Description: SLAC Register Protocol Version 3, Core FSM Logic
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
