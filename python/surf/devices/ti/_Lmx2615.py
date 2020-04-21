@@ -387,7 +387,7 @@ class Lmx2615(pr.Device):
         #######################
 
         self.add(pr.RemoteVariable(
-            name         = 'OUTA_MUX',
+            name         = 'OUTB_MUX',
             offset       = (0x2E << 2),
             bitOffset    = 0,
             bitSize      = 2,
