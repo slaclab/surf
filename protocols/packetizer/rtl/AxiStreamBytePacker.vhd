@@ -31,8 +31,8 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamBytePacker is
    generic (
       TPD_G           : time                := 1 ns;
-      SLAVE_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      SLAVE_CONFIG_G  : AxiStreamConfigType;
+      MASTER_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
       axiClk       : in  sl;

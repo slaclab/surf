@@ -29,7 +29,7 @@ entity SsiDbgTap is
    generic (
       TPD_G        : time                := 1 ns;
       CNT_WIDTH_G  : positive            := 16;
-      AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       axisClk    : in sl;

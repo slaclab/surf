@@ -29,8 +29,8 @@ entity AxiStreamScatterGather is
    generic (
       TPD_G                   : time                := 1 ns;
       AXIS_SLAVE_FRAME_SIZE_G : integer             := 129;
-      SLAVE_AXIS_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(2);
-      MASTER_AXIS_CONFIG_G    : AxiStreamConfigType := ssiAxiStreamConfig(12));
+      SLAVE_AXIS_CONFIG_G     : AxiStreamConfigType;
+      MASTER_AXIS_CONFIG_G    : AxiStreamConfigType);
    port (
       -- Master system clock, 125Mhz
       axiClk : in sl;

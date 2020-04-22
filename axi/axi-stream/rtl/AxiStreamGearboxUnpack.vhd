@@ -28,7 +28,7 @@ entity AxiStreamGearboxUnpack is
 
    generic (
       TPD_G               : time := 1 ns;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       RANGE_HIGH_G        : integer := 119;
       RANGE_LOW_G         : integer := 8);
 --      PACK_SIZE_G         : integer);

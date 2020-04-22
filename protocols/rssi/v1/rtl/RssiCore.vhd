@@ -61,8 +61,8 @@ entity RssiCore is
       SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
 
       -- AXIS Configurations
-      APP_AXIS_CONFIG_G        : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_NORMAL_C);
-      TSP_AXIS_CONFIG_G        : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
+      APP_AXIS_CONFIG_G        : AxiStreamConfigType;
+      TSP_AXIS_CONFIG_G        : AxiStreamConfigType;
 
       -- Generic RSSI parameters
       BYP_TX_BUFFER_G : boolean := false;
