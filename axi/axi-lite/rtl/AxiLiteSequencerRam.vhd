@@ -61,6 +61,11 @@ entity AxiLiteSequencerRam is
       -- Clock and Reset
       axilClk          : in  sl;
       axilRst          : in  sl;
+      -- External Control Interface
+      extStart         : in  sl                           := '0';
+      extSize          : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      extBusy          : out sl;
+      extDone          : out sl;
       -- Slave AXI-Lite Interface
       sAxilReadMaster  : in  AxiLiteReadMasterType;
       sAxilReadSlave   : out AxiLiteReadSlaveType;
@@ -88,6 +93,8 @@ architecture rtl of AxiLiteSequencerRam is
       SEQ_DONE_S);
 
    type RegType is record
+      extBusy         : sl;
+      extDone         : sl;
       sAxilWriteSlave : AxiLiteWriteSlaveType;
       sAxilReadSlave  : AxiLiteReadSlaveType;
       din             : slv(63 downto 0);
@@ -103,6 +110,8 @@ architecture rtl of AxiLiteSequencerRam is
    end record;
 
    constant REG_INIT_C : RegType := (
+      extBusy         => '0',
+      extDone         => '0',
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       wstrb           => (others => '0'),
@@ -215,8 +224,8 @@ begin
             doutb   => seqData);
    end generate;
 
-   comb : process (ack, axilRst, dout, r, sAxilReadMaster, sAxilWriteMaster,
-                   seqData) is
+   comb : process (ack, axilRst, dout, extSize, extStart, r, sAxilReadMaster,
+                   sAxilWriteMaster, seqData) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable rdIdx      : natural;
@@ -246,6 +255,10 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
+
+            -- Reset the flags
+            v.extBusy := '0';
+            v.extDone := '0';
 
             -- Preset RAM Address to first transaction
             v.seqAddr := toSlv(1, ADDR_WIDTH_G);
@@ -306,6 +319,26 @@ begin
 
                -- Next state
                v.state := S_AXI_RD_S;
+
+            -- Check for external start and non-zero size
+            elsif (extStart = '1') and (extSize /= 0) then
+
+               -- Set the flag
+               v.extBusy := '1';
+
+               -- Latch the size
+               v.size := extSize;
+
+               -- Reset the counter
+               v.cnt := (others => '0');
+
+               -- Clear out debugging cache
+               v.addr  := (others => '0');
+               v.din   := (others => '0');
+               v.wstrb := (others => '1');
+
+               -- Next state
+               v.state := M_AXI_REQ_S;
 
             end if;
          ----------------------------------------------------------------------
@@ -431,6 +464,18 @@ begin
          v.rdLatecy := r.rdLatecy - 1;
       end if;
 
+      -- Check for IDLE transition
+      if (r.state /= IDLE_S) and (v.state = IDLE_S) then
+         -- Set flag if sequence was externally initiated
+         v.extDone := r.extBusy;
+      end if;
+
+      -- Output assignment
+      sAxilReadSlave  <= r.sAxilReadSlave;
+      sAxilWriteSlave <= r.sAxilWriteSlave;
+      extBusy         <= v.extBusy;
+      extDone         <= v.extDone;
+
       -- Reset
       if (axilRst = '1') then
          v := REG_INIT_C;
@@ -438,10 +483,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Output assignment
-      sAxilReadSlave  <= r.sAxilReadSlave;
-      sAxilWriteSlave <= r.sAxilWriteSlave;
 
    end process comb;
 
