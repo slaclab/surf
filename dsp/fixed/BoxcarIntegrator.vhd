@@ -148,7 +148,7 @@ begin
             v.obPeriod := '1';
          end if;
 
-         -- Update the accumulator 
+         -- Update the accumulator
          v.obData := r.obData + ibDataE;
 
          -- Check if full

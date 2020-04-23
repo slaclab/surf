@@ -37,7 +37,8 @@ class UartOpal1000Rx(clink.ClinkSerialRx):
                 print("Got NAK Response" )
                 self._cur = []
             elif c == '\r':
-                print("recvString: {}".format(''.join(self._cur)))
+                self._last = ''.join(self._cur)
+                print("recvString: {}".format(self._last))
             elif c != '':
                 self._cur.append(c)
 
@@ -64,6 +65,22 @@ class UartOpal1000(pr.Device):
         ##############################
         # Variables
         ##############################
+
+        self.add(pr.LocalVariable(
+            name         = 'ID',
+            description  = 'Retrieves the camera model and serial number',
+            mode         = 'RW',
+            value        = '',
+            localSet     = lambda value: self._tx.sendString(f'@ID?')
+        ))
+
+        self.add(pr.LocalVariable(
+            name         = 'BS',
+            description  = 'Build string',
+            mode         = 'RW',
+            value        = '',
+            localSet     = lambda value: self._tx.sendString(f'@BS?')
+        ))
 
         self.add(pr.LocalVariable(
             name         = 'CCE[0]',
@@ -235,10 +252,18 @@ class UartOpal1000(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'VR',
-            description  = 'Enableling and disableling the vertical remap is done by means of the vertical remap command.',
+            description  = 'Enabling and disabling the vertical remap is done by means of the vertical remap command.',
             mode         = 'RW',
             value        = '',
             localSet     = lambda value: self._tx.sendString(f'@VR{value}') if value!='' else ''
+        ))
+
+        self.add(pr.LocalVariable(
+            name         = 'OVL',
+            description  = 'Overlay frame counter and integration time in first 8 pixels.',
+            mode         = 'RW',
+            value        = '',
+            localSet     = lambda value: self._tx.sendString(f'@OVL{value}') if value!='' else ''
         ))
 
         self.add(pr.LocalVariable(

@@ -57,7 +57,7 @@ use surf.SsiPkg.all;
 entity AxiRssiRxFsm is
    generic (
       TPD_G               : time          := 1 ns;
-      AXI_CONFIG_G        : AxiConfigType := RSSI_AXI_CONFIG_C;
+      AXI_CONFIG_G        : AxiConfigType;
       BURST_BYTES_G       : positive      := 1024;
       WINDOW_ADDR_SIZE_G  : positive      := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
       HEADER_CHKSUM_EN_G  : boolean       := true;

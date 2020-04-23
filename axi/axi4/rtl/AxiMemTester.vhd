@@ -29,7 +29,7 @@ entity AxiMemTester is
       START_ADDR_G     : slv                      := X"00000000";
       STOP_ADDR_G      : slv                      := X"FFFFFFFF";
       BURST_LEN_G      : positive range 1 to 4096 := 4096;
-      AXI_CONFIG_G     : AxiConfigType            := AXI_CONFIG_INIT_C);
+      AXI_CONFIG_G     : AxiConfigType);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;

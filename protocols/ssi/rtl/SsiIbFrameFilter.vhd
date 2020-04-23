@@ -32,7 +32,7 @@ entity SsiIbFrameFilter is
    generic (
       TPD_G            : time                := 1 ns;
       SLAVE_READY_EN_G : boolean             := true;
-      AXIS_CONFIG_G    : AxiStreamConfigType := SSI_CONFIG_INIT_C);
+      AXIS_CONFIG_G    : AxiStreamConfigType);
    port (
       -- Slave Interface (User Application Interface)
       sAxisMaster    : in  AxiStreamMasterType;

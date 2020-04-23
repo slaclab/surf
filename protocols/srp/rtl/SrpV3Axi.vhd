@@ -37,15 +37,15 @@ entity SrpV3Axi is
       SLAVE_READY_EN_G    : boolean                 := true;
       GEN_SYNC_FIFO_G     : boolean                 := false;
       AXI_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
-      AXI_CONFIG_G        : AxiConfigType           := axiConfig(33, 4, 1, 8);
+      AXI_CONFIG_G        : AxiConfigType;
       AXI_BURST_G         : slv(1 downto 0)         := "01";
       AXI_CACHE_G         : slv(3 downto 0)         := "1111";
       ACK_WAIT_BVALID_G   : boolean                 := true;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       UNALIGNED_ACCESS_G  : boolean                 := false;
       BYTE_ACCESS_G       : boolean                 := false;
-      WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
-      READ_EN_G           : boolean                 := true);      -- Read ops enabled
+      WRITE_EN_G          : boolean                 := true;  -- Write ops enabled
+      READ_EN_G           : boolean                 := true);  -- Read ops enabled
    port (
       -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk       : in  sl;
@@ -71,7 +71,7 @@ architecture rtl of SrpV3Axi is
 
    constant DMA_AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 4,
+      TDATA_BYTES_C => AXI_CONFIG_G.DATA_BYTES_C,  -- Matches the AXI4 DATA width
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
@@ -178,7 +178,7 @@ begin
          axiReadSlave  => axiReadSlave);             -- [in]
 
 
-   comb : process (r, axiRst, rdDmaAck, srpReq, wrDmaAck) is
+   comb : process (axiRst, r, rdDmaAck, srpReq, wrDmaAck) is
       variable v         : RegType;
       variable addrError : sl;
    begin
@@ -200,13 +200,13 @@ begin
       end if;
       v.wrDmaReq.maxSize := srpReq.reqSize + 1;
 
-      v.rdDmaReq.request   := srpReq.request and toSl(srpReq.opcode = SRP_READ_C) and not addrError;
-      v.rdDmaReq.address   := srpReq.addr;
-      v.rdDmaReq.prot      := srpReq.prot;
+      v.rdDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_READ_C) and not addrError;
+      v.rdDmaReq.address := srpReq.addr;
+      v.rdDmaReq.prot    := srpReq.prot;
       if (UNALIGNED_ACCESS_G = false and BYTE_ACCESS_G = false) then
          v.rdDmaReq.address(1 downto 0) := (others => '0');
       end if;
-      v.rdDmaReq.size      := srpReq.reqSize + 1;
+      v.rdDmaReq.size := srpReq.reqSize + 1;
 
 
       v.srpAck.done := '0';

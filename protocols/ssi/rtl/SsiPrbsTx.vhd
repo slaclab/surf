@@ -48,7 +48,7 @@ entity SsiPrbsTx is
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       PRBS_INCREMENT_G           : boolean                 := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(16, TKEEP_COMP_C);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16   := 0);
    port (
       -- Master Port (mAxisClk)

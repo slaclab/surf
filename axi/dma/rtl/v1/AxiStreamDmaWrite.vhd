@@ -30,8 +30,8 @@ entity AxiStreamDmaWrite is
    generic (
       TPD_G             : time                := 1 ns;
       AXI_READY_EN_G    : boolean             := false;
-      AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
+      AXIS_CONFIG_G     : AxiStreamConfigType;
+      AXI_CONFIG_G      : AxiConfigType;
       AXI_BURST_G       : slv(1 downto 0)     := "01";
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
       BURST_BYTES_G     : positive range 1 to 4096 := 4096;

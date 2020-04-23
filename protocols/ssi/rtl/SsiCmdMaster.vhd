@@ -49,8 +49,7 @@ entity SsiCmdMaster is
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 8;
 
       -- AXI Stream Configuration
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
-      );
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Streaming Data Interface

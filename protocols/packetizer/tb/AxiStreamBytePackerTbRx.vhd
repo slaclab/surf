@@ -26,7 +26,7 @@ entity AxiStreamBytePackerTbRx is
    generic (
       TPD_G         : time                := 1 ns;
       BYTE_SIZE_C   : positive            := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
       axiClk       : in  sl;

@@ -52,8 +52,7 @@ entity AxiReadPathFifo is
       DATA_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
       -- BUS Config
-      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C
-      );
+      AXI_CONFIG_G : AxiConfigType);
    port (
 
       -- Slave Port

@@ -34,12 +34,12 @@ entity AxiRssiCoreWrapper is
       TPD_G               : time                 := 1 ns;
       SERVER_G            : boolean              := true;  --! Module is server or client
       JUMBO_G             : boolean              := false;  --! true=8192 byte payload, false=1024 byte payload
-      AXI_CONFIG_G        : AxiConfigType        := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and "maybe" not the entire memory address space available
+      AXI_CONFIG_G        : AxiConfigType;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and "maybe" not the entire memory address space available
       -- AXIS Configurations
       APP_STREAMS_G       : positive             := 1;
       APP_STREAM_ROUTES_G : Slv8Array            := (0 => "--------");
-      APP_AXIS_CONFIG_G   : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
-      TSP_AXIS_CONFIG_G   : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
+      APP_AXIS_CONFIG_G   : AxiStreamConfigArray;
+      TSP_AXIS_CONFIG_G   : AxiStreamConfigType;
       -- RSSI Timeouts
       CLK_FREQUENCY_G     : real                 := 156.25E+6;  -- In units of Hz
       TIMEOUT_UNIT_G      : real                 := 1.0E-3;  -- In units of seconds

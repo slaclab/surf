@@ -35,9 +35,9 @@ entity AxiStreamDmaRingWrite is
       ENABLE_UNALIGN_G     : boolean                  := false;
       TRIGGER_USER_BIT_G   : natural range 0 to 7     := 2;
       AXIL_BASE_ADDR_G     : slv(31 downto 0)         := (others => '0');
-      DATA_AXIS_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
-      STATUS_AXIS_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(1);
-      AXI_WRITE_CONFIG_G   : AxiConfigType            := axiConfig(32, 8, 1, 8);
+      DATA_AXIS_CONFIG_G   : AxiStreamConfigType;
+      STATUS_AXIS_CONFIG_G : AxiStreamConfigType;
+      AXI_WRITE_CONFIG_G   : AxiConfigType;
       BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
       BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
    port (
