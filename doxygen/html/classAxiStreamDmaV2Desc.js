@@ -4,7 +4,7 @@ var classAxiStreamDmaV2Desc =
     [ "TPD_G", "classAxiStreamDmaV2Desc.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "CHAN_COUNT_G", "classAxiStreamDmaV2Desc.html#a31dc80165413fddf80ddb1aa9321d3ba", null ],
     [ "AXIL_BASE_ADDR_G", "classAxiStreamDmaV2Desc.html#a7b7fab45bd50d942557843fa52a4a2ee", null ],
-    [ "AXI_CONFIG_G", "classAxiStreamDmaV2Desc.html#ac4846a113db5091362e41049a6e0a221", null ],
+    [ "AXI_CONFIG_G", "classAxiStreamDmaV2Desc.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "DESC_AWIDTH_G", "classAxiStreamDmaV2Desc.html#a2c69891a37127a7d60856aa19fc301f6", null ],
     [ "DESC_ARB_G", "classAxiStreamDmaV2Desc.html#a9c89b1b13f23316820b651bb7582e5a9", null ],
     [ "DESC_SYNTH_MODE_G", "classAxiStreamDmaV2Desc.html#acb9f294dbddaee6615999019aaae03f0", null ],

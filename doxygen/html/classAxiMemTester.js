@@ -5,7 +5,7 @@ var classAxiMemTester =
     [ "START_ADDR_G", "classAxiMemTester.html#a9aa306843da034738ca8cd91532ba6e8", null ],
     [ "STOP_ADDR_G", "classAxiMemTester.html#aca6de12297b2ae856684b43ee94254fb", null ],
     [ "BURST_LEN_G", "classAxiMemTester.html#a611ec36ae05a3a10b9dd4ce13a7ecce2", null ],
-    [ "AXI_CONFIG_G", "classAxiMemTester.html#ac4846a113db5091362e41049a6e0a221", null ],
+    [ "AXI_CONFIG_G", "classAxiMemTester.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "axilClk", "classAxiMemTester.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classAxiMemTester.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "axilReadMaster", "classAxiMemTester.html#aada3e73ee8db4190524295bfa4dff085", null ],

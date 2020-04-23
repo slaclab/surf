@@ -9,7 +9,7 @@ var classSsiPrbsTxOld =
     [ "FIFO_PAUSE_THRESH_G", "classSsiPrbsTxOld.html#af34a1d4134c8125deb726275810eddf1", null ],
     [ "PRBS_SEED_SIZE_G", "classSsiPrbsTxOld.html#a43e45c74b70e5449243d0064b8ea62a4", null ],
     [ "PRBS_TAPS_G", "classSsiPrbsTxOld.html#a2fee5b70adcddf5f3bb3190348d3fcfd", null ],
-    [ "MASTER_AXI_STREAM_CONFIG_G", "classSsiPrbsTxOld.html#a35848ef7f09ac7812d97b0a4b059928c", null ],
+    [ "MASTER_AXI_STREAM_CONFIG_G", "classSsiPrbsTxOld.html#a827a2b81f09af3c4737822048ef5c346", null ],
     [ "MASTER_AXI_PIPE_STAGES_G", "classSsiPrbsTxOld.html#a997319f6704977175d063a56bad7cbdb", null ],
     [ "mAxisClk", "classSsiPrbsTxOld.html#a0a9437a4574cc033cc1ed972bcd89a90", null ],
     [ "mAxisRst", "classSsiPrbsTxOld.html#a576d9d919155bb8c2a43f3959526a52f", null ],

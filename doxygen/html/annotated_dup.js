@@ -572,6 +572,7 @@ var annotated_dup =
     [ "TrueDualPortRamAlteraMf", "classTrueDualPortRamAlteraMf.html", "classTrueDualPortRamAlteraMf" ],
     [ "TrueDualPortRamXpm", "classTrueDualPortRamXpm.html", "classTrueDualPortRamXpm" ],
     [ "UartAxiLiteMaster", "classUartAxiLiteMaster.html", "classUartAxiLiteMaster" ],
+    [ "UartAxiLiteMasterFsm", "classUartAxiLiteMasterFsm.html", "classUartAxiLiteMasterFsm" ],
     [ "UartAxiLiteMasterTb", "classUartAxiLiteMasterTb.html", "classUartAxiLiteMasterTb" ],
     [ "UartBrg", "classUartBrg.html", "classUartBrg" ],
     [ "UartRx", "classUartRx.html", "classUartRx" ],

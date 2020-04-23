@@ -2,7 +2,7 @@ var classAxiRssiTxFsm =
 [
     [ "rtl", "classAxiRssiTxFsm_1_1rtl.html", "classAxiRssiTxFsm_1_1rtl" ],
     [ "TPD_G", "classAxiRssiTxFsm.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "AXI_CONFIG_G", "classAxiRssiTxFsm.html#a0881a0b34e152b267cac98a30291af3d", null ],
+    [ "AXI_CONFIG_G", "classAxiRssiTxFsm.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "BURST_BYTES_G", "classAxiRssiTxFsm.html#a80a7b17441a8611e94fb4f4d36223d88", null ],
     [ "WINDOW_ADDR_SIZE_G", "classAxiRssiTxFsm.html#a10b3de6533fb5385683321557d5eb3df", null ],
     [ "SEGMENT_ADDR_SIZE_G", "classAxiRssiTxFsm.html#afa66a506748b331399ec202bfc315d00", null ],

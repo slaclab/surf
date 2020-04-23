@@ -21,7 +21,7 @@ var classAxiWritePathFifo =
     [ "RESP_MEMORY_TYPE_G", "classAxiWritePathFifo.html#acd2449fbf6d1cf46a87385281f3943cf", null ],
     [ "RESP_CASCADE_SIZE_G", "classAxiWritePathFifo.html#aad826a4a473cf2a9a0bbd802bd89286f", null ],
     [ "RESP_FIFO_ADDR_WIDTH_G", "classAxiWritePathFifo.html#ab9ba9a850f67b8e49f863060287459ea", null ],
-    [ "AXI_CONFIG_G", "classAxiWritePathFifo.html#ac4846a113db5091362e41049a6e0a221", null ],
+    [ "AXI_CONFIG_G", "classAxiWritePathFifo.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "sAxiClk", "classAxiWritePathFifo.html#a0c63b1b6d3a6002c0e383057c9bafd7e", null ],
     [ "sAxiRst", "classAxiWritePathFifo.html#a2e23bacee50b052a05c62292a67a6223", null ],
     [ "sAxiWriteMaster", "classAxiWritePathFifo.html#a8b8fc260c0366948e28fe36b656f1a74", null ],

@@ -3,7 +3,7 @@ var classClinkUart =
     [ "rtl", "classClinkUart_1_1rtl.html", "classClinkUart_1_1rtl" ],
     [ "TPD_G", "classClinkUart.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "UART_READY_EN_G", "classClinkUart.html#a231cab7b8fc5a7dab51b8ea89ca21d2d", null ],
-    [ "UART_AXIS_CONFIG_G", "classClinkUart.html#a622b88a3a727917d3df49ca79ace4b07", null ],
+    [ "UART_AXIS_CONFIG_G", "classClinkUart.html#aebf14c0469c661ed119f688e92128565", null ],
     [ "intClk", "classClinkUart.html#a83d081074246b2faf8171d4e7f786a76", null ],
     [ "intRst", "classClinkUart.html#a6396dc1d3525cfce1618a83696bcd0ae", null ],
     [ "baud", "classClinkUart.html#aa1dfbfd50263480ac828254966bc7c79", null ],

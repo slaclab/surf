@@ -1,8 +1,8 @@
 var classSrpV3Axi_1_1rtl =
 [
-    [ "comb", "classSrpV3Axi_1_1rtl.html#a91dc509e068055ba6674c513e5d39167", null ],
+    [ "comb", "classSrpV3Axi_1_1rtl.html#a53012466a6a9c71261c7ef43776cb88f", null ],
     [ "seq", "classSrpV3Axi_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8", null ],
-    [ "DMA_AXIS_CONFIG_C", "classSrpV3Axi_1_1rtl.html#ad680831ea16a2ea59a5368804e5b6cb1", null ],
+    [ "DMA_AXIS_CONFIG_C", "classSrpV3Axi_1_1rtl.html#a012fbf7862a64459b62b6407314d53f0", null ],
     [ "RegType", "classSrpV3Axi_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "srpAck", "classSrpV3Axi_1_1rtl.html#ae128e78645294b7c75eba1dba6984436", null ],
     [ "wrDmaReq", "classSrpV3Axi_1_1rtl.html#a763df86be94fcc0bf5b8096cedd46fbf", null ],

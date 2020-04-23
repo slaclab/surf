@@ -9,7 +9,7 @@ var classSsiCmdMaster =
     [ "FIFO_ADDR_WIDTH_G", "classSsiCmdMaster.html#a49162f58da3af2b369df54c004d9aff7", null ],
     [ "FIFO_FIXED_THRESH_G", "classSsiCmdMaster.html#a2d4a178da434d7b5edb5651f7acaefdc", null ],
     [ "FIFO_PAUSE_THRESH_G", "classSsiCmdMaster.html#a91d212e4880ba53b7c7d88f102574459", null ],
-    [ "AXI_STREAM_CONFIG_G", "classSsiCmdMaster.html#af35a909cb92ebe014b3bd04381223b1f", null ],
+    [ "AXI_STREAM_CONFIG_G", "classSsiCmdMaster.html#a8a4c64dc0ccb38b5c8275a90f4ccb2b9", null ],
     [ "axisClk", "classSsiCmdMaster.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classSsiCmdMaster.html#a5ede0a6683a5d9ce0f7e474915b99e15", null ],
     [ "sAxisMaster", "classSsiCmdMaster.html#a4be737583df4493f37e21b9da4a67377", null ],

@@ -3,7 +3,7 @@ var classAxiStreamBytePackerTbTx =
     [ "rtl", "classAxiStreamBytePackerTbTx_1_1rtl.html", "classAxiStreamBytePackerTbTx_1_1rtl" ],
     [ "TPD_G", "classAxiStreamBytePackerTbTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "BYTE_SIZE_C", "classAxiStreamBytePackerTbTx.html#a1ed50c96986d53f52692e1957b0e8b1c", null ],
-    [ "AXIS_CONFIG_G", "classAxiStreamBytePackerTbTx.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamBytePackerTbTx.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "axiClk", "classAxiStreamBytePackerTbTx.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiStreamBytePackerTbTx.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "mAxisMaster", "classAxiStreamBytePackerTbTx.html#afd4f0f4d2e88b311f2a3b3705b317922", null ],

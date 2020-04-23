@@ -5,7 +5,7 @@ var classRogueTcpStreamWrap =
     [ "PORT_NUM_G", "classRogueTcpStreamWrap.html#ab3fde3b7c141dad2ba8ed588ea50a206", null ],
     [ "SSI_EN_G", "classRogueTcpStreamWrap.html#ae3836776b8066b9a4b0a03f26c763572", null ],
     [ "CHAN_COUNT_G", "classRogueTcpStreamWrap.html#ae2814427f6ea20390af3e252cf9f222b", null ],
-    [ "AXIS_CONFIG_G", "classRogueTcpStreamWrap.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "AXIS_CONFIG_G", "classRogueTcpStreamWrap.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "axisClk", "classRogueTcpStreamWrap.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classRogueTcpStreamWrap.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "sAxisMaster", "classRogueTcpStreamWrap.html#a4be737583df4493f37e21b9da4a67377", null ],

@@ -9,7 +9,7 @@ var classSsiIncrementingTx =
     [ "FIFO_PAUSE_THRESH_G", "classSsiIncrementingTx.html#af34a1d4134c8125deb726275810eddf1", null ],
     [ "PRBS_SEED_SIZE_G", "classSsiIncrementingTx.html#a43e45c74b70e5449243d0064b8ea62a4", null ],
     [ "PRBS_TAPS_G", "classSsiIncrementingTx.html#a2fee5b70adcddf5f3bb3190348d3fcfd", null ],
-    [ "MASTER_AXI_STREAM_CONFIG_G", "classSsiIncrementingTx.html#aa8c50b77ca706863015ab6797061a20b", null ],
+    [ "MASTER_AXI_STREAM_CONFIG_G", "classSsiIncrementingTx.html#a827a2b81f09af3c4737822048ef5c346", null ],
     [ "MASTER_AXI_PIPE_STAGES_G", "classSsiIncrementingTx.html#a997319f6704977175d063a56bad7cbdb", null ],
     [ "mAxisClk", "classSsiIncrementingTx.html#a0a9437a4574cc033cc1ed972bcd89a90", null ],
     [ "mAxisRst", "classSsiIncrementingTx.html#a576d9d919155bb8c2a43f3959526a52f", null ],

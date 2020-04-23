@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 510;
+var viewWidth = 573;
 var viewHeight = 237;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>AxiLiteMaster</title>
-<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-233 506,-233 506,4 -4,4"/>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-233 569,-233 569,4 -4,4"/>
 <!-- Node0 -->
 <g id="node1" class="node">
 <title>Node0</title>
@@ -139,9 +139,9 @@ var sectionId = 'dynsection-0';
 <!-- Node10 -->
 <g id="node11" class="node">
 <title>Node10</title>
-<g id="a_node11"><a xlink:href="classUartAxiLiteMaster.html" target="_top" xlink:title="UartAxiLiteMaster">
-<polygon fill="#ffffff" stroke="#000000" points="135.5,-.5 135.5,-19.5 239.5,-19.5 239.5,-.5 135.5,-.5"/>
-<text text-anchor="middle" x="187.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">UartAxiLiteMaster</text>
+<g id="a_node11"><a xlink:href="classUartAxiLiteMasterFsm.html" target="_top" xlink:title="UartAxiLiteMasterFsm">
+<polygon fill="#ffffff" stroke="#000000" points="125,-.5 125,-19.5 250,-19.5 250,-.5 125,-.5"/>
+<text text-anchor="middle" x="187.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">UartAxiLiteMasterFsm</text>
 </a>
 </g>
 </g>
@@ -185,16 +185,16 @@ var sectionId = 'dynsection-0';
 <g id="node5" class="node">
 <title>Node4</title>
 <g id="a_node5"><a xlink:href="classSff8472.html" target="_top" xlink:title="Sff8472">
-<polygon fill="#ffffff" stroke="#000000" points="449,-171.5 449,-190.5 502,-190.5 502,-171.5 449,-171.5"/>
-<text text-anchor="middle" x="475.5" y="-178.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Sff8472</text>
+<polygon fill="#ffffff" stroke="#000000" points="480.5,-171.5 480.5,-190.5 533.5,-190.5 533.5,-171.5 480.5,-171.5"/>
+<text text-anchor="middle" x="507" y="-178.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">Sff8472</text>
 </a>
 </g>
 </g>
 <!-- Node3&#45;&gt;Node4 -->
 <g id="edge4" class="edge">
 <title>Node3&#45;&gt;Node4</title>
-<path fill="none" stroke="#191970" d="M412.0812,-181C424.9597,-181 437.9506,-181 448.7919,-181"/>
-<polygon fill="#191970" stroke="#191970" points="411.8201,-177.5001 401.8201,-181 411.8201,-184.5001 411.8201,-177.5001"/>
+<path fill="none" stroke="#191970" d="M412.0624,-181C435.5673,-181 461.3808,-181 480.1502,-181"/>
+<polygon fill="#191970" stroke="#191970" points="411.8096,-177.5001 401.8096,-181 411.8095,-184.5001 411.8096,-177.5001"/>
 </g>
 <!-- Node8 -->
 <g id="node9" class="node">
@@ -214,17 +214,32 @@ var sectionId = 'dynsection-0';
 <!-- Node11 -->
 <g id="node12" class="node">
 <title>Node11</title>
-<g id="a_node12"><a xlink:href="classUartAxiLiteMasterTb.html" target="_top" xlink:title="UartAxiLiteMasterTb">
-<polygon fill="#ffffff" stroke="#000000" points="294.5,-.5 294.5,-19.5 410.5,-19.5 410.5,-.5 294.5,-.5"/>
-<text text-anchor="middle" x="352.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">UartAxiLiteMasterTb</text>
+<g id="a_node12"><a xlink:href="classUartAxiLiteMaster.html" target="_top" xlink:title="UartAxiLiteMaster">
+<polygon fill="#ffffff" stroke="#000000" points="300.5,-.5 300.5,-19.5 404.5,-19.5 404.5,-.5 300.5,-.5"/>
+<text text-anchor="middle" x="352.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">UartAxiLiteMaster</text>
 </a>
 </g>
 </g>
 <!-- Node10&#45;&gt;Node11 -->
 <g id="edge11" class="edge">
 <title>Node10&#45;&gt;Node11</title>
-<path fill="none" stroke="#191970" d="M250.0963,-10C264.6148,-10 280.0079,-10 294.3272,-10"/>
-<polygon fill="#191970" stroke="#191970" points="249.7071,-6.5001 239.707,-10 249.707,-13.5001 249.7071,-6.5001"/>
+<path fill="none" stroke="#191970" d="M260.5088,-10C273.9107,-10 287.6512,-10 300.2903,-10"/>
+<polygon fill="#191970" stroke="#191970" points="260.3502,-6.5001 250.3501,-10 260.3501,-13.5001 260.3502,-6.5001"/>
+</g>
+<!-- Node12 -->
+<g id="node13" class="node">
+<title>Node12</title>
+<g id="a_node13"><a xlink:href="classUartAxiLiteMasterTb.html" target="_top" xlink:title="UartAxiLiteMasterTb">
+<polygon fill="#ffffff" stroke="#000000" points="449,-.5 449,-19.5 565,-19.5 565,-.5 449,-.5"/>
+<text text-anchor="middle" x="507" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">UartAxiLiteMasterTb</text>
+</a>
+</g>
+</g>
+<!-- Node11&#45;&gt;Node12 -->
+<g id="edge12" class="edge">
+<title>Node11&#45;&gt;Node12</title>
+<path fill="none" stroke="#191970" d="M414.9568,-10C426.1725,-10 437.8205,-10 448.9066,-10"/>
+<polygon fill="#191970" stroke="#191970" points="414.8067,-6.5001 404.8067,-10 414.8066,-13.5001 414.8067,-6.5001"/>
 </g>
 </g>
 </svg>

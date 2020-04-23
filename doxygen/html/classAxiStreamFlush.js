@@ -2,7 +2,7 @@ var classAxiStreamFlush =
 [
     [ "rtl", "classAxiStreamFlush_1_1rtl.html", "classAxiStreamFlush_1_1rtl" ],
     [ "TPD_G", "classAxiStreamFlush.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "AXIS_CONFIG_G", "classAxiStreamFlush.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamFlush.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "SSI_EN_G", "classAxiStreamFlush.html#a0cff2739acd51a0203f91abbc0fe3e93", null ],
     [ "axisClk", "classAxiStreamFlush.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamFlush.html#a044b1bf79201c595c20474cecf020a5d", null ],

@@ -3,7 +3,7 @@ var classClinkFraming =
     [ "rtl", "classClinkFraming_1_1rtl.html", "classClinkFraming_1_1rtl" ],
     [ "TPD_G", "classClinkFraming.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_DATA_CLK_G", "classClinkFraming.html#aa018ec7d5bd70422485d138fd5dae4c3", null ],
-    [ "DATA_AXIS_CONFIG_G", "classClinkFraming.html#a1a6a7604c118079a2450ae329671063f", null ],
+    [ "DATA_AXIS_CONFIG_G", "classClinkFraming.html#acc665534f6b05e1ca2519171a044e3fd", null ],
     [ "sysClk", "classClinkFraming.html#aa8e786917e21f0003ac4b7181c6a4270", null ],
     [ "sysRst", "classClinkFraming.html#ad6f88b30c93e1fee7769c9268b934617", null ],
     [ "chanConfig", "classClinkFraming.html#a5f11e4b25189c7eb3ca2da6519756fe2", null ],

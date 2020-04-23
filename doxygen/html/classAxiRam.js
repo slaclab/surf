@@ -5,7 +5,7 @@ var classAxiRam =
     [ "SYNTH_MODE_G", "classAxiRam.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "MEMORY_TYPE_G", "classAxiRam.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "READ_LATENCY_G", "classAxiRam.html#ac5ee5075e960c9650d1eca532f29c651", null ],
-    [ "AXI_CONFIG_G", "classAxiRam.html#aa3116dec14478679c4f985c92a470290", null ],
+    [ "AXI_CONFIG_G", "classAxiRam.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "axiClk", "classAxiRam.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiRam.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "sAxiWriteMaster", "classAxiRam.html#a8b8fc260c0366948e28fe36b656f1a74", null ],

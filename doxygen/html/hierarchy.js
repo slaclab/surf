@@ -1317,7 +1317,9 @@ var hierarchy =
       ] ],
       [ "UartAxiLiteMaster", "classUartAxiLiteMaster.html", [
         [ "UartWrapper", "classUartWrapper.html", null ],
-        [ "AxiLiteMaster", "classAxiLiteMaster.html", null ]
+        [ "UartAxiLiteMasterFsm", "classUartAxiLiteMasterFsm.html", [
+          [ "AxiLiteMaster", "classAxiLiteMaster.html", null ]
+        ] ]
       ] ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "SemWrapper", "classSemWrapper.html", null ],

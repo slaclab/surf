@@ -1,6 +1,6 @@
 var classAxiLiteSequencerRam_1_1rtl =
 [
-    [ "comb", "classAxiLiteSequencerRam_1_1rtl.html#a5014aca50ea82ab7ed3f498822821072", null ],
+    [ "comb", "classAxiLiteSequencerRam_1_1rtl.html#a895af3476b9de24022063a0edbb894df", null ],
     [ "seq", "classAxiLiteSequencerRam_1_1rtl.html#a72bbc70fc4a5d3542ed50c4c98efa103", null ],
     [ "AXI_DEC_ADDR_RANGE_C", "classAxiLiteSequencerRam_1_1rtl.html#ad58144d8edc63730355268f73686825a", null ],
     [ "AXI_RAM_ADDR_HIGH_C", "classAxiLiteSequencerRam_1_1rtl.html#abdbe6396c0d63c5ceb031c33488e6b94", null ],
@@ -8,6 +8,8 @@ var classAxiLiteSequencerRam_1_1rtl =
     [ "AXI_RAM_ADDR_RANGE_C", "classAxiLiteSequencerRam_1_1rtl.html#aeb7066ea1389e98ee17822e2dcc0fa00", null ],
     [ "StateType", "classAxiLiteSequencerRam_1_1rtl.html#aa02c1b59de17b4cb8b3d6f364264c469", null ],
     [ "RegType", "classAxiLiteSequencerRam_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
+    [ "extBusy", "classAxiLiteSequencerRam_1_1rtl.html#ac36b4d489eea39440fea90a72c653b7d", null ],
+    [ "extDone", "classAxiLiteSequencerRam_1_1rtl.html#a9bba19976fded9dda80348699b34f247", null ],
     [ "sAxilWriteSlave", "classAxiLiteSequencerRam_1_1rtl.html#af29e871e87e26284017942c20f654668", null ],
     [ "sAxilReadSlave", "classAxiLiteSequencerRam_1_1rtl.html#a98200ca195e6f06253c06f1bc7920482", null ],
     [ "din", "classAxiLiteSequencerRam_1_1rtl.html#a38b3a59738db21f3a8445be37e90d6f3", null ],
@@ -20,7 +22,7 @@ var classAxiLiteSequencerRam_1_1rtl =
     [ "rdLatecy", "classAxiLiteSequencerRam_1_1rtl.html#a87c9360710742c3f348453dce7a247a5", null ],
     [ "req", "classAxiLiteSequencerRam_1_1rtl.html#a75a61b296175ca202baa9f4650b9e351", null ],
     [ "state", "classAxiLiteSequencerRam_1_1rtl.html#a29ddea0778c5dba9ca0b08e7188a5a57", null ],
-    [ "REG_INIT_C", "classAxiLiteSequencerRam_1_1rtl.html#ac262b4a73cbb1a67d37dea368de8a189", null ],
+    [ "REG_INIT_C", "classAxiLiteSequencerRam_1_1rtl.html#a8630e0b99fba71d15c5232af2b2ff30c", null ],
     [ "r", "classAxiLiteSequencerRam_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classAxiLiteSequencerRam_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
     [ "seqData", "classAxiLiteSequencerRam_1_1rtl.html#a061c29f2e10eaf77a8933ecfa23e0d1d", null ],

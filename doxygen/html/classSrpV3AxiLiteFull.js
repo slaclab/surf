@@ -8,7 +8,7 @@ var classSrpV3AxiLiteFull =
     [ "SLAVE_READY_EN_G", "classSrpV3AxiLiteFull.html#a732db2237e0f6e1568cf997454ee9f4a", null ],
     [ "GEN_SYNC_FIFO_G", "classSrpV3AxiLiteFull.html#a74265af003d7cd4b0443ced520ac6722", null ],
     [ "AXIL_CLK_FREQ_G", "classSrpV3AxiLiteFull.html#a073ff796d69f24757efa7131691bd12f", null ],
-    [ "AXI_STREAM_CONFIG_G", "classSrpV3AxiLiteFull.html#a2e3d6cc9a6d159e177d96df7f1758e66", null ],
+    [ "AXI_STREAM_CONFIG_G", "classSrpV3AxiLiteFull.html#a8a4c64dc0ccb38b5c8275a90f4ccb2b9", null ],
     [ "sAxisClk", "classSrpV3AxiLiteFull.html#aa685d94966e12ee1feec1c91fef4c4d0", null ],
     [ "sAxisRst", "classSrpV3AxiLiteFull.html#a7dc2d65783b78f52a8f7bb3df645fc2d", null ],
     [ "sAxisMaster", "classSrpV3AxiLiteFull.html#a4be737583df4493f37e21b9da4a67377", null ],

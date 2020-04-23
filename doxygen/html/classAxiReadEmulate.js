@@ -3,7 +3,7 @@ var classAxiReadEmulate =
     [ "structure", "classAxiReadEmulate_1_1structure.html", "classAxiReadEmulate_1_1structure" ],
     [ "TPD_G", "classAxiReadEmulate.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "LATENCY_G", "classAxiReadEmulate.html#ae3985b6ba797f717a132f23ec92a8506", null ],
-    [ "AXI_CONFIG_G", "classAxiReadEmulate.html#ac4846a113db5091362e41049a6e0a221", null ],
+    [ "AXI_CONFIG_G", "classAxiReadEmulate.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "SIM_DEBUG_G", "classAxiReadEmulate.html#ab99551af01950558feb2ec7fe7b6c1ea", null ],
     [ "axiClk", "classAxiReadEmulate.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiReadEmulate.html#a399a775bae9ae4819d5af6838a95e28e", null ],

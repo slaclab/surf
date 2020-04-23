@@ -2,7 +2,7 @@ var classAxiStreamGearboxUnpack =
 [
     [ "rtl", "classAxiStreamGearboxUnpack_1_1rtl.html", "classAxiStreamGearboxUnpack_1_1rtl" ],
     [ "TPD_G", "classAxiStreamGearboxUnpack.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "AXI_STREAM_CONFIG_G", "classAxiStreamGearboxUnpack.html#af35a909cb92ebe014b3bd04381223b1f", null ],
+    [ "AXI_STREAM_CONFIG_G", "classAxiStreamGearboxUnpack.html#a8a4c64dc0ccb38b5c8275a90f4ccb2b9", null ],
     [ "RANGE_HIGH_G", "classAxiStreamGearboxUnpack.html#a3dab8715231eebaaa10bbb40d7278215", null ],
     [ "RANGE_LOW_G", "classAxiStreamGearboxUnpack.html#a818e79723c08071cd0a3a048394ec1a3", null ],
     [ "axisClk", "classAxiStreamGearboxUnpack.html#ac220cc2710ba738744915c3b2a0f43bc", null ],

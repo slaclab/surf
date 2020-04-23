@@ -8,7 +8,7 @@ var classSrpV3Core =
     [ "SLAVE_READY_EN_G", "classSrpV3Core.html#a732db2237e0f6e1568cf997454ee9f4a", null ],
     [ "GEN_SYNC_FIFO_G", "classSrpV3Core.html#a74265af003d7cd4b0443ced520ac6722", null ],
     [ "SRP_CLK_FREQ_G", "classSrpV3Core.html#aac19126cc35634fae9a07675805c59c7", null ],
-    [ "AXI_STREAM_CONFIG_G", "classSrpV3Core.html#a2e3d6cc9a6d159e177d96df7f1758e66", null ],
+    [ "AXI_STREAM_CONFIG_G", "classSrpV3Core.html#a8a4c64dc0ccb38b5c8275a90f4ccb2b9", null ],
     [ "UNALIGNED_ACCESS_G", "classSrpV3Core.html#af45c8b05a72f44bd69d1507c575ee1f8", null ],
     [ "BYTE_ACCESS_G", "classSrpV3Core.html#a3efa36d76dc15b1cecd0dc57c74dad57", null ],
     [ "WRITE_EN_G", "classSrpV3Core.html#a5b6ddcaedd4bece6af5692124051e05e", null ],

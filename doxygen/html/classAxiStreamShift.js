@@ -2,7 +2,7 @@ var classAxiStreamShift =
 [
     [ "rtl", "classAxiStreamShift_1_1rtl.html", "classAxiStreamShift_1_1rtl" ],
     [ "TPD_G", "classAxiStreamShift.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "AXIS_CONFIG_G", "classAxiStreamShift.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamShift.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "PIPE_STAGES_G", "classAxiStreamShift.html#ac2baa1c398fae7c51e6f466706e211d6", null ],
     [ "ADD_VALID_EN_G", "classAxiStreamShift.html#abfbe8c51ad6c7b5b6ef6049d4acd3373", null ],
     [ "BYP_SHIFT_G", "classAxiStreamShift.html#aaecdf63ad60b9bad6058c47d21155f46", null ],

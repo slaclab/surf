@@ -8,7 +8,7 @@ var classSsiPrbsRateGen =
     [ "CASCADE_SIZE_G", "classSsiPrbsRateGen.html#a0020cacf583e8690929de5d04b60851c", null ],
     [ "FIFO_ADDR_WIDTH_G", "classSsiPrbsRateGen.html#aa6569dec456d16b555ae095a761f9533", null ],
     [ "AXIS_CLK_FREQ_G", "classSsiPrbsRateGen.html#ad459d012af0700c2b2299cf90a94f09f", null ],
-    [ "AXIS_CONFIG_G", "classSsiPrbsRateGen.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "AXIS_CONFIG_G", "classSsiPrbsRateGen.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "mAxisClk", "classSsiPrbsRateGen.html#a0a9437a4574cc033cc1ed972bcd89a90", null ],
     [ "mAxisRst", "classSsiPrbsRateGen.html#a576d9d919155bb8c2a43f3959526a52f", null ],
     [ "mAxisMaster", "classSsiPrbsRateGen.html#afd4f0f4d2e88b311f2a3b3705b317922", null ],

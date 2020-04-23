@@ -3,7 +3,7 @@ var classSsiIbFrameFilter =
     [ "SsiIbFrameFilter.rtl", "classSsiIbFrameFilter_1_1rtl.html", "classSsiIbFrameFilter_1_1rtl" ],
     [ "TPD_G", "classSsiIbFrameFilter.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SLAVE_READY_EN_G", "classSsiIbFrameFilter.html#a6ae93f6a92e450756c421bbb436b2a06", null ],
-    [ "AXIS_CONFIG_G", "classSsiIbFrameFilter.html#aeed4b4a3ef8d143d49e0ecf7c89f41fc", null ],
+    [ "AXIS_CONFIG_G", "classSsiIbFrameFilter.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "sAxisMaster", "classSsiIbFrameFilter.html#a4be737583df4493f37e21b9da4a67377", null ],
     [ "sAxisSlave", "classSsiIbFrameFilter.html#a4e7681b5766a6f51851dfb086a6bf45a", null ],
     [ "sAxisCtrl", "classSsiIbFrameFilter.html#af813b442d76eb79e8526d664bd943106", null ],

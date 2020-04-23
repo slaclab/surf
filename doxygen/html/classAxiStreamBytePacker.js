@@ -2,8 +2,8 @@ var classAxiStreamBytePacker =
 [
     [ "rtl", "classAxiStreamBytePacker_1_1rtl.html", "classAxiStreamBytePacker_1_1rtl" ],
     [ "TPD_G", "classAxiStreamBytePacker.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "SLAVE_CONFIG_G", "classAxiStreamBytePacker.html#af756534228a05242408616d45932000e", null ],
-    [ "MASTER_CONFIG_G", "classAxiStreamBytePacker.html#ad66e82680dae2ee4bcb44351003b6145", null ],
+    [ "SLAVE_CONFIG_G", "classAxiStreamBytePacker.html#a8b3d2ee4d392fac43ae649438d5c96b6", null ],
+    [ "MASTER_CONFIG_G", "classAxiStreamBytePacker.html#a27ca8b9757fc787179659f2ebebb3fd9", null ],
     [ "axiClk", "classAxiStreamBytePacker.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiStreamBytePacker.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "sAxisMaster", "classAxiStreamBytePacker.html#a4be737583df4493f37e21b9da4a67377", null ],

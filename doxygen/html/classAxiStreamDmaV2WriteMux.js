@@ -2,7 +2,7 @@ var classAxiStreamDmaV2WriteMux =
 [
     [ "rtl", "classAxiStreamDmaV2WriteMux_1_1rtl.html", "classAxiStreamDmaV2WriteMux_1_1rtl" ],
     [ "TPD_G", "classAxiStreamDmaV2WriteMux.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "AXI_CONFIG_G", "classAxiStreamDmaV2WriteMux.html#ac4846a113db5091362e41049a6e0a221", null ],
+    [ "AXI_CONFIG_G", "classAxiStreamDmaV2WriteMux.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "AXI_READY_EN_G", "classAxiStreamDmaV2WriteMux.html#ab590117d70526b60646869f12fc9e8ca", null ],
     [ "axiClk", "classAxiStreamDmaV2WriteMux.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiStreamDmaV2WriteMux.html#a399a775bae9ae4819d5af6838a95e28e", null ],

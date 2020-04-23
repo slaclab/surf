@@ -17,7 +17,7 @@ var classAxiReadPathFifo =
     [ "DATA_MEMORY_TYPE_G", "classAxiReadPathFifo.html#a35d4d2cc140cecdb82b9c289a0ca3a38", null ],
     [ "DATA_CASCADE_SIZE_G", "classAxiReadPathFifo.html#ab50753824cc22f85b3af017dee567397", null ],
     [ "DATA_FIFO_ADDR_WIDTH_G", "classAxiReadPathFifo.html#a47e662d777131c9d3d968af036e535c1", null ],
-    [ "AXI_CONFIG_G", "classAxiReadPathFifo.html#ac4846a113db5091362e41049a6e0a221", null ],
+    [ "AXI_CONFIG_G", "classAxiReadPathFifo.html#a5784155ecf934a441320f66116b4a7b6", null ],
     [ "sAxiClk", "classAxiReadPathFifo.html#a0c63b1b6d3a6002c0e383057c9bafd7e", null ],
     [ "sAxiRst", "classAxiReadPathFifo.html#a2e23bacee50b052a05c62292a67a6223", null ],
     [ "sAxiReadMaster", "classAxiReadPathFifo.html#a6cb1b117f647e65d76c8cea1395561d2", null ],

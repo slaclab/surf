@@ -1,6 +1,6 @@
 var classUartAxiLiteMaster =
 [
-    [ "UartAxiLiteMaster.rtl", "classUartAxiLiteMaster_1_1rtl.html", "classUartAxiLiteMaster_1_1rtl" ],
+    [ "UartAxiLiteMaster.mapping", "classUartAxiLiteMaster_1_1mapping.html", "classUartAxiLiteMaster_1_1mapping" ],
     [ "TPD_G", "classUartAxiLiteMaster.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "AXIL_CLK_FREQ_G", "classUartAxiLiteMaster.html#a56938dab0bf9c8435bdd7382f3f8e0ae", null ],
     [ "BAUD_RATE_G", "classUartAxiLiteMaster.html#a6fb9acc08addf261d2960ca437aefae9", null ],

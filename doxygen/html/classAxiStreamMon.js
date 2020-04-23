@@ -4,7 +4,7 @@ var classAxiStreamMon =
     [ "TPD_G", "classAxiStreamMon.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_CLK_G", "classAxiStreamMon.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "AXIS_CLK_FREQ_G", "classAxiStreamMon.html#ad459d012af0700c2b2299cf90a94f09f", null ],
-    [ "AXIS_CONFIG_G", "classAxiStreamMon.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamMon.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "axisClk", "classAxiStreamMon.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamMon.html#a044b1bf79201c595c20474cecf020a5d", null ],
     [ "axisMaster", "classAxiStreamMon.html#a52188e4a173e93551b2b40d4ce1470e2", null ],

@@ -2,8 +2,8 @@ var classAxiResize =
 [
     [ "rtl", "classAxiResize_1_1rtl.html", "classAxiResize_1_1rtl" ],
     [ "TPD_G", "classAxiResize.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "SLAVE_AXI_CONFIG_G", "classAxiResize.html#a36e2f87682a99e4b8a03d90ba739dfd8", null ],
-    [ "MASTER_AXI_CONFIG_G", "classAxiResize.html#a341860838a3460344230769e137bec4e", null ],
+    [ "SLAVE_AXI_CONFIG_G", "classAxiResize.html#a2e77ddd8d88bc524c71b05717593479d", null ],
+    [ "MASTER_AXI_CONFIG_G", "classAxiResize.html#ad9b7fdb15a74eced12e7ce264670d5e7", null ],
     [ "axiClk", "classAxiResize.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiResize.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "sAxiReadMaster", "classAxiResize.html#a6cb1b117f647e65d76c8cea1395561d2", null ],

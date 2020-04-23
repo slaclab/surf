@@ -9,7 +9,7 @@ var classSrpV0AxiLite =
     [ "GEN_SYNC_FIFO_G", "classSrpV0AxiLite.html#a74265af003d7cd4b0443ced520ac6722", null ],
     [ "FIFO_ADDR_WIDTH_G", "classSrpV0AxiLite.html#a9cb07eca4f1e6525763e4a6c2246ab39", null ],
     [ "FIFO_PAUSE_THRESH_G", "classSrpV0AxiLite.html#accf28a9c0bd06e0908d7e925af07f31a", null ],
-    [ "AXI_STREAM_CONFIG_G", "classSrpV0AxiLite.html#af35a909cb92ebe014b3bd04381223b1f", null ],
+    [ "AXI_STREAM_CONFIG_G", "classSrpV0AxiLite.html#a8a4c64dc0ccb38b5c8275a90f4ccb2b9", null ],
     [ "sAxisClk", "classSrpV0AxiLite.html#aa685d94966e12ee1feec1c91fef4c4d0", null ],
     [ "sAxisRst", "classSrpV0AxiLite.html#a7c7bc4ee6f2c3dac6dfd844fedfaaf45", null ],
     [ "sAxisMaster", "classSrpV0AxiLite.html#a4be737583df4493f37e21b9da4a67377", null ],

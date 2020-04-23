@@ -16,7 +16,7 @@ var classSsiPrbsTx =
     [ "PRBS_SEED_SIZE_G", "classSsiPrbsTx.html#acf6ef269473efb72661845af23652b28", null ],
     [ "PRBS_TAPS_G", "classSsiPrbsTx.html#a2fee5b70adcddf5f3bb3190348d3fcfd", null ],
     [ "PRBS_INCREMENT_G", "classSsiPrbsTx.html#ab77ee4c05dff6ccc28632ae5e1eabeff", null ],
-    [ "MASTER_AXI_STREAM_CONFIG_G", "classSsiPrbsTx.html#a35848ef7f09ac7812d97b0a4b059928c", null ],
+    [ "MASTER_AXI_STREAM_CONFIG_G", "classSsiPrbsTx.html#a827a2b81f09af3c4737822048ef5c346", null ],
     [ "MASTER_AXI_PIPE_STAGES_G", "classSsiPrbsTx.html#a997319f6704977175d063a56bad7cbdb", null ],
     [ "mAxisClk", "classSsiPrbsTx.html#a0a9437a4574cc033cc1ed972bcd89a90", null ],
     [ "mAxisRst", "classSsiPrbsTx.html#a576d9d919155bb8c2a43f3959526a52f", null ],

@@ -5,7 +5,7 @@ var classAxiStreamBatcher =
     [ "MAX_NUMBER_SUB_FRAMES_G", "classAxiStreamBatcher.html#ab2c43bb53f770f42ffd43fb7ad2d5fcb", null ],
     [ "SUPER_FRAME_BYTE_THRESHOLD_G", "classAxiStreamBatcher.html#a0aee35b94f0631c3c9bb6e2acf277b3a", null ],
     [ "MAX_CLK_GAP_G", "classAxiStreamBatcher.html#ae7507b2dc7c0b770e216b9dd2661594c", null ],
-    [ "AXIS_CONFIG_G", "classAxiStreamBatcher.html#a129eaf71f6056f837f37b4d59ce80a70", null ],
+    [ "AXIS_CONFIG_G", "classAxiStreamBatcher.html#ac0856eaeac563c35dee06a5d50b571f4", null ],
     [ "INPUT_PIPE_STAGES_G", "classAxiStreamBatcher.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
     [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamBatcher.html#ab92515f9de5f37fe8533ce31793919b3", null ],
     [ "axisClk", "classAxiStreamBatcher.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
