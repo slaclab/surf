@@ -1,4 +1,3 @@
-
 import pyrogue as pr
 import rogue
 
@@ -10,11 +9,6 @@ class AxiLiteMasterProxy(pr.Device):
 
         super().__init__(size=4 hubMin=4, hubMax=4, **kwargs)
 
-        self._pollThread = threading.Thread(target=self._pollWorker)
-        self._pollThread.start()
-        self._cond = threading.Condition(self._memLock)
-
-        self._id = 0
         self._dataBa = bytearray(4)
 
         self.add(pr.RemoteVariable(
@@ -59,72 +53,57 @@ class AxiLiteMasterProxy(pr.Device):
             bitOffset = 0,
             bitSize = 32,
             base = pr.UInt))
-            
-    def _pollWorker(self):
-        while True:
-            self._cond.wait()
+
+    def _doTransaction(self, transaction):
+        with self._memLock, transaction.lock():
+            # Clear any existing errors
+            self._setError(0)
+
+            # Get the transaction address and write it to the proxy address register
+            addr = transaction.address()
+            self.Addr.set(addr, write=True)
+
+            if transation.type() == rogue.interfaces.memory.Write:
+                # Convert data bytes to int and write data to proxy register
+                transaction.getData(self._dataBa, 0)
+                data = int.from_bytes(self._dataBa, 'little', signed=False)
+                self.Data.set(data, write=True)
+
+                # Kick off the proxy transaction
+                self.Rnw.setDisp('Write', write=True)
+
+            elif transaction.type() == rogue.interfaces.memory.Read or
+                 transaction.type() == rogue.interfaces.memory.Verify:
+
+                 # Kick off the read proxy txn
+                 self.Rnw.setDisp('Read', write=True)
+
+            else:
+                # Post transactions not allowed
+                transaction.error(f'Unsupported transaction type {transaction.type()}')
+                return
 
             # Poll done register
+            # Probably need some timeout here
             done = False
             while done is False:
                 done = self.Done.get(read=True)
                 time.sleep(.1)
 
-                tran = self._getTransaction(self._id)
-                with tran.lock():
+            # Check for error flags
+            resp = self.Resp.get(read=True)
+            if resp != 0:
+                tran.error(f'AXIL tranaction failed with RESP: {resp}')
+                return
 
-                # Grab resp
-                resp = self.Resp.getDisp(read=True)
-                if resp != 'OK':
-                    tran.error(f'AXIL tranaction failed with RESP: {resp}')
-                    return
+            # Finish the transaction
+            if self.Rnw.valueDisp() == 'Write':
+                tran.done()
+            else:
+                data = self.Data.get(read=True)
+                self._dataBa = data.toBytes(4, 'little', signed=False)
+                tran.setData(self._dataBa, 0)
+                tran.done()
 
-                if self.Rnw.valueDisp() == 'Write':
-                    tran.done()
-                else:
-                    data = self.Data.get()
-                    self._dataBa = data.toBytes(4, 'little', signed=False)
-                    tran.setData(self._dataBa, 0)
-                    tran.done()
 
-    def _doTransaction(self, transaction):
-        with self._memLock:
-            with transaction.lock():
-
-                # Clear any existing errors
-                self._setError(0)
-
-                # Save the txn id
-                self._id = transaction.id()
-
-                # Get the transaction address and write it to the proxy address register
-                addr = transaction.address()
-                self.Addr.set(addr, write=True)
-
-                if transation.type() == rogue.interfaces.memory.Write:
-                    # Convert data bytes to int and write data to proxy register
-                    transaction.getData(self._dataBa, 0)
-                    data = int.from_bytes(self._dataBa, 'little', signed=False)
-                    self.Data.set(data, write=True)
-
-                    # Kick off the proxy transaction
-                    self.Rnw.setDisp('Write', write=True)
-
-                    # Notify the poll thread
-                    self._cond.notify()
-                    
-                elif transaction.type() == rogue.interfaces.memory.Read or
-                     transaction.type() == rogue.interfaces.memory.Verify:
-
-                     # Kick off the read proxy txn
-                     self.Rnw.setDisp('Read', write=True)
-
-                     # Nofify the poll thread
-                     self._cond.notify()
-
-                else:
-                    transaction.error(f'Unsupported transaction type {transaction.type()}')
-                        
-
-                
                 
