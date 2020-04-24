@@ -3,6 +3,8 @@
 -------------------------------------------------------------------------------
 -- Description: IP Integrator Wrapper for surf.AxiVersion
 -------------------------------------------------------------------------------
+-- TCL Command: create_bd_cell -type module -reference AxiVersionIpIntegrator AxiVersion_0
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -18,7 +20,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 library surf;
-use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 library ruckus;
@@ -76,8 +77,11 @@ architecture mapping of AxiVersionIpIntegrator is
 
    constant AXI_ADDR_WIDTH_C : positive := 12;
 
-   attribute X_INTERFACE_INFO                      : string;
-   attribute X_INTERFACE_PARAMETER                 : string;
+   constant CLK_PERIOD_C : real := (1.0/FREQ_HZ);  -- units of seconds   
+
+   attribute X_INTERFACE_INFO      : string;
+   attribute X_INTERFACE_PARAMETER : string;
+   
    attribute X_INTERFACE_INFO of S_AXI_RREADY      : signal is "xilinx.com:interface:aximm:1.0 S_AXI RREADY";
    attribute X_INTERFACE_INFO of S_AXI_RVALID      : signal is "xilinx.com:interface:aximm:1.0 S_AXI RVALID";
    attribute X_INTERFACE_INFO of S_AXI_RRESP       : signal is "xilinx.com:interface:aximm:1.0 S_AXI RRESP";
@@ -93,6 +97,7 @@ architecture mapping of AxiVersionIpIntegrator is
    attribute X_INTERFACE_INFO of S_AXI_WDATA       : signal is "xilinx.com:interface:aximm:1.0 S_AXI WDATA";
    attribute X_INTERFACE_INFO of S_AXI_AWREADY     : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWREADY";
    attribute X_INTERFACE_INFO of S_AXI_AWVALID     : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWVALID";
+   attribute X_INTERFACE_INFO of S_AXI_AWADDR      : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWADDR";
    attribute X_INTERFACE_PARAMETER of S_AXI_AWADDR : signal is
       "XIL_INTERFACENAME S_AXI, " &
       "PROTOCOL AXI4LITE, " &
@@ -101,23 +106,37 @@ architecture mapping of AxiVersionIpIntegrator is
       "HAS_WSTRB 0, "&
       "MAX_BURST_LENGTH 1, " &
       "ADDR_WIDTH " & integer'image(AXI_ADDR_WIDTH_C) & ", " &
-      "FREQ_HZ " & hstr(FREQ_HZ);
-   attribute X_INTERFACE_INFO of S_AXI_AWADDR       : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWADDR";
-   attribute X_INTERFACE_PARAMETER of S_AXI_ARESETN : signal is "XIL_INTERFACENAME RST.S_AXI_ARESETN, POLARITY ACTIVE_LOW";
-   attribute X_INTERFACE_INFO of S_AXI_ARESETN      : signal is "xilinx.com:signal:reset:1.0 RST.S_AXI_ARESETN RST";
-   attribute X_INTERFACE_PARAMETER of S_AXI_ACLK    : signal is "XIL_INTERFACENAME CLK.S_AXI_ACLK, ASSOCIATED_BUSIF S_AXI, ASSOCIATED_RESET S_AXI_ARESETN, FREQ_HZ " & hstr(base);
-   attribute X_INTERFACE_INFO of S_AXI_ACLK         : signal is "xilinx.com:signal:clock:1.0 CLK.S_AXI_ACLK CLK";
+      "FREQ_HZ " & real'image(FREQ_HZ);
 
-   constant CLK_PERIOD_C : real := (1.0/FREQ_HZ);  -- units of seconds
+   attribute X_INTERFACE_INFO of S_AXI_ARESETN      : signal is "xilinx.com:signal:reset:1.0 RST.S_AXI_ARESETN RST";
+   attribute X_INTERFACE_PARAMETER of S_AXI_ARESETN : signal is
+      "XIL_INTERFACENAME RST.S_AXI_ARESETN, " &
+      "POLARITY ACTIVE_LOW";
+
+   attribute X_INTERFACE_INFO of S_AXI_ACLK      : signal is "xilinx.com:signal:clock:1.0 CLK.S_AXI_ACLK CLK";
+   attribute X_INTERFACE_PARAMETER of S_AXI_ACLK : signal is
+      "XIL_INTERFACENAME CLK.S_AXI_ACLK, " &
+      "ASSOCIATED_BUSIF S_AXI, " &
+      "ASSOCIATED_RESET S_AXI_ARESETN, " &
+      "FREQ_HZ " & real'image(FREQ_HZ);
 
    signal S_AXI_ReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal S_AXI_ReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal S_AXI_WriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
    signal S_AXI_WriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
-   signal S_AXI_reset : sl := '0';
+   signal S_AXI_reset : std_logic := '1';
 
 begin
+
+   U_RstSync : entity surf.RstSync
+      generic map (
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '1')
+      port map (
+         clk      => S_AXI_ACLK,
+         asyncRst => S_AXI_ARESETN,
+         syncRst  => S_AXI_reset);
 
    S_AXI_ReadMaster.araddr(AXI_ADDR_WIDTH_C-1 downto 0) <= S_AXI_araddr;
    S_AXI_ReadMaster.arvalid                             <= S_AXI_arvalid;
@@ -139,19 +158,8 @@ begin
    S_AXI_bresp   <= S_AXI_WriteSlave.bresp when(EN_ERROR_RESP) else AXI_RESP_OK_C;
    S_AXI_bvalid  <= S_AXI_WriteSlave.bvalid;
 
-   U_RstSync : entity surf.RstSync
-      generic map (
-         -- TPD_G          => TPD_C,
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk      => S_AXI_ACLK,
-         asyncRst => S_AXI_ARESETN,
-         syncRst  => S_AXI_reset);
-
    U_AxiVersion : entity surf.AxiVersion
       generic map (
-         TPD_G              => TPD_C,
          BUILD_INFO_G       => BUILD_INFO_C,
          CLK_PERIOD_G       => CLK_PERIOD_C,
          XIL_DEVICE_G       => XIL_DEVICE,
@@ -182,6 +190,8 @@ begin
          slowClk        => slowClk,
          dnaValueOut    => dnaValueOut,
          fdValueOut     => fdValueOut,
+         -- Optional: user values
+         userValues     => (others => X"00000000"),
          -- Optional: DS2411 interface
          fdSerSdio      => fdSerSdio);
 
