@@ -23,23 +23,28 @@ use surf.AxiLitePkg.all;
 
 entity SlaveAxiLiteIpIntegrator is
    generic (
-      EN_ERROR_RESP_G : boolean  := false;
-      FREQ_HZ_G       : positive := 100000000;
-      ADDR_WIDTH_G    : positive := 12);
+      EN_ERROR_RESP_G : boolean              := false;
+      HAS_PROT        : natural range 0 to 1 := 0;
+      HAS_WSTRB       : natural range 0 to 1 := 0;
+      FREQ_HZ_G       : positive             := 100000000;
+      ADDR_WIDTH_G    : positive             := 12);
    port (
       -- IP Integrator AXI-Lite Interface
       S_AXI_ACLK      : in  std_logic;
       S_AXI_ARESETN   : in  std_logic;
       S_AXI_AWADDR    : in  std_logic_vector(ADDR_WIDTH_G-1 downto 0);
+      S_AXI_AWPROT    : in  std_logic_vector(2 downto 0);
       S_AXI_AWVALID   : in  std_logic;
       S_AXI_AWREADY   : out std_logic;
       S_AXI_WDATA     : in  std_logic_vector(31 downto 0);
+      S_AXI_WSTRB     : in  std_logic_vector(3 downto 0);
       S_AXI_WVALID    : in  std_logic;
       S_AXI_WREADY    : out std_logic;
       S_AXI_BRESP     : out std_logic_vector(1 downto 0);
       S_AXI_BVALID    : out std_logic;
       S_AXI_BREADY    : in  std_logic;
       S_AXI_ARADDR    : in  std_logic_vector(ADDR_WIDTH_G-1 downto 0);
+      S_AXI_ARPROT    : in  std_logic_vector(2 downto 0);
       S_AXI_ARVALID   : in  std_logic;
       S_AXI_ARREADY   : out std_logic;
       S_AXI_RDATA     : out std_logic_vector(31 downto 0);
@@ -67,21 +72,24 @@ architecture mapping of SlaveAxiLiteIpIntegrator is
    attribute X_INTERFACE_INFO of S_AXI_ARREADY     : signal is "xilinx.com:interface:aximm:1.0 S_AXI ARREADY";
    attribute X_INTERFACE_INFO of S_AXI_ARVALID     : signal is "xilinx.com:interface:aximm:1.0 S_AXI ARVALID";
    attribute X_INTERFACE_INFO of S_AXI_ARADDR      : signal is "xilinx.com:interface:aximm:1.0 S_AXI ARADDR";
+   attribute X_INTERFACE_INFO of S_AXI_ARPROT      : signal is "xilinx.com:interface:aximm:1.0 S_AXI ARPROT";
    attribute X_INTERFACE_INFO of S_AXI_BREADY      : signal is "xilinx.com:interface:aximm:1.0 S_AXI BREADY";
    attribute X_INTERFACE_INFO of S_AXI_BVALID      : signal is "xilinx.com:interface:aximm:1.0 S_AXI BVALID";
    attribute X_INTERFACE_INFO of S_AXI_BRESP       : signal is "xilinx.com:interface:aximm:1.0 S_AXI BRESP";
    attribute X_INTERFACE_INFO of S_AXI_WREADY      : signal is "xilinx.com:interface:aximm:1.0 S_AXI WREADY";
    attribute X_INTERFACE_INFO of S_AXI_WVALID      : signal is "xilinx.com:interface:aximm:1.0 S_AXI WVALID";
    attribute X_INTERFACE_INFO of S_AXI_WDATA       : signal is "xilinx.com:interface:aximm:1.0 S_AXI WDATA";
+   attribute X_INTERFACE_INFO of S_AXI_WSTRB       : signal is "xilinx.com:interface:aximm:1.0 S_AXI WSTRB";
    attribute X_INTERFACE_INFO of S_AXI_AWREADY     : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWREADY";
    attribute X_INTERFACE_INFO of S_AXI_AWVALID     : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWVALID";
+   attribute X_INTERFACE_INFO of S_AXI_AWPROT      : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWPROT";
    attribute X_INTERFACE_INFO of S_AXI_AWADDR      : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWADDR";
    attribute X_INTERFACE_PARAMETER of S_AXI_AWADDR : signal is
       "XIL_INTERFACENAME S_AXI, " &
       "PROTOCOL AXI4LITE, " &
       "DATA_WIDTH 32, " &
-      "HAS_PROT 0, " &
-      "HAS_WSTRB 0, "&
+      "HAS_PROT " & integer'image(HAS_PROT) & ", " &
+      "HAS_WSTRB " & integer'image(HAS_WSTRB) & ", " &
       "MAX_BURST_LENGTH 1, " &
       "ADDR_WIDTH " & integer'image(ADDR_WIDTH_G) & ", " &
       "FREQ_HZ_G " & integer'image(FREQ_HZ_G);
@@ -122,24 +130,27 @@ begin
          asyncRst => S_AXI_ARESETN,
          syncRst  => axilRst);
 
-   S_AXI_ReadMaster.araddr(ADDR_WIDTH_G-1 downto 0) <= S_AXI_araddr;
-   S_AXI_ReadMaster.arvalid                         <= S_AXI_arvalid;
-   S_AXI_ReadMaster.rready                          <= S_AXI_rready;
+   S_AXI_ReadMaster.araddr(ADDR_WIDTH_G-1 downto 0) <= S_AXI_ARADDR;
+   S_AXI_ReadMaster.arprot                          <= S_AXI_ARPROT;
+   S_AXI_ReadMaster.arvalid                         <= S_AXI_ARVALID;
+   S_AXI_ReadMaster.rready                          <= S_AXI_RREADY;
 
-   S_AXI_arready <= S_AXI_ReadSlave.arready;
-   S_AXI_rdata   <= S_AXI_ReadSlave.rdata;
-   S_AXI_rresp   <= S_AXI_ReadSlave.rresp when(EN_ERROR_RESP_G) else AXI_RESP_OK_C;
-   S_AXI_rvalid  <= S_AXI_ReadSlave.rvalid;
+   S_AXI_ARREADY <= S_AXI_ReadSlave.arready;
+   S_AXI_RDATA   <= S_AXI_ReadSlave.rdata;
+   S_AXI_RRESP   <= S_AXI_ReadSlave.rresp when(EN_ERROR_RESP_G) else AXI_RESP_OK_C;
+   S_AXI_RVALID  <= S_AXI_ReadSlave.rvalid;
 
-   S_AXI_WriteMaster.awaddr(ADDR_WIDTH_G-1 downto 0) <= S_AXI_awaddr;
-   S_AXI_WriteMaster.awvalid                         <= S_AXI_awvalid;
-   S_AXI_WriteMaster.wdata                           <= S_AXI_wdata;
-   S_AXI_WriteMaster.wvalid                          <= S_AXI_wvalid;
-   S_AXI_WriteMaster.bready                          <= S_AXI_bready;
+   S_AXI_WriteMaster.awaddr(ADDR_WIDTH_G-1 downto 0) <= S_AXI_AWADDR;
+   S_AXI_WriteMaster.awprot                          <= S_AXI_AWPROT;
+   S_AXI_WriteMaster.awvalid                         <= S_AXI_AWVALID;
+   S_AXI_WriteMaster.wdata                           <= S_AXI_WDATA;
+   S_AXI_WriteMaster.wstrb                           <= S_AXI_WSTRB when(HAS_WSTRB /= 0) else x"F";
+   S_AXI_WriteMaster.wvalid                          <= S_AXI_WVALID;
+   S_AXI_WriteMaster.bready                          <= S_AXI_BREADY;
 
-   S_AXI_awready <= S_AXI_WriteSlave.awready;
-   S_AXI_wready  <= S_AXI_WriteSlave.wready;
-   S_AXI_bresp   <= S_AXI_WriteSlave.bresp when(EN_ERROR_RESP_G) else AXI_RESP_OK_C;
-   S_AXI_bvalid  <= S_AXI_WriteSlave.bvalid;
+   S_AXI_AWREADY <= S_AXI_WriteSlave.awready;
+   S_AXI_WREADY  <= S_AXI_WriteSlave.wready;
+   S_AXI_BRESP   <= S_AXI_WriteSlave.bresp when(EN_ERROR_RESP_G) else AXI_RESP_OK_C;
+   S_AXI_BVALID  <= S_AXI_WriteSlave.bvalid;
 
 end mapping;
