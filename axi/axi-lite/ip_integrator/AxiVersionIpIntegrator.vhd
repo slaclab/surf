@@ -42,7 +42,7 @@ entity AxiVersionIpIntegrator is
       -- AXI-Lite Interface
       S_AXI_ACLK     : in    std_logic;
       S_AXI_ARESETN  : in    std_logic;
-      S_AXI_AWADDR   : in    std_logic_vector(11 downto 0);
+      S_AXI_AWADDR   : in    std_logic_vector(11 downto 0);  -- Must match ADDR_WIDTH_C
       S_AXI_AWVALID  : in    std_logic;
       S_AXI_AWREADY  : out   std_logic;
       S_AXI_WDATA    : in    std_logic_vector(31 downto 0);
@@ -51,7 +51,7 @@ entity AxiVersionIpIntegrator is
       S_AXI_BRESP    : out   std_logic_vector(1 downto 0);
       S_AXI_BVALID   : out   std_logic;
       S_AXI_BREADY   : in    std_logic;
-      S_AXI_ARADDR   : in    std_logic_vector(11 downto 0);
+      S_AXI_ARADDR   : in    std_logic_vector(11 downto 0);  -- Must match ADDR_WIDTH_C
       S_AXI_ARVALID  : in    std_logic;
       S_AXI_ARREADY  : out   std_logic;
       S_AXI_RDATA    : out   std_logic_vector(31 downto 0);
@@ -77,90 +77,63 @@ end AxiVersionIpIntegrator;
 
 architecture mapping of AxiVersionIpIntegrator is
 
-   constant AXI_ADDR_WIDTH_C : positive := 12;
+   constant ADDR_WIDTH_C : positive := 12;  -- Must match the entity's port width
 
    constant CLK_PERIOD_C : real := (1.0/real(FREQ_HZ));  -- units of seconds
 
-   attribute X_INTERFACE_INFO      : string;
-   attribute X_INTERFACE_PARAMETER : string;
-
-   attribute X_INTERFACE_INFO of S_AXI_RREADY      : signal is "xilinx.com:interface:aximm:1.0 S_AXI RREADY";
-   attribute X_INTERFACE_INFO of S_AXI_RVALID      : signal is "xilinx.com:interface:aximm:1.0 S_AXI RVALID";
-   attribute X_INTERFACE_INFO of S_AXI_RRESP       : signal is "xilinx.com:interface:aximm:1.0 S_AXI RRESP";
-   attribute X_INTERFACE_INFO of S_AXI_RDATA       : signal is "xilinx.com:interface:aximm:1.0 S_AXI RDATA";
-   attribute X_INTERFACE_INFO of S_AXI_ARREADY     : signal is "xilinx.com:interface:aximm:1.0 S_AXI ARREADY";
-   attribute X_INTERFACE_INFO of S_AXI_ARVALID     : signal is "xilinx.com:interface:aximm:1.0 S_AXI ARVALID";
-   attribute X_INTERFACE_INFO of S_AXI_ARADDR      : signal is "xilinx.com:interface:aximm:1.0 S_AXI ARADDR";
-   attribute X_INTERFACE_INFO of S_AXI_BREADY      : signal is "xilinx.com:interface:aximm:1.0 S_AXI BREADY";
-   attribute X_INTERFACE_INFO of S_AXI_BVALID      : signal is "xilinx.com:interface:aximm:1.0 S_AXI BVALID";
-   attribute X_INTERFACE_INFO of S_AXI_BRESP       : signal is "xilinx.com:interface:aximm:1.0 S_AXI BRESP";
-   attribute X_INTERFACE_INFO of S_AXI_WREADY      : signal is "xilinx.com:interface:aximm:1.0 S_AXI WREADY";
-   attribute X_INTERFACE_INFO of S_AXI_WVALID      : signal is "xilinx.com:interface:aximm:1.0 S_AXI WVALID";
-   attribute X_INTERFACE_INFO of S_AXI_WDATA       : signal is "xilinx.com:interface:aximm:1.0 S_AXI WDATA";
-   attribute X_INTERFACE_INFO of S_AXI_AWREADY     : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWREADY";
-   attribute X_INTERFACE_INFO of S_AXI_AWVALID     : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWVALID";
-   attribute X_INTERFACE_INFO of S_AXI_AWADDR      : signal is "xilinx.com:interface:aximm:1.0 S_AXI AWADDR";
-   attribute X_INTERFACE_PARAMETER of S_AXI_AWADDR : signal is
-      "XIL_INTERFACENAME S_AXI, " &
-      "PROTOCOL AXI4LITE, " &
-      "DATA_WIDTH 32, " &
-      "HAS_PROT 0, " &
-      "HAS_WSTRB 0, "&
-      "MAX_BURST_LENGTH 1, " &
-      "ADDR_WIDTH " & integer'image(AXI_ADDR_WIDTH_C) & ", " &
-      "FREQ_HZ " & integer'image(FREQ_HZ);
-
-   attribute X_INTERFACE_INFO of S_AXI_ARESETN      : signal is "xilinx.com:signal:reset:1.0 RST.S_AXI_ARESETN RST";
-   attribute X_INTERFACE_PARAMETER of S_AXI_ARESETN : signal is
-      "XIL_INTERFACENAME RST.S_AXI_ARESETN, " &
-      "POLARITY ACTIVE_LOW";
-
-   attribute X_INTERFACE_INFO of S_AXI_ACLK      : signal is "xilinx.com:signal:clock:1.0 CLK.S_AXI_ACLK CLK";
-   attribute X_INTERFACE_PARAMETER of S_AXI_ACLK : signal is
-      "XIL_INTERFACENAME CLK.S_AXI_ACLK, " &
-      "ASSOCIATED_BUSIF S_AXI, " &
-      "ASSOCIATED_RESET S_AXI_ARESETN, " &
-      "FREQ_HZ " & integer'image(FREQ_HZ);
-
-   signal S_AXI_ReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal S_AXI_ReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
-   signal S_AXI_WriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal S_AXI_WriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
-
-   signal S_AXI_reset : std_logic := '1';
+   signal axilClk         : sl;
+   signal axilRst         : sl;
+   signal axilReadMaster  : AxiLiteReadMasterType;
+   signal axilReadSlave   : AxiLiteReadSlaveType;
+   signal axilWriteMaster : AxiLiteWriteMasterType;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
    signal userValuesArray : Slv32Array(0 to 63);
 
 begin
 
-   U_RstSync : entity surf.RstSync
+   U_ShimLayer : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1')
+         EN_ERROR_RESP_G => EN_ERROR_RESP,
+         FREQ_HZ_G       => FREQ_HZ,
+         ADDR_WIDTH_G    => ADDR_WIDTH_C)
       port map (
-         clk      => S_AXI_ACLK,
-         asyncRst => S_AXI_ARESETN,
-         syncRst  => S_AXI_reset);
+         -- IP Integrator AXI-Lite Interface
+         S_AXI_ACLK      => S_AXI_ACLK,
+         S_AXI_ARESETN   => S_AXI_ARESETN,
+         S_AXI_AWADDR    => S_AXI_AWADDR,
+         S_AXI_AWVALID   => S_AXI_AWVALID,
+         S_AXI_AWREADY   => S_AXI_AWREADY,
+         S_AXI_WDATA     => S_AXI_WDATA,
+         S_AXI_WVALID    => S_AXI_WVALID,
+         S_AXI_WREADY    => S_AXI_WREADY,
+         S_AXI_BRESP     => S_AXI_BRESP,
+         S_AXI_BVALID    => S_AXI_BVALID,
+         S_AXI_BREADY    => S_AXI_BREADY,
+         S_AXI_ARADDR    => S_AXI_ARADDR,
+         S_AXI_ARVALID   => S_AXI_ARVALID,
+         S_AXI_ARREADY   => S_AXI_ARREADY,
+         S_AXI_RDATA     => S_AXI_RDATA,
+         S_AXI_RRESP     => S_AXI_RRESP,
+         S_AXI_RVALID    => S_AXI_RVALID,
+         S_AXI_RREADY    => S_AXI_RREADY,
+         -- SURF AXI-Lite Interface
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave);
 
-   S_AXI_ReadMaster.araddr(AXI_ADDR_WIDTH_C-1 downto 0) <= S_AXI_araddr;
-   S_AXI_ReadMaster.arvalid                             <= S_AXI_arvalid;
-   S_AXI_ReadMaster.rready                              <= S_AXI_rready;
-
-   S_AXI_arready <= S_AXI_ReadSlave.arready;
-   S_AXI_rdata   <= S_AXI_ReadSlave.rdata;
-   S_AXI_rresp   <= S_AXI_ReadSlave.rresp when(EN_ERROR_RESP) else AXI_RESP_OK_C;
-   S_AXI_rvalid  <= S_AXI_ReadSlave.rvalid;
-
-   S_AXI_WriteMaster.awaddr(AXI_ADDR_WIDTH_C-1 downto 0) <= S_AXI_awaddr;
-   S_AXI_WriteMaster.awvalid                             <= S_AXI_awvalid;
-   S_AXI_WriteMaster.wdata                               <= S_AXI_wdata;
-   S_AXI_WriteMaster.wvalid                              <= S_AXI_wvalid;
-   S_AXI_WriteMaster.bready                              <= S_AXI_bready;
-
-   S_AXI_awready <= S_AXI_WriteSlave.awready;
-   S_AXI_wready  <= S_AXI_WriteSlave.wready;
-   S_AXI_bresp   <= S_AXI_WriteSlave.bresp when(EN_ERROR_RESP) else AXI_RESP_OK_C;
-   S_AXI_bvalid  <= S_AXI_WriteSlave.bvalid;
+   process(userValues)
+      variable i      : natural;
+      variable retVar : Slv32Array(0 to 63);
+   begin
+      for i in 0 to 63 loop
+         retVar(i) := userValues((i*32)+31 downto i*32);
+      end loop;
+      userValuesArray <= retVar;
+   end process;
 
    U_AxiVersion : entity surf.AxiVersion
       generic map (
@@ -176,12 +149,12 @@ begin
          AUTO_RELOAD_ADDR_G => AUTO_RELOAD_ADDR)
       port map (
          -- AXI-Lite Interface
-         axiClk         => S_AXI_ACLK,
-         axiRst         => S_AXI_reset,
-         axiReadMaster  => S_AXI_ReadMaster,
-         axiReadSlave   => S_AXI_ReadSlave,
-         axiWriteMaster => S_AXI_WriteMaster,
-         axiWriteSlave  => S_AXI_WriteSlave,
+         axiClk         => axilClk,
+         axiRst         => axilRst,
+         axiReadMaster  => axilReadMaster,
+         axiReadSlave   => axilReadSlave,
+         axiWriteMaster => axilWriteMaster,
+         axiWriteSlave  => axilWriteSlave,
          -- Optional: User Reset
          userReset      => userReset,
          -- Optional: FPGA Reloading Interface
@@ -197,15 +170,5 @@ begin
          userValues     => userValuesArray,
          -- Optional: DS2411 interface
          fdSerSdio      => fdSerSdio);
-
-   process(userValues)
-      variable i      : natural;
-      variable retVar : Slv32Array(0 to 63);
-   begin
-      for i in 0 to 63 loop
-         retVar(i) := userValues((i*32)+31 downto i*32);
-      end loop;
-      userValuesArray <= retVar;
-   end process;
 
 end mapping;
