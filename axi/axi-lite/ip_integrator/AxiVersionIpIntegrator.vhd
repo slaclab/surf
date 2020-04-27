@@ -78,7 +78,7 @@ architecture mapping of AxiVersionIpIntegrator is
 
    constant AXI_ADDR_WIDTH_C : positive := 12;
 
-   constant CLK_PERIOD_C : real := (1.0/real(FREQ_HZ));  -- units of seconds   
+   constant CLK_PERIOD_C : real := (1.0/real(FREQ_HZ));  -- units of seconds
 
    attribute X_INTERFACE_INFO      : string;
    attribute X_INTERFACE_PARAMETER : string;
