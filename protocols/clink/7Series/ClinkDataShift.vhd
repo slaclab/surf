@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -29,8 +28,7 @@ use unisim.vcomponents.all;
 
 entity ClinkDataShift is
    generic (
-      TPD_G        : time   := 1 ns;
-      XIL_DEVICE_G : string := "7SERIES");
+      TPD_G : time := 1 ns);
    port (
       -- Input clock and data
       cblHalfP        : inout slv(4 downto 0);

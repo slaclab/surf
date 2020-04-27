@@ -20,6 +20,7 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.FpgaTypePkg.all;
 use surf.AxiAds42lb69Pkg.all;
 
 library unisim;
@@ -33,7 +34,7 @@ entity AxiAds42lb69Deser is
       ADC_CLK_FREQ_G  : real                                    := 250.0E+6;
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
-      XIL_DEVICE_G    : string                                  := "7SERIES");
+      XIL_DEVICE_G    : string                                  := "7SERIES"); -- Legacy unused generic (will be removed in the future)
    port (
       -- ADC Ports
       clkP         : out sl;
@@ -76,17 +77,12 @@ architecture rtl of AxiAds42lb69Deser is
 
 begin
 
-   assert (XIL_DEVICE_G = "ULTRASCALE" and USE_PLL_G = false) or XIL_DEVICE_G /= "ULTRASCALE"
-      report "ULTRASCALE implementation does not support USE_PLL_G = true"
-      severity failure;
-
    AxiAds42lb69Pll_Inst : entity surf.AxiAds42lb69Pll
       generic map(
          TPD_G          => TPD_G,
          USE_PLL_G      => USE_PLL_G,
          USE_FBCLK_G    => USE_FBCLK_G,
-         ADC_CLK_FREQ_G => ADC_CLK_FREQ_G,
-         XIL_DEVICE_G   => XIL_DEVICE_G)
+         ADC_CLK_FREQ_G => ADC_CLK_FREQ_G)
       port map (
          -- ADC Clocking ports
          adcClkP   => clkP,
@@ -110,7 +106,7 @@ begin
          dataIn  => dmode,
          dataOut => dmux);
 
-   GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
+   GEN_7SERIES : if (XIL_DEVICE_C = "7SERIES") generate
       attribute IODELAY_GROUP                    : string;
       attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
    begin
@@ -131,8 +127,7 @@ begin
             generic map(
                TPD_G           => TPD_G,
                DELAY_INIT_G    => DELAY_INIT_G(ch, i),
-               IODELAY_GROUP_G => IODELAY_GROUP_G,
-               XIL_DEVICE_G    => XIL_DEVICE_G)
+               IODELAY_GROUP_G => IODELAY_GROUP_G)
             port map (
                -- ADC Data (clk domain)
                dataP        => dataP(ch)(i),

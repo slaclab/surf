@@ -30,7 +30,7 @@ entity AxiVersion is
       SIM_DNA_VALUE_G    : slv              := X"000000000000000000000000";
       DEVICE_ID_G        : slv(31 downto 0) := (others => '0');
       CLK_PERIOD_G       : real             := 8.0E-9;     -- units of seconds
-      XIL_DEVICE_G       : string           := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
+      XIL_DEVICE_G       : string           := "7SERIES";  -- Legacy unused generic (will be removed in the future)
       EN_DEVICE_DNA_G    : boolean          := false;
       EN_DS2411_G        : boolean          := false;
       EN_ICAP_G          : boolean          := false;
@@ -121,7 +121,6 @@ begin
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
             BUFR_CLK_DIV_G  => BUFR_CLK_DIV_G,
-            XIL_DEVICE_G    => XIL_DEVICE_G,
             SIM_DNA_VALUE_G => SIM_DNA_VALUE_G)
          port map (
             clk      => axiClk,
@@ -147,8 +146,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             USE_SLOWCLK_G  => USE_SLOWCLK_G,
-            BUFR_CLK_DIV_G => BUFR_CLK_DIV_G,
-            XIL_DEVICE_G   => XIL_DEVICE_G)
+            BUFR_CLK_DIV_G => BUFR_CLK_DIV_G)
          port map (
             clk         => axiClk,
             rst         => axiRst,

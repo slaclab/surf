@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -30,8 +29,7 @@ use unisim.vcomponents.all;
 
 entity ClinkData is
    generic (
-      TPD_G        : time   := 1 ns;
-      XIL_DEVICE_G : string := "7SERIES");
+      TPD_G : time := 1 ns);
    port (
       -- Cable Input
       cblHalfP        : inout slv(4 downto 0);  --  8, 10, 11, 12,  9
@@ -104,8 +102,7 @@ begin
    -------------------------------
    U_DataShift : entity surf.ClinkDataShift
       generic map (
-         TPD_G        => TPD_G,
-         XIL_DEVICE_G => XIL_DEVICE_G)
+         TPD_G        => TPD_G)
       port map (
          cblHalfP        => cblHalfP,
          cblHalfM        => cblHalfM,

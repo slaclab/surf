@@ -17,6 +17,7 @@ use IEEE.STD_LOGIC_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.FpgaTypePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -24,7 +25,7 @@ use UNISIM.VCOMPONENTS.all;
 entity ClkOutBufSingle is
    generic (
       TPD_G          : time    := 1 ns;
-      XIL_DEVICE_G   : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
+      XIL_DEVICE_G   : string  := "7SERIES";  -- Legacy unused generic (will be removed in the future)
       RST_POLARITY_G : sl      := '1';
       INVERT_G       : boolean := false);
    port (
@@ -41,12 +42,9 @@ architecture rtl of ClkOutBufSingle is
 
 begin
 
-   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS")
-      report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
-
    rst <= rstIn when(RST_POLARITY_G = '1') else not(rstIn);
 
-   GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
+   GEN_7SERIES : if (XIL_DEVICE_C = "7SERIES") generate
       ODDR_I : ODDR
          port map (
             C  => clkIn,
@@ -58,7 +56,7 @@ begin
             S  => '0');
    end generate;
 
-   GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") or (XIL_DEVICE_G = "ULTRASCALE_PLUS") generate
+   GEN_ULTRA_SCALE : if (XIL_DEVICE_C = "ULTRASCALE") or (XIL_DEVICE_C = "ULTRASCALE_PLUS") generate
       ODDR_I : ODDRE1
          port map (
             C  => clkIn,

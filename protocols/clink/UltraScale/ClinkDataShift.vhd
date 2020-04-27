@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.FpgaTypePkg.all;
 use surf.AxiLitePkg.all;
 use surf.ClinkPkg.all;
 
@@ -29,8 +30,7 @@ use unisim.vcomponents.all;
 
 entity ClinkDataShift is
    generic (
-      TPD_G        : time   := 1 ns;
-      XIL_DEVICE_G : string := "ULTRASCALE");
+      TPD_G        : time   := 1 ns);
    port (
       -- Input clock and data
       cblHalfP        : inout slv(4 downto 0);
@@ -196,7 +196,7 @@ begin
                IS_CLK_INVERTED  => '0',  -- Optional inversion for CLK
                IS_RST_INVERTED  => '0',  -- Optional inversion for RST
                REFCLK_FREQUENCY => 200.0,  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
-               SIM_DEVICE       => XIL_DEVICE_G,  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
+               SIM_DEVICE       => XIL_DEVICE_C,  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
                UPDATE_MODE      => "ASYNC")  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
             port map (
                CASC_OUT    => open,  -- 1-bit output: Cascade delay output to ODELAY input cascade
@@ -225,7 +225,7 @@ begin
                IS_CLK_B_INVERTED => '1',      -- Optional inversion for CLK_B
                IS_CLK_INVERTED   => '0',      -- Optional inversion for CLK
                IS_RST_INVERTED   => '0',      -- Optional inversion for RST
-               SIM_DEVICE        => XIL_DEVICE_G)  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
+               SIM_DEVICE        => XIL_DEVICE_C)  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
             port map (
                Q           => serdes(i),      -- 8-bit registered output
                CLK         => intClk4x,  -- 1-bit input: High-speed clock

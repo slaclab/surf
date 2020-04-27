@@ -18,6 +18,7 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.FpgaTypePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -28,7 +29,7 @@ entity AxiAds42lb69Pll is
       USE_PLL_G      : boolean := true;
       USE_FBCLK_G    : boolean := true;
       ADC_CLK_FREQ_G : real    := 250.0E+6;
-      XIL_DEVICE_G   : string  := "7SERIES");
+      XIL_DEVICE_G   : string  := "7SERIES"); -- Legacy unused generic (will be removed in the future)
    port (
       -- ADC Clocking ports
       adcClkP   : out sl;
@@ -58,7 +59,11 @@ architecture mapping of AxiAds42lb69Pll is
 
 begin
 
-   GEN_PLL : if (USE_PLL_G = true and XIL_DEVICE_G = "7SERIES") generate
+   assert (XIL_DEVICE_C = "ULTRASCALE" and USE_PLL_G = false) or XIL_DEVICE_C /= "ULTRASCALE"
+      report "ULTRASCALE implementation does not support USE_PLL_G = true"
+      severity failure;
+
+   GEN_PLL : if (USE_PLL_G = true and XIL_DEVICE_C = "7SERIES") generate
 
       IBUFGDS_0 : IBUFGDS
          port map (
@@ -163,7 +168,7 @@ begin
 
    end generate;
 
-   GEN_NO_PLL : if (USE_PLL_G = false and XIL_DEVICE_G = "7SERIES") generate
+   GEN_NO_PLL : if (USE_PLL_G = false and XIL_DEVICE_C = "7SERIES") generate
 
       ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          port map (
@@ -229,11 +234,11 @@ begin
    end generate;
 
 
-   GEN_ULTRASCALE_NO_PLL : if (XIL_DEVICE_G = "ULTRASCALE") generate
+   GEN_ULTRASCALE_NO_PLL : if (XIL_DEVICE_C = "ULTRASCALE") generate
 
       ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          generic map (
-            XIL_DEVICE_G => XIL_DEVICE_G)
+            TPD_G => TPD_G)
          port map (
             clkIn   => adcClk,
             rstIn   => adcRst,

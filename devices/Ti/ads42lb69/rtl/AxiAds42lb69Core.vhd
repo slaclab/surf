@@ -33,7 +33,7 @@ entity AxiAds42lb69Core is
       DMODE_INIT_G    : slv(1 downto 0)                         := "00";
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
-      XIL_DEVICE_G    : string                                  := "7SERIES"
+      XIL_DEVICE_G    : string                                  := "7SERIES" -- Legacy unused generic (will be removed in the future)
       );
    port (
       -- ADC Ports
@@ -133,8 +133,7 @@ begin
          USE_FBCLK_G     => USE_FBCLK_G,
          ADC_CLK_FREQ_G  => ADC_CLK_FREQ_G,
          DELAY_INIT_G    => DELAY_INIT_G,
-         IODELAY_GROUP_G => IODELAY_GROUP_G,
-         XIL_DEVICE_G    => XIL_DEVICE_G)
+         IODELAY_GROUP_G => IODELAY_GROUP_G)
       port map (
          -- ADC Ports
          clkP         => adcOut.clkP,
