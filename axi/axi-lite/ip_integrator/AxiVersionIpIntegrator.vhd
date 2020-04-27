@@ -28,8 +28,7 @@ use ruckus.BuildInfoPkg.all;
 entity AxiVersionIpIntegrator is
    generic (
       EN_ERROR_RESP    : boolean                       := false;
-      FREQ_HZ          : real                          := 125000000.0;
-      XIL_DEVICE       : string                        := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE"
+      FREQ_HZ          : positive                      := 125000000;
       EN_DEVICE_DNA    : boolean                       := false;
       EN_ICAP          : boolean                       := false;
       EN_DS2411        : boolean                       := false;
@@ -37,7 +36,7 @@ entity AxiVersionIpIntegrator is
       BUFR_CLK_DIV     : positive                      := 8;
       AUTO_RELOAD_EN   : boolean                       := false;
       AUTO_RELOAD_TIME : positive                      := 10;  -- units of seconds
-      AUTO_RELOAD_ADDR : std_logic_vector(31 downto 0) := X"00000000");
+      AUTO_RELOAD_ADDR : std_logic_vector(31 downto 0) := x"00000000");
    port (
       -- AXI-Lite Interface
       S_AXI_ACLK     : in    std_logic;
@@ -61,27 +60,29 @@ entity AxiVersionIpIntegrator is
       -- Optional: User Reset
       userReset      : out   std_logic;
       -- Optional: FPGA Reloading Interface
-      fpgaEnReload   : in    std_logic := '1';
+      fpgaEnReload   : in    std_logic                            := '1';
       fpgaReload     : out   std_logic;
       fpgaReloadAddr : out   std_logic_vector(31 downto 0);
       upTimeCnt      : out   std_logic_vector(31 downto 0);
       -- Optional: Serial Number outputs
-      slowClk        : in    std_logic := '0';
+      slowClk        : in    std_logic                            := '0';
       dnaValueOut    : out   std_logic_vector(127 downto 0);
       fdValueOut     : out   std_logic_vector(63 downto 0);
+      -- Optional: user values
+      userValues     : in    std_logic_vector((64*32)-1 downto 0) := (others => '0');
       -- Optional: DS2411 interface
-      fdSerSdio      : inout std_logic := 'Z');
+      fdSerSdio      : inout std_logic                            := 'Z');
 end AxiVersionIpIntegrator;
 
 architecture mapping of AxiVersionIpIntegrator is
 
    constant AXI_ADDR_WIDTH_C : positive := 12;
 
-   constant CLK_PERIOD_C : real := (1.0/FREQ_HZ);  -- units of seconds   
+   constant CLK_PERIOD_C : real := (1.0/real(FREQ_HZ));  -- units of seconds   
 
    attribute X_INTERFACE_INFO      : string;
    attribute X_INTERFACE_PARAMETER : string;
-   
+
    attribute X_INTERFACE_INFO of S_AXI_RREADY      : signal is "xilinx.com:interface:aximm:1.0 S_AXI RREADY";
    attribute X_INTERFACE_INFO of S_AXI_RVALID      : signal is "xilinx.com:interface:aximm:1.0 S_AXI RVALID";
    attribute X_INTERFACE_INFO of S_AXI_RRESP       : signal is "xilinx.com:interface:aximm:1.0 S_AXI RRESP";
@@ -106,7 +107,7 @@ architecture mapping of AxiVersionIpIntegrator is
       "HAS_WSTRB 0, "&
       "MAX_BURST_LENGTH 1, " &
       "ADDR_WIDTH " & integer'image(AXI_ADDR_WIDTH_C) & ", " &
-      "FREQ_HZ " & real'image(FREQ_HZ);
+      "FREQ_HZ " & integer'image(FREQ_HZ);
 
    attribute X_INTERFACE_INFO of S_AXI_ARESETN      : signal is "xilinx.com:signal:reset:1.0 RST.S_AXI_ARESETN RST";
    attribute X_INTERFACE_PARAMETER of S_AXI_ARESETN : signal is
@@ -118,7 +119,7 @@ architecture mapping of AxiVersionIpIntegrator is
       "XIL_INTERFACENAME CLK.S_AXI_ACLK, " &
       "ASSOCIATED_BUSIF S_AXI, " &
       "ASSOCIATED_RESET S_AXI_ARESETN, " &
-      "FREQ_HZ " & real'image(FREQ_HZ);
+      "FREQ_HZ " & integer'image(FREQ_HZ);
 
    signal S_AXI_ReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal S_AXI_ReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
@@ -126,6 +127,8 @@ architecture mapping of AxiVersionIpIntegrator is
    signal S_AXI_WriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
    signal S_AXI_reset : std_logic := '1';
+
+   signal userValuesArray : Slv32Array(0 to 63);
 
 begin
 
@@ -162,7 +165,6 @@ begin
       generic map (
          BUILD_INFO_G       => BUILD_INFO_C,
          CLK_PERIOD_G       => CLK_PERIOD_C,
-         XIL_DEVICE_G       => XIL_DEVICE,
          EN_DEVICE_DNA_G    => EN_DEVICE_DNA,
          EN_DS2411_G        => EN_DS2411,
          EN_ICAP_G          => EN_ICAP,
@@ -191,8 +193,18 @@ begin
          dnaValueOut    => dnaValueOut,
          fdValueOut     => fdValueOut,
          -- Optional: user values
-         userValues     => (others => X"00000000"),
+         userValues     => userValuesArray,
          -- Optional: DS2411 interface
          fdSerSdio      => fdSerSdio);
+
+   process(userValues)
+      variable i      : natural;
+      variable retVar : Slv32Array(0 to 63);
+   begin
+      for i in 0 to 63 loop
+         retVar(i) := userValues((i*32)+31 downto i*32);
+      end loop;
+      userValuesArray <= retVar;
+   end process;
 
 end mapping;
