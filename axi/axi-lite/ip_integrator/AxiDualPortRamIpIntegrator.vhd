@@ -92,10 +92,9 @@ architecture mapping of AxiDualPortRamIpIntegrator is
       "MASTER_TYPE OTHER, " &
       "READ_LATENCY " & integer'image(READ_LATENCY);
 
-   signal rst       : sl;
    signal uOrWe     : sl;
    signal intWe     : sl;
-   signal intWeByte : slv(wordCount(DATA_WIDTH_G, 8)-1 downto 0);
+   signal intWeByte : slv(wordCount(DATA_WIDTH, 8)-1 downto 0);
 
    signal axilClk         : sl;
    signal axilRst         : sl;
@@ -176,6 +175,6 @@ begin
 
    uOrWe     <= uOr(WE);
    intWe     <= uOrWe;
-   intWeByte <= WE when(SYS_BYTE_WR_EN_G) else (others => uOrWe);
+   intWeByte <= WE when(SYS_BYTE_WR_EN) else (others => uOrWe);
 
 end mapping;

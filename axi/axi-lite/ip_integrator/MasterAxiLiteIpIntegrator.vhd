@@ -124,8 +124,8 @@ begin
 
    U_RstSync : entity surf.RstSync
       generic map (
-         IN_POLARITY  => '0',
-         OUT_POLARITY => '1')
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '1')
       port map (
          clk      => M_AXI_ACLK,
          asyncRst => M_AXI_ARESETN,
