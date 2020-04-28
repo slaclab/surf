@@ -61,17 +61,41 @@ entity AxiDualPortRamIpIntegrator is
       S_AXI_RRESP   : out std_logic_vector(1 downto 0);
       S_AXI_RVALID  : out std_logic;
       S_AXI_RREADY  : in  std_logic;
-      -- RAM Interface
-      S_RAM_CLK     : in  std_logic                                     := '0';
-      S_RAM_EN      : in  std_logic                                     := '1';
-      S_RAM_WE      : in  std_logic_vector((DATA_WIDTH/8)-1 downto 0) := (others => '0');
-      S_RAM_RST     : in  std_logic                                     := '0';
-      S_RAM_ADDR    : in  std_logic_vector(ADDR_WIDTH-1 downto 0)     := (others => '0');
-      S_RAM_DIN     : in  std_logic_vector(DATA_WIDTH-1 downto 0)     := (others => '0');
-      S_RAM_DOUT    : out std_logic_vector(DATA_WIDTH-1 downto 0));
+      -- SYS RAM Interface
+      CLK           : in  std_logic                                   := '0';
+      EN            : in  std_logic                                   := '1';
+      WE            : in  std_logic_vector((DATA_WIDTH/8)-1 downto 0) := (others => '0');
+      RST           : in  std_logic                                   := '0';
+      ADDR          : in  std_logic_vector(ADDR_WIDTH-1 downto 0)     := (others => '0');
+      DIN           : in  std_logic_vector(DATA_WIDTH-1 downto 0)     := (others => '0');
+      DOUT          : out std_logic_vector(DATA_WIDTH-1 downto 0));
 end AxiDualPortRamIpIntegrator;
 
 architecture mapping of AxiDualPortRamIpIntegrator is
+
+   attribute X_INTERFACE_INFO      : string;
+   attribute X_INTERFACE_PARAMETER : string;
+
+   attribute X_INTERFACE_INFO of CLK  : signal is "xilinx.com:interface:bram:1.0 RAM_PORT CLK";
+   attribute X_INTERFACE_INFO of EN   : signal is "xilinx.com:interface:bram:1.0 RAM_PORT EN";
+   attribute X_INTERFACE_INFO of WE   : signal is "xilinx.com:interface:bram:1.0 RAM_PORT WE";
+   attribute X_INTERFACE_INFO of RST  : signal is "xilinx.com:interface:bram:1.0 RAM_PORT RST";
+   attribute X_INTERFACE_INFO of ADDR : signal is "xilinx.com:interface:bram:1.0 RAM_PORT ADDR";
+   attribute X_INTERFACE_INFO of DIN  : signal is "xilinx.com:interface:bram:1.0 RAM_PORT DIN";
+   attribute X_INTERFACE_INFO of DOUT : signal is "xilinx.com:interface:bram:1.0 RAM_PORT DOUT";
+
+   attribute X_INTERFACE_PARAMETER of ADDR : signal is
+      "XIL_INTERFACENAME RAM_PORT, " &
+      "MEM_SIZE " & integer'image(2**ADDR_WIDTH) & ", " &
+      "MEM_WIDTH " & integer'image(DATA_WIDTH) & ", " &
+      "MEM_ECC NONE, " &
+      "MASTER_TYPE OTHER, " &
+      "READ_LATENCY " & integer'image(READ_LATENCY);
+
+   signal rst       : sl;
+   signal uOrWe     : sl;
+   signal intWe     : sl;
+   signal intWeByte : slv(wordCount(DATA_WIDTH_G, 8)-1 downto 0);
 
    signal axilClk         : sl;
    signal axilRst         : sl;
@@ -80,24 +104,12 @@ architecture mapping of AxiDualPortRamIpIntegrator is
    signal axilWriteMaster : AxiLiteWriteMasterType;
    signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
-   signal clk  : sl;
-   signal en   : sl;
-   signal we   : slv((DATA_WIDTH/8)-1 downto 0);
-   signal rst  : sl;
-   signal addr : slv(ADDR_WIDTH-1 downto 0);
-   signal din  : slv(DATA_WIDTH-1 downto 0);
-   signal dout : slv(DATA_WIDTH-1 downto 0);
-
-   signal uOrWe     : sl;
-   signal intWe     : sl;
-   signal intWeByte : slv(wordCount(DATA_WIDTH, 8)-1 downto 0);
-
 begin
 
-   U_ShimLayerAxiLite : entity surf.SlaveAxiLiteIpIntegrator
+   U_ShimLayer : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
          EN_ERROR_RESP => EN_ERROR_RESP,
-         HAS_WSTRB       => 1,          -- Using write strobe
+         HAS_WSTRB     => 1,            -- Using write strobe
          ADDR_WIDTH    => ADDR_WIDTH+2)
       port map (
          -- IP Integrator AXI-Lite Interface
@@ -130,29 +142,6 @@ begin
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave);
 
-   U_ShimLayerRam : entity surf.SlaveRamIpIntegrator
-      generic map (
-         READ_LATENCY => READ_LATENCY,
-         ADDR_WIDTH   => ADDR_WIDTH,
-         DATA_WIDTH   => DATA_WIDTH)
-      port map (
-         -- IP Integrator RAM Interface
-         S_RAM_CLK  => S_RAM_CLK,
-         S_RAM_EN   => S_RAM_EN,
-         S_RAM_WE   => S_RAM_WE,
-         S_RAM_RST  => S_RAM_RST,
-         S_RAM_ADDR => S_RAM_ADDR,
-         S_RAM_DIN  => S_RAM_DIN,
-         S_RAM_DOUT => S_RAM_DOUT,
-         -- SURF RAM Interface
-         clk        => clk,
-         en         => en,
-         we         => we,
-         rst        => rst,
-         addr       => addr,
-         din        => din,
-         dout       => dout);
-
    U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          SYNTH_MODE_G        => SYNTH_MODE,
@@ -176,17 +165,17 @@ begin
          axiWriteMaster => axilWriteMaster,
          axiWriteSlave  => axilWriteSlave,
          -- Standard Port
-         clk            => clk,
-         en             => en,
+         clk            => CLK,
+         en             => EN,
          we             => intWe,
          weByte         => intWeByte,
-         rst            => rst,
-         addr           => addr,
-         din            => din,
-         dout           => dout);
+         rst            => RST,
+         addr           => ADDR,
+         din            => DIN,
+         dout           => DOUT);
 
    uOrWe     <= uOr(WE);
    intWe     <= uOrWe;
-   intWeByte <= WE when(SYS_BYTE_WR_EN) else (others => uOrWe);
+   intWeByte <= WE when(SYS_BYTE_WR_EN_G) else (others => uOrWe);
 
 end mapping;
