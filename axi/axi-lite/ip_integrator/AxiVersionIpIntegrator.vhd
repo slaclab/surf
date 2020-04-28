@@ -97,9 +97,9 @@ begin
 
    U_ShimLayer : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
-         EN_ERROR_RESP_G => EN_ERROR_RESP,
-         FREQ_HZ_G       => FREQ_HZ,
-         ADDR_WIDTH_G    => ADDR_WIDTH_C)
+         EN_ERROR_RESP => EN_ERROR_RESP,
+         FREQ_HZ       => FREQ_HZ,
+         ADDR_WIDTH    => ADDR_WIDTH_C)
       port map (
          -- IP Integrator AXI-Lite Interface
          S_AXI_ACLK      => S_AXI_ACLK,
