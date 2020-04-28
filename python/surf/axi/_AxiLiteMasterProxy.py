@@ -60,7 +60,7 @@ class _Proxy(pr.Device):
         self._regs = regs
         self._dataBa = bytearray(4)
         self._id = 0
-        
+
         self._queue = queue.Queue()
         self._pollThread = threading.Thread(target=self._pollWorker)
         self._pollThread.start()
@@ -134,7 +134,7 @@ class _Proxy(pr.Device):
 
     def _doTransaction(self, transaction):
         print('AxiLiteMasterProxy._doTransaction')
-        self._queue.put(transaction)        
+        self._queue.put(transaction)
         # with self._memLock, transaction.lock():
 #             print('got lock')
 #             # Clear any existing errors
