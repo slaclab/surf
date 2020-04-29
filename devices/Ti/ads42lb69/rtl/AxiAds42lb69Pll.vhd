@@ -28,8 +28,7 @@ entity AxiAds42lb69Pll is
       TPD_G          : time    := 1 ns;
       USE_PLL_G      : boolean := true;
       USE_FBCLK_G    : boolean := true;
-      ADC_CLK_FREQ_G : real    := 250.0E+6;
-      XIL_DEVICE_G   : string  := "7SERIES"); -- Legacy unused generic (will be removed in the future)
+      ADC_CLK_FREQ_G : real    := 250.0E+6);
    port (
       -- ADC Clocking ports
       adcClkP   : out sl;

@@ -19,6 +19,7 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.FpgaTypePkg.all;
 use surf.AxiAds42lb69Pkg.all;
 
 library unisim;
@@ -28,8 +29,7 @@ entity AxiAds42lb69DeserBit is
    generic (
       TPD_G           : time            := 1 ns;
       DELAY_INIT_G    : slv(8 downto 0) := (others => '0');
-      IODELAY_GROUP_G : string          := "AXI_ADS42LB69_IODELAY_GRP";
-      XIL_DEVICE_G    : string          := "7SERIES"); -- Legacy unused generic (will be removed in the future)
+      IODELAY_GROUP_G : string          := "AXI_ADS42LB69_IODELAY_GRP");
    port (
       -- ADC Data (clk domain)
       dataP        : in  sl;
@@ -118,7 +118,7 @@ architecture rtl of AxiAds42lb69DeserBit is
 
 begin
 
-   GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
+   GEN_7SERIES : if (XIL_DEVICE_C = "7SERIES") generate
       attribute IODELAY_GROUP                  : string;
       attribute IODELAY_GROUP of IDELAYE2_inst : label is IODELAY_GROUP_G;
    begin
@@ -170,7 +170,7 @@ begin
 
    end generate;
 
-   GEN_ULTRASCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
+   GEN_ULTRASCALE : if (XIL_DEVICE_C = "ULTRASCALE") generate
 
       -- when DELAY_FORMAT is "COUNT" the delay is not PVT calibrated
       -- Therefore, do not use an IDELAYCTRL component
