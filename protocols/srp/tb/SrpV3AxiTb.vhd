@@ -297,7 +297,7 @@ begin
             if (rxMaster.tValid = '1') then
 
                -- Accept the data
-               v.rxSlave.tReady := '0';
+               v.rxSlave.tReady := '1';
 
                -- Increment counter
                v.cnt := r.cnt + 1;
@@ -354,10 +354,10 @@ begin
             if (rxMaster.tValid = '1') then
 
                -- Accept the data
-               v.rxSlave.tReady := '0';
+               v.rxSlave.tReady := '1';
 
                -- Check for last TX word
-               if (r.cnt = REQ_WORD_SIZE_C-1) then
+               if (r.cnt = REQ_WORD_SIZE_C) then
 
 
                   if rxMaster.tData(31 downto 0) /= 0 then
