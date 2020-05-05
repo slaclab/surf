@@ -49,34 +49,34 @@ architecture rtl of BoxcarIntegrator is
    constant ACCUM_WIDTH_C : positive := (DATA_WIDTH_G+ADDR_WIDTH_G);
 
    type RegType is record
-      obFull   : sl;
-      intCount : unsigned(ADDR_WIDTH_G-1 downto 0);
-      rAddr    : unsigned(ADDR_WIDTH_G-1 downto 0);
-      wAddr    : unsigned(ADDR_WIDTH_G-1 downto 0);
-      ibValid  : sl;
-      ibData   : slv(DATA_WIDTH_G-1 downto 0);
-      obValid  : sl;
-      obPeriod : sl;
-      obData   : signed(ACCUM_WIDTH_C-1 downto 0);
-	  ibDataE  : signed(DATA_WIDTH_G downto 0);
-	  obFullD  : sl;
-      ibValidD : sl;
+      obFull    : sl;
+      intCount  : unsigned(ADDR_WIDTH_G-1 downto 0);
+      rAddr     : unsigned(ADDR_WIDTH_G-1 downto 0);
+      wAddr     : unsigned(ADDR_WIDTH_G-1 downto 0);
+      ibValid   : sl;
+      ibData    : slv(DATA_WIDTH_G-1 downto 0);
+      obValid   : sl;
+      obPeriod  : sl;
+      obData    : signed(ACCUM_WIDTH_C-1 downto 0);
+      ibDataE   : signed(DATA_WIDTH_G downto 0);
+      obFullD   : sl;
+      ibValidD  : sl;
       obPeriodD : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      obFull   => '0',
-      intCount => (others => '0'),
-      rAddr    => (others => '0'),
-      wAddr    => (others => '0'),
-      ibValid  => '0',
-      ibData   => (others => '0'),
-      obValid  => '0',
-      obPeriod => '0',
-      obData   => (others => '0'),
-	  ibDataE  => (others => '0'),
-	  obFullD  => '0',
-      ibValidD => '0',
+      obFull    => '0',
+      intCount  => (others => '0'),
+      rAddr     => (others => '0'),
+      wAddr     => (others => '0'),
+      ibValid   => '0',
+      ibData    => (others => '0'),
+      obValid   => '0',
+      obPeriod  => '0',
+      obData    => (others => '0'),
+      ibDataE   => (others => '0'),
+      obFullD   => '0',
+      ibValidD  => '0',
       obPeriodD => '0');
 
    signal r   : RegType := REG_INIT_C;
@@ -133,8 +133,8 @@ begin
       -- Input stage, setup addresses
       v.ibData  := ibData;
       v.ibValid := ibValid;
-	  
-	  v.ibDataE  := ibDataE;
+
+      v.ibDataE  := ibDataE;
       v.ibValidD := r.ibValid;
 
       -- Setup address for next cycle
@@ -156,48 +156,48 @@ begin
       if r.ibValid = '1' then
          -- Ready after writing last location
          if r.wAddr = r.intCount then
-			v.obFullD   := '1';
+            v.obFullD   := '1';
             v.obPeriodD := '1';
          end if;
       end if;
-	  
-	  if DOB_REG_G then
-	  	  -- Ready after writing last location
-		  v.obFull   := r.obFullD;
-		  v.obPeriod := r.obPeriodD;
-		  if r.ibValidD = '1' then
-			 -- Update the accumulator 
-			 v.obData := r.obData + r.ibDataE;
 
-			 -- Check if full
-			 if r.obFullD = '1' then
-				v.obData := v.obData - ramDoutE;
-			 end if;
+      if DOB_REG_G then
+         -- Ready after writing last location
+         v.obFull   := r.obFullD;
+         v.obPeriod := r.obPeriodD;
+         if r.ibValidD = '1' then
+            -- Update the accumulator
+            v.obData := r.obData + r.ibDataE;
 
-			 -- Output valid latch
-			 v.obValid := '1';
-		  end if;
-	  else
-	      if r.ibValid = '1' then
+            -- Check if full
+            if r.obFullD = '1' then
+               v.obData := v.obData - ramDoutE;
+            end if;
 
-			 -- Ready after writing last location
-			 if r.wAddr = r.intCount then
-				v.obFull   := '1';
-				v.obPeriod := '1';
-			 end if;		  
-			 -- Update the accumulator 
-			 v.obData := r.obData + ibDataE;
+            -- Output valid latch
+            v.obValid := '1';
+         end if;
+      else
+         if r.ibValid = '1' then
 
-			 -- Check if full
-			 if r.obFull = '1' then
-				v.obData := v.obData - ramDoutE;
-			 end if;
+            -- Ready after writing last location
+            if r.wAddr = r.intCount then
+               v.obFull   := '1';
+               v.obPeriod := '1';
+            end if;
+            -- Update the accumulator
+            v.obData := r.obData + ibDataE;
 
-			 -- Output valid latch
-			 v.obValid := '1';
+            -- Check if full
+            if r.obFull = '1' then
+               v.obData := v.obData - ramDoutE;
+            end if;
 
-		  end if;
-	  end if;  
+            -- Output valid latch
+            v.obValid := '1';
+
+         end if;
+      end if;
 
 
       -- Outputs
