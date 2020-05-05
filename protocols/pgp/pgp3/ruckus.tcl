@@ -33,7 +33,8 @@ if { ${family} eq {kintexu} } {
 
 if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} ||
+     ${family} eq {qzynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUs+"
    # loadRuckusTcl "$::DIR_PATH/gtyUs+"
 }

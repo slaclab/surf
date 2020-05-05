@@ -28,7 +28,7 @@ entity SaltRx is
    generic (
       TPD_G               : time                := 1 ns;
       COMMON_RX_CLK_G     : boolean             := false;  -- Set to true if mAxisClk and clk are the same clock
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4));
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Master Port
       mAxisClk    : in  sl;

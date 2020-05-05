@@ -27,7 +27,7 @@ entity AxiReadEmulate is
    generic (
       TPD_G        : time          := 1 ns;
       LATENCY_G    : natural       := 31;
-      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C;
+      AXI_CONFIG_G : AxiConfigType;
       SIM_DEBUG_G  : boolean       := false);
    port (
       -- Clock/Reset

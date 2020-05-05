@@ -47,7 +47,7 @@ entity AxiStreamBatcherEventBuilder is
       -- Set the TDEST to detect for transition frame
       TRANS_TDEST_G : slv(7 downto 0) := x"FF";
 
-      AXIS_CONFIG_G        : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G        : AxiStreamConfigType;
       INPUT_PIPE_STAGES_G  : natural             := 0;
       OUTPUT_PIPE_STAGES_G : natural             := 0);
    port (

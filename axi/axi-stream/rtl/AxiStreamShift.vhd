@@ -29,7 +29,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamShift is
    generic (
       TPD_G          : time                  := 1 ns;
-      AXIS_CONFIG_G  : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G  : AxiStreamConfigType;
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
       ADD_VALID_EN_G : boolean               := false;
       BYP_SHIFT_G    : boolean               := false);

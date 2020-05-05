@@ -27,7 +27,7 @@ use surf.AxiPkg.all;
 entity AxiStreamDmaV2WriteMux is
    generic (
       TPD_G          : time          := 1 ns;
-      AXI_CONFIG_G   : AxiConfigType := AXI_CONFIG_INIT_C;
+      AXI_CONFIG_G   : AxiConfigType;
       AXI_READY_EN_G : boolean       := false);
    port (
       -- Clock and reset

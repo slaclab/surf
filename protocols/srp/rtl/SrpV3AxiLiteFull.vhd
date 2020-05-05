@@ -36,7 +36,7 @@ entity SrpV3AxiLiteFull is
       SLAVE_READY_EN_G    : boolean                 := false;
       GEN_SYNC_FIFO_G     : boolean                 := false;
       AXIL_CLK_FREQ_G     : real                    := 156.25E+6;  -- units of Hz
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2));
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
       -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk         : in  sl;

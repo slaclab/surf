@@ -47,8 +47,8 @@ entity RssiCoreWrapper is
       MEMORY_TYPE_G        : string               := "block";
       ILEAVE_ON_NOTVALID_G : boolean              := false;  -- Unused (legacy generic)
       -- AXIS Configurations
-      APP_AXIS_CONFIG_G    : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
-      TSP_AXIS_CONFIG_G    : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
+      APP_AXIS_CONFIG_G    : AxiStreamConfigArray;
+      TSP_AXIS_CONFIG_G    : AxiStreamConfigType;
       -- Version and connection ID
       INIT_SEQ_N_G         : natural              := 16#80#;
       CONN_ID_G            : positive             := 16#12345678#;

@@ -36,8 +36,8 @@ entity SsiFrameLimiter is
       SLAVE_FIFO_G        : boolean             := false;
       MASTER_FIFO_G       : boolean             := false;
       SLAVE_READY_EN_G    : boolean             := true;
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       sAxisClk    : in  sl;

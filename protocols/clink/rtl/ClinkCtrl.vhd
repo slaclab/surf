@@ -30,7 +30,7 @@ entity ClinkCtrl is
       TPD_G              : time                := 1 ns;
       INV_34_G           : boolean             := false;
       UART_READY_EN_G    : boolean             := true;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      UART_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Cable In/Out
       cblHalfP    : inout slv(4 downto 0); -- 15, 17,  5,  6, 3

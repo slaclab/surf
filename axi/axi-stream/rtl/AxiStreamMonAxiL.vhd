@@ -28,7 +28,7 @@ entity AxiStreamMonAxiL is
       COMMON_CLK_G     : boolean             := false;  -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G  : real                := 156.25E+6;  -- units of Hz
       AXIS_NUM_SLOTS_G : positive            := 1;
-      AXIS_CONFIG_G    : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G    : AxiStreamConfigType);
    port (
       -- AXIS Stream Interface
       axisClk          : in  sl;

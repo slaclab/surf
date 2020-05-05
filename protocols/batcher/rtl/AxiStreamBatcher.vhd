@@ -31,7 +31,7 @@ entity AxiStreamBatcher is
       MAX_NUMBER_SUB_FRAMES_G      : positive            := 32;  -- Units of sub-frames
       SUPER_FRAME_BYTE_THRESHOLD_G : natural             := 8192;  -- Units of bytes
       MAX_CLK_GAP_G                : natural             := 256;  -- Units of clock cycles
-      AXIS_CONFIG_G                : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G                : AxiStreamConfigType;
       INPUT_PIPE_STAGES_G          : natural             := 0;
       OUTPUT_PIPE_STAGES_G         : natural             := 1);
    port (

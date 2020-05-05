@@ -43,7 +43,7 @@ entity SrpV0AxiLite is
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
 
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Streaming Slave (Rx) Interface (sAxisClk domain)
