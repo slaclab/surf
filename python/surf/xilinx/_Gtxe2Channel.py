@@ -392,7 +392,7 @@ class Gtxe2Channel(pr.Device):
             bitOffset = [15, 0],
             bitSize = [1, 16],
             mode = 'RW',
-            name = 'RX_DFE_UT_CFG'));
+            name = 'RX_DFE_UT_CFG'))
 
         self.add(pr.RemoteVariable(
             offset = 0x024 << 2,
