@@ -14,7 +14,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -25,12 +26,14 @@ use surf.GigEthPkg.all;
 
 entity GigEthGtx7 is
    generic (
-      TPD_G           : time                := 1 ns;
-      PAUSE_EN_G      : boolean             := true;
+      TPD_G                   : time                := 1 ns;
+      PAUSE_EN_G              : boolean             := true;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G            : boolean             := false;
+      AXIL_BASE_ADDR_G        : slv(31 downto 0)    := X"00000000";
+      AXIL_CLK_IS_SYSCLK125_G : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G           : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -69,52 +72,78 @@ architecture mapping of GigEthGtx7 is
 
    component GigEthGtx7Core
       port (
-         gtrefclk               : in  std_logic;
-         gtrefclk_bufg          : in  std_logic;
-         txp                    : out std_logic;
-         txn                    : out std_logic;
-         rxp                    : in  std_logic;
-         rxn                    : in  std_logic;
-         resetdone              : out std_logic;
-         cplllock               : out std_logic;
-         mmcm_reset             : out std_logic;
-         txoutclk               : out std_logic;
-         rxoutclk               : out std_logic;
-         userclk                : in  std_logic;
-         userclk2               : in  std_logic;
-         rxuserclk              : in  std_logic;
-         rxuserclk2             : in  std_logic;
-         pma_reset              : in  std_logic;
-         mmcm_locked            : in  std_logic;
-         independent_clock_bufg : in  std_logic;
-         gmii_txd               : in  std_logic_vector (7 downto 0);
-         gmii_tx_en             : in  std_logic;
-         gmii_tx_er             : in  std_logic;
-         gmii_rxd               : out std_logic_vector (7 downto 0);
-         gmii_rx_dv             : out std_logic;
-         gmii_rx_er             : out std_logic;
-         gmii_isolate           : out std_logic;
-         configuration_vector   : in  std_logic_vector (4 downto 0);
-         an_interrupt           : out std_logic;
-         an_adv_config_vector   : in  std_logic_vector (15 downto 0);
-         an_restart_config      : in  std_logic;
-         status_vector          : out std_logic_vector (15 downto 0);
-         reset                  : in  std_logic;
-         signal_detect          : in  std_logic;
-         gt0_rxpolarity_in      : in  std_logic;
-         gt0_txpolarity_in      : in  std_logic;
-         gt0_qplloutclk_in      : in  std_logic;
-         gt0_qplloutrefclk_in   : in  std_logic
+         gtrefclk               : in  sl;
+         gtrefclk_bufg          : in  sl;
+         txp                    : out sl;
+         txn                    : out sl;
+         rxp                    : in  sl;
+         rxn                    : in  sl;
+         resetdone              : out sl;
+         cplllock               : out sl;
+         mmcm_reset             : out sl;
+         txoutclk               : out sl;
+         rxoutclk               : out sl;
+         userclk                : in  sl;
+         userclk2               : in  sl;
+         rxuserclk              : in  sl;
+         rxuserclk2             : in  sl;
+         pma_reset              : in  sl;
+         mmcm_locked            : in  sl;
+         independent_clock_bufg : in  sl;
+         drpaddr_in             : in  slv (8 downto 0);
+         drpclk_in              : in  sl;
+         drpdi_in               : in  slv (15 downto 0);
+         drpdo_out              : out slv (15 downto 0);
+         drpen_in               : in  sl;
+         drprdy_out             : out sl;
+         drpwe_in               : in  sl;
+         gmii_txd               : in  slv (7 downto 0);
+         gmii_tx_en             : in  sl;
+         gmii_tx_er             : in  sl;
+         gmii_rxd               : out slv (7 downto 0);
+         gmii_rx_dv             : out sl;
+         gmii_rx_er             : out sl;
+         gmii_isolate           : out sl;
+         configuration_vector   : in  slv (4 downto 0);
+         an_interrupt           : out sl;
+         an_adv_config_vector   : in  slv (15 downto 0);
+         an_restart_config      : in  sl;
+         status_vector          : out slv (15 downto 0);
+         reset                  : in  sl;
+         signal_detect          : in  sl;
+         gt0_rxpolarity_in      : in  sl;
+         gt0_txpolarity_in      : in  sl;
+         gt0_qplloutclk_in      : in  sl;
+         gt0_qplloutrefclk_in   : in  sl
          );
    end component;
 
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
 
-   signal mAxiReadMaster  : AxiLiteReadMasterType;
-   signal mAxiReadSlave   : AxiLiteReadSlaveType;
-   signal mAxiWriteMaster : AxiLiteWriteMasterType;
-   signal mAxiWriteSlave  : AxiLiteWriteSlaveType;
+   constant AXIL_NUM_C : integer := 2;
+   constant ETH_AXIL_C : integer := 0;
+   constant DRP_AXIL_C : integer := 1;
+
+   constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(AXIL_NUM_C-1 downto 0) := (
+      ETH_AXIL_C      => (
+         baseAddr     => AXIL_BASE_ADDR_G + X"0000",
+         addrBits     => 12,
+         connectivity => X"FFFF"),
+      DRP_AXIL_C      => (
+         baseAddr     => AXIL_BASE_ADDR_G + X"1000",
+         addrBits     => 12,
+         connectivity => X"FFFF"));
+
+   signal syncAxilReadMaster  : AxiLiteReadMasterType;
+   signal syncAxilReadSlave   : AxiLiteReadSlaveType;
+   signal syncAxilWriteMaster : AxiLiteWriteMasterType;
+   signal syncAxilWriteSlave  : AxiLiteWriteSlaveType;
+
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(AXIL_NUM_C-1 downto 0);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(AXIL_NUM_C-1 downto 0);
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(AXIL_NUM_C-1 downto 0);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(AXIL_NUM_C-1 downto 0);
 
    signal gmiiTxClk : sl;
    signal gmiiTxd   : slv(7 downto 0);
@@ -129,6 +158,15 @@ architecture mapping of GigEthGtx7 is
    signal areset  : sl;
    signal coreRst : sl;
 
+   signal drpaddr : slv (8 downto 0);
+   signal drpclk  : sl;
+   signal drpdi   : slv (15 downto 0);
+   signal drpdo   : slv (15 downto 0);
+   signal drpen   : sl;
+   signal drprdy  : sl;
+   signal drpwe   : sl;
+
+
 begin
 
    ------------------
@@ -136,7 +174,8 @@ begin
    ------------------
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => AXIL_CLK_IS_SYSCLK125_G)
       port map (
          -- Slave Port
          sAxiClk         => axiLiteClk,
@@ -148,10 +187,28 @@ begin
          -- Master Port
          mAxiClk         => sysClk125,
          mAxiClkRst      => sysRst125,
-         mAxiReadMaster  => mAxiReadMaster,
-         mAxiReadSlave   => mAxiReadSlave,
-         mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);
+         mAxiReadMaster  => syncAxilReadMaster,
+         mAxiReadSlave   => syncAxilReadSlave,
+         mAxiWriteMaster => syncAxilWriteMaster,
+         mAxiWriteSlave  => syncAxilWriteSlave);
+
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => AXIL_NUM_C,
+         MASTERS_CONFIG_G   => AXIL_XBAR_CONFIG_C)
+      port map (
+         axiClk              => sysClk125,
+         axiClkRst           => sysRst125,
+         sAxiWriteMasters(0) => syncAxilWriteMaster,
+         sAxiWriteSlaves(0)  => syncAxilWriteSlave,
+         sAxiReadMasters(0)  => syncAxilReadMaster,
+         sAxiReadSlaves(0)   => syncAxilReadSlave,
+         mAxiWriteMasters    => locAxilWriteMasters,
+         mAxiWriteSlaves     => locAxilWriteSlaves,
+         mAxiReadMasters     => locAxilReadMasters,
+         mAxiReadSlaves      => locAxilReadSlaves);
 
    areset <= extRst or config.softRst or sysRst125;
 
@@ -217,6 +274,14 @@ begin
          mmcm_locked            => '1',
          mmcm_reset             => open,
          cplllock               => open,
+         -- DRP Interface
+         drpaddr_in             => drpaddr,
+         drpclk_in              => drpclk,
+         drpdi_in               => drpdi,
+         drpdo_out              => drpdo,
+         drpen_in               => drpen,
+         drprdy_out             => drprdy,
+         drpwe_in               => drpwe,
          -- PHY Interface
          gmii_txd               => gmiiTxd,
          gmii_tx_en             => gmiiTxEn,
@@ -246,6 +311,29 @@ begin
    status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
+   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      generic map (
+         TPD_G            => TPD_G,
+         COMMON_CLK_G     => true,
+         EN_ARBITRATION_G => false,
+         ADDR_WIDTH_G     => 9,
+         DATA_WIDTH_G     => 16)
+      port map (
+         axilClk         => sysClk125,                        -- [in]
+         axilRst         => sysRst125,                        -- [in]
+         axilReadMaster  => locAxilReadMasters(DRP_AXIL_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(DRP_AXIL_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(DRP_AXIL_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(DRP_AXIL_C),   -- [out]
+         drpClk          => sysClk125,                        -- [in]
+         drpRst          => sysRst125,                        -- [in]
+         drpRdy          => drpRdy,                           -- [in]
+         drpEn           => drpEn,                            -- [out]
+         drpWe           => drpWe,                            -- [out]
+         drpAddr         => drpAddr,                          -- [out]
+         drpDi           => drpDi,                            -- [out]
+         drpDo           => drpDo);                           -- [in]
+
    --------------------------------
    -- Configuration/Status Register
    --------------------------------
@@ -260,10 +348,10 @@ begin
          clk            => sysClk125,
          rst            => sysRst125,
          -- AXI-Lite Register Interface
-         axiReadMaster  => mAxiReadMaster,
-         axiReadSlave   => mAxiReadSlave,
-         axiWriteMaster => mAxiWriteMaster,
-         axiWriteSlave  => mAxiWriteSlave,
+         axiReadMaster  => locAxilReadMasters(ETH_AXIL_C),
+         axiReadSlave   => locAxilReadSlaves(ETH_AXIL_C),
+         axiWriteMaster => locAxilWriteMasters(ETH_AXIL_C),
+         axiWriteSlave  => locAxilWriteSlaves(ETH_AXIL_C),
          -- Configuration and Status Interface
          config         => config,
          status         => status);
