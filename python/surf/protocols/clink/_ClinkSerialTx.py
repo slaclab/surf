@@ -15,7 +15,7 @@
 
 import rogue.interfaces.stream
 
-import pdb
+#import pdb
 
 class ClinkSerialTx(rogue.interfaces.stream.Master):
 
@@ -32,8 +32,8 @@ class ClinkSerialTx(rogue.interfaces.stream.Master):
 
     def sendString(self,st):
         print( 'sendString: %s' % st )
-        if st.startswith( '@SN?' ):
-            pdb.set_trace()
+        #if st.startswith( '@SN?' ):
+        #	pdb.set_trace()
         ba = bytearray((len(st)+1)*4)
         i = 0
         for c in st:
