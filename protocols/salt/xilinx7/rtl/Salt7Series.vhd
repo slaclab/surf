@@ -28,8 +28,8 @@ entity Salt7Series is
       RX_ENABLE_G         : boolean             := true;
       COMMON_TX_CLK_G     : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
       COMMON_RX_CLK_G     : boolean             := false;  -- Set to true if mAxisClk and clk are the same clock
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4));
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- TX Serial Stream
       txP         : out sl;

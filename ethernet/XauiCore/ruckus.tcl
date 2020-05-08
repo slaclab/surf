@@ -22,7 +22,8 @@ if { ${family} eq {kintexu} } {
 
 if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} ||
+     ${family} eq {qzynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }

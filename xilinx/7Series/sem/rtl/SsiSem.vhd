@@ -31,8 +31,8 @@ entity SsiSem is
       TPD_G               : time                := 1 ns;
       COMMON_AXIL_CLK_G   : boolean             := false;
       COMMON_AXIS_CLK_G   : boolean             := false;
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(1);
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(1));
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- SEM clock and reset
       semClk          : in  sl;

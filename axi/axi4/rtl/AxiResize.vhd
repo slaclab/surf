@@ -31,8 +31,8 @@ entity AxiResize is
       -- General Configurations
       TPD_G               : time          := 1 ns;
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiConfigType := AXI_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G  : AxiConfigType;
+      MASTER_AXI_CONFIG_G : AxiConfigType);
    port (
       -- Clock and reset
       axiClk          : in  sl;

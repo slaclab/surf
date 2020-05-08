@@ -27,7 +27,7 @@ entity ClinkUart is
    generic (
       TPD_G              : time                := 1 ns;
       UART_READY_EN_G    : boolean             := true;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      UART_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and reset, 200Mhz
       intClk      : in  sl;

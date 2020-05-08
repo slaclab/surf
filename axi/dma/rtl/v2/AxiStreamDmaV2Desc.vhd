@@ -37,7 +37,7 @@ entity AxiStreamDmaV2Desc is
       AXIL_BASE_ADDR_G : slv(31 downto 0) := x"00000000";
 
       -- Configuration of AXI bus, must be 64 bits (or wider)
-      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C;
+      AXI_CONFIG_G : AxiConfigType;
 
       -- Number of descriptor entries in write FIFO and return ring buffers
       DESC_AWIDTH_G : integer range 4 to 32 := 12;

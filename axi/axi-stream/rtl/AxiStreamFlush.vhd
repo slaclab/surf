@@ -29,7 +29,7 @@ use surf.SsiPkg.all;
 entity AxiStreamFlush is
    generic (
       TPD_G         : time                 := 1 ns;
-      AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G : AxiStreamConfigType;
       SSI_EN_G      : boolean              := false);
    port (
 

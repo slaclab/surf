@@ -34,8 +34,8 @@ entity ClinkTop is
       UART_READY_EN_G    : boolean              := true;
       COMMON_AXIL_CLK_G  : boolean              := false;  -- true if axilClk=sysClk
       COMMON_DATA_CLK_G  : boolean              := false;  -- true if dataClk=sysClk
-      DATA_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
+      DATA_AXIS_CONFIG_G : AxiStreamConfigType;
+      UART_AXIS_CONFIG_G : AxiStreamConfigType;
       AXIL_BASE_ADDR_G   : slv(31 downto 0));
    port (
       -- Connector 0, Half 0, Control for Base,Medium,Full,Deca

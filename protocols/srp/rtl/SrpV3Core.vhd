@@ -3,11 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
---
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
---       For non 32-bit aligned addresses or non 32-bit transactions, use
---       the SrpV3Axi.vhd module with the AxiToAxiLite.vhd bridge
+-- Description: SLAC Register Protocol Version 3, Core FSM Logic
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -40,7 +36,7 @@ entity SrpV3Core is
       SLAVE_READY_EN_G    : boolean                 := false;
       GEN_SYNC_FIFO_G     : boolean                 := false;
       SRP_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       UNALIGNED_ACCESS_G  : boolean                 := false;
       BYTE_ACCESS_G       : boolean                 := false;
       WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
@@ -698,29 +694,36 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
-   -- Pipeline the rdData and wrData streams
-   U_AxiStreamPipeline_rdData : entity surf.AxiStreamPipeline
+   U_Rx : entity surf.AxiStreamResize
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G               => TPD_G,
+         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
+         MASTER_AXI_CONFIG_G => SRP_AXIS_CONFIG_C)
       port map (
-         axisClk     => srpClk,          -- [in]
-         axisRst     => srpRst,          -- [in]
-         sAxisMaster => srpRdMaster,     -- [in]
-         sAxisSlave  => srpRdSlave,      -- [out]
-         mAxisMaster => srpRdMasterInt,  -- [out]
-         mAxisSlave  => srpRdSlaveInt);  -- [in]
+         -- Clock and reset
+         axisClk     => srpClk,
+         axisRst     => srpRst,
+         -- Slave Port
+         sAxisMaster => srpRdMaster,
+         sAxisSlave  => srpRdSlave,
+         -- Master Port
+         mAxisMaster => srpRdMasterInt,
+         mAxisSlave  => srpRdSlaveInt);
 
-   U_AxiStreamPipeline_wrData : entity surf.AxiStreamPipeline
+   U_Tx : entity surf.AxiStreamResize
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G               => TPD_G,
+         SLAVE_AXI_CONFIG_G  => SRP_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
-         axisClk     => srpClk,          -- [in]
-         axisRst     => srpRst,          -- [in]
-         sAxisMaster => srpWrMasterInt,  -- [in]
-         sAxisSlave  => srpWrSlaveInt,   -- [out]
-         mAxisMaster => srpWrMaster,     -- [out]
-         mAxisSlave  => srpWrSlave);     -- [in]
+         -- Clock and reset
+         axisClk     => srpClk,
+         axisRst     => srpRst,
+         -- Slave Port
+         sAxisMaster => srpWrMasterInt,
+         sAxisSlave  => srpWrSlaveInt,
+         -- Master Port
+         mAxisMaster => srpWrMaster,
+         mAxisSlave  => srpWrSlave);
 
 end rtl;
