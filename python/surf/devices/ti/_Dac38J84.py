@@ -38,7 +38,7 @@ class Dac38J84(pr.Device):
             number       = 126,
             stride       = 4,
             hidden       = not(debug),
-            verify       = False, # Verify all registers by default
+            verify       = False, # DO NOT Verify all registers by default
             overlapEn    = True,
         )
 
