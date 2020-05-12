@@ -61,6 +61,10 @@ entity GigEthGtx7 is
       -- Switch Polarity of TxN/TxP, RxN/RxP
       gtTxPolarity       : in  sl                     := '0';
       gtRxPolarity       : in  sl                     := '0';
+      -- GT Drive strength
+      gtTxDiffCtrl       : in  slv(3 downto 0)        := "1000";
+      gtTxPreCursor      : in  slv(4 downto 0)        := (others => '0');
+      gtTxPostCursor     : in  slv(4 downto 0)        := (others => '0');
       -- MGT Ports
       gtTxP              : out sl;
       gtTxN              : out sl;
@@ -113,6 +117,9 @@ architecture mapping of GigEthGtx7 is
          signal_detect          : in  sl;
          gt0_rxpolarity_in      : in  sl;
          gt0_txpolarity_in      : in  sl;
+         gt0_txdiffctrl_in      : in  slv(3 downto 0);
+         gt0_txpostcursor_in    : in  slv(4 downto 0);
+         gt0_txprecursor_in     : in  slv(4 downto 0);
          gt0_qplloutclk_in      : in  sl;
          gt0_qplloutrefclk_in   : in  sl
          );
@@ -306,12 +313,15 @@ begin
          status_vector          => status.coreStatus,
          gt0_txpolarity_in      => gtTxPolarity,
          gt0_rxpolarity_in      => gtRxPolarity,
+         gt0_txdiffctrl_in      => gtTxDiffCtrl,
+         gt0_txprecursor_in     => gtTxPreCursor,
+         gt0_txpostcursor_in    => gtTxPostCursor,
          signal_detect          => sigDet);
 
    status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
-   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => true,
