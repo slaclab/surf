@@ -38,9 +38,23 @@ class Dac38J84(pr.Device):
             number       = 126,
             stride       = 4,
             hidden       = not(debug),
-            verify       = False,
+            verify       = False, # Verify all registers by default
             overlapEn    = True,
         )
+
+        # Do verify the READ-WRITE registers
+        for i in range(0, 7):
+            self.DacReg[i]._verify = True
+        for i in range(12, 26):
+            self.DacReg[i]._verify = True
+        for i in range(34, 39):
+            self.DacReg[i]._verify = True
+        for i in range(50, 53):
+            self.DacReg[i]._verify = True
+        for i in range(59, 64):
+            self.DacReg[i]._verify = True
+        for i in range(95, 98):
+            self.DacReg[i]._verify = True
 
         self.add(pr.RemoteVariable(
             name         = "LaneBufferDelay",
