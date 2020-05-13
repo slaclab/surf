@@ -36,8 +36,8 @@ entity AxiDualPortRamIpIntegrator is
       SYS_BYTE_WR_EN    : boolean              := false;
       COMMON_CLK        : boolean              := false;
       ADDR_WIDTH        : positive             := 5;
-      DATA_WIDTH        : positive             := 32;
-      INIT              : slv                  := "0");
+      DATA_WIDTH        : positive             := 32);
+--      INIT              : slv                  := "0");
    port (
       -- AXI-Lite Interface
       S_AXI_ACLK    : in  std_logic;
@@ -153,8 +153,8 @@ begin
          SYS_BYTE_WR_EN_G    => SYS_BYTE_WR_EN,
          COMMON_CLK_G        => COMMON_CLK,
          ADDR_WIDTH_G        => ADDR_WIDTH,
-         DATA_WIDTH_G        => DATA_WIDTH,
-         INIT_G              => INIT)
+         DATA_WIDTH_G        => DATA_WIDTH)
+--         INIT_G              => INIT)
       port map (
          -- AXI-Lite Interface
          axiClk         => axilClk,
