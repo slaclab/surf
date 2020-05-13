@@ -321,6 +321,7 @@ begin
    status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
+   drpClk <= sysClk125;
    U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
