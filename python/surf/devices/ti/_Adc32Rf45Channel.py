@@ -15,7 +15,7 @@ import pyrogue as pr
 import time
 
 class Adc32Rf45Channel(pr.Device):
-    def __init__( self, verify=False, **kwargs):
+    def __init__( self, verify=True, **kwargs):
 
         super().__init__(**kwargs)
 
