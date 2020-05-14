@@ -6,11 +6,11 @@
 -- NOTE: TDP ram with read enable logic is not supported.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ entity TrueDualPortRam is
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 9;
       INIT_G         : slv                        := "0");
    port (
-      -- Port A     
+      -- Port A
       clka    : in  sl                                                    := '0';
       ena     : in  sl                                                    := '1';
       wea     : in  sl                                                    := '0';
@@ -68,7 +68,7 @@ architecture rtl of TrueDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   -- Shared memory 
+   -- Shared memory
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
@@ -88,7 +88,7 @@ architecture rtl of TrueDualPortRam is
    attribute keep        : boolean;           --"keep" is same for XST and Altera
    attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
 
-   -- Attribute for Synplicity Synthesizer 
+   -- Attribute for Synplicity Synthesizer
    attribute syn_ramstyle        : string;
    attribute syn_ramstyle of mem : variable is "block";
 
@@ -103,7 +103,7 @@ begin
       severity failure;
 
    weaByteInt <= weaByte when BYTE_WR_EN_G else (others => wea);
-   webByteInt <= webByte when BYTE_WR_EN_G else (others => web);   
+   webByteInt <= webByte when BYTE_WR_EN_G else (others => web);
 
    -------------------------------------------------------------------------------------------------
    -- No Change Mode

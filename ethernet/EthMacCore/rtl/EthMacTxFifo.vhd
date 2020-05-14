@@ -4,11 +4,11 @@
 -- Description: Inbound FIFO buffers
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => PRIM_CONFIG_G,
-            MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)        
+            MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
          port map (
             sAxisClk    => sPrimClk,
             sAxisRst    => sPrimRst,
@@ -94,7 +94,7 @@ begin
             mAxisClk    => mClk,
             mAxisRst    => mRst,
             mAxisMaster => mPrimMaster,
-            mAxisSlave  => mPrimSlave);    
+            mAxisSlave  => mPrimSlave);
    end generate;
 
    BYP_DISABLED : if (BYP_EN_G = false) generate
@@ -103,7 +103,7 @@ begin
    end generate;
 
    BYP_ENABLED : if (BYP_EN_G = true) generate
-      
+
       BYP_FIFO_BYPASS : if ((BYP_COMMON_CLK_G = true) and (BYP_CONFIG_G = INT_EMAC_AXIS_CONFIG_C)) generate
          mBypMaster <= sBypMaster;
          sBypSlave  <= mBypSlave;
@@ -125,7 +125,7 @@ begin
                FIFO_ADDR_WIDTH_G   => 4,
                -- AXI Stream Port Configurations
                SLAVE_AXI_CONFIG_G  => BYP_CONFIG_G,
-               MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)        
+               MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
             port map (
                sAxisClk    => sBypClk,
                sAxisRst    => sBypRst,
@@ -134,9 +134,9 @@ begin
                mAxisClk    => mClk,
                mAxisRst    => mRst,
                mAxisMaster => mBypMaster,
-               mAxisSlave  => mBypSlave);    
+               mAxisSlave  => mBypSlave);
       end generate;
-      
+
    end generate;
 
    VLAN_DISABLED : if (VLAN_EN_G = false) generate
@@ -167,7 +167,7 @@ begin
                   FIFO_ADDR_WIDTH_G   => 4,
                   -- AXI Stream Port Configurations
                   SLAVE_AXI_CONFIG_G  => VLAN_CONFIG_G,
-                  MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)        
+                  MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
                port map (
                   sAxisClk    => sVlanClk,
                   sAxisRst    => sVlanRst,
@@ -176,9 +176,9 @@ begin
                   mAxisClk    => mClk,
                   mAxisRst    => mRst,
                   mAxisMaster => mVlanMasters(i),
-                  mAxisSlave  => mVlanSlaves(i));    
+                  mAxisSlave  => mVlanSlaves(i));
          end generate GEN_VEC;
       end generate;
    end generate;
-   
+
 end mapping;

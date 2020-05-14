@@ -2,20 +2,20 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Byte packer for AXI-Stream. 
--- Accepts an incoming stream and packs data into the outbound stream. 
--- Similar to AxiStreamResize, but allows an input and output width to have 
--- non multiples and for the input size to be dynamic. 
--- This module does not downsize and creates more complex combinatorial logic 
+-- Byte packer for AXI-Stream.
+-- Accepts an incoming stream and packs data into the outbound stream.
+-- Similar to AxiStreamResize, but allows an input and output width to have
+-- non multiples and for the input size to be dynamic.
+-- This module does not downsize and creates more complex combinatorial logic
 -- than in AxiStreamResize.
 -- Ready handshaking is not supported.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,8 +31,8 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamBytePacker is
    generic (
       TPD_G           : time                := 1 ns;
-      SLAVE_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      SLAVE_CONFIG_G  : AxiStreamConfigType;
+      MASTER_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
       axiClk       : in  sl;
@@ -86,20 +86,7 @@ begin
       -- Pending output from current
       if r.curMaster.tValid = '1' then
          v.outMaster := r.curMaster;
-
-         -- Shift next to current only if nxt is not full
-         if r.nxtMaster.tValid = '0' then
-            v.curMaster := r.nxtMaster;
-            v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
-            v.nxtMaster.tKeep := (others=>'0');
-         else
-            v.curMaster := AXI_STREAM_MASTER_INIT_C;
-            v.curMaster.tKeep := (others=>'0');
-         end if;
-
-      -- Next is full, send to out
-      elsif r.nxtMaster.tValid = '1' then
-         v.outMaster := r.nxtMaster;
+         v.curMaster := r.nxtMaster;
          v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
          v.nxtMaster.tKeep := (others=>'0');
       else
@@ -120,7 +107,7 @@ begin
                data  := r.inMaster.tData(i*8+7 downto i*8);
 
                -- Still filling current data
-               if v.curMaster.tValid = '0' then 
+               if v.curMaster.tValid = '0' then
 
                   v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := data;
                   v.curMaster.tKeep(v.byteCount) := '1';
@@ -166,7 +153,7 @@ begin
    end process;
 
    seq : process (axiClk) is
-   begin  
+   begin
       if (rising_edge(axiClk)) then
          r <= rin;
       end if;

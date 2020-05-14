@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTH Ultrascale IP core Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -199,7 +199,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
          );
    end component;
-   
+
    component Pgp3GthUsIp3G
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
@@ -259,7 +259,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
          txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
          );
-   end component;   
+   end component;
 
    signal dummy1  : sl;
    signal dummy2  : sl;
@@ -445,7 +445,7 @@ begin
             txpmaresetdone_out(0)                 => dummy10,
             txprgdivresetdone_out(0)              => dummy11);
    end generate GEN_6G;
-   
+
    GEN_3G : if (RATE_G = "3.125Gbps") generate
       U_Pgp3GthUsIp : Pgp3GthUsIp3G
          port map (
@@ -508,7 +508,7 @@ begin
             rxstartofseq_out(0)                   => rxStartOfSeq,
             txpmaresetdone_out(0)                 => dummy10,
             txprgdivresetdone_out(0)              => dummy11);
-   end generate GEN_3G;   
+   end generate GEN_3G;
 
    qpllRst(1)                <= '0';
    zeroBit                   <= '0';

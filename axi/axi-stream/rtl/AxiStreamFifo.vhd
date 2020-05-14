@@ -4,14 +4,14 @@
 -- Description:
 -- Block to serve as an async FIFO for AXI Streams. This block also allows the
 -- bus to be compress/expanded, allowing different standard sizes on each side
--- of the FIFO. Re-sizing is always little endian. 
+-- of the FIFO. Re-sizing is always little endian.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -47,16 +47,15 @@ entity AxiStreamFifo is
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
       -- Set to 0 for same size as primary fifo (default)
       -- Set >4 for custom size.
-      -- Use at own risk. Overflow of tLast fifo is not checked      
+      -- Use at own risk. Overflow of tLast fifo is not checked
       LAST_FIFO_ADDR_WIDTH_G : integer range 0 to 48 := 0;
 
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G : integer range 0 to (2**24) := 0;
 
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
-      );
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Slave Port
@@ -181,7 +180,7 @@ architecture rtl of AxiStreamFifo is
 
       master := axiStreamMasterInit(MASTER_AXI_CONFIG_G);
 
-      -- Set valid, 
+      -- Set valid,
       master.tValid := valid;
 
       -- Set last

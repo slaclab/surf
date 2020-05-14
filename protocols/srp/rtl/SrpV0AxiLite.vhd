@@ -5,14 +5,14 @@
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface
 --
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
+-- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -43,10 +43,10 @@ entity SrpV0AxiLite is
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
 
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
 
-      -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+      -- Streaming Slave (Rx) Interface (sAxisClk domain)
       sAxisClk    : in  sl;
       sAxisRst    : in  sl := '0';
       sAxisMaster : in  AxiStreamMasterType;
@@ -126,7 +126,7 @@ architecture rtl of SrpV0AxiLite is
    -- attribute dont_touch                    : string;
    -- attribute dont_touch of r               : signal is "TRUE";
    -- attribute dont_touch of sFifoAxisMaster : signal is "TRUE";
-   -- attribute dont_touch of sFifoAxisSlave  : signal is "TRUE";   
+   -- attribute dont_touch of sFifoAxisSlave  : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisMaster : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisSlave  : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisCtrl   : signal is "TRUE";
@@ -195,7 +195,7 @@ begin
             if sFifoAxisMaster.tValid = '1' and mFifoAxisCtrl.pause = '0' then
                v.sFifoAxisSlave.tReady := '1';
 
-               -- Bad frame 
+               -- Bad frame
                if sFifoAxisMaster.tLast = '0' then
                   v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
                   v.mFifoAxisMaster.tUser  := sFifoAxisMaster.tUser;
@@ -228,7 +228,7 @@ begin
                elsif sFifoAxisMaster.tData(31 downto 30) = "00" then
                   v.state := S_READ_SIZE_C;
 
-               -- Write 
+               -- Write
                elsif sFifoAxisMaster.tData(31 downto 30) = "01" then
                   v.state := S_WRITE_C;
 
@@ -305,7 +305,7 @@ begin
             end if;
 
          ----------------------------------------------------------------------
-         -- Read size 
+         -- Read size
          ----------------------------------------------------------------------
          when S_READ_SIZE_C =>
             v.rdCount := (others => '0');
@@ -423,7 +423,7 @@ begin
    end process seq;
 
    --------------
-   -- Output FIFO 
+   -- Output FIFO
    --------------
    MasterAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (

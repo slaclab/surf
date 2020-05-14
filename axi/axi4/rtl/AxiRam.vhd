@@ -4,11 +4,11 @@
 -- Description: General AXI RAM Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ entity AxiRam is
       SYNTH_MODE_G   : string               := "inferred";
       MEMORY_TYPE_G  : string               := "block";
       READ_LATENCY_G : natural range 0 to 2 := 2;
-      AXI_CONFIG_G   : AxiConfigType        := axiConfig(16, 8, 4, 8));
+      AXI_CONFIG_G   : AxiConfigType);
    port (
       -- Clock and Reset
       axiClk          : in  sl;
@@ -126,7 +126,7 @@ begin
             BYTE_WIDTH_G   => 8,
             ADDR_WIDTH_G   => ADDR_WIDTH_C)
          port map (
-            -- Port A     
+            -- Port A
             ena    => wrEn,
             clka   => axiClk,
             addra  => wrAddr,
@@ -152,7 +152,7 @@ begin
             BYTE_WIDTH_G   => 8,
             ADDR_WIDTH_G   => ADDR_WIDTH_C)
          port map (
-            -- Port A     
+            -- Port A
             ena    => wrEn,
             clka   => axiClk,
             addra  => wrAddr,
@@ -177,7 +177,7 @@ begin
             BYTE_WIDTH_G  => 8,
             ADDR_WIDTH_G  => ADDR_WIDTH_C)
          port map (
-            -- Port A     
+            -- Port A
             ena     => wrEn,
             clka    => axiClk,
             addra   => wrAddr,
@@ -194,12 +194,12 @@ begin
    comb : process (axiRst, r, rdData, sAxiReadMaster, sAxiWriteMaster) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       ----------------------------------------------------------------------
       --                      AXI Write Logic                             --
-      ----------------------------------------------------------------------      
+      ----------------------------------------------------------------------
 
       -- Reset the strobes
       v.wstrb                  := (others => '0');
@@ -284,8 +284,8 @@ begin
       wrData <= r.wrData;
 
       --------------------------
-      -- sAxiWriteSlave's Outputs 
-      --------------------------         
+      -- sAxiWriteSlave's Outputs
+      --------------------------
       -- Write address channel
       sAxiWriteSlave.awready <= v.sAxiWriteSlave.awready;
       -- Write data channel
@@ -383,8 +383,8 @@ begin
       end if;
 
       --------------------------
-      -- sAxiReadSlave's Outputs 
-      --------------------------      
+      -- sAxiReadSlave's Outputs
+      --------------------------
       -- Read Address channel
       sAxiReadSlave.arready <= v.sAxiReadSlave.arready;
       -- Read data channel

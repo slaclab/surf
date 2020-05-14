@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 1 c-c register delay 
+-- Description: 1 c-c register delay
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ begin
 
       -- Check the clock enable
       if en = '1' then
-         -- Register/Delay for 1 clock cycle 
+         -- Register/Delay for 1 clock cycle
          v.reg := sig_i;
       end if;
 
@@ -70,7 +70,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs  
+      -- Outputs
       reg_o <= r.reg;
    end process comb;
 

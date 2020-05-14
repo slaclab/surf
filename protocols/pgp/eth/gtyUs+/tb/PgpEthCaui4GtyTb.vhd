@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for testing the PgpEthCaui4Gty
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -160,13 +160,13 @@ begin
       U_BottleNeck : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => false,  -- Using pause            
+            SLAVE_READY_EN_G    => false,  -- Using pause
             GEN_SYNC_FIFO_G     => true,
             SYNTH_MODE_G        => "xpm",
             MEMORY_TYPE_G       => "uram",
             FIFO_ADDR_WIDTH_G   => 12,  -- 4k URAM,
             FIFO_FIXED_THRESH_G => true,
-            FIFO_PAUSE_THRESH_G => 1024,   -- 1/4 of buffer            
+            FIFO_PAUSE_THRESH_G => 1024,   -- 1/4 of buffer
             SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => CHOKE_AXIS_CONFIG_C)  -- Bottleneck the bandwidth
          port map (

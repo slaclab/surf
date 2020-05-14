@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the RawEthFramer module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -44,8 +44,8 @@ architecture testbed of RawEthFramerTb is
 
    constant MAC_ADDR_C : Slv48Array(2 downto 0) := (0 => x"010300564400", 1 => x"020300564400", 2 => x"030300564400");
    constant IP_ADDR_C  : Slv32Array(2 downto 0) := (0 => x"0A02A8C0", 1 => x"0B02A8C0", 2 => x"0C02A8C0");
-   
-   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := ( others => EMAC_AXIS_CONFIG_C); 
+
+   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := ( others => EMAC_AXIS_CONFIG_C);
 
    signal clk : sl;
    signal rst : sl;
@@ -83,7 +83,7 @@ architecture testbed of RawEthFramerTb is
    signal trig        : slv(1 downto 0);
    signal frameRate   : Slv32Array(1 downto 0);
    signal errorDetCnt : SlVectorArray(0 downto 0, 31 downto 0);
-   
+
 begin
 
    ClkRst_Inst : entity surf.ClkRst
@@ -95,7 +95,7 @@ begin
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => open);       
+         rstL => open);
 
    -- Loopback the PHY streams
    rxMasters(0) <= txMasters(1);
@@ -183,7 +183,7 @@ begin
             ibClientSlaves(0)   => ibClientSlave,
             -- Clock and Reset
             clk                 => clk,
-            rst                 => rst);         
+            rst                 => rst);
 
    end generate;
 
@@ -236,7 +236,7 @@ begin
             obAppSlave  => ibClientSlave,
             -- Clock and Reset
             clk         => clk,
-            rst         => rst);      
+            rst         => rst);
 
    end generate;
 
@@ -307,7 +307,7 @@ begin
             TSP_INPUT_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
             TSP_OUTPUT_AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C,
             MAX_RETRANS_CNT_G        => 1,
-            MAX_CUM_ACK_CNT_G        => 1)        
+            MAX_CUM_ACK_CNT_G        => 1)
          port map (
             clk_i             => clk,
             rst_i             => rst,
@@ -324,13 +324,13 @@ begin
             mTspAxisSlave_i   => ibClientSlave,
             -- AXI-Lite Interface
             axiClk_i          => clk,
-            axiRst_i          => rst);         
+            axiRst_i          => rst);
 
    end generate;
 
 
    BYPASS_RSSI : if (BYPASS_RSSI_C = true) generate
-      
+
       ibServerMaster     <= obServerMasters(0);
       obServerSlaves(0)  <= ibServerSlave;
       ibServerMasters(0) <= obServerMaster;
@@ -340,12 +340,12 @@ begin
       obClientSlaves(0)  <= ibClientSlave;
       ibClientMasters(0) <= obClientMaster;
       obClientSlave      <= ibClientSlaves(0);
-      
+
    end generate;
 
    ----------------------------------------
    -- 192.168.2.10@4369@TDEST[0] = PRBS TX
-   ----------------------------------------   
+   ----------------------------------------
    U_TX_4369_tdest0 : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
@@ -366,11 +366,11 @@ begin
          trig         => '1',
          packetLength => PKT_LEN_C,
          tDest        => X"00",
-         tId          => X"00");    
+         tId          => X"00");
 
    ----------------------------------------
    -- 192.168.2.10@8738@TDEST[0] = PRBS RX
-   ----------------------------------------   
+   ----------------------------------------
    U_RX_8738_tdest0 : entity surf.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
@@ -390,7 +390,7 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          axiClk      => clk,
-         axiRst      => rst);    
+         axiRst      => rst);
 
    start <= obServerMasters(0).tValid and obServerMasters(0).tUser(SSI_SOF_C) and obServerSlaves(0).tReady;
    stop  <= ibClientMasters(0).tValid and ibClientMasters(0).tUser(SSI_SOF_C) and ibClientSlaves(0).tReady;
@@ -435,7 +435,7 @@ begin
             trigRateOut => frameRate(i),
             -- Clocks
             locClk      => clk,
-            refClk      => clk);     
+            refClk      => clk);
    end generate GEN_VEC;
 
    U_SyncStatusVector : entity surf.SyncStatusVector
@@ -451,6 +451,6 @@ begin
          wrClk    => clk,
          wrRst    => rst,
          rdClk    => clk,
-         rdRst    => rst);         
+         rdRst    => rst);
 
 end testbed;

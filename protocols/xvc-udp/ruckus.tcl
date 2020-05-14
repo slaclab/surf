@@ -22,20 +22,21 @@ if { $::env(VIVADO_VERSION) >= 2018.3 } {
         ${family} eq {virtexuplus} ||
         ${family} eq {virtexuplusHBM} ||
         ${family} eq {zynquplus} ||
-        ${family} eq {zynquplusRFSOC} } {
+        ${family} eq {zynquplusRFSOC} ||
+        ${family} eq {qzynquplusRFSOC} } {
       set dirType "UltraScale"
    }
 
    if { [info exists ::env(USE_XVC_DEBUG)] != 1 || $::env(USE_XVC_DEBUG) == 0 } {
       loadSource -lib surf -path "$::DIR_PATH/dcp/${dirType}/Stub/images/UdpDebugBridge.dcp"
       set_property IS_GLOBAL_INCLUDE {1} [get_files UdpDebugBridge.dcp]
-       
+
    } elseif { $::env(USE_XVC_DEBUG) == -1 } {
       puts "Note: USE_XVC_DEBUG = -1"
       puts "The debug bridge is left as a black box"
       puts "and it is the application's responsibility"
       puts "to define a suitable implementation."
-      
+
    } else {
       loadSource -lib surf -path "$::DIR_PATH/dcp/${dirType}/Impl/images/UdpDebugBridge.dcp"
        set_property IS_GLOBAL_INCLUDE {1} [get_files UdpDebugBridge.dcp]

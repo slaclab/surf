@@ -6,11 +6,11 @@
 -- Description: PGPv2b GTH Ultrascale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'Example Project Firmware'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Example Project Firmware', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'Example Project Firmware', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -121,15 +121,14 @@ begin
 
    gtHardReset <= resetGtSync or stableRst;
 
-   U_RstSync_4 : entity surf.PwrUpRst
+   U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G      => TPD_G,
-         DURATION_G => 12500000)
+         TPD_G         => TPD_G,
+         PULSE_WIDTH_G => 12500000)
       port map (
-         arst   => phyRxInit,           -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => phyRxInitSync);      -- [out]
-
+         clk     => stableClk,           -- [in]
+         dataIn  => phyRxInit,           -- [in]
+         dataOut => phyRxInitSync);      -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst

@@ -4,11 +4,11 @@
 -- Description: AXI-Lite 1GbE Register Interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -131,9 +131,9 @@ begin
             statusIn(7)           => status.macStatus.txUnderRunCnt,
             statusIn(8)           => status.macStatus.txNotReadyCnt,
             statusIn(31 downto 9) => (others => '0'),
-            -- Output Status bit Signals (rdClk domain)           
+            -- Output Status bit Signals (rdClk domain)
             statusOut             => statusOut,
-            -- Status Bit Counters Signals (rdClk domain) 
+            -- Status Bit Counters Signals (rdClk domain)
             cntRstIn              => r.cntRst,
             rollOverEnIn          => r.rollOverEn,
             cntOut                => cntOut,
@@ -143,7 +143,7 @@ begin
 
       -------------------------------
       -- Configuration Register
-      -------------------------------  
+      -------------------------------
       comb : process (axiReadMaster, axiWriteMaster, cntOut, localMacSync, r,
                       rst, status, statusOut, wdtRst) is
          variable v      : RegType;

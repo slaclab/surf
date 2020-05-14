@@ -4,11 +4,11 @@
 -- Description: Ethernet MAC TX Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ entity EthMacTx is
       ethConfig      : in  EthMacConfigType;
       txCountEn      : out sl;
       txUnderRun     : out sl;
-      txLinkNotReady : out sl);  
+      txLinkNotReady : out sl);
 end EthMacTx;
 
 architecture mapping of EthMacTx is
@@ -95,7 +95,7 @@ begin
    U_Bypass : entity surf.EthMacTxBypass
       generic map (
          TPD_G    => TPD_G,
-         BYP_EN_G => BYP_EN_G) 
+         BYP_EN_G => BYP_EN_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -119,7 +119,7 @@ begin
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
          JUMBO_G        => JUMBO_G,
          VLAN_G         => false,
-         VID_G          => x"001") 
+         VID_G          => x"001")
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -134,9 +134,9 @@ begin
          mAxisMaster => csumMaster,
          mAxisSlave  => csumSlave);
 
-   --------------------------         
+   --------------------------
    -- TX VLAN Checksum Module
-   --------------------------         
+   --------------------------
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_SIZE_G-1) downto 0 generate
@@ -146,7 +146,7 @@ begin
                DROP_ERR_PKT_G => DROP_ERR_PKT_G,
                JUMBO_G        => JUMBO_G,
                VLAN_G         => true,
-               VID_G          => VLAN_VID_G(i)) 
+               VID_G          => VLAN_VID_G(i))
             port map (
                -- Clock and Reset
                ethClk      => ethClk,
@@ -178,7 +178,7 @@ begin
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_G,
          VLAN_EN_G       => VLAN_EN_G,
-         VLAN_SIZE_G     => VLAN_SIZE_G)        
+         VLAN_SIZE_G     => VLAN_SIZE_G)
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -204,7 +204,7 @@ begin
          pauseTx      => pauseTx);
 
    -----------------------
-   -- TX MAC Export Module 
+   -- TX MAC Export Module
    -----------------------
    U_Export : entity surf.EthMacTxExport
       generic map (
@@ -215,7 +215,7 @@ begin
          ethClkEn       => ethClkEn,
          ethClk         => ethClk,
          ethRst         => ethRst,
-         -- AXIS Interface   
+         -- AXIS Interface
          macObMaster    => macObMaster,
          macObSlave     => macObSlave,
          -- XLGMII PHY Interface

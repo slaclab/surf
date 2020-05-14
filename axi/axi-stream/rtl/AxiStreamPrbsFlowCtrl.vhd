@@ -4,11 +4,11 @@
 -- Description: Generates pseudo-random back pressure
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ begin
          clk => clk,
          ain => r.randomData,
          bin => threshold,
-         ls  => pause);                 --  (a <  b)   
+         ls  => pause);                 --  (a <  b)
 
    comb : process (pause, r, rst, rxMaster, txSlave) is
       variable v : RegType;
@@ -99,7 +99,7 @@ begin
          -- Move the data
          v.txMaster       := rxMaster;
       end if;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
@@ -111,7 +111,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
+      -- Outputs
       txMaster <= r.txMaster;
 
    end process comb;

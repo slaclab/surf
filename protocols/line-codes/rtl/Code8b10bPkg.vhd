@@ -6,11 +6,11 @@
 -- Description: 8B10B Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ package body Code8b10bPkg is
       variable illegalk                               : sl;
       variable compls6, disp6, compls4                : sl;
    begin
-      
+
       ai := dataIn(0);
       bi := dataIn(1);
       ci := dataIn(2);
@@ -236,7 +236,7 @@ package body Code8b10bPkg is
       disp6a  := p31 or (p22 and dispin);  -- pos disp if p22 and was pos, or p31.
       disp6a2 := p31 and dispin;           -- disp is ++ after 4 bits
       disp6a0 := p13 and not dispin;       -- -- disp after 4 bits
-      
+
       disp6b := (((ei and ii and not disp6a0) or (disp6a and (ei or ii)) or disp6a2 or
                   (ei and ii and di)) and (ei or ii or di)) ;
 

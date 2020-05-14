@@ -5,11 +5,11 @@
 --              Read transaction are not supported and will respond with error
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ begin
 
       -- State Machine
       case (r.state) is
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for write transaction
             if (axilStatus.writeEnable = '1') then
@@ -95,7 +95,7 @@ begin
                v.state := TIMER_S;
 
             end if;
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when TIMER_S =>
             -- Check for timeout
             if (r.timer = 0) then

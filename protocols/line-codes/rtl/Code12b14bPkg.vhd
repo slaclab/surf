@@ -6,11 +6,11 @@
 -- Description: 12B14B Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ package Code12b14bPkg is
    constant K_X_7_CODE_C  : slv(5 downto 0) := "111000";  -- Double check this, should invert?
    constant K_X_8_CODE_C  : slv(5 downto 0) := "011000";
    constant K_X_11_CODE_C : slv(5 downto 0) := "001011";
---   constant K_X_15_CODE_C : slv(5 downto 0) := "000011";  
+--   constant K_X_15_CODE_C : slv(5 downto 0) := "000011";
    constant K_X_16_CODE_C : slv(5 downto 0) := "001001";
    constant K_X_19_CODE_C : slv(5 downto 0) := "010011";
    constant K_X_23_CODE_C : slv(5 downto 0) := "101000";

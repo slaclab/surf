@@ -4,11 +4,11 @@
 -- Description: Testbench for design "Encoder12b14b"
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -247,7 +247,7 @@ begin
 
          assert (decDispError = '0') report "Disparity Error" severity failure;
          assert (decCodeError = '0') report "Code Error" severity failure;
-         assert (decDataOut = dlyDataOut and decDataKOut = dlyDataKOut) report "Encode/Decode mismatch" severity error;         
+         assert (decDataOut = dlyDataOut and decDataKOut = dlyDataKOut) report "Encode/Decode mismatch" severity error;
       end if;
 
       run <= runVar;

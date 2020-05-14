@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI-Lite interface for register access  
+-- Description: AXI-Lite interface for register access
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', includataIng this file, 
--- may be copied, modified, propagated, or distributed except accordataIng to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', includataIng this file,
+-- may be copied, modified, propagated, or distributed except accordataIng to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ entity JesdTxReg is
    generic (
       -- General Configurations
       TPD_G : time                   := 1 ns;
-      -- JESD 
+      -- JESD
       L_G   : positive range 1 to 16 := 2;
       F_G   : positive               := 2);
    port (
@@ -110,7 +110,7 @@ architecture rtl of JesdTxReg is
       signalSelectArr => (others => b"0000_0001"),  -- Set to external
       periodStep      => intToSlv(1, PER_STEP_WIDTH_C) & intToSlv(1, PER_STEP_WIDTH_C),
       --signalSelectArr=> (others => b"0001_0011"), -- Set to ramp
-      --periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(1,PER_STEP_WIDTH_C),      
+      --periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(1,PER_STEP_WIDTH_C),
 
       posAmplitude => (others => '1'),
       negAmplitude => (others => '0'),
@@ -166,7 +166,7 @@ begin
          -- SYSREF Edge detection (devClk domain)
          devClk          => devClk_i,
          sysrefEdgeDet_i => sysrefRe_i,
-         -- Max/Min measurements  (axilClk domain)   
+         -- Max/Min measurements  (axilClk domain)
          axilClk         => axiClk_i,
          statClr         => r.commonCtrl(3),
          sysRefPeriodmin => sysRefPeriodmin,
@@ -190,9 +190,9 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          statusIn  => s_adcValids,
-         -- Output Status bit Signals (rdClk domain)  
+         -- Output Status bit Signals (rdClk domain)
          statusOut => open,
-         -- Status Bit Counters Signals (rdClk domain) 
+         -- Status Bit Counters Signals (rdClk domain)
          cntRstIn  => r.commonCtrl(3),
          cntOut    => s_statusCnt,
          -- Clocks and Reset Ports
@@ -382,7 +382,7 @@ begin
          rstIn  => sysrefDlyTx,
          rstOut => sysrefDlyTx_o);
 
-   ------------------------------------------------------------            
+   ------------------------------------------------------------
 
    U_enableTx : entity surf.SynchronizerVector
       generic map (
@@ -402,7 +402,7 @@ begin
          rstIn  => enableTx,
          rstOut => enableTx_o);
 
-   ------------------------------------------------------------         
+   ------------------------------------------------------------
 
    U_subClass : entity surf.Synchronizer
       generic map (
@@ -420,7 +420,7 @@ begin
          rstIn  => subClass,
          rstOut => subClass_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
    U_replEnable : entity surf.Synchronizer
       generic map (
@@ -438,7 +438,7 @@ begin
          rstIn  => replEnable,
          rstOut => replEnable_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
    U_gtReset : entity surf.Synchronizer
       generic map (
@@ -456,7 +456,7 @@ begin
          rstIn  => gtReset,
          rstOut => gtReset_o);
 
-   ------------------------------------------------------------              
+   ------------------------------------------------------------
 
    U_clearErr : entity surf.Synchronizer
       generic map (
@@ -474,7 +474,7 @@ begin
          rstIn  => clearErr,
          rstOut => clearErr_o);
 
-   ------------------------------------------------------------          
+   ------------------------------------------------------------
 
    U_invertSync : entity surf.Synchronizer
       generic map (
@@ -492,7 +492,7 @@ begin
          rstIn  => invertSync,
          rstOut => invertSync_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
    U_scrEnable : entity surf.Synchronizer
       generic map (
@@ -510,7 +510,7 @@ begin
          rstIn  => scrEnable,
          rstOut => scrEnable_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
    U_rampStep_A : entity surf.SynchronizerVector
       generic map (
@@ -530,7 +530,7 @@ begin
          rstIn  => rampStep,
          rstOut => rampStep_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
    U_squarePeriod : entity surf.SynchronizerVector
       generic map (
@@ -550,7 +550,7 @@ begin
          rstIn  => squarePeriod,
          rstOut => squarePeriod_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
    U_posAmplitude : entity surf.SynchronizerVector
       generic map (
@@ -570,7 +570,7 @@ begin
          rstIn  => posAmplitude,
          rstOut => posAmplitude_o);
 
-   ------------------------------------------------------------          
+   ------------------------------------------------------------
 
    U_negAmplitude : entity surf.SynchronizerVector
       generic map (
@@ -590,7 +590,7 @@ begin
          rstIn  => negAmplitude,
          rstOut => negAmplitude_o);
 
-   ------------------------------------------------------------             
+   ------------------------------------------------------------
 
    U_invertData : entity surf.SynchronizerVector
       generic map (
@@ -610,11 +610,11 @@ begin
          rstIn  => invertData,
          rstOut => invertData_o);
 
-   ------------------------------------------------------------          
+   ------------------------------------------------------------
 
    GEN_1 : for i in L_G-1 downto 0 generate
 
-      ------------------------------------------------------------              
+      ------------------------------------------------------------
 
       U_muxOutSelArr : entity surf.SynchronizerVector
          generic map (
@@ -634,7 +634,7 @@ begin
             rstIn  => muxOutSelArr(i),
             rstOut => muxOutSelArr_o(i));
 
-      ------------------------------------------------------------              
+      ------------------------------------------------------------
 
       U_sigTypeArr : entity surf.SynchronizerVector
          generic map (
@@ -654,7 +654,7 @@ begin
             rstIn  => sigTypeArr(i),
             rstOut => sigTypeArr_o(i));
 
-      ------------------------------------------------------------                 
+      ------------------------------------------------------------
 
    end generate GEN_1;
 

@@ -4,11 +4,11 @@
 -- Description: General Purpose Status Vector and Status Counter module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,21 +37,21 @@ entity SyncStatusVector is
       WIDTH_G        : positive := 16);  -- Status vector width
    port (
       ---------------------------------------------
-      -- Input Status bit Signals (wrClk domain)      
+      -- Input Status bit Signals (wrClk domain)
       ---------------------------------------------
       statusIn     : in  slv(WIDTH_G-1 downto 0);                     -- Data to be 'synced'
       ---------------------------------------------
-      -- Output Status bit Signals (rdClk domain)      
+      -- Output Status bit Signals (rdClk domain)
       ---------------------------------------------
       statusOut    : out slv(WIDTH_G-1 downto 0);                     -- Synced data
       ---------------------------------------------
-      -- Status Bit Counters Signals (rdClk domain)      
+      -- Status Bit Counters Signals (rdClk domain)
       ---------------------------------------------
       -- cntRstIn:
       --    This input is the common resets all the counters
       cntRstIn     : in  sl;
       -- rollOverEnIn:
-      --    This input is counter roll over enable vector.  
+      --    This input is counter roll over enable vector.
       --    Each element of the vector corresponds to its respective counter.
       --    For example:   rollOverEnIn(0) is statusIn(0)'s counter roll over enable bit
       --                   rollOverEnIn(1) is statusIn(1)'s counter roll over enable bit
@@ -59,29 +59,29 @@ entity SyncStatusVector is
       --                   .... and so on
       rollOverEnIn : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- No roll over for all counters by default
       -- cntOut:
-      --    This output is counter value vector array.  
+      --    This output is counter value vector array.
       --    The remapping of cntOut to a SLV array (outside of this module) is has followed:
       --
       --          for i in WIDTH_G-1 to 0 loop
       --             for j in CNT_WIDTH_G-1 to 0 loop
       --                MySlvArray(i)(j) <= cntOut(i, j);
       --             end loop;
-      --          end loop;  
+      --          end loop;
       --
       cntOut       : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);
       ---------------------------------------------
-      -- Interrupt Signals (rdClk domain)         
+      -- Interrupt Signals (rdClk domain)
       ---------------------------------------------
       -- irqEnIn:
-      --    This input is counter roll over enable vector.  
+      --    This input is counter roll over enable vector.
       --    Each element of the vector corresponds to its respective status bit.
       --    For example:   irqEnIn(0) is statusIn(0)'s enable interrupt bit
       --                   irqEnIn(1) is statusIn(1)'s enable interrupt bit
       --                   irqEnIn(2) is statusIn(2)'s enable interrupt bit
-      --                   .... and so on      
+      --                   .... and so on
       irqEnIn      : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- All bits disabled by default
       -- irqOut:
-      --    This output is interrupt output signal.  
+      --    This output is interrupt output signal.
       irqOut       : out sl;
       ---------------------------------------------
       -- Clocks and Reset Ports
@@ -139,7 +139,7 @@ begin
          wrClk      => wrClk,
          wrRst      => wrRst,
          dataIn     => statusIn,
-         -- Read Ports (rdClk domain)    
+         -- Read Ports (rdClk domain)
          rdClk      => rdClk,
          rdRst      => rdRst,
          rollOverEn => rollOverEnIn,

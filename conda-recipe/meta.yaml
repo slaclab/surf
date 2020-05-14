@@ -1,4 +1,4 @@
-package: 
+package:
   name: surf
   version: {{ GIT_DESCRIBE_TAG }}
 

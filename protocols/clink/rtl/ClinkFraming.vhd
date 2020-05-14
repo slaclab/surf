@@ -5,11 +5,11 @@
 -- CameraLink framing module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ entity ClinkFraming is
    generic (
       TPD_G              : time                := 1 ns;
       COMMON_DATA_CLK_G  : boolean             := false;  -- true if dataClk=sysClk
-      DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      DATA_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
       sysClk     : in  sl;
@@ -441,7 +441,7 @@ begin
 
       end if;
 
-      -- Outputs 
+      -- Outputs
       parReady   <= v.ready;
       chanStatus <= r.status;
 

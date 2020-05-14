@@ -4,11 +4,11 @@
 -- Description: FIFO Read FSM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ begin
 
          -----------------------------------------
          --             FWFT Mode
-         -----------------------------------------      
+         -----------------------------------------
 
          -- Check if FWFT FIFO
          if (FWFT_EN_G) then
@@ -176,7 +176,7 @@ begin
 
             -----------------------------------------
             --             FIFO Mode
-            -----------------------------------------              
+            -----------------------------------------
 
             -- Check for read operation
             if (rd_en = '1') then

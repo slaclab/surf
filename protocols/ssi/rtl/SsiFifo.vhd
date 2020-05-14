@@ -10,11 +10,11 @@
 -- Note: This module does NOT support interleaved tDEST
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ entity SsiFifo is
       -- Valid threshold should always be 1 when using interleaved TDEST
       --       =1 = normal operation
       --       =0 = only when frame ready
-      --       >1 = only when frame ready or # entries      
+      --       >1 = only when frame ready or # entries
       VALID_THOLD_G          : natural             := 1;
       VALID_BURST_MODE_G     : boolean             := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
@@ -56,14 +56,14 @@ entity SsiFifo is
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast transaction can be smaller.
       --       Set to 0 for same size as primary FIFO (default)
       --       Set >4 for custom size.
-      --       Use at own risk. Overflow of tLast FIFO is not checked      
+      --       Use at own risk. Overflow of tLast FIFO is not checked
       LAST_FIFO_ADDR_WIDTH_G : natural             := 0;
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G    : natural             := 0;
       CASCADE_SIZE_G         : positive            := 1;
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G     : AxiStreamConfigType := SSI_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G    : AxiStreamConfigType := SSI_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G     : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G    : AxiStreamConfigType);
    port (
       -- Slave Interface (sAxisClk domain)
       sAxisClk        : in  sl;
@@ -122,7 +122,7 @@ architecture rtl of SsiFifo is
 
 begin
 
---   assert (SLAVE_AXI_CONFIG_G.TDEST_INTERLEAVE_C = false) 
+--   assert (SLAVE_AXI_CONFIG_G.TDEST_INTERLEAVE_C = false)
 --      report "SsiFifo does NOT support interleaved TDEST" severity failure;
 
    assert (SLAVE_AXI_CONFIG_G.TUSER_BITS_C >= 2)

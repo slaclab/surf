@@ -4,11 +4,11 @@
 -- Description: ADC DDR Deserializer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ architecture rtl of AxiAds42lb69DeserBit is
          LOAD        : in  sl;             -- 1-bit input: Load DELAY_VALUE input
          RST         : in  sl);  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
    end component;
-   
+
    component Odelaye3Wrapper
       generic (
          TPD_G            : time    := 1 ns;
@@ -92,7 +92,7 @@ architecture rtl of AxiAds42lb69DeserBit is
          SIM_DEVICE       : string  := "ULTRASCALE";  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS)
          UPDATE_MODE      : string  := "ASYNC");  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
       port (
-         BUSY        : out sl;  -- 1-bit output: Patch module is busy   
+         BUSY        : out sl;  -- 1-bit output: Patch module is busy
          CASC_OUT    : out sl;  -- 1-bit output: Cascade delay output to IDELAY input cascade
          CNTVALUEOUT : out slv(8 downto 0);  -- 9-bit output: Counter value output
          DATAOUT     : out sl;  -- 1-bit output: Delayed data from ODATAIN input port
@@ -106,8 +106,8 @@ architecture rtl of AxiAds42lb69DeserBit is
          LOAD        : in  sl;             -- 1-bit input: Load DELAY_VALUE input
          ODATAIN     : in  sl;             -- 1-bit input: Data input
          RST         : in  sl);  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
-   end component;   
-   
+   end component;
+
    signal data       : sl;
    signal dataDly    : sl;
    signal clkb       : sl;
@@ -115,19 +115,19 @@ architecture rtl of AxiAds42lb69DeserBit is
    signal cascRet    : sl;
    signal delayOutData1 : slv(8 downto 0);
    signal delayOutData2 : slv(8 downto 0);
-   
+
 begin
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       attribute IODELAY_GROUP                  : string;
       attribute IODELAY_GROUP of IDELAYE2_inst : label is IODELAY_GROUP_G;
    begin
-      
+
       IBUFDS_Inst : IBUFDS
          port map (
             I  => dataP,
             IB => dataN,
-            O  => data);                 
+            O  => data);
 
       IDELAYE2_inst : IDELAYE2
          generic map (
@@ -158,30 +158,30 @@ begin
             DDR_CLK_EDGE => "SAME_EDGE_PIPELINED",  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
             INIT_Q1      => '0',           -- Initial value of Q1: '0' or '1'
             INIT_Q2      => '0',           -- Initial value of Q2: '0' or '1'
-            SRTYPE       => "SYNC")        -- Set/Reset type: "SYNC" or "ASYNC" 
+            SRTYPE       => "SYNC")        -- Set/Reset type: "SYNC" or "ASYNC"
          port map (
             D  => dataDly,                 -- 1-bit DDR data input
             C  => clk,                     -- 1-bit clock input
             CE => '1',                     -- 1-bit clock enable input
             R  => '0',                     -- 1-bit reset
             S  => '0',                     -- 1-bit set
-            Q1 => Q1,                      -- 1-bit output for positive edge of clock 
+            Q1 => Q1,                      -- 1-bit output for positive edge of clock
             Q2 => Q2);                     -- 1-bit output for negative edge of clock
-      
+
    end generate;
-      
+
    GEN_ULTRASCALE : if (XIL_DEVICE_G = "ULTRASCALE") generate
-      
+
       -- when DELAY_FORMAT is "COUNT" the delay is not PVT calibrated
       -- Therefore, do not use an IDELAYCTRL component
       -- Leave the REFCLK_FREQUENCY attribute at the default value (300 MHz).
       -- Tie the EN_VTC input pin Low
-      
+
       IBUFDS_Inst : IBUFDS
          port map (
             I  => dataP,
             IB => dataN,
-            O  => data);                 
+            O  => data);
 
       IDELAYE3_inst : Idelaye3Wrapper
          generic map (
@@ -195,21 +195,21 @@ begin
             REFCLK_FREQUENCY => 300.0, -- IDELAYCTRL clock input frequency in MHz (200.0-2400.0)
             UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
          port map (
-            CASC_IN     => '0',           -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT 
-            CASC_OUT    => cascOut,       -- 1-bit output: Cascade delay output to ODELAY input cascade 
-            CASC_RETURN => cascRet,       -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT 
-            DATAIN      => '0',           -- 1-bit input: Data input from the logic 
+            CASC_IN     => '0',           -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+            CASC_OUT    => cascOut,       -- 1-bit output: Cascade delay output to ODELAY input cascade
+            CASC_RETURN => cascRet,       -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+            DATAIN      => '0',           -- 1-bit input: Data input from the logic
             IDATAIN     => data,          -- 1-bit input: Data input from the IOBUF
-            DATAOUT     => dataDly,       -- 1-bit output: Delayed data output 
-            CLK         => delayClk,           -- 1-bit input: Clock input 
-            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
-            INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input 
-            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
-            LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input 
+            DATAOUT     => dataDly,       -- 1-bit output: Delayed data output
+            CLK         => delayClk,           -- 1-bit input: Clock input
+            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT
+            INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
+            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input
+            LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input
             RST         => delayRst,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
-            CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input 
-            CNTVALUEOUT => delayOutData1);   -- 9-bit output: Counter value output 
-      
+            CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input
+            CNTVALUEOUT => delayOutData1);   -- 9-bit output: Counter value output
+
       ODELAYE3_inst : Odelaye3Wrapper
          generic map (
             CASCADE => "SLAVE_END",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
@@ -222,19 +222,19 @@ begin
             UPDATE_MODE => "ASYNC")    -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
          port map (
             CASC_IN     => cascOut,       -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
-            CASC_OUT    => open,          -- 1-bit output: Cascade delay output to IDELAY input cascade 
-            CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT 
+            CASC_OUT    => open,          -- 1-bit output: Cascade delay output to IDELAY input cascade
+            CASC_RETURN => '0',           -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT
             ODATAIN     => '0',           -- 1-bit input: Data input
-            DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port 
-            CLK         => delayClk,           -- 1-bit input: Clock input 
-            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT 
+            DATAOUT     => cascRet,       -- 1-bit output: Delayed data from ODATAIN input port
+            CLK         => delayClk,           -- 1-bit input: Clock input
+            EN_VTC      => '0',           -- 1-bit input: Keep delay constant over VT
             INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
-            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
-            LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input 
-            RST         => delayRst,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+            CE          => '0',           -- 1-bit input: Active high enable increment/decrement input
+            LOAD        => delayInLoad,   -- 1-bit input: Load DELAY_VALUE input
+            RST         => delayRst,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
             CNTVALUEIN  => delayInData,      -- 9-bit input: Counter value input
-            CNTVALUEOUT => delayOutData2);   -- 9-bit output: Counter value output 
-      
+            CNTVALUEOUT => delayOutData2);   -- 9-bit output: Counter value output
+
       delayOutData <= resize(delayOutData1, 10, '0') + delayOutData2;
 
       IDDR_Inst : IDDRE1
@@ -246,11 +246,11 @@ begin
             C  => clk,                     -- 1-bit clock input
             CB => clkb,                    -- 1-bit inverted clock input
             R  => '0',                     -- 1-bit reset
-            Q1 => Q1,                      -- 1-bit output for positive edge of clock 
+            Q1 => Q1,                      -- 1-bit output for positive edge of clock
             Q2 => Q2);                     -- 1-bit output for negative edge of clock
-         
+
          clkb <= not clk;
-      
+
    end generate;
 
 end rtl;

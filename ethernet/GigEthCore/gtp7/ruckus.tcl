@@ -8,7 +8,7 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
 
    # loadIpCore -path "$::DIR_PATH/ip/GigEthGtp7Core.xci"
    loadSource -lib surf -path "$::DIR_PATH/ip/GigEthGtp7Core.dcp"
-   
+
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2016.4 (or later)\n\n"
 }

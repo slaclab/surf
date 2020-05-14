@@ -6,11 +6,11 @@
 -- a gate keeper when the peer has requested a pause period.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -220,14 +220,14 @@ begin
                   elsif (r.txCount = 2) then
                      -- Zero Padding
                      v.mAxisMaster.tData(127 downto 0) := (others => '0');
-                     v.mAxisMaster.tKeep(15 downto 0)  := x"FFFF";  -- 16 bytes    
+                     v.mAxisMaster.tKeep(15 downto 0)  := x"FFFF";  -- 16 bytes
                   else
                      -- Zero Padding
                      v.mAxisMaster.tData(127 downto 0) := (others => '0');
                      v.mAxisMaster.tKeep(15 downto 0)  := x"0FFF";  -- 12 bytes (Fixed frame size = 46 bytes)
                      -- Set EOF
                      v.mAxisMaster.tLast               := '1';
-                     -- Latch the Pause time   
+                     -- Latch the Pause time
                      v.remPauseCnt                     := '0' & pauseTime(15 downto 1);  -- retransmit if half of pauseTime time
                      v.remPreCnt                       := (others => '1');
                      v.pauseTx                         := '1';
