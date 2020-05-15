@@ -105,6 +105,7 @@ class Gtxe2Channel(pr.Device):
             mode = mode,
             name = 'RX_DATA_WIDTH',
             bitSize = 3,
+            value = 2,
             enum = {
                 2: '16',
                 3: '20',
@@ -586,6 +587,7 @@ class Gtxe2Channel(pr.Device):
             mode = mode,
             name = 'ALIGN_COMMA_WORD',
             bitSize = 3,
+            value = 1,
             enum = {
                 1: '1',
                 2: '2',
@@ -906,6 +908,7 @@ class Gtxe2Channel(pr.Device):
             mode = mode,
             name = 'CHAN_BOND_MAX_SKEW',
             bitSize = 4,
+            value = 1,
             enum = {x:f'{x}' for x in range(1, 15)}))
 
         self.add(pr.RemoteVariable(
@@ -1146,6 +1149,7 @@ class Gtxe2Channel(pr.Device):
             mode = mode,
             name = 'TX_DATA_WIDTH',
             bitSize = 3,
+            value = 2,
             enum = {
                 2: '16',
                 3: '20',
