@@ -21,7 +21,7 @@ class ClinkSerialRx(rogue.interfaces.stream.Slave):
         rogue.interfaces.stream.Slave.__init__(self)
         self._cur = []
         self._last = ''
-        
+
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
         frame.read(ba,0)
