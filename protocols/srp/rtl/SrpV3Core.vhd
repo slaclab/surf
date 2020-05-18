@@ -694,29 +694,36 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
-   -- Pipeline the rdData and wrData streams
-   U_AxiStreamPipeline_rdData : entity surf.AxiStreamPipeline
+   U_Rx : entity surf.AxiStreamResize
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G               => TPD_G,
+         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
+         MASTER_AXI_CONFIG_G => SRP_AXIS_CONFIG_C)
       port map (
-         axisClk     => srpClk,          -- [in]
-         axisRst     => srpRst,          -- [in]
-         sAxisMaster => srpRdMaster,     -- [in]
-         sAxisSlave  => srpRdSlave,      -- [out]
-         mAxisMaster => srpRdMasterInt,  -- [out]
-         mAxisSlave  => srpRdSlaveInt);  -- [in]
+         -- Clock and reset
+         axisClk     => srpClk,
+         axisRst     => srpRst,
+         -- Slave Port
+         sAxisMaster => srpRdMaster,
+         sAxisSlave  => srpRdSlave,
+         -- Master Port
+         mAxisMaster => srpRdMasterInt,
+         mAxisSlave  => srpRdSlaveInt);
 
-   U_AxiStreamPipeline_wrData : entity surf.AxiStreamPipeline
+   U_Tx : entity surf.AxiStreamResize
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G               => TPD_G,
+         SLAVE_AXI_CONFIG_G  => SRP_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
-         axisClk     => srpClk,          -- [in]
-         axisRst     => srpRst,          -- [in]
-         sAxisMaster => srpWrMasterInt,  -- [in]
-         sAxisSlave  => srpWrSlaveInt,   -- [out]
-         mAxisMaster => srpWrMaster,     -- [out]
-         mAxisSlave  => srpWrSlave);     -- [in]
+         -- Clock and reset
+         axisClk     => srpClk,
+         axisRst     => srpRst,
+         -- Slave Port
+         sAxisMaster => srpWrMasterInt,
+         sAxisSlave  => srpWrSlaveInt,
+         -- Master Port
+         mAxisMaster => srpWrMaster,
+         mAxisSlave  => srpWrSlave);
 
 end rtl;

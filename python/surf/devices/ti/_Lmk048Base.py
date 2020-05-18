@@ -11,6 +11,7 @@
 import pyrogue as pr
 import re
 import ast
+import time
 
 class Lmk048Base(pr.Device):
     def __init__(self, **kwargs):
@@ -1103,40 +1104,63 @@ class Lmk048Base(pr.Device):
         @self.command(description='Powerdown the sysref lines',)
         def PwrDwnSysRef():
             self.EnableSysRef.set(0)
+            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='Powerup the sysref lines',)
         def PwrUpSysRef():
             self.EnableSysRef.set(self.sysrefMode)
             self.LmkReg_0x0143.set(0x12)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x32)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x12)
+            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='1: Powerdown',)
         def PwrDwnLmkChip():
             self.POWER_DOWN.set(1)
+            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='0: Normal Operation',)
         def PwrUpLmkChip():
             self.POWER_DOWN.set(0)
+            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks',)
         def Init():
             self.sysrefMode = self.EnableSysRef.get()
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0139.set(0x0)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x11)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0140.set(0x0)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0144.set(0x74)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x11)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x31)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x11)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0144.set(0xFF)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0139.set(0x2)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x013E.set(0x3)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x12)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x32)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0143.set(0x12)
+            time.sleep(0.010) # TODO: Optimize this timeout
 
             # Fixed Register:
             self.LmkReg_0x0145.set(0x7F) # Always program this register to value 127 (0x7F)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0171.set(0xAA) # Always program to 170 (0xAA)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0172.set(0x02) # Always program to 2 (0x02)
+            time.sleep(0.010) # TODO: Optimize this timeout

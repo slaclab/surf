@@ -14,6 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time
 
 class Dac38J84(pr.Device):
     def __init__(self,
@@ -38,9 +39,23 @@ class Dac38J84(pr.Device):
             number       = 126,
             stride       = 4,
             hidden       = not(debug),
-            verify       = False,
+            verify       = False, # DO NOT Verify all registers by default
             overlapEn    = True,
         )
+
+        # Do verify the READ-WRITE registers
+        for i in range(0, 7):
+            self.DacReg[i]._verify = True
+        for i in range(12, 26):
+            self.DacReg[i]._verify = True
+        for i in range(34, 39):
+            self.DacReg[i]._verify = True
+        for i in range(50, 53):
+            self.DacReg[i]._verify = True
+        for i in range(59, 64):
+            self.DacReg[i]._verify = True
+        for i in range(95, 98):
+            self.DacReg[i]._verify = True
 
         self.add(pr.RemoteVariable(
             name         = "LaneBufferDelay",
@@ -363,20 +378,38 @@ class Dac38J84(pr.Device):
         def Init():
             self.writeBlocks(force=True)
             self.EnableTx.set(0)
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.ClearAlarms()
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[59].set( self.DacReg[59].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[37].set( self.DacReg[37].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[60].set( self.DacReg[60].value() | 0x0200 )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[60].set( self.DacReg[60].value() & 0xFDFF )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[62].set( self.DacReg[62].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[76].set( self.DacReg[76].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[77].set( self.DacReg[77].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[75].set( self.DacReg[75].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[77].set( self.DacReg[77].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[78].set( self.DacReg[78].value() )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[0].set(  self.DacReg[0].value()  )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x1E )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x1E )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x1F )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.DacReg[74].set( (self.DacReg[74].value() & 0xFFE0) | 0x01 )
+            time.sleep(0.010) # TODO: Optimize this timeout
             self.EnableTx.set(1)
+            time.sleep(0.010) # TODO: Optimize this timeout

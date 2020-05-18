@@ -12,9 +12,10 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time
 
 class Adc32Rf45Channel(pr.Device):
-    def __init__( self, verify=False, **kwargs):
+    def __init__( self, verify=True, **kwargs):
 
         super().__init__(**kwargs)
 
@@ -1350,5 +1351,8 @@ class Adc32Rf45Channel(pr.Device):
         @self.command(name = "TestPattern", description  = "Set the Digital bank Test Pattern mode")
         def TestPattern(arg):
             self.TEST_PATTERN_SEL.set(int(arg))
+            time.sleep(0.100) # TODO: Optimize this timeout
             self.TEST_PAT_RES.set(0x1)
+            time.sleep(0.100) # TODO: Optimize this timeout
             self.TEST_PAT_RES.set(0x0)
+            time.sleep(0.100) # TODO: Optimize this timeout
