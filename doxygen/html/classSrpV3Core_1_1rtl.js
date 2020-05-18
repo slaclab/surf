@@ -39,6 +39,6 @@ var classSrpV3Core_1_1rtl =
     [ "sync_ctrl", "classSrpV3Core_1_1rtl.html#a5783569353b49889744ce515d1e3f543", null ],
     [ "sync_overflow", "classSrpV3Core_1_1rtl.html#aa32fdd57ed2ec77a821df86ccf447212", null ],
     [ "tx_fifo", "classSrpV3Core_1_1rtl.html#a2d3497d9531e969ddc1c9bc5cff5397e", null ],
-    [ "u_axistreampipeline_rddata", "classSrpV3Core_1_1rtl.html#a39499c0022062d7edcd51d19d70b29f5", null ],
-    [ "u_axistreampipeline_wrdata", "classSrpV3Core_1_1rtl.html#af1030109d2e26f4f6aa75229b7c4cc67", null ]
+    [ "u_rx", "classSrpV3Core_1_1rtl.html#abd0b8310274ce5649e93dea53a1bef28", null ],
+    [ "u_tx", "classSrpV3Core_1_1rtl.html#a55bb269eff3d06364a23f29c12f29b16", null ]
 ];

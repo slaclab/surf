@@ -3,6 +3,7 @@ var classBoxcarIntegrator =
     [ "rtl", "classBoxcarIntegrator_1_1rtl.html", "classBoxcarIntegrator_1_1rtl" ],
     [ "TPD_G", "classBoxcarIntegrator.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SIGNED_G", "classBoxcarIntegrator.html#aa0fd7a0e6c7b82ee7160db8319383d49", null ],
+    [ "DOB_REG_G", "classBoxcarIntegrator.html#a6b0e2c721d28285878a5784dcf093791", null ],
     [ "DATA_WIDTH_G", "classBoxcarIntegrator.html#affd59283310705939da4070a8ed00c30", null ],
     [ "ADDR_WIDTH_G", "classBoxcarIntegrator.html#ad807e71950be92e72dd1f4a030d59581", null ],
     [ "clk", "classBoxcarIntegrator.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],

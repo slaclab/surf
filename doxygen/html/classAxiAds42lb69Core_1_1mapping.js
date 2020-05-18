@@ -1,6 +1,6 @@
 var classAxiAds42lb69Core_1_1mapping =
 [
-    [ "PROCESS_97", "classAxiAds42lb69Core_1_1mapping.html#af4e4294f03ee55e72cc5417d4573aaf5", null ],
+    [ "PROCESS_98", "classAxiAds42lb69Core_1_1mapping.html#a9f1721f435bda3cf94e2976d90cb3cda", null ],
     [ "status", "classAxiAds42lb69Core_1_1mapping.html#ab3862723ab36df3b7622d32466920d7d", null ],
     [ "config", "classAxiAds42lb69Core_1_1mapping.html#a0e0705e8ca65103b687c824886ff51b4", null ],
     [ "adcDataCnv", "classAxiAds42lb69Core_1_1mapping.html#a5b62c5a01c875bf97e025c4b0cb635bc", null ],

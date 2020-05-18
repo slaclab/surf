@@ -64,17 +64,32 @@ var sectionId = 'dynsection-0';
 <!-- Node18 -->
 <g id="node19" class="node">
 <title>Node18</title>
-<g id="a_node19"><a xlink:href="classMicroblazeBasicCoreWrapper.html" target="_top" xlink:title="MicroblazeBasicCoreWrapper">
-<polygon fill="#ffffff" stroke="#000000" points="936,-74.2111 936,-93.2111 1094,-93.2111 1094,-74.2111 936,-74.2111"/>
-<text text-anchor="middle" x="1015" y="-81.2111" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">MicroblazeBasicCoreWrapper</text>
+<g id="a_node19"><a xlink:href="classAxiStreamResizeTb.html" target="_top" xlink:title="AxiStreamResizeTb">
+<polygon fill="#ffffff" stroke="#000000" points="959.5,-93.2111 959.5,-112.2111 1070.5,-112.2111 1070.5,-93.2111 959.5,-93.2111"/>
+<text text-anchor="middle" x="1015" y="-100.2111" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">AxiStreamResizeTb</text>
 </a>
 </g>
 </g>
 <!-- Node0&#45;&gt;Node18 -->
 <g id="edge26" class="edge">
 <title>Node0&#45;&gt;Node18</title>
-<path fill="none" stroke="#191970" d="M910.2394,-83.7111C918.4267,-83.7111 927.1363,-83.7111 935.901,-83.7111"/>
-<polygon fill="#191970" stroke="#191970" points="910.1834,-80.2112 900.1834,-83.7111 910.1833,-87.2112 910.1834,-80.2112"/>
+<path fill="none" stroke="#191970" d="M910.5389,-89.6535C925.9748,-91.583 943.2415,-93.7413 959.2218,-95.7389"/>
+<polygon fill="#191970" stroke="#191970" points="910.5403,-86.1265 900.1834,-88.3591 909.672,-93.0725 910.5403,-86.1265"/>
+</g>
+<!-- Node19 -->
+<g id="node20" class="node">
+<title>Node19</title>
+<g id="a_node20"><a xlink:href="classMicroblazeBasicCoreWrapper.html" target="_top" xlink:title="MicroblazeBasicCoreWrapper">
+<polygon fill="#ffffff" stroke="#000000" points="936,-55.2111 936,-74.2111 1094,-74.2111 1094,-55.2111 936,-55.2111"/>
+<text text-anchor="middle" x="1015" y="-62.2111" font-family="Helvetica,sans-Serif" font-size="10.00" fill="#000000">MicroblazeBasicCoreWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node0&#45;&gt;Node19 -->
+<g id="edge27" class="edge">
+<title>Node0&#45;&gt;Node19</title>
+<path fill="none" stroke="#191970" d="M910.191,-77.8123C919.3311,-76.6697 929.1238,-75.4457 938.9182,-74.2214"/>
+<polygon fill="#191970" stroke="#191970" points="909.672,-74.3498 900.1834,-79.0632 910.5403,-81.2957 909.672,-74.3498"/>
 </g>
 <!-- Node1 -->
 <g id="node2" class="node">

@@ -1,9 +1,9 @@
 var classAxiStreamDma_1_1structure =
 [
-    [ "PROCESS_28", "classAxiStreamDma_1_1structure.html#a50085d841c327914ebc2aa28a9360f7f", null ],
-    [ "PROCESS_29", "classAxiStreamDma_1_1structure.html#ac011c2138b3ee43d7ac0d3551046e467", null ],
-    [ "PROCESS_30", "classAxiStreamDma_1_1structure.html#a47a4332ef05d748de6f6827bcc6c766d", null ],
-    [ "PROCESS_31", "classAxiStreamDma_1_1structure.html#a51148ca13a98433fbd42cb586a8a8415", null ],
+    [ "PROCESS_29", "classAxiStreamDma_1_1structure.html#a3a4e1e35483a8f5ec9470864f52e6f21", null ],
+    [ "PROCESS_30", "classAxiStreamDma_1_1structure.html#a1899dd28c9e7a81aab796504041e55f1", null ],
+    [ "PROCESS_31", "classAxiStreamDma_1_1structure.html#a3520ec164bfcf49a1ea109b8ef991953", null ],
+    [ "PROCESS_32", "classAxiStreamDma_1_1structure.html#adcd71a9e9888be461e24f30a8eb51b43", null ],
     [ "PUSH_ADDR_WIDTH_C", "classAxiStreamDma_1_1structure.html#a16c76108989bb1f01f984cf075207959", null ],
     [ "POP_ADDR_WIDTH_C", "classAxiStreamDma_1_1structure.html#ab6d559e8e5aa42019defc43eb27be184", null ],
     [ "POP_FIFO_PFULL_C", "classAxiStreamDma_1_1structure.html#a1f67afbc972693790a04194e8f6f2185", null ],

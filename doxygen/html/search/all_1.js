@@ -157,6 +157,7 @@ var searchData=
   ['axistreamprbsflowctrl',['AxiStreamPrbsFlowCtrl',['../classAxiStreamPrbsFlowCtrl.html',1,'']]],
   ['axistreamrepeater',['AxiStreamRepeater',['../classAxiStreamRepeater.html',1,'']]],
   ['axistreamresize',['AxiStreamResize',['../classAxiStreamResize.html',1,'']]],
+  ['axistreamresizetb',['AxiStreamResizeTb',['../classAxiStreamResizeTb.html',1,'']]],
   ['axistreamscattergather',['AxiStreamScatterGather',['../classAxiStreamScatterGather.html',1,'']]],
   ['axistreamselector',['AxiStreamSelector',['../classAxiStreamSelector.html',1,'']]],
   ['axistreamselectorimpl',['AxiStreamSelectorImpl',['../classAxiStreamSelector_1_1AxiStreamSelectorImpl.html',1,'AxiStreamSelector']]],

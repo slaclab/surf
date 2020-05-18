@@ -1,11 +1,12 @@
 <map id="SimpleDualPortRamAlteraMf" name="SimpleDualPortRamAlteraMf">
-<area shape="rect" id="node2" href="$classAxiRam.html" title="AxiRam" alt="" coords="140,80,213,107"/>
-<area shape="rect" id="node5" href="$classRssiCore.html" title="RssiCore" alt="" coords="261,80,340,107"/>
+<area shape="rect" id="node2" href="$classAxiRam.html" title="AxiRam" alt="" coords="205,80,279,107"/>
+<area shape="rect" id="node6" href="$classRssiCore.html" title="RssiCore" alt="" coords="355,80,433,107"/>
 <area shape="rect" id="node3" href="$classAxiRamTb.html" title="AxiRamTb" alt="" coords="5,155,95,181"/>
 <area shape="rect" id="node4" href="$classAxiRssiCoreTb.html" title="AxiRssiCoreTb" alt="" coords="119,155,235,181"/>
-<area shape="rect" id="node6" href="$classRssiCoreWrapper.html" title="RssiCoreWrapper" alt="" coords="259,155,393,181"/>
-<area shape="rect" id="node7" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="55,229,187,256"/>
-<area shape="rect" id="node8" href="$classRssiCoreTb.html" title="RssiCoreTb" alt="" coords="211,229,305,256"/>
-<area shape="rect" id="node9" href="$classRssiInterleaveTb.html" title="RssiInterleaveTb" alt="" coords="330,229,461,256"/>
-<area shape="rect" id="node10" href="$classSrpV3AxiLiteTb.html" title="SrpV3AxiLiteTb" alt="" coords="485,229,607,256"/>
+<area shape="rect" id="node5" href="$classSrpV3AxiTb.html" title="SrpV3AxiTb" alt="" coords="259,155,356,181"/>
+<area shape="rect" id="node7" href="$classRssiCoreWrapper.html" title="RssiCoreWrapper" alt="" coords="381,155,514,181"/>
+<area shape="rect" id="node8" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="175,229,307,256"/>
+<area shape="rect" id="node9" href="$classRssiCoreTb.html" title="RssiCoreTb" alt="" coords="331,229,425,256"/>
+<area shape="rect" id="node10" href="$classRssiInterleaveTb.html" title="RssiInterleaveTb" alt="" coords="450,229,581,256"/>
+<area shape="rect" id="node11" href="$classSrpV3AxiLiteTb.html" title="SrpV3AxiLiteTb" alt="" coords="605,229,727,256"/>
 </map>

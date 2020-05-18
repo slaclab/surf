@@ -408,6 +408,13 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "SsiInsertSof", "classSsiInsertSof.html", [
+        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
+      ] ],
+      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "Fifo", "classFifo.html", null ],
       [ "AxiStreamSelector", "classAxiStreamSelector.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
@@ -643,8 +650,10 @@ var hierarchy =
       [ "ClockManager7", "classClockManager7.html", null ],
       [ "GigEthGtx7", "classGigEthGtx7.html", [
         [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+        [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
         [ "PwrUpRst", "classPwrUpRst.html", null ],
         [ "EthMacTop", "classEthMacTop.html", null ],
+        [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ],
         [ "GigEthReg", "classGigEthReg.html", null ]
       ] ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
@@ -787,9 +796,7 @@ var hierarchy =
       [ "Fifo", "classFifo.html", null ],
       [ "Fifo", "classFifo.html", null ],
       [ "JtagSerDesCore", "classJtagSerDesCore.html", null ],
-      [ "SsiInsertSof", "classSsiInsertSof.html", [
-        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
-      ] ],
+      [ "SsiInsertSof", "classSsiInsertSof.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "SyncStatusVector", "classSyncStatusVector.html", null ],
       [ "SyncClockFreq", "classSyncClockFreq.html", null ],
@@ -1193,6 +1200,9 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "SrpV3AxiLite", "classSrpV3AxiLite.html", null ],
       [ "RssiCoreWrapper", "classRssiCoreWrapper.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "AxiRam", "classAxiRam.html", null ],
+      [ "SrpV3Axi", "classSrpV3Axi.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],

@@ -25,5 +25,6 @@
 <area shape="rect" id="node19" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,309,319,336"/>
 <area shape="rect" id="node22" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="1168,157,1315,184"/>
 <area shape="rect" id="node23" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="373,56,535,83"/>
-<area shape="rect" id="node28" href="$classSrpV3AxiLiteFull.html" title="SrpV3AxiLiteFull" alt="" coords="1631,183,1757,209"/>
+<area shape="rect" id="node28" href="$classSrpV3AxiLiteFull.html" title="SrpV3AxiLiteFull" alt="" coords="1631,157,1757,184"/>
+<area shape="rect" id="node29" href="$classSrpV3AxiTb.html" title="SrpV3AxiTb" alt="" coords="1645,208,1743,235"/>
 </map>
