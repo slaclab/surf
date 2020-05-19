@@ -16,7 +16,7 @@ import time
 import surf.devices.ti
 
 class Ads54J60(pr.Device):
-    def __init__(self, verify=False, **kwargs):
+    def __init__(self, verify=True, **kwargs):
         super().__init__(
             size        = (0x1 << 18),
             **kwargs)
