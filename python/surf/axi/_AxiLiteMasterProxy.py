@@ -9,6 +9,11 @@ class _Regs(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self._queue = queue.Queue()
+        self._pollThread = threading.Thread(target=self._pollWorker)
+        self._pollThread.start()
+        
+
         self.add(pr.RemoteVariable(
             name = 'Rnw',
             offset = 0x00,
@@ -53,18 +58,8 @@ class _Regs(pr.Device):
             bitSize = 32,
             base = pr.UInt))
 
-class _Proxy(pr.Device):
-
-    def __init__(self, regs, **kwargs):
-        super().__init__(size=4, hubMin=4, hubMax=4, **kwargs)
-        self._regs = regs
-        self._dataBa = bytearray(4)
-        self._id = 0
-
-        self._queue = queue.Queue()
-        self._pollThread = threading.Thread(target=self._pollWorker)
-        self._pollThread.start()
-
+    def proxyTransaction(self, transaction):
+        self._queue.put(transaction)
 
     def _pollWorker(self):
         while True:
@@ -77,25 +72,25 @@ class _Proxy(pr.Device):
                 # Get the transaction address and write it to the proxy address register
                 addr = transaction.address()
                 print('Writing address')
-                self._regs.Addr.set(addr, write=True)
+                self.Addr.set(addr, write=True)
                 print(f'Wrote address {addr:x}')
 
                 if transaction.type() == rogue.interfaces.memory.Write:
                     # Convert data bytes to int and write data to proxy register
                     transaction.getData(self._dataBa, 0)
                     data = int.from_bytes(self._dataBa, 'little', signed=False)
-                    self._regs.Data.set(data, write=True)
+                    self.Data.set(data, write=True)
                     print(f'Wrote data {data:x}')
 
                     # Kick off the proxy transaction
-                    self._regs.Rnw.setDisp('Write', write=True)
+                    self.Rnw.setDisp('Write', write=True)
                     print(f'Started write transaction: {tranId}')
 
 
                 elif (transaction.type() == rogue.interfaces.memory.Read) or (transaction.type() == rogue.interfaces.memory.Verify):
 
                     # Kick off the read proxy txn
-                    self._regs.Rnw.setDisp('Read', write=True)
+                    self.Rnw.setDisp('Read', write=True)
                     print(f'Started read transaction: {tranId}')
 
 
@@ -109,21 +104,21 @@ class _Proxy(pr.Device):
                 # Probably need some timeout here
                 done = False
                 while done is False:
-                    done = self._regs.Done.get(read=True)
+                    done = self.Done.get(read=True)
                     print(f'Polled done: {done}')
                     time.sleep(.1)
 
                 # Check for error flags
-                resp = self._regs.Resp.get(read=True)
+                resp = self.Resp.get(read=True)
                 print(f'Resp: {resp}')
                 if resp != 0:
                     transaction.error(f'AXIL tranaction failed with RESP: {resp}')
 
                 # Finish the transaction
-                elif self._regs.Rnw.valueDisp() == 'Write':
+                elif self.Rnw.valueDisp() == 'Write':
                     transaction.done()
                 else:
-                    data = self._regs.Data.get(read=True)
+                    data = self.Data.get(read=True)
                     print(f'Got read data: {data:x}')
                     dataBa = bytearray(data.to_bytes(4, 'little', signed=False))
                     #self._dataBa = data.to_bytes(4, 'little', signed=False)
@@ -131,17 +126,17 @@ class _Proxy(pr.Device):
                     transaction.setData(dataBa, 0)
                     transaction.done()
 
+        
+
+class _ProxySlave(rogue.interfaces.memory.Slave):
+
+    def __init__(self, regs)):
+        super().__init__(min=4, max=4)
+        self._regs = regs
 
     def _doTransaction(self, transaction):
-        print('AxiLiteMasterProxy._doTransaction')
-        self._queue.put(transaction)
-        # with self._memLock, transaction.lock():
-#             print('got lock')
-#             # Clear any existing errors
-#             #self._setError(0)
-#             tranId = transaction.id()
-
-
+        print('_ProxySlave._doTransaction')
+        self._regs.proxyTransaction(transaction)
 
 
 
@@ -150,5 +145,15 @@ class AxiLiteMasterProxy(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.add(_Regs(name='Regs', offset=0x0000))
-        self.add(_Proxy(name='Proxy', offset=0x1000, regs=self.Regs))
+        self.add(_Regs(name='Regs', memBase=self, offset=0x0000, hidden=True))
+        self._proxySlave = _ProxySlave(self.Regs)
+
+
+    def add(self, node):
+        pr.Node.add(self, node)
+
+        if isinstance(node, pr.Device):
+            if node._memBase is None:
+                node._setSlave(self._proxySlave)
+        
+
