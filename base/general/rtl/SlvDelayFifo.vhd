@@ -81,7 +81,7 @@ architecture rtl of SlvDelayFifo is
 
 begin
 
-   assert (2**DELAY_BITS_G >= FIFO_MIN_LAT_C)
+   assert (DELAY_BITS_G >= log2(FIFO_MIN_LAT_C))
       report "DELAY_BITS_G must be >= log2(FIFO_MIN_LAT_C)"
       severity failure;
 
