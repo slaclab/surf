@@ -52,6 +52,7 @@ end SlvDelayFifo;
 architecture rtl of SlvDelayFifo is
 
    constant FIFO_MIN_LAT_C : positive := 4;  -- FIFO's minimum latency
+   constant FIFO_WIDTH_C   : natural  := DELAY_BITS_G + DATA_WIDTH_G;
 
    subtype DATA_FIELD_C is natural range DATA_WIDTH_G-1 downto 0;
    subtype DELAY_FIELD_C is natural range (DELAY_BITS_G+DATA_WIDTH_G)-1 downto DATA_WIDTH_G;
@@ -78,6 +79,8 @@ architecture rtl of SlvDelayFifo is
    signal fifoReadoutData : slv(DATA_WIDTH_G-1 downto 0);
    signal fifoValid       : sl;
    signal fifoRdEn        : sl;
+   signal fifoDin         : slv(FIFO_WIDTH_C-1 downto 0);
+   signal fifoDout        : slv(FIFO_WIDTH_C-1 downto 0);
 
 begin
 
@@ -94,19 +97,23 @@ begin
          DATA_WIDTH_G    => (DELAY_BITS_G+DATA_WIDTH_G),
          ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
-         rst                 => rst,
+         rst         => rst,
          -- Write Ports
-         wr_clk              => clk,
-         wr_en               => inputValid,
-         almost_full         => inputAFull,
-         din(DATA_FIELD_C)   => inputData,
-         din(DELAY_FIELD_C)  => r.readoutTime,
+         wr_clk      => clk,
+         wr_en       => inputValid,
+         almost_full => inputAFull,
+         din         => fifoDin,
          -- Read Ports
-         rd_clk              => clk,
-         rd_en               => fifoRdEn,
-         dout(DATA_FIELD_C)  => fifoReadoutData,
-         dout(DELAY_FIELD_C) => fifoReadoutTime,
-         valid               => fifoValid);
+         rd_clk      => clk,
+         rd_en       => fifoRdEn,
+         dout        => fifoDout,
+         valid       => fifoValid);
+
+   fifoDin(DATA_FIELD_C)  <= inputData;
+   fifoDin(DELAY_FIELD_C) <= r.readoutTime;
+
+   fifoReadoutData <= fifoDout(DATA_FIELD_C);
+   fifoReadoutTime <= fifoDout(DELAY_FIELD_C);
 
    comb : process (delay, fifoReadoutData, fifoReadoutTime, fifoValid, r, rst) is
       variable v : RegType;
