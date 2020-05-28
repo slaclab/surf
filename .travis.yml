@@ -36,7 +36,7 @@ addons:
       - graphviz
       - python3
       - flake8
-      # - ghdl
+      - ghdl
 
 stages:
     - name: gen_release
@@ -64,8 +64,6 @@ jobs:
       before_script:
         - cd $TRAVIS_BUILD_DIR
         - chmod +x scripts/generateDocumentationAndDeploy.sh
-        - chmod +x scripts/ghdl-travis-install.sh
-        - ./scripts/ghdl-travis-install.sh > /dev/null 2>&1
         - make
         - rm -rf ghdl-build
         - python3 -m compileall -f python/
@@ -146,4 +144,3 @@ jobs:
          - pip install -r ruckus/scripts/pip_requirements.txt
       script:
          - python ruckus/scripts/releaseGen.py
-
