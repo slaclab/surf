@@ -94,7 +94,7 @@ begin
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         DATA_WIDTH_G    => (DELAY_BITS_G+DATA_WIDTH_G),
+         DATA_WIDTH_G    => FIFO_WIDTH_C,
          ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
          rst         => rst,
