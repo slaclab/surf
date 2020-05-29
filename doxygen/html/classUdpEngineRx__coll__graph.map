@@ -1,5 +1,6 @@
 <map id="UdpEngineRx" name="UdpEngineRx">
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline(2)" alt="" coords="5,80,165,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamDeMux.html" title="AxiStreamDeMux(2)" alt="" coords="190,80,343,107"/>
-<area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="195,5,338,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="121,155,231,181"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,80,165,107"/>
+<area shape="rect" id="node3" href="$classAxiStreamDeMux.html" title=" " alt="" coords="189,80,344,107"/>
+<area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title=" " alt="" coords="195,5,338,32"/>
 </map>

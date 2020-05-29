@@ -1,21 +1,22 @@
 <map id="AxiLiteIpBusBridgeTb" name="AxiLiteIpBusBridgeTb">
-<area shape="rect" id="node2" href="$classClkRst.html" title="ClkRst" alt="" coords="5,379,69,405"/>
-<area shape="rect" id="node3" href="$classAxiLiteToIpBus.html" title="AxiLiteToIpBus" alt="" coords="93,379,211,405"/>
-<area shape="rect" id="node4" href="$classAxiLiteSlave.html" title="AxiLiteSlave" alt="" coords="101,304,203,331"/>
-<area shape="rect" id="node5" href="$classIpBusToAxiLite.html" title="IpBusToAxiLite" alt="" coords="235,379,352,405"/>
-<area shape="rect" id="node6" href="$classAxiLiteMaster.html" title="AxiLiteMaster" alt="" coords="233,304,343,331"/>
-<area shape="rect" id="node7" href="$classAxiVersion.html" title="AxiVersion" alt="" coords="415,379,505,405"/>
-<area shape="rect" id="node8" href="$classDeviceDna.html" title="DeviceDna" alt="" coords="540,229,633,256"/>
-<area shape="rect" id="node9" href="$classDeviceDna7Series.html" title="DeviceDna7Series" alt="" coords="645,155,787,181"/>
-<area shape="rect" id="node10" href="$classRstSync.html" title="RstSync" alt="" coords="372,80,447,107"/>
-<area shape="rect" id="node13" href="$classDeviceDnaUltraScale.html" title="DeviceDnaUltraScale" alt="" coords="461,155,621,181"/>
-<area shape="rect" id="node16" href="$classIprog7Series.html" title="Iprog7Series" alt="" coords="235,229,338,256"/>
-<area shape="rect" id="node19" href="$classIprogUltraScale.html" title="IprogUltraScale" alt="" coords="363,229,485,256"/>
-<area shape="rect" id="node20" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="174,155,335,181"/>
-<area shape="rect" id="node11" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="277,5,384,32"/>
-<area shape="rect" id="node18" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="185,80,324,107"/>
-<area shape="rect" id="node12" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="481,80,628,107"/>
-<area shape="rect" id="node17" href="$classIprog7SeriesCore.html" title="Iprog7SeriesCore" alt="" coords="16,155,149,181"/>
-<area shape="rect" id="node14" href="$classDS2411Core.html" title="DS2411Core" alt="" coords="446,304,549,331"/>
-<area shape="rect" id="node15" href="$classIprog.html" title="Iprog" alt="" coords="367,304,422,331"/>
+<area shape="rect" id="node1" title=" " alt="" coords="142,453,303,480"/>
+<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,379,69,405"/>
+<area shape="rect" id="node3" href="$classAxiLiteToIpBus.html" title=" " alt="" coords="93,379,211,405"/>
+<area shape="rect" id="node4" href="$classAxiLiteSlave.html" title=" " alt="" coords="101,304,203,331"/>
+<area shape="rect" id="node5" href="$classIpBusToAxiLite.html" title=" " alt="" coords="235,379,352,405"/>
+<area shape="rect" id="node6" href="$classAxiLiteMaster.html" title=" " alt="" coords="232,304,344,331"/>
+<area shape="rect" id="node7" href="$classAxiVersion.html" title=" " alt="" coords="415,379,505,405"/>
+<area shape="rect" id="node8" href="$classDeviceDna.html" title=" " alt="" coords="541,229,635,256"/>
+<area shape="rect" id="node9" href="$classDeviceDna7Series.html" title=" " alt="" coords="647,155,788,181"/>
+<area shape="rect" id="node10" href="$classRstSync.html" title=" " alt="" coords="373,80,448,107"/>
+<area shape="rect" id="node13" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="463,155,623,181"/>
+<area shape="rect" id="node16" href="$classIprog7Series.html" title=" " alt="" coords="237,229,339,256"/>
+<area shape="rect" id="node19" href="$classIprogUltraScale.html" title=" " alt="" coords="364,229,487,256"/>
+<area shape="rect" id="node20" href="$classSynchronizerOneShot.html" title=" " alt="" coords="175,155,337,181"/>
+<area shape="rect" id="node11" href="$classSynchronizer.html" title=" " alt="" coords="279,5,385,32"/>
+<area shape="rect" id="node18" href="$classSynchronizerEdge.html" title=" " alt="" coords="187,80,325,107"/>
+<area shape="rect" id="node12" href="$classSynchronizerVector.html" title=" " alt="" coords="483,80,629,107"/>
+<area shape="rect" id="node17" href="$classIprog7SeriesCore.html" title=" " alt="" coords="17,155,151,181"/>
+<area shape="rect" id="node14" href="$classDS2411Core.html" title=" " alt="" coords="447,304,550,331"/>
+<area shape="rect" id="node15" href="$classIprog.html" title=" " alt="" coords="369,304,423,331"/>
 </map>

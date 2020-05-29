@@ -1,5 +1,6 @@
 <map id="DeviceDna7Series" name="DeviceDna7Series">
-<area shape="rect" id="node2" href="$classRstSync.html" title="RstSync" alt="" coords="21,80,96,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,5,112,32"/>
-<area shape="rect" id="node4" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="120,80,267,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="55,155,196,181"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="21,80,96,107"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,32"/>
+<area shape="rect" id="node4" href="$classSynchronizerVector.html" title=" " alt="" coords="120,80,267,107"/>
 </map>

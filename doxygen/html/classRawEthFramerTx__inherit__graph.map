@@ -1,6 +1,7 @@
 <map id="RawEthFramerTx" name="RawEthFramerTx">
-<area shape="rect" id="node3" href="$classRawEthFramer.html" title="RawEthFramer" alt="" coords="101,155,217,181"/>
-<area shape="rect" id="node2" href="$classQuadPortRam.html" title="QuadPortRam" alt="" coords="103,5,215,32"/>
-<area shape="rect" id="node4" href="$classRawEthFramerTb.html" title="RawEthFramerTb" alt="" coords="5,229,137,256"/>
-<area shape="rect" id="node5" href="$classRawEthFramerWrapper.html" title="RawEthFramerWrapper" alt="" coords="162,229,333,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="93,80,227,107"/>
+<area shape="rect" id="node3" href="$classRawEthFramer.html" title=" " alt="" coords="101,155,219,181"/>
+<area shape="rect" id="node2" href="$classQuadPortRam.html" title=" " alt="" coords="104,5,216,32"/>
+<area shape="rect" id="node4" href="$classRawEthFramerTb.html" title=" " alt="" coords="5,229,139,256"/>
+<area shape="rect" id="node5" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="163,229,335,256"/>
 </map>

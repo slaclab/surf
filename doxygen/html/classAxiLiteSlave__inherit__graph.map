@@ -1,4 +1,5 @@
 <map id="AxiLiteSlave" name="AxiLiteSlave">
-<area shape="rect" id="node2" href="$classAxiLiteToIpBus.html" title="AxiLiteToIpBus" alt="" coords="27,80,145,107"/>
-<area shape="rect" id="node3" href="$classAxiLiteIpBusBridgeTb.html" title="AxiLiteIpBusBridgeTb" alt="" coords="5,155,167,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="35,5,137,32"/>
+<area shape="rect" id="node2" href="$classAxiLiteToIpBus.html" title=" " alt="" coords="27,80,145,107"/>
+<area shape="rect" id="node3" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="5,155,167,181"/>
 </map>

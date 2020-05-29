@@ -40,7 +40,7 @@ var classEthMacPauseTb_1_1testbed =
     [ "packetLength", "classEthMacPauseTb_1_1testbed.html#a991c8761bc88835ace794e4b669dfa1f", null ],
     [ "cnt", "classEthMacPauseTb_1_1testbed.html#a17c255c4a914dc4c611dc3d4443ffda0", null ],
     [ "ethConfig", "classEthMacPauseTb_1_1testbed.html#afa713730c0c5c16cee3733f7d1b63070", null ],
-    [ "ethStatus", "classEthMacPauseTb_1_1testbed.html#a137c8ce1dc20348c32d7366ed39bc8aa", null ],
+    [ "ethStatus", "classEthMacPauseTb_1_1testbed.html#a410920334fab04d07c278294cd40d10a", null ],
     [ "failedVec", "classEthMacPauseTb_1_1testbed.html#ac61dd7d1c8ba4afbaea0876b673cd864", null ],
     [ "passed", "classEthMacPauseTb_1_1testbed.html#ade9ac7a4a90abfddfdd585ea2b9862c2", null ],
     [ "failed", "classEthMacPauseTb_1_1testbed.html#a32156e4744c43f04845bee4686b0ac62", null ],

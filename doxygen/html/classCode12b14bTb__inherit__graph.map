@@ -1,6 +1,7 @@
 <map id="Code12b14bTb" name="Code12b14bTb">
-<area shape="rect" id="node2" href="$classEncoder12b14b.html" title="Encoder12b14b" alt="" coords="5,5,128,32"/>
-<area shape="rect" id="node3" href="$classClkRst.html" title="ClkRst" alt="" coords="152,5,216,32"/>
-<area shape="rect" id="node4" href="$classDecoder12b14b.html" title="Decoder12b14b" alt="" coords="241,5,365,32"/>
-<area shape="rect" id="node5" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="389,5,536,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="183,80,302,107"/>
+<area shape="rect" id="node2" href="$classEncoder12b14b.html" title=" " alt="" coords="5,5,128,32"/>
+<area shape="rect" id="node3" href="$classClkRst.html" title=" " alt="" coords="152,5,216,32"/>
+<area shape="rect" id="node4" href="$classDecoder12b14b.html" title=" " alt="" coords="241,5,365,32"/>
+<area shape="rect" id="node5" href="$classSynchronizerVector.html" title=" " alt="" coords="389,5,536,32"/>
 </map>

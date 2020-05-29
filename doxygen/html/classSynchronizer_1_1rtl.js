@@ -5,7 +5,7 @@ var classSynchronizer_1_1rtl =
     [ "seq", "classSynchronizer_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
     [ "INIT_C", "classSynchronizer_1_1rtl.html#ab1519865ee03d5c3f48629a7fb238b6a", null ],
     [ "crossDomainSyncReg", "classSynchronizer_1_1rtl.html#a10a4afe6d50c3929c6f0b1664020d0de", null ],
-    [ "rin", "classSynchronizer_1_1rtl.html#a6ec0bf5ababb87f5aa60e3505802310d", null ],
+    [ "rin", "classSynchronizer_1_1rtl.html#a689063753c5c4a7f4103b1dc89cffe89", null ],
     [ "ASYNC_REG", "classSynchronizer_1_1rtl.html#a93b4f12aa42fc4240b91906f6967d48d", null ],
     [ "ASYNC_REG", "classSynchronizer_1_1rtl.html#a7dfc5c0c744197ed785f90f93b326f20", null ],
     [ "syn_srlstyle", "classSynchronizer_1_1rtl.html#a2270f63c85cf6612bedaa5426c5123c4", null ],

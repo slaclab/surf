@@ -1,10 +1,10 @@
 var classXauiGthUltraScale_1_1mapping =
 [
     [ "XauiGthUltraScale156p25MHz10GigECore", "classXauiGthUltraScale_1_1mapping.html#af20f80ef6909d7302577c4a9b24bab84", null ],
-    [ "phyRxd", "classXauiGthUltraScale_1_1mapping.html#a5a5d0cef7b9aca7f556d5cb4bc638896", null ],
-    [ "phyRxc", "classXauiGthUltraScale_1_1mapping.html#a2df8aacc7dee766a5abc8658aa6386ee", null ],
-    [ "phyTxd", "classXauiGthUltraScale_1_1mapping.html#aa9dba38a5e93b15e4e8b2f16835d3f7a", null ],
-    [ "phyTxc", "classXauiGthUltraScale_1_1mapping.html#a2f4ae02c395f4b0baef291983a3dff80", null ],
+    [ "phyRxd", "classXauiGthUltraScale_1_1mapping.html#a7ead2e8285b6b6b27499f8a98aac1b9c", null ],
+    [ "phyRxc", "classXauiGthUltraScale_1_1mapping.html#a5bdc428761e7075a83fb77dd3d077d5b", null ],
+    [ "phyTxd", "classXauiGthUltraScale_1_1mapping.html#a1b60b9707a25f5d26d5739c9e53f6505", null ],
+    [ "phyTxc", "classXauiGthUltraScale_1_1mapping.html#a53d0cdea583d8949c061a0dcc8d5aed3", null ],
     [ "phyClock", "classXauiGthUltraScale_1_1mapping.html#adbea17b103100db4569d9d6274ae59c9", null ],
     [ "phyClkBuf", "classXauiGthUltraScale_1_1mapping.html#ace78e8f2549fdc1f32b50ffd2814a982", null ],
     [ "phyReset", "classXauiGthUltraScale_1_1mapping.html#a2eb6961f05f7a2088ed707e7a8f300e6", null ],

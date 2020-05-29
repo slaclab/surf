@@ -1,12 +1,13 @@
 <map id="i2c_master_bit_ctrl" name="i2c_master_bit_ctrl">
-<area shape="rect" id="node2" href="$classi2c__master__byte__ctrl.html" title="i2c_master_byte_ctrl" alt="" coords="249,80,408,107"/>
-<area shape="rect" id="node3" href="$classI2cMaster.html" title="I2cMaster" alt="" coords="286,155,371,181"/>
-<area shape="rect" id="node4" href="$classI2cRegMaster.html" title="I2cRegMaster" alt="" coords="274,229,383,256"/>
-<area shape="rect" id="node5" href="$classAxiI2cEepromCore.html" title="AxiI2cEepromCore" alt="" coords="5,304,148,331"/>
-<area shape="rect" id="node7" href="$classAxiI2cRegMaster.html" title="AxiI2cRegMaster" alt="" coords="173,304,303,331"/>
-<area shape="rect" id="node9" href="$classAxiLitePMbusMasterCore.html" title="AxiLitePMbusMasterCore" alt="" coords="328,304,511,331"/>
-<area shape="rect" id="node11" href="$classi2cRegTb.html" title="i2cRegTb" alt="" coords="535,304,616,331"/>
-<area shape="rect" id="node6" href="$classAxiI2cEeprom.html" title="AxiI2cEeprom" alt="" coords="21,379,133,405"/>
-<area shape="rect" id="node8" href="$classSff8472.html" title="Sff8472" alt="" coords="203,379,273,405"/>
-<area shape="rect" id="node10" href="$classAxiLitePMbusMaster.html" title="AxiLitePMbusMaster" alt="" coords="343,379,496,405"/>
+<area shape="rect" id="node1" title=" " alt="" coords="255,5,402,32"/>
+<area shape="rect" id="node2" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="249,80,408,107"/>
+<area shape="rect" id="node3" href="$classI2cMaster.html" title=" " alt="" coords="285,155,372,181"/>
+<area shape="rect" id="node4" href="$classI2cRegMaster.html" title=" " alt="" coords="273,229,384,256"/>
+<area shape="rect" id="node5" href="$classAxiI2cEepromCore.html" title=" " alt="" coords="5,304,148,331"/>
+<area shape="rect" id="node7" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="172,304,304,331"/>
+<area shape="rect" id="node9" href="$classAxiLitePMbusMasterCore.html" title=" " alt="" coords="328,304,513,331"/>
+<area shape="rect" id="node11" href="$classi2cRegTb.html" title=" " alt="" coords="538,304,621,331"/>
+<area shape="rect" id="node6" href="$classAxiI2cEeprom.html" title=" " alt="" coords="21,379,133,405"/>
+<area shape="rect" id="node8" href="$classSff8472.html" title=" " alt="" coords="203,379,273,405"/>
+<area shape="rect" id="node10" href="$classAxiLitePMbusMaster.html" title=" " alt="" coords="343,379,498,405"/>
 </map>

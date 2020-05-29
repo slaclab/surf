@@ -1,4 +1,5 @@
 <map id="JesdTestStreamTx" name="JesdTestStreamTx">
-<area shape="rect" id="node2" href="$classJesd204bTx.html" title="Jesd204bTx" alt="" coords="26,80,123,107"/>
-<area shape="rect" id="node3" href="$classJesd204bTb.html" title="Jesd204bTb" alt="" coords="26,155,123,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,144,32"/>
+<area shape="rect" id="node2" href="$classJesd204bTx.html" title=" " alt="" coords="26,80,123,107"/>
+<area shape="rect" id="node3" href="$classJesd204bTb.html" title=" " alt="" coords="26,155,123,181"/>
 </map>

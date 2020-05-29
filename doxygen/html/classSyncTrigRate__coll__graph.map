@@ -1,18 +1,19 @@
 <map id="SyncTrigRate" name="SyncTrigRate">
-<area shape="rect" id="node2" href="$classSynchronizerOneShot.html" title="SynchronizerOneShot" alt="" coords="564,75,725,101"/>
-<area shape="rect" id="node15" href="$classSyncMinMax.html" title="SyncMinMax" alt="" coords="787,252,889,279"/>
-<area shape="rect" id="node3" href="$classRstSync.html" title="RstSync" alt="" coords="407,5,482,32"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,52,112,79"/>
-<area shape="rect" id="node5" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="375,68,514,95"/>
-<area shape="rect" id="node8" href="$classRstSync.html" title="RstSync(2)" alt="" coords="197,255,289,281"/>
-<area shape="rect" id="node6" href="$classSynchronizerFifo.html" title="SynchronizerFifo" alt="" coords="773,201,903,228"/>
-<area shape="rect" id="node7" href="$classFifoAsync.html" title="FifoAsync" alt="" coords="403,252,487,279"/>
-<area shape="rect" id="node17" href="$classSynchronizerFifo.html" title="SynchronizerFifo(3)" alt="" coords="571,252,718,279"/>
-<area shape="rect" id="node9" href="$classSynchronizerVector.html" title="SynchronizerVector(2)" alt="" coords="160,305,325,332"/>
-<area shape="rect" id="node10" href="$classSynchronizer.html" title="Synchronizer(2)" alt="" coords="181,356,305,383"/>
-<area shape="rect" id="node11" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="198,103,287,129"/>
-<area shape="rect" id="node12" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,153,287,180"/>
-<area shape="rect" id="node13" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,204,319,231"/>
-<area shape="rect" id="node14" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,407,313,433"/>
-<area shape="rect" id="node16" href="$classDspComparator.html" title="DspComparator(2)" alt="" coords="373,353,516,380"/>
+<area shape="rect" id="node1" title=" " alt="" coords="952,205,1059,232"/>
+<area shape="rect" id="node2" href="$classSynchronizerOneShot.html" title=" " alt="" coords="564,79,725,105"/>
+<area shape="rect" id="node15" href="$classSyncMinMax.html" title=" " alt="" coords="786,256,891,283"/>
+<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="205,5,280,32"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
+<area shape="rect" id="node5" href="$classSynchronizerEdge.html" title=" " alt="" coords="173,56,312,83"/>
+<area shape="rect" id="node8" href="$classRstSync.html" title=" " alt="" coords="197,259,289,285"/>
+<area shape="rect" id="node6" href="$classSynchronizerFifo.html" title=" " alt="" coords="773,205,904,232"/>
+<area shape="rect" id="node7" href="$classFifoAsync.html" title=" " alt="" coords="402,256,487,283"/>
+<area shape="rect" id="node17" href="$classSynchronizerFifo.html" title=" " alt="" coords="571,256,719,283"/>
+<area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="160,309,325,336"/>
+<area shape="rect" id="node10" href="$classSynchronizer.html" title=" " alt="" coords="181,360,305,387"/>
+<area shape="rect" id="node11" href="$classFifoWrFsm.html" title=" " alt="" coords="197,107,289,133"/>
+<area shape="rect" id="node12" href="$classFifoRdFsm.html" title=" " alt="" coords="197,157,288,184"/>
+<area shape="rect" id="node13" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,208,319,235"/>
+<area shape="rect" id="node14" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,411,314,437"/>
+<area shape="rect" id="node16" href="$classDspComparator.html" title=" " alt="" coords="373,357,516,384"/>
 </map>

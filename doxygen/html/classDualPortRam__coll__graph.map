@@ -1,4 +1,5 @@
 <map id="DualPortRam" name="DualPortRam">
-<area shape="rect" id="node2" href="$classTrueDualPortRam.html" title="TrueDualPortRam" alt="" coords="5,5,140,32"/>
-<area shape="rect" id="node3" href="$classQuadPortRam.html" title="QuadPortRam" alt="" coords="165,5,277,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="92,80,200,107"/>
+<area shape="rect" id="node2" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,5,140,32"/>
+<area shape="rect" id="node3" href="$classQuadPortRam.html" title=" " alt="" coords="165,5,277,32"/>
 </map>

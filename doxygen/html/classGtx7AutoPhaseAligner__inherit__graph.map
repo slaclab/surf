@@ -1,15 +1,16 @@
 <map id="Gtx7AutoPhaseAligner" name="Gtx7AutoPhaseAligner">
-<area shape="rect" id="node3" href="$classGLinkGtx7Core.html" title="GLinkGtx7Core" alt="" coords="85,155,205,181"/>
-<area shape="rect" id="node6" href="$classGtx7Core.html" title="Gtx7Core" alt="" coords="260,155,343,181"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title="Synchronizer(2)" alt="" coords="146,5,270,32"/>
-<area shape="rect" id="node4" href="$classGLinkGtx7FixedLat.html" title="GLinkGtx7FixedLat" alt="" coords="43,229,187,256"/>
-<area shape="rect" id="node5" href="$classGLinkGtx7FixedLatTb.html" title="GLinkGtx7FixedLatTb" alt="" coords="16,304,176,331"/>
-<area shape="rect" id="node7" href="$classPgp2bGtx7Fixedlat.html" title="Pgp2bGtx7Fixedlat" alt="" coords="229,229,373,256"/>
-<area shape="rect" id="node11" href="$classPgp2bGtx7MultiLane.html" title="Pgp2bGtx7MultiLane" alt="" coords="423,229,579,256"/>
-<area shape="rect" id="node8" href="$classPgp2bGtx7FixedLatWrapper.html" title="Pgp2bGtx7FixedLatWrapper" alt="" coords="201,304,402,331"/>
-<area shape="rect" id="node9" href="$classPgp2bGtx7FixedLatTb.html" title="Pgp2bGtx7FixedLatTb" alt="" coords="5,379,168,405"/>
-<area shape="rect" id="node10" href="$classPgp2bGtx7FixedLatWrapperTb.html" title="Pgp2bGtx7FixedLatWrapperTb" alt="" coords="193,379,410,405"/>
-<area shape="rect" id="node12" href="$classPgp2bGtx7VarLat.html" title="Pgp2bGtx7VarLat" alt="" coords="447,304,582,331"/>
-<area shape="rect" id="node13" href="$classPgp2bGtx7VarLatWrapper.html" title="Pgp2bGtx7VarLatWrapper" alt="" coords="434,379,622,405"/>
-<area shape="rect" id="node14" href="$classPgp2bGtx7VarLatWrapperTb.html" title="Pgp2bGtx7VarLatWrapperTb" alt="" coords="426,453,630,480"/>
+<area shape="rect" id="node1" title=" " alt="" coords="124,80,292,107"/>
+<area shape="rect" id="node3" href="$classGLinkGtx7Core.html" title=" " alt="" coords="85,155,205,181"/>
+<area shape="rect" id="node6" href="$classGtx7Core.html" title=" " alt="" coords="260,155,343,181"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="146,5,270,32"/>
+<area shape="rect" id="node4" href="$classGLinkGtx7FixedLat.html" title=" " alt="" coords="43,229,187,256"/>
+<area shape="rect" id="node5" href="$classGLinkGtx7FixedLatTb.html" title=" " alt="" coords="16,304,176,331"/>
+<area shape="rect" id="node7" href="$classPgp2bGtx7Fixedlat.html" title=" " alt="" coords="229,229,373,256"/>
+<area shape="rect" id="node11" href="$classPgp2bGtx7MultiLane.html" title=" " alt="" coords="424,229,581,256"/>
+<area shape="rect" id="node8" href="$classPgp2bGtx7FixedLatWrapper.html" title=" " alt="" coords="200,304,403,331"/>
+<area shape="rect" id="node9" href="$classPgp2bGtx7FixedLatTb.html" title=" " alt="" coords="5,379,168,405"/>
+<area shape="rect" id="node10" href="$classPgp2bGtx7FixedLatWrapperTb.html" title=" " alt="" coords="192,379,411,405"/>
+<area shape="rect" id="node12" href="$classPgp2bGtx7VarLat.html" title=" " alt="" coords="449,304,583,331"/>
+<area shape="rect" id="node13" href="$classPgp2bGtx7VarLatWrapper.html" title=" " alt="" coords="435,379,624,405"/>
+<area shape="rect" id="node14" href="$classPgp2bGtx7VarLatWrapperTb.html" title=" " alt="" coords="427,453,632,480"/>
 </map>

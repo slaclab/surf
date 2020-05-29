@@ -1,6 +1,7 @@
 <map id="ClinkUartThrottle" name="ClinkUartThrottle">
-<area shape="rect" id="node2" href="$classClinkUart.html" title="ClinkUart" alt="" coords="63,80,146,107"/>
-<area shape="rect" id="node3" href="$classClinkCtrl.html" title="ClinkCtrl" alt="" coords="5,155,84,181"/>
-<area shape="rect" id="node5" href="$classClinkFramerTb.html" title="ClinkFramerTb" alt="" coords="108,155,224,181"/>
-<area shape="rect" id="node4" href="$classClinkTop.html" title="ClinkTop" alt="" coords="6,229,83,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="39,5,173,32"/>
+<area shape="rect" id="node2" href="$classClinkUart.html" title=" " alt="" coords="65,80,147,107"/>
+<area shape="rect" id="node3" href="$classClinkCtrl.html" title=" " alt="" coords="5,155,84,181"/>
+<area shape="rect" id="node5" href="$classClinkFramerTb.html" title=" " alt="" coords="109,155,226,181"/>
+<area shape="rect" id="node4" href="$classClinkTop.html" title=" " alt="" coords="6,229,83,256"/>
 </map>

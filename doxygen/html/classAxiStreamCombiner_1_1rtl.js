@@ -5,13 +5,13 @@ var classAxiStreamCombiner_1_1rtl =
     [ "SEQ_C", "classAxiStreamCombiner_1_1rtl.html#a532cab75935b65d1d2a35625c832da5f", null ],
     [ "FrameState", "classAxiStreamCombiner_1_1rtl.html#a870d05d8e967ec60098e923d2ec408be", null ],
     [ "RegType", "classAxiStreamCombiner_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
-    [ "master", "classAxiStreamCombiner_1_1rtl.html#a7064d98a051fb53ff4ab1b926c5ff848", null ],
-    [ "state", "classAxiStreamCombiner_1_1rtl.html#a830910be3eb77dc4dc8ff2171795a65b", null ],
-    [ "sof", "classAxiStreamCombiner_1_1rtl.html#afe2b699459c583ec7f8a3d2eae570141", null ],
-    [ "first", "classAxiStreamCombiner_1_1rtl.html#a3055c98bb1378b8314a3b0ac7ebe93ef", null ],
-    [ "discard", "classAxiStreamCombiner_1_1rtl.html#aa5280ee172c2767f0a3adc3abb461c2b", null ],
-    [ "slaves", "classAxiStreamCombiner_1_1rtl.html#abe23228bc32dc6a8137018c22f75441f", null ],
+    [ "master", "classAxiStreamCombiner_1_1rtl.html#ac7a99246d27348dd8f7bd13c12a4dbe9", null ],
+    [ "state", "classAxiStreamCombiner_1_1rtl.html#a4025dabdf3587eb910a5978a2dd811da", null ],
+    [ "sof", "classAxiStreamCombiner_1_1rtl.html#abbacb32fb4ab47b58e34c99cb06bfa25", null ],
+    [ "first", "classAxiStreamCombiner_1_1rtl.html#af4ca303940a19a980ddad549b05b21c8", null ],
+    [ "discard", "classAxiStreamCombiner_1_1rtl.html#a1d35c53395d72865f64ca1418514f8ef", null ],
+    [ "slaves", "classAxiStreamCombiner_1_1rtl.html#a6f03b9eb3a534f2117928391e862bcc1", null ],
     [ "REG_INIT_C", "classAxiStreamCombiner_1_1rtl.html#a0bf186cc02425f1c6a853a42b6f78c6c", null ],
     [ "r", "classAxiStreamCombiner_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
-    [ "rin", "classAxiStreamCombiner_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ]
+    [ "rin", "classAxiStreamCombiner_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ]
 ];

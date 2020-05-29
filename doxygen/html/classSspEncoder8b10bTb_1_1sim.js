@@ -8,12 +8,12 @@ var classSspEncoder8b10bTb_1_1sim =
     [ "rst", "classSspEncoder8b10bTb_1_1sim.html#aa98cf4f6dccd43faf486e567185d4802", null ],
     [ "validIn", "classSspEncoder8b10bTb_1_1sim.html#ac35ed4845a21ff38702b0673688cdb7b", null ],
     [ "dataIn", "classSspEncoder8b10bTb_1_1sim.html#a54fe22bebcfe32c238535991e30918d9", null ],
-    [ "encData", "classSspEncoder8b10bTb_1_1sim.html#a45bba888e705b30deb64fae629c38bea", null ],
-    [ "dataOut", "classSspEncoder8b10bTb_1_1sim.html#af7439c5793d2c06d0ba63de3a6b5acbf", null ],
-    [ "validOut", "classSspEncoder8b10bTb_1_1sim.html#a8d50cd597f4ec5c17b5b91348bb160ba", null ],
-    [ "sof", "classSspEncoder8b10bTb_1_1sim.html#afe2b699459c583ec7f8a3d2eae570141", null ],
-    [ "eof", "classSspEncoder8b10bTb_1_1sim.html#a49b29e8b719c32bc39497fa0b79c35d4", null ],
-    [ "eofe", "classSspEncoder8b10bTb_1_1sim.html#a65e8eb3f515b16d8a7c6c04750377ba0", null ],
+    [ "encData", "classSspEncoder8b10bTb_1_1sim.html#ac23885e5d7be74584f00b9531480cde4", null ],
+    [ "dataOut", "classSspEncoder8b10bTb_1_1sim.html#a8977e3661bf7482cc4ae6207a9decaf1", null ],
+    [ "validOut", "classSspEncoder8b10bTb_1_1sim.html#ab4df1b82e89d785d8a84578c0daebc83", null ],
+    [ "sof", "classSspEncoder8b10bTb_1_1sim.html#abbacb32fb4ab47b58e34c99cb06bfa25", null ],
+    [ "eof", "classSspEncoder8b10bTb_1_1sim.html#afd2a4a3d8755218181d189888fee521b", null ],
+    [ "eofe", "classSspEncoder8b10bTb_1_1sim.html#a47d1d338513a67387133309ddff6cb0f", null ],
     [ "encoder", "classSspEncoder8b10bTb_1_1sim.html#aff80d4aad8b4350f0ff3589d6363b417", null ],
     [ "decoder", "classSspEncoder8b10bTb_1_1sim.html#a0f4b3f275d898f9891cb24c143c73800", null ]
 ];

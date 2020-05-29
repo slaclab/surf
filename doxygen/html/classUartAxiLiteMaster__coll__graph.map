@@ -1,22 +1,23 @@
 <map id="UartAxiLiteMaster" name="UartAxiLiteMaster">
-<area shape="rect" id="node2" href="$classUartWrapper.html" title="UartWrapper" alt="" coords="711,259,815,285"/>
-<area shape="rect" id="node3" href="$classUartBrg.html" title="UartBrg" alt="" coords="541,157,613,184"/>
-<area shape="rect" id="node4" href="$classUartTx.html" title="UartTx" alt="" coords="543,208,610,235"/>
-<area shape="rect" id="node5" href="$classFifo.html" title="Fifo(2)" alt="" coords="545,259,608,285"/>
-<area shape="rect" id="node6" href="$classFifoXpm.html" title="FifoXpm" alt="" coords="386,309,461,336"/>
-<area shape="rect" id="node7" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="172,309,313,336"/>
-<area shape="rect" id="node8" href="$classFifoAlteraMf.html" title="FifoAlteraMf" alt="" coords="373,259,473,285"/>
-<area shape="rect" id="node9" href="$classFifoAsync.html" title="FifoAsync" alt="" coords="381,157,465,184"/>
-<area shape="rect" id="node17" href="$classFifoSync.html" title="FifoSync" alt="" coords="385,208,461,235"/>
-<area shape="rect" id="node10" href="$classRstSync.html" title="RstSync(2)" alt="" coords="197,56,289,83"/>
-<area shape="rect" id="node11" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="5,208,112,235"/>
-<area shape="rect" id="node19" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="173,360,312,387"/>
-<area shape="rect" id="node12" href="$classSynchronizerVector.html" title="SynchronizerVector(2)" alt="" coords="160,107,325,133"/>
-<area shape="rect" id="node13" href="$classSynchronizer.html" title="Synchronizer(2)" alt="" coords="181,5,305,32"/>
-<area shape="rect" id="node14" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="198,208,287,235"/>
-<area shape="rect" id="node15" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="198,259,287,285"/>
-<area shape="rect" id="node16" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="166,157,319,184"/>
-<area shape="rect" id="node18" href="$classUartRx.html" title="UartRx" alt="" coords="543,309,610,336"/>
-<area shape="rect" id="node20" href="$classUartAxiLiteMasterFsm.html" title="UartAxiLiteMasterFsm" alt="" coords="680,335,847,361"/>
-<area shape="rect" id="node21" href="$classAxiLiteMaster.html" title="AxiLiteMaster" alt="" coords="521,360,632,387"/>
+<area shape="rect" id="node1" title=" " alt="" coords="900,297,1040,324"/>
+<area shape="rect" id="node2" href="$classUartWrapper.html" title=" " alt="" coords="715,259,821,285"/>
+<area shape="rect" id="node3" href="$classUartBrg.html" title=" " alt="" coords="544,157,616,184"/>
+<area shape="rect" id="node4" href="$classUartTx.html" title=" " alt="" coords="547,208,613,235"/>
+<area shape="rect" id="node5" href="$classFifo.html" title=" " alt="" coords="548,259,612,285"/>
+<area shape="rect" id="node6" href="$classFifoXpm.html" title=" " alt="" coords="387,309,463,336"/>
+<area shape="rect" id="node7" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,309,314,336"/>
+<area shape="rect" id="node8" href="$classFifoAlteraMf.html" title=" " alt="" coords="373,259,476,285"/>
+<area shape="rect" id="node9" href="$classFifoAsync.html" title=" " alt="" coords="382,157,467,184"/>
+<area shape="rect" id="node17" href="$classFifoSync.html" title=" " alt="" coords="386,208,463,235"/>
+<area shape="rect" id="node10" href="$classRstSync.html" title=" " alt="" coords="197,56,289,83"/>
+<area shape="rect" id="node11" href="$classSynchronizer.html" title=" " alt="" coords="5,208,112,235"/>
+<area shape="rect" id="node19" href="$classSynchronizerEdge.html" title=" " alt="" coords="173,360,312,387"/>
+<area shape="rect" id="node12" href="$classSynchronizerVector.html" title=" " alt="" coords="160,107,325,133"/>
+<area shape="rect" id="node13" href="$classSynchronizer.html" title=" " alt="" coords="181,5,305,32"/>
+<area shape="rect" id="node14" href="$classFifoWrFsm.html" title=" " alt="" coords="197,208,289,235"/>
+<area shape="rect" id="node15" href="$classFifoRdFsm.html" title=" " alt="" coords="197,259,288,285"/>
+<area shape="rect" id="node16" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,157,319,184"/>
+<area shape="rect" id="node18" href="$classUartRx.html" title=" " alt="" coords="547,309,613,336"/>
+<area shape="rect" id="node20" href="$classUartAxiLiteMasterFsm.html" title=" " alt="" coords="684,335,852,361"/>
+<area shape="rect" id="node21" href="$classAxiLiteMaster.html" title=" " alt="" coords="524,360,636,387"/>
 </map>

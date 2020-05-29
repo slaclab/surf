@@ -2,9 +2,9 @@ var classTenGigEthRst_1_1rtl =
 [
     [ "PROCESS_122", "classTenGigEthRst_1_1rtl.html#a5c961012f66c81848a8df8719c18cd94", null ],
     [ "PROCESS_123", "classTenGigEthRst_1_1rtl.html#af70caaa5b8134e4832b04119aceaa546", null ],
-    [ "txClock", "classTenGigEthRst_1_1rtl.html#a3408d8144d49f8d9b3643b44df3a7f33", null ],
-    [ "txReset", "classTenGigEthRst_1_1rtl.html#ae7c137ac4c64b44acc37a90a5e642d2f", null ],
-    [ "txReady", "classTenGigEthRst_1_1rtl.html#a4fc2e6f780f48a7aaff9b64518886f3d", null ],
+    [ "txClock", "classTenGigEthRst_1_1rtl.html#a86042e114122e490418a9a041c4405d9", null ],
+    [ "txReset", "classTenGigEthRst_1_1rtl.html#a9ab127485c16e288919c552436df4e98", null ],
+    [ "txReady", "classTenGigEthRst_1_1rtl.html#adb452312af110b3bec3e4bb0e324cfa1", null ],
     [ "rstCnt", "classTenGigEthRst_1_1rtl.html#adef2d9a9743cc3ff91961429bde05087", null ],
     [ "rstPulse", "classTenGigEthRst_1_1rtl.html#a1d7872172c61c68b6122a7d4d816c6e8", null ],
     [ "clk312_bufg", "classTenGigEthRst_1_1rtl.html#ae8c95a01777e7069382a4511f3e077cb", null ],

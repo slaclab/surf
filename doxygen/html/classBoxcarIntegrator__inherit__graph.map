@@ -1,6 +1,7 @@
 <map id="BoxcarIntegrator" name="BoxcarIntegrator">
-<area shape="rect" id="node3" href="$classBoxcarFilter.html" title="BoxcarFilter" alt="" coords="13,155,112,181"/>
-<area shape="rect" id="node5" href="$classBoxcarIntegratorTb.html" title="BoxcarIntegratorTb" alt="" coords="136,155,283,181"/>
-<area shape="rect" id="node2" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="59,5,213,32"/>
-<area shape="rect" id="node4" href="$classBoxcarFilterTb.html" title="BoxcarFilterTb" alt="" coords="5,229,120,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="71,80,202,107"/>
+<area shape="rect" id="node3" href="$classBoxcarFilter.html" title=" " alt="" coords="13,155,113,181"/>
+<area shape="rect" id="node5" href="$classBoxcarIntegratorTb.html" title=" " alt="" coords="138,155,285,181"/>
+<area shape="rect" id="node2" href="$classSimpleDualPortRam.html" title=" " alt="" coords="60,5,213,32"/>
+<area shape="rect" id="node4" href="$classBoxcarFilterTb.html" title=" " alt="" coords="5,229,121,256"/>
 </map>

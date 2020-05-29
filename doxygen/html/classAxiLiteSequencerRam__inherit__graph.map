@@ -1,6 +1,7 @@
 <map id="AxiLiteSequencerRam" name="AxiLiteSequencerRam">
-<area shape="rect" id="node2" href="$classAxiLiteMaster.html" title="AxiLiteMaster" alt="" coords="5,5,116,32"/>
-<area shape="rect" id="node3" href="$classTrueDualPortRamXpm.html" title="TrueDualPortRamXpm" alt="" coords="141,5,306,32"/>
-<area shape="rect" id="node4" href="$classTrueDualPortRamAlteraMf.html" title="TrueDualPortRamAlteraMf" alt="" coords="331,5,521,32"/>
-<area shape="rect" id="node5" href="$classTrueDualPortRam.html" title="TrueDualPortRam" alt="" coords="545,5,680,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="243,80,408,107"/>
+<area shape="rect" id="node2" href="$classAxiLiteMaster.html" title=" " alt="" coords="5,5,117,32"/>
+<area shape="rect" id="node3" href="$classTrueDualPortRamXpm.html" title=" " alt="" coords="141,5,307,32"/>
+<area shape="rect" id="node4" href="$classTrueDualPortRamAlteraMf.html" title=" " alt="" coords="331,5,522,32"/>
+<area shape="rect" id="node5" href="$classTrueDualPortRam.html" title=" " alt="" coords="546,5,681,32"/>
 </map>

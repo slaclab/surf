@@ -1,6 +1,7 @@
 <map id="SaltDelayCtrl" name="SaltDelayCtrl">
-<area shape="rect" id="node4" href="$classSalt7SeriesTb.html" title="Salt7SeriesTb" alt="" coords="5,229,116,256"/>
-<area shape="rect" id="node5" href="$classSaltUltraScaleTb.html" title="SaltUltraScaleTb" alt="" coords="141,229,271,256"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title="RstSync" alt="" coords="95,80,170,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="79,5,186,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="79,155,187,181"/>
+<area shape="rect" id="node4" href="$classSalt7SeriesTb.html" title=" " alt="" coords="5,229,116,256"/>
+<area shape="rect" id="node5" href="$classSaltUltraScaleTb.html" title=" " alt="" coords="141,229,271,256"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="95,80,170,107"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="79,5,186,32"/>
 </map>

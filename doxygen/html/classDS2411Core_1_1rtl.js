@@ -14,7 +14,7 @@ var classDS2411Core_1_1rtl =
     [ "timeCntRst", "classDS2411Core_1_1rtl.html#aa15caa1bdec5989a2b59aa7929f2a345", null ],
     [ "timeCnt", "classDS2411Core_1_1rtl.html#a0bed515993ca204d88f21ed544e54e09", null ],
     [ "bitCnt", "classDS2411Core_1_1rtl.html#aeb63d50b14a5140808e3d3ae5ca87e9d", null ],
-    [ "setOutLowInv", "classDS2411Core_1_1rtl.html#aefd242374c312c0ddf468f9ff5c1153d", null ],
+    [ "setOutLowInv", "classDS2411Core_1_1rtl.html#a5586bd5fe70a5ebac9889e36b5e748ba", null ],
     [ "fdSerial", "classDS2411Core_1_1rtl.html#ad878bef8db0f075598f51c0c5cb9cab3", null ],
     [ "fd_ser_sdio_buft", "classDS2411Core_1_1rtl.html#a97522b5f1a840eab3ccf627b1e9dc598", null ]
 ];

@@ -1,4 +1,5 @@
 <map id="AxiMicronP30Core" name="AxiMicronP30Core">
-<area shape="rect" id="node2" href="$classAxiMicronP30Reg.html" title="AxiMicronP30Reg" alt="" coords="15,80,149,107"/>
-<area shape="rect" id="node3" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="5,5,159,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="11,155,153,181"/>
+<area shape="rect" id="node2" href="$classAxiMicronP30Reg.html" title=" " alt="" coords="14,80,150,107"/>
+<area shape="rect" id="node3" href="$classSimpleDualPortRam.html" title=" " alt="" coords="5,5,159,32"/>
 </map>

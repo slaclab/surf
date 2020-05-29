@@ -1,4 +1,5 @@
 <map id="EthMacRxShift" name="EthMacRxShift">
-<area shape="rect" id="node2" href="$classAxiStreamShift.html" title="AxiStreamShift" alt="" coords="17,80,137,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="5,5,148,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="19,155,135,181"/>
+<area shape="rect" id="node2" href="$classAxiStreamShift.html" title=" " alt="" coords="17,80,136,107"/>
+<area shape="rect" id="node3" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,5,148,32"/>
 </map>

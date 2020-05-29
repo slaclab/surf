@@ -1,5 +1,6 @@
 <map id="PgpEthTx" name="PgpEthTx">
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline(2)" alt="" coords="5,80,165,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamMux.html" title="AxiStreamMux" alt="" coords="189,80,307,107"/>
-<area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="177,5,319,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="125,155,208,181"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,80,165,107"/>
+<area shape="rect" id="node3" href="$classAxiStreamMux.html" title=" " alt="" coords="190,80,309,107"/>
+<area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title=" " alt="" coords="178,5,321,32"/>
 </map>

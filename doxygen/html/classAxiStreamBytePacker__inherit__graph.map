@@ -1,6 +1,7 @@
 <map id="AxiStreamBytePacker" name="AxiStreamBytePacker">
-<area shape="rect" id="node2" href="$classAxiStreamBytePackerTb.html" title="AxiStreamBytePackerTb" alt="" coords="5,80,184,107"/>
-<area shape="rect" id="node3" href="$classClinkFraming.html" title="ClinkFraming" alt="" coords="208,80,315,107"/>
-<area shape="rect" id="node4" href="$classClinkFramerTb.html" title="ClinkFramerTb" alt="" coords="142,155,258,181"/>
-<area shape="rect" id="node5" href="$classClinkTop.html" title="ClinkTop" alt="" coords="283,155,360,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="97,5,260,32"/>
+<area shape="rect" id="node2" href="$classAxiStreamBytePackerTb.html" title=" " alt="" coords="5,80,184,107"/>
+<area shape="rect" id="node3" href="$classClinkFraming.html" title=" " alt="" coords="209,80,317,107"/>
+<area shape="rect" id="node4" href="$classClinkFramerTb.html" title=" " alt="" coords="143,155,260,181"/>
+<area shape="rect" id="node5" href="$classClinkTop.html" title=" " alt="" coords="284,155,361,181"/>
 </map>

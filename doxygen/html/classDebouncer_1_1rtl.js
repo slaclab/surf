@@ -8,11 +8,11 @@ var classDebouncer_1_1rtl =
     [ "SYNC_INIT_C", "classDebouncer_1_1rtl.html#adc83f3e47df47f93c3ea1cb5ed325b85", null ],
     [ "RegType", "classDebouncer_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "filter", "classDebouncer_1_1rtl.html#afd07a2885b0314c6fcaafd20560488cf", null ],
-    [ "iSyncedDly", "classDebouncer_1_1rtl.html#aebe3a617fc5146ff5e1f284f15ff8d1a", null ],
-    [ "o", "classDebouncer_1_1rtl.html#aa95ef1af456c9f939456460637de2891", null ],
+    [ "iSyncedDly", "classDebouncer_1_1rtl.html#a6fbd40e85a29ac5b96a4f304c8c01c0a", null ],
+    [ "o", "classDebouncer_1_1rtl.html#a371192b5c7f1fabb7c6cf2bda2e7c8ab", null ],
     [ "REG_RESET_C", "classDebouncer_1_1rtl.html#a21aed1be011b6f89f8df6de446d33770", null ],
     [ "r", "classDebouncer_1_1rtl.html#a4fec26cd5da2f7ada5ba953a0186a700", null ],
-    [ "rin", "classDebouncer_1_1rtl.html#a758a8cbb78916a3911d410a62191310d", null ],
+    [ "rin", "classDebouncer_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "iSynced", "classDebouncer_1_1rtl.html#ab9428f0d4e48e73cef62969936de3928", null ],
     [ "synchronizer_1", "classDebouncer_1_1rtl.html#a98e3735695615351b396d6f81ad9d021", null ]
 ];

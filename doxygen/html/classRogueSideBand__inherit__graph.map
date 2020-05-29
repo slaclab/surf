@@ -1,12 +1,13 @@
 <map id="RogueSideBand" name="RogueSideBand">
-<area shape="rect" id="node2" href="$classRogueSideBandWrap.html" title="RogueSideBandWrap" alt="" coords="212,80,368,107"/>
-<area shape="rect" id="node3" href="$classRoguePgp2bSim.html" title="RoguePgp2bSim" alt="" coords="80,155,207,181"/>
-<area shape="rect" id="node4" href="$classRoguePgp3Sim.html" title="RoguePgp3Sim" alt="" coords="231,155,349,181"/>
-<area shape="rect" id="node9" href="$classRoguePgpEthSim.html" title="RoguePgpEthSim" alt="" coords="459,155,591,181"/>
-<area shape="rect" id="node5" href="$classPgp3GthUsWrapper.html" title="Pgp3GthUsWrapper" alt="" coords="5,229,153,256"/>
-<area shape="rect" id="node6" href="$classPgp3Gtp7Wrapper.html" title="Pgp3Gtp7Wrapper" alt="" coords="178,229,317,256"/>
-<area shape="rect" id="node8" href="$classPgp3Gtx7Wrapper.html" title="Pgp3Gtx7Wrapper" alt="" coords="341,229,479,256"/>
-<area shape="rect" id="node7" href="$classPgp3Gtp7Tb.html" title="Pgp3Gtp7Tb" alt="" coords="197,304,298,331"/>
-<area shape="rect" id="node10" href="$classPgpEthCaui4Gty.html" title="PgpEthCaui4Gty" alt="" coords="504,229,631,256"/>
-<area shape="rect" id="node11" href="$classPgpEthCaui4GtyTb.html" title="PgpEthCaui4GtyTb" alt="" coords="496,304,639,331"/>
+<area shape="rect" id="node1" title=" " alt="" coords="230,5,354,32"/>
+<area shape="rect" id="node2" href="$classRogueSideBandWrap.html" title=" " alt="" coords="213,80,371,107"/>
+<area shape="rect" id="node3" href="$classRoguePgp2bSim.html" title=" " alt="" coords="80,155,208,181"/>
+<area shape="rect" id="node4" href="$classRoguePgp3Sim.html" title=" " alt="" coords="232,155,352,181"/>
+<area shape="rect" id="node9" href="$classRoguePgpEthSim.html" title=" " alt="" coords="461,155,595,181"/>
+<area shape="rect" id="node5" href="$classPgp3GthUsWrapper.html" title=" " alt="" coords="5,229,155,256"/>
+<area shape="rect" id="node6" href="$classPgp3Gtp7Wrapper.html" title=" " alt="" coords="179,229,319,256"/>
+<area shape="rect" id="node8" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="343,229,483,256"/>
+<area shape="rect" id="node7" href="$classPgp3Gtp7Tb.html" title=" " alt="" coords="199,304,300,331"/>
+<area shape="rect" id="node10" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="507,229,634,256"/>
+<area shape="rect" id="node11" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="499,304,642,331"/>
 </map>

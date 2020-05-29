@@ -1,8 +1,9 @@
 <map id="SemWrapper" name="SemWrapper">
-<area shape="rect" id="node6" href="$classSsiSem.html" title="SsiSem" alt="" coords="77,304,147,331"/>
-<area shape="rect" id="node7" href="$classUartSem.html" title="UartSem" alt="" coords="171,304,250,331"/>
-<area shape="rect" id="node2" href="$classIprog7SeriesCore.html" title="Iprog7SeriesCore" alt="" coords="95,155,228,181"/>
-<area shape="rect" id="node3" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="5,80,152,107"/>
-<area shape="rect" id="node4" href="$classSynchronizerEdge.html" title="SynchronizerEdge" alt="" coords="176,80,315,107"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="192,5,299,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="108,229,215,256"/>
+<area shape="rect" id="node6" href="$classSsiSem.html" title=" " alt="" coords="77,304,147,331"/>
+<area shape="rect" id="node7" href="$classUartSem.html" title=" " alt="" coords="171,304,250,331"/>
+<area shape="rect" id="node2" href="$classIprog7SeriesCore.html" title=" " alt="" coords="95,155,228,181"/>
+<area shape="rect" id="node3" href="$classSynchronizerVector.html" title=" " alt="" coords="5,80,152,107"/>
+<area shape="rect" id="node4" href="$classSynchronizerEdge.html" title=" " alt="" coords="176,80,315,107"/>
+<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="192,5,299,32"/>
 </map>

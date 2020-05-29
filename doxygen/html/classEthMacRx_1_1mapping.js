@@ -1,10 +1,10 @@
 var classEthMacRx_1_1mapping =
 [
-    [ "macIbMaster", "classEthMacRx_1_1mapping.html#aa11c629a5ebcb13a4f054455c953e0ff", null ],
-    [ "pauseMaster", "classEthMacRx_1_1mapping.html#a371ae9acdc72829e611b73ddaa7551c1", null ],
-    [ "pauseMasters", "classEthMacRx_1_1mapping.html#abea2a1da3cf14434d2266c9bfd8271b7", null ],
-    [ "csumMaster", "classEthMacRx_1_1mapping.html#abe5fb26c3e5da331e4e9c8741cb8d5e3", null ],
-    [ "bypassMaster", "classEthMacRx_1_1mapping.html#a33c80174f23d86c45fc253e2e3a88228", null ],
+    [ "macIbMaster", "classEthMacRx_1_1mapping.html#ab7f7505f9022f06e4f3d8a53f522ec78", null ],
+    [ "pauseMaster", "classEthMacRx_1_1mapping.html#a71dce083d9403fb7d9631f437f13186a", null ],
+    [ "pauseMasters", "classEthMacRx_1_1mapping.html#a2d114d2568ce990491395fc38a2fb262", null ],
+    [ "csumMaster", "classEthMacRx_1_1mapping.html#a04c2983250075b253f28fe51285b288a", null ],
+    [ "bypassMaster", "classEthMacRx_1_1mapping.html#a84109d1e1555d3e2705fe5227149e24d", null ],
     [ "u_import", "classEthMacRx_1_1mapping.html#a9dd949ced89cee255117baeadc017d8f", null ],
     [ "u_pause", "classEthMacRx_1_1mapping.html#aa7b7a6a51d5530a15a336f7838d93b95", null ],
     [ "u_csum", "classEthMacRx_1_1mapping.html#ae8737b58d679173c98010a7ee812a6af", null ],

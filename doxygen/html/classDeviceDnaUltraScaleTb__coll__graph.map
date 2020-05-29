@@ -1,7 +1,8 @@
 <map id="DeviceDnaUltraScaleTb" name="DeviceDnaUltraScaleTb">
-<area shape="rect" id="node2" href="$classClkRst.html" title="ClkRst" alt="" coords="5,155,69,181"/>
-<area shape="rect" id="node3" href="$classDeviceDnaUltraScale.html" title="DeviceDnaUltraScale" alt="" coords="93,155,253,181"/>
-<area shape="rect" id="node4" href="$classRstSync.html" title="RstSync" alt="" coords="68,80,143,107"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="52,5,159,32"/>
-<area shape="rect" id="node6" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="167,80,313,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="17,229,193,256"/>
+<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,155,69,181"/>
+<area shape="rect" id="node3" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="93,155,253,181"/>
+<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="68,80,143,107"/>
+<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="52,5,159,32"/>
+<area shape="rect" id="node6" href="$classSynchronizerVector.html" title=" " alt="" coords="167,80,313,107"/>
 </map>

@@ -1,9 +1,10 @@
 <map id="Pgp2bTx" name="Pgp2bTx">
-<area shape="rect" id="node2" href="$classSynchronizerVector.html" title="SynchronizerVector" alt="" coords="5,5,152,32"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="25,56,132,83"/>
-<area shape="rect" id="node4" href="$classPgp2bTxPhy.html" title="Pgp2bTxPhy" alt="" coords="27,107,130,133"/>
-<area shape="rect" id="node5" href="$classPgp2bTxSched.html" title="Pgp2bTxSched" alt="" coords="20,157,137,184"/>
-<area shape="rect" id="node6" href="$classPgp2bTxCell.html" title="Pgp2bTxCell" alt="" coords="27,208,130,235"/>
-<area shape="rect" id="node7" href="$classAxiStreamPipeline.html" title="AxiStreamPipeline" alt="" coords="7,259,150,285"/>
-<area shape="rect" id="node8" href="$classCRC32Rtl.html" title="CRC32Rtl" alt="" coords="37,309,120,336"/>
+<area shape="rect" id="node1" title=" " alt="" coords="200,157,279,184"/>
+<area shape="rect" id="node2" href="$classSynchronizerVector.html" title=" " alt="" coords="5,5,152,32"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="25,56,132,83"/>
+<area shape="rect" id="node4" href="$classPgp2bTxPhy.html" title=" " alt="" coords="27,107,130,133"/>
+<area shape="rect" id="node5" href="$classPgp2bTxSched.html" title=" " alt="" coords="20,157,137,184"/>
+<area shape="rect" id="node6" href="$classPgp2bTxCell.html" title=" " alt="" coords="27,208,130,235"/>
+<area shape="rect" id="node7" href="$classAxiStreamPipeline.html" title=" " alt="" coords="7,259,150,285"/>
+<area shape="rect" id="node8" href="$classCRC32Rtl.html" title=" " alt="" coords="37,309,120,336"/>
 </map>

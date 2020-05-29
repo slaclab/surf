@@ -1,10 +1,11 @@
 <map id="AxiLiteSaciMasterTb" name="AxiLiteSaciMasterTb">
-<area shape="rect" id="node2" href="$classAxiLiteSaciMaster.html" title="AxiLiteSaciMaster" alt="" coords="5,155,144,181"/>
-<area shape="rect" id="node3" href="$classSaciMaster2.html" title="SaciMaster2" alt="" coords="24,80,125,107"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title="Synchronizer" alt="" coords="21,5,128,32"/>
-<area shape="rect" id="node5" href="$classSaciSlave2.html" title="SaciSlave2" alt="" coords="168,155,261,181"/>
-<area shape="rect" id="node6" href="$classDualPortRam.html" title="DualPortRam" alt="" coords="286,155,394,181"/>
-<area shape="rect" id="node7" href="$classTrueDualPortRam.html" title="TrueDualPortRam" alt="" coords="211,80,346,107"/>
-<area shape="rect" id="node8" href="$classQuadPortRam.html" title="QuadPortRam" alt="" coords="371,80,483,107"/>
-<area shape="rect" id="node9" href="$classClkRst.html" title="ClkRst" alt="" coords="419,155,483,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="200,229,355,256"/>
+<area shape="rect" id="node2" href="$classAxiLiteSaciMaster.html" title=" " alt="" coords="5,155,144,181"/>
+<area shape="rect" id="node3" href="$classSaciMaster2.html" title=" " alt="" coords="23,80,126,107"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="21,5,128,32"/>
+<area shape="rect" id="node5" href="$classSaciSlave2.html" title=" " alt="" coords="168,155,261,181"/>
+<area shape="rect" id="node6" href="$classDualPortRam.html" title=" " alt="" coords="286,155,394,181"/>
+<area shape="rect" id="node7" href="$classTrueDualPortRam.html" title=" " alt="" coords="211,80,346,107"/>
+<area shape="rect" id="node8" href="$classQuadPortRam.html" title=" " alt="" coords="371,80,483,107"/>
+<area shape="rect" id="node9" href="$classClkRst.html" title=" " alt="" coords="419,155,483,181"/>
 </map>

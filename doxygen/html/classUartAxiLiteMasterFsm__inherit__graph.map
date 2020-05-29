@@ -1,5 +1,6 @@
 <map id="UartAxiLiteMasterFsm" name="UartAxiLiteMasterFsm">
-<area shape="rect" id="node3" href="$classUartAxiLiteMaster.html" title="UartAxiLiteMaster" alt="" coords="19,155,158,181"/>
-<area shape="rect" id="node2" href="$classAxiLiteMaster.html" title="AxiLiteMaster" alt="" coords="33,5,144,32"/>
-<area shape="rect" id="node4" href="$classUartAxiLiteMasterTb.html" title="UartAxiLiteMasterTb" alt="" coords="11,229,166,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,173,107"/>
+<area shape="rect" id="node3" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="19,155,159,181"/>
+<area shape="rect" id="node2" href="$classAxiLiteMaster.html" title=" " alt="" coords="33,5,145,32"/>
+<area shape="rect" id="node4" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="11,229,167,256"/>
 </map>

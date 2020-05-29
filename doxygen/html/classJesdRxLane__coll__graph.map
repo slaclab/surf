@@ -1,9 +1,10 @@
 <map id="JesdRxLane" name="JesdRxLane">
-<area shape="rect" id="node2" href="$classFifoSync.html" title="FifoSync" alt="" coords="197,80,273,107"/>
-<area shape="rect" id="node3" href="$classFifoWrFsm.html" title="FifoWrFsm" alt="" coords="5,5,95,32"/>
-<area shape="rect" id="node4" href="$classFifoRdFsm.html" title="FifoRdFsm" alt="" coords="119,5,208,32"/>
-<area shape="rect" id="node5" href="$classSimpleDualPortRam.html" title="SimpleDualPortRam" alt="" coords="232,5,385,32"/>
-<area shape="rect" id="node6" href="$classFifoOutputPipeline.html" title="FifoOutputPipeline" alt="" coords="410,5,551,32"/>
-<area shape="rect" id="node7" href="$classJesdSyncFsmRx.html" title="JesdSyncFsmRx" alt="" coords="297,80,421,107"/>
-<area shape="rect" id="node8" href="$classJesdAlignFrRepCh.html" title="JesdAlignFrRepCh" alt="" coords="445,80,580,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="317,155,415,181"/>
+<area shape="rect" id="node2" href="$classFifoSync.html" title=" " alt="" coords="202,80,279,107"/>
+<area shape="rect" id="node3" href="$classFifoWrFsm.html" title=" " alt="" coords="5,5,97,32"/>
+<area shape="rect" id="node4" href="$classFifoRdFsm.html" title=" " alt="" coords="122,5,213,32"/>
+<area shape="rect" id="node5" href="$classSimpleDualPortRam.html" title=" " alt="" coords="237,5,391,32"/>
+<area shape="rect" id="node6" href="$classFifoOutputPipeline.html" title=" " alt="" coords="415,5,557,32"/>
+<area shape="rect" id="node7" href="$classJesdSyncFsmRx.html" title=" " alt="" coords="303,80,429,107"/>
+<area shape="rect" id="node8" href="$classJesdAlignFrRepCh.html" title=" " alt="" coords="453,80,589,107"/>
 </map>
