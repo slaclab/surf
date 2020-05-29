@@ -125,6 +125,7 @@ begin
                   v.dataOut  := SSP_EOF_CODE_G;
                   v.dataKOut := SSP_EOF_K_G;
                   v.mode     := IDLE_MODE_C;
+                  v.readyIn  := '0';
                else
                   -- if not auto framing and valid drops, insert idle char
                   v.dataOut  := SSP_IDLE_CODE_G;
