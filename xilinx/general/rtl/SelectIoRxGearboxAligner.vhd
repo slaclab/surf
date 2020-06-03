@@ -24,17 +24,17 @@ entity SelectIoRxGearboxAligner is
    generic (
       TPD_G        : time     := 1 ns;
       NUM_BYTES_G  : positive := 1;
-      ENCODE_G     : boolean  := false;
+      CODE_TYPE_G  : string   := "LINE_CODE";         -- or "SCRAMBLER"
       SIMULATION_G : boolean  := false);
    port (
       -- Clock and Reset
       clk             : in  sl;
       rst             : in  sl;
-      -- Line-Code Interface (ENCODE_G = false)
+      -- Line-Code Interface (CODE_TYPE_G = "LINE_CODE")
       lineCodeValid   : in  sl;
       lineCodeErr     : in  slv(NUM_BYTES_G-1 downto 0);
       lineCodeDispErr : in  slv(NUM_BYTES_G-1 downto 0);
-      -- 64b/66b Interface (ENCODE_G = true)
+      -- 64b/66b Interface (CODE_TYPE_G = "SCRAMBLER")
       rxHeaderValid   : in  sl;
       rxHeader        : in  slv(1 downto 0);
       -- Gearbox Slip
@@ -101,6 +101,10 @@ architecture rtl of SelectIoRxGearboxAligner is
    signal rin : RegType;
 
 begin
+
+   assert ((CODE_TYPE_G = "LINE_CODE") or (CODE_TYPE_G = "SCRAMBLER"))
+      report "CODE_TYPE_G must be LINE_CODE or SCRAMBLER"
+      severity failure;
 
    comb : process (bypFirstBerDet, enUsrDlyCfg, lineCodeDispErr, lineCodeErr,
                    lineCodeValid, lockingCntCfg, minEyeWidth, r, rst, rxHeader,
@@ -169,16 +173,16 @@ begin
       -- Shift register
       v.dlyLoad := '0' & r.dlyLoad(1);
 
-      -- 64b/66b Interface (ENCODE_G = true)
-      if ENCODE_G then
+      -- 64b/66b Interface
+      if (CODE_TYPE_G = "SCRAMBLER") then
          valid := rxHeaderValid;
          -- Check for bad header
          if (rxHeaderValid = '1') and ((rxHeader = "00") or (rxHeader = "11")) then
             v.errorDet := '1';
          end if;
 
-      -- Line-Code Interface (ENCODE_G = false)   
-      else
+      -- Line-Code Interface
+      elsif (CODE_TYPE_G = "LINE_CODE") then
          valid := lineCodeValid;
          -- Check for bad header
          if (lineCodeValid = '1') and (uOr(lineCodeErr) = '1' or uOr(lineCodeDispErr) = '1') then
