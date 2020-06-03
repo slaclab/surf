@@ -41,11 +41,11 @@ entity SelectIoRxGearboxAligner is
       bitSlip         : out sl;
       -- IDELAY (DELAY_TYPE="VAR_LOAD") Interface
       dlyLoad         : out sl;
-      dlyCfg          : out slv(8 downto 0);
+      dlyCfg          : out slv(8 downto 0); -- Ultrascale: CNTVALUEIN=dlyCfg(8 downto 0), 7-series: CNTVALUEIN=dlyCfg(8 downto 4)
       -- Configuration Interface
       enUsrDlyCfg     : in  sl               := '0';  -- Enable User delay config
       usrDlyCfg       : in  slv(8 downto 0)  := (others => '0');  -- User delay config
-      bypFirstBerDet  : in  sl               := '1';  -- Set to '1' if IDELAY full scale range > 1 UI of serial rate (example: IDELAY range 2.5ns  > 1 ns "1Gb/s" )
+      bypFirstBerDet  : in  sl               := '1';  -- Set to '1' if IDELAY full scale range > 2 Unit Intervals (UI) of serial rate (example: IDELAY range 2.5ns  > 1 ns "1Gb/s" )
       minEyeWidth     : in  slv(7 downto 0)  := toSlv(80, 8);  -- Sets the minimum eye width required for locking (units of IDELAY step)
       lockingCntCfg   : in  slv(23 downto 0) := ite(SIMULATION_G, x"00_0064", x"00_FFFF");  -- Number of error-free event before state=LOCKED_S
       -- Status Interface
