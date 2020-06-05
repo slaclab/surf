@@ -191,12 +191,6 @@ begin
          end if;
       end if;
 
-      -- Check for physical link error
-      if (linkError = '1') then
-         valid      := '1';
-         v.errorDet := '1';
-      end if;
-
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -252,7 +246,7 @@ begin
                   v.goodCnt := r.goodCnt + 1;
                else
 
-                  -- Check if no bit errors detected yet during this IDELAY sweep 
+                  -- Check if no bit errors detected yet during this IDELAY sweep
                   if (r.firstError = '0') and (bypFirstBerDet = '0') then
                      -- Execute the slip procedure
                      slipProcedure;
@@ -289,7 +283,7 @@ begin
                   -- Execute the slip procedure
                   slipProcedure;
 
-               -- Check for not roll over and not 
+               -- Check for not roll over and not
                elsif (r.goodCnt < lockingCntCfg) and (v.errorDet = '0') then
                   -- Increment the counter
                   v.goodCnt := r.goodCnt + 1;
@@ -321,10 +315,10 @@ begin
          ----------------------------------------------------------------------
          when LOCKED_S =>
             -- Check for data
-            if (valid = '1') then
+            if (valid = '1') or (linkError = '1') then
 
                -- Check for bad header
-               if (v.errorDet = '1') then
+               if (v.errorDet = '1') or (linkError = '1') then
                   -- Execute the slip procedure
                   slipProcedure;
 
@@ -347,7 +341,7 @@ begin
          v.dlyLoad(1) := '1';
       end if;
 
-      -- Outputs 
+      -- Outputs
       locked   <= r.locked;
       bitSlip  <= r.slip;
       dlyLoad  <= r.dlyLoad(0);
