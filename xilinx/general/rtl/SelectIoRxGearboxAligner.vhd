@@ -178,7 +178,7 @@ begin
       if (CODE_TYPE_G = "SCRAMBLER") then
          valid := rxHeaderValid;
          -- Check for bad header
-         if (rxHeaderValid = '1') and ((rxHeader = "00") or (rxHeader = "11")) or (linkError = '1') then
+         if (rxHeaderValid = '1') and ((rxHeader = "00") or (rxHeader = "11")) then
             v.errorDet := '1';
          end if;
 
@@ -186,9 +186,15 @@ begin
       elsif (CODE_TYPE_G = "LINE_CODE") then
          valid := lineCodeValid;
          -- Check for bad header
-         if (lineCodeValid = '1') and (uOr(lineCodeErr) = '1' or uOr(lineCodeDispErr) = '1') or (linkError = '1') then
+         if (lineCodeValid = '1') and (uOr(lineCodeErr) = '1' or uOr(lineCodeDispErr) = '1') then
             v.errorDet := '1';
          end if;
+      end if;
+
+      -- Check for physical link error
+      if (linkError = '1') then
+         valid      := '1';
+         v.errorDet := '1';
       end if;
 
       -- State Machine
@@ -209,13 +215,13 @@ begin
          ----------------------------------------------------------------------
          when SLIP_WAIT_S =>
             -- Check the counter
-            if (r.slipWaitCnt = SLIP_WAIT_C-1) then
+            if (r.slipWaitCnt = SLIP_WAIT_C-1) or (r.enUsrDlyCfg = '1') then
 
                -- Reset the counter
                v.slipWaitCnt := 0;
 
                -- Check if eye scan completed
-               if (r.scanDone = '1') then
+               if (r.scanDone = '1') or (r.enUsrDlyCfg = '1') then
                   -- Next state
                   v.state := LOCKED_S;
                -- Check for armed mode
