@@ -38,6 +38,7 @@ entity SspDecoder12b14b is
       validOut  : out sl;
       dataOut   : out slv(11 downto 0);
       valid     : out sl;
+      outOfSync : out sl;
       sof       : out sl;
       eof       : out sl;
       eofe      : out sl;
@@ -93,6 +94,7 @@ begin
          dataKIn  => framedDataK,
          validOut => validOut,
          dataOut  => dataOut,
+         outOfSync=> outOfSync,
          sof      => sof,
          eof      => eof,
          eofe     => eofe);

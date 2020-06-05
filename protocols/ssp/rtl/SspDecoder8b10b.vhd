@@ -38,6 +38,7 @@ entity SspDecoder8b10b is
       validIn  : in  sl := '1';
       dataOut  : out slv(15 downto 0);
       validOut : out sl;
+      outOfSync: out sl;
       sof      : out sl;
       eof      : out sl;
       eofe     : out sl);
@@ -95,6 +96,7 @@ begin
          decErrIn => decErr,
          dataOut  => dataOut,
          validOut => validOut,
+         outOfSync=> outOfSync,
          sof      => sof,
          eof      => eof,
          eofe     => eofe);
