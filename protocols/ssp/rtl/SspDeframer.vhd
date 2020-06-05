@@ -205,6 +205,7 @@ begin
       rin      <= v;
       dataOut  <= r.dataOut;
       validOut <= r.validOut;
+      outOfSync<= r.outOfSync;
       sof      <= r.sof;
       eof      <= r.eof;
       eofe     <= r.eofe;

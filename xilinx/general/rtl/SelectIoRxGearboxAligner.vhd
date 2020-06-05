@@ -37,11 +37,12 @@ entity SelectIoRxGearboxAligner is
       -- 64b/66b Interface (CODE_TYPE_G = "SCRAMBLER")
       rxHeaderValid   : in  sl;
       rxHeader        : in  slv(1 downto 0);
-      -- Gearbox Slip
+      -- Link Status and Gearbox Slip
+      linkError       : in  sl;
       bitSlip         : out sl;
       -- IDELAY (DELAY_TYPE="VAR_LOAD") Interface
       dlyLoad         : out sl;
-      dlyCfg          : out slv(8 downto 0); -- Ultrascale: CNTVALUEIN=dlyCfg(8 downto 0), 7-series: CNTVALUEIN=dlyCfg(8 downto 4)
+      dlyCfg          : out slv(8 downto 0);  -- Ultrascale: CNTVALUEIN=dlyCfg(8 downto 0), 7-series: CNTVALUEIN=dlyCfg(8 downto 4)
       -- Configuration Interface
       enUsrDlyCfg     : in  sl               := '0';  -- Enable User delay config
       usrDlyCfg       : in  slv(8 downto 0)  := (others => '0');  -- User delay config
@@ -107,8 +108,8 @@ begin
       severity failure;
 
    comb : process (bypFirstBerDet, enUsrDlyCfg, lineCodeDispErr, lineCodeErr,
-                   lineCodeValid, lockingCntCfg, minEyeWidth, r, rst, rxHeader,
-                   rxHeaderValid, usrDlyCfg) is
+                   lineCodeValid, linkError, lockingCntCfg, minEyeWidth, r,
+                   rst, rxHeader, rxHeaderValid, usrDlyCfg) is
       variable v : RegType;
 
       procedure slipProcedure is
@@ -177,7 +178,7 @@ begin
       if (CODE_TYPE_G = "SCRAMBLER") then
          valid := rxHeaderValid;
          -- Check for bad header
-         if (rxHeaderValid = '1') and ((rxHeader = "00") or (rxHeader = "11")) then
+         if (rxHeaderValid = '1') and ((rxHeader = "00") or (rxHeader = "11")) or (linkError = '1') then
             v.errorDet := '1';
          end if;
 
@@ -185,7 +186,7 @@ begin
       elsif (CODE_TYPE_G = "LINE_CODE") then
          valid := lineCodeValid;
          -- Check for bad header
-         if (lineCodeValid = '1') and (uOr(lineCodeErr) = '1' or uOr(lineCodeDispErr) = '1') then
+         if (lineCodeValid = '1') and (uOr(lineCodeErr) = '1' or uOr(lineCodeDispErr) = '1') or (linkError = '1') then
             v.errorDet := '1';
          end if;
       end if;
