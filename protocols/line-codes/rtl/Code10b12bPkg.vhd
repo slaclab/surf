@@ -27,20 +27,23 @@ package Code10b12bPkg is
 
    -------------------------------------------------------------------------------------------------
    -- Control Symbols Constants
-   -- Note: None of these control symbols defined below are "natural commas"
    -------------------------------------------------------------------------------------------------
+   -- These symbols are commas, sequences that can be used for word alignment
    constant K_28_3_C  : slv(9 downto 0) := b"00011_11100";  -- 0x07C -> 0x8FC, 0x703
+   constant K_28_11_C : slv(9 downto 0) := b"01011_11100";  -- 0x17C -> 0x2FC, 0xD03
+   constant K_28_19_C : slv(9 downto 0) := b"10011_11100";  -- 0x27C -> 0x4FC, 0xB03   
+
+   -- These symbols are not commas but can be used to initiate control sequences
+   -- Technically any K.28.x character is a valid k-char but these are preffered
    constant K_28_5_C  : slv(9 downto 0) := b"00101_11100";  -- 0x0BC -> 0x683, 0x97C
    constant K_28_6_C  : slv(9 downto 0) := b"00110_11100";  -- 0x0DC -> 0x643, 0x9BC
    constant K_28_9_C  : slv(9 downto 0) := b"01001_11100";  -- 0x13C -> 0x583, 0xA7C
    constant K_28_10_C : slv(9 downto 0) := b"01010_11100";  -- 0x15C -> 0xABC, 0x543
-   constant K_28_11_C : slv(9 downto 0) := b"01011_11100";  -- 0x17C -> 0x2FC, 0xD03
    constant K_28_12_C : slv(9 downto 0) := b"01100_11100";  -- 0x19C -> 0x4C3, 0xB3C
    constant K_28_13_C : slv(9 downto 0) := b"01101_11100";  -- 0x1BC -> 0x37C, 0xC83
    constant K_28_14_C : slv(9 downto 0) := b"01110_11100";  -- 0x1DC -> 0x3BC, 0xC43
    constant K_28_17_C : slv(9 downto 0) := b"10001_11100";  -- 0x23C -> 0x383, 0xC7C
    constant K_28_18_C : slv(9 downto 0) := b"10010_11100";  -- 0x25C -> 0x343, 0xCBC
-   constant K_28_19_C : slv(9 downto 0) := b"10011_11100";  -- 0x27C -> 0x4FC, 0xB03
    constant K_28_20_C : slv(9 downto 0) := b"10100_11100";  -- 0x29C -> 0x2C3, 0xD3C
    constant K_28_21_C : slv(9 downto 0) := b"10101_11100";  -- 0x2BC -> 0x57C, 0xA83
    constant K_28_22_C : slv(9 downto 0) := b"10110_11100";  -- 0x2DC -> 0x5BC, 0xA43
@@ -48,7 +51,7 @@ package Code10b12bPkg is
    constant K_28_26_C : slv(9 downto 0) := b"11010_11100";  -- 0x35C -> 0x6BC, 0x943
 
    -------------------------------------------------------------------------------------------------
-   -- [D7.7, D7.7] is a special case
+   -- D.7.7 constant helpful for testing
    -------------------------------------------------------------------------------------------------
    constant D_7_7_C : slv(9 downto 0) := b"00111_00111";  -- 0x0E7 -> 0x1C7, 0x1C7
 
