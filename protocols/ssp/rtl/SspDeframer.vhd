@@ -45,10 +45,11 @@ entity SspDeframer is
       dataIn   : in  slv(WORD_SIZE_G-1 downto 0);
       validIn  : in  sl;
       decErrIn : in  sl := '0';
+      dispErrIn: in  sl := '0'; -- Unused
       -- Output Interface
       dataOut  : out slv(WORD_SIZE_G-1 downto 0);
       validOut : out sl;
-      outOfSync: out sl;
+      errorOut : out sl;
       sof      : out sl;
       eof      : out sl;
       eofe     : out sl);
@@ -72,7 +73,7 @@ architecture rtl of SspDeframer is
       -- Output registers
       dataOut  : slv(WORD_SIZE_G-1 downto 0);
       validOut : sl;
-      outOfSync: sl;
+      errorOut : sl;
       sof      : sl;
       eof      : sl;
       eofe     : sl;
@@ -88,7 +89,7 @@ architecture rtl of SspDeframer is
       iEofe     => '0',
       dataOut   => (others => '0'),
       validOut  => '0',
-      outOfSync => '0',
+      errorOut  => '0',
       sof       => '0',
       eof       => '0',
       eofe      => '0');
@@ -103,7 +104,7 @@ begin
    begin
       v := r;
 
-      v.outOfSync  := '0';
+      v.errorOut := '0';
 
       if (validIn = '1') then
 
@@ -133,10 +134,10 @@ begin
                   v.iEof      := '1';
                   v.iEofe     := '1';
                   v.iValidOut := '1';
-                  v.outOfSync := '1';
+                  v.errorOut  := '1';
                end if;
             else
-               v.outOfSync := '1';
+               v.errorOut := '1';
             end if;
 
          elsif (r.state = WAIT_EOF_S) then
@@ -169,15 +170,15 @@ begin
                   v.iValidOut := '0';
                   v.iEof      := '1';
                   v.iEofe     := '1';
-                  v.outOfSync := '1';
+                  v.errorOut  := '1';
                   v.state     := WAIT_SOF_S;
                end if;
 
             end if;
 
             if (decErrIn = '1') then
-               v.iEofe     := '1';
-               v.outOfSync := '1';
+               v.iEofe    := '1';
+               v.errorOut := '1';
             end if;
 
          end if;
@@ -205,7 +206,7 @@ begin
       rin      <= v;
       dataOut  <= r.dataOut;
       validOut <= r.validOut;
-      outOfSync<= r.outOfSync;
+      errorOut <= r.errorOut;
       sof      <= r.sof;
       eof      <= r.eof;
       eofe     <= r.eofe;
