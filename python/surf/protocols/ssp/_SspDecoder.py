@@ -64,7 +64,7 @@ class SspDecoder(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DATA_WIDTH_G',
-            offset       = 7FC,
+            offset       = 0x7FC,
             bitSize      = 8,
             bitOffset    = 0,
             mode         = 'RO',
@@ -72,7 +72,7 @@ class SspDecoder(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'NUM_LANE_G',
-            offset       = 7FC,
+            offset       = 0x7FC,
             bitSize      = 8,
             bitOffset    = 8,
             mode         = 'RO',
