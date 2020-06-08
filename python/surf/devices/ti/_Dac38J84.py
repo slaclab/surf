@@ -374,6 +374,21 @@ class Dac38J84(pr.Device):
             self.DacReg[108].set(0)
             self.DacReg[109].set(0)
 
+        @self.command(name="NcoSync", description="Special DAC Init procedure to sync NCO",)
+        def NcoSync():
+            self.EnableTx.set(0x0)
+            time.sleep(0.010)
+            self.InitJesd.set(0x1)
+            time.sleep(0.010)
+            self.JesdRstN.set(0x0)
+            time.sleep(0.010)
+            self.JesdRstN.set(0x1)
+            time.sleep(0.010)
+            self.InitJesd.set(0x0)
+            time.sleep(0.010)
+            self.EnableTx.set(0x1)
+            time.sleep(0.010)
+
         @self.command(name="Init", description="Initialization sequence for the DAC JESD core",)
         def Init():
             self.writeBlocks(force=True)
