@@ -83,6 +83,7 @@ architecture mapping of SspDecoderReg is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal statusIn  : slv(STATUS_SIZE_C-1 downto 0);
    signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
    signal statusCnt : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_WIDTH_C-1 downto 0);
 
@@ -215,17 +216,19 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn((2*NUM_LANE_G)+NUM_LANE_G-1 downto 2*NUM_LANE_G) => errorDet,
-         statusIn((1*NUM_LANE_G)+NUM_LANE_G-1 downto 1*NUM_LANE_G) => bitSlip,
-         statusIn((0*NUM_LANE_G)+NUM_LANE_G-1 downto 0*NUM_LANE_G) => locked,
+         statusIn     => statusIn,
          -- Output Status bit Signals (rdClk domain)  
-         statusOut                                                 => statusOut,
+         statusOut    => statusOut,
          -- Status Bit Counters Signals (rdClk domain) 
-         cntRstIn                                                  => r.cntRst,
-         rollOverEnIn                                              => r.rollOverEn,
-         cntOut                                                    => statusCnt,
+         cntRstIn     => r.cntRst,
+         rollOverEnIn => r.rollOverEn,
+         cntOut       => statusCnt,
          -- Clocks and Reset Ports
-         wrClk                                                     => deserClk,
-         rdClk                                                     => axilClk);
+         wrClk        => deserClk,
+         rdClk        => axilClk);
+
+   statusIn((2*NUM_LANE_G)+NUM_LANE_G-1 downto 2*NUM_LANE_G) <= errorDet;
+   statusIn((1*NUM_LANE_G)+NUM_LANE_G-1 downto 1*NUM_LANE_G) <= bitSlip;
+   statusIn((0*NUM_LANE_G)+NUM_LANE_G-1 downto 0*NUM_LANE_G) <= locked;
 
 end mapping;
