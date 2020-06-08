@@ -22,23 +22,22 @@ use surf.StdRtlPkg.all;
 
 entity SelectIoRxGearboxAligner is
    generic (
-      TPD_G        : time     := 1 ns;
-      NUM_BYTES_G  : positive := 1;
-      CODE_TYPE_G  : string   := "LINE_CODE";         -- or "SCRAMBLER"
-      SIMULATION_G : boolean  := false);
+      TPD_G        : time    := 1 ns;
+      CODE_TYPE_G  : string  := "LINE_CODE";  -- or "SCRAMBLER"
+      SIMULATION_G : boolean := false);
    port (
       -- Clock and Reset
       clk             : in  sl;
       rst             : in  sl;
       -- Line-Code Interface (CODE_TYPE_G = "LINE_CODE")
       lineCodeValid   : in  sl;
-      lineCodeErr     : in  slv(NUM_BYTES_G-1 downto 0);
-      lineCodeDispErr : in  slv(NUM_BYTES_G-1 downto 0);
+      lineCodeErr     : in  sl;
+      lineCodeDispErr : in  sl;
+      linkOutOfSync   : in  sl;
       -- 64b/66b Interface (CODE_TYPE_G = "SCRAMBLER")
       rxHeaderValid   : in  sl;
       rxHeader        : in  slv(1 downto 0);
-      -- Link Status and Gearbox Slip
-      linkError       : in  sl;
+      -- Gearbox Slip
       bitSlip         : out sl;
       -- IDELAY (DELAY_TYPE="VAR_LOAD") Interface
       dlyLoad         : out sl;
@@ -63,6 +62,8 @@ architecture rtl of SelectIoRxGearboxAligner is
       SLIP_WAIT_S,
       LOCKING_S,
       EYE_SCAN_S,
+      BIT_WAIT_S,
+      BIT_ALIGN_S,
       LOCKED_S);
 
    type RegType is record
@@ -73,7 +74,7 @@ architecture rtl of SelectIoRxGearboxAligner is
       dlyCache    : slv(8 downto 0);
       slipWaitCnt : natural range 0 to SLIP_WAIT_C-1;
       goodCnt     : slv(23 downto 0);
-      slip        : sl;
+      bitSlip     : sl;
       errorDet    : sl;
       firstError  : sl;
       armed       : sl;
@@ -90,7 +91,7 @@ architecture rtl of SelectIoRxGearboxAligner is
       dlyCache    => (others => '0'),
       slipWaitCnt => 0,
       goodCnt     => (others => '0'),
-      slip        => '0',
+      bitSlip     => '0',
       errorDet    => '0',
       firstError  => '0',
       armed       => '0',
@@ -108,7 +109,7 @@ begin
       severity failure;
 
    comb : process (bypFirstBerDet, enUsrDlyCfg, lineCodeDispErr, lineCodeErr,
-                   lineCodeValid, linkError, lockingCntCfg, minEyeWidth, r,
+                   lineCodeValid, linkOutOfSync, lockingCntCfg, minEyeWidth, r,
                    rst, rxHeader, rxHeaderValid, usrDlyCfg) is
       variable v : RegType;
 
@@ -125,7 +126,7 @@ begin
             v.dlyConfig := (others => '0');
 
             -- Slip by 1-bit in the gearbox
-            v.slip := '1';
+            v.bitSlip := '1';
 
             -- Reset the flag
             v.firstError := '0';
@@ -168,7 +169,7 @@ begin
       eyescanCfg := '0' & minEyeWidth;
 
       -- Reset strobes
-      v.slip     := '0';
+      v.bitSlip  := '0';
       v.errorDet := '0';
 
       -- Shift register
@@ -186,7 +187,12 @@ begin
       elsif (CODE_TYPE_G = "LINE_CODE") then
          valid := lineCodeValid;
          -- Check for bad header
-         if (lineCodeValid = '1') and (uOr(lineCodeErr) = '1' or uOr(lineCodeDispErr) = '1') then
+         if (lineCodeValid = '1') and ((lineCodeErr = '1') or (lineCodeDispErr = '1')) then
+            v.errorDet := '1';
+         end if;
+         -- Check for out-of-sync after locked
+         if (r.locked = '1') and (linkOutOfSync = '1') then
+            valid      := '1';
             v.errorDet := '1';
          end if;
       end if;
@@ -216,8 +222,19 @@ begin
 
                -- Check if eye scan completed
                if (r.scanDone = '1') or (r.enUsrDlyCfg = '1') then
-                  -- Next state
-                  v.state := LOCKED_S;
+
+                  -- 64b/66b Interface
+                  if (CODE_TYPE_G = "SCRAMBLER") then
+                     -- Next state
+                     v.state := LOCKED_S;
+
+                  -- Line-Code Interface
+                  elsif (CODE_TYPE_G = "LINE_CODE") then
+                     -- Next state
+                     v.state := BIT_ALIGN_S;
+
+                  end if;
+
                -- Check for armed mode
                elsif (r.armed = '1') then
                   -- Next state
@@ -313,12 +330,65 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
+         when BIT_WAIT_S =>
+            -- Check the counter
+            if (r.slipWaitCnt = SLIP_WAIT_C-1) then
+
+               -- Reset the counter
+               v.slipWaitCnt := 0;
+
+               -- Next state
+               v.state := BIT_ALIGN_S;
+
+            else
+               -- Increment the counter
+               v.slipWaitCnt := r.slipWaitCnt + 1;
+            end if;
+         ----------------------------------------------------------------------
+         when BIT_ALIGN_S =>
+            -- Check for code error
+            if (valid = '1') and (v.errorDet = '1') then
+
+               -- Reset the counter
+               v.slipWaitCnt := 0;
+
+               -- Execute the slip procedure
+               slipProcedure;
+
+            -- Check for out-of-sync flag
+            elsif (linkOutOfSync = '1') then
+
+               -- Slip by 1-bit in the gearbox
+               v.bitSlip := '1';
+
+               -- Reset the counter
+               v.slipWaitCnt := 0;
+
+               -- Next state
+               v.state := BIT_WAIT_S;
+
+            -- Check the counter
+            elsif (r.slipWaitCnt = SLIP_WAIT_C-1) then
+
+               -- Reset the counter
+               v.slipWaitCnt := 0;
+
+               -- Next state
+               v.state := LOCKED_S;
+
+            else
+
+               -- Increment the counter
+               v.slipWaitCnt := r.slipWaitCnt + 1;
+
+            end if;
+         ----------------------------------------------------------------------
          when LOCKED_S =>
             -- Check for data
-            if (valid = '1') or (linkError = '1') then
+            if (valid = '1') then
 
                -- Check for bad header
-               if (v.errorDet = '1') or (linkError = '1') then
+               if (v.errorDet = '1') then
                   -- Execute the slip procedure
                   slipProcedure;
 
@@ -343,12 +413,12 @@ begin
 
       -- Outputs
       locked   <= r.locked;
-      bitSlip  <= r.slip;
+      bitSlip  <= r.bitSlip;
       dlyLoad  <= r.dlyLoad(0);
       errorDet <= r.errorDet;
 
       -- Check if using user delay configuration
-      if (enUsrDlyCfg = '1') then
+      if (r.enUsrDlyCfg = '1') then
          -- Force to user configuration
          dlyCfg <= usrDlyCfg;
       else
