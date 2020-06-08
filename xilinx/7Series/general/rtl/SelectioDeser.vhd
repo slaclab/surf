@@ -33,7 +33,6 @@ entity SelectioDeser is
       REF_FREQ_G       : real     := 300.0;  -- IDELAYCTRL's REFCLK (in units of Hz)      
       INPUT_BUFG_G     : boolean  := false;
       FB_BUFG_G        : boolean  := false;
-      BANDWIDTH_G      : string   := "OPTIMIZED";
       CLKIN_PERIOD_G   : real     := 10.0;   -- 100 MHz
       DIVCLK_DIVIDE_G  : positive := 1;
       CLKFBOUT_MULT_G  : positive := 10;     -- 1 GHz = 100 MHz x 10 / 1
@@ -77,18 +76,17 @@ begin
 
    U_MMCM : entity surf.ClockManager7
       generic map(
-         TPD_G              => TPD_G,
-         SIMULATION_G       => SIMULATION_G,
-         TYPE_G             => "MMCM",
-         BANDWIDTH_G        => BANDWIDTH_G,
-         INPUT_BUFG_G       => INPUT_BUFG_G,
-         FB_BUFG_G          => FB_BUFG_G,
-         NUM_CLOCKS_G       => 2,
-         CLKIN_PERIOD_G     => CLKIN_PERIOD_G,
-         DIVCLK_DIVIDE_G    => DIVCLK_DIVIDE_G,
-         CLKFBOUT_MULT_F_G  => CLKFBOUT_MULT_F_G,
-         CLKOUT0_DIVIDE_F_G => CLKOUT0_DIVIDE_G,
-         CLKOUT1_DIVIDE_G   => 4*integer(CLKOUT0_DIVIDE_G))
+         TPD_G            => TPD_G,
+         SIMULATION_G     => SIMULATION_G,
+         TYPE_G           => "PLL",
+         INPUT_BUFG_G     => INPUT_BUFG_G,
+         FB_BUFG_G        => FB_BUFG_G,
+         NUM_CLOCKS_G     => 2,
+         CLKIN_PERIOD_G   => CLKIN_PERIOD_G,
+         DIVCLK_DIVIDE_G  => DIVCLK_DIVIDE_G,
+         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
+         CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_G,
+         CLKOUT1_DIVIDE_G => 4*CLKOUT0_DIVIDE_G)
       port map(
          clkIn           => refClk,
          rstIn           => refRst,
