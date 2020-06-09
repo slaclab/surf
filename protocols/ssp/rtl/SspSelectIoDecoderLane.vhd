@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity SspDecoderLane is
+entity SspSelectIoDecoderLane is
    generic (
       TPD_G        : time     := 1 ns;
       DATA_WIDTH_G : positive := 10;
@@ -50,9 +50,9 @@ entity SspDecoderLane is
       rxSof          : out sl;
       rxEof          : out sl;
       rxEofe         : out sl);
-end SspDecoderLane;
+end SspSelectIoDecoderLane;
 
-architecture mapping of SspDecoderLane is
+architecture mapping of SspSelectIoDecoderLane is
 
    constant ENCODE_WIDTH_C : positive := ite(DATA_WIDTH_G = 16, 20, DATA_WIDTH_G+2);
 
