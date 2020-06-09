@@ -10,7 +10,7 @@
 
 import pyrogue as pr
 
-class SspSelectIoDecoderReg(pr.Device):
+class SspLowSpeedDecoderReg(pr.Device):
     def __init__(self, numberLanes=1, **kwargs):
         super().__init__(**kwargs)
 

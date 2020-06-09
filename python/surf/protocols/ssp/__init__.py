@@ -7,4 +7,4 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.protocols.ssp._SspSelectIoDecoderReg import *
+from surf.protocols.ssp._SspLowSpeedDecoderReg import *
