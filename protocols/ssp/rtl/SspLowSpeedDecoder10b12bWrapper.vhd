@@ -21,7 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity SspSelectIoDecoder10b12bWrapper is
+entity SspLowSpeedDecoder10b12bWrapper is
    generic (
       TPD_G        : time     := 1 ns;
       SIMULATION_G : boolean  := false;
@@ -47,9 +47,9 @@ entity SspSelectIoDecoder10b12bWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end SspSelectIoDecoder10b12bWrapper;
+end SspLowSpeedDecoder10b12bWrapper;
 
-architecture mapping of SspSelectIoDecoder10b12bWrapper is
+architecture mapping of SspLowSpeedDecoder10b12bWrapper is
 
    constant DATA_WIDTH_C : positive := 10;
 
@@ -72,7 +72,7 @@ begin
    GEN_VEC :
    for i in NUM_LANE_G-1 downto 0 generate
 
-      U_Lane : entity surf.SspSelectIoDecoderLane
+      U_Lane : entity surf.SspLowSpeedDecoderLane
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => DATA_WIDTH_C,
@@ -105,7 +105,7 @@ begin
 
    end generate GEN_VEC;
 
-   U_Reg : entity surf.SspSelectIoDecoderReg
+   U_Reg : entity surf.SspLowSpeedDecoderReg
       generic map (
          TPD_G        => TPD_G,
          SIMULATION_G => SIMULATION_G,

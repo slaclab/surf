@@ -21,7 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity SspSelectIoDecoderReg is
+entity SspLowSpeedDecoderReg is
    generic (
       TPD_G        : time     := 1 ns;
       SIMULATION_G : boolean  := false;
@@ -48,9 +48,9 @@ entity SspSelectIoDecoderReg is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end SspSelectIoDecoderReg;
+end SspLowSpeedDecoderReg;
 
-architecture mapping of SspSelectIoDecoderReg is
+architecture mapping of SspLowSpeedDecoderReg is
 
    constant STATUS_SIZE_C  : positive := 3*NUM_LANE_G;
    constant STATUS_WIDTH_C : positive := 16;
