@@ -64,8 +64,8 @@ architecture mapping of SspDecoderReg is
       polarity       : slv(NUM_LANE_G-1 downto 0);
       cntRst         : sl;
       rollOverEn     : slv(STATUS_SIZE_C-1 downto 0);
-      axilReadSlave  : AxiLiteReadSlaveType;
-      axilWriteSlave : AxiLiteWriteSlaveType;
+      readSlave      : AxiLiteReadSlaveType;
+      writeSlave     : AxiLiteWriteSlaveType;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -77,8 +77,8 @@ architecture mapping of SspDecoderReg is
       polarity       => (others => '0'),
       cntRst         => '1',
       rollOverEn     => (others => '0'),
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+      readSlave      => AXI_LITE_READ_SLAVE_INIT_C,
+      writeSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -87,10 +87,35 @@ architecture mapping of SspDecoderReg is
    signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
    signal statusCnt : SlVectorArray(STATUS_SIZE_C-1 downto 0, STATUS_WIDTH_C-1 downto 0);
 
+   signal readMaster  : AxiLiteReadMasterType;
+   signal readSlave   : AxiLiteReadSlaveType;
+   signal writeMaster : AxiLiteWriteMasterType;
+   signal writeSlave  : AxiLiteWriteSlaveType;
+
 begin
 
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, dlyConfig, r,
-                   statusCnt, statusOut) is
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         NUM_ADDR_BITS_G => 12)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMaster,
+         sAxiReadSlave   => axilReadSlave,
+         sAxiWriteMaster => axilWriteMaster,
+         sAxiWriteSlave  => axilWriteSlave,
+         -- Master Interface
+         mAxiClk         => deserClk,
+         mAxiClkRst      => deserRst,
+         mAxiReadMaster  => readMaster,
+         mAxiReadSlave   => readSlave,
+         mAxiWriteMaster => writeMaster,
+         mAxiWriteSlave  => writeSlave);
+
+   comb : process (deserRst, dlyConfig, r, readMaster, statusCnt, statusOut,
+                   writeMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -101,7 +126,7 @@ begin
       v.cntRst := '0';
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+      axiSlaveWaitTxn(axilEp, writeMaster, readMaster, v.writeSlave, v.readSlave);
 
       -- Map the read registers
       for i in STATUS_SIZE_C-1 downto 0 loop
@@ -128,88 +153,39 @@ begin
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
 
       -- Closeout the transaction
-      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+      axiSlaveDefault(axilEp, v.writeSlave, v.readSlave, AXI_RESP_DECERR_C);
+
+      -- Outputs
+      writeSlave     <= r.writeSlave;
+      readSlave      <= r.readSlave;
+      enUsrDlyCfg    <= r.enUsrDlyCfg;
+      usrDlyCfg      <= r.usrDlyCfg;
+      minEyeWidth    <= r.minEyeWidth;
+      lockingCntCfg  <= r.lockingCntCfg;
+      bypFirstBerDet <= r.bypFirstBerDet;
+      polarity       <= r.polarity;
 
       -- Synchronous Reset
-      if (axilRst = '1') then
+      if (deserRst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs
-      axilWriteSlave <= r.axilWriteSlave;
-      axilReadSlave  <= r.axilReadSlave;
-
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (deserClk) is
    begin
-      if (rising_edge(axilClk)) then
+      if (rising_edge(deserClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
-   U_enUsrDlyCfg : entity surf.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => deserClk,
-         dataIn  => r.enUsrDlyCfg,
-         dataOut => enUsrDlyCfg);
-
-   U_usrDlyCfg : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 9)
-      port map (
-         wr_clk => axilClk,
-         din    => r.usrDlyCfg,
-         rd_clk => deserClk,
-         dout   => usrDlyCfg);
-
-   U_minEyeWidth : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 8)
-      port map (
-         wr_clk => axilClk,
-         din    => r.minEyeWidth,
-         rd_clk => deserClk,
-         dout   => minEyeWidth);
-
-   U_lockingCntCfg : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 24)
-      port map (
-         wr_clk => axilClk,
-         din    => r.lockingCntCfg,
-         rd_clk => deserClk,
-         dout   => lockingCntCfg);
-
-   U_bypFirstBerDet : entity surf.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => deserClk,
-         dataIn  => r.bypFirstBerDet,
-         dataOut => bypFirstBerDet);
-
-   U_polarity : entity surf.SynchronizerVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => NUM_LANE_G)
-      port map (
-         clk     => deserClk,
-         dataIn  => r.polarity,
-         dataOut => polarity);
-
    U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
-         COMMON_CLK_G   => false,
+         COMMON_CLK_G   => true,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => false,
          CNT_WIDTH_G    => STATUS_WIDTH_C,
@@ -225,7 +201,7 @@ begin
          cntOut       => statusCnt,
          -- Clocks and Reset Ports
          wrClk        => deserClk,
-         rdClk        => axilClk);
+         rdClk        => deserClk);
 
    statusIn((2*NUM_LANE_G)+NUM_LANE_G-1 downto 2*NUM_LANE_G) <= errorDet;
    statusIn((1*NUM_LANE_G)+NUM_LANE_G-1 downto 1*NUM_LANE_G) <= bitSlip;
