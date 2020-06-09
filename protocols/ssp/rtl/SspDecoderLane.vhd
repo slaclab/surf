@@ -19,7 +19,6 @@ use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.Code10b12bPkg.all;
 
 entity SspDecoderLane is
    generic (
