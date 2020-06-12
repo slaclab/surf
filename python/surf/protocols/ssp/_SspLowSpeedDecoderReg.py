@@ -68,6 +68,7 @@ class SspLowSpeedDecoderReg(pr.Device):
             bitSize      = 8,
             bitOffset    = 0,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -76,6 +77,7 @@ class SspLowSpeedDecoderReg(pr.Device):
             bitSize      = 8,
             bitOffset    = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
