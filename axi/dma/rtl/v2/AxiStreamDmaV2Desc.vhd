@@ -383,7 +383,7 @@ begin
       axiSlaveRegister(regCon, x"000", 0, v.enable);
       axiSlaveRegisterR(regCon, x"000", 8, r.enableCnt);  -- Count the number of times enable transitions from 0->1
       axiSlaveRegisterR(regCon, x"000", 16, '1');  -- Legacy DESC_128_EN_C constant (always 0x1 now)
-      axiSlaveRegisterR(regCon, x"000", 24, toSlv(2, 8));  -- Version 2 = 2, Version1 = 0
+      axiSlaveRegisterR(regCon, x"000", 24, toSlv(3, 8));  -- Version Number for aes-stream-driver to case on
       axiSlaveRegister(regCon, x"004", 0, v.intEnable);
       axiSlaveRegister(regCon, x"008", 0, v.contEn);
       axiSlaveRegister(regCon, x"00C", 0, v.dropEn);
