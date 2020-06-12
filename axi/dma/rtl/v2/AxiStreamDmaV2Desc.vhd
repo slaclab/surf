@@ -174,6 +174,9 @@ architecture rtl of AxiStreamDmaV2Desc is
       intReqCount : slv(31 downto 0);
       interrupt   : sl;
 
+      intHoldoff      : slv(15 downto 0);
+      intHoldoffCount : slv(15 downto 0);
+
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -235,7 +238,9 @@ architecture rtl of AxiStreamDmaV2Desc is
       rdMemAddr       => (others => '0'),
       intReqEn        => '0',
       intReqCount     => (others => '0'),
-      interrupt       => '0');
+      interrupt       => '0',
+      intHoldoff      => toSlv(10000,16),  -- ~20 kHz
+      intHoldoffCount => (others => '0') );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -378,7 +383,7 @@ begin
       axiSlaveRegister(regCon, x"000", 0, v.enable);
       axiSlaveRegisterR(regCon, x"000", 8, r.enableCnt);  -- Count the number of times enable transitions from 0->1
       axiSlaveRegisterR(regCon, x"000", 16, '1');  -- Legacy DESC_128_EN_C constant (always 0x1 now)
-      axiSlaveRegisterR(regCon, x"000", 24, toSlv(2, 8));  -- Version 2 = 2, Version1 = 0
+      axiSlaveRegisterR(regCon, x"000", 24, toSlv(3, 8));  -- Version Number for aes-stream-driver to case on
       axiSlaveRegister(regCon, x"004", 0, v.intEnable);
       axiSlaveRegister(regCon, x"008", 0, v.contEn);
       axiSlaveRegister(regCon, x"00C", 0, v.dropEn);
@@ -428,6 +433,8 @@ begin
       axiWrDetect(regCon, x"070", v.wrFifoWr(1));
 
       axiSlaveRegister(regCon, x"080", 0, v.forceInt);
+
+      axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
 
       -- End transaction block
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -688,7 +695,7 @@ begin
       end loop;
 
       -- Drive interrupt, avoid false firings during ack
-      if (r.intReqCount /= 0 or r.forceInt = '1') and r.intSwAckReq = '0' then
+      if ((r.intReqCount /= 0 and r.intHoldoffCount > r.intHoldoff) or r.forceInt = '1') and r.intSwAckReq = '0' then
          v.interrupt := r.intEnable;
       else
          v.interrupt := '0';
@@ -722,6 +729,12 @@ begin
          v.intReqCount := (others => '0');
          v.interrupt   := '0';
          v.forceInt    := '0';
+      end if;
+
+      if r.intSwAckReq = '1' then
+        v.intHoldoffCount := (others=>'0');
+      elsif uAnd(r.intHoldoffCount)='0' then
+        v.intHoldoffCount := r.intHoldoffCount+1;
       end if;
 
       ----------------------------------------------------------
