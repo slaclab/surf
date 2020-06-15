@@ -618,12 +618,17 @@ begin
 
    -- Async
    process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
+      variable v             : RegType;
+      variable axiStatus     : AxiLiteStatusType;
+      variable axilWriteResp : slv(1 downto 0);
+      variable axilReadResp  : slv(1 downto 0);
    begin
       v := r;
 
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
+
+      axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+      axilReadResp  := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
 
       -- Write
       if (axiStatus.writeEnable = '1') then
@@ -647,11 +652,10 @@ begin
                v.autoStatus := axilWriteMaster.wdata(0);
             when X"18" =>
                v.flowCntlDis := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
-            when others => null;
+            when others =>
+               axilWriteResp := AXI_RESP_DECERR_C;
          end case;
-
-         -- Send Axi response
-         axiSlaveWriteResponse(v.axilWriteSlave);
+         axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
       end if;
 
       -- Read
@@ -734,12 +738,10 @@ begin
                v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.rxOpCodeCount;
             when X"80" =>
                v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.remLinkReadyCnt;
-
-            when others => null;
+            when others =>
+               axilReadResp := AXI_RESP_DECERR_C;
          end case;
-
-         -- Send Axi Response
-         axiSlaveReadResponse(v.axilReadSlave);
+         axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
       end if;
 
       -- Reset

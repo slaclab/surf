@@ -297,14 +297,19 @@ begin
    -- Local Register Space
    -------------------------------------
    process (axiRst, ib, intReadMasters, intWriteMasters, ob, popFifoValid, r) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
+      variable v            : RegType;
+      variable axiWriteResp : slv(1 downto 0);
+      variable axiReadResp  : slv(1 downto 0);
+      variable axiStatus    : AxiLiteStatusType;
    begin
       v := r;
 
       v.intAck := '0';
 
       axiSlaveWaitTxn(intWriteMasters(0), intReadMasters(0), v.axiWriteSlave, v.axiReadSlave, axiStatus);
+
+      axiWriteResp := ite(intWriteMasters(0).awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+      axiReadResp  := ite(intReadMasters(0).araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
 
       -- Write
       if (axiStatus.writeEnable = '1') then
@@ -328,10 +333,9 @@ begin
             when x"20" =>
                v.swCache := intWriteMasters(0).wdata(3 downto 0);
             when others =>
-               null;
+               axiWriteResp := AXI_RESP_DECERR_C;
          end case;
-
-         axiSlaveWriteResponse(v.axiWriteSlave);
+         axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       end if;
 
       -- Read
@@ -361,12 +365,9 @@ begin
             when x"20" =>
                v.axiReadSlave.rdata(3 downto 0) := r.swCache;
             when others =>
-               null;
+               axiReadResp := AXI_RESP_DECERR_C;
          end case;
-
-         -- Send Axi Response
-         axiSlaveReadResponse(v.axiReadSlave);
-
+         axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
       end if;
 
       v.interrupt := (ib.intPending or ob.intPending) and r.intEnable;
