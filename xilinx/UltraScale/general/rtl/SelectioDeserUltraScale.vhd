@@ -24,7 +24,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity SelectioDeser is
+entity SelectioDeserUltraScale is
    generic (
       TPD_G            : time     := 1 ns;
       SIMULATION_G     : boolean  := false;
@@ -54,9 +54,9 @@ entity SelectioDeser is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end SelectioDeser;
+end SelectioDeserUltraScale;
 
-architecture mapping of SelectioDeser is
+architecture mapping of SelectioDeserUltraScale is
 
    signal drpRdy  : sl;
    signal drpEn   : sl;
@@ -192,7 +192,7 @@ begin
    GEN_VEC :
    for i in NUM_LANE_G-1 downto 0 generate
 
-      U_Lane : entity surf.SelectioDeserLane
+      U_Lane : entity surf.SelectioDeserLaneUltraScale
          generic map (
             TPD_G => TPD_G)
          port map (

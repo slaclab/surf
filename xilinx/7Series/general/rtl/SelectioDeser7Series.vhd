@@ -24,7 +24,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity SelectioDeser is
+entity SelectioDeser7Series is
    generic (
       TPD_G            : time     := 1 ns;
       SIMULATION_G     : boolean  := false;
@@ -58,9 +58,9 @@ entity SelectioDeser is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end SelectioDeser;
+end SelectioDeser7Series;
 
-architecture mapping of SelectioDeser is
+architecture mapping of SelectioDeser7Series is
 
    signal clkx4 : sl := '0';
    signal clkx1 : sl := '0';
@@ -107,7 +107,7 @@ begin
    GEN_VEC :
    for i in NUM_LANE_G-1 downto 0 generate
 
-      U_Lane : entity surf.SelectioDeserLane
+      U_Lane : entity surf.SelectioDeserLane7Series
          generic map (
             TPD_G => TPD_G)
          port map (

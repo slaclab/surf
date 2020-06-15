@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for SelectioDeserLane
+-- Description: Wrapper for SelectioDeser
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -23,7 +23,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity SelectioDeserLane is
+entity SelectioDeserLane7Series is
    generic (
       TPD_G           : time   := 1 ns;
       IODELAY_GROUP_G : string := "DESER_GROUP";
@@ -41,9 +41,9 @@ entity SelectioDeserLane is
       dlyCfg  : in  slv(8 downto 0);
       -- Output
       dataOut : out slv(7 downto 0));
-end SelectioDeserLane;
+end SelectioDeserLane7Series;
 
-architecture mapping of SelectioDeserLane is
+architecture mapping of SelectioDeserLane7Series is
 
    signal rx     : sl;
    signal rxDly  : sl;
