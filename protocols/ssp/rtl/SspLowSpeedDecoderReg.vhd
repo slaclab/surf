@@ -193,9 +193,9 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          statusIn     => statusIn,
-         -- Output Status bit Signals (rdClk domain)  
+         -- Output Status bit Signals (rdClk domain)
          statusOut    => statusOut,
-         -- Status Bit Counters Signals (rdClk domain) 
+         -- Status Bit Counters Signals (rdClk domain)
          cntRstIn     => r.cntRst,
          rollOverEnIn => r.rollOverEn,
          cntOut       => statusCnt,

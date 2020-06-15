@@ -30,7 +30,7 @@ entity SelectioDeser7Series is
       SIMULATION_G     : boolean  := false;
       NUM_LANE_G       : positive := 1;
       IODELAY_GROUP_G  : string   := "DESER_GROUP";
-      REF_FREQ_G       : real     := 300.0;  -- IDELAYCTRL's REFCLK (in units of Hz)      
+      REF_FREQ_G       : real     := 300.0;  -- IDELAYCTRL's REFCLK (in units of Hz)
       INPUT_BUFG_G     : boolean  := false;
       FB_BUFG_G        : boolean  := false;
       CLKIN_PERIOD_G   : real     := 10.0;   -- 100 MHz

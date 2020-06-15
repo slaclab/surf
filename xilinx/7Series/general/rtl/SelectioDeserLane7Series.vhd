@@ -27,7 +27,7 @@ entity SelectioDeserLane7Series is
    generic (
       TPD_G           : time   := 1 ns;
       IODELAY_GROUP_G : string := "DESER_GROUP";
-      REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL's REFCLK (in units of Hz)      
+      REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL's REFCLK (in units of Hz)
    port (
       -- SELECTIO Ports
       rxP     : in  sl;
