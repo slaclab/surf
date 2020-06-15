@@ -1,5 +1,7 @@
 var NAVTREEINDEX74 =
 {
+"classPgp2bGth7VarLatWrapper.html#a86db10f54a9c33e8d57906c86bfb4215":[1,0,373,36],
+"classPgp2bGth7VarLatWrapper.html#a86f0292469878d2c30a2994fabb3cee4":[1,0,373,40],
 "classPgp2bGth7VarLatWrapper.html#a887552b8eec9f70e77730384551b39d4":[1,0,373,11],
 "classPgp2bGth7VarLatWrapper.html#a8d3281f98c411a9bde09f737156b08ce":[1,0,373,37],
 "classPgp2bGth7VarLatWrapper.html#a961ab595a129ba13843ecae171f55203":[1,0,373,19],
@@ -99,10 +101,10 @@ var NAVTREEINDEX74 =
 "classPgp2bGthUltra_1_1mapping.html#acf87e4966a588f240955f56ade7d7035":[1,0,374,0,18],
 "classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,374,0,15],
 "classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,374,0,21],
-"classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,374,0,19],
 "classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,374,0,13],
-"classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,374,0,14],
+"classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,374,0,19],
 "classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,374,0,20],
+"classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,374,0,14],
 "classPgp2bGthUltra_1_1mapping.html#af533e69f56301f5d9882da58422ab3ac":[1,0,374,0,0],
 "classPgp2bGthUltra_1_1mapping.html#afcafc44948df07e0a1a751c09b9d732b":[1,0,374,0,17],
 "classPgp2bGthUltra_1_1mapping.html#afcafc44948df07e0a1a751c09b9d732b":[1,0,374,0,23],
@@ -247,7 +249,5 @@ var NAVTREEINDEX74 =
 "classPgp2bGtp7FixedLatWrapper.html#aad168a52c2fab6e57669623be11c4432":[1,0,376,22],
 "classPgp2bGtp7FixedLatWrapper.html#ab0b3ab0079961734c10c88e7fa7c94a8":[1,0,376,36],
 "classPgp2bGtp7FixedLatWrapper.html#ab0c422bca5045abf906481348bd40922":[1,0,376,10],
-"classPgp2bGtp7FixedLatWrapper.html#ab1201e6a56a2ac30cd99f7998a6893d6":[1,0,376,21],
-"classPgp2bGtp7FixedLatWrapper.html#ab14b6ccb3cc072886470a5f555ca7c77":[1,0,376,3],
-"classPgp2bGtp7FixedLatWrapper.html#abc0c1ba41d7fdbfe381c75c1d4439763":[1,0,376,55]
+"classPgp2bGtp7FixedLatWrapper.html#ab1201e6a56a2ac30cd99f7998a6893d6":[1,0,376,21]
 };

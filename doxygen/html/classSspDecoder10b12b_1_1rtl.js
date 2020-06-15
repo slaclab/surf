@@ -1,7 +1,8 @@
 var classSspDecoder10b12b_1_1rtl =
 [
-    [ "validDec", "classSspDecoder10b12b_1_1rtl.html#ab633d05999883e7d2d2748e33acb3dac", null ],
+    [ "validDecInt", "classSspDecoder10b12b_1_1rtl.html#a37a1b439834b61261b541a63512b4369", null ],
     [ "codeErrorInt", "classSspDecoder10b12b_1_1rtl.html#a2adefd3ba7fc4de6439e001024cfffbb", null ],
+    [ "dispErrorInt", "classSspDecoder10b12b_1_1rtl.html#a70c3ad24a5842cd42415740e187368ad", null ],
     [ "framedData", "classSspDecoder10b12b_1_1rtl.html#a711800f35a622538f6a53589cf2946d6", null ],
     [ "framedDataK", "classSspDecoder10b12b_1_1rtl.html#a18bcdca13da955b5b16521e0dbcad58b", null ],
     [ "decoder10b12b_1", "classSspDecoder10b12b_1_1rtl.html#ab874fd948a6c1fc51df8857b7ad44ae0", null ],

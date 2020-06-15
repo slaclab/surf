@@ -1,5 +1,7 @@
 var NAVTREEINDEX50 =
 {
+"classGigEthGtx7.html#ac9a6fece12482f6f3c554019274b16f7":[1,0,252,21],
+"classGigEthGtx7.html#ac9b4a7f7caecee34fa79ced7e00d07f9":[1,0,252,19],
 "classGigEthGtx7.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,252,39],
 "classGigEthGtx7.html#acbcfdbdb02b310a612294fc08339e972":[1,0,252,22],
 "classGigEthGtx7.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,252,36],
@@ -247,7 +249,5 @@ var NAVTREEINDEX50 =
 "classGigEthLvdsClockEnable.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,256,1],
 "classGigEthLvdsClockEnable.html#a99ae0915740dce905930824de5e0aca5":[1,0,256,4],
 "classGigEthLvdsClockEnable.html#aab8ab706528f4b6d428ea66a5dd1ce32":[1,0,256,5],
-"classGigEthLvdsClockEnable.html#ac9a6fece12482f6f3c554019274b16f7":[1,0,256,2],
-"classGigEthLvdsClockEnable.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,256,11],
-"classGigEthLvdsClockEnable.html#acbcfdbdb02b310a612294fc08339e972":[1,0,256,3]
+"classGigEthLvdsClockEnable.html#ac9a6fece12482f6f3c554019274b16f7":[1,0,256,2]
 };

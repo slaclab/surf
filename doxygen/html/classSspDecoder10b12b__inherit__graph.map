@@ -1,6 +1,10 @@
 <map id="SspDecoder10b12b" name="SspDecoder10b12b">
-<area shape="rect" id="node1" title=" " alt="" coords="63,80,210,107"/>
-<area shape="rect" id="node4" href="$classSsp10b12bTb.html" title=" " alt="" coords="82,155,191,181"/>
-<area shape="rect" id="node2" href="$classDecoder10b12b.html" title=" " alt="" coords="5,5,129,32"/>
-<area shape="rect" id="node3" href="$classSspDeframer.html" title=" " alt="" coords="154,5,261,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="177,53,324,79"/>
+<area shape="rect" id="node4" href="$classSsp10b12bTb.html" title=" " alt="" coords="415,27,525,54"/>
+<area shape="rect" id="node5" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="372,78,568,105"/>
+<area shape="rect" id="node2" href="$classDecoder10b12b.html" title=" " alt="" coords="5,27,129,54"/>
+<area shape="rect" id="node3" href="$classSspDeframer.html" title=" " alt="" coords="14,78,121,105"/>
+<area shape="rect" id="node6" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="639,5,853,47"/>
+<area shape="rect" id="node7" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="639,71,853,112"/>
+<area shape="rect" id="node8" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="616,137,876,163"/>
 </map>

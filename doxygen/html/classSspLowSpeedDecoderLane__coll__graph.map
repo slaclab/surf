@@ -1,0 +1,13 @@
+<map id="SspLowSpeedDecoderLane" name="SspLowSpeedDecoderLane">
+<area shape="rect" id="node1" title=" " alt="" coords="417,132,613,159"/>
+<area shape="rect" id="node2" href="$classRstPipeline.html" title=" " alt="" coords="226,5,321,32"/>
+<area shape="rect" id="node3" href="$classGearbox.html" title=" " alt="" coords="235,56,312,83"/>
+<area shape="rect" id="node4" href="$classSelectIoRxGearboxAligner.html" title=" " alt="" coords="177,107,369,133"/>
+<area shape="rect" id="node5" href="$classSspDecoder10b12b.html" title=" " alt="" coords="200,157,347,184"/>
+<area shape="rect" id="node6" href="$classDecoder10b12b.html" title=" " alt="" coords="5,132,129,159"/>
+<area shape="rect" id="node7" href="$classSspDeframer.html" title=" " alt="" coords="14,183,121,209"/>
+<area shape="rect" id="node8" href="$classSspDecoder12b14b.html" title=" " alt="" coords="200,208,347,235"/>
+<area shape="rect" id="node10" href="$classSspDecoder8b10b.html" title=" " alt="" coords="204,259,343,285"/>
+<area shape="rect" id="node9" href="$classDecoder12b14b.html" title=" " alt="" coords="5,233,129,260"/>
+<area shape="rect" id="node11" href="$classDecoder8b10b.html" title=" " alt="" coords="9,284,125,311"/>
+</map>

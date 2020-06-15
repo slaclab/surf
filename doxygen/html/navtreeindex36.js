@@ -1,5 +1,7 @@
 var NAVTREEINDEX36 =
 {
+"classDsp48Comparator4x12b.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,190,1],
+"classDsp48Comparator4x12b.html#a8562dfa3c7970041e8fb901d9c0e4ecf":[1,0,190,7],
 "classDsp48Comparator4x12b.html#a962f1c6a2adaac3e10a6f7fa3d111e01":[1,0,190,13],
 "classDsp48Comparator4x12b.html#a9d368f13ca0d95acba1bfde0b2861d65":[1,0,190,4],
 "classDsp48Comparator4x12b.html#aa1cb22e959d47364391e5eb4ef86927c":[1,0,190,14],
@@ -9,13 +11,13 @@ var NAVTREEINDEX36 =
 "classDsp48Comparator4x12b.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,190,12],
 "classDsp48Comparator4x12b_1_1mapping.html":[1,0,190,0],
 "classDsp48Comparator4x12b_1_1mapping.html#a0d935bef3360b07b292fb0394f76f341":[1,0,190,0,4],
-"classDsp48Comparator4x12b_1_1mapping.html#a359e5061c1c3f2f309f54b6d4096bf77":[1,0,190,0,1],
+"classDsp48Comparator4x12b_1_1mapping.html#a359e5061c1c3f2f309f54b6d4096bf77":[1,0,190,0,0],
 "classDsp48Comparator4x12b_1_1mapping.html#a4df3ffad31bfe581c7f158cd036ceb13":[1,0,190,0,7],
 "classDsp48Comparator4x12b_1_1mapping.html#a503e8782a1e07d77b99def7f8354fde9":[1,0,190,0,6],
-"classDsp48Comparator4x12b_1_1mapping.html#a58a7daacaf9928d98a27fc12234c8554":[1,0,190,0,0],
 "classDsp48Comparator4x12b_1_1mapping.html#a61f52e34ff94ad1a5d91a322d57ec2f2":[1,0,190,0,8],
 "classDsp48Comparator4x12b_1_1mapping.html#a8d92f060d9ec3238a79d9f846d4fc507":[1,0,190,0,5],
 "classDsp48Comparator4x12b_1_1mapping.html#a9ecbd16a106a755e8fe55dbe2760a4ed":[1,0,190,0,3],
+"classDsp48Comparator4x12b_1_1mapping.html#abb7d2a73247034cfe6333f3b34a14bbc":[1,0,190,0,1],
 "classDsp48Comparator4x12b_1_1mapping.html#ac54f8687767287b90baf92e0df893260":[1,0,190,0,2],
 "classDsp48Comparator4x12b_1_1mapping.html#aed61e362c7b2be8cf344edcbca92f0ed":[1,0,190,0,9],
 "classDspAddSub.html":[1,0,191],
@@ -247,7 +249,5 @@ var NAVTREEINDEX36 =
 "classDualPortRam.html#a0de49fbe6e07a265532ec49da1f5c4bb":[1,0,197,14],
 "classDualPortRam.html#a0ed4cde484ee5ed08f4bcfed67335ba7":[1,0,197,26],
 "classDualPortRam.html#a0f2247a6a3e8840e30be089433d9a486":[1,0,197,4],
-"classDualPortRam.html#a15744a2b5a69e47974a097e472b24220":[1,0,197,27],
-"classDualPortRam.html#a227400c3f7cf936f7cd4cc432537856b":[1,0,197,7],
-"classDualPortRam.html#a2762b9bc70face6539eaeb895b683cf8":[1,0,197,22]
+"classDualPortRam.html#a15744a2b5a69e47974a097e472b24220":[1,0,197,27]
 };

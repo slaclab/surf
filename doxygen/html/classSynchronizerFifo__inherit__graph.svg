@@ -424,18 +424,18 @@ var sectionId = 'dynsection-0';
 <path fill="none" stroke="midnightblue" d="M426.66,-485.64C429.89,-571.17 446.58,-910.56 510,-992 516.9,-1000.86 527.03,-1007.05 537.35,-1011.37"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="430.15,-485.37 426.3,-475.5 423.16,-485.62 430.15,-485.37"/>
 </g>
-<!-- Node115 -->
+<!-- Node119 -->
 <g id="node49" class="node">
-<title>Node115</title>
+<title>Node119</title>
 <g id="a_node49"><a xlink:href="classXauiReg.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="550,-0.5 550,-19.5 607,-19.5 607,-0.5 550,-0.5"/>
 <text text-anchor="middle" x="578.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">XauiReg</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node115 -->
+<!-- Node1&#45;&gt;Node119 -->
 <g id="edge56" class="edge">
-<title>Node1&#45;&gt;Node115</title>
+<title>Node1&#45;&gt;Node119</title>
 <path fill="none" stroke="midnightblue" d="M427.12,-445.92C431.84,-368.63 452.57,-91.5 510,-29 520.13,-17.97 536.11,-13.16 549.98,-11.13"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="423.61,-446 426.52,-456.19 430.6,-446.41 423.61,-446"/>
 </g>

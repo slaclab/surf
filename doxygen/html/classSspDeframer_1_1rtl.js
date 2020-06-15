@@ -13,10 +13,11 @@ var classSspDeframer_1_1rtl =
     [ "iEofe", "classSspDeframer_1_1rtl.html#a077d412c2b33bd78ad91258c429e0b69", null ],
     [ "dataOut", "classSspDeframer_1_1rtl.html#a8f600caad778927851412281c78d92e9", null ],
     [ "validOut", "classSspDeframer_1_1rtl.html#ab4df1b82e89d785d8a84578c0daebc83", null ],
+    [ "errorOut", "classSspDeframer_1_1rtl.html#aa194e51a6df08312774749bdea88c32a", null ],
     [ "sof", "classSspDeframer_1_1rtl.html#abbacb32fb4ab47b58e34c99cb06bfa25", null ],
     [ "eof", "classSspDeframer_1_1rtl.html#afd2a4a3d8755218181d189888fee521b", null ],
     [ "eofe", "classSspDeframer_1_1rtl.html#a47d1d338513a67387133309ddff6cb0f", null ],
-    [ "REG_INIT_C", "classSspDeframer_1_1rtl.html#abc902f2089d7e4f740998706ad78ebe7", null ],
+    [ "REG_INIT_C", "classSspDeframer_1_1rtl.html#a671592de65724cbac6cdab980b0e1101", null ],
     [ "r", "classSspDeframer_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classSspDeframer_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ]
 ];
