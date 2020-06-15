@@ -247,7 +247,7 @@ begin
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveWriteResponse(v.axilWriteSlave);
+         axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
       end if;
 
       if (axilStatus.readEnable = '1') then
@@ -314,7 +314,7 @@ begin
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveReadResponse(v.axilReadSlave);
+         axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
       end if;
 
       -- Map to chksumEn

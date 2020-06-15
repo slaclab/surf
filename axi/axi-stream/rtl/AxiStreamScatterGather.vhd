@@ -181,10 +181,12 @@ begin
 
    comb : process (axiRst, axilReadMaster, axilWriteMaster, r, sSsiMaster, txFifoRdData,
                    txFifoValid, txRamRdData) is
-      variable v          : RegType;
-      variable mDataLow   : integer;
-      variable mDataHigh  : integer;
-      variable axilStatus : AxiLiteStatusType;
+      variable v             : RegType;
+      variable mDataLow      : integer;
+      variable mDataHigh     : integer;
+      variable axilWriteResp : slv(1 downto 0);
+      variable axilReadResp  : slv(1 downto 0);
+      variable axilStatus    : AxiLiteStatusType;
    begin
       v := r;
 
@@ -305,8 +307,11 @@ begin
       ----------------------------------------------------------------------------------------------
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
+      axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+      axilReadResp  := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+
       if (axilStatus.writeEnable = '1') then
-         axiSlaveWriteResponse(v.axilWriteSlave);
+         axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_DECERR_C);
       end if;
 
       if (axilStatus.readEnable = '1') then
@@ -337,10 +342,10 @@ begin
                v.axilReadSlave.rdata(r.badWords'range) := r.badWords;
             when X"28" =>
                v.axilReadSlave.rdata(r.badWordCount'range) := r.badWordCount;
-
-            when others => null;
+            when others =>
+               axilReadResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveReadResponse(v.axilReadSlave);
+         axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
       end if;
 
       ----------------------------------------------------------------------------------------------
