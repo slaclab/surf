@@ -1429,9 +1429,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/sem/rtl/SemWrapper./home/
 
 [AxiStreamDma.vhd:287:Info: Elaborating entity AxiLiteFifoPushPop for hierarchy axilitefifopushpop::u_swfifos]
 
-[AxiStreamDma.vhd:415:Info: Elaborating entity AxiStreamDmaWrite for hierarchy axistreamdmawrite::u_ibdma]
+[AxiStreamDma.vhd:414:Info: Elaborating entity AxiStreamDmaWrite for hierarchy axistreamdmawrite::u_ibdma]
 
-[AxiStreamDma.vhd:510:Info: Elaborating entity AxiStreamDmaRead for hierarchy axistreamdmaread::u_obdma]
+[AxiStreamDma.vhd:509:Info: Elaborating entity AxiStreamDmaRead for hierarchy axistreamdmaread::u_obdma]
 
 [AxiStreamDmaFifo.vhd:216:Info: Elaborating entity AxiStreamDmaWrite for hierarchy axistreamdmawrite::u_ibdma]
 
