@@ -173,16 +173,14 @@ begin
                if allBits(tlast, '0') then
                   v.discard      := (others => '0');
                   v.master.tLast := '0';
-                  ssiSetUserEofe(MASTER_AXI_CONFIG_G, v.master, '0');
                elsif allBits(tlast, '1') then
                   v.discard      := (others => '0');
                   v.master.tLast := '1';
-                  ssiSetUserEofe(MASTER_AXI_CONFIG_G, v.master, '0');
                   v.state        := SOF_S;
                else
                   v.discard      := not tlast;
                   v.master.tLast := '1';
-                  ssiSetUserEofe(MASTER_AXI_CONFIG_G, v.master, '0');
+                  ssiSetUserEofe(MASTER_AXI_CONFIG_G, v.master, '1');
                   v.state        := ERR_S;
                end if;
             end if;
