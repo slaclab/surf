@@ -3,6 +3,8 @@
 -------------------------------------------------------------------------------
 -- Description: Combines multiple "narrower" buses into a "wide" AXI stream bus
 -------------------------------------------------------------------------------
+-- Note: This module does NOT support interleaving of TDEST
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -159,7 +161,7 @@ begin
                v.master := sAxisMasters(0);
                -- assemble the data
                for i in 0 to LANES_G-1 loop
-                  for j in 0 to MASTER_AXI_CONFIG_G.TDATA_BYTES_C-1 loop
+                  for j in 0 to SLAVE_AXI_CONFIG_G.TDATA_BYTES_C-1 loop
                      m                            := 8*j;
                      n                            := 8*(LANES_G*j+i);
                      v.master.tData(n+7 downto n) := sAxisMasters(i).tData(m+7 downto m);
