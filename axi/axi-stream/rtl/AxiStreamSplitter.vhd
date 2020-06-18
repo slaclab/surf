@@ -3,6 +3,8 @@
 -------------------------------------------------------------------------------
 -- Description: splits a "wide" AXI stream bus into multiple "narrower" buses
 -------------------------------------------------------------------------------
+-- Note: This module does NOT support interleaving of TDEST
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -101,6 +103,7 @@ begin
                   v.masters(i).tData(SEQ_C'range)  := SEQ_C;
                   v.masters(i).tData(r.tSeq'range) := r.tSeq;
                   v.masters(i).tKeep               := genTKeep(MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
+                  v.masters(i).tDest               := sAxisMaster.tDest;
                   v.tSeq                           := r.tSeq+1;
                end loop;
 

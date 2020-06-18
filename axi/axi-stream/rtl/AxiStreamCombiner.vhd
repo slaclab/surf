@@ -3,6 +3,8 @@
 -------------------------------------------------------------------------------
 -- Description: Combines multiple "narrower" buses into a "wide" AXI stream bus
 -------------------------------------------------------------------------------
+-- Note: This module does NOT support interleaving of TDEST
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
