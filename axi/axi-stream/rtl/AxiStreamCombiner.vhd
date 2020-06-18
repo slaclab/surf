@@ -74,8 +74,8 @@ architecture rtl of AxiStreamCombiner is
 
 begin
 
-   assert (LANES_G*MASTER_AXI_CONFIG_G.TDATA_BYTES_C = SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)
-      report "MASTER_AXI_CONFIG_G.TDATA_BYTES_C must be SLAVE_AXI_CONFIG_G.TDATA_BYTES_C/LANES_G*" severity failure;
+   assert (MASTER_AXI_CONFIG_G.TDATA_BYTES_C = LANES_G*SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)
+      report "MASTER_AXI_CONFIG_G.TDATA_BYTES_C must be LANES_G*SLAVE_AXI_CONFIG_G.TDATA_BYTES_C" severity failure;
 
    comb : process (axisRst, mAxisSlave, r, sAxisMasters) is
       variable v      : RegType;

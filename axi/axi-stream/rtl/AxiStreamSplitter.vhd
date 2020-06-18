@@ -67,8 +67,8 @@ architecture rtl of AxiStreamSplitter is
 
 begin
 
-   assert (LANES_G*SLAVE_AXI_CONFIG_G.TDATA_BYTES_C = MASTER_AXI_CONFIG_G.TDATA_BYTES_C)
-      report "SLAVE_AXI_CONFIG_G.TDATA_BYTES_C must be MASTER_AXI_CONFIG_G.TDATA_BYTES_C/LANES_G" severity failure;
+   assert (SLAVE_AXI_CONFIG_G.TDATA_BYTES_C = LANES_G*MASTER_AXI_CONFIG_G.TDATA_BYTES_C)
+      report "SLAVE_AXI_CONFIG_G.TDATA_BYTES_C must be LANES_G*MASTER_AXI_CONFIG_G.TDATA_BYTES_C" severity failure;
 
    comb : process (axisRst, mAxisSlaves, r, sAxisMaster) is
       variable v    : RegType;
