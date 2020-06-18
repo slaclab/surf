@@ -3965,23 +3965,23 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/sem/rtl/SemWrapper./home/
 
 [AxiLitePMbusMasterCore.vhd:174:Info: Elaborating entity I2cRegMaster for hierarchy i2cregmaster::u_i2cregmaster]
 
-[RssiAxiLiteRegItf.vhd:352:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_status]
+[RssiAxiLiteRegItf.vhd:363:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_status]
 
-[RssiAxiLiteRegItf.vhd:363:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_validcnt]
+[RssiAxiLiteRegItf.vhd:374:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_validcnt]
 
-[RssiAxiLiteRegItf.vhd:374:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_dropcnt]
+[RssiAxiLiteRegItf.vhd:385:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_dropcnt]
 
-[RssiAxiLiteRegItf.vhd:385:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_resendcnt]
+[RssiAxiLiteRegItf.vhd:396:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_resendcnt]
 
-[RssiAxiLiteRegItf.vhd:396:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_reconcnt]
+[RssiAxiLiteRegItf.vhd:407:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_reconcnt]
 
-[RssiAxiLiteRegItf.vhd:410:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_syncvecout]
+[RssiAxiLiteRegItf.vhd:421:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_syncvecout]
 
-[RssiAxiLiteRegItf.vhd:420:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_initseqn]
+[RssiAxiLiteRegItf.vhd:431:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_initseqn]
 
-[RssiAxiLiteRegItf.vhd:429:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_in]
+[RssiAxiLiteRegItf.vhd:440:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_in]
 
-[RssiAxiLiteRegItf.vhd:438:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_out]
+[RssiAxiLiteRegItf.vhd:449:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_out]
 
 [RssiCore.vhd:343:Info: Elaborating entity RssiAxiLiteRegItf for hierarchy rssiaxiliteregitf::axiliteregitf_inst]
 
@@ -4984,8 +4984,8 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/sem/rtl/SemWrapper./home/
 [GtpDualFixedLatCore.vhd:262:Info: Elaborating entity bufg for hierarchy bufg::refclk_bufg]
 
 [GtpDualFixedLatCore.vhd:725:Info: Elaborating entity gtp_dual for hierarchy gtp_dual::ugtpdual]
-/home/travis/build/slaclab/surf/axi/axi-stream/rtl/AxiStreamCombiner.vhd:23: warning: documented symbol '_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
-/home/travis/build/slaclab/surf/axi/axi-stream/rtl/AxiStreamSplitter.vhd:23: warning: documented symbol '_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/axi/axi-stream/rtl/AxiStreamCombiner.vhd:25: warning: documented symbol '_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
+/home/travis/build/slaclab/surf/axi/axi-stream/rtl/AxiStreamSplitter.vhd:25: warning: documented symbol '_use_ AxiStreamPkgAxiStreamPkg' was not declared or defined.
 /home/travis/build/slaclab/surf/axi/axi4/rtl/AxiMemTester.vhd:136: warning: no matching class member found for 
   slv
 
