@@ -1146,7 +1146,7 @@ class Lmk048Base(pr.Device):
             time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x0144.set(0xFF)
             time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0139.set(0x2)
+            self.LmkReg_0x0139.set(self.sysrefMode)
             time.sleep(0.010) # TODO: Optimize this timeout
             self.LmkReg_0x013E.set(0x3)
             time.sleep(0.010) # TODO: Optimize this timeout
