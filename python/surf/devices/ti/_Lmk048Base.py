@@ -11,7 +11,6 @@
 import pyrogue as pr
 import re
 import ast
-import time
 
 class Lmk048Base(pr.Device):
     def __init__(self, **kwargs):
