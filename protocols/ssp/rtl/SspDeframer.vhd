@@ -162,7 +162,7 @@ begin
 
                else
                   -- Unknown and/or incorrect K CODE
-                 if BRK_FRAME_ON_ERROR then
+                 if BRK_FRAME_ON_ERROR_G then
                    v.iValidOut := '0';
                    v.iEof      := '1';
                    v.iEofe     := '1';

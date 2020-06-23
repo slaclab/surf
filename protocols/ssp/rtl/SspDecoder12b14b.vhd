@@ -30,7 +30,7 @@ entity SspDecoder12b14b is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '0';
       RST_ASYNC_G    : boolean := true;
-      BRK_FRAME_ON_ERROR_G : boolean := true;
+      BRK_FRAME_ON_ERROR_G : boolean := true
       );
    port (
       clk       : in  sl;
