@@ -111,6 +111,10 @@ package Code10b12bPkg is
       ("100001", 1, -1),                -- ("011110", -1, 1),
       ("001010", 1, -1));               -- ("110101", -1, 1));
 
+   -- For K-Codes, the entire 12 bit code must be inverted together if
+   -- inversion of the low word (K.28) is necessary
+   -- So even disparity codes on the high word will need inversion
+   -- based on the disparity of the the low K.28
    constant K_CODE_TABLE_C : Code5b6bArray(0 to 31) := (
       ("000110", 1, -1),
       ("010001", 1, -1),
@@ -300,6 +304,56 @@ package body Code10b12bPkg is
 
    end procedure;
 
+   -- Given the current running disparity,
+   -- check that an encoded input matches a given
+   -- code point
+   function checkCode (
+      dataIn : slv(5 downto 0);
+      dispIn : DisparityType;
+      code   : Code5b6bType)
+      return boolean is
+   begin
+      -- Look for inverted code if the code point has
+      -- inverted codes and the current disparity does
+      -- not match the expected disparity for the code point
+      if ((code.expDisp /= 0) and (dispIn /= code.expDisp)) then
+         return dataIn = (not code.out6b);
+      else
+         return dataIn = code.out6b;
+      end if;
+   end function checkCode;
+
+   function checkDisparity (
+      dataIn : slv(5 downto 0);
+      dispIn : DisparityType)
+      return boolean is
+   begin
+      
+      
+   end function checkDisparity;
+
+   -- Disparity math
+   -- Given current disparity and a selected code point,
+   -- calculate new running disparity
+   function disp (
+      dispIn : DisparityType;
+      code   : Code5b6bType)
+      return DisparityType is
+   begin
+      -- If code has no disparity, pass the input disparity through
+      -- If the input disparity matched the expected disparity, return outDisp
+      -- Else return inv(outDisp)
+      if (code.expDisp = 0) then
+         return dispIn;
+      elsif (dispIn = code.expDisp) then
+         return code.outDisp;
+      else
+         return (-1) * code.outDisp;
+      end if;
+   end function disp;
+
+
+
    procedure decode10b12b (
       dataIn    : in    slv(11 downto 0);
       dispIn    : in    sl;
@@ -318,7 +372,9 @@ package body Code10b12bPkg is
       variable highWordValid : sl;
       variable inputDisp     : integer;
       variable runDisp       : integer;
-      variable k28Disp : integer;
+      variable k28Disp       : integer;
+      variable i             : integer;
+      variable j             : integer;
    begin
 
 --      print("------------");
@@ -330,58 +386,37 @@ package body Code10b12bPkg is
       highWordOut := (others => '0');
 
       -- Check the disparity of the input
-      inputDisp := getDisparity(dataIn);
+
+
+
+      lowWordIn  := dataIn(5 downto 0);
+      highWordIn := dataIn(11 downto 6);
+
+      -- Process low word first
+
+
+      disparity = conv(dispIn);
+
+      -- Check for fundamental disparity error on low word
+      inputDisp := getDisparity(lowWordIn);
       if (inputDisp > 2 or inputDisp < -2) then
---         print(">>>>Input Disp Error");
---          print("dataIn: " & str(dataIn));
---          print("inputDisp: " & str(inputDisp));
          dispError := '1';
       end if;
 
       -- Check the running disparity
       runDisp := inputDisp + (conv(dispIn)*2);
       if (runDisp > 2 or runDisp < -2) then
---         print(">>>>Run Disp Error");
---          print("dataIn: " & str(dataIn));
---          print("inputDisp: " & str(inputDisp));
---          print("runDisp: " & str(runDisp));
          dispError := '1';
-      end if;
+      end if;      
 
---      print("dataIn: " & str(dataIn));
---      print("inputDisp: " & str(inputDisp));
---      print("runDisp: " & str(runDisp));
-
-
-      -- This probably isn't correct
-      -- Need to figure out what to do when running disparity is out of range
-      if (runDisp > 0) then
-         dispOut := '1';
-      elsif (runDisp < 0) then
-         dispOut := '0';
-      else
-         dispOut := conv(inputDisp/2);
-      end if;
-
---      print("dispOut: " & str(dispOut));
---      print("------------");
-
-      lowWordIn  := dataIn(5 downto 0);
-      highWordIn := dataIn(11 downto 6);
-
-      -- Check for a k-code
-      if ((lowWordIn = K_CODE_TABLE_C(28).out6b) or
-          (lowWordIn = not(K_CODE_TABLE_C(28).out6b))) then
-
+         -- Check for a k-code
+      if (checkCode(lowWordIn, conv(dispIn), K_CODE_TABLE_C(28))) then
          lowWordOut   := conv_std_logic_vector(28, 5);
-         if (lowWordIn = K_CODE_TABLE_C(28).out6b) then
-            k28Disp := K_CODE_TABLE_C(28).outDisp;
-         else
-            k28Disp := (-1)*K_CODE_TABLE_C(28).outDisp;
-         end if;
          dataKOut     := '1';
          lowWordValid := '1';
+         disparity := disp(disparity, K_CODE_TABLE_C(28));
       end if;
+
 
 
       -- Need to check for valid k5/6 code
@@ -409,21 +444,39 @@ package body Code10b12bPkg is
 
                lowWordOut   := conv_std_logic_vector(i, 5);
                lowWordValid := '1';
+
+               -- D7 special case, must check that the correct code has been used
+               -- depending on the current running disparity.
+               -- Technically this should be done for all codes, but any such
+               -- code error would also produce a disparity error
+               -- D7 is the only code with even disparity that can also be inverted
+               if ((i = 7 and dispIn = '0' and lowWordIn /= tmp.out6b) or
+                   (i = 7 and dispIn = '1' and lowWordIn = tmp.out6b)) then
+                  v.lowWordValid := '0';
+               end if;
+
+
                exit;
             end if;
          end loop;
 
          -- Decode high word
-         for i in D_CODE_TABLE_C'range loop
-            tmp := D_CODE_TABLE_C(i);
+         for j in D_CODE_TABLE_C'range loop
+            tmp := D_CODE_TABLE_C(j);
             if ((highWordIn = tmp.out6b) or
                 ((highWordIn = not (tmp.out6b)) and (tmp.expDisp /= 0))) then
 
-               highWordOut   := conv_std_logic_vector(i, 5);
+               highWordOut   := conv_std_logic_vector(j, 5);
                highWordValid := '1';
                exit;
             end if;
          end loop;
+
+         -- Check the D.7.7 special cases
+         -- "000111 111000" and "111000 000111" are not valid encodings of D.7.7
+         if (lowWordOut = "00111" and highWordOut = "00111" and lowWordIn /= highWordIn) then
+            highWordValid := '0';
+         end if;
 
 
       end if;
@@ -431,6 +484,17 @@ package body Code10b12bPkg is
       if (lowWordValid = '1' and highWordValid = '1') then
          codeError := '0';
       end if;
+
+      -- Generate output disparity
+      -- Check this
+      if (runDisp > 0) then
+         dispOut := '1';
+      elsif (runDisp < 0) then
+         dispOut := '0';
+      else
+         dispOut := conv(inputDisp/2);
+      end if;
+
 
       dataOut(4 downto 0) := lowWordOut;
       dataOut(9 downto 5) := highWordOut;
