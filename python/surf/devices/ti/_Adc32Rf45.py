@@ -293,8 +293,6 @@ class Adc32Rf45(pr.Device):
         ##############################
         @self.command(description  = "Device Initiation")
         def Init():
-            self.Powerup_AnalogConfig()
-
             # Wait for 50 ms for the device to estimate the interleaving errors
             time.sleep(0.100) # TODO: Optimize this timeout
 
@@ -313,6 +311,15 @@ class Adc32Rf45(pr.Device):
 
             self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
             self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
+
+            self.DigRst()
+
+            self._rawWrite(generalAddr + (4*0x0012),0x04) # write 4 to address 12 page select
+            self._rawWrite(generalAddr + (4*0x0056),0x00) # sysref dis - check this was written earlier
+            self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
+            self._rawWrite(generalAddr + (4*0x0020),0x00)
+            self._rawWrite(generalAddr + (4*0x0020),0x10) # Pdn sysref
+            self.PDN_SYSREF.set(0x1) # Do this in AppTop after JESD link is established
 
         @self.command()
         def Powerup_AnalogConfig():
@@ -360,12 +367,14 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0059),0x02) #...
             self._rawWrite(generalAddr + (4*0x005B),0x08) #...
             self._rawWrite(generalAddr + (4*0x005c),0x07) #...
-#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0057),0x00) # Give SYSREF control back to device pin --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0056),0x00) # sysref dis - check this was written earlier
+            self._rawWrite(generalAddr + (4*0x0020),0x00) # Pdn sysref = 0
             self._rawWrite(generalAddr + (4*0x0012),0x00) # Master page disabled
             self._rawWrite(generalAddr + (4*0x0011),0xFF) # Select ADC Page
             self._rawWrite(generalAddr + (4*0x0083),0x07) # Additioanal Analog trims
@@ -380,15 +389,6 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
             self._rawWrite(rawInterface + (4*0x4003),0x01) #...
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
-
-            self.SYSREF_DEL_EN.set(self.SYSREF_DEL_EN.value(), write=True)
-            self.SYSREF_DEL_HI.set(self.SYSREF_DEL_HI.value(), write=True)
-            self.SYSREF_DEL_LO.set(self.SYSREF_DEL_LO.value(), write=True)
-
-            self.SYNCB_POL.set(self.SYNCB_POL.value(), write=True)
-            self.JESD_OUTPUT_SWING.set(self.JESD_OUTPUT_SWING.value(), write=True)
-
-
 
         @self.command(description = "Set IL ChA")
         def IL_Config_Nyq1_ChA():
@@ -662,13 +662,6 @@ class Adc32Rf45(pr.Device):
 #            self._rawWrite(decFilter + chB + (4*0x16),0x01) # 6dB DDC1
 #
 #            self._rawWrite(decFilter + chB + (4*0x1f),0x01) # 6dB HBW DDC0
-
-            self._rawWrite(generalAddr + (4*0x0012),0x04) # write 4 to address 12 page select
-            self._rawWrite(generalAddr + (4*0x0056),0x00) # sysref dis - check this was written earlier
-            self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
-#            self._rawWrite(generalAddr + (4*0x0020),0x00)
-#            self._rawWrite(generalAddr + (4*0x0020),0x10) # Pdn sysref
-#            self.PDN_SYSREF.set(0x1) # Do this in AppTop after JESD link is established
 
         @self.command(description  = "Digital Reset")
         def DigRst():
