@@ -315,6 +315,7 @@ class JesdRx(pr.Device):
                 mode         = "RO",
                 number       =  numRxLanes,
                 stride       =  4,
+                disp         = '{:d}',
                 pollInterval = 1,
             )
 

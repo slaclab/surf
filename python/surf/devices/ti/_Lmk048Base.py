@@ -1057,6 +1057,15 @@ class Lmk048Base(pr.Device):
             mode         = 'RW',
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'RESET',
+            description  = 'RESET',
+            offset       = (0x0000 << 2),
+            bitSize      = 1,
+            bitOffset    = 7,
+            mode         = 'WO',
+        ))
+
         ##############################
         # Commands
         ##############################
