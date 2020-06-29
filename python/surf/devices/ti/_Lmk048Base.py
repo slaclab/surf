@@ -1057,6 +1057,15 @@ class Lmk048Base(pr.Device):
             mode         = 'RW',
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'RESET',
+            description  = 'RESET',
+            offset       = (0x0000 << 2),
+            bitSize      = 1,
+            bitOffset    = 7,
+            mode         = 'WO',
+        ))
+
         ##############################
         # Commands
         ##############################
@@ -1107,9 +1116,6 @@ class Lmk048Base(pr.Device):
         @self.command(description='Powerup the sysref lines',)
         def PwrUpSysRef():
             self.EnableSysRef.set(self.sysrefMode)
-            self.LmkReg_0x0143.set(0x12)
-            self.LmkReg_0x0143.set(0x32)
-            self.LmkReg_0x0143.set(0x12)
 
         @self.command(description='1: Powerdown',)
         def PwrDwnLmkChip():
@@ -1121,20 +1127,23 @@ class Lmk048Base(pr.Device):
 
         @self.command(description='Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks',)
         def Init():
+            # Cache the current value
             self.sysrefMode = self.EnableSysRef.get()
-            self.LmkReg_0x0139.set(0x0)
-            self.LmkReg_0x0143.set(0x11)
+
+            # Preparing for SYNC
+            self.LmkReg_0x0139.set(self.sysrefMode)
+            self.LmkReg_0x013E.set(0x3)
             self.LmkReg_0x0140.set(0x0)
-            self.LmkReg_0x0144.set(0x74)
+            self.LmkReg_0x0144.set(0x0)
+
+            # Force a SYNC
             self.LmkReg_0x0143.set(0x11)
             self.LmkReg_0x0143.set(0x31)
             self.LmkReg_0x0143.set(0x11)
+
+            # Disable additional SYNCs
+            self.LmkReg_0x0143.set(0x01)
             self.LmkReg_0x0144.set(0xFF)
-            self.LmkReg_0x0139.set(0x2)
-            self.LmkReg_0x013E.set(0x3)
-            self.LmkReg_0x0143.set(0x12)
-            self.LmkReg_0x0143.set(0x32)
-            self.LmkReg_0x0143.set(0x12)
 
             # Fixed Register:
             self.LmkReg_0x0145.set(0x7F) # Always program this register to value 127 (0x7F)

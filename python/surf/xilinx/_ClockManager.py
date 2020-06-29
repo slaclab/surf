@@ -19,17 +19,17 @@ class ClockManager(pr.Device):
         super().__init__(description=description, **kwargs)
 
         # Determine the number of clkout
-        if (type is 'PLLE3') or (type is 'PLLE4'):
+        if (type == 'PLLE3') or (type == 'PLLE4'):
             numClkOut = 2
-        elif (type is 'PLLE2'):
+        elif (type == 'PLLE2'):
             numClkOut = 6
-        elif (type is 'MMCME2') or (type is 'MMCME3') or (type is 'MMCME4'):
+        elif (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
             numClkOut = 7
         else:
             raise ValueError('ClockManager: Invalid type (%s)' % (type) )
 
         # Determine if UltraScale or not
-        UltraScale = False if (type is 'MMCME2') or (type is 'PLLE2') else True
+        UltraScale = False if (type == 'MMCME2') or (type == 'PLLE2') else True
 
         ##############################################################################
         #            ClkReg1 Bitmap for CLKOUT[6:0]
@@ -45,7 +45,7 @@ class ClockManager(pr.Device):
 
         for i in range(numClkOut):
 
-            if (type is not 'PLLE3') and (type is not 'PLLE4'):
+            if (type != 'PLLE3') and (type != 'PLLE4'):
                 self.add(pr.RemoteVariable(
                     name         = f'PHASE_MUX[{i}]',
                     description = """
@@ -87,7 +87,7 @@ class ClockManager(pr.Device):
         # CLKFBOUT Register 1 (Address=0x14)
         ##############################################################################
 
-        if (type is not 'PLLE3') and (type is not 'PLLE4'):
+        if (type != 'PLLE3') and (type != 'PLLE4'):
             self.add(pr.RemoteVariable(
                 name         = 'PHASE_MUX_FB',
                 description = """
@@ -144,7 +144,7 @@ class ClockManager(pr.Device):
             ###############################
             if (i==0):
 
-                if (type is 'MMCME2') or (type is 'MMCME3') or (type is 'MMCME4'):
+                if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
 
                     self.add(pr.RemoteVariable(
                         name         = 'FRAC[0]',
@@ -186,7 +186,7 @@ class ClockManager(pr.Device):
             # CLKOUT1
             ###############################
             if (i==1):
-                if (type is 'PLLE3') or (type is 'PLLE4'):
+                if (type == 'PLLE3') or (type == 'PLLE4'):
                     self.add(pr.RemoteVariable(
                         name         = f'CLKOUTPHY_MODE[{i}]',
                         description = """
@@ -203,7 +203,7 @@ class ClockManager(pr.Device):
             # CLKOUT5 register with CLKOUT0 Configurations
             ##############################################
             if (i==5):
-                if (type is 'MMCME2') or (type is 'MMCME3') or (type is 'MMCME4'):
+                if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
                     self.add(pr.RemoteVariable(
                         name         = 'PHASE_MUX_F_CLKOUT[0]',
                         description = """
@@ -235,7 +235,7 @@ class ClockManager(pr.Device):
             # CLKOUT6 register with CLKFBOUT Configurations
             ###############################################
             if (i==6):
-                if (type is 'MMCME2') or (type is 'MMCME3') or (type is 'MMCME4'):
+                if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
                     self.add(pr.RemoteVariable(
                         name         = 'PHASE_MUX_F_CLKOUT_FB',
                         description = """
@@ -311,7 +311,7 @@ class ClockManager(pr.Device):
 
         ##############################################################################
 
-        if (type is 'MMCME2') or (type is 'MMCME3') or (type is 'MMCME4'):
+        if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
 
             self.add(pr.RemoteVariable(
                 name         = 'FRAC_FB',

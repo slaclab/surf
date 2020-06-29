@@ -16,7 +16,7 @@ import time
 import surf.devices.ti
 
 class Adc32Rf45(pr.Device):
-    def __init__( self, verify=False, **kwargs):
+    def __init__( self, verify=True, **kwargs):
 
         super().__init__(
             size        = (0x1 << 19),
@@ -293,26 +293,43 @@ class Adc32Rf45(pr.Device):
         ##############################
         @self.command(description  = "Device Initiation")
         def Init():
-            self.Powerup_AnalogConfig()
 
-            # Wait for 50 ms for the device to estimate the interleaving errors
-            time.sleep(0.050)
+            self._rawWrite(generalAddr + (4*0x0012),0x04) # write 4 to address 12 page select
+            self._rawWrite(generalAddr + (4*0x0056),0x00) # sysref dis - check this was written earlier
+            self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
+            self._rawWrite(generalAddr + (4*0x0020),0x00)
+            self._rawWrite(jesdDigital + chA + (4*0x03E),0x00)
+            self._rawWrite(jesdDigital + chB + (4*0x03E),0x00)
 
             self.IL_Config_Nyq1_ChA()
             self.IL_Config_Nyq1_ChB()
 
-            time.sleep(0.050)
+            time.sleep(0.250)
 
             self.SetNLTrim()
 
-            time.sleep(0.050)
+            time.sleep(0.250)
 
             self.JESD_DDC_config()
 
-            time.sleep(0.050)
+            time.sleep(0.250)
 
             self._rawWrite(offsetCorrector + chA + (4*0x068),0xA2) #... freeze offset estimation
             self._rawWrite(offsetCorrector + chB + (4*0x068),0xA2) #... freeze offset estimation
+
+            self._rawWrite(generalAddr + (4*0x0012),0x04) # write 4 to address 12 page select
+            self._rawWrite(generalAddr + (4*0x0056),0x00) # sysref dis - check this was written earlier
+            self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
+            self._rawWrite(generalAddr + (4*0x0020),0x00)
+
+            self._rawWrite(generalAddr + (4*0x0012),0x04) # write 4 to address 12 page select
+            self._rawWrite(jesdDigital + chA + (4*0x03E),0x40) #... MASK CLKDIV SYSREF
+            self._rawWrite(jesdDigital + chB + (4*0x03E),0x40) #... MASK CLKDIV SYSREF
+
+            self._rawWrite(jesdDigital + chA + (4*0x03E),0x60) #... MASK CLKDIV SYSREF + MASK NCO SYSREF
+            self._rawWrite(jesdDigital + chB + (4*0x03E),0x60) #... MASK CLKDIV SYSREF + MASK NCO SYSREF
+
+            self._rawWrite(generalAddr + (4*0x0020),0x10) # PDN_SYSREF = 0x1
 
         @self.command()
         def Powerup_AnalogConfig():
@@ -360,12 +377,14 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(generalAddr + (4*0x0059),0x02) #...
             self._rawWrite(generalAddr + (4*0x005B),0x08) #...
             self._rawWrite(generalAddr + (4*0x005c),0x07) #...
-#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-#            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x10) # Register control for SYSREF --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x18) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0057),0x10) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
             self._rawWrite(generalAddr + (4*0x0057),0x00) # Give SYSREF control back to device pin --these lines are added in revision SBAA226C.
+            self._rawWrite(generalAddr + (4*0x0056),0x00) # sysref dis - check this was written earlier
+            self._rawWrite(generalAddr + (4*0x0020),0x00) # Pdn sysref = 0
             self._rawWrite(generalAddr + (4*0x0012),0x00) # Master page disabled
             self._rawWrite(generalAddr + (4*0x0011),0xFF) # Select ADC Page
             self._rawWrite(generalAddr + (4*0x0083),0x07) # Additioanal Analog trims
@@ -380,15 +399,6 @@ class Adc32Rf45(pr.Device):
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
             self._rawWrite(rawInterface + (4*0x4003),0x01) #...
             self._rawWrite(rawInterface + (4*0x6068),0x22) #...
-
-            self.SYSREF_DEL_EN.set(self.SYSREF_DEL_EN.value(), write=True)
-            self.SYSREF_DEL_HI.set(self.SYSREF_DEL_HI.value(), write=True)
-            self.SYSREF_DEL_LO.set(self.SYSREF_DEL_LO.value(), write=True)
-
-            self.SYNCB_POL.set(self.SYNCB_POL.value(), write=True)
-            self.JESD_OUTPUT_SWING.set(self.JESD_OUTPUT_SWING.value(), write=True)
-
-
 
         @self.command(description = "Set IL ChA")
         def IL_Config_Nyq1_ChA():
@@ -621,65 +631,19 @@ class Adc32Rf45(pr.Device):
                 channel.TEST_PAT_RES.set(0x00,write=True)
                 channel.TP_RES_EN.set(0x00,write=True)
 
-#            self._rawWrite(jesdDigital + chB + (4*0x002),0x01) # enable 20x mode
-#            self._rawWrite(jesdDigital + chA + (4*0x002),0x01) # enable 20x mode
-#            self._rawWrite(jesdDigital + chB + (4*0x037),0x02) # PLL DIV mode to 10 0x00
-#            self._rawWrite(jesdDigital + chA + (4*0x037),0x02)
-#            self._rawWrite(jesdDigital + chB + (4*0x001),0x80) # set CTRL K
-#            self._rawWrite(jesdDigital + chA + (4*0x001),0x80)
-#            self._rawWrite(jesdDigital + chB + (4*0x007),0x1F) # set K to 16
-#            self._rawWrite(jesdDigital + chA + (4*0x007),0x1F)
-#
-#            self._rawWrite(decFilter + chA + (4*0x00),0x01) # DDC enable CHA
-#            self._rawWrite(decFilter + chA + (4*0x01),0x00) # DDC by 4 CHA
-#            self._rawWrite(decFilter + chA + (4*0x02),0x00) # Dual DDC disable CHA
-#            self._rawWrite(decFilter + chA + (4*0x05),0x00) # Complex output enable
-#            self._rawWrite(decFilter + chA + (4*0x07),0x00) # LSB NCO1 at 800 Mhz CHA
-#            self._rawWrite(decFilter + chA + (4*0x08),0x4e) # MSB NCO1 at 800 Mhz
-#            self._rawWrite(decFilter + chA + (4*0x09),0x00) # LSB NCO2 0Mhz
-#            self._rawWrite(decFilter + chA + (4*0x0A),0x00) # MSB NCO2
-#            self._rawWrite(decFilter + chA + (4*0x0B),0x00) # LSB NCO3 0Mhz
-#            self._rawWrite(decFilter + chA + (4*0x0C),0x2A) # MSB NCO3
-#            self._rawWrite(decFilter + chA + (4*0x0D),0x44) # DDC1 LSB NCO 800Mhz
-#            self._rawWrite(decFilter + chA + (4*0x0E),0x44) # DDC1 MSB NCO
-#            self._rawWrite(decFilter + chA + (4*0x1f),0x01) # 6dB HBW DDC0
-#            self._rawWrite(decFilter + chA + (4*0x14),0x01) # 6dB DDC0
-#            self._rawWrite(decFilter + chA + (4*0x16),0x01) # 6dB DDC1
-#
-#            self._rawWrite(decFilter + chB + (4*0x00),0x01) # DDC enable CHB
-#            self._rawWrite(decFilter + chB + (4*0x01),0x00) # DDC by 4 CHB
-#            self._rawWrite(decFilter + chB + (4*0x02),0x00) # Dual DDC disable CHB
-#            self._rawWrite(decFilter + chB + (4*0x05),0x00) # Complex output enable
-#            self._rawWrite(decFilter + chB + (4*0x07),0x00) # LSB NCO1 at 800 Mhz CHB
-#            self._rawWrite(decFilter + chB + (4*0x08),0x4e) # MSB NCO1 at 800 Mhz
-#            self._rawWrite(decFilter + chB + (4*0x09),0x00) # LSB NCO2 0Mhz
-#            self._rawWrite(decFilter + chB + (4*0x0A),0x00) # MSB NCO2
-#            self._rawWrite(decFilter + chB + (4*0x0B),0x00) # LSB NCO3 0Mhz
-#            self._rawWrite(decFilter + chB + (4*0x0C),0x2A) # MSB NCO3
-#            self._rawWrite(decFilter + chB + (4*0x0D),0x44) # DDC1 LSB NCO 800Mhz
-#            self._rawWrite(decFilter + chB + (4*0x0E),0x44) # DDC1 MSB NCO
-#            self._rawWrite(decFilter + chB + (4*0x14),0x01) # 6dB DDC0
-#            self._rawWrite(decFilter + chB + (4*0x16),0x01) # 6dB DDC1
-#
-#            self._rawWrite(decFilter + chB + (4*0x1f),0x01) # 6dB HBW DDC0
-
-            self._rawWrite(generalAddr + (4*0x0012),0x04) # write 4 to address 12 page select
-            self._rawWrite(generalAddr + (4*0x0056),0x00) # sysref dis - check this was written earlier
-            self._rawWrite(generalAddr + (4*0x0057),0x00) # sysref dis - whether it has to be zero
-#            self._rawWrite(generalAddr + (4*0x0020),0x00)
-#            self._rawWrite(generalAddr + (4*0x0020),0x10) # Pdn sysref
-#            self.PDN_SYSREF.set(0x1) # Do this in AppTop after JESD link is established
-
         @self.command(description  = "Digital Reset")
         def DigRst():
-            time.sleep(0.050)   # Wait for 50 ms for the device to estimate the interleaving errors
+            # Wait for 50 ms for the device to estimate the interleaving errors
+            time.sleep(0.250) # TODO: Optimize this timeout
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chA + (4*0x000),0x01) # CHA digital reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x01) # CHB digital reset
             self._rawWrite(jesdDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(jesdDigital + chB + (4*0x000),0x00) # clear reset
-            time.sleep(0.050)   # Wait for 50 ms for the device to estimate the interleaving errors
+
+            # Wait for 50 ms for the device to estimate the interleaving errors
+            time.sleep(0.250) # TODO: Optimize this timeout
             self._rawWrite(mainDigital + chA + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chB + (4*0x000),0x00) # clear reset
             self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA digital reset

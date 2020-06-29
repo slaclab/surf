@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue         as pr
-import surf.devices.ti as ti
+from surf.devices import ti
 
 class Lmk04832(ti.Lmk048Base):
     def __init__(self, **kwargs):

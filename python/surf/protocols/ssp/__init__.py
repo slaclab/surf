@@ -7,5 +7,4 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.ethernet.gige._GigEthReg import *
-from surf.ethernet.gige._GigEthGtx7 import *
+from surf.protocols.ssp._SspLowSpeedDecoderReg import *
