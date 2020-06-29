@@ -1,23 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
 
 package AxiLitePkg is
 
@@ -30,21 +31,21 @@ package AxiLitePkg is
    -- Note: There are no "exclusive access" in AXI-Lite.  This is just a placeholder constant.
 
    constant AXI_RESP_SLVERR_C : slv(1 downto 0) := "10";  -- Slave Error
-   -- Note: A SLVERR response is returned to the master if the AXI peripheral interface receives any 
+   -- Note: A SLVERR response is returned to the master if the AXI peripheral interface receives any
    --       of the following unsupported accesses:
    --
    --          1) Any accesses with AWSIZE information other than 32-bit receives a SLVERR response.
    --          2) Any accesses with AWLEN information other than zero receives a SLVERR response.
-   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2'b00, 
-   --             returns a SLVERR response where a read access returns all zeros and a write access 
+   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2'b00,
+   --             returns a SLVERR response where a read access returns all zeros and a write access
    --             does not modify the address location.
-   --          4) Any write access that attempts to make use of the WSTRB lines, 
-   --             for example where any bits of WSTRB[3:0] are 0, returns a SLVERR response 
-   --             and does not modify the address location.   
+   --          4) Any write access that attempts to make use of the WSTRB lines,
+   --             for example where any bits of WSTRB[3:0] are 0, returns a SLVERR response
+   --             and does not modify the address location.
 
    constant AXI_RESP_DECERR_C : slv(1 downto 0) := "11";  -- Decode Error
-   -- Note: Any transaction that does not decode to a legal master interface destination, 
-   --       or programmers view register, receives a DECERR response. For an AHB master, 
+   -- Note: Any transaction that does not decode to a legal master interface destination,
+   --       or programmers view register, receives a DECERR response. For an AHB master,
    --       the AXI DECERR is mapped back to an AHB ERROR.
 
    --------------------------------------------------------
@@ -229,8 +230,8 @@ package AxiLitePkg is
    constant AXI_LITE_ACK_INIT_C : AxiLiteAckType := (
       done  => '0',
       resp   => (others => '0'),
-      rdData => (others => '0'));      
-      
+      rdData => (others => '0'));
+
    -------------------------------------------------------------------------------------------------
    -- Crossbar Config Generic Types
    -------------------------------------------------------------------------------------------------
@@ -363,7 +364,7 @@ package AxiLitePkg is
       offset      : in    integer;
       reg         : inout slv;
       constVal    : in    slv := "X");
-      
+
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
@@ -409,7 +410,7 @@ package AxiLitePkg is
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       reg         : inout sl);
-   
+
 
    procedure axiSlaveDefault (
       variable ep            : inout AxiLiteEndpointType;
@@ -767,7 +768,7 @@ package body AxiLitePkg is
             axiSlaveWriteResponse(ep.axiWriteSlave);
          end if;
       end if;
-      
+
    end procedure;
 
    procedure axiSlaveRegister (

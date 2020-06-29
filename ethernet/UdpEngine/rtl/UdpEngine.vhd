@@ -1,23 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Top-Level UDP/DHCP Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity UdpEngine is
    generic (
@@ -39,10 +40,10 @@ entity UdpEngine is
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
-      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration  
-      localIpIn        : in  slv(31 downto 0);  --  big-Endian configuration 
-      dhcpIpOut        : out slv(31 downto 0);  --  big-Endian configuration 
-      -- Interface to IPV4 Engine  
+      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration
+      localIpIn        : in  slv(31 downto 0);  --  big-Endian configuration
+      dhcpIpOut        : out slv(31 downto 0);  --  big-Endian configuration
+      -- Interface to IPV4 Engine
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
       ibUdpMaster      : in  AxiStreamMasterType;
@@ -65,7 +66,7 @@ entity UdpEngine is
       obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       ibClientMasters  : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration    
+      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       -- Clock and Reset
       clk              : in  sl;
       rst              : in  sl);
@@ -100,7 +101,7 @@ begin
    serverRemoteIp   <= remoteIp;        -- Debug Only
    dhcpIpOut        <= localIp;
 
-   U_UdpEngineRx : entity work.UdpEngineRx
+   U_UdpEngineRx : entity surf.UdpEngineRx
       generic map (
          TPD_G          => TPD_G,
          DHCP_G         => DHCP_G,
@@ -114,7 +115,7 @@ begin
          -- Local Configurations
          localIp          => localIp,
          broadcastIp      => broadcastIp,
-         -- Interface to IPV4 Engine  
+         -- Interface to IPV4 Engine
          ibUdpMaster      => ibUdpMaster,
          ibUdpSlave       => ibUdpSlave,
          -- Interface to UDP Server engine(s)
@@ -127,7 +128,7 @@ begin
          clientRemoteDet  => clientRemoteDet,
          obClientMasters  => obClientMasters,
          obClientSlaves   => obClientSlaves,
-         -- Interface to DHCP Engine  
+         -- Interface to DHCP Engine
          ibDhcpMaster     => ibDhcpMaster,
          ibDhcpSlave      => ibDhcpSlave,
          -- Clock and Reset
@@ -136,7 +137,7 @@ begin
 
    GEN_DHCP : if (DHCP_G = true) generate
 
-      U_UdpEngineDhcp : entity work.UdpEngineDhcp
+      U_UdpEngineDhcp : entity surf.UdpEngineDhcp
          generic map (
             -- Simulation Generics
             TPD_G          => TPD_G,
@@ -148,7 +149,7 @@ begin
             localMac     => localMac,
             localIp      => localIpIn,
             dhcpIp       => localIp,
-            -- Interface to DHCP Engine  
+            -- Interface to DHCP Engine
             ibDhcpMaster => ibDhcpMaster,
             ibDhcpSlave  => ibDhcpSlave,
             obDhcpMaster => obDhcpMaster,
@@ -169,14 +170,14 @@ begin
 
    GEN_SERVER : if (SERVER_EN_G = true) generate
 
-      U_UdpEngineTx : entity work.UdpEngineTx
+      U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (
             TPD_G          => TPD_G,
             SIZE_G         => SERVER_SIZE_G,
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
             PORT_G         => SERVER_PORTS_G)
          port map (
-            -- Interface to IPV4 Engine  
+            -- Interface to IPV4 Engine
             obUdpMaster  => obUdpMasters(0),
             obUdpSlave   => obUdpSlaves(0),
             -- Interface to User Application
@@ -187,7 +188,7 @@ begin
             remoteMac    => serverRemoteMac,
             ibMasters    => ibServerMasters,
             ibSlaves     => ibServerSlaves,
-            -- Interface to DHCP Engine  
+            -- Interface to DHCP Engine
             obDhcpMaster => obDhcpMaster,
             obDhcpSlave  => obDhcpSlave,
             -- Clock and Reset
@@ -198,7 +199,7 @@ begin
 
    GEN_CLIENT : if (CLIENT_EN_G = true) generate
 
-      U_UdpEngineArp : entity work.UdpEngineArp
+      U_UdpEngineArp : entity surf.UdpEngineArp
          generic map (
             TPD_G          => TPD_G,
             CLIENT_SIZE_G  => CLIENT_SIZE_G,
@@ -220,14 +221,14 @@ begin
             clk             => clk,
             rst             => rst);
 
-      U_UdpEngineTx : entity work.UdpEngineTx
+      U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (
             TPD_G          => TPD_G,
             SIZE_G         => CLIENT_SIZE_G,
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
             PORT_G         => CLIENT_PORTS_G)
          port map (
-            -- Interface to IPV4 Engine  
+            -- Interface to IPV4 Engine
             obUdpMaster => obUdpMasters(1),
             obUdpSlave  => obUdpSlaves(1),
             -- Interface to User Application
@@ -246,7 +247,7 @@ begin
 
    GEN_MUX : if ((SERVER_EN_G = true) and (CLIENT_EN_G = true)) generate
 
-      U_AxiStreamMux : entity work.AxiStreamMux
+      U_AxiStreamMux : entity surf.AxiStreamMux
          generic map (
             TPD_G        => TPD_G,
             NUM_SLAVES_G => 2)

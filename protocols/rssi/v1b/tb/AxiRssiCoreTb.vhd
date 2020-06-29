@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : AxiRssiCoreTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiRssiCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,13 +19,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
 
 entity AxiRssiCoreTb is
 end AxiRssiCoreTb;
@@ -39,7 +40,7 @@ architecture testbed of AxiRssiCoreTb is
    -- RSSI Timeouts
    constant CLK_FREQUENCY_C   : real     := 100.0E+6;  -- In units of Hz
    constant TIMEOUT_UNIT_C    : real     := 1.0E-6;    -- In units of seconds
-   constant ACK_TOUT_C        : positive := 25;  -- unit depends on TIMEOUT_UNIT_G 
+   constant ACK_TOUT_C        : positive := 25;  -- unit depends on TIMEOUT_UNIT_G
    constant RETRANS_TOUT_C    : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
    constant NULL_TOUT_C       : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
    -- Counters
@@ -51,7 +52,7 @@ architecture testbed of AxiRssiCoreTb is
       ADDR_WIDTH_C => ite(JUMBO_C, 16, 13),  -- (true=64kB buffer),(false=8kB buffer)
       DATA_BYTES_C => 8,                -- 8 bytes = 64-bits
       ID_BITS_C    => 2,
-      LEN_BITS_C   => ite(JUMBO_C, 8, 7));  -- (true=2kB bursting),(false=1kB bursting)   
+      LEN_BITS_C   => ite(JUMBO_C, 8, 7));  -- (true=2kB bursting),(false=1kB bursting)
 
    type RegType is record
       packetLength : slv(31 downto 0);
@@ -104,7 +105,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,
@@ -116,7 +117,7 @@ begin
    ----------
    -- PRBS TX
    ----------
-   U_SsiPrbsTx : entity work.SsiPrbsTx
+   U_SsiPrbsTx : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
          AXI_EN_G                   => '0',
@@ -138,7 +139,7 @@ begin
    --------------
    -- RSSI Server
    --------------
-   U_RssiServer : entity work.AxiRssiCoreWrapper
+   U_RssiServer : entity surf.AxiRssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          JUMBO_G           => JUMBO_C,
@@ -184,8 +185,8 @@ begin
 
    --------------
    -- RSSI Client
-   --------------         
-   U_RssiClient : entity work.AxiRssiCoreWrapper
+   --------------
+   U_RssiClient : entity surf.AxiRssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          JUMBO_G           => JUMBO_C,
@@ -234,7 +235,7 @@ begin
    -- AXI Memory
    -------------
    GEN_VEC : for i in 3 downto 0 generate
-      U_MEM : entity work.AxiRam
+      U_MEM : entity surf.AxiRam
          generic map (
             TPD_G        => TPD_G,
             SYNTH_MODE_G => "xpm",
@@ -254,7 +255,7 @@ begin
    ----------
    -- PRBS RX
    ----------
-   U_SsiPrbsRx : entity work.SsiPrbsRx
+   U_SsiPrbsRx : entity surf.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
          SLAVE_AXI_STREAM_CONFIG_G => RSSI_AXIS_CONFIG_C)
@@ -273,7 +274,7 @@ begin
                    obSrvMaster, r, rst, txBusy) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Keep delay copies
@@ -281,13 +282,13 @@ begin
       v.txBusy   := txBusy;
       v.trig     := not(r.txBusy) and linkUp;
 
-      -- Check for the packet completion 
+      -- Check for the packet completion
       if (txBusy = '1') and (r.txBusy = '0') then
          -- Sweeping the packet size size
          v.packetLength := r.packetLength + 1;
       end if;
 
-      -- Reset      
+      -- Reset
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
@@ -313,7 +314,7 @@ begin
          obSrvSlave  <= AXI_STREAM_SLAVE_FORCE_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;

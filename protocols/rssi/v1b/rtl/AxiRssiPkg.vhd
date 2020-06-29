@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : AxiRssiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: RSSI Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
 
 package AxiRssiPkg is
 
@@ -33,7 +34,7 @@ package AxiRssiPkg is
       LEN_BITS_C   => 7);               -- Up to 1kB bursting
 
    procedure GetRssiCsum (              -- 2 clock cycle latency calculation
-      -- Input 
+      -- Input
       init     : in    sl;
       header   : in    slv(63 downto 0);
       accumReg : in    slv(20 downto 0);
@@ -48,7 +49,7 @@ end AxiRssiPkg;
 package body AxiRssiPkg is
 
    procedure GetRssiCsum (
-      -- Input 
+      -- Input
       init     : in    sl;
       header   : in    slv(63 downto 0);
       accumReg : in    slv(20 downto 0);

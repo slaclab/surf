@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : RawEthFramerWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for RawEthFramer Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
 entity RawEthFramerWrapper is
    generic (
@@ -59,10 +60,10 @@ begin
    -----------------------------
    -- Raw Ethernet Framer Engine
    -----------------------------
-   U_Core : entity work.RawEthFramer
+   U_Core : entity surf.RawEthFramer
       generic map (
          TPD_G      => TPD_G,
-         ETH_TYPE_G => ETH_TYPE_G) 
+         ETH_TYPE_G => ETH_TYPE_G)
       port map (
          -- Local Configurations
          localMac    => localMac,
@@ -80,12 +81,12 @@ begin
          obAppSlave  => obAppSlave,
          -- Clock and Reset
          clk         => clk,
-         rst         => rst); 
+         rst         => rst);
 
    -----------------
    -- Remote MAC LUT
    -----------------
-   U_RemoteMacLut : entity work.AxiDualPortRam
+   U_RemoteMacLut : entity surf.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
          READ_LATENCY_G   => 1,
@@ -107,6 +108,6 @@ begin
          clk            => clk,
          rst            => rst,
          addr           => tDest,
-         dout           => remoteMac);         
+         dout           => remoteMac);
 
 end mapping;

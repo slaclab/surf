@@ -1,37 +1,38 @@
 -------------------------------------------------------------------------------
--- File       : CrcPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: This package defines a few functions that are useful for 
---              computing CRC values.   
---              
+-- Description: This package defines a few functions that are useful for
+--              computing CRC values.
+--
 --              crc32Parallel<N>Byte defines parallel implementations of the
 --              CRC32 algorithm with the "standard" CRC32 polynomial: 0x04C11DB7
 --              Byte widths of 1-8 are currently supported.
---               
+--
 --              To see how the parallel statements are generated, see here:
 --              http://www.slac.stanford.edu/~kurtisn/Crc32/Crc32.cpp
 --              This is an implementation of the ideas found here:
 --              http://outputlogic.com/my-stuff/circuit-cellar-january-2010-crc.pdf
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use work.StdRtlPkg.all;
 
-package CrcPkg is 
+library surf;
+use surf.StdRtlPkg.all;
+
+package CrcPkg is
 
    function crcByteLookup (inByte : slv; constant poly : slv) return slv;
    function crcLfsrShift (lfsr : slv; constant poly : slv; input : sl) return slv;
-   
+
    --Specific CRC32 parallel implementations with the standard polynomial: 0x04C11DB7
    function crc32Parallel1Byte (crcCur : slv(31 downto 0); data : slv(7 downto 0)) return slv;
    function crc32Parallel2Byte (crcCur : slv(31 downto 0); data : slv(15 downto 0)) return slv;
@@ -41,7 +42,7 @@ package CrcPkg is
    function crc32Parallel6Byte (crcCur : slv(31 downto 0); data : slv(47 downto 0)) return slv;
    function crc32Parallel7Byte (crcCur : slv(31 downto 0); data : slv(55 downto 0)) return slv;
    function crc32Parallel8Byte (crcCur : slv(31 downto 0); data : slv(63 downto 0)) return slv;
-   
+
 end CrcPkg;
 
 package body CrcPkg is
@@ -50,7 +51,7 @@ package body CrcPkg is
    -- Implements an N tap linear feedback shift operation suitable for CRC implementations
    -- This uses a Galois LFSR and inherently assumes the highest polynomial term is 1
    -- (e.g., in CRC32 the x^32 term is implicit, so the standard polynomial 0x04C11DB7 is
-   --  good enough). 
+   --  good enough).
    --
    -- Size of LFSR is variable and determined by length of lfsr parameter, but size of the
    -- lfsr and polynomial should match.
@@ -58,8 +59,8 @@ package body CrcPkg is
    -- The shift is in the direction of increasing index (left shift for decending, right for ascending)
    -- New data bits are shifted in from the lsb-end.
    --
-   -- As written, this can be called N-times to implement CRC calculations, but requires an 
-   -- a message augmented with zeroes to match standard CRC calculations.  This makes it a 
+   -- As written, this can be called N-times to implement CRC calculations, but requires an
+   -- a message augmented with zeroes to match standard CRC calculations.  This makes it a
    -- "nondirect" implementation.
    -------------------------------------------------------------------------------------------------
 
@@ -70,7 +71,7 @@ package body CrcPkg is
          for i in lfsr'range loop
             if poly(i) = '1' then
                if (i = 0) then
-                  retVar(i) := lfsr(lfsr'right) xor input;  
+                  retVar(i) := lfsr(lfsr'right) xor input;
                else
                   retVar(i) := lfsr(lfsr'right) xor lfsr(i-1);
                end if;
@@ -86,9 +87,9 @@ package body CrcPkg is
          for i in lfsr'range loop
             if poly(i) = '1' then
                if (i = 0) then
-                  retVar(i) := lfsr(lfsr'left) xor input;  
+                  retVar(i) := lfsr(lfsr'left) xor input;
                else
-                  retVar(i) := lfsr(lfsr'left) xor lfsr(i-1);               
+                  retVar(i) := lfsr(lfsr'left) xor lfsr(i-1);
                end if;
             else
                if (i = 0) then
@@ -101,15 +102,15 @@ package body CrcPkg is
       end if;
 
       return retVar;
-   end function;  
+   end function;
 
    -------------------------------------------------------------------------------------------------
-   -- Implements an lookup of CRC values for a given data byte.  This is used in many 
+   -- Implements an lookup of CRC values for a given data byte.  This is used in many
    -- "table driven" implementations of CRC.
    -- Supports both ascending or descending bit orders.
    -------------------------------------------------------------------------------------------------
 
-   function crcByteLookup (inByte : slv; constant poly : slv) return slv is 
+   function crcByteLookup (inByte : slv; constant poly : slv) return slv is
       variable retVar : slv(poly'range) := (others => '0');
    begin
       assert (inByte'high-inByte'low = 7) report "crcByteLookup() - input must be byte-sized" severity failure;
@@ -117,7 +118,7 @@ package body CrcPkg is
       if (inByte'ascending) then
          retVar(retVar'right-7 to retVar'right) := inByte;
          retVar(0 to retVar'right-8)            := (others => '0');
-      
+
          for b in 7 downto 0 loop
             if (retVar(retVar'right) = '1') then
                retVar := ('0' & retVar(0 to retVar'right-1)) xor poly;
@@ -125,7 +126,7 @@ package body CrcPkg is
                retVar := ('0' & retVar(0 to retVar'right-1));
             end if;
          end loop;
-               
+
       else
          retVar(retVar'left downto retVar'left-7) := inByte;
          retVar(retVar'left-8 downto 0)           := (others => '0');
@@ -140,12 +141,12 @@ package body CrcPkg is
       end if;
 
       return retVar;
- 
-   end function; 
+
+   end function;
 
    ---------------------------------------------------------
-   -- Parallel CRC implementations for various byte widths 
-   ---------------------------------------------------------   
+   -- Parallel CRC implementations for various byte widths
+   ---------------------------------------------------------
    function crc32Parallel1Byte (crcCur : slv(31 downto 0); data : slv(7 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
    begin
@@ -181,8 +182,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor crcCur(21) xor crcCur(27) xor crcCur(30) xor crcCur(31);
       retVar(30) := data(4) xor data(7) xor crcCur(22) xor crcCur(28) xor crcCur(31);
       retVar(31) := data(5) xor crcCur(23) xor crcCur(29);
-      return retVar;      
-   end function;   
+      return retVar;
+   end function;
 
    function crc32Parallel2Byte (crcCur : slv(31 downto 0); data : slv(15 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -219,8 +220,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor data(9) xor data(13) xor crcCur(13) xor crcCur(19) xor crcCur(22) xor crcCur(23) xor crcCur(25) xor crcCur(29);
       retVar(30) := data(4) xor data(7) xor data(8) xor data(10) xor data(14) xor crcCur(14) xor crcCur(20) xor crcCur(23) xor crcCur(24) xor crcCur(26) xor crcCur(30);
       retVar(31) := data(5) xor data(8) xor data(9) xor data(11) xor data(15) xor crcCur(15) xor crcCur(21) xor crcCur(24) xor crcCur(25) xor crcCur(27) xor crcCur(31);
-      return retVar;      
-   end function;   
+      return retVar;
+   end function;
 
    function crc32Parallel3Byte (crcCur : slv(31 downto 0); data : slv(23 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -257,8 +258,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor data(9) xor data(13) xor data(21) xor data(22) xor data(23) xor crcCur(5) xor crcCur(11) xor crcCur(14) xor crcCur(15) xor crcCur(17) xor crcCur(21) xor crcCur(29) xor crcCur(30) xor crcCur(31);
       retVar(30) := data(4) xor data(7) xor data(8) xor data(10) xor data(14) xor data(22) xor data(23) xor crcCur(6) xor crcCur(12) xor crcCur(15) xor crcCur(16) xor crcCur(18) xor crcCur(22) xor crcCur(30) xor crcCur(31);
       retVar(31) := data(5) xor data(8) xor data(9) xor data(11) xor data(15) xor data(23) xor crcCur(7) xor crcCur(13) xor crcCur(16) xor crcCur(17) xor crcCur(19) xor crcCur(23) xor crcCur(31);
-      return retVar;      
-   end function;   
+      return retVar;
+   end function;
 
    function crc32Parallel4Byte (crcCur : slv(31 downto 0); data : slv(31 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -295,8 +296,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor data(9) xor data(13) xor data(21) xor data(22) xor data(23) xor data(25) xor data(26) xor data(27) xor data(28) xor data(29) xor data(31) xor crcCur(3) xor crcCur(6) xor crcCur(7) xor crcCur(9) xor crcCur(13) xor crcCur(21) xor crcCur(22) xor crcCur(23) xor crcCur(25) xor crcCur(26) xor crcCur(27) xor crcCur(28) xor crcCur(29) xor crcCur(31);
       retVar(30) := data(4) xor data(7) xor data(8) xor data(10) xor data(14) xor data(22) xor data(23) xor data(24) xor data(26) xor data(27) xor data(28) xor data(29) xor data(30) xor crcCur(4) xor crcCur(7) xor crcCur(8) xor crcCur(10) xor crcCur(14) xor crcCur(22) xor crcCur(23) xor crcCur(24) xor crcCur(26) xor crcCur(27) xor crcCur(28) xor crcCur(29) xor crcCur(30);
       retVar(31) := data(5) xor data(8) xor data(9) xor data(11) xor data(15) xor data(23) xor data(24) xor data(25) xor data(27) xor data(28) xor data(29) xor data(30) xor data(31) xor crcCur(5) xor crcCur(8) xor crcCur(9) xor crcCur(11) xor crcCur(15) xor crcCur(23) xor crcCur(24) xor crcCur(25) xor crcCur(27) xor crcCur(28) xor crcCur(29) xor crcCur(30) xor crcCur(31);
-      return retVar;      
-   end function;   
+      return retVar;
+   end function;
 
    function crc32Parallel5Byte (crcCur : slv(31 downto 0); data : slv(39 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -333,8 +334,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor data(9) xor data(13) xor data(21) xor data(22) xor data(23) xor data(25) xor data(26) xor data(27) xor data(28) xor data(29) xor data(31) xor data(34) xor crcCur(1) xor crcCur(5) xor crcCur(13) xor crcCur(14) xor crcCur(15) xor crcCur(17) xor crcCur(18) xor crcCur(19) xor crcCur(20) xor crcCur(21) xor crcCur(23) xor crcCur(26);
       retVar(30) := data(4) xor data(7) xor data(8) xor data(10) xor data(14) xor data(22) xor data(23) xor data(24) xor data(26) xor data(27) xor data(28) xor data(29) xor data(30) xor data(32) xor data(35) xor crcCur(0) xor crcCur(2) xor crcCur(6) xor crcCur(14) xor crcCur(15) xor crcCur(16) xor crcCur(18) xor crcCur(19) xor crcCur(20) xor crcCur(21) xor crcCur(22) xor crcCur(24) xor crcCur(27);
       retVar(31) := data(5) xor data(8) xor data(9) xor data(11) xor data(15) xor data(23) xor data(24) xor data(25) xor data(27) xor data(28) xor data(29) xor data(30) xor data(31) xor data(33) xor data(36) xor crcCur(0) xor crcCur(1) xor crcCur(3) xor crcCur(7) xor crcCur(15) xor crcCur(16) xor crcCur(17) xor crcCur(19) xor crcCur(20) xor crcCur(21) xor crcCur(22) xor crcCur(23) xor crcCur(25) xor crcCur(28);
-      return retVar;      
-   end function;   
+      return retVar;
+   end function;
 
    function crc32Parallel6Byte (crcCur : slv(31 downto 0); data : slv(47 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -371,8 +372,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor data(9) xor data(13) xor data(21) xor data(22) xor data(23) xor data(25) xor data(26) xor data(27) xor data(28) xor data(29) xor data(31) xor data(34) xor data(41) xor data(42) xor data(44) xor data(45) xor data(47) xor crcCur(5) xor crcCur(6) xor crcCur(7) xor crcCur(9) xor crcCur(10) xor crcCur(11) xor crcCur(12) xor crcCur(13) xor crcCur(15) xor crcCur(18) xor crcCur(25) xor crcCur(26) xor crcCur(28) xor crcCur(29) xor crcCur(31);
       retVar(30) := data(4) xor data(7) xor data(8) xor data(10) xor data(14) xor data(22) xor data(23) xor data(24) xor data(26) xor data(27) xor data(28) xor data(29) xor data(30) xor data(32) xor data(35) xor data(42) xor data(43) xor data(45) xor data(46) xor crcCur(6) xor crcCur(7) xor crcCur(8) xor crcCur(10) xor crcCur(11) xor crcCur(12) xor crcCur(13) xor crcCur(14) xor crcCur(16) xor crcCur(19) xor crcCur(26) xor crcCur(27) xor crcCur(29) xor crcCur(30);
       retVar(31) := data(5) xor data(8) xor data(9) xor data(11) xor data(15) xor data(23) xor data(24) xor data(25) xor data(27) xor data(28) xor data(29) xor data(30) xor data(31) xor data(33) xor data(36) xor data(43) xor data(44) xor data(46) xor data(47) xor crcCur(7) xor crcCur(8) xor crcCur(9) xor crcCur(11) xor crcCur(12) xor crcCur(13) xor crcCur(14) xor crcCur(15) xor crcCur(17) xor crcCur(20) xor crcCur(27) xor crcCur(28) xor crcCur(30) xor crcCur(31);
-      return retVar;      
-   end function;   
+      return retVar;
+   end function;
 
    function crc32Parallel7Byte (crcCur : slv(31 downto 0); data : slv(55 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -409,8 +410,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor data(9) xor data(13) xor data(21) xor data(22) xor data(23) xor data(25) xor data(26) xor data(27) xor data(28) xor data(29) xor data(31) xor data(34) xor data(41) xor data(42) xor data(44) xor data(45) xor data(47) xor data(50) xor data(51) xor data(52) xor data(55) xor crcCur(1) xor crcCur(2) xor crcCur(3) xor crcCur(4) xor crcCur(5) xor crcCur(7) xor crcCur(10) xor crcCur(17) xor crcCur(18) xor crcCur(20) xor crcCur(21) xor crcCur(23) xor crcCur(26) xor crcCur(27) xor crcCur(28) xor crcCur(31);
       retVar(30) := data(4) xor data(7) xor data(8) xor data(10) xor data(14) xor data(22) xor data(23) xor data(24) xor data(26) xor data(27) xor data(28) xor data(29) xor data(30) xor data(32) xor data(35) xor data(42) xor data(43) xor data(45) xor data(46) xor data(48) xor data(51) xor data(52) xor data(53) xor crcCur(0) xor crcCur(2) xor crcCur(3) xor crcCur(4) xor crcCur(5) xor crcCur(6) xor crcCur(8) xor crcCur(11) xor crcCur(18) xor crcCur(19) xor crcCur(21) xor crcCur(22) xor crcCur(24) xor crcCur(27) xor crcCur(28) xor crcCur(29);
       retVar(31) := data(5) xor data(8) xor data(9) xor data(11) xor data(15) xor data(23) xor data(24) xor data(25) xor data(27) xor data(28) xor data(29) xor data(30) xor data(31) xor data(33) xor data(36) xor data(43) xor data(44) xor data(46) xor data(47) xor data(49) xor data(52) xor data(53) xor data(54) xor crcCur(0) xor crcCur(1) xor crcCur(3) xor crcCur(4) xor crcCur(5) xor crcCur(6) xor crcCur(7) xor crcCur(9) xor crcCur(12) xor crcCur(19) xor crcCur(20) xor crcCur(22) xor crcCur(23) xor crcCur(25) xor crcCur(28) xor crcCur(29) xor crcCur(30);
-      return retVar;      
-   end function;   
+      return retVar;
+   end function;
 
    function crc32Parallel8Byte (crcCur : slv(31 downto 0); data : slv(63 downto 0)) return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
@@ -447,8 +448,8 @@ package body CrcPkg is
       retVar(29) := data(3) xor data(6) xor data(7) xor data(9) xor data(13) xor data(21) xor data(22) xor data(23) xor data(25) xor data(26) xor data(27) xor data(28) xor data(29) xor data(31) xor data(34) xor data(41) xor data(42) xor data(44) xor data(45) xor data(47) xor data(50) xor data(51) xor data(52) xor data(55) xor data(57) xor data(58) xor data(60) xor data(62) xor data(63) xor crcCur(2) xor crcCur(9) xor crcCur(10) xor crcCur(12) xor crcCur(13) xor crcCur(15) xor crcCur(18) xor crcCur(19) xor crcCur(20) xor crcCur(23) xor crcCur(25) xor crcCur(26) xor crcCur(28) xor crcCur(30) xor crcCur(31);
       retVar(30) := data(4) xor data(7) xor data(8) xor data(10) xor data(14) xor data(22) xor data(23) xor data(24) xor data(26) xor data(27) xor data(28) xor data(29) xor data(30) xor data(32) xor data(35) xor data(42) xor data(43) xor data(45) xor data(46) xor data(48) xor data(51) xor data(52) xor data(53) xor data(56) xor data(58) xor data(59) xor data(61) xor data(63) xor crcCur(0) xor crcCur(3) xor crcCur(10) xor crcCur(11) xor crcCur(13) xor crcCur(14) xor crcCur(16) xor crcCur(19) xor crcCur(20) xor crcCur(21) xor crcCur(24) xor crcCur(26) xor crcCur(27) xor crcCur(29) xor crcCur(31);
       retVar(31) := data(5) xor data(8) xor data(9) xor data(11) xor data(15) xor data(23) xor data(24) xor data(25) xor data(27) xor data(28) xor data(29) xor data(30) xor data(31) xor data(33) xor data(36) xor data(43) xor data(44) xor data(46) xor data(47) xor data(49) xor data(52) xor data(53) xor data(54) xor data(57) xor data(59) xor data(60) xor data(62) xor crcCur(1) xor crcCur(4) xor crcCur(11) xor crcCur(12) xor crcCur(14) xor crcCur(15) xor crcCur(17) xor crcCur(20) xor crcCur(21) xor crcCur(22) xor crcCur(25) xor crcCur(27) xor crcCur(28) xor crcCur(30);
-      return retVar;      
-   end function;      
+      return retVar;
+   end function;
 
 end package body CrcPkg;
 

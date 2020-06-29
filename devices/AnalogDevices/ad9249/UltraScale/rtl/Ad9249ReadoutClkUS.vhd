@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249ReadoutClkUS.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -8,11 +7,11 @@
 -- Designed specifically for Xilinx 7 series FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,10 +23,12 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Ad9249Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Ad9249Pkg.all;
 
 entity Ad9249ReadoutClkUS is
    generic (
@@ -46,7 +47,7 @@ entity Ad9249ReadoutClkUS is
       adcClkRst           : in  sl;
       -- Signals to/from idelayCtrl
       idelayCtrlRdy       : in  sl;
-      cmt_locked          : out sl;     -- MMCM/PLL locked if used  
+      cmt_locked          : out sl;     -- MMCM/PLL locked if used
       -- Serial Data from ADC
       dClkP               : in  sl;     -- Data clock
       dClkN               : in  sl;
@@ -78,7 +79,7 @@ architecture rtl of Ad9249ReadoutClkUS is
    type AdcClkRegType is record
       state            : StateType;
       waitStateCnt     : slv(3 downto 0);
-      -- idelay signals 
+      -- idelay signals
       masterCntValueIn : slv(8 downto 0);
       slaveCntValueIn  : slv(8 downto 0);
       masterCntValue   : slv(8 downto 0);
@@ -260,9 +261,9 @@ begin
          );
 
    ----------------------------------------------------------------------------
-   -- idelay3 
+   -- idelay3
    ----------------------------------------------------------------------------
-   U_IDELAYE3_0 : IDELAYE3
+   U_IDELAYE3_0 : entity surf.Idelaye3Wrapper
       generic map (
          CASCADE          => "NONE",    -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
          DELAY_FORMAT     => "TIME",    -- Units of the DELAY_VALUE (COUNT, TIME)
@@ -294,7 +295,7 @@ begin
          RST         => axilRst         -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
          );
 
-   U_IDELAYE3_1 : IDELAYE3
+   U_IDELAYE3_1 : entity surf.Idelaye3Wrapper
       generic map (
          CASCADE          => "NONE",
          DELAY_FORMAT     => "TIME",
@@ -377,7 +378,7 @@ begin
          );
 
    -----------------------------------------------------------------------------
-   -- custom logic 
+   -- custom logic
    -----------------------------------------------------------------------------
    adcComb : process (adcR, loadDelay, masterCntValue, slaveCntValue) is
       variable v : AdcClkRegType;

@@ -15,17 +15,16 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity:      I2cMaster
--- File:        I2cMaster.vhd
 -- Author:      Jan Andersson - Gaisler Research
 -- Contact:     support@gaisler.com
 -- Description:
 --
 --         Generic interface to OpenCores I2C-master. This is a wrapper
 --         that instantiates the byte- and bit-controller of the OpenCores I2C
---         master (OC core developed by Richard Herveille, richard@asics.ws). 
+--         master (OC core developed by Richard Herveille, richard@asics.ws).
 --
 -- Modifications:
 --   10/2012 - Ben Reese <bareese@slac.stanford.edu>
@@ -40,8 +39,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity I2cMaster is
    generic (
@@ -69,7 +70,7 @@ architecture rtl of I2cMaster is
    -----------------------------------------------------------------------------
 
    -----------------------------------------------------------------------------
-   -- Types 
+   -- Types
    -----------------------------------------------------------------------------
    -- i2c_master_byte_ctrl IO
    type ByteCtrlInType is record
@@ -241,7 +242,7 @@ begin
             end if;
             v.state := WAIT_ADDR_ACK_S;
 
-            
+
          when WAIT_ADDR_ACK_S =>
             if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
                if (byteCtrlOut.ackOut = '0') then  -- Slave ack'd the transfer
@@ -269,7 +270,7 @@ begin
                end if;
             end if;
 
-            
+
          when READ_S =>
             if (r.i2cMasterOut.rdValid = '0') then  -- Previous byte has been ack'd
                v.byteCtrlIn.read  := '1';
@@ -329,7 +330,7 @@ begin
                   v.state                 := WAIT_TXN_REQ_S;
                end if;
             end if;
-            
+
          when others => v.state := WAIT_TXN_REQ_S;
       end case;
 

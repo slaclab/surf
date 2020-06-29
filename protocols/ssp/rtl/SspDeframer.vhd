@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : SspDeframer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
@@ -7,11 +6,11 @@
 -- module should be attached to an 8b10b decoder.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,7 +19,8 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SspDeframer is
 
@@ -37,19 +37,22 @@ entity SspDeframer is
       SSP_EOF_CODE_G  : slv;
       SSP_EOF_K_G     : slv);
    port (
+      -- Clock and Reset
       clk      : in  sl;
       rst      : in  sl := RST_POLARITY_G;
+      -- Input Interface
       dataKIn  : in  slv(K_SIZE_G-1 downto 0);
       dataIn   : in  slv(WORD_SIZE_G-1 downto 0);
       validIn  : in  sl;
       decErrIn : in  sl := '0';
+      dispErrIn: in  sl := '0'; -- Unused
+      -- Output Interface
       dataOut  : out slv(WORD_SIZE_G-1 downto 0);
       validOut : out sl;
+      errorOut : out sl;
       sof      : out sl;
       eof      : out sl;
       eofe     : out sl);
-
-
 end entity SspDeframer;
 
 architecture rtl of SspDeframer is
@@ -70,6 +73,7 @@ architecture rtl of SspDeframer is
       -- Output registers
       dataOut  : slv(WORD_SIZE_G-1 downto 0);
       validOut : sl;
+      errorOut : sl;
       sof      : sl;
       eof      : sl;
       eofe     : sl;
@@ -85,6 +89,7 @@ architecture rtl of SspDeframer is
       iEofe     => '0',
       dataOut   => (others => '0'),
       validOut  => '0',
+      errorOut  => '0',
       sof       => '0',
       eof       => '0',
       eofe      => '0');
@@ -99,8 +104,7 @@ begin
    begin
       v := r;
 
---      v.iDataOut := dataIn;
---      v.iValidOut := '0';
+      v.errorOut := '0';
 
       if (validIn = '1') then
 
@@ -130,7 +134,10 @@ begin
                   v.iEof      := '1';
                   v.iEofe     := '1';
                   v.iValidOut := '1';
+                  v.errorOut  := '1';
                end if;
+            else
+               v.errorOut := '1';
             end if;
 
          elsif (r.state = WAIT_EOF_S) then
@@ -163,13 +170,15 @@ begin
                   v.iValidOut := '0';
                   v.iEof      := '1';
                   v.iEofe     := '1';
+                  v.errorOut  := '1';
                   v.state     := WAIT_SOF_S;
                end if;
 
             end if;
 
             if (decErrIn = '1') then
-               v.iEofe := '1';
+               v.iEofe    := '1';
+               v.errorOut := '1';
             end if;
 
          end if;
@@ -197,6 +206,7 @@ begin
       rin      <= v;
       dataOut  <= r.dataOut;
       validOut <= r.validOut;
+      errorOut <= r.errorOut;
       sof      <= r.sof;
       eof      <= r.eof;
       eofe     <= r.eofe;

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStreamPackerizerV0 Protocol: https://confluence.slac.stanford.edu/x/1oyfD
 -------------------------------------------------------------------------------
--- File       : AxiStreamDepacketizer
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
@@ -10,11 +9,11 @@
 --    Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,9 +22,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamDepacketizer is
 
@@ -35,7 +36,7 @@ entity AxiStreamDepacketizer is
       OUTPUT_PIPE_STAGES_G : integer := 0);
 
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axisClk : in sl;
       axisRst : in sl;
 
@@ -106,7 +107,7 @@ begin
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    -- Input pipeline
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Input : entity work.AxiStreamPipeline
+   U_AxiStreamPipeline_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -121,7 +122,7 @@ begin
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    -- Output pipeline
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   U_AxiStreamPipeline_Output : entity work.AxiStreamPipeline
+   U_AxiStreamPipeline_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
@@ -197,18 +198,18 @@ begin
                   v.packetNumber := (others => '0');
                   -- Check for errors
                   if ((r.startup = '0' and inputAxisMaster.tData(15 downto 4) /= r.frameNumber+1) or  -- not first value after startup and misalignment in frame number
-                      inputAxisMaster.tData(39 downto 16) /= 0) then  -- packet number != 0 
+                      inputAxisMaster.tData(39 downto 16) /= 0) then  -- packet number != 0
                      -- Next state
                      v.state := BLEED_S;  -- Error - Missing frames
                   end if;
-               -- Else this is a continuation 
+               -- Else this is a continuation
                else
                   -- Update local copy of packet number
                   v.packetNumber := inputAxisMaster.tData(39 downto 16);
                   -- Check for errors
                   if (inputAxisMaster.tData(15 downto 4) /= r.frameNumber or  -- new frame number != local copy of frame number
                       inputAxisMaster.tData(39 downto 16) /= r.packetNumber+1) then  -- packet number increment by 1 with respect to local copy of packet number
-                     -- Terminate the packet 
+                     -- Terminate the packet
                      v.outputAxisMaster(1).tvalid := '1';
                      v.outputAxisMaster(1).tlast  := '1';
                      -- Set the EOFE flag

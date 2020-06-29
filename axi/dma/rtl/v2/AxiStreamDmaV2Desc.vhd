@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaV2Desc.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Descriptor manager for AXI DMA read and write engines.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,11 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiDmaPkg.all;
-use work.ArbiterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiDmaPkg.all;
+use surf.ArbiterPkg.all;
 
 entity AxiStreamDmaV2Desc is
    generic (
@@ -36,9 +37,9 @@ entity AxiStreamDmaV2Desc is
       AXIL_BASE_ADDR_G : slv(31 downto 0) := x"00000000";
 
       -- Configuration of AXI bus, must be 64 bits (or wider)
-      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C;
+      AXI_CONFIG_G : AxiConfigType;
 
-      -- Number of descriptor entries in write FIFO and return ring buffers 
+      -- Number of descriptor entries in write FIFO and return ring buffers
       DESC_AWIDTH_G : integer range 4 to 32 := 12;
 
       -- Choose between one-clock arbitration for return descriptors or count and check selection
@@ -173,6 +174,9 @@ architecture rtl of AxiStreamDmaV2Desc is
       intReqCount : slv(31 downto 0);
       interrupt   : sl;
 
+      intHoldoff      : slv(15 downto 0);
+      intHoldoffCount : slv(15 downto 0);
+
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -234,7 +238,9 @@ architecture rtl of AxiStreamDmaV2Desc is
       rdMemAddr       => (others => '0'),
       intReqEn        => '0',
       intReqCount     => (others => '0'),
-      interrupt       => '0');
+      interrupt       => '0',
+      intHoldoff      => toSlv(10000,16),  -- ~20 kHz
+      intHoldoffCount => (others => '0') );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -263,7 +269,7 @@ begin
    -- Write Free List FIFOs
    -----------------------------------------
    U_DescGen : for i in 0 to WR_FIFO_CNT_C-1 generate
-      U_DescFifo : entity work.Fifo
+      U_DescFifo : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             GEN_SYNC_FIFO_G => true,
@@ -287,7 +293,7 @@ begin
    -- Read Transaction FIFOs
    -----------------------------------------
    U_RdFifoGen : for i in 0 to RD_FIFO_CNT_C-1 generate
-      U_RdFifo : entity work.Fifo
+      U_RdFifo : entity surf.Fifo
          generic map (
             TPD_G           => TPD_G,
             GEN_SYNC_FIFO_G => true,
@@ -312,7 +318,7 @@ begin
    -----------------------------------------
 
    -- Check for invalid count
-   U_DspComparator : entity work.DspComparator
+   U_DspComparator : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -324,7 +330,7 @@ begin
          obValid => intCompValid,
          ls      => invalidCount);  --  (a <  b) <--> r.intAckCount > r.intReqCount
 
-   U_DspSub : entity work.DspAddSub
+   U_DspSub : entity surf.DspAddSub
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -377,7 +383,7 @@ begin
       axiSlaveRegister(regCon, x"000", 0, v.enable);
       axiSlaveRegisterR(regCon, x"000", 8, r.enableCnt);  -- Count the number of times enable transitions from 0->1
       axiSlaveRegisterR(regCon, x"000", 16, '1');  -- Legacy DESC_128_EN_C constant (always 0x1 now)
-      axiSlaveRegisterR(regCon, x"000", 24, toSlv(2, 8));  -- Version 2 = 2, Version1 = 0
+      axiSlaveRegisterR(regCon, x"000", 24, toSlv(3, 8));  -- Version Number for aes-stream-driver to case on
       axiSlaveRegister(regCon, x"004", 0, v.intEnable);
       axiSlaveRegister(regCon, x"008", 0, v.contEn);
       axiSlaveRegister(regCon, x"00C", 0, v.dropEn);
@@ -427,6 +433,8 @@ begin
       axiWrDetect(regCon, x"070", v.wrFifoWr(1));
 
       axiSlaveRegister(regCon, x"080", 0, v.forceInt);
+
+      axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
 
       -- End transaction block
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -493,7 +501,7 @@ begin
                   v.wrReqCnt := r.wrReqCnt + 1;
                end if;
 
-               -- Check for valid 
+               -- Check for valid
                if (wrReqList(r.wrReqCnt) = '1') then
                   v.wrReqValid := '1';
                   v.wrReqNum   := toSlv(r.wrReqCnt, CHAN_SIZE_C);
@@ -589,7 +597,7 @@ begin
                      v.descRetCnt := r.descRetCnt + 1;
                   end if;
 
-                  -- Check for valid 
+                  -- Check for valid
                   if (v.descRetList(r.descRetCnt) = '1') then
                      descRetValid := '1';
                      v.descRetNum := toSlv(r.descRetCnt, RET_SIZE_C);
@@ -687,7 +695,7 @@ begin
       end loop;
 
       -- Drive interrupt, avoid false firings during ack
-      if (r.intReqCount /= 0 or r.forceInt = '1') and r.intSwAckReq = '0' then
+      if ((r.intReqCount /= 0 and r.intHoldoffCount > r.intHoldoff) or r.forceInt = '1') and r.intSwAckReq = '0' then
          v.interrupt := r.intEnable;
       else
          v.interrupt := '0';
@@ -721,6 +729,12 @@ begin
          v.intReqCount := (others => '0');
          v.interrupt   := '0';
          v.forceInt    := '0';
+      end if;
+
+      if r.intSwAckReq = '1' then
+        v.intHoldoffCount := (others=>'0');
+      elsif uAnd(r.intHoldoffCount)='0' then
+        v.intHoldoffCount := r.intHoldoffCount+1;
       end if;
 
       ----------------------------------------------------------
@@ -767,7 +781,7 @@ begin
       end if;
 
       ----------------------------------------------------------
-      -- Outputs   
+      -- Outputs
       ----------------------------------------------------------
 
       axilReadSlave  <= r.axilReadSlave;
@@ -793,12 +807,12 @@ begin
          end if;
       end loop;
 
-      -- Reset      
+      -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;

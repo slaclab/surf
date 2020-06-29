@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : ClinkUart.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- CameraLink UART RX/TX
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,15 +17,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity ClinkUart is
    generic (
       TPD_G              : time                := 1 ns;
       UART_READY_EN_G    : boolean             := true;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      UART_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and reset, 200Mhz
       intClk      : in  sl;
@@ -108,7 +109,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Transmit FIFO
    -------------------------------------------------------------------------------------------------
-   U_TxFifo : entity work.AxiStreamFifoV2
+   U_TxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,
@@ -127,7 +128,7 @@ begin
          mAxisMaster => txMasters(0),
          mAxisSlave  => txSlaves(0));
 
-   U_TxThrottle : entity work.ClinkUartThrottle
+   U_TxThrottle : entity surf.ClinkUartThrottle
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -145,13 +146,13 @@ begin
    -------------------------------------------------------------------------------------------------
    -- UART transmitter
    -------------------------------------------------------------------------------------------------
-   U_UartTx_1 : entity work.UartTx
+   U_UartTx_1 : entity surf.UartTx
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => intClk,                          -- [in]
          rst     => intRst,                          -- [in]
-         baud16x => r.clkEn,                         -- [in]
+         clkEn   => r.clkEn,                         -- [in]
          wrData  => txMasters(1).tData(7 downto 0),  -- [in]
          wrValid => txMasters(1).tValid,             -- [in]
          wrReady => txSlaves(1).tReady,              -- [out]
@@ -160,13 +161,13 @@ begin
    -------------------------------------------------------------------------------------------------
    -- UART Receiver
    -------------------------------------------------------------------------------------------------
-   U_UartRx_1 : entity work.UartRx
+   U_UartRx_1 : entity surf.UartRx
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => intClk,             -- [in]
          rst     => intRst,             -- [in]
-         baud16x => r.clkEn,            -- [in]
+         clkEn   => r.clkEn,            -- [in]
          rdData  => rdData,             -- [out]
          rdValid => rdValid,            -- [out]
          rdReady => '1',                -- [in]
@@ -192,7 +193,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Receive FIFO
    -------------------------------------------------------------------------------------------------
-   U_RxFifo : entity work.AxiStreamFifoV2
+   U_RxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,

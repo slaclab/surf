@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Example PGP 3.125 Gbps front end wrapper
@@ -9,21 +8,23 @@
 -- Note: Default uses 125 MHz reference clock to generate 3.125 Gbps PGP link
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -98,17 +99,17 @@ entity Pgp2bGtx7VarLatWrapper is
       gtTxN           : out sl;
       gtRxP           : in  sl;
       gtRxN           : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);  
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end Pgp2bGtx7VarLatWrapper;
 
 architecture mapping of Pgp2bGtx7VarLatWrapper is
@@ -133,22 +134,22 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => refClkDiv2,
-         O     => refClk);    
+         O     => refClk);
 
    BUFG_Inst : BUFG
       port map (
          I => refClkDiv2,
-         O => stableClock);           
+         O => stableClock);
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map(
-         TPD_G => TPD_G)   
+         TPD_G => TPD_G)
       port map (
          clk      => stableClock,
          asyncRst => extRst,
-         syncRst  => extRstSync);          
+         syncRst  => extRstSync);
 
-   ClockManager7_Inst : entity work.ClockManager7
+   ClockManager7_Inst : entity surf.ClockManager7
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
@@ -166,9 +167,9 @@ begin
          clkIn     => stableClock,
          rstIn     => extRstSync,
          clkOut(0) => pgpClock,
-         rstOut(0) => pgpReset); 
+         rstOut(0) => pgpReset);
 
-   Pgp2bGtx7VarLat_Inst : entity work.Pgp2bGtx7VarLat
+   Pgp2bGtx7VarLat_Inst : entity surf.Pgp2bGtx7VarLat
       generic map (
          TPD_G             => TPD_G,
          -- CPLL Configurations
@@ -194,7 +195,7 @@ begin
          TX_POLARITY_G     => TX_POLARITY_G,
          RX_POLARITY_G     => RX_POLARITY_G,
          TX_ENABLE_G       => TX_ENABLE_G,
-         RX_ENABLE_G       => RX_ENABLE_G)     
+         RX_ENABLE_G       => RX_ENABLE_G)
       port map (
          -- GT Clocking
          stableClk        => stableClock,
@@ -234,16 +235,16 @@ begin
          -- Frame RX Interface
          pgpRxMasters     => pgpRxMasters,
          pgpRxCtrl        => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk          => axilClk,
          axilRst          => axilRst,
          axilReadMaster   => axilReadMaster,
          axilReadSlave    => axilReadSlave,
          axilWriteMaster  => axilWriteMaster,
-         axilWriteSlave   => axilWriteSlave);                 
+         axilWriteSlave   => axilWriteSlave);
 
 end mapping;

@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaRead.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -7,11 +6,11 @@
 -- interface.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,17 +19,19 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaRead is
    generic (
       TPD_G           : time                := 1 ns;
       AXIS_READY_EN_G : boolean             := false;
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G    : AxiConfigType       := AXI_CONFIG_INIT_C;
+      AXIS_CONFIG_G   : AxiStreamConfigType;
+      AXI_CONFIG_G    : AxiConfigType;
       AXI_BURST_G     : slv(1 downto 0)     := "01";
       AXI_CACHE_G     : slv(3 downto 0)     := "1111";
       SW_CACHE_EN_G   : boolean             := false;
@@ -41,11 +42,11 @@ entity AxiStreamDmaRead is
       -- Clock/Reset
       axiClk        : in  sl;
       axiRst        : in  sl;
-      -- DMA Control Interface 
+      -- DMA Control Interface
       dmaReq        : in  AxiReadDmaReqType;
       dmaAck        : out AxiReadDmaAckType;
       swCache       : in  slv(3 downto 0) := "0000";
-      -- Streaming Interface 
+      -- Streaming Interface
       axisMaster    : out AxiStreamMasterType;
       axisSlave     : in  AxiStreamSlaveType;
       axisCtrl      : in  AxiStreamCtrlType;
@@ -134,7 +135,7 @@ begin
       variable reqLen   : natural;
       variable pending  : boolean;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Set cache value if enabled in software
@@ -201,7 +202,7 @@ begin
                v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
                v.shift(ADDR_LSB_C-1 downto 0)          := dmaReq.address(ADDR_LSB_C-1 downto 0);
             end if;
-            -- Check for DMA request 
+            -- Check for DMA request
             if (dmaReq.request = '1') then
                -- Reset the flags and counters
                v.dmaAck.readError  := '0';
@@ -221,7 +222,7 @@ begin
          when FIRST_S =>
             -- Check if ready to make memory request
             if (r.rMaster.arvalid = '0') then
-               -- Set the memory address 
+               -- Set the memory address
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Determine transfer size to align address to 16-transfer boundaries
                -- This initial alignment will ensure that we never cross a 4k boundary
@@ -234,7 +235,7 @@ begin
                   end if;
                end if;
                -- Update the Protection control
-               v.rMaster.arprot := r.dmaReq.prot;               
+               v.rMaster.arprot := r.dmaReq.prot;
                -- There is enough room in the FIFO for a burst
                if (pause = '0') then
                   -- Set the flag
@@ -255,7 +256,7 @@ begin
          when NEXT_S =>
             -- Check if ready to make memory request
             if (r.rMaster.arvalid = '0') then
-               -- Set the memory address          
+               -- Set the memory address
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Bursts after the FIRST are guaranteed to be aligned
                v.rMaster.arlen                                        := ARLEN_C;
@@ -264,11 +265,11 @@ begin
                   v.rMaster.arlen := resize(r.reqSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
                end if;
                -- Check for the following:
-               --    1) There is enough room in the FIFO for a burst 
+               --    1) There is enough room in the FIFO for a burst
                --    2) pending flag
                --    3) Last transaction already completed
                if (pause = '0') and (pending = false) and (r.reqCnt < r.dmaReq.size) then
-                  -- Set the flag            
+                  -- Set the flag
                   v.rMaster.arvalid                       := '1';
                   -- Update the request size
                   reqLen                                  := DATA_BYTES_C*(conv_integer(v.rMaster.arlen) + 1);
@@ -292,7 +293,7 @@ begin
          when MOVE_S =>
             -- Check if ready to move data
             if (v.sMaster.tValid = '0') and (axiReadSlave.rvalid = '1') then
-               -- Accept the data 
+               -- Accept the data
                v.rMaster.rready                             := '1';
                -- Move the data
                v.sMaster.tValid                             := '1';
@@ -323,7 +324,7 @@ begin
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + readSize;
                end if;
-               -- Check for completion 
+               -- Check for completion
                if (v.size = 0) then
                   -- Terminate the frame
                   v.sMaster.tLast := '1';
@@ -351,7 +352,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
-            -- Check for ACK completion 
+            -- Check for ACK completion
             if (r.dmaAck.done = '0')then
                -- Reset the flag
                v.leftovers := '0';
@@ -367,7 +368,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when BLOWOFF_S =>
-            -- Blowoff the data 
+            -- Blowoff the data
             v.rMaster.rready := '1';
             -- Check for last transfer
             if (axiReadSlave.rvalid = '1') and (axiReadSlave.rlast = '1') then
@@ -390,15 +391,15 @@ begin
       -- Combinatorial outputs before the reset
       axiReadMaster.rready <= v.rMaster.rready;
 
-      -- Reset      
+      -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs         
+      -- Outputs
       dmaAck                 <= r.dmaAck;
       axiReadMaster.arvalid  <= r.rMaster.arvalid;
       axiReadMaster.araddr   <= r.rMaster.araddr;
@@ -421,7 +422,7 @@ begin
       end if;
    end process seq;
 
-   U_Pipeline : entity work.AxiStreamPipeline
+   U_Pipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
@@ -433,7 +434,7 @@ begin
          mAxisMaster => pipeMaster,
          mAxisSlave  => pipeSlave);
 
-   U_AxiStreamShift : entity work.AxiStreamShift
+   U_AxiStreamShift : entity surf.AxiStreamShift
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,

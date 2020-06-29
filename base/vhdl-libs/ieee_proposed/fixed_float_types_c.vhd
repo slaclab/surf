@@ -16,9 +16,9 @@
 package fixed_float_types is
 
   -- Types used for generics of fixed_generic_pkg
-  
+
   type fixed_round_style_type is (fixed_round, fixed_truncate);
-  
+
   type fixed_overflow_style_type is (fixed_saturate, fixed_wrap);
 
   -- Type used for generics of float_generic_pkg

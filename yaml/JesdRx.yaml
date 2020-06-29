@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -27,8 +27,8 @@ JesdRx: &JesdRx
       sizeBits: *numRxLanes
       mode: RW
       description: "Enable mask. Example: 0x3F Enable ln0 to ln5."
-    #########################################################    
-    SysrefDelay: 
+    #########################################################
+    SysrefDelay:
       at:
         offset: 0x04
       class: IntField
@@ -36,8 +36,8 @@ JesdRx: &JesdRx
       sizeBits: 8
       mode: RW
       description: "Sets the system reference delay in clock cycles. Use if you want to reduce the latency (The latency is indicated by ElBuffLatency status). "
-    #########################################################    
-    SubClass:    
+    #########################################################
+    SubClass:
       at:
         offset: 0x10
       class: IntField
@@ -46,8 +46,8 @@ JesdRx: &JesdRx
       lsBit: 0
       mode: RW
       description: "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency."
-    #########################################################    
-    ReplaceEnable:  
+    #########################################################
+    ReplaceEnable:
       at:
         offset: 0x10
       class: IntField
@@ -63,8 +63,8 @@ JesdRx: &JesdRx
           class: Enum
           value: 1
       description: "ReplaceEnable. Replace the control characters with data. (Should be 1 use 0 only for debug)."
-    #########################################################    
-    ResetGTs:  
+    #########################################################
+    ResetGTs:
       at:
         offset: 0x10
       class: IntField
@@ -73,8 +73,8 @@ JesdRx: &JesdRx
       lsBit: 2
       mode: RW
       description: "ResetGTs. Request reset of the GT modules."
-    #########################################################     
-    ClearErrors:   
+    #########################################################
+    ClearErrors:
       at:
         offset: 0x10
       class: IntField
@@ -83,8 +83,8 @@ JesdRx: &JesdRx
       lsBit: 3
       mode: RW
       description: "Clear Jesd Errors and reset the status counters."
-    #########################################################    
-    InvertSync: 
+    #########################################################
+    InvertSync:
       at:
         offset: 0x10
       class: IntField
@@ -100,8 +100,8 @@ JesdRx: &JesdRx
           class: Enum
           value: 1
       description: "Invert Sync. Sync output has to be inverted in some systems depending on signal polarities on the PCB."
-    #########################################################    
-    ScrambleEnable: 
+    #########################################################
+    ScrambleEnable:
       at:
         offset: 0x10
       class: IntField
@@ -118,7 +118,7 @@ JesdRx: &JesdRx
           value: 1
       description: "ScrambleEnable. Enable data scrambling (More info in Jesd204b standard)."
     #########################################################
-    LinkErrMask:   
+    LinkErrMask:
       at:
         offset: 0x14
       class: IntField
@@ -127,7 +127,7 @@ JesdRx: &JesdRx
       mode: RW
       description: "Mask Enable the errors that are required to brake the link. bit 5-0: positionErr - s_bufOvf - s_bufUnf - dispErr - decErr - s_alignErr"
     #########################################################
-    InvertAdcData:   
+    InvertAdcData:
       at:
         offset: 0x18
       class: IntField
@@ -136,32 +136,32 @@ JesdRx: &JesdRx
       mode: RW
       description: "Mask Enable the ADC data inversion. 1-Inverted, 0-normal."
     #########################################################
-    PowerDown:   
+    PowerDown:
       at:
         offset: 0x24
       class: IntField
       name: PowerDown
       sizeBits: *numRxLanes
       mode: RW
-      description: "Power Down Mask 1-PowerDown, 0-normal."            
+      description: "Power Down Mask 1-PowerDown, 0-normal."
     #########################################################
-    SysRefPeriodmin:   
+    SysRefPeriodmin:
       at:
         offset: 0x28
       class: IntField
       name: SysRefPeriodmin
       sizeBits: 16
       mode: RO
-      description: "SysRef Period min"   
+      description: "SysRef Period min"
     #########################################################
-    SysRefPeriodmax:   
+    SysRefPeriodmax:
       at:
         offset: 0x2A
       class: IntField
       name: SysRefPeriodmax
       sizeBits: 16
       mode: RO
-      description: "SysRef Period max"    
+      description: "SysRef Period max"
     #########################################################
     GTReady:
       at:
@@ -174,8 +174,8 @@ JesdRx: &JesdRx
       lsBit: 0
       mode: RO
       description: "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data."
-    #########################################################    
-    DataValid:        
+    #########################################################
+    DataValid:
       at:
         offset: 0x040
         stride: 4
@@ -186,8 +186,8 @@ JesdRx: &JesdRx
       lsBit: 1
       mode: RO
       description: "Jesd Data Valid. Goes high after the code synchronisation and ILAS sequence is complete (More info in Jesd204b standard)."
-    #########################################################     
-    AlignErr:       
+    #########################################################
+    AlignErr:
       at:
         offset: 0x040
         stride: 4
@@ -198,8 +198,8 @@ JesdRx: &JesdRx
       lsBit: 2
       mode: RO
       description: "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronisation."
-    #########################################################    
-    nSync:        
+    #########################################################
+    nSync:
       at:
         offset: 0x040
         stride: 4
@@ -210,8 +210,8 @@ JesdRx: &JesdRx
       lsBit: 3
       mode: RO
       description: "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronisation has been completed."
-    #########################################################    
-    RxBuffUfl:        
+    #########################################################
+    RxBuffUfl:
       at:
         offset: 0x040
         stride: 4
@@ -222,8 +222,8 @@ JesdRx: &JesdRx
       lsBit: 4
       mode: RO
       description: "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronisation."
-    #########################################################    
-    RxBuffOfl:        
+    #########################################################
+    RxBuffOfl:
       at:
         offset: 0x040
         stride: 4
@@ -234,8 +234,8 @@ JesdRx: &JesdRx
       lsBit: 5
       mode: RO
       description: "Jesd elastic buffer overflow. This error will trigger JESD re-synchronisation."
-    #########################################################    
-    PositionErr:        
+    #########################################################
+    PositionErr:
       at:
         offset: 0x040
         stride: 4
@@ -246,8 +246,8 @@ JesdRx: &JesdRx
       lsBit: 6
       mode: RO
       description: "The position of K28.5 character during code group synchronisation is wrong. This error will trigger JESD re-synchronisation."
-    #########################################################    
-    RxEnabled:        
+    #########################################################
+    RxEnabled:
       at:
         offset: 0x040
         stride: 4
@@ -258,8 +258,8 @@ JesdRx: &JesdRx
       lsBit: 7
       mode: RO
       description: "Rx Lane Enabled. Indicates if the lane had been enabled in configuration."
-    #########################################################     
-    SysRefDetected:       
+    #########################################################
+    SysRefDetected:
       at:
         offset: 0x041
         stride: 4
@@ -270,8 +270,8 @@ JesdRx: &JesdRx
       lsBit: 0
       mode: RO
       description: "System Reference input has been Detected."
-    #########################################################    
-    CommaDetected:        
+    #########################################################
+    CommaDetected:
       at:
         offset: 0x041
         stride: 4
@@ -282,8 +282,8 @@ JesdRx: &JesdRx
       lsBit: 1
       mode: RO
       description: "The K28.5 characters detected in the serial stream. "
-    #########################################################     
-    DisparityErr:       
+    #########################################################
+    DisparityErr:
       at:
         offset: 0x041
         stride: 4
@@ -294,8 +294,8 @@ JesdRx: &JesdRx
       lsBit: 2
       mode: RO
       description:  "Latched High when the data byte on RXDATA arrives with the wrong disparity. Indicates bad serial connection (Check HW)."
-    #########################################################    
-    NotInTableErr:        
+    #########################################################
+    NotInTableErr:
       at:
         offset: 0x041
         stride: 4
@@ -306,8 +306,8 @@ JesdRx: &JesdRx
       lsBit: 6
       mode: RO
       description: "NotInTableErr. When GT decoder received s 10-bit character that cannot be mapped into a valid 8B/10B character. Indicates bad serial connection (Check HW)."
-    #########################################################    
-    ElBuffLatency:        
+    #########################################################
+    ElBuffLatency:
       at:
         offset: 0x042
         stride: 4
@@ -318,8 +318,8 @@ JesdRx: &JesdRx
       lsBit: 2
       mode: RO
       description: "Jesd204b elastic buffer latency in c-c. Can be adjusted by Sysref delay."
-    ########################################################     
-    ThresholdLow:     
+    ########################################################
+    ThresholdLow:
       at:
         offset: 0xC0
         stride: 4
@@ -329,8 +329,8 @@ JesdRx: &JesdRx
       sizeBits: 16
       mode: RW
       description: "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data."
-    #########################################################    
-    ThresholdHigh:   
+    #########################################################
+    ThresholdHigh:
       at:
         offset: 0xC2
         stride: 4
@@ -340,8 +340,8 @@ JesdRx: &JesdRx
       sizeBits: 16
       mode: RW
       description: "Threshold_High. Debug funtionality. Threshold for generating a digital signal from the ADC data."
-    #########################################################    
-    StatusValidCnt:   
+    #########################################################
+    StatusValidCnt:
       at:
         offset: 0x100
         stride: 4
@@ -351,8 +351,8 @@ JesdRx: &JesdRx
       sizeBits: 32
       mode: RO
       description: "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-syncronisations."
-    ######################################################### 
-    RawData:   
+    #########################################################
+    RawData:
       at:
         offset: 0x140
         stride: 4
@@ -362,7 +362,7 @@ JesdRx: &JesdRx
       sizeBits: 32
       mode: RO
       description: "Raw data from GT."
-    #########################################################  
+    #########################################################
     ClearRxErrors:
       name: ClearRxErrors
       class: SequenceCommand

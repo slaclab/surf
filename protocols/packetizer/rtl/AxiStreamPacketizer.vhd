@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStreamPackerizerV0 Protocol: https://confluence.slac.stanford.edu/x/1oyfD
 -------------------------------------------------------------------------------
--- File       : AxiStreamPacketizer
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
@@ -10,11 +9,11 @@
 --    Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,9 +21,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamPacketizer is
 
@@ -37,7 +38,7 @@ entity AxiStreamPacketizer is
       OUTPUT_PIPE_STAGES_G : integer         := 0);
 
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axisClk : in sl;
       axisRst : in sl;
 
@@ -127,7 +128,7 @@ begin
    -----------------
    -- Input pipeline
    -----------------
-   U_Input : entity work.AxiStreamPipeline
+   U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -176,7 +177,7 @@ begin
                end if;
             end if;
 
-            -- Check if ready to move data                         
+            -- Check if ready to move data
             if (fits and inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Initialize the AXIS buffer
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
@@ -200,7 +201,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
-            -- Check if ready to move data   
+            -- Check if ready to move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
 
                -- Accept the data
@@ -325,7 +326,7 @@ begin
    ------------------
    -- Output pipeline
    ------------------
-   U_Output : entity work.AxiStreamPipeline
+   U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxImportGmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 1GbE Import MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxImportGmii is
    generic (
@@ -30,7 +31,7 @@ entity EthMacRxImportGmii is
       ethClkEn    : in  sl;
       ethClk      : in  sl;
       ethRst      : in  sl;
-      -- AXIS Interface   
+      -- AXIS Interface
       macIbMaster : out AxiStreamMasterType;
       -- GMII PHY Interface
       gmiiRxDv    : in  sl;
@@ -46,13 +47,13 @@ architecture rtl of EthMacRxImportGmii is
 
    constant SFD_C : slv(7 downto 0) := x"D5";
    constant AXI_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TSTRB_EN_C    => INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
       TDATA_BYTES_C => 1,               -- 8-bit AXI stream interface
-      TDEST_BITS_C  => EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
-      TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
-      TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
+      TDEST_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => INT_EMAC_AXIS_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    type StateType is(
       WAIT_SFD_S,
@@ -102,7 +103,7 @@ architecture rtl of EthMacRxImportGmii is
 
 begin
 
-   DATA_MUX : entity work.AxiStreamFifoV2
+   DATA_MUX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -110,19 +111,18 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  8-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface          
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  8-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macMaster,      -- 8-bit AXI stream interface  
+         sAxisMaster => macMaster,      -- 8-bit AXI stream interface
          sAxisSlave  => open,
          -- Master Port
          mAxisClk    => ethClk,
@@ -224,7 +224,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
+      -- Outputs
       macMaster  <= r.macMaster;
       rxCountEn  <= r.rxCountEn;
       rxCrcError <= r.rxCrcError;
@@ -242,7 +242,7 @@ begin
    crcIn(31 downto 0) <= r.macData(55 downto 24);
 
    -- CRC
-   U_Crc32 : entity work.Crc32Parallel
+   U_Crc32 : entity surf.Crc32Parallel
       generic map (
          BYTE_WIDTH_G => 1)
       port map (

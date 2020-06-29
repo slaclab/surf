@@ -1,26 +1,27 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGth7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for Gth7
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.TenGigEthPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.TenGigEthPkg.all;
+use surf.EthMacPkg.all;
 
 entity TenGigEthGth7 is
    generic (
@@ -33,14 +34,14 @@ entity TenGigEthGth7 is
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -163,9 +164,9 @@ begin
    status.qplllock <= qplllock;
 
    ------------------
-   -- Synchronization 
+   -- Synchronization
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -186,7 +187,7 @@ begin
 
    txDisable <= status.txDisable;
 
-   U_Sync : entity work.SynchronizerVector
+   U_Sync : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 3)
@@ -204,7 +205,7 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
@@ -274,8 +275,8 @@ begin
          tx_disable           => status.txDisable,
          pma_pmd_type         => config.pma_pmd_type,
          -- DRP interface
-         -- Note: If no arbitration is required on the GT DRP ports 
-         -- then connect REQ to GNT and connect other signals i <= o;         
+         -- Note: If no arbitration is required on the GT DRP ports
+         -- then connect REQ to GNT and connect other signals i <= o;
          drp_req              => drpReqGnt,
          drp_gnt              => drpReqGnt,
          drp_den_o            => drpEn,
@@ -293,8 +294,8 @@ begin
 
    -------------------------------------
    -- 10GBASE-R's Reset Module
-   -------------------------------------        
-   U_TenGigEthRst : entity work.TenGigEthRst
+   -------------------------------------
+   U_TenGigEthRst : entity surf.TenGigEthRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -313,9 +314,9 @@ begin
          qplllock   => status.qplllock,
          qpllRst    => qpllRst);
 
-   -------------------------------         
+   -------------------------------
    -- Configuration Vector Mapping
-   -------------------------------         
+   -------------------------------
    configurationVector(0)              <= config.pma_loopback;
    configurationVector(15)             <= config.pma_reset;
    configurationVector(110)            <= config.pcs_loopback;
@@ -324,13 +325,13 @@ begin
 
    ----------------------
    -- Core Status Mapping
-   ----------------------   
+   ----------------------
    status.phyReady <= status.core_status(0) or config.pcs_loopback;
 
-   --------------------------------     
-   -- Configuration/Status Register   
-   --------------------------------     
-   U_TenGigEthReg : entity work.TenGigEthReg
+   --------------------------------
+   -- Configuration/Status Register
+   --------------------------------
+   U_TenGigEthReg : entity surf.TenGigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

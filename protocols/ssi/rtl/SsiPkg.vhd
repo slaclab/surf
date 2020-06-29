@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SSI Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 package SsiPkg is
 
@@ -41,7 +42,7 @@ package SsiPkg is
       tLast  => '1',                                   -- EOF
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => (others => '1'));  -- EOFE   
+      tUser  => (others => '1'));  -- EOFE
 
    -------------------------------------------------------------------------------------------------
    -- Build an SSI configuration
@@ -157,7 +158,7 @@ package body SsiPkg is
       ret.TUSER_BITS_C  := tUserBits;       -- 2 TUSER: EOFE, SOF
       ret.TDEST_BITS_C  := tDestBits;       -- 4 TDEST bits for VC
       ret.TID_BITS_C    := SSI_TID_BITS_C;  -- TID not used
-      ret.TKEEP_MODE_C  := tKeepMode;       -- 
+      ret.TKEEP_MODE_C  := tKeepMode;       --
       ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;  -- No TSTRB support in SSI
       ret.TUSER_MODE_C  := tUserMode;       -- User field valid on last only
       return ret;

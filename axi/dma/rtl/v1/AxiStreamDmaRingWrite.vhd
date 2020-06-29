@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaRingWrite.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI Stream to DMA Ring Buffer Write Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,13 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.AxiStreamDmaRingPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.AxiStreamDmaRingPkg.all;
 
 entity AxiStreamDmaRingWrite is
    generic (
@@ -34,13 +35,13 @@ entity AxiStreamDmaRingWrite is
       ENABLE_UNALIGN_G     : boolean                  := false;
       TRIGGER_USER_BIT_G   : natural range 0 to 7     := 2;
       AXIL_BASE_ADDR_G     : slv(31 downto 0)         := (others => '0');
-      DATA_AXIS_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
-      STATUS_AXIS_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(1);
-      AXI_WRITE_CONFIG_G   : AxiConfigType            := axiConfig(32, 8, 1, 8);
+      DATA_AXIS_CONFIG_G   : AxiStreamConfigType;
+      STATUS_AXIS_CONFIG_G : AxiStreamConfigType;
+      AXI_WRITE_CONFIG_G   : AxiConfigType;
       BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
       BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -57,7 +58,7 @@ entity AxiStreamDmaRingWrite is
       -- AXI (DDR) clock domain
       axiClk          : in  sl;
       axiRst          : in  sl;
-      -- Axi Stream data to be buffered      
+      -- Axi Stream data to be buffered
       axisDataMaster  : in  AxiStreamMasterType;
       axisDataSlave   : out AxiStreamSlaveType;
       -- Low level buffer control
@@ -230,7 +231,7 @@ begin
    -- Assert that BURST_SIZE_BYTES_G is a power of 2
 
    -- Crossbar
-   U_AxiLiteCrossbar_1 : entity work.AxiLiteCrossbar
+   U_AxiLiteCrossbar_1 : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
          NUM_SLAVE_SLOTS_G  => 1,
@@ -254,7 +255,7 @@ begin
    -- AXI RAMs store buffer information
    -------------------------------------------------------------------------------------------------
    -- Start Addresses. AXIL writeable
-   U_AxiDualPortRam_Start : entity work.AxiDualPortRam
+   U_AxiDualPortRam_Start : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
@@ -277,12 +278,12 @@ begin
          dout           => startRamDout);
 
    -- End Addresses. AXIL writeable
-   U_AxiDualPortRam_End : entity work.AxiDualPortRam
+   U_AxiDualPortRam_End : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -301,12 +302,12 @@ begin
 
 
    -- Next Addresses. System writeable
-   U_AxiDualPortRam_Next : entity work.AxiDualPortRam
+   U_AxiDualPortRam_Next : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -325,12 +326,12 @@ begin
          din            => r.nextAddr,
          dout           => nextRamDout);
 
-   U_AxiDualPortRam_Trigger : entity work.AxiDualPortRam
+   U_AxiDualPortRam_Trigger : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -350,12 +351,12 @@ begin
          dout           => trigRamDout);
 
 
-   U_AxiDualPortRam_Mode : entity work.AxiDualPortRam
+   U_AxiDualPortRam_Mode : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => true,
          SYS_WR_EN_G  => false,
          COMMON_CLK_G => false,
@@ -377,12 +378,12 @@ begin
          axiWrAddr      => modeWrAddr,
          axiWrData      => modeWrData);
 
-   U_AxiDualPortRam_Status : entity work.AxiDualPortRam
+   U_AxiDualPortRam_Status : entity surf.AxiDualPortRam
       generic map (
          TPD_G        => TPD_G,
          SYNTH_MODE_G => "inferred",
          MEMORY_TYPE_G=> "distributed",
-         READ_LATENCY_G => 0, 
+         READ_LATENCY_G => 0,
          AXI_WR_EN_G  => false,
          SYS_WR_EN_G  => true,
          ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
@@ -403,7 +404,7 @@ begin
          dout           => statusRamDout);
 
    -- DMA Write block
-   U_AxiStreamDmaWrite_1 : entity work.AxiStreamDmaWrite
+   U_AxiStreamDmaWrite_1 : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
@@ -413,7 +414,7 @@ begin
          AXI_CACHE_G       => "0011",       -- Cacheable
          ACK_WAIT_BVALID_G => false,
          BYP_SHIFT_G       => BYP_SHIFT_G,  -- Bypass both because we do not want them to back-pressure
-         BYP_CACHE_G       => BYP_CACHE_G)  -- Bypass both because we do not want them to back-pressure                
+         BYP_CACHE_G       => BYP_CACHE_G)  -- Bypass both because we do not want them to back-pressure
       port map (
          axiClk         => axiClk,          -- [in]
          axiRst         => axiRst,          -- [in]
@@ -426,14 +427,13 @@ begin
 
    -- Pass status message through a small fifo to convert to statusClk
    -- And convert width
-   U_AxiStreamFifo_MSG : entity work.AxiStreamFifoV2
+   U_AxiStreamFifo_MSG : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => 1,
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,
          FIFO_FIXED_THRESH_G => true,

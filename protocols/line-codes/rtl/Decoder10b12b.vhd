@@ -1,24 +1,25 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 10B12B: https://confluence.slac.stanford.edu/x/QndODQ
 -------------------------------------------------------------------------------
--- File       : Decoder10b12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10B12B Decoder Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.Code10b12bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code10b12bPkg.all;
 
 entity Decoder10b12b is
 

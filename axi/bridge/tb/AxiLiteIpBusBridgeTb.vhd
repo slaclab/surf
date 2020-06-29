@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteIpBusBridgeTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiLiteIpBusBridgeTb module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.BuildInfoPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+
+library ruckus;
+use ruckus.BuildInfoPkg.all;
 
 entity AxiLiteIpBusBridgeTb is end AxiLiteIpBusBridgeTb;
 
@@ -62,7 +65,7 @@ begin
    --------------------
    -- Clocks and Resets
    --------------------
-   U_axilClk : entity work.ClkRst
+   U_axilClk : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_G,
          RST_START_DELAY_G => 0 ns,
@@ -93,10 +96,10 @@ begin
 
       -- Write to the scratch pad
       axiLiteBusSimWrite (axilClk, axilWriteMaster, axilWriteSlave, x"0000_0004", x"1234_5678", true);
-      
+
       -- Write to a read-only register to test error bus response path
       axiLiteBusSimWrite (axilClk, axilWriteMaster, axilWriteSlave, x"0000_0000", x"1234_5678", true);
-      
+
       ---------------------------------------------------------------------------------
       -- Here's the expected output:
       ---------------------------------------------------------------------------------
@@ -107,7 +110,7 @@ begin
       -- AxiLitePkg::axiLiteBusSimRead( addr:00000610, data: 11112222)
       -- AxiLitePkg::axiLiteBusSimWrite(addr:00000004, data: 12345678)
       -- AxiLitePkg::axiLiteBusSimWrite(addr:00000000, data: 12345678)
-      -- Warning: AxiLitePkg::axiLiteBusSimWrite( addr:00000000): - BRESP = SLAVE_ERROR      
+      -- Warning: AxiLitePkg::axiLiteBusSimWrite( addr:00000000): - BRESP = SLAVE_ERROR
       ---------------------------------------------------------------------------------
 
    end process test;
@@ -115,7 +118,7 @@ begin
    ----------------------------
    -- Axi-Lite to IP bus Bridge
    ----------------------------
-   U_AxiLiteToIpBus : entity work.AxiLiteToIpBus
+   U_AxiLiteToIpBus : entity surf.AxiLiteToIpBus
       generic map (
          TPD_G        => TPD_G)
       port map (
@@ -135,14 +138,14 @@ begin
          ipbWdata        => ipbWdata,
          ipbStrobe       => ipbStrobe,
          ipbWrite        => ipbWrite);
-         
+
    ----------------------------
    -- IP Bus to Axi-Lite Bridge
-   ----------------------------        
-   U_IpBusToAxiLite : entity work.IpBusToAxiLite
+   ----------------------------
+   U_IpBusToAxiLite : entity surf.IpBusToAxiLite
       generic map (
          TPD_G        => TPD_G)
-      port map (   
+      port map (
          -- Clock and Reset
          clk             => axilClk,
          rst             => axilRst,
@@ -159,11 +162,11 @@ begin
          axilReadSlave   => regReadSlave,
          axilWriteMaster => regWriteMaster,
          axilWriteSlave  => regWriteSlave);
-         
+
    --------------------------
    -- Example Register Module
    --------------------------
-   U_Version : entity work.AxiVersion
+   U_Version : entity surf.AxiVersion
       generic map (
          TPD_G        => TPD_G,
          BUILD_INFO_G => SIM_BUILD_INFO_C)

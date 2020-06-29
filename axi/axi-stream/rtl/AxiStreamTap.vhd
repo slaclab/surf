@@ -1,25 +1,26 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamTap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to extract and re-isnert a destination from an interleaved stream.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
-use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ArbiterPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamTap is
    generic (
@@ -55,7 +56,7 @@ architecture structure of AxiStreamTap is
 
 begin
 
-   U_DeMux : entity work.AxiStreamDeMux
+   U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
          PIPE_STAGES_G  => PIPE_STAGES_G,
@@ -72,7 +73,7 @@ begin
          axisClk         => axisClk,
          axisRst         => axisRst);
 
-   U_Mux : entity work.AxiStreamMux
+   U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
          PIPE_STAGES_G        => PIPE_STAGES_G,
