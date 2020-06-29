@@ -1,24 +1,25 @@
 -------------------------------------------------------------------------------
--- File       : Salt7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SLAC Asynchronous Logic Transceiver (SALT) 7-series Core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Salt7Series is
    generic (
@@ -26,9 +27,9 @@ entity Salt7Series is
       TX_ENABLE_G         : boolean             := true;
       RX_ENABLE_G         : boolean             := true;
       COMMON_TX_CLK_G     : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
-      COMMON_RX_CLK_G     : boolean             := false;  -- Set to true if mAxisClk and clk are the same clock      
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(4);
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4));
+      COMMON_RX_CLK_G     : boolean             := false;  -- Set to true if mAxisClk and clk are the same clock
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- TX Serial Stream
       txP         : out sl;
@@ -169,7 +170,7 @@ begin
          signal_detect        => '1');
 
    TX_ENABLE : if (TX_ENABLE_G = true) generate
-      SaltTx_Inst : entity work.SaltTx
+      SaltTx_Inst : entity surf.SaltTx
          generic map(
             TPD_G              => TPD_G,
             SLAVE_AXI_CONFIG_G => SLAVE_AXI_CONFIG_G,
@@ -200,7 +201,7 @@ begin
    end generate;
 
    RX_ENABLE : if (RX_ENABLE_G = true) generate
-      SaltRx_Inst : entity work.SaltRx
+      SaltRx_Inst : entity surf.SaltRx
          generic map(
             TPD_G               => TPD_G,
             MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G,

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SrpV3AxiLiteTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation testbed for AxiLiteSrpV0
+-- Description: Simulation testbed for SrpV3AxiLite
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,11 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 entity SrpV3AxiLiteTb is
 
 end entity SrpV3AxiLiteTb;
@@ -30,7 +31,7 @@ end entity SrpV3AxiLiteTb;
 architecture tb of SrpV3AxiLiteTb is
 
    constant ETH_AXIS_CONFIG_C  : AxiStreamConfigType              := ssiAxiStreamConfig(8, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8);  -- Use 8 tDest bits
-   constant TIMEOUT_C          : real                             := 1.0E-3;  -- In units of seconds   
+   constant TIMEOUT_C          : real                             := 1.0E-3;  -- In units of seconds
    constant WINDOW_ADDR_SIZE_C : positive                         := 3;
    constant MAX_CUM_ACK_CNT_C  : positive                         := WINDOW_ADDR_SIZE_C;
    constant MAX_RETRANS_CNT_C  : positive                         := ite((WINDOW_ADDR_SIZE_C > 1), WINDOW_ADDR_SIZE_C-1, 1);
@@ -99,7 +100,7 @@ begin
    -----------------------------
    -- Generate clocks and resets
    -----------------------------
-   U_ClkRst0 : entity work.ClkRst
+   U_ClkRst0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -109,7 +110,7 @@ begin
          rst  => rst);
 
 
-   U_SRPv3 : entity work.SrpV3AxiLite
+   U_SRPv3 : entity surf.SrpV3AxiLite
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
@@ -121,7 +122,7 @@ begin
          sAxisRst         => rst,
          sAxisMaster      => rssiObMaster,
          sAxisSlave       => rssiObSlave,
-         -- AXIS Master Interface (mAxisClk domain) 
+         -- AXIS Master Interface (mAxisClk domain)
          mAxisClk         => clk,
          mAxisRst         => rst,
          mAxisMaster      => rssiIbMaster,
@@ -134,7 +135,7 @@ begin
          mAxilWriteMaster => axilWriteMaster,
          mAxilWriteSlave  => axilWriteSlave);
 
-   U_RssiServer : entity work.RssiCoreWrapper
+   U_RssiServer : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          APP_STREAMS_G       => 1,
@@ -172,7 +173,7 @@ begin
          axiClk_i             => clk,
          axiRst_i             => rst);
 
-   U_RssiClient : entity work.RssiCoreWrapper
+   U_RssiClient : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          APP_STREAMS_G       => 1,
@@ -271,7 +272,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
+      -- Outputs
       sAxisMaster <= r.sAxisMaster;
       mAxisSlave  <= r.mAxisSlave;
 

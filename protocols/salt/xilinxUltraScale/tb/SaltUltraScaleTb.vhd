@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SaltUltraScaleTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SaltUltraScale
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SaltUltraScaleTb is end SaltUltraScaleTb;
 
@@ -37,15 +38,11 @@ architecture testbed of SaltUltraScaleTb is
    -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
    constant PRBS_TAPS_C      : NaturalArray := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-   constant FORCE_EOFE_C     : sl           := '0';  -- Forces an error (testing tUser field MUX-ing)   
+   constant FORCE_EOFE_C     : sl           := '0';  -- Forces an error (testing tUser field MUX-ing)
 
    -- FIFO configurations
-   constant BRAM_EN_C           : boolean := true;
-   constant XIL_DEVICE_C        : string  := "7SERIES";
-   constant USE_BUILT_IN_C      : boolean := false;
+   constant MEMORY_TYPE_C       : string  := "block";
    constant GEN_SYNC_FIFO_C     : boolean := false;
-   constant ALTERA_SYN_C        : boolean := false;
-   constant ALTERA_RAM_C        : string  := "M9K";
    constant CASCADE_SIZE_C      : natural := 1;
    constant FIFO_ADDR_WIDTH_C   : natural := 9;
    constant FIFO_PAUSE_THRESH_C : natural := 2**8;
@@ -94,7 +91,7 @@ begin
    -----------------------------
    -- Generate clocks and resets
    -----------------------------
-   ClkRst_1x : entity work.ClkRst
+   ClkRst_1x : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -105,7 +102,7 @@ begin
          rst  => rst,
          rstL => open);
 
-   ClkRst_2p5x : entity work.ClkRst
+   ClkRst_2p5x : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => (CLK_PERIOD_C/2.5),
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -116,7 +113,7 @@ begin
          rst  => open,
          rstL => open);
 
-   ClkRst_5x : entity work.ClkRst
+   ClkRst_5x : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => (CLK_PERIOD_C/5.0),
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -127,7 +124,7 @@ begin
          rst  => clk5xRst,
          rstL => open);
 
-   SaltDelayCtrl_Inst : entity work.SaltDelayCtrl
+   SaltDelayCtrl_Inst : entity surf.SaltDelayCtrl
       generic map (
          TPD_G           => TPD_C,
          IODELAY_GROUP_G => "SALT_IODELAY_GRP")
@@ -139,17 +136,13 @@ begin
    -----------------
    -- Data Generator
    -----------------
-   SsiPrbsTx_Inst : entity work.SsiPrbsTx
+   SsiPrbsTx_Inst : entity surf.SsiPrbsTx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
          -- FIFO configurations
-         BRAM_EN_G                  => BRAM_EN_C,
-         XIL_DEVICE_G               => XIL_DEVICE_C,
-         USE_BUILT_IN_G             => USE_BUILT_IN_C,
+         MEMORY_TYPE_G              => MEMORY_TYPE_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
-         ALTERA_SYN_G               => ALTERA_SYN_C,
-         ALTERA_RAM_G               => ALTERA_RAM_C,
          CASCADE_SIZE_G             => CASCADE_SIZE_C,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
          FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
@@ -177,16 +170,16 @@ begin
 
    linkUpL <= not(linkUp);
 
-   ----------------------         
+   ----------------------
    -- Module to be tested
-   ----------------------   
-   SaltUltraScale_Inst : entity work.SaltUltraScale
+   ----------------------
+   SaltUltraScale_Inst : entity surf.SaltUltraScale
       generic map (
          TPD_G               => TPD_C,
          TX_ENABLE_G         => true,
          RX_ENABLE_G         => true,
          COMMON_TX_CLK_G     => true,  -- Set to true if sAxisClk and clk are the same clock
-         COMMON_RX_CLK_G     => true,  -- Set to true if mAxisClk and clk are the same clock      
+         COMMON_RX_CLK_G     => true,  -- Set to true if mAxisClk and clk are the same clock
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(4))
       port map (
@@ -219,18 +212,14 @@ begin
    ---------------
    -- Data Checker
    ---------------
-   SsiPrbsRx_Inst : entity work.SsiPrbsRx
+   SsiPrbsRx_Inst : entity surf.SsiPrbsRx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
          STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
          -- FIFO Configurations
-         BRAM_EN_G                  => BRAM_EN_C,
-         XIL_DEVICE_G               => XIL_DEVICE_C,
-         USE_BUILT_IN_G             => USE_BUILT_IN_C,
+         MEMORY_TYPE_G              => MEMORY_TYPE_C,
          GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
-         ALTERA_SYN_G               => ALTERA_SYN_C,
-         ALTERA_RAM_G               => ALTERA_RAM_C,
          CASCADE_SIZE_G             => CASCADE_SIZE_C,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
          FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
@@ -243,7 +232,7 @@ begin
          MASTER_AXI_STREAM_CONFIG_G => ssiAxiStreamConfig(4),  -- unused
          MASTER_AXI_PIPE_STAGES_G   => 0)                      -- unused
       port map (
-         -- Streaming RX Data Interface (sAxisClk domain) 
+         -- Streaming RX Data Interface (sAxisClk domain)
          sAxisClk        => clk,
          sAxisRst        => rst,
          sAxisMaster     => obSaltMaster,

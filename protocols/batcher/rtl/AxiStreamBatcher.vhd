@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
 -------------------------------------------------------------------------------
--- File       : AxiStreamBatcher.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: The firmware batcher combines sub-frames into a larger super-frame
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamBatcher is
    generic (
@@ -30,7 +31,7 @@ entity AxiStreamBatcher is
       MAX_NUMBER_SUB_FRAMES_G      : positive            := 32;  -- Units of sub-frames
       SUPER_FRAME_BYTE_THRESHOLD_G : natural             := 8192;  -- Units of bytes
       MAX_CLK_GAP_G                : natural             := 256;  -- Units of clock cycles
-      AXIS_CONFIG_G                : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G                : AxiStreamConfigType;
       INPUT_PIPE_STAGES_G          : natural             := 0;
       OUTPUT_PIPE_STAGES_G         : natural             := 1);
    port (
@@ -118,7 +119,7 @@ begin
    -----------------
    -- Input pipeline
    -----------------
-   U_Input : entity work.AxiStreamPipeline
+   U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -388,7 +389,7 @@ begin
    ------------------
    -- Output pipeline
    ------------------
-   U_Output : entity work.AxiStreamPipeline
+   U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SgmiiDp83867Mdio.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Controller for the TI DP83867DP83867 ETH PHY 
+-- Description: Controller for the TI DP83867DP83867 ETH PHY
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.MdioPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.MdioPkg.all;
 
 entity SgmiiDp83867Mdio is
    generic (
@@ -49,17 +50,17 @@ architecture rtl of SgmiiDp83867Mdio is
       mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x000D: Setup for extended address
       mdioWriteInst(PHY_G, 16#0E#, x"00D3", false),  -- Address 0x000E: Set extended address = 0x00D3
       mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x000D: Setup for extended data write
-      mdioWriteInst(PHY_G, 16#0E#, x"4000", false),  -- Address 0x000E: Enable SGMII clock  
+      mdioWriteInst(PHY_G, 16#0E#, x"4000", false),  -- Address 0x000E: Enable SGMII clock
 
       mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x000D: Setup for extended address
       mdioWriteInst(PHY_G, 16#0E#, x"0032", false),  -- Address 0x000E: Set extended address = 0x0032
       mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x000D: Setup for extended data write
-      mdioWriteInst(PHY_G, 16#0E#, x"0000", false),  -- Address 0x000E: RGMII must be disabled     
+      mdioWriteInst(PHY_G, 16#0E#, x"0000", false),  -- Address 0x000E: RGMII must be disabled
 
       mdioWriteInst(PHY_G, 16#1E#, x"0082", false),  -- Address 0x001E: INTN/PWDNN Pad is an Interrupt Output.
       mdioWriteInst(PHY_G, 16#14#, x"29C7", false),  -- Address 0x0014: Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
       mdioWriteInst(PHY_G, 16#12#, X"0c00", false),  -- Address 0x0012: Interrupt of link and autoneg changes
-      mdioWriteInst(PHY_G, 16#10#, x"5868", false),  -- Address 0x0010: Enable SGMII      
+      mdioWriteInst(PHY_G, 16#10#, x"5868", false),  -- Address 0x0010: Enable SGMII
       -- mdioWriteInst(PHY_G, 16#09#, X"0200", false),  -- Address 0x0009: Advertise 1000   FD only
       -- mdioWriteInst(PHY_G, 16#04#, X"0140", false),  -- Address 0x0004: Advertise 10/100 FD only
       mdioWriteInst(PHY_G, 16#00#, x"1140", false),  -- Address 0x0000: Enable autoneg and full duplex
@@ -103,7 +104,7 @@ begin
    speed_is_100    <= r.s100;
    linkIsUp        <= r.linkIsUp;
 
-   U_MdioLinkIrqHandler : entity work.MdioLinkIrqHandler
+   U_MdioLinkIrqHandler : entity surf.MdioLinkIrqHandler
       generic map (
          TPD_G           => TPD_G,
          DIV_G           => DIV_G,

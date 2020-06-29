@@ -1,29 +1,29 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : SaciMasterSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Saci Master Synchronization Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
--- use work.SynchronizePkg.all;
-use work.SaciMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SaciMasterPkg.all;
 
 entity SaciMasterSync is
-  
+
   generic (
     TPD_G                 : time    := 1 ns;
     SYNCHRONIZE_CONTROL_G : boolean := true
@@ -38,7 +38,7 @@ entity SaciMasterSync is
     saciSelL : out slv(SACI_NUM_SLAVES_C-1 downto 0);
     saciCmd  : out sl;
     saciRsp  : in  sl;
-    
+
     saciHalfClk   : in slv(7 downto 0);
 
     -- Parallel interface
@@ -64,7 +64,7 @@ architecture rtl of SaciMasterSync is
     nextOut.tmp  := input;
     nextOut.sync := current.tmp;
     nextOut.last := current.sync;
-  end procedure;  
+  end procedure;
 
   type StateType is (IDLE_S, CHIP_SELECT_S, TX_S, RX_START_S, RX_HEADER_S, RX_DATA_S, ACK_S);
 
@@ -82,7 +82,7 @@ architecture rtl of SaciMasterSync is
 
   signal r, rin      : RegType;
   signal saciRspFall : sl;
-  
+
   signal saciClkCnt     : unsigned(31 downto 0);
   signal saciClkCntRst  : std_logic;
   signal saciClkRising  : std_logic;
@@ -98,7 +98,7 @@ begin
   saci_clk_p : process (clk, rst) is
   begin
     if rising_edge(clk) then
-      
+
       if rst = '1' or saciClkCntRst = '1' then
         saciClkCnt <= (others=>'0') after TPD_G;
       elsif saciClkCnt = to_integer(unsigned(saciHalfClk)) then
@@ -106,29 +106,29 @@ begin
       else
         saciClkCnt <= saciClkCnt + 1 after TPD_G;
       end if;
-      
+
       if rst = '1' or saciClkCntRst = '1' then
         iSaciClk <= '0' after TPD_G;
       elsif saciClkCnt = to_integer(unsigned(saciHalfClk)) then
         iSaciClk <= not iSaciClk after TPD_G;
       end if;
-      
+
       if rst = '1' or saciClkCntRst = '1' then
         iSaciClkD <= '0' after TPD_G;
       else
         iSaciClkD <= iSaciClk after TPD_G;
       end if;
-      
+
     end if;
   end process;
-  
+
   saciClk <= iSaciClk;
   saciClkRising <= iSaciClk and not iSaciClkD;
   saciClkFalling <= iSaciClkD and not iSaciClk;
-  
-  
+
+
   --------------------------------------------------------------------------------------------------
-  -- Capture serial input 
+  -- Capture serial input
   --------------------------------------------------------------------------------------------------
   fall : process (clk, rst) is
   begin
@@ -163,7 +163,7 @@ begin
     variable resetVar : sl;
   begin
     rVar := r;
-    
+
     -- Synchronize control inputs to serial clock
     synchronize(saciMasterIn.req, r.reqSync, rVar.reqSync);
     synchronize(saciMasterIn.reset, r.resetSync, rVar.resetSync);
@@ -177,7 +177,7 @@ begin
 
     rVar.shiftCount        := (others => '0');
     rVar.saciMasterOut.ack := '0';
-    
+
     saciClkCntRst <= '0';
 
     if (resetVar = '1') then
@@ -229,13 +229,13 @@ begin
             rVar.shiftReg   := r.shiftReg;
             rVar.shiftCount := r.shiftCount;
           end if;
-          
+
           if (saciMasterIn.op = '0' and r.shiftCount = 21) then     -- Read
             rVar.state := RX_START_S;
           elsif (saciMasterIn.op = '1' and r.shiftCount = 53) then  -- Write
             rVar.state := RX_START_S;
           end if;
-          
+
 
         when RX_START_S =>
           -- Wait for saciRsp start bit
@@ -251,10 +251,10 @@ begin
           if saciClkRising = '1' then
             rVar.shiftCount := r.shiftCount + 1;
             --shiftInLeft(saciRspFall, r.shiftReg, rVar.shiftReg);
-            rVar.shiftReg := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspFall;     
+            rVar.shiftReg := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspFall;
           else
             rVar.shiftCount := r.shiftCount;
-            rVar.shiftReg := r.shiftReg; 
+            rVar.shiftReg := r.shiftReg;
           end if;
           if (r.shiftCount = 20) then
             if (r.shiftReg(19) /= saciMasterIn.op or
@@ -273,16 +273,16 @@ begin
           if saciClkRising = '1' then
             rVar.shiftCount := r.shiftCount + 1;
             --shiftInLeft(saciRspFall, r.shiftReg, rVar.shiftReg);
-            rVar.shiftReg := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspFall; 
+            rVar.shiftReg := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspFall;
             if (r.shiftCount = 51) then
               rVar.state := ACK_S;
             end if;
           else
             rVar.shiftCount := r.shiftCount;
-            rVar.shiftReg := r.shiftReg; 
+            rVar.shiftReg := r.shiftReg;
           end if;
-          
-          
+
+
 
         when ACK_S =>
           rVar.saciMasterOut.ack    := '1';
@@ -292,7 +292,7 @@ begin
             rVar.saciMasterOut.fail := '0';
             rVar.state              := IDLE_S;
           end if;
-          
+
         when others => null;
       end case;
 
@@ -303,7 +303,7 @@ begin
     saciSelL      <= r.saciSelL;
     saciCmd       <= r.saciCmd;
     saciMasterOut <= r.saciMasterOut;
-    
+
   end process comb;
 
 end architecture rtl;

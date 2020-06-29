@@ -1,18 +1,12 @@
-#!/usr/bin/env python
-#-----------------------------------------------------------------------------
-# Title      : PyRogue JESD TX Module
-#-----------------------------------------------------------------------------
-# File       : JesdTx.py
-# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue JESD TX Module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -20,20 +14,19 @@
 import pyrogue as pr
 
 class JesdTx(pr.Device):
-    def __init__(   self,       
-            name        = "JesdTx",
-            description = "JESD TX Module",
+    def __init__(
+            self,
             numTxLanes  =  2,
             instantiate =  True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+        super().__init__(**kwargs)
 
         ##############################
         # Variables
         ##############################
 
         if (instantiate):
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = "Enable",
                 description  = "Enable mask. Example: 0x3 Enable ln0 and ln1.",
                 offset       =  0x00,
@@ -42,8 +35,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-                            
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "Polarity",
                 description  = "0 = non-inverted, 1 = inverted",
                 offset       =  0x08,
@@ -51,9 +44,9 @@ class JesdTx(pr.Device):
                 bitOffset    =  0,
                 base         = pr.UInt,
                 mode         = "RW",
-            ))         
+            ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = "Loopback",
                 description  = "0 = normal mode, 1 = internal loopback",
                 offset       =  0x0C,
@@ -61,9 +54,9 @@ class JesdTx(pr.Device):
                 bitOffset    =  0,
                 base         = pr.UInt,
                 mode         = "RW",
-            ))                              
-    
-            self.add(pr.RemoteVariable(    
+            ))
+
+            self.add(pr.RemoteVariable(
                 name         = "SubClass",
                 description  = "Jesd204b SubClass. 0 - For designs without sysref (no fixed latency). 1 - Fixed latency.",
                 offset       =  0x10,
@@ -72,8 +65,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "ReplaceEnable",
                 description  = "ReplaceEnable. Replace the control characters with data. (Should be 1 use 0 only for debug).",
                 offset       =  0x10,
@@ -82,8 +75,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "ResetGTs",
                 description  = "ResetGTs. Request reset of the GT modules.",
                 offset       =  0x10,
@@ -92,8 +85,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "ClearErrors",
                 description  = "Clear Jesd Errors and reset the status counters.",
                 offset       =  0x10,
@@ -102,8 +95,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "InvertSync",
                 description  = "InvertSync. Invert sync input (the AMC card schematics should be checkes if inverted). ",
                 offset       =  0x10,
@@ -112,8 +105,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "TestSigEnable",
                 # description  = "Enable test signal. Note: Has to be toggled if test signal type is changed to align the lanes (Default '1').",
                 description  = "Legacy Signal that is no longer used",
@@ -123,8 +116,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "ScrambleEnable",
                 description  = "ScrambleEnable. Enable data scrambling (More info in Jesd204b standard). ",
                 offset       =  0x10,
@@ -136,8 +129,8 @@ class JesdTx(pr.Device):
                     1 : "Enabled",
                 },
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "RampStep",
                 description  = "Ramp increment step and a period of the wave in c-c",
                 offset       =  0x14,
@@ -146,8 +139,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "SquarePeriod",
                 description  = "Ramp increment step and a period of the wave in c-c",
                 offset       =  0x14,
@@ -156,8 +149,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "LowAmplitudeVal",
                 description  = "Low value of the square waveform amplitude",
                 offset       =  0x18,
@@ -166,8 +159,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "HighAmplitudeVal",
                 description  = "High value of the square waveform amplitude",
                 offset       =  0x1C,
@@ -176,8 +169,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-    
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "InvertDacData",
                 description  = "Mask Enable the DAC data inversion. 1-Inverted, 0-normal.",
                 offset       =  0x20,
@@ -186,8 +179,8 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RW",
             ))
-            
-            self.add(pr.RemoteVariable(    
+
+            self.add(pr.RemoteVariable(
                 name         = "PowerDown",
                 description  = "Power Down Mask 1-PowerDown, 0-normal.",
                 offset       =  0x24,
@@ -195,9 +188,9 @@ class JesdTx(pr.Device):
                 bitOffset    =  0x00,
                 base         = pr.UInt,
                 mode         = "RW",
-            ))   
+            ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = "SysRefPeriodmin",
                 description  = "SysRef Period min",
                 offset       =  0x28,
@@ -206,9 +199,9 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RO",
                 pollInterval = 1,
-            ))   
+            ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = "SysRefPeriodmax",
                 description  = "SysRef Period max",
                 offset       =  0x28,
@@ -217,9 +210,9 @@ class JesdTx(pr.Device):
                 base         = pr.UInt,
                 mode         = "RO",
                 pollInterval = 1,
-            ))               
+            ))
 
-            self.add(pr.RemoteVariable( 
+            self.add(pr.RemoteVariable(
                 name         = "GTReady",
                 description  = "GT Ready. Jesd clock ok PLLs are locked and GT is ready to receive data.",
                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
@@ -227,9 +220,9 @@ class JesdTx(pr.Device):
                 bitOffset    = 0,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
-                            
-            self.add(pr.RemoteVariable( 
+            ))
+
+            self.add(pr.RemoteVariable(
                 name         = "DataValid",
                 description  = "Jesd Data Valid. Goes high after the code synchronization and ILAS sequence is complete (More info in Jesd204b standard).",
                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
@@ -237,9 +230,9 @@ class JesdTx(pr.Device):
                 bitOffset    = 1,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
+            ))
 
-            self.add(pr.RemoteVariable( 
+            self.add(pr.RemoteVariable(
                 name         = "IlasActive",
                 description  = "ILA sequence Active. Only 1 for 4 multiframe clock cycles then it drops (More info in Jesd204b standard).",
                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
@@ -247,9 +240,9 @@ class JesdTx(pr.Device):
                 bitOffset    = 2,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
+            ))
 
-            self.add(pr.RemoteVariable( 
+            self.add(pr.RemoteVariable(
                 name         = "nSync",
                 description  = "nSync. 0 - Not synchronised. 1 - Indicades that code group synchronization has been completed.",
                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
@@ -257,9 +250,9 @@ class JesdTx(pr.Device):
                 bitOffset    = 3,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
+            ))
 
-            self.add(pr.RemoteVariable( 
+            self.add(pr.RemoteVariable(
                 name         = "TxEnabled",
                 description  = "Tx Lane Enabled. Indicates if the lane had been enabled in configuration.",
                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
@@ -267,9 +260,9 @@ class JesdTx(pr.Device):
                 bitOffset    = 4,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
+            ))
 
-            self.add(pr.RemoteVariable( 
+            self.add(pr.RemoteVariable(
                 name         = "SysRefDetected",
                 description  = "System Reference input has been Detected.",
                 offset       = range(0x40,0x40+4*numTxLanes+1,4),
@@ -277,9 +270,9 @@ class JesdTx(pr.Device):
                 bitOffset    = 5,
                 mode         = "RO",
                 pollInterval = 1,
-            ))  
-    
-            self.addRemoteVariables(   
+            ))
+
+            self.addRemoteVariables(
                 name         = "StatusValidCnt",
                 description  = "StatusValidCnt[31:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",
                 offset       =  0x100,
@@ -290,9 +283,9 @@ class JesdTx(pr.Device):
                 number       =  numTxLanes,
                 stride       =  4,
                 pollInterval =  1,
-            )  
-    
-            self.addRemoteVariables(   
+            )
+
+            self.addRemoteVariables(
                 name         = "txDiffCtrl",
                 description  = "TX diff. swing control",
                 offset       =  0x200,
@@ -302,9 +295,9 @@ class JesdTx(pr.Device):
                 mode         = "RW",
                 number       =  numTxLanes,
                 stride       =  4,
-            )   
+            )
 
-            self.addRemoteVariables(   
+            self.addRemoteVariables(
                 name         = "txPostCursor",
                 description  = "TX post cursor control",
                 offset       =  0x200,
@@ -316,7 +309,7 @@ class JesdTx(pr.Device):
                 stride       =  4,
             )
 
-            self.addRemoteVariables(   
+            self.addRemoteVariables(
                 name         = "txPreCursor",
                 description  = "TX pre cursor control",
                 offset       =  0x200,
@@ -326,9 +319,9 @@ class JesdTx(pr.Device):
                 mode         = "RW",
                 number       =  numTxLanes,
                 stride       =  4,
-            )                            
-    
-            self.addRemoteVariables(   
+            )
+
+            self.addRemoteVariables(
                 name         = "dataOutMux",
                 description  = "data_out_mux: Select between: b000 - Output zero, b001 - Parallel data from inside FPGA, b010 - Data from AXI stream (not used), b011 - Test data",
                 offset       =  0x80,
@@ -344,8 +337,8 @@ class JesdTx(pr.Device):
                     3 : "TestData",
                 },
             )
-    
-            self.addRemoteVariables(   
+
+            self.addRemoteVariables(
                 name         = "testOutMux",
                 description  = "test_out_mux[1:0]: Select between: b000 - Saw signal increment, b001 - Saw signal decrement, b010 - Square wave,  b011 - Output zero",
                 offset       =  0x80,
@@ -360,23 +353,26 @@ class JesdTx(pr.Device):
                     2 : "SquareWave",
                     3 : "OutputZero",
                 },
-            )    
-    
+            )
+
             ##############################
             # Commands
             ##############################
             @self.command(name="CmdClearErrors", description="Clear the status valid counter of TX lanes.",)
-            def CmdClearErrors():    
+            def CmdClearErrors():
                 self.ClearErrors.set(1)
                 self.ClearErrors.set(0)
 
             @self.command(name="CmdResetGTs", description="Toggle the reset of all TX MGTs",)
-            def CmdResetGTs(): 
+            def CmdResetGTs():
                 self.ResetGTs.set(1)
-                self.ResetGTs.set(0) 
+                self.ResetGTs.set(0)
 
             @self.command(name="CmdForceResync", description="Forces a re-sync",)
-            def CmdForceSync(): 
+            def CmdForceSync():
                 invertSync =  self.InvertSync.get()
                 self.InvertSync.set(invertSync^0x1)
-                self.InvertSync.set(invertSync)                 
+                self.InvertSync.set(invertSync)
+
+    def countReset(self):
+        self.CmdClearErrors()

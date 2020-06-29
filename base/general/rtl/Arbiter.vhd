@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Arbiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Example Arbiter Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ArbiterPkg.all;
 
 entity Arbiter is
    generic (
@@ -52,7 +53,7 @@ architecture rtl of Arbiter is
 
    signal r   : RegType := REG_RESET_C;
    signal rin : RegType;
-   
+
 begin
 
    comb : process (r, req, rst) is
@@ -72,7 +73,7 @@ begin
       ack      <= r.ack;
       valid    <= r.valid;
       selected <= slv(r.lastSelected);
-      
+
    end process comb;
 
    seq : process (clk, rst) is

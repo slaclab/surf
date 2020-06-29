@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronP30Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This controller is designed around the Micron PC28F FLASH IC.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiMicronP30Reg is
    generic (
@@ -29,7 +30,7 @@ entity AxiMicronP30Reg is
       MEM_ADDR_MASK_G    : slv(31 downto 0) := x"00000000";
       AXI_CLK_FREQ_G     : real             := 200.0E+6);  -- units of Hz
    port (
-      -- FLASH Interface 
+      -- FLASH Interface
       flashAddr      : out slv(30 downto 0);
       flashAdv       : out sl;
       flashClk       : out sl;
@@ -182,9 +183,9 @@ begin
             v.blockWr  := '0';
             v.blockCnt := x"00";
             v.raddr    := x"00";
-            -------------------------------------------------------------------   
-            -- Check for a read request            
-            -------------------------------------------------------------------   
+            -------------------------------------------------------------------
+            -- Check for a read request
+            -------------------------------------------------------------------
             if (axiStatus.readEnable = '1') then
                -- Reset the register
                v.axiReadSlave.rdata := (others => '0');
@@ -219,7 +220,7 @@ begin
                         v.axiReadSlave.rdata := MEM_ADDR_MASK_G;
                      -------------------------
                      -- Buffered Interface
-                     -------------------------      
+                     -------------------------
                      when x"80" =>
                         -- Get the address bus
                         v.axiReadSlave.rdata(7 downto 0) := r.xferSize;
@@ -234,9 +235,9 @@ begin
                   -- Send AXI-Lite Response
                   axiSlaveReadResponse(v.axiReadSlave, axiReadResp);
                end if;
-            -------------------------------------------------------------------   
+            -------------------------------------------------------------------
             -- Check for a write request
-            -------------------------------------------------------------------   
+            -------------------------------------------------------------------
             elsif (axiStatus.writeEnable = '1') then
                -- Check for RAM access
                if (axiWriteMaster.awaddr(10) = '1') then
@@ -248,7 +249,7 @@ begin
                   case (axiWriteMaster.awaddr(7 downto 0)) is
                      -------------------------
                      -- Non-buffered Interface
-                     -------------------------               
+                     -------------------------
                      when x"00" =>
                         -- Set the opCode bus
                         v.wrCmd  := axiWriteMaster.wdata(31 downto 16);
@@ -265,7 +266,7 @@ begin
                         v.test := axiWriteMaster.wdata;
                      -------------------------
                      -- Buffered Interface
-                     -------------------------                     
+                     -------------------------
                      when x"80" =>
                         -- Set the block transfer size
                         v.xferSize := axiWriteMaster.wdata(7 downto 0);
@@ -405,7 +406,7 @@ begin
             v.din      := r.wrCmd;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if (r.cnt = MAX_CNT_C) then
                -- Reset the counter
                v.cnt   := 0;
@@ -421,7 +422,7 @@ begin
             v.din      := r.wrCmd;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if (r.cnt = MAX_CNT_C) then
                -- Reset the counter
                v.cnt   := 0;
@@ -437,7 +438,7 @@ begin
             v.din      := r.wrData;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if (r.cnt = MAX_CNT_C) then
                -- Reset the counter
                v.cnt   := 0;
@@ -461,7 +462,7 @@ begin
             v.din      := r.wrData;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if (r.cnt = MAX_CNT_C) then
                -- Reset the counter
                v.cnt     := 0;
@@ -479,7 +480,7 @@ begin
             v.din      := r.wrData;
             -- Increment the counter
             v.cnt      := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if (r.cnt = MAX_CNT_C) then
                -- Reset the counter
                v.cnt := 0;
@@ -538,11 +539,12 @@ begin
       end if;
    end process seq;
 
-   U_Ram : entity work.SimpleDualPortRam
+   U_Ram : entity surf.SimpleDualPortRam
       generic map(
-         BRAM_EN_G    => true,
-         DATA_WIDTH_G => 16,
-         ADDR_WIDTH_G => 8)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         DATA_WIDTH_G  => 16,
+         ADDR_WIDTH_G  => 8)
       port map (
          -- Port A
          clka  => axiClk,

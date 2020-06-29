@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiCmdMasterPulser.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SSI Command Master Pulser Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,8 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.SsiCmdMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.SsiCmdMasterPkg.all;
 
 entity SsiCmdMasterPulser is
    generic (
@@ -40,12 +41,12 @@ entity SsiCmdMasterPulser is
 end SsiCmdMasterPulser;
 
 architecture rtl of SsiCmdMasterPulser is
-   
+
    signal pulse : sl                                    := '0';
    signal cnt   : positive range 1 to (PULSE_WIDTH_G+1) := 1;
-   
+
 begin
-   
+
    syncPulse <= pulse;
 
    process(locClk)
@@ -69,5 +70,5 @@ begin
          end if;
       end if;
    end process;
-   
+
 end rtl;

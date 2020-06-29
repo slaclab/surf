@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bGth7VarLatWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Example PGP 3.125 Gbps front end wrapper
@@ -9,21 +8,23 @@
 -- Note: Default uses FPGA fabric clock = 156.25 MHz reference clock
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -42,7 +43,7 @@ entity Pgp2bGth7VarLatWrapper is
       TX_CLK25_DIV_G    : natural              := 7;
       RX_OS_CFG_G       : bit_vector           := "0000010000000";           -- Set by wizard
       RXCDR_CFG_G       : bit_vector           := x"0002007FE1000C2200018";  -- Set by wizard
-      RXDFEXYDEN_G      : sl                   := '1';                       -- Set by wizard 
+      RXDFEXYDEN_G      : sl                   := '1';                       -- Set by wizard
       -- PGP Settings
       VC_INTERLEAVE_G   : integer              := 0;  -- No interleave Frames
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
@@ -72,24 +73,24 @@ entity Pgp2bGth7VarLatWrapper is
       gtTxN           : out sl;
       gtRxP           : in  sl;
       gtRxN           : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);  
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end Pgp2bGth7VarLatWrapper;
 
 architecture mapping of Pgp2bGth7VarLatWrapper is
 
 begin
-   
-   Pgp2bGth7VarLat_Inst : entity work.Pgp2bGth7VarLat
+
+   Pgp2bGth7VarLat_Inst : entity surf.Pgp2bGth7VarLat
       generic map (
          TPD_G             => TPD_G,
          -- CPLL Configurations
@@ -114,7 +115,7 @@ begin
          TX_POLARITY_G     => TX_POLARITY_G,
          RX_POLARITY_G     => RX_POLARITY_G,
          TX_ENABLE_G       => TX_ENABLE_G,
-         RX_ENABLE_G       => RX_ENABLE_G)          
+         RX_ENABLE_G       => RX_ENABLE_G)
       port map (
          -- GT Clocking
          stableClk        => pgpClk,
@@ -154,16 +155,16 @@ begin
          -- Frame RX Interface
          pgpRxMasters     => pgpRxMasters,
          pgpRxCtrl        => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk          => axilClk,
          axilRst          => axilRst,
          axilReadMaster   => axilReadMaster,
          axilReadSlave    => axilReadSlave,
          axilWriteMaster  => axilWriteMaster,
-         axilWriteSlave   => axilWriteSlave);                 
+         axilWriteSlave   => axilWriteSlave);
 
 end mapping;

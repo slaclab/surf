@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -25,7 +25,7 @@ Ltc2270: &Ltc2270
       lsBit: 7
       mode: RW
       description: DacReset
-    ######################################################### 
+    #########################################################
     PwrDwn:
       at:
         offset: 0x04
@@ -34,7 +34,7 @@ Ltc2270: &Ltc2270
       lsBit: 0
       mode: RW
       description: PwrDwn
-    ######################################################### 
+    #########################################################
     ClkInv:
       at:
         offset: 0x08
@@ -43,7 +43,7 @@ Ltc2270: &Ltc2270
       lsBit: 3
       mode: RW
       description: ClkInv
-    ######################################################### 
+    #########################################################
     ClkPhase:
       at:
         offset: 0x04
@@ -52,7 +52,7 @@ Ltc2270: &Ltc2270
       lsBit: 1
       mode: RW
       description: ClkPhase
-    ######################################################### 
+    #########################################################
     Dcs:
       at:
         offset: 0x04
@@ -61,7 +61,7 @@ Ltc2270: &Ltc2270
       lsBit: 0
       mode: RW
       description: Dcs
-    ######################################################### 
+    #########################################################
     ILvds:
       at:
         offset: 0x08
@@ -70,7 +70,7 @@ Ltc2270: &Ltc2270
       lsBit: 3
       mode: RW
       description: ILvds
-    ######################################################### 
+    #########################################################
     TermOn:
       at:
         offset: 0x08
@@ -79,7 +79,7 @@ Ltc2270: &Ltc2270
       lsBit: 3
       mode: RW
       description: TermOn
-    ######################################################### 
+    #########################################################
     OutOff:
       at:
         offset: 0x08
@@ -88,7 +88,7 @@ Ltc2270: &Ltc2270
       lsBit: 2
       mode: RW
       description: OutOff
-    ######################################################### 
+    #########################################################
     OutMode:
       at:
         offset: 0x08
@@ -97,7 +97,7 @@ Ltc2270: &Ltc2270
       lsBit: 0
       mode: RW
       description: OutMode
-    ######################################################### 
+    #########################################################
     OutTest:
       at:
         offset: 0x0C
@@ -105,8 +105,8 @@ Ltc2270: &Ltc2270
       sizeBits: 3
       lsBit: 3
       mode: RW
-      description: OutTest 
-    ######################################################### 
+      description: OutTest
+    #########################################################
     Abp:
       at:
         offset: 0x0C
@@ -115,7 +115,7 @@ Ltc2270: &Ltc2270
       lsBit: 2
       mode: RW
       description: Abp
-    ######################################################### 
+    #########################################################
     Rand:
       at:
         offset: 0x0C
@@ -124,7 +124,7 @@ Ltc2270: &Ltc2270
       lsBit: 1
       mode: RW
       description: Rand
-    ######################################################### 
+    #########################################################
     TwoComp :
       at:
         offset: 0x0C
@@ -133,7 +133,7 @@ Ltc2270: &Ltc2270
       lsBit: 0
       mode: RW
       description: TwoComp
-    ######################################################### 
+    #########################################################
     adcData:
       at:
         offset: 0x180
@@ -152,7 +152,7 @@ Ltc2270: &Ltc2270
           lsBit: 0
           mode: RO
           description: adcData
-    ######################################################### 
+    #########################################################
     delayRdy:
       at:
         offset: 0x1FC
@@ -161,7 +161,7 @@ Ltc2270: &Ltc2270
       lsBit: 0
       mode: RO
       description: delayRdy
-    ######################################################### 
+    #########################################################
     delayData:
       at:
         offset: 0x200
@@ -180,7 +180,7 @@ Ltc2270: &Ltc2270
           lsBit: 0
           mode: RW
           description: delayData
-    ######################################################### 
+    #########################################################
     dmode:
       at:
         offset: 0x240
@@ -189,7 +189,7 @@ Ltc2270: &Ltc2270
       lsBit: 0
       mode: RW
       description: dmode
-    ######################################################### 
+    #########################################################
     debug:
       at:
         offset: 0x280
@@ -198,7 +198,7 @@ Ltc2270: &Ltc2270
       lsBit: 0
       mode: RW
       description: debug
-    ######################################################### 
+    #########################################################
 #  CPSW no longer supports WO mode
 #    cntRst:
 #      at:
@@ -208,4 +208,4 @@ Ltc2270: &Ltc2270
 #      lsBit: 0
 #      mode: WO
 #      description: cntRst
-    ######################################################### 
+    #########################################################

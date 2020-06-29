@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Slave module controlled via REQ/ACK interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteSlave is
    generic (
@@ -89,7 +90,7 @@ begin
                   v.req.wrData  := axilWriteMaster.wdata;
                   -- Next state
                   v.state       := ACK_S;
-               -- Check for a read request            
+               -- Check for a read request
                elsif (axiStatus.readEnable = '1') and (r.toggle = '1') then
                   -- Start the read request
                   v.req.request := '1';
@@ -117,7 +118,7 @@ begin
                if (r.req.rnw = '0') then
                   -- Send AXI-Lite response
                   axiSlaveWriteResponse(v.axilWriteSlave, axiResp);
-               -- Check for a read request            
+               -- Check for a read request
                elsif (axiStatus.readEnable = '1') then
                   -- Set the read bus
                   v.axilReadSlave.rdata := ack.rdData;

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronN25QReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: MicronN25Q AXI-Lite Register Access
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiMicronN25QReg is
    generic (
@@ -35,7 +36,7 @@ entity AxiMicronN25QReg is
       sck            : out sl;
       mosi           : out sl;
       miso           : in  sl;
-      -- Shared SPI Interface 
+      -- Shared SPI Interface
       busyIn         : in  sl := '0';
       busyOut        : out sl;
       -- AXI-Lite Register Interface
@@ -105,7 +106,7 @@ architecture rtl of AxiMicronN25QReg is
       addr32BitMode => '0',
       cmd           => (others => '0'),
       status        => (others => '0'),
-      -- RAM Signals      
+      -- RAM Signals
       RnW           => '1',
       we            => '0',
       rd            => "00",
@@ -139,7 +140,7 @@ begin
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, busyIn, miso, r,
                    ramDout) is
       variable v            : RegType;
@@ -210,7 +211,7 @@ begin
                end if;
                -- Send AXI-Lite response
                axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
-            -- Check for a read request            
+            -- Check for a read request
             elsif (axiStatus.readEnable = '1') then
                if axiReadMaster.araddr(9) = '1' then
                   -- Set the read address
@@ -428,11 +429,12 @@ begin
       end if;
    end process seq;
 
-   U_Ram : entity work.SimpleDualPortRam
+   U_Ram : entity surf.SimpleDualPortRam
       generic map(
-         BRAM_EN_G    => true,
-         DATA_WIDTH_G => 8,
-         ADDR_WIDTH_G => 9)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         DATA_WIDTH_G  => 8,
+         ADDR_WIDTH_G  => 9)
       port map (
          -- Port A
          clka  => axiClk,

@@ -1,28 +1,28 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # This file is part of 'SLAC Firmware Standard Library'.
-# It is subject to the license terms in the LICENSE.txt file found in the 
-# top-level directory of this distribution and at: 
-#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-# No part of 'SLAC Firmware Standard Library', including this file, 
-# may be copied, modified, propagated, or distributed except according to 
+# It is subject to the license terms in the LICENSE.txt file found in the
+# top-level directory of this distribution and at:
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+# No part of 'SLAC Firmware Standard Library', including this file,
+# may be copied, modified, propagated, or distributed except according to
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
- 
+
 class Si5345Page0(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page0",
             description  = "Alarms, interrupts, reset, other configuration",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)       
-        
+
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # 15.1 Page 0 Registers Si5345
         ##############################
-                                             
+
         self.add(pr.RemoteVariable(
             name        = 'PN_BASE_LO',
             description = 'Four-digit base part number, one nibble per digit.',
@@ -31,7 +31,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'PN_BASE_HI',
             description = 'Four-digit base part number, one nibble per digit.',
@@ -39,38 +39,38 @@ class Si5345Page0(pr.Device):
             bitSize     = 8,
             mode        = 'RO',
             overlapEn   = True,
-        ))        
+        ))
 
         self.add(pr.RemoteVariable(
-            name         = 'GRADE', 
+            name         = 'GRADE',
             description  = 'One ASCII character indicating the device speed/synthesis mode.',
             offset       = (0x04 << 2),
-            bitSize      = 2, 
+            bitSize      = 2,
             mode         = 'RO',
             enum        = {
-                0x0: 'A', 
-                0x1: 'B', 
-                0x2: 'C', 
-                0x3: 'D', 
+                0x0: 'A',
+                0x1: 'B',
+                0x2: 'C',
+                0x3: 'D',
             },
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
-            name         = 'DEVICE_REV', 
+            name         = 'DEVICE_REV',
             description  = 'One ASCII character indicating the device revision level.',
             offset       = (0x05 << 2),
-            bitSize      = 2, 
+            bitSize      = 2,
             mode         = 'RO',
             enum        = {
-                0x0: 'A', 
-                0x1: 'B', 
-                0x2: 'C', 
-                0x3: 'D', 
+                0x0: 'A',
+                0x1: 'B',
+                0x2: 'C',
+                0x3: 'D',
             },
             overlapEn   = True,
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'TOOL_VERSION[0]',
             description = 'The software tool version that creates the register values downloaded at power up is represented by TOOL_VERSION.',
@@ -79,7 +79,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'TOOL_VERSION[1]',
             description = 'The software tool version that creates the register values downloaded at power up is represented by TOOL_VERSION.',
@@ -87,7 +87,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 8,
             mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'TOOL_VERSION[2]',
@@ -96,7 +96,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 8,
             mode        = 'RW',
             overlapEn   = True,
-        ))     
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'TEMP_GRADE',
@@ -105,7 +105,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 8,
             mode        = 'RO',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'PKG_ID',
@@ -114,7 +114,7 @@ class Si5345Page0(pr.Device):
             bitSize     = 8,
             mode        = 'RO',
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'I2C_ADDR',
@@ -124,7 +124,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))      
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'SYSINCAL',
@@ -160,7 +160,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             pollInterval = 1,
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'SMBUS_TIMEOUT',
@@ -172,7 +172,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOS',
@@ -194,7 +194,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             pollInterval = 1,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL',
@@ -230,17 +230,17 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             pollInterval = 1,
             overlapEn   = True,
-        )) 
+        ))
 
-        self.add(pr.RemoteCommand(   
+        self.add(pr.RemoteCommand(
             name         = 'ClearIntErrFlag',
             description  = 'command to clears the internal error flags',
             offset       = (0x11 << 2),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(0),
             overlapEn   = True,
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'SYSINCAL_FLG',
             description = 'Sticky version of SYSINCAL. Write a 0 to this bit to clear.',
@@ -252,7 +252,7 @@ class Si5345Page0(pr.Device):
             pollInterval = 1,
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'LOSXAXB_FLG',
             description = 'Sticky version of LOSXAXB. Write a 0 to this bit to clear.',
@@ -287,7 +287,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOS_FLG',
@@ -297,7 +297,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 0,
             mode        = 'RO',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_FLG',
@@ -307,7 +307,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 4,
             mode        = 'RO',
             overlapEn   = True,
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_FLG',
@@ -318,7 +318,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 1,
             mode        = 'RO',
             overlapEn   = True,
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD_FLG',
@@ -329,7 +329,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 5,
             mode        = 'RO',
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'CAL_PLL_FLG',
@@ -340,7 +340,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 5,
             mode        = 'RO',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_ON_HOLD',
@@ -352,7 +352,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))     
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'SYSINCAL_INTR_MSK',
@@ -364,7 +364,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOSXAXB_INTR_MSK',
@@ -376,7 +376,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'SMBUS_TIMEOUT_FLG_MSK',
@@ -388,7 +388,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'STATUS_FLG_RESERVED',
@@ -399,9 +399,9 @@ class Si5345Page0(pr.Device):
             mode        = 'WO',
             value        = 0x3,
             hidden       = True,
-            verify       = False,            
+            verify       = False,
             overlapEn   = True,
-        ))          
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOS_INTR_MSK',
@@ -412,7 +412,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_INTR_MSK',
@@ -423,7 +423,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_INTR_MSK',
@@ -435,7 +435,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD_INTR_MSK',
@@ -447,7 +447,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'CAL_INTR_MSK',
@@ -459,9 +459,9 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))         
+        ))
 
-        self.add(pr.RemoteCommand(  
+        self.add(pr.RemoteCommand(
             name         = "SOFT_RST_ALL",
             description  = "Initialize and calibrates the entire device",
             offset       = (0x1C << 2),
@@ -471,8 +471,8 @@ class Si5345Page0(pr.Device):
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
         ))
-        
-        self.add(pr.RemoteCommand(  
+
+        self.add(pr.RemoteCommand(
             name         = "SOFT_RST",
             description  = "Initialize outer loop",
             offset       = (0x1C << 2),
@@ -481,9 +481,9 @@ class Si5345Page0(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        )) 
+        ))
 
-        self.add(pr.RemoteCommand(  
+        self.add(pr.RemoteCommand(
             name        = "FINC",
             description = "1 a rising edge will cause the selected MultiSynth to increment the output frequency by the Nx_FSTEPW parameter. See registers 0x03390x0358",
             offset      = (0x1D << 2),
@@ -492,9 +492,9 @@ class Si5345Page0(pr.Device):
             function    = pr.BaseCommand.toggle,
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
-        
-        self.add(pr.RemoteCommand(  
+        ))
+
+        self.add(pr.RemoteCommand(
             name        = "FDEC",
             description = "1 a rising edge will cause the selected MultiSynth to decrement the output frequency by the Nx_FSTEPW parameter. See registers 0x03390x0358",
             offset      = (0x1D << 2),
@@ -503,7 +503,7 @@ class Si5345Page0(pr.Device):
             function    = pr.BaseCommand.toggle,
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))          
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'PDN',
@@ -515,7 +515,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'HARD_RST',
             description = '1 causes hard reset. The same as power up except that the serial port access is not held at reset.',
@@ -525,9 +525,9 @@ class Si5345Page0(pr.Device):
             bitOffset   = 1,
             mode        = 'RW',
             overlapEn   = True,
-        ))        
-    
-        self.add(pr.RemoteCommand(  
+        ))
+
+        self.add(pr.RemoteCommand(
             name         = "SYNC",
             description  = "1 to reset all output R dividers to the same state.",
             offset       = (0x1E << 2),
@@ -535,8 +535,8 @@ class Si5345Page0(pr.Device):
             bitOffset    = 2,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        ))    
-    
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'SPI_3WIRE',
             description = '0 for 4-wire SPI, 1 for 3-wire SPI',
@@ -547,8 +547,8 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'AUTO_NDIV_UPDATE',
             description = 'Set by CBPro.',
@@ -559,7 +559,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOS_EN',
@@ -580,45 +580,45 @@ class Si5345Page0(pr.Device):
             bitOffset   = 4,
             mode        = 'RW',
             overlapEn   = True,
-        ))        
+        ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'LOS_VAL_TIME[{i}]',
                 description = f'Clock Input[{i}]',
                 offset      = (0x2D << 2),
-                bitSize     = 2, 
-                bitOffset   = (2*i), 
+                bitSize     = 2,
+                bitOffset   = (2*i),
                 mode        = 'RW',
                 enum        = {
-                    0x0: '2ms', 
-                    0x1: '100ms', 
-                    0x2: '200ms', 
-                    0x3: '1000ms', 
+                    0x0: '2ms',
+                    0x1: '100ms',
+                    0x2: '200ms',
+                    0x3: '1000ms',
                 },
                 overlapEn   = True,
             ))
-            
+
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = f'LOS_TRG_THR_LO[{i}]',            
+                name        = f'LOS_TRG_THR_LO[{i}]',
                 description = 'Trigger Threshold 16-bit Threshold Value',
                 offset      = ((0x2E+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))  
+            ))
             self.add(pr.RemoteVariable(
-                name        = f'LOS_TRG_THR_HI[{i}]',              
+                name        = f'LOS_TRG_THR_HI[{i}]',
                 description = 'Trigger Threshold 16-bit Threshold Value',
                 offset      = ((0x2F+(2*i)) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))  
-   
+            ))
+
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -629,7 +629,7 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))  
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'LOS_CLR_THR_HI[{i}]',
@@ -639,8 +639,8 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))  
-           
+            ))
+
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_EN',
@@ -651,7 +651,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'FAST_OOF_EN',
             description = '1 to enable, 0 to disable',
@@ -660,28 +660,28 @@ class Si5345Page0(pr.Device):
             bitOffset   = 4,
             mode        = 'RW',
             overlapEn   = True,
-        ))        
+        ))
 
         self.add(pr.RemoteVariable(
-            name         = 'OOF_REF_SEL', 
+            name         = 'OOF_REF_SEL',
             description  = 'OOF Reference Select',
             offset       = (0x40 << 2),
-            bitSize      = 3, 
+            bitSize      = 3,
             mode         = 'RO',
             enum        = {
-                0x0: 'CLKIN0', 
-                0x1: 'CLKIN1', 
-                0x2: 'CLKIN2', 
-                0x3: 'CLKIN3', 
-                0x4: 'XAXB', 
+                0x0: 'CLKIN0',
+                0x1: 'CLKIN1',
+                0x2: 'CLKIN2',
+                0x3: 'CLKIN3',
+                0x4: 'XAXB',
                 0x5: 'UNDEFINED_0x5',
                 0x6: 'UNDEFINED_0x6',
-                0x7: 'UNDEFINED_0x7',  
+                0x7: 'UNDEFINED_0x7',
             },
             overlapEn   = True,
         ))
-        
-        for i in range(4):        
+
+        for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'OOF_DIV_SEL[{i}]',
                 description = 'Sets a divider for the OOF circuitry for each input clock 0,1,2,3. The divider value is 2OOFx_DIV_SEL. CBPro sets these dividers.',
@@ -690,7 +690,7 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))         
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOFXO_DIV_SEL',
@@ -700,9 +700,9 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))         
-            
-        for i in range(4):        
+        ))
+
+        for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'OOF_SET_THR[{i}]',
                 description = 'OOF Set threshold. Range is up to 500 ppm in steps of 1/16 ppm.',
@@ -711,9 +711,9 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))    
+            ))
 
-        for i in range(4):        
+        for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'OOF_CLR_THR[{i}]',
                 description = 'OOF Clear threshold. Range is up to 500 ppm in steps of 1/16 ppm.',
@@ -722,8 +722,8 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))                
-        
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'OOF_DETWIN_SEL[0]',
             description = 'Values calculated by CBPro.',
@@ -733,7 +733,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_DETWIN_SEL[1]',
@@ -766,8 +766,8 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))      
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'OOF_ON_LOS',
             description = 'Values set by CBPro',
@@ -777,9 +777,9 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))       
-        
-        for i in range(4):        
+        ))
+
+        for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'FAST_OOF_SET_THR[{i}]',
                 description = '(1+ value) x 1000 ppm',
@@ -788,9 +788,9 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))   
+            ))
 
-        for i in range(4):        
+        for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'FAST_OOF_CLR_THR[{i}]',
                 description = '(1+ value) x 1000 ppm',
@@ -799,20 +799,20 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))               
-            
+            ))
+
         for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'FAST_OOF_DETWIN_SEL[{i}]',
                 description = 'Values calculated by CBPro.',
                 offset      = (0x59 << 2),
-                bitSize     = 2, 
-                bitOffset   = (2*i),   
+                bitSize     = 2,
+                bitOffset   = (2*i),
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))           
-                
+            ))
+
         for i in range(4):
             self.add(pr.RemoteVariable(
                 name        = f'OOF0_RATIO_REF[{i}]',
@@ -855,8 +855,8 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))           
-            
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'LOL_FST_EN',
             description = 'Enables fast detection of LOL. A large input frequency error will quickly assert LOL when this is enabled.',
@@ -866,7 +866,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 1,
             mode        = 'RW',
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_FST_DETWIN_SEL',
@@ -877,7 +877,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))     
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_FST_VALWIN_SEL',
@@ -888,7 +888,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_FST_SET_THR_SEL',
@@ -899,7 +899,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_FST_CLR_THR_SEL',
@@ -910,7 +910,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_SLOW_EN_PLL',
@@ -921,7 +921,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 1,
             mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_SLW_DETWIN_SEL',
@@ -931,7 +931,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 4,
             mode        = 'RW',
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_SLW_VALWIN_SEL',
@@ -942,63 +942,63 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))          
-        
+        ))
+
         self.add(pr.RemoteVariable(
-            name        = 'LOL_SLW_SET_THR', 
+            name        = 'LOL_SLW_SET_THR',
             description = 'Configures the loss of lock set thresholds',
             offset      = (0x9E << 2),
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
             enum        = {
-                0x0: '0.1 ppm', 
-                0x1: '0.3 ppm', 
-                0x2: '1 ppm', 
-                0x3: '3 ppm', 
-                0x4: '10 ppm', 
-                0x5: '30 ppm', 
-                0x6: '100 ppm', 
-                0x7: '300 ppm', 
-                0x8: '1000 ppm', 
-                0x9: '3000 ppm', 
-                0xA: '10000 ppm', 
-                0xB: 'UNDEFINED_0xB', 
-                0xC: 'UNDEFINED_0xC', 
-                0xD: 'UNDEFINED_0xD', 
-                0xE: 'UNDEFINED_0xE', 
-                0xF: 'UNDEFINED_0xF', 
+                0x0: '0.1 ppm',
+                0x1: '0.3 ppm',
+                0x2: '1 ppm',
+                0x3: '3 ppm',
+                0x4: '10 ppm',
+                0x5: '30 ppm',
+                0x6: '100 ppm',
+                0x7: '300 ppm',
+                0x8: '1000 ppm',
+                0x9: '3000 ppm',
+                0xA: '10000 ppm',
+                0xB: 'UNDEFINED_0xB',
+                0xC: 'UNDEFINED_0xC',
+                0xD: 'UNDEFINED_0xD',
+                0xE: 'UNDEFINED_0xE',
+                0xF: 'UNDEFINED_0xF',
             },
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
-            name        = 'LOL_SLW_CLR_THR', 
+            name        = 'LOL_SLW_CLR_THR',
             description = 'Configures the loss of lock set thresholds.',
             offset      = (0xA0 << 2),
             bitSize     = 4,
             bitOffset   = 4,
             mode        = 'RW',
             enum        = {
-                0x0: '0.1 ppm', 
-                0x1: '0.3 ppm', 
-                0x2: '1 ppm', 
-                0x3: '3 ppm', 
-                0x4: '10 ppm', 
-                0x5: '30 ppm', 
-                0x6: '100 ppm', 
-                0x7: '300 ppm', 
-                0x8: '1000 ppm', 
-                0x9: '3000 ppm', 
-                0xA: '10000 ppm', 
-                0xB: 'UNDEFINED_0xB', 
-                0xC: 'UNDEFINED_0xC', 
-                0xD: 'UNDEFINED_0xD', 
-                0xE: 'UNDEFINED_0xE', 
-                0xF: 'UNDEFINED_0xF',                 
+                0x0: '0.1 ppm',
+                0x1: '0.3 ppm',
+                0x2: '1 ppm',
+                0x3: '3 ppm',
+                0x4: '10 ppm',
+                0x5: '30 ppm',
+                0x6: '100 ppm',
+                0x7: '300 ppm',
+                0x8: '1000 ppm',
+                0x9: '3000 ppm',
+                0xA: '10000 ppm',
+                0xB: 'UNDEFINED_0xB',
+                0xC: 'UNDEFINED_0xC',
+                0xD: 'UNDEFINED_0xD',
+                0xE: 'UNDEFINED_0xE',
+                0xF: 'UNDEFINED_0xF',
             },
             overlapEn   = True,
-        ))         
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOL_TIMER_EN',
@@ -1009,7 +1009,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 1,
             mode        = 'RW',
             overlapEn   = True,
-        ))     
+        ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1020,23 +1020,23 @@ class Si5345Page0(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            )) 
+            ))
 
         self.add(pr.RemoteVariable(
-            name        = 'ACTIVE_NVM_BANK', 
+            name        = 'ACTIVE_NVM_BANK',
             description = 'Read-only field indicating number of user bank writes carried out so far.',
             offset      = (0xE2 << 2),
             bitSize     = 8,
             bitOffset   = 0,
             mode        = 'RO',
             # enum        = {
-                # 0x00: 'zero', 
-                # 0x03: 'one', 
-                # 0x0F: 'two', 
-                # 0x3F: 'three', 
+                # 0x00: 'zero',
+                # 0x03: 'one',
+                # 0x0F: 'two',
+                # 0x3F: 'three',
             # },
             overlapEn   = True,
-        ))              
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'NVM_WRITE',
@@ -1046,9 +1046,9 @@ class Si5345Page0(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             overlapEn   = True,
-        ))     
+        ))
 
-        self.add(pr.RemoteCommand(  
+        self.add(pr.RemoteCommand(
             name         = "NVM_READ_BANK",
             description  = "When set, this bit will read the NVM down into the volatile memory.",
             offset       = (0xE4 << 2),
@@ -1057,7 +1057,7 @@ class Si5345Page0(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'FASTLOCK_EXTEND_EN',
@@ -1068,7 +1068,7 @@ class Si5345Page0(pr.Device):
             bitOffset   = 5,
             mode        = 'RW',
             overlapEn   = True,
-        ))           
+        ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1092,7 +1092,7 @@ class Si5345Page0(pr.Device):
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'REG_0xF8_INTR',
             description = 'Set by CBPro.',
@@ -1103,7 +1103,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'REG_0xF9_INTR',
@@ -1115,7 +1115,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'SYSINCAL_INTR',
@@ -1198,7 +1198,7 @@ class Si5345Page0(pr.Device):
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'LOL_INTR',
             description = 'Set by CBPro.',
@@ -1221,7 +1221,7 @@ class Si5345Page0(pr.Device):
             mode        = 'RO',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'DEVICE_READY',
@@ -1231,16 +1231,16 @@ class Si5345Page0(pr.Device):
             bitOffset   = 0,
             mode        = 'RO',
             overlapEn   = True,
-        ))        
-        
+        ))
+
 class Si5345Page1(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page1",
             description  = "Clock output configuration",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)  
-        
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # 15.1 Page 1 Registers Si5345
         ##############################
@@ -1254,7 +1254,7 @@ class Si5345Page1(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             overlapEn   = True,
-        ))         
+        ))
 
         for i in range(10):
             self.add(pr.RemoteVariable(
@@ -1267,7 +1267,7 @@ class Si5345Page1(pr.Device):
                 mode        = 'RW',
                 overlapEn   = True,
             ))
-            
+
             self.add(pr.RemoteVariable(
                 name        = f'OUT_OE[{i}]',
                 description = 'Output driver: 0 to disable the output, 1 to enable the output',
@@ -1277,7 +1277,7 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 1,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))   
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'OUT_RDIV_FORCE2[{i}]',
@@ -1288,7 +1288,7 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 2,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))               
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'OUT_FORMAT[{i}]',
@@ -1298,15 +1298,15 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 0,
                 mode        = 'RW',
                 enum        = {
-                    0x0: 'Undefined', 
-                    0x1: 'swing mode (normal swing) differential', 
-                    0x2: 'swing mode (high swing) differential', 
+                    0x0: 'Undefined',
+                    0x1: 'swing mode (normal swing) differential',
+                    0x2: 'swing mode (high swing) differential',
                     0x3: 'UNDEFINED_0x3',
-                    0x4: 'LVCMOS single ended', 
-                    0x5: 'LVCMOS (+pin only)', 
-                    0x6: 'LVCMOS (pin only)', 
+                    0x4: 'LVCMOS single ended',
+                    0x5: 'LVCMOS (+pin only)',
+                    0x6: 'LVCMOS (pin only)',
                     0x7: 'UNDEFINED_0x7',
-                },                
+                },
                 overlapEn   = True,
             ))
 
@@ -1319,7 +1319,7 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 3,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))    
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'OUT_DIS_STATE[{i}]',
@@ -1329,14 +1329,14 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 4,
                 mode        = 'RW',
                 enum        = {
-                    0x0: 'Disable low', 
-                    0x1: 'Disable high', 
+                    0x0: 'Disable low',
+                    0x1: 'Disable high',
                     0x2: 'UNDEFINED_0x2',
                     0x3: 'UNDEFINED_0x3',
-                },                
+                },
                 overlapEn   = True,
             ))
-            
+
             self.add(pr.RemoteVariable(
                 name        = f'OUT_CMOS_DRV[{i}]',
                 description = 'LVCMOS output impedance.',
@@ -1345,11 +1345,11 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 6,
                 mode        = 'RW',
                 enum        = {
-                    0x0: 'CMOS1', 
-                    0x1: 'CMOS2', 
-                    0x2: 'CMOS3', 
+                    0x0: 'CMOS1',
+                    0x1: 'CMOS2',
+                    0x2: 'CMOS3',
                     0x3: 'UNDEFINED_0x3',
-                },                
+                },
                 overlapEn   = True,
             ))
 
@@ -1359,7 +1359,7 @@ class Si5345Page1(pr.Device):
                 offset      = ( ((0x0A+(5*i)) << 2) if (i!=9) else ((0x0A+(5*i)+5) << 2) ),
                 bitSize     = 4,
                 bitOffset   = 0,
-                mode        = 'RW',             
+                mode        = 'RW',
                 overlapEn   = True,
             ))
 
@@ -1369,9 +1369,9 @@ class Si5345Page1(pr.Device):
                 offset      = ( ((0x0A+(5*i)) << 2) if (i!=9) else ((0x0A+(5*i)+5) << 2) ),
                 bitSize     = 3,
                 bitOffset   = 4,
-                mode        = 'RW',             
+                mode        = 'RW',
                 overlapEn   = True,
-            ))            
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'OUT_MUX_SEL[{i}]',
@@ -1381,18 +1381,18 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 0,
                 mode        = 'RW',
                 enum        = {
-                    0x0: 'N0', 
-                    0x1: 'N1', 
-                    0x2: 'N2', 
-                    0x3: 'N3', 
-                    0x4: 'N4', 
+                    0x0: 'N0',
+                    0x1: 'N1',
+                    0x2: 'N2',
+                    0x3: 'N3',
+                    0x4: 'N4',
                     0x5: 'UNDEFINED_0x5',
                     0x6: 'UNDEFINED_0x6',
-                    0x7: 'UNDEFINED_0x7',                    
-                },                
+                    0x7: 'UNDEFINED_0x7',
+                },
                 overlapEn   = True,
             ))
-            
+
             self.add(pr.RemoteVariable(
                 name        = f'OUT_VDD_SEL_EN[{i}]',
                 description = '1 = Enable OUT0_VDD_SEL',
@@ -1400,9 +1400,9 @@ class Si5345Page1(pr.Device):
                 base        = pr.Bool,
                 bitSize     = 1,
                 bitOffset   = 3,
-                mode        = 'RW',               
+                mode        = 'RW',
                 overlapEn   = True,
-            ))            
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'OUT_VDD_SEL[{i}]',
@@ -1412,13 +1412,13 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 4,
                 mode        = 'RW',
                 enum        = {
-                    0x0: '3.3 V', 
-                    0x1: '1.8 V', 
-                    0x2: '2.5 V', 
-                    0x3: 'UNDEFINED_0x3',                  
-                },                
+                    0x0: '3.3 V',
+                    0x1: '1.8 V',
+                    0x2: '2.5 V',
+                    0x3: 'UNDEFINED_0x3',
+                },
                 overlapEn   = True,
-            ))  
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'OUT_INV[{i}]',
@@ -1428,14 +1428,14 @@ class Si5345Page1(pr.Device):
                 bitOffset   = 6,
                 mode        = 'RW',
                 enum        = {
-                    0x0: 'CLK and CLK not inverted', 
-                    0x1: 'CLK inverted', 
-                    0x2: 'CLK and CLK inverted', 
-                    0x3: 'CLK inverted', 
-                },                
+                    0x0: 'CLK and CLK not inverted',
+                    0x1: 'CLK inverted',
+                    0x2: 'CLK and CLK inverted',
+                    0x3: 'CLK inverted',
+                },
                 overlapEn   = True,
-            ))              
-            
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'OUTX_ALWAYS_ON[0]',
             description = 'This setting is managed by CBPro during zero delay mode.',
@@ -1445,7 +1445,7 @@ class Si5345Page1(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OUTX_ALWAYS_ON[1]',
@@ -1456,7 +1456,7 @@ class Si5345Page1(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OUT_DIS_MSK',
@@ -1468,7 +1468,7 @@ class Si5345Page1(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OUT_DIS_LOL_MSK',
@@ -1491,8 +1491,8 @@ class Si5345Page1(pr.Device):
             bitOffset   = 6,
             mode        = 'RW',
             overlapEn   = True,
-        ))        
-            
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'OUT_DIS_MSK_LOS_PFD',
             description = 'Set by CBPro.',
@@ -1503,7 +1503,7 @@ class Si5345Page1(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OUT_DIS_MSK_LOL',
@@ -1537,36 +1537,36 @@ class Si5345Page1(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             overlapEn   = True,
-        ))           
-            
+        ))
+
 class Si5345Page2(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page2",
             description  = "P,R dividers, scratch area",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)              
-            
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # 15.1 Page 2 Registers Si5345
         ##############################
-        
+
         self.add(pr.RemoteVariable(
-            name        = 'PXAXB', 
+            name        = 'PXAXB',
             description = 'Sets the prescale divider for the input clock on XAXB.',
             offset      = (0x06 << 2),
             bitSize     = 2,
             bitOffset   = 0,
             mode        = 'RO',
             enum        = {
-                0x0: 'pre-scale value 1', 
-                0x1: 'pre-scale value 2', 
-                0x2: 'pre-scale value 4', 
-                0x3: 'pre-scale value 8', 
+                0x0: 'pre-scale value 1',
+                0x1: 'pre-scale value 2',
+                0x2: 'pre-scale value 4',
+                0x3: 'pre-scale value 8',
             },
             overlapEn   = True,
-        ))            
-            
+        ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'P0_NUM[{i}]',
@@ -1575,7 +1575,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1585,8 +1585,8 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
-            
+            ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'P1_NUM[{i}]',
@@ -1595,7 +1595,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1605,7 +1605,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
@@ -1615,7 +1615,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1625,7 +1625,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
@@ -1635,7 +1635,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1645,7 +1645,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))              
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'Px_UPDATE',
@@ -1666,7 +1666,7 @@ class Si5345Page2(pr.Device):
                 bitOffset   = 0,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = f'P_FRAC_EN[{i}]',
@@ -1677,8 +1677,8 @@ class Si5345Page2(pr.Device):
                 bitOffset   = 4,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))              
-            
+            ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'MXAXB_NUM[{i}]',
@@ -1687,7 +1687,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1697,9 +1697,9 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))              
-            
-        self.add(pr.RemoteCommand(  
+            ))
+
+        self.add(pr.RemoteCommand(
             name         = "MXAXB_UPDATE",
             description  = "Set to 1 to update the MXAXB_NUM and MXAXB_DEN values. A SOFT_RST may also be used to update these values.",
             offset       = (0x3F << 2),
@@ -1708,8 +1708,8 @@ class Si5345Page2(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        ))            
-            
+        ))
+
         for i in range(3):
             self.add(pr.RemoteVariable(
                 name        = f'R0_REG[{i}]',
@@ -1718,7 +1718,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1728,7 +1728,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1738,7 +1738,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1748,7 +1748,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1758,7 +1758,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))    
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1768,7 +1768,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))   
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1778,7 +1778,7 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))   
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1788,50 +1788,50 @@ class Si5345Page2(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = f'R8_REG[{i}]', 
+                name        = f'R8_REG[{i}]',
                 description = 'R8 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x62+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = f'R9_REG[{i}]', 
+                name        = f'R9_REG[{i}]',
                 description = 'R9 Divider: divide value = (REG+1) x 2',
                 offset      = ((0x68+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(8):
             self.add(pr.RemoteVariable(
-                name        = f'DESIGN_ID[{i}]', 
+                name        = f'DESIGN_ID[{i}]',
                 description = 'ASCII encoded string defined by CBPro user',
                 offset      = ((0x6B+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(8):
             self.add(pr.RemoteVariable(
-                name        = f'OPN_ID[{i}]', 
+                name        = f'OPN_ID[{i}]',
                 description = 'OPN unique identifier. ASCII encoded by CBPro user',
                 offset      = ((0x78+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))              
-            
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'OPN_REVISION',
             description = 'OPN_REVISION',
@@ -1840,7 +1840,7 @@ class Si5345Page2(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'BASELINE_ID',
@@ -1850,11 +1850,11 @@ class Si5345Page2(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             overlapEn   = True,
-        ))           
-            
+        ))
+
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = f'OOF_TRG_THR_EXT[{i}]', 
+                name        = f'OOF_TRG_THR_EXT[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x8A+i) << 2),
                 bitSize     = 5,
@@ -1865,15 +1865,15 @@ class Si5345Page2(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = f'OOF_CLR_THR_EXT[{i}]', 
+                name        = f'OOF_CLR_THR_EXT[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x8E+i) << 2),
                 bitSize     = 5,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))           
-            
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'FASTLOCK_EXTEND_SCL',
             description = 'Scales LOLB_INT_TIMER_DIV256. Set by CBPro',
@@ -1894,7 +1894,7 @@ class Si5345Page2(pr.Device):
             bitOffset   = 1,
             mode        = 'RW',
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'FASTLOCK_DLY_ONSW_EN',
@@ -1906,7 +1906,7 @@ class Si5345Page2(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'FASTLOCK_DLY_ONLOL_EN',
@@ -1918,8 +1918,8 @@ class Si5345Page2(pr.Device):
             mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))       
-            
+        ))
+
         for i in range(3):
             self.add(pr.RemoteVariable(
                 name        = f'FASTLOCK_DLY_ONLOL[{i}]',
@@ -1929,7 +1929,7 @@ class Si5345Page2(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(3):
             self.add(pr.RemoteVariable(
@@ -1940,8 +1940,8 @@ class Si5345Page2(pr.Device):
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))         
-            
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'LOL_NOSIG_TIME',
             description = 'Set by CBPro.',
@@ -1963,20 +1963,20 @@ class Si5345Page2(pr.Device):
             mode        = 'RO',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))    
-            
+        ))
+
 class Si5345Page3(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page3",
             description  = "Output N dividers, N divider Finc/Fdec",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)              
-            
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # 15.1 Page 3 Registers Si5345
         ##############################
-            
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'N0_NUM[{i}]',
@@ -1985,7 +1985,7 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -1995,9 +1995,9 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))             
-            
-        self.add(pr.RemoteCommand(  
+            ))
+
+        self.add(pr.RemoteCommand(
             name         = "N0_UPDATE",
             description  = "Set this bit to update the N0 divider.",
             offset       = (0x0C << 2),
@@ -2006,8 +2006,8 @@ class Si5345Page3(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-            )) 
-        
+        ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'N1_NUM[{i}]',
@@ -2016,19 +2016,19 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(4):
-            self.add(pr.RemoteVariable( 
+            self.add(pr.RemoteVariable(
                 name        = f'N1_DEN[{i}]',
                 description = 'N1 Denominator',
                 offset      = ((0x13+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))             
-            
-        self.add(pr.RemoteCommand(  
+            ))
+
+        self.add(pr.RemoteCommand(
             name         = "N1_UPDATE",
             description  = "Set this bit to update the N1 divider.",
             offset       = (0x17 << 2),
@@ -2037,8 +2037,8 @@ class Si5345Page3(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        )) 
-        
+        ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'N2_NUM[{i}]',
@@ -2047,7 +2047,7 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -2057,9 +2057,9 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))             
-            
-        self.add(pr.RemoteCommand(  
+            ))
+
+        self.add(pr.RemoteCommand(
             name         = "N2_UPDATE",
             description  = "Set this bit to update the N2 divider.",
             offset       = (0x22 << 2),
@@ -2068,8 +2068,8 @@ class Si5345Page3(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        )) 
-        
+        ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'N3_NUM[{i}]',
@@ -2078,7 +2078,7 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
@@ -2088,9 +2088,9 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))             
-            
-        self.add(pr.RemoteCommand(  
+            ))
+
+        self.add(pr.RemoteCommand(
             name         = "N3_UPDATE",
             description  = "Set this bit to update the N3 divider.",
             offset       = (0x2D << 2),
@@ -2099,8 +2099,8 @@ class Si5345Page3(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        )) 
-        
+        ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
                 name        = f'N4_NUM[{i}]',
@@ -2109,19 +2109,19 @@ class Si5345Page3(pr.Device):
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = f'N4_DEN[{i}]', 
+                name        = f'N4_DEN[{i}]',
                 description = 'N4 Denominator',
                 offset      = ((0x34+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))             
-            
-        self.add(pr.RemoteCommand(  
+            ))
+
+        self.add(pr.RemoteCommand(
             name         = "N4_UPDATE",
             description  = "Set this bit to update the N4 divider.",
             offset       = (0x38 << 2),
@@ -2130,9 +2130,9 @@ class Si5345Page3(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        ))  
+        ))
 
-        self.add(pr.RemoteCommand(  
+        self.add(pr.RemoteCommand(
             name         = "N_UPDATE_ALL",
             description  = "Set this bit to update all five N dividers.",
             offset       = (0x38 << 2),
@@ -2141,8 +2141,8 @@ class Si5345Page3(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        ))          
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'N_FSTEP_MSK',
             description = '0 to enable FINC/FDEC updates, 1 to disable FINC/FDEC updates',
@@ -2151,70 +2151,70 @@ class Si5345Page3(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             overlapEn   = True,
-        ))            
-        
+        ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'N0_FSTEPW[{i}]', 
+                name        = f'N0_FSTEPW[{i}]',
                 description = 'N0 Frequency Step Word',
                 offset      = ((0x3B+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'N1_FSTEPW[{i}]', 
+                name        = f'N1_FSTEPW[{i}]',
                 description = 'N1 Frequency Step Word',
                 offset      = ((0x41+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'N2_FSTEPW[{i}]', 
+                name        = f'N2_FSTEPW[{i}]',
                 description = 'N2 Frequency Step Word',
                 offset      = ((0x47+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))  
+            ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'N3_FSTEPW[{i}]', 
+                name        = f'N3_FSTEPW[{i}]',
                 description = 'N3 Frequency Step Word',
                 offset      = ((0x4D+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'N4_FSTEPW[{i}]', 
+                name        = f'N4_FSTEPW[{i}]',
                 description = 'N4 Frequency Step Word',
                 offset      = ((0x53+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))             
-        
+            ))
+
 class Si5345Page4(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page4",
             description  = "ZD mode configuration",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)         
-        
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # 15.1 Page 4 Registers Si5345
-        ##############################        
-        
+        ##############################
+
         self.add(pr.RemoteVariable(
             name        = 'ZDM_EN',
             description = '0 to disable ZD mode, 1 to enable ZD mode',
@@ -2224,8 +2224,8 @@ class Si5345Page4(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             overlapEn   = True,
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'ZDM_IN_SEL',
             description = 'Clock input select when in ZD mode. Note: In ZD mode the feedback clock comes into IN3',
@@ -2234,14 +2234,14 @@ class Si5345Page4(pr.Device):
             bitOffset   = 1,
             mode        = 'RW',
             enum        = {
-                0x0: 'IN0', 
-                0x1: 'IN1', 
-                0x2: 'IN2', 
-                0x3: 'UNDEFINED_0x3',   
-            },                
+                0x0: 'IN0',
+                0x1: 'IN1',
+                0x2: 'IN2',
+                0x3: 'UNDEFINED_0x3',
+            },
             overlapEn   = True,
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'ZDM_AUTOSW_EN',
             description = 'Set by CBPro.',
@@ -2253,18 +2253,18 @@ class Si5345Page4(pr.Device):
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
-        
+
 class Si5345Page5(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page5",
             description  = "M divider, BW, holdover, input switch, FINC/DEC",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
-        
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # 15.1 Page 5 Registers Si5345
-        ##############################    
+        ##############################
 
         self.add(pr.RemoteVariable(
             name        = 'IN_ACTV',
@@ -2274,35 +2274,35 @@ class Si5345Page5(pr.Device):
             bitOffset   = 6,
             mode        = 'RO',
             enum        = {
-                0x0: 'IN0', 
-                0x1: 'IN1', 
-                0x2: 'IN2', 
-                0x3: 'IN3', 
-            },                
+                0x0: 'IN0',
+                0x1: 'IN1',
+                0x2: 'IN2',
+                0x3: 'IN3',
+            },
             overlapEn   = True,
-        ))          
-        
+        ))
+
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'BW_PLL[{i}]', 
+                name        = f'BW_PLL[{i}]',
                 description = 'PLL loop bandwidth parameter',
                 offset      = ((0x08+i) << 2),
                 bitSize     = 6,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))   
+            ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'FAST_LOCK_BW_PLL[{i}]', 
+                name        = f'FAST_LOCK_BW_PLL[{i}]',
                 description = 'PLL Fast Lock Loop Bandwidth parameter',
                 offset      = ((0x0E+i) << 2),
                 bitSize     = 6,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))                    
+            ))
 
-        self.add(pr.RemoteCommand(  
+        self.add(pr.RemoteCommand(
             name         = "BW_UPDATE_PLL",
             description  = "Must be set to 1 to update the BWx_PLL and FAST_BWx_PLL parameters",
             offset       = (0x14 << 2),
@@ -2312,28 +2312,28 @@ class Si5345Page5(pr.Device):
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
         ))
-                
+
         for i in range(7):
             self.add(pr.RemoteVariable(
-                name        = f'M_NUM[{i}]', 
+                name        = f'M_NUM[{i}]',
                 description = 'M Divider Numerator',
                 offset      = ((0x15+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            )) 
+            ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name        = f'M_DEN[{i}]', 
+                name        = f'M_DEN[{i}]',
                 description = 'M Divider Denominator',
                 offset      = ((0x1C+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))             
-        
-        self.add(pr.RemoteCommand(  
+            ))
+
+        self.add(pr.RemoteCommand(
             name         = "M_UPDATE",
             description  = "Set this bit to update the M divider.",
             offset       = (0x20 << 2),
@@ -2342,8 +2342,8 @@ class Si5345Page5(pr.Device):
             # hidden       = True,
             function     = pr.BaseCommand.toggle,
             overlapEn   = True,
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'M_FRAC_MODE',
             description = 'M feedback divider fractional mode, Must be set to 0xB for proper operation',
@@ -2353,9 +2353,9 @@ class Si5345Page5(pr.Device):
             mode        = 'WO',
             value        = 0xB,
             hidden       = True,
-            verify       = False,                
+            verify       = False,
             overlapEn   = True,
-        ))         
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'M_FRAC_EN',
@@ -2364,10 +2364,10 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 4,
-            mode        = 'RW',              
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'M_FRAC_RESERVED',
             description = 'Must be set to 1 for DSPLL B',
@@ -2378,10 +2378,10 @@ class Si5345Page5(pr.Device):
             mode        = 'WO',
             value        = 0x1,
             hidden       = True,
-            verify       = False,            
+            verify       = False,
             overlapEn   = True,
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'IN_SEL_REGCTRL',
             description = '0 for pin controlled clock selection, 1 for register controlled clock selection',
@@ -2389,10 +2389,10 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))           
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'IN_SEL',
             description = 'Select DSPLL input clock',
@@ -2401,14 +2401,14 @@ class Si5345Page5(pr.Device):
             bitOffset   = 1,
             mode        = 'RW',
             enum        = {
-                0x0: 'IN0', 
-                0x1: 'IN1', 
-                0x2: 'IN2', 
-                0x3: 'IN3', 
-            },                
+                0x0: 'IN0',
+                0x1: 'IN1',
+                0x2: 'IN2',
+                0x3: 'IN3',
+            },
             overlapEn   = True,
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'FASTLOCK_AUTO_EN',
             description = 'Applies only when FASTLOCK_MAN = 0 (see below): 0 to disable auto fast lock when the DSPLL is out of lock, 1 to enable auto fast lock',
@@ -2416,7 +2416,7 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
         ))
 
@@ -2427,10 +2427,10 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 1,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))        
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'HOLD_EN',
             description = 'Holdover enable: 0: Holdover Disabled, 1: Holdover Enabled (default)',
@@ -2438,9 +2438,9 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD_RAMP_BYP',
@@ -2449,9 +2449,9 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 3,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLDEXIT_BW_SEL1',
@@ -2460,9 +2460,9 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 4,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'RAMP_STEP_INTERVAL',
@@ -2470,11 +2470,11 @@ class Si5345Page5(pr.Device):
             offset      = (0x2C << 2),
             bitSize     = 3,
             bitOffset   = 5,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))      
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'HOLD_RAMPBYP_NOHIST',
             description = 'Set by CBPro.',
@@ -2482,18 +2482,18 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 1,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))   
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'HOLD_HIST_LEN',
             description = 'Set by CBPro.',
             offset      = (0x2E << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
@@ -2504,7 +2504,7 @@ class Si5345Page5(pr.Device):
             offset      = (0x2F << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
@@ -2515,22 +2515,22 @@ class Si5345Page5(pr.Device):
             offset      = (0x31 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        )) 
-                
+        ))
+
         for i in range(3):
             self.add(pr.RemoteVariable(
-                name        = f'HOLD_15M_CYC_COUNT_PLLB[{i}]', 
+                name        = f'HOLD_15M_CYC_COUNT_PLLB[{i}]',
                 description = 'Value calculated by CBPro',
                 offset      = ((0x32+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))  
-        
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'FORCE_HOLD',
             description = '0 for normal operation, 1 for force holdover',
@@ -2538,10 +2538,10 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'CLK_SWTCH_MODE',
             description = 'Clock switching mode',
@@ -2550,14 +2550,14 @@ class Si5345Page5(pr.Device):
             bitOffset   = 0,
             mode        = 'RW',
             enum        = {
-                0x0: 'manual', 
-                0x1: 'automatic_non-revertive', 
-                0x2: 'automatic_revertive', 
-                0x3: 'UNDEFINED_0x3',                
-            },                
+                0x0: 'manual',
+                0x1: 'automatic_non-revertive',
+                0x2: 'automatic_revertive',
+                0x3: 'UNDEFINED_0x3',
+            },
             overlapEn   = True,
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'HSW_EN',
             description = '0 glitchless switching mode (phase buildout turned off), 1 hitless switching mode (phase buildout turned on). Note: Hitless switching and zero delay mode are incompatible.',
@@ -2565,9 +2565,9 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 2,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'IN_LOS_MSK',
@@ -2575,9 +2575,9 @@ class Si5345Page5(pr.Device):
             offset      = (0x37 << 2),
             bitSize     = 4,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'IN_OOF_MSK',
@@ -2585,90 +2585,90 @@ class Si5345Page5(pr.Device):
             offset      = (0x37 << 2),
             bitSize     = 4,
             bitOffset   = 4,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))         
-        
+        ))
+
         self.add(pr.RemoteVariable(
-            name        = 'IN_PRIORITY[0]', 
+            name        = 'IN_PRIORITY[0]',
             description = 'priority for clock input',
             offset      = (0x38 << 2),
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',
             enum        = {
-                0x0: 'no priority', 
-                0x1: 'priority 1', 
-                0x2: 'priority 2', 
-                0x3: 'priority 3', 
-                0x4: 'priority 4', 
+                0x0: 'no priority',
+                0x1: 'priority 1',
+                0x2: 'priority 2',
+                0x3: 'priority 3',
+                0x4: 'priority 4',
                 0x5: 'UNDEFINED_0x5',
                 0x6: 'UNDEFINED_0x6',
-                0x7: 'UNDEFINED_0x7',                
-            },                  
+                0x7: 'UNDEFINED_0x7',
+            },
             overlapEn   = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'IN_PRIORITY[1]', 
+            name        = 'IN_PRIORITY[1]',
             description = 'priority for clock input',
             offset      = (0x38 << 2),
             bitSize     = 3,
             bitOffset   = 4,
             mode        = 'RW',
             enum        = {
-                0x0: 'no priority', 
-                0x1: 'priority 1', 
-                0x2: 'priority 2', 
-                0x3: 'priority 3', 
-                0x4: 'priority 4', 
+                0x0: 'no priority',
+                0x1: 'priority 1',
+                0x2: 'priority 2',
+                0x3: 'priority 3',
+                0x4: 'priority 4',
                 0x5: 'UNDEFINED_0x5',
                 0x6: 'UNDEFINED_0x6',
-                0x7: 'UNDEFINED_0x7',                
-            },                  
+                0x7: 'UNDEFINED_0x7',
+            },
             overlapEn   = True,
-        ))        
-           
+        ))
+
         self.add(pr.RemoteVariable(
-            name        = 'IN_PRIORITY[2]', 
+            name        = 'IN_PRIORITY[2]',
             description = 'priority for clock input',
             offset      = (0x39 << 2),
             bitSize     = 3,
             bitOffset   = 0,
             mode        = 'RW',
             enum        = {
-                0x0: 'no priority', 
-                0x1: 'priority 1', 
-                0x2: 'priority 2', 
-                0x3: 'priority 3', 
-                0x4: 'priority 4', 
+                0x0: 'no priority',
+                0x1: 'priority 1',
+                0x2: 'priority 2',
+                0x3: 'priority 3',
+                0x4: 'priority 4',
                 0x5: 'UNDEFINED_0x5',
                 0x6: 'UNDEFINED_0x6',
-                0x7: 'UNDEFINED_0x7',                
-            },                  
+                0x7: 'UNDEFINED_0x7',
+            },
             overlapEn   = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'IN_PRIORITY[3]', 
+            name        = 'IN_PRIORITY[3]',
             description = 'priority for clock input',
             offset      = (0x39 << 2),
             bitSize     = 3,
             bitOffset   = 4,
             mode        = 'RW',
             enum        = {
-                0x0: 'no priority', 
-                0x1: 'priority 1', 
-                0x2: 'priority 2', 
-                0x3: 'priority 3', 
-                0x4: 'priority 4', 
+                0x0: 'no priority',
+                0x1: 'priority 1',
+                0x2: 'priority 2',
+                0x3: 'priority 3',
+                0x4: 'priority 4',
                 0x5: 'UNDEFINED_0x5',
                 0x6: 'UNDEFINED_0x6',
-                0x7: 'UNDEFINED_0x7',                
-            },                  
+                0x7: 'UNDEFINED_0x7',
+            },
             overlapEn   = True,
-        ))             
-                
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'HSW_MODE',
             description = '2: Default setting, do not modify',
@@ -2678,9 +2678,9 @@ class Si5345Page5(pr.Device):
             mode        = 'WO',
             value       = 0x2,
             hidden      = True,
-            verify      = False,                
+            verify      = False,
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HSW_PHMEAS_CTRL',
@@ -2691,28 +2691,28 @@ class Si5345Page5(pr.Device):
             mode        = 'WO',
             value       = 0x0,
             hidden      = True,
-            verify      = False,                
+            verify      = False,
             overlapEn   = True,
-        ))          
+        ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = f'HSW_PHMEAS_THR[{i}]', 
+                name        = f'HSW_PHMEAS_THR[{i}]',
                 description = '10-bit value. Set by CBPro.',
                 offset      = ((0x3B+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))    
-        
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'HSW_COARSE_PM_LEN',
             description = 'Set by CBPro.',
             offset      = (0x3D << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
@@ -2723,10 +2723,10 @@ class Si5345Page5(pr.Device):
             offset      = (0x3E << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'HOLD_HIST_VALID',
@@ -2735,7 +2735,7 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 1,
-            mode        = 'RO',               
+            mode        = 'RO',
             overlapEn   = True,
         ))
 
@@ -2746,7 +2746,7 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 2,
-            mode        = 'RO',               
+            mode        = 'RO',
             overlapEn   = True,
         ))
 
@@ -2756,14 +2756,14 @@ class Si5345Page5(pr.Device):
             offset      = (0x88 << 2),
             bitSize     = 4,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = f'PFD_EN_DELAY[{i}]', 
+                name        = f'PFD_EN_DELAY[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x89+i) << 2),
                 bitSize     = 8,
@@ -2779,10 +2779,10 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 1,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'HOLD_PRESERVE_HIST',
             description = 'Set by CBPro.',
@@ -2790,7 +2790,7 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 4,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
@@ -2802,7 +2802,7 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 5,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
@@ -2814,7 +2814,7 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 6,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
@@ -2826,33 +2826,33 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 7,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
 
         for i in range(6):
             self.add(pr.RemoteVariable(
-                name        = f'HOLDEXIT_BW[{i}]', 
+                name        = f'HOLDEXIT_BW[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x9D+i) << 2),
                 bitSize     = 6,
                 mode        = 'RW',
                 hidden      = simpleDisplay,
                 overlapEn   = True,
-            ))     
-      
+            ))
+
         self.add(pr.RemoteVariable(
             name        = 'RAMP_STEP_SIZE',
             description = 'Set by CBPro.',
             offset      = (0xA6 << 2),
             bitSize     = 3,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'RAMP_SWITCH_EN',
             description = 'Ramp Switching Enable: 0: Disable Ramp Switching, 1: Enable Ramp Switching (default)',
@@ -2860,18 +2860,18 @@ class Si5345Page5(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 3,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))  
+        ))
 
 class Si5345Page9(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "Page9",
             description  = "Control IO configuration",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, description=description, **kwargs)         
-        
+        super().__init__(name=name, description=description, **kwargs)
+
         ##############################
         # 15.1 Page 9 Registers Si5345
         ##############################
@@ -2883,10 +2883,10 @@ class Si5345Page9(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))  
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name        = 'IO_VDD_SEL',
             description = '0 for 1.8 V external connections, 1 for 3.3 V external connections',
@@ -2894,9 +2894,9 @@ class Si5345Page9(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'IN_EN',
@@ -2904,9 +2904,9 @@ class Si5345Page9(pr.Device):
             offset      = (0x49 << 2),
             bitSize     = 4,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'IN_PULSED_CMOS_EN',
@@ -2914,9 +2914,9 @@ class Si5345Page9(pr.Device):
             offset      = (0x49 << 2),
             bitSize     = 4,
             bitOffset   = 4,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))          
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'INX_TO_PFD_EN',
@@ -2924,14 +2924,14 @@ class Si5345Page9(pr.Device):
             offset      = (0x4A << 2),
             bitSize     = 4,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = f'REFCLK_HYS_SEL[{i}]', 
+                name        = f'REFCLK_HYS_SEL[{i}]',
                 description = 'Value calculated in CBPro',
                 offset      = ((0x4E+i) << 2),
                 bitSize     = 8,
@@ -2947,18 +2947,18 @@ class Si5345Page9(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
 
 class Si5345PageA(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "PageA",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, **kwargs)           
-        
+        super().__init__(name=name, **kwargs)
+
         ##############################
         # 15.1 Page A Registers Si5345
         ##############################
@@ -2969,20 +2969,20 @@ class Si5345PageA(pr.Device):
             offset      = (0x02 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             hidden      = simpleDisplay,
             overlapEn   = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name        = 'N_CLK_TO_OUTX_EN',
             description = 'Routes Multisynth outputs to output driver muxes.',
             offset      = (0x03 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'N_PIBYP',
@@ -2990,9 +2990,9 @@ class Si5345PageA(pr.Device):
             offset      = (0x04 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))  
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'N_PDNB',
@@ -3000,13 +3000,13 @@ class Si5345PageA(pr.Device):
             offset      = (0x05 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))          
+        ))
 
         for i in range(5):
             self.add(pr.RemoteVariable(
-                name        = f'N_HIGH_FREQ[{i}]', 
+                name        = f'N_HIGH_FREQ[{i}]',
                 description = 'Set by CBPro.',
                 offset      = ((0x14+i) << 2),
                 bitSize     = 3,
@@ -3016,26 +3016,26 @@ class Si5345PageA(pr.Device):
             ))
 
 class Si5345PageB(pr.Device):
-    def __init__(self,       
+    def __init__(self,
             name         = "PageB",
             simpleDisplay = True,
             **kwargs):
-        super().__init__(name=name, **kwargs)              
-            
+        super().__init__(name=name, **kwargs)
+
         ##############################
         # 15.1 Page B Registers Si5345
-        ##############################        
-        
-        
+        ##############################
+
+
         self.add(pr.RemoteVariable(
             name        = 'PDIV_FRACN_CLK_DIS_PLL',
             description = 'Disable digital clocks to input P (IN03) fractional dividers.',
             offset      = (0x44 << 2),
             bitSize     = 4,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'FRACN_CLK_DIS_PLL',
@@ -3044,9 +3044,9 @@ class Si5345PageB(pr.Device):
             base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 5,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'LOS_CLK_DIS',
@@ -3054,9 +3054,9 @@ class Si5345PageB(pr.Device):
             offset      = (0x46 << 2),
             bitSize     = 4,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))    
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_CLK_DIS',
@@ -3064,9 +3064,9 @@ class Si5345PageB(pr.Device):
             offset      = (0x47 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'OOF_DIV_CLK_DIS',
@@ -3074,9 +3074,9 @@ class Si5345PageB(pr.Device):
             offset      = (0x48 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'N_CLK_DIS',
@@ -3084,17 +3084,16 @@ class Si5345PageB(pr.Device):
             offset      = (0x4A << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = 'RW',               
+            mode        = 'RW',
             overlapEn   = True,
-        ))           
-        
+        ))
+
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = f'VCO_RESET_CALCODE[{i}]', 
+                name        = f'VCO_RESET_CALCODE[{i}]',
                 description = '12-bit value. Controls the VCO frequency when a reset occurs.',
                 offset      = ((0x57+i) << 2),
                 bitSize     = 8,
                 mode        = 'RW',
                 overlapEn   = True,
-            ))          
-            
+            ))

@@ -1,32 +1,33 @@
 -------------------------------------------------------------------------------
--- File       : AxiDac7654Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiDac7654 Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package AxiDac7654Pkg is
-   
+
    type AxiDac7654InType is record
       sdo : sl;
    end record;
    type AxiDac7654InArray is array (natural range <>) of AxiDac7654InType;
    type AxiDac7654InVectorArray is array (integer range<>, integer range<>)of AxiDac7654InType;
    constant AXI_DAC7654_IN_INIT_C : AxiDac7654InType := (
-      sdo => '0');  
+      sdo => '0');
 
    type AxiDac7654OutType is record
       cs   : sl;
@@ -44,7 +45,7 @@ package AxiDac7654Pkg is
       sdi  => '0',
       load => '1',
       ldac => '0',
-      rst  => '0');   
+      rst  => '0');
 
    type AxiDac7654SpiInType is record
       req  : sl;
@@ -52,7 +53,7 @@ package AxiDac7654Pkg is
    end record;
    constant AXI_DAC7654_SPI_IN_INIT_C : AxiDac7654SpiInType := (
       req  => '1',
-      data => (others => x"8000"));            
+      data => (others => x"8000"));
 
    type AxiDac7654SpiOutType is record
       ack : sl;
@@ -64,12 +65,12 @@ package AxiDac7654Pkg is
       spi : AxiDac7654SpiOutType;
    end record;
    constant AXI_DAC7654_STATUS_INIT_C : AxiDac7654StatusType := (
-      spi => AXI_DAC7654_SPI_OUT_INIT_C); 
+      spi => AXI_DAC7654_SPI_OUT_INIT_C);
 
    type AxiDac7654ConfigType is record
       spi : AxiDac7654SpiInType;
    end record;
    constant AXI_DAC7654_CONFIG_INIT_C : AxiDac7654ConfigType := (
-      spi => AXI_DAC7654_SPI_IN_INIT_C); 
+      spi => AXI_DAC7654_SPI_IN_INIT_C);
 
 end package;

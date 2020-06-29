@@ -1,24 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteFifoPop.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Supports reading of general purpose FIFOs from the AxiLite bus.
 -- One address location per FIFO.
 -- Address map depends on the POP and LOOP FIFO counts.
--- RANGE_LSB_G sets the address bit which seperates the 
--- POP FIFO address space from the loop FIFO address space. 
+-- RANGE_LSB_G sets the address bit which seperates the
+-- POP FIFO address space from the loop FIFO address space.
 -- RANGE_LSB_G must be large enough for the number of POP and LOOP FIFOs
 -- enabled. I.E. if POP_FIFO_COUNT_C is 8, RANGE_FIFO_G must be > 5.
--- POP Fifos exist at 0x0, 0x4, 0x8, 0xC ... 
+-- POP Fifos exist at 0x0, 0x4, 0x8, 0xC ...
 -- LOOP Fifos exist at 2^(RANGE_LSB_C) + 0x0, + 0x4, etc.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,28 +26,26 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteFifoPop is
    generic (
       TPD_G              : time                       := 1 ns;
       POP_FIFO_COUNT_G   : positive                   := 1;
       POP_SYNC_FIFO_G    : boolean                    := false;
-      POP_BRAM_EN_G      : boolean                    := true;
+      POP_MEMORY_TYPE_G  : string                     := "block";
       POP_ADDR_WIDTH_G   : integer range 4 to 48      := 4;
       POP_FULL_THRES_G   : integer range 1 to (2**24) := 1;
       LOOP_FIFO_EN_G     : boolean                    := false;
       LOOP_FIFO_COUNT_G  : positive                   := 1;
-      LOOP_BRAM_EN_G     : boolean                    := true;
+      LOOP_MEMORY_TYPE_G : string                     := "block";
       LOOP_ADDR_WIDTH_G  : integer range 4 to 48      := 4;
       RANGE_LSB_G        : integer range 0 to 31      := 8;
       VALID_POSITION_G   : integer range 0 to 31      := 0;
-      VALID_POLARITY_G   : sl                         := '0';
-      ALTERA_SYN_G       : boolean                    := false;
-      ALTERA_RAM_G       : string                     := "M9K";
-      USE_BUILT_IN_G     : boolean                    := false;
-      XIL_DEVICE_G       : string                     := "7SERIES"
+      VALID_POLARITY_G   : sl                         := '0'
    );
    port (
 
@@ -126,7 +123,7 @@ begin
    -- pop FIFOs
    -----------------------------------------
    U_ReadFifo : for i in 0 to POP_FIFO_COUNT_G-1 generate
-      U_FIfo : entity work.FifoCascade 
+      U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -134,13 +131,8 @@ begin
             RST_POLARITY_G     => '1',
             RST_ASYNC_G        => true,
             GEN_SYNC_FIFO_G    => POP_SYNC_FIFO_G,
-            BRAM_EN_G          => POP_BRAM_EN_G,
+            MEMORY_TYPE_G      => POP_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
-            ALTERA_SYN_G       => ALTERA_SYN_G,
-            ALTERA_RAM_G       => ALTERA_RAM_G,
-            USE_BUILT_IN_G     => USE_BUILT_IN_G,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => 32,
             ADDR_WIDTH_G       => POP_ADDR_WIDTH_G,
@@ -184,7 +176,7 @@ begin
    -----------------------------------------
    U_LoopFifoEn : if LOOP_FIFO_EN_G generate
       U_LoopFifo : for i in 0 to LOOP_FIFO_COUNT_G-1 generate
-         U_FIfo : entity work.FifoCascade 
+         U_FIfo : entity surf.FifoCascade
             generic map (
                TPD_G              => TPD_G,
                CASCADE_SIZE_G     => 1,
@@ -192,13 +184,8 @@ begin
                RST_POLARITY_G     => '1',
                RST_ASYNC_G        => true,
                GEN_SYNC_FIFO_G    => true,
-               BRAM_EN_G          => LOOP_BRAM_EN_G,
+               MEMORY_TYPE_G      => LOOP_MEMORY_TYPE_G,
                FWFT_EN_G          => true,
-               USE_DSP48_G        => "no",
-               ALTERA_SYN_G       => ALTERA_SYN_G,
-               ALTERA_RAM_G       => ALTERA_RAM_G,
-               USE_BUILT_IN_G     => USE_BUILT_IN_G,
-               XIL_DEVICE_G       => XIL_DEVICE_G,
                SYNC_STAGES_G      => 3,
                DATA_WIDTH_G       => 32,
                ADDR_WIDTH_G       => LOOP_ADDR_WIDTH_G,
@@ -274,7 +261,7 @@ begin
       -- Write
       if (axiStatus.writeEnable = '1') then
 
-         if axiWriteMaster.awaddr(RANGE_LSB_G) = '1' then 
+         if axiWriteMaster.awaddr(RANGE_LSB_G) = '1' then
             v.loopFifoDin := axiWriteMaster.wdata;
 
             v.loopFifoWrite(conv_integer(axiWriteMaster.awaddr(LOOP_SIZE_C+1 downto 2))) := '1';
@@ -288,11 +275,11 @@ begin
       if (axiStatus.readEnable = '1') then
 
 
-         if axiReadMaster.araddr(RANGE_LSB_G) = '0' then 
+         if axiReadMaster.araddr(RANGE_LSB_G) = '0' then
 
             v.axiReadSlave.rdata := ipopFifoDout(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not ipopFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
 
             v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) :=
@@ -302,10 +289,10 @@ begin
 
             v.axiReadSlave.rdata := iloopFifoDout(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
 
-            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := 
+            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) :=
                iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
          end if;
@@ -330,7 +317,7 @@ begin
       iloopFifoDin   <= r.loopFifoDin;
       iloopFifoWrite <= r.loopFifoWrite;
       iloopFifoRead  <= r.loopFifoRead;
-      
+
    end process;
 
 end architecture structure;

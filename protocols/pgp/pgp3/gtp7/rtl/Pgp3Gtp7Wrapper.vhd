@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtp7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTP7 Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -89,7 +90,7 @@ entity Pgp3Gtp7Wrapper is
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
       pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
@@ -180,7 +181,7 @@ begin
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
 
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -198,7 +199,7 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity work.Pgp3Gtp7Qpll
+      U_QPLL : entity surf.Pgp3Gtp7Qpll
          generic map (
             TPD_G         => TPD_G,
             EN_DRP_G      => EN_QPLL_DRP_G,
@@ -227,7 +228,7 @@ begin
       -- PGP Core
       -----------
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Pgp : entity work.Pgp3Gtp7
+         U_Pgp : entity surf.Pgp3Gtp7
             generic map (
                TPD_G                       => TPD_G,
                RATE_G                      => RATE_G,
@@ -292,7 +293,7 @@ begin
                -- Frame Receive Interface
                pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-               -- Debug Interface 
+               -- Debug Interface
                txPreCursor     => txPreCursor(i),
                txPostCursor    => txPostCursor(i),
                txDiffCtrl      => txDiffCtrl(i),
@@ -310,7 +311,7 @@ begin
 
          SLAVE_LOCK : if (i /= 0) generate
             -- Prevent the gtTxPllRst of this lane disrupting the other lanes in the QUAD
-            U_PwrUpRst : entity work.PwrUpRst
+            U_PwrUpRst : entity surf.PwrUpRst
                generic map (
                   TPD_G      => TPD_G,
                   DURATION_G => 125)
@@ -374,7 +375,7 @@ begin
             O => txPllClk(2));
 
       GEN_RST : for i in 2 downto 0 generate
-         U_RstSync : entity work.RstSync
+         U_RstSync : entity surf.RstSync
             generic map (
                TPD_G          => TPD_G,
                IN_POLARITY_G  => '0',
@@ -392,7 +393,7 @@ begin
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Rogue : entity work.RoguePgp3Sim
+         U_Rogue : entity surf.RoguePgp3Sim
             generic map(
                TPD_G      => TPD_G,
                PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),

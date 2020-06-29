@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : AxiLiteSaciMaster2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: New and improved version of the AxiLiteSaciMaster.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.SaciMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SaciMasterPkg.all;
 
 entity AxiLiteSaciMaster is
    generic (
@@ -99,7 +100,7 @@ architecture rtl of AxiLiteSaciMaster is
    signal rdData : slv(31 downto 0);
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";   
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -115,8 +116,8 @@ begin
       report "AXIL_CLK_PERIOD_G must be < SACI_CLK_PERIOD_G" severity failure;
    assert (SACI_CLK_PERIOD_G < AXIL_TIMEOUT_G)
       report "SACI_CLK_PERIOD_G must be < AXIL_TIMEOUT_G" severity failure;
-   
-   U_SaciMaster2_1 : entity work.SaciMaster2
+
+   U_SaciMaster2_1 : entity surf.SaciMaster2
       generic map (
          TPD_G              => TPD_G,
          SYS_CLK_PERIOD_G   => AXIL_CLK_PERIOD_G,
@@ -185,7 +186,7 @@ begin
                   v.wrData := axilWriteMaster.wdata;
                   -- Next state
                   v.state  := SACI_REQ_S;
-               -- Check for a read request            
+               -- Check for a read request
                elsif (axilStatus.readEnable = '1') then
                   v.saciBusReq := '1';
                   -- SACI Commands

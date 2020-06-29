@@ -7,11 +7,11 @@
 --   FILTER_G = (min_pulse_time / clk_period) + 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,11 +19,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity I2cRegMaster is
-   
+
    generic (
       TPD_G                : time                      := 1 ns;
       OUTPUT_EN_POLARITY_G : integer range 0 to 1      := 0;
@@ -43,12 +45,12 @@ end entity I2cRegMaster;
 architecture rtl of I2cRegMaster is
 
    type StateType is (
-      WAIT_REQ_S, 
-      ADDR_S, 
-      WRITE_S, 
-      READ_TXN_S, 
-      READ_S, 
-      BUS_ACK_S, 
+      WAIT_REQ_S,
+      ADDR_S,
+      WRITE_S,
+      READ_TXN_S,
+      READ_S,
+      BUS_ACK_S,
       REG_ACK_S);
 
    type RegType is record
@@ -102,7 +104,7 @@ architecture rtl of I2cRegMaster is
 
 begin
 
-   i2cMaster_1 : entity work.I2cMaster
+   i2cMaster_1 : entity surf.I2cMaster
       generic map (
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => OUTPUT_EN_POLARITY_G,
@@ -152,10 +154,10 @@ begin
                   else
                      v.i2cMasterIn.op := '0';
                      v.state := READ_S;
-                  end if;                  
+                  end if;
                end if;
             end if;
-            
+
          when ADDR_S =>
             -- When a new register access request is seen,
             -- Write the register address out on the bus first
@@ -193,7 +195,7 @@ begin
                   v.state := REG_ACK_S;
                end if;
             end if;
-            
+
 
          when READ_TXN_S =>
             -- Start new txn to read data bytes
@@ -216,19 +218,19 @@ begin
                end if;
             end if;
 
-         when BUS_ACK_S => 
+         when BUS_ACK_S =>
             if i2cMasterOut.busAck = '1' then
                v.i2cMasterIn.txnReq := '0';
                v.state              := REG_ACK_S;
             end if;
-            
+
          when REG_ACK_S =>
             -- Req done. Ack the req.
             -- Might have failed so hold regFail (would be set to 0 otherwise).
             v.regOut.regAck  := '1';
             v.regOut.regFail := r.regOut.regFail;
             if (regIn.regReq = '0') then
---          v.regOut.regAck := '0'; Might want this back. 
+--          v.regOut.regAck := '0'; Might want this back.
                v.state := WAIT_REQ_S;
             end if;
 
@@ -272,7 +274,7 @@ begin
 
       -- Outputs
       regOut <= r.regOut;
-      
+
    end process comb;
 
    seq : process (clk, arst) is
