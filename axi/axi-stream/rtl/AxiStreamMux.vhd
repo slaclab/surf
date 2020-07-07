@@ -174,7 +174,7 @@ begin
          -- Also allow disableSel and rearbitrate to work at any time
          if (ILEAVE_EN_G) then
             if ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
-                (rearbitrate = '1' or disableSel(conv_integer(r.ackNum)) = '1' or mAxisCtrl.destPause(i) = '1')) then
+                (rearbitrate = '1' or disableSel(conv_integer(r.ackNum)) = '1' or mAxisCtrl.destPause(conv_integer(r.ackNum)) = '1')) then
                v.valid := '0';
             end if;
          end if;
