@@ -126,10 +126,10 @@ package AxiStreamPkg is
       idle     => '0');
 
    constant AXI_STREAM_CTRL_UNUSED_C : AxiStreamCtrlType := (
-      destPause => (others=>'0'),
-      pause     => '0',
-      overflow  => '0',
-      idle      => '1');
+      bgPause  => (others=>'0'),
+      pause    => '0',
+      overflow => '0',
+      idle     => '1');
 
    type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
    type AxiStreamCtrlVectorArray is array (natural range<>, natural range<>) of AxiStreamCtrlType;
