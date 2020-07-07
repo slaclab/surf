@@ -113,17 +113,17 @@ package AxiStreamPkg is
    -- Special control backpressure interface for use with stream fifos
    -------------------------------------------------------------------------------------------------
    type AxiStreamCtrlType is record
-      destPause : slv(255 downto 0);
-      pause     : sl;
-      overflow  : sl;
-      idle      : sl;
+      bgPause  : slv(7 downto 0);
+      pause    : sl;
+      overflow : sl;
+      idle     : sl;
    end record AxiStreamCtrlType;
 
    constant AXI_STREAM_CTRL_INIT_C : AxiStreamCtrlType := (
-      destPause => (others=>'0'),
-      pause     => '1',
-      overflow  => '0',
-      idle      => '0');
+      bgPause  => (others=>'0'),
+      pause    => '1',
+      overflow => '0',
+      idle     => '0');
 
    constant AXI_STREAM_CTRL_UNUSED_C : AxiStreamCtrlType := (
       destPause => (others=>'0'),

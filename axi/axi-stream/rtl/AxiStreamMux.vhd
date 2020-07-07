@@ -64,8 +64,7 @@ entity AxiStreamMux is
 
       -- Master
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType;
-      mAxisCtrl   : in  AxiStreamCtrlType := AXI_STREAM_CTRL_INIT_C);
+      mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamMux;
 
 architecture rtl of AxiStreamMux is
@@ -132,7 +131,7 @@ begin
       sAxisMastersTmp <= tmp;
    end process;
 
-   comb : process (axisRst, disableSel, ileaveRearb, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp, mAxisCtrl) is
+   comb : process (axisRst, disableSel, ileaveRearb, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
@@ -165,7 +164,7 @@ begin
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
-         requests(i) := sAxisMastersTmp(i).tValid and not disableSel(i) and not mAxisCtrl.destPause(i);
+         requests(i) := sAxisMastersTmp(i).tValid and not disableSel(i);
       end loop;
 
 
@@ -174,7 +173,7 @@ begin
          -- Also allow disableSel and rearbitrate to work at any time
          if (ILEAVE_EN_G) then
             if ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
-                (rearbitrate = '1' or disableSel(conv_integer(r.ackNum)) = '1' or mAxisCtrl.destPause(conv_integer(r.ackNum)) = '1')) then
+                (rearbitrate = '1' or disableSel(conv_integer(r.ackNum)) = '1')) then
                v.valid := '0';
             end if;
          end if;
