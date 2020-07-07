@@ -65,7 +65,7 @@ entity AxiStreamMux is
       -- Master
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
-      mAxisCtrl   : in  AxiStreamCtrlType);
+      mAxisCtrl   : in  AxiStreamCtrlType := AXI_STREAM_CTRL_INIT_C);
 end AxiStreamMux;
 
 architecture rtl of AxiStreamMux is
