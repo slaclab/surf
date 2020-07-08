@@ -56,6 +56,7 @@ entity AxiStreamDmaV2 is
       interrupt       : out sl;
       online          : out slv(CHAN_COUNT_G-1 downto 0);
       acknowledge     : out slv(CHAN_COUNT_G-1 downto 0);
+      buffGrpPause    : out slv(7 downto 0);
       -- AXI Stream Interface
       sAxisMasters    : in  AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
       sAxisSlaves     : out AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
@@ -137,7 +138,8 @@ begin
          axiRdCache      => axiRdCache,
          axiWrCache      => axiWrCache,
          axiWriteMasters => descWriteMasters,
-         axiWriteSlaves  => descWriteSlaves);
+         axiWriteSlaves  => descWriteSlaves,
+         buffGrpPause    => buffGrpPause);
 
    -- Read/Write channel 0 unused.
    axiReadMasters(0)  <= AXI_READ_MASTER_INIT_C;
