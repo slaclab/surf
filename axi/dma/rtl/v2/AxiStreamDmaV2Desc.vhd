@@ -81,7 +81,7 @@ entity AxiStreamDmaV2Desc is
       axiWriteSlaves  : in  AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
 
       -- Buffer Group Pause
-      buffGrpPause    : out slv(7 downto 0);
+      buffGrpPause    : out slv(7 downto 0)
 
 end AxiStreamDmaV2Desc;
 
@@ -458,9 +458,9 @@ begin
       axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
 
       for i in 0 to 7 loop
-         axiSlaveRegister(regCon, toSlv(144 + i,12), 0, v.idBuffThold);  -- 0x090 - 0xAC
-         axiSlaveRegisterR(regCon, toSlv(176 + i,12), 0, r.idBuffCount); -- 0x0B0 - 0xCC
-         axiWrDetect(regCon, toSlv(176 + i,12), v.idBuffDec(i));         -- 0x0B0 - 0xCC
+         axiSlaveRegister(regCon, toSlv(144 + i*4,12), 0, v.idBuffThold);  -- 0x090 - 0xAC
+         axiSlaveRegisterR(regCon, toSlv(176 + i*4,12), 0, r.idBuffCount); -- 0x0B0 - 0xCC
+         axiWrDetect(regCon, toSlv(176 + i*4,12), v.idBuffDec(i));         -- 0x0B0 - 0xCC
       end loop;
 
       -- End transaction block
