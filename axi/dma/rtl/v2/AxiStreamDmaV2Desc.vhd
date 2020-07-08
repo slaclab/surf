@@ -81,7 +81,7 @@ entity AxiStreamDmaV2Desc is
       axiWriteSlaves  : in  AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
 
       -- Buffer Group Pause
-      buffGrpPause    : out slv(7 downto 0)
+      buffGrpPause    : out slv(7 downto 0));
 
 end AxiStreamDmaV2Desc;
 
