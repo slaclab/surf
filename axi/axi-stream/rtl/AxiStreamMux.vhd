@@ -30,7 +30,7 @@ entity AxiStreamMux is
       TPD_G                : time                   := 1 ns;
       PIPE_STAGES_G        : integer range 0 to 16  := 0;
       NUM_SLAVES_G         : integer range 1 to 256 := 4;
-      -- Set to true if you want to override Slave's TID with MUX's ACK number
+      -- Set to true if you want to override Slave's TID
       TID_EN_G             : boolean                := false;
       -- In INDEXED mode, the output TDEST is set based on the selected slave index
       -- In ROUTED mode, TDEST is set accoring to the TDEST_ROUTES_G table
