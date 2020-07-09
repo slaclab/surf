@@ -104,12 +104,16 @@ architecture rtl of AxiStreamMux is
 
 begin
 
-   assert (MODE_G /= "INDEXED" or (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)))
+   assert ( (MODE_G = "PASSTHROUGH") or (MODE_G = "INDEXED") or (MODE_G = "ROUTED") )
+      report "MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
+      severity error;
+
+   assert ( (MODE_G = "INDEXED") and (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)) )
       report "In INDEXED mode, TDest range 7 downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_SLAVES_G=" & integer'image(NUM_SLAVES_G)
       severity error;
 
-   assert (MODE_G /= "ROUTED" or (TDEST_ROUTES_G'length = NUM_SLAVES_G))
+   assert ( (MODE_G = "ROUTED") and (TDEST_ROUTES_G'length = NUM_SLAVES_G) )
       report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
       " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
       severity error;
@@ -118,6 +122,10 @@ begin
       report "TID_MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
       severity error;
 
+   assert ( (TID_MODE_G = "ROUTED") and (TID_ROUTES_G'length = NUM_SLAVES_G) )
+      report "In ROUTED mode, length of TID_ROUTES_G: " & integer'image(TID_ROUTES_G'length) &
+      " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
+      severity error;
 
    -- Override TDESTS and TIDs according to the routing tables
    ROUTE_TABLE_REMAP : process (sAxisMasters) is
@@ -154,7 +162,7 @@ begin
          end loop;
       end if;
 
-      
+
       sAxisMastersTmp <= tmp;
    end process;
 
