@@ -120,7 +120,7 @@ begin
 
 
    -- Override TDESTS and TIDs according to the routing tables
-   TDEST_REMAP : process (sAxisMasters) is
+   ROUTE_TABLE_REMAP : process (sAxisMasters) is
       variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       variable i   : natural;
       variable j   : natural;
