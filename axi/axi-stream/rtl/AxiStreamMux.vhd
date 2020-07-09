@@ -201,9 +201,9 @@ begin
          selData.tId := resize(r.ackNum, 8);
       end if;
 
-      -- NOTE: TID_MODE_G = "PASSTHROUGH" is the degenerate case
-      -- In the absense of "ROUTED" or "INDEXED", it will default to
-      -- assigning the slave input TID to the output master.
+      -- NOTE: MODE_G = "PASSTHROUGH and TID_MODE_G = "PASSTHROUGH" are degenerate cases.
+      -- In the absense of "ROUTED" or "INDEXED", TDEST and TID are assigned
+      -- directly from the slave input to the output master.
 
       -- Format requests
       requests := (others => '0');
