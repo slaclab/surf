@@ -30,15 +30,16 @@ entity AxiStreamMux is
       TPD_G                : time                   := 1 ns;
       PIPE_STAGES_G        : integer range 0 to 16  := 0;
       NUM_SLAVES_G         : integer range 1 to 256 := 4;
-      -- Set to true if you want to override Slave's TID
-      TID_OVERRIDE_G             : boolean                := false;
       -- In INDEXED mode, the output TDEST is set based on the selected slave index
-      -- In ROUTED mode, TDEST is set accoring to the TDEST_ROUTES_G table
+      -- In ROUTED mode, TDEST is set according to the TDEST_ROUTES_G table
       MODE_G               : string                 := "INDEXED";
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
       TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
-      -- In TID_OVERRIDE_G=true and ROUTED mode, an array mapping how TID should be assigned for each slave port
+      -- In INDEXED mode, the output TID is set based on the selected slave index
+      -- In ROUTED mode, TID is set according to the TID_ROUTES_G table
+      TID_MODE_G           : string                 := "PASSTHROUGH";
+      -- In ROUTED mode, an array mapping how TID should be assigned for each slave port
       TID_ROUTES_G         : Slv8Array              := (0 => "--------");
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G          : integer range 0 to 7   := 0;
@@ -48,7 +49,7 @@ entity AxiStreamMux is
       ILEAVE_ON_NOTVALID_G : boolean                := false;
       -- Max number of transactions between arbitrations, 0 = unlimited, ignored when ILEAVE_EN_G=false
       ILEAVE_REARB_G      : natural range 0 to 4095 := 0;
-      -- One cycle gap in stream between during rearbitration.
+      -- One cycle gap in stream between during re-arbitration.
       -- Set true for better timing, false for higher throughput.
       REARB_DELAY_G        : boolean                := true;
       -- Block selected slave txns arriving on same cycle as rearbitrate or disableSel from going through,
@@ -110,6 +111,10 @@ begin
    assert (MODE_G /= "ROUTED" or (TDEST_ROUTES_G'length = NUM_SLAVES_G))
       report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
       " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
+      severity error;
+
+   assert ( (TID_MODE_G = "PASSTHROUGH") or (TID_MODE_G = "INDEXED") or (TID_MODE_G = "ROUTED") )
+      report "TID_MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
       severity error;
 
    -- Override tdests according to the routing table
@@ -194,9 +199,9 @@ begin
             v.master := selData;
 
             -- Check if overriding the TID
-            if TID_OVERRIDE_G then
+            if (TID_MODE_G /= "PASSTHROUGH") then
 
-               if MODE_G = "ROUTED" then
+               if (TID_MODE_G = "ROUTED") then
 
                   for j in 7 downto 0 loop
 
