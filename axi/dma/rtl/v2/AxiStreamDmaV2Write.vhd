@@ -210,6 +210,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Set write dma request data
+            v.dmaWrDescReq.dest := intAxisMaster.tDest;
+            v.dmaWrDescReq.id   := intAxisMaster.tId;
+
             if intAxisMaster.tValid = '1' then
                -- Current destination matches incoming frame
                if r.dmaWrTrack.dest = intAxisMaster.tDest then
@@ -232,9 +236,8 @@ begin
 
                -- Wait for mem selection to match incoming frame
                elsif trackData.dest = intAxisMaster.tDest then
-                  -- Set tracking data and setup request
+                  -- Set tracking data
                   v.dmaWrTrack := trackData;
-                  v.dmaWrDescReq.dest := trackData.dest;
 
                   -- Is entry valid or do we need a new buffer
                   if trackData.inUse = '1' then
