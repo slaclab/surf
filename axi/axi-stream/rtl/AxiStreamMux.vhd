@@ -38,6 +38,7 @@ entity AxiStreamMux is
       TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
       -- In INDEXED mode, the output TID is set based on the selected slave index
       -- In ROUTED mode, TID is set according to the TID_ROUTES_G table
+      -- In PASSTHROUGH mode, TID is passed through from the slave untouched (default)
       TID_MODE_G           : string                 := "PASSTHROUGH";
       -- In ROUTED mode, an array mapping how TID should be assigned for each slave port
       TID_ROUTES_G         : Slv8Array              := (0 => "--------");
@@ -117,7 +118,8 @@ begin
       report "TID_MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
       severity error;
 
-   -- Override tdests according to the routing table
+
+   -- Override TDESTS and TIDs according to the routing tables
    TDEST_REMAP : process (sAxisMasters) is
       variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       variable i   : natural;
@@ -137,6 +139,22 @@ begin
             end loop;
          end loop;
       end if;
+
+      if TID_MODE_G = "ROUTED" then
+         for i in NUM_SLAVES_G-1 downto 0 loop
+            for j in 7 downto 0 loop
+               if (TID_ROUTES_G(i)(j) = '1') then
+                  tmp(i).tId(j) := '1';
+               elsif(TID_ROUTES_G(i)(j) = '0') then
+                  tmp(i).tId(j) := '0';
+               else
+                  tmp(i).tId(j) := sAxisMasters(i).tId(j);
+               end if;
+            end loop;
+         end loop;
+      end if;
+
+      
       sAxisMastersTmp <= tmp;
    end process;
 
@@ -170,6 +188,15 @@ begin
          selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
       end if;
 
+      -- In INDEXED mode, assign slave index to TID
+      if (TID_MODE_G = "INDEXED") then
+         selData.tId := resize(r.ackNum, 8);
+      end if;
+
+      -- NOTE: TID_MODE_G = "PASSTHROUGH" is the degenerate case
+      -- In the absense of "ROUTED" or "INDEXED", it will default to
+      -- assigning the slave input TID to the output master.
+
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
@@ -198,30 +225,6 @@ begin
             -- Assign data to output
             v.master := selData;
 
-            -- Check if overriding the TID
-            if (TID_MODE_G /= "PASSTHROUGH") then
-
-               if (TID_MODE_G = "ROUTED") then
-
-                  for j in 7 downto 0 loop
-
-                     if (TID_ROUTES_G(conv_integer(r.ackNum))(j) = '1') then
-                        v.master.tId(j) := '1';
-
-                     elsif(TID_ROUTES_G(conv_integer(r.ackNum))(j) = '0') then
-                        v.master.tId(j) := '0';
-
-                     else
-                        v.master.tId(j) := selData.tId(j);
-                     end if;
-
-                  end loop;
-
-               else
-                  v.master.tId := toSlv(conv_integer(r.ackNum), 8);
-               end if;
-
-            end if;
 
             -- Increment the txn count
             v.arbCnt := r.arbCnt + 1;
