@@ -39,7 +39,7 @@ entity AxiStreamMux is
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
       TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
       -- In TID_OVERRIDE_G=true and ROUTED mode, an array mapping how TID should be assigned for each slave port
-      TID_ROUTES_G         : Slv8Array              := (0 => x"00");
+      TID_ROUTES_G         : Slv8Array              := (0 => "--------");
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G          : integer range 0 to 7   := 0;
       -- Set to true if interleaving dests
