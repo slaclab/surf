@@ -31,14 +31,14 @@ entity AxiStreamMux is
       PIPE_STAGES_G        : integer range 0 to 16  := 0;
       NUM_SLAVES_G         : integer range 1 to 256 := 4;
       -- Set to true if you want to override Slave's TID
-      TID_EN_G             : boolean                := false;
+      TID_OVERRIDE_G             : boolean                := false;
       -- In INDEXED mode, the output TDEST is set based on the selected slave index
       -- In ROUTED mode, TDEST is set accoring to the TDEST_ROUTES_G table
       MODE_G               : string                 := "INDEXED";
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
       TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
-      -- In TID_EN_G=true and ROUTED mode, an array mapping how TID should be assigned for each slave port
+      -- In TID_OVERRIDE_G=true and ROUTED mode, an array mapping how TID should be assigned for each slave port
       TID_ROUTES_G         : Slv8Array              := (0 => x"00");
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G          : integer range 0 to 7   := 0;
@@ -193,13 +193,29 @@ begin
             -- Assign data to output
             v.master := selData;
 
-            -- Assign the ID to output
-            if TID_EN_G then
+            -- Check if overriding the TID
+            if TID_OVERRIDE_G then
+
                if MODE_G = "ROUTED" then
-                  v.master.tId := TID_ROUTES_G(conv_integer(r.ackNum));
+
+                  for j in 7 downto 0 loop
+
+                     if (TID_ROUTES_G(conv_integer(r.ackNum))(j) = '1') then
+                        v.master.tId(j) := '1';
+
+                     elsif(TID_ROUTES_G(conv_integer(r.ackNum))(j) = '0') then
+                        v.master.tId(j) := '0';
+
+                     else
+                        v.master.tId(j) := selData.tId(j);
+                     end if;
+
+                  end loop;
+
                else
                   v.master.tId := toSlv(conv_integer(r.ackNum), 8);
                end if;
+
             end if;
 
             -- Increment the txn count
