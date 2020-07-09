@@ -189,6 +189,9 @@ begin
             -- Assign data to output
             v.master := selData;
 
+            -- Assign the ID to output
+            v.master.tId := toSlv(conv_integer(r.ackNum), 8);
+
             -- Increment the txn count
             v.arbCnt := r.arbCnt + 1;
 
