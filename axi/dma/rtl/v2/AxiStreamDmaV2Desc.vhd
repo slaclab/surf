@@ -824,10 +824,10 @@ begin
       ----------------------------------------------------------
       for i in 0 to 7 loop
 
-         if r.idBuffInc(i) = '1' and r.idBuffDec(i) = '0' and r.idBuffCount(i) /= x"FFFFFFFF" then
+         if r.idBuffInc(i) = '1' and r.idBuffDec(i) = '0' then
             v.idBuffCount(i) := r.idBuffCount(i) + 1;
 
-         elsif r.idBuffInc(i) = '0' and r.idBuffDec(i) = '1' and r.idBuffCount(i) /= 0 then
+         elsif r.idBuffInc(i) = '0' and r.idBuffDec(i) = '1' then
             v.idBuffCount(i) := r.idBuffCount(i) - 1;
 
          end if;
