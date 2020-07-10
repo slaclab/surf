@@ -81,7 +81,7 @@ entity AxiStreamDmaV2Desc is
       axiWriteSlaves  : in  AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
 
       -- Buffer Group Pause
-      buffGrpPause    : out slv(7 downto 0));
+      buffGrpPause : out slv(7 downto 0));
 
 end AxiStreamDmaV2Desc;
 
@@ -184,8 +184,8 @@ architecture rtl of AxiStreamDmaV2Desc is
 
       idBuffCount : Slv32Array(7 downto 0);
 
-      idBuffInc   : slv(7 downto 0);
-      idBuffDec   : slv(7 downto 0);
+      idBuffInc : slv(7 downto 0);
+      idBuffDec : slv(7 downto 0);
 
       buffGrpPause : slv(7 downto 0);
 
@@ -252,7 +252,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       intReqEn        => '0',
       intReqCount     => (others => '0'),
       interrupt       => '0',
-      intHoldoff      => toSlv(10000,16),  -- ~20 kHz
+      intHoldoff      => toSlv(10000, 16),  -- ~20 kHz
       intHoldoffCount => (others => '0'),
       idBuffCount     => (others => (others => '0')),
       idBuffInc       => (others => '0'),
@@ -273,6 +273,9 @@ architecture rtl of AxiStreamDmaV2Desc is
    signal intDiffValid : sl;
    signal invalidCount : sl;
    signal diffCnt      : slv(31 downto 0);
+
+   signal holdoffCompare : sl;
+   signal idBuffCompare  : slv(7 downto 0);
 
    -- attribute dont_touch                 : string;
    -- attribute dont_touch of r            : signal is "true";
@@ -335,7 +338,7 @@ begin
    -----------------------------------------
 
    -- Check for invalid count
-   U_DspComparator : entity surf.DspComparator
+   U_invalidCount : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -347,7 +350,7 @@ begin
          obValid => intCompValid,
          ls      => invalidCount);  --  (a <  b) <--> r.intAckCount > r.intReqCount
 
-   U_DspSub : entity surf.DspAddSub
+   U_diffCnt : entity surf.DspAddSub
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -363,14 +366,37 @@ begin
    -- Both DSPs are done
    intSwAckEn <= intDiffValid and intCompValid;
 
+   U_holdoffCompare : entity surf.DspComparator
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 16)
+      port map (
+         clk => axiClk,
+         ain => r.intHoldoff,
+         bin => r.intHoldoffCount,
+         ls  => holdoffCompare);  --  (a <  b) <--> r.intHoldoffCount > r.intHoldoff
+
+   U_Pause : for i in 0 to 7 generate
+      U_DspComparator : entity surf.DspComparator
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 32)
+         port map (
+            clk => axiClk,
+            ain => r.idBuffThold(i),
+            bin => r.idBuffCount(i),
+            ls  => idBuffCompare(i));  --  (a <  b) <--> r.idBuffCount(i) > r.idBuffThold(i)
+   end generate;
+
    -----------------------------------------
    -- Control Logic
    -----------------------------------------
 
    comb : process (axiRst, axiWriteSlaves, axilReadMaster, axilWriteMaster,
                    diffCnt, dmaRdDescAck, dmaRdDescRet, dmaWrDescReq,
-                   dmaWrDescRet, intSwAckEn, invalidCount, r, rdFifoDout,
-                   rdFifoValid, wrFifoDout, wrFifoValid) is
+                   dmaWrDescRet, holdoffCompare, idBuffCompare, intSwAckEn,
+                   invalidCount, r, rdFifoDout, rdFifoValid, wrFifoDout,
+                   wrFifoValid) is
       variable v            : RegType;
       variable wrReqList    : slv(CHAN_COUNT_G-1 downto 0);
       variable descRetValid : sl;
@@ -391,8 +417,8 @@ begin
       v.wrFifoWr    := (others => '0');
       v.wrFifoRd    := '0';
       v.acknowledge := (others => '0');
-      v.idBuffInc   := (others=>'0');
-      v.idBuffDec   := (others=>'0');
+      v.idBuffInc   := (others => '0');
+      v.idBuffDec   := (others => '0');
 
       ----------------------------------------------------------
       -- Register access
@@ -458,9 +484,9 @@ begin
       axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
 
       for i in 0 to 7 loop
-         axiSlaveRegister(regCon, toSlv(144 + i*4,12), 0, v.idBuffThold(i));  -- 0x090 - 0xAC
-         axiSlaveRegisterR(regCon, toSlv(176 + i*4,12), 0, r.idBuffCount(i)); -- 0x0B0 - 0xCC
-         axiWrDetect(regCon, toSlv(176 + i*4,12), v.idBuffDec(i));            -- 0x0B0 - 0xCC
+         axiSlaveRegister(regCon, toSlv(144 + i*4, 12), 0, v.idBuffThold(i));  -- 0x090 - 0xAC
+         axiSlaveRegisterR(regCon, toSlv(176 + i*4, 12), 0, r.idBuffCount(i));  -- 0x0B0 - 0xCC
+         axiWrDetect(regCon, toSlv(176 + i*4, 12), v.idBuffDec(i));  -- 0x0B0 - 0xCC
       end loop;
 
       -- End transaction block
@@ -666,7 +692,7 @@ begin
             v.axiWriteMaster.wdata(31 downto 24)   := dmaWrDescRet(descIndex).firstUser;
             v.axiWriteMaster.wdata(23 downto 16)   := dmaWrDescRet(descIndex).lastUser;
             v.axiWriteMaster.wdata(15 downto 8)    := dmaWrDescRet(descIndex).id;
-            v.axiWriteMaster.wdata(7  downto 4)    := (others => '0');
+            v.axiWriteMaster.wdata(7 downto 4)     := (others => '0');
             v.axiWriteMaster.wdata(3)              := dmaWrDescRet(descIndex).continue;
             v.axiWriteMaster.wdata(2 downto 0)     := dmaWrDescRet(descIndex).result;
 
@@ -725,7 +751,7 @@ begin
       end loop;
 
       -- Drive interrupt, avoid false firings during ack
-      if ((r.intReqCount /= 0 and r.intHoldoffCount > r.intHoldoff) or r.forceInt = '1') and r.intSwAckReq = '0' then
+      if ((r.intReqCount /= 0 and holdoffCompare = '1') or r.forceInt = '1') and r.intSwAckReq = '0' then
          v.interrupt := r.intEnable;
       else
          v.interrupt := '0';
@@ -762,9 +788,9 @@ begin
       end if;
 
       if r.intSwAckReq = '1' then
-        v.intHoldoffCount := (others=>'0');
-      elsif uAnd(r.intHoldoffCount)='0' then
-        v.intHoldoffCount := r.intHoldoffCount+1;
+         v.intHoldoffCount := (others => '0');
+      elsif uAnd(r.intHoldoffCount) = '0' then
+         v.intHoldoffCount := r.intHoldoffCount+1;
       end if;
 
       ----------------------------------------------------------
@@ -823,11 +849,12 @@ begin
 
          end if;
 
-         if r.idBuffThold(i) /= 0 and r.idBuffCount(i) > r.idBuffThold(i) then
-            v.buffGrpPause(i) := '1';
+         if r.idBuffThold(i) /= 0 then
+            v.buffGrpPause(i) := idBuffCompare(i);  -- r.idBuffCount(i) > r.idBuffThold(i)
          else
             v.buffGrpPause(i) := '0';
          end if;
+
       end loop;
 
       ----------------------------------------------------------
