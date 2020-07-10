@@ -29,8 +29,9 @@ entity AxiStreamMux is
       TPD_G                : time                   := 1 ns;
       PIPE_STAGES_G        : integer range 0 to 16  := 0;
       NUM_SLAVES_G         : integer range 1 to 256 := 4;
-      -- In INDEXED mode, the output TDEST is set based on the selected slave index
+      -- In INDEXED mode, the output TDEST is set based on the selected slave index (default)
       -- In ROUTED mode, TDEST is set according to the TDEST_ROUTES_G table
+      -- In PASSTHROUGH mode, TDEST is passed through from the slave untouched
       MODE_G               : string                 := "INDEXED";
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
