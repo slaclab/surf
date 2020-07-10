@@ -78,7 +78,11 @@ entity AxiStreamDmaV2Desc is
       axiWrCache      : out slv(3 downto 0);
       -- AXI Interface
       axiWriteMasters : out AxiWriteMasterArray(CHAN_COUNT_G-1 downto 0);
-      axiWriteSlaves  : in  AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0));
+      axiWriteSlaves  : in  AxiWriteSlaveArray(CHAN_COUNT_G-1 downto 0);
+
+      -- Buffer Group Pause
+      buffGrpPause    : out slv(7 downto 0));
+
 end AxiStreamDmaV2Desc;
 
 architecture rtl of AxiStreamDmaV2Desc is
@@ -140,6 +144,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffRdCache : slv(3 downto 0);
       buffWrCache : slv(3 downto 0);
       enableCnt   : slv(7 downto 0);
+      idBuffThold : Slv32Array(7 downto 0);
 
       -- FIFOs
       fifoDin        : slv(31 downto 0);
@@ -177,6 +182,13 @@ architecture rtl of AxiStreamDmaV2Desc is
       intHoldoff      : slv(15 downto 0);
       intHoldoffCount : slv(15 downto 0);
 
+      idBuffCount : Slv32Array(7 downto 0);
+
+      idBuffInc   : slv(7 downto 0);
+      idBuffDec   : slv(7 downto 0);
+
+      buffGrpPause : slv(7 downto 0);
+
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -209,6 +221,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffRdCache     => (others => '0'),
       buffWrCache     => (others => '0'),
       enableCnt       => (others => '0'),
+      idBuffThold     => (others => (others => '0')),
       -- FIFOs
       fifoDin         => (others => '0'),
       wrFifoWr        => (others => '0'),
@@ -240,7 +253,11 @@ architecture rtl of AxiStreamDmaV2Desc is
       intReqCount     => (others => '0'),
       interrupt       => '0',
       intHoldoff      => toSlv(10000,16),  -- ~20 kHz
-      intHoldoffCount => (others => '0') );
+      intHoldoffCount => (others => '0'),
+      idBuffCount     => (others => (others => '0')),
+      idBuffInc       => (others => '0'),
+      idBuffDec       => (others => '0'),
+      buffGrpPause    => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -361,6 +378,8 @@ begin
       variable dmaRdReq     : AxiReadDmaDescReqType;
       variable rdIndex      : natural;
       variable regCon       : AxiLiteEndPointType;
+      variable idIncrement  : slv(7 downto 0);
+      variable idDecrement  : slv(7 downto 0);
    begin
 
       -- Latch the current value
@@ -372,6 +391,8 @@ begin
       v.wrFifoWr    := (others => '0');
       v.wrFifoRd    := '0';
       v.acknowledge := (others => '0');
+      v.idBuffInc   := (others=>'0');
+      v.idBuffDec   := (others=>'0');
 
       ----------------------------------------------------------
       -- Register access
@@ -383,7 +404,7 @@ begin
       axiSlaveRegister(regCon, x"000", 0, v.enable);
       axiSlaveRegisterR(regCon, x"000", 8, r.enableCnt);  -- Count the number of times enable transitions from 0->1
       axiSlaveRegisterR(regCon, x"000", 16, '1');  -- Legacy DESC_128_EN_C constant (always 0x1 now)
-      axiSlaveRegisterR(regCon, x"000", 24, toSlv(3, 8));  -- Version Number for aes-stream-driver to case on
+      axiSlaveRegisterR(regCon, x"000", 24, toSlv(4, 8));  -- Version Number for aes-stream-driver to case on
       axiSlaveRegister(regCon, x"004", 0, v.intEnable);
       axiSlaveRegister(regCon, x"008", 0, v.contEn);
       axiSlaveRegister(regCon, x"00C", 0, v.dropEn);
@@ -435,6 +456,12 @@ begin
       axiSlaveRegister(regCon, x"080", 0, v.forceInt);
 
       axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
+
+      for i in 0 to 7 loop
+         axiSlaveRegister(regCon, toSlv(144 + i*4,12), 0, v.idBuffThold(i));  -- 0x090 - 0xAC
+         axiSlaveRegisterR(regCon, toSlv(176 + i*4,12), 0, r.idBuffCount(i)); -- 0x0B0 - 0xCC
+         axiWrDetect(regCon, toSlv(176 + i*4,12), v.idBuffDec(i));            -- 0x0B0 - 0xCC
+      end loop;
 
       -- End transaction block
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -538,6 +565,8 @@ begin
          v.wrFifoRd                                     := '1';
          v.wrReqValid                                   := '0';
 
+         v.idBuffInc(conv_integer(dmaWrDescReq(conv_integer(r.wrReqNum)).id(2 downto 0))) := '1';
+
       end if;
 
       ----------------------------------------------------------
@@ -636,7 +665,8 @@ begin
             v.axiWriteMaster.wdata(63 downto 32)   := dmaWrDescRet(descIndex).buffId;
             v.axiWriteMaster.wdata(31 downto 24)   := dmaWrDescRet(descIndex).firstUser;
             v.axiWriteMaster.wdata(23 downto 16)   := dmaWrDescRet(descIndex).lastUser;
-            v.axiWriteMaster.wdata(15 downto 4)    := (others => '0');
+            v.axiWriteMaster.wdata(15 downto 8)    := dmaWrDescRet(descIndex).id;
+            v.axiWriteMaster.wdata(7  downto 4)    := (others => '0');
             v.axiWriteMaster.wdata(3)              := dmaWrDescRet(descIndex).continue;
             v.axiWriteMaster.wdata(2 downto 0)     := dmaWrDescRet(descIndex).result;
 
@@ -781,11 +811,33 @@ begin
       end if;
 
       ----------------------------------------------------------
+      -- Buffer Group Tracking
+      ----------------------------------------------------------
+      for i in 0 to 7 loop
+
+         if r.idBuffInc(i) = '1' and r.idBuffDec(i) = '0' and r.idBuffCount(i) /= x"FFFFFFFF" then
+            v.idBuffCount(i) := r.idBuffCount(i) + 1;
+
+         elsif r.idBuffInc(i) = '0' and r.idBuffDec(i) = '1' and r.idBuffCount(i) /= 0 then
+            v.idBuffCount(i) := r.idBuffCount(i) - 1;
+
+         end if;
+
+         if r.idBuffThold(i) /= 0 and r.idBuffCount(i) > r.idBuffThold(i) then
+            v.buffGrpPause(i) := '1';
+         else
+            v.buffGrpPause(i) := '0';
+         end if;
+      end loop;
+
+      ----------------------------------------------------------
       -- Outputs
       ----------------------------------------------------------
 
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+
+      buffGrpPause <= r.buffGrpPause;
 
       online          <= r.online;
       interrupt       <= r.interrupt;
