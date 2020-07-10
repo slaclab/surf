@@ -32,7 +32,7 @@ entity AxiStreamMux is
       -- In INDEXED mode, the output TDEST is set based on the selected slave index (default)
       -- In ROUTED mode, TDEST is set according to the TDEST_ROUTES_G table
       -- In PASSTHROUGH mode, TDEST is passed through from the slave untouched
-      MODE_G               : string                 := "INDEXED";
+      MODE_G               : string                 := "INDEXED"; -- Note: Planning to rename "MODE_G" to "TDEST_MODE_G" in a future MAJOR release of SURF
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
       TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
