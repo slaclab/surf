@@ -565,9 +565,7 @@ begin
             end if;
          end if;
 
-         if r.enable = '0' then
-            v.wrReqMissed := (others => '0');
-         elsif wrReqList /= 0 and uAnd(wrFifoValid) = '0' then
+         if wrReqList /= 0 and uAnd(wrFifoValid) = '0' then
             v.wrReqMissed := r.wrReqMissed + 1;
          end if;
 
@@ -779,18 +777,10 @@ begin
          v.intReqEn    := '0';
       end if;
 
-      -- Engine disabled
-      if r.enable = '0' then
-         v.intReqEn    := '0';
-         v.intReqCount := (others => '0');
-         v.interrupt   := '0';
-         v.forceInt    := '0';
-      end if;
-
       if r.intSwAckReq = '1' then
          v.intHoldoffCount := (others => '0');
       elsif uAnd(r.intHoldoffCount) = '0' then
-         v.intHoldoffCount := r.intHoldoffCount+1;
+         v.intHoldoffCount := r.intHoldoffCount + 1;
       end if;
 
       ----------------------------------------------------------
@@ -826,16 +816,6 @@ begin
          v.rdFifoRd              := '1';
       end if;
 
-      -- Check if disabled
-      if r.enable = '0' then
-         v.wrIndex := (others => '0');
-         v.rdIndex := (others => '0');
-      end if;
-
-      if (r.enable = '0') and (v.enable = '1') and (r.enableCnt /= x"FF") then
-         v.enableCnt := r.enableCnt + 1;
-      end if;
-
       ----------------------------------------------------------
       -- Buffer Group Tracking
       ----------------------------------------------------------
@@ -856,6 +836,25 @@ begin
          end if;
 
       end loop;
+
+      ----------------------------------------------------------
+      -- Check if disabled
+      ----------------------------------------------------------
+      if r.enable = '0' then
+         v.wrIndex         := (others => '0');
+         v.rdIndex         := (others => '0');
+         v.wrReqMissed     := (others => '0');
+         v.idBuffCount     := (others => (others => '0'));
+         v.intHoldoffCount := (others => '0');
+         v.intReqEn        := '0';
+         v.intReqCount     := (others => '0');
+         v.interrupt       := '0';
+         v.forceInt        := '0';
+      end if;
+
+      if (r.enable = '0') and (v.enable = '1') and (r.enableCnt /= x"FF") then
+         v.enableCnt := r.enableCnt + 1;
+      end if;
 
       ----------------------------------------------------------
       -- Outputs
@@ -886,7 +885,9 @@ begin
          end if;
       end loop;
 
+      ----------------------------------------------------------
       -- Reset
+      ----------------------------------------------------------
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
