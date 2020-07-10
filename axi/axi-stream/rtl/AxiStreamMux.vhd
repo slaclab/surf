@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
@@ -133,7 +132,10 @@ begin
       variable i   : natural;
       variable j   : natural;
    begin
+      -- Latch the current value
       tmp := sAxisMasters;
+
+      -- Check for TDEST routing
       if MODE_G = "ROUTED" then
          for i in NUM_SLAVES_G-1 downto 0 loop
             for j in 7 downto 0 loop
@@ -148,6 +150,7 @@ begin
          end loop;
       end if;
 
+      -- Check for TID routing
       if TID_MODE_G = "ROUTED" then
          for i in NUM_SLAVES_G-1 downto 0 loop
             for j in 7 downto 0 loop
@@ -162,8 +165,9 @@ begin
          end loop;
       end if;
 
-
+      -- Outputs
       sAxisMastersTmp <= tmp;
+
    end process;
 
    comb : process (axisRst, disableSel, ileaveRearb, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
@@ -175,7 +179,9 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the flags
+      -----------------------------------------------------------------------
+
+      -- AXI Stream Flow Control
       for i in 0 to (NUM_SLAVES_G-1) loop
          v.slaves(i).tReady := '0';
       end loop;
@@ -183,12 +189,16 @@ begin
          v.master.tValid := '0';
       end if;
 
+      -----------------------------------------------------------------------
+
       -- Select source
       if NUM_SLAVES_G = 1 then
          selData := sAxisMastersTmp(0);
       else
          selData := sAxisMastersTmp(conv_integer(r.ackNum));
       end if;
+
+      -----------------------------------------------------------------------
 
       -- In INDEXED mode, assign the slave index to TDEST at offset of TDEST_LOW_G
       if MODE_G = "INDEXED" then
@@ -201,16 +211,19 @@ begin
          selData.tId := resize(r.ackNum, 8);
       end if;
 
+      -----------------------------------------------------------------------
+
       -- NOTE: MODE_G = "PASSTHROUGH and TID_MODE_G = "PASSTHROUGH" are degenerate cases.
-      -- In the absense of "ROUTED" or "INDEXED", TDEST and TID are assigned
+      -- In the absence of "ROUTED" or "INDEXED", TDEST and TID are assigned
       -- directly from the slave input to the output master.
+
+      -----------------------------------------------------------------------
 
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          requests(i) := sAxisMastersTmp(i).tValid and not disableSel(i);
       end loop;
-
 
       if (r.valid = '1') then
          -- RE-arbitrate on gaps if configured to do so
@@ -232,7 +245,6 @@ begin
 
             -- Assign data to output
             v.master := selData;
-
 
             -- Increment the txn count
             v.arbCnt := r.arbCnt + 1;
