@@ -31,12 +31,12 @@ entity SlvDelayRam is
       TPD_G          : time      := 1 ns;
       MEMORY_TYPE_G  : string    := "block";
       DO_REG_G       : boolean   := true;
-      DELAY_G        : integer range 3 to (2**24) := 512;  --max number of clock cycle delays. MAX delay stages when using
-      WIDTH_G        : positive  := 16);
+      DELAY_G        : integer range 3 to (2**24) := 1;  --max number of clock cycle delays. MAX delay stages when using
+      WIDTH_G        : positive  := 1);
    port (
       clk      : in  sl;
       en       : in  sl      := '1';                 -- Optional clock enable
-      maxCount : in  slv(log2(DELAY_G) - 1 downto 0) := toSlv(DELAY_G - ite(DO_REG_G, 3, 2), log2(DELAY_G)); -- Optional runtime configurable
+      maxCount : in  slv(log2(DELAY_G - ite(DO_REG_G, 2, 1)) - 1 downto 0) := toSlv(DELAY_G - ite(DO_REG_G, 3, 2), log2(DELAY_G - ite(DO_REG_G, 2, 1))); -- Optional runtime configurable
       din      : in  slv(WIDTH_G - 1 downto 0);
       dout     : out slv(WIDTH_G - 1 downto 0));
 end entity SlvDelayRam;
@@ -44,70 +44,91 @@ end entity SlvDelayRam;
 
 architecture rtl of SlvDelayRam is
 
+   constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
+
    type mem_type is array (DELAY_G - 1 - ite(DO_REG_G, 2, 1) downto 0) of slv(WIDTH_G - 1 downto 0);
    signal mem : mem_type := (others => (others => '0'));
-
-
+   
+   type RegType is record
+      addr     : integer range 0 to DELAY_G - ite(DO_REG_G, 2, 1);
+      maxCount : integer range 0 to DELAY_G - ite(DO_REG_G, 2, 1);
+      doutReg  : slv(WIDTH_G - 1 downto 0);
+   end record RegType;
+   
+   constant REG_INIT_C : RegType := (
+      addr     => 0,
+      maxCount => 0,
+      doutReg  => (others => '0'));
+      
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+      
    signal doutInt     : slv(WIDTH_G - 1 downto 0);
-   signal maxCountInt : integer;
-   signal addr        : integer; 
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
-   attribute ram_style of mem : signal is MEMORY_TYPE_G;
+   attribute ram_style of mem : signal is XST_BRAM_STYLE_C;
 
    attribute ram_extract        : string;
    attribute ram_extract of mem : signal is "TRUE";
 
    -- Attribute for Synplicity Synthesizer
    attribute syn_ramstyle        : string;
-   attribute syn_ramstyle of mem : signal is MEMORY_TYPE_G;
+   attribute syn_ramstyle of mem : signal is XST_BRAM_STYLE_C;
 
    attribute syn_keep            : string;
    attribute syn_keep of mem     : signal is "TRUE"; 
 
 begin
 
-      -- count limited counter
-   ADDR_PROC : process(clk)
-      variable cnt     : integer range 0 to DELAY_G;
+   
+   comb : process (en, maxCount, doutInt, r) is
+      variable v : RegType;
+   begin
+      -- Latch the current value
+      v := r;
+      
+      v.maxCount := to_integer(unsigned(maxCount));
+      v.doutReg  := doutInt;
+      
+      if en = '1' then
+         if r.addr = r.maxCount then
+            v.addr := 0;
+         else
+            v.addr := r.addr + 1;
+         end if;   
+      
+      end if;
+      
+      -- Register the variable for next clock cycle
+      rin <= v;
+      
+      -- Optional DOUT REG in the RAM
+      if DO_REG_G = true then
+         dout <= r.doutReg;
+      else
+         dout <= doutInt;
+      end if;
+      
+   end process comb;
+   
+   seq : process (clk) is
    begin
       if rising_edge(clk) then
-         maxCountInt <= to_integer(unsigned(maxCount)) after TPD_G;
-         if en = '1' then 
-            if cnt = maxCountInt then
-               cnt := 0;
-            else
-               cnt := cnt + 1;
-            end if;
-          end if;
+         r <= rin after TPD_G;
       end if;
-      addr <= cnt after TPD_G;
-   end process; 
+   end process seq;
 
    -- read before write single port RAM
    MEM_PROC : process(clk)
    begin
       if rising_edge(clk) then
          if en = '1' then
-            mem(addr) <= din after TPD_G;
-            doutInt   <= mem(addr) after TPD_G;
+            mem(r.addr) <= din after TPD_G;
+            doutInt   <= mem(r.addr) after TPD_G;
          end if;
       end if;
    end process;
-
-   NO_REG : if (not DO_REG_G) generate
-      dout <= doutInt(WIDTH_G-1 downto 0);
-   end generate NO_REG;
-
-   REG : if (DO_REG_G) generate
-      process (clk)
-      begin
-         if (rising_edge(clk)) then
-            dout <= doutInt(WIDTH_G-1 downto 0) after TPD_G;
-         end if;
-      end process;
-   end generate REG;
    
 
 end rtl;
