@@ -371,10 +371,10 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 16)
       port map (
-         clk => axiClk,
-         ain => r.intHoldoff,
-         bin => r.intHoldoffCount,
-         ls  => holdoffCompare);  --  (a <  b) <--> r.intHoldoffCount > r.intHoldoff
+         clk  => axiClk,
+         ain  => r.intHoldoffCount,
+         bin  => r.intHoldoff,
+         gtEq => holdoffCompare);  --  (a >= b) <--> r.intHoldoffCount >= r.intHoldoff
 
    U_Pause : for i in 0 to 7 generate
       U_DspComparator : entity surf.DspComparator
@@ -382,10 +382,10 @@ begin
             TPD_G   => TPD_G,
             WIDTH_G => 32)
          port map (
-            clk => axiClk,
-            ain => r.idBuffThold(i),
-            bin => r.idBuffCount(i),
-            ls  => idBuffCompare(i));  --  (a <  b) <--> r.idBuffCount(i) > r.idBuffThold(i)
+            clk  => axiClk,
+            ain  => r.idBuffCount(i),
+            bin  => r.idBuffThold(i),
+            gtEq => idBuffCompare(i));  --  (a >= b) <--> r.idBuffCount(i) >= r.idBuffThold(i)
    end generate;
 
    -----------------------------------------
@@ -777,9 +777,12 @@ begin
          v.intReqEn    := '0';
       end if;
 
+      -- Check if we need to reset IRQ holdoff counter
       if r.intSwAckReq = '1' then
          v.intHoldoffCount := (others => '0');
-      elsif uAnd(r.intHoldoffCount) = '0' then
+
+      -- Check if not max value
+      elsif r.intHoldoffCount /= x"FFFF" then
          v.intHoldoffCount := r.intHoldoffCount + 1;
       end if;
 
