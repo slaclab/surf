@@ -44,8 +44,6 @@ end entity SlvDelayRam;
 
 architecture rtl of SlvDelayRam is
 
-   constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
-
    type mem_type is array (DELAY_G - 1 - ite(DO_REG_G, 2, 1) downto 0) of slv(WIDTH_G - 1 downto 0);
    signal mem : mem_type := (others => (others => '0'));
 
@@ -56,14 +54,14 @@ architecture rtl of SlvDelayRam is
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
-   attribute ram_style of mem : signal is XST_BRAM_STYLE_C;
+   attribute ram_style of mem : signal is MEMORY_TYPE_G;
 
    attribute ram_extract        : string;
    attribute ram_extract of mem : signal is "TRUE";
 
    -- Attribute for Synplicity Synthesizer
    attribute syn_ramstyle        : string;
-   attribute syn_ramstyle of mem : signal is XST_BRAM_STYLE_C;
+   attribute syn_ramstyle of mem : signal is MEMORY_TYPE_G;
 
    attribute syn_keep            : string;
    attribute syn_keep of mem     : signal is "TRUE"; 
