@@ -31,13 +31,13 @@ architecture testbed of SlvDelayRamTb is
    constant WIDTH_C     : integer := 16;
    constant MAX_DELAY_C : integer := 514;
    constant DELAY_C     : integer := MAX_DELAY_C;
-   
+
    constant DO_REG_C      : boolean := true;
    constant MEMORY_TYPE_C : string := "block";
-   
+
    -- may save a bit if MAX_DELAY is just over pow2 ex 514 elements only needs 9 bits
    constant MAX_COUNT_BITS_C : integer := log2(MAX_DELAY_C - ite(DO_REG_C, 2, 1));
-   
+
    -- delay = maxCount + ite(DO_REG_G, 3, 2);
    constant MAX_COUNT_C : integer := DELAY_C - ite(DO_REG_C, 3, 2);
 
@@ -64,7 +64,7 @@ architecture testbed of SlvDelayRamTb is
 
    signal din  : slv(WIDTH_C - 1 downto 0) := (others => '0');
    signal dout : slv(WIDTH_C - 1 downto 0) := (others => '0');
-   
+
    signal maxCount : slv(MAX_COUNT_BITS_C - 1 downto 0) := toSlv(MAX_COUNT_C, MAX_COUNT_BITS_C);
 
    signal passed : sl := '0';
@@ -109,21 +109,21 @@ begin
    begin
       -- Latch the current value
       v := r;
-      
-      
+
+
 
       v.count := r.count + 1;
 
       v.countDelay(0) := r.count;
       v.countDelay(MAX_DELAY_C - 1 downto 1) := r.countDelay(MAX_DELAY_C - 2 downto 0);
-      
+
       -- test for failure
       if r.count > MAX_DELAY_C then
          if r.countDelay(DELAY_C - 1) /= dout then
             v.failed := '1';
          end if;
       end if;
-      
+
       -- if we haven't failed yet
       if r.count > 10*MAX_DELAY_C then
          v.passed := '1';

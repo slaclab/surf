@@ -6,7 +6,7 @@
 --              Single port RAM setup in read first mode
 --              Counter counts 0...maxCount
 --              Optional data out register (DO_REG_G) on the RAM
---             
+--
 --              delay = maxCount + ite(DO_REG_G, 3, 2)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -52,21 +52,21 @@ architecture rtl of SlvDelayRam is
 
    type mem_type is array (DELAY_G - 1 - ite(DO_REG_G, 2, 1) downto 0) of slv(WIDTH_G - 1 downto 0);
    signal mem : mem_type := (others => (others => '0'));
-   
+
    type RegType is record
       addr     : integer range 0 to DELAY_G - ite(DO_REG_G, 2, 1);
       maxCount : integer range 0 to DELAY_G - ite(DO_REG_G, 2, 1);
       doutReg  : slv(WIDTH_G - 1 downto 0);
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       addr     => 0,
       maxCount => 0,
       doutReg  => INIT_C);
-      
+
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-      
+
    signal doutInt     : slv(WIDTH_G - 1 downto 0);
 
    -- Attribute for XST (Xilinx Synthesis)
@@ -81,17 +81,17 @@ architecture rtl of SlvDelayRam is
    attribute syn_ramstyle of mem : signal is XST_BRAM_STYLE_C;
 
    attribute syn_keep            : string;
-   attribute syn_keep of mem     : signal is "TRUE"; 
+   attribute syn_keep of mem     : signal is "TRUE";
 
 begin
 
-   
+
    comb : process (en, maxCount, doutInt, rst, r) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
-      
+
       if rst = RST_POLARITY_G then
          v := REG_INIT_C;
 
@@ -102,13 +102,13 @@ begin
             v.addr := 0;
          else
             v.addr := r.addr + 1;
-         end if;   
+         end if;
 
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
-      
+
       if DO_REG_G then
          dout <= r.doutReg;
       else
@@ -116,7 +116,7 @@ begin
       end if;
 
    end process comb;
-   
+
    seq : process (clk) is
    begin
       if rising_edge(clk) then
@@ -138,6 +138,6 @@ begin
          end if;
       end if;
    end process;
-   
+
 
 end rtl;
