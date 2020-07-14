@@ -16,7 +16,6 @@ library IEEE;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -104,8 +103,8 @@ begin  -- architecture RTL
                end if;
 
                v.clkEnCount := (others => '0');
-               v.shiftCount    := (others => '0');
-               v.txState       := WAIT_S;
+               v.shiftCount := (others => '0');
+               v.txState    := WAIT_S;
             end if;
 
             -- Wait BAUD_MULT_G-1 counts (the baud rate)
@@ -124,9 +123,11 @@ begin  -- architecture RTL
 
             -- Shift to TX next bit, increment shift count
          when TX_BIT_S =>
-            v.shiftReg   := '0' & r.shiftReg(SHIFT_REG_WIDTH_C-1 downto 1);
-            v.shiftCount := r.shiftCount + 1;
-            v.txState    := WAIT_S;
+            if (clkEn = '1') then
+               v.shiftReg   := '0' & r.shiftReg(SHIFT_REG_WIDTH_C-1 downto 1);
+               v.shiftCount := r.shiftCount + 1;
+               v.txState    := WAIT_S;
+            end if;
 
       end case;
 
