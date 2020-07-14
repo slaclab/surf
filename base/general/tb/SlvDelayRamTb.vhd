@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -33,26 +32,30 @@ architecture testbed of SlvDelayRamTb is
    constant DELAY_C     : integer := MAX_DELAY_C;
 
    constant DO_REG_C      : boolean := true;
-   constant MEMORY_TYPE_C : string := "block";
+   constant MEMORY_TYPE_C : string  := "block";
 
    -- may save a bit if MAX_DELAY is just over pow2 ex 514 elements only needs 9 bits
    constant MAX_COUNT_BITS_C : integer := log2(MAX_DELAY_C - ite(DO_REG_C, 2, 1));
 
-   -- delay = maxCount + ite(DO_REG_G, 3, 2);
+   -- delay = dlyConfig + ite(DO_REG_G, 3, 2);
    constant MAX_COUNT_C : integer := DELAY_C - ite(DO_REG_C, 3, 2);
 
    type countDelayType is array(MAX_DELAY_C - 1 downto 0) of integer range 0 to (2**WIDTH_C - 1);
 
    type RegType is record
-      passed         : sl;
-      failed         : sl;
-      count          : integer range 0 to (2**WIDTH_C - 1);
-      countDelay     : countDelayType;
+      passed     : sl;
+      passedDly  : sl;
+      failed     : sl;
+      failedDly  : sl;
+      count      : integer range 0 to (2**WIDTH_C - 1);
+      countDelay : countDelayType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       passed     => '0',
+      passedDly  => '0',
       failed     => '0',
+      failedDly  => '0',
       count      => 0,
       countDelay => (others => 0));
 
@@ -65,7 +68,7 @@ architecture testbed of SlvDelayRamTb is
    signal din  : slv(WIDTH_C - 1 downto 0) := (others => '0');
    signal dout : slv(WIDTH_C - 1 downto 0) := (others => '0');
 
-   signal maxCount : slv(MAX_COUNT_BITS_C - 1 downto 0) := toSlv(MAX_COUNT_C, MAX_COUNT_BITS_C);
+   signal dlyConfig : slv(MAX_COUNT_BITS_C - 1 downto 0) := toSlv(MAX_COUNT_C, MAX_COUNT_BITS_C);
 
    signal passed : sl := '0';
    signal failed : sl := '0';
@@ -95,29 +98,29 @@ begin
          DELAY_G       => MAX_DELAY_C,
          WIDTH_G       => WIDTH_C)
       port map (
-         clk     => clk,
-         maxCount => maxCount,
-         din     => din,
-         dout    => dout);
+         clk       => clk,
+         dlyConfig => dlyConfig,
+         din       => din,
+         dout      => dout);
 
    -------------------------------------------------
    -- FSM to sweep through all possible combination
    ------------------------------------------------
    comb : process (dout, r, rst) is
-      variable v    : RegType;
+      variable v          : RegType;
       variable countDelay : integer;
    begin
       -- Latch the current value
       v := r;
 
-
-
+      -- Increment the counter
       v.count := r.count + 1;
 
-      v.countDelay(0) := r.count;
+      -- Generate test pattern
+      v.countDelay(0)                        := r.count;
       v.countDelay(MAX_DELAY_C - 1 downto 1) := r.countDelay(MAX_DELAY_C - 2 downto 0);
 
-      -- test for failure
+      -- Test for failure
       if r.count > MAX_DELAY_C then
          if r.countDelay(DELAY_C - 1) /= dout then
             v.failed := '1';
@@ -129,9 +132,14 @@ begin
          v.passed := '1';
       end if;
 
+      -- Delay by 1 cycle to help view the cause of results
+      v.passedDly := r.passed;
+      v.failedDly := r.failed;
+
       -- Outputs
-      passed <= r.passed;
-      failed <= r.failed;
+      passed <= r.passedDly;
+      failed <= r.failedDly;
+      din    <= std_logic_vector(to_unsigned(r.count, din'length));
 
       -- Reset
       if (rst = '1') then
@@ -140,8 +148,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      din <= std_logic_vector(to_unsigned(r.count, din'length));
 
    end process comb;
 
