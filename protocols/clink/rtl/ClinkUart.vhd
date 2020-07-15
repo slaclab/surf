@@ -83,15 +83,25 @@ begin
    begin
       v := r;
 
-      -- 16x (add min of 1 to ensure data moves when baud=0)
-      v.count := r.count + conv_integer(baud & x"1");
+      -- Reset strobe
       v.clkEn := '0';
 
+      -- Check for 0 baud rate condition
+      if (baud = 0) then
+         -- Keep pipeline moving
+         v.count := r.count + 1;
+      else
+         -- MULTIPLIER_G = 16
+         v.count := r.count + conv_integer(baud & b"0000");
+      end if;
+
+      -- Check for max count
       if r.count >= INT_FREQ_C then
          v.count := 0;
          v.clkEn := '1';
       end if;
 
+      -- Reset
       if (intRst = '1') then
          v := REG_INIT_C;
       end if;
