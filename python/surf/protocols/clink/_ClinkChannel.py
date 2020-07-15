@@ -67,7 +67,7 @@ class ClinkChannel(pr.Device):
             description = """
                 None: Disables output
                 Line: 1D camera
-                Frame" 2D pixel array
+                Frame: 2D pixel array
                 """,
         ))
 
