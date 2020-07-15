@@ -203,7 +203,7 @@ begin
 
                -- Clear when acked by master
                if (r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') then
-                  v.sAxiWriteSlaves(s).bvalid := '0';  -- Maybe reset entire record
+                  v.sAxiWriteSlaves(s).bvalid := '0';  
                   v.slave(s).wrState          := S_WAIT_AXI_TXN_S;
                end if;
 
@@ -272,7 +272,7 @@ begin
                v.sAxiReadSlaves(s).rvalid := '1';
 
                if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
-                  -- Maybe reset entire record
+                  v.sAxiReadSlaves(s).rvalid := '0';
                   v.slave(s).rdState := S_WAIT_AXI_TXN_S;
                end if;
 
