@@ -501,6 +501,8 @@ var annotated_dup =
     [ "SlvArraytoAxiLite", "classSlvArraytoAxiLite.html", "classSlvArraytoAxiLite" ],
     [ "SlvDelay", "classSlvDelay.html", "classSlvDelay" ],
     [ "SlvDelayFifo", "classSlvDelayFifo.html", "classSlvDelayFifo" ],
+    [ "SlvDelayRam", "classSlvDelayRam.html", "classSlvDelayRam" ],
+    [ "SlvDelayRamTb", "classSlvDelayRamTb.html", "classSlvDelayRamTb" ],
     [ "SpiMaster", "classSpiMaster.html", "classSpiMaster" ],
     [ "SpiSlave", "classSpiSlave.html", "classSpiSlave" ],
     [ "SrpV0AxiLite", "classSrpV0AxiLite.html", "classSrpV0AxiLite" ],

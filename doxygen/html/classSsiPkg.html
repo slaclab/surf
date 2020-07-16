@@ -96,13 +96,14 @@ $(document).ready(function(){initNavTree('classSsiPkg.html',''); initResizable()
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="Functions"></a>
 Functions</h2></td></tr>
- <tr class="memitem:a6791306e6d091509b619d197e5059b97"><td class="memItemLeft" align="right" valign="top"><a id="a6791306e6d091509b619d197e5059b97"></a>
-<b><b><span class="vhdlchar">AxiStreamConfigType</span><span class="vhdlchar"> </span></b></b>&#160;</td><td class="memItemRight" valign="bottom"> <a class="el" href="classSsiPkg.html#a6791306e6d091509b619d197e5059b97">ssiAxiStreamConfig</a><b> ( </b><br />
+ <tr class="memitem:afdd43f423f6a8b29258219eed35d8bc8"><td class="memItemLeft" align="right" valign="top"><a id="afdd43f423f6a8b29258219eed35d8bc8"></a>
+<b><b><span class="vhdlchar">AxiStreamConfigType</span><span class="vhdlchar"> </span></b></b>&#160;</td><td class="memItemRight" valign="bottom"> <a class="el" href="classSsiPkg.html#afdd43f423f6a8b29258219eed35d8bc8">ssiAxiStreamConfig</a><b> ( </b><br />
 <b><span class="vhdlchar">dataBytes: </span><span class="stringliteral">in </span><b><span class="keywordtype">positive</span><span class="vhdlchar"> </span></b></b><br />
 <b><span class="vhdlchar">tKeepMode: </span><span class="stringliteral">in </span><span class="vhdlchar">TKeepModeType     TKEEP_COMP_C</span></b><br />
 <b><span class="vhdlchar">tUserMode: </span><span class="stringliteral">in </span><span class="vhdlchar">TUserModeType     TUSER_FIRST_LAST_C</span></b><br />
-<b><span class="vhdlchar">tDestBits: </span><span class="stringliteral">in </span><span class="vhdlchar">natural   range  0 to  8 4</span></b><br />
-<b><span class="vhdlchar">tUserBits: </span><span class="stringliteral">in </span><span class="vhdlchar">positive   range  2 to  8 2</span></b><br />
+<b><span class="vhdlchar">tDestBits: </span><span class="stringliteral">in </span><span class="vhdlchar">natural   range  0 to  8   SSI_TDEST_BITS_C</span></b><br />
+<b><span class="vhdlchar">tUserBits: </span><span class="stringliteral">in </span><span class="vhdlchar">positive   range  2 to  8   SSI_TUSER_BITS_C</span></b><br />
+<b><span class="vhdlchar">tIdBits: </span><span class="stringliteral">in </span><span class="vhdlchar">natural   range  0 to  8   SSI_TID_BITS_C</span></b><br />
 <b> )</b></td></tr>
 <tr class="memitem:ab57c0e5fa49e31b2585480c0a8b6528c"><td class="memItemLeft" align="right" valign="top"><a id="ab57c0e5fa49e31b2585480c0a8b6528c"></a>
 <b><b><span class="vhdlchar">AxiStreamMasterType</span><span class="vhdlchar"> </span></b></b>&#160;</td><td class="memItemRight" valign="bottom"> <a class="el" href="classSsiPkg.html#ab57c0e5fa49e31b2585480c0a8b6528c">ssi2AxisMaster</a><b> ( </b><b><span class="vhdlchar">axisConfig: </span><span class="stringliteral">in </span><span class="vhdlchar">AxiStreamConfigType</span></b><b> , <span class="vhdlchar">ssiMaster: </span><span class="stringliteral">in </span><span class="vhdlchar">SsiMasterType</span></b><b> )</b></td></tr>

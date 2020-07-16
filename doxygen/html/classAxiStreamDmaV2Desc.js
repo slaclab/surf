@@ -30,6 +30,7 @@ var classAxiStreamDmaV2Desc =
     [ "axiWrCache", "classAxiStreamDmaV2Desc.html#a94cecdf8a77ee77a7b8e77505e642885", null ],
     [ "axiWriteMasters", "classAxiStreamDmaV2Desc.html#a102ba3383c94310f41688aef331f6aa1", null ],
     [ "axiWriteSlaves", "classAxiStreamDmaV2Desc.html#a44ee9ffc207a5d611e88acaae8f174d5", null ],
+    [ "buffGrpPause", "classAxiStreamDmaV2Desc.html#aff557e31e30ed4aa0254ffead3d5e431", null ],
     [ "ieee", "classAxiStreamDmaV2Desc.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classAxiStreamDmaV2Desc.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classAxiStreamDmaV2Desc.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],

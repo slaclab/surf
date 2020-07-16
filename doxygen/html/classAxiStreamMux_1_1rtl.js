@@ -1,6 +1,6 @@
 var classAxiStreamMux_1_1rtl =
 [
-    [ "TDEST_REMAP", "classAxiStreamMux_1_1rtl.html#a99a82852be8cb884a60d7774900ae1a4", null ],
+    [ "ROUTE_TABLE_REMAP", "classAxiStreamMux_1_1rtl.html#ada66ed30909e913104e4569d6e3641a2", null ],
     [ "comb", "classAxiStreamMux_1_1rtl.html#ac84435cd7f0c454020a84bb6f076534b", null ],
     [ "seq", "classAxiStreamMux_1_1rtl.html#a60cf6c6e46dc89a140bc8bff4d98f732", null ],
     [ "DEST_SIZE_C", "classAxiStreamMux_1_1rtl.html#ade98ad0ef8109a88f77d4cf304910beb", null ],

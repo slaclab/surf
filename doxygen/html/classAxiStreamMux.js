@@ -6,6 +6,8 @@ var classAxiStreamMux =
     [ "NUM_SLAVES_G", "classAxiStreamMux.html#a301d73ea23f8d0d3e8bdbc11bdd92b4c", null ],
     [ "MODE_G", "classAxiStreamMux.html#adf33db7c14d9e2c22de126a4f7b466a6", null ],
     [ "TDEST_ROUTES_G", "classAxiStreamMux.html#af451c9319b83428f363d598448ba95bf", null ],
+    [ "TID_MODE_G", "classAxiStreamMux.html#a04abde57115ba31d8ac5ab262f6ee483", null ],
+    [ "TID_ROUTES_G", "classAxiStreamMux.html#a01fe9ae7e572e3cd8d0be6789e7011c8", null ],
     [ "TDEST_LOW_G", "classAxiStreamMux.html#a1febd9d88664e307ee6cfb0fb28aa863", null ],
     [ "ILEAVE_EN_G", "classAxiStreamMux.html#ab934362b477b914075b660c907603386", null ],
     [ "ILEAVE_ON_NOTVALID_G", "classAxiStreamMux.html#adc86774e39002fce6f3ca2a442b01f6a", null ],

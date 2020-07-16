@@ -26,6 +26,7 @@ var classAxiStreamDmaV2 =
     [ "interrupt", "classAxiStreamDmaV2.html#acffe70fe7beacd46a8823ea27154e418", null ],
     [ "online", "classAxiStreamDmaV2.html#a7515ad00d18d459c93e3a788eb238a90", null ],
     [ "acknowledge", "classAxiStreamDmaV2.html#a8db905f5fe3a9209c872be05865a2996", null ],
+    [ "buffGrpPause", "classAxiStreamDmaV2.html#aff557e31e30ed4aa0254ffead3d5e431", null ],
     [ "sAxisMasters", "classAxiStreamDmaV2.html#a374e77e42a1e65dbc24e18e75ed0da55", null ],
     [ "sAxisSlaves", "classAxiStreamDmaV2.html#a2ed82daceccd76d8a1bdfe6e70ef4412", null ],
     [ "mAxisMasters", "classAxiStreamDmaV2.html#a5e332a124a2c6a8ecccd3db954bc9e26", null ],

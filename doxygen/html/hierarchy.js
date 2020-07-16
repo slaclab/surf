@@ -1191,6 +1191,8 @@ var hierarchy =
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "AxiLiteMaster", "classAxiLiteMaster.html", null ],
       [ "Fifo", "classFifo.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "SlvDelayRam", "classSlvDelayRam.html", null ],
       [ "Synchronizer", "classSynchronizer.html", null ],
       [ "SrpV3Axi", "classSrpV3Axi.html", [
         [ "SrpV3Core", "classSrpV3Core.html", [

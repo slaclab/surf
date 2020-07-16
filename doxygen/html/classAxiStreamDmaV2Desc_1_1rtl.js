@@ -1,6 +1,6 @@
 var classAxiStreamDmaV2Desc_1_1rtl =
 [
-    [ "comb", "classAxiStreamDmaV2Desc_1_1rtl.html#a90ce2e3b2a78477590a1d33c237bd251", null ],
+    [ "comb", "classAxiStreamDmaV2Desc_1_1rtl.html#a65ed76902a6ecec3a8a4c8dd05201188", null ],
     [ "seq", "classAxiStreamDmaV2Desc_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8", null ],
     [ "AXI_DESC_CONFIG_C", "classAxiStreamDmaV2Desc_1_1rtl.html#ab12308c696c5ac83496fe5f5553943de", null ],
     [ "CHAN_SIZE_C", "classAxiStreamDmaV2Desc_1_1rtl.html#a72407a21094e8a89d7c79982b9a60c6d", null ],
@@ -36,6 +36,7 @@ var classAxiStreamDmaV2Desc_1_1rtl =
     [ "buffRdCache", "classAxiStreamDmaV2Desc_1_1rtl.html#a08258e1c10b3bd22fecbd6f8a4e25af3", null ],
     [ "buffWrCache", "classAxiStreamDmaV2Desc_1_1rtl.html#a612699da343bd387c16e3d6416810af4", null ],
     [ "enableCnt", "classAxiStreamDmaV2Desc_1_1rtl.html#af2d1c81a2bb29a0a30cf5ef41abb697b", null ],
+    [ "idBuffThold", "classAxiStreamDmaV2Desc_1_1rtl.html#ac5069efb002937699729889684117a98", null ],
     [ "fifoDin", "classAxiStreamDmaV2Desc_1_1rtl.html#a12e4a879e96790d7ec37288d33b943ea", null ],
     [ "wrFifoWr", "classAxiStreamDmaV2Desc_1_1rtl.html#aefd3ce92c829e23a004f72a4543aaaa1", null ],
     [ "rdFifoWr", "classAxiStreamDmaV2Desc_1_1rtl.html#ab466d1aee02cee0dedeb8282ae881fae", null ],
@@ -65,7 +66,11 @@ var classAxiStreamDmaV2Desc_1_1rtl =
     [ "interrupt", "classAxiStreamDmaV2Desc_1_1rtl.html#aececbfb16834c1921a8b8be3767d6134", null ],
     [ "intHoldoff", "classAxiStreamDmaV2Desc_1_1rtl.html#a59cf172a7f6fbf80a5fa4f5d21e400b6", null ],
     [ "intHoldoffCount", "classAxiStreamDmaV2Desc_1_1rtl.html#a0e57e4301712e4e572a60a5117eb4c28", null ],
-    [ "REG_INIT_C", "classAxiStreamDmaV2Desc_1_1rtl.html#a0dee909e7b28526227e95cea5989bd46", null ],
+    [ "idBuffCount", "classAxiStreamDmaV2Desc_1_1rtl.html#abcd38755ad3ca004b21405ab688da16e", null ],
+    [ "idBuffInc", "classAxiStreamDmaV2Desc_1_1rtl.html#a06f7b837662669072b34eb2f255ffd77", null ],
+    [ "idBuffDec", "classAxiStreamDmaV2Desc_1_1rtl.html#ad890bdff57b7f00a1b919dfbf33441d7", null ],
+    [ "buffGrpPause", "classAxiStreamDmaV2Desc_1_1rtl.html#a4a137b8c5974bf55b1833250e86d754d", null ],
+    [ "REG_INIT_C", "classAxiStreamDmaV2Desc_1_1rtl.html#a868f4417e7009eb0e434947007ffa432", null ],
     [ "r", "classAxiStreamDmaV2Desc_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classAxiStreamDmaV2Desc_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "rdFifoValid", "classAxiStreamDmaV2Desc_1_1rtl.html#aa18c4c3dce3b7110a6dea7d48fcf4b12", null ],
@@ -77,8 +82,12 @@ var classAxiStreamDmaV2Desc_1_1rtl =
     [ "intDiffValid", "classAxiStreamDmaV2Desc_1_1rtl.html#abdaf362d2f79d5dec0ddbea5317db207", null ],
     [ "invalidCount", "classAxiStreamDmaV2Desc_1_1rtl.html#ae3707d20c1ec23ae0522686c241e3f04", null ],
     [ "diffCnt", "classAxiStreamDmaV2Desc_1_1rtl.html#ad2742ebe167e054dd4f23730473bdc41", null ],
+    [ "holdoffCompare", "classAxiStreamDmaV2Desc_1_1rtl.html#a6cdba4bb0ed21f5488cb0d4d3c27dd46", null ],
+    [ "idBuffCompare", "classAxiStreamDmaV2Desc_1_1rtl.html#ae234112362f1c9db79288ec9688028ed", null ],
     [ "u_descfifo", "classAxiStreamDmaV2Desc_1_1rtl.html#a1249158ea5efcaac5b07e63c538bfaed", null ],
     [ "u_rdfifo", "classAxiStreamDmaV2Desc_1_1rtl.html#ac07a0d1923dcc8557fce751965396f40", null ],
-    [ "u_dspcomparator", "classAxiStreamDmaV2Desc_1_1rtl.html#a5d96c8da8ac90fe7f6ecfc96d414edea", null ],
-    [ "u_dspsub", "classAxiStreamDmaV2Desc_1_1rtl.html#a37a28498699de826dfd8ececa224e668", null ]
+    [ "u_invalidcount", "classAxiStreamDmaV2Desc_1_1rtl.html#aef280c57d663cd09474b5015291bf06c", null ],
+    [ "u_diffcnt", "classAxiStreamDmaV2Desc_1_1rtl.html#a43e3a4a378636c20be3da14ab3a84b5b", null ],
+    [ "u_holdoffcompare", "classAxiStreamDmaV2Desc_1_1rtl.html#a60ce5f9edf22a96c0af797986f29edc7", null ],
+    [ "u_dspcomparator", "classAxiStreamDmaV2Desc_1_1rtl.html#a5d96c8da8ac90fe7f6ecfc96d414edea", null ]
 ];

@@ -2,9 +2,9 @@ var classAd9249ConfigNoPullup_1_1rtl =
 [
     [ "comb", "classAd9249ConfigNoPullup_1_1rtl.html#ad1f73957c68ae8a80d49606a4ce547c2", null ],
     [ "seq", "classAd9249ConfigNoPullup_1_1rtl.html#a72bbc70fc4a5d3542ed50c4c98efa103", null ],
-    [ "PROCESS_89", "classAd9249ConfigNoPullup_1_1rtl.html#a40bd0bf454bd13084f3610b1d0a502a5", null ],
     [ "PROCESS_90", "classAd9249ConfigNoPullup_1_1rtl.html#ae40ad4941e8fab9f524a4e0dd1272703", null ],
-    [ "PROCESS_91", "classAd9249ConfigNoPullup_1_1rtl.html#ae2975acd4f975df2820de0ce565922ca", null ],
+    [ "PROCESS_91", "classAd9249ConfigNoPullup_1_1rtl.html#a7396579695a5d36b025c0f21510c011f", null ],
+    [ "PROCESS_92", "classAd9249ConfigNoPullup_1_1rtl.html#a2ae28254079a0df1c84a78dfecfaa59f", null ],
     [ "SPI_CLK_PERIOD_DIV2_CYCLES_C", "classAd9249ConfigNoPullup_1_1rtl.html#a8726d81d8d3f8dbed70becb5c3535e05", null ],
     [ "SCLK_COUNTER_SIZE_C", "classAd9249ConfigNoPullup_1_1rtl.html#a0b1ed04e483f1dec3b7d1a8031e40a6e", null ],
     [ "intShift", "classAd9249ConfigNoPullup_1_1rtl.html#a5ee33f20410f7e4265bf3d095dbb11b2", null ],

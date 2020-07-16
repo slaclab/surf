@@ -1,14 +1,14 @@
 <map id="AxiStreamDmaV2Desc" name="AxiStreamDmaV2Desc">
-<area shape="rect" id="node1" title=" " alt="" coords="696,360,867,387"/>
-<area shape="rect" id="node17" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="915,360,1053,387"/>
-<area shape="rect" id="node2" href="$classFifo.html" title=" " alt="" coords="554,259,618,285"/>
+<area shape="rect" id="node1" title=" " alt="" coords="715,360,885,387"/>
+<area shape="rect" id="node17" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="933,360,1072,387"/>
+<area shape="rect" id="node2" href="$classFifo.html" title=" " alt="" coords="563,259,627,285"/>
 <area shape="rect" id="node3" href="$classFifoXpm.html" title=" " alt="" coords="387,259,463,285"/>
 <area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,309,314,336"/>
 <area shape="rect" id="node5" href="$classFifoAlteraMf.html" title=" " alt="" coords="373,309,476,336"/>
 <area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="382,157,467,184"/>
 <area shape="rect" id="node14" href="$classFifoSync.html" title=" " alt="" coords="386,208,463,235"/>
-<area shape="rect" id="node15" href="$classDspComparator.html" title=" " alt="" coords="524,360,648,387"/>
-<area shape="rect" id="node16" href="$classDspAddSub.html" title=" " alt="" coords="538,411,634,437"/>
+<area shape="rect" id="node15" href="$classDspComparator.html" title=" " alt="" coords="524,360,667,387"/>
+<area shape="rect" id="node16" href="$classDspAddSub.html" title=" " alt="" coords="547,411,643,437"/>
 <area shape="rect" id="node7" href="$classRstSync.html" title=" " alt="" coords="197,56,289,83"/>
 <area shape="rect" id="node8" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
 <area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="160,107,325,133"/>
