@@ -537,7 +537,7 @@ package body AxiLitePkg is
       if (axiWriteMaster.bready = '1') then
          axiWriteSlave.bvalid := '0';
       end if;
-   end procedure;
+   end procedure axiSlaveWaitWriteTxn;
 
    procedure axiSlaveWaitReadTxn (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
