@@ -531,7 +531,7 @@ package body AxiLitePkg is
       end if;
 
       -- Check if last cycle accepted write address and write data
-      if (axiWriteSlave.awready = '1' and axiWriteSlave.wready = '1') then
+      if (axiWriteSlave.awready = '1') and (axiWriteSlave.wready = '1') then
 
          -- Prevent AXI_ERRS_BRESP_AW: A slave must not give a write response before the write address. Spec: section A3.3.1 and figure A3-7.
          axiWriteSlave.bvalid := '1';
@@ -560,18 +560,29 @@ package body AxiLitePkg is
       ----------------------------------------------------------------------------------------------
       readEnable := '0';
 
-      axiReadSlave.arready := '0';
-
-      -- Incoming read txn and last txn has concluded
-      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
-         readEnable := '1';
-      end if;
-
       -- Reset rvalid upon rready
       if (axiReadMaster.rready = '1') then
          axiReadSlave.rvalid := '0';
          axiReadSlave.rdata  := (others => '0');
       end if;
+
+      -- Check if last cycle accepted read address
+      if (axiReadSlave.arready = '1') then
+
+         -- Prevent AXI_AUXM_RCAM_UNDERFLOW: Read CAM underflow.
+         axiReadSlave.rvalid := '1';
+
+      else
+
+         -- Incoming read txn and last txn has concluded
+         if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+            readEnable := '1';
+         end if;
+
+      end if;
+
+      axiReadSlave.arready := '0';
+
    end procedure axiSlaveWaitReadTxn;
 
    procedure axiSlaveWaitTxn (
@@ -600,7 +611,7 @@ package body AxiLitePkg is
       axiResp               : in    slv(1 downto 0) := AXI_RESP_OK_C) is
    begin
       axiReadSlave.arready := '1';      -- not sure this is necessary
-      axiReadSlave.rvalid  := '1';
+      axiReadSlave.rvalid  := '0';      -- rvalid set in axiSlaveWaitReadTxn
       axiReadSlave.rresp   := axiResp;
    end procedure;
 
