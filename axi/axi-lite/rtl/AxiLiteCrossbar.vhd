@@ -203,7 +203,7 @@ begin
 
                -- Clear when acked by master
                if (r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') then
-                  v.sAxiWriteSlaves(s).bvalid := '0';  
+                  v.sAxiWriteSlaves(s).bvalid := '0';
                   v.slave(s).wrState          := S_WAIT_AXI_TXN_S;
                end if;
 
