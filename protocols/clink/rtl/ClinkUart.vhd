@@ -25,8 +25,8 @@ use surf.SsiPkg.all;
 
 entity ClinkUart is
    generic (
-      TPD_G              : time                := 1 ns;
-      UART_READY_EN_G    : boolean             := true;
+      TPD_G              : time    := 1 ns;
+      UART_READY_EN_G    : boolean := true;
       UART_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and reset, 200Mhz
@@ -55,13 +55,13 @@ architecture rtl of ClinkUart is
    constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 4, tDestBits => 0);
 
    type RegType is record
-      count : integer;
-      clkEn : sl;
+      count     : integer;
+      baudClkEn : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      count => 0,
-      clkEn => '0');
+      count     => 0,
+      baudClkEn => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : Regtype;
@@ -84,7 +84,7 @@ begin
       v := r;
 
       -- Reset strobe
-      v.clkEn := '0';
+      v.baudClkEn := '0';
 
       -- Check for 0 baud rate condition
       if (baud = 0) then
@@ -97,8 +97,8 @@ begin
 
       -- Check for max count
       if r.count >= INT_FREQ_C then
-         v.count := 0;
-         v.clkEn := '1';
+         v.count     := 0;
+         v.baudClkEn := '1';
       end if;
 
       -- Reset
@@ -160,13 +160,13 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => intClk,                          -- [in]
-         rst     => intRst,                          -- [in]
-         clkEn   => r.clkEn,                         -- [in]
-         wrData  => txMasters(1).tData(7 downto 0),  -- [in]
-         wrValid => txMasters(1).tValid,             -- [in]
-         wrReady => txSlaves(1).tReady,              -- [out]
-         tx      => txOut);                          -- [out]
+         clk       => intClk,                          -- [in]
+         rst       => intRst,                          -- [in]
+         baudClkEn => r.baudClkEn,                     -- [in]
+         wrData    => txMasters(1).tData(7 downto 0),  -- [in]
+         wrValid   => txMasters(1).tValid,             -- [in]
+         wrReady   => txSlaves(1).tReady,              -- [out]
+         tx        => txOut);                          -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- UART Receiver
@@ -175,13 +175,13 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => intClk,             -- [in]
-         rst     => intRst,             -- [in]
-         clkEn   => r.clkEn,            -- [in]
-         rdData  => rdData,             -- [out]
-         rdValid => rdValid,            -- [out]
-         rdReady => '1',                -- [in]
-         rx      => rxIn);              -- [in]
+         clk       => intClk,           -- [in]
+         rst       => intRst,           -- [in]
+         baudClkEn => r.baudClkEn,      -- [in]
+         rdData    => rdData,           -- [out]
+         rdValid   => rdValid,          -- [out]
+         rdReady   => '1',              -- [in]
+         rx        => rxIn);            -- [in]
 
    process (rdData, rdValid) is
       variable mst : AxiStreamMasterType;
