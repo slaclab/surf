@@ -311,7 +311,6 @@ begin
 
       if (axilStatus.readEnable = '1') then
          -- Decode address and assign read data
-         v.axilReadSlave.rdata := (others => '0');
          case axilReadMaster.araddr(7 downto 0) is
             when X"00" =>
                v.axilReadSlave.rdata(r.rxRamWrAddr'range) := r.rxRamWrAddr;

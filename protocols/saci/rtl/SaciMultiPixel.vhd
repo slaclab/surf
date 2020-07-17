@@ -98,7 +98,6 @@ begin
    begin
       v := r;
 
-      v.sAxilReadSlave.rdata := (others => '0');
       axiSlaveWaitTxn(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axiStatus);
 
       if (axiStatus.writeEnable = '1' and r.globalMultiPix.req = '0') then
