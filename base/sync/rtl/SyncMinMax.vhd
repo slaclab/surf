@@ -88,6 +88,7 @@ begin
          WIDTH_G => WIDTH_G)
       port map (
          clk     => wrClk,
+         rst     => resetStat,
          -- Inbound Interface
          ibValid => wrEn,
          ain     => dataIn,
@@ -101,6 +102,7 @@ begin
          WIDTH_G => WIDTH_G)
       port map (
          clk     => wrClk,
+         rst     => resetStat,
          -- Inbound Interface
          ibValid => wrEn,
          ain     => dataIn,
