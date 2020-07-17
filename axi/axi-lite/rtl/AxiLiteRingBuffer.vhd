@@ -290,8 +290,6 @@ begin
 
       -- Check for read request
       if (axilStatus.readEnable = '1') then
-         -- Reset the read data bus
-         v.axilReadSlave.rdata := (others => '0');
          -- Check for an out of 32 bit aligned address
          axiReadResp           := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Control register mapped at address 0

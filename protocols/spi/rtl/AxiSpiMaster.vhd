@@ -192,11 +192,9 @@ begin
                if (MODE_G = "WO" or (MODE_G = "RW" and r.wrData(PACKET_SIZE_C-1) = '0')) then
                   axiSlaveWriteResponse(v.axiWriteSlave);
                elsif (SHADOW_EN_G) then
-                  v.axiReadSlave.rdata                         := (others => '0');
                   v.axiReadSlave.rdata(DATA_SIZE_G-1 downto 0) := memData;
                   axiSlaveReadResponse(v.axiReadSlave);
                else
-                  v.axiReadSlave.rdata                         := (others => '0');
                   v.axiReadSlave.rdata(DATA_SIZE_G-1 downto 0) := rdData(DATA_SIZE_G-1 downto 0);
                   axiSlaveReadResponse(v.axiReadSlave);
                end if;
