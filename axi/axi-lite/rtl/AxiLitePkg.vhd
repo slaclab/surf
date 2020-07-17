@@ -560,12 +560,6 @@ package body AxiLitePkg is
       ----------------------------------------------------------------------------------------------
       readEnable := '0';
 
-      -- Reset rvalid upon rready
-      if (axiReadMaster.rready = '1') then
-         axiReadSlave.rvalid := '0';
-         axiReadSlave.rdata  := (others => '0');
-      end if;
-
       -- Check if last cycle accepted read address
       if (axiReadSlave.arready = '1') then
 
@@ -573,6 +567,12 @@ package body AxiLitePkg is
          axiReadSlave.rvalid := '1';
 
       else
+
+         -- Reset rvalid upon rready
+         if (axiReadMaster.rready = '1') then
+            axiReadSlave.rvalid := '0';
+            axiReadSlave.rdata  := (others => '0');
+         end if;
 
          -- Incoming read txn and last txn has concluded
          if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
