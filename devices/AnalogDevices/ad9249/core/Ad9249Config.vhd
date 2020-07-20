@@ -155,7 +155,6 @@ begin
                   v.axilWriteSlave := axilEp.axiWriteSlave;
                else
                   -- Finish read
-                  axilEp.axiReadSlave.rdata             := (others => '0');
                   axilEp.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
                   axiSlaveReadResponse(axilEp.axiReadSlave);
                   v.axilReadSlave                       := axilEp.axiReadSlave;

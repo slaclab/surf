@@ -218,7 +218,7 @@ class AxiVersion(pr.Device):
             if buildStamp is None:
                 return ''
             else:
-                p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", buildStamp)
+                p = parse.parse('{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}\0{padding}', buildStamp)
                 if p is None:
                     return ''
                 else:

@@ -656,7 +656,6 @@ begin
 
       -- Read
       if (axiStatus.readEnable = '1') then
-         v.axilReadSlave.rdata := (others => '0');
 
          -- Decode address and assign read data
          case axilReadMaster.araddr(7 downto 0) is
