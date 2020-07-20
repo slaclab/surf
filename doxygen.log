@@ -1429,9 +1429,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiStreamDma.vhd:287:Info: Elaborating entity AxiLiteFifoPushPop for hierarchy axilitefifopushpop::u_swfifos]
 
-[AxiStreamDma.vhd:414:Info: Elaborating entity AxiStreamDmaWrite for hierarchy axistreamdmawrite::u_ibdma]
+[AxiStreamDma.vhd:413:Info: Elaborating entity AxiStreamDmaWrite for hierarchy axistreamdmawrite::u_ibdma]
 
-[AxiStreamDma.vhd:509:Info: Elaborating entity AxiStreamDmaRead for hierarchy axistreamdmaread::u_obdma]
+[AxiStreamDma.vhd:508:Info: Elaborating entity AxiStreamDmaRead for hierarchy axistreamdmaread::u_obdma]
 
 [AxiStreamDmaFifo.vhd:216:Info: Elaborating entity AxiStreamDmaWrite for hierarchy axistreamdmawrite::u_ibdma]
 
@@ -1439,7 +1439,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiStreamDmaFifo.vhd:267:Info: Elaborating entity FifoCascade for hierarchy fifocascade::u_readqueue]
 
-[AxiStreamDmaFifo.vhd:490:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_rdqueuereset]
+[AxiStreamDmaFifo.vhd:487:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_rdqueuereset]
 
 [AxiStreamDmaRead.vhd:435:Info: Elaborating entity AxiStreamPipeline for hierarchy axistreampipeline::u_pipeline]
 
@@ -1703,17 +1703,17 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [SynchronizerOneShotVector.vhd:82:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::GEN_VEC:synconeshot_inst]
 
-[SyncMinMax.vhd:83:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rststat]
+[SyncMinMax.vhd:85:Info: Elaborating entity SynchronizerOneShot for hierarchy synchronizeroneshot::u_rststat]
 
-[SyncMinMax.vhd:96:Info: Elaborating entity DspComparator for hierarchy dspcomparator::u_lessthan]
+[SyncMinMax.vhd:99:Info: Elaborating entity DspComparator for hierarchy dspcomparator::u_lessthan]
 
-[SyncMinMax.vhd:112:Info: Elaborating entity DspComparator for hierarchy dspcomparator::u_greaterthan]
+[SyncMinMax.vhd:116:Info: Elaborating entity DspComparator for hierarchy dspcomparator::u_greaterthan]
 
-[SyncMinMax.vhd:189:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_dataout]
+[SyncMinMax.vhd:195:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_dataout]
 
-[SyncMinMax.vhd:204:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datamin]
+[SyncMinMax.vhd:211:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datamin]
 
-[SyncMinMax.vhd:220:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datamax]
+[SyncMinMax.vhd:228:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datamax]
 
 [SyncStatusVector.vhd:122:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::syncvec_inst]
 
@@ -1745,7 +1745,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiAd5780Core.vhd:109:Info: Elaborating entity AxiAd5780Ser for hierarchy axiad5780ser::axiad5780ser_inst]
 
-[AxiAd5780Reg.vhd:216:Info: Elaborating entity SyncTrigRate for hierarchy synctrigrate::synctrigrate_inst]
+[AxiAd5780Reg.vhd:215:Info: Elaborating entity SyncTrigRate for hierarchy synctrigrate::synctrigrate_inst]
 
 [Ad9249Deserializer.vhd:80:Info: Elaborating entity idelaye2 for hierarchy idelaye2::u_delay]
 
@@ -1781,9 +1781,9 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [Ad9249ReadoutGroup.vhd:498:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifodebug]
 
-[Ad9249Config.vhd:211:Info: Elaborating entity SpiMaster for hierarchy spimaster::spimaster_1]
+[Ad9249Config.vhd:210:Info: Elaborating entity SpiMaster for hierarchy spimaster::spimaster_1]
 
-[Ad9249Config.vhd:229:Info: Elaborating entity iobuf for hierarchy iobuf::sdio_iobuft]
+[Ad9249Config.vhd:228:Info: Elaborating entity iobuf for hierarchy iobuf::sdio_iobuft]
 
 [Ad9249.vhd:61:Info: Elaborating entity ibufgds for hierarchy ibufgds::clk_bufg]
 
@@ -1843,33 +1843,33 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [Ad9249ReadoutGroup.vhd:226:Info: Elaborating entity Synchronizer for hierarchy synchronizer::synchronizer_2]
 
-[Ad9249ReadoutGroup.vhd:320:Info: Elaborating entity ibufds for hierarchy ibufds::adcclk_i_ibufds]
+[Ad9249ReadoutGroup.vhd:319:Info: Elaborating entity ibufds for hierarchy ibufds::adcclk_i_ibufds]
 
-[Ad9249ReadoutGroup.vhd:361:Info: Elaborating entity ClockManagerUltraScale for hierarchy clockmanagerultrascale::G_MMCM:u_iserdesclockgen]
+[Ad9249ReadoutGroup.vhd:360:Info: Elaborating entity ClockManagerUltraScale for hierarchy clockmanagerultrascale::G_MMCM:u_iserdesclockgen]
 
-[Ad9249ReadoutGroup.vhd:361:Info: Elaborating entity bufg for hierarchy bufg::G_MMCM:u_bitclkbufg]
+[Ad9249ReadoutGroup.vhd:360:Info: Elaborating entity bufg for hierarchy bufg::G_MMCM:u_bitclkbufg]
 
-[Ad9249ReadoutGroup.vhd:384:Info: Elaborating entity bufg for hierarchy bufg::G_NO_MMCM:u_bitclkbufg]
+[Ad9249ReadoutGroup.vhd:383:Info: Elaborating entity bufg for hierarchy bufg::G_NO_MMCM:u_bitclkbufg]
 
-[Ad9249ReadoutGroup.vhd:384:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::G_NO_MMCM:u_pwruprst]
+[Ad9249ReadoutGroup.vhd:383:Info: Elaborating entity PwrUpRst for hierarchy pwruprst::G_NO_MMCM:u_pwruprst]
 
-[Ad9249ReadoutGroup.vhd:401:Info: Elaborating entity bufgce_div for hierarchy bufgce_div::u_adcbitclkr]
+[Ad9249ReadoutGroup.vhd:400:Info: Elaborating entity bufgce_div for hierarchy bufgce_div::u_adcbitclkr]
 
-[Ad9249ReadoutGroup.vhd:416:Info: Elaborating entity bufgce_div for hierarchy bufgce_div::u_adcbitclkrd4]
+[Ad9249ReadoutGroup.vhd:415:Info: Elaborating entity bufgce_div for hierarchy bufgce_div::u_adcbitclkrd4]
 
-[Ad9249ReadoutGroup.vhd:426:Info: Elaborating entity RstSync for hierarchy rstsync::adc_bitclk_rst_sync]
+[Ad9249ReadoutGroup.vhd:425:Info: Elaborating entity RstSync for hierarchy rstsync::adc_bitclk_rst_sync]
 
-[Ad9249ReadoutGroup.vhd:453:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::u_frame_deserializer]
+[Ad9249ReadoutGroup.vhd:452:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::u_frame_deserializer]
 
-[Ad9249ReadoutGroup.vhd:470:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_frmdlyfifo]
+[Ad9249ReadoutGroup.vhd:469:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_frmdlyfifo]
 
-[Ad9249ReadoutGroup.vhd:522:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::GenData:u_data_deserializer]
+[Ad9249ReadoutGroup.vhd:521:Info: Elaborating entity Ad9249Deserializer for hierarchy ad9249deserializer::GenData:u_data_deserializer]
 
-[Ad9249ReadoutGroup.vhd:522:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GenData:u_datadlyfifo]
+[Ad9249ReadoutGroup.vhd:521:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GenData:u_datadlyfifo]
 
-[Ad9249ReadoutGroup.vhd:613:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifo]
+[Ad9249ReadoutGroup.vhd:612:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifo]
 
-[Ad9249ReadoutGroup.vhd:630:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifodebug]
+[Ad9249ReadoutGroup.vhd:629:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_datafifodebug]
 
 [AxiAd9467Core.vhd:82:Info: Elaborating entity AxiAd9467Reg for hierarchy axiad9467reg::axiad9467reg_inst]
 
@@ -1901,21 +1901,21 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiAd9467Pll.vhd:122:Info: Elaborating entity ClkOutBufDiff for hierarchy clkoutbufdiff::clkoutbufdiff_inst]
 
-[AxiAd9467Reg.vhd:346:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_delay_dmux]
+[AxiAd9467Reg.vhd:344:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_delay_dmux]
 
-[AxiAd9467Reg.vhd:355:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_load]
+[AxiAd9467Reg.vhd:353:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_load]
 
-[AxiAd9467Reg.vhd:364:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_rst]
+[AxiAd9467Reg.vhd:362:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_rst]
 
-[AxiAd9467Reg.vhd:377:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_DAT_CONFIG:syncout_delayin_data]
+[AxiAd9467Reg.vhd:375:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_DAT_CONFIG:syncout_delayin_data]
 
-[AxiAd9467Reg.vhd:390:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_plllocked]
+[AxiAd9467Reg.vhd:388:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_plllocked]
 
-[AxiAd9467Reg.vhd:403:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_ADC_MON:syncin_adcdatamon]
+[AxiAd9467Reg.vhd:401:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_ADC_MON:syncin_adcdatamon]
 
-[AxiAd9467Reg.vhd:411:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_delayout_rdy]
+[AxiAd9467Reg.vhd:409:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_delayout_rdy]
 
-[AxiAd9467Reg.vhd:424:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_DAT_STATUS:syncin_delayout_data]
+[AxiAd9467Reg.vhd:422:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_DAT_STATUS:syncin_delayout_data]
 
 [AxiAd9467Spi.vhd:75:Info: Elaborating entity iobuf for hierarchy iobuf::iobuf_inst]
 
@@ -1953,15 +1953,15 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiLtc2270Reg.vhd:125:Info: Elaborating entity iobuf for hierarchy iobuf::iobuf_inst]
 
-[AxiLtc2270Reg.vhd:448:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CH_CONFIG:GEN_DAT_CONFIG:syncout_delayin_data]
+[AxiLtc2270Reg.vhd:446:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CH_CONFIG:GEN_DAT_CONFIG:syncout_delayin_data]
 
-[AxiLtc2270Reg.vhd:457:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_load]
+[AxiLtc2270Reg.vhd:455:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_load]
 
-[AxiLtc2270Reg.vhd:466:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_rst]
+[AxiLtc2270Reg.vhd:464:Info: Elaborating entity RstSync for hierarchy rstsync::syncout_delayin_rst]
 
-[AxiLtc2270Reg.vhd:480:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_delayout_rdy]
+[AxiLtc2270Reg.vhd:478:Info: Elaborating entity Synchronizer for hierarchy synchronizer::syncin_delayout_rdy]
 
-[AxiLtc2270Reg.vhd:496:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CH_STATUS:GEN_DAT_STATUS:syncin_delayout_data]
+[AxiLtc2270Reg.vhd:494:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_CH_STATUS:GEN_DAT_STATUS:syncin_delayout_data]
 
 [Sgmii88E1111Mdio.vhd:129:Info: Elaborating entity MdioLinkIrqHandler for hierarchy mdiolinkirqhandler::u_mdiolinkirqhandler]
 
@@ -1987,17 +1987,17 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiMicronMt28ewCore.vhd:90:Info: Elaborating entity AxiMicronMt28ewReg for hierarchy aximicronmt28ewreg::u_ctrl]
 
-[AxiMicronMt28ewReg.vhd:461:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
+[AxiMicronMt28ewReg.vhd:459:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
 
 [AxiMicronN25QCore.vhd:92:Info: Elaborating entity AxiMicronN25QReg for hierarchy aximicronn25qreg::aximicronn25qreg_inst]
 
-[AxiMicronN25QReg.vhd:447:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
+[AxiMicronN25QReg.vhd:445:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
 
 [AxiMicronP30Core.vhd:65:Info: Elaborating entity iobuf for hierarchy iobuf::GEN_IOBUF:iobuf_inst]
 
 [AxiMicronP30Core.vhd:93:Info: Elaborating entity AxiMicronP30Reg for hierarchy aximicronp30reg::u_ctrl]
 
-[AxiMicronP30Reg.vhd:557:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
+[AxiMicronP30Reg.vhd:555:Info: Elaborating entity SimpleDualPortRam for hierarchy simpledualportram::u_ram]
 
 [Si5345.vhd:131:Info: Elaborating entity SimpleDualPortRamXpm for hierarchy simpledualportramxpm::GEN_BOOT_ROM:u_rom]
 
@@ -2079,7 +2079,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiAds42lb69Pll.vhd:290:Info: Elaborating entity ibufgds for hierarchy ibufgds::GEN_ULTRASCALE_NO_PLL:GEN_NO_FBCLK:ibufgds_1]
 
-[AxiAds42lb69Reg.vhd:361:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_ADC_SMPL:syncout_delayin_data]
+[AxiAds42lb69Reg.vhd:359:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::GEN_ADC_SMPL:syncout_delayin_data]
 
 [ads54j60.vhd:322:Info: Elaborating entity SpiMaster for hierarchy spimaster::u_spimaster]
 
@@ -2813,7 +2813,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiStreamBatcherEventBuilder.vhd:203:Info: Elaborating entity DspComparator for hierarchy dspcomparator::u_dspcomparator]
 
-[AxiStreamBatcherEventBuilder.vhd:544:Info: Elaborating entity AxiStreamBatcher for hierarchy axistreambatcher::u_axistreambatcher]
+[AxiStreamBatcherEventBuilder.vhd:546:Info: Elaborating entity AxiStreamBatcher for hierarchy axistreambatcher::u_axistreambatcher]
 
 [ClinkDataClk.vhd:91:Info: Elaborating entity AxiLiteToDrp for hierarchy axilitetodrp::u_axilitetodrp]
 
@@ -3199,67 +3199,67 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [JesdTxReg.vhd:200:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::u_syncstatusvector]
 
-[JesdTxReg.vhd:364:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_0:u_statustxarr]
+[JesdTxReg.vhd:363:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_0:u_statustxarr]
 
-[JesdTxReg.vhd:374:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_sysrefdlytx]
+[JesdTxReg.vhd:373:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_sysrefdlytx]
 
-[JesdTxReg.vhd:383:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_sysrefdlytx_pipeline]
+[JesdTxReg.vhd:382:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_sysrefdlytx_pipeline]
 
-[JesdTxReg.vhd:394:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_enabletx]
+[JesdTxReg.vhd:393:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_enabletx]
 
-[JesdTxReg.vhd:403:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_enabletx_pipeline]
+[JesdTxReg.vhd:402:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_enabletx_pipeline]
 
-[JesdTxReg.vhd:413:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_subclass]
+[JesdTxReg.vhd:412:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_subclass]
 
-[JesdTxReg.vhd:421:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_subclass_pipeline]
+[JesdTxReg.vhd:420:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_subclass_pipeline]
 
-[JesdTxReg.vhd:431:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_replenable]
+[JesdTxReg.vhd:430:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_replenable]
 
-[JesdTxReg.vhd:439:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_replenable_pipeline]
+[JesdTxReg.vhd:438:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_replenable_pipeline]
 
-[JesdTxReg.vhd:449:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_gtreset]
+[JesdTxReg.vhd:448:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_gtreset]
 
-[JesdTxReg.vhd:457:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_gtreset_pipeline]
+[JesdTxReg.vhd:456:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_gtreset_pipeline]
 
-[JesdTxReg.vhd:467:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_clearerr]
+[JesdTxReg.vhd:466:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_clearerr]
 
-[JesdTxReg.vhd:475:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_clearerr_pipeline]
+[JesdTxReg.vhd:474:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_clearerr_pipeline]
 
-[JesdTxReg.vhd:485:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_invertsync]
+[JesdTxReg.vhd:484:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_invertsync]
 
-[JesdTxReg.vhd:493:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_invertsync_pipeline]
+[JesdTxReg.vhd:492:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_invertsync_pipeline]
 
-[JesdTxReg.vhd:503:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_screnable]
+[JesdTxReg.vhd:502:Info: Elaborating entity Synchronizer for hierarchy synchronizer::u_screnable]
 
-[JesdTxReg.vhd:511:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_screnable_pipeline]
+[JesdTxReg.vhd:510:Info: Elaborating entity RstPipeline for hierarchy rstpipeline::u_screnable_pipeline]
 
-[JesdTxReg.vhd:522:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_rampstep_a]
+[JesdTxReg.vhd:521:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_rampstep_a]
 
-[JesdTxReg.vhd:531:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_rampstep_pipeline]
+[JesdTxReg.vhd:530:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_rampstep_pipeline]
 
-[JesdTxReg.vhd:542:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_squareperiod]
+[JesdTxReg.vhd:541:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_squareperiod]
 
-[JesdTxReg.vhd:551:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_squareperiod_pipeline]
+[JesdTxReg.vhd:550:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_squareperiod_pipeline]
 
-[JesdTxReg.vhd:562:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_posamplitude]
+[JesdTxReg.vhd:561:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_posamplitude]
 
-[JesdTxReg.vhd:571:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_posamplitude_pipeline]
+[JesdTxReg.vhd:570:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_posamplitude_pipeline]
 
-[JesdTxReg.vhd:582:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_negamplitude]
+[JesdTxReg.vhd:581:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_negamplitude]
 
-[JesdTxReg.vhd:591:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_negamplitude_pipeline]
+[JesdTxReg.vhd:590:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_negamplitude_pipeline]
 
-[JesdTxReg.vhd:602:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_invertdata]
+[JesdTxReg.vhd:601:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_invertdata]
 
-[JesdTxReg.vhd:611:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_invertdata_pipeline]
+[JesdTxReg.vhd:610:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::u_invertdata_pipeline]
 
-[JesdTxReg.vhd:659:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_1:u_muxoutselarr]
+[JesdTxReg.vhd:658:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_1:u_muxoutselarr]
 
-[JesdTxReg.vhd:659:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::GEN_1:u_muxoutselarr_pipeline]
+[JesdTxReg.vhd:658:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::GEN_1:u_muxoutselarr_pipeline]
 
-[JesdTxReg.vhd:659:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_1:u_sigtypearr]
+[JesdTxReg.vhd:658:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::GEN_1:u_sigtypearr]
 
-[JesdTxReg.vhd:659:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::GEN_1:u_sigtypearr_pipeline]
+[JesdTxReg.vhd:658:Info: Elaborating entity RstPipelineVector for hierarchy rstpipelinevector::GEN_1:u_sigtypearr_pipeline]
 
 [JesdTxTest.vhd:103:Info: Elaborating entity SlvDelay for hierarchy slvdelay::lmfcdly_inst]
 
@@ -3973,23 +3973,23 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [AxiLitePMbusMasterCore.vhd:174:Info: Elaborating entity I2cRegMaster for hierarchy i2cregmaster::u_i2cregmaster]
 
-[RssiAxiLiteRegItf.vhd:363:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_status]
+[RssiAxiLiteRegItf.vhd:362:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_status]
 
-[RssiAxiLiteRegItf.vhd:374:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_validcnt]
+[RssiAxiLiteRegItf.vhd:373:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_validcnt]
 
-[RssiAxiLiteRegItf.vhd:385:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_dropcnt]
+[RssiAxiLiteRegItf.vhd:384:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_dropcnt]
 
-[RssiAxiLiteRegItf.vhd:396:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_resendcnt]
+[RssiAxiLiteRegItf.vhd:395:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_resendcnt]
 
-[RssiAxiLiteRegItf.vhd:407:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_reconcnt]
+[RssiAxiLiteRegItf.vhd:406:Info: Elaborating entity SynchronizerFifo for hierarchy synchronizerfifo::u_reconcnt]
 
-[RssiAxiLiteRegItf.vhd:421:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_syncvecout]
+[RssiAxiLiteRegItf.vhd:420:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_syncvecout]
 
-[RssiAxiLiteRegItf.vhd:431:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_initseqn]
+[RssiAxiLiteRegItf.vhd:430:Info: Elaborating entity SynchronizerVector for hierarchy synchronizervector::u_initseqn]
 
-[RssiAxiLiteRegItf.vhd:440:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_in]
+[RssiAxiLiteRegItf.vhd:439:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_in]
 
-[RssiAxiLiteRegItf.vhd:449:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_out]
+[RssiAxiLiteRegItf.vhd:448:Info: Elaborating entity RssiParamSync for hierarchy rssiparamsync::u_rssiparamsync_out]
 
 [RssiCore.vhd:343:Info: Elaborating entity RssiAxiLiteRegItf for hierarchy rssiaxiliteregitf::axiliteregitf_inst]
 
@@ -4227,7 +4227,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [SaltUltraScaleTb.vhd:261:Info: Elaborating entity SsiPrbsRx for hierarchy ssiprbsrx::ssiprbsrx_inst]
 
-[AxiSpiMaster.vhd:264:Info: Elaborating entity SpiMaster for hierarchy spimaster::spimaster_1]
+[AxiSpiMaster.vhd:262:Info: Elaborating entity SpiMaster for hierarchy spimaster::spimaster_1]
 
 [SpiSlave.vhd:93:Info: Elaborating entity Synchronizer for hierarchy synchronizer::sel_synchronizer]
 
@@ -4349,7 +4349,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
 
 [SsiPrbsRx.vhd:570:Info: Elaborating entity SyncStatusVector for hierarchy syncstatusvector::syncstatusvec_inst]
 
-[SsiPrbsTx.vhd:414:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::axistreamfifo_inst]
+[SsiPrbsTx.vhd:413:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::axistreamfifo_inst]
 
 [SsiPrbsTxOld.vhd:257:Info: Elaborating entity AxiStreamFifoV2 for hierarchy axistreamfifov2::axistreamfifo_inst]
 
@@ -5265,7 +5265,7 @@ Reading /home/travis/build/slaclab/surf/xilinx/7Series/gtx7/rtl/Gtxe2ChannelDumm
   slv
 
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd:163: warning: documented symbol 'slv16Array' was not declared or defined.
-/home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd:522: warning: no matching class member found for 
+/home/travis/build/slaclab/surf/devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd:521: warning: no matching class member found for 
   slv
 
 /home/travis/build/slaclab/surf/devices/AnalogDevices/ad9467/rtl/AxiAd9467Pkg.vhd:98: warning: no matching class member found for 

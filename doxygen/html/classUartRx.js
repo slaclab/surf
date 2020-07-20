@@ -7,7 +7,7 @@ var classUartRx =
     [ "DATA_WIDTH_G", "classUartRx.html#a97c53e9f5aa69b46f4c6b6b017d6c8c6", null ],
     [ "clk", "classUartRx.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classUartRx.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
-    [ "clkEn", "classUartRx.html#a3eb5a2e9df4f51f8b045cf1e36e29113", null ],
+    [ "baudClkEn", "classUartRx.html#aaac40a17d30ec0fea3866e7b0e9fcc15", null ],
     [ "rdData", "classUartRx.html#a48f4c9da34e524d9fcb9fb7ce36c2f50", null ],
     [ "rdValid", "classUartRx.html#a799cbb899e61c8103a8c09237a1d7131", null ],
     [ "parityError", "classUartRx.html#ac3cbb019bb3ec1c667412dafaf3286c2", null ],

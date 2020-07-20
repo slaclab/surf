@@ -1,5 +1,6 @@
 var NAVTREEINDEX127 =
 {
+"classiq32bTo16b.html#a6d911b9f06ce1e3a958bda21558461f2":[1,0,334,7],
 "classiq32bTo16b.html#a917be5be928e0ed990a19e87b11f7669":[1,0,334,5],
 "classiq32bTo16b.html#aa76312f8bd2061dd028fbed3428756cf":[1,0,334,15],
 "classiq32bTo16b.html#ab3c259fbcfa43748d0f3f32890f0ed4d":[1,0,334,3],
