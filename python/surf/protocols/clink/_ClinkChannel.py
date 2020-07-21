@@ -120,7 +120,7 @@ class ClinkChannel(pr.Device):
             disp         = '{}',
             mode         = "RW",
             units        = "microsec",
-            value        = 30000, # 30ms/byte
+            value        = 10000, # 10ms/byte
         ))
 
         self.add(pr.RemoteVariable(
