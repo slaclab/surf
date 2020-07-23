@@ -167,7 +167,7 @@ begin
       v := r;
 
       -- Reset the strobes
-      v.rxSlave.tReady := '0';
+      v.rxSlave.tReady := r.forceTerm;
       if (txSlave.tReady = '1') then
          v.txMaster.tValid := '0';
          v.txMaster.tLast  := '0';
@@ -214,7 +214,7 @@ begin
                v.maxSubFrames := toSlv(1, 16);
             end if;
             -- Check if ready to move data
-            if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') then
+            if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') and (r.forceTerm = '0') then
                -- Send the super-frame header
                v.txMaster.tValid               := '1';
                v.txMaster.tData(3 downto 0)    := x"1";  -- Version = 0x1
