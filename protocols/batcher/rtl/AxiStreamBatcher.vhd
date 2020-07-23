@@ -233,11 +233,8 @@ begin
             v.superByteCnt := toSlv(AXIS_WORD_SIZE_C, 32);
          ----------------------------------------------------------------------
          when SUB_FRAME_S =>
-            -- Check for force termination
-            if (r.forceTerm = '1') then
-               doTail;
             -- Check if ready to move data
-            elsif (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') then
+            if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') then
                -- Accept the inbound data
                v.rxSlave.tReady  := '1';
                -- Move the outbound data
@@ -366,6 +363,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check for force termination
+      if (r.forceTerm = '1') and (r.state /= HEADER_S) then
+         doTail;
+      end if;
 
       -- Always the same outbound AXIS stream width
       v.txMaster.tKeep := genTKeep(AXIS_WORD_SIZE_C);
