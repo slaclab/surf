@@ -1,8 +1,9 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: General Purpose MUX designed to inferred a 32:1 MUX 
---              into a Ultrascale CLB (UG574, v1.5, page7)
+-- Description: General Purpose MUX designed.
+--       Useful if you want "All the LUTs in a slice can be combined
+--       together as a 32:1 MUX in one level of logic." (UG574, v1.5, page7)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
