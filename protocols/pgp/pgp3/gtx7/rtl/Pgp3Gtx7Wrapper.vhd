@@ -52,7 +52,7 @@ entity Pgp3Gtx7Wrapper is
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := true;
       EN_PGP_MON_G                : boolean                     := false;
-      EN_DRP_G                    : boolean                     := false;
+      EN_GT_DRP_G                 : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
@@ -227,7 +227,7 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
-               EN_DRP_G                    => EN_DRP_G,
+               EN_DRP_G                    => EN_GT_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
                AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
