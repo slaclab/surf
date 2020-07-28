@@ -21,6 +21,7 @@ class ClinkChannel(pr.Device):
             self,
             serial      = None,
             camType     = None,
+            localSerial = False, # True if pyrogue is serial source, False if serial source from external software
             **kwargs):
 
         super().__init__(**kwargs)
@@ -239,7 +240,7 @@ class ClinkChannel(pr.Device):
                     expand      = False,
                 ))
 
-            else:
+            elif localSerial:
                 raise ValueError('Invalid camType (%s)' % (camType) )
         ##############################################################################
 
