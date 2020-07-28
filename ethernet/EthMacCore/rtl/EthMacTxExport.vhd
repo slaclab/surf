@@ -88,7 +88,7 @@ begin
    U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity surf.EthMacTxExportXgmii
          generic map (
-            TPD_G        => TPD_G;
+            TPD_G        => TPD_G,
             SYNTH_MODE_G => SYNTH_MODE_G)
          port map (
             -- Clock and Reset

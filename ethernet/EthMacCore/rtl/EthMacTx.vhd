@@ -211,7 +211,7 @@ begin
    U_Export : entity surf.EthMacTxExport
       generic map (
          TPD_G        => TPD_G,
-         PHY_TYPE_G   => PHY_TYPE_G;
+         PHY_TYPE_G   => PHY_TYPE_G,
          SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
          -- Clock and reset

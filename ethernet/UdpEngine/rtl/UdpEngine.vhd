@@ -144,7 +144,7 @@ begin
             TPD_G          => TPD_G,
             -- UDP ARP/DHCP Generics
             CLK_FREQ_G     => CLK_FREQ_G,
-            COMM_TIMEOUT_G => COMM_TIMEOUT_G;
+            COMM_TIMEOUT_G => COMM_TIMEOUT_G,
             SYNTH_MODE_G   => SYNTH_MODE_G)
          port map (
             -- Local Configurations

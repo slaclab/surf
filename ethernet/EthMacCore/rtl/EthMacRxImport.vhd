@@ -98,7 +98,7 @@ begin
    U_1G : if (PHY_TYPE_G = "GMII") generate
       U_GMII : entity surf.EthMacRxImportGmii
          generic map (
-            TPD_G        => TPD_G;
+            TPD_G        => TPD_G,
             SYNTH_MODE_G => SYNTH_MODE_G)
          port map (
             -- Clock and Reset
