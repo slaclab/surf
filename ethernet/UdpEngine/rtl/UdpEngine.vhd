@@ -33,16 +33,17 @@ entity UdpEngine is
       CLIENT_SIZE_G  : positive      := 1;
       CLIENT_PORTS_G : PositiveArray := (0 => 8193);
       -- General UDP/ARP/DHCP Generics
-      TX_FLOW_CTRL_G : boolean       := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       DHCP_G         : boolean       := false;
-      CLK_FREQ_G     : real          := 156.25E+06;  -- In units of Hz
-      COMM_TIMEOUT_G : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      CLK_FREQ_G     : real          := 156.25E+06;   -- In units of Hz
+      COMM_TIMEOUT_G : positive      := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      SYNTH_MODE_G   : string        := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
-      localMac         : in  slv(47 downto 0);  --  big-Endian configuration
-      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration
-      localIpIn        : in  slv(31 downto 0);  --  big-Endian configuration
-      dhcpIpOut        : out slv(31 downto 0);  --  big-Endian configuration
+      localMac         : in  slv(47 downto 0);        --  big-Endian configuration
+      broadcastIp      : in  slv(31 downto 0);        --  big-Endian configuration
+      localIpIn        : in  slv(31 downto 0);        --  big-Endian configuration
+      dhcpIpOut        : out slv(31 downto 0);        --  big-Endian configuration
       -- Interface to IPV4 Engine
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
@@ -143,7 +144,8 @@ begin
             TPD_G          => TPD_G,
             -- UDP ARP/DHCP Generics
             CLK_FREQ_G     => CLK_FREQ_G,
-            COMM_TIMEOUT_G => COMM_TIMEOUT_G)
+            COMM_TIMEOUT_G => COMM_TIMEOUT_G;
+            SYNTH_MODE_G   => SYNTH_MODE_G)
          port map (
             -- Local Configurations
             localMac     => localMac,
