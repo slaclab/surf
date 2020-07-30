@@ -225,7 +225,7 @@ class ClinkTop(pr.Device):
         )
 
         for i in range(2):
-            if serial[i] is not None:
+            if camType[i] is not None:
                 self.add(surf.protocols.clink.ClinkChannel(
                     name    = f'Ch[{i}]',
                     offset  = 0x100+(i*0x100),
