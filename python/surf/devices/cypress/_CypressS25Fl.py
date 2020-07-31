@@ -29,6 +29,8 @@ class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
         ########################################
         # Overwrite with Cypress S25FL Constants
         ########################################
+        self.ERASE_4BYTE_CMD = (0xDC << 16)
+        self.WRITE_4BYTE_CMD = (0x12 << 16)
         self.FLAG_STATUS_REG = (0x05 << 16)
         self.FLAG_STATUS_RDY = (0x01)
         self.BRAC_CMD        = (0xB9 << 16)
