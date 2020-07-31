@@ -40,21 +40,22 @@ entity Ad9249Deserializer is
       ADC_INVERT_CH_G   : sl                   := '0';
       BIT_REV_G         : sl                   := '0');
    port (
-      -- Reset for adc deserializer
-      adcClkRst     : in  sl;
       -- Serial Data from ADC
       dClk          : in  sl;           -- Data clock
+      dRst          : in  sl;           -- Data reset
       dClkDiv4      : in  sl;
+      dRstDiv4      : in  sl;
       dClkDiv7      : in  sl;
+      dRstDiv7      : in  sl;
       sDataP        : in  sl;           -- Frame clock
       sDataN        : in  sl;
       -- Signal to control data gearboxes
       loadDelay     : in  sl;
       delay         : in  slv(8 downto 0) := "000000000";
       delayValueOut : out slv(8 downto 0);
-      bitSlip       : in  slv(3 downto 0) := "0000";
-      gearboxOffset : in  slv(2 downto 0) := "000";
-      adcData       : out slv(13 downto 0)
+      bitSlip       : in  slv(3 downto 0) := "0000";        -- dClkDiv4 domain
+      gearboxOffset : in  slv(2 downto 0) := "000";         -- dClkDiv7 domain
+      adcData       : out slv(13 downto 0)                  -- dClkDiv7 domain
       );
 end Ad9249Deserializer;
 
@@ -193,7 +194,7 @@ begin
          IDATAIN     => sData_i,        -- 1-bit input: Data input from the IOBUF
          INC         => '0',            -- 1-bit input: Increment / Decrement tap delay input
          LOAD        => loadDelay,  -- 1-bit input: Load DELAY_VALUE input
-         RST         => '0'       -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+         RST         => dRstDiv4       -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
          );
    
    G_IdelayCascade: if IDELAY_CASCADE_G = true generate
@@ -221,7 +222,7 @@ begin
             INC         => '0',           -- 1-bit input: Increment / Decrement tap delay input
             CE          => '0',           -- 1-bit input: Active high enable increment/decrement input 
             LOAD        => loadDelay,   -- 1-bit input: Load DELAY_VALUE input 
-            RST         => '0',      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
+            RST         => dRstDiv4,      -- 1-bit input: Asynchronous Reset to the DELAY_VALUE 
             CNTVALUEIN  => delay,      -- 9-bit input: Counter value input
             CNTVALUEOUT => masterCntValue2);   -- 9-bit output: Counter value output 
       
@@ -258,7 +259,7 @@ begin
          D           => sData_d,        -- 1-bit input: Serial Data Input
          FIFO_RD_CLK => '1',            -- 1-bit input: FIFO read clock
          FIFO_RD_EN  => '1',            -- 1-bit input: Enables reading the FIFO when asserted
-         RST         => adcClkRst       -- 1-bit input: Asynchronous Reset
+         RST         => dRstDiv4        -- 1-bit input: Asynchronous Reset
       );
 
    -----------------------------------------------------------------------------
@@ -369,13 +370,14 @@ begin
 
    end process;
 
-   adclongSeq : process (adcClkRst, dClkDiv4, adcDv4Rin) is
+   adclongSeq : process (dClkDiv4) is
    begin
-      if (adcClkRst = '1') then
-         adcDv4R <= ADC_CLK_DV4_REG_INIT_C;
-      elsif (rising_edge(dClkDiv4)) then
-         -- latch deserializer data
-         adcDv4R <= adcDv4Rin after TPD_G;
+      if (rising_edge(dClkDiv4)) then
+         if (dRstDiv4 = '1') then
+            adcDv4R <= ADC_CLK_DV4_REG_INIT_C;
+         else
+            adcDv4R <= adcDv4Rin after TPD_G;
+         end if;
       end if;
    end process;
 
@@ -429,13 +431,14 @@ begin
    end process;
 
 
-   adc8To7GearboxSeq : process (adcClkRst, dClkDiv7, adcDv7Rin) is
+   adc8To7GearboxSeq : process (dClkDiv7) is
    begin
-      if (adcClkRst = '1') then
-         adcDv7R <= ADC_CLK_DV7_REG_INIT_C;
-      elsif (rising_edge(dClkDiv7)) then
-         -- latch deserializer data
-         adcDv7R <= adcDv7Rin after TPD_G;
+      if (rising_edge(dClkDiv7)) then
+         if (dRstDiv7 = '1') then
+            adcDv7R <= ADC_CLK_DV7_REG_INIT_C;
+         else
+            adcDv7R <= adcDv7Rin after TPD_G;
+         end if;
       end if;
    end process;
 end rtl;
