@@ -24,7 +24,7 @@ class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
                  addrMode    = True, # False = 24-bit Address mode, True = 32-bit Address Mode
                  **kwargs):
 
-        super().__init__(description = description, **kwargs)
+        super().__init__(description = description, addrMode = addrMode, **kwargs)
 
         ########################################
         # Overwrite with Cypress S25FL Constants
