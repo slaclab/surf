@@ -221,8 +221,6 @@ begin
                   -- Next state
                   v.state := WORD_READ_S;
                elsif (busyIn = '0') then
-                  -- Reset the register
-                  v.axiReadSlave.rdata := (others => '0');
                   -- Decode address and assign read data
                   case (axiReadMaster.araddr(7 downto 0)) is
                      when x"00" =>

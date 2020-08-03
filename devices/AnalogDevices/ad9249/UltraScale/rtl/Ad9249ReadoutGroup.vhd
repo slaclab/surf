@@ -235,10 +235,9 @@ begin
    begin
       v := axilR;
 
-      v.dataDelaySet        := (others => '0');
-      v.frameDelaySet       := '0';
-      v.axilReadSlave.rdata := (others => '0');
-      v.lockedCountRst      := '0';
+      v.dataDelaySet   := (others => '0');
+      v.frameDelaySet  := '0';
+      v.lockedCountRst := '0';
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then

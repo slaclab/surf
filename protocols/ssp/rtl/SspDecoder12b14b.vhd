@@ -24,7 +24,6 @@ use surf.StdRtlPkg.all;
 use surf.Code12b14bPkg.all;
 
 entity SspDecoder12b14b is
-
    generic (
       TPD_G                : time    := 1 ns;
       RST_POLARITY_G       : sl      := '0';
@@ -32,25 +31,30 @@ entity SspDecoder12b14b is
       BRK_FRAME_ON_ERROR_G : boolean := true
       );
    port (
+      -- Clock and Reset
       clk       : in  sl;
       rst       : in  sl := RST_POLARITY_G;
+      -- Encoded Input
       validIn   : in  sl := '1';
       dataIn    : in  slv(13 downto 0);
+      -- Framing Output
       validOut  : out sl;
       dataOut   : out slv(11 downto 0);
-      valid     : out sl;
+      errorOut  : out sl;
       sof       : out sl;
       eof       : out sl;
       eofe      : out sl;
+      -- Decoder Monitoring
+      validDec  : out sl;
       codeError : out sl;
       dispError : out sl);
-
 end entity SspDecoder12b14b;
 
 architecture rtl of SspDecoder12b14b is
 
-   signal validInt     : sl;
+   signal validDecInt  : sl;
    signal codeErrorInt : sl;
+   signal dispErrorInt : sl;
    signal framedData   : slv(11 downto 0);
    signal framedDataK  : slv(0 downto 0);
 
@@ -67,11 +71,15 @@ begin
          rst       => rst,
          validIn   => validIn,
          dataIn    => dataIn,
-         validOut  => validInt,
+         validOut  => validDecInt,
          dataOut   => framedData,
          dataKOut  => framedDataK(0),
-         codeError => codeError,
-         dispError => dispError);
+         codeError => codeErrorInt,
+         dispError => dispErrorInt);
+
+   validDec  <= validDecInt;
+   codeError <= codeErrorInt;
+   dispError <= dispErrorInt;
 
    SspDeframer_1 : entity surf.SspDeframer
       generic map (
@@ -88,15 +96,21 @@ begin
          SSP_EOF_CODE_G       => K_120_1_C,
          SSP_EOF_K_G          => "1")
       port map (
-         clk      => clk,
-         rst      => rst,
-         validIn  => validInt,
-         dataIn   => framedData,
-         dataKIn  => framedDataK,
-         validOut => validOut,
-         dataOut  => dataOut,
-         sof      => sof,
-         eof      => eof,
-         eofe     => eofe);
+         -- Clock and Reset
+         clk       => clk,
+         rst       => rst,
+         -- Input Interface
+         validIn   => validDecInt,
+         dataIn    => framedData,
+         dataKIn   => framedDataK,
+         decErrIn  => codeErrorInt,
+         dispErrIn => dispErrorInt,
+         -- Output Interface
+         validOut  => validOut,
+         dataOut   => dataOut,
+         errorOut  => errorOut,
+         sof       => sof,
+         eof       => eof,
+         eofe      => eofe);
 
 end architecture rtl;

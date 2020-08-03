@@ -12,6 +12,7 @@ import pyrogue as pr
 import surf.devices.silabs as silabs
 import csv
 import click
+import fnmatch
 
 class Si5345Lite(pr.Device):
     def __init__(self,
@@ -39,8 +40,12 @@ class Si5345Lite(pr.Device):
                 # Use the variable path instead
                 path = self.CsvFilePath.get()
 
-            # Print the path that was used
-            click.secho(('%s.LoadCsvFile(): %s' % (self.path,path) ), fg='green')
+            # Check for .csv file
+            if fnmatch.fnmatch(path, '*.csv'):
+                click.secho( f'{self.path}.LoadCsvFile(): {path}', fg='green')
+            else:
+                click.secho( f'{self.path}.LoadCsvFile(): {path} is not .csv', fg='red')
+                return
 
             # Power down during the configuration load
             self.Page0.PDN.set(True)

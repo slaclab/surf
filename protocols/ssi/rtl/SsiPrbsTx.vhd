@@ -187,7 +187,6 @@ begin
 
       if (axilStatus.readEnable = '1') then
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         v.axilReadSlave.rdata := (others => '0');
          case (axilReadMaster.araddr(7 downto 0)) is
             when X"00" =>
                v.axilReadSlave.rdata(0) := r.axiEn;
