@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Code12b14bPkg.all;
@@ -27,9 +26,9 @@ use surf.Code12b14bPkg.all;
 entity SspDecoder12b14b is
 
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '0';
-      RST_ASYNC_G    : boolean := true;
+      TPD_G                : time    := 1 ns;
+      RST_POLARITY_G       : sl      := '0';
+      RST_ASYNC_G          : boolean := true;
       BRK_FRAME_ON_ERROR_G : boolean := true
       );
    port (
@@ -99,7 +98,5 @@ begin
          sof      => sof,
          eof      => eof,
          eofe     => eofe);
-
-
 
 end architecture rtl;

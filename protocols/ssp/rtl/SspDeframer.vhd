@@ -162,15 +162,15 @@ begin
 
                else
                   -- Unknown and/or incorrect K CODE
-                 if BRK_FRAME_ON_ERROR_G then
-                   v.iValidOut := '0';
-                   v.iEof      := '1';
-                   v.iEofe     := '1';
-                   v.state     := WAIT_SOF_S;
-                 else
-                   v.iValidOut := '0';
-                   v.iEofe     := '1';
-                 end if;
+                  if BRK_FRAME_ON_ERROR_G then
+                     v.iValidOut := '0';
+                     v.iEof      := '1';
+                     v.iEofe     := '1';
+                     v.state     := WAIT_SOF_S;
+                  else
+                     v.iValidOut := '0';
+                     v.iEofe     := '1';
+                  end if;
                end if;
 
             end if;
