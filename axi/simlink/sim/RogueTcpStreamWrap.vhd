@@ -27,6 +27,7 @@ entity RogueTcpStreamWrap is
       PORT_NUM_G    : natural range 1024 to 49151 := 9000;
       SSI_EN_G      : boolean                     := true;
       CHAN_COUNT_G  : positive range 1 to 256     := 1;
+      TDEST_MASK_G  : slv(7 downto 0)             := x"00";  -- Sets output TDEST when CHAN_COUNT_G=1
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and Reset
@@ -142,7 +143,7 @@ begin
             ibLast     => ibMasters(i).tLast);
 
       obMasters(i).tStrb <= (others => '1');
-      obMasters(i).tDest <= (others => '0');
+      obMasters(i).tDest <= TDEST_MASK_G when(CHAN_COUNT_G = 1) else x"00";
       obMasters(i).tId   <= (others => '0');
 
       obMasters(i).tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8)  <= (others => '0');
