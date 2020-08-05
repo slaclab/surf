@@ -70,7 +70,7 @@ entity Ad9249ReadoutGroup is
       -- Deserialized ADC Data
       adcStreamClk      : in  sl;
       adcStreams        : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
-      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))),
+      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
       -- optional ready to allow evenout samples readout in adcStreamClk
       adcReady          : in  slv(NUM_CHANNELS_G-1 downto 0) := (others => '1')
    );
