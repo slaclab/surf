@@ -81,6 +81,7 @@ architecture rtl of Ad9249Deserializer is
    signal cascRet    : sl;
    -- iserdes signal
    signal masterData     : slv(7 downto 0);
+   signal iAdcData       : slv(13 downto 0);
    
    attribute keep of sData_i       : signal is "true";
 
@@ -221,9 +222,11 @@ begin
          slaveData   => masterData,
          -- Master Interface
          masterValid => adcValid,
-         masterData  => adcData,
+         masterData  => iAdcData,
          masterReady => '1'
       );
+
+   adcData <= iAdcData when BIT_REV_G = '0' else bitReverse(iAdcData(6 downto 0)) & bitReverse(iAdcData(13 downto 7));
    
 end rtl;
 
