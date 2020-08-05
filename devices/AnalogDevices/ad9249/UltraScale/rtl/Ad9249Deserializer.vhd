@@ -85,10 +85,6 @@ architecture rtl of Ad9249Deserializer is
    attribute keep of sData_i       : signal is "true";
 
 begin
-   
-   adcData     <= bitReverse(adcDv7R.masterAdcData(6 downto 0)) & bitReverse(adcDv7R.masterAdcData(13 downto 7)) when BIT_REV_G = '1'
-              else adcDv7R.masterAdcData;
-
 
    -------------------------------------------------------------------------------------------------
    -- Create Clocks
