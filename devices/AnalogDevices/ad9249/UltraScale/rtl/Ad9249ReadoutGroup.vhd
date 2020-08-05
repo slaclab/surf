@@ -70,7 +70,10 @@ entity Ad9249ReadoutGroup is
       -- Deserialized ADC Data
       adcStreamClk      : in  sl;
       adcStreams        : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
-      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
+      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))),
+      -- optional ready to allow evenout samples readout in adcStreamClk
+      adcReady          : in  slv(NUM_CHANNELS_G-1 downto 0) := (others => '1')
+   );
 end Ad9249ReadoutGroup;
 
 -- Define architecture
@@ -161,6 +164,7 @@ architecture rtl of Ad9249ReadoutGroup is
    signal curDelayData  : slv9Array(NUM_CHANNELS_G-1 downto 0);
 
    signal fifoDataValid : slv(NUM_CHANNELS_G-1 downto 0);
+   signal fifoDataRdEn  : slv(NUM_CHANNELS_G-1 downto 0);
 
    signal debugDataValid : slv(NUM_CHANNELS_G-1 downto 0);
    signal debugData      : slv16Array(NUM_CHANNELS_G-1 downto 0);
@@ -562,13 +566,14 @@ begin
             wr_en  => adcR.fifoWrDataEn(i),
             din    => adcR.fifoWrData(i),
             rd_clk => adcStreamClk,
-            rd_en  => fifoDataValid(i),
+            rd_en  => fifoDataRdEn(i),
             valid  => fifoDataValid(i),
             dout   => adcStreams(i).tdata(15 downto 0)
          );
       
-      adcStreams(i).tDest              <= toSlv(i, 8);
-      adcStreams(i).tValid             <= fifoDataValid(i);
+      fifoDataRdEn(i)      <= adcReady(i) and fifoDataValid(i);
+      adcStreams(i).tDest  <= toSlv(i, 8);
+      adcStreams(i).tValid <= fifoDataValid(i);
    
       U_DataFifoDebug : entity surf.SynchronizerFifo
          generic map (
