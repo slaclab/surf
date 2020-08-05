@@ -568,7 +568,7 @@ begin
          );
       
       adcStreams(i).tDest              <= toSlv(i, 8);
-      adcStreams(i).tValid             <= fifoDataValid;
+      adcStreams(i).tValid             <= fifoDataValid(i);
    
       U_DataFifoDebug : entity surf.SynchronizerFifo
          generic map (
