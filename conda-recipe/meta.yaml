@@ -10,7 +10,7 @@ build:
 
 requirements:
    build:
-     - python
+     - python<3.8
      - rogue
      - git
      - gitpython
