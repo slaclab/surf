@@ -6,11 +6,11 @@
 -- Description: Wrapper on RogueStreamSim to simulate a PGPv3
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -87,6 +87,7 @@ begin
             PORT_NUM_G    => (PORT_NUM_G + i*2),
             SSI_EN_G      => true,
             CHAN_COUNT_G  => 1,
+            TDEST_MASK_G  => toSlv(i,8),
             AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
          port map (
             axisClk     => pgpClk,              -- [in]

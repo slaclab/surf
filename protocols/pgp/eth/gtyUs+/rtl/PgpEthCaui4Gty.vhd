@@ -6,11 +6,11 @@
 -- Description: Wrapper for PGP Ethernet with GTY-based CAUI4 PHY
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ entity PgpEthCaui4Gty is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType                   := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
-      -- Ethernet MAC 
+      -- Ethernet MAC
       localMac        : in  slv(47 downto 0)                         := x"01_02_03_56_44_00";  -- 00:44:56:03:02:01
       -- GT Ports
       gtRefClkP       : in  sl;
@@ -171,7 +171,7 @@ begin
             TX_DIFF_CTRL_G        => TX_DIFF_CTRL_C,
             TX_PRE_CURSOR_G       => TX_PRE_CURSOR_C,
             TX_POST_CURSOR_G      => TX_POST_CURSOR_C,
-            -- PGP Settings         
+            -- PGP Settings
             AXIL_WRITE_EN_G       => AXIL_WRITE_EN_G,
             AXIL_BASE_ADDR_G      => AXIL_BASE_ADDR_G,
             AXIL_CLK_FREQ_G       => AXIL_CLK_FREQ_G)

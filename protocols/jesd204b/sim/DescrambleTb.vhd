@@ -4,11 +4,11 @@
 -- Description: Simulation testbed for JESD Descrambling
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ end entity;
 
 architecture Bhv of DescrambleTb is
    -----------------------------
-   -- Port Signals 
+   -- Port Signals
    -----------------------------
    constant CLK_PERIOD_C : time := 10 ns;
    constant TPD_C        : time := 1 ns;
@@ -41,7 +41,7 @@ architecture Bhv of DescrambleTb is
    signal rst_i : sl := '0';
 
    -----------------------------
-   -- Port Signals 
+   -- Port Signals
    -----------------------------
    signal subClass_i   : sl := '1';
    signal sysRef_i     : sl := '0';
@@ -910,7 +910,7 @@ begin  -- architecture Bhv
          rstL => open);
 
    -----------------------------
-   -- component instantiation 
+   -- component instantiation
    -----------------------------
    JesdRxLane_INST : entity surf.JesdRxLane
       generic map (

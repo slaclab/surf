@@ -2,15 +2,15 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Block to resize AXI Streams. Re-sizing is always little endian. 
+-- Block to resize AXI Streams. Re-sizing is always little endian.
 -- Resizer should not be used when interleaving tDests
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,9 +34,8 @@ entity AxiStreamResize is
       SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
 
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
-      );
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Clock and reset
@@ -87,7 +86,7 @@ architecture rtl of AxiStreamResize is
 
 begin
 
-   -- Make sure data widths are appropriate. 
+   -- Make sure data widths are appropriate.
    assert ((SLV_BYTES_C >= MST_BYTES_C and SLV_BYTES_C mod MST_BYTES_C = 0) or
            (MST_BYTES_C >= SLV_BYTES_C and MST_BYTES_C mod SLV_BYTES_C = 0))
       report "Data widths must be even number multiples of each other" severity failure;
@@ -99,7 +98,7 @@ begin
    -- Cant use tkeep_fixed on master side when resizing or if not on slave side
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
-      report "AxiStreamFifoV2: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
+      report "AxiStreamResize: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
       severity error;
 
    comb : process (pipeAxisSlave, r, sAxisMaster, sSideBand) is

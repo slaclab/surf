@@ -6,11 +6,11 @@
 -- using an AXI4 memory for the buffering of the AXI stream frames
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -39,10 +39,10 @@ entity AxiStreamDmaFifo is
       MAX_FRAME_WIDTH_G  : positive            := 14;  -- Maximum AXI Stream frame size (units of address bits)
       AXI_BUFFER_WIDTH_G : positive            := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
       -- AXI Stream Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigType := AXIS_WRITE_DMA_CONFIG_C;
+      AXIS_CONFIG_G      : AxiStreamConfigType;
       -- AXI4 Configurations
       AXI_BASE_ADDR_G    : slv(63 downto 0)    := x"0000_0000_0000_0000";  -- Memory Base Address Offset
-      AXI_CONFIG_G       : AxiConfigType       := axiConfig(32, 8, 4, 4);
+      AXI_CONFIG_G       : AxiConfigType;
       AXI_BURST_G        : slv(1 downto 0)     := "01";
       AXI_CACHE_G        : slv(3 downto 0)     := "1111");
    port (
@@ -352,10 +352,10 @@ begin
          -- Accept the FIFO data
          v.rdQueueReady := r.online;
 
-         -- Send the DMA Read REQ         
+         -- Send the DMA Read REQ
          v.rdReq := localToAxiReadDmaReq(rdQueueData, r.online);
 
-         -- Overwrite address with rdIndex to help optimize the U_ReadQueue logic 
+         -- Overwrite address with rdIndex to help optimize the U_ReadQueue logic
          v.rdReq.address                                                := r.baseAddr;
          v.rdReq.address(AXI_BUFFER_WIDTH_G-1 downto MAX_FRAME_WIDTH_G) := r.rdIndex;
 
@@ -376,9 +376,6 @@ begin
       end if;
 
       --------------------------------------------------------------------------------
-
-      -- Zero out the read data bus
-      v.axilReadSlave.rdata := (others => '0');
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);

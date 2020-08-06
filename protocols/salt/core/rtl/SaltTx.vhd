@@ -4,11 +4,11 @@
 -- Description: SALT TX Engine Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ entity SaltTx is
    generic (
       TPD_G              : time                := 1 ns;
       COMMON_TX_CLK_G    : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
-      SLAVE_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4));
+      SLAVE_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       sAxisClk    : in  sl;
@@ -250,7 +250,7 @@ begin
          when PREAMBLE_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Write the preamble 
+               -- Write the preamble
                v.txMaster.tValid             := '1';
                v.txMaster.tData(31 downto 0) := PREAMBLE_C;
                -- Next state
@@ -260,7 +260,7 @@ begin
          when SFD_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Write the preamble 
+               -- Write the preamble
                v.txMaster.tValid             := '1';
                v.txMaster.tData(31 downto 0) := SFD_C;
                -- Next state
@@ -284,7 +284,7 @@ begin
          when LENGTH_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Move the data            
+               -- Move the data
                v.txMaster.tValid              := '1';
                v.txMaster.tData(15 downto 0)  := r.length;
                v.txMaster.tData(23 downto 16) := r.tDest;
@@ -319,9 +319,9 @@ begin
          when CHECKSUM_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Move the data            
+               -- Move the data
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := not(r.checksum);  -- one's complement                        
+               v.txMaster.tData(31 downto 0) := not(r.checksum);  -- one's complement
                -- Next state
                v.state                       := FOOTER_S;
             end if;
@@ -349,7 +349,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       mSlave  <= v.mSlave;
       rxSlave <= v.rxSlave;
@@ -362,7 +362,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs 
+      -- Registered Outputs
       sMaster    <= r.sMaster;
       txMaster   <= r.txMaster;
       txPktSent  <= r.txPktSent;

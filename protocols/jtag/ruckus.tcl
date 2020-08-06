@@ -12,5 +12,5 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
    }
 
    loadSource -lib surf -dir  "$::DIR_PATH/rtl"
-   
+
 }

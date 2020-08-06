@@ -15,12 +15,12 @@ set_property FILE_TYPE {Verilog Header} [get_files {StateTable.sv}]
 set_property FILE_TYPE {Verilog Header} [get_files {StateTableCore.sv}]
 set_property FILE_TYPE {Verilog Header} [get_files {timing_tasks.sv}]
 
-# Note: Don't forget to add a SystemVerilog (.sv) file to your 
+# Note: Don't forget to add a SystemVerilog (.sv) file to your
 # project to define the type of DDR4 memory that you are simulating
 #######################################
 # Example: ddr4_sdram_model_wrapper.sv
 #######################################
-#`define DDR4_4G_X16 
+#`define DDR4_4G_X16
 #`define DDR4_750_Timing
 #// Added define SILENT to avoid timeset setting display messages in transcript
 #`define SILENT

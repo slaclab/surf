@@ -4,11 +4,11 @@
 -- Description: 10GBASE-R Ethernet Reset Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ entity TenGigEthGthUltraScaleRst is
       gtTxRst     : out sl;
       gtRxRst     : out sl;
       txUsrRdy    : out sl;
-      rstCntDone  : out sl);      
+      rstCntDone  : out sl);
 end TenGigEthGthUltraScaleRst;
 
 architecture rtl of TenGigEthGthUltraScaleRst is
@@ -69,7 +69,7 @@ begin
       port map (
          clk    => coreClk,
          rstIn  => coreReset,
-         rstOut => coreRst);  
+         rstOut => coreRst);
    U_phyRst : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
@@ -92,7 +92,7 @@ begin
          clk     => coreClk,
          rst     => extRst,
          dataIn  => '0',
-         dataOut => coreReset);    
+         dataOut => coreReset);
 
    CLK312_BUFG_GT : BUFG_GT
       port map (
@@ -102,7 +102,7 @@ begin
          CLR     => txBufgGtRst,
          CLRMASK => '0',
          DIV     => "000",
-         O       => txUsrClk);   
+         O       => txUsrClk);
 
    CLK156_BUFG_GT : BUFG_GT
       port map (
@@ -112,12 +112,12 @@ begin
          CLR     => txBufgGtRst,
          CLRMASK => '0',
          DIV     => "001",
-         O       => txClockGt);   
+         O       => txClockGt);
 
    CLK156_BUFG : BUFG
       port map (
          I => txClockGt,
-         O => txClock);           
+         O => txClock);
 
    Synchronizer_1 : entity surf.Synchronizer
       generic map(
@@ -130,7 +130,7 @@ begin
          clk     => txClock,
          rst     => qPllLock,
          dataIn  => '1',
-         dataOut => txReady);           
+         dataOut => txReady);
 
    Synchronizer_2 : entity surf.Synchronizer
       generic map(
@@ -143,7 +143,7 @@ begin
          clk     => txClock,
          rst     => rstPulse(0),
          dataIn  => '0',
-         dataOut => txReset);  
+         dataOut => txReset);
 
    process(coreClk)
    begin

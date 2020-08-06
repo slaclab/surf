@@ -12,17 +12,17 @@
 --              - Lane alignment using RX buffers
 --              - Serial lane error check
 --              - Alignment character replacement and alignment check
---               
+--
 --          Note: sampleDataArr_o is little endian and not byte-swapped
---                First sample in time:  sampleData_o(15 downto 0) 
+--                First sample in time:  sampleData_o(15 downto 0)
 --                Second sample in time: sampleData_o(31 downto 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ entity Jesd204bRx is
       L_G : positive range 1 to 32 := 2);
 
    port (
-      -- AXI interface      
+      -- AXI interface
       -- Clocks and Resets
       axiClk : in sl;
       axiRst : in sl;
@@ -74,7 +74,7 @@ entity Jesd204bRx is
       dataValidVec_o  : out slv(L_G-1 downto 0);
 
       -- JESD
-      -- Clocks and Resets   
+      -- Clocks and Resets
       devClk_i : in sl;
       devRst_i : in sl;
 
@@ -91,7 +91,7 @@ entity Jesd204bRx is
       rxPowerDown : out slv(L_G-1 downto 0);
       rxPolarity  : out slv(L_G-1 downto 0);
 
-      -- Synchronization output combined from all receivers 
+      -- Synchronization output combined from all receivers
       nSync_o : out sl;
 
       -- Debug signals
@@ -116,7 +116,7 @@ architecture rtl of Jesd204bRx is
 
    -- Internal signals
 
-   -- Local Multi Frame Clock 
+   -- Local Multi Frame Clock
    signal s_lmfc : sl;
 
    -- Synchronization output generation
@@ -217,7 +217,7 @@ begin
 
    -----------------------------------------------------------
    -- TEST or OPER
-   -----------------------------------------------------------  
+   -----------------------------------------------------------
    -- IF DEF TEST_G
 
    -- Generate TX test core if TEST_G=true is selected
@@ -247,11 +247,11 @@ begin
       -- Use input from GTX
       s_jesdGtRxArr <= r_jesdGtRxArr;
    end generate GT_OPER_GEN;
-   ---------------------------------------- 
+   ----------------------------------------
 
    -----------------------------------------------------------
    -- SYSREF and LMFC
-   -----------------------------------------------------------    
+   -----------------------------------------------------------
 
    GEN_ASYNC : if (GEN_ASYNC_G = true) generate
       -- Synchronize SYSREF input to devClk_i
@@ -303,7 +303,7 @@ begin
       port map (
          clk        => devClk_i,
          rst        => devRst_i,
-         --nSync_i     => '0', -- r.nSyncAnyD1,     
+         --nSync_i     => '0', -- r.nSyncAnyD1,
          nSync_i    => r.nSyncAnyD1,
          sysref_i   => s_sysrefD,       -- Delayed SYSREF IN
          sysrefRe_o => s_sysrefRe,      -- Rising-edge of SYSREF OUT
@@ -312,7 +312,7 @@ begin
 
    -----------------------------------------------------------
    -- Receiver modules (L_G)
-   ----------------------------------------------------------- 
+   -----------------------------------------------------------
 
    -- JESD Receiver modules (one module per Lane)
    generateRxLanes : for i in L_G-1 downto 0 generate

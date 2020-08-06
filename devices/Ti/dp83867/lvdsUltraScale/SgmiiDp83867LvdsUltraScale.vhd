@@ -4,11 +4,11 @@
 -- Description: Wrapper for TI DP83867DP83867 PHY  + GigEthLvdsUltraScaleWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ entity SgmiiDp83867LvdsUltraScale is
       phyClk      : out   sl;
       phyRst      : out   sl;
       -- Local Configurations/status
-      localMac    : in    slv(47 downto 0);  --  big-Endian configuration   
+      localMac    : in    slv(47 downto 0);  --  big-Endian configuration
       phyReady    : out   sl;
       linkUp      : out   sl;
       speed10     : out   sl;
@@ -58,7 +58,7 @@ entity SgmiiDp83867LvdsUltraScale is
       phyMdc      : out   sl;
       phyMdio     : inout sl;
       phyRstN     : out   sl;                -- active low
-      phyIrqN     : in    sl;                -- active low      
+      phyIrqN     : in    sl;                -- active low
       -- LVDS SGMII Ports
       sgmiiRxP    : in    sl;
       sgmiiRxN    : in    sl;
@@ -138,7 +138,7 @@ begin
       generic map (
          TPD_G => TPD_G,
          PHY_G => PHY_G,
-         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*1.0E+6))  -- phyMdc = 1.0 MHz 
+         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*1.0E+6))  -- phyMdc = 1.0 MHz
       port map (
          clk             => stableClk,
          rst             => phyInitRst,

@@ -6,11 +6,11 @@
 -- Description: The firmware batcher combines sub-frames into a larger super-frame
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,18 +27,19 @@ use surf.SsiPkg.all;
 
 entity AxiStreamBatcher is
    generic (
-      TPD_G                        : time                := 1 ns;
-      MAX_NUMBER_SUB_FRAMES_G      : positive            := 32;  -- Units of sub-frames
-      SUPER_FRAME_BYTE_THRESHOLD_G : natural             := 8192;  -- Units of bytes
-      MAX_CLK_GAP_G                : natural             := 256;  -- Units of clock cycles
-      AXIS_CONFIG_G                : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      INPUT_PIPE_STAGES_G          : natural             := 0;
-      OUTPUT_PIPE_STAGES_G         : natural             := 1);
+      TPD_G                        : time     := 1 ns;
+      MAX_NUMBER_SUB_FRAMES_G      : positive := 32;   -- Units of sub-frames
+      SUPER_FRAME_BYTE_THRESHOLD_G : natural  := 8192;  -- Units of bytes
+      MAX_CLK_GAP_G                : natural  := 256;  -- Units of clock cycles
+      AXIS_CONFIG_G                : AxiStreamConfigType;
+      INPUT_PIPE_STAGES_G          : natural  := 0;
+      OUTPUT_PIPE_STAGES_G         : natural  := 1);
    port (
       -- Clock and Reset
       axisClk                 : in  sl;
       axisRst                 : in  sl;
       -- External Control Interface
+      forceTerm               : in  sl               := '0';
       superFrameByteThreshold : in  slv(31 downto 0) := toSlv(SUPER_FRAME_BYTE_THRESHOLD_G, 32);
       maxSubFrames            : in  slv(15 downto 0) := toSlv(MAX_NUMBER_SUB_FRAMES_G, 16);
       maxClkGap               : in  slv(31 downto 0) := toSlv(MAX_CLK_GAP_G, 32);
@@ -74,6 +75,7 @@ architecture rtl of AxiStreamBatcher is
       clkGapCnt                  : slv(31 downto 0);
       superFrameByteThresholdDet : sl;
       maxSubFramesDet            : sl;
+      forceTerm                  : sl;
       seqCnt                     : slv(7 downto 0);
       tDest                      : slv(7 downto 0);
       tUserFirst                 : slv(7 downto 0);
@@ -94,6 +96,7 @@ architecture rtl of AxiStreamBatcher is
       clkGapCnt                  => (others => '0'),
       superFrameByteThresholdDet => '0',
       maxSubFramesDet            => '0',
+      forceTerm                  => '0',
       seqCnt                     => (others => '0'),
       tDest                      => (others => '0'),
       tUserFirst                 => (others => '0'),
@@ -131,18 +134,20 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (axisRst, maxClkGap, maxSubFrames, r, rxMaster,
+   comb : process (axisRst, forceTerm, maxClkGap, maxSubFrames, r, rxMaster,
                    superFrameByteThreshold, txSlave) is
       variable v : RegType;
 
       procedure doTail is
       begin
          -- Check for end of super-frame condition
-         if (v.superFrameByteThresholdDet = '1') or (v.maxSubFramesDet = '1') then
+         if (v.superFrameByteThresholdDet = '1') or (v.maxSubFramesDet = '1') or (v.forceTerm = '1') then
             -- Move the outbound data
             v.txMaster.tValid := '1';
             -- Terminate the super-frame
             v.txMaster.tLast  := '1';
+            -- Set EOFE
+            ssiSetUserEofe(AXIS_CONFIG_G, v.txMaster, v.forceTerm);
             -- Next state
             v.state           := HEADER_S;
          -- Check if new data to move or bypassing clock gap
@@ -162,7 +167,7 @@ begin
       v := r;
 
       -- Reset the strobes
-      v.rxSlave.tReady := '0';
+      v.rxSlave.tReady := r.forceTerm;
       if (txSlave.tReady = '1') then
          v.txMaster.tValid := '0';
          v.txMaster.tLast  := '0';
@@ -180,6 +185,9 @@ begin
          -- Set the flag
          v.maxSubFramesDet := '1';
       end if;
+
+      -- Register the value
+      v.forceTerm := forceTerm;
 
       -- Main state machine
       case r.state is
@@ -206,7 +214,7 @@ begin
                v.maxSubFrames := toSlv(1, 16);
             end if;
             -- Check if ready to move data
-            if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') then
+            if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') and (r.forceTerm = '0') then
                -- Send the super-frame header
                v.txMaster.tValid               := '1';
                v.txMaster.tData(3 downto 0)    := x"1";  -- Version = 0x1
@@ -331,11 +339,11 @@ begin
             -- Check for new sub-frame
             if (rxMaster.tValid = '1') then
                -- Reset the counter
-               v.clkGapCnt := (others => '0');
+               v.clkGapCnt       := (others => '0');
                -- Move the data
                v.txMaster.tValid := '1';
                -- Next state
-               v.state     := SUB_FRAME_S;
+               v.state           := SUB_FRAME_S;
             -- Check for the clock gap event
             elsif (r.clkGapCnt = r.maxClkGap) then
                -- Check if ready to move data
@@ -355,6 +363,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check for force termination
+      if (r.forceTerm = '1') and (r.state /= HEADER_S) then
+         doTail;
+      end if;
 
       -- Always the same outbound AXIS stream width
       v.txMaster.tKeep := genTKeep(AXIS_WORD_SIZE_C);

@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGP Ethernet Receiver 
+-- Description: PGP Ethernet Receiver
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ begin
          v.aliveCnt       := r.aliveCnt - 1;
       end if;
 
-      -- Check for link down event 
+      -- Check for link down event
       if (v.aliveCnt = 0) and (r.aliveCnt /= 0) then
          -- Set the flag
          v.pgpRxOut.linkDown := '1';
@@ -197,7 +197,7 @@ begin
                         -- BYTE[18] = Virtual Channel Index
                         v.tDest := phyRxMaster.tData(151 downto 144);
 
-                        -- BYTE[19] = SOF 
+                        -- BYTE[19] = SOF
                         v.sof := phyRxMaster.tData(152);
 
                      end if;
@@ -337,7 +337,7 @@ begin
          v.remRxLinkReady := '0';
       end if;
 
-      -- Outputs        
+      -- Outputs
       pgpRxMaster    <= r.pgpRxMasters(0);
       pgpRxOut       <= r.pgpRxOut;
       remoteMac      <= r.remoteMac;

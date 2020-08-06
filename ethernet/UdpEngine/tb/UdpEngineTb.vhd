@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the EthMac module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ begin
          PHY_TYPE_G    => "XGMII",
          PRIM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
-         -- DMA Interface 
+         -- DMA Interface
          primClk         => clk,
          primRst         => rst,
          ibMacPrimMaster => ibMacMasters(0),
@@ -183,7 +183,7 @@ begin
          PHY_TYPE_G    => "XGMII",
          PRIM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
-         -- DMA Interface 
+         -- DMA Interface
          primClk         => clk,
          primRst         => rst,
          ibMacPrimMaster => ibMacMasters(1),
@@ -254,7 +254,7 @@ begin
    comb : process (errorDet, r, rst, txBusy) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Keep delay copies
@@ -262,7 +262,7 @@ begin
       v.txBusy   := txBusy;
       v.trig     := not(r.txBusy);
 
-      -- Check for the packet completion 
+      -- Check for the packet completion
       if (txBusy = '1') and (r.txBusy = '0') then
          -- Sweeping the packet size size
          v.packetLength := r.packetLength + 1;
@@ -273,7 +273,7 @@ begin
          end if;
       end if;
 
-      -- Reset      
+      -- Reset
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
@@ -286,7 +286,7 @@ begin
             report "Simulation Failed!" severity failure;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;

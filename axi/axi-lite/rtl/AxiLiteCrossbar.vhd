@@ -4,11 +4,11 @@
 -- Description: Wrapper around Xilinx generated Main AXI Crossbar for HPS Front End
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -173,7 +173,7 @@ begin
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
                      if (
-                        StdMatch(      -- Use std_match to allow dontcares ('-')
+                        StdMatch(       -- Use std_match to allow dontcares ('-')
                            sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                         and (
@@ -189,8 +189,6 @@ begin
                   if (uOr(v.slave(s).wrReqs) = '0') then
                      v.sAxiWriteSlaves(s).awready := '1';
                      v.sAxiWriteSlaves(s).wready  := '1';
-                     v.sAxiWriteSlaves(s).bresp   := DEC_ERROR_RESP_G;
-                     v.sAxiWriteSlaves(s).bvalid  := '1';
                      v.slave(s).wrState           := S_DEC_ERR_S;
                   else
                      v.slave(s).wrState := S_ACK_S;
@@ -199,8 +197,14 @@ begin
 
             -- Send error
             when S_DEC_ERR_S =>
-               if (sAxiWriteMasters(s).bready = '1') then
-                  v.slave(s).wrState := S_WAIT_AXI_TXN_S;
+               -- Send error response
+               v.sAxiWriteSlaves(s).bresp  := DEC_ERROR_RESP_G;
+               v.sAxiWriteSlaves(s).bvalid := '1';
+
+               -- Clear when acked by master
+               if (r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') then
+                  v.sAxiWriteSlaves(s).bvalid := '0';
+                  v.slave(s).wrState          := S_WAIT_AXI_TXN_S;
                end if;
 
             -- Transaction is acked
@@ -241,7 +245,7 @@ begin
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
                      if (
-                        StdMatch(      -- Use std_match to allow dontcares ('-')
+                        StdMatch(       -- Use std_match to allow dontcares ('-')
                            sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                         and (
@@ -255,9 +259,6 @@ begin
                   -- Respond with error if decode fails
                   if (uOr(v.slave(s).rdReqs) = '0') then
                      v.sAxiReadSlaves(s).arready := '1';
-                     v.sAxiReadSlaves(s).rresp   := DEC_ERROR_RESP_G;
-                     v.sAxiReadSlaves(s).rdata   := (others => '0');
-                     v.sAxiReadSlaves(s).rvalid  := '1';
                      v.slave(s).rdState          := S_DEC_ERR_S;
                   else
                      v.slave(s).rdState := S_ACK_S;
@@ -266,7 +267,12 @@ begin
 
             -- Error
             when S_DEC_ERR_S =>
-               if (sAxiReadMasters(s).rready = '1') then
+               v.sAxiReadSlaves(s).rresp  := DEC_ERROR_RESP_G;
+               v.sAxiReadSlaves(s).rdata  := (others => '0');
+               v.sAxiReadSlaves(s).rvalid := '1';
+
+               if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
+                  v.sAxiReadSlaves(s).rvalid := '0';
                   v.slave(s).rdState := S_WAIT_AXI_TXN_S;
                end if;
 

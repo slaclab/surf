@@ -5,14 +5,14 @@
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface
 --
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
+-- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ entity AxiLiteSrpV0 is
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
 
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Streaming Master (Tx) Data Interface (mAxisClk domain)
@@ -51,7 +51,7 @@ entity AxiLiteSrpV0 is
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
 
-      -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+      -- Streaming Slave (Rx) Interface (sAxisClk domain)
       sAxisClk    : in  sl;
       sAxisRst    : in  sl := '0';
       sAxisMaster : in  AxiStreamMasterType;
@@ -109,14 +109,14 @@ architecture rtl of AxiLiteSrpV0 is
    -- attribute dont_touch                    : string;
    -- attribute dont_touch of r               : signal is "TRUE";
    -- attribute dont_touch of rxFifoAxisMaster : signal is "TRUE";
-   -- attribute dont_touch of rxFifoAxisSlave  : signal is "TRUE";   
+   -- attribute dont_touch of rxFifoAxisSlave  : signal is "TRUE";
    -- attribute dont_touch of txFifoAxisMaster : signal is "TRUE";
    -- attribute dont_touch of txFifoAxisSlave  : signal is "TRUE";
 
 begin
 
    ----------------------------------
-   -- Output FIFO 
+   -- Output FIFO
    ----------------------------------
    TxAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
@@ -144,7 +144,7 @@ begin
          mAxisSlave  => mAxisSlave);
 
    ----------------------------------
-   -- Input FIFO 
+   -- Input FIFO
    ----------------------------------
    RxAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
@@ -196,7 +196,7 @@ begin
             if (axilStatus.writeEnable = '1') then
                v.txFifoAxisMaster.tData(31 downto 0)   := r.txnCount;
                v.txFifoAxisMaster.tData(61 downto 32)  := sAxilWriteMaster.awaddr(31 downto 2);
-               v.txFifoAxisMaster.tData(63 downto 62)  := "01";               
+               v.txFifoAxisMaster.tData(63 downto 62)  := "01";
                v.txFifoAxisMaster.tData(95 downto 64)  := sAxilWriteMaster.wdata(31 downto 0);
                v.txFifoAxisMaster.tData(127 downto 96) := (others => '0');
                v.txFifoAxisMaster.tKeep(15 downto 0)   := X"FFFF";
@@ -241,14 +241,14 @@ begin
                      v.state := BLEED_S;
                   else
                      axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
-                     v.state := WAIT_AXIL_REQ_S;                     
+                     v.state := WAIT_AXIL_REQ_S;
                   end if;
 
                -- Check read response
                elsif (axilStatus.readEnable = '1') then
                   if (rxFifoAxisMaster.tData(31 downto 0) = r.txnCount and
                       rxFifoAxisMaster.tData(61 downto 32) = sAxilReadMaster.araddr(31 downto 2) and
-                      rxFifoAxisMaster.tData(63 downto 62) = "00" and                      
+                      rxFifoAxisMaster.tData(63 downto 62) = "00" and
                       rxFifoAxisMaster.tData(127 downto 96) = 0 and
                       rxFifoAxisMaster.tKeep(15 downto 0) = X"FFFF" and
                       rxFifoAxisMaster.tLast = '1' and
@@ -262,9 +262,9 @@ begin
                      axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
                      v.state := BLEED_S;
                   else
-                     v.sAxilReadSlave.rdata := (others => '1');                     
+                     v.sAxilReadSlave.rdata := (others => '1');
                      axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
-                     v.state               := WAIT_AXIL_REQ_S;                     
+                     v.state               := WAIT_AXIL_REQ_S;
                   end if;
                end if;
 
@@ -273,7 +273,7 @@ begin
                if (axilStatus.writeEnable = '1') then
                   axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
                else
-                  v.sAxilReadSlave.rdata := (others => '1');                  
+                  v.sAxilReadSlave.rdata := (others => '1');
                   axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
                end if;
             end if;
@@ -284,7 +284,7 @@ begin
                v.state := WAIT_AXIL_REQ_S;
             end if;
       end case;
-      
+
       -- Combinatorial outputs before the reset
       rxFifoAxisSlave <= v.rxFifoAxisSlave;
 

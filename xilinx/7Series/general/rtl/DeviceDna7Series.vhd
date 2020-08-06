@@ -4,11 +4,11 @@
 -- Description: Wrapper for the 7 Series DNA_PORT
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ begin
          CE  => '1',
          CLR => '0',
          O   => locClkInvR);
-   
+
 
    RstSync_Inst : entity surf.RstSync
       generic map (
@@ -112,14 +112,14 @@ begin
    comb : process (dnaDout, locRst, r) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset the strobing signals
       v.dnaRead  := '0';
       v.dnaShift := '0';
 
-      -- State Machine      
+      -- State Machine
       case (r.state) is
          ----------------------------------------------------------------------
          when READ_S =>

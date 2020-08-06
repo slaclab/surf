@@ -2,15 +2,15 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Outputs a digital signal depending on thresholds
---              This is a test module so only F_G = 2 
---              and is GT_WORD_SIZE_C = 4 is supported.          
+--              This is a test module so only F_G = 2
+--              and is GT_WORD_SIZE_C = 4 is supported.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,30 +27,30 @@ use surf.Jesd204bPkg.all;
 entity JesdTestSigGen is
    generic (
       TPD_G        : time       := 1 ns;
-      
+
       -- Number of bytes in a frame
       F_G : positive := 2);
    port (
       clk      : in  sl;
       rst      : in  sl;
-      
+
       -- Enable pulser
       enable_i   : in  sl;
-      
-      -- Threshold for Rising edge detection      
+
+      -- Threshold for Rising edge detection
       thresoldLow_i  : in  slv((F_G*8)-1 downto 0);
       thresoldHigh_i : in  slv((F_G*8)-1 downto 0);
-       
-      -- Sample data input     
+
+      -- Sample data input
       sampleData_i  : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
-      
-      -- Test signal 
+
+      -- Test signal
       testSig_o    : out sl
    );
 end entity JesdTestSigGen;
 
 architecture rtl of JesdTestSigGen is
-  
+
    type RegType is record
       sig         : sl;
    end record RegType;
@@ -62,11 +62,11 @@ architecture rtl of JesdTestSigGen is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
    signal s_sampleDataBr : slv(sampleData_i'range);
-   
+
 begin
 
    s_sampleDataBr <= sampleData_i;
-   
+
    -- Buffer two GT words. And compare previous and current samples to threshold.
    -- If the difference between the previous and current sample is higher than threshold
    -- output a pulse.
@@ -76,7 +76,7 @@ begin
       variable v : RegType;
    begin
       v := r;
-      
+
 --      if (  signed(s_sampleDataBr((F_G*8)-1 downto 0) ) > signed(thresoldHigh_i))   then
       if (  s_sampleDataBr((F_G*8)-1 downto 0) > thresoldHigh_i)   then
          v.sig := '1';
@@ -84,7 +84,7 @@ begin
       elsif (  s_sampleDataBr((F_G*8)-1 downto 0) < thresoldLow_i) then
          v.sig := '0';
       end if;
-      
+
       if (rst = '1' or enable_i='0') then
          v := REG_INIT_C;
       end if;

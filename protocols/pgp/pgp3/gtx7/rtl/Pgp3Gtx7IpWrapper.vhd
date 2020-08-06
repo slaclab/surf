@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTX7 IP Core Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ entity Pgp3Gtx7IpWrapper is
       txData          : in  slv(63 downto 0);
       txHeader        : in  slv(1 downto 0);
       txStart         : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       loopback        : in  slv(2 downto 0);
       txPreCursor     : in  slv(4 downto 0);
       txPostCursor    : in  slv(4 downto 0);

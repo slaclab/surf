@@ -4,11 +4,11 @@
 -- Description: A wrapper of AxiDualPortRam & SyncStatusVector
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -45,17 +45,17 @@ entity AxiLiteRamSyncStatusVector is
       WIDTH_G         : positive);      -- Status vector width
    port (
       ---------------------------------------------
-      -- Inbound Status bit Signals (wrClk domain)      
+      -- Inbound Status bit Signals (wrClk domain)
       ---------------------------------------------
       wrClk           : in  sl;
       wrRst           : in  sl                      := '0';
       statusIn        : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
       ---------------------------------------------
-      -- Outbound Status/control Signals (axilClk domain)      
+      -- Outbound Status/control Signals (axilClk domain)
       ---------------------------------------------
-      statusOut       : out slv(WIDTH_G-1 downto 0);  -- Synced data      
+      statusOut       : out slv(WIDTH_G-1 downto 0);  -- Synced data
       cntRstIn        : in  sl                      := '0';
-      rollOverEnIn    : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- No roll over for all counters by default      
+      rollOverEnIn    : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- No roll over for all counters by default
       ---------------------
       -- AXI-Lite Interface
       ---------------------
@@ -126,9 +126,9 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          statusIn     => statusIn,
-         -- Output Status bit Signals (rdClk domain)  
+         -- Output Status bit Signals (rdClk domain)
          statusOut    => statusOut,
-         -- Status Bit Counters Signals (rdClk domain) 
+         -- Status Bit Counters Signals (rdClk domain)
          cntRstIn     => cntRstIn,
          rollOverEnIn => rollOverEnIn,
          cntOut       => statusCnt,

@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -19,7 +19,7 @@ Dac38J84: &Dac38J84
   metadata:
     numTxLanes: &numTxLanes 2
   children:
-    #########################################################    
+    #########################################################
     DacReg:
       at:
         offset: 0x000
@@ -30,7 +30,7 @@ Dac38J84: &Dac38J84
       sizeBits: 16
       mode: RW
       description: "DAC Registers[125:0]"
-    #########################################################    
+    #########################################################
     LaneBufferDelay:
       at:
         offset: 0x01C
@@ -39,7 +39,7 @@ Dac38J84: &Dac38J84
       sizeBits: 5
       mode: RO
       description: Lane Buffer Delay
-    #########################################################    
+    #########################################################
     Temperature:
       at:
         offset: 0x01D
@@ -48,7 +48,7 @@ Dac38J84: &Dac38J84
       sizeBits: 8
       mode: RO
       description: Temperature
-    #########################################################    
+    #########################################################
     LinkErrCnt:
       at:
         offset: 0x104
@@ -59,7 +59,7 @@ Dac38J84: &Dac38J84
       sizeBits: 16
       mode: RO
       description: "Link Error Count"
-    #########################################################    
+    #########################################################
     ReadFifoEmpty:
       at:
         offset: 0x190
@@ -71,7 +71,7 @@ Dac38J84: &Dac38J84
       lsBit: 0
       mode: RO
       description: "ReadFifoEmpty"
-    #########################################################    
+    #########################################################
     ReadFifoUnderflow:
       at:
         offset: 0x190
@@ -83,7 +83,7 @@ Dac38J84: &Dac38J84
       lsBit: 1
       mode: RO
       description: "ReadFifoUnderflow"
-    #########################################################    
+    #########################################################
     ReadFifoFull:
       at:
         offset: 0x190
@@ -95,7 +95,7 @@ Dac38J84: &Dac38J84
       lsBit: 2
       mode: RO
       description: "ReadFifoFull"
-    #########################################################    
+    #########################################################
     ReadFifoOverflow:
       at:
         offset: 0x190
@@ -107,7 +107,7 @@ Dac38J84: &Dac38J84
       lsBit: 3
       mode: RO
       description: "ReadFifoOverflow"
-    #########################################################    
+    #########################################################
     DispErr:
       at:
         offset: 0x191
@@ -119,7 +119,7 @@ Dac38J84: &Dac38J84
       lsBit: 0
       mode: RO
       description: "DispErr"
-    #########################################################    
+    #########################################################
     NotitableErr:
       at:
         offset: 0x191
@@ -131,7 +131,7 @@ Dac38J84: &Dac38J84
       lsBit: 1
       mode: RO
       description: "NotitableErr"
-    #########################################################    
+    #########################################################
     CodeSyncErr:
       at:
         offset: 0x191
@@ -143,7 +143,7 @@ Dac38J84: &Dac38J84
       lsBit: 2
       mode: RO
       description: "CodeSyncErr"
-    #########################################################    
+    #########################################################
     FirstDataMatchErr:
       at:
         offset: 0x191
@@ -155,7 +155,7 @@ Dac38J84: &Dac38J84
       lsBit: 3
       mode: RO
       description: "FirstDataMatchErr"
-    #########################################################    
+    #########################################################
     ElasticBuffOverflow:
       at:
         offset: 0x191
@@ -167,7 +167,7 @@ Dac38J84: &Dac38J84
       lsBit: 4
       mode: RO
       description: "ElasticBuffOverflow"
-    #########################################################    
+    #########################################################
     LinkConfigErr:
       at:
         offset: 0x191
@@ -179,7 +179,7 @@ Dac38J84: &Dac38J84
       lsBit: 5
       mode: RO
       description: "LinkConfigErr"
-    #########################################################    
+    #########################################################
     FrameAlignErr:
       at:
         offset: 0x191
@@ -191,7 +191,7 @@ Dac38J84: &Dac38J84
       lsBit: 6
       mode: RO
       description: "FrameAlignErr"
-    #########################################################    
+    #########################################################
     MultiFrameAlignErr:
       at:
         offset: 0x191
@@ -203,7 +203,7 @@ Dac38J84: &Dac38J84
       lsBit: 7
       mode: RO
       description: "MultiFrameAlignErr"
-    #########################################################    
+    #########################################################
     Serdes1pllAlarm:
       at:
         offset: 0x1B0
@@ -213,7 +213,7 @@ Dac38J84: &Dac38J84
       lsBit: 2
       mode: RO
       description: Serdes1pllAlarm
-    #########################################################    
+    #########################################################
     Serdes0pllAlarm:
       at:
         offset: 0x1B0
@@ -223,7 +223,7 @@ Dac38J84: &Dac38J84
       lsBit: 3
       mode: RO
       description: Serdes0pllAlarm
-    #########################################################    
+    #########################################################
     SysRefAlarms:
       at:
         offset: 0x1B1
@@ -233,7 +233,7 @@ Dac38J84: &Dac38J84
       lsBit: 4
       mode: RO
       description: SysRefAlarms
-    #########################################################    
+    #########################################################
     LaneLoss:
       at:
         offset: 0x1B4
@@ -242,7 +242,7 @@ Dac38J84: &Dac38J84
       sizeBits: 8
       mode: RO
       description: "LaneLoss"
-    #########################################################    
+    #########################################################
     LaneAlarm:
       at:
         offset: 0x1B5
@@ -251,7 +251,7 @@ Dac38J84: &Dac38J84
       sizeBits: 8
       mode: RO
       description: "LaneAlarm"
-    #########################################################    
+    #########################################################
     ID:
       at:
         offset: 0x1FC
@@ -259,7 +259,7 @@ Dac38J84: &Dac38J84
       name: ID
       mode: RO
       description: Serials and IDs
-    #########################################################    
+    #########################################################
     EnableTx:
       at:
         offset: 0xC
@@ -269,7 +269,7 @@ Dac38J84: &Dac38J84
       lsBit: 0
       mode: RW
       description: EnableTx
-    #########################################################    
+    #########################################################
     InitJesd:
       at:
         offset: 0x128
@@ -279,7 +279,7 @@ Dac38J84: &Dac38J84
       lsBit: 0
       mode: RW
       description: InitJesd
-    #########################################################    
+    #########################################################
     ClearAlarms:
       class: SequenceCommand
       at:
@@ -314,16 +314,16 @@ Dac38J84: &Dac38J84
         # Disable TX
         - entry: EnableTx
           value: 0x0
-        
+
         # Disable and initialize JESD
         - entry: InitJesd
           value: 0x1E
-        
+
         # Enable JESD
         - entry: InitJesd
           value: 0x01
-        
+
         # Enable TX
         - entry: EnableTx
           value: 0x1
-    #########################################################    
+    #########################################################

@@ -8,3 +8,4 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.ethernet.gige._GigEthReg import *
+from surf.ethernet.gige._GigEthGtx7 import *

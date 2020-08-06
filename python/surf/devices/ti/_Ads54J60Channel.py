@@ -14,7 +14,7 @@
 import pyrogue as pr
 
 class Ads54J60Channel(pr.Device):
-    def __init__(self, verify=False, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         #######################
@@ -36,7 +36,6 @@ class Ads54J60Channel(pr.Device):
             # bitOffset    = 0,
             # base         = pr.UInt,
             # mode         = "RW",
-            # verify       = verify,
         # ))
 
         self.add(pr.RemoteVariable(
@@ -47,7 +46,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 5,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -58,7 +56,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -69,7 +66,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -80,7 +76,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -91,7 +86,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -102,7 +96,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -113,7 +106,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 5,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -124,7 +116,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 3,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -135,7 +126,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -146,7 +136,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -157,7 +146,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -168,7 +156,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 3,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -179,7 +166,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -190,7 +176,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -201,7 +186,6 @@ class Ads54J60Channel(pr.Device):
             # bitOffset    = 0,
             # base         = pr.UInt,
             # mode         = "RW",
-            # verify       = verify,
         # ))
 
         ###################
@@ -216,7 +200,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -227,7 +210,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -238,7 +220,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 3,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -249,7 +230,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 2,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -260,7 +240,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 1,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -271,7 +250,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -282,7 +260,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -293,7 +270,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 6,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -304,7 +280,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 3,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -315,7 +290,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -326,7 +300,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 5,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -337,7 +310,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -348,7 +320,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 3,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -359,7 +330,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -370,7 +340,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 2,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -381,7 +350,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -392,7 +360,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -403,7 +370,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -414,7 +380,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 3,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -438,7 +403,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -449,7 +413,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -460,7 +423,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         ##################
@@ -475,7 +437,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 2,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -499,7 +460,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 2,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -510,7 +470,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 2,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -521,7 +480,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 2,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -532,7 +490,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -543,7 +500,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 6,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -554,7 +510,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 1,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -565,7 +520,6 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 5,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -576,5 +530,4 @@ class Ads54J60Channel(pr.Device):
             bitOffset    = 3,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))

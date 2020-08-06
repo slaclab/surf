@@ -4,11 +4,11 @@
 -- Description: UDP Client's ARP Messaging Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,10 +27,10 @@ entity UdpEngineArp is
       TPD_G          : time     := 1 ns;
       CLIENT_SIZE_G  : positive := 1;
       CLK_FREQ_G     : real     := 156.25E+06;
-      COMM_TIMEOUT_G : positive := 30);  
+      COMM_TIMEOUT_G : positive := 30);
    port (
       -- Local Configurations
-      localIp         : in  slv(31 downto 0);  --  big-Endian configuration   
+      localIp         : in  slv(31 downto 0);  --  big-Endian configuration
       -- Interface to ARP Engine
       arpReqMasters   : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Request via IP address
       arpReqSlaves    : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
@@ -53,7 +53,7 @@ architecture rtl of UdpEngineArp is
    type StateType is (
       IDLE_S,
       WAIT_S,
-      COMM_MONITOR_S); 
+      COMM_MONITOR_S);
    type StateArray is array (natural range <>) of StateType;
 
    type RegType is record
@@ -72,11 +72,11 @@ architecture rtl of UdpEngineArp is
       timerEn         => '0',
       timer           => 0,
       arpTimers       => (others => 0),
-      state           => (others => IDLE_S));      
+      state           => (others => IDLE_S));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    comb : process (arpAckMasters, arpReqSlaves, clientRemoteDet, clientRemoteIp, r, rst) is
@@ -113,7 +113,7 @@ begin
             v.arpTimers(i) := r.arpTimers(i) - 1;
          end if;
 
-         -- Update the IP address 
+         -- Update the IP address
          v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
 
          -- Check for dynamic change in IP address
@@ -155,7 +155,7 @@ begin
                   end if;
                ----------------------------------------------------------------------
                when COMM_MONITOR_S =>
-                  -- Check for inbound client communication 
+                  -- Check for inbound client communication
                   if clientRemoteDet(i) = '1' then
                      -- Preset the timer
                      v.arpTimers(i) := COMM_TIMEOUT_G;
@@ -167,7 +167,7 @@ begin
             end case;
          end if;
       end loop;
-      
+
       -- Combinatorial outputs before the reset
       arpAckSlaves <= v.arpAckSlaves;
 

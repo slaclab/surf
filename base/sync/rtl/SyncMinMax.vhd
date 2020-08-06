@@ -4,11 +4,11 @@
 -- Description: General Purpose Max/Min monitor and synchronizer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -46,6 +46,7 @@ end SyncMinMax;
 architecture rtl of SyncMinMax is
 
    type RegType is record
+      reset   : sl;
       armed   : sl;
       update  : sl;
       dataIn  : slv(WIDTH_G-1 downto 0);
@@ -53,6 +54,7 @@ architecture rtl of SyncMinMax is
       dataMax : slv(WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
+      reset   => '1',
       armed   => '0',
       update  => '0',
       dataIn  => (others => '0'),
@@ -88,6 +90,7 @@ begin
          WIDTH_G => WIDTH_G)
       port map (
          clk     => wrClk,
+         rst     => r.reset,
          -- Inbound Interface
          ibValid => wrEn,
          ain     => dataIn,
@@ -101,6 +104,7 @@ begin
          WIDTH_G => WIDTH_G)
       port map (
          clk     => wrClk,
+         rst     => r.reset,
          -- Inbound Interface
          ibValid => wrEn,
          ain     => dataIn,
@@ -119,6 +123,7 @@ begin
 
       -- Reset strobes
       v.update := '0';
+      v.reset  := '0';
 
       -- Check for write clock enable
       if (valid = '1') then
@@ -179,6 +184,7 @@ begin
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => WIDTH_G)
       port map (
+         rst    => r.reset,
          -- Write Interface
          wr_clk => wrClk,
          wr_en  => valid,
@@ -194,6 +200,7 @@ begin
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => WIDTH_G)
       port map (
+         rst    => r.reset,
          -- Write Interface
          wr_clk => wrClk,
          wr_en  => r.update,
@@ -209,6 +216,7 @@ begin
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => WIDTH_G)
       port map (
+         rst    => r.reset,
          -- Write Interface
          wr_clk => wrClk,
          wr_en  => r.update,

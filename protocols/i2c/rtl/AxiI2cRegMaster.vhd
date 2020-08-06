@@ -4,11 +4,11 @@
 -- Description: AXI-Lite I2C Register Master
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -136,13 +136,13 @@ begin
          O  => i2ci.scl,                -- Buffer output
          IO => scl,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.scl,                -- Buffer input
-         T  => i2co.scloen);  -- 3-state enable input, high=input, low=output  
+         T  => i2co.scloen);  -- 3-state enable input, high=input, low=output
 
    IOBUF_SDA : IOBUF
       port map (
          O  => i2ci.sda,                -- Buffer output
          IO => sda,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.sda,                -- Buffer input
-         T  => i2co.sdaoen);  -- 3-state enable input, high=input, low=output  
+         T  => i2co.sdaoen);  -- 3-state enable input, high=input, low=output
 
 end mapping;

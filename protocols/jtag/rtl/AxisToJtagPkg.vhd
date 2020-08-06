@@ -6,11 +6,11 @@
 -- Description: Axi Stream to JTAG Package
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ use surf.AxiStreamPkg.all;
 -- This module implements a simple protocol for encoding XVC transactions over
 -- an AXI stream. Part of this is support for unreliable transport protocols
 -- (by means of a memory buffer and transaction IDs).
--- Once the protocol header is processed the stream is delegated to the 
+-- Once the protocol header is processed the stream is delegated to the
 -- AxisToJtagCore module.
 --
 -- INCOMING STREAM

@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -159,7 +159,7 @@ Lmk04828: &Lmk04828
       mode: RW
       description: LMK Registers
     LmkReg_0x0110:
-    #########################################################    
+    #########################################################
     #########################################################
       at:
         offset: 0x440
@@ -286,7 +286,7 @@ Lmk04828: &Lmk04828
       mode: RW
       description: LMK Registers
     LmkReg_0x0120:
-    #########################################################      
+    #########################################################
     #########################################################
       at:
         offset: 0x480
@@ -413,7 +413,7 @@ Lmk04828: &Lmk04828
       mode: RW
       description: LMK Registers
     LmkReg_0x0130:
-    #########################################################       
+    #########################################################
     #########################################################
       at:
         offset: 0x4C0
@@ -549,7 +549,7 @@ Lmk04828: &Lmk04828
       mode: RW
       description: LMK Registers
     LmkReg_0x0140:
-    #########################################################      
+    #########################################################
 
     #########################################################
       at:
@@ -695,7 +695,7 @@ Lmk04828: &Lmk04828
       mode: RW
       description: LMK Registers
     LmkReg_0x0150:
-    #########################################################    
+    #########################################################
     #########################################################
       at:
         offset: 0x540
@@ -840,7 +840,7 @@ Lmk04828: &Lmk04828
       mode: RW
       description: LMK Registers
     LmkReg_0x0160:
-    #########################################################      
+    #########################################################
     #########################################################
       at:
         offset: 0x580
@@ -911,7 +911,7 @@ Lmk04828: &Lmk04828
       name: LmkReg_0x0172
       sizeBits: 8
       mode: RW
-      description: LMK Registers    
+      description: LMK Registers
     LmkReg_0x0173:
     #########################################################
       at:
@@ -1001,7 +1001,7 @@ Lmk04828: &Lmk04828
       name: LmkReg_0x016B
       sizeBits: 8
       mode: RW
-      description: LMK Registers        
+      description: LMK Registers
     LmkReg_0x016C:
     #########################################################
       at:
@@ -1010,7 +1010,7 @@ Lmk04828: &Lmk04828
       name: LmkReg_0x016C
       sizeBits: 8
       mode: RW
-      description: LMK Registers      
+      description: LMK Registers
     LmkReg_0x016D:
     #########################################################
       at:
@@ -1019,7 +1019,7 @@ Lmk04828: &Lmk04828
       name: LmkReg_0x016D
       sizeBits: 8
       mode: RW
-      description: LMK Registers      
+      description: LMK Registers
     LmkReg_0x016E:
     #########################################################
       at:
@@ -1044,7 +1044,7 @@ Lmk04828: &Lmk04828
           value: 0x0
         # 100 ms sleep
         - entry: usleep
-          value: 100000           
+          value: 100000
     #########################################################
     PwrUpSysRef:
       name: PwrUpSysRef
@@ -1055,13 +1055,13 @@ Lmk04828: &Lmk04828
       sequence:
         # 1000 ms sleep
         - entry: usleep
-          value: 1000000      
+          value: 1000000
         # Turn on normal continuous sysref
         - entry: EnableSysRef
           value: 0x3
         # 2000 ms sleep
         - entry: usleep
-          value: 2000000          
+          value: 2000000
     #########################################################
     InitLmk:
       name: InitLmk
@@ -1074,29 +1074,29 @@ Lmk04828: &Lmk04828
         # Turn off normal continuous sysref
         - entry: EnableSysRef
           value: 0x0
-        
+
         # Turn On SYNC
         - entry: EnableSync
           value: 0x0
-        
+
         # 1000 ms sleep
         - entry: usleep
           value: 1000000
-          
+
         # Toggle Sync bit
         - entry: SyncBit
           value: 0x1
         - entry: SyncBit
           value: 0x0
-        
+
         # 1000 ms sleep
         - entry: usleep
           value: 1000000
-        
+
         # Turn on normal continuous sysref
         - entry: EnableSysRef
           value: 0x3
-        
+
         # Turn Off SYNC
         - entry: EnableSync
           value: 0xff
@@ -1181,7 +1181,7 @@ Lmk04828: &Lmk04828
       mode: RO
       description: ID_PROD_UPPER
     ID_DEVICE_TYPE:
-    #########################################################       
+    #########################################################
       at:
         offset: 0x00C
       class: IntField

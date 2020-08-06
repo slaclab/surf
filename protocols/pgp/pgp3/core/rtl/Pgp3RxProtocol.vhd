@@ -9,11 +9,11 @@
 -- user K codes on request.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -159,7 +159,7 @@ begin
                   v.pgpRxMaster :=
                      makePacketizer2Header(
                         CRC_MODE_C => "DATA",
-                        valid      => r.pgpRxOut.linkReady,  -- Hold Everything until linkready                  
+                        valid      => r.pgpRxOut.linkReady,  -- Hold Everything until linkready
                         sof        => ite(btf = PGP3_SOF_C, '1', '0'),
                         tdest      => resize(protRxData(PGP3_SOFC_VC_FIELD_C), 8),
                         seq        => resize(protRxData(PGP3_SOFC_SEQ_FIELD_C), 16));

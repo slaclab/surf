@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for testing the PgpEthCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ begin
 
    U_Clk_1 : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 3.103 ns,  -- 100GbE IP core's 322.58 MHz txusrclk2 clock 
+         CLK_PERIOD_G      => 3.103 ns,  -- 100GbE IP core's 322.58 MHz txusrclk2 clock
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (

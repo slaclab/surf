@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTX7 Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ entity Pgp3Gtx7Wrapper is
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := true;
       EN_PGP_MON_G                : boolean                     := false;
-      EN_GTH_DRP_G                : boolean                     := false;
+      EN_GT_DRP_G                 : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
@@ -89,7 +89,7 @@ entity Pgp3Gtx7Wrapper is
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
       pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
       txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
@@ -227,7 +227,7 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
-               EN_DRP_G                    => EN_GTH_DRP_G,
+               EN_DRP_G                    => EN_GT_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
                AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
@@ -268,7 +268,7 @@ begin
                -- Frame Receive Interface
                pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-               -- Debug Interface 
+               -- Debug Interface
                txPreCursor     => txPreCursor(i),
                txPostCursor    => txPostCursor(i),
                txDiffCtrl      => txDiffCtrl(i),

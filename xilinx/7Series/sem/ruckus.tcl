@@ -12,5 +12,4 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
 
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2016.4 (or later)\n\n"
-}   
-   
+}

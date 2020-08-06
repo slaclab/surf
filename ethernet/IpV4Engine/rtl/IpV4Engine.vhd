@@ -4,11 +4,11 @@
 -- Description: IPv4 Top-level Module for IPv4/ARP/ICMP
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ entity IpV4Engine is
       TTL_G           : slv(7 downto 0) := x"20";
       ICMP_G          : boolean         := true;
       ARP_G           : boolean         := true;
-      VLAN_G          : boolean         := false);  -- true = VLAN support 
+      VLAN_G          : boolean         := false);  -- true = VLAN support
    port (
       -- Local Configurations
       localMac          : in  slv(47 downto 0);   --  big-Endian configuration
@@ -41,7 +41,7 @@ entity IpV4Engine is
       obMacSlave        : out AxiStreamSlaveType;
       ibMacMaster       : out AxiStreamMasterType;
       ibMacSlave        : in  AxiStreamSlaveType;
-      -- Interface to Protocol Engine(s)  
+      -- Interface to Protocol Engine(s)
       obProtocolMasters : in  AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
       obProtocolSlaves  : out AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
       ibProtocolMasters : out AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
@@ -142,7 +142,7 @@ begin
             arpReqSlaves  => arpReqSlaves,
             arpAckMasters => arpAckMasters,
             arpAckSlaves  => arpAckSlaves,
-            -- Interface to Ethernet Frame MUX/DEMUX 
+            -- Interface to Ethernet Frame MUX/DEMUX
             ibArpMaster   => ibArpMaster,
             ibArpSlave    => ibArpSlave,
             obArpMaster   => obArpMaster,
@@ -167,12 +167,12 @@ begin
          PROTOCOL_G      => PROTOCOL_C,
          VLAN_G          => VLAN_G)
       port map (
-         -- Interface to Ethernet Frame MUX/DEMUX 
+         -- Interface to Ethernet Frame MUX/DEMUX
          ibIpv4Master      => ibIpv4Master,
          ibIpv4Slave       => ibIpv4Slave,
          localhostMaster   => localhostMaster,
          localhostSlave    => localhostSlave,
-         -- Interface to Protocol Engine  
+         -- Interface to Protocol Engine
          ibProtocolMasters => ibMasters,
          ibProtocolSlaves  => ibSlaves,
          -- Clock and Reset
@@ -189,12 +189,12 @@ begin
       port map (
          -- Local Configurations
          localMac          => localMac,
-         -- Interface to Ethernet Frame MUX/DEMUX 
+         -- Interface to Ethernet Frame MUX/DEMUX
          obIpv4Master      => obIpv4Master,
          obIpv4Slave       => obIpv4Slave,
          localhostMaster   => localhostMaster,
          localhostSlave    => localhostSlave,
-         -- Interface to Protocol Engine  
+         -- Interface to Protocol Engine
          obProtocolMasters => obMasters,
          obProtocolSlaves  => obSlaves,
          -- Clock and Reset

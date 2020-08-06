@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building 
+-- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -44,12 +44,12 @@ entity AxiStreamBatcherEventBuilder is
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G : integer range 0 to 7 := 0;
 
-      -- Set the TDEST to detect for transition frame 
+      -- Set the TDEST to detect for transition frame
       TRANS_TDEST_G : slv(7 downto 0) := x"FF";
 
-      AXIS_CONFIG_G        : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      INPUT_PIPE_STAGES_G  : natural             := 0;
-      OUTPUT_PIPE_STAGES_G : natural             := 0);
+      AXIS_CONFIG_G        : AxiStreamConfigType;
+      INPUT_PIPE_STAGES_G  : natural := 0;
+      OUTPUT_PIPE_STAGES_G : natural := 0);
    port (
       -- Clock and Reset
       axisClk         : in  sl;
@@ -202,8 +202,8 @@ begin
          bin  => r.timeout,
          gtEq => timeoutEvent);         -- greater than or equal to (a >= b)
 
-   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, blowoffExt, r, rxMasters,
-                   timeoutEvent, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle,
+                   blowoffExt, r, rxMasters, timeoutEvent, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable i      : natural;
@@ -236,9 +236,11 @@ begin
          v.timeout    := r.timeout;
          v.blowoffReg := r.blowoffReg;
 
+         -- Preserve the state of AXI-Lite
+         v.axilWriteSlave := r.axilWriteSlave;
+         v.axilReadSlave  := r.axilReadSlave;
+
       end if;
-
-
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -272,7 +274,9 @@ begin
          -- Reset the timer
          v.timer := (others => '0');
       end if;
-      if (r.bypass /= v.bypass) or (r.blowoff /= v.blowoff) then
+
+      -- Check for any change to bypass or blowoff 1->0 transition
+      if (r.bypass /= v.bypass) or ((r.blowoff = '1') and (v.blowoff = '0')) then
          -- Perform a soft-reset
          v.softRst := '1';
       end if;
@@ -295,7 +299,7 @@ begin
             -- Loop through RX channels
             for i in (NUM_SLAVES_G-1) downto 0 loop
 
-               -- Check if no data and not bypassing 
+               -- Check if no data and not bypassing
                if (rxMasters(i).tValid = '0') and (r.bypass(i) = '0') then
                   -- Reset the flags
                   v.ready       := '0';
@@ -413,7 +417,7 @@ begin
                -- Next state
                v.state := MOVE_S;
 
-            -- Check for blowoff flag 
+            -- Check for blowoff flag
             elsif (r.blowoff = '1') then
 
                -- Blow off the inbound data
@@ -526,7 +530,7 @@ begin
          TPD_G                        => TPD_G,
          MAX_NUMBER_SUB_FRAMES_G      => NUM_SLAVES_G,
          SUPER_FRAME_BYTE_THRESHOLD_G => 0,  -- 0 = bypass super threshold check
-         MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP 
+         MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP
          AXIS_CONFIG_G                => AXIS_CONFIG_G,
          INPUT_PIPE_STAGES_G          => 1,  -- Break apart the long combinatorial tReady chain
          OUTPUT_PIPE_STAGES_G         => OUTPUT_PIPE_STAGES_G)
@@ -535,6 +539,7 @@ begin
          axisClk      => axisClk,
          axisRst      => axisReset,
          -- External Control Interface
+         forceTerm    => r.blowoff,
          maxSubFrames => r.maxSubFrames,
          idle         => batcherIdle,
          -- AXIS Interfaces

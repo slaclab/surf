@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -888,7 +888,7 @@ begin
             tx_axis_tdata                        => txMaster.tdata(511 downto 0),
             tx_axis_tlast                        => txMaster.tlast,
             tx_axis_tkeep                        => txMaster.tkeep(63 downto 0),
-            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE        
+            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE
             tx_ovfout                            => open,
             tx_unfout                            => open,
             tx_preamblein                        => (others => '0'),  -- tx_preamblein is driven as 0
@@ -1117,7 +1117,7 @@ begin
             tx_axis_tdata                        => txMaster.tdata(511 downto 0),
             tx_axis_tlast                        => txMaster.tlast,
             tx_axis_tkeep                        => txMaster.tkeep(63 downto 0),
-            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE        
+            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE
             tx_ovfout                            => open,
             tx_unfout                            => open,
             tx_preamblein                        => (others => '0'),  -- tx_preamblein is driven as 0
@@ -1160,7 +1160,7 @@ begin
          when DONE_S =>
             -- 4. Data transmission and reception can be performed.
             v.phyRdy := '1';
-            -- Check for error or not aligned 
+            -- Check for error or not aligned
             if (stat_rx_aligned_err = '1') or (stat_rx_aligned = '0') then
                -- Reset the state machine to re-align
                v := REG_INIT_C;

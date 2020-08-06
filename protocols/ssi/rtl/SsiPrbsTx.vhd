@@ -3,15 +3,15 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   This module generates 
+-- Description:   This module generates
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ entity SsiPrbsTx is
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       PRBS_INCREMENT_G           : boolean                 := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(16, TKEEP_COMP_C);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16   := 0);
    port (
       -- Master Port (mAxisClk)
@@ -154,7 +154,7 @@ begin
    begin
       -- Latch the current value
       v := r;
-      
+
       ----------------------------------------------------------------------------------------------
       -- Axi-Lite interface
       ----------------------------------------------------------------------------------------------
@@ -187,14 +187,13 @@ begin
 
       if (axilStatus.readEnable = '1') then
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         v.axilReadSlave.rdata := (others => '0');
          case (axilReadMaster.araddr(7 downto 0)) is
             when X"00" =>
                v.axilReadSlave.rdata(0) := r.axiEn;
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
-               -- BIT4 reserved 
+               -- BIT4 reserved
                v.axilReadSlave.rdata(5) := r.cntData;
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
@@ -344,7 +343,7 @@ begin
                if r.dataCnt = r.length then
                   -- Reset the counter
                   v.dataCnt            := (others => '0');
-                  -- Set the EOF bit                
+                  -- Set the EOF bit
                   v.txAxisMaster.tLast := '1';
                   -- Set the EOFE bit
                   ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, r.overflow);

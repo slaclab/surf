@@ -9,7 +9,7 @@ loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
 # Load Simulation
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
-   
+
 if {  ${family} == "artix7" ||
       ${family} == "kintex7" ||
       ${family} == "virtex7" ||
@@ -22,6 +22,7 @@ if { ${family} eq {kintexu} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} ||
+     ${family} eq {qzynquplusRFSOC} } {
    loadSource -lib surf -dir  "$::DIR_PATH/UltraScale"
 }

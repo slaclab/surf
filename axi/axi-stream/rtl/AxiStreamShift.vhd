@@ -7,11 +7,11 @@
 -- will pause until a new shift command is provided.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamShift is
    generic (
       TPD_G          : time                  := 1 ns;
-      AXIS_CONFIG_G  : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G  : AxiStreamConfigType;
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
       ADD_VALID_EN_G : boolean               := false;
       BYP_SHIFT_G    : boolean               := false);
@@ -155,7 +155,7 @@ architecture rtl of AxiStreamShift is
    signal pipeAxisSlave  : AxiStreamSlaveType;
 
 --   attribute dont_touch      : string;
---   attribute dont_touch of r : signal is "TRUE";    
+--   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -170,7 +170,7 @@ begin
          variable v       : RegType;
          variable sMaster : AxiStreamMasterType;
       begin
-         -- Latch the current value 
+         -- Latch the current value
          v := r;
 
          -- Init Ready
@@ -260,7 +260,7 @@ begin
             v.master.tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
             v.master.tStrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
          end if;
-         
+
          -- Combinatorial outputs before the reset
          sAxisSlave <= v.slave;
 
@@ -269,10 +269,10 @@ begin
             v := REG_INIT_C;
          end if;
 
-         -- Register the variable for next clock cycle  
+         -- Register the variable for next clock cycle
          rin <= v;
 
-         -- Outputs 
+         -- Outputs
          pipeAxisMaster <= r.master;
 
       end process comb;
@@ -287,7 +287,7 @@ begin
             sAxisMaster => pipeAxisMaster,
             sAxisSlave  => pipeAxisSlave,
             mAxisMaster => mAxisMaster,
-            mAxisSlave  => mAxisSlave);   
+            mAxisSlave  => mAxisSlave);
 
       seq : process (axisClk) is
       begin
@@ -295,7 +295,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
 end rtl;

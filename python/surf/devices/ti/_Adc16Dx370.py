@@ -17,7 +17,7 @@ import pyrogue as pr
 import time
 
 class Adc16Dx370(pr.Device):
-    def __init__( self, verify=False, **kwargs):
+    def __init__( self, **kwargs):
 
         super().__init__(**kwargs)
 

@@ -4,11 +4,11 @@
 -- Description: This module infers either Block RAM or distributed RAM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G          : time                       := 1 ns;
-      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       MEMORY_TYPE_G  : string                     := "block";
       REG_EN_G       : boolean                    := true;   -- This generic only with BRAM
       DOA_REG_G      : boolean                    := false;  -- This generic only with BRAM
@@ -36,7 +36,7 @@ entity DualPortRam is
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
    port (
-      -- Port A     
+      -- Port A
       clka    : in  sl                                                    := '0';
       ena     : in  sl                                                    := '1';
       wea     : in  sl                                                    := '0';
@@ -75,7 +75,7 @@ begin
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
             INIT_G         => INIT_G)
          port map (
-            -- Port A     
+            -- Port A
             clka    => clka,
             ena     => ena,
             wea     => wea,
@@ -109,7 +109,7 @@ begin
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
             INIT_G         => INIT_G)
          port map (
-            -- Port A     
+            -- Port A
             clka    => clka,
             en_a    => ena,
             wea     => wea,

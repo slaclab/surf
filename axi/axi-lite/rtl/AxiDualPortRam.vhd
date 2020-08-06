@@ -2,14 +2,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper of StdLib DualPortRam that places an AxiLite
--- interface on the read/write port. 
+-- interface on the read/write port.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ entity AxiDualPortRam is
       SYNTH_MODE_G        : string                     := "inferred";
       MEMORY_TYPE_G       : string                     := "block";
       MEMORY_INIT_FILE_G  : string                     := "none";  -- Used for MEMORY_TYPE_G="XPM only
-      MEMORY_INIT_PARAM_G : string                     := "0";  -- Used for MEMORY_TYPE_G="XPM only    
+      MEMORY_INIT_PARAM_G : string                     := "0";  -- Used for MEMORY_TYPE_G="XPM only
       READ_LATENCY_G      : natural range 0 to 3       := 2;
       AXI_WR_EN_G         : boolean                    := true;
       SYS_WR_EN_G         : boolean                    := false;
@@ -129,7 +129,7 @@ begin
             BYTE_WIDTH_G        => 8,
             ADDR_WIDTH_G        => ADDR_WIDTH_G)
          port map (
-            -- Port A  
+            -- Port A
             clka  => axiClk,
             ena   => '1',
             wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
@@ -159,7 +159,7 @@ begin
             BYTE_WIDTH_G   => 8,
             ADDR_WIDTH_G   => ADDR_WIDTH_G)
          port map (
-            -- Port A  
+            -- Port A
             clka  => axiClk,
             ena   => '1',
             wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
@@ -318,7 +318,6 @@ begin
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
-      v.axiReadSlave.rdata := (others => '0');
 
       -- Multiplex read data onto axi bus
       if (DATA_WIDTH_G <= 32) then
@@ -333,7 +332,7 @@ begin
 
       -- State Machine
       case (r.state) is
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for write transaction
             if (axiStatus.writeEnable = '1') then

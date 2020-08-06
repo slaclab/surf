@@ -9,11 +9,11 @@
 --              Tags frames with EOFE on change in TDEST during move
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,13 +32,13 @@ entity SsiObFrameFilter is
       TPD_G         : time                := 1 ns;
       VALID_THOLD_G : natural             := 1;
       PIPE_STAGES_G : natural             := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType := SSI_CONFIG_INIT_C);
+      AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port (AXIS FIFO Read Interface)
       sAxisMaster    : in  AxiStreamMasterType;
       sTLastTUser    : in  slv(7 downto 0);
       sAxisSlave     : out AxiStreamSlaveType;
-      -- Master Port  
+      -- Master Port
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
       mAxisDropWord  : out sl;          -- Word dropped status output
@@ -180,7 +180,7 @@ begin
                -- Move the data bus
                v.master := sAxisMaster;
 
-               -- Check for EOF   
+               -- Check for EOF
                if (sAxisMaster.tLast = '1') then
                   -- Next state
                   v.state := IDLE_S;

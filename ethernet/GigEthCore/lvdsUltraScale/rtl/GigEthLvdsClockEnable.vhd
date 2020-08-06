@@ -103,7 +103,7 @@ begin
          v.ethClkEn := '1';
       end if;
 
-      -- Outputs 
+      -- Outputs
       ethClkEn <= r.ethClkEn;
 
       -- Reset

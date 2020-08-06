@@ -4,11 +4,11 @@
 -- Description: AD9467 Deserializer Bit Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -45,20 +45,20 @@ entity AxiAd9467DeserBit is
 end AxiAd9467DeserBit;
 
 architecture rtl of AxiAd9467DeserBit is
-   
+
    signal data,
       dataDly : sl;
-   
+
    attribute IODELAY_GROUP                  : string;
    attribute IODELAY_GROUP of IDELAYE2_inst : label is IODELAY_GROUP_G;
-   
+
 begin
 
    IBUFDS_Inst : IBUFDS
       port map (
          I  => dataP,
          IB => dataN,
-         O  => data);                 
+         O  => data);
 
    IDELAYE2_inst : IDELAYE2
       generic map (
@@ -89,14 +89,14 @@ begin
          DDR_CLK_EDGE => "SAME_EDGE_PIPELINED",  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
          INIT_Q1      => '0',           -- Initial value of Q1: '0' or '1'
          INIT_Q2      => '0',           -- Initial value of Q2: '0' or '1'
-         SRTYPE       => "SYNC")        -- Set/Reset type: "SYNC" or "ASYNC" 
+         SRTYPE       => "SYNC")        -- Set/Reset type: "SYNC" or "ASYNC"
       port map (
          D  => dataDly,                 -- 1-bit DDR data input
          C  => clk,                     -- 1-bit clock input
          CE => '1',                     -- 1-bit clock enable input
          R  => '0',                     -- 1-bit reset
          S  => '0',                     -- 1-bit set
-         Q1 => Q1,                      -- 1-bit output for positive edge of clock 
+         Q1 => Q1,                      -- 1-bit output for positive edge of clock
          Q2 => Q2);                     -- 1-bit output for negative edge of clock
 
 end rtl;

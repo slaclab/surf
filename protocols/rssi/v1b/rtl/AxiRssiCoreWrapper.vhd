@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for RSSI + AXIS packetizer 
+-- Description: Wrapper for RSSI + AXIS packetizer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,18 +32,18 @@ use surf.SsiPkg.all;
 entity AxiRssiCoreWrapper is
    generic (
       TPD_G               : time                 := 1 ns;
-      SERVER_G            : boolean              := true;  --! Module is server or client      
+      SERVER_G            : boolean              := true;  --! Module is server or client
       JUMBO_G             : boolean              := false;  --! true=8192 byte payload, false=1024 byte payload
-      AXI_CONFIG_G        : AxiConfigType        := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and "maybe" not the entire memory address space available 
+      AXI_CONFIG_G        : AxiConfigType;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and "maybe" not the entire memory address space available
       -- AXIS Configurations
       APP_STREAMS_G       : positive             := 1;
       APP_STREAM_ROUTES_G : Slv8Array            := (0 => "--------");
-      APP_AXIS_CONFIG_G   : AxiStreamConfigArray := (0 => ssiAxiStreamConfig(8, TKEEP_NORMAL_C));
-      TSP_AXIS_CONFIG_G   : AxiStreamConfigType  := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
+      APP_AXIS_CONFIG_G   : AxiStreamConfigArray;
+      TSP_AXIS_CONFIG_G   : AxiStreamConfigType;
       -- RSSI Timeouts
       CLK_FREQUENCY_G     : real                 := 156.25E+6;  -- In units of Hz
       TIMEOUT_UNIT_G      : real                 := 1.0E-3;  -- In units of seconds
-      ACK_TOUT_G          : positive             := 25;  -- unit depends on TIMEOUT_UNIT_G 
+      ACK_TOUT_G          : positive             := 25;  -- unit depends on TIMEOUT_UNIT_G
       RETRANS_TOUT_G      : positive             := 50;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
       NULL_TOUT_G         : positive             := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
       -- Counters
@@ -187,7 +187,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          MEMORY_TYPE_G        => "block",
-         REG_EN_G             => true,         
+         REG_EN_G             => true,
          CRC_MODE_G           => "FULL",
          CRC_POLY_G           => x"04C11DB7",
          TDEST_BITS_G         => 8,
@@ -265,7 +265,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          MEMORY_TYPE_G        => "block",
-         REG_EN_G             => true,  
+         REG_EN_G             => true,
          CRC_MODE_G           => "FULL",
          CRC_POLY_G           => x"04C11DB7",
          TDEST_BITS_G         => 8,

@@ -1,8 +1,8 @@
 # This will run on Travis' 'new' container-based infrastructure
 sudo: true
 
-# Setup for Ubuntu Bionic (18.04)
-dist: bionic
+# Setup for Ubuntu Focal (20.04)
+dist: focal
 
 # Blacklist
 branches:
@@ -36,9 +36,11 @@ addons:
       - graphviz
       - python3
       - flake8
-      # - ghdl
+      - ghdl
 
 stages:
+    - name: gen_release
+      if: tag IS present
     # On master branch (but not on PRs to master) or in tagged releases
     # generate and deploy the documentation
     - name: generate_and_deploy
@@ -62,8 +64,6 @@ jobs:
       before_script:
         - cd $TRAVIS_BUILD_DIR
         - chmod +x scripts/generateDocumentationAndDeploy.sh
-        - chmod +x scripts/ghdl-travis-install.sh
-        - ./scripts/ghdl-travis-install.sh > /dev/null 2>&1
         - make
         - rm -rf ghdl-build
         - python3 -m compileall -f python/
@@ -75,7 +75,7 @@ jobs:
     - <<: *documentation_stage
       stage: generate_and_deploy
       name: "Generate and Deploy Documentation"
-      script: 
+      script:
         - ./scripts/generateDocumentationAndDeploy.sh 1
 
     - &deploy-conda-stage       # Conda for linux
@@ -137,3 +137,10 @@ jobs:
       #language: ruby  # osx does not support language=python
       #env: CONDA_TOKEN=$CONDA_UPLOAD_TOKEN_TAG
 
+    - stage: gen_release
+      name: "Generate Release"
+      install:
+         - git clone https://github.com/slaclab/ruckus.git
+         - pip install -r ruckus/scripts/pip_requirements.txt
+      script:
+         - python ruckus/scripts/releaseGen.py

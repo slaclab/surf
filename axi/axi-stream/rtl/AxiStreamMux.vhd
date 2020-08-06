@@ -6,11 +6,11 @@
 -- outbound stream. The destination field is updated accordingly.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -30,21 +29,28 @@ entity AxiStreamMux is
       TPD_G                : time                   := 1 ns;
       PIPE_STAGES_G        : integer range 0 to 16  := 0;
       NUM_SLAVES_G         : integer range 1 to 256 := 4;
-      -- In INDEXED mode, the output TDEST is set based on the selected slave index
-      -- In ROUTED mode, TDEST is set accoring to the TDEST_ROUTES_G table
-      MODE_G               : string                 := "INDEXED";
+      -- In INDEXED mode, the output TDEST is set based on the selected slave index (default)
+      -- In ROUTED mode, TDEST is set according to the TDEST_ROUTES_G table
+      -- In PASSTHROUGH mode, TDEST is passed through from the slave untouched
+      MODE_G               : string                 := "INDEXED"; -- Note: Planning to rename "MODE_G" to "TDEST_MODE_G" in a future MAJOR release of SURF
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
       TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
+      -- In INDEXED mode, the output TID is set based on the selected slave index
+      -- In ROUTED mode, TID is set according to the TID_ROUTES_G table
+      -- In PASSTHROUGH mode, TID is passed through from the slave untouched (default)
+      TID_MODE_G           : string                 := "PASSTHROUGH";
+      -- In ROUTED mode, an array mapping how TID should be assigned for each slave port
+      TID_ROUTES_G         : Slv8Array              := (0 => "--------");
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G          : integer range 0 to 7   := 0;
       -- Set to true if interleaving dests
       ILEAVE_EN_G          : boolean                := false;
-      -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false      
+      -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false
       ILEAVE_ON_NOTVALID_G : boolean                := false;
       -- Max number of transactions between arbitrations, 0 = unlimited, ignored when ILEAVE_EN_G=false
       ILEAVE_REARB_G      : natural range 0 to 4095 := 0;
-      -- One cycle gap in stream between during rearbitration.
+      -- One cycle gap in stream between during re-arbitration.
       -- Set true for better timing, false for higher throughput.
       REARB_DELAY_G        : boolean                := true;
       -- Block selected slave txns arriving on same cycle as rearbitrate or disableSel from going through,
@@ -98,23 +104,39 @@ architecture rtl of AxiStreamMux is
 
 begin
 
-   assert (MODE_G /= "INDEXED" or (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)))
+   assert ( (MODE_G = "PASSTHROUGH") or (MODE_G = "INDEXED") or (MODE_G = "ROUTED") )
+      report "MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
+      severity error;
+
+   assert ( (MODE_G = "INDEXED") and (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)) ) or (MODE_G /= "INDEXED")
       report "In INDEXED mode, TDest range 7 downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_SLAVES_G=" & integer'image(NUM_SLAVES_G)
       severity error;
 
-   assert (MODE_G /= "ROUTED" or (TDEST_ROUTES_G'length = NUM_SLAVES_G))
+   assert ( (MODE_G = "ROUTED") and (TDEST_ROUTES_G'length = NUM_SLAVES_G) ) or (MODE_G /= "ROUTED")
       report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
       " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
       severity error;
 
-   -- Override tdests according to the routing table
-   TDEST_REMAP : process (sAxisMasters) is
+   assert ( (TID_MODE_G = "PASSTHROUGH") or (TID_MODE_G = "INDEXED") or (TID_MODE_G = "ROUTED") )
+      report "TID_MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
+      severity error;
+
+   assert ( (TID_MODE_G = "ROUTED") and (TID_ROUTES_G'length = NUM_SLAVES_G) ) or (TID_MODE_G /= "ROUTED")
+      report "In ROUTED mode, length of TID_ROUTES_G: " & integer'image(TID_ROUTES_G'length) &
+      " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
+      severity error;
+
+   -- Override TDESTS and TIDs according to the routing tables
+   ROUTE_TABLE_REMAP : process (sAxisMasters) is
       variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       variable i   : natural;
       variable j   : natural;
    begin
+      -- Latch the current value
       tmp := sAxisMasters;
+
+      -- Check for TDEST routing
       if MODE_G = "ROUTED" then
          for i in NUM_SLAVES_G-1 downto 0 loop
             for j in 7 downto 0 loop
@@ -128,7 +150,25 @@ begin
             end loop;
          end loop;
       end if;
+
+      -- Check for TID routing
+      if TID_MODE_G = "ROUTED" then
+         for i in NUM_SLAVES_G-1 downto 0 loop
+            for j in 7 downto 0 loop
+               if (TID_ROUTES_G(i)(j) = '1') then
+                  tmp(i).tId(j) := '1';
+               elsif(TID_ROUTES_G(i)(j) = '0') then
+                  tmp(i).tId(j) := '0';
+               else
+                  tmp(i).tId(j) := sAxisMasters(i).tId(j);
+               end if;
+            end loop;
+         end loop;
+      end if;
+
+      -- Outputs
       sAxisMastersTmp <= tmp;
+
    end process;
 
    comb : process (axisRst, disableSel, ileaveRearb, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
@@ -137,16 +177,20 @@ begin
       variable selData  : AxiStreamMasterType;
       variable i        : natural;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
-      -- Reset the flags
+      -----------------------------------------------------------------------
+
+      -- AXI Stream Flow Control
       for i in 0 to (NUM_SLAVES_G-1) loop
          v.slaves(i).tReady := '0';
       end loop;
       if pipeAxisSlave.tReady = '1' then
          v.master.tValid := '0';
       end if;
+
+      -----------------------------------------------------------------------
 
       -- Select source
       if NUM_SLAVES_G = 1 then
@@ -155,18 +199,32 @@ begin
          selData := sAxisMastersTmp(conv_integer(r.ackNum));
       end if;
 
+      -----------------------------------------------------------------------
+
       -- In INDEXED mode, assign the slave index to TDEST at offset of TDEST_LOW_G
       if MODE_G = "INDEXED" then
          selData.tDest(7 downto TDEST_LOW_G)                         := (others => '0');
          selData.tDest(DEST_SIZE_C+TDEST_LOW_G-1 downto TDEST_LOW_G) := r.ackNum;
       end if;
 
+      -- In INDEXED mode, assign slave index to TID
+      if (TID_MODE_G = "INDEXED") then
+         selData.tId := resize(r.ackNum, 8);
+      end if;
+
+      -----------------------------------------------------------------------
+
+      -- NOTE: MODE_G = "PASSTHROUGH and TID_MODE_G = "PASSTHROUGH" are degenerate cases.
+      -- In the absence of "ROUTED" or "INDEXED", TDEST and TID are assigned
+      -- directly from the slave input to the output master.
+
+      -----------------------------------------------------------------------
+
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          requests(i) := sAxisMastersTmp(i).tValid and not disableSel(i);
       end loop;
-
 
       if (r.valid = '1') then
          -- RE-arbitrate on gaps if configured to do so
@@ -208,12 +266,12 @@ begin
          v.arbCnt := (others => '0');
       end if;
 
-      -- Arbitrate between requesters      
+      -- Arbitrate between requesters
       if ((v.valid = '0' and REARB_DELAY_G = false) or r.valid = '0') then
          v.arbCnt := (others => '0');
          arbitrate(requests, r.ackNum, v.ackNum, v.valid, v.acks);
       end if;
-      
+
       -- Combinatorial outputs before the reset
       sAxisSlaves <= v.slaves;
 
@@ -235,7 +293,7 @@ begin
       if (rising_edge(axisClk)) then
          r <= rin after TPD_G;
       end if;
-   end process seq;   
+   end process seq;
 
    -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline

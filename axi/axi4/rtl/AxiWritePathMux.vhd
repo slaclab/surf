@@ -5,11 +5,11 @@
 -- Block to connect multiple incoming AXI write path interfaces.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -141,7 +141,7 @@ begin
             -- Assert ready
             v.slaves(conv_integer(r.addrAckNum)).awready := '1';
 
-            -- Advance pipeline 
+            -- Advance pipeline
             v.master.awvalid := '1';
             v.master.awaddr  := selAddr.awaddr;
             v.master.awid    := selAddr.awid;
@@ -202,7 +202,7 @@ begin
          when S_MOVE_C =>
             v.dataAck  := '0';
 
-            -- Advance pipeline 
+            -- Advance pipeline
             if r.master.wvalid = '0' or mAxiWriteSlave.wready = '1' then
                v.master.wdata  := selData.wdata;
                v.master.wlast  := selData.wlast;
@@ -271,8 +271,8 @@ begin
            sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
          end loop;
          mAxiWriteMaster.bready <= v.master.bready;
-      end if;      
-   
+      end if;
+
       if (axiRst = '1') or (NUM_SLAVES_G = 1) then
          v := REG_INIT_C;
       end if;

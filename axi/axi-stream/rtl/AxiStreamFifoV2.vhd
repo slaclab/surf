@@ -4,14 +4,14 @@
 -- Description:
 -- Block to serve as an async FIFO for AXI Streams. This block also allows the
 -- bus to be compress/expanded, allowing different standard sizes on each side
--- of the FIFO. Re-sizing is always little endian. 
+-- of the FIFO. Re-sizing is always little endian.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ entity AxiStreamFifoV2 is
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
       -- Set to 0 for same size as primary fifo (default)
       -- Set >4 for custom size.
-      -- Use at own risk. Overflow of tLast fifo is not checked      
+      -- Use at own risk. Overflow of tLast fifo is not checked
       LAST_FIFO_ADDR_WIDTH_G : integer range 0 to 48 := 0;
 
       -- Index = 0 is output, index = n is input
@@ -64,9 +64,8 @@ entity AxiStreamFifoV2 is
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
 
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
-      );
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Slave Port
@@ -188,7 +187,7 @@ begin
          TPD_G               => TPD_G,
          READY_EN_G          => SLAVE_READY_EN_G,
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => FIFO_CONFIG_C) 
+         MASTER_AXI_CONFIG_G => FIFO_CONFIG_C)
          port map (
             axisClk     => sAxisClk,
             axisRst     => sAxisRst,
@@ -217,7 +216,7 @@ begin
 
    -- Is ready enabled?
    fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
-   
+
    -- Output a copy of FIFO WR count incase application needs more than one threshold
    fifoWrCnt <= fifoWrCount;
 
@@ -242,7 +241,7 @@ begin
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          FWFT_EN_G          => true,
          SYNTH_MODE_G       => SYNTH_MODE_G,
-         MEMORY_TYPE_G      => MEMORY_TYPE_G,         
+         MEMORY_TYPE_G      => MEMORY_TYPE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => FIFO_BITS_C,
          ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
@@ -296,7 +295,7 @@ begin
             valid  => fifoValidLast);
 
       U_PreFillMode : if ((VALID_BURST_MODE_G = false) or (VALID_THOLD_G = 0)) generate
-         
+
          process (mAxisClk) is
          begin
             if (rising_edge(mAxisClk)) then
@@ -315,7 +314,7 @@ begin
       end generate;
 
       U_BurstMode : if ((VALID_BURST_MODE_G = true) and (VALID_THOLD_G /= 0)) generate
-         
+
          process (mAxisClk) is
          begin
             if (rising_edge(mAxisClk)) then
@@ -347,11 +346,11 @@ begin
                end if;
             end if;
          end process;
-         
+
       end generate;
 
       fifoValid <= fifoValidInt and fifoInFrame;
-      
+
    end generate;
 
    U_LastFifoDisGen : if VALID_THOLD_G = 1 generate
@@ -378,7 +377,7 @@ begin
          READY_EN_G          => true,
          SIDE_BAND_WIDTH_G   => 8,
          SLAVE_AXI_CONFIG_G  => FIFO_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G) 
+         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
       port map (
          axisClk     => mAxisClk,
          axisRst     => mAxisRst,

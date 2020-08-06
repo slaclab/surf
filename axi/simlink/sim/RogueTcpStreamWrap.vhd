@@ -4,11 +4,11 @@
 -- Description: Wrapper for Rogue Stream Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,7 +27,8 @@ entity RogueTcpStreamWrap is
       PORT_NUM_G    : natural range 1024 to 49151 := 9000;
       SSI_EN_G      : boolean                     := true;
       CHAN_COUNT_G  : positive range 1 to 256     := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType         := AXI_STREAM_CONFIG_INIT_C);
+      TDEST_MASK_G  : slv(7 downto 0)             := x"00";  -- Sets output TDEST when CHAN_COUNT_G=1
+      AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and Reset
       axisClk     : in  sl;
@@ -71,24 +72,31 @@ begin
    ----------------
    -- Inbound DEMUX
    ----------------
-   U_DeMux : entity surf.AxiStreamDeMux
-      generic map (
-         TPD_G         => 1 ns,
-         NUM_MASTERS_G => CHAN_COUNT_G)
-      port map (
-         -- Clock and reset
-         axisClk      => axisClk,
-         axisRst      => axisRst,
-         sAxisMaster  => sAxisMaster,
-         sAxisSlave   => sAxisSlave,
-         mAxisMasters => dmMasters,
-         mAxisSlaves  => dmSlaves);
+   GEN_DEMUX : if (CHAN_COUNT_G /= 1) generate
+      U_DeMux : entity surf.AxiStreamDeMux
+         generic map (
+            TPD_G         => TPD_G,
+            NUM_MASTERS_G => CHAN_COUNT_G)
+         port map (
+            -- Clock and reset
+            axisClk      => axisClk,
+            axisRst      => axisRst,
+            sAxisMaster  => sAxisMaster,
+            sAxisSlave   => sAxisSlave,
+            mAxisMasters => dmMasters,
+            mAxisSlaves  => dmSlaves);
+   end generate;
+
+   BYP_DEMUX : if (CHAN_COUNT_G = 1) generate
+      dmMasters(0) <= sAxisMaster;
+      sAxisSlave   <= dmSlaves(0);
+   end generate;
 
    -- Channels
    U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
 
       ------------------
-      -- Inbound Resizer 
+      -- Inbound Resizer
       ------------------
       U_Ib_Resize : entity surf.AxiStreamResize
          generic map (
@@ -135,7 +143,7 @@ begin
             ibLast     => ibMasters(i).tLast);
 
       obMasters(i).tStrb <= (others => '1');
-      obMasters(i).tDest <= (others => '0');
+      obMasters(i).tDest <= TDEST_MASK_G when(CHAN_COUNT_G = 1) else x"00";
       obMasters(i).tId   <= (others => '0');
 
       obMasters(i).tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8)  <= (others => '0');
@@ -143,7 +151,7 @@ begin
       obMasters(i).tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
 
       -------------------
-      -- Outbound Resizer 
+      -- Outbound Resizer
       -------------------
       U_Ob_Resize : entity surf.AxiStreamResize
          generic map (
@@ -168,16 +176,23 @@ begin
    ---------------
    -- Outbound MUX
    ---------------
-   U_Mux : entity surf.AxiStreamMux
-      generic map (
-         TPD_G        => 1 ns,
-         NUM_SLAVES_G => CHAN_COUNT_G)
-      port map (
-         axisClk      => axisClk,
-         axisRst      => axisRst,
-         sAxisMasters => mxMasters,
-         sAxisSlaves  => mxSlaves,
-         mAxisMaster  => mAxisMaster,
-         mAxisSlave   => mAxisSlave);
+   GEN_MUX : if (CHAN_COUNT_G /= 1) generate
+      U_Mux : entity surf.AxiStreamMux
+         generic map (
+            TPD_G        => TPD_G,
+            NUM_SLAVES_G => CHAN_COUNT_G)
+         port map (
+            axisClk      => axisClk,
+            axisRst      => axisRst,
+            sAxisMasters => mxMasters,
+            sAxisSlaves  => mxSlaves,
+            mAxisMaster  => mAxisMaster,
+            mAxisSlave   => mAxisSlave);
+   end generate;
+
+   BYP_MUX : if (CHAN_COUNT_G = 1) generate
+      mAxisMaster <= mxMasters(0);
+      mxSlaves(0) <= mAxisSlave;
+   end generate;
 
 end RogueTcpStreamWrap;

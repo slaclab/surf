@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Top Level Transmit/Receive interface module for the Pretty Good Protocol core. 
+-- Top Level Transmit/Receive interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-entity Pgp2bLane is 
+entity Pgp2bLane is
    generic (
       TPD_G             : time                             := 1 ns;
       LANE_CNT_G        : integer range 1 to 2             := 1;    -- Number of lanes, 1-2
@@ -37,12 +37,12 @@ entity Pgp2bLane is
       TX_ENABLE_G       : boolean                          := true; -- Enable TX direction
       RX_ENABLE_G       : boolean                          := true  -- Enable RX direction
    );
-   port ( 
+   port (
 
       ---------------------------------
       -- Transmitter Interface
       ---------------------------------
-   
+
       -- System clock, reset & control
       pgpTxClkEn        : in  sl := '1';
       pgpTxClk          : in  sl := '0';
@@ -107,14 +107,14 @@ begin
    U_TxEnGen: if TX_ENABLE_G = true generate
 
       -- Transmit
-      U_Pgp2bTx: entity surf.Pgp2bTx 
+      U_Pgp2bTx: entity surf.Pgp2bTx
          generic map (
             TPD_G              => TPD_G,
             TX_LANE_CNT_G      => LANE_CNT_G,
             VC_INTERLEAVE_G    => VC_INTERLEAVE_G,
             PAYLOAD_CNT_TOP_G  => PAYLOAD_CNT_TOP_G,
             NUM_VC_EN_G        => NUM_VC_EN_G
-         ) port map ( 
+         ) port map (
             pgpTxClkEn         => pgpTxClkEn,
             pgpTxClk           => pgpTxClk,
             pgpTxClkRst        => pgpTxClkRst,
@@ -144,7 +144,7 @@ begin
    U_RxEnGen: if RX_ENABLE_G = true generate
 
       -- Receive
-      U_Pgp2bRx: entity surf.Pgp2bRx 
+      U_Pgp2bRx: entity surf.Pgp2bRx
          generic map (
             TPD_G              => TPD_G,
             RX_LANE_CNT_G      => LANE_CNT_G,
@@ -176,7 +176,7 @@ begin
             mAxisMasters => pgpRxMasters,
             mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
          );
-     
+
    end generate;
 
    U_RxDisGen: if RX_ENABLE_G = false generate

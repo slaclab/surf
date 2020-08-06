@@ -782,7 +782,7 @@ package float_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;  -- floating point input
-    N                    : INTEGER;     -- exponent to add    
+    N                    : INTEGER;     -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -791,7 +791,7 @@ package float_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;  -- floating point input
-    N                    : SIGNED;      -- exponent to add    
+    N                    : SIGNED;      -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -951,7 +951,7 @@ package float_pkg is
 
   function from_string (
     bstring  : STRING;                  -- binary string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float;
   alias from_bstring is from_string [STRING, UNRESOLVED_float
                                      return UNRESOLVED_float];
@@ -960,14 +960,14 @@ package float_pkg is
 
   function from_ostring (
     ostring  : STRING;                  -- Octal string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float;
   alias from_octal_string is from_ostring [STRING, UNRESOLVED_float
                                            return UNRESOLVED_float];
 
   function from_hstring (
     hstring  : STRING;                  -- hex string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float;
   alias from_hex_string is from_hstring [STRING, UNRESOLVED_float
                                          return UNRESOLVED_float];
@@ -1176,7 +1176,7 @@ package body float_pkg is
   type stdlogic_table is array(STD_ULOGIC, STD_ULOGIC) of STD_ULOGIC;
   constant match_logic_table : stdlogic_table := (
     -----------------------------------------------------
-    -- U    X    0    1    Z    W    L    H    -         |   |  
+    -- U    X    0    1    Z    W    L    H    -         |   |
     -----------------------------------------------------
     ('U', 'U', 'U', 'U', 'U', 'U', 'U', 'U', '1'),  -- | U |
     ('U', 'X', 'X', 'X', 'X', 'X', 'X', 'X', '1'),  -- | X |
@@ -1821,7 +1821,7 @@ package body float_pkg is
       fract       => fract,
       expon       => expon);
   end procedure break_number;
-  
+
   procedure break_number (
     arg         : in  UNRESOLVED_float;
     denormalize : in  BOOLEAN := float_denormalize;
@@ -1852,7 +1852,7 @@ package body float_pkg is
   begin
     if (arg'length > 0) then
       result            := to_01 (arg, 'X');
-      result (arg'high) := '0';         -- set the sign bit to positive     
+      result (arg'high) := '0';         -- set the sign bit to positive
       return result;
     else
       return NAFP;
@@ -2886,7 +2886,7 @@ package body float_pkg is
                          round_style => round_style,
                          guard       => guard,
                          check_error => false,
-                         denormalize => denormalize);        
+                         denormalize => denormalize);
       end if;
     end if;
     return fpresult;
@@ -5699,7 +5699,7 @@ package body float_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;      -- floating point input
-    N                    : INTEGER;     -- exponent to add    
+    N                    : INTEGER;     -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -5748,7 +5748,7 @@ package body float_pkg is
   -- Returns y * 2**n for integral values of N without computing 2**n
   function Scalb (
     y                    : UNRESOLVED_float;  -- floating point input
-    N                    : SIGNED;      -- exponent to add    
+    N                    : SIGNED;      -- exponent to add
     constant round_style : round_type := float_round_style;  -- rounding option
     constant check_error : BOOLEAN    := float_check_error;  -- check for errors
     constant denormalize : BOOLEAN    := float_denormalize)  -- Use IEEE extended FP
@@ -6239,7 +6239,7 @@ package body float_pkg is
       return result;
     end if;
   end function to_ostring;
-  -------------------------------------------------------------------   
+  -------------------------------------------------------------------
   function to_hstring (value : STD_LOGIC_VECTOR) return STRING is
     constant ne     : INTEGER := (value'length+3)/4;
     variable pad    : STD_LOGIC_VECTOR(0 to (ne*4 - value'length) - 1);
@@ -7054,7 +7054,7 @@ package body float_pkg is
 
   function from_string (
     bstring  : STRING;                  -- binary string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float is
   begin
     return from_string (bstring        => bstring,
@@ -7064,7 +7064,7 @@ package body float_pkg is
 
   function from_ostring (
     ostring  : STRING;                  -- Octal string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float is
   begin
     return from_ostring (ostring        => ostring,
@@ -7074,7 +7074,7 @@ package body float_pkg is
 
   function from_hstring (
     hstring  : STRING;                  -- hex string
-    size_res : UNRESOLVED_float)        -- used for sizing only 
+    size_res : UNRESOLVED_float)        -- used for sizing only
     return UNRESOLVED_float is
   begin
     return from_hstring (hstring        => hstring,

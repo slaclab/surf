@@ -6,11 +6,11 @@
 -- module should be attached to an 8b10b encoder.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -125,6 +125,7 @@ begin
                   v.dataOut  := SSP_EOF_CODE_G;
                   v.dataKOut := SSP_EOF_K_G;
                   v.mode     := IDLE_MODE_C;
+                  v.readyIn  := '0';
                else
                   -- if not auto framing and valid drops, insert idle char
                   v.dataOut  := SSP_IDLE_CODE_G;
