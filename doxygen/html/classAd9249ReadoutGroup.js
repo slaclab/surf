@@ -30,7 +30,11 @@ var classAd9249ReadoutGroup =
     [ "Ad9249Pkg", "classAd9249ReadoutGroup.html#af6b33265da6fc3ff22ecfea761e52e63", null ],
     [ "D_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a8990dde40765b6e681a95bbebfb5bfe3", null ],
     [ "F_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a4c976259118e2959f7ebbe2ee3d96609", null ],
-    [ "DELAY_VALUE_G", "classAd9249ReadoutGroup.html#a39f99706292a5ac0ba42e523bdea69ce", null ],
     [ "USE_MMCME_G", "classAd9249ReadoutGroup.html#aeb6c4a722f7aa7b53f5bba1ab912d28d", null ],
-    [ "SIM_SPEEDUP_G", "classAd9249ReadoutGroup.html#af30021898e964025ce5297b609d506ae", null ]
+    [ "SIM_SPEEDUP_G", "classAd9249ReadoutGroup.html#af30021898e964025ce5297b609d506ae", null ],
+    [ "adcBitClkIn", "classAd9249ReadoutGroup.html#a0e4d9be97458ab414583be8f1b3196ee", null ],
+    [ "adcBitClkDiv4In", "classAd9249ReadoutGroup.html#a5ab00ea2c351a01c00d93b59c56c938c", null ],
+    [ "adcBitRstIn", "classAd9249ReadoutGroup.html#a8cfe7c4afb2076a76f909053982466f6", null ],
+    [ "adcBitRstDiv4In", "classAd9249ReadoutGroup.html#a4187b414bfafcde44b3d945cb4f46c80", null ],
+    [ "adcReady", "classAd9249ReadoutGroup.html#a4f149b4b2de9c14a152a2d7e03ce9186", null ]
 ];

@@ -10,6 +10,7 @@ var classAxiStreamBatcher =
     [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamBatcher.html#ab92515f9de5f37fe8533ce31793919b3", null ],
     [ "axisClk", "classAxiStreamBatcher.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamBatcher.html#a044b1bf79201c595c20474cecf020a5d", null ],
+    [ "forceTerm", "classAxiStreamBatcher.html#a1a342c106f2ae4281ac7b5a97ce9329a", null ],
     [ "superFrameByteThreshold", "classAxiStreamBatcher.html#a1727cb0f89266d17c18d20ccef228a84", null ],
     [ "maxSubFrames", "classAxiStreamBatcher.html#a82c18bab6b199e0805553cb763dd182f", null ],
     [ "maxClkGap", "classAxiStreamBatcher.html#a21b97730b393ba24df6fccb5edfb5d18", null ],

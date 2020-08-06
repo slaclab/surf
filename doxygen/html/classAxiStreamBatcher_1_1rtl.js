@@ -1,7 +1,7 @@
 var classAxiStreamBatcher_1_1rtl =
 [
     [ "doTail", "classAxiStreamBatcher_1_1rtl.html#ac19ba782ccd769d92d95fd3f8eac6746", null ],
-    [ "comb", "classAxiStreamBatcher_1_1rtl.html#a8c253c6621bdc307b24f9090ecb4e493", null ],
+    [ "comb", "classAxiStreamBatcher_1_1rtl.html#ad80bd32c77bc844cd0a2aebc4f59f5c2", null ],
     [ "seq", "classAxiStreamBatcher_1_1rtl.html#a60cf6c6e46dc89a140bc8bff4d98f732", null ],
     [ "AXIS_WORD_SIZE_C", "classAxiStreamBatcher_1_1rtl.html#a5db0a47a59d79b04f72b1efa4accd6e1", null ],
     [ "WIDTH_C", "classAxiStreamBatcher_1_1rtl.html#a80713961385d6785d1ffc17f880577d8", null ],
@@ -16,6 +16,7 @@ var classAxiStreamBatcher_1_1rtl =
     [ "clkGapCnt", "classAxiStreamBatcher_1_1rtl.html#a1476746e2360684f4b2b46502c7f032b", null ],
     [ "superFrameByteThresholdDet", "classAxiStreamBatcher_1_1rtl.html#a861984ac4ffe68e94f2ad84f14dd20d2", null ],
     [ "maxSubFramesDet", "classAxiStreamBatcher_1_1rtl.html#a31f976dbf4eac8ad8ff182aa3c2d2cc8", null ],
+    [ "forceTerm", "classAxiStreamBatcher_1_1rtl.html#ad95fabb0ca08e775953066286a8cb5b0", null ],
     [ "seqCnt", "classAxiStreamBatcher_1_1rtl.html#aeff761243fc9207208605fdd61260818", null ],
     [ "tDest", "classAxiStreamBatcher_1_1rtl.html#a6433b7250d41ecbc882d0e718d699b25", null ],
     [ "tUserFirst", "classAxiStreamBatcher_1_1rtl.html#af60756ec8719822ce788f8a805f5fd70", null ],
@@ -24,7 +25,7 @@ var classAxiStreamBatcher_1_1rtl =
     [ "rxSlave", "classAxiStreamBatcher_1_1rtl.html#a8ff1caf890584fd7593502f1fc09667b", null ],
     [ "txMaster", "classAxiStreamBatcher_1_1rtl.html#a7a964b03c09c24747235fe40bb21ea35", null ],
     [ "state", "classAxiStreamBatcher_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe", null ],
-    [ "REG_INIT_C", "classAxiStreamBatcher_1_1rtl.html#a1ecb9e5ef62fe31ea31e3bca2978c7af", null ],
+    [ "REG_INIT_C", "classAxiStreamBatcher_1_1rtl.html#a05ee3c8eeed9f5a0987a355cd1bf92cc", null ],
     [ "r", "classAxiStreamBatcher_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classAxiStreamBatcher_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "rxMaster", "classAxiStreamBatcher_1_1rtl.html#a9f9423690e671d9e0b440c5da8f28628", null ],

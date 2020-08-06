@@ -34,9 +34,6 @@ var hierarchy =
         [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ]
       ] ],
       [ "SpiMaster", "classSpiMaster.html", null ],
-      [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", [
-        [ "Delaye3PatchFsm", "classDelaye3PatchFsm.html", null ]
-      ] ],
       [ "SynchronizerOneShotCnt", "classSynchronizerOneShotCnt.html", [
         [ "SynchronizerOneShot", "classSynchronizerOneShot.html", [
           [ "RstSync", "classRstSync.html", null ],
@@ -47,17 +44,17 @@ var hierarchy =
         ] ]
       ] ],
       [ "Ad9249Deserializer", "classAd9249Deserializer.html", [
-        [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", null ],
+        [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", [
+          [ "Delaye3PatchFsm", "classDelaye3PatchFsm.html", null ]
+        ] ],
         [ "Odelaye3Wrapper", "classOdelaye3Wrapper.html", [
           [ "Delaye3PatchFsm", "classDelaye3PatchFsm.html", null ]
-        ] ]
+        ] ],
+        [ "Gearbox", "classGearbox.html", null ]
       ] ],
       [ "ClockManagerUltraScale", "classClockManagerUltraScale.html", [
         [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ],
         [ "MmcmEmulation", "classMmcmEmulation.html", null ]
-      ] ],
-      [ "PwrUpRst", "classPwrUpRst.html", [
-        [ "RstSync", "classRstSync.html", null ]
       ] ],
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
@@ -612,7 +609,9 @@ var hierarchy =
       [ "FifoAsync", "classFifoAsync.html", null ],
       [ "Gearbox", "classGearbox.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
-      [ "PwrUpRst", "classPwrUpRst.html", null ],
+      [ "PwrUpRst", "classPwrUpRst.html", [
+        [ "RstSync", "classRstSync.html", null ]
+      ] ],
       [ "ClockManager7", "classClockManager7.html", null ],
       [ "GigEthGth7", "classGigEthGth7.html", [
         [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],

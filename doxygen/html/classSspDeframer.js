@@ -6,6 +6,7 @@ var classSspDeframer =
     [ "RST_ASYNC_G", "classSspDeframer.html#ad489a8923e293a168027842ed3795a30", null ],
     [ "WORD_SIZE_G", "classSspDeframer.html#a16843d4a49c3f39b1a4d63b1c66c7ce9", null ],
     [ "K_SIZE_G", "classSspDeframer.html#aef9ee88c95fa28643eedd8b155500857", null ],
+    [ "BRK_FRAME_ON_ERROR_G", "classSspDeframer.html#a2f47430691bd56107cb9642d497fe883", null ],
     [ "SSP_IDLE_CODE_G", "classSspDeframer.html#a5c96d5ea8f2c3d7336077fa2c92e3212", null ],
     [ "SSP_IDLE_K_G", "classSspDeframer.html#a6b2ea12b43d36c42cc63f3257dc72c50", null ],
     [ "SSP_SOF_CODE_G", "classSspDeframer.html#a473a87fd8073896e2960c5a0e13a4e9f", null ],

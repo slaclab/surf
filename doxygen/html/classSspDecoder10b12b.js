@@ -4,6 +4,7 @@ var classSspDecoder10b12b =
     [ "TPD_G", "classSspDecoder10b12b.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RST_POLARITY_G", "classSspDecoder10b12b.html#ac2a600fa2248248a52a4ee28f9fc64d5", null ],
     [ "RST_ASYNC_G", "classSspDecoder10b12b.html#ad489a8923e293a168027842ed3795a30", null ],
+    [ "BRK_FRAME_ON_ERROR_G", "classSspDecoder10b12b.html#a2f47430691bd56107cb9642d497fe883", null ],
     [ "clk", "classSspDecoder10b12b.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSspDecoder10b12b.html#a4fadb132db806952f2864ccddbbaa94d", null ],
     [ "validIn", "classSspDecoder10b12b.html#a9c2b6990a23adaa1e75f6f82b1064a30", null ],

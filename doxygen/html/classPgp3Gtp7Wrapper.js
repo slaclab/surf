@@ -20,7 +20,7 @@ var classPgp3Gtp7Wrapper =
     [ "TX_MUX_ILEAVE_EN_G", "classPgp3Gtp7Wrapper.html#a5da3374632058cd1ac075f2525f82d1c", null ],
     [ "TX_MUX_ILEAVE_ON_NOTVALID_G", "classPgp3Gtp7Wrapper.html#ad4dd72ea01f2ba943c43787796934577", null ],
     [ "EN_PGP_MON_G", "classPgp3Gtp7Wrapper.html#ac4a570cc883dbcf4bd11c50a93bfd190", null ],
-    [ "EN_GTH_DRP_G", "classPgp3Gtp7Wrapper.html#adc30e8380aed0fc1f640c0117bbcc126", null ],
+    [ "EN_GT_DRP_G", "classPgp3Gtp7Wrapper.html#a4a61b113f6a1a4f574eebb2435d6d1b7", null ],
     [ "EN_QPLL_DRP_G", "classPgp3Gtp7Wrapper.html#a8df4e3e9cbc62b52a3f593c4c3877d62", null ],
     [ "TX_POLARITY_G", "classPgp3Gtp7Wrapper.html#acaf868b533291869c286dad2a808c878", null ],
     [ "RX_POLARITY_G", "classPgp3Gtp7Wrapper.html#a7bf9875806dee5949bc255deda69e251", null ],
