@@ -25,17 +25,18 @@ use surf.StdRtlPkg.all;
 entity SspDeframer is
 
    generic (
-      TPD_G           : time    := 1 ns;
-      RST_POLARITY_G  : sl      := '0';
-      RST_ASYNC_G     : boolean := true;
-      WORD_SIZE_G     : integer := 16;
-      K_SIZE_G        : integer := 2;
-      SSP_IDLE_CODE_G : slv;
-      SSP_IDLE_K_G    : slv;
-      SSP_SOF_CODE_G  : slv;
-      SSP_SOF_K_G     : slv;
-      SSP_EOF_CODE_G  : slv;
-      SSP_EOF_K_G     : slv);
+      TPD_G                : time    := 1 ns;
+      RST_POLARITY_G       : sl      := '0';
+      RST_ASYNC_G          : boolean := true;
+      WORD_SIZE_G          : integer := 16;
+      K_SIZE_G             : integer := 2;
+      BRK_FRAME_ON_ERROR_G : boolean := true;
+      SSP_IDLE_CODE_G      : slv;
+      SSP_IDLE_K_G         : slv;
+      SSP_SOF_CODE_G       : slv;
+      SSP_SOF_K_G          : slv;
+      SSP_EOF_CODE_G       : slv;
+      SSP_EOF_K_G          : slv);
    port (
       -- Clock and Reset
       clk      : in  sl;
@@ -166,12 +167,18 @@ begin
                   v.iValidOut := '0';
 
                else
+
                   -- Unknown and/or incorrect K CODE
-                  v.iValidOut := '0';
-                  v.iEof      := '1';
-                  v.iEofe     := '1';
-                  v.errorOut  := '1';
-                  v.state     := WAIT_SOF_S;
+                  if BRK_FRAME_ON_ERROR_G then
+                     v.iValidOut := '0';
+                     v.iEof      := '1';
+                     v.iEofe     := '1';
+                     v.state     := WAIT_SOF_S;
+                  else
+                     v.iValidOut := '0';
+                     v.iEofe     := '1';
+                  end if;
+
                end if;
 
             end if;

@@ -274,7 +274,9 @@ begin
          -- Reset the timer
          v.timer := (others => '0');
       end if;
-      if (r.bypass /= v.bypass) or (r.blowoff /= v.blowoff) then
+
+      -- Check for any change to bypass or blowoff 1->0 transition
+      if (r.bypass /= v.bypass) or ((r.blowoff = '1') and (v.blowoff = '0')) then
          -- Perform a soft-reset
          v.softRst := '1';
       end if;
@@ -537,6 +539,7 @@ begin
          axisClk      => axisClk,
          axisRst      => axisReset,
          -- External Control Interface
+         forceTerm    => r.blowoff,
          maxSubFrames => r.maxSubFrames,
          idle         => batcherIdle,
          -- AXIS Interfaces

@@ -25,9 +25,10 @@ use surf.Code8b10bPkg.all;
 
 entity SspDecoder8b10b is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '0';
-      RST_ASYNC_G    : boolean := true);
+      TPD_G                : time    := 1 ns;
+      RST_POLARITY_G       : sl      := '0';
+      RST_ASYNC_G          : boolean := true;
+      BRK_FRAME_ON_ERROR_G : boolean := true);
    port (
       -- Clock and Reset
       clk       : in  sl;
@@ -87,17 +88,18 @@ begin
 
    SspDeframer_1 : entity surf.SspDeframer
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         WORD_SIZE_G     => 16,
-         K_SIZE_G        => 2,
-         SSP_IDLE_CODE_G => D_10_2_C & K_28_5_C,
-         SSP_IDLE_K_G    => "01",
-         SSP_SOF_CODE_G  => D_10_2_C & K_23_7_C,
-         SSP_SOF_K_G     => "01",
-         SSP_EOF_CODE_G  => D_10_2_C & K_29_7_C,
-         SSP_EOF_K_G     => "01")
+         TPD_G                => TPD_G,
+         RST_POLARITY_G       => RST_POLARITY_G,
+         RST_ASYNC_G          => RST_ASYNC_G,
+         WORD_SIZE_G          => 16,
+         K_SIZE_G             => 2,
+         BRK_FRAME_ON_ERROR_G => BRK_FRAME_ON_ERROR_G,
+         SSP_IDLE_CODE_G      => D_10_2_C & K_28_5_C,
+         SSP_IDLE_K_G         => "01",
+         SSP_SOF_CODE_G       => D_10_2_C & K_23_7_C,
+         SSP_SOF_K_G          => "01",
+         SSP_EOF_CODE_G       => D_10_2_C & K_29_7_C,
+         SSP_EOF_K_G          => "01")
       port map (
          -- Clock and Reset
          clk       => clk,
