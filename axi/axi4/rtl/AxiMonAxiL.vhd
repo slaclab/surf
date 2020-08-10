@@ -25,11 +25,11 @@ use surf.AxiPkg.all;
 
 entity AxiMonAxiL is
    generic (
-      TPD_G           : time          := 1 ns;
-      COMMON_CLK_G    : boolean       := false;  -- true if axiClk = axilClk
-      AXI_CLK_FREQ_G  : real          := 156.25E+6;  -- units of Hz
-      AXI_NUM_SLOTS_G : positive      := 1;
-      AXI_CONFIG_C    : AxiConfigType := AXI_CONFIG_INIT_C);
+      TPD_G           : time     := 1 ns;
+      COMMON_CLK_G    : boolean  := false;      -- true if axiClk = axilClk
+      AXI_CLK_FREQ_G  : real     := 156.25E+6;  -- units of Hz
+      AXI_NUM_SLOTS_G : positive := 1;
+      AXI_CONFIG_C    : AxiConfigType);
    port (
       -- AXI Stream Monitoring Interface
       axiClk           : in  sl;
