@@ -25,7 +25,7 @@ use surf.AxiLitePkg.all;
 entity AxiStreamMonAxiL is
    generic (
       TPD_G            : time                := 1 ns;
-      COMMON_CLK_G     : boolean             := false;  -- true if axisClk = statusClk
+      COMMON_CLK_G     : boolean             := false;  -- true if axisClk = axilClk
       AXIS_CLK_FREQ_G  : real                := 156.25E+6;  -- units of Hz
       AXIS_NUM_SLOTS_G : positive            := 1;
       AXIS_CONFIG_G    : AxiStreamConfigType);
