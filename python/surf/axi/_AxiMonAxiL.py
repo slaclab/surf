@@ -11,7 +11,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue  as pr
 import surf.axi as axi
 
 class AxiMonAxiL(axi.AxiStreamMonAxiL):
