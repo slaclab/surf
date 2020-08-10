@@ -29,7 +29,7 @@ entity AxiMonAxiL is
       COMMON_CLK_G    : boolean  := false;      -- true if axiClk = axilClk
       AXI_CLK_FREQ_G  : real     := 156.25E+6;  -- units of Hz
       AXI_NUM_SLOTS_G : positive := 1;
-      AXI_CONFIG_C    : AxiConfigType);
+      AXI_CONFIG_G    : AxiConfigType);
    port (
       -- AXI Stream Monitoring Interface
       axiClk           : in  sl;
@@ -51,7 +51,7 @@ architecture mapping of AxiMonAxiL is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => AXI_STREAM_CONFIG_INIT_C.TSTRB_EN_C,
-      TDATA_BYTES_C => AXI_CONFIG_C.DATA_BYTES_C,
+      TDATA_BYTES_C => AXI_CONFIG_G.DATA_BYTES_C,
       TDEST_BITS_C  => AXI_STREAM_CONFIG_INIT_C.TDEST_BITS_C,
       TID_BITS_C    => AXI_STREAM_CONFIG_INIT_C.TID_BITS_C,
       TKEEP_MODE_C  => AXI_STREAM_CONFIG_INIT_C.TKEEP_MODE_C,
@@ -69,8 +69,8 @@ begin
       -- Remap AXI4.WRITE[i] to AXIS[2*i+0]
       -------------------------------------
       axisMasters(2*i+0).tValid                                      <= axiWriteMasters(i).wvalid;
-      axisMasters(2*i+0).tStrb(AXI_CONFIG_C.DATA_BYTES_C-1 downto 0) <= axiWriteMasters(i).wstrb(AXI_CONFIG_C.DATA_BYTES_C-1 downto 0);
-      axisMasters(2*i+0).tKeep(AXI_CONFIG_C.DATA_BYTES_C-1 downto 0) <= axiWriteMasters(i).wstrb(AXI_CONFIG_C.DATA_BYTES_C-1 downto 0);
+      axisMasters(2*i+0).tStrb(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0) <= axiWriteMasters(i).wstrb(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0);
+      axisMasters(2*i+0).tKeep(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0) <= axiWriteMasters(i).wstrb(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0);
       axisMasters(2*i+0).tLast                                       <= axiWriteMasters(i).wlast;
       axisSlaves(2*i+0).tReady                                       <= axiWriteSlaves(i).wready;
 
@@ -78,8 +78,8 @@ begin
       -- Remap AXI4.READ[i] to AXIS[2*i+1]
       ------------------------------------
       axisMasters(2*i+1).tValid                                      <= axiReadSlaves(i).rvalid;
-      axisMasters(2*i+1).tStrb(AXI_CONFIG_C.DATA_BYTES_C-1 downto 0) <= (others => '1');
-      axisMasters(2*i+1).tKeep(AXI_CONFIG_C.DATA_BYTES_C-1 downto 0) <= (others => '1');
+      axisMasters(2*i+1).tStrb(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0) <= (others => '1');
+      axisMasters(2*i+1).tKeep(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0) <= (others => '1');
       axisMasters(2*i+1).tLast                                       <= axiReadSlaves(i).rlast;
       axisSlaves(2*i+1).tReady                                       <= axiReadMasters(i).rready;
 
