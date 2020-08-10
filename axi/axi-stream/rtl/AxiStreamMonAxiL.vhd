@@ -36,8 +36,8 @@ entity AxiStreamMonAxiL is
       axisMasters      : in  AxiStreamMasterArray(AXIS_NUM_SLOTS_G-1 downto 0);
       axisSlaves       : in  AxiStreamSlaveArray(AXIS_NUM_SLOTS_G-1 downto 0);
       -- AXI lite slave port for register access
-      axilClk          : in  std_logic;
-      axilRst          : in  std_logic;
+      axilClk          : in  sl;
+      axilRst          : in  sl;
       sAxilWriteMaster : in  AxiLiteWriteMasterType;
       sAxilWriteSlave  : out AxiLiteWriteSlaveType;
       sAxilReadMaster  : in  AxiLiteReadMasterType;

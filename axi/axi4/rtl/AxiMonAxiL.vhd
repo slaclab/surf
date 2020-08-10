@@ -39,8 +39,8 @@ entity AxiMonAxiL is
       axiReadMasters   : in  AxiReadMasterArray(AXI_NUM_SLOTS_G-1 downto 0);
       axiReadSlaves    : in  AxiReadSlaveArray(AXI_NUM_SLOTS_G-1 downto 0);
       -- AXI-Lite for register access
-      axilClk          : in  std_logic;
-      axilRst          : in  std_logic;
+      axilClk          : in  sl;
+      axilRst          : in  sl;
       sAxilWriteMaster : in  AxiLiteWriteMasterType;
       sAxilWriteSlave  : out AxiLiteWriteSlaveType;
       sAxilReadMaster  : in  AxiLiteReadMasterType;
