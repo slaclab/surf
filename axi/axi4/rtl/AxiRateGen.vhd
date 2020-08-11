@@ -195,7 +195,7 @@ begin
       case (r.wrState) is
          ----------------------------------------------------------------------
          when WRITE_ADDR_S =>
-            -- Check if enabled and timeout 
+            -- Check if enabled and timeout
             if (r.wrEnable = '1') and (r.wrTimer = 0) and (v.axiWriteMaster.awvalid = '0') then
 
                -- Arm the timer
@@ -284,7 +284,7 @@ begin
       case (r.rdState) is
          ----------------------------------------------------------------------
          when READ_ADDR_S =>
-            -- Check if enabled and timeout 
+            -- Check if enabled and timeout
             if (r.rdEnable = '1') and (r.rdTimer = 0) and (v.axiReadMaster.arvalid = '0') then
 
                -- Arm the timer
