@@ -31,7 +31,7 @@ entity AxiMonAxiL is
       AXI_NUM_SLOTS_G : positive := 1;
       AXI_CONFIG_G    : AxiConfigType);
    port (
-      -- AXI Stream Monitoring Interface
+      -- AXI4 Memory Interfaces
       axiClk           : in  sl;
       axiRst           : in  sl;
       axiWriteMasters  : in  AxiWriteMasterArray(AXI_NUM_SLOTS_G-1 downto 0);
