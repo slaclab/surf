@@ -167,6 +167,11 @@ begin
       axiSlaveRegister(axilEp, x"40", 0, v.awcache);
       axiSlaveRegister(axilEp, x"44", 0, v.arcache);
 
+      axiSlaveRegisterR(axilEp, x"80", 0, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 8));
+      axiSlaveRegisterR(axilEp, x"80", 8, toSlv(AXI_CONFIG_G.DATA_BYTES_C, 8));
+      axiSlaveRegisterR(axilEp, x"80", 16, toSlv(AXI_CONFIG_G.ID_BITS_C, 8));
+      axiSlaveRegisterR(axilEp, x"80", 24, toSlv(AXI_CONFIG_G.LEN_BITS_C, 8));
+
       -- Close the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
