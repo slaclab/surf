@@ -351,3 +351,33 @@ Dac38J84: &Dac38J84
         - entry:    EnableTx
           value:    0x1
     #########################################################
+    NcoSync:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: Special DAC Init procedure to sync NCO
+      sequence:
+        - entry: EnableTx
+          value: 0x0
+        - entry: usleep
+          value: 10000
+        - entry: InitJesd
+          value: 0x1
+        - entry: usleep
+          value: 10000
+        - entry: JesdRstN
+          value: 0x0
+        - entry: usleep
+          value: 10000
+        - entry: JesdRstN
+          value: 0x1
+        - entry: usleep
+          value: 10000
+        - entry: InitJesd
+          value: 0x0
+        - entry: usleep
+          value: 10000
+        - entry: EnableTx
+          value: 0x1
+        - entry: usleep
+          value: 10000
