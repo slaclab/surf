@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiMemTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General Purpose AXI4 memory tester
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
 
 entity AxiMemTester is
    generic (
@@ -28,7 +29,7 @@ entity AxiMemTester is
       START_ADDR_G     : slv                      := X"00000000";
       STOP_ADDR_G      : slv                      := X"FFFFFFFF";
       BURST_LEN_G      : positive range 1 to 4096 := 4096;
-      AXI_CONFIG_G     : AxiConfigType            := AXI_CONFIG_INIT_C);
+      AXI_CONFIG_G     : AxiConfigType);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -39,7 +40,7 @@ entity AxiMemTester is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       memReady        : out sl;
       memError        : out sl;
-      -- DDR Memory Interface
+      -- AXI4 Memory Interface
       axiClk          : in  sl;
       axiRst          : in  sl;
       start           : in  sl;
@@ -60,7 +61,7 @@ architecture rtl of AxiMemTester is
    constant AXI_LEN_C         : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
 
    constant PRBS_TAPS_C : NaturalArray := (0 => (DATA_BITS_C-1), 1 => (DATA_BITS_C/2), 2 => (DATA_BITS_C/4));
-   
+
    constant DATA_SYNC_BITS_C : natural := ite(DATA_BITS_C<1024, DATA_BITS_C, 1024);
 
    function GenSeed return slv is
@@ -85,6 +86,7 @@ architecture rtl of AxiMemTester is
       ERROR_S);
 
    type RegType is record
+      busy           : sl;
       done           : sl;
       error          : sl;
       wErrResp       : sl;
@@ -105,6 +107,7 @@ architecture rtl of AxiMemTester is
    end record;
 
    constant REG_INIT_C : RegType := (
+      busy           => '0',
       done           => '0',
       error          => '0',
       wErrResp       => '0',
@@ -126,6 +129,8 @@ architecture rtl of AxiMemTester is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal startSync : sl;
+   signal busy   : sl;
    signal done   : sl;
    signal error  : sl;
    signal wTimer : slv(31 downto 0);
@@ -166,7 +171,7 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Update output registers 
+      -- Update output registers
       if axiWriteSlave.awready = '1' then
          v.axiWriteMaster.awvalid := '0';
       end if;
@@ -236,9 +241,9 @@ begin
          when WRITE_RESP_S =>
             -- Wait for the response
             if axiWriteSlave.bvalid = '1' then
-               -- Check for "OKAY" response 
+               -- Check for "OKAY" response
                if axiWriteSlave.bresp = "00" then
-                  -- Check for max. address 
+                  -- Check for max. address
                   if r.address = STOP_ADDR_C then
                      -- Reset the start address
                      v.address                                       := (others => '0');
@@ -278,7 +283,7 @@ begin
                -- Save data for AXIL access
                v.rData := axiReadSlave.rdata(DATA_BITS_C-1 downto 0);
                v.rPattern := r.randomData(DATA_BITS_C-1 downto 0);
-               -- Compare the data 
+               -- Compare the data
                if r.randomData(DATA_BITS_C-1 downto 0) /= axiReadSlave.rdata(DATA_BITS_C-1 downto 0) then
                   -- Set the flag
                   v.rErrData := '1';
@@ -290,7 +295,7 @@ begin
                -- Check for last transfer
                if axiReadSlave.rlast = '1' then
                   if axiReadSlave.rresp = "00" then
-                     -- Check for max. address 
+                     -- Check for max. address
                      if r.address = STOP_ADDR_C then
                         report "AxiMemTester: Passed Test!";
                         report "wTimer = " & integer'image(conv_integer(v.wTimer));
@@ -326,24 +331,30 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      if (r.state = IDLE_S) or (r.state = DONE_S) or (r.state = ERROR_S) then
+         v.busy := '0';
+      else
+         v.busy := '1';
+      end if;
+
       -- Reset
       if axiRst = '1' then
          v := REG_INIT_C;
       end if;
 
-      -- Write Address Constants      
+      -- Write Address Constants
       v.axiWriteMaster.awid    := (others => '0');
       v.axiWriteMaster.awlen   := AXI_LEN_C;
       v.axiWriteMaster.awsize  := toSlv(log2(AXI_CONFIG_G.DATA_BYTES_C), 3);
       v.axiWriteMaster.awburst := "01";    -- Burst type = "INCR"
       v.axiWriteMaster.awlock  := (others => '0');
       v.axiWriteMaster.awprot  := (others => '0');
-      v.axiWriteMaster.awcache := "1111";  -- Write-back Read and Write-allocate      
+      v.axiWriteMaster.awcache := "1111";  -- Write-back Read and Write-allocate
       v.axiWriteMaster.awqos   := (others => '0');
       v.axiWriteMaster.bready  := '1';
       v.axiWriteMaster.wstrb   := (others => '1');
 
-      -- Read Address Constants (copied from Write Constants) 
+      -- Read Address Constants (copied from Write Constants)
       v.axiReadMaster.arid    := v.axiWriteMaster.awid;
       v.axiReadMaster.arlen   := v.axiWriteMaster.awlen;
       v.axiReadMaster.arsize  := v.axiWriteMaster.awsize;
@@ -370,23 +381,28 @@ begin
       end if;
    end process seq;
 
-   Sync_0 : entity work.Synchronizer
+   U_SyncBits : entity surf.SynchronizerVector
       generic map (
-         TPD_G => TPD_G)
+         TPD_G    => TPD_G,
+         WIDTH_G  => 7)
       port map (
-         clk     => axilClk,
-         dataIn  => r.done,
-         dataOut => done);
+         clk        => axilClk,
+         dataIn(0)  => r.done,
+         dataIn(1)  => r.error,
+         dataIn(2)  => r.busy,
+         dataIn(3)  => start,
+         dataIn(4)  => r.wErrResp,
+         dataIn(5)  => r.rErrResp,
+         dataIn(6)  => r.rErrData,
+         dataOut(0) => done,
+         dataOut(1) => error,
+         dataOut(2) => busy,
+         dataOut(3) => startSync,
+         dataOut(4) => wErrResp,
+         dataOut(5) => rErrResp,
+         dataOut(6) => rErrData);
 
-   Sync_1 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.error,
-         dataOut => error);
-
-   Sync_2 : entity work.SynchronizerFifo
+   U_wTimer : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -398,7 +414,7 @@ begin
          rd_clk => axilClk,
          dout   => wTimer);
 
-   Sync_3 : entity work.SynchronizerFifo
+   U_rTimer : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)
@@ -409,33 +425,9 @@ begin
          -- Read Ports (rd_clk domain)
          rd_clk => axilClk,
          dout   => rTimer);
-   
-   Sync_4 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.wErrResp,
-         dataOut => wErrResp);
-   
-   Sync_5 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.rErrResp,
-         dataOut => rErrResp);
-   
-   Sync_6 : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         dataIn  => r.rErrData,
-         dataOut => rErrData);
-   
+
    rDataIn <= r.rData(DATA_SYNC_BITS_C-1 downto 0);
-   Sync_7 : entity work.SynchronizerVector
+   U_rData : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)
@@ -443,9 +435,9 @@ begin
          clk     => axilClk,
          dataIn  => rDataIn,
          dataOut => rDataOut(DATA_SYNC_BITS_C-1 downto 0));
-   
+
    rPatternIn <= r.rPattern(DATA_SYNC_BITS_C-1 downto 0);
-   Sync_8 : entity work.SynchronizerVector
+   U_rPattern : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          WIDTH_G  => DATA_SYNC_BITS_C)
@@ -453,8 +445,8 @@ begin
          clk     => axilClk,
          dataIn  => rPatternIn,
          dataOut => rPatternOut(DATA_SYNC_BITS_C-1 downto 0));
-   
-   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error,
+
+   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error, busy, startSync,
                        rLite, rTimer, wTimer, wErrResp, rErrResp, rErrData, rDataOut, rPatternOut) is
       variable v      : RegLiteType;
       variable regCon : AxiLiteEndPointType;
@@ -467,6 +459,8 @@ begin
 
       -- Map the registers
       axiSlaveRegisterR(regCon, x"100", 0, rLite.memReady);
+      axiSlaveRegisterR(regCon, x"100", 1, startSync);
+      axiSlaveRegisterR(regCon, x"100", 2, busy);
       axiSlaveRegisterR(regCon, x"104", 0, rLite.memError);
       axiSlaveRegisterR(regCon, x"108", 0, wTimer);
       axiSlaveRegisterR(regCon, x"10C", 0, rTimer);

@@ -1,15 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtx7Qpll.vhd
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 GTX7's QPLL Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -188,7 +191,7 @@ begin
       ----------------------------------------------------------------------------
       -- Prevent the gtQPllRst of this lane disrupting the other lanes in the QUAD
       ----------------------------------------------------------------------------
-      U_PwrUpRst : entity work.PwrUpRst
+      U_PwrUpRst : entity surf.PwrUpRst
          generic map (
             TPD_G      => TPD_G,
             DURATION_G => 12500)
@@ -203,7 +206,7 @@ begin
 
    pllReset <= uOr(gtQPllReset) or stableRst;
 
-   U_QPLL : entity work.Gtx7QuadPll
+   U_QPLL : entity surf.Gtx7QuadPll
       generic map (
          TPD_G              => TPD_G,
          EN_DRP_G           => EN_DRP_G,

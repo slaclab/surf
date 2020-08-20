@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : AxiVersionLegacy.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information. This is a legacy version for backward compatibility.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiVersionLegacy is
    generic (
@@ -115,7 +116,7 @@ begin
    fdValueOut  <= fdValue;
 
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
-      DeviceDna_1 : entity work.DeviceDna
+      DeviceDna_1 : entity surf.DeviceDna
          generic map (
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
@@ -130,7 +131,7 @@ begin
    end generate GEN_DEVICE_DNA;
 
    GEN_DS2411 : if (EN_DS2411_G) generate
-      DS2411Core_1 : entity work.DS2411Core
+      DS2411Core_1 : entity surf.DS2411Core
          generic map (
             TPD_G        => TPD_G,
             CLK_PERIOD_G => CLK_PERIOD_G)
@@ -142,7 +143,7 @@ begin
    end generate GEN_DS2411;
 
    GEN_ICAP : if (EN_ICAP_G) generate
-      Iprog_1 : entity work.Iprog
+      Iprog_1 : entity surf.Iprog
          generic map (
             TPD_G          => TPD_G,
             USE_SLOWCLK_G  => USE_SLOWCLK_G,
@@ -164,7 +165,7 @@ begin
       -- Latch the current value
       v := r;
 
-      ------------------------      
+      ------------------------
       -- AXI-Lite Transactions
       ------------------------
 
@@ -194,7 +195,7 @@ begin
 
       ---------------------------------
       -- Uptime counter
-      ---------------------------------      
+      ---------------------------------
       if r.timer = TIMEOUT_1HZ_C then
          -- Reset the counter
          v.timer := 0;
@@ -229,7 +230,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       axiReadSlave   <= r.axiReadSlave;
       axiWriteSlave  <= r.axiWriteSlave;
       fpgaReload     <= r.fpgaReload;

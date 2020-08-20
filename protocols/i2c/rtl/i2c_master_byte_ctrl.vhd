@@ -78,7 +78,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 --library grlib;
-use work.stdlib.all;
+
+library surf;
+use surf.stdlib.all;
 
 entity i2c_master_byte_ctrl is
   generic (filter : integer; dynfilt : integer);
@@ -98,7 +100,7 @@ entity i2c_master_byte_ctrl is
 		ack_in : in std_logic;
 		din    : in std_logic_vector(7 downto 0);
       filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
-                
+
 		-- output signals
 		cmd_ack  : out std_logic; -- command done
 		ack_out  : out std_logic;
@@ -169,7 +171,7 @@ architecture structural of i2c_master_byte_ctrl is
         -- - jan@gaisler.com
 	-- removed init value as it is not compatible with Formality
         -- - jiri@gaisler.com
-        signal dcnt : std_logic_vector(2 downto 0) 
+        signal dcnt : std_logic_vector(2 downto 0)
 -- pragma translate_off
 		:= (others => '0')
 -- pragma translate_on

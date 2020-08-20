@@ -1,22 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AxiAds42lb69 Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package AxiAds42lb69Pkg is
 
@@ -44,7 +45,7 @@ package AxiAds42lb69Pkg is
    constant AXI_ADS42LB69_DELAY_IN_INIT_C : AxiAds42lb69DelayInType := (
       load => (others =>(others => '0')),
       rst  => '0',
-      data => (others => '0'));  
+      data => (others => '0'));
 
    type AxiAds42lb69DelayOutType is record
       rdy  : sl;
@@ -52,7 +53,7 @@ package AxiAds42lb69Pkg is
    end record;
    constant AXI_ADS42LB69_DELAY_OUT_INIT_C : AxiAds42lb69DelayOutType := (
       rdy  => '0',
-      data => (others => (others => (others => '0'))));        
+      data => (others => (others => (others => '0'))));
 
    type AxiAds42lb69ConfigType is record
       dmode   : slv(1 downto 0);
@@ -65,7 +66,7 @@ package AxiAds42lb69Pkg is
       dmode   => (others => '0'),
       invert  => (others => '0'),
       convert => (others => '0'),
-      delayIn => AXI_ADS42LB69_DELAY_IN_INIT_C);    
+      delayIn => AXI_ADS42LB69_DELAY_IN_INIT_C);
 
    type AxiAds42lb69StatusType is record
       adcValid : slv(1 downto 0);
@@ -76,6 +77,6 @@ package AxiAds42lb69Pkg is
    constant AXI_ADS42LB69_STATUS_INIT_C : AxiAds42lb69StatusType := (
       adcValid => (others => '0'),
       adcData  => (others => x"0000"),
-      delayOut => AXI_ADS42LB69_DELAY_OUT_INIT_C); 
+      delayOut => AXI_ADS42LB69_DELAY_OUT_INIT_C);
 
 end package;

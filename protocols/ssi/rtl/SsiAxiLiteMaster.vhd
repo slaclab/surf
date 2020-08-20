@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
--- File       : SsiAxiLiteMaster.vhd
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -10,7 +11,7 @@
 -- Word 0   Data[31:0]  = TID[31:0] (echoed)
 --
 -- Word 1   Data[29:0]  = Address[31:2] (only 26-bits if EN_32BIT_G = false)
--- Word 1   Data[31:30] = Opcode, 0x0=Read, 0x1=Write, 0x2=Set, 0x3=Clear 
+-- Word 1   Data[31:30] = Opcode, 0x0=Read, 0x1=Write, 0x2=Set, 0x3=Clear
 --                        (bit set and bit clear not supported)
 -- Word 2   Data[31:0]  = WriteData[31:0] or ReadCount[8:0]
 --
@@ -36,11 +37,11 @@
 -- Word N   Data[15:00] = Don't Care
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -49,10 +50,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
 
 entity SsiAxiLiteMaster is
    generic (
@@ -63,20 +66,16 @@ entity SsiAxiLiteMaster is
       RESP_THOLD_G        : integer range 0 to (2**24) := 1;  -- =1 = normal operation
       SLAVE_READY_EN_G    : boolean                    := false;
       EN_32BIT_ADDR_G     : boolean                    := false;
-      BRAM_EN_G           : boolean                    := true;
-      XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
-      ALTERA_SYN_G        : boolean                    := false;
-      ALTERA_RAM_G        : string                     := "M9K";
+      MEMORY_TYPE_G       : string                     := "block";
       GEN_SYNC_FIFO_G     : boolean                    := false;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
 
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
 
-      -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+      -- Streaming Slave (Rx) Interface (sAxisClk domain)
       sAxisClk    : in  sl;
       sAxisRst    : in  sl := '0';
       sAxisMaster : in  AxiStreamMasterType;
@@ -151,7 +150,7 @@ architecture rtl of SsiAxiLiteMaster is
    -- attribute dont_touch                    : string;
    -- attribute dont_touch of r               : signal is "TRUE";
    -- attribute dont_touch of sFifoAxisMaster : signal is "TRUE";
-   -- attribute dont_touch of sFifoAxisSlave  : signal is "TRUE";   
+   -- attribute dont_touch of sFifoAxisSlave  : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisMaster : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisSlave  : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisCtrl   : signal is "TRUE";
@@ -159,19 +158,15 @@ architecture rtl of SsiAxiLiteMaster is
 begin
 
    ----------------------------------
-   -- Input FIFO 
+   -- Input FIFO
    ----------------------------------
-   SlaveAxiStreamFifo : entity work.AxiStreamFifoV2
+   SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
@@ -227,7 +222,7 @@ begin
             if sFifoAxisMaster.tValid = '1' and mFifoAxisCtrl.pause = '0' then
                v.sFifoAxisSlave.tReady := '1';
 
-               -- Bad frame 
+               -- Bad frame
                if sFifoAxisMaster.tLast = '0' then
                   v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
                   v.mFifoAxisMaster.tUser  := sFifoAxisMaster.tUser;
@@ -258,7 +253,7 @@ begin
                elsif sFifoAxisMaster.tData(31 downto 30) = "00" then
                   v.state := S_READ_SIZE_C;
 
-               -- Write 
+               -- Write
                elsif sFifoAxisMaster.tData(31 downto 30) = "01" then
                   v.state := S_WRITE_C;
 
@@ -330,7 +325,7 @@ begin
                v.state   := S_WRITE_C;
             end if;
 
-         -- Read size 
+         -- Read size
          when S_READ_SIZE_C =>
             v.rdCount := (others => '0');
             v.rdSize  := sFifoAxisMaster.tData(8 downto 0);
@@ -414,7 +409,7 @@ begin
             v.state := S_IDLE_C;
 
       end case;
-      
+
       -- Combinatorial outputs before the reset
       sFifoAxisSlave <= v.sFifoAxisSlave;
 
@@ -442,19 +437,15 @@ begin
 
 
    ----------------------------------
-   -- Output FIFO 
+   -- Output FIFO
    ----------------------------------
-   MasterAxiStreamFifo : entity work.AxiStreamFifoV2
+   MasterAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
          VALID_THOLD_G       => RESP_THOLD_G,
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,

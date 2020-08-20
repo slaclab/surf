@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : IpV4EngineTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: IPv4 TX Engine Module
 -- Note: IPv4 checksum checked in EthMac core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,10 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity IpV4EngineTx is
    generic (
@@ -30,16 +31,16 @@ entity IpV4EngineTx is
       PROTOCOL_SIZE_G : positive        := 1;
       PROTOCOL_G      : Slv8Array       := (0 => UDP_C);
       TTL_G           : slv(7 downto 0) := x"20";
-      VLAN_G          : boolean         := false);       
+      VLAN_G          : boolean         := false);
    port (
       -- Local Configurations
-      localMac          : in  slv(47 downto 0);  --  big-Endian configuration 
-      -- Interface to Ethernet Frame MUX/DEMUX 
+      localMac          : in  slv(47 downto 0);  --  big-Endian configuration
+      -- Interface to Ethernet Frame MUX/DEMUX
       obIpv4Master      : out AxiStreamMasterType;
       obIpv4Slave       : in  AxiStreamSlaveType;
       localhostMaster   : out AxiStreamMasterType;
       localhostSlave    : in  AxiStreamSlaveType;
-      -- Interface to Protocol Engine  
+      -- Interface to Protocol Engine
       obProtocolMasters : in  AxiStreamMasterArray(PROTOCOL_SIZE_G-1 downto 0);
       obProtocolSlaves  : out AxiStreamSlaveArray(PROTOCOL_SIZE_G-1 downto 0);
       -- Clock and Reset
@@ -55,7 +56,7 @@ architecture rtl of IpV4EngineTx is
       IPV4_HDR1_S,
       IPV4_HDR2_S,
       MOVE_S,
-      LAST_S); 
+      LAST_S);
 
    type RegType is record
       eofe     : sl;
@@ -75,7 +76,7 @@ architecture rtl of IpV4EngineTx is
       id       => (others => '0'),
       rxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster => AXI_STREAM_MASTER_INIT_C,
-      state    => IDLE_S);      
+      state    => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -90,11 +91,11 @@ architecture rtl of IpV4EngineTx is
    signal mAxisSlave  : AxiStreamSlaveType;
 
    -- attribute dont_touch              : string;
-   -- attribute dont_touch of r         : signal is "TRUE";   
+   -- attribute dont_touch of r         : signal is "TRUE";
 
 begin
 
-   AxiStreamMux_Inst : entity work.AxiStreamMux
+   AxiStreamMux_Inst : entity surf.AxiStreamMux
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0,
@@ -108,7 +109,7 @@ begin
          sAxisSlaves  => obProtocolSlaves,
          -- Masters
          mAxisMaster  => rxMaster,
-         mAxisSlave   => rxSlave);   
+         mAxisSlave   => rxSlave);
 
    comb : process (localMac, r, rst, rxMaster, txSlave) is
       variable v : RegType;
@@ -161,7 +162,7 @@ begin
                   else
                      -- Set the EtherType = VLAN Type
                      v.txMaster.tData(111 downto 96)  := VLAN_TYPE_C;
-                     -- VID = 0x0 here because it gets overwritten in the MAC               
+                     -- VID = 0x0 here because it gets overwritten in the MAC
                      v.txMaster.tData(127 downto 112) := (others => '0');
                   end if;
                   -- Track the leftovers
@@ -178,8 +179,8 @@ begin
                v.txMaster.tValid := '1';
                -- Check for non-VLAN
                if (VLAN_G = false) then
-                  v.txMaster.tData(7 downto 0)     := x"00";  -- IPV4_Length(15 downto 8) Note: Calculated in EthMac core 
-                  v.txMaster.tData(15 downto 8)    := x"00";  -- IPV4_Length(7 downto 0)  Note: Calculated in EthMac core 
+                  v.txMaster.tData(7 downto 0)     := x"00";  -- IPV4_Length(15 downto 8) Note: Calculated in EthMac core
+                  v.txMaster.tData(15 downto 8)    := x"00";  -- IPV4_Length(7 downto 0)  Note: Calculated in EthMac core
                   v.txMaster.tData(23 downto 16)   := r.id(15 downto 8);     -- IPV4_ID(15 downto 8)
                   v.txMaster.tData(31 downto 24)   := r.id(7 downto 0);      -- IPV4_ID(7 downto 0)
                   v.txMaster.tData(39 downto 32)   := x"40";  -- Flags(2 downto 0) =  Don't Fragment (DF) and Fragment_Offsets(12 downto 8) = 0x0
@@ -194,16 +195,16 @@ begin
                   v.txMaster.tData(15 downto 0)    := IPV4_TYPE_C;
                   v.txMaster.tData(23 downto 16)   := x"45";  -- IPVersion = 4,Header length = 5
                   v.txMaster.tData(31 downto 24)   := x"00";  -- DSCP and ECN
-                  v.txMaster.tData(39 downto 32)   := x"00";  -- IPV4_Length(15 downto 8) Note: Calculated in EthMac core 
-                  v.txMaster.tData(47 downto 40)   := x"00";  -- IPV4_Length(7 downto 0)  Note: Calculated in EthMac core 
+                  v.txMaster.tData(39 downto 32)   := x"00";  -- IPV4_Length(15 downto 8) Note: Calculated in EthMac core
+                  v.txMaster.tData(47 downto 40)   := x"00";  -- IPV4_Length(7 downto 0)  Note: Calculated in EthMac core
                   v.txMaster.tData(55 downto 48)   := r.id(15 downto 8);     -- IPV4_ID(15 downto 8)
                   v.txMaster.tData(63 downto 56)   := r.id(7 downto 0);      -- IPV4_ID(7 downto 0)
                   v.txMaster.tData(71 downto 64)   := x"40";  -- Flags(2 downto 0) =  Don't Fragment (DF) and Fragment_Offsets(12 downto 8) = 0x0
                   v.txMaster.tData(79 downto 72)   := x"00";  -- Fragment_Offsets(7 downto 0) = 0x0
                   v.txMaster.tData(87 downto 80)   := TTL_G;  -- Time-To-Live (number of hops before packet is discarded)
                   v.txMaster.tData(95 downto 88)   := PROTOCOL_G(conv_integer(r.tDest));  -- Protocol
-                  v.txMaster.tData(103 downto 96)  := x"00";  -- IPV4_Checksum(15 downto 8)  Note: Calculated in EthMac core 
-                  v.txMaster.tData(111 downto 104) := x"00";  -- IPV4_Checksum(7 downto 0)   Note: Calculated in EthMac core 
+                  v.txMaster.tData(103 downto 96)  := x"00";  -- IPV4_Checksum(15 downto 8)  Note: Calculated in EthMac core
+                  v.txMaster.tData(111 downto 104) := x"00";  -- IPV4_Checksum(7 downto 0)   Note: Calculated in EthMac core
                   v.txMaster.tData(127 downto 112) := r.tData(15 downto 0);  -- Source IP Address(31 downto 16)
                end if;
                -- Increment the counter
@@ -226,7 +227,7 @@ begin
                   v.txMaster.tKeep(1 downto 0)    := (others => '1');
                   v.txMaster.tKeep(13 downto 2)   := rxMaster.tKeep(15 downto 4);
                   v.txMaster.tKeep(15 downto 14)  := (others => '0');
-                  -- Get the EOFE 
+                  -- Get the EOFE
                   v.eofe                          := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
                   -- Check for tLast
                   if (rxMaster.tLast = '1') then
@@ -234,7 +235,7 @@ begin
                      v.txMaster.tValid := '1';
                      -- Set the tLast flag
                      v.txMaster.tLast  := '1';
-                     -- Set the EOFE 
+                     -- Set the EOFE
                      ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, v.eofe);
                      -- Next state
                      v.state           := IDLE_S;
@@ -255,7 +256,7 @@ begin
                   -- Track the leftovers
                   v.tData(15 downto 0)            := rxMaster.tData(127 downto 112);
                   v.tKeep(1 downto 0)             := rxMaster.tKeep(15 downto 14);
-                  -- Get the EOFE 
+                  -- Get the EOFE
                   v.eofe                          := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
                   -- Check for tLast
                   if (rxMaster.tLast = '1') then
@@ -290,7 +291,7 @@ begin
                -- Track the leftovers
                v.tData(111 downto 0)            := rxMaster.tData(127 downto 16);
                v.tKeep(13 downto 0)             := rxMaster.tKeep(15 downto 2);
-               -- Get the EOFE 
+               -- Get the EOFE
                v.eofe                           := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
                -- Check for tLast
                if (rxMaster.tLast = '1') then
@@ -328,7 +329,7 @@ begin
                   -- Track the leftovers
                   v.tData(111 downto 0)            := rxMaster.tData(127 downto 16);
                   v.tKeep(13 downto 0)             := rxMaster.tKeep(15 downto 2);
-                  -- Get the EOFE 
+                  -- Get the EOFE
                   v.eofe                           := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
                   -- Check for tLast
                   if (rxMaster.tLast = '1') then
@@ -350,10 +351,10 @@ begin
                   v.txMaster.tData(127 downto 16) := rxMaster.tData(111 downto 0);
                   v.txMaster.tKeep(1 downto 0)    := r.tKeep(1 downto 0);
                   v.txMaster.tKeep(15 downto 2)   := rxMaster.tKeep(13 downto 0);
-                  -- Track the leftovers                  
+                  -- Track the leftovers
                   v.tData(15 downto 0)            := rxMaster.tData(127 downto 112);
                   v.tKeep(1 downto 0)             := rxMaster.tKeep(15 downto 14);
-                  -- Get the EOFE 
+                  -- Get the EOFE
                   v.eofe                          := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
                   -- Check for tLast
                   if (rxMaster.tLast = '1') then
@@ -386,7 +387,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
@@ -398,7 +399,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs 
+      -- Registered Outputs
       txMaster <= r.txMaster;
 
    end process comb;
@@ -410,7 +411,7 @@ begin
       end if;
    end process seq;
 
-   U_TxPipeline : entity work.AxiStreamPipeline
+   U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -420,9 +421,9 @@ begin
          sAxisMaster => txMaster,
          sAxisSlave  => txSlave,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);      
+         mAxisSlave  => mAxisSlave);
 
-   U_DeMux : entity work.AxiStreamDeMux
+   U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
@@ -431,13 +432,13 @@ begin
          -- Clock and reset
          axisClk         => clk,
          axisRst         => rst,
-         -- Slave         
+         -- Slave
          sAxisMaster     => mAxisMaster,
          sAxisSlave      => mAxisSlave,
          -- Masters
          mAxisMasters(0) => obIpv4Master,
          mAxisMasters(1) => localhostMaster,
          mAxisSlaves(0)  => obIpv4Slave,
-         mAxisSlaves(1)  => localhostSlave);            
+         mAxisSlaves(1)  => localhostSlave);
 
 end rtl;

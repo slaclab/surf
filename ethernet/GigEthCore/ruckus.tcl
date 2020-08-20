@@ -34,13 +34,15 @@ if { ${family} eq {kintexu} } {
 
 if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} ||
+     ${family} eq {qzynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
    loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
 }
 
-if { ${family} eq {virtexuplus} } {
+if { ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} } {
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
    loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
 }

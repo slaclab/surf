@@ -1,22 +1,25 @@
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUsIpWrapper.vhd
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 GTH Ultrascale IP core Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Pgp3GthUsIpWrapper is
    generic (
@@ -196,7 +199,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
          );
    end component;
-   
+
    component Pgp3GthUsIp3G
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
@@ -256,7 +259,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
          txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
          );
-   end component;   
+   end component;
 
    signal dummy1  : sl;
    signal dummy2  : sl;
@@ -293,7 +296,7 @@ begin
    txUsrClk2      <= txUsrClk2Int;
    txUsrClkActive <= txUsrClkActiveInt;
 
-   U_RstSync_TX : entity work.RstSync
+   U_RstSync_TX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -304,7 +307,7 @@ begin
          asyncRst => txUsrClkActiveInt,  -- [in]
          syncRst  => txUsrClkRst);       -- [out]
 
-   U_RstSync_RX : entity work.RstSync
+   U_RstSync_RX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -331,7 +334,7 @@ begin
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
-            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => txReset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
             gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
@@ -395,7 +398,7 @@ begin
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
-            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => txReset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
             gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
@@ -442,7 +445,7 @@ begin
             txpmaresetdone_out(0)                 => dummy10,
             txprgdivresetdone_out(0)              => dummy11);
    end generate GEN_6G;
-   
+
    GEN_3G : if (RATE_G = "3.125Gbps") generate
       U_Pgp3GthUsIp : Pgp3GthUsIp3G
          port map (
@@ -459,7 +462,7 @@ begin
             gtwiz_reset_clk_freerun_in(0)         => stableClk,
             gtwiz_reset_all_in(0)                 => stableRst,
             gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
-            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => txReset,
             gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
             gtwiz_reset_rx_datapath_in(0)         => rxReset,
             gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
@@ -505,7 +508,7 @@ begin
             rxstartofseq_out(0)                   => rxStartOfSeq,
             txpmaresetdone_out(0)                 => dummy10,
             txprgdivresetdone_out(0)              => dummy11);
-   end generate GEN_3G;   
+   end generate GEN_3G;
 
    qpllRst(1)                <= '0';
    zeroBit                   <= '0';
@@ -515,7 +518,7 @@ begin
    txheader_in(1 downto 0)   <= txHeader;
 
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,

@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : AxiDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper of StdLib DualPortRam that places an AxiLite
--- interface on the read/write port. 
+-- interface on the read/write port.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,22 +18,26 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiDualPortRam is
    generic (
-      TPD_G            : time                       := 1 ns;
-      SYNTH_MODE_G     : string                     := "inferred";
-      MEMORY_TYPE_G    : string                     := "block";
-      READ_LATENCY_G   : natural range 0 to 3       := 2;
-      AXI_WR_EN_G      : boolean                    := true;
-      SYS_WR_EN_G      : boolean                    := false;
-      SYS_BYTE_WR_EN_G : boolean                    := false;
-      COMMON_CLK_G     : boolean                    := false;
-      ADDR_WIDTH_G     : integer range 1 to (2**24) := 5;
-      DATA_WIDTH_G     : integer                    := 32;
-      INIT_G           : slv                        := "0");
+      TPD_G               : time                       := 1 ns;
+      SYNTH_MODE_G        : string                     := "inferred";
+      MEMORY_TYPE_G       : string                     := "block";
+      MEMORY_INIT_FILE_G  : string                     := "none";  -- Used for MEMORY_TYPE_G="XPM only
+      MEMORY_INIT_PARAM_G : string                     := "0";  -- Used for MEMORY_TYPE_G="XPM only
+      READ_LATENCY_G      : natural range 0 to 3       := 2;
+      AXI_WR_EN_G         : boolean                    := true;
+      SYS_WR_EN_G         : boolean                    := false;
+      SYS_BYTE_WR_EN_G    : boolean                    := false;
+      COMMON_CLK_G        : boolean                    := false;
+      ADDR_WIDTH_G        : integer range 1 to (2**24) := 5;
+      DATA_WIDTH_G        : integer                    := 32;
+      INIT_G              : slv                        := "0");
    port (
       -- Axi Port
       axiClk         : in  sl;
@@ -113,18 +116,20 @@ architecture rtl of AxiDualPortRam is
 begin
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity work.TrueDualPortRamXpm
+      U_RAM : entity surf.TrueDualPortRamXpm
          generic map (
-            TPD_G          => TPD_G,
-            COMMON_CLK_G   => COMMON_CLK_G,
-            MEMORY_TYPE_G  => MEMORY_TYPE_G,
-            READ_LATENCY_G => READ_LATENCY_G,
-            DATA_WIDTH_G   => DATA_WIDTH_G,
-            BYTE_WR_EN_G   => true,
-            BYTE_WIDTH_G   => 8,
-            ADDR_WIDTH_G   => ADDR_WIDTH_G)
+            TPD_G               => TPD_G,
+            COMMON_CLK_G        => COMMON_CLK_G,
+            MEMORY_TYPE_G       => MEMORY_TYPE_G,
+            MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
+            MEMORY_INIT_PARAM_G => MEMORY_INIT_PARAM_G,
+            READ_LATENCY_G      => READ_LATENCY_G,
+            DATA_WIDTH_G        => DATA_WIDTH_G,
+            BYTE_WR_EN_G        => true,
+            BYTE_WIDTH_G        => 8,
+            ADDR_WIDTH_G        => ADDR_WIDTH_G)
          port map (
-            -- Port A  
+            -- Port A
             clka  => axiClk,
             ena   => '1',
             wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
@@ -143,7 +148,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity work.TrueDualPortRamAlteraMf
+      U_RAM : entity surf.TrueDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => COMMON_CLK_G,
@@ -154,7 +159,7 @@ begin
             BYTE_WIDTH_G   => 8,
             ADDR_WIDTH_G   => ADDR_WIDTH_G)
          port map (
-            -- Port A  
+            -- Port A
             clka  => axiClk,
             ena   => '1',
             wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
@@ -173,20 +178,20 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-   
+
       -- AXI read only, sys writable or read only (rom)
       AXI_R0_SYS_RW : if (not AXI_WR_EN_G and SYS_WR_EN_G) generate
-         DualPortRam_1 : entity work.DualPortRam
+         DualPortRam_1 : entity surf.DualPortRam
             generic map (
-               TPD_G        => TPD_G,
-               BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
-               REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
-               DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               BYTE_WR_EN_G => SYS_BYTE_WR_EN_G,
-               DATA_WIDTH_G => DATA_WIDTH_G,
-               ADDR_WIDTH_G => ADDR_WIDTH_G,
-               INIT_G       => INIT_G)
+               TPD_G         => TPD_G,
+               MEMORY_TYPE_G => MEMORY_TYPE_G,
+               REG_EN_G      => ite(READ_LATENCY_G >= 1, true, false),
+               DOA_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               DOB_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               BYTE_WR_EN_G  => SYS_BYTE_WR_EN_G,
+               DATA_WIDTH_G  => DATA_WIDTH_G,
+               ADDR_WIDTH_G  => ADDR_WIDTH_G,
+               INIT_G        => INIT_G)
             port map (
                clka    => clk,
                ena     => en,
@@ -207,18 +212,18 @@ begin
       -- System Read only, Axi writable or read only (ROM)
       -- Logic disables axi writes if AXI_WR_EN_G=false
       AXI_RW_SYS_RO : if (not SYS_WR_EN_G) generate
-         DualPortRam_1 : entity work.DualPortRam
+         DualPortRam_1 : entity surf.DualPortRam
             generic map (
-               TPD_G        => TPD_G,
-               BRAM_EN_G    => ite(MEMORY_TYPE_G = "block", true, false),
-               REG_EN_G     => ite(READ_LATENCY_G >= 1, true, false),
-               DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-               BYTE_WR_EN_G => true,
-               DATA_WIDTH_G => DATA_WIDTH_G,
-               BYTE_WIDTH_G => 8,
-               ADDR_WIDTH_G => ADDR_WIDTH_G,
-               INIT_G       => INIT_G)
+               TPD_G         => TPD_G,
+               MEMORY_TYPE_G => MEMORY_TYPE_G,
+               REG_EN_G      => ite(READ_LATENCY_G >= 1, true, false),
+               DOA_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               DOB_REG_G     => ite(READ_LATENCY_G >= 2, true, false),
+               BYTE_WR_EN_G  => true,
+               DATA_WIDTH_G  => DATA_WIDTH_G,
+               BYTE_WIDTH_G  => 8,
+               ADDR_WIDTH_G  => ADDR_WIDTH_G,
+               INIT_G        => INIT_G)
             port map (
                clka    => axiClk,
                ena     => '1',
@@ -236,7 +241,7 @@ begin
 
       -- Both sides writable, true dual port ram
       AXI_RW_SYS_RW : if (AXI_WR_EN_G and SYS_WR_EN_G) generate
-         U_TrueDualPortRam_1 : entity work.TrueDualPortRam
+         U_TrueDualPortRam_1 : entity surf.TrueDualPortRam
             generic map (
                TPD_G        => TPD_G,
                BYTE_WR_EN_G => true,
@@ -258,14 +263,14 @@ begin
                clkb    => clk,                                       -- [in]
                enb     => en,                                        -- [in]
                web     => we,                                        -- [in]
-               webByte => weByte,                                    -- [in]
+               webByte => weByteMask,                                -- [in]
                rstb    => '0',                                       -- [in]
                addrb   => addr,                                      -- [in]
                dinb    => din,                                       -- [in]
-               doutb   => doutInt);                                     -- [out]
+               doutb   => doutInt);                                  -- [out]
 
-      end generate;   
-   
+      end generate;
+
    end generate;
 
    weByteMask <= (others => '0') when(not SYS_WR_EN_G) else weByte when(SYS_BYTE_WR_EN_G) else (others => we);
@@ -276,12 +281,12 @@ begin
       <= r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0);
    axiSyncWrEn <= uOr(r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0));
 
-   U_SynchronizerFifo_1 : entity work.SynchronizerFifo
+   U_SynchronizerFifo_1 : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => ADDR_WIDTH_G+DATA_WIDTH_G+ADDR_AXI_BYTES_C)
+         TPD_G         => TPD_G,
+         COMMON_CLK_G  => COMMON_CLK_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => ADDR_WIDTH_G+DATA_WIDTH_G+ADDR_AXI_BYTES_C)
       port map (
          rst    => rst,                 -- [in]
          wr_clk => axiClk,              -- [in]
@@ -313,7 +318,6 @@ begin
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
-      v.axiReadSlave.rdata := (others => '0');
 
       -- Multiplex read data onto axi bus
       if (DATA_WIDTH_G <= 32) then
@@ -328,7 +332,7 @@ begin
 
       -- State Machine
       case (r.state) is
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for write transaction
             if (axiStatus.writeEnable = '1') then
@@ -345,11 +349,11 @@ begin
             -- Check for read transaction
             elsif (axiStatus.readEnable = '1') then
                -- Set the address bus
-               v.axiAddr := axiReadMaster.araddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
+               v.axiAddr  := axiReadMaster.araddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
                -- Arm the wait
                v.rdLatecy := 4;
                -- Next state
-               v.state := RD_S;
+               v.state    := RD_S;
             end if;
          ----------------------------------------------------------------------
          when RD_S =>
@@ -386,7 +390,7 @@ begin
       end if;
    end process seq;
 
-   OUT_REG : if((READ_LATENCY_G = 3) AND (SYNTH_MODE_G /= "xpm")) generate
+   OUT_REG : if((READ_LATENCY_G = 3) and (SYNTH_MODE_G /= "xpm")) generate
       REG : process (clk) is
       begin
          if(rising_edge(clk)) then
@@ -399,7 +403,7 @@ begin
       end process REG;
    end generate OUT_REG;
 
-   NO_OUT_REG : if ((READ_LATENCY_G <= 2) OR (SYNTH_MODE_G = "xpm")) generate
+   NO_OUT_REG : if ((READ_LATENCY_G <= 2) or (SYNTH_MODE_G = "xpm")) generate
       dout <= doutInt;
    end generate NO_OUT_REG;
 

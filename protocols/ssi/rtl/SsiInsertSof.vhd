@@ -1,15 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : SsiInsertSof.vhd
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Inserts the SOF for converting a generic AXIS into a SSI bus
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,20 +19,27 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiInsertSof is
    generic (
-      TPD_G               : time                := 1 ns;
-      TUSER_MASK_G        : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0)   := (others => '1');  -- '1' = masked off bit
-      COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
-      INSERT_USER_HDR_G   : boolean             := false;  -- If True the module adds one user header word (mUserHdr = user header data)
-      SLAVE_FIFO_G        : boolean             := true;
-      MASTER_FIFO_G       : boolean             := true;
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);       
+      -- General Configurations
+      TPD_G               : time                                         := 1 ns;
+      TUSER_MASK_G        : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '1');  -- '1' = masked off bit
+      INSERT_USER_HDR_G   : boolean                                      := false;  -- If True the module adds one user header word (mUserHdr = user header data)
+      -- FIFO configurations
+      INT_PIPE_STAGES_G   : natural                                      := 0;
+      PIPE_STAGES_G       : natural                                      := 1;
+      COMMON_CLK_G        : boolean                                      := false;  -- True if sAxisClk and mAxisClk are the same clock
+      SLAVE_FIFO_G        : boolean                                      := true;
+      MASTER_FIFO_G       : boolean                                      := true;
+      -- AXI Stream Port Configurations
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       sAxisClk    : in  sl;
@@ -43,14 +51,14 @@ entity SsiInsertSof is
       mAxisRst    : in  sl;
       mUserHdr    : in  slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0');
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);      
+      mAxisSlave  : in  AxiStreamSlaveType);
 end SsiInsertSof;
 
 architecture rtl of SsiInsertSof is
 
    type StateType is (
       IDLE_S,
-      MOVE_S); 
+      MOVE_S);
 
    type RegType is record
       rxSlave  : AxiStreamSlaveType;
@@ -60,7 +68,7 @@ architecture rtl of SsiInsertSof is
    constant REG_INIT_C : RegType := (
       rxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster => AXI_STREAM_MASTER_INIT_C,
-      state    => IDLE_S);      
+      state    => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -72,28 +80,27 @@ architecture rtl of SsiInsertSof is
 
 begin
 
-   BYPASS_FIFO_RX : if ( (SLAVE_FIFO_G = false) and (COMMON_CLK_G = true) and (SLAVE_AXI_CONFIG_G = MASTER_AXI_CONFIG_G) ) generate
+   BYPASS_FIFO_RX : if ((SLAVE_FIFO_G = false) and (COMMON_CLK_G = true) and (SLAVE_AXI_CONFIG_G = MASTER_AXI_CONFIG_G)) generate
       rxMaster   <= sAxisMaster;
       sAxisSlave <= rxSlave;
    end generate;
 
-   GEN_FIFO_RX : if ( (SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G) ) generate
-      FIFO_RX : entity work.AxiStreamFifoV2
+   GEN_FIFO_RX : if ((SLAVE_FIFO_G = true) or (COMMON_CLK_G = false) or (SLAVE_AXI_CONFIG_G /= MASTER_AXI_CONFIG_G)) generate
+      FIFO_RX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
-            PIPE_STAGES_G       => 0,
+            INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
+            PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => COMMON_CLK_G,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)            
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => sAxisClk,
@@ -104,7 +111,7 @@ begin
             mAxisClk    => mAxisClk,
             mAxisRst    => mAxisRst,
             mAxisMaster => rxMaster,
-            mAxisSlave  => rxSlave);   
+            mAxisSlave  => rxSlave);
    end generate;
 
 
@@ -181,7 +188,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
@@ -193,7 +200,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs        
+      -- Registered Outputs
       txMaster <= r.txMaster;
 
    end process comb;
@@ -211,22 +218,21 @@ begin
    end generate;
 
    GEN_FIFO_TX : if (MASTER_FIFO_G = true) generate
-      FIFO_TX : entity work.AxiStreamFifoV2
+      FIFO_TX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
-            PIPE_STAGES_G       => 0,
+            INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
+            PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => true,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,
-            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)            
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Slave Port
             sAxisClk    => mAxisClk,
@@ -237,7 +243,7 @@ begin
             mAxisClk    => mAxisClk,
             mAxisRst    => mAxisRst,
             mAxisMaster => mAxisMaster,
-            mAxisSlave  => mAxisSlave);   
+            mAxisSlave  => mAxisSlave);
    end generate;
-   
+
 end rtl;

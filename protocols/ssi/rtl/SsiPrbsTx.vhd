@@ -1,16 +1,17 @@
 -------------------------------------------------------------------------------
--- File       : SsiPrbsTx.vhd
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   This module generates 
+-- Description:   This module generates
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,34 +20,35 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsTx is
    generic (
       -- General Configurations
       TPD_G                      : time                    := 1 ns;
       AXI_EN_G                   : sl                      := '1';
+      AXI_DEFAULT_PKT_LEN_G      : slv(31 downto 0)        := x"00000FFF";
+      AXI_DEFAULT_TRIG_DLY_G     : slv(31 downto 0)        := x"00000000";
       -- FIFO Configurations
       VALID_THOLD_G              : natural                 := 1;
       VALID_BURST_MODE_G         : boolean                 := false;
-      BRAM_EN_G                  : boolean                 := true;
-      XIL_DEVICE_G               : string                  := "7SERIES";
-      USE_BUILT_IN_G             : boolean                 := false;
+      SYNTH_MODE_G               : string                  := "inferred";
+      MEMORY_TYPE_G              : string                  := "block";
       GEN_SYNC_FIFO_G            : boolean                 := false;
-      ALTERA_SYN_G               : boolean                 := false;
-      ALTERA_RAM_G               : string                  := "M9K";
       CASCADE_SIZE_G             : positive                := 1;
       FIFO_ADDR_WIDTH_G          : positive                := 9;
       FIFO_PAUSE_THRESH_G        : positive                := 2**8;
       -- PRBS Configurations
-      PRBS_SEED_SIZE_G           : natural range 32 to 256 := 32;
+      PRBS_SEED_SIZE_G           : natural range 32 to 512 := 32;
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       PRBS_INCREMENT_G           : boolean                 := false;  -- Increment mode by default instead of PRBS
       -- AXI Stream Configurations
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(16, TKEEP_COMP_C);
+      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       MASTER_AXI_PIPE_STAGES_G   : natural range 0 to 16   := 0);
    port (
       -- Master Port (mAxisClk)
@@ -94,6 +96,8 @@ architecture rtl of SsiPrbsTx is
       length         : slv(31 downto 0);
       packetLength   : slv(31 downto 0);
       dataCnt        : slv(31 downto 0);
+      trigDly        : slv(31 downto 0);
+      trigDlyCnt     : slv(31 downto 0);
       eventCnt       : slv(PRBS_SEED_SIZE_G-1 downto 0);
       randomData     : slv(PRBS_SEED_SIZE_G-1 downto 0);
       txAxisMaster   : AxiStreamMasterType;
@@ -101,6 +105,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          : sl;
       oneShot        : sl;
       trig           : sl;
+      trigger        : sl;
       cntData        : sl;
       tDest          : slv(7 downto 0);
       tId            : slv(7 downto 0);
@@ -112,8 +117,10 @@ architecture rtl of SsiPrbsTx is
       busy           => '1',
       overflow       => '0',
       length         => (others => '0'),
-      packetLength   => x"00000FFF",
+      packetLength   => AXI_DEFAULT_PKT_LEN_G,
       dataCnt        => (others => '0'),
+      trigDly        => AXI_DEFAULT_TRIG_DLY_G,
+      trigDlyCnt     => (others => '0'),
       eventCnt       => toSlv(1, PRBS_SEED_SIZE_G),
       randomData     => (others => '0'),
       txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
@@ -121,6 +128,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          => AXI_EN_G,
       oneShot        => '0',
       trig           => '0',
+      trigger        => '0',
       cntData        => toSl(PRBS_INCREMENT_G),
       tDest          => X"00",
       tId            => X"00",
@@ -135,7 +143,7 @@ architecture rtl of SsiPrbsTx is
 
 begin
 
-   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256]" severity failure;
+   assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256) or (PRBS_SEED_SIZE_G = 512)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256,512]" severity failure;
 
    comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst,
                    packetLength, r, tDest, tId, trig, txCtrl, txSlave) is
@@ -146,9 +154,6 @@ begin
    begin
       -- Latch the current value
       v := r;
-
-      -- Reset the one shot
-      v.oneShot := '0';
 
       ----------------------------------------------------------------------------------------------
       -- Axi-Lite interface
@@ -168,10 +173,12 @@ begin
             when X"04" =>
                v.packetLength := axilWriteMaster.wdata(31 downto 0);
             when X"08" =>
-               v.tDest := axilWriteMaster.wdata(7 downto 0);
-               v.tId   := axilWriteMaster.wdata(15 downto 8);
+               v.tDest   := axilWriteMaster.wdata(7 downto 0);
+               v.tId     := axilWriteMaster.wdata(15 downto 8);
             when X"18" =>
                v.oneShot := axilWriteMaster.wdata(0);
+            when X"1C" =>
+               v.trigDly := axilWriteMaster.wdata(31 downto 0);
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
@@ -180,14 +187,13 @@ begin
 
       if (axilStatus.readEnable = '1') then
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         v.axilReadSlave.rdata := (others => '0');
          case (axilReadMaster.araddr(7 downto 0)) is
             when X"00" =>
                v.axilReadSlave.rdata(0) := r.axiEn;
                v.axilReadSlave.rdata(1) := r.trig;
                v.axilReadSlave.rdata(2) := r.busy;
                v.axilReadSlave.rdata(3) := r.overflow;
-               -- BIT4 reserved 
+               -- BIT4 reserved
                v.axilReadSlave.rdata(5) := r.cntData;
             when X"04" =>
                v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
@@ -208,15 +214,25 @@ begin
                else
                   v.axilReadSlave.rdata(31 downto 0) := r.randomData(31 downto 0);
                end if;
+            when X"1C" =>
+               v.axilReadSlave.rdata(31 downto 0):= r.trigDly;
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;
          axiSlaveReadResponse(v.axilReadSlave);
       end if;
 
+      -- Check for delay between AXI triggers
+      if (r.trigDlyCnt = r.trigDly) or (r.trigDly /= v.trigDly) then
+         v.trigDlyCnt := (others=>'0');
+         v.trigger    := r.trig;
+      elsif (r.trigger = '0') then
+         v.trigDlyCnt := r.trigDlyCnt + 1;
+      end if;
+
       -- Override axi settings if axi not enabled
       if (v.axiEn = '0') then
-         v.trig         := trig;
+         v.trigger      := trig;
          v.packetLength := packetLength;
          v.tDest        := tDest;
          v.tId          := tId;
@@ -243,7 +259,10 @@ begin
             -- Reset the busy flag
             v.busy := '0';
             -- Check for a trigger
-            if (r.trig = '1') or (r.oneShot = '1') then
+            if (r.trigger = '1') or (r.oneShot = '1') then
+               -- Reset the one shot
+               v.oneShot := '0';
+               v.trigger := '0';
                -- Latch the generator seed
                v.randomData         := r.eventCnt;
                -- Set the busy flag
@@ -324,7 +343,7 @@ begin
                if r.dataCnt = r.length then
                   -- Reset the counter
                   v.dataCnt            := (others => '0');
-                  -- Set the EOF bit                
+                  -- Set the EOF bit
                   v.txAxisMaster.tLast := '1';
                   -- Set the EOFE bit
                   ssiSetUserEofe(PRBS_SSI_CONFIG_C, v.txAxisMaster, r.overflow);
@@ -359,7 +378,7 @@ begin
       end if;
    end process seq;
 
-   AxiStreamFifo_Inst : entity work.AxiStreamFifoV2
+   AxiStreamFifo_Inst : entity surf.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -369,12 +388,9 @@ begin
          VALID_THOLD_G       => VALID_THOLD_G,
          VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,

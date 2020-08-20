@@ -1,25 +1,26 @@
 -------------------------------------------------------------------------------
--- File       : MicroblazeBasicCoreWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Microblaze Basic Core for "90% case"
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
 
 entity MicroblazeBasicCoreWrapper is
    generic (
@@ -154,7 +155,7 @@ begin
          dcm_locked          => pllLock,
          reset               => rst);
 
-   U_InsertSOF : entity work.SsiInsertSof
+   U_InsertSOF : entity surf.SsiInsertSof
       generic map (
          TPD_G               => TPD_G,
          COMMON_CLK_G        => true,
@@ -171,6 +172,6 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);         
+         mAxisSlave  => mAxisSlave);
 
 end mapping;

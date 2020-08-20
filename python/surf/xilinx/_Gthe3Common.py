@@ -1,18 +1,14 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Gthe3Common
-#-----------------------------------------------------------------------------
-# File       : Gthe3Common.py
-# Created    : 2017-04-12
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue Gthe3Common - QPLL
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -28,43 +24,43 @@ class Gthe3Common(pr.Device):
             bitSize=16,
             mode='RW',
             name='QPLL0_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0009 << 2,
             bitSize=16,
             mode='RW',
             name='COMMON_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x000B << 2,
             bitSize=16,
             mode='RW',
             name='RSVD_ATTR0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0010 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_CFG1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0011 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_CFG2'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0012 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_LOCK_CFG'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0013 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL0_INIT_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0014 << 2,
             bitSize=8,
@@ -275,7 +271,7 @@ class Gthe3Common(pr.Device):
             offset=0x0090 << 2,
             bitSize=16,
             mode='RW',
-        name='QPLL1_CFG1'))
+            name='QPLL1_CFG1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0091 << 2,
@@ -298,7 +294,7 @@ class Gthe3Common(pr.Device):
         self.add(pr.RemoteVariable(
             offset=0x0094 << 2,
             bitSize=8,
-            bitOffset=8
+            bitOffset=8,
             mode='RW',
             name='QPLL1_INIT_CFG1'))
 
@@ -342,124 +338,124 @@ class Gthe3Common(pr.Device):
             enum = __REFCLK_DIV_ENUM,
             mode='RW',
             name='QPLL1_REFCLK_DIV'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0099 << 2,
             bitSize=10,
             mode='RW',
             name='QPLL1_LPF'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009A << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_CFG1_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009B << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_CFG2_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009C << 2,
             bitSize=10,
             mode='RW',
             name='QPLL1_LPF_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009D << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_LOCK_CFG_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009E << 2,
             bitSize=16,
             mode='RW',
             name='RSVD_ATTR2'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009F << 2,
             bitSize=8,
             bitOffset=8,
             mode='RW',
             name='QPLL1_FBDIV_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x009F << 2,
             bitSize=2,
             mode='RW',
             name='RXRECCLKOUT1_SEL'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A0 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_SDM_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A1 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_SDM_CFG1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A2 << 2,
             bitSize=16,
             mode='RW',
             name='SDM1INITSEED0_0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A3 << 2,
             bitSize=9,
             mode='RW',
             name='SDM1INITSEED0_1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A4 << 2,
             bitSize=16,
             mode='RW',
             name='QPLL1_SDM_CFG2'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A5 << 2,
             bitSize=10,
             mode='RW',
             name='QPLL1_CP_G3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A8 << 2,
             bitSize=16,
             mode='RW',
             name='SDM1DATA1_0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A9 << 2,
             bitSize=1,
             bitOffset=10,
             mode='RW',
             name='SDM1_WIDTH_PIN_SEL'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A9 << 2,
             bitSize=1,
             bitOffset=9,
             mode='RW',
             name='SDM1_DATA_PIN_SEL'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00A9 << 2,
-            bitSize=9
+            bitSize=9,
             mode='RW',
             name='SDM1DATA1_1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00AD << 2,
             bitSize=16,
             mode='RW',
             name='RSVD_ATTR3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x00B0 << 2,
             bitSize=16,

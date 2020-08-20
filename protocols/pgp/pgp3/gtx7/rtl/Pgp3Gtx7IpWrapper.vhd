@@ -1,23 +1,26 @@
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtx7IpWrapper.vhd
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 GTX7 IP Core Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -70,7 +73,7 @@ entity Pgp3Gtx7IpWrapper is
       txData          : in  slv(63 downto 0);
       txHeader        : in  slv(1 downto 0);
       txStart         : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       loopback        : in  slv(2 downto 0);
       txPreCursor     : in  slv(4 downto 0);
       txPostCursor    : in  slv(4 downto 0);
@@ -436,7 +439,7 @@ begin
    txUsrClk  <= txUsrClkInt;
    txUsrClk2 <= txUsrClk2Int;
 
-   U_RX_PLL : entity work.ClockManager7
+   U_RX_PLL : entity surf.ClockManager7
       generic map(
          TPD_G            => TPD_G,
          TYPE_G           => "PLL",
@@ -794,7 +797,7 @@ begin
    end generate;
 
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => false,

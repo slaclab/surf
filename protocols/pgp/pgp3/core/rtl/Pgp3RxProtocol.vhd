@@ -1,21 +1,19 @@
 -------------------------------------------------------------------------------
--- Title      : PGP3 Receive Protocol
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
--- Takes pre-packetized AxiStream frames and creates a PGP3 66/64 protocol
+-- Description: PGPv3 Receive Protocol
+-- Takes pre-packetized AxiStream frames and creates a PGPv3 66/64 protocol
 -- stream (pre-scrambler). Inserts IDLE and SKP codes as needed. Inserts
 -- user K codes on request.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,11 +22,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiStreamPacketizer2Pkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiStreamPacketizer2Pkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3RxProtocol is
 
@@ -91,7 +91,7 @@ architecture rtl of Pgp3RxProtocol is
 
 begin
 
-   U_SynchronizerEdge_1 : entity work.SynchronizerEdge
+   U_SynchronizerEdge_1 : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -159,7 +159,7 @@ begin
                   v.pgpRxMaster :=
                      makePacketizer2Header(
                         CRC_MODE_C => "DATA",
-                        valid      => r.pgpRxOut.linkReady,  -- Hold Everything until linkready                  
+                        valid      => r.pgpRxOut.linkReady,  -- Hold Everything until linkready
                         sof        => ite(btf = PGP3_SOF_C, '1', '0'),
                         tdest      => resize(protRxData(PGP3_SOFC_VC_FIELD_C), 8),
                         seq        => resize(protRxData(PGP3_SOFC_SEQ_FIELD_C), 16));

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI4 Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package AxiPkg is
 
@@ -36,8 +37,8 @@ package AxiPkg is
       arlock   : slv(1 downto 0);       -- Lock control
       arprot   : slv(2 downto 0);       -- Protection control
       arcache  : slv(3 downto 0);       -- Cache control
-      arqos    : slv(3 downto 0);       -- QoS value                                        
-      arregion : slv(3 downto 0);       -- Region identifier                                       
+      arqos    : slv(3 downto 0);       -- QoS value
+      arregion : slv(3 downto 0);       -- Region identifier
       -- Read data channel
       rready   : sl;                    -- Master is ready for data
    end record;
@@ -112,8 +113,8 @@ package AxiPkg is
       awlock   : slv(1 downto 0);       -- Lock control
       awprot   : slv(2 downto 0);       -- Protection control
       awcache  : slv(3 downto 0);       -- Cache control
-      awqos    : slv(3 downto 0);       -- QoS value                                        
-      awregion : slv(3 downto 0);       -- Region identifier                                       
+      awqos    : slv(3 downto 0);       -- QoS value
+      awregion : slv(3 downto 0);       -- Region identifier
       -- Write data channel
       wdata    : slv(1023 downto 0);    -- Write data
       wlast    : sl;                    -- Write data is last
@@ -259,28 +260,28 @@ package AxiPkg is
       totalBytes : slv;
       address    : slv)
       return slv;
-      
+
    type AxiLenType is record
       valid : slv(1 downto 0);
       max   : natural;        -- valid(0)
       req   : natural;        -- valid(0)
       value : slv(7 downto 0);-- valid(1)
-   end record AxiLenType;      
+   end record AxiLenType;
    constant AXI_LEN_INIT_C : AxiLenType := (
       valid => "00",
       value => (others => '0'),
       max   => 0,
-      req   => 0);    
+      req   => 0);
    procedure getAxiLenProc (
-      -- Input 
+      -- Input
       axiConfig  : in AxiConfigType;
       burstBytes : in integer range 1 to 4096 := 4096;
       totalBytes : in slv;
       address    : in slv;
       -- Pipelined signals
       r          : in    AxiLenType;
-      v          : inout AxiLenType);        
-      
+      v          : inout AxiLenType);
+
    -- Calculate the byte count for a read request
    function getAxiReadBytes (
       axiConfig : AxiConfigType;
@@ -388,30 +389,30 @@ package body AxiPkg is
       return getAxiLen(axiConfig, min);
 
    end function getAxiLen;
-   
+
    -- getAxiLenProc is functionally the same as getAxiLen()
    -- but breaks apart the two comparator operations in getAxiLen()
-   -- into two separate clock cycles (instead of one), which helps 
+   -- into two separate clock cycles (instead of one), which helps
    -- with meeting timing by breaking apart this long combinatorial chain
    procedure getAxiLenProc (
-      -- Input 
+      -- Input
       axiConfig  : in AxiConfigType;
       burstBytes : in integer range 1 to 4096 := 4096;
       totalBytes : in slv;
       address    : in slv;
       -- Pipelined signals
       r          : in    AxiLenType;
-      v          : inout AxiLenType) is 
-      variable min : natural;      
+      v          : inout AxiLenType) is
+      variable min : natural;
    begin
-   
+
       --------------------
       -- First Clock cycle
       --------------------
-   
+
       -- Update valid flag for max/req
       v.valid(0) := '1';
-      
+
       -- Check for 4kB boundary
       v.max := 4096 - conv_integer(unsigned(address(11 downto 0)));
 
@@ -420,20 +421,20 @@ package body AxiPkg is
       else
          v.req := burstBytes;
       end if;
-      
+
       ---------------------
       -- Second Clock cycle
       ---------------------
-      
+
       -- Update valid flag for value
       v.valid(1) := r.valid(0);
-      
+
       min := minimum(r.req, r.max);
 
       -- Return the AXI Length value
-      v.value := getAxiLen(axiConfig, min);   
-   
-   end procedure;   
+      v.value := getAxiLen(axiConfig, min);
+
+   end procedure;
 
    -- Calculate the byte count for a read request
    function getAxiReadBytes (

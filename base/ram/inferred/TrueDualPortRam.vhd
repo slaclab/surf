@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : TrueDualPortRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This will infer this module as Block RAM only
@@ -7,11 +6,11 @@
 -- NOTE: TDP ram with read enable logic is not supported.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,14 +18,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity TrueDualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      ALTERA_RAM_G   : string                     := "M9K";
       DOA_REG_G      : boolean                    := false;  -- Extra output register on doutA.
       DOB_REG_G      : boolean                    := false;  -- Extra output register on doutB.
       MODE_G         : string                     := "read-first";
@@ -36,7 +36,7 @@ entity TrueDualPortRam is
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 9;
       INIT_G         : slv                        := "0");
    port (
-      -- Port A     
+      -- Port A
       clka    : in  sl                                                    := '0';
       ena     : in  sl                                                    := '1';
       wea     : in  sl                                                    := '0';
@@ -68,7 +68,7 @@ architecture rtl of TrueDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   -- Shared memory 
+   -- Shared memory
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
@@ -88,16 +88,12 @@ architecture rtl of TrueDualPortRam is
    attribute keep        : boolean;           --"keep" is same for XST and Altera
    attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
 
-   -- Attribute for Synplicity Synthesizer 
+   -- Attribute for Synplicity Synthesizer
    attribute syn_ramstyle        : string;
    attribute syn_ramstyle of mem : variable is "block";
 
    attribute syn_keep        : string;
    attribute syn_keep of mem : variable is "TRUE";
-
-   -- Attribute for Altera Synthesizer
-   attribute ramstyle        : string;
-   attribute ramstyle of mem : variable is ALTERA_RAM_G;
 
 begin
 
@@ -105,20 +101,9 @@ begin
    assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
       report "MODE_G must be either no-change, read-first, or write-first"
       severity failure;
-   -- ALTERA_RAM_G check
-   assert ((ALTERA_RAM_G = "M512")
-           or (ALTERA_RAM_G = "M4K")
-           or (ALTERA_RAM_G = "M9K")
-           or (ALTERA_RAM_G = "M10K")
-           or (ALTERA_RAM_G = "M20K")
-           or (ALTERA_RAM_G = "M144K")
-           or (ALTERA_RAM_G = "M-RAM"))
-      report "Invalid ALTERA_RAM_G string"
-      severity failure;
 
    weaByteInt <= weaByte when BYTE_WR_EN_G else (others => wea);
    webByteInt <= webByte when BYTE_WR_EN_G else (others => web);
-   
 
    -------------------------------------------------------------------------------------------------
    -- No Change Mode
@@ -174,7 +159,7 @@ begin
             if (enb = '1' and webByte = 0 and web = '0') then
                doutBInt <= mem(conv_integer(addrb)) after TPD_G;
             end if;
-            if rstb = RST_POLARITY_G and DOA_REG_G = false then
+            if rstb = RST_POLARITY_G and DOB_REG_G = false then
                doutBInt <= INIT_C after TPD_G;
             end if;
          end if;

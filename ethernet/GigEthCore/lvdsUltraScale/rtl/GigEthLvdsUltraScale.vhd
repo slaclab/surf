@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : GigEthLvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SGMII Ethernet over LVDS
@@ -16,21 +15,22 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 entity GigEthLvdsUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
       PAUSE_EN_G      : boolean             := true;
-      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -70,6 +70,47 @@ end GigEthLvdsUltraScale;
 
 architecture mapping of GigEthLvdsUltraScale is
 
+   component SaltUltraScaleCore
+      port (
+         -----------------------------
+         -- LVDS transceiver Interface
+         -----------------------------
+         txp                  : out std_logic;  -- Differential +ve of serial transmission from PMA to PMD.
+         txn                  : out std_logic;  -- Differential -ve of serial transmission from PMA to PMD.
+         rxp                  : in  std_logic;  -- Differential +ve for serial reception from PMD to PMA.
+         rxn                  : in  std_logic;  -- Differential -ve for serial reception from PMD to PMA.
+         clk125m              : in  std_logic;
+         mmcm_locked          : in  std_logic;
+         sgmii_clk_r          : out std_logic;  -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
+         sgmii_clk_f          : out std_logic;  -- Clock for client MAC (125Mhz, 12.5MHz or 1.25MHz).
+         sgmii_clk_en         : out std_logic;  -- Clock enable for client MAC
+         ----------------
+         -- Speed Control
+         ----------------
+         speed_is_10_100      : in  std_logic;  -- Core should operate at either 10Mbps or 100Mbps speeds
+         speed_is_100         : in  std_logic;  -- Core should operate at 100Mbps speed
+         clk625               : in  std_logic;
+         clk312               : in  std_logic;
+         idelay_rdy_in        : in  std_logic;
+         -----------------
+         -- GMII Interface
+         -----------------
+         gmii_txd             : in  std_logic_vector(7 downto 0);  -- Transmit data from client MAC.
+         gmii_tx_en           : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_tx_er           : in  std_logic;  -- Transmit control signal from client MAC.
+         gmii_rxd             : out std_logic_vector(7 downto 0);  -- Received Data to client MAC.
+         gmii_rx_dv           : out std_logic;  -- Received control signal to client MAC.
+         gmii_rx_er           : out std_logic;  -- Received control signal to client MAC.
+         gmii_isolate         : out std_logic;  -- Tristate control to electrically isolate GMII.
+         ---------------
+         -- General IO's
+         ---------------
+         configuration_vector : in  std_logic_vector(4 downto 0);  -- Alternative to MDIO interface.
+         status_vector        : out std_logic_vector(15 downto 0);  -- Core status.
+         reset                : in  std_logic;  -- Asynchronous reset for entire core.
+         signal_detect        : in  std_logic);  -- Input from PMD to indicate presence of optical input.
+   end component;
+
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
 
@@ -98,7 +139,7 @@ begin
    ------------------
    -- Synchronization
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -119,7 +160,7 @@ begin
 
    areset <= extRst or config.softRst or sysRst125;
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
          DURATION_G => 1000)
@@ -131,11 +172,11 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         PAUSE_512BITS_G => PAUSE_512BITS_C,
          PHY_TYPE_G      => "GMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
@@ -169,7 +210,7 @@ begin
    ------------------
    -- gmii - sgmii
    ------------------
-   U_GigEthLvdsUltraScaleCore : entity work.SaltUltraScaleCore
+   U_GigEthLvdsUltraScaleCore : SaltUltraScaleCore
       port map (
          -- Clocks and Resets
          clk125m              => sysClk125,
@@ -207,7 +248,7 @@ begin
    --------------------------------
    -- Configuration/Status Register
    --------------------------------
-   U_GigEthReg : entity work.GigEthReg
+   U_GigEthReg : entity surf.GigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

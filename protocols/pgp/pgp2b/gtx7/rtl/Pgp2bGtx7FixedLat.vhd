@@ -1,25 +1,28 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7Fixedlat.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Fixed Latency Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -36,7 +39,7 @@ entity Pgp2bGtx7Fixedlat is
       SIM_VERSION_G         : string     := "4.0";
       SIMULATION_G          : boolean    := false;
       STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;                 --units of seconds
-      -- CPLL Settings - Defaults to 2.5 Gbps operation 
+      -- CPLL Settings - Defaults to 2.5 Gbps operation
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
       CPLL_FBDIV_G          : integer    := 4;
       CPLL_FBDIV_45_G       : integer    := 5;
@@ -118,11 +121,11 @@ entity Pgp2bGtx7Fixedlat is
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
 
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -182,7 +185,7 @@ begin
    -- PGP Core
    --------------------------------------------------------------------------------------------------
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -218,7 +221,7 @@ begin
    -- Hold Decoder and PgpRx in reset until GtRxResetDone.
    --------------------------------------------------------------------------------------------------
    gtRxResetDoneL <= not gtRxResetDone;
-   Decoder8b10b_1 : entity work.Decoder8b10b
+   Decoder8b10b_1 : entity surf.Decoder8b10b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '0',         --active low polarity
@@ -244,7 +247,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- GTX 7 Core in Fixed Latency mode
    --------------------------------------------------------------------------------------------------
-   Gtx7Core_1 : entity work.Gtx7Core
+   Gtx7Core_1 : entity surf.Gtx7Core
       generic map (
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
@@ -357,7 +360,7 @@ begin
          drpDi            => drpDi,
          drpDo            => drpDo);
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => true,

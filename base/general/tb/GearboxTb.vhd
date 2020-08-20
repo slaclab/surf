@@ -1,11 +1,7 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "Gearbox"
--------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "Gearbox"
 -------------------------------------------------------------------------------
 -- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -20,7 +16,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+
+library surf;
 ----------------------------------------------------------------------------------------------------
 
 entity GearboxTb is
@@ -47,11 +47,11 @@ architecture sim of GearboxTb is
 
 
    signal slaveData_0   : slv(INPUT_WIDTH_G-1 downto 0)  := (others => '0');  -- [in]
-   signal slaveValid_0  : sl                             := '0';              -- [in]
-   signal slaveReady_0  : sl                             := '0';              -- [out]
+   signal slaveValid_0  : sl                             := '0';  -- [in]
+   signal slaveReady_0  : sl                             := '0';  -- [out]
    signal masterData_0  : slv(OUTPUT_WIDTH_G-1 downto 0) := (others => '0');  -- [out]
-   signal masterValid_0 : sl                             := '0';              -- [out]
-   signal masterReady_0 : sl                             := '0';              -- [in]
+   signal masterValid_0 : sl                             := '0';  -- [out]
+   signal masterReady_0 : sl                             := '0';  -- [in]
    signal slip_0        : sl                             := '0';
    signal startOfSeq_0  : sl                             := '0';
 
@@ -59,19 +59,21 @@ architecture sim of GearboxTb is
 --    signal slaveValid_1    : sl                            := '0';    -- [in]
 --    signal slaveReady_1    : sl;                                      -- [out]
    signal masterData_1  : slv(INPUT_WIDTH_G-1 downto 0) := (others => '0');  -- [out]
-   signal masterValid_1 : sl                            := '0';              -- [out]
-   signal masterReady_1 : sl                            := '1';              -- [in]
+   signal masterValid_1 : sl                            := '0';  -- [out]
+   signal masterReady_1 : sl                            := '1';  -- [in]
    signal slip_1        : sl                            := '0';
    signal startOfSeq_1  : sl                            := '0';
-                                                                             -- 
+                                        --
+   signal slip          : sl                            := '0';
+   signal slipCnt       : slv(6 downto 0)               := (others => '0');
 
 begin
 
-   U_FifoAsync_1 : entity work.FifoAsync
+   U_FifoAsync_1 : entity surf.FifoAsync
       generic map (
          TPD_G         => TPD_G,
          FWFT_EN_G     => true,
-         BRAM_EN_G     => true,
+         MEMORY_TYPE_G => "block",
          DATA_WIDTH_G  => INPUT_WIDTH_G,
          PIPE_STAGES_G => 0)
       port map (
@@ -85,7 +87,7 @@ begin
          valid  => slaveValid_0);       -- [out]
 
 
-   U_Gearbox_0 : entity work.Gearbox
+   U_Gearbox_0 : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
          SLAVE_WIDTH_G  => INPUT_WIDTH_G,
@@ -101,7 +103,7 @@ begin
          masterReady => masterReady_0);  -- [in]
 
    -- component instantiation
-   U_Gearbox_1 : entity work.Gearbox
+   U_Gearbox_1 : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
          SLAVE_WIDTH_G  => OUTPUT_WIDTH_G,
@@ -120,7 +122,7 @@ begin
 
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 30 ns,
          CLK_DELAY_G       => 1 ns,
@@ -131,7 +133,7 @@ begin
          clkP => clk32,
          rst  => rst32);
 
-   U_ClkRst_2 : entity work.ClkRst
+   U_ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 80 ns,
          CLK_DELAY_G       => 1 ns,
@@ -188,6 +190,30 @@ begin
 
    end process;
 
+   U_Gearbox_Test : entity surf.Gearbox
+      generic map (
+         SLAVE_WIDTH_G  => 32,
+         MASTER_WIDTH_G => 32)
+      port map (
+         clk        => clk32,
+         rst        => rst32,
+         slip       => slip,
+         -- Slave Interface
+         slaveData  => x"137F_137F",
+         -- Master Interface
+         masterData => open);
+
+   process(clk32)
+   begin
+      if rising_edge(clk32) then
+         if slipCnt = 31 then
+            slip <= '1' after TPD_G;
+         else
+            slip <= '0' after TPD_G;
+         end if;
+         slipCnt <= slipCnt + 1 after TPD_G;
+      end if;
+   end process;
 
 end architecture sim;
 

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Sgmii88E1111Mdio.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Controller for the Marvell 88E1111 PHY 
+-- Description: Controller for the Marvell 88E1111 PHY
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.MdioPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.MdioPkg.all;
 
 entity Sgmii88E1111Mdio is
    generic (
@@ -104,7 +105,7 @@ begin
    speed_is_100    <= r.s100;
    linkIsUp        <= r.linkIsUp;
 
-   U_MdioLinkIrqHandler : entity work.MdioLinkIrqHandler
+   U_MdioLinkIrqHandler : entity surf.MdioLinkIrqHandler
       generic map (
          TPD_G           => TPD_G,
          DIV_G           => DIV_G,

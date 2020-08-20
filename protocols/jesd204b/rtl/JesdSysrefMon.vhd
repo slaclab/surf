@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : JesdSysrefMon.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Monitors the time between sysref rising edge detections
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity JesdSysrefMon is
    generic (
@@ -27,7 +28,7 @@ entity JesdSysrefMon is
       -- SYSREF Edge detection (devClk domain)
       devClk          : in  sl;
       sysrefEdgeDet_i : in  sl;
-      -- Max/Min measurements  (axilClk domain)   
+      -- Max/Min measurements  (axilClk domain)
       axilClk         : in  sl;
       statClr         : in  sl;
       sysRefPeriodmin : out slv(15 downto 0);
@@ -37,14 +38,16 @@ end entity JesdSysrefMon;
 architecture rtl of JesdSysrefMon is
 
    type RegType is record
+      armed           : slv(1 downto 0);
       cnt             : slv(15 downto 0);
       sysRefPeriodmin : slv(15 downto 0);
       sysRefPeriodmax : slv(15 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      armed           => "00",
       cnt             => x"0000",
-      sysRefPeriodmin => x"FFFF",
+      sysRefPeriodmin => x"0000",
       sysRefPeriodmax => x"0000");
 
    signal r   : RegType := REG_INIT_C;
@@ -54,7 +57,7 @@ architecture rtl of JesdSysrefMon is
 
 begin
 
-   U_RstOneShot : entity work.SynchronizerOneShot
+   U_RstOneShot : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -73,25 +76,48 @@ begin
          v.cnt := r.cnt + 1;
       end if;
 
-      -- Wait for sysref edge detection strobe
+      -- Wait for SYSREF edge detection strobe
       if (sysrefEdgeDet_i = '1') then
+
          -- Reset the counter
          v.cnt := (others => '0');
-         -- Check for max. 
-         if (r.cnt > r.sysRefPeriodmax) then
+
+         -- Check for first SYSREF edge after reset
+         if (r.armed = "00") then
+
+            -- Update the flag
+            v.armed := "01";
+
+         -- Check for Second SYSREF edge after reset
+         elsif (r.armed = "01") then
+
+            -- Update the flag
+            v.armed := "11";
+
+            -- Pass the current values to the statistics measurements
             v.sysRefPeriodmax := r.cnt;
-         end if;
-         -- Check for min. 
-         if (r.cnt < r.sysRefPeriodmin) then
             v.sysRefPeriodmin := r.cnt;
+
+         -- Normal mode
+         else
+
+            -- Check for max.
+            if (r.cnt > r.sysRefPeriodmax) then
+               v.sysRefPeriodmax := r.cnt;
+            end if;
+
+            -- Check for min.
+            if (r.cnt < r.sysRefPeriodmin) then
+               v.sysRefPeriodmin := r.cnt;
+            end if;
+
          end if;
+
       end if;
 
-      -- Check for reseting statistics 
+      -- Check for reseting statistics
       if (clr = '1') then
-         v     := REG_INIT_C;
-         -- Don't change cnt during middle of measurement
-         v.cnt := r.cnt;
+         v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
@@ -106,7 +132,7 @@ begin
       end if;
    end process seq;
 
-   U_sync : entity work.SynchronizerFifo
+   U_sync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 32)

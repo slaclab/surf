@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for UdpEngine
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineWrapper is
    generic (
@@ -37,13 +38,14 @@ entity UdpEngineWrapper is
       CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
       CLIENT_EXT_CONFIG_G : boolean         := false;
       -- General IPv4/ICMP/ARP/DHCP Generics
+      TX_FLOW_CTRL_G      : boolean         := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       DHCP_G              : boolean         := false;
       ICMP_G              : boolean         := true;
       ARP_G               : boolean         := true;
       CLK_FREQ_G          : real            := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
       TTL_G               : slv(7 downto 0) := x"20";  -- IPv4's Time-To-Live (TTL)
-      VLAN_G              : boolean         := false);  -- true = VLAN support       
+      VLAN_G              : boolean         := false);  -- true = VLAN support
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
@@ -115,7 +117,7 @@ begin
    ------------------
    -- IPv4/ICMP/ARP Engine
    ------------------
-   IpV4Engine_Inst : entity work.IpV4Engine
+   IpV4Engine_Inst : entity surf.IpV4Engine
       generic map (
          TPD_G           => TPD_G,
          PROTOCOL_SIZE_G => 1,
@@ -134,7 +136,7 @@ begin
          obMacSlave           => obMacSlave,
          ibMacMaster          => ibMacMaster,
          ibMacSlave           => ibMacSlave,
-         -- Interface to Protocol Engine(s)  
+         -- Interface to Protocol Engine(s)
          obProtocolMasters(0) => obUdpMaster,
          obProtocolSlaves(0)  => obUdpSlave,
          ibProtocolMasters(0) => ibUdpMaster,
@@ -151,7 +153,7 @@ begin
    -------------
    -- UDP Engine
    -------------
-   UdpEngine_Inst : entity work.UdpEngine
+   UdpEngine_Inst : entity surf.UdpEngine
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_G,
@@ -164,6 +166,7 @@ begin
          CLIENT_SIZE_G  => CLIENT_SIZE_G,
          CLIENT_PORTS_G => CLIENT_PORTS_G,
          -- UDP ARP/DHCP Generics
+         TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
          DHCP_G         => DHCP_G,
          CLK_FREQ_G     => CLK_FREQ_G,
          COMM_TIMEOUT_G => COMM_TIMEOUT_G)
@@ -173,7 +176,7 @@ begin
          broadcastIp      => r.broadcastIp,
          localIpIn        => localIp,
          dhcpIpOut        => dhcpIp,
-         -- Interface to IPV4 Engine  
+         -- Interface to IPV4 Engine
          obUdpMaster      => obUdpMaster,
          obUdpSlave       => obUdpSlave,
          ibUdpMaster      => ibUdpMaster,

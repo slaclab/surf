@@ -5,5 +5,8 @@
 *.swp
 *._*
 *.db
+*.log
+*.vho
 xvcSrv
 doxygen/
+ghdl/

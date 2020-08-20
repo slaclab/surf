@@ -1,31 +1,24 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# Title      : Xilinx RFSoC data convter module 
-#-----------------------------------------------------------------------------
-# File       : RfTile.py
-# Created    : 2019-05-10
+# Title      : Xilinx RFSoC data converter module
 #-----------------------------------------------------------------------------
 # Description:
-# Xilinx RFSoC data conveter module
+# Xilinx RFSoC data converter module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-from surf.xilinx._RfTile import *
+import surf.xilinx
 
 class RfDataConverter(pr.Device):
-    def __init__(   self, 
-            name        = "RfDataConverter", 
-            description = "RFSoC data converter registers", 
-            **kwargs):
-        super().__init__(name=name, description=description, size=0x40000, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(size=0x40000, **kwargs)
 
         ##############################
         # Variables
@@ -111,14 +104,14 @@ class RfDataConverter(pr.Device):
         ))
 
         for i in range(4):
-            self.add(RfTile(
+            self.add(surf.xilinx.RfTile(
                 name    = f'dacTile[{i}]',
                 offset  = 0x04000 + 0x4000*i,
                 expand  = False,
             ))
 
         for i in range(4):
-            self.add(RfTile(
+            self.add(surf.xilinx.RfTile(
                 name    = f'adcTile[{i}]',
                 offset  = 0x14000 + 0x4000*i,
                 expand  = False,

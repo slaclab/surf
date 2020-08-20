@@ -1,15 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamBatcherEventBuilder.vhd
+-- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building 
+-- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamBatcherEventBuilder is
    generic (
@@ -41,13 +44,18 @@ entity AxiStreamBatcherEventBuilder is
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G : integer range 0 to 7 := 0;
 
-      AXIS_CONFIG_G        : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      INPUT_PIPE_STAGES_G  : natural             := 0;
-      OUTPUT_PIPE_STAGES_G : natural             := 0);
+      -- Set the TDEST to detect for transition frame
+      TRANS_TDEST_G : slv(7 downto 0) := x"FF";
+
+      AXIS_CONFIG_G        : AxiStreamConfigType;
+      INPUT_PIPE_STAGES_G  : natural := 0;
+      OUTPUT_PIPE_STAGES_G : natural := 0);
    port (
       -- Clock and Reset
       axisClk         : in  sl;
       axisRst         : in  sl;
+      -- Misc
+      blowoffExt      : in  sl                     := '0';
       -- AXI-Lite Interface
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
@@ -71,6 +79,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    type RegType is record
       softRst        : sl;
       hardRst        : sl;
+      blowoffReg     : sl;
       blowoff        : sl;
       timerRst       : sl;
       cntRst         : sl;
@@ -81,9 +90,11 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       bypass         : slv(NUM_SLAVES_G-1 downto 0);
       dataCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
       nullCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
+      transCnt       : slv(31 downto 0);
       timeoutDropCnt : Slv32Array(NUM_SLAVES_G-1 downto 0);
       accept         : slv(NUM_SLAVES_G-1 downto 0);
       nullDet        : slv(NUM_SLAVES_G-1 downto 0);
+      transDet       : slv(NUM_SLAVES_G-1 downto 0);
       timeoutDet     : slv(NUM_SLAVES_G-1 downto 0);
       index          : natural range 0 to NUM_SLAVES_G-1;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -96,6 +107,7 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    constant REG_INIT_C : RegType := (
       softRst        => '0',
       hardRst        => '0',
+      blowoffReg     => '0',
       blowoff        => '0',
       timerRst       => '0',
       cntRst         => '0',
@@ -106,9 +118,11 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       bypass         => (others => '0'),
       dataCnt        => (others => (others => '0')),
       nullCnt        => (others => (others => '0')),
+      transCnt       => (others => '0'),
       timeoutDropCnt => (others => (others => '0')),
       accept         => (others => '0'),
       nullDet        => (others => '0'),
+      transDet       => (others => '0'),
       timeoutDet     => (others => '0'),
       index          => 0,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -165,7 +179,7 @@ begin
    -----------------
    GEN_VEC :
    for i in (NUM_SLAVES_G-1) downto 0 generate
-      U_Input : entity work.AxiStreamPipeline
+      U_Input : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
             PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
@@ -178,7 +192,7 @@ begin
             mAxisSlave  => rxSlaves(i));
    end generate GEN_VEC;
 
-   U_DspComparator : entity work.DspComparator
+   U_DspComparator : entity surf.DspComparator
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 32)
@@ -188,8 +202,8 @@ begin
          bin  => r.timeout,
          gtEq => timeoutEvent);         -- greater than or equal to (a >= b)
 
-   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, r,
-                   rxMasters, timeoutEvent, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle,
+                   blowoffExt, r, rxMasters, timeoutEvent, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable i      : natural;
@@ -216,12 +230,16 @@ begin
       if (r.hardRst = '1') or (r.softRst = '1') then
          -- Reset the register
          v := REG_INIT_C;
-         
+
          -- Preserve the resister configurations
-         v.bypass  := r.bypass;
-         v.timeout := r.timeout;
-         v.blowoff := r.blowoff;
-         
+         v.bypass     := r.bypass;
+         v.timeout    := r.timeout;
+         v.blowoffReg := r.blowoffReg;
+
+         -- Preserve the state of AXI-Lite
+         v.axilWriteSlave := r.axilWriteSlave;
+         v.axilReadSlave  := r.axilReadSlave;
+
       end if;
 
       -- Determine the transaction type
@@ -233,11 +251,14 @@ begin
          axiSlaveRegisterR(axilEp, toSlv(4*i + 256, 12), 0, r.nullCnt(i));
          axiSlaveRegisterR(axilEp, toSlv(4*i + 512, 12), 0, r.timeoutDropCnt(i));
       end loop;
+      axiSlaveRegisterR(axilEp, x"FC0", 0, r.transCnt);
+      axiSlaveRegisterR(axilEp, x"FC4", 0, TRANS_TDEST_G);
       axiSlaveRegister (axilEp, x"FD0", 0, v.bypass);
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
-      axiSlaveRegister (axilEp, x"FF8", 0, v.blowoff);
+      axiSlaveRegisterR(axilEp, X"FF4", 16, blowoffExt);
+      axiSlaveRegister (axilEp, x"FF8", 0, v.blowoffReg);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
       axiSlaveRegister (axilEp, x"FFC", 2, v.hardRst);
@@ -246,14 +267,18 @@ begin
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
+      v.blowoff := v.blowoffReg or blowoffExt;
+
       -- Check for change in configuration
       if (r.timeout /= v.timeout) or (r.timerRst = '1') then
          -- Reset the timer
          v.timer := (others => '0');
       end if;
-      if (r.bypass /= v.bypass) or (r.blowoff /= v.blowoff) then
+
+      -- Check for any change to bypass or blowoff 1->0 transition
+      if (r.bypass /= v.bypass) or ((r.blowoff = '1') and (v.blowoff = '0')) then
          -- Perform a soft-reset
-         v.softRst  := '1';
+         v.softRst := '1';
       end if;
 
       -- Reset the flow control strobes
@@ -274,12 +299,13 @@ begin
             -- Loop through RX channels
             for i in (NUM_SLAVES_G-1) downto 0 loop
 
-               -- Check if no data and not bypassing 
+               -- Check if no data and not bypassing
                if (rxMasters(i).tValid = '0') and (r.bypass(i) = '0') then
                   -- Reset the flags
-                  v.ready      := '0';
-                  v.accept(i)  := '0';
-                  v.nullDet(i) := '0';
+                  v.ready       := '0';
+                  v.accept(i)   := '0';
+                  v.nullDet(i)  := '0';
+                  v.transDet(i) := '0';
                else
                   ----------------------------------------------------------------------------------------------------
                   ----------------------------------------------------------------------------------------------------
@@ -292,13 +318,26 @@ begin
                                     (ssiGetUserEofe(AXIS_CONFIG_G, rxMasters(i)) = '1') and  -- EOFE flag set
                                     (getTKeep(rxMasters(i).tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G) = 1) then  -- byte count = 1
                      -- NULL frame detected
-                     v.accept(i)  := '0';
-                     v.nullDet(i) := not(r.bypass(i));
-                  else
+                     v.accept(i)   := '0';
+                     v.nullDet(i)  := not(r.bypass(i));
+                     v.transDet(i) := '0';
+
+                  -- Check if not a transition TDEST
+                  elsif (rxMasters(i).tDest /= TRANS_TDEST_G) then
                      -- Normal frame detected
-                     v.accept(i)  := not(r.bypass(i));
-                     v.nullDet(i) := '0';
+                     v.accept(i)   := not(r.bypass(i));
+                     v.nullDet(i)  := '0';
+                     v.transDet(i) := '0';
+
+                  -- Else a transitions TDEST
+                  else
+                     -- Transitions frame detected
+                     v.accept(i)   := '0';
+                     v.nullDet(i)  := '0';
+                     v.transDet(i) := not(r.bypass(i));
+
                   end if;
+
                end if;
             end loop;
 
@@ -317,45 +356,68 @@ begin
                end if;
             end if;
 
+            -- Check if transition detected
+            if (v.transDet /= 0) then
+               -- Set the flag
+               v.ready := '1';
+            end if;
+
             -- Check if ready to move data and not blowing off the data
             if (batcherIdle = '1') and (r.ready = '1') and (r.blowoff = '0') then
 
-               for i in (NUM_SLAVES_G-1) downto 0 loop
+               -- Check for transition
+               if (r.transDet /= 0) then
 
-                  -- Increment data counter
-                  if (r.accept(i) = '1') then
-                     v.dataCnt(i) := r.dataCnt(i) + 1;
-                  end if;
+                  -- Increment transition counter
+                  v.transCnt := r.transCnt + 1;
 
-                  -- Increment null counter
-                  if (r.nullDet(i) = '1') then
-                     v.nullCnt(i) := r.nullCnt(i) + 1;
-                  end if;
+                  -- Set the sub-frame count
+                  v.maxSubFrames := resize(onesCount(r.transDet), 16);
 
-                  -- Check if using timer
-                  if (r.timeout /= 0) then
+                  -- Re-write the accept/timeoutDet mask
+                  v.accept     := r.transDet;
+                  v.timeoutDet := not(r.transDet);
 
-                     -- Check for timeout event with respect to a channel
-                     if (r.accept(i) = '0') and (r.nullDet(i) = '0') then
+               else
 
-                        -- Increment counter
-                        v.timeoutDropCnt(i) := r.timeoutDropCnt(i) + 1;
+                  for i in (NUM_SLAVES_G-1) downto 0 loop
 
-                        -- Set the flag
-                        v.timeoutDet(i) := '1';
+                     -- Increment data counter
+                     if (r.accept(i) = '1') then
+                        v.dataCnt(i) := r.dataCnt(i) + 1;
                      end if;
 
-                  end if;
+                     -- Increment null counter
+                     if (r.nullDet(i) = '1') then
+                        v.nullCnt(i) := r.nullCnt(i) + 1;
+                     end if;
 
-               end loop;
+                     -- Check if using timer
+                     if (r.timeout /= 0) then
 
-               -- Set the sub-frame count
-               v.maxSubFrames := resize(onesCount(r.accept), 16);
+                        -- Check for timeout event with respect to a channel
+                        if (r.accept(i) = '0') and (r.nullDet(i) = '0') then
+
+                           -- Increment counter
+                           v.timeoutDropCnt(i) := r.timeoutDropCnt(i) + 1;
+
+                           -- Set the flag
+                           v.timeoutDet(i) := '1';
+                        end if;
+
+                     end if;
+
+                  end loop;
+
+                  -- Set the sub-frame count
+                  v.maxSubFrames := resize(onesCount(r.accept), 16);
+
+               end if;
 
                -- Next state
                v.state := MOVE_S;
 
-            -- Check for blowoff flag 
+            -- Check for blowoff flag
             elsif (r.blowoff = '1') then
 
                -- Blow off the inbound data
@@ -367,6 +429,7 @@ begin
                v.ready      := '0';
                v.accept     := (others => '0');
                v.nullDet    := (others => '0');
+               v.transDet   := (others => '0');
                v.timer      := (others => '0');
                v.timeoutDet := (others => '0');
 
@@ -421,6 +484,7 @@ begin
          v.ready      := '0';
          v.accept     := (others => '0');
          v.nullDet    := (others => '0');
+         v.transDet   := (others => '0');
          v.timer      := (others => '0');
          v.timeoutDet := (others => '0');
 
@@ -431,6 +495,7 @@ begin
          v.dataCnt        := (others => (others => '0'));
          v.nullCnt        := (others => (others => '0'));
          v.timeoutDropCnt := (others => (others => '0'));
+         v.transCnt       := (others => '0');
       end if;
 
       -- Outputs
@@ -460,12 +525,12 @@ begin
    ------------------
    -- AxiStreamBatcher
    ------------------
-   U_AxiStreamBatcher : entity work.AxiStreamBatcher
+   U_AxiStreamBatcher : entity surf.AxiStreamBatcher
       generic map (
          TPD_G                        => TPD_G,
          MAX_NUMBER_SUB_FRAMES_G      => NUM_SLAVES_G,
          SUPER_FRAME_BYTE_THRESHOLD_G => 0,  -- 0 = bypass super threshold check
-         MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP 
+         MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP
          AXIS_CONFIG_G                => AXIS_CONFIG_G,
          INPUT_PIPE_STAGES_G          => 1,  -- Break apart the long combinatorial tReady chain
          OUTPUT_PIPE_STAGES_G         => OUTPUT_PIPE_STAGES_G)
@@ -474,6 +539,7 @@ begin
          axisClk      => axisClk,
          axisRst      => axisReset,
          -- External Control Interface
+         forceTerm    => r.blowoff,
          maxSubFrames => r.maxSubFrames,
          idle         => batcherIdle,
          -- AXIS Interfaces

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SaltTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SALT TX Engine Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,16 +17,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SaltPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SaltPkg.all;
 
 entity SaltTx is
    generic (
       TPD_G              : time                := 1 ns;
       COMMON_TX_CLK_G    : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
-      SLAVE_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4));
+      SLAVE_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       sAxisClk    : in  sl;
@@ -108,7 +109,7 @@ architecture rtl of SaltTx is
 
 begin
 
-   FIFO_RX : entity work.AxiStreamFifoV2
+   FIFO_RX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -116,8 +117,7 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => COMMON_TX_CLK_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
@@ -137,7 +137,7 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   DATAGRAM_BUFFER : entity work.AxiStreamFifoV2
+   DATAGRAM_BUFFER : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -145,8 +145,7 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
@@ -251,7 +250,7 @@ begin
          when PREAMBLE_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Write the preamble 
+               -- Write the preamble
                v.txMaster.tValid             := '1';
                v.txMaster.tData(31 downto 0) := PREAMBLE_C;
                -- Next state
@@ -261,7 +260,7 @@ begin
          when SFD_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Write the preamble 
+               -- Write the preamble
                v.txMaster.tValid             := '1';
                v.txMaster.tData(31 downto 0) := SFD_C;
                -- Next state
@@ -285,7 +284,7 @@ begin
          when LENGTH_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Move the data            
+               -- Move the data
                v.txMaster.tValid              := '1';
                v.txMaster.tData(15 downto 0)  := r.length;
                v.txMaster.tData(23 downto 16) := r.tDest;
@@ -320,9 +319,9 @@ begin
          when CHECKSUM_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
-               -- Move the data            
+               -- Move the data
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := not(r.checksum);  -- one's complement                        
+               v.txMaster.tData(31 downto 0) := not(r.checksum);  -- one's complement
                -- Next state
                v.state                       := FOOTER_S;
             end if;
@@ -350,7 +349,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       mSlave  <= v.mSlave;
       rxSlave <= v.rxSlave;
@@ -363,7 +362,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs 
+      -- Registered Outputs
       sMaster    <= r.sMaster;
       txMaster   <= r.txMaster;
       txPktSent  <= r.txPktSent;
@@ -378,7 +377,7 @@ begin
       end if;
    end process seq;
 
-   U_TxResize : entity work.SaltTxResize
+   U_TxResize : entity surf.SaltTxResize
       generic map (
          TPD_G => TPD_G)
       port map (

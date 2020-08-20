@@ -1,20 +1,18 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue     as pr
-import surf.xilinx as xil
+import surf.xilinx
 
-class ClockManager(xil.ClockManager):
+class ClockManager(surf.xilinx.ClockManager):
     def __init__(self,**kwargs):
-        super().__init__(**kwargs)    
+        super().__init__(**kwargs)
 
         @self.command(description="Sets the 85 MHz configuration",)
         def Config85MHz():
@@ -94,9 +92,9 @@ class ClockManager(xil.ClockManager):
             self.LockReg[2].set(0xffe9)
             self.FiltReg[0].set(0x9908)
             self.FiltReg[1].set(0x8100)
-            
+
         @self.command(description="Sets the 25 MHz configuration",)
-        def Config25MHz():            
+        def Config25MHz():
             self.POWER.set(0xffff)
             self.PHASE_MUX[0].set(0x0)
             self.HIGH_TIME[0].set(0x15)

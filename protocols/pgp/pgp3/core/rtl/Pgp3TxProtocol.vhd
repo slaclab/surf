@@ -1,19 +1,19 @@
 -------------------------------------------------------------------------------
--- Title      : PGP3 Transmit Protocol
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
--- Takes pre-packetized AxiStream frames and creates a PGP3 66/64 protocol
+-- Description: PGPv3 Transmit Protocol
+-- Takes pre-packetized AxiStream frames and creates a PGPv3 66/64 protocol
 -- stream (pre-scrambler). Inserts IDLE and SKP codes as needed. Inserts
 -- user K codes on request.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,11 +22,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiStreamPacketizer2Pkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiStreamPacketizer2Pkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3TxProtocol is
 
@@ -133,7 +135,7 @@ begin
             v.pauseEvent(i) := '1';
          end if;
 
-         -- Check for rising edge on overflow         
+         -- Check for rising edge on overflow
          if (locRxFifoCtrl(i).overflow = '1') and (r.overflowDly(i) = '0') then
             v.overflowEvent(i) := '1';
          end if;
@@ -148,13 +150,13 @@ begin
 
       -- Keep delay copy of skip interval configuration
       v.skpInterval := pgpTxIn.skpInterval;
-      
+
       -- Check for change in configuration
       if (r.skpInterval /= v.skpInterval) then
          -- Force a skip
          v.skpCount := v.skpInterval;
       -- Check for counter roll over
-      elsif (r.skpCount /= r.skpInterval) then      
+      elsif (r.skpCount /= r.skpInterval) then
          -- Increment the counter
          v.skpCount := r.skpCount + 1;
       end if;
@@ -166,7 +168,7 @@ begin
       v.frameTx    := '0';
       v.frameTxErr := '0';
 
-      -- Check the handshaking 
+      -- Check the handshaking
       if (protTxReady = '1') then
          v.protTxValid := '0';
       end if;
@@ -198,7 +200,7 @@ begin
 
          --------------------------------------------------------------------
          --                   Header and Data and Footer                   --
-         --------------------------------------------------------------------         
+         --------------------------------------------------------------------
 
          -- Send data if there is data to send
          if (pgpTxMaster.tValid = '1' and dataEn = '1') then
@@ -243,25 +245,25 @@ begin
          -- USER codes override data and delay SKP if they happen to coincide
          if (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
             -- Override any data acceptance.
-            v.pgpTxSlave.tReady := '0';  
+            v.pgpTxSlave.tReady := '0';
             -- Accept the op-code
-            v.opCodeReady       := '1';            
-            
+            v.opCodeReady       := '1';
+
             -- Update the TX data bus
             v.protTxData(PGP3_BTF_FIELD_C)           := PGP3_USER_C(conv_integer(pgpTxIn.opCodeNumber));
             v.protTxData(PGP3_USER_CHECKSUM_FIELD_C) := pgp3OpCodeChecksum(pgpTxIn.opCodeData);
             v.protTxData(PGP3_USER_OPCODE_FIELD_C)   := pgpTxIn.opCodeData;
             v.protTxHeader                           := PGP3_K_HEADER_C;
-            
+
             resetEventMetaData := false;
          -- SKIP codes override data
          elsif (r.skpCount = r.skpInterval) then
-            v.skpCount                     := (others => '0');
-            v.pgpTxSlave.tReady            := '0';            -- Override any data acceptance.
-            v.protTxData                   := (others => '0');
-            v.protTxData(PGP3_BTF_FIELD_C) := PGP3_SKP_C;
-            v.protTxHeader                 := PGP3_K_HEADER_C;
-            resetEventMetaData             := false;
+            v.skpCount                           := (others => '0');
+            v.pgpTxSlave.tReady                  := '0';            -- Override any data acceptance.
+            v.protTxData(PGP3_SKIP_DATA_FIELD_C) := pgpTxIn.locData;
+            v.protTxData(PGP3_BTF_FIELD_C)       := PGP3_SKP_C;
+            v.protTxHeader                       := PGP3_K_HEADER_C;
+            resetEventMetaData                   := false;
          else
             -- A local rx pause going high causes an IDLE char to be sent mid frame
             -- So that the sending end is notified with minimum latency
@@ -311,7 +313,7 @@ begin
 
       -- Outputs
       pgpTxSlave <= v.pgpTxSlave;
-      
+
       protTxData     <= r.protTxData;
       protTxHeader   <= r.protTxHeader;
       protTxValid    <= r.protTxValid;
@@ -332,14 +334,14 @@ begin
             pgpTxOut.locPause(i)    <= '0';
          end if;
       end loop;
-      
-      -- Reset  
+
+      -- Reset
       if (pgpTxRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle   
-      rin <= v;      
+      -- Register the variable for next clock cycle
+      rin <= v;
 
    end process comb;
 

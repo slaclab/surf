@@ -1,10 +1,9 @@
 -------------------------------------------------------------------------------
--- File       : AxiI2cEepromCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Read/ModifyWrite for standard EEPROM Module
 --
--- Supported Devices:   
+-- Supported Devices:
 --    24AA01F/24LC01F/24FC01F    (1kb:   ADDR_WIDTH_G = 7)
 --    24AA02F/24LC02F/24FC02F    (2kb:   ADDR_WIDTH_G = 8)
 --    24AA04F/24LC04F/24FC04F    (4kb:   ADDR_WIDTH_G = 9)
@@ -17,11 +16,11 @@
 --    24AA512F/24LC512F/24FC512F (512kb: ADDR_WIDTH_G = 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -30,9 +29,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -57,7 +58,7 @@ entity AxiI2cEepromCore is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Clocks and Resets
       axilClk         : in  sl;
-      axilRst         : in  sl);     
+      axilRst         : in  sl);
 end AxiI2cEepromCore;
 
 architecture rtl of AxiI2cEepromCore is
@@ -71,8 +72,8 @@ architecture rtl of AxiI2cEepromCore is
    constant ADDR_SIZE_C : slv(1 downto 0) := toSlv(wordCount(ADDR_WIDTH_G, 8) - 1, 2);
    constant DATA_SIZE_C : slv(1 downto 0) := toSlv(wordCount(32, 8) - 1, 2);
    constant I2C_ADDR_C  : slv(9 downto 0) := ("000" & I2C_ADDR_G);
-   constant TIMEOUT_C   : natural         := (getTimeRatio(AXI_CLK_FREQ_G, 200.0)) - 1;  -- 5 ms timeout   
-   
+   constant TIMEOUT_C   : natural         := (getTimeRatio(AXI_CLK_FREQ_G, 200.0)) - 1;  -- 5 ms timeout
+
    constant MY_I2C_REG_MASTER_IN_INIT_C : I2cRegMasterInType := (
       i2cAddr     => I2C_ADDR_C,
       tenbit      => '0',
@@ -94,7 +95,7 @@ architecture rtl of AxiI2cEepromCore is
       WRITE_REQ_S,
       WRITE_ACK_S,
       WRITE_DONE_S,
-      WAIT_S);    
+      WAIT_S);
 
    type RegType is record
       timer          : natural range 0 to TIMEOUT_C;
@@ -121,10 +122,10 @@ architecture rtl of AxiI2cEepromCore is
    -- attribute dont_touch           : string;
    -- attribute dont_touch of r      : signal is "TRUE";
    -- attribute dont_touch of regOut : signal is "TRUE";
-   
+
 begin
 
-   U_I2cRegMaster : entity work.I2cRegMaster
+   U_I2cRegMaster : entity surf.I2cRegMaster
       generic map(
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => 0,
@@ -139,7 +140,7 @@ begin
          regOut => regOut,
          -- Clock and Reset
          clk    => axilClk,
-         srst   => axilRst);   
+         srst   => axilRst);
 
    comb : process (axilReadMaster, axilRst, axilWriteMaster, r, regOut) is
       variable v          : regType;
@@ -170,7 +171,7 @@ begin
                   v.regIn.regAddr(ADDR_WIDTH_G-1 downto 0) := axilWriteMaster.awaddr(ADDR_WIDTH_G-1 downto 0);
                   -- Next state
                   v.state                                  := READ_ACK_S;
-               -- Check for a read request            
+               -- Check for a read request
                elsif (axilStatus.readEnable = '1') then
                   -- Set the flag
                   v.RnW                                    := '1';
@@ -234,7 +235,7 @@ begin
          when WRITE_REQ_S =>
             -- Send write transaction to I2cRegMaster
             v.regIn.regReq    := '1';
-            v.regIn.regOp     := '1';   -- Write operation            
+            v.regIn.regOp     := '1';   -- Write operation
             v.regIn.regWrData := axilWriteMaster.wData;
             -- Next state
             v.state           := WRITE_ACK_S;
@@ -286,7 +287,7 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
-      
+
    end process comb;
 
    seq : process (axilClk) is
@@ -295,5 +296,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;
