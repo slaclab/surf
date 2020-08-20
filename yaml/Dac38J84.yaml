@@ -312,38 +312,13 @@ Dac38J84: &Dac38J84
         - entry:    EnableTx
           value:    0x0
 
-        # Clear alarms
-        - entry:    ClearAlarms
-          value:    0x1
+        # Disable and initialize JESD
+        - entry:    InitJesd
+          value:    0x1E
 
-        - entry:    DacReg[59]
-          value:    0x00
-        - entry:    DacReg[37]
-          value:    0x00
-        - entry:    DacReg[60]
-          value:    0x228
-        - entry:    DacReg[62]
-          value:    0x108
-        - entry:    DacReg[76]
-          value:    0x1F01
-        - entry:    DacReg[77]
-          value:    0x100
-        - entry:    DacReg[75]
-          value:    0x501
-        - entry:    DacReg[77]
-          value:    0x100
-        - entry:    DacReg[78]
-          value:    0xF2F
-        - entry:    DacReg[0]
-          value:    0x018
-        - entry:    DacReg[74]
-          value:    0x83E
-        - entry:    DacReg[74]
-          value:    0x83E
-        - entry:    DacReg[74]
-          value:    0x83F
-        - entry:    DacReg[74]
-          value:    0x821
+        # Enable JESD
+        - entry:    InitJesd
+          value:    0x01
 
         # Enable TX
         - entry:    EnableTx
