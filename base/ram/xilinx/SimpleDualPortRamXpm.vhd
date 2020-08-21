@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -57,6 +56,8 @@ architecture rtl of SimpleDualPortRamXpm is
 
    signal resetB : sl;
 
+   signal doutb_xpm : slv(DATA_WIDTH_G-1 downto 0);
+
 begin
 
    U_RAM : xpm_memory_sdpram
@@ -91,7 +92,7 @@ begin
          enb            => enb,
          clkb           => clkb,
          addrb          => addrb,
-         doutb          => doutb,
+         doutb          => doutb_xpm,
          regceb         => regceb,
          -- Misc.Interface
          rstb           => resetB,
@@ -102,5 +103,7 @@ begin
          sleep          => '0');
 
    resetB <= rstb when(RST_POLARITY_G = '1') else not(rstb);
+
+   doutb <= doutb_xpm after TPD_G;
 
 end rtl;
