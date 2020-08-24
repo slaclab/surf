@@ -134,8 +134,8 @@ begin
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SIDE_BAND_WIDTH_G   => SIDE_BAND_WIDTH_G,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => nexoAxisConfig(ADC_TYPE_G),
-            MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+            SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
+            MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
          port map (
             -- Clock and reset
             axisClk     => axisClk,
