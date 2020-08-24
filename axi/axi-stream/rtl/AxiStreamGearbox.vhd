@@ -167,7 +167,7 @@ begin
             v.tLast  := '0';
 
             -- Check if previous word terminated the frame
-            if (r.tLast = '0') then
+            if (r.tLast = '1') then
 
                -- Reset the sequence
                v.writeIndex := 0;
