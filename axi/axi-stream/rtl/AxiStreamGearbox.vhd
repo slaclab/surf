@@ -293,11 +293,11 @@ begin
          pipeAxisMaster.tData                           <= (others => '0');
          pipeAxisMaster.tData(8*MST_BYTES_C-1 downto 0) <= r.tData(8*MST_BYTES_C-1 downto 0);
 
+         pipeAxisMaster.tStrb <= (others => '0');
          if(TSTRB_EN_C) then
-            pipeAxisMaster.tStrb                           <= (others => '0');
             pipeAxisMaster.tStrb(1*MST_BYTES_C-1 downto 0) <= r.tData(1*MST_BYTES_C-1 downto 0);
          else
-            pipeAxisMaster.tStrb <= (others => '1');
+            pipeAxisMaster.tStrb(1*MST_BYTES_C-1 downto 0) <= (others => '1');
          end if;
 
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
