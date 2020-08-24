@@ -121,217 +121,251 @@ begin
       report "AxiStreamGearbox: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
       severity error;
 
-   comb : process (axisRst, pipeAxisSlave, r, sAxisMaster, sSideBand) is
-      variable v : RegType;
-   begin
-      -- Latch the current value
-      v := r;
+   ---------------------------------------------------------
+   -- Use AxiStreamResize if word multiple because less LUTs
+   ---------------------------------------------------------
+   GEN_RESIZE : if (WORD_MULTIPLE_C = true) generate
 
-      -- Flow Control
-      v.sAxisSlave.tReady := '0';
-      if (pipeAxisSlave.tReady = '1') or (READY_EN_G = false) then
+      U_Resize : entity surf.AxiStreamResize
+         generic map (
+            -- General Configurations
+            TPD_G               => TPD_G,
+            READY_EN_G          => READY_EN_G,
+            PIPE_STAGES_G       => PIPE_STAGES_G,
+            SIDE_BAND_WIDTH_G   => SIDE_BAND_WIDTH_G,
+            -- AXI Stream Port Configurations
+            SLAVE_AXI_CONFIG_G  => nexoAxisConfig(ADC_TYPE_G),
+            MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+         port map (
+            -- Clock and reset
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            -- Slave Port
+            sAxisMaster => sAxisMaster,
+            sSideBand   => sSideBand,
+            sAxisSlave  => sAxisSlave,
+            -- Master Port
+            mAxisMaster => mAxisMaster,
+            mSideBand   => mSideBand,
+            mAxisSlave  => mAxisSlave);
 
-         v.tValid := '0';
-         v.tLast  := '0';
+   end generate;
 
-         -- Check if previous word terminated the frame
-         if (r.tLast = '0') then
+   GEN_GEARBOX : if (WORD_MULTIPLE_C = false) generate
 
-            -- Reset the sequence
-            v.writeIndex := 0;
-            v.tStrb      := (others => '0');
-            v.tKeep      := (others => '0');
+      comb : process (axisRst, pipeAxisSlave, r, sAxisMaster, sSideBand) is
+         variable v : RegType;
+      begin
+         -- Latch the current value
+         v := r;
+
+         -- Flow Control
+         v.sAxisSlave.tReady := '0';
+         if (pipeAxisSlave.tReady = '1') or (READY_EN_G = false) then
+
+            v.tValid := '0';
+            v.tLast  := '0';
+
+            -- Check if previous word terminated the frame
+            if (r.tLast = '0') then
+
+               -- Reset the sequence
+               v.writeIndex := 0;
+               v.tStrb      := (others => '0');
+               v.tKeep      := (others => '0');
+
+            end if;
 
          end if;
 
-      end if;
+         -- Only do anything if ready for data output
+         if (v.tValid = '0') then
 
-      -- Only do anything if ready for data output
-      if (v.tValid = '0') then
+            -- If current write index (assigned last cycle) is greater than output width, then we have to shift down before assigning an new input
+            if (v.writeIndex >= MST_BYTES_C) then
 
-         -- If current write index (assigned last cycle) is greater than output width, then we have to shift down before assigning an new input
-         if (v.writeIndex >= MST_BYTES_C) then
+               -- Decrement the counter
+               v.writeIndex := v.writeIndex - MST_BYTES_C;
 
-            -- Decrement the counter
-            v.writeIndex := v.writeIndex - MST_BYTES_C;
+               -- Shift TDATA with zero padding
+               v.tData := slvZero(8*MST_BYTES_C) & r.tData(8*SHIFT_WIDTH_C-1 downto 8*MST_BYTES_C);
 
-            -- Shift TDATA with zero padding
-            v.tData := slvZero(8*MST_BYTES_C) & r.tData(8*SHIFT_WIDTH_C-1 downto 8*MST_BYTES_C);
+               -- Check if TSTRB enabled
+               if(TSTRB_EN_C) then
+                  -- Shift TSTRB with zero padding
+                  v.tStrb := slvZero(1*MST_BYTES_C) & r.tStrb(1*SHIFT_WIDTH_C-1 downto 1*MST_BYTES_C);
+               end if;
+
+               -- Shift TKEEP with zero padding
+               v.tKeep := slvZero(1*MST_BYTES_C) & r.tKeep(1*SHIFT_WIDTH_C-1 downto 1*MST_BYTES_C);
+
+               -- Check if TUSER enabled
+               if (TUSER_EN_C) then
+                  -- Shift TUSER with zero padding
+                  v.tUser := slvZero(TUSER_BITS_C*MST_BYTES_C) & r.tUser(TUSER_BITS_C*SHIFT_WIDTH_C-1 downto TUSER_BITS_C*MST_BYTES_C);
+               end if;
+
+               -- If write index still greater than output width after shift, then we have a valid word to output
+               if (v.writeIndex >= MST_BYTES_C) or (r.tLastDly = '1') then
+
+                  -- Set the flags
+                  v.tValid   := '1';
+                  v.tLast    := r.tLastDly;
+                  v.tLastDly := '0';
+
+               end if;
+
+            end if;
+         end if;
+
+         -- Accept new data if ready to output and shift above did not create an output valid or terminate the frame
+         if (sAxisMaster.tValid = '1') and (v.tValid = '0') and (v.tLast = '0') then
+
+            -- Accept the input word
+            v.sAxisSlave.tReady := '1';
+
+            -- Assign incoming sideband
+            v.sideBand := sSideBand;
+
+            -- Assign incoming TDATA
+            v.tData(8*v.writeIndex+8*SLV_BYTES_C-1 downto 8*v.writeIndex) := sAxisMaster.tData(8*SLV_BYTES_C-1 downto 0);
 
             -- Check if TSTRB enabled
             if(TSTRB_EN_C) then
-               -- Shift TSTRB with zero padding
-               v.tStrb := slvZero(1*MST_BYTES_C) & r.tStrb(1*SHIFT_WIDTH_C-1 downto 1*MST_BYTES_C);
+               -- Assign incoming TSTRB
+               v.tStrb(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tStrb(1*SLV_BYTES_C-1 downto 0);
             end if;
 
-            -- Shift TKEEP with zero padding
-            v.tKeep := slvZero(1*MST_BYTES_C) & r.tKeep(1*SHIFT_WIDTH_C-1 downto 1*MST_BYTES_C);
+            -- Assign incoming TKEEP
+            if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+               v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := genTKeep(conv_integer(sAxisMaster.tKeep(bitSize(SLV_BYTES_C)-1 downto 0)));
+            else
+               v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tKeep(1*SLV_BYTES_C-1 downto 0);
+            end if;
 
-            -- Check if TUSER enabled
+            -- Check if TDEST enabled
+            if(TDEST_EN_C) then
+               v.tDest := sAxisMaster.tDest(TDEST_BITS_C-1 downto 0);
+            end if;
+
+            -- Check if TID enabled
+            if(TID_EN_C) then
+               v.tId := sAxisMaster.tId(TID_BITS_C-1 downto 0);
+            end if;
+
             if (TUSER_EN_C) then
-               -- Shift TUSER with zero padding
-               v.tUser := slvZero(TUSER_BITS_C*MST_BYTES_C) & r.tUser(TUSER_BITS_C*SHIFT_WIDTH_C-1 downto TUSER_BITS_C*MST_BYTES_C);
+               for i in 0 to SLV_BYTES_C-1 loop
+                  v.tUser(
+                     (TUSER_BITS_C*v.writeIndex)+(i*TUSER_BITS_C)+(TUSER_BITS_C-1) downto
+                     (TUSER_BITS_C*v.writeIndex)+(i*TUSER_BITS_C)) :=
+                     sAxisMaster.tUser((i*SLV_USER_C)+(TUSER_BITS_C-1) downto (i*SLV_USER_C));
+               end loop;
             end if;
 
-            -- If write index still greater than output width after shift, then we have a valid word to output
-            if (v.writeIndex >= MST_BYTES_C) or (r.tLastDly = '1') then
+            -- Increment writeIndex
+            v.writeIndex := v.writeIndex + SLV_BYTES_C;
+
+            -- Assert tValid
+            if (v.writeIndex >= MST_BYTES_C) or (sAxisMaster.tLast = '1') then
 
                -- Set the flags
                v.tValid   := '1';
-               v.tLast    := r.tLastDly;
+               v.tLast    := '0';
                v.tLastDly := '0';
+
+               -- Check if spans frame termination two cycles
+               if (v.writeIndex > MST_BYTES_C) then
+                  v.tLastDly := sAxisMaster.tLast;
+               else
+                  v.tLast := sAxisMaster.tLast;
+               end if;
 
             end if;
 
          end if;
-      end if;
 
-      -- Accept new data if ready to output and shift above did not create an output valid or terminate the frame
-      if (sAxisMaster.tValid = '1') and (v.tValid = '0') and (v.tLast = '0') then
+         -- Outputs
+         sAxisSlave   <= v.sAxisSlave;
+         pipeSideBand <= r.sideBand;
 
-         -- Accept the input word
-         v.sAxisSlave.tReady := '1';
+         pipeAxisMaster.tValid <= r.tValid;
 
-         -- Assign incoming sideband
-         v.sideBand := sSideBand;
+         pipeAxisMaster.tData                           <= (others => '0');
+         pipeAxisMaster.tData(8*MST_BYTES_C-1 downto 0) <= r.tData(8*MST_BYTES_C-1 downto 0);
 
-         -- Assign incoming TDATA
-         v.tData(8*v.writeIndex+8*SLV_BYTES_C-1 downto 8*v.writeIndex) := sAxisMaster.tData(8*SLV_BYTES_C-1 downto 0);
-
-         -- Check if TSTRB enabled
          if(TSTRB_EN_C) then
-            -- Assign incoming TSTRB
-            v.tStrb(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tStrb(1*SLV_BYTES_C-1 downto 0);
-         end if;
-
-         -- Assign incoming TKEEP
-         if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-            v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := genTKeep(conv_integer(sAxisMaster.tKeep(bitSize(SLV_BYTES_C)-1 downto 0)));
+            pipeAxisMaster.tStrb                           <= (others => '0');
+            pipeAxisMaster.tStrb(1*MST_BYTES_C-1 downto 0) <= r.tData(1*MST_BYTES_C-1 downto 0);
          else
-            v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tKeep(1*SLV_BYTES_C-1 downto 0);
+            pipeAxisMaster.tStrb <= (others => '1');
          end if;
 
-         -- Check if TDEST enabled
+         if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
+            pipeAxisMaster.tKeep <= toSlv(getTKeep(resize(r.tKeep(1*MST_BYTES_C-1 downto 0), AXI_STREAM_MAX_TKEEP_WIDTH_C), MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
+         else
+            pipeAxisMaster.tKeep                           <= (others => '0');
+            pipeAxisMaster.tKeep(1*MST_BYTES_C-1 downto 0) <= r.tKeep(1*MST_BYTES_C-1 downto 0);
+         end if;
+
+         pipeAxisMaster.tLast <= r.tLast;
+
+         pipeAxisMaster.tDest <= (others => '0');
          if(TDEST_EN_C) then
-            v.tDest := sAxisMaster.tDest(TDEST_BITS_C-1 downto 0);
+            pipeAxisMaster.tDest(TDEST_BITS_C-1 downto 0) <= r.tDest;
          end if;
 
-         -- Check if TID enabled
+         pipeAxisMaster.tId <= (others => '0');
          if(TID_EN_C) then
-            v.tId := sAxisMaster.tId(TID_BITS_C-1 downto 0);
+            pipeAxisMaster.tId(TID_BITS_C-1 downto 0) <= r.tId;
          end if;
 
+         pipeAxisMaster.tUser <= (others => '0');
          if (TUSER_EN_C) then
-            for i in 0 to SLV_BYTES_C-1 loop
-               v.tUser(
-                  (TUSER_BITS_C*v.writeIndex)+(i*TUSER_BITS_C)+(TUSER_BITS_C-1) downto
-                  (TUSER_BITS_C*v.writeIndex)+(i*TUSER_BITS_C)) :=
-                  sAxisMaster.tUser((i*SLV_USER_C)+(TUSER_BITS_C-1) downto (i*SLV_USER_C));
+            for i in 0 to MST_BYTES_C-1 loop
+               pipeAxisMaster.tUser((i*MST_USER_C)+(TUSER_BITS_C-1) downto (i*MST_USER_C)) <=
+                  r.tUser((i*TUSER_BITS_C)+(TUSER_BITS_C-1) downto (i*TUSER_BITS_C));
             end loop;
          end if;
 
-         -- Increment writeIndex
-         v.writeIndex := v.writeIndex + SLV_BYTES_C;
-
-         -- Assert tValid
-         if (v.writeIndex >= MST_BYTES_C) or (sAxisMaster.tLast = '1') then
-
-            -- Set the flags
-            v.tValid   := '1';
-            v.tLast    := '0';
-            v.tLastDly := '0';
-
-            -- Check if spans frame termination two cycles
-            if (v.writeIndex > MST_BYTES_C) then
-               v.tLastDly := sAxisMaster.tLast;
-            else
-               v.tLast := sAxisMaster.tLast;
-            end if;
-
+         -- Synchronous Reset
+         if axisRst = '1' then
+            v := REG_INIT_C;
          end if;
 
-      end if;
+         -- Register the variable for next clock cycle
+         rin <= v;
 
-      -- Outputs
-      sAxisSlave   <= v.sAxisSlave;
-      pipeSideBand <= r.sideBand;
+      end process comb;
 
-      pipeAxisMaster.tValid <= r.tValid;
+      seq : process (axisClk) is
+      begin
+         if rising_edge(axisClk) then
+            r <= rin after TPD_G;
+         end if;
+      end process seq;
 
-      pipeAxisMaster.tData                           <= (others => '0');
-      pipeAxisMaster.tData(8*MST_BYTES_C-1 downto 0) <= r.tData(8*MST_BYTES_C-1 downto 0);
+      ----------------------------------------------------
+      -- Optional output pipeline registers to ease timing
+      ----------------------------------------------------
+      U_Pipeline : entity surf.AxiStreamPipeline
+         generic map (
+            TPD_G             => TPD_G,
+            SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
+            PIPE_STAGES_G     => PIPE_STAGES_G)
+         port map (
+            -- Clock and Reset
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            -- Slave Port
+            sAxisMaster => pipeAxisMaster,
+            sSideBand   => pipeSideBand,
+            sAxisSlave  => pipeAxisSlave,
+            -- Master Port
+            mAxisMaster => mAxisMaster,
+            mSideBand   => mSideBand,
+            mAxisSlave  => mAxisSlave);
 
-      if(TSTRB_EN_C) then
-         pipeAxisMaster.tStrb                           <= (others => '0');
-         pipeAxisMaster.tStrb(1*MST_BYTES_C-1 downto 0) <= r.tData(1*MST_BYTES_C-1 downto 0);
-      else
-         pipeAxisMaster.tStrb <= (others => '1');
-      end if;
-
-      if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-         pipeAxisMaster.tKeep <= toSlv(getTKeep(resize(r.tKeep(1*MST_BYTES_C-1 downto 0), AXI_STREAM_MAX_TKEEP_WIDTH_C), MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
-      else
-         pipeAxisMaster.tKeep                           <= (others => '0');
-         pipeAxisMaster.tKeep(1*MST_BYTES_C-1 downto 0) <= r.tKeep(1*MST_BYTES_C-1 downto 0);
-      end if;
-
-      pipeAxisMaster.tLast <= r.tLast;
-
-      pipeAxisMaster.tDest <= (others => '0');
-      if(TDEST_EN_C) then
-         pipeAxisMaster.tDest(TDEST_BITS_C-1 downto 0) <= r.tDest;
-      end if;
-
-      pipeAxisMaster.tId <= (others => '0');
-      if(TID_EN_C) then
-         pipeAxisMaster.tId(TID_BITS_C-1 downto 0) <= r.tId;
-      end if;
-
-      pipeAxisMaster.tUser <= (others => '0');
-      if (TUSER_EN_C) then
-         for i in 0 to MST_BYTES_C-1 loop
-            pipeAxisMaster.tUser((i*MST_USER_C)+(TUSER_BITS_C-1) downto (i*MST_USER_C)) <=
-               r.tUser((i*TUSER_BITS_C)+(TUSER_BITS_C-1) downto (i*TUSER_BITS_C));
-         end loop;
-      end if;
-
-      -- Synchronous Reset
-      if axisRst = '1' then
-         v := REG_INIT_C;
-      end if;
-
-      -- Register the variable for next clock cycle
-      rin <= v;
-
-   end process comb;
-
-   seq : process (axisClk) is
-   begin
-      if rising_edge(axisClk) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
-   ----------------------------------------------------
-   -- Optional output pipeline registers to ease timing
-   ----------------------------------------------------
-   U_Pipeline : entity surf.AxiStreamPipeline
-      generic map (
-         TPD_G             => TPD_G,
-         SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
-         PIPE_STAGES_G     => PIPE_STAGES_G)
-      port map (
-         -- Clock and Reset
-         axisClk     => axisClk,
-         axisRst     => axisRst,
-         -- Slave Port
-         sAxisMaster => pipeAxisMaster,
-         sSideBand   => pipeSideBand,
-         sAxisSlave  => pipeAxisSlave,
-         -- Master Port
-         mAxisMaster => mAxisMaster,
-         mSideBand   => mSideBand,
-         mAxisSlave  => mAxisSlave);
+   end generate;
 
 end rtl;
 
