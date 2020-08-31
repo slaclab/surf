@@ -31,6 +31,7 @@ entity SrpV3Core is
    generic (
       TPD_G               : time                    := 1 ns;
       PIPE_STAGES_G       : natural range 0 to 16   := 1;
+      SYNTH_MODE_G        : string                  := "inferred";
       FIFO_PAUSE_THRESH_G : positive range 1 to 511 := 256;
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := false;
