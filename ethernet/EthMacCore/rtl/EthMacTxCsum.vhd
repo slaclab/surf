@@ -31,7 +31,7 @@ entity EthMacTxCsum is
       JUMBO_G        : boolean          := true;
       VLAN_G         : boolean          := false;
       VID_G          : slv(11 downto 0) := x"001";
-      SYNTH_MODE_G   : string           := "inferred");  -- Synthesis mode for internal RAMs      
+      SYNTH_MODE_G   : string           := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClk      : in  sl;
