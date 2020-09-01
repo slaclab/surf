@@ -1,6 +1,6 @@
 var classAxiAd9467Spi_1_1rtl =
 [
-    [ "PROCESS_95", "classAxiAd9467Spi_1_1rtl.html#a34643a978a1c0234a6b3d62ef50ede12", null ],
+    [ "PROCESS_96", "classAxiAd9467Spi_1_1rtl.html#a53901d65a83c062a4f7f17f756c1eb20", null ],
     [ "MAX_CNT_C", "classAxiAd9467Spi_1_1rtl.html#a669a399f9f6397a49c1c82a65dbc167a", null ],
     [ "StateType", "classAxiAd9467Spi_1_1rtl.html#a164d4ca8a3ffa6fc6c59877967f968af", null ],
     [ "state", "classAxiAd9467Spi_1_1rtl.html#a49d68bc3b69e3bb081dfcb44726ddd13", null ],

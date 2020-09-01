@@ -3,6 +3,7 @@ var classSrpV3Core =
     [ "SrpV3Core.rtl", "classSrpV3Core_1_1rtl.html", "classSrpV3Core_1_1rtl" ],
     [ "TPD_G", "classSrpV3Core.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "PIPE_STAGES_G", "classSrpV3Core.html#a716ea08f0c8926dadc51439113a0fd3b", null ],
+    [ "SYNTH_MODE_G", "classSrpV3Core.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "FIFO_PAUSE_THRESH_G", "classSrpV3Core.html#abf936752880c1454fdb79e815e27351f", null ],
     [ "TX_VALID_THOLD_G", "classSrpV3Core.html#af2a8347ee45bcf160823c5a188f08a68", null ],
     [ "SLAVE_READY_EN_G", "classSrpV3Core.html#a732db2237e0f6e1568cf997454ee9f4a", null ],

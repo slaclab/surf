@@ -1,12 +1,13 @@
 <map id="DeviceDna" name="DeviceDna">
-<area shape="rect" id="node1" title=" " alt="" coords="187,229,281,256"/>
-<area shape="rect" id="node7" href="$classAxiVersion.html" title=" " alt="" coords="119,304,210,331"/>
-<area shape="rect" id="node10" href="$classAxiVersionLegacy.html" title=" " alt="" coords="235,304,372,331"/>
-<area shape="rect" id="node2" href="$classDeviceDna7Series.html" title=" " alt="" coords="77,155,218,181"/>
-<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="130,80,205,107"/>
-<area shape="rect" id="node6" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="242,155,402,181"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="114,5,221,32"/>
-<area shape="rect" id="node5" href="$classSynchronizerVector.html" title=" " alt="" coords="238,80,385,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="297,229,390,256"/>
+<area shape="rect" id="node7" href="$classAxiVersion.html" title=" " alt="" coords="229,304,319,331"/>
+<area shape="rect" id="node11" href="$classAxiVersionLegacy.html" title=" " alt="" coords="344,304,481,331"/>
+<area shape="rect" id="node2" href="$classDeviceDna7Series.html" title=" " alt="" coords="186,155,327,181"/>
+<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="239,80,314,107"/>
+<area shape="rect" id="node6" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="351,155,511,181"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="223,5,330,32"/>
+<area shape="rect" id="node5" href="$classSynchronizerVector.html" title=" " alt="" coords="347,80,494,107"/>
 <area shape="rect" id="node8" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="5,379,167,405"/>
-<area shape="rect" id="node9" href="$classAxiVersionTb.html" title=" " alt="" coords="191,379,298,405"/>
+<area shape="rect" id="node9" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="191,379,357,405"/>
+<area shape="rect" id="node10" href="$classAxiVersionTb.html" title=" " alt="" coords="382,379,489,405"/>
 </map>

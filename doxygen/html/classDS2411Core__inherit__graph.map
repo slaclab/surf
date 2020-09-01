@@ -1,7 +1,8 @@
 <map id="DS2411Core" name="DS2411Core">
-<area shape="rect" id="node1" title=" " alt="" coords="183,5,285,32"/>
-<area shape="rect" id="node2" href="$classAxiVersion.html" title=" " alt="" coords="119,80,210,107"/>
-<area shape="rect" id="node5" href="$classAxiVersionLegacy.html" title=" " alt="" coords="235,80,372,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="292,5,395,32"/>
+<area shape="rect" id="node2" href="$classAxiVersion.html" title=" " alt="" coords="229,80,319,107"/>
+<area shape="rect" id="node6" href="$classAxiVersionLegacy.html" title=" " alt="" coords="344,80,481,107"/>
 <area shape="rect" id="node3" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="5,155,167,181"/>
-<area shape="rect" id="node4" href="$classAxiVersionTb.html" title=" " alt="" coords="191,155,298,181"/>
+<area shape="rect" id="node4" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="191,155,357,181"/>
+<area shape="rect" id="node5" href="$classAxiVersionTb.html" title=" " alt="" coords="382,155,489,181"/>
 </map>

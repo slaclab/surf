@@ -2,6 +2,7 @@ var classEthMacTxExportXgmii =
 [
     [ "rtl", "classEthMacTxExportXgmii_1_1rtl.html", "classEthMacTxExportXgmii_1_1rtl" ],
     [ "TPD_G", "classEthMacTxExportXgmii.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SYNTH_MODE_G", "classEthMacTxExportXgmii.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "ethClk", "classEthMacTxExportXgmii.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTxExportXgmii.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "macObMaster", "classEthMacTxExportXgmii.html#aef840e7ecf72ee0e4c860324f749080a", null ],

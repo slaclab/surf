@@ -16,6 +16,7 @@ var classJesdTxLane =
     [ "gtTxReady_i", "classJesdTxLane.html#a771a7f7f2cf6762414388459e455f9eb", null ],
     [ "sysRef_i", "classJesdTxLane.html#a8cf96bf71f4b6baa078919edce276849", null ],
     [ "status_o", "classJesdTxLane.html#a0c4bfed72cd7a2ae93a0cdafcca6c8e6", null ],
+    [ "dacReady_o", "classJesdTxLane.html#af3a0c329ce8b205591e6e08b826f0b9b", null ],
     [ "sampleData_i", "classJesdTxLane.html#aaae774bcd1434234dd279ac2db009977", null ],
     [ "r_jesdGtTx", "classJesdTxLane.html#a4a88e4181c721845cd7964feae1f207e", null ],
     [ "ieee", "classJesdTxLane.html#a0a6af6eef40212dbaf130d57ce711256", null ],

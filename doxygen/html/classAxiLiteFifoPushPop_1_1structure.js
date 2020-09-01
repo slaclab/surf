@@ -1,7 +1,7 @@
 var classAxiLiteFifoPushPop_1_1structure =
 [
-    [ "PROCESS_6", "classAxiLiteFifoPushPop_1_1structure.html#ae1cb4b97ebaddcfc6baa42ec6cbfeb93", null ],
-    [ "PROCESS_7", "classAxiLiteFifoPushPop_1_1structure.html#a02142d1ff90ca355dc8218856989ca76", null ],
+    [ "PROCESS_7", "classAxiLiteFifoPushPop_1_1structure.html#a670b3c32d21ad039e5e248c69b16988a", null ],
+    [ "PROCESS_8", "classAxiLiteFifoPushPop_1_1structure.html#a8d02af3e3462170b4ed2643391b4eec6", null ],
     [ "POP_SIZE_C", "classAxiLiteFifoPushPop_1_1structure.html#ace9613f3d90688b6b05ef47f514d0840", null ],
     [ "POP_COUNT_C", "classAxiLiteFifoPushPop_1_1structure.html#a46d26bf331007feb0836dbe9bbb48116", null ],
     [ "PUSH_SIZE_C", "classAxiLiteFifoPushPop_1_1structure.html#a2c74641b7c72370ec4e97081e7bcbaff", null ],

@@ -17,6 +17,7 @@ var classUdpEngineWrapper =
     [ "COMM_TIMEOUT_G", "classUdpEngineWrapper.html#aee10ff4eb0dadd59d926a88eab1c7052", null ],
     [ "TTL_G", "classUdpEngineWrapper.html#aae07cb37267cf4cd442e5062688e6e18", null ],
     [ "VLAN_G", "classUdpEngineWrapper.html#ad2244ede4b7d5db9cd6c9ee46585439d", null ],
+    [ "SYNTH_MODE_G", "classUdpEngineWrapper.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "localMac", "classUdpEngineWrapper.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "localIp", "classUdpEngineWrapper.html#afd3fee997440ec256fc9f5740a0e75ce", null ],
     [ "clientRemotePort", "classUdpEngineWrapper.html#a97ff02aa8cf20062bcc56d881db4a3a7", null ],

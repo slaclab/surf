@@ -6,6 +6,7 @@ var classEthMacTxCsum =
     [ "JUMBO_G", "classEthMacTxCsum.html#af3c2b3ea37b9a6acb725bb242dbb570a", null ],
     [ "VLAN_G", "classEthMacTxCsum.html#ad2244ede4b7d5db9cd6c9ee46585439d", null ],
     [ "VID_G", "classEthMacTxCsum.html#a24337c7cf82e01b0be4f9641b37c9d6a", null ],
+    [ "SYNTH_MODE_G", "classEthMacTxCsum.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "ethClk", "classEthMacTxCsum.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacTxCsum.html#a6c46ddea5c02f0cc0addd2467357471c", null ],
     [ "ipCsumEn", "classEthMacTxCsum.html#af4bd185e1af3bccd7de70e16af166f83", null ],

@@ -1,7 +1,7 @@
 var classAxiLiteRamSyncStatusVector_1_1mapping =
 [
-    [ "PROCESS_8", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a607ffdcb299721f5e84eef79d25b0acb", null ],
-    [ "PROCESS_9", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a733262b1bc72be5cc6be7021c3241a0a", null ],
+    [ "PROCESS_9", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a6426e87f39048f36d4957d59ad6021fb", null ],
+    [ "PROCESS_10", "classAxiLiteRamSyncStatusVector_1_1mapping.html#afdc230d05cb983b66b35946d5576fc01", null ],
     [ "ADDR_WIDTH_C", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a647811d6bbaded7e06e8c462ba54c32d", null ],
     [ "RegType", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "we", "classAxiLiteRamSyncStatusVector_1_1mapping.html#a8c45deddb73e42384a9742641721678b", null ],

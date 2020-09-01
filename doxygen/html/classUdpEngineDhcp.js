@@ -4,6 +4,7 @@ var classUdpEngineDhcp =
     [ "TPD_G", "classUdpEngineDhcp.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "CLK_FREQ_G", "classUdpEngineDhcp.html#a2719f79ef8caa5e897f495e33bae81b3", null ],
     [ "COMM_TIMEOUT_G", "classUdpEngineDhcp.html#aee10ff4eb0dadd59d926a88eab1c7052", null ],
+    [ "SYNTH_MODE_G", "classUdpEngineDhcp.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "localMac", "classUdpEngineDhcp.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "localIp", "classUdpEngineDhcp.html#afd3fee997440ec256fc9f5740a0e75ce", null ],
     [ "dhcpIp", "classUdpEngineDhcp.html#ae2cd8a70978c2d99ffd0b7f42ff1fd70", null ],

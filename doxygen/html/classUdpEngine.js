@@ -12,6 +12,7 @@ var classUdpEngine =
     [ "DHCP_G", "classUdpEngine.html#a8156577332414a8d4e467b2f0dade44a", null ],
     [ "CLK_FREQ_G", "classUdpEngine.html#a2719f79ef8caa5e897f495e33bae81b3", null ],
     [ "COMM_TIMEOUT_G", "classUdpEngine.html#aee10ff4eb0dadd59d926a88eab1c7052", null ],
+    [ "SYNTH_MODE_G", "classUdpEngine.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "localMac", "classUdpEngine.html#ae02bb35f94a88aa2db811931566e8a02", null ],
     [ "broadcastIp", "classUdpEngine.html#ac2063181cea5b47bca1309a2b5a32f8e", null ],
     [ "localIpIn", "classUdpEngine.html#ab4eca49885a0227b8f02ccd06d8799b9", null ],

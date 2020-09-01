@@ -1,7 +1,7 @@
 var classAxiLiteFifoPush_1_1structure =
 [
-    [ "PROCESS_4", "classAxiLiteFifoPush_1_1structure.html#abfc902beb712f4005a0fb13c93756ed3", null ],
-    [ "PROCESS_5", "classAxiLiteFifoPush_1_1structure.html#a87091a5d3dd867109d9c8a4235f59b8e", null ],
+    [ "PROCESS_5", "classAxiLiteFifoPush_1_1structure.html#ab63dbce3ba40de44fa71805996f01907", null ],
+    [ "PROCESS_6", "classAxiLiteFifoPush_1_1structure.html#ab4e94391da47ab08106c3810a35dad29", null ],
     [ "PUSH_SIZE_C", "classAxiLiteFifoPush_1_1structure.html#a2c74641b7c72370ec4e97081e7bcbaff", null ],
     [ "PUSH_COUNT_C", "classAxiLiteFifoPush_1_1structure.html#a6124b761ccc7bce7a7d4c4890c8c6bb1", null ],
     [ "ipushFifoFull", "classAxiLiteFifoPush_1_1structure.html#ac90c1086490c6549a6f5520afd40612a", null ],

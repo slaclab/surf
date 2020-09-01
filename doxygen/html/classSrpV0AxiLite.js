@@ -5,6 +5,7 @@ var classSrpV0AxiLite =
     [ "RESP_THOLD_G", "classSrpV0AxiLite.html#a2589623758c891c5758e860099c431aa", null ],
     [ "SLAVE_READY_EN_G", "classSrpV0AxiLite.html#a732db2237e0f6e1568cf997454ee9f4a", null ],
     [ "EN_32BIT_ADDR_G", "classSrpV0AxiLite.html#a3c4b282b1214150a747646927be728d2", null ],
+    [ "SYNTH_MODE_G", "classSrpV0AxiLite.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "MEMORY_TYPE_G", "classSrpV0AxiLite.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "GEN_SYNC_FIFO_G", "classSrpV0AxiLite.html#a74265af003d7cd4b0443ced520ac6722", null ],
     [ "FIFO_ADDR_WIDTH_G", "classSrpV0AxiLite.html#a9cb07eca4f1e6525763e4a6c2246ab39", null ],

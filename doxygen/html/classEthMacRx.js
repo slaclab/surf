@@ -11,6 +11,7 @@ var classEthMacRx =
     [ "VLAN_EN_G", "classEthMacRx.html#a18de25a8aa2d7b5c459a912874c13dfe", null ],
     [ "VLAN_SIZE_G", "classEthMacRx.html#a581badb2f52346d91f2f9fa882db0467", null ],
     [ "VLAN_VID_G", "classEthMacRx.html#a06f3bc1ca928ae4c8688766c7b19db5a", null ],
+    [ "SYNTH_MODE_G", "classEthMacRx.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "ethClkEn", "classEthMacRx.html#a66088ecf8316dc0df29ac8e866985b57", null ],
     [ "ethClk", "classEthMacRx.html#aa454832f4c517041d344f7bdf52eceec", null ],
     [ "ethRst", "classEthMacRx.html#a6c46ddea5c02f0cc0addd2467357471c", null ],

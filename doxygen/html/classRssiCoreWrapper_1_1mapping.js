@@ -1,6 +1,6 @@
 var classRssiCoreWrapper_1_1mapping =
 [
-    [ "PROCESS_197", "classRssiCoreWrapper_1_1mapping.html#a7967a57915b6e53587b4c5312489b810", null ],
+    [ "PROCESS_198", "classRssiCoreWrapper_1_1mapping.html#a6820a3604e0336659baecd45e90fd91c", null ],
     [ "rxMasters", "classRssiCoreWrapper_1_1mapping.html#a13fdfc85a52110de8dfc5322246f4631", null ],
     [ "rxSlaves", "classRssiCoreWrapper_1_1mapping.html#a17e9927fcebdcd052569bbda1dd23768", null ],
     [ "depacketizerMasters", "classRssiCoreWrapper_1_1mapping.html#abf13fcb8be1d03d94f8acb5c97b87382", null ],

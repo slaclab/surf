@@ -1,7 +1,7 @@
 var classAxiLiteAsync_1_1STRUCTURE =
 [
-    [ "PROCESS_0", "classAxiLiteAsync_1_1STRUCTURE.html#a9080753aeffc22a8efbcb4e656591afd", null ],
-    [ "PROCESS_1", "classAxiLiteAsync_1_1STRUCTURE.html#a10e71a49b62271b9ace342b9a0bcd874", null ],
+    [ "PROCESS_1", "classAxiLiteAsync_1_1STRUCTURE.html#a72dd513058bc34cb889baab98da5f614", null ],
+    [ "PROCESS_2", "classAxiLiteAsync_1_1STRUCTURE.html#ad7cba44c2c583394286cf284e8654206", null ],
     [ "s2mRst", "classAxiLiteAsync_1_1STRUCTURE.html#ad128a7d6eeec9127f65eefc9c1c39ade", null ],
     [ "m2sRst", "classAxiLiteAsync_1_1STRUCTURE.html#ad9c350b70e90a7d8c0184082d5c7bae8", null ],
     [ "readSlaveToMastDin", "classAxiLiteAsync_1_1STRUCTURE.html#a9ad37351a5830f71135dd121c259c9de", null ],

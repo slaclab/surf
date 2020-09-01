@@ -1,7 +1,7 @@
 var classAxiLiteFifoPop_1_1structure =
 [
-    [ "PROCESS_2", "classAxiLiteFifoPop_1_1structure.html#a13f9f120280ee7412f5058d32c665e56", null ],
-    [ "PROCESS_3", "classAxiLiteFifoPop_1_1structure.html#a95047d4556dcff04300e1eda13d225e7", null ],
+    [ "PROCESS_3", "classAxiLiteFifoPop_1_1structure.html#a556d0da7b5680fa6d7c3eb575eea9c82", null ],
+    [ "PROCESS_4", "classAxiLiteFifoPop_1_1structure.html#a364ce28cb43663c4f4ff2e2fe80ba27b", null ],
     [ "POP_SIZE_C", "classAxiLiteFifoPop_1_1structure.html#ace9613f3d90688b6b05ef47f514d0840", null ],
     [ "POP_COUNT_C", "classAxiLiteFifoPop_1_1structure.html#a46d26bf331007feb0836dbe9bbb48116", null ],
     [ "LOOP_SIZE_C", "classAxiLiteFifoPop_1_1structure.html#a5513bd86ecd49932e03feaa5c948fd05", null ],

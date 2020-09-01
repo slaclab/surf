@@ -103,6 +103,19 @@ var hierarchy =
       ] ],
       [ "AxiDac7654Reg", "classAxiDac7654Reg.html", null ],
       [ "AxiDac7654Spi", "classAxiDac7654Spi.html", null ],
+      [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", [
+        [ "RstSync", "classRstSync.html", null ]
+      ] ],
+      [ "AxiDualPortRam", "classAxiDualPortRam.html", [
+        [ "TrueDualPortRamXpm", "classTrueDualPortRamXpm.html", null ],
+        [ "TrueDualPortRamAlteraMf", "classTrueDualPortRamAlteraMf.html", null ],
+        [ "DualPortRam", "classDualPortRam.html", [
+          [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
+          [ "QuadPortRam", "classQuadPortRam.html", null ]
+        ] ],
+        [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
+        [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
+      ] ],
       [ "AxiLiteMasterProxy", "classAxiLiteMasterProxy.html", [
         [ "AxiLiteMaster", "classAxiLiteMaster.html", null ]
       ] ],
@@ -117,16 +130,7 @@ var hierarchy =
       ] ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
-      [ "AxiDualPortRam", "classAxiDualPortRam.html", [
-        [ "TrueDualPortRamXpm", "classTrueDualPortRamXpm.html", null ],
-        [ "TrueDualPortRamAlteraMf", "classTrueDualPortRamAlteraMf.html", null ],
-        [ "DualPortRam", "classDualPortRam.html", [
-          [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
-          [ "QuadPortRam", "classQuadPortRam.html", null ]
-        ] ],
-        [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
-        [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
-      ] ],
+      [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "FifoCascade", "classFifoCascade.html", [
         [ "Fifo", "classFifo.html", [
@@ -241,6 +245,15 @@ var hierarchy =
       [ "AxiMicronP30Reg", "classAxiMicronP30Reg.html", [
         [ "SimpleDualPortRam", "classSimpleDualPortRam.html", null ]
       ] ],
+      [ "AxiStreamMonAxiL", "classAxiStreamMonAxiL.html", [
+        [ "RstSync", "classRstSync.html", null ],
+        [ "AxiStreamMon", "classAxiStreamMon.html", [
+          [ "SyncTrigRate", "classSyncTrigRate.html", null ],
+          [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
+          [ "SyncMinMax", "classSyncMinMax.html", null ]
+        ] ],
+        [ "AxiDualPortRam", "classAxiDualPortRam.html", null ]
+      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiRam", "classAxiRam.html", [
         [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
@@ -251,6 +264,7 @@ var hierarchy =
         [ "SynchronizerVector", "classSynchronizerVector.html", null ],
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
       ] ],
+      [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", [
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
@@ -274,11 +288,7 @@ var hierarchy =
               [ "SynchronizerVector", "classSynchronizerVector.html", null ]
             ] ]
           ] ],
-          [ "AxiStreamMon", "classAxiStreamMon.html", [
-            [ "SyncTrigRate", "classSyncTrigRate.html", null ],
-            [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
-            [ "SyncMinMax", "classSyncMinMax.html", null ]
-          ] ],
+          [ "AxiStreamMon", "classAxiStreamMon.html", null ],
           [ "RssiConnFsm", "classRssiConnFsm.html", null ],
           [ "RssiMonitor", "classRssiMonitor.html", null ],
           [ "RssiHeaderReg", "classRssiHeaderReg.html", null ],
@@ -387,9 +397,8 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
-      [ "RstSync", "classRstSync.html", null ],
-      [ "AxiStreamMon", "classAxiStreamMon.html", null ],
-      [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
+      [ "AxiStreamResize", "classAxiStreamResize.html", null ],
+      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
@@ -416,6 +425,8 @@ var hierarchy =
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
       [ "AxiSy56040Reg", "classAxiSy56040Reg.html", null ],
+      [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
+      [ "AxiVersion", "classAxiVersion.html", null ],
       [ "DeviceDna", "classDeviceDna.html", null ],
       [ "DS2411Core", "classDS2411Core.html", null ],
       [ "Iprog", "classIprog.html", null ],
@@ -794,6 +805,11 @@ var hierarchy =
       [ "Fifo", "classFifo.html", null ],
       [ "Fifo", "classFifo.html", null ],
       [ "JtagSerDesCore", "classJtagSerDesCore.html", null ],
+      [ "RstSync", "classRstSync.html", null ],
+      [ "RstSync", "classRstSync.html", null ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", [
+        [ "RstSync", "classRstSync.html", null ]
+      ] ],
       [ "SsiInsertSof", "classSsiInsertSof.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "SyncStatusVector", "classSyncStatusVector.html", null ],
@@ -1187,6 +1203,10 @@ var hierarchy =
       [ "GigEthLvdsUltraScaleWrapper", "classGigEthLvdsUltraScaleWrapper.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "RstSync", "classRstSync.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
+        [ "RstSync", "classRstSync.html", null ]
+      ] ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "AxiLiteMaster", "classAxiLiteMaster.html", null ],
       [ "Fifo", "classFifo.html", null ],

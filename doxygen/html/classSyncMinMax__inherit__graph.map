@@ -1,7 +1,7 @@
 <map id="SyncMinMax" name="SyncMinMax">
 <area shape="rect" id="node1" title=" " alt="" coords="779,171,884,197"/>
 <area shape="rect" id="node16" href="$classAxiStreamMon.html" title=" " alt="" coords="932,145,1051,172"/>
-<area shape="rect" id="node28" href="$classPgpEthAxiL.html" title=" " alt="" coords="944,221,1039,248"/>
+<area shape="rect" id="node29" href="$classPgpEthAxiL.html" title=" " alt="" coords="944,221,1039,248"/>
 <area shape="rect" id="node2" href="$classSynchronizerOneShot.html" title=" " alt="" coords="373,120,535,147"/>
 <area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="205,69,280,96"/>
 <area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,120,112,147"/>
@@ -16,19 +16,20 @@
 <area shape="rect" id="node13" href="$classFifoWrFsm.html" title=" " alt="" coords="197,373,289,400"/>
 <area shape="rect" id="node14" href="$classFifoRdFsm.html" title=" " alt="" coords="197,424,288,451"/>
 <area shape="rect" id="node15" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,475,319,501"/>
-<area shape="rect" id="node17" href="$classAxiRssiCore.html" title=" " alt="" coords="1122,19,1222,45"/>
+<area shape="rect" id="node17" href="$classAxiRssiCore.html" title=" " alt="" coords="1122,31,1222,57"/>
 <area shape="rect" id="node20" href="$classAxiStreamMonAxiL.html" title=" " alt="" coords="1099,95,1245,121"/>
-<area shape="rect" id="node21" href="$classRssiCore.html" title=" " alt="" coords="1133,145,1211,172"/>
-<area shape="rect" id="node27" href="$classSsiPrbsRateGen.html" title=" " alt="" coords="1109,196,1235,223"/>
-<area shape="rect" id="node18" href="$classAxiRssiCoreWrapper.html" title=" " alt="" coords="1293,12,1448,39"/>
+<area shape="rect" id="node22" href="$classRssiCore.html" title=" " alt="" coords="1133,145,1211,172"/>
+<area shape="rect" id="node28" href="$classSsiPrbsRateGen.html" title=" " alt="" coords="1109,196,1235,223"/>
+<area shape="rect" id="node18" href="$classAxiRssiCoreWrapper.html" title=" " alt="" coords="1293,19,1448,45"/>
 <area shape="rect" id="node19" href="$classAxiRssiCoreTb.html" title=" " alt="" coords="1509,5,1625,32"/>
-<area shape="rect" id="node22" href="$classRssiCoreWrapper.html" title=" " alt="" coords="1303,145,1438,172"/>
-<area shape="rect" id="node23" href="$classRawEthFramerTb.html" title=" " alt="" coords="1501,56,1634,83"/>
-<area shape="rect" id="node24" href="$classRssiCoreTb.html" title=" " alt="" coords="1520,107,1615,133"/>
-<area shape="rect" id="node25" href="$classRssiInterleaveTb.html" title=" " alt="" coords="1502,157,1633,184"/>
-<area shape="rect" id="node26" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="1507,208,1628,235"/>
-<area shape="rect" id="node29" href="$classPgpEthCore.html" title=" " alt="" coords="1123,247,1221,273"/>
-<area shape="rect" id="node30" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="1307,247,1434,273"/>
-<area shape="rect" id="node32" href="$classPgpEthCoreTb.html" title=" " alt="" coords="1314,297,1427,324"/>
-<area shape="rect" id="node31" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="1496,259,1639,285"/>
+<area shape="rect" id="node21" href="$classAxiMonAxiL.html" title=" " alt="" coords="1321,95,1420,121"/>
+<area shape="rect" id="node23" href="$classRssiCoreWrapper.html" title=" " alt="" coords="1303,145,1438,172"/>
+<area shape="rect" id="node24" href="$classRawEthFramerTb.html" title=" " alt="" coords="1501,56,1634,83"/>
+<area shape="rect" id="node25" href="$classRssiCoreTb.html" title=" " alt="" coords="1520,107,1615,133"/>
+<area shape="rect" id="node26" href="$classRssiInterleaveTb.html" title=" " alt="" coords="1502,157,1633,184"/>
+<area shape="rect" id="node27" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="1507,208,1628,235"/>
+<area shape="rect" id="node30" href="$classPgpEthCore.html" title=" " alt="" coords="1123,247,1221,273"/>
+<area shape="rect" id="node31" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="1307,247,1434,273"/>
+<area shape="rect" id="node33" href="$classPgpEthCoreTb.html" title=" " alt="" coords="1314,297,1427,324"/>
+<area shape="rect" id="node32" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="1496,259,1639,285"/>
 </map>

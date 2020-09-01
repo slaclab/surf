@@ -1,19 +1,21 @@
 <map id="TrueDualPortRam" name="TrueDualPortRam">
-<area shape="rect" id="node1" title=" " alt="" coords="5,233,140,260"/>
-<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title=" " alt="" coords="206,208,335,235"/>
-<area shape="rect" id="node17" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="188,259,353,285"/>
-<area shape="rect" id="node3" href="$classAxiLiteAsyncTb.html" title=" " alt="" coords="445,5,568,32"/>
-<area shape="rect" id="node4" href="$classAxiLiteRamSyncStatusVector.html" title=" " alt="" coords="401,56,612,83"/>
-<area shape="rect" id="node10" href="$classAxiLiteSrpV0Tb.html" title=" " alt="" coords="446,107,567,133"/>
-<area shape="rect" id="node11" href="$classAxiLiteWriteFilterTb.html" title=" " alt="" coords="431,157,582,184"/>
-<area shape="rect" id="node12" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="414,208,599,235"/>
-<area shape="rect" id="node13" href="$classAxiStreamMonAxiL.html" title=" " alt="" coords="433,259,580,285"/>
-<area shape="rect" id="node14" href="$classClinkTop.html" title=" " alt="" coords="468,309,545,336"/>
-<area shape="rect" id="node15" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="421,360,593,387"/>
-<area shape="rect" id="node16" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="429,411,585,437"/>
-<area shape="rect" id="node5" href="$classPgpEthAxiL.html" title=" " alt="" coords="660,56,755,83"/>
-<area shape="rect" id="node6" href="$classPgpEthCore.html" title=" " alt="" coords="803,56,900,83"/>
-<area shape="rect" id="node7" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="948,31,1075,57"/>
-<area shape="rect" id="node9" href="$classPgpEthCoreTb.html" title=" " alt="" coords="955,81,1068,108"/>
-<area shape="rect" id="node8" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="1123,31,1265,57"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,259,140,285"/>
+<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title=" " alt="" coords="206,233,335,260"/>
+<area shape="rect" id="node19" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="188,284,353,311"/>
+<area shape="rect" id="node3" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="404,5,609,32"/>
+<area shape="rect" id="node4" href="$classAxiLiteAsyncTb.html" title=" " alt="" coords="445,56,568,83"/>
+<area shape="rect" id="node5" href="$classAxiLiteRamSyncStatusVector.html" title=" " alt="" coords="401,107,612,133"/>
+<area shape="rect" id="node11" href="$classAxiLiteSrpV0Tb.html" title=" " alt="" coords="446,157,567,184"/>
+<area shape="rect" id="node12" href="$classAxiLiteWriteFilterTb.html" title=" " alt="" coords="431,208,582,235"/>
+<area shape="rect" id="node13" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="414,259,599,285"/>
+<area shape="rect" id="node14" href="$classAxiStreamMonAxiL.html" title=" " alt="" coords="433,309,580,336"/>
+<area shape="rect" id="node16" href="$classClinkTop.html" title=" " alt="" coords="468,360,545,387"/>
+<area shape="rect" id="node17" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="421,411,593,437"/>
+<area shape="rect" id="node18" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="429,461,585,488"/>
+<area shape="rect" id="node6" href="$classPgpEthAxiL.html" title=" " alt="" coords="662,107,757,133"/>
+<area shape="rect" id="node7" href="$classPgpEthCore.html" title=" " alt="" coords="807,107,904,133"/>
+<area shape="rect" id="node8" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="952,81,1079,108"/>
+<area shape="rect" id="node10" href="$classPgpEthCoreTb.html" title=" " alt="" coords="959,132,1072,159"/>
+<area shape="rect" id="node9" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="1127,81,1269,108"/>
+<area shape="rect" id="node15" href="$classAxiMonAxiL.html" title=" " alt="" coords="660,309,759,336"/>
 </map>

@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 1142;
+var viewWidth = 1252;
 var viewHeight = 370;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>AxiStreamMonAxiL</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-366 1138,-366 1138,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-366 1248,-366 1248,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -63,6 +63,21 @@ var sectionId = 'dynsection-0';
 <text text-anchor="middle" x="1079" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamMonAxiL</text>
 </a>
 </g>
+</g>
+<!-- Node28 -->
+<g id="node28" class="node">
+<title>Node28</title>
+<g id="a_node28"><a xlink:href="classAxiMonAxiL.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1170,-228.5 1170,-247.5 1244,-247.5 1244,-228.5 1170,-228.5"/>
+<text text-anchor="middle" x="1207" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMonAxiL</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node28 -->
+<g id="edge39" class="edge">
+<title>Node1&#45;&gt;Node28</title>
+<path fill="none" stroke="midnightblue" d="M1144.36,-238C1153.06,-238 1161.73,-238 1169.7,-238"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1144.17,-234.5 1134.17,-238 1144.17,-241.5 1144.17,-234.5"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">

@@ -1,7 +1,8 @@
 <map id="AxiVersion" name="AxiVersion">
 <area shape="rect" id="node1" title=" " alt="" coords="413,379,504,405"/>
-<area shape="rect" id="node15" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="299,453,460,480"/>
-<area shape="rect" id="node16" href="$classAxiVersionTb.html" title=" " alt="" coords="485,453,592,480"/>
+<area shape="rect" id="node15" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="190,453,351,480"/>
+<area shape="rect" id="node16" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="375,453,542,480"/>
+<area shape="rect" id="node17" href="$classAxiVersionTb.html" title=" " alt="" coords="566,453,673,480"/>
 <area shape="rect" id="node2" href="$classDeviceDna.html" title=" " alt="" coords="501,229,594,256"/>
 <area shape="rect" id="node3" href="$classDeviceDna7Series.html" title=" " alt="" coords="608,155,749,181"/>
 <area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="349,80,424,107"/>

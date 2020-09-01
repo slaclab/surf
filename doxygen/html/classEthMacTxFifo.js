@@ -11,6 +11,7 @@ var classEthMacTxFifo =
     [ "VLAN_SIZE_G", "classEthMacTxFifo.html#aa48bb8d5784169b5e07a235e896e0d20", null ],
     [ "VLAN_COMMON_CLK_G", "classEthMacTxFifo.html#ac0a625e8a29a1462ad74976140fcc670", null ],
     [ "VLAN_CONFIG_G", "classEthMacTxFifo.html#adae7469cf2f4621b8b4bef2992501a06", null ],
+    [ "SYNTH_MODE_G", "classEthMacTxFifo.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "mClk", "classEthMacTxFifo.html#a680edc5c850913fac0354632b75f3a3c", null ],
     [ "mRst", "classEthMacTxFifo.html#a5a73e1a06436747080bb186610b606cc", null ],
     [ "sPrimClk", "classEthMacTxFifo.html#ac2402c93079a715aa37188e73fbc7199", null ],

@@ -3,6 +3,7 @@ var classGigEthGtx7 =
     [ "mapping", "classGigEthGtx7_1_1mapping.html", "classGigEthGtx7_1_1mapping" ],
     [ "TPD_G", "classGigEthGtx7.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "PAUSE_EN_G", "classGigEthGtx7.html#a3523b0b120676ac086f277320024a115", null ],
+    [ "SYNTH_MODE_G", "classGigEthGtx7.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "EN_AXI_REG_G", "classGigEthGtx7.html#aaa0b8676b87db73331ef9162511e97fa", null ],
     [ "AXIL_BASE_ADDR_G", "classGigEthGtx7.html#a2fb40d8932c184adaa59bff27b5896d5", null ],
     [ "AXIL_CLK_IS_SYSCLK125_G", "classGigEthGtx7.html#a8b155edefc85cd5334825d42834abcb8", null ],
