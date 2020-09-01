@@ -2,5 +2,5 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load Source Code
-loadSource -dir "$::DIR_PATH/inferred"
-loadSource -dir "$::DIR_PATH/xilinx"
+loadSource -lib surf -dir "$::DIR_PATH/inferred"
+loadSource -lib surf -dir "$::DIR_PATH/xilinx"

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
 -------------------------------------------------------------------------------
--- File       : AxiStreamBatcherEventBuilder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite wrapper for AXI-Stream Batcher
@@ -19,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiStreamBatcherAxil is
 
@@ -31,7 +32,7 @@ entity AxiStreamBatcherAxil is
       MAX_NUMBER_SUB_FRAMES_G      : positive            := 32;
       SUPER_FRAME_BYTE_THRESHOLD_G : natural             := 8192;
       MAX_CLK_GAP_G                : natural             := 256;
-      AXIS_CONFIG_G                : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      AXIS_CONFIG_G                : AxiStreamConfigType;
       INPUT_PIPE_STAGES_G          : natural             := 0;
       OUTPUT_PIPE_STAGES_G         : natural             := 1);
 
@@ -79,7 +80,7 @@ architecture rtl of AxiStreamBatcherAxil is
 
 begin
 
-   U_AxiStreamBatcher_1 : entity work.AxiStreamBatcher
+   U_AxiStreamBatcher_1 : entity surf.AxiStreamBatcher
       generic map (
          TPD_G                        => TPD_G,
          MAX_NUMBER_SUB_FRAMES_G      => MAX_NUMBER_SUB_FRAMES_G,
@@ -100,7 +101,7 @@ begin
          mAxisMaster             => mAxisMaster,                -- [out]
          mAxisSlave              => mAxisSlave);                -- [in]
 
-   U_AxiLiteAsync_1 : entity work.AxiLiteAsync
+   U_AxiLiteAsync_1 : entity surf.AxiLiteAsync
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLOCK_G)

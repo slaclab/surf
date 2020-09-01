@@ -1,22 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249Deserializer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 14 bit DDR deserializer using 7 series IDELAYE2 and ISERDESE2.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
@@ -100,7 +101,7 @@ begin
          Q8           => oData(7),
          SHIFTOUT1    => shift1,        -- Cascade connection to Slave ISERDES
          SHIFTOUT2    => shift2,        -- Cascade connection to Slave ISERDES
-         BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any 
+         BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any
                                     -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input
@@ -145,7 +146,7 @@ begin
          SHIFTOUT2    => open,
          SHIFTIN1     => shift1,        -- Cascade connections from Master ISERDES
          SHIFTIN2     => shift2,        -- Cascade connections from Master ISERDES
-         BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any 
+         BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any
                                     -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input

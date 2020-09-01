@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SpiSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generic SPI Slave Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SpiSlave is
    generic (
@@ -80,7 +81,7 @@ architecture rtl of SpiSlave is
 
 begin
 
-   SEL_SYNCHRONIZER : entity work.Synchronizer
+   SEL_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3,
@@ -91,7 +92,7 @@ begin
          dataIn  => selL,
          dataOut => selLSync);
 
-   SCLK_SYNCHRONIZER : entity work.Synchronizer
+   SCLK_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -100,7 +101,7 @@ begin
          dataIn  => sclk,
          dataOut => sclkSync);
 
-   MOSI_SYNCHRONIZER : entity work.Synchronizer
+   MOSI_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (

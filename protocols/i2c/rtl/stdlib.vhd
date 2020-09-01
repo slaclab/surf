@@ -15,10 +15,9 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -----------------------------------------------------------------------------
 -- Package: 	stdlib
--- File:	stdlib.vhd
 -- Author:	Jiri Gaisler - Gaisler Research
 -- Description:	Package for common VHDL functions
 ------------------------------------------------------------------------------
@@ -315,7 +314,7 @@ begin
 -- pragma translate_on
     return(std_logic_vector(unsigned(d) + unsigned(y)));
 -- pragma translate_off
-  else x := (others =>'X'); return(x); 
+  else x := (others =>'X'); return(x);
   end if;
 -- pragma translate_on
 end;
@@ -333,7 +332,7 @@ begin
 -- pragma translate_off
   else
      x := (others =>'X'); y := (others =>'X');
-     if (x'length > y'length) then return(x); else return(y); end if; 
+     if (x'length > y'length) then return(x); else return(y); end if;
   end if;
 -- pragma translate_on
 end;
@@ -346,7 +345,7 @@ begin
 -- pragma translate_on
     return(std_logic_vector(unsigned(d) - i));
 -- pragma translate_off
-  else x := (others =>'X'); return(x); 
+  else x := (others =>'X'); return(x);
   end if;
 -- pragma translate_on
 end;
@@ -359,7 +358,7 @@ begin
 -- pragma translate_on
     return(std_logic_vector(i - unsigned(d)));
 -- pragma translate_off
-  else x := (others =>'X'); return(x); 
+  else x := (others =>'X'); return(x);
   end if;
 -- pragma translate_on
 end;
@@ -374,7 +373,7 @@ begin
 -- pragma translate_on
     return(std_logic_vector(unsigned(d) - unsigned(y)));
 -- pragma translate_off
-  else x := (others =>'X'); return(x); 
+  else x := (others =>'X'); return(x);
   end if;
 -- pragma translate_on
 end;
@@ -517,7 +516,7 @@ function tost_bits(s: std_logic_vector) return string is
   variable i: integer;
 begin
   i := 1;
-  for x in s'range loop      
+  for x in s'range loop
     str(i to i) := tost_any(s(x));
     i := i+1;
   end loop;
@@ -528,7 +527,7 @@ function tost(b: boolean) return string is
 begin
   if b then return "true"; else return "false"; end if;
 end tost;
-  
+
 function tost(i : integer) return string is
 variable L : line;
 variable s, x : string(1 to 128);
@@ -588,7 +587,7 @@ begin
       x := x * 10.0;
     end loop;
     return s(1 to j-1);
-  end if;    
+  end if;
 end tost;
 
 procedure print(s : string) is

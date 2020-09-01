@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
 #-----------------------------------------------------------------------------
-# This file is part of the 'SLAC Firmware Standard Library'. It is subject to 
-# the license terms in the LICENSE.txt file found in the top-level directory 
-# of this distribution and at: 
-#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-# No part of the 'SLAC Firmware Standard Library', including this file, may be 
-# copied, modified, propagated, or distributed except according to the terms 
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
+# the license terms in the LICENSE.txt file found in the top-level directory
+# of this distribution and at:
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
+# copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
@@ -30,16 +29,16 @@ tUserModeType = ['TUSER_FIRST_LAST_C']
 for dataBytesIn in range(len(dataBytesConfig)):
     for dataBytesOut in range(len(dataBytesConfig)):
         for tKeepModeIn in range(len(tKeepModeType)):
-            for tKeepModeOut in range(len(tKeepModeType)):   
+            for tKeepModeOut in range(len(tKeepModeType)):
                 for tUserModeIn in range(len(tUserModeType)):
-                    for tUserModeOut in range(len(tUserModeType)):   
+                    for tUserModeOut in range(len(tUserModeType)):
                         for tUserIn in range(len(tUserConfig)):
                             for tUserOut in range(len(tUserConfig)):
                                 cnt = cnt + 1
                                 ofd.write(f"""
-      {cnt}    => (                         
+      {cnt}    => (
          0 => ssiAxiStreamConfig({dataBytesConfig[dataBytesIn]}, {tKeepModeType[tKeepModeIn]}, {tUserModeType[tUserModeIn]}, 4, {tUserConfig[tUserIn]}),
-         1 => ssiAxiStreamConfig({dataBytesConfig[dataBytesOut]}, {tKeepModeType[tKeepModeOut]}, {tUserModeType[tUserModeOut]}, 4, {tUserConfig[tUserOut]})),""")   
+         1 => ssiAxiStreamConfig({dataBytesConfig[dataBytesOut]}, {tKeepModeType[tKeepModeOut]}, {tUserModeType[tUserModeOut]}, 4, {tUserConfig[tUserOut]})),""")
 #-----------------------------------------------------------------------------
 dataBytesConfig = [8]
 tUserConfig = [4]
@@ -48,15 +47,15 @@ tUserModeType = ['TUSER_NORMAL_C','TUSER_FIRST_LAST_C','TUSER_LAST_C','TUSER_NON
 for dataBytesIn in range(len(dataBytesConfig)):
     for dataBytesOut in range(len(dataBytesConfig)):
         for tKeepModeIn in range(len(tKeepModeType)):
-            for tKeepModeOut in range(len(tKeepModeType)):   
+            for tKeepModeOut in range(len(tKeepModeType)):
                 for tUserModeIn in range(len(tUserModeType)):
-                    for tUserModeOut in range(len(tUserModeType)):   
+                    for tUserModeOut in range(len(tUserModeType)):
                         for tUserIn in range(len(tUserConfig)):
                             for tUserOut in range(len(tUserConfig)):
                                 cnt = cnt + 1
                                 ofd.write(f"""
-      {cnt}    => (                         
+      {cnt}    => (
          0 => ssiAxiStreamConfig({dataBytesConfig[dataBytesIn]}, {tKeepModeType[tKeepModeIn]}, {tUserModeType[tUserModeIn]}, 4, {tUserConfig[tUserIn]}),
-         1 => ssiAxiStreamConfig({dataBytesConfig[dataBytesOut]}, {tKeepModeType[tKeepModeOut]}, {tUserModeType[tUserModeOut]}, 4, {tUserConfig[tUserOut]})),""")   
+         1 => ssiAxiStreamConfig({dataBytesConfig[dataBytesOut]}, {tKeepModeType[tKeepModeOut]}, {tUserModeType[tUserModeOut]}, 4, {tUserConfig[tUserOut]})),""")
 #-----------------------------------------------------------------------------
 

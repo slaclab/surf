@@ -1,26 +1,27 @@
 -------------------------------------------------------------------------------
 -- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
--- File       : PgpEthCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGP Ethernet Core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.PgpEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.PgpEthPkg.all;
 
 entity PgpEthCore is
    generic (
@@ -110,7 +111,7 @@ begin
    pgpRxOut  <= pgpRxOutInt;
    pgpTxOut  <= pgpTxOutInt;
 
-   U_Tx : entity work.PgpEthTx
+   U_Tx : entity surf.PgpEthTx
       generic map (
          TPD_G              => TPD_G,
          NUM_VC_G           => NUM_VC_G,
@@ -138,7 +139,7 @@ begin
          phyTxMaster    => phyTxMaster,
          phyTxSlave     => phyTxSlave);
 
-   U_Rx : entity work.PgpEthRx
+   U_Rx : entity surf.PgpEthRx
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -162,7 +163,7 @@ begin
          phyRxRdy       => phyRxRdy,
          phyRxMaster    => phyRxMaster);
 
-   U_AxiLite : entity work.PgpEthAxiL
+   U_AxiLite : entity surf.PgpEthAxiL
       generic map (
          TPD_G            => TPD_G,
          WRITE_EN_G       => AXIL_WRITE_EN_G,

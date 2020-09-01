@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiXcf128Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Access
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,14 +17,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiXcf128Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiXcf128Pkg.all;
 
 entity AxiXcf128Reg is
    generic (
       TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6);  -- units of Hz      
+      AXI_CLK_FREQ_G   : real            := 200.0E+6);  -- units of Hz
    port (
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -37,7 +38,7 @@ entity AxiXcf128Reg is
       config         : out AxiXcf128ConfigType;
       -- Global Signals
       axiClk         : in  sl;
-      axiRst         : in  sl);      
+      axiRst         : in  sl);
 end AxiXcf128Reg;
 
 architecture rtl of AxiXcf128Reg is
@@ -62,7 +63,7 @@ architecture rtl of AxiXcf128Reg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       (others => '0'),
       (others => (others => '0')),
@@ -80,7 +81,7 @@ begin
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, r, status) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
@@ -124,8 +125,6 @@ begin
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         -- Reset the register
-         v.axiReadSlave.rdata := (others => '0');
          -- Check the read address
          if axiReadMaster.araddr(3 downto 2) = 0 then
             -- Get the write data bus
@@ -160,7 +159,7 @@ begin
             v.config.data     := r.wrData(1);
             -- Increment the counter
             v.cnt             := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt   := 0;
@@ -176,7 +175,7 @@ begin
             v.config.data     := r.wrData(1);
             -- Increment the counter
             v.cnt             := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt   := 0;
@@ -192,7 +191,7 @@ begin
             v.config.data     := r.wrData(0);
             -- Increment the counter
             v.cnt             := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt   := 0;
@@ -208,7 +207,7 @@ begin
             v.config.data     := r.wrData(0);
             -- Increment the counter
             v.cnt             := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt     := 0;
@@ -226,7 +225,7 @@ begin
             v.config.data     := r.wrData(0);
             -- Increment the counter
             v.cnt             := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt   := 0;
@@ -251,7 +250,7 @@ begin
       axiWriteSlave <= r.axiWriteSlave;
 
       config <= r.config;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -260,5 +259,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

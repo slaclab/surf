@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUs.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTH Ultrscale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,10 +20,12 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -32,7 +33,8 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;
-      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"     
+      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      SYNTH_MODE_G                : string                := "inferred";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -153,7 +155,7 @@ begin
    --gtTxUserReset <= pgpTxRst;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -173,7 +175,7 @@ begin
    end generate GEN_XBAR;
 
    -- If DRP or PGP_MON not enabled, no crossbar needed
-   -- If neither enabled, default values will auto-terminate the bus   
+   -- If neither enabled, default values will auto-terminate the bus
    GEN_DRP_ONLY : if (EN_DRP_G and not EN_PGP_MON_G) generate
       axilWriteSlave                     <= axilWriteSlaves(DRP_AXIL_INDEX_C);
       axilWriteMasters(DRP_AXIL_INDEX_C) <= axilWriteMaster;
@@ -189,7 +191,7 @@ begin
    end generate GEN_PGP_MON_ONLY;
 
 
-   U_Pgp3Core_1 : entity work.Pgp3Core
+   U_Pgp3Core_1 : entity surf.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
@@ -248,7 +250,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3GthUsIpWrapper_1 : entity work.Pgp3GthUsIpWrapper
+   U_Pgp3GthUsIpWrapper_1 : entity surf.Pgp3GthUsIpWrapper
       generic map (
          TPD_G         => TPD_G,
          TX_POLARITY_G => TX_POLARITY_G,

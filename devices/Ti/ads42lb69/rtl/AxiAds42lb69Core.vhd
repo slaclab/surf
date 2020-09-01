@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to ADS42LB69 ADC IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,15 +17,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAds42lb69Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAds42lb69Pkg.all;
 
 entity AxiAds42lb69Core is
    generic (
       TPD_G           : time                                    := 1 ns;
       SIM_SPEEDUP_G   : boolean                                 := false;
       USE_PLL_G       : boolean                                 := false;  -- true = phase compensate the ADC data bus
+      USE_FBCLK_G     : boolean                                 := true;
       ADC_CLK_FREQ_G  : real                                    := 250.00E+6;  -- units of Hz
       DMODE_INIT_G    : slv(1 downto 0)                         := "00";
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
@@ -50,7 +52,8 @@ entity AxiAds42lb69Core is
       axiRst         : in  sl;
       adcClk         : in  sl;
       adcRst         : in  sl;
-      refclk200MHz   : in  sl);
+      refClk200MHz   : in  sl;
+      refRst200MHz   : in  sl := '0');
 end AxiAds42lb69Core;
 
 architecture mapping of AxiAds42lb69Core is
@@ -63,7 +66,7 @@ architecture mapping of AxiAds42lb69Core is
 
 begin
 
-   SynchVector0_Inst : entity work.SynchronizerVector
+   SynchVector0_Inst : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 2)
@@ -72,7 +75,7 @@ begin
          dataIn  => config.convert,
          dataOut => convert);
 
-   SynchVector1_Inst : entity work.SynchronizerVector
+   SynchVector1_Inst : entity surf.SynchronizerVector
       generic map(
          TPD_G   => TPD_G,
          WIDTH_G => 2)
@@ -102,7 +105,7 @@ begin
       end process;
    end generate;
 
-   AxiAds42lb69Reg_Inst : entity work.AxiAds42lb69Reg
+   AxiAds42lb69Reg_Inst : entity surf.AxiAds42lb69Reg
       generic map(
          TPD_G          => TPD_G,
          SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
@@ -123,16 +126,17 @@ begin
          axiClk         => axiClk,
          axiRst         => axiRst);
 
-   AxiAds42lb69Deser_Inst : entity work.AxiAds42lb69Deser
+   AxiAds42lb69Deser_Inst : entity surf.AxiAds42lb69Deser
       generic map(
          TPD_G           => TPD_G,
          USE_PLL_G       => USE_PLL_G,
+         USE_FBCLK_G     => USE_FBCLK_G,
          ADC_CLK_FREQ_G  => ADC_CLK_FREQ_G,
          DELAY_INIT_G    => DELAY_INIT_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G,
          XIL_DEVICE_G    => XIL_DEVICE_G)
       port map (
-         -- ADC Ports  
+         -- ADC Ports
          clkP         => adcOut.clkP,
          clkN         => adcOut.clkN,
          syncP        => adcOut.syncP,
@@ -154,6 +158,7 @@ begin
          adcClk       => adcClk,
          adcRst       => adcRst,
          adcSync      => adcSync,
-         refclk200MHz => refclk200MHz);
+         refClk200MHz => refClk200MHz,
+         refRst200MHz => refRst200MHz);
 
 end mapping;

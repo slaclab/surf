@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249Group.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AD9249 Group Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
 
 library UNISIM;
 use UNISIM.vcomponents.all;
@@ -194,7 +195,7 @@ architecture behavioral of Ad9249Group is
 
 begin
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G => 4 ns)
       port map (
@@ -204,7 +205,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Create local clocks
    -------------------------------------------------------------------------------------------------
---   ClkRst_1 : entity work.ClkRst
+--   ClkRst_1 : entity surf.ClkRst
 --      generic map (
 --         RST_HOLD_TIME_G => 50 us)
 --      port map (
@@ -229,7 +230,7 @@ begin
    -- Use a clock manager to create the serial clock
    -- There's probably a better way but this works.
    -------------------------------------------------------------------------------------------------
-   U_CtrlClockManager7 : entity work.ClockManager7
+   U_CtrlClockManager7 : entity surf.ClockManager7
       generic map (
          TPD_G            => TPD_G,
          TYPE_G           => "MMCM",
@@ -256,7 +257,7 @@ begin
          locked    => locked);
 
 
-   RstSync_1 : entity work.RstSync
+   RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',
@@ -270,7 +271,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Instantiate configuration interface
    -------------------------------------------------------------------------------------------------
-   AdiConfigSlave_1 : entity work.AdiConfigSlave
+   AdiConfigSlave_1 : entity surf.AdiConfigSlave
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -591,7 +592,7 @@ begin
    -- Output
    -------------------------------------------------------------------------------------------------
    DATA_SERIALIZER_GEN : for i in 7 downto 0 generate
-      Ad9249Serializer_1 : entity work.Ad9249Serializer
+      Ad9249Serializer_1 : entity surf.Ad9249Serializer
          port map (
             clk    => dClk,
             clkDiv => fClk,
@@ -607,13 +608,13 @@ begin
    end generate DATA_SERIALIZER_GEN;
 
 
-   FCLK_OUT_BUFF : entity work.ClkOutBufDiff
+   FCLK_OUT_BUFF : entity surf.ClkOutBufDiff
       port map (
          clkIn   => fco,
          clkOutP => fcoP,
          clkOutN => fcoN);
 
-   DCLK_OUT_BUFF : entity work.ClkOutBufDiff
+   DCLK_OUT_BUFF : entity surf.ClkOutBufDiff
       port map (
          clkIn   => dco,
          clkOutP => dcoP,

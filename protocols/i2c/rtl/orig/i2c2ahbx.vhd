@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity:      i2c2ahbx
 -- File:        i2c2ahbx.vhd
@@ -33,7 +33,7 @@
 -- following I2C bus sequence:
 --
 -- 0. START condition
--- 1. Send core's I2C address with direction = write 
+-- 1. Send core's I2C address with direction = write
 -- 2. Send 32-bit address to be used for AMBA bus
 -- 3. Send data to be written
 --
@@ -45,7 +45,7 @@
 -- To write to the core, issue the following I2C bus sequence:
 --
 -- 0. START condition
--- 1. Send core's I2C address with direction = write 
+-- 1. Send core's I2C address with direction = write
 -- 2. Send 32-bit address to be used for AMBA bus
 -- 3. Send repeated start condition
 -- 4. Send core's I2C address with direction = read
@@ -120,14 +120,14 @@ architecture rtl of i2c2ahbx is
   -----------------------------------------------------------------------------
   -- Constants
   -----------------------------------------------------------------------------
-  
+
   constant OEPOL_LEVEL : std_ulogic := conv_std_logic(oepol = 1);
- 
+
   constant I2C_LOW   : std_ulogic := OEPOL_LEVEL;  -- OE
   constant I2C_HIZ   : std_ulogic := not OEPOL_LEVEL;
 
   constant I2C_ACK   : std_ulogic := '0';
-  
+
   -----------------------------------------------------------------------------
   -- Types
   -----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ architecture rtl of i2c2ahbx is
   type i2c_in_array is array (filter downto 0) of i2c_in_type;
 
   type state_type is (idle, checkaddr, sclhold, movebyte, handshake);
-  
+
   type i2c2ahb_reg_type is record
     state    : state_type;
     --
@@ -163,15 +163,15 @@ architecture rtl of i2c2ahbx is
     -- Output enables
     scloen   : std_ulogic;
     sdaoen   : std_ulogic;
-  end record;  
-  
+  end record;
+
   -----------------------------------------------------------------------------
   -- Signals
   -----------------------------------------------------------------------------
 
   signal ami : ahb_dma_in_type;
   signal amo : ahb_dma_out_type;
-  
+
   signal r, rin : i2c2ahb_reg_type;
 
 begin
@@ -182,7 +182,7 @@ begin
                  devid => GAISLER_I2C2AHB, version => 0,
                  chprot => 3, incaddr => 0)
     port map (rstn, clk, ami, amo, ahbi, ahbo);
-  
+
   comb: process (r, rstn, i2ci, amo, i2c2ahbi)
     variable v         : i2c2ahb_reg_type;
     variable sclfilt   : std_logic_vector(filter-1 downto 0);
@@ -195,12 +195,12 @@ begin
   begin
     v := r; ahbreq := '0'; slv := '0'; cfg := '0'; lb := '0';
     hrdata := (others => '0');
-    v.i2ci(0) := i2ci; v.i2ci(filter downto 1) := r.i2ci(filter-1 downto 0);      
+    v.i2ci(0) := i2ci; v.i2ci(filter downto 1) := r.i2ci(filter-1 downto 0);
 
     ----------------------------------------------------------------------------
     -- Bus filtering
     ----------------------------------------------------------------------------
-    for i in 0 to filter-1 loop 
+    for i in 0 to filter-1 loop
       sclfilt(i) := r.i2ci(i+1).scl; sdafilt(i) := r.i2ci(i+1).sda;
     end loop;  -- i
     if andv(sclfilt) = '1' then v.scl := '1'; end if;
@@ -244,7 +244,7 @@ begin
         ahbreq := '1';
       end if;
     end if;
-    
+
     ---------------------------------------------------------------------------
     -- I2C slave control FSM
     ---------------------------------------------------------------------------
@@ -254,13 +254,13 @@ begin
         if (r.scl and not v.scl) = '1' then
           v.sdaoen := I2C_HIZ;
         end if;
-     
+
       when checkaddr =>
         if r.sreg(7 downto 1) = i2c2ahbi.slvaddr then slv := '1'; end if;
         if r.sreg(7 downto 1) = i2c2ahbi.cfgaddr then cfg := '1'; end if;
         v.rec := not r.sreg(0);
-        
-        if (slv or cfg) = '1' then 
+
+        if (slv or cfg) = '1' then
           if (slv and r.dodma) = '1' then
             -- Core is busy performing DMA
             if r.nack = '1' then v.state := idle;
@@ -275,7 +275,7 @@ begin
         v.hwrite := v.rec;
         if (slv and not r.dodma) = '1' then v.dodma := not v.rec; end if;
         v.ahbacc := slv; v.bcnt := "00"; v.ahbadd := '0';
-        
+
       when sclhold =>
         -- This state is used when the device has been addressed to see if SCL
         -- should be kept low until the core is ready to process another
@@ -322,7 +322,7 @@ begin
             v.cnt := r.cnt + 1;
           end if;
         end if;
-      
+
       when handshake =>
         if ((r.hsize = "00") or ((r.hsize(0) and r.bcnt(0)) = '1') or
             (r.bcnt = "11")) then
@@ -344,7 +344,7 @@ begin
             end if;
           else
             -- AHB access
-            if r.rec = '1' then  
+            if r.rec = '1' then
               -- First we need a 4 byte address, then we handle data.
               v.bcnt := r.bcnt + 1;
               if r.ahbadd = '0' then
@@ -442,7 +442,7 @@ begin
     else
       v.prot := '0';
     end if;
-    
+
     if i2c2ahbi.en = '1' then
       -- STOP condition
       if (r.scl and v.scl and not r.sda and v.sda) = '1' then
@@ -456,7 +456,7 @@ begin
         v.i2caddr := '1';
       end if;
     end if;
-   
+
    ----------------------------------------------------------------------------
    -- Reset
    ----------------------------------------------------------------------------
@@ -473,14 +473,14 @@ begin
     end if;
 
     if i2c2ahbi.hmask = zero32 then v.prot := '0'; end if;
-    
+
     ----------------------------------------------------------------------------
     -- Signal assignments
     ----------------------------------------------------------------------------
-   
+
     -- Core registers
     rin <= v;
-    
+
     -- AHB master control
     ami.address   <= r.haddr;
     ami.wdata     <= ahbdrivedata(r.hdata);
@@ -490,12 +490,12 @@ begin
     ami.busy      <= '0';
     ami.irq       <= '0';
     ami.size      <= '0' & r.hsize;
-    
+
     -- Update outputs
     i2c2ahbo.dma  <= r.dodma;
     i2c2ahbo.wr   <= r.hwrite;
     i2c2ahbo.prot <= r.prot;
-    
+
     i2co.scl      <= '0';
     i2co.scloen   <= r.scloen;
     i2co.sda      <= '0';

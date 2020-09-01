@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Iprog7SeriesCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-Series IPROG CMD
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Iprog7SeriesCore is
    generic (
@@ -84,7 +85,7 @@ architecture rtl of Iprog7SeriesCore is
 begin
 
    -- Synchronize reload addr to icap clk
-   SynchronizerAddress_1 : entity work.SynchronizerVector
+   SynchronizerAddress_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
          BYPASS_SYNC_G => BYPASS_SYNC_C,
@@ -97,7 +98,7 @@ begin
          dataOut => icapReloadAddr);
 
    -- Capture edge of start on icapClk
-   SynchronizerStart_1 : entity work.SynchronizerEdge
+   SynchronizerStart_1 : entity surf.SynchronizerEdge
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3)

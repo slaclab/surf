@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisToJtagCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Axi Stream to JTAG Interface/Adapter
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,8 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 
 -- Convert an AXI Stream into JTAG and return the TDO reply as an AXI Stream.
@@ -121,7 +122,7 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
    type StateType is (IDLE_S, GET_TMS_S, GET_TDI_S, SHIFT_S, ALIGN_S, DISCARD_S);
 
    constant AXIS_BW_C       : positive  := 8*AXIS_WIDTH_G;
-   
+
    type RegType is record
       state      : StateType;
       tdi        : slv(AXIS_BW_C - 1 downto 0);
@@ -189,7 +190,7 @@ begin
 
    tdoReady <= not r.tdoValid or ( sAxisTdo.tReady and r.tdoPass );
 
-   U_Jtag : entity work.JtagSerDesCore
+   U_Jtag : entity surf.JtagSerDesCore
       generic map (
          TPD_G         => TPD_G,
          WIDTH_G       => AXIS_BW_C,

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SaltRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SALT RX Engine Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,16 +17,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SaltPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SaltPkg.all;
 
 entity SaltRx is
    generic (
       TPD_G               : time                := 1 ns;
       COMMON_RX_CLK_G     : boolean             := false;  -- Set to true if mAxisClk and clk are the same clock
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(4));
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Master Port
       mAxisClk    : in  sl;
@@ -303,7 +304,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
+      -- Outputs
       txMaster  <= r.txMaster;
       rxPktRcvd <= r.rxPktRcvd;
       rxErrDet  <= r.rxErrDet;
@@ -317,16 +318,14 @@ begin
       end if;
    end process seq;
 
-   FIFO_TX : entity work.SsiFifo
+   FIFO_TX : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
          VALID_THOLD_G       => 1,
-         EN_FRAME_FILTER_G   => true,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => COMMON_RX_CLK_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,

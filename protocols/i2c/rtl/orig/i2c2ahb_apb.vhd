@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity:      i2c2ahb_apb
 -- File:        i2c2ahb_apb.vhd
@@ -85,7 +85,7 @@ architecture rtl of i2c2ahb_apb is
   constant MASK_OFF : std_logic_vector(4 downto 2) := "011";
   constant SLVA_OFF : std_logic_vector(4 downto 2) := "100";
   constant SLVC_OFF : std_logic_vector(4 downto 2) := "101";
-  
+
   -- AMBA PnP
   constant PCONFIG : apb_config_type := (
     0 => ahb_device_reg(VENDOR_GAISLER, GAISLER_I2C2AHB, 0, 0, 0),
@@ -102,10 +102,10 @@ architecture rtl of i2c2ahb_apb is
     dma      : std_ulogic;
     dmax     : std_ulogic;
   end record;
-  
+
   signal r, rin   : apb_reg_type;
   signal i2c2ahbo : i2c2ahb_out_type;
-  
+
 begin
 
   bridge : i2c2ahbx
@@ -113,7 +113,7 @@ begin
     port map (rstn => rstn, clk => clk, ahbi => ahbi, ahbo => ahbo,
               i2ci => i2ci, i2co => i2co, i2c2ahbi => r.i2c2ahbi,
               i2c2ahbo => i2c2ahbo);
-    
+
   comb: process (r, rstn, apbi, i2c2ahbo)
     variable v         : apb_reg_type;
     variable apbaddr   : std_logic_vector(4 downto 2);
@@ -123,7 +123,7 @@ begin
     v := r; apbaddr := apbi.paddr(apbaddr'range); apbout := (others => '0');
     v.irq := '0'; irqout := (others => '0'); irqout(pirq) := r.irq;
     v.protx := i2c2ahbo.prot; v.dmax := i2c2ahbo.dma;
-    
+
     ---------------------------------------------------------------------------
     -- APB register interface
     ---------------------------------------------------------------------------
@@ -139,7 +139,7 @@ begin
         when others => null;
       end case;
     end if;
-   
+
     -- write registers
     if (apbi.psel(pindex) and apbi.penable and apbi.pwrite) = '1' then
       case apbaddr is
@@ -160,7 +160,7 @@ begin
       v.dma := '1'; v.prot := r.prot or i2c2ahbo.prot; v.wr := i2c2ahbo.wr;
       if (r.irqen and not r.dma) = '1' then v.irq := '1'; end if;
     end if;
-    
+
     ---------------------------------------------------------------------------
     -- reset
     ---------------------------------------------------------------------------
@@ -195,5 +195,5 @@ begin
   end process reg;
 
   -- Boot message provided in i2c2ahbx...
-  
+
 end architecture rtl;

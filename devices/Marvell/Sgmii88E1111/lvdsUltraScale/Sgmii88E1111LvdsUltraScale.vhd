@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Sgmii88E1111LvdsUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Marvell 88E1111 PHY + GigEthLvdsUltraScaleWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,10 +16,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
 
 entity Sgmii88E1111LvdsUltraScale is
    generic (
@@ -37,7 +38,7 @@ entity Sgmii88E1111LvdsUltraScale is
       phyClk      : out   sl;
       phyRst      : out   sl;
       -- Local Configurations/status
-      localMac    : in    slv(47 downto 0);  --  big-Endian configuration   
+      localMac    : in    slv(47 downto 0);  --  big-Endian configuration
       phyReady    : out   sl;
       linkUp      : out   sl;
       speed10     : out   sl;
@@ -56,7 +57,7 @@ entity Sgmii88E1111LvdsUltraScale is
       phyMdc      : out   sl;
       phyMdio     : inout sl;
       phyRstN     : out   sl;                -- active low
-      phyIrqN     : in    sl;                -- active low      
+      phyIrqN     : in    sl;                -- active low
       -- LVDS SGMII Ports
       sgmiiRxP    : in    sl;
       sgmiiRxN    : in    sl;
@@ -100,7 +101,7 @@ begin
    -- We must hold reset for >10ms and then wait >5ms until we may talk
    -- to it (we actually wait also >10ms) which is indicated by 'extPhyReady'
    --------------------------------------------------------------------------
-   U_PwrUpRst0 : entity work.PwrUpRst
+   U_PwrUpRst0 : entity surf.PwrUpRst
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -111,7 +112,7 @@ begin
          clk    => stableClk,
          rstOut => extPhyRstN);
 
-   U_PwrUpRst1 : entity work.PwrUpRst
+   U_PwrUpRst1 : entity surf.PwrUpRst
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -126,7 +127,7 @@ begin
    -- The MDIO controller which talks to the external PHY must be held
    -- in reset until extPhyReady; it works in a different clock domain...
    ----------------------------------------------------------------------
-   U_PhyInitRstSync : entity work.RstSync
+   U_PhyInitRstSync : entity surf.RstSync
       generic map (
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '1')
@@ -142,7 +143,7 @@ begin
    -- and handle link changes (aneg still enabled on copper) flagged
    -- by the PHY...
    -----------------------------------------------------------------------
-   U_PhyCtrl : entity work.Sgmii88E1111Mdio
+   U_PhyCtrl : entity surf.Sgmii88E1111Mdio
       generic map (
          TPD_G => TPD_G,
          PHY_G => PHY_G,
@@ -162,7 +163,7 @@ begin
    ----------------------------------------------------
    -- synchronize MDI and IRQ signals into 'clk' domain
    ----------------------------------------------------
-   U_SyncMdi : entity work.Synchronizer
+   U_SyncMdi : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -170,7 +171,7 @@ begin
          dataIn  => phyMdio,
          dataOut => phyMdi);
 
-   U_SyncIrq : entity work.Synchronizer
+   U_SyncIrq : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '0',
@@ -180,7 +181,7 @@ begin
          dataIn  => phyIrqN,
          dataOut => phyIrq);
 
-   U_1GigE : entity work.GigEthLvdsUltraScaleWrapper
+   U_1GigE : entity surf.GigEthLvdsUltraScaleWrapper
       generic map (
          TPD_G           => TPD_G,
          USE_BUFG_DIV_G  => USE_BUFG_DIV_G,

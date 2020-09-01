@@ -1,18 +1,17 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiPrbsRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   This module generates 
+-- Description:   This module generates
 --                PseudoRandom Binary Sequence (PRBS) on Virtual Channel Lane.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,10 +20,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiPrbsRx is
    generic (
@@ -33,12 +34,7 @@ entity SsiPrbsRx is
       STATUS_CNT_WIDTH_G         : natural range 1 to 32    := 32;
       -- FIFO configurations
       SLAVE_READY_EN_G           : boolean                  := true;
-      BRAM_EN_G                  : boolean                  := true;
-      XIL_DEVICE_G               : string                   := "7SERIES";
-      USE_BUILT_IN_G             : boolean                  := false;
       GEN_SYNC_FIFO_G            : boolean                  := false;
-      ALTERA_SYN_G               : boolean                  := false;
-      ALTERA_RAM_G               : string                   := "M9K";
       CASCADE_SIZE_G             : positive                 := 1;
       FIFO_ADDR_WIDTH_G          : positive                 := 9;
       FIFO_PAUSE_THRESH_G        : positive                 := 2**8;
@@ -48,18 +44,16 @@ entity SsiPrbsRx is
       PRBS_SEED_SIZE_G           : positive range 32 to 512 := 32;
       PRBS_TAPS_G                : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
       -- AXI Stream IO Config
-      SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType      := ssiAxiStreamConfig(4);
-      SLAVE_AXI_PIPE_STAGES_G    : natural                  := 0;
-      MASTER_AXI_STREAM_CONFIG_G : AxiStreamConfigType      := ssiAxiStreamConfig(4);
-      MASTER_AXI_PIPE_STAGES_G   : natural                  := 0);
+      SLAVE_AXI_STREAM_CONFIG_G  : AxiStreamConfigType;
+      SLAVE_AXI_PIPE_STAGES_G    : natural                  := 0);
    port (
-      -- Streaming RX Data Interface (sAxisClk domain) 
+      -- Streaming RX Data Interface (sAxisClk domain)
       sAxisClk        : in  sl;
       sAxisRst        : in  sl                     := '0';
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       sAxisCtrl       : out AxiStreamCtrlType;
-      -- Optional: TX Data Interface with EOFE tagging (sAxisClk domain) 
+      -- Optional: TX Data Interface with EOFE tagging (sAxisClk domain)
       mAxisMaster     : out AxiStreamMasterType;
       mAxisSlave      : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
       -- Optional: AXI-Lite Register Interface (axiClk domain)
@@ -216,7 +210,7 @@ begin
 
    sAxisCtrl <= axisCtrl(0);
 
-   AxiStreamFifo_Rx : entity work.AxiStreamFifoV2
+   AxiStreamFifo_Rx : entity surf.AxiStreamFifoV2
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
@@ -224,12 +218,7 @@ begin
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          -- FIFO configurations
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
          GEN_SYNC_FIFO_G     => true,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
@@ -252,14 +241,14 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-   U_Tx : entity work.AxiStreamResize
+   U_Tx : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
+         PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)
+         MASTER_AXI_CONFIG_G => SLAVE_AXI_STREAM_CONFIG_G)
       port map (
          -- Clock and reset
          axisClk     => sAxisClk,
@@ -271,7 +260,7 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
-   U_bypCheck : entity work.Synchronizer
+   U_bypCheck : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -315,7 +304,7 @@ begin
                -- Ready to receive data
                v.rxAxisSlave.tReady := '1';
 
-               -- Move the data 
+               -- Move the data
                v.txAxisMaster := rxAxisMaster;
 
                -- Check for start of frame
@@ -350,7 +339,7 @@ begin
                      v.errDataBus      := '0';
                      v.eofe            := '0';
 
-                     -- Check if we have missed a packet 
+                     -- Check if we have missed a packet
                      if (rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) /= r.eventCnt) then
                         -- Set the error flags
                         v.errMissedPacket := '1';
@@ -384,7 +373,7 @@ begin
                -- Ready to receive data
                v.rxAxisSlave.tReady := '1';
 
-               -- Move the data 
+               -- Move the data
                v.txAxisMaster := rxAxisMaster;
 
                -- Calculate the next data word
@@ -437,7 +426,7 @@ begin
                -- Ready to receive data
                v.rxAxisSlave.tReady := '1';
 
-               -- Move the data 
+               -- Move the data
                v.txAxisMaster := rxAxisMaster;
 
                -- Calculate the next data word
@@ -526,7 +515,7 @@ begin
       end if;
    end process seq;
 
-   SyncFifo_Inst : entity work.SynchronizerFifo
+   SyncFifo_Inst : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 96)
@@ -541,7 +530,7 @@ begin
          dout(63 downto 32) => packetRateSync,
          dout(95 downto 64) => errWordCntSync);
 
-   SyncStatusVec_Inst : entity work.SyncStatusVector
+   SyncStatusVec_Inst : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',
@@ -550,7 +539,7 @@ begin
          CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
          WIDTH_G        => STATUS_SIZE_C)
       port map (
-         -- Input Status bit Signals (wrClk domain)   
+         -- Input Status bit Signals (wrClk domain)
          statusIn(9)  => axisCtrl(1).pause,
          statusIn(8)  => axisCtrl(1).overflow,
          statusIn(7)  => axisCtrl(0).pause,
@@ -561,7 +550,7 @@ begin
          statusIn(2)  => r.eofe,
          statusIn(1)  => r.errLength,
          statusIn(0)  => r.errMissedPacket,
-         -- Output Status bit Signals (rdClk domain) 
+         -- Output Status bit Signals (rdClk domain)
          statusOut(9) => pause(1),
          statusOut(8) => overflow(1),
          statusOut(7) => pause(0),
@@ -572,7 +561,7 @@ begin
          statusOut(2) => errEofeSync,
          statusOut(1) => errLengthSync,
          statusOut(0) => errMissedPacketSync,
-         -- Status Bit Counters Signals (rdClk domain) 
+         -- Status Bit Counters Signals (rdClk domain)
          cntRstIn     => rAxiLite.cntRst,
          rollOverEnIn => rAxiLite.rollOverEn,
          cntOut       => cntOut,
@@ -593,7 +582,7 @@ begin
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    combAxiLite : process (axiReadMaster, axiRst, axiWriteMaster, errDataBusCnt,
                           errDataBusSync, errEofeCnt, errEofeSync,
                           errLengthCnt, errLengthSync, errMissedPacketCnt,
@@ -639,7 +628,6 @@ begin
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Decode address and assign read data
-         v.axiReadSlave.rdata := (others => '0');
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"00" =>
                v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errMissedPacketCnt;

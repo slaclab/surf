@@ -1,24 +1,25 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD9467 ADC IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd9467Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd9467Pkg.all;
 
 entity AxiAd9467Core is
    generic (
@@ -40,7 +41,7 @@ entity AxiAd9467Core is
       adcData        : out   slv(15 downto 0);
       -- IDELAY Reference clock
       refClk200Mhz   : in    sl;
-      -- AXI-Lite Register Interface (axiClk domain)      
+      -- AXI-Lite Register Interface (axiClk domain)
       axiClk         : in    sl;
       axiRst         : in    sl;
       axiReadMaster  : in    AxiLiteReadMasterType;
@@ -50,22 +51,22 @@ entity AxiAd9467Core is
 end AxiAd9467Core;
 
 architecture mapping of AxiAd9467Core is
-   
+
    signal status : AxiAd9467StatusType;
    signal config : AxiAd9467ConfigType;
-   
+
 begin
 
    adcData <= status.adcData;
 
-   AxiAd9467Reg_Inst : entity work.AxiAd9467Reg
+   AxiAd9467Reg_Inst : entity surf.AxiAd9467Reg
       generic map(
          TPD_G              => TPD_G,
          DEMUX_INIT_G       => DEMUX_INIT_G,
          DELAY_INIT_G       => DELAY_INIT_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G)
       port map(
-         -- AXI-Lite Register Interface    
+         -- AXI-Lite Register Interface
          axiClk         => axiClk,
          axiRst         => axiRst,
          axiReadMaster  => axiReadMaster,
@@ -80,7 +81,7 @@ begin
          adcRst         => adcRst,
          refClk200Mhz   => refClk200Mhz);
 
-   AxiAd9467Spi_Inst : entity work.AxiAd9467Spi
+   AxiAd9467Spi_Inst : entity surf.AxiAd9467Spi
       generic map(
          TPD_G          => TPD_G,
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
@@ -95,7 +96,7 @@ begin
          adcSpiIn  => config.spi,
          adcSpiOut => status.spi);
 
-   AxiAd9467Pll_Inst : entity work.AxiAd9467Pll
+   AxiAd9467Pll_Inst : entity surf.AxiAd9467Pll
       generic map(
          TPD_G          => TPD_G,
          ADC_CLK_FREQ_G => ADC_CLK_FREQ_G)
@@ -109,9 +110,9 @@ begin
          pllLocked  => status.pllLocked,
          -- ADC Reference Signals
          adcClk     => adcClk,
-         adcRst     => adcRst);  
+         adcRst     => adcRst);
 
-   AxiAd9467Deser_Inst : entity work.AxiAd9467Deser
+   AxiAd9467Deser_Inst : entity surf.AxiAd9467Deser
       generic map(
          TPD_G           => TPD_G,
          DELAY_INIT_G    => DELAY_INIT_G,
@@ -129,9 +130,9 @@ begin
          -- IDELAY Interface
          refClk200Mhz => refClk200Mhz,
          delayin      => config.delay,
-         delayOut     => status.delay); 
+         delayOut     => status.delay);
 
-   AxiAd9467Mon_Inst : entity work.AxiAd9467Mon
+   AxiAd9467Mon_Inst : entity surf.AxiAd9467Mon
       generic map (
          TPD_G          => TPD_G,
          ADC_CLK_FREQ_G => ADC_CLK_FREQ_G)
@@ -139,6 +140,6 @@ begin
          adcClk     => adcClk,
          adcRst     => adcRst,
          adcData    => status.adcData,
-         adcDataMon => status.adcDataMon);       
+         adcDataMon => status.adcDataMon);
 
 end mapping;

@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaV2.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic AXI Stream DMA block for frame at a time transfers.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,11 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaV2 is
    generic (
@@ -36,8 +37,8 @@ entity AxiStreamDmaV2 is
       AXIL_BASE_ADDR_G   : slv(31 downto 0)         := x"00000000";
       AXI_READY_EN_G     : boolean                  := false;
       AXIS_READY_EN_G    : boolean                  := false;
-      AXIS_CONFIG_G      : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
-      AXI_DMA_CONFIG_G   : AxiConfigType            := AXI_CONFIG_INIT_C;
+      AXIS_CONFIG_G      : AxiStreamConfigType;
+      AXI_DMA_CONFIG_G   : AxiConfigType;
       CHAN_COUNT_G       : positive range 1 to 16   := 1;
       BURST_BYTES_G      : positive range 1 to 4096 := 4096;
       WR_PIPE_STAGES_G   : natural                  := 1;
@@ -55,7 +56,8 @@ entity AxiStreamDmaV2 is
       interrupt       : out sl;
       online          : out slv(CHAN_COUNT_G-1 downto 0);
       acknowledge     : out slv(CHAN_COUNT_G-1 downto 0);
-      -- AXI Stream Interface 
+      buffGrpPause    : out slv(7 downto 0);
+      -- AXI Stream Interface
       sAxisMasters    : in  AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
       sAxisSlaves     : out AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
       mAxisMasters    : out AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
@@ -104,7 +106,7 @@ begin
    assert (isPowerOf2(BURST_BYTES_G) = true)
       report "BURST_BYTES_G must be power of 2" severity failure;
 
-   U_DmaDesc : entity work.AxiStreamDmaV2Desc
+   U_DmaDesc : entity surf.AxiStreamDmaV2Desc
       generic map (
          TPD_G              => TPD_G,
          CHAN_COUNT_G       => CHAN_COUNT_G,
@@ -136,7 +138,8 @@ begin
          axiRdCache      => axiRdCache,
          axiWrCache      => axiWrCache,
          axiWriteMasters => descWriteMasters,
-         axiWriteSlaves  => descWriteSlaves);
+         axiWriteSlaves  => descWriteSlaves,
+         buffGrpPause    => buffGrpPause);
 
    -- Read/Write channel 0 unused.
    axiReadMasters(0)  <= AXI_READ_MASTER_INIT_C;
@@ -145,7 +148,7 @@ begin
    U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
 
       -- Help with timing
-      U_AxisRst : entity work.RstPipeline
+      U_AxisRst : entity surf.RstPipeline
          generic map (
             TPD_G     => TPD_G,
             INV_RST_G => false)
@@ -154,7 +157,7 @@ begin
             rstIn  => axiRst,
             rstOut => axiReset(i));
 
-      U_DmaRead : entity work.AxiStreamDmaV2Read
+      U_DmaRead : entity surf.AxiStreamDmaV2Read
          generic map (
             TPD_G           => TPD_G,
             AXIS_READY_EN_G => AXIS_READY_EN_G,
@@ -172,14 +175,14 @@ begin
             dmaRdDescRetAck => dmaRdDescRetAck(i),
             dmaRdIdle       => open,
             axiCache        => axiRdCache,
-            -- Streaming Interface 
+            -- Streaming Interface
             axisMaster      => mAxisMasters(i),
             axisSlave       => mAxisSlaves(i),
             axisCtrl        => mAxisCtrl(i),
             axiReadMaster   => axiReadMasters(i+1),
             axiReadSlave    => axiReadSlaves(i+1));
 
-      U_DmaWrite : entity work.AxiStreamDmaV2Write
+      U_DmaWrite : entity surf.AxiStreamDmaV2Write
          generic map (
             TPD_G             => TPD_G,
             AXI_READY_EN_G    => AXI_READY_EN_G,
@@ -203,10 +206,10 @@ begin
             axiWriteSlave   => dataWriteSlaves(i),
             axiWriteCtrl    => dataWriteCtrl(i));
 
-      ----------------------------------------------------------------------------------------- 
+      -----------------------------------------------------------------------------------------
       -- This MUX is used to make sure that the write descriptor is sent after the data is sent
-      ----------------------------------------------------------------------------------------- 
-      U_DmaWriteMux : entity work.AxiStreamDmaV2WriteMux
+      -----------------------------------------------------------------------------------------
+      U_DmaWriteMux : entity surf.AxiStreamDmaV2WriteMux
          generic map (
             TPD_G          => TPD_G,
             AXI_CONFIG_G   => AXI_DMA_CONFIG_G,

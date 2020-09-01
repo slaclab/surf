@@ -1,27 +1,27 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGtp7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Wrapper for 1000BASE-X Ethernet
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -43,18 +43,18 @@ entity GigEthGtp7Wrapper is
       -- AXI-Lite Configurations
       EN_AXI_REG_G       : boolean              := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigArray := (0 => AXI_STREAM_CONFIG_INIT_C));
+      AXIS_CONFIG_G      : AxiStreamConfigArray := (0 => EMAC_AXIS_CONFIG_C));
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk              : in  slv(NUM_LANE_G-1 downto 0);
       dmaRst              : in  slv(NUM_LANE_G-1 downto 0);
       dmaIbMasters        : out AxiStreamMasterArray(NUM_LANE_G-1 downto 0);
       dmaIbSlaves         : in  AxiStreamSlaveArray(NUM_LANE_G-1 downto 0);
       dmaObMasters        : in  AxiStreamMasterArray(NUM_LANE_G-1 downto 0);
       dmaObSlaves         : out AxiStreamSlaveArray(NUM_LANE_G-1 downto 0);
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk          : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       axiLiteRst          : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       axiLiteReadMasters  : in  AxiLiteReadMasterArray(NUM_LANE_G-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
@@ -74,6 +74,9 @@ entity GigEthGtp7Wrapper is
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
+      -- Copy of internal MMCM reference clock and Reset
+      mmcmRefClkOut       : out sl;
+      mmcmRefRstOut       : out sl;
       -- Switch Polarity of TxN/TxP, RxN/RxP
       gtTxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       gtRxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
@@ -104,6 +107,7 @@ architecture mapping of GigEthGtp7Wrapper is
    signal qPllRefClkLost : slv(1 downto 0);
    signal qpllRst        : slv(NUM_LANE_G-1 downto 0);
    signal qpllReset      : slv(1 downto 0);
+   signal dummySig       : slv(1 downto 0);
 
 begin
 
@@ -111,6 +115,9 @@ begin
    ethRst125 <= sysRst125;
    ethClk62  <= sysClk62;
    ethRst62  <= sysRst62;
+
+   mmcmRefClkOut <= refClk;
+   mmcmRefRstOut <= refRst;
 
    -----------------------------
    -- Select the Reference Clock
@@ -137,7 +144,7 @@ begin
    -----------------
    -- Power Up Reset
    -----------------
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -148,7 +155,7 @@ begin
    ----------------
    -- Clock Manager
    ----------------
-   U_MMCM : entity work.ClockManager7
+   U_MMCM : entity surf.ClockManager7
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
@@ -174,10 +181,10 @@ begin
 
    REAL_ETH_GEN : if (not SIMULATION_G) generate
       -----------
-      -- Quad PLL 
+      -- Quad PLL
       -----------
 
-      U_Gtp7QuadPll : entity work.Gtp7QuadPll
+      U_Gtp7QuadPll : entity surf.Gtp7QuadPll
          generic map (
             TPD_G                => TPD_G,
             PLL0_REFCLK_SEL_G    => "111",
@@ -200,18 +207,18 @@ begin
             qPllPowerDown     => "10",  -- power down PLL1 (unused PLL)
             qPllReset         => qpllReset);
 
-      -- Once the QPLL is locked, prevent the 
+      -- Once the QPLL is locked, prevent the
       -- IP cores from accidentally reseting each other
       qpllReset(0) <= sysRst125 or (uOr(qpllRst) and not(qPllLock(0)));
-      qPllReset(1) <= '1';              -- No using QPLL[1]   
+      qPllReset(1) <= '1';              -- Not using QPLL[1]
 
       --------------
-      -- GigE Module 
+      -- GigE Module
       --------------
       GEN_LANE :
       for i in 0 to NUM_LANE_G-1 generate
 
-         U_GigEthGtp7 : entity work.GigEthGtp7
+         U_GigEthGtp7 : entity surf.GigEthGtp7
             generic map (
                TPD_G           => TPD_G,
                PAUSE_EN_G      => PAUSE_EN_G,
@@ -222,14 +229,14 @@ begin
             port map (
                -- Local Configurations
                localMac           => localMac(i),
-               -- Streaming DMA Interface 
+               -- Streaming DMA Interface
                dmaClk             => dmaClk(i),
                dmaRst             => dmaRst(i),
                dmaIbMaster        => dmaIbMasters(i),
                dmaIbSlave         => dmaIbSlaves(i),
                dmaObMaster        => dmaObMasters(i),
                dmaObSlave         => dmaObSlaves(i),
-               -- Slave AXI-Lite Interface 
+               -- Slave AXI-Lite Interface
                axiLiteClk         => axiLiteClk(i),
                axiLiteRst         => axiLiteRst(i),
                axiLiteReadMaster  => axiLiteReadMasters(i),
@@ -249,7 +256,7 @@ begin
                qPllLock           => qPllLock,
                qPllRefClkLost     => qPllRefClkLost,
                qPllReset(0)       => qpllRst(i),
-               qPllReset(1)       => open,
+               qPllReset(1)       => dummySig(i),
                -- Switch Polarity of TxN/TxP, RxN/RxP
                gtTxPolarity       => gtTxPolarity(i),
                gtRxPolarity       => gtRxPolarity(i),

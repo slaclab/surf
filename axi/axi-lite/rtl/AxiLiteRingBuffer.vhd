@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteRingBuffer.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for simple BRAM based ring buffer with AXI-Lite interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,15 +17,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteRingBuffer is
    generic (
       -- General Configurations
       TPD_G            : time                   := 1 ns;
       EXT_CTRL_ONLY_G  : boolean                := false;
-      BRAM_EN_G        : boolean                := true;
+      MEMORY_TYPE_G    : string                 := "block";
       REG_EN_G         : boolean                := true;
       DATA_WIDTH_G     : positive range 1 to 32 := 32;
       RAM_ADDR_WIDTH_G : positive range 1 to 19 := 10);
@@ -110,15 +111,15 @@ begin
    ----------------------
    -- Instantiate the RAM
    ----------------------
-   DualPortRam_1 : entity work.DualPortRam
+   DualPortRam_1 : entity surf.DualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
-         REG_EN_G     => REG_EN_G,
-         MODE_G       => "read-first",
-         DOB_REG_G    => REG_EN_G,
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_G)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
+         REG_EN_G      => REG_EN_G,
+         MODE_G        => "read-first",
+         DOB_REG_G     => REG_EN_G,
+         DATA_WIDTH_G  => DATA_WIDTH_G,
+         ADDR_WIDTH_G  => RAM_ADDR_WIDTH_G)
       port map (
          clka  => dataClk,
          wea   => dataR.ramWrEn,
@@ -134,7 +135,7 @@ begin
    -------------------------------
    -- Synchronize AXI registers to data clock dataClk
    -------------------------------
-   Synchronizer_bufferEn : entity work.Synchronizer
+   Synchronizer_bufferEn : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -143,7 +144,7 @@ begin
          dataIn  => axilR.bufferEnable,
          dataOut => axilBufferEnable);
 
-   Synchronizer_bufferClear : entity work.SynchronizerOneShot
+   Synchronizer_bufferClear : entity surf.SynchronizerOneShot
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -207,7 +208,7 @@ begin
    -----------------------------------------------------
    -- Synchronize write address across to AXI-Lite clock
    -----------------------------------------------------
-   SynchronizerFifo_1 : entity work.SynchronizerFifo
+   SynchronizerFifo_1 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RAM_ADDR_WIDTH_G)
@@ -218,7 +219,7 @@ begin
          rd_clk => axilClk,
          dout   => axilFirstAddr);
 
-   SynchronizerFifo_2 : entity work.SynchronizerFifo
+   SynchronizerFifo_2 : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => RAM_ADDR_WIDTH_G)
@@ -227,9 +228,9 @@ begin
          wr_clk => dataClk,
          din    => dataR.bufferLength,
          rd_clk => axilClk,
-         dout   => axilLength);   
+         dout   => axilLength);
 
-   Synchronizer_dataBufferEn : entity work.Synchronizer
+   Synchronizer_dataBufferEn : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -238,7 +239,7 @@ begin
          dataIn  => bufferEnable,
          dataOut => extBufferEnable);
 
-   Synchronizer_dataBufferClr : entity work.Synchronizer
+   Synchronizer_dataBufferClr : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -289,8 +290,6 @@ begin
 
       -- Check for read request
       if (axilStatus.readEnable = '1') then
-         -- Reset the read data bus
-         v.axilReadSlave.rdata := (others => '0');
          -- Check for an out of 32 bit aligned address
          axiReadResp           := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Control register mapped at address 0
@@ -312,7 +311,7 @@ begin
             -- LUTRAM + !REG_EN_G = 1 Cycle
             -- LUTRAM + REG_EN_G = 2 Cycles
             -- BRAM + !REG_EN_G = 2 Cycles
-            -- BRAM + REG_EN_G = 3 Cycles            
+            -- BRAM + REG_EN_G = 3 Cycles
             v.axilRdEn(0) := '1';
             if (axilR.axilRdEn(2) = '1') then
                -- Reset the shift register

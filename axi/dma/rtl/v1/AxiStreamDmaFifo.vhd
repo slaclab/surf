@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamDmaFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -7,11 +6,11 @@
 -- using an AXI4 memory for the buffering of the AXI stream frames
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,12 +19,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamDmaFifo is
    generic (
@@ -38,10 +39,10 @@ entity AxiStreamDmaFifo is
       MAX_FRAME_WIDTH_G  : positive            := 14;  -- Maximum AXI Stream frame size (units of address bits)
       AXI_BUFFER_WIDTH_G : positive            := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
       -- AXI Stream Configurations
-      AXIS_CONFIG_G      : AxiStreamConfigType := AXIS_WRITE_DMA_CONFIG_C;
+      AXIS_CONFIG_G      : AxiStreamConfigType;
       -- AXI4 Configurations
       AXI_BASE_ADDR_G    : slv(63 downto 0)    := x"0000_0000_0000_0000";  -- Memory Base Address Offset
-      AXI_CONFIG_G       : AxiConfigType       := axiConfig(32, 8, 4, 4);
+      AXI_CONFIG_G       : AxiConfigType;
       AXI_BURST_G        : slv(1 downto 0)     := "01";
       AXI_CACHE_G        : slv(3 downto 0)     := "1111");
    port (
@@ -193,7 +194,7 @@ begin
    ---------------------
    -- Inbound Controller
    ---------------------
-   U_IbDma : entity work.AxiStreamDmaWrite
+   U_IbDma : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G          => TPD_G,
          AXI_READY_EN_G => true,
@@ -217,7 +218,7 @@ begin
    ----------------------
    -- Outbound Controller
    ----------------------
-   U_ObDma : entity work.AxiStreamDmaRead
+   U_ObDma : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,
@@ -243,12 +244,12 @@ begin
    -------------
    -- Read Queue
    -------------
-   U_ReadQueue : entity work.FifoCascade
+   U_ReadQueue : entity surf.FifoCascade
       generic map (
          TPD_G           => TPD_G,
          FWFT_EN_G       => true,
          GEN_SYNC_FIFO_G => true,
-         BRAM_EN_G       => true,
+         MEMORY_TYPE_G   => "block",
          DATA_WIDTH_G    => LOCAL_AXI_READ_DMA_READ_REQ_SIZE_C,
          CASCADE_SIZE_G  => CASCADE_SIZE_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_C)
@@ -351,10 +352,10 @@ begin
          -- Accept the FIFO data
          v.rdQueueReady := r.online;
 
-         -- Send the DMA Read REQ         
+         -- Send the DMA Read REQ
          v.rdReq := localToAxiReadDmaReq(rdQueueData, r.online);
 
-         -- Overwrite address with rdIndex to help optimize the U_ReadQueue logic 
+         -- Overwrite address with rdIndex to help optimize the U_ReadQueue logic
          v.rdReq.address                                                := r.baseAddr;
          v.rdReq.address(AXI_BUFFER_WIDTH_G-1 downto MAX_FRAME_WIDTH_G) := r.rdIndex;
 
@@ -375,9 +376,6 @@ begin
       end if;
 
       --------------------------------------------------------------------------------
-
-      -- Zero out the read data bus
-      v.axilReadSlave.rdata := (others => '0');
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -480,7 +478,7 @@ begin
       end if;
    end process seq;
 
-   U_rdQueueReset : entity work.RstPipeline
+   U_rdQueueReset : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (

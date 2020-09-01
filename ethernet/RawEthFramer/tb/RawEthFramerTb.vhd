@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : RawEthFramerTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the RawEthFramer module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity RawEthFramerTb is end RawEthFramerTb;
 
@@ -43,8 +44,8 @@ architecture testbed of RawEthFramerTb is
 
    constant MAC_ADDR_C : Slv48Array(2 downto 0) := (0 => x"010300564400", 1 => x"020300564400", 2 => x"030300564400");
    constant IP_ADDR_C  : Slv32Array(2 downto 0) := (0 => x"0A02A8C0", 1 => x"0B02A8C0", 2 => x"0C02A8C0");
-   
-   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := ( others => EMAC_AXIS_CONFIG_C); 
+
+   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := ( others => EMAC_AXIS_CONFIG_C);
 
    signal clk : sl;
    signal rst : sl;
@@ -82,10 +83,10 @@ architecture testbed of RawEthFramerTb is
    signal trig        : slv(1 downto 0);
    signal frameRate   : Slv32Array(1 downto 0);
    signal errorDetCnt : SlVectorArray(0 downto 0, 31 downto 0);
-   
+
 begin
 
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -94,7 +95,7 @@ begin
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => open);       
+         rstL => open);
 
    -- Loopback the PHY streams
    rxMasters(0) <= txMasters(1);
@@ -107,7 +108,7 @@ begin
       -------------------------
       -- IPv4/ARP/UDP Engine[0]
       -------------------------
-      U_Server : entity work.UdpEngineWrapper
+      U_Server : entity surf.UdpEngineWrapper
          generic map (
             -- Simulation Generics
             TPD_G              => TPD_G,
@@ -145,7 +146,7 @@ begin
       -------------------------
       -- IPv4/ARP/UDP Engine[1]
       -------------------------
-      U_Client : entity work.UdpEngineWrapper
+      U_Client : entity surf.UdpEngineWrapper
          generic map (
             -- Simulation Generics
             TPD_G               => TPD_G,
@@ -182,7 +183,7 @@ begin
             ibClientSlaves(0)   => ibClientSlave,
             -- Clock and Reset
             clk                 => clk,
-            rst                 => rst);         
+            rst                 => rst);
 
    end generate;
 
@@ -192,7 +193,7 @@ begin
       --------------------
       -- RAW ETH Engine[0]
       --------------------
-      U_Server : entity work.RawEthFramer
+      U_Server : entity surf.RawEthFramer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -216,7 +217,7 @@ begin
       --------------------
       -- RAW ETH Engine[1]
       --------------------
-      U_Client : entity work.RawEthFramer
+      U_Client : entity surf.RawEthFramer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -235,7 +236,7 @@ begin
             obAppSlave  => ibClientSlave,
             -- Clock and Reset
             clk         => clk,
-            rst         => rst);      
+            rst         => rst);
 
    end generate;
 
@@ -244,7 +245,7 @@ begin
       -------------------------------
       -- RSSI Server Interface @ 4369
       -------------------------------
-      U_RssiServer : entity work.RssiCoreWrapper
+      U_RssiServer : entity surf.RssiCoreWrapper
          generic map (
             TPD_G                    => TPD_G,
             APP_STREAMS_G            => 2,
@@ -286,7 +287,7 @@ begin
       -------------------------------
       -- RSSI Client Interface @ 8738
       -------------------------------
-      U_RssiClient : entity work.RssiCoreWrapper
+      U_RssiClient : entity surf.RssiCoreWrapper
          generic map (
             TPD_G                    => TPD_G,
             APP_STREAMS_G            => 2,
@@ -306,7 +307,7 @@ begin
             TSP_INPUT_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
             TSP_OUTPUT_AXIS_CONFIG_G => EMAC_AXIS_CONFIG_C,
             MAX_RETRANS_CNT_G        => 1,
-            MAX_CUM_ACK_CNT_G        => 1)        
+            MAX_CUM_ACK_CNT_G        => 1)
          port map (
             clk_i             => clk,
             rst_i             => rst,
@@ -323,13 +324,13 @@ begin
             mTspAxisSlave_i   => ibClientSlave,
             -- AXI-Lite Interface
             axiClk_i          => clk,
-            axiRst_i          => rst);         
+            axiRst_i          => rst);
 
    end generate;
 
 
    BYPASS_RSSI : if (BYPASS_RSSI_C = true) generate
-      
+
       ibServerMaster     <= obServerMasters(0);
       obServerSlaves(0)  <= ibServerSlave;
       ibServerMasters(0) <= obServerMaster;
@@ -339,13 +340,13 @@ begin
       obClientSlaves(0)  <= ibClientSlave;
       ibClientMasters(0) <= obClientMaster;
       obClientSlave      <= ibClientSlaves(0);
-      
+
    end generate;
 
    ----------------------------------------
    -- 192.168.2.10@4369@TDEST[0] = PRBS TX
-   ----------------------------------------   
-   U_TX_4369_tdest0 : entity work.SsiPrbsTx
+   ----------------------------------------
+   U_TX_4369_tdest0 : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
          CASCADE_SIZE_G             => 1,
@@ -365,12 +366,12 @@ begin
          trig         => '1',
          packetLength => PKT_LEN_C,
          tDest        => X"00",
-         tId          => X"00");    
+         tId          => X"00");
 
    ----------------------------------------
    -- 192.168.2.10@8738@TDEST[0] = PRBS RX
-   ----------------------------------------   
-   U_RX_8738_tdest0 : entity work.SsiPrbsRx
+   ----------------------------------------
+   U_RX_8738_tdest0 : entity surf.SsiPrbsRx
       generic map (
          TPD_G                     => TPD_G,
          CASCADE_SIZE_G            => 1,
@@ -389,7 +390,7 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          axiClk      => clk,
-         axiRst      => rst);    
+         axiRst      => rst);
 
    start <= obServerMasters(0).tValid and obServerMasters(0).tUser(SSI_SOF_C) and obServerSlaves(0).tReady;
    stop  <= ibClientMasters(0).tValid and ibClientMasters(0).tUser(SSI_SOF_C) and ibClientSlaves(0).tReady;
@@ -418,7 +419,7 @@ begin
    GEN_VEC :
    for i in 1 downto 0 generate
       trig(i) <= ibClientMasters(i).tValid and ibClientMasters(i).tLast and ibClientSlaves(i).tReady;
-      U_TrigRate : entity work.SyncTrigRate
+      U_TrigRate : entity surf.SyncTrigRate
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -434,10 +435,10 @@ begin
             trigRateOut => frameRate(i),
             -- Clocks
             locClk      => clk,
-            refClk      => clk);     
+            refClk      => clk);
    end generate GEN_VEC;
 
-   U_SyncStatusVector : entity work.SyncStatusVector
+   U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => true,
@@ -450,6 +451,6 @@ begin
          wrClk    => clk,
          wrRst    => rst,
          rdClk    => clk,
-         rdRst    => rst);         
+         rdRst    => rst);
 
 end testbed;

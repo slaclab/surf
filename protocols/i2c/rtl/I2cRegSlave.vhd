@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : I2cRegSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Implements an I2C slave attached to a generic RAM interface.
@@ -7,11 +6,11 @@
 -- configurable size.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,8 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity I2cRegSlave is
    generic (
@@ -91,10 +92,10 @@ architecture rtl of I2cRegSlave is
          return (totalBytes-1-to_integer(byteCount))*8;
       end if;
    end function getIndex;
-   
+
 begin
 
-   I2cSlave_1 : entity work.I2cSlave
+   I2cSlave_1 : entity surf.I2cSlave
       generic map (
          TENBIT_G             => TENBIT_G,
          I2C_ADDR_G           => I2C_ADDR_G,
@@ -209,7 +210,7 @@ begin
             if (i2cSlaveOut.txActive = '0') then
                v.state := IDLE_S;
             end if;
-            
+
 
          when others => null;
       end case;
@@ -246,7 +247,7 @@ begin
       wrData <= r.wrData;
       wrEn   <= r.wrEn;
       rdEn   <= r.rdEn;
-      
+
    end process comb;
 
    seq : process (clk, aRst) is
