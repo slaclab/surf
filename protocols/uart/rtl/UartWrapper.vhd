@@ -70,7 +70,7 @@ architecture rtl of UartWrapper is
    signal fifoRxReady    : sl;
    signal fifoRxRdEn     : sl;
 
-   signal clkEn : sl;
+   signal baudClkEn : sl;
 
 begin
 
@@ -90,9 +90,9 @@ begin
          BAUD_RATE_G  => BAUD_RATE_G,
          MULTIPLIER_G => BAUD_MULT_G)
       port map (
-         clk   => clk,                  -- [in]
-         rst   => rst,                  -- [in]
-         clkEn => clkEn);               -- [out]
+         clk       => clk,              -- [in]
+         rst       => rst,              -- [in]
+         baudClkEn => baudClkEn);       -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- UART transmitter
@@ -105,13 +105,13 @@ begin
          BAUD_MULT_G  => BAUD_MULT_G,
          DATA_WIDTH_G => DATA_WIDTH_G)
       port map (
-         clk     => clk,                -- [in]
-         rst     => rst,                -- [in]
-         clkEn   => clkEn,              -- [in]
-         wrData  => uartTxData,         -- [in]
-         wrValid => uartTxValid,        -- [in]
-         wrReady => uartTxReady,        -- [out]
-         tx      => tx);                -- [out]
+         clk       => clk,              -- [in]
+         rst       => rst,              -- [in]
+         baudClkEn => baudClkEn,        -- [in]
+         wrData    => uartTxData,       -- [in]
+         wrValid   => uartTxValid,      -- [in]
+         wrReady   => uartTxReady,      -- [out]
+         tx        => tx);              -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- FIFO to feed UART transmitter
@@ -150,13 +150,13 @@ begin
          BAUD_MULT_G  => BAUD_MULT_G,
          DATA_WIDTH_G => DATA_WIDTH_G)
       port map (
-         clk     => clk,                -- [in]
-         rst     => rst,                -- [in]
-         clkEn   => clkEn,              -- [in]
-         rdData  => uartRxData,         -- [out]
-         rdValid => uartRxValid,        -- [out]
-         rdReady => uartRxReady,        -- [in]
-         rx      => rx);                -- [in]
+         clk       => clk,              -- [in]
+         rst       => rst,              -- [in]
+         baudClkEn => baudClkEn,        -- [in]
+         rdData    => uartRxData,       -- [out]
+         rdValid   => uartRxValid,      -- [out]
+         rdReady   => uartRxReady,      -- [in]
+         rx        => rx);              -- [in]
 
    -------------------------------------------------------------------------------------------------
    -- FIFO for UART Received data

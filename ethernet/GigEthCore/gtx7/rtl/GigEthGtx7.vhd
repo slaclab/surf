@@ -28,6 +28,7 @@ entity GigEthGtx7 is
    generic (
       TPD_G                   : time                := 1 ns;
       PAUSE_EN_G              : boolean             := true;
+      SYNTH_MODE_G            : string              := "inferred";
       -- AXI-Lite Configurations
       EN_AXI_REG_G            : boolean             := false;
       AXIL_BASE_ADDR_G        : slv(31 downto 0)    := X"00000000";
@@ -237,6 +238,7 @@ begin
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_C,
          PHY_TYPE_G      => "GMII",
+         SYNTH_MODE_G    => SYNTH_MODE_G,
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
