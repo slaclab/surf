@@ -7,11 +7,11 @@
 -- Designed specifically for Xilinx Ultrascale series FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ entity Ad9249ReadoutGroup is
 
       -- Reset for adc deserializer (axilClk domain)
       adcClkRst         : in sl;
-      
+
       -- clocks must be provided with USE_MMCME_G = false
       -- this option is necessary if there is many ADCs
       -- one external MMCM should be instantiated to be used with all Ad9249ReadoutGroups
@@ -143,7 +143,7 @@ architecture rtl of Ad9249ReadoutGroup is
 
    signal adcR   : AdcRegType := ADC_REG_INIT_C;
    signal adcRin : AdcRegType;
-   
+
    signal adcDataValid  : slv(NUM_CHANNELS_G-1 downto 0);
    signal adcFrameValid : sl;
 
@@ -168,12 +168,12 @@ architecture rtl of Ad9249ReadoutGroup is
 
    signal debugDataValid : slv(NUM_CHANNELS_G-1 downto 0);
    signal debugData      : slv16Array(NUM_CHANNELS_G-1 downto 0);
-   
+
    signal frameDelay    : slv(8 downto 0);
    signal frameDelaySet : sl;
-   
+
    signal invertSync    : sl;
-   
+
    attribute KEEP_HIERARCHY                     : string;
    attribute KEEP_HIERARCHY of AdcClk_I_Ibufds  : label is "TRUE";
    attribute dont_touch                         : string;
@@ -224,7 +224,7 @@ begin
          rst     => axilRst,
          dataIn  => adcFrame,
          dataOut => adcFrameSync);
-   
+
    Synchronizer_2 : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
@@ -282,7 +282,7 @@ begin
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
       axiSlaveRegisterR(axilEp, X"34", 0, adcFrameSync);
       axiSlaveRegister(axilEp, X"38", 0, v.lockedCountRst);
-      
+
       axiSlaveRegister(axilEp, X"40", 0, v.invert);
 
       -- Debug registers. Output the last 2 words received
@@ -294,7 +294,7 @@ begin
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
-      
+
       if adcClkRst = '1' then
          v.lockedCountRst := '1';
       end if;
@@ -332,8 +332,8 @@ begin
    -------------------------------------------------------------------------------------------------
 
    G_MMCM : if USE_MMCME_G = true generate
-      
-      
+
+
       ------------------------------------------
       -- Generate clocks from ADC incoming clock
       ------------------------------------------
@@ -367,16 +367,16 @@ begin
             rstOut(1) => adcBitRstDiv4,
             locked    => open
          );
-      
+
    end generate G_MMCM;
-   
+
    G_NO_MMCM : if USE_MMCME_G = false generate
-      
+
       adcBitClk      <= adcBitClkIn;
       adcBitClkDiv4  <= adcBitClkDiv4In;
       adcBitRst      <= adcBitRstIn;
       adcBitRstDiv4  <= adcBitRstDiv4In;
-      
+
    end generate G_NO_MMCM;
 
    -------------------------------------------------------------------------------------------------
@@ -405,7 +405,7 @@ begin
          adcData       => adcFrame,
          adcValid      => adcFrameValid
       );
-   
+
    U_FrmDlyFifo : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
@@ -422,7 +422,7 @@ begin
          rd_en  => '1',
          valid  => frameDelaySet,
          dout   => frameDelay);
-   
+
    --------------------------------
    -- Data Input, 8 channels
    --------------------------------
@@ -454,8 +454,8 @@ begin
             adcData       => adcData(i),
             adcValid      => adcDataValid(i)
             );
-      
-      
+
+
       U_DataDlyFifo : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
@@ -472,7 +472,7 @@ begin
             rd_en  => '1',
             valid  => dataDelaySet(i),
             dout   => dataDelay(i));
-      
+
    end generate;
 
    -------------------------------------------------------------------------------------------------
@@ -540,7 +540,7 @@ begin
          end if;
       end if;
    end process adcSeq;
-   
+
    RstSync_1 : entity surf.RstSync
    generic map (
       TPD_G    => TPD_G
@@ -553,8 +553,8 @@ begin
 
    -- synchronize data cross-clocks
    G_FIFO_SYNC : for i in NUM_CHANNELS_G-1 downto 0 generate
-      
-      
+
+
       U_DataFifo : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
@@ -570,11 +570,11 @@ begin
             valid  => fifoDataValid(i),
             dout   => adcStreams(i).tdata(15 downto 0)
          );
-      
+
       fifoDataRdEn(i)      <= adcReady(i) and fifoDataValid(i);
       adcStreams(i).tDest  <= toSlv(i, 8);
       adcStreams(i).tValid <= fifoDataValid(i);
-   
+
       U_DataFifoDebug : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
@@ -590,9 +590,9 @@ begin
             valid  => debugDataValid(i),
             dout   => debugData(i)
          );
-      
+
    end generate;
-   
+
 
 end rtl;
 
