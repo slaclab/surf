@@ -331,7 +331,7 @@ begin
    -- sAxisClk = mAxisClk
    ----------------------
    GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
-      U_Resize : entity surf.AxiStreamResize
+      U_Resize : entity surf.AxiStreamGearbox
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
