@@ -5,3 +5,5 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl "$::DIR_PATH/eth"
 loadRuckusTcl "$::DIR_PATH/pgp2b"
 loadRuckusTcl "$::DIR_PATH/pgp3"
+
+loadSource -dir "$::DIR_PATH/shared"
