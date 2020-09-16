@@ -6,4 +6,4 @@ loadRuckusTcl "$::DIR_PATH/eth"
 loadRuckusTcl "$::DIR_PATH/pgp2b"
 loadRuckusTcl "$::DIR_PATH/pgp3"
 
-loadSource -dir "$::DIR_PATH/shared"
+loadSource -lib surf -dir "$::DIR_PATH/shared"

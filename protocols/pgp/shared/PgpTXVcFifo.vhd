@@ -54,8 +54,8 @@ architecture mapping of PgpTXVcFifo is
    signal sMaster : AxiStreamMasterType;
    signal sSlave  : AxiStreamSlaveType;
 
-   signal masters : AxiStreamMasterType;
-   signal ctrl    : AxiStreamCtrlType;
+   signal master : AxiStreamMasterType;
+   signal ctrl   : AxiStreamCtrlType;
 
    signal linkReady : sl;
    signal flushEn   : sl;
