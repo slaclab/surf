@@ -21,7 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
-entity PgpTXVcFifo is
+entity PgpTxVcFifo is
    generic (
       TPD_G              : time     := 1 ns;
       INT_PIPE_STAGES_G  : natural  := 0;
@@ -47,9 +47,9 @@ entity PgpTXVcFifo is
       txlinkReady : in  sl;
       pgpTxMaster : out AxiStreamMasterType;
       pgpTxSlave  : in  AxiStreamSlaveType);
-end PgpTXVcFifo;
+end PgpTxVcFifo;
 
-architecture mapping of PgpTXVcFifo is
+architecture mapping of PgpTxVcFifo is
 
    signal sMaster : AxiStreamMasterType;
    signal sSlave  : AxiStreamSlaveType;
