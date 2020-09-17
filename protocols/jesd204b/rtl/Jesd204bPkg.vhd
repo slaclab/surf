@@ -419,6 +419,7 @@ package body Jesd204bPkg is
 
       for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
          vSlv(i*8*F_int+8*F_int-1 downto i*8*F_int) := invSigned(vSlv(i*8*F_int+8*F_int-1 downto i*8*F_int));
+         vSlv(i*8*F_int+8*F_int-1 downto i*8*F_int) :=  vSlv(i*8*F_int+8*F_int-1 downto i*8*F_int) - 1; -- +1 correction (https://jira.slac.stanford.edu/browse/ESLMPS-94)
       end loop;
 
       return vSlv;
