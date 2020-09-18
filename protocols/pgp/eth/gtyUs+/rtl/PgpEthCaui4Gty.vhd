@@ -132,8 +132,9 @@ architecture mapping of PgpEthCaui4Gty is
    signal phyUsrRst : sl;
    signal pgpRefClk : sl;
 
-   signal phyRxMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal phyRxMasterReg : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal phyRxMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal phyRxMasterReg0 : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal phyRxMasterReg1 : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
    signal phyTxMaster : AxiStreamMasterType;
    signal phyTxSlave  : AxiStreamSlaveType;
@@ -203,7 +204,7 @@ begin
             phyTxSlave      => phyTxSlave,
             -- Rx PHY Interface
             phyRxRdy        => phyReady,
-            phyRxMaster     => phyRxMasterReg,
+            phyRxMaster     => phyRxMasterReg1,
             -- Debug Interface
             localMac        => localMac,
             loopback        => loopback,
@@ -227,7 +228,8 @@ begin
       process(phyClk)
       begin
          if rising_edge(phyClk) then
-            phyRxMasterReg <= phyRxMaster after TPD_G;
+            phyRxMasterReg1 <= phyRxMasterReg0 after TPD_G;
+            phyRxMasterReg0 <= phyRxMaster     after TPD_G;
          end if;
       end process;
 
