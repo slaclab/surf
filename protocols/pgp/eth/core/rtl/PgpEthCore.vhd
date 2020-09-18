@@ -151,7 +151,7 @@ begin
          remRxFifoCtrlReg  <= remRxFifoCtrl  after TPD_G;
          remRxLinkReadyReg <= remRxLinkReady after TPD_G;
       end if;
-   end process seq;
+   end process;
 
    U_Rx : entity surf.PgpEthRx
       generic map (
