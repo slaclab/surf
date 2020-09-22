@@ -17,9 +17,7 @@ import surf.devices.ti
 
 class Ads54J60(pr.Device):
     def __init__(self, **kwargs):
-        super().__init__(
-            size        = (0x1 << 18),
-            **kwargs)
+        super().__init__(**kwargs)
 
         ################
         # Base addresses
@@ -280,26 +278,74 @@ class Ads54J60(pr.Device):
         ))
 
         ##############################
+        # Resets
+        ##############################
+
+        self.add(pr.RemoteVariable(
+            name         = "DigitalResetChA",
+            description  = "",
+            offset       = mainDigital + chA + (4*0x000),
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "DigitalResetChB",
+            description  = "",
+            offset       = mainDigital + chB + (4*0x000),
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "PllResetChA",
+            description  = "",
+            offset       = mainDigital + chA + (4*0x017),
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "PllResetChB",
+            description  = "",
+            offset       = mainDigital + chB + (4*0x017),
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        ##############################
         # Commands
         ##############################
 
         @self.command(name= "DigRst", description  = "Digital Reset")
         def DigRst():
-            self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
-            self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA: PULSE RESET
-            self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB: PULSE RESET
-            self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
+            self.DigitalResetChA.set(0x00)  # CHA: clear reset
+            self.DigitalResetChB.set(0x00)  # CHB: clear reset
+            self.DigitalResetChA.set(0x01)  # CHA: PULSE RESET
+            self.DigitalResetChB.set(0x01)  # CHB: PULSE RESET
+            self.DigitalResetChA.set(0x00)  # CHA: clear reset
+            self.DigitalResetChB.set(0x00)  # CHB: clear reset
 
         @self.command(name= "PllRst", description  = "PLL Reset")
         def PllRst():
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
-            self._rawWrite(mainDigital + chA + (4*0x017),0x40) # CHA: PLL reset
-            self._rawWrite(mainDigital + chB + (4*0x017),0x40) # CHB: PLL reset
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
+            self.PllResetChA.set(0x00)  # CHA: PLL clear
+            self.PllResetChB.set(0x00)  # CHB: PLL clear
+            self.PllResetChA.set(0x40)  # CHA: PLL reset
+            self.PllResetChB.set(0x40)  # CHB: PLL reset
+            self.PllResetChA.set(0x00)  # CHA: PLL clear
+            self.PllResetChB.set(0x00)  # CHB: PLL clear
 
         @self.command(name= "Init", description  = "Device Initiation")
         def Init():
@@ -312,10 +358,10 @@ class Ads54J60(pr.Device):
             self._rawWrite(mainDigital + chA + (4*0x0F7),0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
             self._rawWrite(mainDigital + chB + (4*0x0F7),0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
 
-            self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA: PULSE RESET
-            self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB: PULSE RESET
-            self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
+            self.DigitalResetChA.set(0x01)  # CHA: PULSE RESET
+            self.DigitalResetChB.set(0x01)  # CHB: PULSE RESET
+            self.DigitalResetChA.set(0x00)  # CHA: clear reset
+            self.DigitalResetChB.set(0x00)  # CHB: clear reset
 
             self._rawWrite(masterPage        + (4*0x059),0x20) # Set the ALWAYS WRITE 1 bit
 
