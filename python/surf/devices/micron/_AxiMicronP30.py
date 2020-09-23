@@ -80,6 +80,19 @@ class AxiMicronP30(pr.Device):
                                        hidden=True,
                                        verify=False))
 
+            self.add(pr.RemoteVariable(name='BurstData',
+                                       offset=0x400,
+                                       base=pr.UInt,
+                                       bitSize=32*256,
+                                       bitOffset=0,
+                                       numValues=256,
+                                       valueBits=32,
+                                       valueStride=32,
+                                       retryCount=tryCount,
+                                       updateNotify=False,
+                                       bulkOpEn=False,
+                                       hidden=True,
+                                       verify=False))
 
         @self.command(value='',description="Load the .MCS into PROM",)
         def LoadMcsFile(arg):
