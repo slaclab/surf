@@ -179,8 +179,6 @@ begin
             -- Check for a read request
             -------------------------------------------------------------------
             if (axiStatus.readEnable = '1') then
-               -- Reset the register
-               v.axiReadSlave.rdata := (others => '0');
                -- Check for RAM access
                if (axiReadMaster.araddr(10) = '1') then
                   -- Read the ram

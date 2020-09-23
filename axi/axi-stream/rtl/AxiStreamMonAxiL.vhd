@@ -25,7 +25,7 @@ use surf.AxiLitePkg.all;
 entity AxiStreamMonAxiL is
    generic (
       TPD_G            : time                := 1 ns;
-      COMMON_CLK_G     : boolean             := false;  -- true if axisClk = statusClk
+      COMMON_CLK_G     : boolean             := false;  -- true if axisClk = axilClk
       AXIS_CLK_FREQ_G  : real                := 156.25E+6;  -- units of Hz
       AXIS_NUM_SLOTS_G : positive            := 1;
       AXIS_CONFIG_G    : AxiStreamConfigType);
@@ -36,8 +36,8 @@ entity AxiStreamMonAxiL is
       axisMasters      : in  AxiStreamMasterArray(AXIS_NUM_SLOTS_G-1 downto 0);
       axisSlaves       : in  AxiStreamSlaveArray(AXIS_NUM_SLOTS_G-1 downto 0);
       -- AXI lite slave port for register access
-      axilClk          : in  std_logic;
-      axilRst          : in  std_logic;
+      axilClk          : in  sl;
+      axilRst          : in  sl;
       sAxilWriteMaster : in  AxiLiteWriteMasterType;
       sAxilWriteSlave  : out AxiLiteWriteSlaveType;
       sAxilReadMaster  : in  AxiLiteReadMasterType;

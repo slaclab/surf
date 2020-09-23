@@ -24,7 +24,7 @@ import math
 class AxiMicronN25Q(pr.Device):
     def __init__(self,
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
-            addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
+            addrMode    = True, # False = 24-bit Address mode, True = 32-bit Address Mode
             tryCount    = 5,
             **kwargs):
 
@@ -114,8 +114,11 @@ class AxiMicronN25Q(pr.Device):
         self.ADDR_ENTER_CMD = (0xB7 << 16)
         self.ADDR_EXIT_CMD  = (0xE9 << 16)
 
-        self.ERASE_CMD  = (0xD8 << 16)
-        self.WRITE_CMD  = (0x02 << 16)
+        self.ERASE_3BYTE_CMD  = (0xD8 << 16)
+        self.ERASE_4BYTE_CMD  = self.ERASE_3BYTE_CMD
+
+        self.WRITE_3BYTE_CMD  = (0x02 << 16)
+        self.WRITE_4BYTE_CMD  = self.WRITE_3BYTE_CMD
 
         self.STATUS_REG_WR_CMD = (0x01 << 16)
         self.STATUS_REG_RD_CMD = (0x05 << 16)
@@ -326,16 +329,16 @@ class AxiMicronN25Q(pr.Device):
     def eraseCmd(self, address):
         self.setAddrReg(address)
         if (self._addrMode):
-            self.setCmd(self.WRITE_MASK|self.ERASE_CMD|0x4)
+            self.setCmd(self.WRITE_MASK|self.ERASE_4BYTE_CMD|0x4)
         else:
-            self.setCmd(self.WRITE_MASK|self.ERASE_CMD|0x3)
+            self.setCmd(self.WRITE_MASK|self.ERASE_3BYTE_CMD|0x3)
 
     def writeCmd(self, address):
         self.setAddrReg(address)
         if (self._addrMode):
-            self.setCmd(self.WRITE_MASK|self.WRITE_CMD|0x104)
+            self.setCmd(self.WRITE_MASK|self.WRITE_4BYTE_CMD|0x104)
         else:
-            self.setCmd(self.WRITE_MASK|self.WRITE_CMD|0x103)
+            self.setCmd(self.WRITE_MASK|self.WRITE_3BYTE_CMD|0x103)
 
     def readCmd(self, address):
         self.setAddrReg(address)
