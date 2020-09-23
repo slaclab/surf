@@ -278,7 +278,7 @@ class Ads54J60(pr.Device):
         ))
 
         ##############################
-        # Resets
+        # Main Digital
         ##############################
 
         self.add(pr.RemoteVariable(
@@ -379,20 +379,6 @@ class Ads54J60(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = "AlwaysWriteBit",
-            description  = "",
-            offset       = masterPage + (4*0x059),
-            bitSize      = 32,
-            bitOffset    = 0,
-            updateNotify = False,
-            bulkOpEn     = False,
-            verify       = False,
-            hidden       = True,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
         ##############################
         # Commands
         ##############################
@@ -432,6 +418,6 @@ class Ads54J60(pr.Device):
             self.DigitalResetChA.set(0x00)  # CHA: clear reset
             self.DigitalResetChB.set(0x00)  # CHB: clear reset
 
-            self.AlwaysWriteBit.set(0x20)   # Set the ALWAYS WRITE 1 bit
+            self.AlwaysWrite0x1_A.set(0x20) # Set the ALWAYS WRITE 1 bit
 
             self.PllRst()
