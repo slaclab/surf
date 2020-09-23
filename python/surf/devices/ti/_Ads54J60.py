@@ -325,6 +325,50 @@ class Ads54J60(pr.Device):
             mode         = "RW",
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = "UnusedPages",
+            description  = "",
+            offset       = unusedPages,
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "DigResetAllChA",
+            description  = "",
+            offset       = mainDigital + chA + (4*0x0F7),
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "DigResetAllChB",
+            description  = "",
+            offset       = mainDigital + chB + (4*0x0F7),
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "AlwaysWriteBit",
+            description  = "",
+            offset       = masterPage + (4*0x059),
+            bitSize      = 32,
+            bitOffset    = 0,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
         ##############################
         # Commands
         ##############################
@@ -353,16 +397,17 @@ class Ads54J60(pr.Device):
             self.HW_RST.set(0x0)
             time.sleep(0.001)
             self.RESET()
-            self._rawWrite(unusedPages, 0x00) # Clear any unwanted content from the unused pages of the JESD bank.
 
-            self._rawWrite(mainDigital + chA + (4*0x0F7),0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
-            self._rawWrite(mainDigital + chB + (4*0x0F7),0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
+            self.UnusedPages.set(0x00) # Clear any unwanted content from the unused pages of the JESD bank.
+
+            self.DigResetAllChA.set(0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
+            self.DigResetAllChB.set(0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
 
             self.DigitalResetChA.set(0x01)  # CHA: PULSE RESET
             self.DigitalResetChB.set(0x01)  # CHB: PULSE RESET
             self.DigitalResetChA.set(0x00)  # CHA: clear reset
             self.DigitalResetChB.set(0x00)  # CHB: clear reset
 
-            self._rawWrite(masterPage        + (4*0x059),0x20) # Set the ALWAYS WRITE 1 bit
+            self.AlwaysWriteBit.set(0x20) # Set the ALWAYS WRITE 1 bit
 
             self.PllRst()
