@@ -28,6 +28,30 @@ class Si5345Lite(pr.Device):
             value        = "",
         ))
 
+
+
+
+        self.add(pr.RemoteVariable(
+            name         = "AlwaysWriteBit",
+            description  = "",
+            offset       = masterPage + (4*0x059),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+
+
+
+
+
+
+
         ##############################
         # Commands
         ##############################
