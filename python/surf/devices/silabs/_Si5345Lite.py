@@ -45,7 +45,7 @@ class Si5345Lite(pr.Device):
                     name         = f"DataBlock[{i}]",
                     description  = "",
                     offset       = 0,
-                    bitSize      = 32,
+                    bitSize      = 32 * 0x400,
                     bitOffset    = 0,
                     numValues    = 0x400,
                     valueBits    = 32,
