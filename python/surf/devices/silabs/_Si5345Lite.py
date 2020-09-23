@@ -19,7 +19,15 @@ class Si5345Lite(pr.Device):
             simpleDisplay = True,
             advanceUser   = False,
             **kwargs):
-        super().__init__(size=(0x1000<<2), **kwargs)
+
+        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
+
+        if self._useVars:
+            size = 0
+        else:
+            size = (0x1000 << 2)  # 16KB
+
+        super().__init__(size=size, **kwargs)
 
         self.add(pr.LocalVariable(
             name         = "CsvFilePath",
@@ -28,29 +36,26 @@ class Si5345Lite(pr.Device):
             value        = "",
         ))
 
+        if self._useVars:
 
-
-
-        self.add(pr.RemoteVariable(
-            name         = "AlwaysWriteBit",
-            description  = "",
-            offset       = masterPage + (4*0x059),
-            bitSize      = 32,
-            bitOffset    = 0,
-            updateNotify = False,
-            bulkOpEn     = False,
-            verify       = False,
-            hidden       = True,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-
-
-
-
-
-
+            # Create 4 x 4K Blocks
+            for i in range(4):
+                self.add(pr.RemoteVariable(
+                    name         = f"DataBlock[{i}]",
+                    description  = "",
+                    offset       = 0,
+                    bitSize      = 32,
+                    bitOffset    = 0,
+                    numValues    = 0x400,
+                    valueBits    = 32,
+                    valueStride  = 32,
+                    updateNotify = False,
+                    bulkOpEn     = False,
+                    verify       = False,
+                    hidden       = True,
+                    base         = pr.UInt,
+                    mode         = "RW",
+                ))
 
         ##############################
         # Commands
@@ -80,7 +85,7 @@ class Si5345Lite(pr.Device):
                 # Loop through the rows in the CSV file
                 for row in reader:
                     if (row[0]!='Address'):
-                        self._rawWrite(
+                        self._setValue(
                             offset = (int(row[0],16)<<2),
                             data   = int(row[1],16),
                         )
@@ -90,8 +95,8 @@ class Si5345Lite(pr.Device):
             self.checkBlocks(recurse=True)
 
             # Execute the Page5.BW_UPDATE_PLL command
-            self._rawWrite((0x500<<2)|(0x14 << 2),0x1)
-            self._rawWrite((0x500<<2)|(0x14 << 2),0x0)
+            self._setValue((0x500<<2)|(0x14 << 2),0x1)
+            self._setValue((0x500<<2)|(0x14 << 2),0x0)
 
             # Power Up after the configuration load
             self.Page0.PDN.set(False)
@@ -111,3 +116,9 @@ class Si5345Lite(pr.Device):
             dependencies = [self.Page0.LOL],
             linkedGet    = lambda: (False if self.Page0.LOL.value() else True)
         ))
+
+    def _setValue(self,offset,data):
+        if self._useVars:
+            self.DataBlock[offset//0x400].set(value=data,idx=(offset%0x400))
+        else:
+            self._rawWrite(offset,data)  # Deprecated
