@@ -19,6 +19,7 @@ import click
 import time
 import datetime
 import math
+import rogue
 
 class AxiMicronP30(pr.Device):
     def __init__(self,

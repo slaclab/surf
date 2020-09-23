@@ -459,4 +459,3 @@ class AxiMicronN25Q(pr.Device):
             return self.DataReg.get()
         else:
             return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount)) # Deprecated
-
