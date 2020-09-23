@@ -398,16 +398,16 @@ class Ads54J60(pr.Device):
             time.sleep(0.001)
             self.RESET()
 
-            self.UnusedPages.set(0x00) # Clear any unwanted content from the unused pages of the JESD bank.
+            self.UnusedPages.set(0x00)      # Clear any unwanted content from the unused pages of the JESD bank.
 
-            self.DigResetAllChA.set(0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
-            self.DigResetAllChB.set(0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
+            self.DigResetAllChA.set(0x01)   # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
+            self.DigResetAllChB.set(0x01)   # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
 
             self.DigitalResetChA.set(0x01)  # CHA: PULSE RESET
             self.DigitalResetChB.set(0x01)  # CHB: PULSE RESET
             self.DigitalResetChA.set(0x00)  # CHA: clear reset
             self.DigitalResetChB.set(0x00)  # CHB: clear reset
 
-            self.AlwaysWriteBit.set(0x20) # Set the ALWAYS WRITE 1 bit
+            self.AlwaysWriteBit.set(0x20)   # Set the ALWAYS WRITE 1 bit
 
             self.PllRst()
