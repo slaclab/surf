@@ -338,20 +338,6 @@ class Ads54J60(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "UnusedPages",
-            description  = "",
-            offset       = unusedPages,
-            bitSize      = 32,
-            bitOffset    = 0,
-            updateNotify = False,
-            bulkOpEn     = False,
-            verify       = False,
-            hidden       = True,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
-
-        self.add(pr.RemoteVariable(
             name         = "DigResetAllChA",
             description  = "",
             offset       = mainDigital + chA + (4*0x0F7),
@@ -369,6 +355,24 @@ class Ads54J60(pr.Device):
             name         = "DigResetAllChB",
             description  = "",
             offset       = mainDigital + chB + (4*0x0F7),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        ##############################
+        # Unused Pages
+        ##############################
+
+        self.add(pr.RemoteVariable(
+            name         = "UnusedPages",
+            description  = "",
+            offset       = unusedPages,
             bitSize      = 32,
             bitOffset    = 0,
             updateNotify = False,
