@@ -14,6 +14,7 @@
 import pyrogue as pr
 import time
 import surf.devices.ti
+import rogue
 
 class Adc32Rf45(pr.Device):
     def __init__( self, verify=True, **kwargs):
@@ -674,7 +675,6 @@ class Adc32Rf45(pr.Device):
                 self._rawWrite(generalAddr + (4*0x005C),0x00) #... # Deprecated
                 self._rawWrite(generalAddr + (4*0x005C),0x01) #... # Deprecated
                 self._rawWrite(generalAddr + (4*0x0011),0x00) #Disable ADC Page. Power up Analog writes end here. Program appropriate -->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config # Deprecated
- # Deprecated
                 self._rawWrite(rawInterface + (4*0x4001),0x00) #DC corrector Bandwidth settings # Deprecated
                 self._rawWrite(rawInterface + (4*0x4002),0x00) #... # Deprecated
                 self._rawWrite(rawInterface + (4*0x4003),0x00) #... # Deprecated
@@ -844,7 +844,6 @@ class Adc32Rf45(pr.Device):
                 self.RawInterface6.set(value=0x00,index=0x0F5) #...
                 self.RawInterface6.set(value=0x01,index=0x0FB) #...
                 self.RawInterface6.set(value=0x01,index=0x0FC) #...
-                                                 ,
                 self.RawInterface4.set(value=0x00,index=0x003) #chB Non Linearity Trims for Nyq1. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
                 self.RawInterface4.set(value=0x20,index=0x004) #...
                 self.RawInterface4.set(value=0xF9,index=0x002) #...
