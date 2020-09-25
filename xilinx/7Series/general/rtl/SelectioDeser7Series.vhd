@@ -109,7 +109,9 @@ begin
 
       U_Lane : entity surf.SelectioDeserLane7Series
          generic map (
-            TPD_G => TPD_G)
+            TPD_G           => TPD_G,
+            IODELAY_GROUP_G => IODELAY_GROUP_G,
+            REF_FREQ_G      => REF_FREQ_G)
          port map (
             -- SELECTIO Ports
             rxP     => rxP(i),
