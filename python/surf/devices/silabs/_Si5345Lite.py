@@ -44,7 +44,7 @@ class Si5345Lite(pr.Device):
                 self.add(pr.RemoteVariable(
                     name         = f"DataBlock[{i}]",
                     description  = "",
-                    offset       = 0,
+                    offset       = 0x1000 * i,
                     bitSize      = 32 * 0x400,
                     bitOffset    = 0,
                     numValues    = 0x400,
