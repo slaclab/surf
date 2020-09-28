@@ -513,7 +513,7 @@ begin
             -- Locked, output adc data
             if adcDataValid(i) = '1' then
                if invertSync = '1' then
-                  v.fifoWrData(i) := "00" & (x"3FFF" - adcData(i));
+                  v.fifoWrData(i) := "00" & ("11111111111111" - adcData(i));
                else
                   v.fifoWrData(i) := "00" & adcData(i);
                end if;
