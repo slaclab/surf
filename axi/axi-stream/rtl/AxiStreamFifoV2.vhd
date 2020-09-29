@@ -182,7 +182,7 @@ begin
    -------------------------
    -- Slave Resize
    -------------------------
-   U_SlaveResize : entity surf.AxiStreamResize
+   U_SlaveResize : entity surf.AxiStreamGearbox
       generic map (
          TPD_G               => TPD_G,
          READY_EN_G          => SLAVE_READY_EN_G,
@@ -371,7 +371,7 @@ begin
    -------------------------
    -- Master Resize
    -------------------------
-   U_MasterResize : entity surf.AxiStreamResize
+   U_MasterResize : entity surf.AxiStreamGearbox
       generic map (
          TPD_G               => TPD_G,
          READY_EN_G          => true,
