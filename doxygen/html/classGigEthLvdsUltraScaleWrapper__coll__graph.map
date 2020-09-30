@@ -19,7 +19,7 @@
 <area shape="rect" id="node15" href="$classFifoOutputPipeline.html" title=" " alt="" coords="479,259,622,285"/>
 <area shape="rect" id="node16" href="$classEthMacTop.html" title=" " alt="" coords="1264,784,1356,811"/>
 <area shape="rect" id="node17" href="$classEthMacTxFifo.html" title=" " alt="" coords="1099,619,1209,645"/>
-<area shape="rect" id="node19" href="$classAxiStreamResize.html" title=" " alt="" coords="233,683,383,709"/>
+<area shape="rect" id="node19" href="$classAxiStreamGearbox.html" title=" " alt="" coords="227,683,389,709"/>
 <area shape="rect" id="node20" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,733,148,760"/>
 <area shape="rect" id="node28" href="$classAxiStreamMux.html" title=" " alt="" coords="249,923,367,949"/>
 <area shape="rect" id="node21" href="$classFifoCascade.html" title=" " alt="" coords="249,733,367,760"/>

@@ -442,6 +442,8 @@ var annotated_dup =
     [ "PgpEthTx", "classPgpEthTx.html", "classPgpEthTx" ],
     [ "PgpGthCoreWrapper", "classPgpGthCoreWrapper.html", "classPgpGthCoreWrapper" ],
     [ "PgpParallelSimModel", "classPgpParallelSimModel.html", "classPgpParallelSimModel" ],
+    [ "PgpRxVcFifo", "classPgpRxVcFifo.html", "classPgpRxVcFifo" ],
+    [ "PgpTxVcFifo", "classPgpTxVcFifo.html", "classPgpTxVcFifo" ],
     [ "PwrUpRst", "classPwrUpRst.html", "classPwrUpRst" ],
     [ "QuadPortRam", "classQuadPortRam.html", "classQuadPortRam" ],
     [ "RawEthFramer", "classRawEthFramer.html", "classRawEthFramer" ],

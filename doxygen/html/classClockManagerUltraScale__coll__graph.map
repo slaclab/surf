@@ -1,6 +1,6 @@
 <map id="ClockManagerUltraScale" name="ClockManagerUltraScale">
 <area shape="rect" id="node1" title=" " alt="" coords="877,259,1060,285"/>
-<area shape="rect" id="node2" href="$classAxiLiteToDrp.html" title=" " alt="" coords="702,233,806,260"/>
+<area shape="rect" id="node2" href="$classAxiLiteToDrp.html" title=" " alt="" coords="693,233,815,260"/>
 <area shape="rect" id="node3" href="$classAxiLiteAsync.html" title=" " alt="" coords="524,233,631,260"/>
 <area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="197,309,289,336"/>
 <area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="373,183,476,209"/>

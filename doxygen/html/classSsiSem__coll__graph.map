@@ -1,27 +1,28 @@
 <map id="SsiSem" name="SsiSem">
-<area shape="rect" id="node1" title=" " alt="" coords="1141,233,1212,260"/>
-<area shape="rect" id="node2" href="$classSemWrapper.html" title=" " alt="" coords="965,157,1072,184"/>
-<area shape="rect" id="node3" href="$classIprog7SeriesCore.html" title=" " alt="" coords="373,56,507,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="1153,233,1224,260"/>
+<area shape="rect" id="node2" href="$classSemWrapper.html" title=" " alt="" coords="977,132,1084,159"/>
+<area shape="rect" id="node3" href="$classIprog7SeriesCore.html" title=" " alt="" coords="378,56,511,83"/>
 <area shape="rect" id="node4" href="$classSynchronizerVector.html" title=" " alt="" coords="169,5,316,32"/>
 <area shape="rect" id="node5" href="$classSynchronizerEdge.html" title=" " alt="" coords="173,56,312,83"/>
 <area shape="rect" id="node6" href="$classSynchronizer.html" title=" " alt="" coords="5,107,112,133"/>
 <area shape="rect" id="node9" href="$classRstSync.html" title=" " alt="" coords="197,107,289,133"/>
-<area shape="rect" id="node18" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="944,360,1093,387"/>
-<area shape="rect" id="node7" href="$classSynchronizerFifo.html" title=" " alt="" coords="755,259,886,285"/>
-<area shape="rect" id="node8" href="$classFifoAsync.html" title=" " alt="" coords="397,259,483,285"/>
-<area shape="rect" id="node22" href="$classFifo.html" title=" " alt="" coords="594,309,658,336"/>
-<area shape="rect" id="node16" href="$classAxiLiteAsync.html" title=" " alt="" coords="573,208,679,235"/>
-<area shape="rect" id="node17" href="$classFifoAsync.html" title=" " alt="" coords="389,208,491,235"/>
-<area shape="rect" id="node10" href="$classSynchronizerVector.html" title=" " alt="" coords="160,157,325,184"/>
-<area shape="rect" id="node11" href="$classSynchronizer.html" title=" " alt="" coords="181,208,305,235"/>
+<area shape="rect" id="node18" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="956,385,1105,412"/>
+<area shape="rect" id="node7" href="$classSynchronizerFifo.html" title=" " alt="" coords="761,259,892,285"/>
+<area shape="rect" id="node8" href="$classFifoAsync.html" title=" " alt="" coords="402,259,487,285"/>
+<area shape="rect" id="node23" href="$classFifo.html" title=" " alt="" coords="599,309,663,336"/>
+<area shape="rect" id="node16" href="$classAxiLiteAsync.html" title=" " alt="" coords="577,208,684,235"/>
+<area shape="rect" id="node17" href="$classFifoAsync.html" title=" " alt="" coords="393,208,496,235"/>
+<area shape="rect" id="node10" href="$classSynchronizerVector.html" title=" " alt="" coords="160,208,325,235"/>
+<area shape="rect" id="node11" href="$classSynchronizer.html" title=" " alt="" coords="181,157,305,184"/>
 <area shape="rect" id="node12" href="$classFifoWrFsm.html" title=" " alt="" coords="197,259,289,285"/>
-<area shape="rect" id="node25" href="$classFifoSync.html" title=" " alt="" coords="401,309,479,336"/>
+<area shape="rect" id="node26" href="$classFifoSync.html" title=" " alt="" coords="406,309,483,336"/>
 <area shape="rect" id="node13" href="$classFifoRdFsm.html" title=" " alt="" coords="197,309,288,336"/>
 <area shape="rect" id="node14" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,360,319,387"/>
 <area shape="rect" id="node15" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,411,314,437"/>
-<area shape="rect" id="node23" href="$classFifoXpm.html" title=" " alt="" coords="402,360,478,387"/>
-<area shape="rect" id="node24" href="$classFifoAlteraMf.html" title=" " alt="" coords="389,411,491,437"/>
-<area shape="rect" id="node19" href="$classAxiStreamResize.html" title=" " alt="" coords="745,360,896,387"/>
-<area shape="rect" id="node20" href="$classAxiStreamPipeline.html" title=" " alt="" coords="555,385,697,412"/>
-<area shape="rect" id="node21" href="$classFifoCascade.html" title=" " alt="" coords="761,309,880,336"/>
+<area shape="rect" id="node24" href="$classFifoXpm.html" title=" " alt="" coords="407,411,483,437"/>
+<area shape="rect" id="node25" href="$classFifoAlteraMf.html" title=" " alt="" coords="393,360,496,387"/>
+<area shape="rect" id="node19" href="$classAxiStreamGearbox.html" title=" " alt="" coords="745,385,908,412"/>
+<area shape="rect" id="node20" href="$classAxiStreamResize.html" title=" " alt="" coords="564,411,697,437"/>
+<area shape="rect" id="node21" href="$classAxiStreamPipeline.html" title=" " alt="" coords="373,461,516,488"/>
+<area shape="rect" id="node22" href="$classFifoCascade.html" title=" " alt="" coords="767,335,886,361"/>
 </map>

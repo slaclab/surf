@@ -9,7 +9,7 @@
 <area shape="rect" id="node30" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="483,490,613,517"/>
 <area shape="rect" id="node47" href="$classWatchDogRst.html" title=" " alt="" coords="493,338,603,365"/>
 <area shape="rect" id="node5" href="$classClockManagerUltraScale.html" title=" " alt="" coords="1456,98,1656,125"/>
-<area shape="rect" id="node6" href="$classAxiLiteToDrp.html" title=" " alt="" coords="1281,73,1385,100"/>
+<area shape="rect" id="node6" href="$classAxiLiteToDrp.html" title=" " alt="" coords="1271,73,1394,100"/>
 <area shape="rect" id="node7" href="$classAxiLiteAsync.html" title=" " alt="" coords="1094,73,1201,100"/>
 <area shape="rect" id="node9" href="$classFifoAsync.html" title=" " alt="" coords="915,174,1017,201"/>
 <area shape="rect" id="node19" href="$classAxiLiteAsync.html" title=" " alt="" coords="1085,174,1209,201"/>
@@ -23,7 +23,7 @@
 <area shape="rect" id="node17" href="$classClkRst.html" title=" " alt="" coords="1115,124,1179,150"/>
 <area shape="rect" id="node20" href="$classEthMacTop.html" title=" " alt="" coords="1277,541,1388,568"/>
 <area shape="rect" id="node21" href="$classEthMacTxFifo.html" title=" " alt="" coords="1092,426,1203,453"/>
-<area shape="rect" id="node23" href="$classAxiStreamResize.html" title=" " alt="" coords="233,490,383,517"/>
+<area shape="rect" id="node23" href="$classAxiStreamGearbox.html" title=" " alt="" coords="227,490,389,517"/>
 <area shape="rect" id="node24" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,516,148,542"/>
 <area shape="rect" id="node32" href="$classAxiStreamMux.html" title=" " alt="" coords="249,610,367,637"/>
 <area shape="rect" id="node25" href="$classFifoCascade.html" title=" " alt="" coords="249,440,367,466"/>

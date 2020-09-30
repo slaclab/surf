@@ -205,7 +205,10 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiLiteSrpV0", "classAxiLiteSrpV0.html", [
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", [
-          [ "AxiStreamResize", "classAxiStreamResize.html", [
+          [ "AxiStreamGearbox", "classAxiStreamGearbox.html", [
+            [ "AxiStreamResize", "classAxiStreamResize.html", [
+              [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+            ] ],
             [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
           ] ],
           [ "FifoCascade", "classFifoCascade.html", null ],
@@ -397,8 +400,6 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
-      [ "AxiStreamResize", "classAxiStreamResize.html", null ],
-      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
@@ -1037,6 +1038,7 @@ var hierarchy =
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "PgpEthCaui4Gty", "classPgpEthCaui4Gty.html", [
+        [ "RstPipeline", "classRstPipeline.html", null ],
         [ "PgpEthCore", "classPgpEthCore.html", [
           [ "PgpEthTx", "classPgpEthTx.html", [
             [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
@@ -1077,6 +1079,13 @@ var hierarchy =
       [ "Decoder8b10b", "classDecoder8b10b.html", null ],
       [ "Pgp2bLane", "classPgp2bLane.html", null ],
       [ "Encoder8b10b", "classEncoder8b10b.html", null ],
+      [ "RstPipeline", "classRstPipeline.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "Synchronizer", "classSynchronizer.html", null ],
+      [ "RstPipeline", "classRstPipeline.html", null ],
+      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+      [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "UdpEngineWrapper", "classUdpEngineWrapper.html", null ],
       [ "RawEthFramer", "classRawEthFramer.html", [
@@ -1125,7 +1134,7 @@ var hierarchy =
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "SrpV3AxiLite", "classSrpV3AxiLite.html", [
         [ "SsiFrameLimiter", "classSsiFrameLimiter.html", [
-          [ "AxiStreamResize", "classAxiStreamResize.html", null ],
+          [ "AxiStreamGearbox", "classAxiStreamGearbox.html", null ],
           [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
         ] ],
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],

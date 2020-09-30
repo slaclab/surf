@@ -65,6 +65,8 @@ var searchData=
   ['pgpethtx_536',['PgpEthTx',['../classPgpEthTx.html',1,'']]],
   ['pgpgthcorewrapper_537',['PgpGthCoreWrapper',['../classPgpGthCoreWrapper.html',1,'']]],
   ['pgpparallelsimmodel_538',['PgpParallelSimModel',['../classPgpParallelSimModel.html',1,'']]],
-  ['prbspkg_539',['PrbsPkg',['../classPrbsPkg.html',1,'']]],
-  ['pwruprst_540',['PwrUpRst',['../classPwrUpRst.html',1,'']]]
+  ['pgprxvcfifo_539',['PgpRxVcFifo',['../classPgpRxVcFifo.html',1,'']]],
+  ['pgptxvcfifo_540',['PgpTxVcFifo',['../classPgpTxVcFifo.html',1,'']]],
+  ['prbspkg_541',['PrbsPkg',['../classPrbsPkg.html',1,'']]],
+  ['pwruprst_542',['PwrUpRst',['../classPwrUpRst.html',1,'']]]
 ];

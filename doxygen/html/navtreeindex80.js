@@ -1,5 +1,14 @@
 var NAVTREEINDEX80 =
 {
+"classPgp2bGtx7Fixedlat.html#adab85ff5bd58789b0082f0d33d5a3620":[1,0,390,43],
+"classPgp2bGtx7Fixedlat.html#adc3581aed6013ad7345d41131725a335":[1,0,390,47],
+"classPgp2bGtx7Fixedlat.html#adf6249417a057f14215a2e1a1ec57c81":[1,0,390,17],
+"classPgp2bGtx7Fixedlat.html#ae2d7374e1bcbdc557cfc4be90215c5fb":[1,0,390,26],
+"classPgp2bGtx7Fixedlat.html#aed090fad82d2a3759c2950c184ed867b":[1,0,390,27],
+"classPgp2bGtx7Fixedlat.html#aedc2fcdc783f9f5f742c722ac53c9bc2":[1,0,390,54],
+"classPgp2bGtx7Fixedlat.html#af22dbf60bec6f633c7d35bf9c0940817":[1,0,390,76],
+"classPgp2bGtx7Fixedlat.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,390,75],
+"classPgp2bGtx7Fixedlat.html#af626ec9a7b241e92ca18db9d7bf3ee89":[1,0,390,44],
 "classPgp2bGtx7Fixedlat.html#af7dabcc6b22cfac21d9188de6b952c14":[1,0,390,80],
 "classPgp2bGtx7Fixedlat.html#af98732ca4d35527413497b2a4b52d377":[1,0,390,30],
 "classPgp2bGtx7Fixedlat.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,390,78],
@@ -240,14 +249,5 @@ var NAVTREEINDEX80 =
 "classPgp2bGtx7VarLatWrapper.html#a35536ad6059d462192f208e74117cb19":[1,0,396,32],
 "classPgp2bGtx7VarLatWrapper.html#a42484f7845fe381036155c94e5867eb1":[1,0,396,33],
 "classPgp2bGtx7VarLatWrapper.html#a45deac62e0be5497ab35b3f2a33f7991":[1,0,396,44],
-"classPgp2bGtx7VarLatWrapper.html#a4889fc3321964d8a33c1e1b930bc5832":[1,0,396,6],
-"classPgp2bGtx7VarLatWrapper.html#a4dea038ce2f3a924c050271655ab6e0c":[1,0,396,37],
-"classPgp2bGtx7VarLatWrapper.html#a634baa1868bfb48d8a742a3752a4718d":[1,0,396,26],
-"classPgp2bGtx7VarLatWrapper.html#a639513b673f980cc78da308c98be971b":[1,0,396,11],
-"classPgp2bGtx7VarLatWrapper.html#a672a52a09202c78dbecb2b6753bf904f":[1,0,396,8],
-"classPgp2bGtx7VarLatWrapper.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,396,1],
-"classPgp2bGtx7VarLatWrapper.html#a67d64cff37ceb312301400ae86ad8c7f":[1,0,396,2],
-"classPgp2bGtx7VarLatWrapper.html#a6f84bc5a7ad8afb07acc85c679296a49":[1,0,396,21],
-"classPgp2bGtx7VarLatWrapper.html#a723076ac451ab1151d81b66560e05579":[1,0,396,39],
-"classPgp2bGtx7VarLatWrapper.html#a7371621fe50124bfc5c566d007efbd54":[1,0,396,22]
+"classPgp2bGtx7VarLatWrapper.html#a4889fc3321964d8a33c1e1b930bc5832":[1,0,396,6]
 };
