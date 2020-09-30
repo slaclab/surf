@@ -132,7 +132,9 @@ architecture mapping of PgpEthCaui4Gty is
    signal phyUsrRst : sl;
    signal pgpRefClk : sl;
 
-   signal phyRxMaster : AxiStreamMasterType;
+   signal phyRxMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal phyRxMasterReg0 : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal phyRxMasterReg1 : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
    signal phyTxMaster : AxiStreamMasterType;
    signal phyTxSlave  : AxiStreamSlaveType;
@@ -154,7 +156,14 @@ begin
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
       pgpClk <= phyClk;
-      pgpRst <= phyRst;
+
+      U_pgpRst : entity surf.RstPipeline
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk    => phyClk,
+            rstIn  => phyRst,
+            rstOut => pgpRst);
 
       stableReset <= stableRst or phyUsrRst;
 
@@ -195,7 +204,7 @@ begin
             phyTxSlave      => phyTxSlave,
             -- Rx PHY Interface
             phyRxRdy        => phyReady,
-            phyRxMaster     => phyRxMaster,
+            phyRxMaster     => phyRxMasterReg1,
             -- Debug Interface
             localMac        => localMac,
             loopback        => loopback,
@@ -212,6 +221,17 @@ begin
             axilReadSlave   => axilReadSlave,
             axilWriteMaster => axilWriteMaster,
             axilWriteSlave  => axilWriteSlave);
+
+      --------------------------
+      -- Help with making timing
+      --------------------------
+      process(phyClk)
+      begin
+         if rising_edge(phyClk) then
+            phyRxMasterReg1 <= phyRxMasterReg0 after TPD_G;
+            phyRxMasterReg0 <= phyRxMaster     after TPD_G;
+         end if;
+      end process;
 
       --------------------------
       -- Wrapper for GT IP core
