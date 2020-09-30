@@ -86,7 +86,7 @@ architecture rtl of SsiFrameLimiter is
 begin
 
    BYPASS_FIFO_RX : if (SLAVE_FIFO_C = false) generate
-      U_Resize_OB : entity surf.AxiStreamResize
+      U_Resize_OB : entity surf.AxiStreamGearbox
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,

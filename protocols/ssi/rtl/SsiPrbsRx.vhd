@@ -241,7 +241,7 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-   U_Tx : entity surf.AxiStreamResize
+   U_Tx : entity surf.AxiStreamGearbox
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
