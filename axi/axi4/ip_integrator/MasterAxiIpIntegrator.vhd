@@ -165,7 +165,7 @@ architecture mapping of MasterAxiIpIntegrator is
 --      "RUSER_WIDTH " & integer'image(RUSER_WIDTH) & ", " &
 --      "WUSER_WIDTH " & integer'image(WUSER_WIDTH) & ", " &
 --      "ARUSER_WIDTH " & integer'image(ARUSER_WIDTH) & ", " &
---      "AWUSER_WIDTH " & integer'image(AWUSER_WIDTH) & ", " &    
+--      "AWUSER_WIDTH " & integer'image(AWUSER_WIDTH) & ", " &
       "ADDR_WIDTH " & integer'image(ADDR_WIDTH) & ", " &
       "ID_WIDTH " & integer'image(ID_WIDTH) & ", " &
       "DATA_WIDTH " & integer'image(DATA_WIDTH) & ", " &
