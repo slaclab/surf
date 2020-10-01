@@ -96,23 +96,39 @@ class Ad9249ConfigGroup(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'DevIndexMask[7:0]',
-            offset      = [0x10, 0x14],
+            name        = 'DevIndexMask_DataCh[0]',
+            offset      = 0x10,
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
             disp        = '{:#b}',
-            base        = pr.UInt,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'DevIndexMask[DCO:FCO]',
+            name        = 'DevIndexMask_DataCh[1]',
             offset      = 0x14,
-            bitSize     = 2,
-            bitOffset   = 0x4,
+            bitSize     = 4,
+            bitOffset   = 0,
             mode        = 'RW',
             disp        = '{:#b}',
-            base        = pr.UInt,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'DevIndexMask_FCO',
+            offset      = 0x14,
+            bitSize     = 1,
+            bitOffset   = 4,
+            mode        = 'RW',
+            disp        = '{:#b}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'DevIndexMask_DCO',
+            offset      = 0x14,
+            bitSize     = 1,
+            bitOffset   = 5,
+            mode        = 'RW',
+            disp        = '{:#b}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -256,8 +272,8 @@ class Ad9249Config(pr.Device):
                     base        = pr.Bool,
                     mode        = 'RW',
                 ))
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[0]', offset=i*0x1000))
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[1]', offset=i*0x1000+0x0800))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249ChipBankConfig0[{i}]', offset=i*0x1000))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249ChipBankConfig1[{i}]', offset=i*0x1000+0x0800))
 
 class Ad9249ReadoutGroup(pr.Device):
     def __init__(self,
