@@ -396,26 +396,30 @@ class Ad9249ReadoutGroup(pr.Device):
     def getDelay(var, read):
         return var.dependencies[0].get(read)
 
-    def readBlocks(self, recurse=True, variable=None, checkEach=False):
+    def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
+        """
+        Perform background reads
+        """
+        checkEach = checkEach or self.forceCheckEach
+
         if variable is not None:
             freeze = isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
             if freeze:
                 self.FreezeDebug(1)
-            for b in self._getBlocks(variable):
-                b.startTransaction(rim.Read, checkEach)
+            pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
             if freeze:
                 self.FreezeDebug(0)
+
         else:
             self.FreezeDebug(1)
             for block in self._blocks:
-                if block.bulkEn:
-                    block.startTransaction(rim.Read, checkEach)
+                if block.bulkOpEn:
+                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
             self.FreezeDebug(0)
 
-
             if recurse:
-                for key, value in self.devices.items():
-                    value.readBlocks(recurse=True, checkEach=checkEach)
+                for key,value in self.devices.items():
+                    value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
 
 class AdcTester(pr.Device):
     def __init__(self, **kwargs):
