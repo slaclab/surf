@@ -96,23 +96,39 @@ class Ad9249ConfigGroup(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'DevIndexMask[7:0]',
-            offset      = [0x10, 0x14],
+            name        = 'DevIndexMask_DataCh[0]',
+            offset      = 0x10,
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
             disp        = '{:#b}',
-            base        = pr.UInt,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'DevIndexMask[DCO:FCO]',
+            name        = 'DevIndexMask_DataCh[1]',
             offset      = 0x14,
-            bitSize     = 2,
-            bitOffset   = 0x4,
+            bitSize     = 4,
+            bitOffset   = 0,
             mode        = 'RW',
             disp        = '{:#b}',
-            base        = pr.UInt,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'DevIndexMask_FCO',
+            offset      = 0x14,
+            bitSize     = 1,
+            bitOffset   = 4,
+            mode        = 'RW',
+            disp        = '{:#b}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'DevIndexMask_DCO',
+            offset      = 0x14,
+            bitSize     = 1,
+            bitOffset   = 5,
+            mode        = 'RW',
+            disp        = '{:#b}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -256,8 +272,8 @@ class Ad9249Config(pr.Device):
                     base        = pr.Bool,
                     mode        = 'RW',
                 ))
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[0]', offset=i*0x1000))
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[1]', offset=i*0x1000+0x0800))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249ChipBankConfig0[{i}]', offset=i*0x1000))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249ChipBankConfig1[{i}]', offset=i*0x1000+0x0800))
 
 class Ad9249ReadoutGroup(pr.Device):
     def __init__(self,
@@ -380,26 +396,30 @@ class Ad9249ReadoutGroup(pr.Device):
     def getDelay(var, read):
         return var.dependencies[0].get(read)
 
-    def readBlocks(self, recurse=True, variable=None, checkEach=False):
+    def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
+        """
+        Perform background reads
+        """
+        checkEach = checkEach or self.forceCheckEach
+
         if variable is not None:
             freeze = isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
             if freeze:
                 self.FreezeDebug(1)
-            for b in self._getBlocks(variable):
-                b.startTransaction(rim.Read, checkEach)
+            pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
             if freeze:
                 self.FreezeDebug(0)
+
         else:
             self.FreezeDebug(1)
             for block in self._blocks:
-                if block.bulkEn:
-                    block.startTransaction(rim.Read, checkEach)
+                if block.bulkOpEn:
+                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
             self.FreezeDebug(0)
 
-
             if recurse:
-                for key, value in self.devices.items():
-                    value.readBlocks(recurse=True, checkEach=checkEach)
+                for key,value in self.devices.items():
+                    value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
 
 class AdcTester(pr.Device):
     def __init__(self, **kwargs):
