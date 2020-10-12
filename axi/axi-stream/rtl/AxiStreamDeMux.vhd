@@ -27,21 +27,24 @@ entity AxiStreamDeMux is
    generic (
       TPD_G          : time                   := 1 ns;
       NUM_MASTERS_G  : integer range 1 to 256 := 12;
-      MODE_G         : string                 := "INDEXED";          -- Or "ROUTED"
+      MODE_G         : string                 := "INDEXED";  -- Or "ROUTED"
       TDEST_ROUTES_G : slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G  : integer range 0 to 16  := 0;
       TDEST_HIGH_G   : integer range 0 to 7   := 7;
       TDEST_LOW_G    : integer range 0 to 7   := 0);
    port (
       -- Clock and reset
-      axisClk      : in  sl;
-      axisRst      : in  sl;
+      axisClk           : in  sl;
+      axisRst           : in  sl;
+      -- Dynamic Route Table (only used when MODE_G = "DYNAMIC"
+      dynamicRouteMasks : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
+      dynamicRouteDests  : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
       -- Slave
-      sAxisMaster  : in  AxiStreamMasterType;
-      sAxisSlave   : out AxiStreamSlaveType;
+      sAxisMaster       : in  AxiStreamMasterType;
+      sAxisSlave        : out AxiStreamSlaveType;
       -- Masters
-      mAxisMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
-      mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0));
+      mAxisMasters      : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
+      mAxisSlaves       : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0));
 end AxiStreamDeMux;
 
 architecture structure of AxiStreamDeMux is
@@ -103,6 +106,14 @@ begin
          for i in 0 to NUM_MASTERS_G-1 loop
             if (std_match(sAxisMaster.tDest, TDEST_ROUTES_G(i))) then
                idx := i;
+               exit;
+            end if;
+         end loop;
+      elsif (MODE_G = "DYNAMIC") then
+         for i in 0 to NUM_MASTERS_G-1 loop
+            if ((sAxisMaster.tDest and dynamicRouteMasks(i)) = (dynamicRouteDests(i) and dynamicRouteMasks(i))) then
+               idx := i;
+               exit;
             end if;
          end loop;
       end if;
