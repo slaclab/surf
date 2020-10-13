@@ -76,7 +76,7 @@ begin
       " must equal NUM_MASTERS_G: " & integer'image(NUM_MASTERS_G)
       severity error;
 
-   comb : process (axisRst, pipeAxisSlaves, r, sAxisMaster) is
+   comb : process (axisRst, dynamicRouteDests, dynamicRouteMasks, pipeAxisSlaves, r, sAxisMaster) is
       variable v   : RegType;
       variable idx : natural;
       variable i   : natural;
@@ -110,6 +110,7 @@ begin
             end if;
          end loop;
       elsif (MODE_G = "DYNAMIC") then
+         idx := NUM_MASTERS_G;
          for i in 0 to NUM_MASTERS_G-1 loop
             if ((sAxisMaster.tDest and dynamicRouteMasks(i)) = (dynamicRouteDests(i) and dynamicRouteMasks(i))) then
                idx := i;
