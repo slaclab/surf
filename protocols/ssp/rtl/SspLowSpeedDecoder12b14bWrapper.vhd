@@ -60,6 +60,7 @@ architecture mapping of SspLowSpeedDecoder12b14bWrapper is
    signal minEyeWidth    : slv(7 downto 0);
    signal lockingCntCfg  : slv(23 downto 0);
    signal bypFirstBerDet : sl;
+   signal bitOrder       : slv(1 downto 0);
    signal polarity       : slv(NUM_LANE_G-1 downto 0);
    signal errorDet       : slv(NUM_LANE_G-1 downto 0);
    signal bitSlip        : slv(NUM_LANE_G-1 downto 0);
@@ -92,6 +93,7 @@ begin
             lockingCntCfg  => lockingCntCfg,
             bypFirstBerDet => bypFirstBerDet,
             polarity       => polarity(i),
+            bitOrder       => bitOrder,
             errorDet       => errorDet(i),
             bitSlip        => bitSlip(i),
             locked         => locked(i),
@@ -125,6 +127,7 @@ begin
          lockingCntCfg   => lockingCntCfg,
          bypFirstBerDet  => bypFirstBerDet,
          polarity        => polarity,
+         bitOrder        => bitOrder,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
