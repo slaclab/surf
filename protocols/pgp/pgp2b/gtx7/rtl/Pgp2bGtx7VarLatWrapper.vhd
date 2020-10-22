@@ -94,9 +94,10 @@ entity Pgp2bGtx7VarLatWrapper is
       pgpRxMasters    : out AxiStreamMasterArray(3 downto 0);
       pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0);
       -- GT Pins
-      gtClkP          : in  sl;
-      gtClkN          : in  sl;
-      gtRefClk        : in  sl;
+      gtClkP          : in  sl                     := '0';
+      gtClkN          : in  sl                     := '0';
+      gtRefClk        : in  sl                     := '0';
+      gtRefClkG       : in  sl                     := '0';
       gtTxP           : out sl;
       gtTxN           : out sl;
       gtRxP           : in  sl;
@@ -144,13 +145,11 @@ begin
             I => refClkDiv2,
             O => stableClock);
 
-   end generate GEN_CLK_BUF;
+   end generate;
 
    REFCLK_BUF : if (USE_REFCLK_G) generate
-      BUFG_Inst : BUFG
-         port map (
-            I => gtRefClk,
-            O => stableClock);
+      stableClock <= gtRefClkG;
+      refClk      <= gtRefClk;
    end generate REFCLK_BUF;
 
 
