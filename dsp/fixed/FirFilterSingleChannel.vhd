@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Finite Impulse Response (FIR) Filter
---              Single Channel with hard coded coefficients
+-- Description: Single Channel Finite Impulse Response (FIR) Filter
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,30 +18,39 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
-entity FirFilter is
+entity FirFilterSingleChannel is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
-      PIPE_STAGES_G  : natural := 0;
-      TAP_SIZE_G     : positive;        -- Number of programmable taps
-      WIDTH_G        : positive;        -- Number of bits per data word
-      COEFFICIENTS_G : IntegerArray);   -- Tap coefficients constants
+      TPD_G          : time         := 1 ns;
+      RST_POLARITY_G : sl           := '1';  -- '1' for active high rst, '0' for active low
+      PIPE_STAGES_G  : natural      := 0;
+      COMMON_CLK_G   : boolean      := false;
+      TAP_SIZE_G     : positive     := 3;    -- Number of programmable taps
+      WIDTH_G        : positive     := 12;   -- Number of bits per data word
+      COEFFICIENTS_G : IntegerArray := (0 => -1, 1 => 1, 2 => -1));  -- Tap Coefficients Init Constants
    port (
       -- Clock and Reset
-      clk     : in  sl;
-      rst     : in  sl := not(RST_POLARITY_G);
+      clk             : in  sl;
+      rst             : in  sl := not(RST_POLARITY_G);
       -- Inbound Interface
-      ibValid : in  sl := '1';
-      ibReady : out sl;
-      din     : in  slv(WIDTH_G-1 downto 0);
+      ibValid         : in  sl := '1';
+      ibReady         : out sl;
+      din             : in  slv(WIDTH_G-1 downto 0);
       -- Outbound Interface
-      obValid : out sl;
-      obReady : in  sl := '1';
-      dout    : out slv(WIDTH_G-1 downto 0));
-end FirFilter;
+      obValid         : out sl;
+      obReady         : in  sl := '1';
+      dout            : out slv(WIDTH_G-1 downto 0);
+      -- AXI-Lite Interface (axilClk domain)
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
+end FirFilterSingleChannel;
 
-architecture mapping of FirFilter is
+architecture mapping of FirFilterSingleChannel is
 
    type CoeffArray is array (TAP_SIZE_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
    type CascArray is array (TAP_SIZE_G-1 downto 0) of slv(2*WIDTH_G downto 0);
@@ -58,21 +66,29 @@ architecture mapping of FirFilter is
 
    constant COEFFICIENTS_C : CoeffArray := InitCoeffArray;
 
+   constant NUM_ADDR_BITS_C : positive := bitSize(TAP_SIZE_G-1)+2;
+
    type RegType is record
-      cnt     : natural range 0 to TAP_SIZE_G-1;
-      datain  : slv(WIDTH_G-1 downto 0);
-      cascin  : CascArray;
-      ibReady : sl;
-      tValid  : sl;
-      tdata   : slv(WIDTH_G-1 downto 0);
+      cnt        : natural range 0 to TAP_SIZE_G-1;
+      datain     : slv(WIDTH_G-1 downto 0);
+      cascin     : CascArray;
+      coeffin    : CoeffArray;
+      ibReady    : sl;
+      tValid     : sl;
+      tdata      : slv(WIDTH_G-1 downto 0);
+      readSlave  : AxiLiteReadSlaveType;
+      writeSlave : AxiLiteWriteSlaveType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      cnt     => 0,
-      datain  => (others => '0'),
-      cascin  => (others => (others => '0')),
-      ibReady => '0',
-      tValid  => '0',
-      tdata   => (others => '0'));
+      cnt        => 0,
+      datain     => (others => '0'),
+      cascin     => (others => (others => '0')),
+      coeffin    => COEFFICIENTS_C,
+      ibReady    => '0',
+      tValid     => '0',
+      tdata      => (others => '0'),
+      readSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      writeSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -83,13 +99,52 @@ architecture mapping of FirFilter is
    signal datain : slv(WIDTH_G-1 downto 0);
    signal tReady : sl;
 
+   signal readMaster  : AxiLiteReadMasterType;
+   signal readSlave   : AxiLiteReadSlaveType;
+   signal writeMaster : AxiLiteWriteMasterType;
+   signal writeSlave  : AxiLiteWriteSlaveType;
+
 begin
 
-   comb : process (cascout, din, ibValid, r, rst, tReady) is
-      variable v : RegType;
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         COMMON_CLK_G    => COMMON_CLK_G,
+         NUM_ADDR_BITS_G => NUM_ADDR_BITS_C)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMaster,
+         sAxiReadSlave   => axilReadSlave,
+         sAxiWriteMaster => axilWriteMaster,
+         sAxiWriteSlave  => axilWriteSlave,
+         -- Master Interface
+         mAxiClk         => clk,
+         mAxiClkRst      => rst,
+         mAxiReadMaster  => readMaster,
+         mAxiReadSlave   => readSlave,
+         mAxiWriteMaster => writeMaster,
+         mAxiWriteSlave  => writeSlave);
+
+   comb : process (cascout, din, ibValid, r, readMaster, rst, tReady,
+                   writeMaster) is
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndPointType;
    begin
       -- Latch the current value
       v := r;
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilEp, writeMaster, readMaster, v.writeSlave, v.readSlave);
+
+      -- Map the registers
+      for i in TAP_SIZE_G-1 downto 0 loop
+         axiSlaveRegister (axilEp, toSlv((4*i), NUM_ADDR_BITS_C), 0, v.coeffin(i));
+      end loop;
+
+      -- Closeout the transaction
+      axiSlaveDefault(axilEp, v.writeSlave, v.readSlave, AXI_RESP_DECERR_C);
 
       -- Flow Control
       v.ibReady := '0';
@@ -132,9 +187,11 @@ begin
       end if;
 
       -- Outputs
-      ibReady <= v.ibReady;
-      datain  <= v.datain;
-      cascin  <= v.cascin;
+      writeSlave <= r.writeSlave;
+      readSlave  <= r.readSlave;
+      ibReady    <= v.ibReady;
+      datain     <= v.datain;
+      cascin     <= v.cascin;
 
       -- Reset
       if (rst = RST_POLARITY_G) then
@@ -165,7 +222,7 @@ begin
             clk     => clk,
             -- Data and tap coefficient Interface
             datain  => datain,  -- Common data input because Transpose Multiply-Accumulate architecture
-            coeffin => COEFFICIENTS_C(TAP_SIZE_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
+            coeffin => r.coeffin(TAP_SIZE_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
             -- Cascade Interface
             cascin  => cascin(i),
             cascout => cascout(i));

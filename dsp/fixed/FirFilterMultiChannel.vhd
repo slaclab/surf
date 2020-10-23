@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Finite Impulse Response (FIR) Filter with support
---              for parallel channel processing and time multiplexing
+-- Description: Multi-Channel Finite Impulse Response (FIR) Filter
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -23,10 +22,10 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-entity AxiFirFilter is
+entity FirFilterMultiChannel is
    generic (
       TPD_G              : time     := 1 ns;
-      TAP_SIZE_G         : positive := 21;  -- Number of programmable taps
+      TAP_SIZE_G         : positive := 21;      -- Number of programmable taps
       CH_SIZE_G          : positive := 128;     -- Number of data channels
       PARALLEL_G         : positive := 4;  -- Number of parallel channel processing
       WIDTH_G            : positive := 12;      -- Number of bits per data word
@@ -48,9 +47,9 @@ entity AxiFirFilter is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end AxiFirFilter;
+end FirFilterMultiChannel;
 
-architecture mapping of AxiFirFilter is
+architecture mapping of FirFilterMultiChannel is
 
    constant WORD_PER_FRAME   : positive := CH_SIZE_G/PARALLEL_G;
    constant RAM_ADDR_WIDTH_C : positive := bitSize(WORD_PER_FRAME-1);

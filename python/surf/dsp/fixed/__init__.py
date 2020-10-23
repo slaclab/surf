@@ -7,4 +7,5 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.dsp.fixed._AxiFirFilter import *
+from surf.dsp.fixed._FirFilterSingleChannel import *
+from surf.dsp.fixed._FirFilterMultiChannel  import *

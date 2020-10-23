@@ -10,11 +10,10 @@
 
 import pyrogue as pr
 
-class AxiFirFilter(pr.Device):
+class FirFilterSingleChannel(pr.Device):
     def __init__(
             self,
             numberTaps      = None, # TAP_SIZE_G
-            numberChannels  = None, # CH_SIZE_G
             dataWordBitSize = None, # WIDTH_G
             **kwargs):
         super().__init__(**kwargs)
@@ -22,28 +21,24 @@ class AxiFirFilter(pr.Device):
         if numberTaps is None:
             raise ValueError( f'{self.path}: numberTaps is undefined' )
 
-        if numberChannels is None:
-            raise ValueError( f'{self.path}: numberChannels is undefined' )
-
         if dataWordBitSize is None:
             raise ValueError( f'{self.path}: dataWordBitSize is undefined' )
 
-        def addBoolPair(ch,tap):
+        def addBoolPair(tap):
             self.add(pr.RemoteVariable(
-                name         = f'RawCh{ch}Tap[{tap}]',
+                name         = f'RawTap[{tap}]',
                 description  = f'Tap[{tap}] Fixed Point Coefficient',
-                offset       = 0x0,
+                offset       = 4*tap,
                 bitSize      = dataWordBitSize,
-                bitOffset    = (ch*numberTaps+tap)*dataWordBitSize,
                 base         = pr.Int,
                 mode         = 'RW',
                 hidden       = True,
             ))
 
-            var = self.variables[ f'RawCh{ch}Tap[{tap}]' ]
+            var = self.variables[ f'RawTap[{tap}]' ]
 
             self.add(pr.LinkVariable(
-                name         = f'Ch{ch}Tap[{tap}]',
+                name         = f'Tap[{tap}]',
                 description  = f'Tap[{tap}] Floating Point Coefficient',
                 mode         = 'RW',
                 linkedGet    = lambda: var.value()/2**dataWordBitSize,
@@ -52,6 +47,5 @@ class AxiFirFilter(pr.Device):
                 disp         = '{:1.3f}',
             ))
 
-        for ch in range(numberChannels):
-            for tap in range(numberTaps):
-                addBoolPair(ch=ch,tap=tap)
+        for tap in range(numberTaps):
+            addBoolPair(tap=tap)
