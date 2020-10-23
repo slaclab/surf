@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Finite Impulse Response (FIR) Filter with support
---              for parallel channel processing and time multiplexing
+-- Description: Finite Impulse Response (FIR) Filter
+--              Single Channel with hard coded coefficients
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -15,275 +15,129 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.AxiLitePkg.all;
-use surf.AxiStreamPkg.all;
 
 entity FirFilter is
    generic (
-      TPD_G              : time     := 1 ns;
-      TAP_SIZE_G         : positive := 21;  -- Number of programmable taps
-      CH_SIZE_G          : positive := 128;     -- Number of data channels
-      PARALLEL_G         : positive := 4;  -- Number of parallel channel processing
-      WIDTH_G            : positive := 12;      -- Number of bits per data word
-      MEMORY_INIT_FILE_G : string   := "none";  -- Used to load tap coefficients into RAM at boot up
-      MEMORY_TYPE_G      : string   := "distributed";
-      SYNTH_MODE_G       : string   := "inferred");
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
+      PIPE_STAGES_G  : natural := 0;
+      TAP_SIZE_G     : positive;        -- Number of programmable taps
+      WIDTH_G        : positive;        -- Number of bits per data word
+      COEFFICIENTS_G : IntegerArray);   -- Tap coefficients constants
    port (
-      -- AXI Stream Interface (axilClk domain)
-      axisClk         : in  sl;
-      axisRst         : in  sl;
-      sAxisMaster     : in  AxiStreamMasterType;
-      sAxisSlave      : out AxiStreamSlaveType;
-      mAxisMaster     : out AxiStreamMasterType;
-      mAxisSlave      : in  AxiStreamSlaveType;
-      -- AXI-Lite Interface (axilClk domain)
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      -- Clock and Reset
+      clk     : in  sl;
+      rst     : in  sl := not(RST_POLARITY_G);
+      -- Inbound Interface
+      ibValid : in  sl := '1';
+      ibReady : out sl;
+      din     : in  slv(WIDTH_G-1 downto 0);
+      -- Outbound Interface
+      obValid : out sl;
+      obReady : in  sl := '1';
+      dout    : out slv(WIDTH_G-1 downto 0));
 end FirFilter;
 
 architecture mapping of FirFilter is
 
-   constant WORD_PER_FRAME   : positive := CH_SIZE_G/PARALLEL_G;
-   constant RAM_ADDR_WIDTH_C : positive := bitSize(WORD_PER_FRAME-1);
+   type CoeffArray is array (TAP_SIZE_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
+   type CascArray is array (TAP_SIZE_G-1 downto 0) of slv(2*WIDTH_G downto 0);
 
-   type DataArray is array (PARALLEL_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
-   type CoeffArray is array (TAP_SIZE_G-1 downto 0, PARALLEL_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
-   type CascArray is array (TAP_SIZE_G-1 downto 0, PARALLEL_G-1 downto 0) of slv(2*WIDTH_G downto 0);
-
-   function toSlv (din : CascArray) return slv is
-      variable retValue : slv((2*WIDTH_G+1)*TAP_SIZE_G*PARALLEL_G-1 downto 0) := (others => '0');
-      variable idx      : integer                                             := 0;
+   impure function InitCoeffArray return CoeffArray is
+      variable retValue : CoeffArray := (others => (others => '0'));
    begin
-      for i in TAP_SIZE_G-1 downto 0 loop
-         for j in PARALLEL_G-1 downto 0 loop
-            assignSlv(idx, retValue, din(i, j));
-         end loop;
+      for i in 0 to TAP_SIZE_G-1 loop
+         retValue(i) := std_logic_vector(to_signed(COEFFICIENTS_G(i), WIDTH_G));
       end loop;
       return(retValue);
    end function;
 
-   function toCascArray (din : slv) return CascArray is
-      variable retValue : CascArray := (others => (others => (others => '0')));
-      variable idx      : integer   := 0;
-   begin
-      for i in TAP_SIZE_G-1 downto 0 loop
-         for j in PARALLEL_G-1 downto 0 loop
-            assignRecord(idx, din, retValue(i, j));
-         end loop;
-      end loop;
-      return(retValue);
-   end function;
-
-   function toCoeffArray (din : slv) return CoeffArray is
-      variable retValue : CoeffArray := (others => (others => (others => '0')));
-      variable idx      : integer    := 0;
-   begin
-      for j in PARALLEL_G-1 downto 0 loop
-         for i in TAP_SIZE_G-1 downto 0 loop
-            assignRecord(idx, din, retValue(i, j));
-         end loop;
-      end loop;
-      return(retValue);
-   end function;
+   constant COEFFICIENTS_C : CoeffArray := InitCoeffArray;
 
    type RegType is record
-      ramWe       : sl;
-      addr        : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-      datain      : DataArray;
-      cascin      : CascArray;
-      sAxisSlave  : AxiStreamSlaveType;
-      axisMeta    : AxiStreamMasterType;
-      mAxisMaster : AxiStreamMasterType;
+      cnt     : natural range 0 to TAP_SIZE_G-1;
+      datain  : slv(WIDTH_G-1 downto 0);
+      cascin  : CascArray;
+      ibReady : sl;
+      tValid  : sl;
+      tdata   : slv(WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      ramWe       => '0',
-      addr        => (others => '0'),
-      datain      => (others => (others => '0')),
-      cascin      => (others => (others => (others => '0'))),
-      sAxisSlave  => AXI_STREAM_SLAVE_INIT_C,
-      axisMeta    => AXI_STREAM_MASTER_INIT_C,
-      mAxisMaster => AXI_STREAM_MASTER_INIT_C);
+      cnt     => 0,
+      datain  => (others => '0'),
+      cascin  => (others => (others => '0')),
+      ibReady => '0',
+      tValid  => '0',
+      tdata   => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal datain  : DataArray;
-   signal coeffin : CoeffArray;
+   signal cascin  : CascArray;
+   signal cascout : CascArray;
 
-   signal cascin    : CascArray;
-   signal cascout   : CascArray;
-   signal cascCache : CascArray;
-
-   signal ramWe      : sl;
-   signal raddr      : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-   signal waddr      : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-   signal coeffinSlv : slv(WIDTH_G*TAP_SIZE_G*PARALLEL_G-1 downto 0);
-   signal ramDin     : slv((2*WIDTH_G+1)*TAP_SIZE_G*PARALLEL_G-1 downto 0);
-   signal ramDout    : slv((2*WIDTH_G+1)*TAP_SIZE_G*PARALLEL_G-1 downto 0);
+   signal datain : slv(WIDTH_G-1 downto 0);
+   signal tReady : sl;
 
 begin
 
-   assert (CH_SIZE_G mod PARALLEL_G = 0)
-      report "PARALLEL_G must be even number multiples of CH_SIZE_G" severity failure;
-
-   assert (CH_SIZE_G >= PARALLEL_G)
-      report "CH_SIZE_G must be >= PARALLEL_G" severity failure;
-
-   U_TapCoeff : entity surf.AxiDualPortRam
-      generic map (
-         TPD_G              => TPD_G,
-         SYNTH_MODE_G       => ite(MEMORY_INIT_FILE_G /= "none", "xpm", SYNTH_MODE_G),
-         MEMORY_INIT_FILE_G => MEMORY_INIT_FILE_G,
-         MEMORY_TYPE_G      => MEMORY_TYPE_G,
-         READ_LATENCY_G     => 1,
-         ADDR_WIDTH_G       => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G       => WIDTH_G*TAP_SIZE_G*PARALLEL_G)
-      port map (
-         -- Axi Port
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave,
-         -- Standard Port
-         clk            => axisClk,
-         addr           => raddr,
-         dout           => coeffinSlv);
-
-   coeffin <= toCoeffArray(coeffinSlv);
-
-   GEN_CACHE : if (WORD_PER_FRAME > 1) generate
-
-      U_Cache : entity surf.DualPortRam
-         generic map (
-            TPD_G         => TPD_G,
-            MEMORY_TYPE_G => MEMORY_TYPE_G,
-            ADDR_WIDTH_G  => RAM_ADDR_WIDTH_C,
-            DATA_WIDTH_G  => (2*WIDTH_G+1)*TAP_SIZE_G*PARALLEL_G)
-         port map (
-            -- Port A
-            clka  => axisClk,
-            wea   => ramWe,
-            addra => waddr,
-            dina  => ramDin,
-            -- Port B
-            clkb  => axisClk,
-            addrb => raddr,
-            doutb => ramDout);
-
-      ramDin    <= toSlv(cascout);
-      cascCache <= toCascArray(ramDout);
-
-   end generate;
-
-   comb : process (axisRst, cascCache, cascout, mAxisSlave, r, sAxisMaster) is
+   comb : process (cascout, din, ibValid, r, rst, tReady) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
-      -- Reset strobes
-      v.ramWe := '0';
-
-      -- AXI Stream Flow Control
-      v.sAxisSlave.tReady := '0';
-      if (mAxisSlave.tReady = '1') then
-         v.mAxisMaster.tValid := '0';
+      -- Flow Control
+      v.ibReady := '0';
+      if (tReady = '1') then
+         v.tValid := '0';
       end if;
 
       -- Check for new data
-      if (sAxisMaster.tValid = '1') and (r.axisMeta.tValid = '0') then
+      if (ibValid = '1') and (v.tValid = '0') then
 
          -- Accept the data
-         v.sAxisSlave.tReady := '1';
+         v.ibReady := '1';
 
-         for j in PARALLEL_G-1 downto 0 loop
+         -- Latch the value
+         v.datain := din;
 
-            -- Map to the TAPs' data inputs
-            v.datain(j) := sAxisMaster.tData(j*WIDTH_G+WIDTH_G-1 downto j*WIDTH_G);
-
-            -- Load zero into the 1st tap's cascaded input
-            v.cascin(0, j) := (others => '0');
-
-         end loop;
+         -- Load zero into the 1st tap's cascaded input
+         v.cascin(0) := (others => '0');
 
          -- Map to the cascaded input
          for i in TAP_SIZE_G-2 downto 0 loop
-            for j in PARALLEL_G-1 downto 0 loop
 
-               -- Check for 1 word per frame
-               if (WORD_PER_FRAME = 1) then
-
-                  -- Use the previous cascade out values
-                  v.cascin(i+1, j) := cascout(i, j);
-
-               else
-
-                  -- Use the cached values
-                  v.cascin(i+1, j) := cascCache(i, j);
-
-               end if;
-
-            end loop;
-         end loop;
-
-         -- Cache the AXI stream meta data
-         v.axisMeta := sAxisMaster;
-
-      end if;
-
-      --- Check if we can move data
-      if (v.mAxisMaster.tValid = '0') and (r.axisMeta.tValid = '1') then
-
-         -- Set the flags
-         v.axisMeta.tValid := '0';
-         v.ramWe           := '1';
-         v.mAxisMaster     := r.axisMeta;
-
-         -- Map to the TAPs' data outputs
-         for j in PARALLEL_G-1 downto 0 loop
-
-            -- Truncating the LSBs
-            v.mAxisMaster.tData(j*WIDTH_G+WIDTH_G-1 downto j*WIDTH_G) := cascout(TAP_SIZE_G-1, j)(2*WIDTH_G downto WIDTH_G+1);
+            -- Use the previous cascade out values
+            v.cascin(i+1) := cascout(i);
 
          end loop;
 
-         -- Check for tLast
-         if (r.axisMeta.tLast = '1') then
-            -- Reset the counter
-            v.addr := (others => '0');
+         -- Truncating the LSBs
+         v.tData := cascout(TAP_SIZE_G-1)(2*WIDTH_G downto WIDTH_G+1);
+
+         -- Check the latency init counter
+         if (r.cnt = TAP_SIZE_G-1) then
+            -- Output data now valid
+            v.tValid := '1';
          else
-            -- Increment the counter
-            v.addr := r.addr + 1;
+            -- Increment the count
+            v.cnt := r.cnt + 1;
          end if;
 
       end if;
 
-      -- AXI stream Outputs
-      sAxisSlave  <= v.sAxisSlave;      -- Comb output
-      mAxisMaster <= r.mAxisMaster;
-
-      -- RAM Outputs
-      ramWe <= v.ramWe;                 -- Comb output
-      waddr <= r.addr;
-      raddr <= v.addr;                  -- Comb output
-
-      -- FIR TAP Outputs
-      datain <= v.datain;               -- Comb output
-      cascin <= v.cascin;               -- Comb output
+      -- Outputs
+      ibReady <= v.ibReady;
+      datain  <= v.datain;
+      cascin  <= v.cascin;
 
       -- Reset
-      if (axisRst = '1') then
+      if (rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -292,9 +146,9 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (clk) is
    begin
-      if rising_edge(axisClk) then
+      if rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -302,25 +156,39 @@ begin
    GEN_TAP :
    for i in TAP_SIZE_G-1 downto 0 generate
 
-      GEN_PARALLEL :
-      for j in PARALLEL_G-1 downto 0 generate
-
-         U_Tap : entity surf.FirFilterTap
-            generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => WIDTH_G)
-            port map (
-               -- Clock Only (Infer into DSP)
-               clk     => axisClk,
-               -- Data and tap coefficient Interface
-               datain  => datain(j),  -- Common data input because Transpose Multiply-Accumulate architecture
-               coeffin => coeffin(TAP_SIZE_G-1-i, j),  -- Reversed order because Transpose Multiply-Accumulate architecture
-               -- Cascade Interface
-               cascin  => cascin(i, j),
-               cascout => cascout(i, j));
-
-      end generate GEN_PARALLEL;
+      U_Tap : entity surf.FirFilterTap
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => WIDTH_G)
+         port map (
+            -- Clock Only (Infer into DSP)
+            clk     => clk,
+            -- Data and tap coefficient Interface
+            datain  => datain,  -- Common data input because Transpose Multiply-Accumulate architecture
+            coeffin => COEFFICIENTS_C(TAP_SIZE_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
+            -- Cascade Interface
+            cascin  => cascin(i),
+            cascout => cascout(i));
 
    end generate GEN_TAP;
+
+   U_Pipe : entity surf.FifoOutputPipeline
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         DATA_WIDTH_G   => WIDTH_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G)
+      port map (
+         -- Slave Port
+         sData  => r.tdata,
+         sValid => r.tValid,
+         sRdEn  => tReady,
+         -- Master Port
+         mData  => dout,
+         mValid => obValid,
+         mRdEn  => obReady,
+         -- Clock and Reset
+         clk    => clk,
+         rst    => rst);
 
 end mapping;
