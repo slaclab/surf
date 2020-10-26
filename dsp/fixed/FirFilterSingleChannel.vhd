@@ -22,13 +22,13 @@ use surf.AxiLitePkg.all;
 
 entity FirFilterSingleChannel is
    generic (
-      TPD_G          : time         := 1 ns;
-      RST_POLARITY_G : sl           := '1';  -- '1' for active high rst, '0' for active low
-      PIPE_STAGES_G  : natural      := 0;
-      COMMON_CLK_G   : boolean      := false;
-      TAP_SIZE_G     : positive     := 3;    -- Number of programmable taps
-      WIDTH_G        : positive     := 12;   -- Number of bits per data word
-      COEFFICIENTS_G : IntegerArray := (0 => -1, 1 => 1, 2 => -1));  -- Tap Coefficients Init Constants
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
+      PIPE_STAGES_G  : natural := 0;
+      COMMON_CLK_G   : boolean := false;
+      TAP_SIZE_G     : positive;        -- Number of programmable taps
+      WIDTH_G        : positive;        -- Number of bits per data word
+      COEFFICIENTS_G : IntegerArray);   -- Tap Coefficients Init Constants
    port (
       -- Clock and Reset
       clk             : in  sl;
@@ -173,7 +173,7 @@ begin
          end loop;
 
          -- Truncating the LSBs
-         v.tData := cascout(TAP_SIZE_G-1)(2*WIDTH_G downto WIDTH_G+1);
+         v.tData := cascout(TAP_SIZE_G-1)(2*WIDTH_G-1 downto WIDTH_G);
 
          -- Check the latency init counter
          if (r.cnt = TAP_SIZE_G-1) then
