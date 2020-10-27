@@ -97,17 +97,17 @@ var sectionId = 'dynsection-1';
 <!-- Node4 -->
 <g id="node4" class="node">
 <title>Node4</title>
-<g id="a_node4"><a xlink:href="classQuadPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="284.5,-304.5 284.5,-323.5 368.5,-323.5 368.5,-304.5 284.5,-304.5"/>
-<text text-anchor="middle" x="326.5" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00">QuadPortRam</text>
+<g id="a_node4"><a xlink:href="classLutRam.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="299.5,-304.5 299.5,-323.5 353.5,-323.5 353.5,-304.5 299.5,-304.5"/>
+<text text-anchor="middle" x="326.5" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
 </a>
 </g>
 </g>
 <!-- Node4&#45;&gt;Node3 -->
 <g id="edge3" class="edge">
 <title>Node4&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M376.63,-325.97C398.49,-331.29 423.88,-337.48 444.42,-342.48"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="377.41,-322.56 366.87,-323.59 375.75,-329.36 377.41,-322.56"/>
+<path fill="none" stroke="midnightblue" d="M363.47,-322.76C387.68,-328.66 419.59,-336.43 444.42,-342.48"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="364.16,-319.33 353.61,-320.36 362.5,-326.13 364.16,-319.33"/>
 </g>
 <!-- Node9 -->
 <g id="node9" class="node">
@@ -121,8 +121,8 @@ var sectionId = 'dynsection-1';
 <!-- Node4&#45;&gt;Node9 -->
 <g id="edge10" class="edge">
 <title>Node4&#45;&gt;Node9</title>
-<path fill="none" stroke="midnightblue" d="M376.63,-302.03C398.49,-296.71 423.88,-290.52 444.42,-285.52"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="375.75,-298.64 366.87,-304.41 377.41,-305.44 375.75,-298.64"/>
+<path fill="none" stroke="midnightblue" d="M363.47,-305.24C387.68,-299.34 419.59,-291.57 444.42,-285.52"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="362.5,-301.87 353.61,-307.64 364.16,-308.67 362.5,-301.87"/>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">

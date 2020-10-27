@@ -21,7 +21,7 @@
 <area shape="rect" id="node34" href="$classAxiStreamDepacketizer2.html" title=" " alt="" coords="828,157,1011,184"/>
 <area shape="rect" id="node15" href="$classDualPortRam.html" title=" " alt="" coords="614,56,722,83"/>
 <area shape="rect" id="node16" href="$classTrueDualPortRam.html" title=" " alt="" coords="373,31,508,57"/>
-<area shape="rect" id="node17" href="$classQuadPortRam.html" title=" " alt="" coords="385,81,497,108"/>
+<area shape="rect" id="node17" href="$classLutRam.html" title=" " alt="" coords="405,81,477,108"/>
 <area shape="rect" id="node18" href="$classCrc32Parallel.html" title=" " alt="" coords="615,208,721,235"/>
 <area shape="rect" id="node19" href="$classCrc32.html" title=" " alt="" coords="639,107,697,133"/>
 <area shape="rect" id="node20" href="$classPgp3TxProtocol.html" title=" " alt="" coords="858,5,981,32"/>

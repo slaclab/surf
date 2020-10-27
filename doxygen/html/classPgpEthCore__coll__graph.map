@@ -14,7 +14,7 @@
 <area shape="rect" id="node13" href="$classTrueDualPortRamAlteraMf.html" title=" " alt="" coords="564,512,755,539"/>
 <area shape="rect" id="node14" href="$classDualPortRam.html" title=" " alt="" coords="596,563,723,589"/>
 <area shape="rect" id="node15" href="$classTrueDualPortRam.html" title=" " alt="" coords="377,461,512,488"/>
-<area shape="rect" id="node16" href="$classQuadPortRam.html" title=" " alt="" coords="389,563,501,589"/>
+<area shape="rect" id="node16" href="$classLutRam.html" title=" " alt="" coords="409,563,481,589"/>
 <area shape="rect" id="node17" href="$classSynchronizerFifo.html" title=" " alt="" coords="594,360,725,387"/>
 <area shape="rect" id="node33" href="$classSynchronizerOneShotCnt.html" title=" " alt="" coords="803,360,985,387"/>
 <area shape="rect" id="node18" href="$classFifoAsync.html" title=" " alt="" coords="402,309,487,336"/>

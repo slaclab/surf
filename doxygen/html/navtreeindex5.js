@@ -1,5 +1,11 @@
 var NAVTREEINDEX5 =
 {
+"classAxiAds42lb69Reg_1_1rtl.html#acb9c78a486ee57fada02a2eaf4d70775":[1,0,28,0,17],
+"classAxiAds42lb69Reg_1_1rtl.html#acea8065b766c6f6279237421c8e1f3f7":[1,0,28,0,2],
+"classAxiAds42lb69Reg_1_1rtl.html#ade4de2a008a5f96235206eb18081481c":[1,0,28,0,16],
+"classAxiAds42lb69Reg_1_1rtl.html#ae261116d2061522482d3d06916b98c44":[1,0,28,0,12],
+"classAxiAds42lb69Reg_1_1rtl.html#aea0bb8290ea4dc1a35809e2a255cc36a":[1,0,28,0,20],
+"classAxiAds42lb69Reg_1_1rtl.html#afa9be4b5356cf89d8b914b0028fd1bc5":[1,0,28,0,7],
 "classAxiAds42lb69Reg_1_1rtl.html#afdd287110f7fdcebda7c0d6cfb813dec":[1,0,28,0,0],
 "classAxiDac7654Core.html":[1,0,29],
 "classAxiDac7654Core.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,29,12],
@@ -81,13 +87,13 @@ var NAVTREEINDEX5 =
 "classAxiDac7654Spi_1_1rtl.html#a15168fda6f5887a49771d5f42f956114":[1,0,31,0,14],
 "classAxiDac7654Spi_1_1rtl.html#a25db8a449d108cfa440f7dbcbc9961d0":[1,0,31,0,4],
 "classAxiDac7654Spi_1_1rtl.html#a2849df70cd703e451b9743f428cf8d2c":[1,0,31,0,2],
-"classAxiDac7654Spi_1_1rtl.html#a335aa5cad317e320851074e24cbfbb6d":[1,0,31,0,0],
 "classAxiDac7654Spi_1_1rtl.html#a36fdb7426682cd0020ae18910dae6464":[1,0,31,0,6],
 "classAxiDac7654Spi_1_1rtl.html#a4b835ee2ea093dc50f46932dce90beba":[1,0,31,0,10],
 "classAxiDac7654Spi_1_1rtl.html#a5ccd6bbf9bb6e52b4149b83a6d19ba09":[1,0,31,0,5],
 "classAxiDac7654Spi_1_1rtl.html#a5cf7bca0fbf92ae8c431c7939cdba56c":[1,0,31,0,3],
 "classAxiDac7654Spi_1_1rtl.html#a8e26a816fb15f1d7721e7c29d37ca5f3":[1,0,31,0,1],
 "classAxiDac7654Spi_1_1rtl.html#a90e6ee319dd99e96fbd9f854fdf01417":[1,0,31,0,8],
+"classAxiDac7654Spi_1_1rtl.html#aa97ba49471d2a88cf2a26461c604e580":[1,0,31,0,0],
 "classAxiDac7654Spi_1_1rtl.html#ac04189f5868f7cc5070a3512c8bbb190":[1,0,31,0,7],
 "classAxiDac7654Spi_1_1rtl.html#acc3c89f86028d9582dfad94c9cb8dc6a":[1,0,31,0,9],
 "classAxiDac7654Spi_1_1rtl.html#ad99a757f9411c2ffce5e6baba14b46c8":[1,0,31,0,12],
@@ -243,11 +249,5 @@ var NAVTREEINDEX5 =
 "classAxiDualPortRam_1_1rtl.html#aff4cd06ab97992012a07c513754d017d":[1,0,32,0,28],
 "classAxiI2cEeprom.html":[1,0,34],
 "classAxiI2cEeprom.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,34,17],
-"classAxiI2cEeprom.html#a17950e90cb655bd95ba31099c9b73b2f":[1,0,34,5],
-"classAxiI2cEeprom.html#a22f8db74a5a4c77e7e2767279ca36e7f":[1,0,34,12],
-"classAxiI2cEeprom.html#a2a322da3fa6739371fc44d8490d0772a":[1,0,34,4],
-"classAxiI2cEeprom.html#a318aee66fca9cc246e7100155089fd61":[1,0,34,3],
-"classAxiI2cEeprom.html#a3345a70e845069bf678d5aa1733529b6":[1,0,34,22],
-"classAxiI2cEeprom.html#a41a66323a1658f8a6ef5c62397afa3e3":[1,0,34,10],
-"classAxiI2cEeprom.html#a4b36ee28c73fadc67fe1a670f1ba11ff":[1,0,34,16]
+"classAxiI2cEeprom.html#a17950e90cb655bd95ba31099c9b73b2f":[1,0,34,5]
 };

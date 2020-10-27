@@ -1,7 +1,7 @@
 <map id="TrueDualPortRamAlteraMf" name="TrueDualPortRamAlteraMf">
-<area shape="rect" id="node1" title=" " alt="" coords="5,259,196,285"/>
-<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title=" " alt="" coords="262,233,391,260"/>
-<area shape="rect" id="node19" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="244,284,409,311"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,284,196,311"/>
+<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title=" " alt="" coords="262,259,391,285"/>
+<area shape="rect" id="node20" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="244,309,409,336"/>
 <area shape="rect" id="node3" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="460,5,665,32"/>
 <area shape="rect" id="node4" href="$classAxiLiteAsyncTb.html" title=" " alt="" coords="501,56,624,83"/>
 <area shape="rect" id="node5" href="$classAxiLiteRamSyncStatusVector.html" title=" " alt="" coords="457,107,668,133"/>
@@ -10,8 +10,9 @@
 <area shape="rect" id="node13" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="470,259,655,285"/>
 <area shape="rect" id="node14" href="$classAxiStreamMonAxiL.html" title=" " alt="" coords="489,309,636,336"/>
 <area shape="rect" id="node16" href="$classClinkTop.html" title=" " alt="" coords="524,360,601,387"/>
-<area shape="rect" id="node17" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="477,411,649,437"/>
-<area shape="rect" id="node18" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="485,461,641,488"/>
+<area shape="rect" id="node17" href="$classFirFilterMultiChannel.html" title=" " alt="" coords="484,411,641,437"/>
+<area shape="rect" id="node18" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="477,461,649,488"/>
+<area shape="rect" id="node19" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="485,512,641,539"/>
 <area shape="rect" id="node6" href="$classPgpEthAxiL.html" title=" " alt="" coords="718,107,813,133"/>
 <area shape="rect" id="node7" href="$classPgpEthCore.html" title=" " alt="" coords="863,107,960,133"/>
 <area shape="rect" id="node8" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="1008,81,1135,108"/>

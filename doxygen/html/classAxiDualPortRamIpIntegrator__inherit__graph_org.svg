@@ -162,17 +162,17 @@
 <!-- Node10 -->
 <g id="node10" class="node">
 <title>Node10</title>
-<g id="a_node10"><a xlink:href="classQuadPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="284.5,-19.5 284.5,-38.5 368.5,-38.5 368.5,-19.5 284.5,-19.5"/>
-<text text-anchor="middle" x="326.5" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">QuadPortRam</text>
+<g id="a_node10"><a xlink:href="classLutRam.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="299.5,-19.5 299.5,-38.5 353.5,-38.5 353.5,-19.5 299.5,-19.5"/>
+<text text-anchor="middle" x="326.5" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
 </a>
 </g>
 </g>
 <!-- Node10&#45;&gt;Node8 -->
 <g id="edge9" class="edge">
 <title>Node10&#45;&gt;Node8</title>
-<path fill="none" stroke="midnightblue" d="M379.01,-29C397.71,-29 418.71,-29 436.95,-29"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="378.9,-25.5 368.9,-29 378.9,-32.5 378.9,-25.5"/>
+<path fill="none" stroke="midnightblue" d="M363.75,-29C385.5,-29 413.39,-29 436.78,-29"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="363.61,-25.5 353.61,-29 363.61,-32.5 363.61,-25.5"/>
 </g>
 <!-- Node11 -->
 <g id="node11" class="node">

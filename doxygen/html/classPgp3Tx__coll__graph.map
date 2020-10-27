@@ -12,7 +12,7 @@
 <area shape="rect" id="node11" href="$classAxiStreamPipeline.html" title=" " alt="" coords="188,208,348,235"/>
 <area shape="rect" id="node12" href="$classDualPortRam.html" title=" " alt="" coords="214,259,322,285"/>
 <area shape="rect" id="node13" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,233,140,260"/>
-<area shape="rect" id="node14" href="$classQuadPortRam.html" title=" " alt="" coords="17,284,129,311"/>
+<area shape="rect" id="node14" href="$classLutRam.html" title=" " alt="" coords="37,284,109,311"/>
 <area shape="rect" id="node15" href="$classCrc32Parallel.html" title=" " alt="" coords="215,309,321,336"/>
 <area shape="rect" id="node16" href="$classCrc32.html" title=" " alt="" coords="239,360,297,387"/>
 <area shape="rect" id="node17" href="$classPgp3TxProtocol.html" title=" " alt="" coords="417,259,539,285"/>

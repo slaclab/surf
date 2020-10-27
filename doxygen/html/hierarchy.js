@@ -111,7 +111,7 @@ var hierarchy =
         [ "TrueDualPortRamAlteraMf", "classTrueDualPortRamAlteraMf.html", null ],
         [ "DualPortRam", "classDualPortRam.html", [
           [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
-          [ "QuadPortRam", "classQuadPortRam.html", null ]
+          [ "LutRam", "classLutRam.html", null ]
         ] ],
         [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
@@ -476,6 +476,7 @@ var hierarchy =
           [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", null ],
           [ "AsyncGearbox", "classAsyncGearbox.html", [
             [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+            [ "Synchronizer", "classSynchronizer.html", null ],
             [ "FifoAsync", "classFifoAsync.html", null ],
             [ "Gearbox", "classGearbox.html", null ]
           ] ]
@@ -614,6 +615,13 @@ var hierarchy =
       ] ],
       [ "RstSync", "classRstSync.html", null ],
       [ "FifoCascade", "classFifoCascade.html", null ],
+      [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
+      [ "FirFilterTap", "classFirFilterTap.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "FirFilterSingleChannel", "classFirFilterSingleChannel.html", [
+        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+        [ "FirFilterTap", "classFirFilterTap.html", null ]
+      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "FwftCntTbSubModule", "classFwftCntTbSubModule.html", [
         [ "Fifo", "classFifo.html", null ]
@@ -934,6 +942,12 @@ var hierarchy =
           ] ]
         ] ]
       ] ],
+      [ "PwrUpRst", "classPwrUpRst.html", null ],
+      [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+      [ "Pgp2bLane", "classPgp2bLane.html", null ],
+      [ "PgpGtyCoreWrapper", "classPgpGtyCoreWrapper.html", [
+        [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
+      ] ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3GthUsQpll", "classPgp3GthUsQpll.html", [
         [ "PwrUpRst", "classPwrUpRst.html", null ],
@@ -1090,7 +1104,7 @@ var hierarchy =
       [ "UdpEngineWrapper", "classUdpEngineWrapper.html", null ],
       [ "RawEthFramer", "classRawEthFramer.html", [
         [ "RawEthFramerTx", "classRawEthFramerTx.html", [
-          [ "QuadPortRam", "classQuadPortRam.html", null ]
+          [ "LutRam", "classLutRam.html", null ]
         ] ],
         [ "RawEthFramerRx", "classRawEthFramerRx.html", null ]
       ] ],

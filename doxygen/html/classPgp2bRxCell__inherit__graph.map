@@ -1,7 +1,7 @@
 <map id="Pgp2bRxCell" name="Pgp2bRxCell">
-<area shape="rect" id="node1" title=" " alt="" coords="5,208,109,235"/>
-<area shape="rect" id="node2" href="$classPgp2bRx.html" title=" " alt="" coords="157,208,236,235"/>
-<area shape="rect" id="node3" href="$classPgp2bLane.html" title=" " alt="" coords="284,208,377,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,233,109,260"/>
+<area shape="rect" id="node2" href="$classPgp2bRx.html" title=" " alt="" coords="157,233,236,260"/>
+<area shape="rect" id="node3" href="$classPgp2bLane.html" title=" " alt="" coords="284,233,377,260"/>
 <area shape="rect" id="node4" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="433,5,577,32"/>
 <area shape="rect" id="node6" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="426,56,583,83"/>
 <area shape="rect" id="node9" href="$classPgp2bGthUltra.html" title=" " alt="" coords="446,107,563,133"/>
@@ -9,8 +9,9 @@
 <area shape="rect" id="node12" href="$classPgp2bGtp7MultiLane.html" title=" " alt="" coords="426,208,583,235"/>
 <area shape="rect" id="node15" href="$classPgp2bGtx7Fixedlat.html" title=" " alt="" coords="433,259,577,285"/>
 <area shape="rect" id="node19" href="$classPgp2bGtx7MultiLane.html" title=" " alt="" coords="426,309,583,336"/>
-<area shape="rect" id="node23" href="$classpgp__test.html" title=" " alt="" coords="465,360,544,387"/>
-<area shape="rect" id="node24" href="$classPgpParallelSimModel.html" title=" " alt="" coords="425,411,584,437"/>
+<area shape="rect" id="node23" href="$classPgp2bGtyUltra.html" title=" " alt="" coords="446,360,563,387"/>
+<area shape="rect" id="node24" href="$classpgp__test.html" title=" " alt="" coords="465,411,544,437"/>
+<area shape="rect" id="node25" href="$classPgpParallelSimModel.html" title=" " alt="" coords="425,461,584,488"/>
 <area shape="rect" id="node5" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="632,5,835,32"/>
 <area shape="rect" id="node7" href="$classPgp2bGth7VarLat.html" title=" " alt="" coords="666,56,801,83"/>
 <area shape="rect" id="node8" href="$classPgp2bGth7VarLatWrapper.html" title=" " alt="" coords="897,56,1087,83"/>

@@ -33,7 +33,7 @@
 <area shape="rect" id="node48" href="$classAxiStreamDepacketizer2.html" title=" " alt="" coords="1048,81,1231,108"/>
 <area shape="rect" id="node26" href="$classDualPortRam.html" title=" " alt="" coords="833,31,941,57"/>
 <area shape="rect" id="node27" href="$classTrueDualPortRam.html" title=" " alt="" coords="575,5,710,32"/>
-<area shape="rect" id="node28" href="$classQuadPortRam.html" title=" " alt="" coords="587,56,699,83"/>
+<area shape="rect" id="node28" href="$classLutRam.html" title=" " alt="" coords="607,56,679,83"/>
 <area shape="rect" id="node29" href="$classCrc32Parallel.html" title=" " alt="" coords="833,81,940,108"/>
 <area shape="rect" id="node30" href="$classCrc32.html" title=" " alt="" coords="857,132,916,159"/>
 <area shape="rect" id="node32" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="820,740,953,767"/>

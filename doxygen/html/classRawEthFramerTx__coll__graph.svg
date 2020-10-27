@@ -21,9 +21,9 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="classQuadPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="8,-56.5 8,-75.5 92,-75.5 92,-56.5 8,-56.5"/>
-<text text-anchor="middle" x="50" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">QuadPortRam</text>
+<g id="a_node2"><a xlink:href="classLutRam.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="23,-56.5 23,-75.5 77,-75.5 77,-56.5 23,-56.5"/>
+<text text-anchor="middle" x="50" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
 </a>
 </g>
 </g>

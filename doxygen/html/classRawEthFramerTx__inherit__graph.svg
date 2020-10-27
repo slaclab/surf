@@ -36,9 +36,9 @@
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
-<g id="a_node2"><a xlink:href="classQuadPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="74,-168.5 74,-187.5 158,-187.5 158,-168.5 74,-168.5"/>
-<text text-anchor="middle" x="116" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">QuadPortRam</text>
+<g id="a_node2"><a xlink:href="classLutRam.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="89,-168.5 89,-187.5 143,-187.5 143,-168.5 89,-168.5"/>
+<text text-anchor="middle" x="116" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
 </a>
 </g>
 </g>

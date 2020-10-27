@@ -66,9 +66,9 @@
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
-<g id="a_node3"><a xlink:href="classQuadPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="15,-168.5 15,-187.5 99,-187.5 99,-168.5 15,-168.5"/>
-<text text-anchor="middle" x="57" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">QuadPortRam</text>
+<g id="a_node3"><a xlink:href="classLutRam.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="30,-168.5 30,-187.5 84,-187.5 84,-168.5 30,-168.5"/>
+<text text-anchor="middle" x="57" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
 </a>
 </g>
 </g>

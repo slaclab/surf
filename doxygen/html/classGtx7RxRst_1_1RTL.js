@@ -1,7 +1,7 @@
 var classGtx7RxRst_1_1RTL =
 [
-    [ "PROCESS_287", "classGtx7RxRst_1_1RTL.html#a6c180f55ef397d196c15ca896ed77751", null ],
-    [ "PROCESS_288", "classGtx7RxRst_1_1RTL.html#a5ec2f116c843fea68f6d5dc2609b544f", null ],
+    [ "PROCESS_279", "classGtx7RxRst_1_1RTL.html#aa6ad2ff2e4c089e278f148e9176dc688", null ],
+    [ "PROCESS_280", "classGtx7RxRst_1_1RTL.html#a4dad3bdc81555f0843eca85a8577caa5", null ],
     [ "retries_recclk_monitor", "classGtx7RxRst_1_1RTL.html#a1ea7ec76f6b4573f0b4e174d01412c37", null ],
     [ "timeouts", "classGtx7RxRst_1_1RTL.html#ac1cd5d563a13a7a8d207346a543d3c57", null ],
     [ "mmcm_lock_wait", "classGtx7RxRst_1_1RTL.html#ab566d1bfdc871e933bca90d8a071cca1", null ],

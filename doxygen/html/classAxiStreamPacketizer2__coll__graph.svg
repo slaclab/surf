@@ -52,31 +52,31 @@
 <g id="node4" class="node">
 <title>Node4</title>
 <g id="a_node4"><a xlink:href="classTrueDualPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="73.5,-112.5 73.5,-131.5 174.5,-131.5 174.5,-112.5 73.5,-112.5"/>
-<text text-anchor="middle" x="124" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRam</text>
+<polygon fill="white" stroke="black" points="80.5,-112.5 80.5,-131.5 181.5,-131.5 181.5,-112.5 80.5,-112.5"/>
+<text text-anchor="middle" x="131" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRam</text>
 </a>
 </g>
 </g>
 <!-- Node4&#45;&gt;Node3 -->
 <g id="edge3" class="edge">
 <title>Node4&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M140.29,-105C150.04,-95.43 162.05,-83.64 170.09,-75.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="137.77,-102.58 133.08,-112.08 142.67,-107.57 137.77,-102.58"/>
+<path fill="none" stroke="midnightblue" d="M145.73,-104.43C154.14,-94.97 164.35,-83.48 171.22,-75.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="142.95,-102.28 138.93,-112.08 148.19,-106.93 142.95,-102.28"/>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">
 <title>Node5</title>
-<g id="a_node5"><a xlink:href="classQuadPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="193,-112.5 193,-131.5 277,-131.5 277,-112.5 193,-112.5"/>
-<text text-anchor="middle" x="235" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">QuadPortRam</text>
+<g id="a_node5"><a xlink:href="classLutRam.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="200,-112.5 200,-131.5 254,-131.5 254,-112.5 200,-112.5"/>
+<text text-anchor="middle" x="227" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
 </a>
 </g>
 </g>
 <!-- Node5&#45;&gt;Node3 -->
 <g id="edge4" class="edge">
 <title>Node5&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M218.67,-105.25C208.74,-95.67 196.41,-83.79 188.16,-75.83"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="216.37,-107.9 226,-112.32 221.23,-102.86 216.37,-107.9"/>
+<path fill="none" stroke="midnightblue" d="M212.27,-104.43C203.86,-94.97 193.65,-83.48 186.78,-75.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="209.81,-106.93 219.07,-112.08 215.05,-102.28 209.81,-106.93"/>
 </g>
 <!-- Node6 -->
 <g id="node6" class="node">

@@ -17,6 +17,7 @@ var classSspLowSpeedDecoderReg =
     [ "lockingCntCfg", "classSspLowSpeedDecoderReg.html#a77a2e0c89ae8ebf4da6bc95ebf93112b", null ],
     [ "bypFirstBerDet", "classSspLowSpeedDecoderReg.html#a40774d335ed994f8fb86087421cd558e", null ],
     [ "polarity", "classSspLowSpeedDecoderReg.html#a5d053369b1045d08c0af03663cc9b3d0", null ],
+    [ "bitOrder", "classSspLowSpeedDecoderReg.html#a08fd562eb3a394fd85062007548a8add", null ],
     [ "axilClk", "classSspLowSpeedDecoderReg.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
     [ "axilRst", "classSspLowSpeedDecoderReg.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
     [ "axilReadMaster", "classSspLowSpeedDecoderReg.html#aada3e73ee8db4190524295bfa4dff085", null ],

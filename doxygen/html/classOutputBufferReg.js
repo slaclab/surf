@@ -3,7 +3,7 @@ var classOutputBufferReg =
     [ "rtl", "classOutputBufferReg_1_1rtl.html", "classOutputBufferReg_1_1rtl" ],
     [ "TPD_G", "classOutputBufferReg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "DIFF_PAIR_G", "classOutputBufferReg.html#a54ec304cbe9558ce7df625cf740f3b6f", null ],
-    [ "DDR_CLK_EDGE_G", "classOutputBufferReg.html#ab5e8c91e942cce36be8cfb540cc0fc76", null ],
+    [ "DDR_CLK_EDGE_G", "classOutputBufferReg.html#a4c994cd435d417fcd0d32b009561a1f7", null ],
     [ "INIT_G", "classOutputBufferReg.html#a3e2bcab8fbe8733c88bb73cd2c330424", null ],
     [ "SRTYPE_G", "classOutputBufferReg.html#a20ddb88e6953188d8760aae7438ef8ba", null ],
     [ "I", "classOutputBufferReg.html#ad637731bac89810d3730fcb1f430b863", null ],

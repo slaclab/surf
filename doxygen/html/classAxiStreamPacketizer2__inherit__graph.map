@@ -7,7 +7,7 @@
 <area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="188,5,348,32"/>
 <area shape="rect" id="node3" href="$classDualPortRam.html" title=" " alt="" coords="214,56,322,83"/>
 <area shape="rect" id="node4" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,31,140,57"/>
-<area shape="rect" id="node5" href="$classQuadPortRam.html" title=" " alt="" coords="17,81,129,108"/>
+<area shape="rect" id="node5" href="$classLutRam.html" title=" " alt="" coords="37,81,109,108"/>
 <area shape="rect" id="node6" href="$classCrc32Parallel.html" title=" " alt="" coords="215,107,321,133"/>
 <area shape="rect" id="node7" href="$classCrc32.html" title=" " alt="" coords="239,157,297,184"/>
 <area shape="rect" id="node9" href="$classAxiRssiCoreTb.html" title=" " alt="" coords="845,5,961,32"/>

@@ -2,7 +2,7 @@
 <area shape="rect" id="node1" title=" " alt="" coords="972,107,1144,133"/>
 <area shape="rect" id="node2" href="$classRawEthFramer.html" title=" " alt="" coords="801,56,918,83"/>
 <area shape="rect" id="node3" href="$classRawEthFramerTx.html" title=" " alt="" coords="585,5,718,32"/>
-<area shape="rect" id="node4" href="$classQuadPortRam.html" title=" " alt="" coords="385,56,497,83"/>
+<area shape="rect" id="node4" href="$classLutRam.html" title=" " alt="" coords="405,56,477,83"/>
 <area shape="rect" id="node9" href="$classDualPortRam.html" title=" " alt="" coords="588,107,715,133"/>
 <area shape="rect" id="node5" href="$classRawEthFramerRx.html" title=" " alt="" coords="584,56,719,83"/>
 <area shape="rect" id="node6" href="$classAxiDualPortRam.html" title=" " alt="" coords="795,183,924,209"/>

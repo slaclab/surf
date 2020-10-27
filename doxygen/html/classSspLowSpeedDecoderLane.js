@@ -15,6 +15,7 @@ var classSspLowSpeedDecoderLane =
     [ "lockingCntCfg", "classSspLowSpeedDecoderLane.html#a6862a42f091bf6b5b04fa9300509881f", null ],
     [ "bypFirstBerDet", "classSspLowSpeedDecoderLane.html#aca9107df59de1418656ec006e2513d8a", null ],
     [ "polarity", "classSspLowSpeedDecoderLane.html#ab10173ed3a11c19daebe75abbdb9f87a", null ],
+    [ "bitOrder", "classSspLowSpeedDecoderLane.html#a21b78ca22dcd78bdd7312416e5ccf013", null ],
     [ "errorDet", "classSspLowSpeedDecoderLane.html#ab3e1dbe7c15798e8691847a2dee391df", null ],
     [ "bitSlip", "classSspLowSpeedDecoderLane.html#ace9930ee5d59f8c6a27130534710ce5f", null ],
     [ "locked", "classSspLowSpeedDecoderLane.html#a70b11b0ba45996843099f091eacf0a86", null ],

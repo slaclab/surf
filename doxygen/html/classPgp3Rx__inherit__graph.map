@@ -21,7 +21,7 @@
 <area shape="rect" id="node18" href="$classAxiStreamPipeline.html" title=" " alt="" coords="556,227,716,253"/>
 <area shape="rect" id="node19" href="$classDualPortRam.html" title=" " alt="" coords="582,277,690,304"/>
 <area shape="rect" id="node20" href="$classTrueDualPortRam.html" title=" " alt="" coords="373,259,508,285"/>
-<area shape="rect" id="node21" href="$classQuadPortRam.html" title=" " alt="" coords="385,309,497,336"/>
+<area shape="rect" id="node21" href="$classLutRam.html" title=" " alt="" coords="405,309,477,336"/>
 <area shape="rect" id="node22" href="$classCrc32Parallel.html" title=" " alt="" coords="583,328,689,355"/>
 <area shape="rect" id="node23" href="$classCrc32.html" title=" " alt="" coords="607,379,665,405"/>
 <area shape="rect" id="node24" href="$classAxiStreamDeMux.html" title=" " alt="" coords="787,379,923,405"/>
