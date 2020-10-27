@@ -22,8 +22,8 @@ use surf.AxiStreamPkg.all;
 package Ad9681Pkg is
 
    -- Interface to AD9681 chip
-   -- Chip has two SerialGroup outputs
-   type Ad9681SerialGroupType is record
+   -- Chip has two Serial outputs
+   type Ad9681SerialType is record
       fClkP : slv(1 downto 0);                       -- Frame clock
       fClkN : slv(1 downto 0);
       dClkP : slv(1 downto 0);                       -- Data clock
@@ -32,7 +32,7 @@ package Ad9681Pkg is
       chN   : slv8Array(1 downto 0);
    end record;
 
-   type Ad9681SerialGroupArray is array (natural range <>) of Ad9681SerialGroupType;
+   type Ad9681SerialArray is array (natural range <>) of Ad9681SerialType;
 
    constant AD9681_AXIS_CFG_G : AxiStreamConfigType := (
       TSTRB_EN_C    => false,

@@ -30,7 +30,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9681Pkg.all;
 
-entity Ad9681ReadoutGroup is
+entity Ad9681Readout is
    generic (
       TPD_G : time := 1 ns;
 
@@ -45,24 +45,24 @@ entity Ad9681ReadoutGroup is
 
       -- Axi Interface
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
       axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilReadSlave   : out AxiLiteReadSlaveType := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
 
       -- Reset for adc deserializer
       adcClkRst : in sl;
 
       -- Serial Data from ADC
-      adcSerial : in Ad9681SerialGroupType;
+      adcSerial : in Ad9681SerialType;
 
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
-      adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_C-1 downto 0) :=
-      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
-end Ad9681ReadoutGroup;
+      adcStreams   : out AxiStreamMasterArray(7 downto 0) :=  (others => AD9681_AXIS_CFG_G));
+   
+end Ad9681Readout;
 
 -- Define architecture
-architecture rtl of Ad9681ReadoutGroup is
+architecture rtl of Ad9681Readout is
 
    constant NUM_CHANNELS_C : natural := 8;
 
