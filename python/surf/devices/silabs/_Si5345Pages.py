@@ -10,10 +10,40 @@
 
 import pyrogue as pr
 
-class Si5345Page0(pr.Device):
+class Si5345PageBase(pr.Device):
     def __init__(self,
-            name         = "Page0",
-            description  = "Alarms, interrupts, reset, other configuration",
+            name          = "PageBase",
+            description   = "Base page",
+            **kwargs):
+
+        super().__init__(name=name, description=description, **kwargs)
+
+        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
+
+        if self._useVars:
+            self.add(pr.RemoteVariable(
+                name         = "DataBlock",
+                description  = "",
+                offset       = 0,
+                bitSize      = 32 * 0x100,
+                bitOffset    = 0,
+                numValues    = 0x100,
+                valueBits    = 32,
+                valueStride  = 32,
+                updateNotify = True,
+                bulkOpEn     = True,
+                overlapEn    = True,
+                verify       = True,
+                hidden       = True,
+                base         = pr.UInt,
+                mode         = "RW",
+            ))
+
+
+class Si5345Page0(Si5345PageBase):
+    def __init__(self,
+            name          = "Page0",
+            description   = "Alarms, interrupts, reset, other configuration",
             simpleDisplay = True,
             **kwargs):
 
@@ -1233,13 +1263,17 @@ class Si5345Page0(pr.Device):
             overlapEn   = True,
         ))
 
-class Si5345Page1(pr.Device):
+class Si5345Page1(Si5345PageBase):
     def __init__(self,
             name         = "Page1",
             description  = "Clock output configuration",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page 1 Registers Si5345
@@ -1539,13 +1573,17 @@ class Si5345Page1(pr.Device):
             overlapEn   = True,
         ))
 
-class Si5345Page2(pr.Device):
+class Si5345Page2(Si5345PageBase):
     def __init__(self,
             name         = "Page2",
             description  = "P,R dividers, scratch area",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page 2 Registers Si5345
@@ -1965,13 +2003,17 @@ class Si5345Page2(pr.Device):
             overlapEn   = True,
         ))
 
-class Si5345Page3(pr.Device):
+class Si5345Page3(Si5345PageBase):
     def __init__(self,
             name         = "Page3",
             description  = "Output N dividers, N divider Finc/Fdec",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page 3 Registers Si5345
@@ -2203,13 +2245,17 @@ class Si5345Page3(pr.Device):
                 overlapEn   = True,
             ))
 
-class Si5345Page4(pr.Device):
+class Si5345Page4(Si5345PageBase):
     def __init__(self,
             name         = "Page4",
             description  = "ZD mode configuration",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page 4 Registers Si5345
@@ -2254,13 +2300,17 @@ class Si5345Page4(pr.Device):
             overlapEn   = True,
         ))
 
-class Si5345Page5(pr.Device):
+class Si5345Page5(Si5345PageBase):
     def __init__(self,
             name         = "Page5",
             description  = "M divider, BW, holdover, input switch, FINC/DEC",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page 5 Registers Si5345
@@ -2864,13 +2914,17 @@ class Si5345Page5(pr.Device):
             overlapEn   = True,
         ))
 
-class Si5345Page9(pr.Device):
+class Si5345Page9(Si5345PageBase):
     def __init__(self,
             name         = "Page9",
             description  = "Control IO configuration",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page 9 Registers Si5345
@@ -2952,12 +3006,16 @@ class Si5345Page9(pr.Device):
             overlapEn   = True,
         ))
 
-class Si5345PageA(pr.Device):
+class Si5345PageA(Si5345PageBase):
     def __init__(self,
             name         = "PageA",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page A Registers Si5345
@@ -3015,12 +3073,16 @@ class Si5345PageA(pr.Device):
                 overlapEn   = True,
             ))
 
-class Si5345PageB(pr.Device):
+class Si5345PageB(Si5345PageBase):
     def __init__(self,
             name         = "PageB",
             simpleDisplay = True,
+            liteVersion   = True,
             **kwargs):
         super().__init__(name=name, **kwargs)
+
+        if liteVersion:
+            return
 
         ##############################
         # 15.1 Page B Registers Si5345

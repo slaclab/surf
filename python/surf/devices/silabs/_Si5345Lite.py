@@ -19,6 +19,7 @@ class Si5345Lite(pr.Device):
     def __init__(self,
             simpleDisplay = True,
             advanceUser   = False,
+            liteVersion   = True,
             **kwargs):
 
         self._useVars = rogue.Version.greaterThanEqual('5.4.0')
@@ -36,27 +37,6 @@ class Si5345Lite(pr.Device):
             mode         = "RW",
             value        = "",
         ))
-
-        if self._useVars:
-
-            # Create 4 x 4K Blocks
-            for i in range(4):
-                self.add(pr.RemoteVariable(
-                    name         = f"DataBlock[{i}]",
-                    description  = "",
-                    offset       = 0x1000 * i,
-                    bitSize      = 32 * 0x400,
-                    bitOffset    = 0,
-                    numValues    = 0x400,
-                    valueBits    = 32,
-                    valueStride  = 32,
-                    updateNotify = False,
-                    bulkOpEn     = False,
-                    verify       = False,
-                    hidden       = True,
-                    base         = pr.UInt,
-                    mode         = "RW",
-                ))
 
         ##############################
         # Commands
@@ -106,9 +86,27 @@ class Si5345Lite(pr.Device):
             self.Page0.ClearIntErrFlag()
 
         ##############################
-        # Devices
+        # Pages
         ##############################
-        self.add(silabs.Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False))
+        self._pages = { 0,  silabs.Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False), # 0x0000 - 0x03FF
+                        1,  silabs.Si5345Page1(offset=(0x100<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x0400 - 0x07FF
+                        2,  silabs.Si5345Page2(offset=(0x200<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x0800 - 0x0BFF
+                        3,  silabs.Si5345Page3(offset=(0x300<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x0C00 - 0x0FFF
+                        4,  silabs.Si5345Page4(offset=(0x400<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x1000 - 0x13FF
+                        5,  silabs.Si5345Page5(offset=(0x500<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x1400 - 0x17FF
+
+                        6,  silabs.Si5345PageBase(offset=(0x600<<2),expand=False,hidden=advanceUser),  # 0x1800 - 0x1BFF
+                        7,  silabs.Si5345PageBase(offset=(0x700<<2),expand=False,hidden=advanceUser),  # 0x1C00 - 0x1FFF
+                        8,  silabs.Si5345PageBase(offset=(0x800<<2),expand=False,hidden=advanceUser),  # 0x2000 - 0x23FF
+
+                        9,  silabs.Si5345Page9(offset=(0x900<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x2400 - 0x27FF
+                        10, silabs.Si5345PageA(offset=(0xA00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x2800 - 0x2BFF
+                        11, silabs.Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x2C00 - 0x2FFF
+                      }
+
+        # Add Pages
+        for k,v in self._pages.items():
+            self.add(v)
 
         self.add(pr.LinkVariable(
             name         = 'Locked',
@@ -120,6 +118,6 @@ class Si5345Lite(pr.Device):
 
     def _setValue(self,offset,data):
         if self._useVars:
-            self.DataBlock[offset//0x400].set(value=data,idx=(offset%0x400))
+            self._pages[offset // 0x400].DataBlock.set(value=data,idx=(offset%0x400))
         else:
             self._rawWrite(offset,data)  # Deprecated
