@@ -16,4 +16,4 @@ class Si5345(silabs.Si5345Lite):
             simpleDisplay = True,
             advanceUser   = False,
             **kwargs):
-        super().__init__(simpleDisplay=simpleDisplay,advanceUser=advanceUser,liteVersion=True,**kwargs)
+        super().__init__(simpleDisplay=simpleDisplay,advanceUser=advanceUser,liteVersion=False,**kwargs)
