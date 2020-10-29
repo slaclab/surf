@@ -389,7 +389,7 @@ begin
             port map (
                I  => adcSerial.chP(i)(ch),
                IB => adcSerial.chN(i)(ch),
-               O  => adcDataPadOut(i)(ch));
+               O  => adcDataPad(i)(ch));
 
          -- Optionally invert the pad input
 --         adcDataPad(i)(ch) <= adcDataPadOut(i)(ch) when ADC_INVERT_CH_G(i)(ch) = '0' else (not adcDataPadOut(i)(ch));

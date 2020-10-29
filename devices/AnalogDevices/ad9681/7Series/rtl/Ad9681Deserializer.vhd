@@ -80,7 +80,7 @@ begin
    U_ISERDES_MASTER : ISERDESE2
       generic map (
          DATA_RATE         => "DDR",
-         DATA_WIDTH        => 14,
+         DATA_WIDTH        => 8,
          INTERFACE_TYPE    => "NETWORKING",
          DYN_CLKDIV_INV_EN => "FALSE",
          DYN_CLK_INV_EN    => "FALSE",
