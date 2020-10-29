@@ -25,7 +25,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity Ad9249Config is
+entity Ad9681Config is
 
    generic (
       TPD_G             : time     := 1 ns;
@@ -44,13 +44,13 @@ entity Ad9249Config is
       adcPdwn : out   slv(NUM_CHIPS_G-1 downto 0);
       adcSclk : out   sl;
       adcSdio : inout sl;
-      adcCsb  : out   slv(NUM_CHIPS_G*2-1 downto 0)
+      adcCsb  : out   slv(NUM_CHIPS_G-1 downto 0)
 
       );
 
-end entity Ad9249Config;
+end entity Ad9681Config;
 
-architecture rtl of Ad9249Config is
+architecture rtl of Ad9681Config is
 
    -- AdcCore Outputs
    signal rdData : slv(23 downto 0);
@@ -60,12 +60,12 @@ architecture rtl of Ad9249Config is
    signal coreSclk   : sl;
    signal coreSDin   : sl;
    signal coreSDout  : sl;
-   signal coreCsb    : slv(NUM_CHIPS_G*2-1 downto 0);
+   signal coreCsb    : slv(NUM_CHIPS_G-1 downto 0);
    signal sdioDir    : sl;
    signal shiftCount : slv(bitSize(24)-1 downto 0);
 
 
-   constant CHIP_SEL_WIDTH_C : integer                       := log2(NUM_CHIPS_G*2);
+   constant CHIP_SEL_WIDTH_C : integer                       := log2(NUM_CHIPS_G);
    constant PWDN_ADDR_BIT_C  : integer                       := 11 + CHIP_SEL_WIDTH_C;
    constant PWDN_ADDR_C      : slv(PWDN_ADDR_BIT_C downto 0) := toSlv(2**PWDN_ADDR_BIT_C, PWDN_ADDR_BIT_C+1);
 
@@ -189,7 +189,7 @@ begin
    SpiMaster_1 : entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
-         NUM_CHIPS_G       => NUM_CHIPS_G*2,
+         NUM_CHIPS_G       => NUM_CHIPS_G,
          DATA_SIZE_G       => 24,
          CPHA_G            => '0',      -- Sample on leading edge
          CPOL_G            => '0',      -- Sample on rising edge
