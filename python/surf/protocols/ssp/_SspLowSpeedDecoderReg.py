@@ -129,6 +129,24 @@ class SspLowSpeedDecoderReg(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'GearboxSlaveBitOrder',
+            description  = '1: reserve, 0: normal',
+            offset       = 0x818,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'GearboxMasterBitOrder',
+            description  = '1: reserve, 0: normal',
+            offset       = 0x818,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'RollOverEn',
             description  = 'Rollover enable for status counters',
             offset       = 0xFF8,
