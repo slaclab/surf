@@ -20,6 +20,7 @@ class ClinkSerialRx(rogue.interfaces.stream.Slave):
     def __init__(self):
         rogue.interfaces.stream.Slave.__init__(self)
         self._cur = []
+        self._last = None
 
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
@@ -33,5 +34,6 @@ class ClinkSerialRx(rogue.interfaces.stream.Slave):
                 self._cur = []
             elif c == '\r':
                 print("recvString: {}".format(''.join(self._cur)))
+                self._last = ''.join(self._cur)
             elif c != '':
                 self._cur.append(c)

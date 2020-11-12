@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -28,7 +27,7 @@ entity OutputBufferReg is
    generic (
       TPD_G          : time    := 1 ns;
       DIFF_PAIR_G    : boolean := false;
-      DDR_CLK_EDGE_G : string  := "OPPOSITE_EDGE";
+      DDR_CLK_EDGE_G : string  := "SAME_EDGE";
       INIT_G         : bit     := '0';
       SRTYPE_G       : string  := "SYNC");
    port (

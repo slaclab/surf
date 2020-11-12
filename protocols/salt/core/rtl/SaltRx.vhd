@@ -323,7 +323,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
-         VALID_THOLD_G       => 1,
+         VALID_THOLD_G       => 0, -- 0 = cache frame before SSI outbound filter check
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => COMMON_RX_CLK_G,

@@ -218,7 +218,13 @@ class AxiVersion(pr.Device):
             if buildStamp is None:
                 return ''
             else:
+                # Strip away the whitespace padding
+                buildStamp = buildStamp.strip()
+
+                # Parse the string
                 p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", buildStamp)
+
+                # Check if failed
                 if p is None:
                     return ''
                 else:

@@ -318,7 +318,6 @@ begin
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
-      v.axiReadSlave.rdata := (others => '0');
 
       -- Multiplex read data onto axi bus
       if (DATA_WIDTH_G <= 32) then

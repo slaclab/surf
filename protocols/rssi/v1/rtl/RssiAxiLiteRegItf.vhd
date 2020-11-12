@@ -190,6 +190,17 @@ architecture rtl of RssiAxiLiteRegItf is
    signal dummyBit     : sl;
    signal negRssiParam : RssiParamType;
 
+   -- attribute dont_touch                 : string;
+   -- attribute dont_touch of r            : signal is "TRUE";
+   -- attribute dont_touch of s_RdAddr     : signal is "TRUE";
+   -- attribute dont_touch of s_WrAddr     : signal is "TRUE";
+   -- attribute dont_touch of s_status     : signal is "TRUE";
+   -- attribute dont_touch of s_dropCnt    : signal is "TRUE";
+   -- attribute dont_touch of s_reconCnt   : signal is "TRUE";
+   -- attribute dont_touch of s_resendCnt  : signal is "TRUE";
+   -- attribute dont_touch of dummyBit     : signal is "TRUE";
+   -- attribute dont_touch of negRssiParam : signal is "TRUE";
+
 begin
 
    -- Convert address to integer (lower two bits of address are always '0')
@@ -247,12 +258,11 @@ begin
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveWriteResponse(v.axilWriteSlave);
+         axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
       end if;
 
       if (axilStatus.readEnable = '1') then
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         v.axilReadSlave.rdata := (others => '0');
          case (s_RdAddr) is
             when 16#00# =>              -- ADDR (0)
                v.axilReadSlave.rdata(4 downto 0) := r.control;
@@ -309,12 +319,12 @@ begin
                v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(0)(63 downto 32);
             when 16#19# =>
                v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(31 downto 0);
-            when 16#20# =>
+            when 16#1A# =>
                v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(63 downto 32);
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveReadResponse(v.axilReadSlave);
+         axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
       end if;
 
       -- Map to chksumEn

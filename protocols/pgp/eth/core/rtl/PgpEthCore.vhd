@@ -94,6 +94,10 @@ architecture mapping of PgpEthCore is
    signal remoteMac    : slv(47 downto 0);
    signal etherType    : slv(15 downto 0);
 
+   signal remRxFifoCtrlReg  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_INIT_C);
+   signal remRxLinkReadyReg : sl                                      := '0';
+   signal locRxLinkReadyReg : sl                                      := '0';
+
    attribute dont_touch                   : string;
    attribute dont_touch of locRxLinkReady : signal is "TRUE";
    attribute dont_touch of remRxLinkReady : signal is "TRUE";
@@ -131,13 +135,23 @@ begin
          pgpTxSlaves    => pgpTxSlaves,
          -- Status of receive and remote FIFOs
          locRxFifoCtrl  => pgpRxCtrl,
-         locRxLinkReady => locRxLinkReady,
-         remRxFifoCtrl  => remRxFifoCtrl,
-         remRxLinkReady => remRxLinkReady,
+         locRxLinkReady => locRxLinkReadyReg,
+         remRxFifoCtrl  => remRxFifoCtrlReg,
+         remRxLinkReady => remRxLinkReadyReg,
          -- Tx PHY interface
          phyTxRdy       => phyTxRdy,
          phyTxMaster    => phyTxMaster,
          phyTxSlave     => phyTxSlave);
+
+   -- Help with making timing
+   process (pgpClk) is
+   begin
+      if rising_edge(pgpClk) then
+         locRxLinkReadyReg <= locRxLinkReady after TPD_G;
+         remRxFifoCtrlReg  <= remRxFifoCtrl  after TPD_G;
+         remRxLinkReadyReg <= remRxLinkReady after TPD_G;
+      end if;
+   end process;
 
    U_Rx : entity surf.PgpEthRx
       generic map (

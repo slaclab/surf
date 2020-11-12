@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -63,6 +62,9 @@ architecture rtl of TrueDualPortRamXpm is
    signal resetA : sl;
    signal resetB : sl;
 
+   signal douta_xpm : slv(DATA_WIDTH_G-1 downto 0);
+   signal doutb_xpm : slv(DATA_WIDTH_G-1 downto 0);
+
 begin
 
    U_RAM : xpm_memory_tdpram
@@ -100,7 +102,7 @@ begin
          rsta           => resetA,
          addra          => addra,
          dina           => dina,
-         douta          => douta,
+         douta          => douta_xpm,
          -- Port B
          clkb           => clkb,
          enb            => enb,
@@ -109,7 +111,7 @@ begin
          rstb           => resetB,
          addrb          => addrb,
          dinb           => dinb,
-         doutb          => doutb,
+         doutb          => doutb_xpm,
          -- Misc.Interface
          dbiterra       => open,
          dbiterrb       => open,
@@ -123,5 +125,8 @@ begin
 
    resetA <= rsta when(RST_POLARITY_G = '1') else not(rsta);
    resetB <= rstb when(RST_POLARITY_G = '1') else not(rstb);
+
+   douta <= douta_xpm after TPD_G;
+   doutb <= doutb_xpm after TPD_G;
 
 end rtl;

@@ -95,9 +95,10 @@ architecture rtl of RawEthFramerTx is
 
 begin
 
-   U_MinEthCache : entity surf.QuadPortRam
+   U_MinEthCache : entity surf.LutRam
       generic map (
          TPD_G        => TPD_G,
+         NUM_PORTS_G  => 2,
          REG_EN_G     => false,         -- 1 cycle read
          DATA_WIDTH_G => 64,
          ADDR_WIDTH_G => 3)

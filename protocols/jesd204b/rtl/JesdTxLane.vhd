@@ -79,6 +79,7 @@ entity JesdTxLane is
 
       -- Status of the transmitter
       status_o       : out slv(TX_STAT_WIDTH_C-1 downto 0);
+      dacReady_o     : out sl;
 
       -- Sample data input
       sampleData_i  : in  slv((GT_WORD_SIZE_C*8)-1 downto 0);
@@ -185,6 +186,7 @@ begin
                            s_commaDataMux       when others;
 
    -- Output assignment
-   status_o  <= s_refDetected & enable_i & nSync_i & s_ila & s_dataValid & gtTxReady_i;
+   status_o   <= s_refDetected & enable_i & nSync_i & s_ila & s_dataValid & gtTxReady_i;
+   dacReady_o <= s_dataValid;
  --------------------------------------------
 end rtl;

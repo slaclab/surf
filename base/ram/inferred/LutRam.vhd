@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   This module infers a Quad Port RAM as distributed RAM
+-- Description:   This module infers distributed RAM
+--                with configurable number of outputs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -17,21 +18,21 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
-entity QuadPortRam is
+entity LutRam is
    generic (
-      TPD_G          : time                       := 1 ns;
-      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
-      REG_EN_G       : boolean                    := true;
-      MODE_G         : string                     := "read-first";
-      BYTE_WR_EN_G   : boolean                    := false;
-      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
-      BYTE_WIDTH_G   : integer                    := 8;
-      ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
-      INIT_G         : slv                        := "0");
+      TPD_G          : time     := 1 ns;
+      RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
+      REG_EN_G       : boolean  := true;
+      MODE_G         : string   := "no-change";
+      BYTE_WR_EN_G   : boolean  := false;
+      DATA_WIDTH_G   : positive := 16;
+      BYTE_WIDTH_G   : positive := 8;
+      ADDR_WIDTH_G   : positive := 4;
+      NUM_PORTS_G    : positive;
+      INIT_G         : slv      := "0");
    port (
       -- Port A (Read/Write)
       clka    : in  sl                                                    := '0';
@@ -42,34 +43,57 @@ entity QuadPortRam is
       addra   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
       dina    : in  slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
       douta   : out slv(DATA_WIDTH_G-1 downto 0);
-      -- Port B (Read Only)
+      -- Port B (Read Only, NUM_PORTS_G>=2)
       clkb    : in  sl                                                    := '0';
       en_b    : in  sl                                                    := '1';
       rstb    : in  sl                                                    := not(RST_POLARITY_G);
       addrb   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
-      doutb   : out slv(DATA_WIDTH_G-1 downto 0);
-      -- Port C (Read Only)
+      doutb   : out slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
+      -- Port C (Read Only, NUM_PORTS_G>=3)
       en_c    : in  sl                                                    := '1';
       clkc    : in  sl                                                    := '0';
       rstc    : in  sl                                                    := not(RST_POLARITY_G);
       addrc   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
-      doutc   : out slv(DATA_WIDTH_G-1 downto 0);
-      -- Port D (Read Only)
+      doutc   : out slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
+      -- Port D (Read Only, NUM_PORTS_G>=4)
       en_d    : in  sl                                                    := '1';
       clkd    : in  sl                                                    := '0';
       rstd    : in  sl                                                    := not(RST_POLARITY_G);
       addrd   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
-      doutd   : out slv(DATA_WIDTH_G-1 downto 0));
-end QuadPortRam;
+      doutd   : out slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
+      -- Port E (Read Only, NUM_PORTS_G>=5)
+      en_e    : in  sl                                                    := '1';
+      clke    : in  sl                                                    := '0';
+      rste    : in  sl                                                    := not(RST_POLARITY_G);
+      addre   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
+      doute   : out slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
+      -- Port F (Read Only, NUM_PORTS_G>=6)
+      en_f    : in  sl                                                    := '1';
+      clkf    : in  sl                                                    := '0';
+      rstf    : in  sl                                                    := not(RST_POLARITY_G);
+      addrf   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
+      doutf   : out slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
+      -- Port G (Read Only, NUM_PORTS_G>=7)
+      en_g    : in  sl                                                    := '1';
+      clkg    : in  sl                                                    := '0';
+      rstg    : in  sl                                                    := not(RST_POLARITY_G);
+      addrg   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
+      doutg   : out slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
+      -- Port H (Read Only, NUM_PORTS_G>=8)
+      en_h    : in  sl                                                    := '1';
+      clkh    : in  sl                                                    := '0';
+      rsth    : in  sl                                                    := not(RST_POLARITY_G);
+      addrh   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
+      douth   : out slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0'));
+end LutRam;
 
-architecture rtl of QuadPortRam is
+architecture rtl of LutRam is
 
    -- Initial RAM Values
    constant NUM_BYTES_C       : natural := wordCount(DATA_WIDTH_G, BYTE_WIDTH_G);
    constant FULL_DATA_WIDTH_C : natural := NUM_BYTES_C*BYTE_WIDTH_G;
 
    constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
-
 
    -- Shared memory
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
@@ -93,13 +117,13 @@ architecture rtl of QuadPortRam is
 
 begin
 
-
    -- MODE_G check
    assert (MODE_G = "no-change") or (MODE_G = "read-first") or (MODE_G = "write-first")
       report "MODE_G must be either no-change, read-first, or write-first"
       severity failure;
 
    weaByteInt <= weaByte when BYTE_WR_EN_G else (others => wea);
+
 
    -- Port A
    PORT_A_NOT_REG : if (REG_EN_G = false) generate
@@ -197,8 +221,8 @@ begin
 
    end generate;
 
--- Port B
-   PORT_B_REG : if (REG_EN_G = true) generate
+   -- Port B
+   PORT_B_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 2) generate
       process(clkb)
       begin
          if rising_edge(clkb) then
@@ -211,12 +235,12 @@ begin
       end process;
    end generate;
 
-   PORT_B_NOT_REG : if (REG_EN_G = false) generate
+   PORT_B_NOT_REG : if (REG_EN_G = false) and (NUM_PORTS_G >= 2) generate
       doutb <= mem(conv_integer(addrb));
    end generate;
 
    -- Port C
-   PORT_C_REG : if (REG_EN_G = true) generate
+   PORT_C_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 3) generate
       process(clkc)
       begin
          if rising_edge(clkc) then
@@ -229,12 +253,12 @@ begin
       end process;
    end generate;
 
-   PORT_C_NOT_REG : if (REG_EN_G = false) generate
+   PORT_C_NOT_REG : if (REG_EN_G = false) and (NUM_PORTS_G >= 3) generate
       doutc <= mem(conv_integer(addrc));
    end generate;
 
-                                        -- Port D
-   PORT_D_REG : if (REG_EN_G = true) generate
+   -- Port D
+   PORT_D_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 4) generate
       process(clkd)
       begin
          if rising_edge(clkd) then
@@ -247,8 +271,80 @@ begin
       end process;
    end generate;
 
-   PORT_D_NOT_REG : if (REG_EN_G = false) generate
+   PORT_D_NOT_REG : if (REG_EN_G = false) and (NUM_PORTS_G >= 4) generate
       doutd <= mem(conv_integer(addrd));
+   end generate;
+
+   -- Port E
+   PORT_E_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 5) generate
+      process(clke)
+      begin
+         if rising_edge(clke) then
+            if rste = RST_POLARITY_G then
+               doute <= INIT_C after TPD_G;
+            elsif en_e = '1' then
+               doute <= mem(conv_integer(addre)) after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate;
+
+   PORT_E_NOT_REG : if (REG_EN_G = false) and (NUM_PORTS_G >= 5) generate
+      doute <= mem(conv_integer(addre));
+   end generate;
+
+   -- Port F
+   PORT_F_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 6) generate
+      process(clkf)
+      begin
+         if rising_edge(clkf) then
+            if rstf = RST_POLARITY_G then
+               doutf <= INIT_C after TPD_G;
+            elsif en_f = '1' then
+               doutf <= mem(conv_integer(addrf)) after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate;
+
+   PORT_F_NOT_REG : if (REG_EN_G = false) and (NUM_PORTS_G >= 6) generate
+      doutf <= mem(conv_integer(addrf));
+   end generate;
+
+   -- Port G
+   PORT_G_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 7) generate
+      process(clkg)
+      begin
+         if rising_edge(clkg) then
+            if rstg = RST_POLARITY_G then
+               doutg <= INIT_C after TPD_G;
+            elsif en_g = '1' then
+               doutg <= mem(conv_integer(addrg)) after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate;
+
+   PORT_G_NOT_REG : if (REG_EN_G = false) and (NUM_PORTS_G >= 7) generate
+      doutg <= mem(conv_integer(addrg));
+   end generate;
+
+   -- Port H
+   PORT_H_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 8) generate
+      process(clkh)
+      begin
+         if rising_edge(clkh) then
+            if rsth = RST_POLARITY_G then
+               douth <= INIT_C after TPD_G;
+            elsif en_h = '1' then
+               douth <= mem(conv_integer(addrh)) after TPD_G;
+            end if;
+         end if;
+      end process;
+   end generate;
+
+   PORT_H_NOT_REG : if (REG_EN_G = false) and (NUM_PORTS_G >= 8) generate
+      douth <= mem(conv_integer(addrh));
    end generate;
 
 end rtl;

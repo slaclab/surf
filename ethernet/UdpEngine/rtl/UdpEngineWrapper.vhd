@@ -38,18 +38,19 @@ entity UdpEngineWrapper is
       CLIENT_PORTS_G      : PositiveArray   := (0 => 8193);
       CLIENT_EXT_CONFIG_G : boolean         := false;
       -- General IPv4/ICMP/ARP/DHCP Generics
-      TX_FLOW_CTRL_G      : boolean         := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      TX_FLOW_CTRL_G      : boolean         := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       DHCP_G              : boolean         := false;
       ICMP_G              : boolean         := true;
       ARP_G               : boolean         := true;
-      CLK_FREQ_G          : real            := 156.25E+06;  -- In units of Hz
+      CLK_FREQ_G          : real            := 156.25E+06;   -- In units of Hz
       COMM_TIMEOUT_G      : positive        := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
-      TTL_G               : slv(7 downto 0) := x"20";  -- IPv4's Time-To-Live (TTL)
-      VLAN_G              : boolean         := false);  -- true = VLAN support
+      TTL_G               : slv(7 downto 0) := x"20";        -- IPv4's Time-To-Live (TTL)
+      VLAN_G              : boolean         := false;        -- true = VLAN support
+      SYNTH_MODE_G        : string          := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
-      localMac         : in  slv(47 downto 0);  --  big-Endian configuration
-      localIp          : in  slv(31 downto 0);  --  big-Endian configuration
+      localMac         : in  slv(47 downto 0);      --  big-Endian configuration
+      localIp          : in  slv(31 downto 0);      --  big-Endian configuration
       -- Remote Configurations
       clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0)           := (others => x"0000");
       clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0)           := (others => x"00000000");
@@ -169,7 +170,8 @@ begin
          TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
          DHCP_G         => DHCP_G,
          CLK_FREQ_G     => CLK_FREQ_G,
-         COMM_TIMEOUT_G => COMM_TIMEOUT_G)
+         COMM_TIMEOUT_G => COMM_TIMEOUT_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Local Configurations
          localMac         => localMac,
