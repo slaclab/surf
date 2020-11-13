@@ -1,3 +1,12 @@
+#-----------------------------------------------------------------------------
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
+# the license terms in the LICENSE.txt file found in the top-level directory
+# of this distribution and at:
+#    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
+# copied, modified, propagated, or distributed except according to the terms
+# contained in the LICENSE.txt file.
+#-----------------------------------------------------------------------------
 import pyrogue as pr
 import rogue
 
@@ -12,7 +21,7 @@ class _Regs(pr.Device):
         self._queue = queue.Queue()
         self._pollThread = threading.Thread(target=self._pollWorker)
         self._pollThread.start()
-        
+
 
         self.add(pr.RemoteVariable(
             name = 'Rnw',
@@ -126,7 +135,7 @@ class _Regs(pr.Device):
                     transaction.setData(dataBa, 0)
                     transaction.done()
 
-        
+
 
 class _ProxySlave(rogue.interfaces.memory.Slave):
 
@@ -155,5 +164,5 @@ class AxiLiteMasterProxy(pr.Device):
         if isinstance(node, pr.Device):
             if node._memBase is None:
                 node._setSlave(self._proxySlave)
-        
+
 
