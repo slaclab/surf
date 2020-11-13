@@ -139,7 +139,7 @@ class _Regs(pr.Device):
 
 class _ProxySlave(rogue.interfaces.memory.Slave):
 
-    def __init__(self, regs)):
+    def __init__(self, regs):
         super().__init__(min=4, max=4)
         self._regs = regs
 
