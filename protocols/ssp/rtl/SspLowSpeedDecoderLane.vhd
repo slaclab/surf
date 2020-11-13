@@ -40,6 +40,7 @@ entity SspLowSpeedDecoderLane is
       lockingCntCfg  : in  slv(23 downto 0);
       bypFirstBerDet : in  sl;
       polarity       : in  sl;
+      bitOrder       : in  slv(1 downto 0);
       errorDet       : out sl;
       bitSlip        : out sl;
       locked         : out sl;
@@ -102,16 +103,18 @@ begin
          SLAVE_WIDTH_G  => 8,
          MASTER_WIDTH_G => ENCODE_WIDTH_C)
       port map (
-         clk         => clk,
-         rst         => reset,
-         slip        => slip,
+         clk            => clk,
+         rst            => reset,
+         slip           => slip,
          -- Slave Interface
-         slaveValid  => '1',
-         slaveData   => deserDataMask,
+         slaveValid     => '1',
+         slaveData      => deserDataMask,
+         slaveBitOrder  => bitOrder(0),
          -- Master Interface
-         masterValid => encodeValid,
-         masterData  => encodeData,
-         masterReady => '1');
+         masterValid    => encodeValid,
+         masterData     => encodeData,
+         masterReady    => '1',
+         masterBitOrder => bitOrder(1));
 
    U_GearboxAligner : entity surf.SelectIoRxGearboxAligner
       generic map (

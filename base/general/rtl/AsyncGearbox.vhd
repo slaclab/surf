@@ -19,18 +19,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity AsyncGearbox is
-
    generic (
       TPD_G                : time     := 1 ns;
       SLAVE_WIDTH_G        : positive;
-      SLAVE_BIT_REVERSE_G  : boolean := false;
+      SLAVE_BIT_REVERSE_G  : boolean  := false;
       MASTER_WIDTH_G       : positive;
-      MASTER_BIT_REVERSE_G : boolean := false;
+      MASTER_BIT_REVERSE_G : boolean  := false;
       -- Pipelining generics
       INPUT_PIPE_STAGES_G  : natural  := 0;
       OUTPUT_PIPE_STAGES_G : natural  := 0;
@@ -38,25 +36,22 @@ entity AsyncGearbox is
       FIFO_MEMORY_TYPE_G   : string   := "distributed";
       FIFO_ADDR_WIDTH_G    : positive := 4);
    port (
-      slaveClk : in sl;
-      slaveRst : in sl;
-
-      -- input side data and flow control
-      slaveData  : in  slv(SLAVE_WIDTH_G-1 downto 0);
-      slaveValid : in  sl := '1';
-      slaveReady : out sl;
-
-      -- sequencing and slip
-      slip : in sl := '0';
-
-      masterClk : in sl;
-      masterRst : in sl;
-
-      -- output side data and flow control
-      masterData  : out slv(MASTER_WIDTH_G-1 downto 0);
-      masterValid : out sl;
-      masterReady : in  sl := '1');
-
+      -- input side data and flow control (slaveClk domain)
+      slaveClk       : in  sl;
+      slaveRst       : in  sl;
+      slaveData      : in  slv(SLAVE_WIDTH_G-1 downto 0);
+      slaveValid     : in  sl := '1';
+      slaveReady     : out sl;
+      slaveBitOrder  : in  sl := ite(SLAVE_BIT_REVERSE_G, '1', '0');
+      -- sequencing and slip (ASYNC input)
+      slip           : in  sl := '0';
+      -- output side data and flow control (masterClk domain)
+      masterClk      : in  sl;
+      masterRst      : in  sl;
+      masterData     : out slv(MASTER_WIDTH_G-1 downto 0);
+      masterValid    : out sl;
+      masterReady    : in  sl := '1';
+      masterBitOrder : in  sl := ite(MASTER_BIT_REVERSE_G, '1', '0'));
 end entity AsyncGearbox;
 
 architecture mapping of AsyncGearbox is
@@ -66,15 +61,17 @@ architecture mapping of AsyncGearbox is
    signal fastClk : sl;
    signal fastRst : sl;
 
-   signal gearboxDataIn   : slv(SLAVE_WIDTH_G-1 downto 0);
-   signal gearboxValidIn  : sl;
-   signal gearboxReadyIn  : sl;
-   signal gearboxDataOut  : slv(MASTER_WIDTH_G-1 downto 0);
-   signal gearboxValidOut : sl;
-   signal gearboxReadyOut : sl;
-   signal gearboxSlip     : sl;
-   signal almostFull      : sl;
-   signal writeEnable     : sl;
+   signal gearboxDataIn         : slv(SLAVE_WIDTH_G-1 downto 0);
+   signal gearboxValidIn        : sl;
+   signal gearboxReadyIn        : sl;
+   signal gearboxDataOut        : slv(MASTER_WIDTH_G-1 downto 0);
+   signal gearboxValidOut       : sl;
+   signal gearboxReadyOut       : sl;
+   signal gearboxSlip           : sl;
+   signal gearboxSlaveBitOrder  : sl;
+   signal gearboxMasterBitOrder : sl;
+   signal almostFull            : sl;
+   signal writeEnable           : sl;
 
 begin
 
@@ -89,6 +86,24 @@ begin
          rst     => fastRst,            -- [in]
          dataIn  => slip,               -- [in]
          dataOut => gearboxSlip);       -- [out]
+
+   U_slaveBitOrder : entity surf.Synchronizer
+      generic map (
+         TPD_G  => TPD_G,
+         INIT_G => ite(SLAVE_BIT_REVERSE_G, "11", "00"))
+      port map (
+         clk     => fastClk,
+         dataIn  => slaveBitOrder,
+         dataOut => gearboxSlaveBitOrder);
+
+   U_masterBitOrder : entity surf.Synchronizer
+      generic map (
+         TPD_G  => TPD_G,
+         INIT_G => ite(MASTER_BIT_REVERSE_G, "11", "00"))
+      port map (
+         clk     => fastClk,
+         dataIn  => masterBitOrder,
+         dataOut => gearboxMasterBitOrder);
 
    SLAVE_FIFO_GEN : if (not SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity surf.FifoAsync
@@ -142,15 +157,17 @@ begin
          MASTER_WIDTH_G       => MASTER_WIDTH_G,
          MASTER_BIT_REVERSE_G => MASTER_BIT_REVERSE_G)
       port map (
-         clk         => fastClk,          -- [in]
-         rst         => fastRst,          -- [in]
-         slaveData   => gearboxDataIn,    -- [in]
-         slaveValid  => gearboxValidIn,   -- [in]
-         slaveReady  => gearboxReadyIn,   -- [out]
-         masterData  => gearboxDataOut,   -- [out]
-         masterValid => gearboxValidOut,  -- [out]
-         masterReady => gearboxReadyOut,  -- [in]
-         slip        => gearboxSlip);     -- [in]
+         clk            => fastClk,                -- [in]
+         rst            => fastRst,                -- [in]
+         slaveData      => gearboxDataIn,          -- [in]
+         slaveValid     => gearboxValidIn,         -- [in]
+         slaveReady     => gearboxReadyIn,         -- [out]
+         slaveBitOrder  => gearboxSlaveBitOrder,   -- [in]
+         masterData     => gearboxDataOut,         -- [out]
+         masterValid    => gearboxValidOut,        -- [out]
+         masterReady    => gearboxReadyOut,        -- [in]
+         masterBitOrder => gearboxMasterBitOrder,  -- [in]
+         slip           => gearboxSlip);           -- [in]
 
    MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity surf.FifoAsync
@@ -162,15 +179,15 @@ begin
             PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
          port map (
-            rst         => fastRst,          -- [in]
-            wr_clk      => fastClk,          -- [in]
-            wr_en       => writeEnable,      -- [in]
-            din         => gearboxDataOut,   -- [in]
-            almost_full => almostFull,       -- [out]
-            rd_clk      => masterClk,        -- [in]
-            rd_en       => masterReady,      -- [in]
-            dout        => masterData,       -- [out]
-            valid       => masterValid);     -- [out]
+            rst         => fastRst,         -- [in]
+            wr_clk      => fastClk,         -- [in]
+            wr_en       => writeEnable,     -- [in]
+            din         => gearboxDataOut,  -- [in]
+            almost_full => almostFull,      -- [out]
+            rd_clk      => masterClk,       -- [in]
+            rd_en       => masterReady,     -- [in]
+            dout        => masterData,      -- [out]
+            valid       => masterValid);    -- [out]
       gearboxReadyOut <= not(almostFull);
       writeEnable     <= gearboxValidOut and not(almostFull);
    end generate MASTER_FIFO_GEN;

@@ -19,37 +19,33 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity Gearbox is
-
    generic (
-      TPD_G                : time := 1 ns;
+      TPD_G                : time    := 1 ns;
       SLAVE_BIT_REVERSE_G  : boolean := false;
       SLAVE_WIDTH_G        : positive;
       MASTER_BIT_REVERSE_G : boolean := false;
       MASTER_WIDTH_G       : positive);
-
    port (
-      clk : in sl;
-      rst : in sl;
-
+      -- Clock and Reset
+      clk            : in  sl;
+      rst            : in  sl;
       -- input side data and flow control
-      slaveData  : in  slv(SLAVE_WIDTH_G-1 downto 0);
-      slaveValid : in  sl := '1';
-      slaveReady : out sl;
-
+      slaveData      : in  slv(SLAVE_WIDTH_G-1 downto 0);
+      slaveValid     : in  sl := '1';
+      slaveReady     : out sl;
+      slaveBitOrder  : in  sl := ite(SLAVE_BIT_REVERSE_G, '1', '0');
       -- sequencing and slip
-      startOfSeq : in sl := '0';
-      slip       : in sl := '0';
-
+      startOfSeq     : in  sl := '0';
+      slip           : in  sl := '0';
       -- output side data and flow control
-      masterData  : out slv(MASTER_WIDTH_G-1 downto 0);
-      masterValid : out sl;
-      masterReady : in  sl := '1');
-
+      masterData     : out slv(MASTER_WIDTH_G-1 downto 0);
+      masterValid    : out sl;
+      masterReady    : in  sl := '1';
+      masterBitOrder : in  sl := ite(MASTER_BIT_REVERSE_G, '1', '0'));
 end entity Gearbox;
 
 architecture rtl of Gearbox is
@@ -80,7 +76,8 @@ architecture rtl of Gearbox is
 
 begin
 
-   comb : process (slaveData, r, masterReady, rst, slip, startOfSeq, slaveValid) is
+   comb : process (masterBitOrder, masterReady, r, rst, slaveBitOrder,
+                   slaveData, slaveValid, slip, startOfSeq) is
       variable v : RegType;
    begin
       v := r;
@@ -98,12 +95,11 @@ begin
          v.writeIndex := r.writeIndex - 1;
       end if;
 
-
       -- Only do anything if ready for data output
       if (v.masterValid = '0') then
 
          -- If current write index (assigned last cycle) is greater than output width,
-         -- then we have to shift down before assinging an new input
+         -- then we have to shift down before assigning an new input
          if (v.writeIndex >= MASTER_WIDTH_G) then
             v.shiftReg   := slvZero(MASTER_WIDTH_G) & r.shiftReg(SHIFT_WIDTH_C-1 downto MASTER_WIDTH_G);
             v.writeIndex := v.writeIndex - MASTER_WIDTH_G;
@@ -128,8 +124,8 @@ begin
          -- Accept the input word
          v.slaveReady := '1';
 
-         -- Assign incomming data at proper location in shift reg
-         if SLAVE_BIT_REVERSE_G then
+         -- Assign incoming data at proper location in shift reg
+         if (slaveBitOrder = '1') then
             v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := bitReverse(slaveData);
          else
             v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
@@ -154,10 +150,10 @@ begin
       rin <= v;
 
       masterValid <= r.masterValid;
-      if MASTER_BIT_REVERSE_G then
-         masterData  <= bitReverse(r.shiftReg(MASTER_WIDTH_G-1 downto 0));
+      if (masterBitOrder = '1') then
+         masterData <= bitReverse(r.shiftReg(MASTER_WIDTH_G-1 downto 0));
       else
-         masterData  <= r.shiftReg(MASTER_WIDTH_G-1 downto 0);
+         masterData <= r.shiftReg(MASTER_WIDTH_G-1 downto 0);
       end if;
 
    end process comb;
@@ -169,4 +165,4 @@ begin
       end if;
    end process sync;
 
-end  rtl;
+end rtl;
