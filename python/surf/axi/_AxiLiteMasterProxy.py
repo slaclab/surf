@@ -164,5 +164,3 @@ class AxiLiteMasterProxy(pr.Device):
         if isinstance(node, pr.Device):
             if node._memBase is None:
                 node._setSlave(self._proxySlave)
-
-
