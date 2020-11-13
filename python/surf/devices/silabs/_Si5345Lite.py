@@ -101,8 +101,7 @@ class Si5345Lite(pr.Device):
 
                         9,  silabs.Si5345Page9(offset=(0x900<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x2400 - 0x27FF
                         10, silabs.Si5345PageA(offset=(0xA00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x2800 - 0x2BFF
-                        11, silabs.Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x2C00 - 0x2FFF
-                      }
+                        11, silabs.Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser,liteVersion=liteVersion),  # 0x2C00 - 0x2FFF }
 
         # Add Pages
         for k,v in self._pages.items():
