@@ -78,13 +78,13 @@ class Si5345Page0(Si5345PageBase):
             offset       = (0x04 << 2),
             bitSize      = 2,
             mode         = 'RO',
-            enum        = {
+            enum         = {
                 0x0: 'A',
                 0x1: 'B',
                 0x2: 'C',
                 0x3: 'D',
             },
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -93,13 +93,13 @@ class Si5345Page0(Si5345PageBase):
             offset       = (0x05 << 2),
             bitSize      = 2,
             mode         = 'RO',
-            enum        = {
+            enum         = {
                 0x0: 'A',
                 0x1: 'B',
                 0x2: 'C',
                 0x3: 'D',
             },
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -158,39 +158,39 @@ class Si5345Page0(Si5345PageBase):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'SYSINCAL',
-            description = '1 if the device is calibrating.',
-            offset      = (0x0C << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 0,
-            mode        = 'RO',
+            name         = 'SYSINCAL',
+            description  = '1 if the device is calibrating.',
+            offset       = (0x0C << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'LOSXAXB',
-            description = '1 if there is no signal at the XAXB pins.',
-            offset      = (0x0C << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 1,
-            mode        = 'RO',
+            name         = 'LOSXAXB',
+            description  = '1 if there is no signal at the XAXB pins.',
+            offset       = (0x0C << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'XAXB_ERR',
-            description = '1 if there is a problem locking to the XAXB input signal.',
-            offset      = (0x0C << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 3,
-            mode        = 'RO',
+            name         = 'XAXB_ERR',
+            description  = '1 if there is a problem locking to the XAXB input signal.',
+            offset       = (0x0C << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 3,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -206,61 +206,61 @@ class Si5345Page0(Si5345PageBase):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'LOS',
-            description = '1 if the clock input is currently LOS',
-            offset      = (0x0D << 2),
-            bitSize     = 4,
-            bitOffset   = 0,
-            mode        = 'RO',
+            name         = 'LOS',
+            description  = '1 if the clock input is currently LOS',
+            offset       = (0x0D << 2),
+            bitSize      = 4,
+            bitOffset    = 0,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'OOF',
-            description = '1 if the clock input is currently OOF',
-            offset      = (0x0D << 2),
-            bitSize     = 4,
-            bitOffset   = 4,
-            mode        = 'RO',
+            name         = 'OOF',
+            description  = '1 if the clock input is currently OOF',
+            offset       = (0x0D << 2),
+            bitSize      = 4,
+            bitOffset    = 4,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'LOL',
-            description = '1 if the DSPLL is out of lock',
-            offset      = (0x0E << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 1,
-            mode        = 'RO',
+            name         = 'LOL',
+            description  = '1 if the DSPLL is out of lock',
+            offset       = (0x0E << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'HOLD',
-            description = '1 if the DSPLL is in holdover (or free run)',
-            offset      = (0x0E << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 5,
-            mode        = 'RO',
+            name         = 'HOLD',
+            description  = '1 if the DSPLL is in holdover (or free run)',
+            offset       = (0x0E << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 5,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'CAL_PLL',
-            description = '1 if the DSPLL internal calibration is busy',
-            offset      = (0x0F << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 5,
-            mode        = 'RO',
+            name         = 'CAL_PLL',
+            description  = '1 if the DSPLL internal calibration is busy',
+            offset       = (0x0F << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 5,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteCommand(
@@ -269,43 +269,43 @@ class Si5345Page0(Si5345PageBase):
             offset       = (0x11 << 2),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(0),
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'SYSINCAL_FLG',
-            description = 'Sticky version of SYSINCAL. Write a 0 to this bit to clear.',
-            offset      = (0x11 << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 0,
-            mode        = 'RO',
+            name         = 'SYSINCAL_FLG',
+            description  = 'Sticky version of SYSINCAL. Write a 0 to this bit to clear.',
+            offset       = (0x11 << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'LOSXAXB_FLG',
-            description = 'Sticky version of LOSXAXB. Write a 0 to this bit to clear.',
-            offset      = (0x11 << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 1,
-            mode        = 'RO',
+            name         = 'LOSXAXB_FLG',
+            description  = 'Sticky version of LOSXAXB. Write a 0 to this bit to clear.',
+            offset       = (0x11 << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'XAXB_ERR_FLG',
-            description = 'Sticky version of XAXB_ERR. Write a 0 to this bit to clear.',
-            offset      = (0x11 << 2),
-            base        = pr.Bool,
-            bitSize     = 1,
-            bitOffset   = 3,
-            mode        = 'RO',
+            name         = 'XAXB_ERR_FLG',
+            description  = 'Sticky version of XAXB_ERR. Write a 0 to this bit to clear.',
+            offset       = (0x11 << 2),
+            base         = pr.Bool,
+            bitSize      = 1,
+            bitOffset    = 3,
+            mode         = 'RO',
             pollInterval = 1,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -428,9 +428,9 @@ class Si5345Page0(Si5345PageBase):
             bitSize     = 2,
             bitOffset   = 6,
             mode        = 'WO',
-            value        = 0x3,
-            hidden       = True,
-            verify       = False,
+            value       = 0x3,
+            hidden      = True,
+            verify      = False,
             overlapEn   = True,
         ))
 
@@ -498,9 +498,8 @@ class Si5345Page0(Si5345PageBase):
             offset       = (0x1C << 2),
             bitSize      = 1,
             bitOffset    = 0,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteCommand(
@@ -509,9 +508,8 @@ class Si5345Page0(Si5345PageBase):
             offset       = (0x1C << 2),
             bitSize      = 1,
             bitOffset    = 2,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteCommand(
@@ -565,7 +563,7 @@ class Si5345Page0(Si5345PageBase):
             bitSize      = 1,
             bitOffset    = 2,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -699,7 +697,7 @@ class Si5345Page0(Si5345PageBase):
             offset       = (0x40 << 2),
             bitSize      = 3,
             mode         = 'RO',
-            enum        = {
+            enum         = {
                 0x0: 'CLKIN0',
                 0x1: 'CLKIN1',
                 0x2: 'CLKIN2',
@@ -709,7 +707,7 @@ class Si5345Page0(Si5345PageBase):
                 0x6: 'UNDEFINED_0x6',
                 0x7: 'UNDEFINED_0x7',
             },
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         for i in range(4):
@@ -2046,9 +2044,8 @@ class Si5345Page3(Si5345PageBase):
             offset       = (0x0C << 2),
             bitSize      = 1,
             bitOffset    = 0,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         for i in range(6):
@@ -2077,9 +2074,8 @@ class Si5345Page3(Si5345PageBase):
             offset       = (0x17 << 2),
             bitSize      = 1,
             bitOffset    = 0,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         for i in range(6):
@@ -2108,9 +2104,8 @@ class Si5345Page3(Si5345PageBase):
             offset       = (0x22 << 2),
             bitSize      = 1,
             bitOffset    = 0,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         for i in range(6):
@@ -2139,9 +2134,8 @@ class Si5345Page3(Si5345PageBase):
             offset       = (0x2D << 2),
             bitSize      = 1,
             bitOffset    = 0,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         for i in range(6):
@@ -2170,9 +2164,8 @@ class Si5345Page3(Si5345PageBase):
             offset       = (0x38 << 2),
             bitSize      = 1,
             bitOffset    = 0,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteCommand(
@@ -2181,9 +2174,8 @@ class Si5345Page3(Si5345PageBase):
             offset       = (0x38 << 2),
             bitSize      = 1,
             bitOffset    = 1,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2310,6 +2302,17 @@ class Si5345Page5(Si5345PageBase):
             **kwargs):
         super().__init__(name=name, description=description, **kwargs)
 
+        self.add(pr.RemoteCommand(
+            name         = "BW_UPDATE_PLL",
+            description  = "Must be set to 1 to update the BWx_PLL and FAST_BWx_PLL parameters",
+            offset       = (0x14 << 2),
+            bitSize      = 1,
+            bitOffset    = 0,
+            hidden       = True,
+            function     = pr.BaseCommand.toggle,
+            overlapEn    = True,
+        ))
+
         if liteVersion:
             return
 
@@ -2353,17 +2356,6 @@ class Si5345Page5(Si5345PageBase):
                 overlapEn   = True,
             ))
 
-        self.add(pr.RemoteCommand(
-            name         = "BW_UPDATE_PLL",
-            description  = "Must be set to 1 to update the BWx_PLL and FAST_BWx_PLL parameters",
-            offset       = (0x14 << 2),
-            bitSize      = 1,
-            bitOffset    = 0,
-            # hidden       = True,
-            function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
-        ))
-
         for i in range(7):
             self.add(pr.RemoteVariable(
                 name        = f'M_NUM[{i}]',
@@ -2390,9 +2382,8 @@ class Si5345Page5(Si5345PageBase):
             offset       = (0x20 << 2),
             bitSize      = 1,
             bitOffset    = 0,
-            # hidden       = True,
             function     = pr.BaseCommand.toggle,
-            overlapEn   = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -2402,9 +2393,9 @@ class Si5345Page5(Si5345PageBase):
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'WO',
-            value        = 0xB,
-            hidden       = True,
-            verify       = False,
+            value       = 0xB,
+            hidden      = True,
+            verify      = False,
             overlapEn   = True,
         ))
 
@@ -2423,13 +2414,12 @@ class Si5345Page5(Si5345PageBase):
             name        = 'M_FRAC_RESERVED',
             description = 'Must be set to 1 for DSPLL B',
             offset      = (0x21 << 2),
-            # base        = pr.Bool,
             bitSize     = 1,
             bitOffset   = 5,
             mode        = 'WO',
-            value        = 0x1,
-            hidden       = True,
-            verify       = False,
+            value       = 0x1,
+            hidden      = True,
+            verify      = False,
             overlapEn   = True,
         ))
 
