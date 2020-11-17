@@ -19,5 +19,4 @@ from surf.axi._AxiVersionLegacy             import *
 from surf.axi._AxiStreamDmaFifo             import *
 from surf.axi._AxiStreamDmaV2               import *
 from surf.axi._AxiStreamScatterGather       import *
-from surf.axi._AxiLiteMasterProxy           import *
 
