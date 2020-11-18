@@ -38,6 +38,8 @@ entity Pgp3Core is
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_PGP_MON_G                : boolean               := true;
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
       -- Tx User interface
@@ -163,8 +165,8 @@ begin
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
             WRITE_EN_G         => true,
-            STATUS_CNT_WIDTH_G => 16,
-            ERROR_CNT_WIDTH_G  => 8,
+            STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+            ERROR_CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (
             pgpTxClk        => pgpTxClk,         -- [in]
