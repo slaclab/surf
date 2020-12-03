@@ -52,6 +52,8 @@ entity Pgp3GthUs is
       EN_PGP_MON_G                : boolean               := false;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
@@ -205,6 +207,8 @@ begin
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
          EN_PGP_MON_G                => EN_PGP_MON_G,
+         STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+         ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
