@@ -17,6 +17,8 @@ var classPgp3GthUs =
     [ "EN_PGP_MON_G", "classPgp3GthUs.html#ac4a570cc883dbcf4bd11c50a93bfd190", null ],
     [ "TX_POLARITY_G", "classPgp3GthUs.html#a6f84bc5a7ad8afb07acc85c679296a49", null ],
     [ "RX_POLARITY_G", "classPgp3GthUs.html#a7371621fe50124bfc5c566d007efbd54", null ],
+    [ "STATUS_CNT_WIDTH_G", "classPgp3GthUs.html#a3605a36452b6e0f12b4999c8844a1888", null ],
+    [ "ERROR_CNT_WIDTH_G", "classPgp3GthUs.html#abfd691800a558fbc2f377e7c01316391", null ],
     [ "AXIL_BASE_ADDR_G", "classPgp3GthUs.html#ae1903f9ae02f4ffed7c029858fbcae3b", null ],
     [ "AXIL_CLK_FREQ_G", "classPgp3GthUs.html#aa8c313950fb63b06b58f786459dbf499", null ],
     [ "stableClk", "classPgp3GthUs.html#a99bde91ce6737f250f72c51ea41e8bc4", null ],

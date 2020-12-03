@@ -23,6 +23,8 @@ var classPgp3Gtx7Wrapper =
     [ "EN_QPLL_DRP_G", "classPgp3Gtx7Wrapper.html#a8df4e3e9cbc62b52a3f593c4c3877d62", null ],
     [ "TX_POLARITY_G", "classPgp3Gtx7Wrapper.html#acaf868b533291869c286dad2a808c878", null ],
     [ "RX_POLARITY_G", "classPgp3Gtx7Wrapper.html#a7bf9875806dee5949bc255deda69e251", null ],
+    [ "STATUS_CNT_WIDTH_G", "classPgp3Gtx7Wrapper.html#a3605a36452b6e0f12b4999c8844a1888", null ],
+    [ "ERROR_CNT_WIDTH_G", "classPgp3Gtx7Wrapper.html#abfd691800a558fbc2f377e7c01316391", null ],
     [ "AXIL_BASE_ADDR_G", "classPgp3Gtx7Wrapper.html#ae1903f9ae02f4ffed7c029858fbcae3b", null ],
     [ "AXIL_CLK_FREQ_G", "classPgp3Gtx7Wrapper.html#a073ff796d69f24757efa7131691bd12f", null ],
     [ "stableClk", "classPgp3Gtx7Wrapper.html#a99bde91ce6737f250f72c51ea41e8bc4", null ],

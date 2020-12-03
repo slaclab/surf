@@ -6,7 +6,7 @@ var classI2cRegSlave =
     [ "I2C_ADDR_G", "classI2cRegSlave.html#af58f7d37c36907dbab47040e8b9a5fe4", null ],
     [ "OUTPUT_EN_POLARITY_G", "classI2cRegSlave.html#a9197cd9ca88ec5d98ea985237382910f", null ],
     [ "FILTER_G", "classI2cRegSlave.html#a8de4c0a3412b7cc5681a9b05107dd7ed", null ],
-    [ "ADDR_SIZE_G", "classI2cRegSlave.html#a18d2bc58dc5f5e7fdcccb83b1fede9c0", null ],
+    [ "ADDR_SIZE_G", "classI2cRegSlave.html#aab1201d87084a32fc54576ec42953af7", null ],
     [ "DATA_SIZE_G", "classI2cRegSlave.html#a258062e61b5687b8209964c9e80423a5", null ],
     [ "ENDIANNESS_G", "classI2cRegSlave.html#a982b3269d63d5e559841877df1b08373", null ],
     [ "sRst", "classI2cRegSlave.html#a3ccc5de0f00387e13621146b58d57de7", null ],

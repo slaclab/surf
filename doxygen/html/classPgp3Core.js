@@ -13,6 +13,8 @@ var classPgp3Core =
     [ "TX_MUX_ILEAVE_EN_G", "classPgp3Core.html#a5da3374632058cd1ac075f2525f82d1c", null ],
     [ "TX_MUX_ILEAVE_ON_NOTVALID_G", "classPgp3Core.html#a8820f36609419eb52063f79de565b779", null ],
     [ "EN_PGP_MON_G", "classPgp3Core.html#a57e37595a9aa611718ca4ed5f6467930", null ],
+    [ "STATUS_CNT_WIDTH_G", "classPgp3Core.html#a3605a36452b6e0f12b4999c8844a1888", null ],
+    [ "ERROR_CNT_WIDTH_G", "classPgp3Core.html#abfd691800a558fbc2f377e7c01316391", null ],
     [ "AXIL_CLK_FREQ_G", "classPgp3Core.html#aa8c313950fb63b06b58f786459dbf499", null ],
     [ "pgpTxClk", "classPgp3Core.html#adc3581aed6013ad7345d41131725a335", null ],
     [ "pgpTxRst", "classPgp3Core.html#aa620c079f8d83b9df31debf351ac380a", null ],

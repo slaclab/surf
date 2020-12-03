@@ -21,11 +21,13 @@
 <area shape="rect" id="node15" href="$classSynchronizerOneShot.html" title=" " alt="" coords="373,360,552,387"/>
 <area shape="rect" id="node18" href="$classSynchronizerOneShotCnt.html" title=" " alt="" coords="796,208,979,235"/>
 <area shape="rect" id="node20" href="$classSyncClockFreq.html" title=" " alt="" coords="820,132,955,159"/>
-<area shape="rect" id="node23" href="$classPgp3GthUs.html" title=" " alt="" coords="1763,119,1857,145"/>
-<area shape="rect" id="node25" href="$classPgp3Gtp7.html" title=" " alt="" coords="1767,169,1853,196"/>
-<area shape="rect" id="node28" href="$classPgp3Gtx7.html" title=" " alt="" coords="1767,220,1853,247"/>
-<area shape="rect" id="node24" href="$classPgp3GthUsWrapper.html" title=" " alt="" coords="1905,119,2055,145"/>
-<area shape="rect" id="node26" href="$classPgp3Gtp7Wrapper.html" title=" " alt="" coords="1910,169,2050,196"/>
-<area shape="rect" id="node27" href="$classPgp3Gtp7Tb.html" title=" " alt="" coords="2103,169,2204,196"/>
-<area shape="rect" id="node29" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="1910,220,2050,247"/>
+<area shape="rect" id="node23" href="$classPgp3GthUs.html" title=" " alt="" coords="1763,93,1857,120"/>
+<area shape="rect" id="node25" href="$classPgp3Gtp7.html" title=" " alt="" coords="1767,144,1853,171"/>
+<area shape="rect" id="node28" href="$classPgp3Gtx7.html" title=" " alt="" coords="1767,195,1853,221"/>
+<area shape="rect" id="node30" href="$classPgp3GtyUs.html" title=" " alt="" coords="1763,245,1857,272"/>
+<area shape="rect" id="node24" href="$classPgp3GthUsWrapper.html" title=" " alt="" coords="1905,93,2055,120"/>
+<area shape="rect" id="node26" href="$classPgp3Gtp7Wrapper.html" title=" " alt="" coords="1910,144,2050,171"/>
+<area shape="rect" id="node27" href="$classPgp3Gtp7Tb.html" title=" " alt="" coords="2103,144,2204,171"/>
+<area shape="rect" id="node29" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="1910,195,2050,221"/>
+<area shape="rect" id="node31" href="$classPgp3GtyUsWrapper.html" title=" " alt="" coords="1905,245,2055,272"/>
 </map>

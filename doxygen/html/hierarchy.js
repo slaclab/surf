@@ -755,6 +755,9 @@ var hierarchy =
       [ "GtpTxPhaseAligner", "classGtpTxPhaseAligner.html", null ],
       [ "Gtp7QuadPll", "classGtp7QuadPll.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
+      [ "HammingEccEncoder", "classHammingEccEncoder.html", null ],
+      [ "HammingEccDecoder", "classHammingEccDecoder.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
       [ "Heartbeat", "classHeartbeat.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "I2cRegMaster", "classI2cRegMaster.html", null ],
@@ -1036,6 +1039,22 @@ var hierarchy =
         [ "Pgp3Core", "classPgp3Core.html", null ],
         [ "Pgp3Gtx7IpWrapper", "classPgp3Gtx7IpWrapper.html", [
           [ "ClockManager7", "classClockManager7.html", null ],
+          [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
+        ] ]
+      ] ],
+      [ "RoguePgp3Sim", "classRoguePgp3Sim.html", null ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "Pgp3GtyUsQpll", "classPgp3GtyUsQpll.html", [
+        [ "PwrUpRst", "classPwrUpRst.html", null ],
+        [ "GtyUltraScaleQuadPll", "classGtyUltraScaleQuadPll.html", [
+          [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
+        ] ]
+      ] ],
+      [ "Pgp3GtyUs", "classPgp3GtyUs.html", [
+        [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+        [ "Pgp3Core", "classPgp3Core.html", null ],
+        [ "Pgp3GtyUsIpWrapper", "classPgp3GtyUsIpWrapper.html", [
+          [ "RstSync", "classRstSync.html", null ],
           [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
         ] ]
       ] ],
@@ -1372,9 +1391,7 @@ var hierarchy =
       ] ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
       [ "TenGigEthGtyUltraScaleClk", "classTenGigEthGtyUltraScaleClk.html", [
-        [ "GtyUltraScaleQuadPll", "classGtyUltraScaleQuadPll.html", [
-          [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
-        ] ]
+        [ "GtyUltraScaleQuadPll", "classGtyUltraScaleQuadPll.html", null ]
       ] ],
       [ "TenGigEthGtyUltraScale", "classTenGigEthGtyUltraScale.html", [
         [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
