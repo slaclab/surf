@@ -169,8 +169,6 @@ jobs:
         run: |
           export PATH="${HOME}/miniconda/bin:$PATH"
           source ${HOME}/miniconda/etc/profile.d/conda.sh
-          echo "CONDA_BUILD_SYSROOT=$CONDA_BUILD_SYSROOT"
-          echo "CONDA_BUILD=$CONDA_BUILD"
           conda build --debug conda-recipe --output-folder bld-dir -c tidair-tag -c tidair-packages -c conda-forge
           anaconda -t ${{ steps.get_image_info.outputs.token }} upload bld-dir/${{ steps.get_image_info.outputs.os }}/*.tar.bz2
 
