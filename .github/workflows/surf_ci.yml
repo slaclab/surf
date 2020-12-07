@@ -90,7 +90,7 @@ jobs:
 
   conda_build:
     name: Anaconda Build
-    needs: [full_build_test, small_build_test]
+    needs: [test_and_document]
     if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'
     strategy:
       matrix:
