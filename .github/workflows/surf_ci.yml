@@ -21,7 +21,7 @@ jobs:
 
   test_and_document:
     name: Test And Generate Documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
       # This step checks out a copy of your repository.
@@ -62,7 +62,7 @@ jobs:
 
   gen_release:
     name: Generate Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [test_and_document]
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -101,7 +101,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-20.04
           - macos-10.15
     runs-on: ${{ matrix.os }}
     steps:
