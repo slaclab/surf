@@ -33,6 +33,12 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz ghdl
+          python -m pip install --upgrade pip
+          pip install flake8
+
       - name: VHDL Syntax Check
         run: |
           make
