@@ -21,7 +21,7 @@ jobs:
 
   test_and_document:
     name: Test And Generate Documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
       # This step checks out a copy of your repository.
@@ -33,6 +33,12 @@ jobs:
         with:
           python-version: 3.8
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz ghdl
+          python -m pip install --upgrade pip
+          pip install flake8
+
       - name: VHDL Syntax Check
         run: |
           make
@@ -41,6 +47,9 @@ jobs:
       - name: Python Syntax Check
         run: |
           python3 -m compileall -f python/
+          ls -l .flake8
+          flake8 --version
+          flake8 -h
           flake8 --count python/
 
       - name: Generate Documentation
@@ -56,7 +65,7 @@ jobs:
 
   gen_release:
     name: Generate Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [test_and_document]
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -90,12 +99,12 @@ jobs:
 
   conda_build:
     name: Anaconda Build
-    needs: [full_build_test, small_build_test]
+    needs: [test_and_document]
     if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-20.04
           - macos-10.15
     runs-on: ${{ matrix.os }}
     steps:
