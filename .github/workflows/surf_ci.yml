@@ -171,7 +171,7 @@ jobs:
               echo ::set-output name=os::linux-64
           fi
 
-      - name: Build And Upload Rogue
+      - name: Build And Upload Surf
         run: |
           export PATH="${HOME}/miniconda/bin:$PATH"
           source ${HOME}/miniconda/etc/profile.d/conda.sh
