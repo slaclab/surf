@@ -107,7 +107,7 @@ class McsReader():
                         elif recordType == 0: # Data RecordType
 
                             if byteCount == 0:
-                                click.secho('\nInvalid byte count: {:d} for recordType: {d}'.format(byteCount, recordType), fg='red')
+                                click.secho(f'\nInvalid byte count: {byteCount} for recordType: {recordType}', fg='red')
                                 raise McsException('McsReader.open(): failed')
                             for j in range(byteCount):
                                 # Put the address and data into a list
@@ -125,7 +125,7 @@ class McsReader():
                         elif recordType == 4: #Extended Linear Address RecordType
                             # Check for an invalid byte count
                             if byteCount != 2:
-                                click.secho('\nMcsReader.open():Byte count: {:d} must be 2 for ELA records'.format(byteCount), fg='red')
+                                click.secho(f'\nMcsReader.open():Byte count: {byteCount} must be 2 for ELA records', fg='red')
                                 raise McsException('McsReader.open(): failed')
                             # Check for an invalid address header
                             elif addr != 0:
