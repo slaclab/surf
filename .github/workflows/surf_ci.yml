@@ -46,7 +46,7 @@ jobs:
 
       - name: Python Syntax Check
         run: |
-          python3 -m compileall -f python/
+          python -m compileall -f python/
           flake8 --count python/
 
       - name: Generate Documentation
