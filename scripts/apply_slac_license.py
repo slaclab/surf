@@ -88,7 +88,7 @@ def updateFile(path,module,comment,log,script):
          break
 
    print ( "\n\nFile: %s\n" % (path) )
-   resp = str(raw_input("Update File (y/n): "))
+   resp = str(input("Update File (y/n): "))
 
    if resp == "y":
       log.write("Updated:  %s\n" % (src))
@@ -109,7 +109,8 @@ path   = sys.argv[1]
 logFile = open (path + "/apply_license_log.txt","w")
 
 # Copy license file
-shutil.copy("/afs/slac.stanford.edu/u/ey/rherbst/misc/LICENSE.txt",path + "/LICENSE.txt")
+baseDir = os.path.realpath(__file__).split('surf')[0]
+shutil.copy(baseDir+"surf/LICENSE.txt",path + "/LICENSE.txt")
 
 # Walk directories recursively
 for root,dirs,files in os.walk(path):
