@@ -246,7 +246,6 @@ begin
 
       v.dataDelaySet        := (others => '0');
       v.frameDelaySet       := '0';
-      v.axilReadSlave.rdata := (others => '0');
       v.lockedCountRst      := '0';
 
       -- Store last two samples read from ADC
