@@ -36,10 +36,10 @@ if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplusRFSOC} ||
      ${family} eq {qzynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUs+"
-   # loadRuckusTcl "$::DIR_PATH/gtyUs+"
+   loadRuckusTcl "$::DIR_PATH/gtyUs+"
 }
 
-# if { ${family} eq {virtexuplus} ||
-     # ${family} eq {virtexuplusHBM} } {
-   # loadRuckusTcl "$::DIR_PATH/gtyUs+"
-# }
+if { ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} } {
+   loadRuckusTcl "$::DIR_PATH/gtyUs+"
+}

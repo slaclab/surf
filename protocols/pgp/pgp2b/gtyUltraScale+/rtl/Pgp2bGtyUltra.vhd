@@ -43,7 +43,7 @@ entity Pgp2bGtyUltra is
       NUM_VC_EN_G       : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       stableRst        : in  sl;
       gtRefClk         : in  sl;
       -- Gt Serial IO
@@ -54,13 +54,13 @@ entity Pgp2bGtyUltra is
       -- Tx Clocking
       pgpTxReset       : in  sl;
       pgpTxResetDone   : out sl;
-      pgpTxOutClk      : out sl;                      -- recovered clock
+      pgpTxOutClk      : out sl;        -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
       pgpRxResetDone   : out sl;
-      pgpRxOutClk      : out sl;                      -- recovered clock
+      pgpRxOutClk      : out sl;        -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmLocked  : in  sl;
       -- Non VC Rx Signals
@@ -113,7 +113,7 @@ begin
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 125000000)
+         DURATION_G => 156250000)       -- 1 sec pulse
       port map (
          arst   => pgpTxIn.resetGt,     -- [in]
          clk    => stableClk,           -- [in]
@@ -124,17 +124,17 @@ begin
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 12500000)
+         PULSE_WIDTH_G => 156250)       -- 1 ms pulse
       port map (
-         clk     => stableClk,           -- [in]
-         dataIn  => phyRxInit,           -- [in]
-         dataOut => phyRxInitSync);      -- [out]
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => phyRxInitSync);     -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 125000000)
+         DURATION_G => 156250000)       -- 1 sec pulse
       port map (
          arst   => pgpRxIn.resetRx,     -- [in]
          clk    => stableClk,           -- [in]
@@ -145,7 +145,7 @@ begin
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 125000000)
+         DURATION_G => 156250000)       -- 1 sec pulse
       port map (
          arst   => pgpTxIn.resetTx,     -- [in]
          clk    => stableClk,           -- [in]
