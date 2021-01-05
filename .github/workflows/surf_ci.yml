@@ -35,6 +35,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz ghdl
           python -m pip install --upgrade pip
           pip install flake8
@@ -46,7 +47,7 @@ jobs:
 
       - name: Python Syntax Check
         run: |
-          python3 -m compileall -f python/
+          python -m compileall -f python/
           flake8 --count python/
 
       - name: Generate Documentation
@@ -88,7 +89,7 @@ jobs:
 
       - name: Gen Release
         env:
-          TRAVIS_REPO_SLUG: slaclab/surf
+          TRAVIS_REPO_SLUG: ${{ github.repository }}
           TRAVIS_TAG: ${{ steps.get_image_info.outputs.tag }}
           GH_REPO_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
@@ -171,7 +172,7 @@ jobs:
               echo ::set-output name=os::linux-64
           fi
 
-      - name: Build And Upload Rogue
+      - name: Build And Upload
         run: |
           export PATH="${HOME}/miniconda/bin:$PATH"
           source ${HOME}/miniconda/etc/profile.d/conda.sh
