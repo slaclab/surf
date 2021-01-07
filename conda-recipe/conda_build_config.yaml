@@ -1,0 +1,4 @@
+
+CONDA_BUILD_SYSROOT:
+   - /opt/MacOSX10.15.sdk        # [osx]
+

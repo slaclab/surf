@@ -18,6 +18,8 @@ import pyrogue as pr
 class Pgp2bAxi(pr.Device):
     def __init__(self,
                  description = "Configuration and status of a PGP link",
+                 statusCountBits = 32,
+                 errorCountBits  = 4,
                  writeEn = True,
                  **kwargs):
 
@@ -194,29 +196,29 @@ class Pgp2bAxi(pr.Device):
         ))
 
         countVars = [
-            "RxCellErrorCount",
-            "RxLinkDownCount",
-            "RxLinkErrorCount",
-            "RxRemOverflow0Count",
-            "RxRemOverflow1Count",
-            "RxRemOverflow2Count",
-            "RxRemOverflow3Count",
-            "RxFrameErrorCount",
-            "RxFrameCount",
-            "TxLocOverflow0Count",
-            "TxLocOverflow1Count",
-            "TxLocOverflow2Count",
-            "TxLocOverflow3Count",
-            "TxFrameErrorCount",
-            "TxFrameCount",
+            ["RxCellErrorCount",errorCountBits],
+            ["RxLinkDownCount",errorCountBits],
+            ["RxLinkErrorCount",errorCountBits],
+            ["RxRemOverflow0Count",errorCountBits],
+            ["RxRemOverflow1Count",errorCountBits],
+            ["RxRemOverflow2Count",errorCountBits],
+            ["RxRemOverflow3Count",errorCountBits],
+            ["RxFrameErrorCount",errorCountBits],
+            ["RxFrameCount",statusCountBits],
+            ["TxLocOverflow0Count",errorCountBits],
+            ["TxLocOverflow1Count",errorCountBits],
+            ["TxLocOverflow2Count",errorCountBits],
+            ["TxLocOverflow3Count",errorCountBits],
+            ["TxFrameErrorCount",errorCountBits],
+            ["TxFrameCount",statusCountBits],
         ]
 
-        for offset, name in enumerate(countVars):
+        for offset, idx in enumerate(countVars):
             self.add(pr.RemoteVariable(
-                name        = name,
+                name        = idx[0],
                 offset      = ((offset*4)+0x28),
                 disp        = '{:d}',
-                bitSize     = 32,
+                bitSize     = idx[1],
                 bitOffset   = 0,
                 mode        = "RO",
                 base        = pr.UInt,
@@ -227,7 +229,7 @@ class Pgp2bAxi(pr.Device):
             name        = "RxRemLinkReadyCount",
             offset      = 0x80,
             disp        = '{:d}',
-            bitSize     = 32,
+            bitSize     = errorCountBits,
             bitOffset   = 0,
             mode        = "RO",
             base        = pr.UInt,
