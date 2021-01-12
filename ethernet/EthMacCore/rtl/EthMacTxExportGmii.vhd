@@ -259,7 +259,7 @@ begin
                v.gmiiTxEn := '0';
                v.gmiiTxd  := x"00";
                v.txCount  := r.txCount +1;
-               if r.txCount = x"0A" then  -- 12 Octels (11 in INTERGAP_S + 1 in IDLE_S)
+               if r.txCount = x"0B" then  -- 13 Octels (12 in INTERGAP_S + 1 in IDLE_S) > 12 IFG requirement (1 extra cycle in case ethClk slightly < 125 MHz for 96 ns IFG requirement)
                   v.txCount := x"00";
                   v.state   := IDLE_S;
                end if;
