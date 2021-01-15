@@ -14,8 +14,8 @@
 -- Usage:
 --    Run for 10us, check rxMaster - all 3 packets have passed through
 -- Purpose:
---    This TB checks the what happens when a packet arrives immediately 
---    after the previous one. It generates 3 packets directly to the 
+--    This TB checks the what happens when a packet arrives immediately
+--    after the previous one. It generates 3 packets directly to the
 --    RX XGMII interface. Delay between packets 1 and 2 is 3 clock cycles,
 --    and 0 between packets 2 and 3. Simulation is successful if all 3 packets
 --    are passed onto rxMaster stream.
