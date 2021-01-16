@@ -223,6 +223,7 @@ begin
 
       if (i2cMasterIn.rdAck = '1') then
          v.i2cMasterOut.rdValid  := '0';
+         v.i2cMasterOut.rdData   := (others => '0');
          v.i2cMasterOut.txnError := '0';
       end if;
 
@@ -231,7 +232,6 @@ begin
       case (r.state) is
          when WAIT_TXN_REQ_S =>
             -- Reset front end outputs
-            v.i2cMasterOut.rdData := (others => '0');  -- Necessary?
             -- If new request and any previous rdData has been acked.
             if (i2cMasterIn.txnReq = '1') and (r.i2cMasterOut.rdValid = '0') and (r.i2cMasterOut.busAck = '0') then
                v.state  := ADDR_S;
