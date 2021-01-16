@@ -36,6 +36,7 @@ entity AxiStreamDepacketizer2 is
       CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
       TDEST_BITS_G         : natural          := 8;
+      TID_BITS_G           : natural          := 0;
       INPUT_PIPE_STAGES_G  : natural          := 0;
       OUTPUT_PIPE_STAGES_G : natural          := 1);
    port (
@@ -56,7 +57,7 @@ architecture rtl of AxiStreamDepacketizer2 is
 
    constant CRC_EN_C        : boolean  := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C : boolean  := (CRC_MODE_G = "FULL");
-   constant ADDR_WIDTH_C    : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant ADDR_WIDTH_C    : positive := ite((TDEST_BITS_G + TID_BITS_G = 0), 1, TDEST_BITS_G+TID_BITS_G);
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -77,7 +78,9 @@ architecture rtl of AxiStreamDepacketizer2 is
 
    type RegType is record
       state            : StateType;
-      activeTDest      : slv(ADDR_WIDTH_C-1 downto 0);
+      activeChannel    : slv(ADDR_WIDTH_C-1 downto 0);
+      activeTDest      : slv(7 downto 0);
+      activeTId        : slv(7 downto 0);
       packetSeq        : slv(15 downto 0);
       packetActive     : sl;
       sentEofe         : sl;
@@ -96,7 +99,9 @@ architecture rtl of AxiStreamDepacketizer2 is
 
    constant REG_INIT_C : RegType := (
       state            => TERMINATE_S,
+      activeChannel    => (others => '1'),
       activeTDest      => (others => '1'),
+      activeTId        => (others => '1'),
       packetSeq        => (others => '0'),
       packetActive     => '0',
       sentEofe         => '0',
@@ -192,7 +197,7 @@ begin
          douta(17)           => ramSentEofeOut,
          douta(49 downto 18) => ramCrcRem);
 
-   ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0) else (others => '0');
+   ramAddrr <= rin.activeChannel when (TDEST_BITS_G+TID_BITS_G > 0) else (others => '0');
    crcIn    <= endianSwap(inputAxisMaster.tData(63 downto 0));
 
    GEN_CRC : if (CRC_EN_C) generate
@@ -271,7 +276,7 @@ begin
             v.packetSeq    := (others => '0');
             v.sentEofe     := '0';
             v.crcInit      := (others => '1');
-            v.crcReset     := '1';      -- Reset CRC in ram to 0xFFFFFFFF
+            v.crcReset     := '1';               -- Reset CRC in ram to 0xFFFFFFFF
             v.ramWe        := '1';
             v.debug.eof    := '1';
             v.debug.eop    := '1';
@@ -290,7 +295,7 @@ begin
 
       -- Reset debug strobes flag
       v.debug          := PACKETIZER2_DEBUG_INIT_C;
-      v.debug.initDone := r.debug.initDone; --- Don't touch initDone
+      v.debug.initDone := r.debug.initDone;  --- Don't touch initDone
 
       -- Don't write new packet number by default
       v.ramWe := '0';
@@ -313,10 +318,12 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Update the RAM address
-            if (TDEST_BITS_G > 0) then
-               v.activeTDest := inputAxisMaster.tData((ADDR_WIDTH_C-1)+PACKETIZER2_HDR_TDEST_BIT_C downto PACKETIZER2_HDR_TDEST_BIT_C);
+            v.activeTDest := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+            v.activeTId   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
+            if (TDEST_BITS_G + TID_BITS_G > 0) then
+               v.activeChannel := v.activeTId(TID_BITS_G-1 downto 0) & v.activeTDest(TDEST_BITS_G-1 downto 0);
             else
-               v.activeTDest := (others => '0');
+               v.activeChannel := (others => '0');
             end if;
 
             -- Advance the output pipeline
@@ -327,17 +334,17 @@ begin
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
                -- Check for 2 read cycle latency
-               if (MEMORY_TYPE_G/="distributed") and (REG_EN_G) then
+               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) then
                   v.state := WAIT_S;
                -- Else 1 read cycle latency
                else
                   v.state := HEADER_S;
                end if;
             end if;
-         ----------------------------------------------------------------------
+                                        ----------------------------------------------------------------------
          when WAIT_S =>
             v.state := HEADER_S;
-         ----------------------------------------------------------------------
+                                        ----------------------------------------------------------------------
          when HEADER_S =>
             -- The header data won't be pushed to the output this cycle, so accept by default
             v.inputAxisSlave.tready := '1';
@@ -348,19 +355,20 @@ begin
             v.crcInit  := ramCrcRem;
 
             -- Update the RAM address
-            if (TDEST_BITS_G > 0) then
-               v.activeTDest := inputAxisMaster.tData((ADDR_WIDTH_C-1)+PACKETIZER2_HDR_TDEST_BIT_C downto PACKETIZER2_HDR_TDEST_BIT_C);
+            v.activeTDest := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+            v.activeTId   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
+            if (TDEST_BITS_G + TID_BITS_G > 0) then
+               v.activeChannel := v.activeTId(TID_BITS_G-1 downto 0) & v.activeTDest(TDEST_BITS_G-1 downto 0);
             else
-               v.activeTDest := (others => '0');
+               v.activeChannel := (others => '0');
             end if;
 
             -- Assign sideband fields
-            v.outputAxisMaster(1).tDest(7 downto 0)              := x"00";  -- Initialize
-            v.outputAxisMaster(1).tDest(ADDR_WIDTH_C-1 downto 0) := v.activeTDest;
-            v.outputAxisMaster(1).tId(7 downto 0)                := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
-            v.outputAxisMaster(1).tUser(7 downto 0)              := inputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C);
-            sof                                                  := inputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C);
-            v.packetSeq                                          := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
+            v.outputAxisMaster(1).tDest(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TDEST_FIELD_C);
+            v.outputAxisMaster(1).tId(7 downto 0)   := inputAxisMaster.tData(PACKETIZER2_HDR_TID_FIELD_C);
+            v.outputAxisMaster(1).tUser(7 downto 0) := inputAxisMaster.tData(PACKETIZER2_HDR_TUSER_FIELD_C);
+            sof                                     := inputAxisMaster.tData(PACKETIZER2_HDR_SOF_BIT_C);
+            v.packetSeq                             := inputAxisMaster.tData(PACKETIZER2_HDR_SEQ_FIELD_C);
 
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
@@ -373,7 +381,7 @@ begin
                v.crcDataValid := toSl(CRC_HEAD_TAIL_C);
 
                -- Check for BRAM or REG_EN_G used
-               if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+               if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                   -- Default next state if v.state=MOVE_S not applied later in the combinatorial chain
                   v.state := IDLE_S;
                end if;
@@ -404,7 +412,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';  -- Clear any frame error
+                     v.sentEofe     := '0';                   -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -472,7 +480,7 @@ begin
                      -- Can sent tail right now
                      doTail;
                      -- Check for BRAM used
-                     if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+                     if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                         -- Next state (1 or 2 cycle read latency)
                         v.state := IDLE_S;
                      else
@@ -482,21 +490,21 @@ begin
                   end if;
                end if;
             end if;
-         ----------------------------------------------------------------------
+                                        ----------------------------------------------------------------------
          when CRC_S =>
             -- Move the data (Note: v.outputAxisMaster(0).tValid = '0' in previous state)
             v.outputAxisMaster(0).tValid := '1';
             -- Can sent tail right now
             doTail;
             -- Check for BRAM used
-            if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+            if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                -- Next state (1 or 2 cycle read latency)
                v.state := IDLE_S;
             else
                -- Next state (0 cycle read latency)
                v.state := HEADER_S;
             end if;
-         ----------------------------------------------------------------------
+                                        ----------------------------------------------------------------------
          when TERMINATE_S =>
 
             -- Advance the output pipeline
@@ -516,7 +524,7 @@ begin
                -- Wait for link to come back up
                if (linkGood = '1') then
                   -- Check for BRAM or REG_EN_G used
-                  if (MEMORY_TYPE_G/="distributed") or (REG_EN_G) then
+                  if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                      -- Next state (1 or 2 cycle read latency)
                      v.state := IDLE_S;
                   else
@@ -528,15 +536,17 @@ begin
                -- Check if ready to move data and RAM output ready
                if (v.outputAxisMaster(1).tValid = '0') and (r.rdLat = 0) then
                   -- Write to the RAM
-                  v.activeTDest                                        := r.activeTDest - 1;
+                  v.activeChannel                                      := r.activeChannel - 1;
                   -- Increment the index
                   v.ramWe                                              := '1';
                   -- Terminate any open frames with EOFE
                   ssiSetUserEofe(AXIS_CONFIG_C, v.outputAxisMaster(1), '1');
                   v.outputAxisMaster(1).tLast                          := '1';
                   v.outputAxisMaster(1).tValid                         := ramPacketActiveOut;
-                  v.outputAxisMaster(1).tDest(7 downto 0)              := x"00";  -- Initialize
-                  v.outputAxisMaster(1).tDest(ADDR_WIDTH_C-1 downto 0) := r.activeTDest;
+                  v.outputAxisMaster(1).tDest(7 downto 0)              := X"00";
+                  v.outputAxisMaster(1).tDest(TDEST_BITS_G-1 downto 0) := r.activeTDest(TDEST_BITS_G-1 downto 0);
+                  v.outputAxisMaster(1).tId(7 downto 0)                := X"00";
+                  v.outputAxisMaster(1).tId(TID_BITS_G-1 downto 0)     := r.activeTId;
                   v.debug.eof                                          := ramPacketActiveOut;
                   v.debug.eofe                                         := ramPacketActiveOut;
                   -- Check if initializing the RAM is done
@@ -549,15 +559,15 @@ begin
       end case;
 
       -- Check for read transaction
-      if (r.activeTDest /= v.activeTDest) then
+      if (r.activeChannel /= v.activeChannel) then
          -- zero latency
-         if (MEMORY_TYPE_G="distributed") and (REG_EN_G = false) then
+         if (MEMORY_TYPE_G = "distributed") and (REG_EN_G = false) then
             v.rdLat := 0;
          -- 1 cycle latency
-         elsif (MEMORY_TYPE_G="distributed") and (REG_EN_G = true) then
+         elsif (MEMORY_TYPE_G = "distributed") and (REG_EN_G = true) then
             v.rdLat := 1;
          -- 1 cycle latency
-         elsif (MEMORY_TYPE_G/="distributed") and (REG_EN_G = false) then
+         elsif (MEMORY_TYPE_G /= "distributed") and (REG_EN_G = false) then
             v.rdLat := 1;
          -- 2 cycle latency
          else
@@ -576,7 +586,7 @@ begin
          v.crcReset       := '1';
          v.crcInit        := (others => '1');
          -- Reset the index
-         v.activeTDest    := (others => '1');
+         v.activeChannel  := (others => '1');
          v.debug.initDone := '0';
          -- Next state
          v.state          := TERMINATE_S;
