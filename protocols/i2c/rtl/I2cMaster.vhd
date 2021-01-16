@@ -68,6 +68,7 @@ architecture rtl of I2cMaster is
    -----------------------------------------------------------------------------
    -- Constants
    -----------------------------------------------------------------------------
+   constant TIMEOUT_C : integer := PRESCALE_G*5*100;
 
    -----------------------------------------------------------------------------
    -- Types
@@ -90,16 +91,19 @@ architecture rtl of I2cMaster is
       dout   : slv(7 downto 0);
    end record;
 
-   type StateType is (WAIT_TXN_REQ_S,
-                      ADDR_S,
-                      WAIT_ADDR_ACK_S,
-                      READ_S,
-                      WAIT_READ_DATA_S,
-                      WRITE_S,
-                      WAIT_WRITE_ACK_S);
+   type StateType is (
+      WAIT_TXN_REQ_S,
+      ADDR_S,
+      WAIT_ADDR_ACK_S,
+      READ_S,
+      WAIT_READ_DATA_S,
+      WRITE_S,
+      WAIT_WRITE_ACK_S);
 
    -- Module Registers
    type RegType is record
+      timer        : integer range 0 to TIMEOUT_C;
+      coreRst      : sl;
       byteCtrlIn   : ByteCtrlInType;
       state        : StateType;
       tenbit       : sl;
@@ -107,6 +111,8 @@ architecture rtl of I2cMaster is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      timer        => 0,
+      coreRst      => '0',
       byteCtrlIn   => (
          start     => '0',
          stop      => '0',
@@ -137,10 +143,13 @@ architecture rtl of I2cMaster is
    signal iSdaOEn     : sl;                                           -- Internal SDA output enablee
    signal filter      : slv((FILTER_G-1)*DYNAMIC_FILTER_G downto 0);  -- filt input to byte_ctrl
    signal arstL       : sl;
+   signal coreRst     : sl;
 
 begin
 
    arstL <= not arst;
+
+   coreRst <= r.coreRst or srst;
 
    -- Byte Controller from OpenCores I2C master,
    -- by Richard Herveille (richard@asics.ws). The asynchronous
@@ -152,10 +161,10 @@ begin
          dynfilt => DYNAMIC_FILTER_G)
       port map (
          clk      => clk,
-         rst      => srst,
+         rst      => coreRst,
          nReset   => arstL,
          ena      => i2cMasterIn.enable,
-         clk_cnt  => i2cMasterIn.prescale,
+         clk_cnt  => slv(to_unsigned(PRESCALE_G, 16)),
          start    => r.byteCtrlIn.start,
          stop     => r.byteCtrlIn.stop,
          read     => r.byteCtrlIn.read,
@@ -204,13 +213,15 @@ begin
       v.byteCtrlIn.write := '0';
       v.byteCtrlIn.ackIn := '0';
 
-      v.i2cMasterOut.wrAck  := '0';      -- pulsed
-      v.i2cMasterOut.busAck := '0';      -- pulsed
+      v.i2cMasterOut.wrAck  := '0';     -- pulsed
+      v.i2cMasterOut.busAck := '0';     -- pulsed
 
       if (i2cMasterIn.rdAck = '1') then
          v.i2cMasterOut.rdValid  := '0';
          v.i2cMasterOut.txnError := '0';
       end if;
+
+      v.timer := 0;
 
       case (r.state) is
          when WAIT_TXN_REQ_S =>
@@ -244,6 +255,8 @@ begin
 
 
          when WAIT_ADDR_ACK_S =>
+            v.timer := r.timer + 1;
+
             if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
                if (byteCtrlOut.ackOut = '0') then  -- Slave ack'd the transfer
                   if (r.tenbit = '1') then         -- Must send second half of addr if tenbit set
@@ -283,6 +296,8 @@ begin
 
 
          when WAIT_READ_DATA_S =>
+            v.timer := r.timer + 1;
+
             v.byteCtrlIn.stop  := r.byteCtrlIn.stop;   -- Hold stop or it wont get seen
             v.byteCtrlIn.ackIn := r.byteCtrlIn.ackIn;  -- This too
             if (byteCtrlOut.cmdAck = '1') then         -- Master sent the command
@@ -310,6 +325,8 @@ begin
             end if;
 
          when WAIT_WRITE_ACK_S =>
+            v.timer := r.timer + 1;
+
             v.byteCtrlIn.stop := r.byteCtrlIn.stop;
             if (byteCtrlOut.cmdAck = '1') then        -- Master sent the command
                if (byteCtrlOut.ackOut = '0') then     -- Slave ack'd the transfer
@@ -336,12 +353,22 @@ begin
 
       -- Must always monitor for arbitration loss
       if (byteCtrlOut.al = '1') then
-         -- Retry the entire TXN. Nothing done has been valid if arbitration is lost.
-         -- Should probably have a retry limit.
+         -- Return error back to next layer
          v.state                 := WAIT_TXN_REQ_S;
          v.i2cMasterOut.txnError := '1';
          v.i2cMasterOut.rdValid  := '1';
          v.i2cMasterOut.rdData   := I2C_ARBITRATION_LOST_ERROR_C;
+      end if;
+
+      -- Always monitor for timeouts.
+      if (r.timer = TIMEOUT_C) then
+         -- Return error back to next layer
+         v.state                 := WAIT_TXN_REQ_S;
+         v.i2cMasterOut.txnError := '1';
+         v.i2cMasterOut.rdValid  := '1';
+         v.i2cMasterOut.rdData   := I2C_TIMOUT_ERROR_C;
+         v.timer                 := 0;
+         v.coreRst               := '1';
       end if;
 
       ------------------------------------------------------------------------------------------------
