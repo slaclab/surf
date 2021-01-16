@@ -150,7 +150,8 @@ begin
 
    arstL <= not arst;
 
-   coreRst <= r.coreRst or srst;
+   coreRst   <= r.coreRst or srst;
+   v.coreRst := '0';
 
    -- Byte Controller from OpenCores I2C master,
    -- by Richard Herveille (richard@asics.ws). The asynchronous
