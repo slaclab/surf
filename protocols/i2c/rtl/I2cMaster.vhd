@@ -46,10 +46,11 @@ use surf.I2cPkg.all;
 
 entity I2cMaster is
    generic (
-      TPD_G                : time                   := 1 ns;  -- Simulated propagation delay
-      OUTPUT_EN_POLARITY_G : integer range 0 to 1   := 0;     -- output enable polarity
-      FILTER_G             : integer range 2 to 512 := 126;   -- filter bit size
-      DYNAMIC_FILTER_G     : integer range 0 to 1   := 0);
+      TPD_G                : time                      := 1 ns;  -- Simulated propagation delay
+      OUTPUT_EN_POLARITY_G : integer range 0 to 1      := 0;     -- output enable polarity
+      PRESCALE_G           : integer range 0 to 655535 := 62;
+      FILTER_G             : integer range 2 to 512    := 126;   -- filter bit size
+      DYNAMIC_FILTER_G     : integer range 0 to 1      := 0);
    port (
       clk          : in  sl;
       srst         : in  sl := '0';
@@ -366,7 +367,7 @@ begin
          v.state                 := WAIT_TXN_REQ_S;
          v.i2cMasterOut.txnError := '1';
          v.i2cMasterOut.rdValid  := '1';
-         v.i2cMasterOut.rdData   := I2C_TIMOUT_ERROR_C;
+         v.i2cMasterOut.rdData   := I2C_TIMEOUT_ERROR_C;
          v.timer                 := 0;
          v.coreRst               := '1';
       end if;
