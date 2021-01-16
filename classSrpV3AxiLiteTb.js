@@ -10,5 +10,6 @@ var classSrpV3AxiLiteTb =
     [ "AxiLitePkg", "classSrpV3AxiLiteTb.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiStreamPkg", "classSrpV3AxiLiteTb.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "SsiPkg", "classSrpV3AxiLiteTb.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "EthMacPkg", "classSrpV3AxiLiteTb.html#ac1625414338993fe184c68bfdbb48894", null ]
+    [ "ruckus", "classSrpV3AxiLiteTb.html#ad3a5a397d4c38e5284eee275881dde6d", null ],
+    [ "BuildInfoPkg", "classSrpV3AxiLiteTb.html#a825fcc35e3fa09e5902af523a76e1287", null ]
 ];

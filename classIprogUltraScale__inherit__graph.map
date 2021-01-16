@@ -1,14 +1,15 @@
 <map id="IprogUltraScale" name="IprogUltraScale">
-<area shape="rect" id="node1" title=" " alt="" coords="282,229,405,256"/>
-<area shape="rect" id="node7" href="$classIprog.html" title=" " alt="" coords="316,304,371,331"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="187,80,262,107"/>
-<area shape="rect" id="node4" href="$classSynchronizerOneShot.html" title=" " alt="" coords="263,155,424,181"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="237,5,343,32"/>
-<area shape="rect" id="node5" href="$classSynchronizerEdge.html" title=" " alt="" coords="286,80,425,107"/>
-<area shape="rect" id="node6" href="$classSynchronizerVector.html" title=" " alt="" coords="449,155,595,181"/>
-<area shape="rect" id="node8" href="$classAxiVersion.html" title=" " alt="" coords="229,379,319,405"/>
-<area shape="rect" id="node12" href="$classAxiVersionLegacy.html" title=" " alt="" coords="344,379,481,405"/>
+<area shape="rect" id="node1" title=" " alt="" coords="362,229,485,256"/>
+<area shape="rect" id="node7" href="$classIprog.html" title=" " alt="" coords="396,304,451,331"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="267,80,342,107"/>
+<area shape="rect" id="node4" href="$classSynchronizerOneShot.html" title=" " alt="" coords="343,155,504,181"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="317,5,423,32"/>
+<area shape="rect" id="node5" href="$classSynchronizerEdge.html" title=" " alt="" coords="366,80,505,107"/>
+<area shape="rect" id="node6" href="$classSynchronizerVector.html" title=" " alt="" coords="529,155,675,181"/>
+<area shape="rect" id="node8" href="$classAxiVersion.html" title=" " alt="" coords="309,379,399,405"/>
+<area shape="rect" id="node13" href="$classAxiVersionLegacy.html" title=" " alt="" coords="424,379,561,405"/>
 <area shape="rect" id="node9" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="5,453,167,480"/>
 <area shape="rect" id="node10" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="191,453,357,480"/>
 <area shape="rect" id="node11" href="$classAxiVersionTb.html" title=" " alt="" coords="382,453,489,480"/>
+<area shape="rect" id="node12" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="513,453,635,480"/>
 </map>

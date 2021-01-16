@@ -1,5 +1,5 @@
 <map id="AxiLiteCrossbar" name="AxiLiteCrossbar">
-<area shape="rect" id="node1" title=" " alt="" coords="5,385,129,412"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,411,129,437"/>
 <area shape="rect" id="node2" href="$classAxiLiteAsyncTb.html" title=" " alt="" coords="217,5,340,32"/>
 <area shape="rect" id="node3" href="$classAxiStreamDma.html" title=" " alt="" coords="218,56,339,83"/>
 <area shape="rect" id="node4" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="186,107,371,133"/>
@@ -16,6 +16,7 @@
 <area shape="rect" id="node17" href="$classPgp3GtyUsWrapper.html" title=" " alt="" coords="429,639,578,665"/>
 <area shape="rect" id="node18" href="$classPgpEthAxiL.html" title=" " alt="" coords="231,715,326,741"/>
 <area shape="rect" id="node23" href="$classRssiCoreTb.html" title=" " alt="" coords="231,765,326,792"/>
+<area shape="rect" id="node24" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="218,816,339,843"/>
 <area shape="rect" id="node7" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="428,208,579,235"/>
 <area shape="rect" id="node13" href="$classPgp3Gtp7Tb.html" title=" " alt="" coords="639,449,741,476"/>
 <area shape="rect" id="node19" href="$classPgpEthCore.html" title=" " alt="" coords="455,715,552,741"/>

@@ -209,6 +209,7 @@ var annotated_dup =
     [ "Encoder12b14bTb", "classEncoder12b14bTb.html", "classEncoder12b14bTb" ],
     [ "Encoder8b10b", "classEncoder8b10b.html", "classEncoder8b10b" ],
     [ "EthCrc32Parallel", "classEthCrc32Parallel.html", "classEthCrc32Parallel" ],
+    [ "EthMacFastTb", "classEthMacFastTb.html", "classEthMacFastTb" ],
     [ "EthMacFlowCtrl", "classEthMacFlowCtrl.html", "classEthMacFlowCtrl" ],
     [ "EthMacPauseTb", "classEthMacPauseTb.html", "classEthMacPauseTb" ],
     [ "EthMacRx", "classEthMacRx.html", "classEthMacRx" ],

@@ -1,9 +1,8 @@
 <map id="RssiChksum" name="RssiChksum">
-<area shape="rect" id="node1" title=" " alt="" coords="227,5,330,32"/>
-<area shape="rect" id="node2" href="$classRssiCore.html" title=" " alt="" coords="239,80,318,107"/>
-<area shape="rect" id="node3" href="$classRssiCoreWrapper.html" title=" " alt="" coords="211,155,346,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="159,5,262,32"/>
+<area shape="rect" id="node2" href="$classRssiCore.html" title=" " alt="" coords="171,80,250,107"/>
+<area shape="rect" id="node3" href="$classRssiCoreWrapper.html" title=" " alt="" coords="143,155,278,181"/>
 <area shape="rect" id="node4" href="$classRawEthFramerTb.html" title=" " alt="" coords="5,229,139,256"/>
 <area shape="rect" id="node5" href="$classRssiCoreTb.html" title=" " alt="" coords="163,229,258,256"/>
 <area shape="rect" id="node6" href="$classRssiInterleaveTb.html" title=" " alt="" coords="283,229,413,256"/>
-<area shape="rect" id="node7" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="438,229,559,256"/>
 </map>

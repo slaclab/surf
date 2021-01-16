@@ -3,6 +3,7 @@ var classI2cMaster =
     [ "rtl", "classI2cMaster_1_1rtl.html", "classI2cMaster_1_1rtl" ],
     [ "TPD_G", "classI2cMaster.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "OUTPUT_EN_POLARITY_G", "classI2cMaster.html#a9197cd9ca88ec5d98ea985237382910f", null ],
+    [ "PRESCALE_G", "classI2cMaster.html#acd81d5ea86a1883130db756799c75c5a", null ],
     [ "FILTER_G", "classI2cMaster.html#a9d61230af8eaa4c590c17cbc7f1856b6", null ],
     [ "DYNAMIC_FILTER_G", "classI2cMaster.html#a9ee4dbefdd26b03dc8c9de43c17e3302", null ],
     [ "clk", "classI2cMaster.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],

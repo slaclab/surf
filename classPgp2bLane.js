@@ -1,6 +1,6 @@
 var classPgp2bLane =
 [
-    [ "Pgp2bLane", "classPgp2bLane_1_1Pgp2bLane.html", "classPgp2bLane_1_1Pgp2bLane" ],
+    [ "Pgp2bLane.Pgp2bLane", "classPgp2bLane_1_1Pgp2bLane.html", "classPgp2bLane_1_1Pgp2bLane" ],
     [ "TPD_G", "classPgp2bLane.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "LANE_CNT_G", "classPgp2bLane.html#acf5e52a2e40052557367b63ff9e4d677", null ],
     [ "VC_INTERLEAVE_G", "classPgp2bLane.html#a63a0339de2a778f384dcecb0828d5192", null ],

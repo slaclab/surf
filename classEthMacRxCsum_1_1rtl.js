@@ -12,6 +12,7 @@ var classEthMacRxCsum_1_1rtl =
     [ "udpDet", "classEthMacRxCsum_1_1rtl.html#a503823193e9d59654d4fc59d909cc73b", null ],
     [ "tcpDet", "classEthMacRxCsum_1_1rtl.html#a5f85391144ffc31277ff421a609ff434", null ],
     [ "tcpFlag", "classEthMacRxCsum_1_1rtl.html#acd8d6bb1e70df7b9e7510cf340159f34", null ],
+    [ "pipeFlush", "classEthMacRxCsum_1_1rtl.html#ad8aded0532e716c6e7554667ea05fe81", null ],
     [ "byteCnt", "classEthMacRxCsum_1_1rtl.html#aafb4693702aee8e0c248e0fffae06361", null ],
     [ "ipv4Hdr", "classEthMacRxCsum_1_1rtl.html#a6c0518b7a164dd793b06040296150b88", null ],
     [ "ipv4Len", "classEthMacRxCsum_1_1rtl.html#a79b922dc551369ecc6ca9ae2ec37df0a", null ],
@@ -23,7 +24,7 @@ var classEthMacRxCsum_1_1rtl =
     [ "mAxisMaster", "classEthMacRxCsum_1_1rtl.html#a7e73dc711a8272c0c8e1952a48c0acaa", null ],
     [ "mAxisMasters", "classEthMacRxCsum_1_1rtl.html#aaa14ba875c9115e443ab7cc326598e42", null ],
     [ "state", "classEthMacRxCsum_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe", null ],
-    [ "REG_INIT_C", "classEthMacRxCsum_1_1rtl.html#af98d697d51fa8c146b89b80b0e64cbbd", null ],
+    [ "REG_INIT_C", "classEthMacRxCsum_1_1rtl.html#a3cf5c5129dfa744c12b8de58d6a5ff6b", null ],
     [ "r", "classEthMacRxCsum_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classEthMacRxCsum_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "dbg", "classEthMacRxCsum_1_1rtl.html#aa68ca2413e604148cfd89999dc422cb7", null ]
