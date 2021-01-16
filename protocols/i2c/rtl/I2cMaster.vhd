@@ -150,7 +150,7 @@ begin
 
    arstL <= not arst;
 
-   coreRst   <= r.coreRst or srst;
+   coreRst <= r.coreRst or srst;
 
 
    -- Byte Controller from OpenCores I2C master,
@@ -208,7 +208,7 @@ begin
       v := r;
 
       -- Pulsed
-      v.coreRst := '0';      
+      v.coreRst := '0';
 
       -- byteCtrl commands default to zero
       -- unless overridden in a state below
@@ -380,7 +380,8 @@ begin
       -- Synchronous Reset
       ------------------------------------------------------------------------------------------------
       if (srst = '1') then
-         v := REG_INIT_C;
+         v         := REG_INIT_C;
+         v.coreRst := r.coreRst;        -- Remove srst from coreRst path
       end if;
 
       ------------------------------------------------------------------------------------------------
