@@ -61,6 +61,7 @@ architecture rtl of Crc32Parallel is
       crc       : slv(31 downto 0);
       data      : slv((BYTE_WIDTH_G*8-1) downto 0);
       valid     : sl;
+      reset     : sl;
       byteWidth : slv(2 downto 0);
    end record RegType;
 
@@ -68,6 +69,7 @@ architecture rtl of Crc32Parallel is
       crc       => CRC_INIT_G,
       data      => (others => '0'),
       valid     => '0',
+      reset     => '0',
       byteWidth => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
@@ -82,6 +84,7 @@ begin
       variable prevCrc   : slv(31 downto 0);
       variable byteWidth : slv(2 downto 0);
       variable valid     : sl;
+      variable reset     : sl;
       variable data      : slv((BYTE_WIDTH_G*8-1) downto 0);
    begin
       -- Latch the current value
@@ -90,6 +93,7 @@ begin
       -- Latch the signals
       v.byteWidth := crcDataWidth;
       v.valid     := crcDataValid;
+      v.reset     := crcReset;
 
       -- Transpose the input data
       for byte in (BYTE_WIDTH_G-1) downto 0 loop
@@ -106,15 +110,17 @@ begin
       if (INPUT_REGISTER_G) then
          byteWidth := r.byteWidth;
          valid     := r.valid;
+         reset     := r.reset;
          data      := r.data;
       else
          byteWidth := v.byteWidth;
          valid     := v.valid;
+         reset     := v.reset;
          data      := v.data;
       end if;
 
       -- Reset handling
-      if (crcReset = '0') then
+      if (reset = '0') then
          -- Use remainder from previous cycle
          prevCrc := r.crc;
       else
