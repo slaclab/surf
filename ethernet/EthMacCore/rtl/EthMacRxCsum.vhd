@@ -61,6 +61,7 @@ architecture rtl of EthMacRxCsum is
       udpDet       : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       tcpDet       : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       tcpFlag      : sl;
+      pipeFlush    : sl;
       byteCnt      : natural range 0 to (MAX_FRAME_SIZE_C + 32);  -- MTU size + padding
       ipv4Hdr      : Slv8Array(19 downto 0);
       ipv4Len      : Slv16Array(EMAC_CSUM_PIPELINE_C+1 downto 0);
@@ -81,6 +82,7 @@ architecture rtl of EthMacRxCsum is
       udpDet       => (others => '0'),
       tcpDet       => (others => '0'),
       tcpFlag      => '0',
+      pipeFlush    => '0',
       byteCnt      => 0,
       ipv4Hdr      => (others => (others => '0')),
       ipv4Len      => (others => (others => '0')),
@@ -132,7 +134,7 @@ begin
       v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1).tValid := '0';
 
       -- Check if we need to update the pipeline
-      if (r.mAxisMaster.tValid = '1') or (r.state = IDLE_S) then
+      if (r.mAxisMaster.tValid = '1') or (r.state = IDLE_S) or (r.pipeFlush = '1') then
          v.mAxisMasters := r.mAxisMasters(EMAC_CSUM_PIPELINE_C downto 0) & r.mAxisMaster;
          v.fragDet      := r.fragDet(EMAC_CSUM_PIPELINE_C downto 0) & r.fragDet(0);
          v.eofeDet      := r.eofeDet(EMAC_CSUM_PIPELINE_C downto 0) & r.eofeDet(0);
@@ -146,6 +148,8 @@ begin
 
       -- Check for tLast in pipeline
       if (v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1).tLast = '1') then
+         -- Stop flushing the pipeline when last word exits
+         v.pipeFlush := '0';
          -- Check if IPv4 is detected and being checked
          if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (ipCsumEn = '1') then
             -- Forward the result of checksum calculation
@@ -387,6 +391,8 @@ begin
                   else
                      -- Next state
                      v.state := IDLE_S;
+                     -- Flush the AXIS pipeline
+                     v.pipeFlush := '1';
                   end if;
                end if;
             end if;

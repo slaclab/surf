@@ -16,16 +16,4 @@ class Si5345(silabs.Si5345Lite):
             simpleDisplay = True,
             advanceUser   = False,
             **kwargs):
-        super().__init__(**kwargs)
-
-        ##############################
-        # Devices
-        ##############################
-        self.add(silabs.Si5345Page1(offset=(0x100<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page2(offset=(0x200<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page3(offset=(0x300<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page4(offset=(0x400<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page5(offset=(0x500<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345Page9(offset=(0x900<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345PageA(offset=(0xA00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
-        self.add(silabs.Si5345PageB(offset=(0xB00<<2),simpleDisplay=simpleDisplay,expand=False,hidden=advanceUser))
+        super().__init__(simpleDisplay=simpleDisplay,advanceUser=advanceUser,liteVersion=False,**kwargs)
