@@ -78,7 +78,10 @@ entity Pgp3Core is
       phyRxSlip     : out sl;
 
       -- Debug Interface
-      loopback : out slv(2 downto 0);
+      loopback     : out slv(2 downto 0);
+      txDiffCtrl   : out slv(4 downto 0);
+      txPreCursor  : out slv(4 downto 0);
+      txPostCursor : out slv(4 downto 0);
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
@@ -182,6 +185,9 @@ begin
             statusWord      => open,             -- [out]
             statusSend      => open,             -- [out]
             phyRxClk        => phyRxClk,         -- [in]
+            txDiffCtrl      => txDiffCtrl,       -- [out]
+            txPreCursor     => txPreCursor,      -- [out]
+            txPostCursor    => txPostCursor,     -- [out]
             axilClk         => axilClk,          -- [in]
             axilRst         => axilRst,          -- [in]
             axilReadMaster  => axilReadMaster,   -- [in]
@@ -191,8 +197,11 @@ begin
    end generate GEN_PGP_MON;
 
    NO_PGP_MON : if (not EN_PGP_MON_G) generate
-      pgpTxInInt <= pgpTxIn;
-      pgpRxInInt <= pgpRxIn;
+      pgpTxInInt   <= pgpTxIn;
+      pgpRxInInt   <= pgpRxIn;
+      txDiffCtrl   <= (others => '1');
+      txPreCursor  <= "00111";
+      txPostCursor <= "00111";
    end generate NO_PGP_MON;
 
    loopback <= pgpRxInInt.loopback;

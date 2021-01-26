@@ -471,6 +471,30 @@ class Pgp3AxiL(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'TxDiffCtrl',
+            mode         = 'RW',
+            offset       = 0xAC,
+            bitOffset    = 0,
+            bitSize      = 5,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxPreCursor',
+            mode         = 'RW',
+            offset       = 0xAC,
+            bitOffset    = 8,
+            bitSize      = 5,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxPostCursor',
+            mode         = 'RW',
+            offset       = 0xAC,
+            bitOffset    = 16,
+            bitSize      = 5,
+        ))
+
         self.add(pr.LinkVariable(
             name         = 'TxOpCodeLast',
             mode         = 'RO',

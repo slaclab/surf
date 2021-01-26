@@ -91,10 +91,6 @@ entity Pgp3Gtx7Wrapper is
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
       pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
-      -- Debug Interface
-      txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk           : in  sl                                                     := '0';  -- Stable Clock
       axilRst           : in  sl                                                     := '0';
@@ -272,10 +268,6 @@ begin
                -- Frame Receive Interface
                pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-               -- Debug Interface
-               txPreCursor     => txPreCursor(i),
-               txPostCursor    => txPostCursor(i),
-               txDiffCtrl      => txDiffCtrl(i),
                -- AXI-Lite Register Interface (axilClk domain)
                axilClk         => axilClk,
                axilRst         => axilRst,
