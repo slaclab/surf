@@ -261,7 +261,7 @@ begin
             v.opCodeReady := '1';
 
             -- Update the TX data bus
-            v.protTxData(PGP4_BTF_FIELD_C)         := PGP4_USER_C(conv_integer(pgpTxIn.opCodeNumber));
+            v.protTxData(PGP4_BTF_FIELD_C)         := PGP4_USER_C(0);
             v.protTxData(PGP4_USER_OPCODE_FIELD_C) := pgpTxIn.opCodeData;
             v.protTxHeader                         := PGP4_K_HEADER_C;
             resetEventMetaData                     := false;

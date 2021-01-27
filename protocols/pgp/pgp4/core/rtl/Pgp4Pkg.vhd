@@ -27,7 +27,7 @@ use surf.Pgp3Pkg.all;
 
 package Pgp4Pkg is
 
-   constant PGP4_VERSION_C : slv(7 downto 0) := toSlv(4,8); -- Version = 0x04
+   constant PGP4_VERSION_C : slv(7 downto 0) := toSlv(4, 8);  -- Version = 0x04
 
    constant PGP4_DEFAULT_TX_CELL_WORDS_MAX_C : positive := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;
 
@@ -40,9 +40,16 @@ package Pgp4Pkg is
    constant PGP4_SOC_C  : slv(7 downto 0)   := PGP3_SOC_C;
    constant PGP4_EOC_C  : slv(7 downto 0)   := PGP3_EOC_C;
    constant PGP4_SKP_C  : slv(7 downto 0)   := PGP3_SKP_C;
-   constant PGP4_USER_C : Slv8Array(0 to 7) := PGP3_USER_C;
+   constant PGP4_USER_C : Slv8Array(0 to 0) := (0 => PGP3_USER_C(0));
 
-   constant PGP4_VALID_BTF_ARRAY_C : Slv8Array := PGP3_VALID_BTF_ARRAY_C;
+   constant PGP4_VALID_BTF_ARRAY_C : Slv8Array := (
+      0 => PGP3_IDLE_C,
+      1 => PGP3_SOF_C,
+      2 => PGP3_EOF_C,
+      3 => PGP3_SOC_C,
+      4 => PGP3_EOC_C,
+      5 => PGP3_SKP_C,
+      6 => PGP3_USER_C(0));
 
    constant PGP4_D_HEADER_C : slv(1 downto 0) := PGP3_D_HEADER_C;
    constant PGP4_K_HEADER_C : slv(1 downto 0) := PGP3_K_HEADER_C;
@@ -108,10 +115,10 @@ package body Pgp4Pkg is
    is
       variable ret : slv(PGP4_LINKINFO_FIELD_C) := (others => '0');
    begin
-      ret(7 downto 0)  := PGP4_VERSION_C;
-      ret(8)           := locRxLinkReady;
+      ret(7 downto 0) := PGP4_VERSION_C;
+      ret(8)          := locRxLinkReady;
       for i in locRxFifoCtrl'range loop
-         ret(i+16)    := locRxFifoCtrl(i).pause;
+         ret(i+16) := locRxFifoCtrl(i).pause;
       end loop;
       return ret;
    end function;
@@ -125,7 +132,7 @@ package body Pgp4Pkg is
       version        := linkInfo(7 downto 0);
       remRxLinkReady := linkInfo(8);
       for i in remRxFifoCtrl'range loop
-         remRxFifoCtrl(i).pause    := linkInfo(i+16);
+         remRxFifoCtrl(i).pause := linkInfo(i+16);
       end loop;
    end procedure;
 
