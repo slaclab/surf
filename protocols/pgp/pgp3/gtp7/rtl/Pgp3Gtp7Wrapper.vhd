@@ -38,7 +38,7 @@ entity Pgp3Gtp7Wrapper is
       NUM_VC_G                    : positive range 1 to 16      := 4;
       SPEED_GRADE_G               : positive range 1 to 3       := 3;
       RATE_G                      : string                      := "6.25Gbps";  -- or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType              := PGP3_REFCLK_250_C;
+      REFCLK_TYPE_G               : Pgp3RefClkType              := REFCLK_250_C;
       REFCLK_G                    : boolean                     := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
