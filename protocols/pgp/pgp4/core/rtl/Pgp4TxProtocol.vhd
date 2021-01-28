@@ -261,7 +261,7 @@ begin
             v.opCodeReady := '1';
 
             -- Update the TX data bus
-            v.protTxData(PGP4_BTF_FIELD_C)         := PGP4_USER_C(0);
+            v.protTxData(PGP4_BTF_FIELD_C)         := PGP4_USER_C;
             v.protTxData(PGP4_USER_OPCODE_FIELD_C) := pgpTxIn.opCodeData;
             v.protTxHeader                         := PGP4_K_HEADER_C;
             resetEventMetaData                     := false;
@@ -308,8 +308,8 @@ begin
 
          -- Check if k-code word
          if (v.protTxHeader = PGP4_K_HEADER_C) then
-            -- Insert the checksum
-            v.protTxData(PGP4_CHECKSUM_FIELD_C) := pgp4Checksum(v.protTxData);
+            -- Insert the CSC
+            v.protTxData(PGP4_K_CODE_CRC_FIELD_C) := pgp4KCodeCrc(v.protTxData);
          end if;
 
          -- Check if TX is disabled

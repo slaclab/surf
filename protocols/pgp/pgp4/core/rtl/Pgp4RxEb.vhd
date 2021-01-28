@@ -88,8 +88,8 @@ begin
       -- Check for k-code
       if (phyRxHeader = PGP4_K_HEADER_C) then
 
-         -- Check for invalid checksum
-         if (phyRxData(PGP4_CHECKSUM_FIELD_C) /= pgp4Checksum(phyRxData)) then
+         -- Check for invalid K-code CRC
+         if (phyRxData(PGP4_K_CODE_CRC_FIELD_C) /= pgp4KCodeCrc(phyRxData)) then
 
             -- Don't write words into the FIFO
             v.fifoWrEn  := '0';

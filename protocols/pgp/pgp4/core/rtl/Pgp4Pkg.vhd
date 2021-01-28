@@ -57,7 +57,7 @@ package Pgp4Pkg is
    constant PGP4_SCRAMBLER_TAPS_C : IntegerArray(0 to 1) := PGP3_SCRAMBLER_TAPS_C;
 
    subtype PGP4_BTF_FIELD_C is natural range 63 downto 56;
-   subtype PGP4_CHECKSUM_FIELD_C is natural range 55 downto 48;
+   subtype PGP4_K_CODE_CRC_FIELD_C is natural range 55 downto 48;
    subtype PGP4_SKIP_DATA_FIELD_C is natural range 47 downto 0;
    subtype PGP4_USER_OPCODE_FIELD_C is natural range 47 downto 0;
 
@@ -82,7 +82,7 @@ package Pgp4Pkg is
       remRxLinkReady : inout sl;
       version        : inout slv(7 downto 0));
 
-   function pgp4Checksum (
+   function pgp4KCodeCrc (
       kCodeWord : slv(63 downto 0))
       return slv;
 
@@ -136,7 +136,7 @@ package body Pgp4Pkg is
       end loop;
    end procedure;
 
-   function pgp4Checksum (
+   function pgp4KCodeCrc (
       kCodeWord : slv(63 downto 0))
       return slv
    is
@@ -154,27 +154,18 @@ package body Pgp4Pkg is
       -- Reverse the input
       data := bitReverse(data);
 
-      -- Apply the CRC algorithmm
+      -- Apply the CRC algorithm
       for d in 0 to 55 loop
          fb  := (others => (ret(7) xor data(d)));
          ret := ret(6 downto 0) & fb(0);
-         ret := (fb and CRC_POLY_G) xor ret;
+         ret := (fb and CRC_POLY_C) xor ret;
       end loop;
 
       -- Transpose and invert the output
       ret := bitReverse(ret);
       ret := not ret;
 
---       ret := not (kCodeWord(7 downto 0) +
---                   kCodeWord(15 downto 8) +
---                   kCodeWord(23 downto 16) +
---                   kCodeWord(31 downto 24) +
---                   kCodeWord(39 downto 32) +
---                   kCodeWord(47 downto 47) +
---                   kCodeWord(63 downto 56));
       return ret;
    end function;
-
-
 
 end package body Pgp4Pkg;

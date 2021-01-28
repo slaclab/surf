@@ -46,7 +46,7 @@ entity Pgp4RxProtocol is
       remRxLinkReady : out sl;
       locRxLinkReady : out sl;
       -- Received data from descrambler/CC FIFO
-      linkError      : in  sl;          -- Checksum error flag
+      linkError      : in  sl;          -- K-code CRC error flag
       phyRxActive    : in  sl;
       protRxValid    : in  sl;
       protRxPhyInit  : out sl;
@@ -207,13 +207,10 @@ begin
 
                -- Else find the match to user OP-code k-code
                else
-                  for i in PGP4_USER_C'range loop
-                     if (btf = PGP4_USER_C(i)) then
-                        v.pgpRxOut.opCodeEn     := '1';
-                        v.pgpRxOut.opCodeNumber := toSlv(i, 3);
-                        v.pgpRxOut.opCodeData   := protRxData(PGP4_USER_OPCODE_FIELD_C);
-                     end if;
-                  end loop;
+                  if (btf = PGP4_USER_C) then
+                     v.pgpRxOut.opCodeEn   := '1';
+                     v.pgpRxOut.opCodeData := protRxData(PGP4_USER_OPCODE_FIELD_C);
+                  end if;
                end if;
 
             -- Check for data code
