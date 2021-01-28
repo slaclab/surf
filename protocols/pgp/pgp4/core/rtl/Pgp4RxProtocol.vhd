@@ -144,8 +144,11 @@ begin
             -- Check for k-code
             if (protRxHeader = PGP4_K_HEADER_C) then
 
+               if pgp4KCodeCrc(protRxData) /= protRxData(PGP4_K_CODE_CRC_FIELD_C) then
+                  v.pgpRxOut.linkError := '1';
+
                -- Check for IDLE k-code
-               if (btf = PGP4_IDLE_C) then
+               elsif (btf = PGP4_IDLE_C) then
 
                   -- Extract the LinkInfo
                   pgp4ExtractLinkInfo(
