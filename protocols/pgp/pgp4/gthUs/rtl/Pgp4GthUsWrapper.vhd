@@ -24,6 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 use surf.Pgp4Pkg.all;
 
 library unisim;
