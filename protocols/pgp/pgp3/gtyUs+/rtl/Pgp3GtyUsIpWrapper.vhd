@@ -66,6 +66,9 @@ entity Pgp3GtyUsIpWrapper is
       txHeader       : in  slv(1 downto 0);
       txOutClk       : out sl;
       loopback       : in  slv(2 downto 0);
+      txDiffCtrl     : in slv(4 downto 0);
+      txPreCursor    : in slv(4 downto 0);
+      txPostCursor   : in slv(4 downto 0);
 
       -- AXI-Lite DRP Interface
       axilClk         : in  sl                     := '0';
@@ -360,11 +363,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
-            txdiffctrl_in                         => "11111",
+            txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => TX_POLARITY_G,
-            txpostcursor_in                       => "00111",
-            txprecursor_in                        => "00111",
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
             gtytxn_out(0)                         => gtTxN,
             gtytxp_out(0)                         => gtTxP,
@@ -424,11 +427,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
-            txdiffctrl_in                         => "11111",
+            txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => TX_POLARITY_G,
-            txpostcursor_in                       => "00111",
-            txprecursor_in                        => "00111",
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
             gtytxn_out(0)                         => gtTxN,
             gtytxp_out(0)                         => gtTxP,
@@ -488,11 +491,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
-            txdiffctrl_in                         => "11111",
+            txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => TX_POLARITY_G,
-            txpostcursor_in                       => "00111",
-            txprecursor_in                        => "00111",
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
             gtytxn_out(0)                         => gtTxN,
             gtytxp_out(0)                         => gtTxP,
