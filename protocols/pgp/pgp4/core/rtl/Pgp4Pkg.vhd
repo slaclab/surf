@@ -34,22 +34,22 @@ package Pgp4Pkg is
    constant PGP4_AXIS_CONFIG_C : AxiStreamConfigType := PGP3_AXIS_CONFIG_C;
 
    -- Define K code BTFs
-   constant PGP4_IDLE_C : slv(7 downto 0)   := PGP3_IDLE_C;
-   constant PGP4_SOF_C  : slv(7 downto 0)   := PGP3_SOF_C;
-   constant PGP4_EOF_C  : slv(7 downto 0)   := PGP3_EOF_C;
-   constant PGP4_SOC_C  : slv(7 downto 0)   := PGP3_SOC_C;
-   constant PGP4_EOC_C  : slv(7 downto 0)   := PGP3_EOC_C;
-   constant PGP4_SKP_C  : slv(7 downto 0)   := PGP3_SKP_C;
-   constant PGP4_USER_C : Slv8Array(0 to 0) := (0 => PGP3_USER_C(0));
+   constant PGP4_IDLE_C : slv(7 downto 0) := PGP3_IDLE_C;
+   constant PGP4_SOF_C  : slv(7 downto 0) := PGP3_SOF_C;
+   constant PGP4_EOF_C  : slv(7 downto 0) := PGP3_EOF_C;
+   constant PGP4_SOC_C  : slv(7 downto 0) := PGP3_SOC_C;
+   constant PGP4_EOC_C  : slv(7 downto 0) := PGP3_EOC_C;
+   constant PGP4_SKP_C  : slv(7 downto 0) := PGP3_SKP_C;
+   constant PGP4_USER_C : slv(7 downto 0) := (0 => PGP3_USER_C(0));
 
    constant PGP4_VALID_BTF_ARRAY_C : Slv8Array := (
-      0 => PGP3_IDLE_C,
-      1 => PGP3_SOF_C,
-      2 => PGP3_EOF_C,
-      3 => PGP3_SOC_C,
-      4 => PGP3_EOC_C,
-      5 => PGP3_SKP_C,
-      6 => PGP3_USER_C(0));
+      0 => PGP4_IDLE_C,
+      1 => PGP4_SOF_C,
+      2 => PGP4_EOF_C,
+      3 => PGP4_SOC_C,
+      4 => PGP4_EOC_C,
+      5 => PGP4_SKP_C,
+      6 => PGP4_USER_C);
 
    constant PGP4_D_HEADER_C : slv(1 downto 0) := PGP3_D_HEADER_C;
    constant PGP4_K_HEADER_C : slv(1 downto 0) := PGP3_K_HEADER_C;
@@ -140,16 +140,41 @@ package body Pgp4Pkg is
       kCodeWord : slv(63 downto 0))
       return slv
    is
-      variable ret : slv(7 downto 0);
+      constant CRC_POLY_C : slv(7 downto 0) := X"07";
+
+      variable data : slv(55 downto 0);
+      variable fb   : slv(7 downto 0);
+      variable ret  : slv(7 downto 0) := (others => '1');
    begin
-      ret := not (kCodeWord(7 downto 0) +
-                  kCodeWord(15 downto 8) +
-                  kCodeWord(23 downto 16) +
-                  kCodeWord(31 downto 24) +
-                  kCodeWord(39 downto 32) +
-                  kCodeWord(47 downto 47) +
-                  kCodeWord(63 downto 56));
+
+      -- Gather the non-contiguous input bits
+      data(47 downto 0)  := kCodeWord(47 downto 0);
+      data(55 downto 48) := kCodeWord(63 downto 56);
+
+      -- Reverse the input
+      data := bitReverse(data);
+
+      -- Apply the CRC algorithmm
+      for d in 0 to 55 loop
+         fb  := (others => (ret(7) xor data(d)));
+         ret := ret(6 downto 0) & fb(0);
+         ret := (fb and CRC_POLY_G) xor ret;
+      end loop;
+
+      -- Transpose and invert the output
+      ret := bitReverse(ret);
+      ret := not ret;
+
+--       ret := not (kCodeWord(7 downto 0) +
+--                   kCodeWord(15 downto 8) +
+--                   kCodeWord(23 downto 16) +
+--                   kCodeWord(31 downto 24) +
+--                   kCodeWord(39 downto 32) +
+--                   kCodeWord(47 downto 47) +
+--                   kCodeWord(63 downto 56));
       return ret;
    end function;
+
+
 
 end package body Pgp4Pkg;
