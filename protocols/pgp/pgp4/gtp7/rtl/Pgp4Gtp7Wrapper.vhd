@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-- Title      : PGPv4: https://confluence.slac.stanford.edu/x/1dzgEQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv3 GTH Ultrascale Wrapper
+-- Description: PGPv4 GTP7 Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -24,43 +24,43 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
-use surf.Pgp3Pkg.all;
+use surf.Pgp4Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
-entity Pgp3GthUsWrapper is
+entity Pgp4Gtp7Wrapper is
    generic (
       TPD_G                       : time                        := 1 ns;
       ROGUE_SIM_EN_G              : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
       NUM_LANES_G                 : positive range 1 to 4       := 1;
       NUM_VC_G                    : positive range 1 to 16      := 4;
-      REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
-      RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType              := REFCLK_156_C;
-      QPLL_REFCLK_SEL_G           : slv(2 downto 0)             := "001";
+      SPEED_GRADE_G               : positive range 1 to 3       := 3;
+      RATE_G                      : string                      := "6.25Gbps";  -- or "3.125Gbps"
+      REFCLK_TYPE_G               : Pgp4RefClkType              := REFCLK_250_C;
+      REFCLK_G                    : boolean                     := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G             : boolean                     := true;
       RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
       PGP_TX_ENABLE_G             : boolean                     := true;
-      TX_CELL_WORDS_MAX_G         : integer                     := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_MUX_MODE_G               : string                      := "INDEXED";  -- Or "ROUTED"
+      TX_CELL_WORDS_MAX_G         : integer                     := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
+      TX_MUX_MODE_G               : string                      := "INDEXED";   -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
-      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := true;
+      TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := false;
       EN_PGP_MON_G                : boolean                     := false;
-      EN_GTH_DRP_G                : boolean                     := false;
+      EN_GT_DRP_G                 : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
       STATUS_CNT_WIDTH_G          : natural range 1 to 32       := 16;
       ERROR_CNT_WIDTH_G           : natural range 1 to 32       := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');
-      AXIL_CLK_FREQ_G             : real                        := 125.0E+6);
+      AXIL_CLK_FREQ_G             : real                        := 156.25E+6);
    port (
       -- Stable Clock and Reset
       stableClk         : in  sl;       -- GT needs a stable clock to "boot up"
@@ -71,20 +71,20 @@ entity Pgp3GthUsWrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_TYPE_G
-      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_TYPE_G
-      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_TYPE_G
+      pgpRefClkP        : in  sl                                                     := '0';
+      pgpRefClkN        : in  sl                                                     := '1';
+      pgpRefClkIn       : in  sl                                                     := '0';
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
       pgpClk            : out slv(NUM_LANES_G-1 downto 0);
       pgpClkRst         : out slv(NUM_LANES_G-1 downto 0);
       -- Non VC Rx Signals
-      pgpRxIn           : in  Pgp3RxInArray(NUM_LANES_G-1 downto 0);
-      pgpRxOut          : out Pgp3RxOutArray(NUM_LANES_G-1 downto 0);
+      pgpRxIn           : in  Pgp4RxInArray(NUM_LANES_G-1 downto 0);
+      pgpRxOut          : out Pgp4RxOutArray(NUM_LANES_G-1 downto 0);
       -- Non VC Tx Signals
-      pgpTxIn           : in  Pgp3TxInArray(NUM_LANES_G-1 downto 0);
-      pgpTxOut          : out Pgp3TxOutArray(NUM_LANES_G-1 downto 0);
+      pgpTxIn           : in  Pgp4TxInArray(NUM_LANES_G-1 downto 0);
+      pgpTxOut          : out Pgp4TxOutArray(NUM_LANES_G-1 downto 0);
       -- Frame Transmit Interface
       pgpTxMasters      : in  AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpTxSlaves       : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
@@ -92,6 +92,9 @@ entity Pgp3GthUsWrapper is
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
       pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
+      -- Debug Interface
+      debugClk          : out slv(2 downto 0);  -- Copy of the TX PLL Clocks
+      debugRst          : out slv(2 downto 0);  -- Copy of the TX PLL Resets
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk           : in  sl                                                     := '0';  -- Stable Clock
       axilRst           : in  sl                                                     := '0';
@@ -99,17 +102,41 @@ entity Pgp3GthUsWrapper is
       axilReadSlave     : out AxiLiteReadSlaveType                                   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster   : in  AxiLiteWriteMasterType                                 := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave    : out AxiLiteWriteSlaveType                                  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-end Pgp3GthUsWrapper;
+end Pgp4Gtp7Wrapper;
 
-architecture rtl of Pgp3GthUsWrapper is
+architecture rtl of Pgp4Gtp7Wrapper is
 
-   signal qpllLock   : Slv2Array(3 downto 0) := (others => "00");
-   signal qpllClk    : Slv2Array(3 downto 0) := (others => "00");
-   signal qpllRefclk : Slv2Array(3 downto 0) := (others => "00");
-   signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
+   constant CLKIN_PERIOD_C : real := ite((RATE_G = "6.25Gbps"), 2.56, 5.12);  -- 390.625 MHz for 6.25Gbps configuration
 
-   signal pgpRefClkDiv2 : sl;
-   signal pgpRefClk     : sl;
+   constant BANDWIDTH_C : string := ite((SPEED_GRADE_G = 3), "HIGH", "OPTIMIZED");
+
+   constant CLKFBOUT_MULT_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 4, 8), ite((RATE_G = "6.25Gbps"), 3, 6));
+
+   constant CLKOUT0_DIVIDE_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 16, 32), ite((RATE_G = "6.25Gbps"), 12, 24));  -- 97.656 MHz for 6.25Gbps configuration
+
+   constant CLKOUT1_DIVIDE_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 4, 8), ite((RATE_G = "6.25Gbps"), 3, 6));  -- 390.625 MHz for 6.25Gbps configuration
+
+   constant CLKOUT2_DIVIDE_C : positive := ite((SPEED_GRADE_G = 3), ite((RATE_G = "6.25Gbps"), 8, 16), ite((RATE_G = "6.25Gbps"), 6, 12));  -- 195.312 MHz for 6.25Gbps configuration
+
+   signal qPllOutClk     : Slv2Array(3 downto 0) := (others => "00");
+   signal qPllOutRefClk  : Slv2Array(3 downto 0) := (others => "00");
+   signal qPllLock       : Slv2Array(3 downto 0) := (others => "00");
+   signal qPllRefClkLost : Slv2Array(3 downto 0) := (others => "00");
+   signal qpllRst        : Slv2Array(3 downto 0) := (others => "00");
+
+   signal gtTxOutClk   : slv(3 downto 0) := (others => '0');
+   signal gtTxPllRst   : slv(3 downto 0) := (others => '0');
+   signal gtTxPllLock  : slv(3 downto 0) := (others => '0');
+   signal pllOut       : slv(2 downto 0) := (others => '0');
+   signal txPllClk     : slv(2 downto 0) := (others => '0');
+   signal txPllRst     : slv(2 downto 0) := (others => '0');
+   signal lockedStrobe : slv(3 downto 0) := (others => '0');
+   signal pllLock      : sl;
+
+   signal pgpRefClkDiv2  : sl;
+   signal pgpRefClk      : sl;
+   signal clkFb          : sl;
+   signal gtTxOutClkBufg : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := NUM_LANES_G+1;
    constant QPLL_AXIL_INDEX_C  : integer := NUM_AXIL_MASTERS_C-1;
@@ -128,21 +155,12 @@ begin
 
    INT_REFCLK : if (REFCLK_G = false) generate
 
-      U_BUFG_GT : BUFG_GT
+      U_BUFG : BUFG
          port map (
-            I       => pgpRefClkDiv2,
-            CE      => '1',
-            CLR     => '0',
-            CEMASK  => '1',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide by 1
-            O       => pgpRefClkDiv2Bufg);
+            I => pgpRefClkDiv2,
+            O => pgpRefClkDiv2Bufg);
 
-      U_pgpRefClk : IBUFDS_GTE3
-         generic map (
-            REFCLK_EN_TX_PATH  => '0',
-            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
-            REFCLK_ICNTL_RX    => "00")
+      U_pgpRefClk : IBUFDS_GTE2
          port map (
             I     => pgpRefClkP,
             IB    => pgpRefClkN,
@@ -160,6 +178,7 @@ begin
    end generate;
 
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
+
 
       U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
@@ -179,23 +198,24 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity surf.Pgp3GthUsQpll
+      U_QPLL : entity surf.Pgp3Gtp7Qpll -- Same IP core for both PGPv3 and PGPv4
          generic map (
-            TPD_G             => TPD_G,
-            RATE_G            => RATE_G,
-            REFCLK_TYPE_G     => REFCLK_TYPE_G,
-            QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G,
-            EN_DRP_G          => EN_QPLL_DRP_G)
+            TPD_G         => TPD_G,
+            EN_DRP_G      => EN_QPLL_DRP_G,
+            REFCLK_TYPE_G => REFCLK_TYPE_G,
+            RATE_G        => RATE_G)
          port map (
             -- Stable Clock and Reset
             stableClk       => stableClk,                            -- [in]
             stableRst       => stableRst,                            -- [in]
-            -- QPLL Clocking
-            pgpRefClk       => pgpRefClk,                            -- [in]
-            qpllLock        => qpllLock,                             -- [out]
-            qpllClk         => qpllClk,                              -- [out]
-            qpllRefclk      => qpllRefclk,                           -- [out]
-            qpllRst         => qpllRst,                              -- [in]
+            -- QPLL Interface
+            pgpRefClk       => pgpRefClk,
+            qPllOutClk      => qPllOutClk,
+            qPllOutRefClk   => qPllOutRefClk,
+            qPllLock        => qPllLock,
+            qpllRefClkLost  => qpllRefClkLost,
+            qpllRst         => qpllRst,
+            -- AXI-Lite Interface
             axilClk         => axilClk,                              -- [in]
             axilRst         => axilRst,                              -- [in]
             axilReadMaster  => axilReadMasters(QPLL_AXIL_INDEX_C),   -- [in]
@@ -207,10 +227,16 @@ begin
       -- PGP Core
       -----------
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Pgp : entity surf.Pgp3GthUs
+         U_Pgp : entity surf.Pgp4Gtp7
             generic map (
                TPD_G                       => TPD_G,
                RATE_G                      => RATE_G,
+               CLKIN_PERIOD_G              => CLKIN_PERIOD_C,
+               BANDWIDTH_G                 => BANDWIDTH_C,
+               CLKFBOUT_MULT_G             => CLKFBOUT_MULT_C,
+               CLKOUT0_DIVIDE_G            => CLKOUT0_DIVIDE_C,
+               CLKOUT1_DIVIDE_G            => CLKOUT1_DIVIDE_C,
+               CLKOUT2_DIVIDE_G            => CLKOUT2_DIVIDE_C,
                ----------------------------------------------------------------------------------------------
                -- PGP Settings
                ----------------------------------------------------------------------------------------------
@@ -225,7 +251,7 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
-               EN_DRP_G                    => EN_GTH_DRP_G,
+               EN_DRP_G                    => EN_GT_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
                AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
@@ -237,10 +263,17 @@ begin
                stableClk       => stableClk,
                stableRst       => stableRst,
                -- QPLL Interface
-               qpllLock        => qpllLock(i),
-               qpllClk         => qpllClk(i),
-               qpllRefclk      => qpllRefclk(i),
+               qPllOutClk      => qPllOutClk(i),
+               qPllOutRefClk   => qPllOutRefClk(i),
+               qPllLock        => qPllLock(i),
+               qpllRefClkLost  => qpllRefClkLost(i),
                qpllRst         => qpllRst(i),
+               -- TX PLL Interface
+               gtTxOutClk      => gtTxOutClk(i),
+               gtTxPllRst      => gtTxPllRst(i),
+               txPllClk        => txPllClk,
+               txPllRst        => txPllRst,
+               gtTxPllLock     => gtTxPllLock(i),
                -- Gt Serial IO
                pgpGtTxP        => pgpGtTxP(i),
                pgpGtTxN        => pgpGtTxN(i),
@@ -269,13 +302,95 @@ begin
                axilWriteMaster => axilWriteMasters(i),
                axilWriteSlave  => axilWriteSlaves(i));
 
+         MASTER_LOCK : if (i = 0) generate
+            gtTxPllLock(0) <= pllLock;
+         end generate;
+
+         SLAVE_LOCK : if (i /= 0) generate
+            -- Prevent the gtTxPllRst of this lane disrupting the other lanes in the QUAD
+            U_PwrUpRst : entity surf.PwrUpRst
+               generic map (
+                  TPD_G      => TPD_G,
+                  DURATION_G => 125)
+               port map (
+                  arst   => gtTxPllRst(i),
+                  clk    => stableClk,
+                  rstOut => lockedStrobe(i));
+            -- Trick the GT state machine of lock transition
+            gtTxPllLock(i) <= pllLock and not(lockedStrobe(i));
+         end generate;
+
       end generate GEN_LANE;
+
+      U_Bufg : BUFH
+         port map (
+            I => gtTxOutClk(0),
+            O => gtTxOutClkBufg);
+
+      U_TX_PLL : PLLE2_ADV
+         generic map (
+            BANDWIDTH      => BANDWIDTH_C,
+            CLKIN1_PERIOD  => CLKIN_PERIOD_C,
+            DIVCLK_DIVIDE  => 1,
+            CLKFBOUT_MULT  => CLKFBOUT_MULT_C,
+            CLKOUT0_DIVIDE => CLKOUT0_DIVIDE_C,
+            CLKOUT1_DIVIDE => CLKOUT1_DIVIDE_C,
+            CLKOUT2_DIVIDE => CLKOUT2_DIVIDE_C)
+         port map (
+            DCLK     => axilClk,
+            DRDY     => open,
+            DEN      => '0',
+            DWE      => '0',
+            DADDR    => (others => '0'),
+            DI       => (others => '0'),
+            DO       => open,
+            PWRDWN   => '0',
+            RST      => gtTxPllRst(0),
+            CLKIN1   => gtTxOutClkBufg,
+            CLKIN2   => '0',
+            CLKINSEL => '1',
+            CLKFBOUT => clkFb,
+            CLKFBIN  => clkFb,
+            LOCKED   => pllLock,
+            CLKOUT0  => pllOut(0),
+            CLKOUT1  => pllOut(1),
+            CLKOUT2  => pllOut(2));
+
+      U_txPllClk0 : BUFG
+         port map (
+            I => pllOut(0),
+            O => txPllClk(0));
+
+      U_txPllClk1 : BUFG
+         port map (
+            I => pllOut(1),
+            O => txPllClk(1));
+
+      U_txPllClk2 : BUFG
+         port map (
+            I => pllOut(2),
+            O => txPllClk(2));
+
+      GEN_RST : for i in 2 downto 0 generate
+         U_RstSync : entity surf.RstSync
+            generic map (
+               TPD_G          => TPD_G,
+               IN_POLARITY_G  => '0',
+               OUT_POLARITY_G => '1')
+            port map (
+               clk      => txPllClk(i),
+               asyncRst => pllLock,
+               syncRst  => txPllRst(i));
+      end generate;
+
+      debugClk <= txPllClk;
+      debugRst <= txPllRst;
 
    end generate REAL_PGP;
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Rogue : entity surf.RoguePgp3Sim
+         U_Rogue : entity surf.RoguePgp3Sim -- Same IP core for both PGPv3 and PGPv4
             generic map(
                TPD_G      => TPD_G,
                PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),

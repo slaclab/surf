@@ -30,7 +30,7 @@ use unisim.vcomponents.all;
 entity Pgp3GthUsQpll is
    generic (
       TPD_G             : time            := 1 ns;
-      REFCLK_TYPE_G     : Pgp3RefClkType  := PGP3_REFCLK_156_C;
+      REFCLK_TYPE_G     : Pgp3RefClkType  := REFCLK_156_C;
       RATE_G            : string          := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       QPLL_REFCLK_SEL_G : slv(2 downto 0) := "001";
       EN_DRP_G          : boolean         := true);
@@ -103,7 +103,7 @@ architecture mapping of Pgp3GthUsQpll is
       ----------------------------------------
       -- Check for 156.25 MHz or 312.5 MHz OSC
       ----------------------------------------
-      if (refClkType = PGP3_REFCLK_156_C) or (refClkType = PGP3_REFCLK_312_C) then
+      if (refClkType = REFCLK_156_C) or (refClkType = REFCLK_312_C) then
 
          -- Check for non-10Gb/s rate
          if (rate /= "10.3125Gbps") then
@@ -112,7 +112,7 @@ architecture mapping of Pgp3GthUsQpll is
          end if;
 
          -- Check for double rate OSC
-         if (refClkType = PGP3_REFCLK_312_C) then
+         if (refClkType = REFCLK_312_C) then
             retVar.QPLL_REFCLK_DIV := 2;
          end if;
 
@@ -131,7 +131,7 @@ architecture mapping of Pgp3GthUsQpll is
          retVar.QPLL_FBDIV := 111;
 
          -- Check for OSC Frequency
-         if (refClkType = PGP3_REFCLK_186_C) then
+         if (refClkType = REFCLK_186_C) then
             retVar.QPLL_REFCLK_DIV := 2;
          else
             retVar.QPLL_REFCLK_DIV := 4;
@@ -163,8 +163,8 @@ begin
       report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
       severity error;
 
-   assert ((REFCLK_TYPE_G = PGP3_REFCLK_156_C) or (REFCLK_TYPE_G = PGP3_REFCLK_186_C) or (REFCLK_TYPE_G = PGP3_REFCLK_312_C) or (REFCLK_TYPE_G = PGP3_REFCLK_371_C))
-      report "REFCLK_TYPE_G: Must be either PGP3_REFCLK_156_C, PGP3_REFCLK_186_C, PGP3_REFCLK_312_C or PGP3_REFCLK_371_C"
+   assert ((REFCLK_TYPE_G = REFCLK_156_C) or (REFCLK_TYPE_G = REFCLK_186_C) or (REFCLK_TYPE_G = REFCLK_312_C) or (REFCLK_TYPE_G = REFCLK_371_C))
+      report "REFCLK_TYPE_G: Must be either REFCLK_156_C, REFCLK_186_C, REFCLK_312_C or REFCLK_371_C"
       severity error;
 
    GEN_VEC :

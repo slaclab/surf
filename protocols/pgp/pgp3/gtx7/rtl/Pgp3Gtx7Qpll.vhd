@@ -32,7 +32,7 @@ entity Pgp3Gtx7Qpll is
    generic (
       TPD_G         : time           := 1 ns;
       EN_DRP_G      : boolean        := true;
-      REFCLK_TYPE_G : Pgp3RefClkType := PGP3_REFCLK_312_C;
+      REFCLK_TYPE_G : Pgp3RefClkType := REFCLK_312_C;
       RATE_G        : string         := "10.3125Gbps");  -- or "6.25Gbps" or "3.125Gbps"
    port (
       -- Stable Clock and Reset
@@ -62,9 +62,9 @@ architecture mapping of Pgp3Gtx7Qpll is
       -- RATE_G = 10.3125Gbps
       -------------------------------
       if ((RATE_G = "10.3125Gbps")) then
-         if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
+         if (REFCLK_TYPE_G = REFCLK_312_C) then
             return 66;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_156_C) then
             return 66;
          else
             return -1;
@@ -73,13 +73,13 @@ architecture mapping of Pgp3Gtx7Qpll is
       -- RATE_G = 6.25Gbps or 3.125Gbps
       -----------------------------
       else
-         if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
+         if (REFCLK_TYPE_G = REFCLK_312_C) then
             return 40;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_156_C) then
             return 40;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_250_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_250_C) then
             return 100;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_125_C) then
             return 100;
          else
             return -1;
@@ -139,9 +139,9 @@ architecture mapping of Pgp3Gtx7Qpll is
       -- RATE_G = 10.3125Gbps
       -------------------------------
       if (RATE_G = "10.3125Gbps") then
-         if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
+         if (REFCLK_TYPE_G = REFCLK_312_C) then
             return 2;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_156_C) then
             return 1;
          else
             return -1;
@@ -150,13 +150,13 @@ architecture mapping of Pgp3Gtx7Qpll is
       -- RATE_G = 6.25Gbps or 3.125Gbps
       -----------------------------
       else
-         if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) then
+         if (REFCLK_TYPE_G = REFCLK_312_C) then
             return 2;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_156_C) then
             return 1;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_250_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_250_C) then
             return 4;
-         elsif (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
+         elsif (REFCLK_TYPE_G = REFCLK_125_C) then
             return 2;
          else
             return -1;

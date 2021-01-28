@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-- Title      : PGPv4: https://confluence.slac.stanford.edu/x/1dzgEQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv3 GTH Ultrascale Wrapper
+-- Description: PGPv4 GTH Ultrascale Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -24,30 +24,30 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
-use surf.Pgp3Pkg.all;
+use surf.Pgp4Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
-entity Pgp3GthUsWrapper is
+entity Pgp4GthUsWrapper is
    generic (
       TPD_G                       : time                        := 1 ns;
       ROGUE_SIM_EN_G              : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
+      SYNTH_MODE_G                : string                      := "inferred";
+      MEMORY_TYPE_G               : string                      := "block";
       NUM_LANES_G                 : positive range 1 to 4       := 1;
       NUM_VC_G                    : positive range 1 to 16      := 4;
       REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType              := REFCLK_156_C;
-      QPLL_REFCLK_SEL_G           : slv(2 downto 0)             := "001";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G             : boolean                     := true;
       RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
       PGP_TX_ENABLE_G             : boolean                     := true;
-      TX_CELL_WORDS_MAX_G         : integer                     := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_MUX_MODE_G               : string                      := "INDEXED";  -- Or "ROUTED"
+      TX_CELL_WORDS_MAX_G         : integer                     := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
+      TX_MUX_MODE_G               : string                      := "INDEXED";      -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
@@ -71,20 +71,20 @@ entity Pgp3GthUsWrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_TYPE_G
-      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_TYPE_G
-      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_TYPE_G
+      pgpRefClkP        : in  sl                                                     := '0';  -- 156.25 MHz
+      pgpRefClkN        : in  sl                                                     := '1';  -- 156.25 MHz
+      pgpRefClkIn       : in  sl                                                     := '0';  -- 156.25 MHz
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
       pgpClk            : out slv(NUM_LANES_G-1 downto 0);
       pgpClkRst         : out slv(NUM_LANES_G-1 downto 0);
       -- Non VC Rx Signals
-      pgpRxIn           : in  Pgp3RxInArray(NUM_LANES_G-1 downto 0);
-      pgpRxOut          : out Pgp3RxOutArray(NUM_LANES_G-1 downto 0);
+      pgpRxIn           : in  Pgp4RxInArray(NUM_LANES_G-1 downto 0);
+      pgpRxOut          : out Pgp4RxOutArray(NUM_LANES_G-1 downto 0);
       -- Non VC Tx Signals
-      pgpTxIn           : in  Pgp3TxInArray(NUM_LANES_G-1 downto 0);
-      pgpTxOut          : out Pgp3TxOutArray(NUM_LANES_G-1 downto 0);
+      pgpTxIn           : in  Pgp4TxInArray(NUM_LANES_G-1 downto 0);
+      pgpTxOut          : out Pgp4TxOutArray(NUM_LANES_G-1 downto 0);
       -- Frame Transmit Interface
       pgpTxMasters      : in  AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpTxSlaves       : out AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
@@ -99,9 +99,9 @@ entity Pgp3GthUsWrapper is
       axilReadSlave     : out AxiLiteReadSlaveType                                   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster   : in  AxiLiteWriteMasterType                                 := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave    : out AxiLiteWriteSlaveType                                  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-end Pgp3GthUsWrapper;
+end Pgp4GthUsWrapper;
 
-architecture rtl of Pgp3GthUsWrapper is
+architecture rtl of Pgp4GthUsWrapper is
 
    signal qpllLock   : Slv2Array(3 downto 0) := (others => "00");
    signal qpllClk    : Slv2Array(3 downto 0) := (others => "00");
@@ -138,7 +138,7 @@ begin
             DIV     => "000",           -- Divide by 1
             O       => pgpRefClkDiv2Bufg);
 
-      U_pgpRefClk : IBUFDS_GTE3
+      U_pgpRefClk : IBUFDS_GTE4
          generic map (
             REFCLK_EN_TX_PATH  => '0',
             REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
@@ -179,13 +179,11 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity surf.Pgp3GthUsQpll
+      U_QPLL : entity surf.Pgp3GthUsQpll -- Same IP core for both PGPv3 and PGPv4
          generic map (
-            TPD_G             => TPD_G,
-            RATE_G            => RATE_G,
-            REFCLK_TYPE_G     => REFCLK_TYPE_G,
-            QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G,
-            EN_DRP_G          => EN_QPLL_DRP_G)
+            TPD_G    => TPD_G,
+            RATE_G   => RATE_G,
+            EN_DRP_G => EN_QPLL_DRP_G)
          port map (
             -- Stable Clock and Reset
             stableClk       => stableClk,                            -- [in]
@@ -207,10 +205,11 @@ begin
       -- PGP Core
       -----------
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Pgp : entity surf.Pgp3GthUs
+         U_Pgp : entity surf.Pgp4GthUs
             generic map (
                TPD_G                       => TPD_G,
                RATE_G                      => RATE_G,
+               SYNTH_MODE_G                => SYNTH_MODE_G,
                ----------------------------------------------------------------------------------------------
                -- PGP Settings
                ----------------------------------------------------------------------------------------------
@@ -275,9 +274,11 @@ begin
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Rogue : entity surf.RoguePgp3Sim
+         U_Rogue : entity surf.RoguePgp3Sim -- Same IP core for both PGPv3 and PGPv4
             generic map(
                TPD_G      => TPD_G,
+               SYNTH_MODE_G  => SYNTH_MODE_G,
+               MEMORY_TYPE_G => MEMORY_TYPE_G,
                PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),
                NUM_VC_G   => NUM_VC_G)
             port map(
