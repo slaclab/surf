@@ -40,7 +40,7 @@ package Pgp4Pkg is
    constant PGP4_SOC_C  : slv(7 downto 0) := PGP3_SOC_C;
    constant PGP4_EOC_C  : slv(7 downto 0) := PGP3_EOC_C;
    constant PGP4_SKP_C  : slv(7 downto 0) := PGP3_SKP_C;
-   constant PGP4_USER_C : slv(7 downto 0) := (0 => PGP3_USER_C(0));
+   constant PGP4_USER_C : slv(7 downto 0) := PGP3_USER_C(0);
 
    constant PGP4_VALID_BTF_ARRAY_C : Slv8Array := (
       0 => PGP4_IDLE_C,
