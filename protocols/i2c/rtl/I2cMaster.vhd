@@ -69,7 +69,7 @@ architecture rtl of I2cMaster is
    -----------------------------------------------------------------------------
    -- Constants
    -----------------------------------------------------------------------------
-   constant TIMEOUT_C : integer := PRESCALE_G*5*100;
+   constant TIMEOUT_C : integer := (PRESCALE_G+1)*5*500;
 
    -----------------------------------------------------------------------------
    -- Types
@@ -150,7 +150,7 @@ begin
 
    arstL <= not arst;
 
-   coreRst   <= r.coreRst or srst;
+   coreRst <= r.coreRst or srst;
 
 
    -- Byte Controller from OpenCores I2C master,
@@ -208,7 +208,7 @@ begin
       v := r;
 
       -- Pulsed
-      v.coreRst := '0';      
+      v.coreRst := '0';
 
       -- byteCtrl commands default to zero
       -- unless overridden in a state below
@@ -223,6 +223,7 @@ begin
 
       if (i2cMasterIn.rdAck = '1') then
          v.i2cMasterOut.rdValid  := '0';
+         v.i2cMasterOut.rdData   := (others => '0');
          v.i2cMasterOut.txnError := '0';
       end if;
 
@@ -231,7 +232,6 @@ begin
       case (r.state) is
          when WAIT_TXN_REQ_S =>
             -- Reset front end outputs
-            v.i2cMasterOut.rdData := (others => '0');  -- Necessary?
             -- If new request and any previous rdData has been acked.
             if (i2cMasterIn.txnReq = '1') and (r.i2cMasterOut.rdValid = '0') and (r.i2cMasterOut.busAck = '0') then
                v.state  := ADDR_S;
@@ -380,7 +380,8 @@ begin
       -- Synchronous Reset
       ------------------------------------------------------------------------------------------------
       if (srst = '1') then
-         v := REG_INIT_C;
+         v         := REG_INIT_C;
+         v.coreRst := r.coreRst;        -- Remove srst from coreRst path
       end if;
 
       ------------------------------------------------------------------------------------------------
