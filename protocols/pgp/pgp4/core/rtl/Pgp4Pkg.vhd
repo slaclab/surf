@@ -102,8 +102,6 @@ package Pgp4Pkg is
    subtype Pgp4RxOutArray is Pgp3RxOutArray;
    constant PGP4_RX_OUT_INIT_C : Pgp4RxOutType := PGP3_RX_OUT_INIT_C;
 
-   subtype Pgp4RefClkType is Pgp3RefClkType;
-
 end package Pgp4Pkg;
 
 package body Pgp4Pkg is

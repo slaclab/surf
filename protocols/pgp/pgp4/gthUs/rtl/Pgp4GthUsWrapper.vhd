@@ -24,7 +24,6 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
-use surf.Pgp3Pkg.all;
 use surf.Pgp4Pkg.all;
 
 library unisim;
@@ -39,7 +38,7 @@ entity Pgp4GthUsWrapper is
       NUM_VC_G                    : positive range 1 to 16      := 4;
       REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp4RefClkType              := REFCLK_156_C;
+      REFCLK_FREQ_G               : real                        := 156.25E+6;
       QPLL_REFCLK_SEL_G           : slv(2 downto 0)             := "001";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -72,9 +71,9 @@ entity Pgp4GthUsWrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_TYPE_G
-      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_TYPE_G
-      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_TYPE_G
+      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_FREQ_G
+      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_FREQ_G
+      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_FREQ_G
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
@@ -184,7 +183,7 @@ begin
          generic map (
             TPD_G             => TPD_G,
             RATE_G            => RATE_G,
-            REFCLK_TYPE_G     => REFCLK_TYPE_G,
+            REFCLK_FREQ_G     => REFCLK_FREQ_G,
             QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G,
             EN_DRP_G          => EN_QPLL_DRP_G)
          port map (
