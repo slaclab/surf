@@ -245,7 +245,7 @@ begin
          when IDLE_S =>
             -- Reset error flags
             v.memResp     := (others => '0');
-            v.timeout     := '0';
+            -- v.timeout     := '0'; <--- if timeout ever happens then latch the timeout (don't reset) to inform SW that "hardware bus lock"
             v.eofe        := '0';
             v.frameError  := '0';
             v.verMismatch := '0';
@@ -396,8 +396,8 @@ begin
                         v.state := FOOTER_S;
                      end if;
 
-                     -- Check for framing error or EOFE
-                     if (r.frameError = '1') or (r.eofe = '1') then
+                     -- Check for framing error or EOFE or timeout (A.K.A. "hardware bus lock")
+                     if (r.frameError = '1') or (r.eofe = '1') or (r.timeout = '1') then
                         -- Next State
                         v.state := FOOTER_S;
                      end if;
@@ -631,7 +631,8 @@ begin
                v.txMaster.tData(10)           := r.frameError;
                v.txMaster.tData(11)           := r.verMismatch;
                v.txMaster.tData(12)           := r.reqError;
-               v.txMaster.tData(31 downto 13) := (others => '0');
+               v.txMaster.tData(13)           := r.timeout;
+               v.txMaster.tData(31 downto 14) := (others => '0');
                -- Next state
                v.state                        := IDLE_S;
             end if;
