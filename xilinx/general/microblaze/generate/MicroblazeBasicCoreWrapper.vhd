@@ -26,7 +26,8 @@ entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
       AXIL_RESP_C     : boolean := false;
-      AXIL_ADDR_MSB_C : boolean := false);  -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_ADDR_MSB_C : boolean := false;   -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_ADDR_SEL_C : boolean := false);
    port (
       -- Master AXI-Lite Interface
       mAxilWriteMaster : out AxiLiteWriteMasterType;
@@ -52,6 +53,7 @@ architecture mapping of MicroblazeBasicCoreWrapper is
    component MicroblazeBasicCore is
       port (
          INTERRUPT        : in  std_logic_vector (7 downto 0);
+         GPIO_0_OUT       : out std_logic;
          M0_AXIS_tdata    : out std_logic_vector (31 downto 0);
          M0_AXIS_tlast    : out std_logic;
          M0_AXIS_tready   : in  std_logic;
@@ -88,6 +90,7 @@ architecture mapping of MicroblazeBasicCoreWrapper is
    signal araddr : slv(31 downto 0);
    signal bresp  : slv(1 downto 0);
    signal rresp  : slv(1 downto 0);
+   signal addr_sel : sl;
 
    signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal txSlave  : AxiStreamSlaveType;
@@ -95,15 +98,20 @@ architecture mapping of MicroblazeBasicCoreWrapper is
 begin
 
    -- Address space = [0x00000000:0x7FFFFFFF]
-   LOWER_2GB : if (AXIL_ADDR_MSB_C = false) generate
+   LOWER_2GB : if (AXIL_ADDR_MSB_C = false) and (AXIL_ADDR_SEL_C = false) generate
       mAxilWriteMaster.awaddr <= '0' & awaddr(30 downto 0);
       mAxilReadMaster.araddr  <= '0' & araddr(30 downto 0);
    end generate;
 
    -- Address space = [0x80000000:0xFFFFFFFF]
-   HIGH_2GB : if (AXIL_ADDR_MSB_C = true) generate
+   HIGH_2GB : if (AXIL_ADDR_MSB_C = true) and (AXIL_ADDR_SEL_C = false) generate
       mAxilWriteMaster.awaddr <= '1' & awaddr(30 downto 0);
       mAxilReadMaster.araddr  <= '1' & araddr(30 downto 0);
+   end generate;
+   
+   SEL_ADDR : if (AXIL_ADDR_SEL_C = true) generate
+      mAxilWriteMaster.awaddr <= addr_sel & awaddr(30 downto 0);
+      mAxilReadMaster.araddr  <= addr_sel & araddr(30 downto 0);
    end generate;
 
    BYPASS_RESP : if (AXIL_RESP_C = false) generate
@@ -120,6 +128,8 @@ begin
       port map (
          -- Interrupt Interface
          INTERRUPT           => interrupt,
+         -- GPIO output
+         GPIO_0_OUT          => addr_sel,
          -- Master AXI-Lite Interface
          M_AXI_DP_awaddr     => awaddr,
          M_AXI_DP_awprot     => mAxilWriteMaster.awprot,
