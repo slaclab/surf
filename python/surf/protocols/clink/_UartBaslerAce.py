@@ -27,7 +27,12 @@ class UartBaslerAceRx(clink.ClinkSerialRx):
         frame.read(ba,0)
 
         for i in range(0,len(ba),4):
-            print ( f'Got Response: {hex(ba[i])}' )
+            # Check for ACK
+            if ba[i] == 0x06:
+                print ( 'Got ACK Response' )
+            # Check for ACK
+            if ba[i] == 0x15:
+                print ( 'Got NACK Response' )
 
 class UartBaslerAceTx(rogue.interfaces.stream.Master):
     def __init__(self, **kwargs):
