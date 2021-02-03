@@ -1253,7 +1253,8 @@
           "microblaze_axi_periph/M01_ACLK",
           "microblaze_axi_periph/M02_ACLK",
           "microblaze_axi_periph/M03_ACLK",
-          "axi_gpio_0/s_axi_aclk"
+          "axi_gpio_0/s_axi_aclk",
+          "microblaze_axi_periph/M04_ACLK"
         ]
       },
       "rst_clk_wiz_1_100M_mb_reset": {
@@ -1293,7 +1294,8 @@
           "microblaze_axi_periph/M01_ARESETN",
           "microblaze_axi_periph/M03_ARESETN",
           "microblaze_axi_periph/M02_ARESETN",
-          "axi_gpio_0/s_axi_aresetn"
+          "axi_gpio_0/s_axi_aresetn",
+          "microblaze_axi_periph/M04_ARESETN"
         ]
       },
       "rst_clk_wiz_1_100M_interconnect_aresetn": {
