@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-- Title      : PGPv4: https://confluence.slac.stanford.edu/x/1dzgEQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation PGPv3 Testbed
+-- Description: Simulation PGPv4 Testbed
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,21 +25,21 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use surf.Pgp3Pkg.all;
+use surf.Pgp4Pkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
-entity Pgp3Tb is
+entity Pgp4Tb is
 
-end entity Pgp3Tb;
+end entity Pgp4Tb;
 
 ----------------------------------------------------------------------------------------------------
 
-architecture tb of Pgp3Tb is
+architecture tb of Pgp4Tb is
 
    -- component generics
    constant TPD_G               : time    := 1 ns;
-   constant TX_CELL_WORDS_MAX_G : integer := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;
+   constant TX_CELL_WORDS_MAX_G : integer := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;
    constant NUM_VC_G            : integer := 4;
    constant SKP_INTERVAL_G      : integer := 5000;
    constant SKP_BURST_SIZE_G    : integer := 8;
@@ -76,8 +76,8 @@ architecture tb of Pgp3Tb is
    signal axisRst : sl;                 -- [in]
 
    -- TX
-   signal pgpTxIn        : Pgp3TxInType := PGP3_TX_IN_INIT_C;
-   signal pgpTxOut       : Pgp3TxOutType;
+   signal pgpTxIn        : Pgp4TxInType := PGP4_TX_IN_INIT_C;
+   signal pgpTxOut       : Pgp4TxOutType;
    signal pgpTxMasters   : AxiStreamMasterArray(NUM_VC_G-1 downto 0);  -- [in]
    signal pgpTxSlaves    : AxiStreamSlaveArray(NUM_VC_G-1 downto 0);   -- [out]
 
@@ -92,8 +92,8 @@ architecture tb of Pgp3Tb is
    signal phyRxData   : slv(63 downto 0);
    signal phyRxHeader : slv(1 downto 0);
 
-   signal pgpRxIn      : Pgp3RxInType                            := PGP3_RX_IN_INIT_C;
-   signal pgpRxOut     : Pgp3RxOutType;
+   signal pgpRxIn      : Pgp4RxInType                            := PGP4_RX_IN_INIT_C;
+   signal pgpRxOut     : Pgp4RxOutType;
    signal pgpRxMasters : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
    signal pgpRxCtrl    : AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
@@ -143,9 +143,9 @@ begin
    end generate PRBS_GEN;
 
    -------------------------------------------------------------------------------------------------
-   -- PGP3 Transmit
+   -- PGP4 Transmit
    -------------------------------------------------------------------------------------------------
-   U_Pgp3Tx_1 : entity surf.Pgp3Tx
+   U_Pgp4Tx_1 : entity surf.Pgp4Tx
       generic map (
          TPD_G                    => TPD_G,
          NUM_VC_G                 => NUM_VC_G,
@@ -174,7 +174,7 @@ begin
    phyRxHeader <= phyTxHeader;
    phyRxData   <= phyTxData;
 
-   U_Pgp3Rx_1 : entity surf.Pgp3Rx
+   U_Pgp4Rx_1 : entity surf.Pgp4Rx
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -224,7 +224,7 @@ begin
 --            FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,
             FIFO_PAUSE_THRESH_G => 16,
             INT_WIDTH_SELECT_G  => "WIDE",
-            SLAVE_AXI_CONFIG_G  => PGP3_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => RX_AXIS_CFG_C)
          port map (
             sAxisClk    => axisClk,                    -- [in]

@@ -30,7 +30,7 @@ use unisim.vcomponents.all;
 entity Pgp3GthUsQpll is
    generic (
       TPD_G             : time            := 1 ns;
-      REFCLK_TYPE_G     : Pgp3RefClkType  := PGP3_REFCLK_156_C;
+      REFCLK_FREQ_G     : real            := 156.25E+6;
       RATE_G            : string          := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       QPLL_REFCLK_SEL_G : slv(2 downto 0) := "001";
       EN_DRP_G          : boolean         := true);
@@ -39,7 +39,7 @@ entity Pgp3GthUsQpll is
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
       stableRst       : in  sl;
       -- QPLL Clocking
-      pgpRefClk       : in  sl;         -- REFCLK_TYPE_G
+      pgpRefClk       : in  sl;         -- REFCLK_FREQ_G
       qpllLock        : out Slv2Array(3 downto 0);
       qpllClk         : out Slv2Array(3 downto 0);
       qpllRefclk      : out Slv2Array(3 downto 0);
@@ -94,7 +94,7 @@ architecture mapping of Pgp3GthUsQpll is
       QPLL_LPF         => "1111111100",
       QPLL_LPF_G3      => "0000010101",
       QPLL_REFCLK_DIV  => 1);
-   function getQpllConfig (refClkType : Pgp3RefClkType; rate : string) return QpllConfig is
+   function getQpllConfig (refClkFreq : real; rate : string) return QpllConfig is
       variable retVar : QpllConfig;
    begin
       -- Init
@@ -103,7 +103,7 @@ architecture mapping of Pgp3GthUsQpll is
       ----------------------------------------
       -- Check for 156.25 MHz or 312.5 MHz OSC
       ----------------------------------------
-      if (refClkType = PGP3_REFCLK_156_C) or (refClkType = PGP3_REFCLK_312_C) then
+      if (refClkFreq = 156.25E+6) or (refClkFreq = 312.5E+6) then
 
          -- Check for non-10Gb/s rate
          if (rate /= "10.3125Gbps") then
@@ -112,7 +112,7 @@ architecture mapping of Pgp3GthUsQpll is
          end if;
 
          -- Check for double rate OSC
-         if (refClkType = PGP3_REFCLK_312_C) then
+         if (refClkFreq = 312.5E+6) then
             retVar.QPLL_REFCLK_DIV := 2;
          end if;
 
@@ -131,7 +131,7 @@ architecture mapping of Pgp3GthUsQpll is
          retVar.QPLL_FBDIV := 111;
 
          -- Check for OSC Frequency
-         if (refClkType = PGP3_REFCLK_186_C) then
+         if (refClkFreq = 185.7142855E+6) then
             retVar.QPLL_REFCLK_DIV := 2;
          else
             retVar.QPLL_REFCLK_DIV := 4;
@@ -143,7 +143,7 @@ architecture mapping of Pgp3GthUsQpll is
       return(retVar);
    end function;
 
-   constant QPLL_CONFIG_C : QpllConfig := getQpllConfig(REFCLK_TYPE_G, RATE_G);
+   constant QPLL_CONFIG_C : QpllConfig := getQpllConfig(REFCLK_FREQ_G, RATE_G);
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -163,8 +163,8 @@ begin
       report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
       severity error;
 
-   assert ((REFCLK_TYPE_G = PGP3_REFCLK_156_C) or (REFCLK_TYPE_G = PGP3_REFCLK_186_C) or (REFCLK_TYPE_G = PGP3_REFCLK_312_C) or (REFCLK_TYPE_G = PGP3_REFCLK_371_C))
-      report "REFCLK_TYPE_G: Must be either PGP3_REFCLK_156_C, PGP3_REFCLK_186_C, PGP3_REFCLK_312_C or PGP3_REFCLK_371_C"
+   assert ((REFCLK_FREQ_G = 156.25E+6) or (REFCLK_FREQ_G = 185.7142855E+6) or (REFCLK_FREQ_G = 312.5E+6) or (REFCLK_FREQ_G = 371.428571E+6))
+      report "REFCLK_FREQ_G: Must be either 156.25E+6, 185.7142855E+6, 312.5E+6 or 371.428571E+6"
       severity error;
 
    GEN_VEC :
