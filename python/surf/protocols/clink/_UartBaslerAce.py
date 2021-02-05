@@ -117,6 +117,16 @@ class UartBaslerAce(pr.Device):
         ############################
         # 4.4 Image Format Registers
         ############################
+
+        self.add(pr.LocalVariable(
+            name         = 'DigitizationTaps',
+            description  = 'The Sensor Digitization Taps value sets the number of taps on the camera\'s imaging sensor that will be used to read pixel values out of the sensor.',
+            mode         = 'RW',
+            value        = '',
+            localSet     = createCmd(addr=0x00030004)
+        ))
+
+
         self.add(pr.LocalVariable(
             name         = 'BitDepth',
             description  = 'The Sensor Bit Depth value sets the bit depth of the pixel data produced by the camera’s imaging sensor.',
@@ -132,6 +142,47 @@ class UartBaslerAce(pr.Device):
             value        = '',
             localSet     = createCmd(addr=0x00030024)
         ))
+
+        self.add(pr.LocalVariable(
+            name         = 'BinningHorizontal',
+            description  = 'The horizontal binning feature allows to horizontally combine pixel values from adjacent columns into one pixel.',
+            mode         = 'RW',
+            value        = '',
+            localSet     = createCmd(addr=0x00030324)
+        ))
+
+        self.add(pr.LocalVariable(
+            name         = 'BinningVertical',
+            description  = 'The vertical binning feature allows to vertically combine pixel values from adjacent lines into one pixel.',
+            mode         = 'RW',
+            value        = '',
+            localSet     = createCmd(addr=0x00030344)
+        ))
+
+        self.add(pr.LocalVariable(
+            name         = 'StackedZoneImagingEnable',
+            description  = 'The Stacked Zone Imaging Enable value is used to enable the camera’s stacked zone imaging feature.',
+            mode         = 'RW',
+            value        = '',
+            localSet     = createCmd(addr=0x0003E004)
+        ))
+
+        self.add(pr.LocalVariable(
+            name         = 'DecimationHorizontal',
+            description  = 'The Decimation Horizontal value specifies the extent of horizontal subsampling of the acquired frame.',
+            mode         = 'RW',
+            value        = '',
+            localSet     = createCmd(addr=0x000303A4)
+        ))
+
+        self.add(pr.LocalVariable(
+            name         = 'DecimationVertical',
+            description  = 'The Decimation Vertical value specifies the extent of vertical subsampling of the acquired frame.',
+            mode         = 'RW',
+            value        = '',
+            localSet     = createCmd(addr=0x000303C4)
+        ))
+
 
         ###################################
         # 4.5 Acquisition Control Registers
