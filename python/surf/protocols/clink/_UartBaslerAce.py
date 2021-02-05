@@ -89,15 +89,15 @@ class UartBaslerAce(pr.Device):
         self._tx = clink.UartBaslerAceTx()
         pr.streamConnect(self._tx,serial)
 
-        ##############################
-        # Variables
-        ##############################
         def createCmd(addr):
             def _cmd(value):
                 if value != '':
                     self._tx.sendCmd(addr=addr, data=value)
             return _cmd
 
+        ###############################
+        # 4.2 Transport Layer Registers
+        ###############################
         self.add(pr.LocalVariable(
             name         = 'TapGeometry',
             description  = 'The CL Tap Geometry value sets the tap geometry that will be used when image data is read out of the camera’s image buffer and transmitted via the Camera Link interface.',
@@ -114,6 +114,9 @@ class UartBaslerAce(pr.Device):
             localSet     = createCmd(addr=0x0744)
         ))
 
+        ############################
+        # 4.4 Image Format Registers
+        ############################
         self.add(pr.LocalVariable(
             name         = 'BitDepth',
             description  = 'The Sensor Bit Depth value sets the bit depth of the pixel data produced by the camera’s imaging sensor.',
@@ -130,6 +133,9 @@ class UartBaslerAce(pr.Device):
             localSet     = createCmd(addr=0x00030024)
         ))
 
+        ###################################
+        # 4.5 Acquisition Control Registers
+        ###################################
         self.add(pr.LocalVariable(
             name         = 'TrigModeAcqStart',
             description  = 'The Trigger Mode Acquisition Start value sets the mode for the acquisition start trigger.',
@@ -202,6 +208,9 @@ class UartBaslerAce(pr.Device):
             localSet     = createCmd(addr=0x00040364)
         ))
 
+        ################################
+        # 4.6 Exposure Control Registers
+        ################################
         self.add(pr.LocalVariable(
             name         = 'ExposureMode',
             description  = 'The Exposure mode parameter sets the camera\'s exposure mode.',
