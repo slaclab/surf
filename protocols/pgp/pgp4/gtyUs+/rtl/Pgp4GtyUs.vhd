@@ -48,6 +48,7 @@ entity Pgp4GtyUs is
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_DRP_G                    : boolean               := false;
       EN_PGP_MON_G                : boolean               := false;
+      WRITE_EN_G                  : boolean               := false;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
@@ -206,6 +207,7 @@ begin
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
          EN_PGP_MON_G                => EN_PGP_MON_G,
+         WRITE_EN_G                  => WRITE_EN_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
