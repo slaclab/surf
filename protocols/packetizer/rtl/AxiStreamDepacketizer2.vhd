@@ -264,6 +264,17 @@ begin
             v.debug.eof                 := '1';
             v.debug.eofe                := '1';
             v.debug.eop                 := '1';
+
+            if CRC_EN_C then
+               if (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= crcOut) then
+                  v.debug.crcError := '1';
+               end if;
+            else
+               if (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_CRC_FIELD_C) /= x"00000000") then
+                  v.debug.crcError := '1';
+               end if;
+            end if;
+
          elsif ((r.state = MOVE_S) and (v.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) or
             ((r.state = CRC_S) and (r.outputAxisMaster(1).tData(PACKETIZER2_TAIL_EOF_BIT_C) = '1')) then
             -- If EOF, reset packetActive and packetSeq
@@ -424,6 +435,19 @@ begin
                      v.ramWe             := '1';
                      v.debug.packetError := '1';
                      v.crcInit           := (others => '1');  -- Is might be unnecessary
+
+                     if (sof /= not ramPacketActiveOut) then
+                        v.debug.sofError := '1';
+                     end if;
+                     if (v.packetSeq /= ramPacketSeqOut) then
+                        v.debug.seqError := '1';
+                     end if;
+                     if (inputAxisMaster.tData(PACKETIZER2_HDR_VERSION_FIELD_C) /= PACKETIZER2_VERSION_C) then
+                        v.debug.versionError := '1';
+                     end if;
+                     if (inputAxisMaster.tData(PACKETIZER2_HDR_CRC_TYPE_FIELD_C) /= crcStrToSlv(CRC_MODE_G)) then
+                        v.debug.crcModeError := '1';
+                     end if;
                   end if;
 
                end if;
@@ -462,6 +486,7 @@ begin
                   axiStreamSetUserField(AXIS_CONFIG_C, v.outputAxisMaster(0), inputAxisMaster.tData(PACKETIZER2_TAIL_TUSER_FIELD_C), -1);  -- -1 = last
                   -- Update flag
                   v.debug.packetError          := ssiGetUserEofe(AXIS_CONFIG_C, inputAxisMaster);
+                  v.debug.eofeError            := ssiGetUserEofe(AXIS_CONFIG_C, inputAxisMaster);
 
                   if (CRC_HEAD_TAIL_C) then
                      -- Need to calculate CRC on tail data

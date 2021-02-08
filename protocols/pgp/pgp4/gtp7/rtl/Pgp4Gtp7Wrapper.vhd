@@ -55,6 +55,7 @@ entity Pgp4Gtp7Wrapper is
       EN_PGP_MON_G                : boolean                     := false;
       EN_GT_DRP_G                 : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
+      WRITE_EN_G                  : boolean                     := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
       STATUS_CNT_WIDTH_G          : natural range 1 to 32       := 16;
@@ -251,6 +252,7 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
+               WRITE_EN_G                  => WRITE_EN_G,
                EN_DRP_G                    => EN_GT_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
