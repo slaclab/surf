@@ -194,11 +194,24 @@ class ClinkChannel(pr.Device):
         # Check if serial interface defined
         if serial is not None:
 
-            # Check for OPA1000 camera
-            if (camType=='Opal1000'):
+            # Check for BaslerAce camera
+            if (camType=='BaslerAce'):
 
                 # Override defaults
-                self.BaudRate._default    = 57600
+                self.BaudRate._default = 9600
+
+                # Add the device
+                self.add(surf.protocols.clink.UartBaslerAce(
+                    name   = 'UartBaslerAce',
+                    serial = serial,
+                    expand = False,
+                ))
+
+            # Check for OPA1000 camera
+            elif (camType=='Opal1000'):
+
+                # Override defaults
+                self.BaudRate._default = 57600
 
                 # Add the device
                 self.add(surf.protocols.clink.UartOpal1000(

@@ -37,7 +37,7 @@ entity Pgp3Gtx7Wrapper is
       NUM_LANES_G                 : positive range 1 to 4       := 1;
       NUM_VC_G                    : positive range 1 to 16      := 4;
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType              := PGP3_REFCLK_312_C;
+      REFCLK_FREQ_G               : real                        := 312.5E+6;
       REFCLK_G                    : boolean                     := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -91,10 +91,6 @@ entity Pgp3Gtx7Wrapper is
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
       pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
-      -- Debug Interface
-      txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk           : in  sl                                                     := '0';  -- Stable Clock
       axilRst           : in  sl                                                     := '0';
@@ -187,7 +183,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             EN_DRP_G      => EN_QPLL_DRP_G,
-            REFCLK_TYPE_G => REFCLK_TYPE_G,
+            REFCLK_FREQ_G => REFCLK_FREQ_G,
             RATE_G        => RATE_G)
          port map (
             -- Stable Clock and Reset
@@ -272,10 +268,6 @@ begin
                -- Frame Receive Interface
                pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-               -- Debug Interface
-               txPreCursor     => txPreCursor(i),
-               txPostCursor    => txPostCursor(i),
-               txDiffCtrl      => txDiffCtrl(i),
                -- AXI-Lite Register Interface (axilClk domain)
                axilClk         => axilClk,
                axilRst         => axilRst,
