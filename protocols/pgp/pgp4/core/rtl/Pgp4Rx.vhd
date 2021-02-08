@@ -178,6 +178,7 @@ begin
          MEMORY_TYPE_G       => "distributed",
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP4_CRC_POLY_C,
+         SEQ_CNT_SIZE_G      => 12,
          TDEST_BITS_G        => 4,
          INPUT_PIPE_STAGES_G => 1)
       port map (
