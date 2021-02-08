@@ -38,6 +38,7 @@ entity Pgp4Core is
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_PGP_MON_G                : boolean               := true;
+      WRITE_EN_G                  : boolean               := true;  -- Set to false when on remote end of a link
       STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
       ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
@@ -162,12 +163,13 @@ begin
          phyRxSlip      => phyRxSlip);      -- [out]
 
    GEN_PGP_MON : if (EN_PGP_MON_G) generate
-      U_Pgp3Axi_1 : entity surf.Pgp3AxiL  -- Same AXI-Lite module as PGPv3
+      U_Pgp4AxiL : entity surf.Pgp4AxiL
          generic map (
             TPD_G              => TPD_G,
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
-            WRITE_EN_G         => true,
+            WRITE_EN_G         => WRITE_EN_G,
+            NUM_VC_G           => NUM_VC_G,
             STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
             ERROR_CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
@@ -182,9 +184,6 @@ begin
             pgpRxIn         => pgpRxInInt,       -- [out]
             pgpRxOut        => pgpRxOutInt,      -- [in]
             locRxIn         => pgpRxIn,          -- [in]
-            statusWord      => open,             -- [out]
-            statusSend      => open,             -- [out]
-            phyRxClk        => phyRxClk,         -- [in]
             txDiffCtrl      => txDiffCtrl,       -- [out]
             txPreCursor     => txPreCursor,      -- [out]
             txPostCursor    => txPostCursor,     -- [out]

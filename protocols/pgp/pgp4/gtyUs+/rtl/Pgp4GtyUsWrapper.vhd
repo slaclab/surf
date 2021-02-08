@@ -54,7 +54,7 @@ entity Pgp4GtyUsWrapper is
       EN_PGP_MON_G                : boolean                     := false;
       EN_GTH_DRP_G                : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
-      WRITE_EN_G                  : boolean                     := false;  -- Set to false when on remote end of a link
+      WRITE_EN_G                  : boolean                     := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
       AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');

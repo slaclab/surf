@@ -50,7 +50,7 @@ entity Pgp4GthUs is
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_DRP_G                    : boolean               := false;
       EN_PGP_MON_G                : boolean               := false;
-      WRITE_EN_G                  : boolean               := false;  -- Set to false when on remote end of a link
+      WRITE_EN_G                  : boolean               := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
       STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
