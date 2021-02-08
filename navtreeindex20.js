@@ -1,5 +1,6 @@
 var NAVTREEINDEX20 =
 {
+"classAxiStreamDmaRingWrite_1_1rtl.html#a20a11b6289e8bc36a5b9df56e7bbea78":[1,0,109,0,19],
 "classAxiStreamDmaRingWrite_1_1rtl.html#a228fc5114218d1f65a77595104c4d88d":[1,0,109,0,6],
 "classAxiStreamDmaRingWrite_1_1rtl.html#a23b2ffad9e235189473229cbec52ac42":[1,0,109,0,45],
 "classAxiStreamDmaRingWrite_1_1rtl.html#a24f6a2b331b93f7517b67a1ff4178685":[1,0,109,0,23],
@@ -248,6 +249,5 @@ var NAVTREEINDEX20 =
 "classAxiStreamDmaV2Read.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,112,1],
 "classAxiStreamDmaV2Read.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,112,27],
 "classAxiStreamDmaV2Read.html#a7d8781c632c75ab0fdde6e592fd13d60":[1,0,112,8],
-"classAxiStreamDmaV2Read.html#a7f86f26501606032b52ffad309bfb92d":[1,0,112,6],
-"classAxiStreamDmaV2Read.html#a85565e7916a2d50e77d8eb5254a66479":[1,0,112,17]
+"classAxiStreamDmaV2Read.html#a7f86f26501606032b52ffad309bfb92d":[1,0,112,6]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"classAxiStreamFlush.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,118,11],
 "classAxiStreamFlush.html#a0cff2739acd51a0203f91abbc0fe3e93":[1,0,118,3],
 "classAxiStreamFlush.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,118,14],
 "classAxiStreamFlush.html#a4be737583df4493f37e21b9da4a67377":[1,0,118,7],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "classAxiStreamMonAxiL.html#ad459d012af0700c2b2299cf90a94f09f":[1,0,124,3],
 "classAxiStreamMonAxiL.html#adfee7c97b12f0f639658d0efb9b226f6":[1,0,124,9],
 "classAxiStreamMonAxiL.html#ae024408e3fbbbc238aeaf97c8596d6c8":[1,0,124,12],
-"classAxiStreamMonAxiL.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,124,21],
-"classAxiStreamMonAxiL.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,124,23]
+"classAxiStreamMonAxiL.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,124,21]
 };

@@ -8,7 +8,7 @@ var classPgp3GthUsWrapper =
     [ "NUM_VC_G", "classPgp3GthUsWrapper.html#a379146dc9f4d498c6525646c3c2d3251", null ],
     [ "REFCLK_G", "classPgp3GthUsWrapper.html#ab53eaa19117a031bbef6e2196998ddb4", null ],
     [ "RATE_G", "classPgp3GthUsWrapper.html#a0f1b05ab4c65c103dc102097d352eb63", null ],
-    [ "REFCLK_TYPE_G", "classPgp3GthUsWrapper.html#a604236fc754ecc08ff368af6e575b01d", null ],
+    [ "REFCLK_FREQ_G", "classPgp3GthUsWrapper.html#aebee65f0b4bc8fe8704dd95daad736bd", null ],
     [ "QPLL_REFCLK_SEL_G", "classPgp3GthUsWrapper.html#a0743d2f53eee4c6a78f44022d39b4a70", null ],
     [ "PGP_RX_ENABLE_G", "classPgp3GthUsWrapper.html#afa40dbc937a881280a02595513d23d14", null ],
     [ "RX_ALIGN_SLIP_WAIT_G", "classPgp3GthUsWrapper.html#a642e3d9f05bd02ec75b1464cb8611306", null ],

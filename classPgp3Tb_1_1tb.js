@@ -21,7 +21,6 @@ var classPgp3Tb_1_1tb =
     [ "pgpTxOut", "classPgp3Tb_1_1tb.html#ace6e6bad403591ccf54f58eedd861185", null ],
     [ "pgpTxMasters", "classPgp3Tb_1_1tb.html#a3afc1dd616a606e30ca25a7fcc24fb90", null ],
     [ "pgpTxSlaves", "classPgp3Tb_1_1tb.html#a6bcea6fb166297cd5d6614af09ba6ad1", null ],
-    [ "pgpTxCtrl", "classPgp3Tb_1_1tb.html#ab8b631c67b491011069ec9a03a3093ce", null ],
     [ "locRxLinkReady", "classPgp3Tb_1_1tb.html#af732331854c1d22082f84c052551e885", null ],
     [ "remRxFifoCtrl", "classPgp3Tb_1_1tb.html#ae21a096ecb8e2da71acdf08923a24a85", null ],
     [ "remRxLinkReady", "classPgp3Tb_1_1tb.html#a5cc711a055da64281b790dea6de334ba", null ],

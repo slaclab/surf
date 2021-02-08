@@ -25,6 +25,9 @@ var classPgp3Gtp7_1_1rtl =
     [ "axilWriteMasters", "classPgp3Gtp7_1_1rtl.html#a22fa00e978cc8c888dc03b80b737ace1", null ],
     [ "axilWriteSlaves", "classPgp3Gtp7_1_1rtl.html#a2c4109f0414d7d8d9526ec979a274cad", null ],
     [ "loopback", "classPgp3Gtp7_1_1rtl.html#a2b4850eb50d9e48cc17f1240e7ed96c5", null ],
+    [ "txDiffCtrl", "classPgp3Gtp7_1_1rtl.html#a8b60345b66c1f5ef13277ea6b4f53243", null ],
+    [ "txPreCursor", "classPgp3Gtp7_1_1rtl.html#a21ff113478d7268a2b1a77c9e45724d1", null ],
+    [ "txPostCursor", "classPgp3Gtp7_1_1rtl.html#a979618ec954a0ae2e990983fb645689b", null ],
     [ "u_xbar", "classPgp3Gtp7_1_1rtl.html#a5df5f0eba02f3e58776cb180da69bf4a", null ],
     [ "u_pgp3core", "classPgp3Gtp7_1_1rtl.html#abc725ba644586174bfb7ba124de02033", null ],
     [ "u_pgp3gtp7ipwrapper", "classPgp3Gtp7_1_1rtl.html#a34f0fa3f24091c2d8f76e6a61b0d5556", null ]

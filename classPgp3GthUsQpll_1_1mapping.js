@@ -1,6 +1,6 @@
 var classPgp3GthUsQpll_1_1mapping =
 [
-    [ "getQpllConfig", "classPgp3GthUsQpll_1_1mapping.html#aa5b2fa1ef17d34f60c388fa2b6898ab5", null ],
+    [ "getQpllConfig", "classPgp3GthUsQpll_1_1mapping.html#a5ccec48e949765d96b535e68f9cd19a6", null ],
     [ "QpllConfig", "classPgp3GthUsQpll_1_1mapping.html#a5808a3c00c8f03a445e8a3bc56d3294d", null ],
     [ "QPLL_CFG0", "classPgp3GthUsQpll_1_1mapping.html#a256efbd374e98c8990bdb8b7cbf7f739", null ],
     [ "QPLL_CFG1", "classPgp3GthUsQpll_1_1mapping.html#a2e0c287d23bb97ad328c6d158ab2edc0", null ],
@@ -21,7 +21,7 @@ var classPgp3GthUsQpll_1_1mapping =
     [ "QPLL_LPF_G3", "classPgp3GthUsQpll_1_1mapping.html#a58473adcd369a4c353aab4501d87f442", null ],
     [ "QPLL_REFCLK_DIV", "classPgp3GthUsQpll_1_1mapping.html#a7943a70972a969f00100bc04909b8fa7", null ],
     [ "QPLL_CONFIG_INIT_C", "classPgp3GthUsQpll_1_1mapping.html#ab770f33f1df63d695f161dbfc0bdf563", null ],
-    [ "QPLL_CONFIG_C", "classPgp3GthUsQpll_1_1mapping.html#aee31b3b9674ad39145c2e1132525973a", null ],
+    [ "QPLL_CONFIG_C", "classPgp3GthUsQpll_1_1mapping.html#a5e9f6a1c89a29b6ba1ddab8c95584344", null ],
     [ "pllRefClk", "classPgp3GthUsQpll_1_1mapping.html#a3fcde983ad069681f432fc379cb188bd", null ],
     [ "pllOutClk", "classPgp3GthUsQpll_1_1mapping.html#a9d0bf0862c3e2a53b252198695ff4767", null ],
     [ "pllOutRefClk", "classPgp3GthUsQpll_1_1mapping.html#a5d803002a80cd1752754974f082b6b71", null ],

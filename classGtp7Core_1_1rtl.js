@@ -3,7 +3,7 @@ var classGtp7Core_1_1rtl =
     [ "getOutClkSelVal", "classGtp7Core_1_1rtl.html#a78233e76fe73d5af6fb225a15bea6091", null ],
     [ "getDataWidth", "classGtp7Core_1_1rtl.html#a80402db163e69be912011ec2b12fd37f", null ],
     [ "RX_DATA_8B10B_GLUE", "classGtp7Core_1_1rtl.html#ac514028077313bb8fb19fd4507b109d9", null ],
-    [ "PROCESS_237", "classGtp7Core_1_1rtl.html#a2a17a54684536e6b303fe8cc7ae3cff2", null ],
+    [ "PROCESS_240", "classGtp7Core_1_1rtl.html#a39cc981e37d1cef15caf5d2dc2c9a602", null ],
     [ "TX_DATA_8B10B_GLUE", "classGtp7Core_1_1rtl.html#a11dfcaefea39787c33b64c20fc0abae1", null ],
     [ "RX_SYSCLK_SEL_C", "classGtp7Core_1_1rtl.html#af987de5cef07fc95bbc43b1b17f03a0a", null ],
     [ "TX_SYSCLK_SEL_C", "classGtp7Core_1_1rtl.html#a1ac1061775b7c3876c71bf2107723747", null ],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX63 =
 {
+"classGtx7TxRst.html#a8cb397c6d496f9b081d34b2633e8cc73":[1,0,311,3],
+"classGtx7TxRst.html#a8e67491ad4943218a5d5d88712a7a908":[1,0,311,5],
 "classGtx7TxRst.html#a8f50521a354ef755cb27d79f95bc57fb":[1,0,311,11],
 "classGtx7TxRst.html#a997ab691cb7b26e062d889287c52800b":[1,0,311,8],
 "classGtx7TxRst.html#aa4b2b25246a821511120e3149b003563":[1,0,311,22],
@@ -48,6 +50,7 @@ var NAVTREEINDEX63 =
 "classGtx7TxRst_1_1RTL.html#aab3ee059ecc3154f081270bde757ace0":[1,0,311,0,44],
 "classGtx7TxRst_1_1RTL.html#ab02ddf3ab5c6286a90374c262fedf4f1":[1,0,311,0,30],
 "classGtx7TxRst_1_1RTL.html#ab0b23b49e165c3e727aa50423251dedd":[1,0,311,0,25],
+"classGtx7TxRst_1_1RTL.html#ab5c924838419f6226cd14d3de21d0dd6":[1,0,311,0,0],
 "classGtx7TxRst_1_1RTL.html#ab857d0cbc5b1ab54556431971d27fb21":[1,0,311,0,12],
 "classGtx7TxRst_1_1RTL.html#ac1cd5d563a13a7a8d207346a543d3c57":[1,0,311,0,1],
 "classGtx7TxRst_1_1RTL.html#ac62b59e4c4190bbd077ac65134219f02":[1,0,311,0,42],
@@ -56,7 +59,6 @@ var NAVTREEINDEX63 =
 "classGtx7TxRst_1_1RTL.html#acfb108c4106b6d1ec524908769f4d480":[1,0,311,0,26],
 "classGtx7TxRst_1_1RTL.html#adbe2323f5cd2d3577f080b455178368b":[1,0,311,0,20],
 "classGtx7TxRst_1_1RTL.html#adc849874f5a12ddb149deeecd8e6d1b9":[1,0,311,0,36],
-"classGtx7TxRst_1_1RTL.html#addc4b7159fb930b9eccf1406bac51f31":[1,0,311,0,0],
 "classGtx7TxRst_1_1RTL.html#ae74eb89c5c75bfa15c1945c51767d5f9":[1,0,311,0,39],
 "classGtx7TxRst_1_1RTL.html#af11d64f241f86d0443d66d63debb8cc7":[1,0,311,0,28],
 "classGtx7TxRst_1_1RTL.html#af3a3eaa8cfb8911da50373028807b355":[1,0,311,0,48],
@@ -247,7 +249,5 @@ var NAVTREEINDEX63 =
 "classHammingEccTb.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,317,2],
 "classHammingEccTb.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,317,6],
 "classHammingEccTb_1_1sim.html":[1,0,317,0],
-"classHammingEccTb_1_1sim.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,317,0,19],
-"classHammingEccTb_1_1sim.html#a04fddc96aaf4b63be0218d455bb7e50d":[1,0,317,0,8],
-"classHammingEccTb_1_1sim.html#a06a3947f759edb006c733f5fb619f0c8":[1,0,317,0,10]
+"classHammingEccTb_1_1sim.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,317,0,19]
 };

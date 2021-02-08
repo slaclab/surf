@@ -68,16 +68,31 @@ var sectionId = 'dynsection-0';
 <g id="node16" class="node">
 <title>Node16</title>
 <g id="a_node16"><a xlink:href="classPgp3Gtx7Wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="851,-247.5 851,-266.5 956,-266.5 956,-247.5 851,-247.5"/>
-<text text-anchor="middle" x="903.5" y="-254.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3Gtx7Wrapper</text>
+<polygon fill="white" stroke="black" points="851,-266.5 851,-285.5 956,-285.5 956,-266.5 851,-266.5"/>
+<text text-anchor="middle" x="903.5" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3Gtx7Wrapper</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node16 -->
 <g id="edge17" class="edge">
 <title>Node1&#45;&gt;Node16</title>
-<path fill="none" stroke="midnightblue" d="M825.36,-257C833.72,-257 842.4,-257 850.79,-257"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="825.35,-253.5 815.35,-257 825.35,-260.5 825.35,-253.5"/>
+<path fill="none" stroke="midnightblue" d="M825.36,-264.55C833.72,-265.79 842.4,-267.08 850.79,-268.32"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="825.76,-261.07 815.35,-263.06 824.73,-267.99 825.76,-261.07"/>
+</g>
+<!-- Node17 -->
+<g id="node17" class="node">
+<title>Node17</title>
+<g id="a_node17"><a xlink:href="classPgp4Gtx7Wrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="851,-228.5 851,-247.5 956,-247.5 956,-228.5 851,-228.5"/>
+<text text-anchor="middle" x="903.5" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtx7Wrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node17 -->
+<g id="edge18" class="edge">
+<title>Node1&#45;&gt;Node17</title>
+<path fill="none" stroke="midnightblue" d="M825.36,-249.45C833.72,-248.21 842.4,-246.92 850.79,-245.68"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="824.73,-246.01 815.35,-250.94 825.76,-252.93 824.73,-246.01"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">

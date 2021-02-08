@@ -1,5 +1,7 @@
 var NAVTREEINDEX34 =
 {
+"classClockManager7.html#aa1cb22e959d47364391e5eb4ef86927c":[1,0,175,67],
+"classClockManager7.html#aa26e0a8c8ef0006bb2d77e9c47a79713":[1,0,175,53],
 "classClockManager7.html#aaed14640de1c6cfb7cab228cd7afe5e1":[1,0,175,15],
 "classClockManager7.html#ab32573302940204ce3543a4195c12c59":[1,0,175,28],
 "classClockManager7.html#ab67adeaf8d6f8dcd9ff430876e88f190":[1,0,175,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX34 =
 "classCrc32.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,179,19],
 "classCrc32.html#afc5f850f5aabf39cce3d49509bc5bb10":[1,0,179,4],
 "classCrc32Parallel.html":[1,0,180],
-"classCrc32Parallel.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,180,13],
-"classCrc32Parallel.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,180,15],
-"classCrc32Parallel.html#a1f1bdc16d91e0f7e33706927990011e8":[1,0,180,3]
+"classCrc32Parallel.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,180,13]
 };

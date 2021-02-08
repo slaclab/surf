@@ -7,6 +7,7 @@ var classAxiStreamPacketizer2 =
     [ "CRC_MODE_G", "classAxiStreamPacketizer2.html#a30988c4ee0e8cd2a8fc3874ff635ac75", null ],
     [ "CRC_POLY_G", "classAxiStreamPacketizer2.html#ae76f8e20fcc699a0da6b82b551d751d6", null ],
     [ "MAX_PACKET_BYTES_G", "classAxiStreamPacketizer2.html#a32a7cd6d64963a3a1fd526773ea15fe1", null ],
+    [ "SEQ_CNT_SIZE_G", "classAxiStreamPacketizer2.html#a57e37ed11f2ec622d83178051f2defb5", null ],
     [ "TDEST_BITS_G", "classAxiStreamPacketizer2.html#a84a8f3200ba47faa2b18ae439918f556", null ],
     [ "INPUT_PIPE_STAGES_G", "classAxiStreamPacketizer2.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
     [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamPacketizer2.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],

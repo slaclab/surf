@@ -3,7 +3,7 @@ var classPgp3Gtx7Qpll =
     [ "Pgp3Gtx7Qpll.mapping", "classPgp3Gtx7Qpll_1_1mapping.html", "classPgp3Gtx7Qpll_1_1mapping" ],
     [ "TPD_G", "classPgp3Gtx7Qpll.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "EN_DRP_G", "classPgp3Gtx7Qpll.html#adc2d033559dcfd31442b0113a54a5c96", null ],
-    [ "REFCLK_TYPE_G", "classPgp3Gtx7Qpll.html#aa2adff09c28caf62cddac39c74943287", null ],
+    [ "REFCLK_FREQ_G", "classPgp3Gtx7Qpll.html#a4c32c83dfc4cbb4c218c343252ff0b77", null ],
     [ "RATE_G", "classPgp3Gtx7Qpll.html#a0f1b05ab4c65c103dc102097d352eb63", null ],
     [ "stableClk", "classPgp3Gtx7Qpll.html#a99bde91ce6737f250f72c51ea41e8bc4", null ],
     [ "stableRst", "classPgp3Gtx7Qpll.html#a4ded3206a751966927a343f794356ff1", null ],

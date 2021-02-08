@@ -1,6 +1,7 @@
 <map id="Pgp3Gtx7IpWrapper" name="Pgp3Gtx7IpWrapper">
 <area shape="rect" id="node1" title=" " alt="" coords="1048,259,1200,285"/>
-<area shape="rect" id="node16" href="$classPgp3Gtx7.html" title=" " alt="" coords="1248,259,1333,285"/>
+<area shape="rect" id="node16" href="$classPgp3Gtx7.html" title=" " alt="" coords="1248,233,1333,260"/>
+<area shape="rect" id="node18" href="$classPgp4Gtx7.html" title=" " alt="" coords="1248,284,1333,311"/>
 <area shape="rect" id="node2" href="$classClockManager7.html" title=" " alt="" coords="877,284,1000,311"/>
 <area shape="rect" id="node3" href="$classAxiLiteToDrp.html" title=" " alt="" coords="702,233,806,260"/>
 <area shape="rect" id="node4" href="$classAxiLiteAsync.html" title=" " alt="" coords="524,233,631,260"/>
@@ -15,5 +16,6 @@
 <area shape="rect" id="node13" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,259,314,285"/>
 <area shape="rect" id="node14" href="$classMmcmEmulation.html" title=" " alt="" coords="679,284,829,311"/>
 <area shape="rect" id="node15" href="$classClkRst.html" title=" " alt="" coords="545,284,609,311"/>
-<area shape="rect" id="node17" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="1381,259,1521,285"/>
+<area shape="rect" id="node17" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="1381,233,1521,260"/>
+<area shape="rect" id="node19" href="$classPgp4Gtx7Wrapper.html" title=" " alt="" coords="1381,284,1521,311"/>
 </map>

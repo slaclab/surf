@@ -1,5 +1,7 @@
 var NAVTREEINDEX61 =
 {
+"classGtx7Core.html#a5dc309506c2e03f6cf634a22de658f29":[1,0,305,42],
+"classGtx7Core.html#a64a41fb6a6d40d8c18f98a63aaf67eaa":[1,0,305,43],
 "classGtx7Core.html#a6511bfe0587c714d2bd1154cb0fad010":[1,0,305,107],
 "classGtx7Core.html#a657e1f031a2d59127a35c82feb8db969":[1,0,305,97],
 "classGtx7Core.html#a66d0848761b414420bd4de440ded7b6d":[1,0,305,134],
@@ -99,7 +101,6 @@ var NAVTREEINDEX61 =
 "classGtx7Core_1_1rtl.html":[1,0,305,0],
 "classGtx7Core_1_1rtl.html#a00d3eff41642f5239f752f38503e9908":[1,0,305,0,80],
 "classGtx7Core_1_1rtl.html#a0ba3fc352fefc79dbacbd6c430d099e4":[1,0,305,0,20],
-"classGtx7Core_1_1rtl.html#a0ebb3657c0d45df58480fb8b47459c00":[1,0,305,0,3],
 "classGtx7Core_1_1rtl.html#a11dfcaefea39787c33b64c20fc0abae1":[1,0,305,0,4],
 "classGtx7Core_1_1rtl.html#a12b1b8942a43f13678fc6395a841e146":[1,0,305,0,53],
 "classGtx7Core_1_1rtl.html#a19182a0f57717e579ab4e89528ae0e7a":[1,0,305,0,86],
@@ -178,6 +179,7 @@ var NAVTREEINDEX61 =
 "classGtx7Core_1_1rtl.html#ae97adbe554a704767d749ce7f7c5b5b9":[1,0,305,0,81],
 "classGtx7Core_1_1rtl.html#ae994519f5f8c4f50e1c59717ee58ae20":[1,0,305,0,36],
 "classGtx7Core_1_1rtl.html#ae9b25840f991d2b649c099c1c7d00b41":[1,0,305,0,58],
+"classGtx7Core_1_1rtl.html#aecbe9dee6653bb58944e378d59e92e0c":[1,0,305,0,3],
 "classGtx7Core_1_1rtl.html#aee3a98f312a14981243e3e566a29de17":[1,0,305,0,82],
 "classGtx7Core_1_1rtl.html#aef69d3b559de9993a034ea943752d740":[1,0,305,0,85],
 "classGtx7Core_1_1rtl.html#af223b05d0d77ebfd45c3dab7bd83703f":[1,0,305,0,88],
@@ -247,7 +249,5 @@ var NAVTREEINDEX61 =
 "classGtx7RecClkMonitor.html#aa74612d91e143805ee50b5c167b3839d":[1,0,307,6],
 "classGtx7RecClkMonitor.html#ab040c64bb85e0f4678e7379a5413aa4c":[1,0,307,10],
 "classGtx7RecClkMonitor.html#acf31536f4a531f52c03aa67e985fd915":[1,0,307,1],
-"classGtx7RecClkMonitor.html#adfde28e5b0e55fa923848c91403abc4f":[1,0,307,8],
-"classGtx7RecClkMonitor.html#ae4f03c286607f3181e16b9aa12d0c6d4":[1,0,307,12],
-"classGtx7RecClkMonitor.html#ae769d1bd6c184354e03c0561619fb001":[1,0,307,11]
+"classGtx7RecClkMonitor.html#adfde28e5b0e55fa923848c91403abc4f":[1,0,307,8]
 };

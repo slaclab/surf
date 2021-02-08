@@ -2,7 +2,7 @@ var classPgp3GthUsQpll =
 [
     [ "Pgp3GthUsQpll.mapping", "classPgp3GthUsQpll_1_1mapping.html", "classPgp3GthUsQpll_1_1mapping" ],
     [ "TPD_G", "classPgp3GthUsQpll.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "REFCLK_TYPE_G", "classPgp3GthUsQpll.html#a604236fc754ecc08ff368af6e575b01d", null ],
+    [ "REFCLK_FREQ_G", "classPgp3GthUsQpll.html#aebee65f0b4bc8fe8704dd95daad736bd", null ],
     [ "RATE_G", "classPgp3GthUsQpll.html#a0f1b05ab4c65c103dc102097d352eb63", null ],
     [ "QPLL_REFCLK_SEL_G", "classPgp3GthUsQpll.html#a0743d2f53eee4c6a78f44022d39b4a70", null ],
     [ "EN_DRP_G", "classPgp3GthUsQpll.html#adc2d033559dcfd31442b0113a54a5c96", null ],

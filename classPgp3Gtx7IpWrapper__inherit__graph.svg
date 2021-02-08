@@ -68,16 +68,31 @@ var sectionId = 'dynsection-0';
 <g id="node16" class="node">
 <title>Node16</title>
 <g id="a_node16"><a xlink:href="classPgp3Gtx7.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="932,-38.5 932,-57.5 996,-57.5 996,-38.5 932,-38.5"/>
-<text text-anchor="middle" x="964" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3Gtx7</text>
+<polygon fill="white" stroke="black" points="932,-57.5 932,-76.5 996,-76.5 996,-57.5 932,-57.5"/>
+<text text-anchor="middle" x="964" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3Gtx7</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node16 -->
 <g id="edge17" class="edge">
 <title>Node1&#45;&gt;Node16</title>
-<path fill="none" stroke="midnightblue" d="M906.21,-48C915.15,-48 923.95,-48 931.86,-48"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="906.1,-44.5 896.1,-48 906.1,-51.5 906.1,-44.5"/>
+<path fill="none" stroke="midnightblue" d="M906.21,-58.23C915.15,-59.61 923.95,-60.97 931.86,-62.19"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="906.52,-54.73 896.1,-56.67 905.45,-61.65 906.52,-54.73"/>
+</g>
+<!-- Node18 -->
+<g id="node18" class="node">
+<title>Node18</title>
+<g id="a_node18"><a xlink:href="classPgp4Gtx7.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="932,-19.5 932,-38.5 996,-38.5 996,-19.5 932,-19.5"/>
+<text text-anchor="middle" x="964" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtx7</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node18 -->
+<g id="edge19" class="edge">
+<title>Node1&#45;&gt;Node18</title>
+<path fill="none" stroke="midnightblue" d="M906.21,-37.77C915.15,-36.39 923.95,-35.03 931.86,-33.81"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="905.45,-34.35 896.1,-39.33 906.52,-41.27 905.45,-34.35"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">
@@ -305,16 +320,31 @@ var sectionId = 'dynsection-0';
 <g id="node17" class="node">
 <title>Node17</title>
 <g id="a_node17"><a xlink:href="classPgp3Gtx7Wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1032,-38.5 1032,-57.5 1137,-57.5 1137,-38.5 1032,-38.5"/>
-<text text-anchor="middle" x="1084.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3Gtx7Wrapper</text>
+<polygon fill="white" stroke="black" points="1032,-57.5 1032,-76.5 1137,-76.5 1137,-57.5 1032,-57.5"/>
+<text text-anchor="middle" x="1084.5" y="-64.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3Gtx7Wrapper</text>
 </a>
 </g>
 </g>
 <!-- Node16&#45;&gt;Node17 -->
 <g id="edge18" class="edge">
 <title>Node16&#45;&gt;Node17</title>
-<path fill="none" stroke="midnightblue" d="M1006.29,-48C1014.58,-48 1023.38,-48 1031.96,-48"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1006.13,-44.5 996.13,-48 1006.13,-51.5 1006.13,-44.5"/>
+<path fill="none" stroke="midnightblue" d="M1006.29,-67C1014.58,-67 1023.38,-67 1031.96,-67"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1006.13,-63.5 996.13,-67 1006.13,-70.5 1006.13,-63.5"/>
+</g>
+<!-- Node19 -->
+<g id="node19" class="node">
+<title>Node19</title>
+<g id="a_node19"><a xlink:href="classPgp4Gtx7Wrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1032,-19.5 1032,-38.5 1137,-38.5 1137,-19.5 1032,-19.5"/>
+<text text-anchor="middle" x="1084.5" y="-26.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtx7Wrapper</text>
+</a>
+</g>
+</g>
+<!-- Node18&#45;&gt;Node19 -->
+<g id="edge20" class="edge">
+<title>Node18&#45;&gt;Node19</title>
+<path fill="none" stroke="midnightblue" d="M1006.29,-29C1014.58,-29 1023.38,-29 1031.96,-29"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1006.13,-25.5 996.13,-29 1006.13,-32.5 1006.13,-25.5"/>
 </g>
 </g>
 </svg>

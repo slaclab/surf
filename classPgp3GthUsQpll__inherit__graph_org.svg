@@ -22,16 +22,31 @@
 <g id="node16" class="node">
 <title>Node16</title>
 <g id="a_node16"><a xlink:href="classPgp3GthUsWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="930,-247.5 930,-266.5 1042,-266.5 1042,-247.5 930,-247.5"/>
-<text text-anchor="middle" x="986" y="-254.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3GthUsWrapper</text>
+<polygon fill="white" stroke="black" points="930,-266.5 930,-285.5 1042,-285.5 1042,-266.5 930,-266.5"/>
+<text text-anchor="middle" x="986" y="-273.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp3GthUsWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node16 -->
 <g id="edge17" class="edge">
 <title>Node1&#45;&gt;Node16</title>
-<path fill="none" stroke="midnightblue" d="M904.29,-257C912.7,-257 921.4,-257 929.83,-257"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="904.2,-253.5 894.2,-257 904.2,-260.5 904.2,-253.5"/>
+<path fill="none" stroke="midnightblue" d="M904.29,-264.64C912.7,-265.82 921.4,-267.05 929.83,-268.24"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="904.59,-261.15 894.2,-263.22 903.62,-268.08 904.59,-261.15"/>
+</g>
+<!-- Node17 -->
+<g id="node17" class="node">
+<title>Node17</title>
+<g id="a_node17"><a xlink:href="classPgp4GthUsWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="930,-228.5 930,-247.5 1042,-247.5 1042,-228.5 930,-228.5"/>
+<text text-anchor="middle" x="986" y="-235.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GthUsWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node17 -->
+<g id="edge18" class="edge">
+<title>Node1&#45;&gt;Node17</title>
+<path fill="none" stroke="midnightblue" d="M904.29,-249.36C912.7,-248.18 921.4,-246.95 929.83,-245.76"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="903.62,-245.92 894.2,-250.78 904.59,-252.85 903.62,-245.92"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">
