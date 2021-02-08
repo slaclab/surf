@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-- Title      : PGPv4: https://confluence.slac.stanford.edu/x/1dzgEQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Pgpv3 Transmit
+-- Description: Pgpv4 Transmit
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -24,9 +24,9 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use surf.Pgp3Pkg.all;
+use surf.Pgp4Pkg.all;
 
-entity Pgp3Tx is
+entity Pgp4Tx is
 
    generic (
       TPD_G                    : time                  := 1 ns;
@@ -43,8 +43,8 @@ entity Pgp3Tx is
       -- Transmit interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
-      pgpTxOut     : out Pgp3TxOutType;
+      pgpTxIn      : in  Pgp4TxInType := PGP4_TX_IN_INIT_C;
+      pgpTxOut     : out Pgp4TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
 
@@ -62,9 +62,9 @@ entity Pgp3Tx is
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0));
 
-end entity Pgp3Tx;
+end entity Pgp4Tx;
 
-architecture rtl of Pgp3Tx is
+architecture rtl of Pgp4Tx is
 
    -- Synchronized statuses
    signal syncLocRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -184,7 +184,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          CRC_MODE_G           => "DATA",
-         CRC_POLY_G           => PGP3_CRC_POLY_C,
+         CRC_POLY_G           => PGP4_CRC_POLY_C,
          MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
          SEQ_CNT_SIZE_G       => 12,
          INPUT_PIPE_STAGES_G  => 1,
@@ -200,7 +200,7 @@ begin
 
    -- Feed packets into PGP TX Protocol engine
    -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
-   U_Pgp3TxProtocol_1 : entity surf.Pgp3TxProtocol
+   U_Pgp4TxProtocol_1 : entity surf.Pgp4TxProtocol
       generic map (
          TPD_G            => TPD_G,
          NUM_VC_G         => NUM_VC_G)
@@ -228,7 +228,7 @@ begin
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
          SIDEBAND_WIDTH_G => 3,
-         TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
+         TAPS_G           => PGP4_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
          rst                        => phyTxActiveL,    -- [in]

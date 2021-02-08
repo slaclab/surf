@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-- Title      : PGPv4: https://confluence.slac.stanford.edu/x/1dzgEQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv3 Receive Block
+-- Description: PGPv4 Receive Block
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -24,10 +24,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use surf.Pgp3Pkg.all;
+use surf.Pgp4Pkg.all;
 use surf.AxiStreamPacketizer2Pkg.all;
 
-entity Pgp3Rx is
+entity Pgp4Rx is
 
    generic (
       TPD_G              : time                  := 1 ns;
@@ -37,8 +37,8 @@ entity Pgp3Rx is
       -- User Transmit interface
       pgpRxClk     : in  sl;
       pgpRxRst     : in  sl;
-      pgpRxIn      : in  Pgp3RxInType := PGP3_RX_IN_INIT_C;
-      pgpRxOut     : out Pgp3RxOutType;
+      pgpRxIn      : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
+      pgpRxOut     : out Pgp4RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0); -- Unused
 
@@ -60,9 +60,9 @@ entity Pgp3Rx is
 
 
 
-end entity Pgp3Rx;
+end entity Pgp4Rx;
 
-architecture rtl of Pgp3Rx is
+architecture rtl of Pgp4Rx is
 
    constant SCRAMBLER_TAPS_C : IntegerArray := (0 => 39, 1 => 58);
 
@@ -71,11 +71,12 @@ architecture rtl of Pgp3Rx is
    signal unscrambledValid       : sl;
    signal unscrambledData        : slv(63 downto 0);
    signal unscrambledHeader      : slv(1 downto 0);
-   signal remLinkData            : slv(55 downto 0);
+   signal remLinkData            : slv(47 downto 0);
    signal ebValid                : sl;
    signal ebData                 : slv(63 downto 0);
    signal ebHeader               : slv(1 downto 0);
    signal ebOverflow             : sl;
+   signal linkError              : sl;
    signal ebStatus               : slv(8 downto 0);
    signal phyRxInitInt           : sl;
    signal pgpRawRxMaster         : AxiStreamMasterType;
@@ -83,7 +84,7 @@ architecture rtl of Pgp3Rx is
    signal depacketizedAxisMaster : AxiStreamMasterType;
    signal depacketizedAxisSlave  : AxiStreamSlaveType;
 
-   signal pgpRxOutProtocol  : Pgp3RxOutType;
+   signal pgpRxOutProtocol  : Pgp4RxOutType;
    signal depacketizerDebug : Packetizer2DebugType;
 
    signal locRxLinkReadyInt : sl;
@@ -97,7 +98,7 @@ begin
    remRxFifoCtrl  <= remRxFifoCtrlInt;
 
    -- Gearbox aligner
-   U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner
+   U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner -- Same RX gearbox aligner as PGPv3
       generic map (
          TPD_G        => TPD_G,
          SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
@@ -129,7 +130,7 @@ begin
          outputSideband => unscrambledHeader);  -- [out]
 
    -- Elastic Buffer
-   U_Pgp3RxEb_1 : entity surf.Pgp3RxEb
+   U_Pgp4RxEb_1 : entity surf.Pgp4RxEb
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -145,10 +146,11 @@ begin
          pgpRxHeader => ebHeader,           -- [out]
          remLinkData => remLinkData,        -- [out]
          overflow    => ebOverflow,         -- [out]
+         linkError   => linkError,          -- [out]
          status      => ebStatus);          -- [out]
 
    -- Main RX protocol logic
-   U_Pgp3RxProtocol_1 : entity surf.Pgp3RxProtocol
+   U_Pgp4RxProtocol_1 : entity surf.Pgp4RxProtocol
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -162,6 +164,7 @@ begin
          remRxFifoCtrl  => remRxFifoCtrlInt,   -- [out]
          remRxLinkReady => remRxLinkReadyInt,  -- [out]
          locRxLinkReady => locRxLinkReadyInt,  -- [out]
+         linkError      => linkError,          -- [in]
          phyRxActive    => phyRxActive,        -- [in]
          protRxValid    => ebValid,            -- [in]
          protRxPhyInit  => phyRxInitInt,       -- [out]
@@ -174,7 +177,7 @@ begin
          TPD_G               => TPD_G,
          MEMORY_TYPE_G       => "distributed",
          CRC_MODE_G          => "DATA",
-         CRC_POLY_G          => PGP3_CRC_POLY_C,
+         CRC_POLY_G          => PGP4_CRC_POLY_C,
          SEQ_CNT_SIZE_G      => 12,
          TDEST_BITS_G        => 4,
          INPUT_PIPE_STAGES_G => 1)
@@ -210,26 +213,23 @@ begin
    pgpRxOut.linkReady      <= pgpRxOutProtocol.linkReady;
    pgpRxOut.frameRx        <= depacketizerDebug.eof;
    pgpRxOut.frameRxErr     <= depacketizerDebug.eofe;
-   pgpRxOut.cellError      <= depacketizerDebug.packetError;
+
+   pgpRxOut.cellError        <= depacketizerDebug.packetError;
+   pgpRxOut.cellSofError     <= depacketizerDebug.sofError;
+   pgpRxOut.cellSeqError     <= depacketizerDebug.seqError;
+   pgpRxOut.cellVersionError <= depacketizerDebug.versionError;
+   pgpRxOut.cellCrcModeError <= depacketizerDebug.crcModeError;
+   pgpRxOut.cellCrcError     <= depacketizerDebug.crcError;
+   pgpRxOut.cellEofeError    <= depacketizerDebug.eofeError;
+
    pgpRxOut.opCodeEn       <= pgpRxOutProtocol.opCodeEn;
-   pgpRxOut.opCodeNumber   <= pgpRxOutProtocol.opCodeNumber;
    pgpRxOut.opCodeData     <= pgpRxOutProtocol.opCodeData;
    pgpRxOut.remLinkData    <= remLinkData;
    pgpRxOut.remRxLinkReady <= remRxLinkReadyInt;
 
-   pgpRxOut.phyRxData   <= phyRxData;
-   pgpRxOut.phyRxHeader <= phyRxHeader;
-   pgpRxOut.phyRxValid  <= phyRxValid;
-   pgpRxOut.phyRxInit   <= phyRxInitInt;
-
+   pgpRxOut.phyRxInit      <= phyRxInitInt;
    pgpRxOut.gearboxAligned <= gearboxAligned;
-
-   pgpRxOut.ebData     <= ebData;
-   pgpRxOut.ebHeader   <= ebHeader;
-   pgpRxOut.ebValid    <= ebValid;
-   pgpRxOut.ebOverflow <= ebOverflow;
-   pgpRxOut.ebStatus   <= ebStatus;
-
+   pgpRxOut.ebOverflow     <= ebOverflow;
 
    CTRL_OUT : for i in 15 downto 0 generate
       USED : if (i < NUM_VC_G) generate
