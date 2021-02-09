@@ -59,6 +59,7 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
 void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    zmq_msg_t msg;
    uint8_t  ba[4];
+   char buffer[200];
 
    if ( (zmq_msg_init_size(&msg,4) < 0) ) {  
       vhpi_assert("RogueSideBand: Failed to init message",vhpiFatal);
@@ -73,14 +74,15 @@ void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    memcpy(zmq_msg_data(&msg), ba, 4);
 
    // Send data
-   if ( zmq_msg_send(&msg,data->zmqPush,ZMQ_DONTWAIT) < 0 ) {
-         vhpi_assert("RogueSideBand: Failed to send message",vhpiFatal);
+   if ( zmq_msg_send(&msg,data->zmqPush, 0) < 0 ) {
+         sprintf(buffer, "RogueSideBand: Failed to send opcode: %x, remData: %x, on port %i\n", data->txOpCode, data->txRemData, data->port);
+         vhpi_assert(buffer, vhpiFatal);
    }
    if (data->txOpCodeEn) {
-     vhpi_printf("%lu RogueSideBand: Sent Opcode: %x\n", portData->simTime, data->txOpCode);
+     vhpi_printf("%lu RogueSideBand: Sent Opcode: %x on port %i\n", portData->simTime, data->txOpCode, data->port);
    }
    if (data->txRemDataChanged) {
-     vhpi_printf("%lu RogueSideBand: Sent remData: %x\n", portData->simTime, data->txRemData);
+     vhpi_printf("%lu RogueSideBand: Sent remData: %x on port %i\n", portData->simTime, data->txRemData, data->port);
    }
 }
 
@@ -104,11 +106,11 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
       if ( rd[0] == 0x01 ) {
          data->rxOpCode   = rd[1];
          data->rxOpCodeEn = 1;
-         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x\n",portData->simTime,data->rxOpCode);
+         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x on port %i\n",portData->simTime,data->rxOpCode, data->port+1);
       }
       if ( rd[2] == 0x01 ) {
          data->rxRemData = rd[3];
-         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x\n",portData->simTime,data->rxRemData);
+         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x on port %i\n",portData->simTime,data->rxRemData, data->port+1);
       }
 
    }
