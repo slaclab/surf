@@ -140,7 +140,7 @@ class _Regs(pr.Device):
 class _ProxySlave(rogue.interfaces.memory.Slave):
 
     def __init__(self, regs):
-        super().__init__(min=4, max=4)
+        super().__init__(4,4)
         self._regs = regs
 
     def _doTransaction(self, transaction):
