@@ -20,7 +20,7 @@ import pyrogue as pr
 class Xadc(pr.Device):
     def __init__(self,
                  description = "AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)",
-                 auxChannels = 0,
+                 auxChannels = [],
                  zynq        = False,
                  **kwargs):
         super().__init__(description=description, **kwargs)
@@ -303,16 +303,15 @@ class Xadc(pr.Device):
                 the 16-bit register.      """,
         )
 
-        self.addRemoteVariables(
-            name         = "AuxRaw",
-            offset       =  0x240,
-            bitSize      =  12,
-            bitOffset    =  4,
-            base         = pr.UInt,
-            mode         = "RO",
-            number       =  auxChannels,
-            stride       =  4,
-            description = """
+        for ch in auxChannels:
+            self.add(pr.RemoteVariable(
+                name         = "AuxRaw[{ch}]",
+                offset       =  0x240 + ch*4,
+                bitSize      =  12,
+                bitOffset    =  4,
+                base         = pr.UInt,
+                mode         = "RO",
+                description = """
                 The results of the conversions on auxiliary analog input
                 channels are stored in this register. The data is MSB
                 justified in the 16-bit register (Read Only). The 12 MSBs correspond to
