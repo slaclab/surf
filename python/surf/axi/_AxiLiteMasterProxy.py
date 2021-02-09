@@ -145,15 +145,20 @@ class _ProxySlave(rogue.interfaces.memory.Slave):
 
 class AxiLiteMasterProxy(pr.Device):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, hidden=True,**kwargs):
+        super().__init__(hidden=hidden,**kwargs)
 
-        self.add(_Regs(name='Regs', memBase=self, offset=0x0000, hidden=True))
-        self._proxySlave = _ProxySlave(self.Regs)
+        self.add(_Regs(
+            name    = 'Regs',
+            memBase = self,
+            offset  = 0x0000,
+            hidden  = hidden,
+        ))
+        self.proxy = _ProxySlave(self.Regs)
 
     def add(self, node):
         pr.Node.add(self, node)
 
         if isinstance(node, pr.Device):
             if node._memBase is None:
-                node._setSlave(self._proxySlave)
+                node._setSlave(self.proxy)
