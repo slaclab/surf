@@ -77,7 +77,7 @@ class _Regs(pr.Device):
             #print('Main thread loop start')
             transaction = self._queue.get()
             with self._memLock, transaction.lock():
-                tranId = transaction.id()
+                #tranId = transaction.id()
                 #print(f'Woke the pollWorker with id: {tranId}')
 
                 # Get the transaction address and write it to the proxy address register
