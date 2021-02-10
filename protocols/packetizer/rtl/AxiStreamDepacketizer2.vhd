@@ -54,9 +54,10 @@ end entity AxiStreamDepacketizer2;
 
 architecture rtl of AxiStreamDepacketizer2 is
 
-   constant CRC_EN_C        : boolean  := (CRC_MODE_G /= "NONE");
-   constant CRC_HEAD_TAIL_C : boolean  := (CRC_MODE_G = "FULL");
-   constant ADDR_WIDTH_C    : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
+   constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
+   constant ADDR_WIDTH_C     : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant RAM_DATA_WIDTH_C : positive := 32+2+SEQ_CNT_SIZE_G;
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -120,6 +121,8 @@ architecture rtl of AxiStreamDepacketizer2 is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
+   signal ramDin             : slv(RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramDout            : slv(RAM_DATA_WIDTH_C-1 downto 0);
    signal ramPacketSeqOut    : slv(SEQ_CNT_SIZE_G-1 downto 0);
    signal ramPacketActiveOut : sl;
    signal ramSentEofeOut     : sl;
@@ -168,6 +171,15 @@ begin
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
    -------------------------------------------------------------------------------
+   ramDin(31 downto 0)                   <= crcRem;
+   ramDin(32)                            <= rin.packetActive;
+   ramDin(33)                            <= rin.sentEofe;
+   ramDin(34+SEQ_CNT_SIZE_G-1 downto 34) <= rin.packetSeq;
+
+   ramCrcRem          <= ramDout(31 downto 0);
+   ramPacketActiveOut <= ramDout(32);
+   ramSentEofeOut     <= ramDout(33);
+   ramPacketSeqOut    <= ramDout(34+SEQ_CNT_SIZE_G-1 downto 34);
    U_DualPortRam_1 : entity surf.DualPortRam
       generic map (
          TPD_G         => TPD_G,
@@ -176,21 +188,15 @@ begin
          DOA_REG_G     => REG_EN_G,
          DOB_REG_G     => REG_EN_G,
          BYTE_WR_EN_G  => false,
-         DATA_WIDTH_G  => (32+2+SEQ_CNT_SIZE_G),
+         DATA_WIDTH_G  => RAM_DATA_WIDTH_C,
          ADDR_WIDTH_G  => ADDR_WIDTH_C)
       port map (
-         clka                                 => axisClk,
-         rsta                                 => axisRst,
-         wea                                  => rin.ramWe,
-         addra                                => ramAddrr,
-         dina(31 downto 0)                    => crcRem,
-         dina(32)                             => rin.packetActive,
-         dina(33)                             => rin.sentEofe,
-         dina(34+SEQ_CNT_SIZE_G-1 downto 34)  => rin.packetSeq,
-         douta(31 downto 0)                   => ramCrcRem,
-         douta(32)                            => ramPacketActiveOut,
-         douta(33)                            => ramSentEofeOut,
-         douta(34+SEQ_CNT_SIZE_G-1 downto 34) => ramPacketSeqOut);
+         clka  => axisClk,
+         rsta  => axisRst,
+         wea   => rin.ramWe,
+         addra => ramAddrr,
+         dina  => ramDin,
+         douta => ramDout);
 
    ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0) else (others => '0');
    crcIn    <= endianSwap(inputAxisMaster.tData(63 downto 0));
@@ -414,7 +420,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';  -- Clear any frame error
+                     v.sentEofe     := '0';                   -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
