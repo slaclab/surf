@@ -1,8 +1,11 @@
 # Load RUCKUS environment and library
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
+if { [isVersal] == true } {
+   set versalType true
+
 # Check for version 2018.3 of Vivado (or later)
-if { $::env(VIVADO_VERSION) >= 2018.3 } {
+} elseif { $::env(VIVADO_VERSION) >= 2018.3 } {
 
    # Load the wrapper source code
    loadSource -lib surf -dir "$::DIR_PATH/rtl"

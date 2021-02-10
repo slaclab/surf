@@ -152,11 +152,11 @@ begin
    -- Note: Has to be generated from aurora core in order to work properly
    U_PgpGtyCore : PgpGtyCore
       port map (
-         gtwiz_userclk_tx_reset_in(0)          => txReset,
          gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
          gtwiz_reset_clk_freerun_in(0)         => stableClk,
          gtwiz_reset_all_in(0)                 => stableRst,
+         gtwiz_userclk_tx_reset_in(0)          => '0',
          gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_tx_datapath_in(0)         => txReset,
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
