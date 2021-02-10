@@ -25,6 +25,9 @@ class Xadc(pr.Device):
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
+        if isinstance(auxChannels, int):
+            auxChannels = list(range(auxChannels))
+
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
                 name         = ("Raw"+name),
