@@ -76,11 +76,7 @@ architecture rtl of AxiSpiMaster is
    type StateType is (WAIT_AXI_TXN_S, WAIT_CYCLE_S, WAIT_CYCLE_SHADOW_S, WAIT_SPI_TXN_DONE_S);
 
 
-   type mem_type is array ((2**ADDRESS_SIZE_G)-1 downto 0) of slv(DATA_SIZE_G-1 downto 0);
-   signal mem     : mem_type := (others => (others => '0'));
    signal memData : slv(DATA_SIZE_G-1 downto 0) := (others => '0');
-   signal memAddr : slv(ADDRESS_SIZE_G-1 downto 0) := (others => '0');
-   signal memWe   : sl := '0';
 
    -- Registers
    type RegType is record
@@ -107,9 +103,30 @@ architecture rtl of AxiSpiMaster is
 
 begin
 
+   SHADOW_RAM_GEN : if (SHADOW_EN_G) generate
+      U_DualPortRam_1 : entity surf.DualPortRam
+         generic map (
+            TPD_G         => TPD_G,
+            MEMORY_TYPE_G => "distributed",
+            REG_EN_G      => false,
+            DATA_WIDTH_G  => DATA_SIZE_G,
+            ADDR_WIDTH_G  => ADDRESS_SIZE_G)
+         port map (
+            clka  => axiClk,                                                     -- [in]
+            ena   => '1',                                                        -- [in]
+            wea   => r.wrEn,                                                     -- [in]
+            rsta  => axiRst,                                                     -- [in]
+            addra => r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G),  -- [in]
+            dina  => r.wrData(DATA_SIZE_G-1 downto 0),                           -- [in]
+            douta => memData,                                                    -- [out]
+            clkb  => axiClk,                                                     -- [in]
+            enb   => '1',                                                        -- [in]
+            rstb  => axiRst,                                                     -- [in]
+            addrb => shadowAddr,                                                 -- [in]
+            doutb => shadowData);                                                -- [out]
 
-   memAddr <= r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G);
-   memWe   <= r.wrEn;
+   end generate SHADOW_RAM_GEN;
+
 
    comb : process (axiReadMaster, axiRst, axiWriteMaster, r, rdData, rdEn, memData) is
       variable v         : RegType;
@@ -126,10 +143,10 @@ begin
                if (MODE_G = "WO") then
                   axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
                elsif (SHADOW_EN_G) then
-                  v.state                   := WAIT_CYCLE_SHADOW_S; -- just go to wait a cycle for memData to update
-                  v.wrData(PACKET_SIZE_C-1) := '1';                 -- indicate axi lite read in WAIT_SPI_TXN_DONE_S checking
+                  v.state                   := WAIT_CYCLE_SHADOW_S;  -- just go to wait a cycle for memData to update
+                  v.wrData(PACKET_SIZE_C-1) := '1';  -- indicate axi lite read in WAIT_SPI_TXN_DONE_S checking
                   if (ADDRESS_SIZE_G > 0) then
-                     v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2); -- setup memAddr
+                     v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);  -- setup memAddr
                   end if;
                else
                   -- No read bit when mode is read-only
@@ -219,18 +236,18 @@ begin
 
    end process comb;
 
-   shadow_mem : process (axiClk) is
-   begin
-      if (SHADOW_EN_G) then
-         if (rising_edge(axiClk)) then
-            if (memWe = '1') then
-               mem(conv_integer(memAddr)) <= r.wrData(DATA_SIZE_G-1 downto 0);
-            end if;
-            memData    <= mem(conv_integer(memAddr))    after TPD_G;
-            shadowData <= mem(conv_integer(shadowAddr)) after TPD_G;
-         end if;
-      end if;
-   end process shadow_mem;
+--    shadow_mem : process (axiClk) is
+--    begin
+--       if (SHADOW_EN_G) then
+--          if (rising_edge(axiClk)) then
+--             if (memWe = '1') then
+--                mem(conv_integer(memAddr)) <= r.wrData(DATA_SIZE_G-1 downto 0);
+--             end if;
+--             memData    <= mem(conv_integer(memAddr))    after TPD_G;
+--             shadowData <= mem(conv_integer(shadowAddr)) after TPD_G;
+--          end if;
+--       end if;
+--    end process shadow_mem;
 
    seq : process (axiClk) is
    begin
