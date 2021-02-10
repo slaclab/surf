@@ -321,15 +321,14 @@ class Xadc(pr.Device):
                 the transfer function shown in Figure 2-1, page 24 or
                 Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode
                 settings.""",
-        )
+            ))
 
-        for i in range(auxChannels):
             self.add(pr.LinkVariable(
-                name=f'Aux[{i}]',
+                name=f'Aux[{ch}]',
                 units='V',
                 disp='{:1.3f}',
                 mode='RO',
-                variable=self.AuxRaw[i],
+                variable=self.AuxRaw[ch],
                 linkedGet=self.convAuxVoltage))
 
         if (zynq):
