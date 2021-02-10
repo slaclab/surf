@@ -20,10 +20,13 @@ import pyrogue as pr
 class Xadc(pr.Device):
     def __init__(self,
                  description = "AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)",
-                 auxChannels = [],
+                 auxChannels = 0,
                  zynq        = False,
                  **kwargs):
         super().__init__(description=description, **kwargs)
+
+        if isinstance(auxChannels, int):
+            auxChannels = list(range(auxChannels))
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
