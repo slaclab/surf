@@ -273,7 +273,7 @@ begin
 
                if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
                   v.sAxiReadSlaves(s).rvalid := '0';
-                  v.slave(s).rdState := S_WAIT_AXI_TXN_S;
+                  v.slave(s).rdState         := S_WAIT_AXI_TXN_S;
                end if;
 
             -- Transaction is acked
@@ -369,9 +369,10 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
-
+         if (MASTERS_CONFIG_G(m).addrBits > 0) then
+            v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         end if;
 
 
          -- Read path processing
@@ -422,8 +423,10 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         if (MASTERS_CONFIG_G(m).addrBits > 0) then
+            v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         end if;
 
       end loop;
 
