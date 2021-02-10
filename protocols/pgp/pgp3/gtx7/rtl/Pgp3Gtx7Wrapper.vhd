@@ -37,7 +37,7 @@ entity Pgp3Gtx7Wrapper is
       NUM_LANES_G                 : positive range 1 to 4       := 1;
       NUM_VC_G                    : positive range 1 to 16      := 4;
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType              := REFCLK_312_C;
+      REFCLK_FREQ_G               : real                        := 312.5E+6;
       REFCLK_G                    : boolean                     := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -183,7 +183,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             EN_DRP_G      => EN_QPLL_DRP_G,
-            REFCLK_TYPE_G => REFCLK_TYPE_G,
+            REFCLK_FREQ_G => REFCLK_FREQ_G,
             RATE_G        => RATE_G)
          port map (
             -- Stable Clock and Reset

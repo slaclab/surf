@@ -178,6 +178,7 @@ begin
          MEMORY_TYPE_G       => "distributed",
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP4_CRC_POLY_C,
+         SEQ_CNT_SIZE_G      => 12,
          TDEST_BITS_G        => 4,
          INPUT_PIPE_STAGES_G => 1)
       port map (
@@ -212,25 +213,23 @@ begin
    pgpRxOut.linkReady      <= pgpRxOutProtocol.linkReady;
    pgpRxOut.frameRx        <= depacketizerDebug.eof;
    pgpRxOut.frameRxErr     <= depacketizerDebug.eofe;
-   pgpRxOut.cellError      <= depacketizerDebug.packetError;
+
+   pgpRxOut.cellError        <= depacketizerDebug.packetError;
+   pgpRxOut.cellSofError     <= depacketizerDebug.sofError;
+   pgpRxOut.cellSeqError     <= depacketizerDebug.seqError;
+   pgpRxOut.cellVersionError <= depacketizerDebug.versionError;
+   pgpRxOut.cellCrcModeError <= depacketizerDebug.crcModeError;
+   pgpRxOut.cellCrcError     <= depacketizerDebug.crcError;
+   pgpRxOut.cellEofeError    <= depacketizerDebug.eofeError;
+
    pgpRxOut.opCodeEn       <= pgpRxOutProtocol.opCodeEn;
-   pgpRxOut.opCodeNumber   <= pgpRxOutProtocol.opCodeNumber;
    pgpRxOut.opCodeData     <= pgpRxOutProtocol.opCodeData;
-   pgpRxOut.remLinkData    <= x"00" & remLinkData; -- PAD MSB with zeros to maintain PGPv3 interface compatibility
+   pgpRxOut.remLinkData    <= remLinkData;
    pgpRxOut.remRxLinkReady <= remRxLinkReadyInt;
 
-   pgpRxOut.phyRxData   <= phyRxData;
-   pgpRxOut.phyRxHeader <= phyRxHeader;
-   pgpRxOut.phyRxValid  <= phyRxValid;
-   pgpRxOut.phyRxInit   <= phyRxInitInt;
-
+   pgpRxOut.phyRxInit      <= phyRxInitInt;
    pgpRxOut.gearboxAligned <= gearboxAligned;
-
-   pgpRxOut.ebData     <= ebData;
-   pgpRxOut.ebHeader   <= ebHeader;
-   pgpRxOut.ebValid    <= ebValid;
-   pgpRxOut.ebOverflow <= ebOverflow;
-   pgpRxOut.ebStatus   <= ebStatus;
+   pgpRxOut.ebOverflow     <= ebOverflow;
 
    CTRL_OUT : for i in 15 downto 0 generate
       USED : if (i < NUM_VC_G) generate

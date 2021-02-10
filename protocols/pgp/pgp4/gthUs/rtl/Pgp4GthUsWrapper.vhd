@@ -38,7 +38,7 @@ entity Pgp4GthUsWrapper is
       NUM_VC_G                    : positive range 1 to 16      := 4;
       REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp4RefClkType              := REFCLK_156_C;
+      REFCLK_FREQ_G               : real                        := 156.25E+6;
       QPLL_REFCLK_SEL_G           : slv(2 downto 0)             := "001";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -55,6 +55,7 @@ entity Pgp4GthUsWrapper is
       EN_PGP_MON_G                : boolean                     := false;
       EN_GTH_DRP_G                : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
+      WRITE_EN_G                  : boolean                     := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
       STATUS_CNT_WIDTH_G          : natural range 1 to 32       := 16;
@@ -71,9 +72,9 @@ entity Pgp4GthUsWrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_TYPE_G
-      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_TYPE_G
-      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_TYPE_G
+      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_FREQ_G
+      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_FREQ_G
+      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_FREQ_G
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
@@ -183,7 +184,7 @@ begin
          generic map (
             TPD_G             => TPD_G,
             RATE_G            => RATE_G,
-            REFCLK_TYPE_G     => REFCLK_TYPE_G,
+            REFCLK_FREQ_G     => REFCLK_FREQ_G,
             QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G,
             EN_DRP_G          => EN_QPLL_DRP_G)
          port map (
@@ -225,6 +226,7 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
+               WRITE_EN_G                  => WRITE_EN_G,
                EN_DRP_G                    => EN_GTH_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
