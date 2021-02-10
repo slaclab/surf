@@ -33,7 +33,7 @@ entity AxiStreamPacketizer2 is
       REG_EN_G             : boolean                := false;
       CRC_MODE_G           : string                 := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0)       := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : positive               := 256*8;  -- Must be a multiple of 8
+      MAX_PACKET_BYTES_G   : positive               := 256*8;   -- Must be a multiple of 8
       SEQ_CNT_SIZE_G       : positive range 4 to 16 := 16;
       TDEST_BITS_G         : natural                := 8;
       INPUT_PIPE_STAGES_G  : natural                := 0;
@@ -74,6 +74,7 @@ architecture rtl of AxiStreamPacketizer2 is
    constant CRC_EN_C         : boolean         := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C  : boolean         := (CRC_MODE_G = "FULL");
    constant ADDR_WIDTH_C     : positive        := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant RAM_DATA_WIDTH_C : positive        := 32+1+SEQ_CNT_SIZE_G;
 
    type StateType is (
       IDLE_S,
@@ -135,6 +136,8 @@ architecture rtl of AxiStreamPacketizer2 is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
+   signal ramDin             : slv(RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramDout            : slv(RAM_DATA_WIDTH_C-1 downto 0);
    signal ramPacketSeqOut    : slv(SEQ_CNT_SIZE_G-1 downto 0);
    signal ramPacketActiveOut : sl;
    signal ramCrcRem          : slv(31 downto 0) := (others => '1');
@@ -188,6 +191,13 @@ begin
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
    -------------------------------------------------------------------------------
+   ramDin(31 downto 0)                   <= rin.crcRem;
+   ramDin(32)                            <= rin.packetActive;
+   ramDin(33+SEQ_CNT_SIZE_G-1 downto 33) <= rin.packetSeq;
+
+   ramCrcRem          <= ramDout(31 downto 0);
+   ramPacketActiveOut <= ramDout(32);
+   ramPacketSeqOut    <= ramDout(33+SEQ_CNT_SIZE_G-1 downto 33);
    U_DualPortRam_1 : entity surf.DualPortRam
       generic map (
          TPD_G         => TPD_G,
@@ -199,19 +209,15 @@ begin
          DATA_WIDTH_G  => (32+1+SEQ_CNT_SIZE_G),
          ADDR_WIDTH_G  => ADDR_WIDTH_C)
       port map (
-         clka                                 => axisClk,
-         rsta                                 => axisRst,
-         wea                                  => rin.ramWe,
-         addra                                => rin.activeTDest,
-         dina(31 downto 0)                    => rin.crcRem,
-         dina(32)                             => rin.packetActive,
-         dina(33+SEQ_CNT_SIZE_G-1 downto 33)  => rin.packetSeq,
-         clkb                                 => axisClk,
-         rstb                                 => axisRst,
-         addrb                                => ramAddrr,
-         doutb(31 downto 0)                   => ramCrcRem,
-         doutb(32)                            => ramPacketActiveOut,
-         doutb(33+SEQ_CNT_SIZE_G-1 downto 33) => ramPacketSeqOut);
+         clka  => axisClk,
+         rsta  => axisRst,
+         wea   => rin.ramWe,
+         addra => rin.activeTDest,
+         dina  => ramDin,
+         clkb  => axisClk,
+         rstb  => axisRst,
+         addrb => ramAddrr,
+         doutb => ramDout);
 
    ramAddrr <= inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0) when (TDEST_BITS_G > 0) else (others => '0');
 
