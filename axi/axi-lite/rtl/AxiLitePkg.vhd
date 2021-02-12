@@ -237,7 +237,7 @@ package AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    type AxiLiteCrossbarMasterConfigType is record
       baseAddr     : slv(31 downto 0);
-      addrBits     : natural;
+      addrBits     : natural range 1 to 32;
       connectivity : slv(15 downto 0);
    end record;
 
