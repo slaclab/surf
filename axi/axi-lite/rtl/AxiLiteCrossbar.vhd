@@ -172,12 +172,13 @@ begin
 
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
-                     if (
+                     if ((
                         StdMatch(       -- Use std_match to allow dontcares ('-')
                            sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
-                        and (
-                           MASTERS_CONFIG_G(m).connectivity(s) = '1'))
+                        or MASTERS_CONFIG_G(m).addrBits = 32)
+                         and (
+                            MASTERS_CONFIG_G(m).connectivity(s) = '1'))
                      then
                         v.slave(s).wrReqs(m) := '1';
                         v.slave(s).wrReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
@@ -244,12 +245,13 @@ begin
                if (sAxiReadMasters(s).arvalid = '1') then
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
-                     if (
+                     if ((
                         StdMatch(       -- Use std_match to allow dontcares ('-')
                            sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
-                        and (
-                           MASTERS_CONFIG_G(m).connectivity(s) = '1'))
+                        or MASTERS_CONFIG_G(m).addrBits = 32)
+                         and (
+                            MASTERS_CONFIG_G(m).connectivity(s) = '1'))
                      then
                         v.slave(s).rdReqs(m) := '1';
                         v.slave(s).rdReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
@@ -273,7 +275,7 @@ begin
 
                if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
                   v.sAxiReadSlaves(s).rvalid := '0';
-                  v.slave(s).rdState := S_WAIT_AXI_TXN_S;
+                  v.slave(s).rdState         := S_WAIT_AXI_TXN_S;
                end if;
 
             -- Transaction is acked
@@ -371,7 +373,6 @@ begin
          -- This helps optimization happen properly
          v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
             MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
-
 
 
          -- Read path processing
