@@ -27,7 +27,7 @@ entity AxiStreamDeMux is
    generic (
       TPD_G          : time                   := 1 ns;
       NUM_MASTERS_G  : integer range 1 to 256 := 12;
-      MODE_G         : string                 := "INDEXED";  -- Or "ROUTED"
+      MODE_G         : string                 := "INDEXED";  -- Or "ROUTED" Or "DYNAMIC"
       TDEST_ROUTES_G : slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G  : integer range 0 to 16  := 0;
       TDEST_HIGH_G   : integer range 0 to 7   := 7;
@@ -65,6 +65,9 @@ architecture structure of AxiStreamDeMux is
    signal rin : RegType;
 
 begin
+
+   assert (MODE_G = "INDEXED" or MODE_G = "ROUTED" or MODE_G = "DYNAMIC")
+      report "MODE_G must be [INDEXED,ROUTED,DYNAMIC]" severity failure;
 
    assert (MODE_G /= "INDEXED" or (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_MASTERS_G)))
       report "In INDEXED mode, TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
