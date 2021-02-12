@@ -36,7 +36,7 @@ entity AxiStreamDeMux is
       -- Clock and reset
       axisClk           : in  sl;
       axisRst           : in  sl;
-      -- Dynamic Route Table (only used when MODE_G = "DYNAMIC"
+      -- Dynamic Route Table (only used when MODE_G = "DYNAMIC")
       dynamicRouteMasks : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
       dynamicRouteDests  : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
       -- Slave
