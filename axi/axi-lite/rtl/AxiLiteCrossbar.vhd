@@ -177,8 +177,8 @@ begin
                            sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                         or MASTERS_CONFIG_G(m).addrBits = 32)
-                        and (
-                           MASTERS_CONFIG_G(m).connectivity(s) = '1'))
+                         and (
+                            MASTERS_CONFIG_G(m).connectivity(s) = '1'))
                      then
                         v.slave(s).wrReqs(m) := '1';
                         v.slave(s).wrReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
@@ -250,8 +250,8 @@ begin
                            sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                         or MASTERS_CONFIG_G(m).addrBits = 32)
-                        and (
-                           MASTERS_CONFIG_G(m).connectivity(s) = '1'))
+                         and (
+                            MASTERS_CONFIG_G(m).connectivity(s) = '1'))
                      then
                         v.slave(s).rdReqs(m) := '1';
                         v.slave(s).rdReqNum  := conv_std_logic_vector(m, REQ_NUM_SIZE_C);
@@ -371,10 +371,8 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         if (MASTERS_CONFIG_G(m).addrBits > 0) then
-            v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
-         end if;
+         v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
 
 
          -- Read path processing
@@ -425,10 +423,8 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         if (MASTERS_CONFIG_G(m).addrBits > 0) then
-            v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
-         end if;
+         v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
 
       end loop;
 
