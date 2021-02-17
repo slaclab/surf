@@ -144,7 +144,8 @@ begin
       clk => rxClk,
       dataIn => intSlideR,
       dataOut => intAlignSlide);
-      
+   
+   -- RX Slide State machine
    process (rxClk) begin
       if (rising_edge(rxClk)) then
          if (intReset = '1') then
