@@ -27,21 +27,24 @@ entity AxiStreamDeMux is
    generic (
       TPD_G          : time                   := 1 ns;
       NUM_MASTERS_G  : integer range 1 to 256 := 12;
-      MODE_G         : string                 := "INDEXED";          -- Or "ROUTED"
+      MODE_G         : string                 := "INDEXED";  -- Or "ROUTED" Or "DYNAMIC"
       TDEST_ROUTES_G : slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
       PIPE_STAGES_G  : integer range 0 to 16  := 0;
       TDEST_HIGH_G   : integer range 0 to 7   := 7;
       TDEST_LOW_G    : integer range 0 to 7   := 0);
    port (
       -- Clock and reset
-      axisClk      : in  sl;
-      axisRst      : in  sl;
+      axisClk           : in  sl;
+      axisRst           : in  sl;
+      -- Dynamic Route Table (only used when MODE_G = "DYNAMIC")
+      dynamicRouteMasks : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
+      dynamicRouteDests  : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
       -- Slave
-      sAxisMaster  : in  AxiStreamMasterType;
-      sAxisSlave   : out AxiStreamSlaveType;
+      sAxisMaster       : in  AxiStreamMasterType;
+      sAxisSlave        : out AxiStreamSlaveType;
       -- Masters
-      mAxisMasters : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
-      mAxisSlaves  : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0));
+      mAxisMasters      : out AxiStreamMasterArray(NUM_MASTERS_G-1 downto 0);
+      mAxisSlaves       : in  AxiStreamSlaveArray(NUM_MASTERS_G-1 downto 0));
 end AxiStreamDeMux;
 
 architecture structure of AxiStreamDeMux is
@@ -63,6 +66,9 @@ architecture structure of AxiStreamDeMux is
 
 begin
 
+   assert (MODE_G = "INDEXED" or MODE_G = "ROUTED" or MODE_G = "DYNAMIC")
+      report "MODE_G must be [INDEXED,ROUTED,DYNAMIC]" severity failure;
+
    assert (MODE_G /= "INDEXED" or (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_MASTERS_G)))
       report "In INDEXED mode, TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_MASTERS_G=" & integer'image(NUM_MASTERS_G)
@@ -73,7 +79,7 @@ begin
       " must equal NUM_MASTERS_G: " & integer'image(NUM_MASTERS_G)
       severity error;
 
-   comb : process (axisRst, pipeAxisSlaves, r, sAxisMaster) is
+   comb : process (axisRst, dynamicRouteDests, dynamicRouteMasks, pipeAxisSlaves, r, sAxisMaster) is
       variable v   : RegType;
       variable idx : natural;
       variable i   : natural;
@@ -103,6 +109,15 @@ begin
          for i in 0 to NUM_MASTERS_G-1 loop
             if (std_match(sAxisMaster.tDest, TDEST_ROUTES_G(i))) then
                idx := i;
+               exit;
+            end if;
+         end loop;
+      elsif (MODE_G = "DYNAMIC") then
+         idx := NUM_MASTERS_G;
+         for i in 0 to NUM_MASTERS_G-1 loop
+            if ((sAxisMaster.tDest and dynamicRouteMasks(i)) = (dynamicRouteDests(i) and dynamicRouteMasks(i))) then
+               idx := i;
+               exit;
             end if;
          end loop;
       end if;
