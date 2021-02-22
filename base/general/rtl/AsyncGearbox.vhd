@@ -72,11 +72,14 @@ architecture mapping of AsyncGearbox is
    signal gearboxMasterBitOrder : sl;
    signal almostFull            : sl;
    signal writeEnable           : sl;
+   signal asyncFifoRst          : sl;
 
 begin
 
    fastClk <= slaveClk when SLAVE_FASTER_C else masterClk;
    fastRst <= slaveRst when SLAVE_FASTER_C else masterRst;
+
+   asyncFifoRst <= slaveRst or masterRst;
 
    U_SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
@@ -116,7 +119,7 @@ begin
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G
             )
          port map (
-            rst         => slaveRst,         -- [in]
+            rst         => asyncFifoRst,     -- [in]
             wr_clk      => slaveClk,         -- [in]
             wr_en       => writeEnable,      -- [in]
             din         => slaveData,        -- [in]
@@ -179,7 +182,7 @@ begin
             PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G,
             ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
          port map (
-            rst         => fastRst,         -- [in]
+            rst         => asyncFifoRst,    -- [in]
             wr_clk      => fastClk,         -- [in]
             wr_en       => writeEnable,     -- [in]
             din         => gearboxDataOut,  -- [in]
