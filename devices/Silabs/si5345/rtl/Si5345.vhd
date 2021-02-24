@@ -52,6 +52,8 @@ architecture rtl of Si5345 is
 
    constant DLY_C : natural := 4*integer(SPI_SCLK_PERIOD_G/CLK_PERIOD_G);  -- >= 2 SCLK delay between SPI cycles
 
+   constant THROTTLE_C : natural := integer(1.0E-3/CLK_PERIOD_G);  -- 1 config every 1 ms
+
    type StateType is (
       BOOT_ROM_S,
       IDLE_S,
@@ -68,6 +70,7 @@ architecture rtl of Si5345 is
       addr          : slv(7 downto 0);
       page          : slv(7 downto 0);
       timer         : natural range 0 to DLY_C;
+      throttle      : natural range 0 to THROTTLE_C;
       cnt           : natural range 0 to 4;
       wrArray       : Slv16Array(3 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
@@ -85,6 +88,7 @@ architecture rtl of Si5345 is
       addr          => (others => '0'),
       page          => (others => '0'),
       timer         => 0,
+      throttle      => 0,
       cnt           => 0,
       wrArray       => (others => (others => '0')),
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -146,6 +150,9 @@ begin
       -- Increment the timer
       if (r.timer /= DLY_C) then
          v.timer := r.timer + 1;
+      end if;
+      if (r.throttle /= THROTTLE_C) then
+         v.throttle := r.throttle + 1;
       end if;
 
       -- Get the AXI-Lite status
@@ -261,8 +268,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
-            -- Check for min. chip select gap
-            if (r.timer = DLY_C) then
+            -- Check if ready for next configuration
+            if (r.throttle = THROTTLE_C) then
+               -- Reset the throttle
+               v.throttle := 0;
                -- Check if booting
                if (r.booting = '1') then
                   --- Next state
