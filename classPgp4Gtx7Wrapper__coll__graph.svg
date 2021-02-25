@@ -127,9 +127,9 @@ var sectionId = 'dynsection-1';
 <!-- Node55 -->
 <g id="node45" class="node">
 <title>Node55</title>
-<g id="a_node45"><a xlink:href="classRoguePgp3Sim.html" target="_top" xlink:title=" ">
+<g id="a_node45"><a xlink:href="classRoguePgp4Sim.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="791,-114.5 791,-133.5 881,-133.5 881,-114.5 791,-114.5"/>
-<text text-anchor="middle" x="836" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">RoguePgp3Sim</text>
+<text text-anchor="middle" x="836" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">RoguePgp4Sim</text>
 </a>
 </g>
 </g>

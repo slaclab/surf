@@ -1,5 +1,14 @@
 var NAVTREEINDEX26 =
 {
+"classAxiStreamResize.html#a044b1bf79201c595c20474cecf020a5d":[1,0,134,8],
+"classAxiStreamResize.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,134,15],
+"classAxiStreamResize.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,134,18],
+"classAxiStreamResize.html#a2250065299e488fea49ada5b40c1e2eb":[1,0,134,13],
+"classAxiStreamResize.html#a31260953654b0195fdaaf2f8bc36dd09":[1,0,134,6],
+"classAxiStreamResize.html#a32734c9c738c8d7a0d55c20815966812":[1,0,134,10],
+"classAxiStreamResize.html#a4be737583df4493f37e21b9da4a67377":[1,0,134,9],
+"classAxiStreamResize.html#a4e7681b5766a6f51851dfb086a6bf45a":[1,0,134,11],
+"classAxiStreamResize.html#a598da929e807d58939b47499e8bc9fa8":[1,0,134,17],
 "classAxiStreamResize.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,134,1],
 "classAxiStreamResize.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,134,21],
 "classAxiStreamResize.html#a9b0b70eb40fd99ae471dd823ed5da644":[1,0,134,14],
@@ -240,14 +249,5 @@ var NAVTREEINDEX26 =
 "classAxiStreamShift_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe":[1,0,139,0,5],
 "classAxiStreamShift_1_1rtl.html#a53b621cbd03c7fec8ec2d51a635ca31f":[1,0,139,0,16],
 "classAxiStreamShift_1_1rtl.html#a60cf6c6e46dc89a140bc8bff4d98f732":[1,0,139,0,2],
-"classAxiStreamShift_1_1rtl.html#a7f625f492e42e4d93083f64fe3fd09ba":[1,0,139,0,7],
-"classAxiStreamShift_1_1rtl.html#a85aa1bda56bf59388b18bc4482d6ace1":[1,0,139,0,0],
-"classAxiStreamShift_1_1rtl.html#a97c9364528b895be56cde665ba2630e5":[1,0,139,0,14],
-"classAxiStreamShift_1_1rtl.html#abda24dda9749257f1b017faea8c60764":[1,0,139,0,8],
-"classAxiStreamShift_1_1rtl.html#ac7a99246d27348dd8f7bd13c12a4dbe9":[1,0,139,0,9],
-"classAxiStreamShift_1_1rtl.html#ade4de2a008a5f96235206eb18081481c":[1,0,139,0,13],
-"classAxiStreamShift_1_1rtl.html#ae6175a3d539829b41467a51d7a8d89d4":[1,0,139,0,1],
-"classAxiStreamShift_1_1rtl.html#afb16e605c3853950ff52d18354baf1f2":[1,0,139,0,11],
-"classAxiStreamSplitter.html":[1,0,140],
-"classAxiStreamSplitter.html#a044b1bf79201c595c20474cecf020a5d":[1,0,140,6]
+"classAxiStreamShift_1_1rtl.html#a7f625f492e42e4d93083f64fe3fd09ba":[1,0,139,0,7]
 };

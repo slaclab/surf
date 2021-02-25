@@ -14,6 +14,7 @@ var classAsyncGearbox_1_1mapping =
     [ "gearboxMasterBitOrder", "classAsyncGearbox_1_1mapping.html#a1c4fb0a2154c4bea71d3adad049ab00e", null ],
     [ "almostFull", "classAsyncGearbox_1_1mapping.html#a9de24eab8dafd29a9902140f161e85ef", null ],
     [ "writeEnable", "classAsyncGearbox_1_1mapping.html#ac60e1b738e45ad5af00d3bd614f7049b", null ],
+    [ "asyncFifoRst", "classAsyncGearbox_1_1mapping.html#a09f3bacbdb3bbb378eb91ab154a57c7e", null ],
     [ "u_synchronizeroneshot_1", "classAsyncGearbox_1_1mapping.html#aa3ce4908ae0f7bffe245c50ce224ddcb", null ],
     [ "u_slavebitorder", "classAsyncGearbox_1_1mapping.html#a233584537e43a97b4bb517e893a5a762", null ],
     [ "u_masterbitorder", "classAsyncGearbox_1_1mapping.html#ae7b4d58a48617eb5c4c887c706d73f82", null ],

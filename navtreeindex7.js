@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"classAxiLiteCrossbar.html#aff926f2f79e309bdbc1ee1510b0b85d5":[1,0,39,5],
 "classAxiLiteCrossbar_1_1rtl.html":[1,0,39,0],
 "classAxiLiteCrossbar_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,39,0,32],
 "classAxiLiteCrossbar_1_1rtl.html#a0bf5390b0efb7f44e1b5a97620a6b569":[1,0,39,0,14],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "classAxiLiteIpBusBridgeTb_1_1testbed.html#a3ab8ecfb3eb2d6615c78475088f2a11a":[1,0,43,0,19],
 "classAxiLiteIpBusBridgeTb_1_1testbed.html#a3e849cfe4390ddbd00c3212efd368fde":[1,0,43,0,2],
 "classAxiLiteIpBusBridgeTb_1_1testbed.html#a5c596bce0999f9b5547f389bbea2cccf":[1,0,43,0,5],
-"classAxiLiteIpBusBridgeTb_1_1testbed.html#a5d6f0ec4815c15ab9276fcca74f2cdb1":[1,0,43,0,8],
-"classAxiLiteIpBusBridgeTb_1_1testbed.html#a5f43e49f49c7e79eb8417ceda04779db":[1,0,43,0,15]
+"classAxiLiteIpBusBridgeTb_1_1testbed.html#a5d6f0ec4815c15ab9276fcca74f2cdb1":[1,0,43,0,8]
 };

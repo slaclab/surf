@@ -1,6 +1,6 @@
 var classAxiStreamDeMux_1_1structure =
 [
-    [ "comb", "classAxiStreamDeMux_1_1structure.html#aedf2e10806dcb48ba4cff4481972c5d9", null ],
+    [ "comb", "classAxiStreamDeMux_1_1structure.html#ab65edc2a0782fcc082c15f87d50b6a90", null ],
     [ "seq", "classAxiStreamDeMux_1_1structure.html#a60cf6c6e46dc89a140bc8bff4d98f732", null ],
     [ "RegType", "classAxiStreamDeMux_1_1structure.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "slave", "classAxiStreamDeMux_1_1structure.html#abda24dda9749257f1b017faea8c60764", null ],

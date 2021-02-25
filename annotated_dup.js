@@ -483,6 +483,7 @@ var annotated_dup =
     [ "RegisterVector", "classRegisterVector.html", "classRegisterVector" ],
     [ "RoguePgp2bSim", "classRoguePgp2bSim.html", "classRoguePgp2bSim" ],
     [ "RoguePgp3Sim", "classRoguePgp3Sim.html", "classRoguePgp3Sim" ],
+    [ "RoguePgp4Sim", "classRoguePgp4Sim.html", "classRoguePgp4Sim" ],
     [ "RoguePgpEthSim", "classRoguePgpEthSim.html", "classRoguePgpEthSim" ],
     [ "RogueSideBand", "classRogueSideBand.html", "classRogueSideBand" ],
     [ "RogueSideBandWrap", "classRogueSideBandWrap.html", "classRogueSideBandWrap" ],

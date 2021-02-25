@@ -1100,7 +1100,11 @@ var hierarchy =
         ] ],
         [ "Pgp3GthUsIpWrapper", "classPgp3GthUsIpWrapper.html", null ]
       ] ],
-      [ "RoguePgp3Sim", "classRoguePgp3Sim.html", null ],
+      [ "RoguePgp4Sim", "classRoguePgp4Sim.html", [
+        [ "PwrUpRst", "classPwrUpRst.html", null ],
+        [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", null ],
+        [ "RogueSideBandWrap", "classRogueSideBandWrap.html", null ]
+      ] ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3Gtp7Qpll", "classPgp3Gtp7Qpll.html", null ],
       [ "Pgp4Gtp7", "classPgp4Gtp7.html", [
@@ -1108,7 +1112,7 @@ var hierarchy =
         [ "Pgp4Core", "classPgp4Core.html", null ],
         [ "Pgp3Gtp7IpWrapper", "classPgp3Gtp7IpWrapper.html", null ]
       ] ],
-      [ "RoguePgp3Sim", "classRoguePgp3Sim.html", null ],
+      [ "RoguePgp4Sim", "classRoguePgp4Sim.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3Gtx7Qpll", "classPgp3Gtx7Qpll.html", null ],
       [ "Pgp4Gtx7", "classPgp4Gtx7.html", [
@@ -1116,7 +1120,7 @@ var hierarchy =
         [ "Pgp4Core", "classPgp4Core.html", null ],
         [ "Pgp3Gtx7IpWrapper", "classPgp3Gtx7IpWrapper.html", null ]
       ] ],
-      [ "RoguePgp3Sim", "classRoguePgp3Sim.html", null ],
+      [ "RoguePgp4Sim", "classRoguePgp4Sim.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3GtyUsQpll", "classPgp3GtyUsQpll.html", null ],
       [ "Pgp4GtyUs", "classPgp4GtyUs.html", [
@@ -1124,7 +1128,7 @@ var hierarchy =
         [ "Pgp4Core", "classPgp4Core.html", null ],
         [ "Pgp3GtyUsIpWrapper", "classPgp3GtyUsIpWrapper.html", null ]
       ] ],
-      [ "RoguePgp3Sim", "classRoguePgp3Sim.html", null ],
+      [ "RoguePgp4Sim", "classRoguePgp4Sim.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "Pgp4Tx", "classPgp4Tx.html", null ],

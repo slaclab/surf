@@ -10,6 +10,8 @@ var classAxiStreamDeMux =
     [ "TDEST_LOW_G", "classAxiStreamDeMux.html#a1febd9d88664e307ee6cfb0fb28aa863", null ],
     [ "axisClk", "classAxiStreamDeMux.html#ac220cc2710ba738744915c3b2a0f43bc", null ],
     [ "axisRst", "classAxiStreamDeMux.html#a044b1bf79201c595c20474cecf020a5d", null ],
+    [ "dynamicRouteMasks", "classAxiStreamDeMux.html#a32822170e9b727d43c1e542a3202ead9", null ],
+    [ "dynamicRouteDests", "classAxiStreamDeMux.html#adfe29fd1a7c3e8cfdd61a9e7e7db416a", null ],
     [ "sAxisMaster", "classAxiStreamDeMux.html#a4be737583df4493f37e21b9da4a67377", null ],
     [ "sAxisSlave", "classAxiStreamDeMux.html#a4e7681b5766a6f51851dfb086a6bf45a", null ],
     [ "mAxisMasters", "classAxiStreamDeMux.html#ae1de4c63ec25e06fd80b0b03cfade2b5", null ],
