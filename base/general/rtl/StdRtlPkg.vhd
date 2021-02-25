@@ -75,7 +75,8 @@ package StdRtlPkg is
    function toSl (bool       : boolean) return sl;
    function toString (bool   : boolean) return string;
    function toBoolean (str   : string) return boolean;
-   function toSlv(bools : BooleanArray) return slv;
+   function toSlv(bools      : BooleanArray) return slv;
+   function toBooleanArray (vec : slv)      return BooleanArray;
 
    -- Unary reduction operators, also unnecessary in VHDL 2008
    function uOr (vec  : slv) return sl;
@@ -848,6 +849,15 @@ package body StdRtlPkg is
       end loop;
       return ret;
    end function toSlv;
+
+   function toBooleanArray (vec : slv)  return BooleanArray is
+      variable ret : BooleanArray(vec'range);
+   begin
+      for i in vec'range loop
+         ret(i) := toBoolean(vec(i));
+      end loop;
+      return ret;
+   end function toBooleanArray;
 
    --------------------------------------------------------------------------------------------------
    -- Decode and genmux

@@ -276,7 +276,7 @@ begin
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Rogue : entity surf.RoguePgp3Sim -- Same IP core for both PGPv3 and PGPv4
+         U_Rogue : entity surf.RoguePgp4Sim
             generic map(
                TPD_G      => TPD_G,
                SYNTH_MODE_G  => SYNTH_MODE_G,

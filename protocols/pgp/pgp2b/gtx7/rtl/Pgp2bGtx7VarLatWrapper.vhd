@@ -38,6 +38,7 @@ entity Pgp2bGtx7VarLatWrapper is
       -- MMCM internal frequency is set by:
       --    FVCO = 1000 * CLKFBOUT_MULT_F_G/(CLKIN1_PERIOD_G * DIVCLK_DIVIDE_G)
       -- And must be within the specified operating range of the PLL (around 1Ghz)
+      USE_REFCLK_G       : boolean                 := false;
       CLKIN_PERIOD_G     : real                    := 16.0;   -- gtClkP/2
       DIVCLK_DIVIDE_G    : natural range 1 to 106  := 2;
       CLKFBOUT_MULT_F_G  : real range 1.0 to 64.0  := 31.875;
@@ -93,8 +94,10 @@ entity Pgp2bGtx7VarLatWrapper is
       pgpRxMasters    : out AxiStreamMasterArray(3 downto 0);
       pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0);
       -- GT Pins
-      gtClkP          : in  sl;
-      gtClkN          : in  sl;
+      gtClkP          : in  sl                     := '0';
+      gtClkN          : in  sl                     := '1';
+      gtRefClk        : in  sl                     := '0';
+      gtRefClkBufg    : in  sl                     := '0';
       gtTxP           : out sl;
       gtTxN           : out sl;
       gtRxP           : in  sl;
@@ -128,18 +131,27 @@ begin
    pgpRst    <= pgpReset;
    stableClk <= stableClock;
 
-   IBUFDS_GTE2_Inst : IBUFDS_GTE2
-      port map (
-         I     => gtClkP,
-         IB    => gtClkN,
-         CEB   => '0',
-         ODIV2 => refClkDiv2,
-         O     => refClk);
+   IBUFDS_GEN : if (not USE_REFCLK_G) generate
+      IBUFDS_GTE2_Inst : IBUFDS_GTE2
+         port map (
+            I     => gtClkP,
+            IB    => gtClkN,
+            CEB   => '0',
+            ODIV2 => refClkDiv2,
+            O     => refClk);
 
-   BUFG_Inst : BUFG
-      port map (
-         I => refClkDiv2,
-         O => stableClock);
+      BUFG_Inst : BUFG
+         port map (
+            I => refClkDiv2,
+            O => stableClock);
+
+   end generate;
+
+   REFCLK_BUF : if (USE_REFCLK_G) generate
+      stableClock <= gtRefClkBufg;
+      refClk      <= gtRefClk;
+   end generate REFCLK_BUF;
+
 
    RstSync_Inst : entity surf.RstSync
       generic map(
