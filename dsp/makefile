@@ -9,9 +9,9 @@ TBDIR=tb
 
 surf_pkg_files = ../base/general/rtl/StdRtlPkg.vhd
 dsp_pkg_files = core/ComplexFixedPkg.vhd
-dsp_files = fixed/preAddComplexMult.vhd fixed/cmultAdd.vhd
+dsp_files = fixed/preAddComplexMult.vhd fixed/complexMultAdd.vhd
 
-dsp_tbs = preAddComplexMult_tb cmultAdd_tb
+dsp_tbs = preAddComplexMult_tb complexMultAdd_tb
 
 
 $(dsp_tbs): %: $(surf_pkg_files) $(dsp_pkg_files) $(dsp_files)
