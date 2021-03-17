@@ -35,18 +35,18 @@ entity complexMultAdd is
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
-      clk   : in  std_logic;
-      rst   : in  std_logic := '0';
+      clk   : in  sl;
+      rst   : in  sl := '0';
       a     : in  cfixed;
-      a_vld : in  std_logic;
+      a_vld : in  sl;
       b     : in  cfixed;
-      b_vld : in  std_logic;
+      b_vld : in  sl;
       c     : in  cfixed;
-      c_vld : in  std_logic;
+      c_vld : in  sl;
       -- outputs
       --acout : out cfixed;
       y     : out cfixed;
-      y_vld : out std_logic);
+      y_vld : out sl);
 end entity complexMultAdd;
 
 architecture rtl of complexMultAdd is
@@ -71,7 +71,7 @@ architecture rtl of complexMultAdd is
       p_rr, p_ii, p_ri, p_ir : sfixed(P_HIGH_C downto P_LOW_C);
       m_rr, m_ii, m_ri, m_ir : sfixed(M_HIGH_C downto M_LOW_C);
       y         : cfixed(re(y.re'range), im(y.im'range));
-      y_vld     : std_logic_vector(DELAY_C-1 downto 0);
+      y_vld     : slv(DELAY_C-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (

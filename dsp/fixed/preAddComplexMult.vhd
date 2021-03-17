@@ -35,28 +35,27 @@ entity PreAddComplexMult is
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
-      clk    : in  std_logic;
-      ce     : in  std_logic := '1';
+      clk    : in  sl;
       a      : in  cfixed;
-      avld   : in  std_logic := '1';
+      avld   : in  sl := '0';
       d      : in  cfixed;
-      dvld   : in  std_logic := '1';
+      dvld   : in  sl := '0';
       b      : in  cfixed;
-      bvld   : in  std_logic := '1';
+      bvld   : in  sl := '0';
       y      : out cfixed;
-      yvld   : out std_logic;
-      s      : in  std_logic);
+      yvld   : out sl;
+      s      : in  sl);
 end PreAddComplexMult;
 
 architecture rtl of PreAddComplexMult is
 
-   constant DELAY_C      : integer := 4 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
+   constant DELAY_C        : integer := 4 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
 
-   constant REG_DEPTH_C  : integer := 3;
+   constant REG_DEPTH_C    : integer := 3;
 
-   constant AD_W_C    : integer := 27; -- 27 x 18 multiplier for DSP48
-   constant AD_LOW_C  : integer := minimum(a.re'low, d.re'low);
-   constant AD_HIGH_C : integer := a.re'high + 1;
+   constant AD_W_C         : integer := 27; -- 27 x 18 multiplier for DSP48
+   constant AD_LOW_C       : integer := minimum(a.re'low, d.re'low);
+   constant AD_HIGH_C      : integer := a.re'high + 1;
    constant AD_HIGH_CLIP_C : integer := minimum(AD_W_C + AD_LOW_C - 1, AD_HIGH_C);
 
    constant M_LOW_C  : integer := AD_LOW_C + b.re'low;
@@ -76,8 +75,8 @@ architecture rtl of PreAddComplexMult is
       breg  : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(b.re'range), im(b.im'range));
       dreg  : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(d.re'range), im(d.im'range)); -- add one extra element so we can index with CIN_REG_G
       adreg : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(AD_HIGH_C downto AD_LOW_C), im(AD_HIGH_C downto AD_LOW_C)); -- add one extra element so we can index with CIN_REG_G
-      sr, srr : std_logic; -- synthesis tool has trouble inferring DSP pre adder if using std_logic_vector and shift
-      vld   : std_logic_vector(DELAY_C - 1 downto 0);
+      sr, srr : sl; -- synthesis tool has trouble inferring DSP pre adder if using std_logic_vector and shift
+      vld   : slv(DELAY_C - 1 downto 0);
       p_rr, p_ii, p_ri, p_ir : sfixed(P_HIGH_C downto P_LOW_C);
       m_rr, m_ii, m_ri, m_ir : sfixed(M_HIGH_C downto M_LOW_C);
       y         : cfixed(re(y.re'range), im(y.im'range));
