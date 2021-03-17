@@ -14,9 +14,10 @@ end entity preAddComplexMult_tb;
 
 architecture test of preAddComplexMult_tb is
 
-   constant CLK_PERIOD_C : time := 10 ns;
-   constant ERROR_TOL_C : real := 0.0001;
+   constant CLK_PERIOD_C  : time    := 10 ns;
+   constant ERROR_TOL_C   : real    := 0.0001;
    constant ADD_NOT_SUB_C : boolean := false;
+   constant RUN_CNT_C     : integer := 1000;
 
    signal clk : std_logic := '0';
    signal rst : std_logic := '1';
@@ -87,7 +88,7 @@ begin
          case cnt is
             when 10 =>
                rst   <= '0';
-            when 11 to 99 =>
+            when 11 to RUN_CNT_C-1 =>
                a_vld <= '1';
                b_vld <= '1';
                d_vld <= '1';
@@ -103,7 +104,7 @@ begin
                else
                   y_expected(0) <= ( a_in - d_in ) * b_in;
                end if;
-            when 100 => 
+            when RUN_CNT_C => 
                run <= false;
                report CR & LF & CR & LF &
                   "Test PASSED!" & CR & LF &
@@ -113,15 +114,15 @@ begin
          end case;
 
          case cnt is
-            when 16 to 25 =>
+            when 11 to RUN_CNT_C =>
                y_error  <= abs(y_out - y_e);
                maxError <= maximum(y_error, maxError);
-               --assert (y_error < ERROR_TOL_C) and (y_vld = '1') 
-               --   report CR & LF & CR & LF &
-               --   "**** Test FAILED **** " & CR & LF & 
-               --   "abs(error) is " & real'image(y_error) &
-               --   CR & LF
-               --  severity failure;
+               assert (y_error < ERROR_TOL_C) and (y_vld = '1') 
+                  report CR & LF & CR & LF &
+                  "**** Test FAILED **** " & CR & LF & 
+                  "abs(error) is " & real'image(y_error) &
+                  CR & LF
+                 severity failure;
             when others =>
         end case;
 
