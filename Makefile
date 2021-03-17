@@ -36,6 +36,8 @@ $(shell find . -type f -name '*InputBufferReg.vhd') \
 $(shell find . -type f -name '*OutputBufferReg.vhd') \
 $(shell find . -type f -name '*GthUltraScaleQuadPll.vhd') \
 $(shell find . -type f -name '*MicroblazeBasicCoreWrapper.vhd') \
+$(shell find . -type f -name '*complexMultAdd.vhd') \
+$(shell find . -type f -name '*preAddComplexMult.vhd') \
 
 FILES = $(filter-out $(EXCLUDE),$(wildcard $(PATHS)))
 
