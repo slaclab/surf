@@ -1,3 +1,15 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.math_real.all;
@@ -28,32 +40,32 @@ architecture test of preAddComplexMult_tb is
    signal b : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
    signal d : cfixed(re(1 downto -25), im(1 downto -25)) := (others => (others => '0'));
    signal y : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
-   signal a_vld : std_logic := '1';
-   signal b_vld : std_logic := '1';
-   signal d_vld : std_logic := '0';
-   signal y_vld : std_logic := '1';
+   signal aVld : std_logic := '1';
+   signal bVld : std_logic := '1';
+   signal dVld : std_logic := '0';
+   signal yVld : std_logic := '1';
 
-   signal a_in       : complex := (re => 0.00, im => 0.00);
-   signal b_in       : complex := (re => 0.00, im => 0.00);
-   signal d_in       : complex := (re => 0.00, im => 0.00);
+   signal aIn       : complex := (re => 0.00, im => 0.00);
+   signal bIn       : complex := (re => 0.00, im => 0.00);
+   signal dIn       : complex := (re => 0.00, im => 0.00);
 
-   signal y_expected : complexArray(9 downto 0) := (others => (re => 0.00, im=>0.00));
-   signal y_e        : complex := (re => 0.00, im => 0.00);
+   signal yExpected : complexArray(9 downto 0) := (others => (re => 0.00, im=>0.00));
+   signal yE        : complex := (re => 0.00, im => 0.00);
 
-   signal y_out    : complex := (re => 0.00, im => 0.00);
-   signal y_error  : real    := 0.000;
-   signal maxError : real    := 0.000;
+   signal yOut      : complex := (re => 0.00, im => 0.00);
+   signal yError    : real    := 0.000;
+   signal maxError  : real    := 0.000;
 
    signal addNotSub : sl := ite(ADD_NOT_SUB_C, '1', '0');
 
 begin
 
 
-   y_e <= y_expected(5);
+   yE <= yExpected(5);
 
    -- convert out DUT output back to reals
-   y_out.re <= to_real(y.re);
-   y_out.im <= to_real(y.im);
+   yOut.re <= to_real(y.re);
+   yOut.im <= to_real(y.im);
 
    p_clk : process is
    begin
@@ -89,20 +101,20 @@ begin
             when 10 =>
                rst   <= '0';
             when 11 to RUN_CNT_C-1 =>
-               a_vld <= '1';
-               b_vld <= '1';
-               d_vld <= '1';
-               a_in  <= rand_complex(-0.5, 0.5);
-               b_in  <= rand_complex(-0.5, 0.5);
-               d_in  <= rand_complex(-0.5, 0.5);
-               a     <= to_cfixed(a_in, a);
-               b     <= to_cfixed(b_in, b);
-               d     <= to_cfixed(d_in, d);
-               y_expected(9 downto 1) <= y_expected(8 downto 0);
+               aVld <= '1';
+               bVld <= '1';
+               dVld <= '1';
+               aIn  <= rand_complex(-0.5, 0.5);
+               bIn  <= rand_complex(-0.5, 0.5);
+               dIn  <= rand_complex(-0.5, 0.5);
+               a     <= to_cfixed(aIn, a);
+               b     <= to_cfixed(bIn, b);
+               d     <= to_cfixed(dIn, d);
+               yExpected(9 downto 1) <= yExpected(8 downto 0);
                if ADD_NOT_SUB_C then
-                  y_expected(0) <= ( a_in + d_in ) * b_in;
+                  yExpected(0) <= ( aIn + dIn ) * bIn;
                else
-                  y_expected(0) <= ( a_in - d_in ) * b_in;
+                  yExpected(0) <= ( aIn - dIn ) * bIn;
                end if;
             when RUN_CNT_C => 
                run <= false;
@@ -115,12 +127,12 @@ begin
 
          case cnt is
             when 11 to RUN_CNT_C =>
-               y_error  <= abs(y_out - y_e);
-               maxError <= maximum(y_error, maxError);
-               assert (y_error < ERROR_TOL_C) and (y_vld = '1') 
+               yError  <= abs(yOut - yE);
+               maxError <= maximum(yError, maxError);
+               assert (yError < ERROR_TOL_C)
                   report CR & LF & CR & LF &
                   "**** Test FAILED **** " & CR & LF & 
-                  "abs(error) is " & real'image(y_error) &
+                  "abs(error) is " & real'image(yError) &
                   CR & LF
                  severity failure;
             when others =>
@@ -136,10 +148,14 @@ begin
          REG_OUT_G => false)
       port map (
          clk   => clk,
-         s     => addNotSub, -- Add not sub
+         add   => addNotSub, -- Add not sub
          a     => a,
+         aVld  => aVld,
          b     => b,
+         bVld  => bVld,
          d     => d,
-         y     => y);
+         dVld  => dVld,
+         y     => y,
+         yVld  => yVld);
 
 end architecture test;

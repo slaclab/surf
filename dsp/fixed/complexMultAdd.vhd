@@ -1,3 +1,18 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: complex multiplier add/accumulator.  Will use 4 real multipliers
+--              (27x18 DSP48).  Supports inputs up to 27x18.
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.fixed_pkg.all;
@@ -35,18 +50,18 @@ entity complexMultAdd is
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
-      clk   : in  sl;
-      rst   : in  sl := '0';
-      a     : in  cfixed;
-      a_vld : in  sl;
-      b     : in  cfixed;
-      b_vld : in  sl;
-      c     : in  cfixed;
-      c_vld : in  sl;
+      clk  : in  sl;
+      rst  : in  sl := '0';
+      a    : in  cfixed;
+      aVld : in  sl;
+      b    : in  cfixed;
+      bVld : in  sl;
+      c    : in  cfixed;
+      cVld : in  sl;
       -- outputs
       --acout : out cfixed;
-      y     : out cfixed;
-      y_vld : out sl);
+      y    : out cfixed;
+      yVld : out sl);
 end entity complexMultAdd;
 
 architecture rtl of complexMultAdd is
@@ -71,7 +86,7 @@ architecture rtl of complexMultAdd is
       p_rr, p_ii, p_ri, p_ir : sfixed(P_HIGH_C downto P_LOW_C);
       m_rr, m_ii, m_ri, m_ir : sfixed(M_HIGH_C downto M_LOW_C);
       y         : cfixed(re(y.re'range), im(y.im'range));
-      y_vld     : slv(DELAY_C-1 downto 0);
+      yVld     : slv(DELAY_C-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -87,7 +102,7 @@ architecture rtl of complexMultAdd is
       p_ri  => (others => '0'),
       p_ir  => (others => '0'),
       y     => (others => (others => '0')),
-      y_vld => (others => '0'));
+      yVld => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -97,18 +112,18 @@ begin
    assert ((a.re'length < 28) and (b.re'length < 19)) or ((a.re'length < 19) and (b.re'length < 28))
        report "Input data should be less than 18x27 bits" severity failure;
        
-   comb : process( a, b, c, a_vld, b_vld, c_vld, r ) is
+   comb : process( a, b, c, aVld, bVld, cVld, r ) is
       variable v : RegType;
    begin
 
       v := r;
 
-      v.y_vld(0) := a_vld and b_vld;
-      for i in r.y_vld'left downto 1 loop
-         v.y_vld(i) := r.y_vld(i-1); 
+      v.yVld(0) := aVld and bVld;
+      for i in r.yVld'left downto 1 loop
+         v.yVld(i) := r.yVld(i-1); 
       end loop;
       -- C PATH has configurable 2...4 c-c delay
-      v.y_vld(r.y_vld'left-1-CIN_REG_G) := v.y_vld(r.y_vld'left-1-CIN_REG_G) and c_vld;
+      v.yVld(r.yVld'left-1-CIN_REG_G) := v.yVld(r.yVld'left-1-CIN_REG_G) and cVld;
 
 
       -- A B and C input registers 2 deep
@@ -157,7 +172,7 @@ begin
       end if;
       --acout <= r.areg(0);
       
-      y_vld <= r.y_vld(r.y_vld'left);
+      yVld <= r.yVld(r.yVld'left);
 
    end process comb;
 
