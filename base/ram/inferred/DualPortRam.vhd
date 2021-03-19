@@ -97,7 +97,7 @@ begin
    end generate;
 
    GEN_LUTRAM : if (MEMORY_TYPE_G="distributed") generate
-      QuadPortRam_Inst : entity surf.QuadPortRam
+      LutRam_Inst : entity surf.LutRam
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
@@ -107,6 +107,7 @@ begin
             DATA_WIDTH_G   => DATA_WIDTH_G,
             BYTE_WIDTH_G   => BYTE_WIDTH_G,
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
+            NUM_PORTS_G    => 2,
             INIT_G         => INIT_G)
          port map (
             -- Port A
@@ -123,19 +124,7 @@ begin
             en_b    => enb,
             rstb    => rstb,
             addrb   => addrb,
-            doutb   => doutb,
-            -- Port C
-            clkc    => '0',
-            en_c    => '0',
-            rstc    => FORCE_RST_C,
-            addrc   => (others => '0'),
-            doutc   => open,
-            -- Port C
-            clkd    => '0',
-            en_d    => '0',
-            rstd    => FORCE_RST_C,
-            addrd   => (others => '0'),
-            doutd   => open);
+            doutb   => doutb);
    end generate;
 
 end mapping;

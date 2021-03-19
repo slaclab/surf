@@ -52,6 +52,7 @@ package I2cPkg is
    constant I2C_INVALID_ADDR_ERROR_C     : slv(7 downto 0) := X"01";
    constant I2C_WRITE_ACK_ERROR_C        : slv(7 downto 0) := X"02";
    constant I2C_ARBITRATION_LOST_ERROR_C : slv(7 downto 0) := X"03";
+   constant I2C_TIMEOUT_ERROR_C          : slv(7 downto 0) := X"04";
 
    type I2cMasterInType is record
       enable   : sl;                    -- Enable the master

@@ -147,7 +147,8 @@ begin
          VLAN_EN_G         => VLAN_EN_G,
          VLAN_SIZE_G       => VLAN_SIZE_G,
          VLAN_COMMON_CLK_G => VLAN_COMMON_CLK_G,
-         VLAN_CONFIG_G     => VLAN_CONFIG_G)
+         VLAN_CONFIG_G     => VLAN_CONFIG_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G)
       port map (
          -- Master Clock and Reset
          mClk         => ethClk,
@@ -192,7 +193,9 @@ begin
          -- VLAN Configurations
          VLAN_EN_G       => VLAN_EN_G,
          VLAN_SIZE_G     => VLAN_SIZE_G,
-         VLAN_VID_G      => VLAN_VID_G)
+         VLAN_VID_G      => VLAN_VID_G,
+         -- RAM sythesis Mode
+         SYNTH_MODE_G    => SYNTH_MODE_G)
       port map (
          -- Clocks
          ethClkEn       => ethClkEn,
@@ -267,7 +270,9 @@ begin
          -- VLAN Configurations
          VLAN_EN_G      => VLAN_EN_G,
          VLAN_SIZE_G    => VLAN_SIZE_G,
-         VLAN_VID_G     => VLAN_VID_G)
+         VLAN_VID_G     => VLAN_VID_G,
+         -- RAM Synthesis mode
+         SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and Reset
          ethClkEn     => ethClkEn,

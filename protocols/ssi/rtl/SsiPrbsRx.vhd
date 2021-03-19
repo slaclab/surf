@@ -241,7 +241,7 @@ begin
          mAxisMaster => rxAxisMaster,
          mAxisSlave  => rxAxisSlave);
 
-   U_Tx : entity surf.AxiStreamResize
+   U_Tx : entity surf.AxiStreamGearbox
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -628,7 +628,6 @@ begin
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Decode address and assign read data
-         v.axiReadSlave.rdata := (others => '0');
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"00" =>
                v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := errMissedPacketCnt;

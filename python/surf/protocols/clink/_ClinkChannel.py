@@ -21,6 +21,7 @@ class ClinkChannel(pr.Device):
             self,
             serial      = None,
             camType     = None,
+            localSerial = False, # True if pyrogue is serial source, False if serial source from external software
             **kwargs):
 
         super().__init__(**kwargs)
@@ -67,7 +68,7 @@ class ClinkChannel(pr.Device):
             description = """
                 None: Disables output
                 Line: 1D camera
-                Frame" 2D pixel array
+                Frame: 2D pixel array
                 """,
         ))
 
@@ -120,7 +121,6 @@ class ClinkChannel(pr.Device):
             disp         = '{}',
             mode         = "RW",
             units        = "microsec",
-            value        = 30000, # 30ms/byte
         ))
 
         self.add(pr.RemoteVariable(
@@ -194,11 +194,24 @@ class ClinkChannel(pr.Device):
         # Check if serial interface defined
         if serial is not None:
 
-            # Check for OPA1000 camera
-            if (camType=='Opal1000'):
+            # Check for BaslerAce camera
+            if (camType=='BaslerAce'):
 
                 # Override defaults
-                self.BaudRate._default    = 57600
+                self.BaudRate._default = 9600
+
+                # Add the device
+                self.add(surf.protocols.clink.UartBaslerAce(
+                    name   = 'UartBaslerAce',
+                    serial = serial,
+                    expand = False,
+                ))
+
+            # Check for OPA1000 camera
+            elif (camType=='Opal1000'):
+
+                # Override defaults
+                self.BaudRate._default = 57600
 
                 # Add the device
                 self.add(surf.protocols.clink.UartOpal1000(
@@ -240,7 +253,7 @@ class ClinkChannel(pr.Device):
                     expand      = False,
                 ))
 
-            else:
+            elif localSerial:
                 raise ValueError('Invalid camType (%s)' % (camType) )
         ##############################################################################
 

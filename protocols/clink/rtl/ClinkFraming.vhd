@@ -373,15 +373,15 @@ begin
          if (chanConfig.frameMode = CFM_FRAME_C and r.byteData.fv = '1' and r.portData.fv = '0') or  -- Frame mode
             (chanConfig.frameMode = CFM_LINE_C and r.byteData.lv = '1' and r.portData.lv = '0') then  -- Line mode
 
-            -- Frame was dumped, or bad end markers
-            if (r.dump = '1' or r.inFrame = '0' or r.byteData.dv = '0') then
+            -- Frame was dumped or not in frame
+            if (r.dump = '1' or r.inFrame = '0') then
                ssiSetUserEofe (SLV_CONFIG_C, v.master, '1');
                v.status.dropCount := r.status.dropCount + 1;
             else
                v.status.frameCount := r.status.frameCount + 1;
             end if;
 
-            v.master.tValid := r.inFrame;
+            v.master.tValid := '1';
             v.master.tLast  := '1';
 
             -- Check for no data at end of frame

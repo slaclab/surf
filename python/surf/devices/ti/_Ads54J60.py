@@ -16,10 +16,8 @@ import time
 import surf.devices.ti
 
 class Ads54J60(pr.Device):
-    def __init__(self, verify=False, **kwargs):
-        super().__init__(
-            size        = (0x1 << 18),
-            **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ################
         # Base addresses
@@ -37,8 +35,8 @@ class Ads54J60(pr.Device):
         #####################
         # Add Device Channels
         #####################
-        self.add(surf.devices.ti.Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=False,verify=verify,))
-        self.add(surf.devices.ti.Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=False,verify=verify,))
+        self.add(surf.devices.ti.Ads54J60Channel(name='CH[0]',description='Channel A',offset=chA,expand=False))
+        self.add(surf.devices.ti.Ads54J60Channel(name='CH[1]',description='Channel B',offset=chB,expand=False))
 
         ##################
         # General Register
@@ -79,7 +77,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -90,7 +87,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -101,7 +97,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 6,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -112,7 +107,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -123,7 +117,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -134,7 +127,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -145,7 +137,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 6,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -156,7 +147,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -167,7 +157,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -178,7 +167,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 6,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -189,7 +177,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 5,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -200,7 +187,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -211,7 +197,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 6,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -222,7 +207,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 1,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -233,7 +217,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -244,7 +227,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -255,7 +237,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 4,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -266,7 +247,6 @@ class Ads54J60(pr.Device):
             bitOffset    = 7,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
         ))
 
         self.add(pr.RemoteVariable(
@@ -295,7 +275,112 @@ class Ads54J60(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             mode         = "RW",
-            verify       = verify,
+        ))
+
+        ##############################
+        # Main Digital
+        ##############################
+
+        self.add(pr.RemoteVariable(
+            name         = "DigitalResetChA",
+            description  = "",
+            offset       = mainDigital + chA + (4*0x000),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "DigitalResetChB",
+            description  = "",
+            offset       = mainDigital + chB + (4*0x000),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "PllResetChA",
+            description  = "",
+            offset       = mainDigital + chA + (4*0x017),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "PllResetChB",
+            description  = "",
+            offset       = mainDigital + chB + (4*0x017),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "DigResetAllChA",
+            description  = "",
+            offset       = mainDigital + chA + (4*0x0F7),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "DigResetAllChB",
+            description  = "",
+            offset       = mainDigital + chB + (4*0x0F7),
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
+
+        ##############################
+        # Unused Pages
+        ##############################
+
+        self.add(pr.RemoteVariable(
+            name         = "UnusedPages",
+            description  = "",
+            offset       = unusedPages,
+            bitSize      = 32,
+            bitOffset    = 0,
+            updateNotify = False,
+            bulkOpEn     = False,
+            verify       = False,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
         ))
 
         ##############################
@@ -304,21 +389,21 @@ class Ads54J60(pr.Device):
 
         @self.command(name= "DigRst", description  = "Digital Reset")
         def DigRst():
-            self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
-            self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA: PULSE RESET
-            self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB: PULSE RESET
-            self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
+            self.DigitalResetChA.set(0x00)  # CHA: clear reset
+            self.DigitalResetChB.set(0x00)  # CHB: clear reset
+            self.DigitalResetChA.set(0x01)  # CHA: PULSE RESET
+            self.DigitalResetChB.set(0x01)  # CHB: PULSE RESET
+            self.DigitalResetChA.set(0x00)  # CHA: clear reset
+            self.DigitalResetChB.set(0x00)  # CHB: clear reset
 
         @self.command(name= "PllRst", description  = "PLL Reset")
         def PllRst():
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
-            self._rawWrite(mainDigital + chA + (4*0x017),0x40) # CHA: PLL reset
-            self._rawWrite(mainDigital + chB + (4*0x017),0x40) # CHB: PLL reset
-            self._rawWrite(mainDigital + chA + (4*0x017),0x00) # CHA: PLL clear
-            self._rawWrite(mainDigital + chB + (4*0x017),0x00) # CHB: PLL clear
+            self.PllResetChA.set(0x00)  # CHA: PLL clear
+            self.PllResetChB.set(0x00)  # CHB: PLL clear
+            self.PllResetChA.set(0x40)  # CHA: PLL reset
+            self.PllResetChB.set(0x40)  # CHB: PLL reset
+            self.PllResetChA.set(0x00)  # CHA: PLL clear
+            self.PllResetChB.set(0x00)  # CHB: PLL clear
 
         @self.command(name= "Init", description  = "Device Initiation")
         def Init():
@@ -326,16 +411,17 @@ class Ads54J60(pr.Device):
             self.HW_RST.set(0x0)
             time.sleep(0.001)
             self.RESET()
-            self._rawWrite(unusedPages, 0x00) # Clear any unwanted content from the unused pages of the JESD bank.
 
-            self._rawWrite(mainDigital + chA + (4*0x0F7),0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
-            self._rawWrite(mainDigital + chB + (4*0x0F7),0x01) # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
+            self.UnusedPages.set(0x00)      # Clear any unwanted content from the unused pages of the JESD bank.
 
-            self._rawWrite(mainDigital + chA + (4*0x000),0x01) # CHA: PULSE RESET
-            self._rawWrite(mainDigital + chB + (4*0x000),0x01) # CHB: PULSE RESET
-            self._rawWrite(mainDigital + chA + (4*0x000),0x00) # CHA: clear reset
-            self._rawWrite(mainDigital + chB + (4*0x000),0x00) # CHB: clear reset
+            self.DigResetAllChA.set(0x01)   # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
+            self.DigResetAllChB.set(0x01)   # Use the DIG RESET register bit to reset all pages in the JESD bank (self-clearing bit)
 
-            self._rawWrite(masterPage        + (4*0x059),0x20) # Set the ALWAYS WRITE 1 bit
+            self.DigitalResetChA.set(0x01)  # CHA: PULSE RESET
+            self.DigitalResetChB.set(0x01)  # CHB: PULSE RESET
+            self.DigitalResetChA.set(0x00)  # CHA: clear reset
+            self.DigitalResetChB.set(0x00)  # CHB: clear reset
+
+            self.AlwaysWrite0x1_A.set(0x20) # Set the ALWAYS WRITE 1 bit
 
             self.PllRst()

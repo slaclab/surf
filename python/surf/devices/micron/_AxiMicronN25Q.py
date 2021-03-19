@@ -14,6 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue   as pr
+import rogue
 import surf.misc
 import click
 import time
@@ -23,19 +24,79 @@ import math
 class AxiMicronN25Q(pr.Device):
     def __init__(self,
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
-            addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
+            addrMode    = True, # False = 24-bit Address mode, True = 32-bit Address Mode
             tryCount    = 5,
             **kwargs):
 
+        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
+
+        if self._useVars:
+            size = 0
+        else:
+            size = (0x1 << 10)
+
         super().__init__(
             description = description,
-            size        = (0x1 << 10),
+            size        = size,
             **kwargs)
 
         self._mcs      = surf.misc.McsReader()
         self._addrMode = addrMode
         self._progDone = False
         self._tryCount = tryCount
+
+        ##############################
+        # Setup variables
+        ##############################
+        if self._useVars:
+
+            self.add(pr.RemoteVariable(name='ModeReg',
+                                       offset=0x04,
+                                       base=pr.UInt,
+                                       bitSize=32,
+                                       bitOffset=0,
+                                       retryCount=tryCount,
+                                       updateNotify=False,
+                                       bulkOpEn=False,
+                                       hidden=True,
+                                       verify=False))
+
+            self.add(pr.RemoteVariable(name='AddrReg',
+                                       offset=0x08,
+                                       base=pr.UInt,
+                                       bitSize=32,
+                                       bitOffset=0,
+                                       retryCount=tryCount,
+                                       updateNotify=False,
+                                       bulkOpEn=False,
+                                       hidden=True,
+                                       verify=False))
+
+            self.add(pr.RemoteVariable(name='CmdReg',
+                                       offset=0x0C,
+                                       base=pr.UInt,
+                                       bitSize=32,
+                                       bitOffset=0,
+                                       retryCount=tryCount,
+                                       updateNotify=False,
+                                       bulkOpEn=False,
+                                       hidden=True,
+                                       verify=False))
+
+            self.add(pr.RemoteVariable(name='DataReg',
+                                       offset=0x200,
+                                       base=pr.UInt,
+                                       bitSize=32*64,
+                                       bitOffset=0,
+                                       numValues=64,
+                                       valueBits=32,
+                                       valueStride=32,
+                                       retryCount=tryCount,
+                                       updateNotify=False,
+                                       bulkOpEn=False,
+                                       hidden=True,
+                                       verify=False))
+
 
         ##############################
         # Constants
@@ -53,8 +114,11 @@ class AxiMicronN25Q(pr.Device):
         self.ADDR_ENTER_CMD = (0xB7 << 16)
         self.ADDR_EXIT_CMD  = (0xE9 << 16)
 
-        self.ERASE_CMD  = (0xD8 << 16)
-        self.WRITE_CMD  = (0x02 << 16)
+        self.ERASE_3BYTE_CMD  = (0xD8 << 16)
+        self.ERASE_4BYTE_CMD  = self.ERASE_3BYTE_CMD
+
+        self.WRITE_3BYTE_CMD  = (0x02 << 16)
+        self.WRITE_4BYTE_CMD  = self.WRITE_3BYTE_CMD
 
         self.STATUS_REG_WR_CMD = (0x01 << 16)
         self.STATUS_REG_RD_CMD = (0x05 << 16)
@@ -265,16 +329,16 @@ class AxiMicronN25Q(pr.Device):
     def eraseCmd(self, address):
         self.setAddrReg(address)
         if (self._addrMode):
-            self.setCmd(self.WRITE_MASK|self.ERASE_CMD|0x4)
+            self.setCmd(self.WRITE_MASK|self.ERASE_4BYTE_CMD|0x4)
         else:
-            self.setCmd(self.WRITE_MASK|self.ERASE_CMD|0x3)
+            self.setCmd(self.WRITE_MASK|self.ERASE_3BYTE_CMD|0x3)
 
     def writeCmd(self, address):
         self.setAddrReg(address)
         if (self._addrMode):
-            self.setCmd(self.WRITE_MASK|self.WRITE_CMD|0x104)
+            self.setCmd(self.WRITE_MASK|self.WRITE_4BYTE_CMD|0x104)
         else:
-            self.setCmd(self.WRITE_MASK|self.WRITE_CMD|0x103)
+            self.setCmd(self.WRITE_MASK|self.WRITE_3BYTE_CMD|0x103)
 
     def readCmd(self, address):
         self.setAddrReg(address)
@@ -354,24 +418,44 @@ class AxiMicronN25Q(pr.Device):
     #########################################
     # All the rawWrite and rawRead commands #
     #########################################
-
     def setModeReg(self):
-        if (self._addrMode):
-            self._rawWrite(offset=0x04,data=0x1,tryCount=self._tryCount)
+        if self._useVars:
+            if (self._addrMode):
+                self.ModeReg.set(value=0x1)
+            else:
+                self.ModeReg.set(value=0x0)
         else:
-            self._rawWrite(offset=0x04,data=0x0,tryCount=self._tryCount)
+            if (self._addrMode):
+                self._rawWrite(offset=0x04,data=0x1,tryCount=self._tryCount) # Deprecated
+            else:
+                self._rawWrite(offset=0x04,data=0x0,tryCount=self._tryCount) # Deprecated
 
     def setAddrReg(self,value):
-        self._rawWrite(offset=0x08,data=value,tryCount=self._tryCount)
+        if self._useVars:
+            self.AddrReg.set(value=value)
+        else:
+            self._rawWrite(offset=0x08,data=value,tryCount=self._tryCount) # Deprecated
 
     def setCmdReg(self,value):
-        self._rawWrite(offset=0x0C,data=value,tryCount=self._tryCount)
+        if self._useVars:
+            self.CmdReg.set(value=value)
+        else:
+            self._rawWrite(offset=0x0C,data=value,tryCount=self._tryCount) # Deprecated
 
     def getCmdReg(self):
-        return (self._rawRead(offset=0x0C,tryCount=self._tryCount))
+        if self._useVars:
+            return self.CmdReg.get()
+        else:
+            return (self._rawRead(offset=0x0C,tryCount=self._tryCount)) # Deprecated
 
     def setDataReg(self,values):
-        self._rawWrite(offset=0x200,data=values,tryCount=self._tryCount)
+        if self._useVars:
+            self.DataReg.set(values)
+        else:
+            self._rawWrite(offset=0x200,data=values,tryCount=self._tryCount) # Deprecated
 
     def getDataReg(self):
-        return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount))
+        if self._useVars:
+            return self.DataReg.get()
+        else:
+            return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount)) # Deprecated

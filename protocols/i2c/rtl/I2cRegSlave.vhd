@@ -32,7 +32,7 @@ entity I2cRegSlave is
       OUTPUT_EN_POLARITY_G : integer range 0 to 1    := 0;
       FILTER_G             : integer range 2 to 512  := 4;
       -- RAM generics
-      ADDR_SIZE_G          : positive                := 2;   -- in bytes
+      ADDR_SIZE_G          : natural                 := 2;   -- in bytes
       DATA_SIZE_G          : positive                := 1;   -- in bytes
       ENDIANNESS_G         : integer range 0 to 1    := 0);  -- 0=LE, 1=BE
    port (
@@ -156,6 +156,9 @@ begin
                -- This write will consist of the ram address
                v.state := ADDR_S;
                v.addr  := (others => '0');
+               if (ADDR_SIZE_G = 0) then
+                  v.state := WRITE_DATA_S;
+               end if;
 
             elsif (i2cSlaveOut.txActive = '1') then
                v.state := READ_DATA_S;

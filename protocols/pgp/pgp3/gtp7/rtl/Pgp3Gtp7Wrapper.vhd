@@ -38,7 +38,7 @@ entity Pgp3Gtp7Wrapper is
       NUM_VC_G                    : positive range 1 to 16      := 4;
       SPEED_GRADE_G               : positive range 1 to 3       := 3;
       RATE_G                      : string                      := "6.25Gbps";  -- or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType              := PGP3_REFCLK_250_C;
+      REFCLK_FREQ_G               : real                        := 250.0E+6;
       REFCLK_G                    : boolean                     := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -53,10 +53,12 @@ entity Pgp3Gtp7Wrapper is
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := false;
       EN_PGP_MON_G                : boolean                     := false;
-      EN_GTH_DRP_G                : boolean                     := false;
+      EN_GT_DRP_G                 : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32       := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32       := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');
       AXIL_CLK_FREQ_G             : real                        := 156.25E+6);
    port (
@@ -91,9 +93,6 @@ entity Pgp3Gtp7Wrapper is
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
       pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
       -- Debug Interface
-      txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
       debugClk          : out slv(2 downto 0);  -- Copy of the TX PLL Clocks
       debugRst          : out slv(2 downto 0);  -- Copy of the TX PLL Resets
       -- AXI-Lite Register Interface (axilClk domain)
@@ -203,7 +202,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             EN_DRP_G      => EN_QPLL_DRP_G,
-            REFCLK_TYPE_G => REFCLK_TYPE_G,
+            REFCLK_FREQ_G => REFCLK_FREQ_G,
             RATE_G        => RATE_G)
          port map (
             -- Stable Clock and Reset
@@ -252,10 +251,12 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
-               EN_DRP_G                    => EN_GTH_DRP_G,
+               EN_DRP_G                    => EN_GT_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
                AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
+               STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+               ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
                AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
             port map (
                -- Stable Clock and Reset
@@ -293,10 +294,6 @@ begin
                -- Frame Receive Interface
                pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-               -- Debug Interface
-               txPreCursor     => txPreCursor(i),
-               txPostCursor    => txPostCursor(i),
-               txDiffCtrl      => txDiffCtrl(i),
                -- AXI-Lite Register Interface (axilClk domain)
                axilClk         => axilClk,
                axilRst         => axilRst,

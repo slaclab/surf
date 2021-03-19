@@ -70,13 +70,13 @@ end SrpV3Axi;
 architecture rtl of SrpV3Axi is
 
    constant DMA_AXIS_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
+      TSTRB_EN_C    => AXI_STREAM_CONFIG_G.TSTRB_EN_C,
       TDATA_BYTES_C => AXI_CONFIG_G.DATA_BYTES_C,  -- Matches the AXI4 DATA width
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 0,
-      TUSER_MODE_C  => TUSER_NONE_C);
+      TDEST_BITS_C  => AXI_STREAM_CONFIG_G.TDEST_BITS_C,
+      TID_BITS_C    => AXI_STREAM_CONFIG_G.TID_BITS_C,
+      TKEEP_MODE_C  => AXI_STREAM_CONFIG_G.TKEEP_MODE_C,
+      TUSER_BITS_C  => AXI_STREAM_CONFIG_G.TUSER_BITS_C,
+      TUSER_MODE_C  => AXI_STREAM_CONFIG_G.TUSER_MODE_C);
 
    type RegType is record
       srpAck   : SrpV3AckType;

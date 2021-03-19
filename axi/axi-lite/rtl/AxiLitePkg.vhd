@@ -209,26 +209,26 @@ package AxiLitePkg is
    -- Constants for endpoint abstractions (migrated from legacy AxiLiteMasterPkg.vhd)
    ----------------------------------------------------------------------------------
    type AxiLiteReqType is record
-      request   : sl;
+      request : sl;
       rnw     : sl;
       address : slv(31 downto 0);
       wrData  : slv(31 downto 0);
    end record AxiLiteReqType;
 
    constant AXI_LITE_REQ_INIT_C : AxiLiteReqType := (
-      request   => '0',
+      request => '0',
       rnw     => '1',
       address => (others => '0'),
       wrData  => (others => '0'));
 
    type AxiLiteAckType is record
-      done  : sl;
+      done   : sl;
       resp   : slv(1 downto 0);
       rdData : slv(31 downto 0);
    end record AxiLiteAckType;
 
    constant AXI_LITE_ACK_INIT_C : AxiLiteAckType := (
-      done  => '0',
+      done   => '0',
       resp   => (others => '0'),
       rdData => (others => '0'));
 
@@ -237,7 +237,7 @@ package AxiLitePkg is
    -------------------------------------------------------------------------------------------------
    type AxiLiteCrossbarMasterConfigType is record
       baseAddr     : slv(31 downto 0);
-      addrBits     : natural;
+      addrBits     : natural range 1 to 32;
       connectivity : slv(15 downto 0);
    end record;
 
@@ -525,19 +525,30 @@ package body AxiLitePkg is
       ----------------------------------------------------------------------------------------------
       writeEnable := '0';
 
-      axiWriteSlave.awready := '0';
-      axiWriteSlave.wready  := '0';
-
-      -- Incomming Write txn and last txn has concluded
-      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
-         writeEnable := '1';
-      end if;
-
       -- Reset resp valid
       if (axiWriteMaster.bready = '1') then
          axiWriteSlave.bvalid := '0';
       end if;
-   end procedure;
+
+      -- Check if last cycle accepted write address and write data
+      if (axiWriteSlave.awready = '1') and (axiWriteSlave.wready = '1') then
+
+         -- Prevent AXI_ERRS_BRESP_AW: A slave must not give a write response before the write address. Spec: section A3.3.1 and figure A3-7.
+         axiWriteSlave.bvalid := '1';
+
+      else
+
+         -- Incoming Write txn and last txn has concluded
+         if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
+            writeEnable := '1';
+         end if;
+
+      end if;
+
+      axiWriteSlave.awready := '0';
+      axiWriteSlave.wready  := '0';
+
+   end procedure axiSlaveWaitWriteTxn;
 
    procedure axiSlaveWaitReadTxn (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
@@ -549,18 +560,29 @@ package body AxiLitePkg is
       ----------------------------------------------------------------------------------------------
       readEnable := '0';
 
+      -- Check if last cycle accepted read address
+      if (axiReadSlave.arready = '1') then
+
+         -- Prevent AXI_AUXM_RCAM_UNDERFLOW: Read CAM underflow.
+         axiReadSlave.rvalid := '1';
+
+      else
+
+         -- Reset rvalid upon rready
+         if (axiReadMaster.rready = '1') then
+            axiReadSlave.rvalid := '0';
+            axiReadSlave.rdata  := (others => '0');
+         end if;
+
+         -- Incoming read txn and last txn has concluded
+         if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+            readEnable := '1';
+         end if;
+
+      end if;
+
       axiReadSlave.arready := '0';
 
-      -- Incomming read txn and last txn has concluded
-      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
-         readEnable := '1';
-      end if;
-
-      -- Reset rvalid upon rready
-      if (axiReadMaster.rready = '1') then
-         axiReadSlave.rvalid := '0';
-         axiReadSlave.rdata  := (others => '0');
-      end if;
    end procedure axiSlaveWaitReadTxn;
 
    procedure axiSlaveWaitTxn (
@@ -580,7 +602,7 @@ package body AxiLitePkg is
    begin
       axiWriteSlave.awready := '1';
       axiWriteSlave.wready  := '1';
-      axiWriteSlave.bvalid  := '1';
+      axiWriteSlave.bvalid  := '0';     -- bvalid set in axiSlaveWaitWriteTxn
       axiWriteSlave.bresp   := axiResp;
    end procedure;
 
@@ -589,7 +611,7 @@ package body AxiLitePkg is
       axiResp               : in    slv(1 downto 0) := AXI_RESP_OK_C) is
    begin
       axiReadSlave.arready := '1';      -- not sure this is necessary
-      axiReadSlave.rvalid  := '1';
+      axiReadSlave.rvalid  := '0';      -- rvalid set in axiSlaveWaitReadTxn
       axiReadSlave.rresp   := axiResp;
    end procedure;
 

@@ -37,8 +37,9 @@ entity SrpV3AxiLite is
       INT_PIPE_STAGES_G     : natural range 0 to 16   := 1;
       PIPE_STAGES_G         : natural range 0 to 16   := 1;
       FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
-      TX_VALID_THOLD_G      : positive range 1 to 511 := 500;   -- >1 = only when frame ready or # entries
-      TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
+      FIFO_SYNTH_MODE_G     : string                  := "inferred";
+      TX_VALID_THOLD_G      : positive range 1 to 511 := 500;  -- >1 = only when frame ready or # entries
+      TX_VALID_BURST_MODE_G : boolean                 := true;       -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
       AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz
@@ -214,8 +215,9 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         VALID_THOLD_G       => 0,  -- = 0 = only when frame ready
+         VALID_THOLD_G       => 0,      -- = 0 = only when frame ready
          -- FIFO configurations
+         SYNTH_MODE_G        => FIFO_SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
@@ -313,7 +315,7 @@ begin
          when IDLE_S =>
             -- Reset error flags
             v.memResp                  := (others => '0');
-            v.timeout                  := '0';
+            --v.timeout                  := '0'; <--- if timeout ever happens then latch the timeout (don't reset) to inform SW that "hardware bus lock"
             v.eofe                     := '0';
             v.frameError               := '0';
             v.verMismatch              := '0';
@@ -482,8 +484,8 @@ begin
                         -- Next State
                         v.state := FOOTER_S;
                      end if;
-                     -- Check for framing error or EOFE
-                     if (r.frameError = '1') or (r.eofe = '1') then
+                     -- Check for framing error or EOFE or timeout (A.K.A. "hardware bus lock")
+                     if (r.frameError = '1') or (r.eofe = '1') or (r.timeout = '1') then
                         -- Next State
                         v.state := FOOTER_S;
                      end if;
@@ -555,7 +557,8 @@ begin
                v.txMaster.tData(10)           := r.frameError;
                v.txMaster.tData(11)           := r.verMismatch;
                v.txMaster.tData(12)           := r.reqSizeError;
-               v.txMaster.tData(31 downto 13) := (others => '0');
+               v.txMaster.tData(13)           := r.timeout;
+               v.txMaster.tData(31 downto 14) := (others => '0');
                -- Debugging code for chipscope
                v.tidDly                       := r.tid;
                if ((r.tidDly + 1) /= r.tid) then
@@ -789,6 +792,7 @@ begin
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          VALID_BURST_MODE_G  => TX_VALID_BURST_MODE_G,
          -- FIFO configurations
+         SYNTH_MODE_G        => FIFO_SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",

@@ -81,7 +81,7 @@ begin
          NUM_LANES_G         => 1,
          NUM_VC_G            => 4,
          RATE_G              => "6.25Gbps",
-         REFCLK_TYPE_G       => PGP3_REFCLK_250_C)
+         REFCLK_FREQ_G       => 250.0E+6)
       port map (
          -- Stable Clock and Reset
          stableClk         => stableClk,

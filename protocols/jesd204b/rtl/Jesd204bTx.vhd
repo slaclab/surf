@@ -72,7 +72,8 @@ entity Jesd204bTx is
       nSync_i : in slv(L_G-1 downto 0);
 
       -- External sample data input
-      extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);
+      extSampleDataArray_i : in  sampleDataArray(L_G-1 downto 0);
+      dacReady_o           : out slv(L_G-1 downto 0);
 
       -- GT is ready to transmit data after reset
       gtTxReset_o : out slv(L_G-1 downto 0);
@@ -342,6 +343,7 @@ begin
             gtTxReady_i  => gtTxReady_i(i),
             sysRef_i     => s_sysrefRe(i),
             status_o     => s_statusTxArr(i),  -- To AXI lite
+            dacReady_o   => dacReady_o(i),
             sampleData_i => s_sampleDataArr(i),
             r_jesdGtTx   => s_jesdGtTxArr(i));
 

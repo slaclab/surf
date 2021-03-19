@@ -161,17 +161,19 @@ package AxiDmaPkg is
 
    type AxiWriteDmaDescReqType is record
       valid      : sl;
+      id         : slv(7 downto 0);
       dest       : slv(7 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_DESC_REQ_INIT_C : AxiWriteDmaDescReqType := (
       valid      => '0',
+      id         => (others=>'0'),
       dest       => (others=>'0')
    );
 
    type AxiWriteDmaDescReqArray is array (natural range<>) of AxiWriteDmaDescReqType;
 
-   constant AXI_WRITE_DMA_DESC_REQ_SIZE_C : integer := 8;
+   constant AXI_WRITE_DMA_DESC_REQ_SIZE_C : integer := 16;
 
    function toSlv (r : AxiWriteDmaDescReqType ) return slv;
    function toAxiWriteDmaDescReq (din : slv; valid : sl) return AxiWriteDmaDescReqType;
@@ -390,6 +392,7 @@ package body AxiDmaPkg is
       variable i        : integer := 0;
    begin
       assignSlv(i, retValue, r.dest);
+      assignSlv(i, retValue, r.id);
       return(retValue);
    end function;
 
@@ -399,6 +402,7 @@ package body AxiDmaPkg is
    begin
       desc.valid := valid;
       assignRecord(i, din, desc.dest);
+      assignRecord(i, din, desc.id);
       return(desc);
    end function;
 

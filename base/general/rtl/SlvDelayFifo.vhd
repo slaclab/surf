@@ -24,32 +24,38 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SlvDelayFifo is
    generic (
-      -- General Configurations
-      TPD_G              : time                        := 1 ns;
-      DATA_WIDTH_G       : positive                    := 1;
-      DELAY_BITS_G       : positive                    := 64;
-      FIFO_ADDR_WIDTH_G  : positive range 1 to (2**24) := 7;
-      FIFO_MEMORY_TYPE_G : string                      := "block");
-
+      TPD_G              : time     := 1 ns;
+      DATA_WIDTH_G       : positive := 1;
+      DELAY_BITS_G       : positive := 64;
+      FIFO_ADDR_WIDTH_G  : positive := 7;
+      FIFO_MEMORY_TYPE_G : string   := "block");
    port (
-      -- Timing Msg interface
+      -- Clock and Reset
       clk         : in  sl;
       rst         : in  sl;
+      -- Configuration Interface
       delay       : in  slv(DELAY_BITS_G-1 downto 0);
+      -- Input Interface
       inputData   : in  slv(DATA_WIDTH_G-1 downto 0);
       inputValid  : in  sl;
+      inputAFull  : out sl;             -- FIFO almost full
+      -- Output Interface
       outputData  : out slv(DATA_WIDTH_G-1 downto 0);
       outputValid : out sl);
-
 end SlvDelayFifo;
 
 architecture rtl of SlvDelayFifo is
+
+   constant FIFO_MIN_LAT_C : positive := 4;  -- FIFO's minimum latency
+   constant FIFO_WIDTH_C   : natural  := DELAY_BITS_G + DATA_WIDTH_G;
+
+   subtype DATA_FIELD_C is natural range DATA_WIDTH_G-1 downto 0;
+   subtype DELAY_FIELD_C is natural range (DELAY_BITS_G+DATA_WIDTH_G)-1 downto DATA_WIDTH_G;
 
    type RegType is record
       timeNow     : slv(DELAY_BITS_G-1 downto 0);
@@ -72,72 +78,91 @@ architecture rtl of SlvDelayFifo is
    signal fifoReadoutTime : slv(DELAY_BITS_G-1 downto 0);
    signal fifoReadoutData : slv(DATA_WIDTH_G-1 downto 0);
    signal fifoValid       : sl;
+   signal fifoRdEn        : sl;
+   signal fifoDin         : slv(FIFO_WIDTH_C-1 downto 0);
+   signal fifoDout        : slv(FIFO_WIDTH_C-1 downto 0);
 
 begin
 
-   Fifo_Time : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => true,
-         MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
-         FWFT_EN_G       => true,
-         DATA_WIDTH_G    => DELAY_BITS_G,
-         ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
-      port map (
-         rst    => rst,
-         wr_clk => clk,
-         wr_en  => inputValid,
-         din    => r.readoutTime,
-         rd_clk => clk,
-         rd_en  => r.fifoRdEn,
-         dout   => fifoReadoutTime,
-         valid  => fifoValid);
+   assert (DELAY_BITS_G >= log2(FIFO_MIN_LAT_C))
+      report "DELAY_BITS_G must be >= log2(FIFO_MIN_LAT_C)"
+      severity failure;
 
-   Fifo_Data : entity surf.Fifo
+   U_DelayFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
-         DATA_WIDTH_G    => DATA_WIDTH_G,
+         DATA_WIDTH_G    => FIFO_WIDTH_C,
          ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
-         rst    => rst,
-         wr_clk => clk,
-         wr_en  => inputValid,
-         din    => inputData,
-         rd_clk => clk,
-         rd_en  => r.fifoRdEn,
-         dout   => fifoReadoutData,
-         valid  => open);
+         rst         => rst,
+         -- Write Ports
+         wr_clk      => clk,
+         wr_en       => inputValid,
+         almost_full => inputAFull,
+         din         => fifoDin,
+         -- Read Ports
+         rd_clk      => clk,
+         rd_en       => fifoRdEn,
+         dout        => fifoDout,
+         valid       => fifoValid);
+
+   fifoDin(DATA_FIELD_C)  <= inputData;
+   fifoDin(DELAY_FIELD_C) <= r.readoutTime;
+
+   fifoReadoutData <= fifoDout(DATA_FIELD_C);
+   fifoReadoutTime <= fifoDout(DELAY_FIELD_C);
 
    comb : process (delay, fifoReadoutData, fifoReadoutTime, fifoValid, r, rst) is
       variable v : RegType;
    begin
+      -- Latch the current value
       v := r;
 
-      v.timeNow     := r.timeNow + 1;
-      v.readoutTime := r.timeNow + delay;
+      -- Increment the local timestamp
+      v.timeNow := r.timeNow + 1;
 
+      -- Check delay configuration less than FIFO's minimum latency
+      if (delay < FIFO_MIN_LAT_C) then
+         -- Enforce minimum delay
+         v.readoutTime := r.timeNow + FIFO_MIN_LAT_C;
+      else
+         -- Calculate the readout time
+         v.readoutTime := r.timeNow + delay;
+      end if;
+
+      -- Reset Strobes
       v.fifoRdEn    := '0';
       v.outputValid := '0';
-      v.outputData  := fifoReadoutData;
 
-      if (fifoValid = '1' and r.fifoRdEn = '0') then
-         if (fifoReadoutTime <= r.timeNow) then
+      -- Register the FIFO output
+      v.outputData := fifoReadoutData;
+
+      -- Check for Data
+      if (fifoValid = '1') then
+         -- Check if readout time equals current time
+         if (fifoReadoutTime = r.timeNow) then
+            -- Read the FIFO
             v.fifoRdEn    := '1';
+            -- Set the output valid flag
             v.outputValid := '1';
          end if;
       end if;
 
+      -- Outputs
+      fifoRdEn    <= v.fifoRdEn;        -- combinatorial output
+      outputData  <= r.outputData;
+      outputValid <= r.outputValid;
+
+      -- Reset
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
 
+      -- Register the variable for next clock cycle
       rin <= v;
-
-      outputData  <= r.outputData;
-      outputValid <= r.outputValid;
 
    end process comb;
 

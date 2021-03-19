@@ -71,7 +71,7 @@ class UartOpal1000(pr.Device):
             description  = 'Retrieves the camera model and serial number',
             mode         = 'RW',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'@ID?')
+            localSet     = lambda value: self._tx.sendString('@ID?')
         ))
 
         self.add(pr.LocalVariable(
@@ -79,7 +79,7 @@ class UartOpal1000(pr.Device):
             description  = 'Build string',
             mode         = 'RW',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'@BS?')
+            localSet     = lambda value: self._tx.sendString('@BS?')
         ))
 
         self.add(pr.LocalVariable(

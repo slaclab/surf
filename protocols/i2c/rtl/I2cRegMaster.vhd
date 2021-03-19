@@ -108,6 +108,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => OUTPUT_EN_POLARITY_G,
+         PRESCALE_G           => PRESCALE_G,
          FILTER_G             => FILTER_G,
          DYNAMIC_FILTER_G     => 0)
       port map (
@@ -153,7 +154,7 @@ begin
                      v.state := WRITE_S;
                   else
                      v.i2cMasterIn.op := '0';
-                     v.state := READ_S;
+                     v.state          := READ_S;
                   end if;
                end if;
             end if;
@@ -260,8 +261,8 @@ begin
 
       -- Internal signals
       i2cMasterIn.enable   <= '1';
-      i2cMasterIn.prescale <= slv(to_unsigned(PRESCALE_G, 16));
-      i2cMasterIn.filter   <= (others => '0');  -- Not using dynamic filtering
+      i2cMasterIn.prescale <= slv(to_unsigned(PRESCALE_G, 16));  -- Now unused
+      i2cMasterIn.filter   <= (others => '0');                   -- Not using dynamic filtering
       i2cMasterIn.addr     <= regIn.i2cAddr;
       i2cMasterIn.tenbit   <= regIn.tenbit;
       i2cMasterIn.txnReq   <= r.i2cMasterIn.txnReq;
