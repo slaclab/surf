@@ -28,16 +28,8 @@ use ruckus.BuildInfoPkg.all;
 
 entity AxiVersionIpIntegrator is
    generic (
-      EN_ERROR_RESP    : boolean                       := false;
-      FREQ_HZ          : positive                      := 125000000;
-      EN_DEVICE_DNA    : boolean                       := false;
-      EN_ICAP          : boolean                       := false;
-      EN_DS2411        : boolean                       := false;
-      USE_SLOWCLK      : boolean                       := false;
-      BUFR_CLK_DIV     : positive                      := 8;
-      AUTO_RELOAD_EN   : boolean                       := false;
-      AUTO_RELOAD_TIME : positive                      := 10;  -- units of seconds
-      AUTO_RELOAD_ADDR : std_logic_vector(31 downto 0) := x"00000000");
+      EN_ERROR_RESP : boolean  := false;
+      FREQ_HZ       : positive := 125000000);
    port (
       -- AXI-Lite Interface
       S_AXI_ACLK     : in    std_logic;
@@ -143,16 +135,8 @@ begin
 
    U_AxiVersion : entity surf.AxiVersion
       generic map (
-         BUILD_INFO_G       => BUILD_INFO_C,
-         CLK_PERIOD_G       => CLK_PERIOD_C,
-         EN_DEVICE_DNA_G    => EN_DEVICE_DNA,
-         EN_DS2411_G        => EN_DS2411,
-         EN_ICAP_G          => EN_ICAP,
-         USE_SLOWCLK_G      => USE_SLOWCLK,
-         BUFR_CLK_DIV_G     => BUFR_CLK_DIV,
-         AUTO_RELOAD_EN_G   => AUTO_RELOAD_EN,
-         AUTO_RELOAD_TIME_G => AUTO_RELOAD_TIME,
-         AUTO_RELOAD_ADDR_G => AUTO_RELOAD_ADDR)
+         BUILD_INFO_G => BUILD_INFO_C,
+         CLK_PERIOD_G => CLK_PERIOD_C)
       port map (
          -- AXI-Lite Interface
          axiClk         => axilClk,
