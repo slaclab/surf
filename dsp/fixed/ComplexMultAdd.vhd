@@ -53,11 +53,11 @@ entity complexMultAdd is
       clk  : in  sl;
       rst  : in  sl := '0';
       a    : in  cfixed;
-      aVld : in  sl;
+      aVld : in  sl := '0';
       b    : in  cfixed;
-      bVld : in  sl;
+      bVld : in  sl := '0';
       c    : in  cfixed;
-      cVld : in  sl;
+      cVld : in  sl := '0';
       -- outputs
       --acout : out cfixed;
       y    : out cfixed;

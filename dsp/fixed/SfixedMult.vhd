@@ -32,6 +32,7 @@ entity sfixedMult is
    generic (
       TPD_G                : time                      := 1 ns;
       LATENCY_G            : natural range 3 to 100    := 3;
+      RND_SIMPLE_G         : boolean                   := false;
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
@@ -54,13 +55,15 @@ architecture rtl of sfixedMult is
    type RegType is record
       areg : sfixed(a'range);
       breg : sfixed(b'range);
-      preg : sfixedArray(LATENCY_G-1 downto 1)(a'high + b'high + 1 downto a'low + b'low);
+      mreg : sfixed(a'high + b'high + 1 downto a'low + b'low);
+      preg : sfixedArray(LATENCY_G-1 downto 2)(y'range);
       vld  : slv(LATENCY_G-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       areg  => (others => '0'),
       breg  => (others => '0'),
+      mreg  => (others => '0'),
       preg  => (others => (others => '0')),
       vld   => (others => '0'));
 
@@ -81,15 +84,17 @@ begin
       v.vld(0) := aVld and bVld;
       v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
 
-      v.preg(1) := r.areg * r.breg;
-      v.preg(LATENCY_G-1 downto 2) := r.preg(LATENCY_G-2 downto 1);
+      v.mreg    := r.areg * r.breg;
+      v.preg(2) := resize(r.mreg, v.preg(2), OUT_OVERFLOW_STYLE, fixed_round);
+      --v.preg(LATENCY_G-1 downto 2) := r.preg(LATENCY_G-2 downto 1);
       
       -- register for next cycle
       rin  <= v;
 
       -- registered outputs
       yVld    <= r.vld(LATENCY_G-1);
-      y       <= resize(r.preg(LATENCY_G-1), y, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G);
+      --y       <= resize(r.preg(LATENCY_G-1), y, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G);
+      y       <= r.preg(LATENCY_G-1);
 
    end process comb;
 
