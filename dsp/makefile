@@ -8,7 +8,7 @@ default: test
 TBDIR=tb
 
 surf_pkg_files = ../base/general/rtl/StdRtlPkg.vhd
-surf_files = ../base/general/xilinx/Srl16Delay.vhd  ../base/ram/xilinx/SinglePortRamPrimitive.vhd ../base/general/rtl/LutFixedDelay.vhd ../base/general/rtl/SlvFixedDelay.vhd
+surf_files = ../base/general/tb/ClkRst.vhd ../base/general/xilinx/Srl16Delay.vhd  ../base/ram/xilinx/SinglePortRamPrimitive.vhd ../base/general/rtl/LutFixedDelay.vhd ../base/general/rtl/SlvFixedDelay.vhd
 dsp_pkg_files = core/ComplexFixedPkg.vhd
 dsp_files = fixed/SfixedDelay.vhd fixed/PreAddComplexMult.vhd fixed/ComplexMultAdd.vhd fixed/Add3.vhd fixed/IirSimple.vhd fixed/FirAverage.vhd
 
