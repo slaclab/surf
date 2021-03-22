@@ -43,7 +43,7 @@ architecture test of FirAverage_tb is
    signal dinR  : real := 0.0;
    signal doutR : real := 0.0;
    signal din   : sfixed(0 downto -23) := (others => '0');
-   signal dout  : sfixed(2 downto -23) := (others => '0');
+   signal dout  : sfixed(0 downto -23) := (others => '0');
 
    signal validIn  : sl := '0';
    signal validOut : sl := '0';
@@ -60,7 +60,8 @@ architecture test of FirAverage_tb is
       for i in arg'range loop
          ret := ret + arg(i);
       end loop;
-      --ret := ret / real(arg'length);
+      -- our filter has non unity gain for non pow2 inputs
+      ret := ret / real(2**log2(arg'length));
       return ret;
    end function realMean;
 

@@ -2,8 +2,10 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simple FIR  averaging filter using 3 input add/sub module
---              Add log2(FIR_LEN_G) bits to the output to avoid overflow
 --              y(n) = x(n) - x(n - FIR_LEN_G) + y(n)
+--              Adds log2(FIR_LEN_G) bits to the internal calculation to
+--                 avoid overflow and shifts by log2(FIR_LEN_G) (non pow2
+--                 FILT_LEN_G will have some < 1 filter gain)
 --              optionally supports time multiplexed channels with the
 --                 ILEAVE_CHAN_G generic
 -------------------------------------------------------------------------------
@@ -49,6 +51,8 @@ end entity FirAverage;
 
 architecture rtl of FirAverage is
 
+   constant BIT_GROWTH_C : integer := log2(FIR_LEN_G);
+
    constant DIN_DELAY_C       : integer := FIR_LEN_G * ILEAVE_CHAN_G;
    constant DIN_DELAY_STYLE_C : string  := ite(DIN_DELAY_C > BRAM_THRESH_G, "block", "srl_reg");
 
@@ -76,8 +80,10 @@ architecture rtl of FirAverage is
    signal dinIntDelay : sfixed(din'range);
    signal doutInt     : sfixed(dout'range);
 
-   signal filtOut : sfixed(dout'range);
-   signal filtDly : sfixed(dout'range);
+   signal filtOut : sfixed(din'high + BIT_GROWTH_C downto din'low);
+   signal filtDly : sfixed(din'high + BIT_GROWTH_C downto din'low);
+   signal filtOutShift : sfixed(din'high downto din'low - BIT_GROWTH_C);
+
 
    -- add 1 bit so we can delay valid and user together
    signal userDelayIn  : slv(userIn'length downto 0);
@@ -90,6 +96,9 @@ begin
 
    validOut <= userDelayOut(userDelayOut'high);
    userOut  <= userDelayOut(userDelayOut'high - 1 downto 0);
+
+   -- Reinterpret the binary point
+   filtOutShift <= filtOut;
 
    U_USER_DELAY : entity surf.SlvFixedDelay
       generic map (
@@ -138,7 +147,7 @@ begin
          c    => filtDly,
          y    => filtOut);
 
-   comb : process(din, filtOut, r) is
+   comb : process(din, filtOutShift, r) is
       variable v   : RegType;
    begin
 
@@ -146,7 +155,7 @@ begin
 
       v.din  := din;
 
-      v.dout := resize(filtOut, v.dout, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+      v.dout := resize(filtOutShift, v.dout, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
 
       rin <= v;
 
