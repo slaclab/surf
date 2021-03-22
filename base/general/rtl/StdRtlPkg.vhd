@@ -109,6 +109,8 @@ package StdRtlPkg is
    function maximum (a : IntegerArray) return integer;
    function minimum (left, right : integer) return integer;
    function minimum (a : IntegerArray) return integer;
+   function sort    (a : IntegerArray) return IntegerArray;
+   function median  (a : IntegerArray) return integer;
 
    -- One line if-then-else functions. Useful for assigning constants based on generics.
    function ite(i : boolean; t : boolean; e : boolean) return boolean;
@@ -1192,6 +1194,38 @@ package body StdRtlPkg is
       end loop;
       return max;
    end function minimum;
+
+   -- simple insertion sort
+   function sort (
+      a : IntegerArray)
+      return IntegerArray is
+      variable sorted : IntegerArray(a'range) := a;
+      variable key : Integer;
+      variable j   : Integer;
+   begin
+      for i in (a'low + 1) to a'high loop
+         key := sorted(i);
+         j   := i - 1;
+         while ( (j >= a'low) and (sorted(j) > key) ) loop
+            sorted(j + 1) := sorted(j);
+            j := j - 1;
+         end loop;
+         sorted(j + 1) := key;
+      end loop;
+      return sorted;
+   end function sort;
+
+
+   function median (
+      a : IntegerArray)
+      return integer is
+      variable sorted : integerArray(a'range);
+      variable med    : Integer;
+   begin
+      med := (a'high + a'low) / 2;
+      sorted := sort(a);
+      return sorted(med);
+   end function median;
    -----------------------------
    -- conv_std_logic_vector functions
    -- without calling the STD_LOGIC_ARITH library

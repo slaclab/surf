@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: signed fixed point multiplier using VHDL2008 fixed_pkg and 
---              unconstrained input/output ports.  Can infer 27x18 mult 
---              (1 DSP48) with latency >= 3 or 35x27 mult (2 DSP48) with 
+-- Description: signed fixed point multiplier using VHDL2008 fixed_pkg and
+--              unconstrained input/output ports.  Can infer 27x18 mult
+--              (1 DSP48) with latency >= 3 or 35x27 mult (2 DSP48) with
 --              lantecy >= 4
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -77,17 +77,17 @@ begin
    begin
       -- latch current value
       v := r;
-      
+
       v.areg   := a;
       v.breg   := b;
-      
+
       v.vld(0) := aVld and bVld;
       v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
 
       v.mreg    := r.areg * r.breg;
       v.preg(2) := resize(r.mreg, v.preg(2), OUT_OVERFLOW_STYLE, fixed_round);
       --v.preg(LATENCY_G-1 downto 2) := r.preg(LATENCY_G-2 downto 1);
-      
+
       -- register for next cycle
       rin  <= v;
 

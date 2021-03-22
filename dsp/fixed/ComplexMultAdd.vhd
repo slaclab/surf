@@ -33,7 +33,7 @@ use surf.ComplexFixedPkg.all;
 -- p(n) = a(n-4)*b(n-4) + c(n-3) + p(n-1) (complex, CIN_REG_G = 1, ACCUMULATE_G = true)
 -- p(n) = a(n-4)*b(n-4) + c(n-4) + p(n-1) (complex, CIN_REG_G = 2, ACCUMULATE_G = true)
 --
--- optionally add one more delay register for output y 
+-- optionally add one more delay register for output y
 --    (move data out of preg into fabric)
 --
 -- y(n) = p(n)     ( REG_OUT_G = false )
@@ -74,7 +74,7 @@ architecture rtl of complexMultAdd is
    constant P_W_C    : integer := 48;
    constant P_LOW_C  : integer := a.re'low + b.re'low;
    constant P_HIGH_C : integer := P_W_C + P_LOW_C - 1;
-   
+
    -- For resizing into preg:
    constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
    constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
@@ -111,7 +111,7 @@ begin
 
    assert ((a.re'length < 28) and (b.re'length < 19)) or ((a.re'length < 19) and (b.re'length < 28))
        report "Input data should be less than 18x27 bits" severity failure;
-       
+
    comb : process( a, b, c, aVld, bVld, cVld, r ) is
       variable v : RegType;
    begin
@@ -120,7 +120,7 @@ begin
 
       v.yVld(0) := aVld and bVld;
       for i in r.yVld'left downto 1 loop
-         v.yVld(i) := r.yVld(i-1); 
+         v.yVld(i) := r.yVld(i-1);
       end loop;
       -- C PATH has configurable 2...4 c-c delay
       v.yVld(r.yVld'left-1-CIN_REG_G) := v.yVld(r.yVld'left-1-CIN_REG_G) and cVld;
@@ -131,7 +131,7 @@ begin
       v.areg(1) := r.areg(0);
       v.breg(0) := b;
       v.breg(1) := r.breg(0);
-      
+
       v.creg(0) := c;
       for i in r.creg'left downto 1 loop
          v.creg(i) := r.creg(i-1);
@@ -157,13 +157,13 @@ begin
       else
          v.p_ri := resize(r.m_ri + r.p_ir, r.p_ri, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
       end if;
-      
+
       -- resize for output
       v.y := to_cfixed(
           resize(r.p_rr, y.re, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G),
           resize(r.p_ri, y.im, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G));
       rin <= v;
-      
+
       -- Outputs
       if REG_OUT_G then
          y <= r.y;
@@ -171,7 +171,7 @@ begin
          y <= v.y;
       end if;
       --acout <= r.areg(0);
-      
+
       yVld <= r.yVld(r.yVld'left);
 
    end process comb;

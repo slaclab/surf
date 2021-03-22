@@ -116,7 +116,7 @@ begin
                else
                   yExpected(0) <= ( aIn - dIn ) * bIn;
                end if;
-            when RUN_CNT_C => 
+            when RUN_CNT_C =>
                run <= false;
                report CR & LF & CR & LF &
                   "Test PASSED!" & CR & LF &
@@ -131,7 +131,7 @@ begin
                maxError <= maximum(yError, maxError);
                assert (yError < ERROR_TOL_C)
                   report CR & LF & CR & LF &
-                  "**** Test FAILED **** " & CR & LF & 
+                  "**** Test FAILED **** " & CR & LF &
                   "abs(error) is " & real'image(yError) &
                   CR & LF
                  severity failure;

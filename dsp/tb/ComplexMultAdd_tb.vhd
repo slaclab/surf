@@ -106,7 +106,7 @@ begin
                c     <= to_cfixed(cIn, c);
                yExpected(9 downto 1) <= yExpected(8 downto 0);
                yExpected(0) <=  aIn * bIn + cIn;
-            when RUN_CNT_C => 
+            when RUN_CNT_C =>
                run <= false;
                report CR & LF & CR & LF &
                   "Test PASSED!" & CR & LF
@@ -119,9 +119,9 @@ begin
             when 11 to RUN_CNT_C =>
                yError  <= abs(yOut - yE);
                maxError <= maximum(yError, maxError);
-               --assert (yError < ERROR_TOL_C) and (yVld = '1') 
+               --assert (yError < ERROR_TOL_C) and (yVld = '1')
                --   report CR & LF & CR & LF &
-               --   "**** Test FAILED **** " & CR & LF & 
+               --   "**** Test FAILED **** " & CR & LF &
                --   "abs(error) is " & real'image(yError) &
                --   CR & LF
                --  severity failure;

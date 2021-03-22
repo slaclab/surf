@@ -22,7 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.ComplexFixedPkg.all;
 
---  pre add complex multiply (A + D) * B 
+--  pre add complex multiply (A + D) * B
 --  inferres 4 DSP slices when using REG_IN_G = ture, delay is 5
 
 entity PreAddComplexMult is
@@ -68,7 +68,7 @@ architecture rtl of PreAddComplexMult is
    -- For resizing into preg:
    constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
    constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
-   
+
 
    type RegType is record
       areg  : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(a.re'range), im(a.im'range));
@@ -103,19 +103,19 @@ architecture rtl of PreAddComplexMult is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    assert ((a.re'length < 28) and (b.re'length < 19)) or ((a.re'length < 19) and (b.re'length < 28))
        report "Input data should be less than 18x27 bits" severity failure;
-       
-       
+
+
    comb : process( add, a, b, d, aVld, bVld, dVld, r ) is
       variable v : RegType;
    begin
 
       v := r;
-      
+
       v.vld(0) := aVld and bVld and dVld;
       for i in DELAY_C - 1 downto 1 loop
           v.vld(i) := r.vld(i-1);
@@ -147,7 +147,7 @@ begin
       else
          v.adreg(1) := v.areg(1) + v.dreg(1);
       end if;
-      
+
       if r.add_rr = '0' then
          v.adreg(2) := v.areg(2) - v.dreg(2);
       else
@@ -165,13 +165,13 @@ begin
       v.p_ir := resize(r.m_ir, r.p_ir, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
       v.m_ri := r.breg(2).im * resize(r.adreg(2).re, AD_HIGH_CLIP_C, AD_LOW_C, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
       v.p_ri := resize(r.m_ri + r.p_ir, r.p_ri, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-      
+
       -- resize for output
       v.y := to_cfixed(
                 resize(r.p_rr, y.re, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G),
                 resize(r.p_ri, y.im, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G));
       rin <= v;
-      
+
       yVld <= r.vld(DELAY_C-1);
       -- Outputs
       if REG_OUT_G then
@@ -179,7 +179,7 @@ begin
       else
          y <= v.y;
       end if;
-      
+
    end process comb;
 
    seq : process(clk) is
