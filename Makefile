@@ -36,8 +36,15 @@ $(shell find . -type f -name '*InputBufferReg.vhd') \
 $(shell find . -type f -name '*OutputBufferReg.vhd') \
 $(shell find . -type f -name '*GthUltraScaleQuadPll.vhd') \
 $(shell find . -type f -name '*MicroblazeBasicCoreWrapper.vhd') \
-$(shell find . -type f -name '*complexMultAdd.vhd') \
-$(shell find . -type f -name '*preAddComplexMult.vhd') \
+$(shell find . -type f -name '*ComplexFixedPkg.vhd') \
+$(shell find . -type f -name '*SfixedDelay.vhd') \
+$(shell find . -type f -name '*ComplexMultAdd.vhd') \
+$(shell find . -type f -name '*PreAddComplexMult.vhd') \
+$(shell find . -type f -name '*SfixedMult.vhd') \
+$(shell find . -type f -name '*Csa3.vhd') \
+$(shell find . -type f -name '*Add3.vhd') \
+$(shell find . -type f -name '*IirSimple.vhd') \
+$(shell find . -type f -name '*FirAverage.vhd') \
 
 FILES = $(filter-out $(EXCLUDE),$(wildcard $(PATHS)))
 
