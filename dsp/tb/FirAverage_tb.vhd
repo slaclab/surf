@@ -27,7 +27,7 @@ architecture test of FirAverage_tb is
 
    constant TPD_C        : time    := 1 ns;
    constant CLK_PERIOD_C : time    := 10 ns;
-   constant ERROR_TOL_C  : real    := 0.00001;
+   constant ERROR_TOL_C  : real    := 0.0001;
    constant RUN_CNT_C    : integer := 10000;
 
    constant FILT_LEN_C  : integer := 16;
@@ -49,8 +49,8 @@ architecture test of FirAverage_tb is
        done     : sl;
        dinR     : real;
        doutR    : real;
-       din      : sfixed(0 downto -23);
-       dout     : sfixed(0 downto -23);
+       din      : sfixed(0 downto -15);
+       dout     : sfixed(0 downto -15);
        validIn  : sl;
        validOut : sl;
        userIn   : slv(3 downto 0);
@@ -84,9 +84,9 @@ architecture test of FirAverage_tb is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dout     : sfixed(0 downto -23);
+   signal dout     : sfixed(r.dout'range);
    signal validOut : sl;
-   signal userOut  : slv(3 downto 0);
+   signal userOut  : slv(r.userOut'range);
 
    signal passed : sl := '0';
    signal failed : sl := '0';
@@ -109,7 +109,7 @@ begin
 
    U_ClkRst : entity surf.ClkRst
       generic map (
-         CLK_PERIOD_G      => 10 ns,
+         CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 1 ns,
          RST_HOLD_TIME_G   => 1 us)
       port map (
@@ -121,6 +121,7 @@ begin
 
    U_DUT : entity work.FirAverage
       generic map (
+         TPD_G         => TPD_C,
          FIR_LEN_G     => FILT_LEN_C,
          ILEAVE_CHAN_G => ILEAVE_C,
          USER_WIDTH_G  => r.userIn'length)
