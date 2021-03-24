@@ -32,7 +32,7 @@ entity sfixedMult is
    generic (
       TPD_G                : time                      := 1 ns;
       LATENCY_G            : natural range 3 to 100    := 3;
-      RND_SIMPLE_G         : boolean                   := false;
+      RND_SIMPLE_G         : boolean                   := false; -- may interfere with large mult inference (35x27)
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
@@ -40,9 +40,9 @@ entity sfixedMult is
       -- rst may cause issues inferring DSP48
       rst     : in  sl := '0';
       a       : in  sfixed;
-      aVld    : in  sl;
+      aVld    : in  sl := '0';
       b       : in  sfixed;
-      bVld    : in  sl;
+      bVld    : in  sl := '0';
       -- outputs
       y       : out sfixed;
       yVld    : out sl);
@@ -51,6 +51,11 @@ end entity sfixedMult;
 architecture rtl of sfixedMult is
 
    type sfixedArray is array(natural range<>) of sfixed;
+
+   constant C_HIGH_BIT_C : integer := a'high + b'high + 1;
+   constant C_LOW_BIT_C  : integer := a'low  + b'low;
+
+   signal c    : sfixed(C_HIGH_BIT_C downto C_LOW_BIT_C) := (others => '0');
 
    type RegType is record
       areg : sfixed(a'range);
@@ -72,6 +77,9 @@ architecture rtl of sfixedMult is
 
 begin
 
+   -- RND_SIMPLE_G
+   c(y'low - 1) <= '1';
+
    comb : process( a, b, aVld, bVld, r ) is
       variable v : RegType;
    begin
@@ -85,8 +93,12 @@ begin
       v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
 
       v.mreg    := r.areg * r.breg;
-      v.preg(2) := resize(r.mreg, v.preg(2), OUT_OVERFLOW_STYLE, fixed_round);
-      --v.preg(LATENCY_G-1 downto 2) := r.preg(LATENCY_G-2 downto 1);
+      if RND_SIMPLE_G then
+         v.preg(2) := resize(r.mreg + c, v.preg(2), OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G);
+      else
+         v.preg(2) := resize(r.mreg, v.preg(2), OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G);
+      end if;
+      v.preg(LATENCY_G-1 downto 3) := r.preg(LATENCY_G-2 downto 2);
 
       -- register for next cycle
       rin  <= v;
