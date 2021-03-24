@@ -28,6 +28,7 @@ entity IirSimple is
    generic (
       TPD_G         : time    := 1 ns;
       XIL_DEVICE_G  : string  := "ULTRASCALE_PLUS";
+      USE_CSA3_G    : boolean := false;
       BRAM_THRESH_G : integer := 256;
       IIR_SHIFT_G   : integer := 4;  -- alpha = 2**(-IIR_SHIFT_G)
       ILEAVE_CHAN_G : integer := 1;  -- Number of interleaved channels
@@ -118,6 +119,8 @@ begin
 
    U_ADD_SUB : entity surf.add3
       generic map (
+         XIL_DEVICE_G => XIL_DEVICE_G,
+         USE_CSA3_G   => USE_CSA3_G,
          REG_OUT_G    => true,
          NEGATIVE_A_G => false,
          NEGATIVE_B_G => true)
