@@ -111,14 +111,16 @@ begin
          end if;
 
          -- Keep counting
-         if (r.dataOut = OUT_POLARITY_G) then
-            v.counter := r.counter + 1;
-         end if;
+         --if (r.dataOut = OUT_POLARITY_G) then
+         --   v.counter := r.counter + 1;
+         --end if;
 
          -- Stop counting when PULSE_WIDTH_G counter to
          if (r.counter = PULSE_WIDTH_G) then
             v.dataOut := not OUT_POLARITY_G;
             v.counter := 0;
+         elsif (r.dataOut = OUT_POLARITY_G) then
+            v.counter := r.counter + 1;
          end if;
 
          if (RST_ASYNC_G and rst = RST_POLARITY_G) then
