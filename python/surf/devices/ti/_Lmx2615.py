@@ -14,16 +14,18 @@ class Lmx2615(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        #######################
+        #####################################################################
         # Address = 0x00 (R0)
-        #######################
+        # Write only because MUXOUT_LD_SEL's default is not readback SPI mode
+        #####################################################################
 
         self.add(pr.RemoteVariable(
             name         = 'VCO_PHASE_SYNC',
             offset       = (0x00 << 2),
             bitOffset    = 14,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -31,7 +33,8 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 9,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -39,7 +42,8 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 7,
             bitSize      = 2,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 0,
         ))
 
         self.add(pr.RemoteVariable(
@@ -47,7 +51,8 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 3,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -56,6 +61,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 2,
             bitSize      = 1,
             mode         = 'RW',
+            value        = 0,
         ))
 
         self.add(pr.RemoteVariable(
@@ -63,7 +69,8 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 1,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 0,
         ))
 
         self.add(pr.RemoteVariable(
@@ -71,7 +78,8 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 0,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 0,
         ))
 
         #######################
@@ -639,3 +647,15 @@ class Lmx2615(pr.Device):
         ))
 
         #######################
+
+        @self.command(description='Power Up procedure',)
+        def pwrUp():
+            # Setup for SPI readback mode
+            self.MUXOUT_LD_SEL.set(0x0)
+
+            # Power up the device
+            self.POWERDOWN.set(0x0)
+
+            # Toggle the reset
+            self.RESET.set(0x1)
+            self.RESET.set(0x0)
