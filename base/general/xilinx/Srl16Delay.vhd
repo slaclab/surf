@@ -50,6 +50,8 @@ begin
          attribute rloc of shift_reg:label is "X0Y"&INTEGER'image(i/8);
       begin
          shift_reg: SRL16E
+         generic map (
+            INIT => x"0000")
          port map (
             clk => clk,
             ce  => '1',
@@ -67,6 +69,8 @@ begin
          attribute rloc of shift_reg:label is "X0Y"&INTEGER'image(i/16);
       begin
          shift_reg: SRL16E
+         generic map (
+            INIT => x"0000")
          port map (
             clk => clk,
             ce  => '1',
