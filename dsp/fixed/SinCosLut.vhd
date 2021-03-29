@@ -31,7 +31,7 @@ entity SinCosLut is
       TPD_G          : time     := 1 ns;
       XIL_DEVICE_G   : string   := "ULTRASCALE_PLUS";
       FULL_RANGE_G   : boolean  := true;
-      MEMORTY_TYPE_G : string   := "block";
+      MEMORY_TYPE_G  : string   := "block";
       REG_IN_G       : boolean  := true;
       USER_WIDTH_G   : integer  := 0;
       PHASE_WIDTH_G  : integer  := 12); -- Phase width (will store 1/4 wave table PHASE_WIDTH_G-2 bit width)
@@ -43,15 +43,16 @@ entity SinCosLut is
       phaseIn      : in  unsigned(PHASE_WIDTH_G - 1 downto 0);
       validOut     : out sl;
       userOut      : out slv(USER_WIDTH_G - 1 downto 0);
-      sinCosOut    : out cfixed(re(0 downto -15), im(0 downto -15)));
+      sinCosOut    : out cfixed);
 end entity SinCosLut;
 
 architecture rtl of SinCosLut is
 
+   constant TOT_LATENCY_C : integer := 4 + ite(REG_IN_G, 1, 0);
    -- Only store 1/4 of a sine wave internally
    constant INT_PHASE_WIDTH_C : integer := PHASE_WIDTH_G - 2;
    constant QUARTER_DEPTH_C   : integer := 2**INT_PHASE_WIDTH_C;
-   
+
    constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
    constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
 
@@ -81,6 +82,7 @@ architecture rtl of SinCosLut is
    end function initQuarterWaveLut;
 
    type RegType is record
+       rst          : slv(2 downto 0);
        phaseMsb     : unsigned(1 downto 0);
        phaseMsbR    : unsigned(1 downto 0);
        phaseMsbRR   : unsigned(1 downto 0);
@@ -94,8 +96,9 @@ architecture rtl of SinCosLut is
        lutCosDoReg  : sfixed(sinCosOut.re'range);
        sinCosOut    : cfixed(re(sinCosOut.re'range), im(sinCosOut.im'range));
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
+      rst          => (others => '0'),
       phaseMsb     => (others => '0'),
       phaseMsbR    => (others => '0'),
       phaseMsbRR   => (others => '0'),
@@ -115,7 +118,7 @@ architecture rtl of SinCosLut is
    signal quarterWaveLut : QuarterWaveLutType :=  initQuarterWaveLut(QUARTER_DEPTH_C, r.lutSin);
 
    attribute ram_style : string;
-   attribute ram_style of quarterWaveLut : signal is MEMORTY_TYPE_G;
+   attribute ram_style of quarterWaveLut : signal is MEMORY_TYPE_G;
 
    signal slvDelayIn  : slv(USER_WIDTH_G downto 0);
    signal slvDelayOut : slv(USER_WIDTH_G downto 0);
@@ -131,20 +134,23 @@ begin
       generic map (
          TPD_G        => TPD_G,
          XIL_DEVICE_G => XIL_DEVICE_G,
-         DELAY_G      => 5,
+         DELAY_G      => TOT_LATENCY_C,
          WIDTH_G      => USER_WIDTH_G + 1)
       port map (
          clk  => clk,
          din  => slvDelayIn,
          dout => slvDelayOut);
 
-   comb : process(phaseIn, r) is
+   comb : process(phaseIn, rst, r) is
       variable v      : RegType;
    begin
       v := r;
 
       v.phaseMsb  := phaseIn(phaseIn'high downto phaseIn'high - 1);
       v.phaseLsb  := phaseIn(phaseIn'high - 2 downto 0);
+
+      v.rst(0)          := rst;
+      v.rst(2 downto 1) := r.rst(1 downto 0);
 
       if REG_IN_G then
          case r.phaseMsb is
@@ -209,11 +215,28 @@ begin
       -- 2 c-c to access LUT value for BRAM
       v.lutCos      := quarterWaveLut(to_integer(r.cosAddr));
       v.lutSin      := quarterWaveLut(to_integer(r.sinAddr));
-      v.lutCosDoReg := r.lutCos;
-      v.lutSinDoReg := r.lutSin;
+
+      -- DOREG reset
+      if REG_IN_G then
+         if r.rst(2) = '1' then
+            v.lutCosDoReg := (others => '0');
+            v.lutSinDoReg := (others => '0');
+         else
+            v.lutCosDoReg := r.lutCos;
+            v.lutSinDoReg := r.lutSin;
+         end if;
+      else
+         if r.rst(1) = '1' then
+            v.lutCosDoReg := (others => '0');
+            v.lutSinDoReg := (others => '0');
+         else
+            v.lutCosDoReg := r.lutCos;
+            v.lutSinDoReg := r.lutSin;
+         end if;
+      end if;
 
       rin <= v;
-      
+
       -- Outputs
       sinCosOut <= r.sinCosOut;
 
