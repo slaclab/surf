@@ -38,16 +38,6 @@ end entity SinglePortRamPrimitive;
 
 architecture rtl of SinglePortRamPrimitive is
 
-   type RegType is record
-       q        : slv(WIDTH_G - 1 downto 0);
-   end record RegType;
-
-   constant REG_INIT_C : RegType := (
-      q        => (others => '0'));
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
    signal q   : slv(WIDTH_G - 1 downto 0) := (others => '0');
 
 begin
@@ -56,6 +46,8 @@ begin
 
       GEN_LUT32 : if DEPTH_G <= 32 generate
           LUT32 : RAM32X1S
+          generic map (
+             INIT => x"00000000")
           port map (
              wclk => clk,
              we   => we,
@@ -70,6 +62,8 @@ begin
 
       GEN_LUT64 : if ( (DEPTH_G > 32) and  (DEPTH_G <= 64) ) generate
           LUT64 : RAM64X1S
+          generic map (
+             INIT => x"0000000000000000")
           port map (
              wclk => clk,
              we   => we,
@@ -85,6 +79,8 @@ begin
 
       GEN_LUT128 : if ( (DEPTH_G > 64) and (DEPTH_G <= 128) ) generate
           LUT128 : RAM128X1S
+          generic map (
+             INIT => x"00000000000000000000000000000000")
           port map (
              wclk => clk,
              we   => we,
@@ -104,6 +100,8 @@ begin
           assert (DEPTH_G < 257)
              report "DEPTH_G > 256 not supported for 7SERIES device" severity failure;
           LUT256 : RAM256X1S
+          generic map (
+             INIT => x"0000000000000000000000000000000000000000000000000000000000000000")
           port map (
              wclk => clk,
              we   => we,
@@ -113,7 +111,11 @@ begin
       end generate GEN_LUT256;
 
       GEN_LUT512 : if (DEPTH_G > 256) and ( (XIL_DEVICE_G = "ULTRASCALE") or (XIL_DEVICE_G = "ULTRASCALE_PLUS") ) generate
+          constant INIT_C : bit_vector(511 downto 0) := (others => '0');
+      begin
           LUT512 : RAM512X1S
+          generic map (
+             INIT => x"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
           port map (
              wclk => clk,
              we   => we,
@@ -124,20 +126,10 @@ begin
 
    end generate BIT_RAM;
 
-   comb : process(q, r) is
-       variable v : RegType;
-   begin
-       v   := r;
-       v.q := q;
-
-       rin  <= v;
-       dout <= r.q;
-   end process comb;
-
    seq : process(clk)
    begin
       if rising_edge(clk) then
-            r <= rin after TPD_G;
+            dout <= q after TPD_G;
       end if;
    end process seq;
 
