@@ -1437,7 +1437,7 @@ package body StdRtlPkg is
 
    function toBuildInfo (din : slv) return BuildInfoRetType is
       variable ret : BuildInfoRetType;
-      variable i   : natural;
+      --variable i   : natural;
    begin
       for i in 0 to 255 loop
          ret.buildString(i/4)(8*(i mod 4)+7 downto 8*(i mod 4)) := din(2047-(8*i) downto 2040-(8*i));
