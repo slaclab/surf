@@ -20,24 +20,26 @@ use ieee.fixed_float_types.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.ComplexFixedPkg.all;
 
 entity ComplexAccumulator is
    generic (
       TPD_G         : time    := 1 ns;
       XIL_DEVICE_G  : string  := "ULTRASCALE_PLUS";
       ILEAVE_CHAN_G : integer := 1;
+      USER_WIDTH_G  : integer := 0;
       REG_IN_G      : boolean := true;
       REG_OUT_G     : boolean := true);
    port (
       clk       : in  sl;
       rst       : in  sl := '0';
       -- inputs
-      validIn   : in  sl;
-      userIn    : in  slv;
+      validIn   : in  sl := '0';
+      userIn    : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
       din       : in  cfixed;
       -- outputs
       validOut  : out sl;
-      userOut   : out slv;
+      userOut   : out slv(USER_WIDTH_G - 1 downto 0);
       dout      : out cfixed);
 end entity ComplexAccumulator;
 
@@ -64,7 +66,7 @@ begin
          userOut       => userOut,
          dout          => dout.re);
 
-   U_REAL_ACCUM : entity surf.Accumulator
+   U_IMAG_ACCUM : entity surf.Accumulator
       generic map (
          TPD_G         => TPD_G,
          XIL_DEVICE_G  => XIL_DEVICE_G,

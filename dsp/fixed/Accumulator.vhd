@@ -26,36 +26,39 @@ entity Accumulator is
       TPD_G         : time    := 1 ns;
       XIL_DEVICE_G  : string  := "ULTRASCALE_PLUS";
       ILEAVE_CHAN_G : integer := 1;
+      USER_WIDTH_G  : integer := 0;
       REG_IN_G      : boolean := true;
       REG_OUT_G     : boolean := true);
    port (
       clk       : in  sl;
       rst       : in  sl := '0';
       -- inputs
-      validIn   : in  sl;
-      userIn    : in  slv;
+      validIn   : in  sl := '0';
+      userIn    : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
       din       : in  sfixed;
       -- outputs
       validOut  : out sl;
-      userOut   : out slv;
+      userOut   : out slv(USER_WIDTH_G - 1 downto 0);
       dout      : out sfixed);
 end entity Accumulator;
 
 architecture rtl of Accumulator is
 
    constant TOT_LATENCY_C  : integer := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
+   constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
+   constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
 
    type RegType is record
        rst     : sl;
-       din     : sfixed(din'range);
-       dout    : sfixed(dout'range);
-       sum     : sfixed(dout'range);
+       dinR    : sfixed(din'range);
+       doutR   : sfixed(dout'range);
+       sum    : sfixed(dout'range);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       rst     => '0',
-      din     => (others => '0'),
-      dout    => (others => '0'),
+      dinR    => (others => '0'),
+      doutR   => (others => '0'),
       sum     => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
@@ -117,31 +120,31 @@ begin
 
       v := r;
 
-      v.rst  := rst;
-      v.din  := din;
+      v.rst   := rst;
+      v.dinR  := din;
 
-      v.dout := r.sum;
+      v.doutR := r.sum;
 
       if REG_IN_G then
          if r.rst = '1' then
             v.sum := (others => '0');
          else
-            v.sum := resize(r.din + sumDly, r.sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            v.sum := resize(r.dinR + sumDly, r.sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
          end if;
       else
          if v.rst = '1' then
             v.sum := (others => '0');
          else
-            v.sum := resize(v.din + sumDly, r.sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            v.sum := resize(v.dinR + sumDly, r.sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
          end if;
       end if;
 
       rin <= v;
 
       if REG_OUT_G then
-         dout <= r.dout;
+         dout <= r.doutR;
       else
-         dout <= v.dout;
+         dout <= v.doutR;
       end if;
 
    end process comb;
