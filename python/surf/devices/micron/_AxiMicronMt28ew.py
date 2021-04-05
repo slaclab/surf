@@ -337,7 +337,7 @@ class AxiMicronMt28ew(pr.Device):
     def _readFromFlash(self, addr):
         if self._useVars:
             # Set the address
-            self.AddrBus.set(data=addr|0x80000000)
+            self.AddrBus.set(addr|0x80000000)
             # Get the read data
             return self.DataRdBus.get()&0xFFFF
         else:
