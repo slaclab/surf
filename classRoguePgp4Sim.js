@@ -2,6 +2,8 @@ var classRoguePgp4Sim =
 [
     [ "sim", "classRoguePgp4Sim_1_1sim.html", "classRoguePgp4Sim_1_1sim" ],
     [ "TPD_G", "classRoguePgp4Sim.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SYNTH_MODE_G", "classRoguePgp4Sim.html#a2429d17ce4f9328a982076af9f733ab3", null ],
+    [ "MEMORY_TYPE_G", "classRoguePgp4Sim.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "PORT_NUM_G", "classRoguePgp4Sim.html#ab3fde3b7c141dad2ba8ed588ea50a206", null ],
     [ "NUM_VC_G", "classRoguePgp4Sim.html#ad7e58e4c4b9f6ab2d4f638e2a2252673", null ],
     [ "EN_SIDEBAND_G", "classRoguePgp4Sim.html#a49bbccab2ef51f5d70d9f11ef789ed8d", null ],
