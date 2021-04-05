@@ -39,9 +39,16 @@ entity Pgp4GthUs is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       PGP_RX_ENABLE_G             : boolean               := true;
+      PGP_TX_ENABLE_G             : boolean               := false;
+      NUM_VC_G                    : integer range 1 to 16 := 1;
+      EN_PGP_MON_G                : boolean               := true;
+      WRITE_EN_G                  : boolean               := true;  -- Set to false when on remote end of a link
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 12;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 4;
+
+
+      ----------------------------------------------------------------------------------------------
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
-      PGP_TX_ENABLE_G             : boolean               := true;
-      NUM_VC_G                    : integer range 1 to 16 := 4;
       TX_CELL_WORDS_MAX_G         : integer               := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array             := (0      => "--------");  -- Only used in ROUTED mode
@@ -49,12 +56,8 @@ entity Pgp4GthUs is
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_DRP_G                    : boolean               := false;
-      EN_PGP_MON_G                : boolean               := false;
-      WRITE_EN_G                  : boolean               := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
-      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
-      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (

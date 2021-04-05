@@ -46,37 +46,37 @@ entity Pgp4Core is
       -- Tx User interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp4TxInType := PGP4_TX_IN_INIT_C;
+      pgpTxIn      : in  Pgp4TxInType                             := PGP4_TX_IN_INIT_C;
       pgpTxOut     : out Pgp4TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);
 
       -- Tx PHY interface
-      phyTxActive   : in  sl;
-      phyTxReady    : in  sl;
-      phyTxValid    : out sl;
-      phyTxStart    : out sl;
-      phyTxData     : out slv(63 downto 0);
-      phyTxHeader   : out slv(1 downto 0);
+      phyTxActive : in  sl;
+      phyTxReady  : in  sl;
+      phyTxValid  : out sl               := '0';
+      phyTxStart  : out sl               := '0';
+      phyTxData   : out slv(63 downto 0) := (others => '0');
+      phyTxHeader : out slv(1 downto 0)  := (others => '0');
 
       -- Rx User interface
       pgpRxClk     : in  sl;
       pgpRxRst     : in  sl;
-      pgpRxIn      : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
+      pgpRxIn      : in  Pgp4RxInType                              := PGP4_RX_IN_INIT_C;
       pgpRxOut     : out Pgp4RxOutType;
-      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Rx PHY interface
       phyRxClk      : in  sl;
       phyRxRst      : in  sl;
-      phyRxInit     : out sl;
+      phyRxInit     : out sl := '0';
       phyRxActive   : in  sl;
       phyRxValid    : in  sl;
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
-      phyRxSlip     : out sl;
+      phyRxSlip     : out sl := '0';
 
       -- Debug Interface
       loopback     : out slv(2 downto 0);
@@ -95,72 +95,76 @@ end entity Pgp4Core;
 
 architecture rtl of Pgp4Core is
 
-   signal locRxLinkReady : sl;
-   signal remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-   signal remRxLinkReady : sl;
+   signal locRxLinkReady : sl                                      := '0';
+   signal remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
+   signal remRxLinkReady : sl                                      := '0';
 
-   signal pgpTxInInt  : Pgp4TxInType;
-   signal pgpTxOutInt : Pgp4TxOutType;
-   signal pgpRxInInt  : Pgp4RxInType;
-   signal pgpRxOutInt : Pgp4RxOutType;
+   signal pgpTxInInt  : Pgp4TxInType  := PGP4_TX_IN_INIT_C;
+   signal pgpTxOutInt : Pgp4TxOutType := PGP4_TX_OUT_INIT_C;
+   signal pgpRxInInt  : Pgp4RxInType  := PGP4_RX_IN_INIT_C;
+   signal pgpRxOutInt : Pgp4RxOutType := PGP4_RX_OUT_INIT_C;
 
 begin
 
    pgpRxOut <= pgpRxOutInt;
    pgpTxOut <= pgpTxOutInt;
 
-   U_Pgp4Tx_1 : entity surf.Pgp4Tx
-      generic map (
-         TPD_G                    => TPD_G,
-         NUM_VC_G                 => NUM_VC_G,
-         CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
-         MUX_MODE_G               => TX_MUX_MODE_G,
-         MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
-         MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
-         MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
-         MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G)
-      port map (
-         pgpTxClk       => pgpTxClk,        -- [in]
-         pgpTxRst       => pgpTxRst,        -- [in]
-         pgpTxIn        => pgpTxInInt,      -- [in]
-         pgpTxOut       => pgpTxOutInt,     -- [out]
-         pgpTxMasters   => pgpTxMasters,    -- [in]
-         pgpTxSlaves    => pgpTxSlaves,     -- [out]
-         locRxFifoCtrl  => pgpRxCtrl,       -- [in]
-         locRxLinkReady => locRxLinkReady,  -- [in]
-         remRxFifoCtrl  => remRxFifoCtrl,   -- [in]
-         remRxLinkReady => remRxLinkReady,  -- [in]
-         phyTxActive    => phyTxActive,     --[in]
-         phyTxReady     => phyTxReady,      -- [in]
-         phyTxValid     => phyTxValid,      -- [out]
-         phyTxStart     => phyTxStart,      -- [out]
-         phyTxData      => phyTxData,       -- [out]
-         phyTxHeader    => phyTxHeader);    -- [out]
+   GEN_TX : if (PGP_TX_ENABLE_G) generate
+      U_Pgp4Tx_1 : entity surf.Pgp4Tx
+         generic map (
+            TPD_G                    => TPD_G,
+            NUM_VC_G                 => NUM_VC_G,
+            CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
+            MUX_MODE_G               => TX_MUX_MODE_G,
+            MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
+            MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
+            MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
+            MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G)
+         port map (
+            pgpTxClk       => pgpTxClk,        -- [in]
+            pgpTxRst       => pgpTxRst,        -- [in]
+            pgpTxIn        => pgpTxInInt,      -- [in]
+            pgpTxOut       => pgpTxOutInt,     -- [out]
+            pgpTxMasters   => pgpTxMasters,    -- [in]
+            pgpTxSlaves    => pgpTxSlaves,     -- [out]
+            locRxFifoCtrl  => pgpRxCtrl,       -- [in]
+            locRxLinkReady => locRxLinkReady,  -- [in]
+            remRxFifoCtrl  => remRxFifoCtrl,   -- [in]
+            remRxLinkReady => remRxLinkReady,  -- [in]
+            phyTxActive    => phyTxActive,     --[in]
+            phyTxReady     => phyTxReady,      -- [in]
+            phyTxValid     => phyTxValid,      -- [out]
+            phyTxStart     => phyTxStart,      -- [out]
+            phyTxData      => phyTxData,       -- [out]
+            phyTxHeader    => phyTxHeader);    -- [out]
+   end generate GEN_TX;
 
-   U_Pgp4Rx_1 : entity surf.Pgp4Rx
-      generic map (
-         TPD_G              => TPD_G,
-         NUM_VC_G           => NUM_VC_G,
-         ALIGN_SLIP_WAIT_G  => RX_ALIGN_SLIP_WAIT_G)
-      port map (
-         pgpRxClk       => pgpRxClk,        -- [in]
-         pgpRxRst       => pgpRxRst,        -- [in]
-         pgpRxIn        => pgpRxInInt,      -- [in]
-         pgpRxOut       => pgpRxOutInt,     -- [out]
-         pgpRxMasters   => pgpRxMasters,    -- [out]
-         pgpRxCtrl      => pgpRxCtrl,       -- [in]
-         remRxFifoCtrl  => remRxFifoCtrl,   -- [out]
-         remRxLinkReady => remRxLinkReady,  -- [out]
-         locRxLinkReady => locRxLinkReady,  -- [out]
-         phyRxClk       => phyRxClk,        -- [in]
-         phyRxRst       => phyRxRst,        -- [in]
-         phyRxInit      => phyRxInit,       -- [out]
-         phyRxActive    => phyRxActive,     -- [in]
-         phyRxValid     => phyRxValid,      -- [in]
-         phyRxHeader    => phyRxHeader,     -- [in]
-         phyRxData      => phyRxData,       -- [in]
-         phyRxStartSeq  => phyRxStartSeq,   -- [in]
-         phyRxSlip      => phyRxSlip);      -- [out]
+   GEN_RX : if (PGP_RX_ENABLE_G) generate
+      U_Pgp4Rx_1 : entity surf.Pgp4Rx
+         generic map (
+            TPD_G             => TPD_G,
+            NUM_VC_G          => NUM_VC_G,
+            ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
+         port map (
+            pgpRxClk       => pgpRxClk,        -- [in]
+            pgpRxRst       => pgpRxRst,        -- [in]
+            pgpRxIn        => pgpRxInInt,      -- [in]
+            pgpRxOut       => pgpRxOutInt,     -- [out]
+            pgpRxMasters   => pgpRxMasters,    -- [out]
+            pgpRxCtrl      => pgpRxCtrl,       -- [in]
+            remRxFifoCtrl  => remRxFifoCtrl,   -- [out]
+            remRxLinkReady => remRxLinkReady,  -- [out]
+            locRxLinkReady => locRxLinkReady,  -- [out]
+            phyRxClk       => phyRxClk,        -- [in]
+            phyRxRst       => phyRxRst,        -- [in]
+            phyRxInit      => phyRxInit,       -- [out]
+            phyRxActive    => phyRxActive,     -- [in]
+            phyRxValid     => phyRxValid,      -- [in]
+            phyRxHeader    => phyRxHeader,     -- [in]
+            phyRxData      => phyRxData,       -- [in]
+            phyRxStartSeq  => phyRxStartSeq,   -- [in]
+            phyRxSlip      => phyRxSlip);      -- [out]
+   end generate GEN_RX;
 
    GEN_PGP_MON : if (EN_PGP_MON_G) generate
       U_Pgp4AxiL : entity surf.Pgp4AxiL
