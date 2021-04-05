@@ -41,6 +41,7 @@ $(shell find . -type f -name '*SfixedDelay.vhd') \
 $(shell find . -type f -name '*CfixedDelay.vhd') \
 $(shell find . -type f -name '*Csa3.vhd') \
 $(shell find . -type f -name '*Add3.vhd') \
+$(shell find . -type f -name '*SfixedPreAddMultAdd.vhd') \
 $(shell find . -type f -name '*SfixedMultAdd.vhd') \
 $(shell find . -type f -name '*SfixedMult.vhd') \
 $(shell find . -type f -name '*ComplexMultAdd.vhd') \
