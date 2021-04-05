@@ -7,8 +7,8 @@
 --              dout.re <= cos
 --              dout.im <= sin
 --
---              8 cycle latency REG_IN_G = false
---              9 cycle latency REG_IN_G = true
+--              9  cycle latency REG_IN_G = false
+--              10 cycle latency REG_IN_G = true
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -55,7 +55,7 @@ end entity SinCosTaylor;
 architecture rtl of SinCosTaylor is
 
    constant LUT_LATENCY_C  : integer := 4 + ite(REG_IN_G, 1, 0);
-   constant MULT_LATENCY_C : integer := 3;
+   constant MULT_LATENCY_C : integer := 4;
    constant ADD_LATENCY_C  : integer := 1;
    constant TOT_LATENCY_C  : integer := LUT_LATENCY_C + MULT_LATENCY_C + ADD_LATENCY_C;
 
