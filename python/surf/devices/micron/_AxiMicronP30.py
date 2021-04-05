@@ -81,6 +81,28 @@ class AxiMicronP30(pr.Device):
                                        hidden=True,
                                        verify=False))
 
+            self.add(pr.RemoteVariable(name='TranSize',
+                                       offset=0x80,
+                                       base=pr.UInt,
+                                       bitSize=8,
+                                       bitOffset=0,
+                                       retryCount=tryCount,
+                                       updateNotify=False,
+                                       bulkOpEn=False,
+                                       hidden=True,
+                                       verify=False))
+
+            self.add(pr.RemoteVariable(name='BurstTran',
+                                       offset=0x84,
+                                       base=pr.UInt,
+                                       bitSize=32,
+                                       bitOffset=0,
+                                       retryCount=tryCount,
+                                       updateNotify=False,
+                                       bulkOpEn=False,
+                                       hidden=True,
+                                       verify=False))
+
             self.add(pr.RemoteVariable(name='BurstData',
                                        offset=0x400,
                                        base=pr.UInt,
@@ -319,7 +341,7 @@ class AxiMicronP30(pr.Device):
             # Set the data bus
             self.DataWrBus.set(((cmd&0xFFFF)<< 16) | 0xFF)
             # Set the address
-            self.AddrBus.set(data=addr|0x80000000)
+            self.AddrBus.set(addr|0x80000000)
             # Get the read data
             return self.DataRdBus.get()&0xFFFF
         else:

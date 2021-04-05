@@ -22,4 +22,6 @@ $ git lfs install
 
 [Support Homepage](https://confluence.slac.stanford.edu/display/ppareg/Build+System%3A+Vivado+Support)
 
+[Bug Tracking](https://jira.slac.stanford.edu/projects/ESSURF)
+
 <!--- ########################################################################################### -->

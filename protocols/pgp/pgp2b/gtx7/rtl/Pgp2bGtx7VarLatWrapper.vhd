@@ -95,9 +95,9 @@ entity Pgp2bGtx7VarLatWrapper is
       pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0);
       -- GT Pins
       gtClkP          : in  sl                     := '0';
-      gtClkN          : in  sl                     := '0';
+      gtClkN          : in  sl                     := '1';
       gtRefClk        : in  sl                     := '0';
-      gtRefClkG       : in  sl                     := '0';
+      gtRefClkBufg    : in  sl                     := '0';
       gtTxP           : out sl;
       gtTxN           : out sl;
       gtRxP           : in  sl;
@@ -148,7 +148,7 @@ begin
    end generate;
 
    REFCLK_BUF : if (USE_REFCLK_G) generate
-      stableClock <= gtRefClkG;
+      stableClock <= gtRefClkBufg;
       refClk      <= gtRefClk;
    end generate REFCLK_BUF;
 
