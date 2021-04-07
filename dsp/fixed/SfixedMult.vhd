@@ -80,7 +80,7 @@ begin
    -- RND_SIMPLE_G
    c(y'low - 1) <= '1';
 
-   comb : process( a, b, aVld, bVld, r ) is
+   comb : process( a, b, c, aVld, bVld, r ) is
       variable v : RegType;
    begin
       -- latch current value
