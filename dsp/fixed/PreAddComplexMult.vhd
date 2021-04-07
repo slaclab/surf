@@ -55,7 +55,7 @@ architecture rtl of PreAddComplexMult is
 
    constant AD_W_C         : integer := 27; -- 27 x 18 multiplier for DSP48
    constant AD_LOW_C       : integer := minimum(a.re'low, d.re'low);
-   constant AD_HIGH_C      : integer := a.re'high + 1;
+   constant AD_HIGH_C      : integer := maximum(a.re'high, d.re'high) + 1;
    constant AD_HIGH_CLIP_C : integer := minimum(AD_W_C + AD_LOW_C - 1, AD_HIGH_C);
 
    constant M_LOW_C  : integer := AD_LOW_C + b.re'low;
