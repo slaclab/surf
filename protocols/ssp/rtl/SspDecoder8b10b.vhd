@@ -40,6 +40,7 @@ entity SspDecoder8b10b is
       validOut  : out sl;
       dataOut   : out slv(15 downto 0);
       errorOut  : out sl;
+      idle      : out sl;
       sof       : out sl;
       eof       : out sl;
       eofe      : out sl;
@@ -114,6 +115,7 @@ begin
          dataOut   => dataOut,
          validOut  => validOut,
          errorOut  => errorOut,
+         idle      => idle,
          sof       => sof,
          eof       => eof,
          eofe      => eofe);
