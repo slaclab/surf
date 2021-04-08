@@ -72,6 +72,23 @@ class Lmk04832(ti.Lmk048Base):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x016E',
+            description  = 'PLL2_LD_MUX, PLL2_LD_TYPE',
+            offset       = (0x016E << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x0177',
+            description  = 'PLL1R_RST',
+            offset       = (0x0177 << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
+
+
+        self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0555',
             description  = 'SPI_LOCK',
             offset       = (0x555 << 2),
