@@ -147,6 +147,33 @@ class SspLowSpeedDecoderReg(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'MaskOffCodeErr',
+            description  = '1: Mask off codeErr (debug only) , 0: normal operation',
+            offset       = 0x81C,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MaskOffDispErr',
+            description  = '1: Mask off dsispErr (debug only) , 0: normal operation',
+            offset       = 0x81C,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MaskOffOutOfSync ',
+            description  = '1: Mask off OutOfSync (debug only) , 0: normal operation',
+            offset       = 0x81C,
+            bitSize      = 1,
+            bitOffset    = 2,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'RollOverEn',
             description  = 'Rollover enable for status counters',
             offset       = 0xFF8,
