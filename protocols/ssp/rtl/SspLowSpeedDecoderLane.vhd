@@ -63,8 +63,6 @@ architecture mapping of SspLowSpeedDecoderLane is
    signal gearboxAligned : sl;
    signal slip           : sl;
    signal validOut       : sl;
-   signal idle           : sl;
-   signal error8b10b     : sl;
 
    signal encodeValid : sl;
    signal encodeData  : slv(ENCODE_WIDTH_C-1 downto 0);
@@ -158,23 +156,23 @@ begin
             RST_ASYNC_G    => false)
          port map (
             -- Clock and Reset
-            clk       => clk,
-            rst       => reset,
+            clk            => clk,
+            rst            => reset,
             -- Encoded Input
-            validIn   => encodeValid,
-            dataIn    => encodeData,
+            validIn        => encodeValid,
+            gearboxAligned => gearboxAligned,
+            dataIn         => encodeData,
             -- Framing Output
-            validOut  => validOut,
-            dataOut   => rxData,
-            errorOut  => decodeOutOfSync,
-            idle      => idle,
-            sof       => rxSof,
-            eof       => rxEof,
-            eofe      => rxEofe,
+            validOut       => validOut,
+            dataOut        => rxData,
+            errorOut       => decodeOutOfSync,
+            sof            => rxSof,
+            eof            => rxEof,
+            eofe           => rxEofe,
             -- Decoder Monitoring
-            validDec  => decodeValid,
-            codeError => decodeCodeErr,
-            dispError => decodeDispErr);
+            validDec       => decodeValid,
+            codeError      => decodeCodeErr,
+            dispError      => decodeDispErr);
    end generate;
 
    GEN_12B14B : if (DATA_WIDTH_G = 12) generate
@@ -185,27 +183,26 @@ begin
             RST_ASYNC_G    => false)
          port map (
             -- Clock and Reset
-            clk       => clk,
-            rst       => reset,
+            clk            => clk,
+            rst            => reset,
             -- Encoded Input
-            validIn   => encodeValid,
-            dataIn    => encodeData,
+            validIn        => encodeValid,
+            gearboxAligned => gearboxAligned,
+            dataIn         => encodeData,
             -- Framing Output
-            validOut  => validOut,
-            dataOut   => rxData,
-            errorOut  => decodeOutOfSync,
-            idle      => idle,
-            sof       => rxSof,
-            eof       => rxEof,
-            eofe      => rxEofe,
+            validOut       => validOut,
+            dataOut        => rxData,
+            errorOut       => decodeOutOfSync,
+            sof            => rxSof,
+            eof            => rxEof,
+            eofe           => rxEofe,
             -- Decoder Monitoring
-            validDec  => decodeValid,
-            codeError => decodeCodeErr,
-            dispError => decodeDispErr);
+            validDec       => decodeValid,
+            codeError      => decodeCodeErr,
+            dispError      => decodeDispErr);
    end generate;
 
    GEN_16B20B : if (DATA_WIDTH_G = 16) generate
-
       U_Decoder : entity surf.SspDecoder8b10b
          generic map (
             TPD_G          => TPD_G,
@@ -213,26 +210,23 @@ begin
             RST_ASYNC_G    => false)
          port map (
             -- Clock and Reset
-            clk       => clk,
-            rst       => reset,
+            clk            => clk,
+            rst            => reset,
             -- Encoded Input
-            validIn   => encodeValid,
-            dataIn    => encodeData,
+            validIn        => encodeValid,
+            gearboxAligned => gearboxAligned,
+            dataIn         => encodeData,
             -- Framing Output
-            validOut  => validOut,
-            dataOut   => rxData,
-            errorOut  => error8b10b,
-            idle      => idle,
-            sof       => rxSof,
-            eof       => rxEof,
-            eofe      => rxEofe,
+            validOut       => validOut,
+            dataOut        => rxData,
+            errorOut       => decodeOutOfSync,
+            sof            => rxSof,
+            eof            => rxEof,
+            eofe           => rxEofe,
             -- Decoder Monitoring
-            validDec  => decodeValid,
-            codeError => decodeCodeErr,
-            dispError => decodeDispErr);
-
-      decodeOutOfSync <= not(idle) when(gearboxAligned = '0') else error8b10b;
-
+            validDec       => decodeValid,
+            codeError      => decodeCodeErr,
+            dispError      => decodeDispErr);
    end generate;
 
    rxValid <= validOut and gearboxAligned;

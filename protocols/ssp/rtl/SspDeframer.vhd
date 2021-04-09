@@ -39,22 +39,23 @@ entity SspDeframer is
       SSP_EOF_K_G          : slv);
    port (
       -- Clock and Reset
-      clk       : in  sl;
-      rst       : in  sl := RST_POLARITY_G;
+      clk            : in  sl;
+      rst            : in  sl := RST_POLARITY_G;
       -- Input Interface
-      dataKIn   : in  slv(K_SIZE_G-1 downto 0);
-      dataIn    : in  slv(WORD_SIZE_G-1 downto 0);
-      validIn   : in  sl;
-      decErrIn  : in  sl := '0';
-      dispErrIn : in  sl := '0';        -- Unused
+      dataKIn        : in  slv(K_SIZE_G-1 downto 0);
+      dataIn         : in  slv(WORD_SIZE_G-1 downto 0);
+      validIn        : in  sl;
+      decErrIn       : in  sl := '0';
+      dispErrIn      : in  sl := '0';   -- Unused
+      gearboxAligned : in  sl := '1';
       -- Output Interface
-      dataOut   : out slv(WORD_SIZE_G-1 downto 0);
-      validOut  : out sl;
-      errorOut  : out sl;
-      idle      : out sl;
-      sof       : out sl;
-      eof       : out sl;
-      eofe      : out sl);
+      dataOut        : out slv(WORD_SIZE_G-1 downto 0);
+      validOut       : out sl;
+      errorOut       : out sl;
+      idle           : out sl;
+      sof            : out sl;
+      eof            : out sl;
+      eofe           : out sl);
 end entity SspDeframer;
 
 architecture rtl of SspDeframer is
@@ -103,7 +104,7 @@ architecture rtl of SspDeframer is
 
 begin
 
-   comb : process (dataIn, dataKin, decErrIn, r, rst, validIn) is
+   comb : process (dataIn, dataKIn, decErrIn, gearboxAligned, r, rst, validIn) is
       variable v : RegType;
    begin
       v := r;
@@ -112,9 +113,14 @@ begin
 
       if (validIn = '1') then
 
+         if (dataKIn = SSP_IDLE_K_G) and (dataIn = SSP_IDLE_CODE_G) then
+            v.idle := '1';
+         else
+            v.idle := '0';
+         end if;
+
          if (r.state = WAIT_SOF_S) then
 
-            v.idle  := '0';
             v.iSof  := '0';
             v.iEof  := '0';
             v.iEofe := '0';
@@ -123,7 +129,6 @@ begin
 
                if (dataKIn = SSP_IDLE_K_G) and (dataIn = SSP_IDLE_CODE_G) then
                   -- Ignore idle codes
-                  v.idle      := '1';
                   v.iSof      := '0';
                   v.iEof      := '0';
                   v.iEofe     := '0';
@@ -209,6 +214,12 @@ begin
          v.eof      := v.iEof;
          v.eofe     := v.iEofe;
          v.dataOut  := r.iDataOut;
+      end if;
+
+      -- Check if the gearbox is not aligned
+      if (gearboxAligned = '0') then
+         v.validOut := '0';
+         v.state    := WAIT_SOF_S;
       end if;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
