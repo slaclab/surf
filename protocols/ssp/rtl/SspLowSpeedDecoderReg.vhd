@@ -42,6 +42,7 @@ entity SspLowSpeedDecoderReg is
       bypFirstBerDet  : out sl;
       polarity        : out slv(NUM_LANE_G-1 downto 0);
       bitOrder        : out slv(1 downto 0);
+      errorMask       : out slv(2 downto 0);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -64,6 +65,7 @@ architecture mapping of SspLowSpeedDecoderReg is
       bypFirstBerDet : sl;
       polarity       : slv(NUM_LANE_G-1 downto 0);
       bitOrder       : slv(1 downto 0);
+      errorMask      : slv(2 downto 0);
       cntRst         : sl;
       rollOverEn     : slv(STATUS_SIZE_C-1 downto 0);
       readSlave      : AxiLiteReadSlaveType;
@@ -78,6 +80,7 @@ architecture mapping of SspLowSpeedDecoderReg is
       bypFirstBerDet => '1',
       polarity       => (others => '0'),
       bitOrder       => (others => '0'),
+      errorMask      => (others => '0'),
       cntRst         => '1',
       rollOverEn     => (others => '0'),
       readSlave      => AXI_LITE_READ_SLAVE_INIT_C,
@@ -152,6 +155,7 @@ begin
       axiSlaveRegister (axilEp, x"810", 0, v.bypFirstBerDet);
       axiSlaveRegister (axilEp, x"814", 0, v.polarity);
       axiSlaveRegister (axilEp, x"818", 0, v.bitOrder);
+      axiSlaveRegister (axilEp, x"81C", 0, v.errorMask);
 
       axiSlaveRegister (axilEp, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
@@ -169,6 +173,7 @@ begin
       bypFirstBerDet <= r.bypFirstBerDet;
       polarity       <= r.polarity;
       bitOrder       <= r.bitOrder;
+      errorMask      <= r.errorMask;
 
       -- Synchronous Reset
       if (deserRst = '1') then

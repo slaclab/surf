@@ -32,22 +32,23 @@ entity SspDecoder12b14b is
       );
    port (
       -- Clock and Reset
-      clk       : in  sl;
-      rst       : in  sl := RST_POLARITY_G;
+      clk            : in  sl;
+      rst            : in  sl := RST_POLARITY_G;
       -- Encoded Input
-      validIn   : in  sl := '1';
-      dataIn    : in  slv(13 downto 0);
+      validIn        : in  sl := '1';
+      gearboxAligned : in  sl := '1';
+      dataIn         : in  slv(13 downto 0);
       -- Framing Output
-      validOut  : out sl;
-      dataOut   : out slv(11 downto 0);
-      errorOut  : out sl;
-      sof       : out sl;
-      eof       : out sl;
-      eofe      : out sl;
+      validOut       : out sl;
+      dataOut        : out slv(11 downto 0);
+      errorOut       : out sl;
+      sof            : out sl;
+      eof            : out sl;
+      eofe           : out sl;
       -- Decoder Monitoring
-      validDec  : out sl;
-      codeError : out sl;
-      dispError : out sl);
+      validDec       : out sl;
+      codeError      : out sl;
+      dispError      : out sl);
 end entity SspDecoder12b14b;
 
 architecture rtl of SspDecoder12b14b is
@@ -97,20 +98,21 @@ begin
          SSP_EOF_K_G          => "1")
       port map (
          -- Clock and Reset
-         clk       => clk,
-         rst       => rst,
+         clk            => clk,
+         rst            => rst,
          -- Input Interface
-         validIn   => validDecInt,
-         dataIn    => framedData,
-         dataKIn   => framedDataK,
-         decErrIn  => codeErrorInt,
-         dispErrIn => dispErrorInt,
+         validIn        => validDecInt,
+         dataIn         => framedData,
+         dataKIn        => framedDataK,
+         decErrIn       => codeErrorInt,
+         dispErrIn      => dispErrorInt,
+         gearboxAligned => gearboxAligned,
          -- Output Interface
-         validOut  => validOut,
-         dataOut   => dataOut,
-         errorOut  => errorOut,
-         sof       => sof,
-         eof       => eof,
-         eofe      => eofe);
+         validOut       => validOut,
+         dataOut        => dataOut,
+         errorOut       => errorOut,
+         sof            => sof,
+         eof            => eof,
+         eofe           => eofe);
 
 end architecture rtl;
