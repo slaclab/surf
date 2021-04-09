@@ -140,7 +140,6 @@ architecture rtl of Ad9681Readout is
    signal adcFramePad   : slv(1 downto 0);
    signal adcFrame      : slv8Array(1 downto 0);
    signal adcFrameSync  : slv8Array(1 downto 0);
-   signal adcDataPadOut : slv8Array(1 downto 0);
    signal adcDataPad    : slv8Array(1 downto 0);
    signal adcData       : AdcDataArray(1 downto 0);
 
@@ -245,14 +244,14 @@ begin
       -- dataDelaySet(ch) or frameDelaySet enables the primative write
       for i in 1 downto 0 loop
          for ch in 0 to NUM_CHANNELS_C-1 loop
-            axiSlaveRegister(axilEp, X"00"+toSlv(((2*i+ch)*4), 8), 0, v.delay);
-            axiSlaveRegister(axilEp, X"00"+toSlv(((2*i+ch)*4), 8), 5, v.dataDelaySet(i)(ch), '1');
+            axiSlaveRegister(axilEp, X"00"+toSlv((ch*8+i*4), 8), 0, v.delay);
+            axiWrDetect(axilEp, X"00"+toSlv((ch*8+i*4), 8),  v.dataDelaySet(i)(ch));
 
-            axiSlaveRegisterR(axilEp, X"00"+toSlv(((2*i+ch)*4), 8), 0, axilR.curDelayData(i)(ch));            
+            axiSlaveRegisterR(axilEp, X"00"+toSlv((ch*8+i*4), 8), 0, axilR.curDelayData(i)(ch));            
          end loop;
          
-         axiSlaveRegister(axilEp, X"40", 0, v.delay);
-         axiSlaveRegister(axilEp, X"40", 5, v.frameDelaySet(i), '1');
+         axiSlaveRegister(axilEp, X"40"+toSlv(i*4, 8), 0, v.delay);
+         axiWrDetect(axilEp, X"40"+toSlv(i*4, 8), v.frameDelaySet(i));
 
          axiSlaveRegisterR(axilEp, X"40", 0, axilR.curDelayFrame(i));         
       end loop;
@@ -267,7 +266,7 @@ begin
       axiSlaveRegisterR(axilEp, X"54", 16, lockedSync(1));
 
       axiSlaveRegisterR(axilEp, X"58", 0, adcFrameSync(0));
-      axiSlaveRegisterR(axilEp, X"58", 1, adcFrameSync(1));
+      axiSlaveRegisterR(axilEp, X"58", 8, adcFrameSync(1));
 
       axiSlaveRegister(axilEp, X"5C", 0, v.lockedCountRst);
 

@@ -24,9 +24,10 @@ use UNISIM.vcomponents.all;
 entity Ad9681Deserializer is
 
    generic (
-      TPD_G             : time := 1 ns;
+      TPD_G             : time    := 1 ns;
+      DEFAULT_DELAY_G   : natural := 0;
       IODELAY_GROUP_G   : string;
-      IDELAYCTRL_FREQ_G : real := 200.0);
+      IDELAYCTRL_FREQ_G : real    := 200.0);
    port (
       clkIo    : in sl;
       clkIoInv : in sl;
@@ -59,7 +60,7 @@ begin
          DELAY_SRC             => "IDATAIN",
          HIGH_PERFORMANCE_MODE => "TRUE",
          IDELAY_TYPE           => "VAR_LOAD",
-         IDELAY_VALUE          => 0,    -- Here
+         IDELAY_VALUE          => DEFAULT_DELAY_G,  -- Here
          REFCLK_FREQUENCY      => IDELAYCTRL_FREQ_G,
          SIGNAL_PATTERN        => "DATA"
          )
@@ -97,10 +98,10 @@ begin
          Q6           => oData(5),
          Q7           => oData(6),
          Q8           => oData(7),
-         SHIFTOUT1    => open,        -- Cascade connection to Slave ISERDES
-         SHIFTOUT2    => open,        -- Cascade connection to Slave ISERDES
+         SHIFTOUT1    => open,          -- Cascade connection to Slave ISERDES
+         SHIFTOUT2    => open,          -- Cascade connection to Slave ISERDES
          BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any
-                                    -- DATA_WIDTH, cascaded or not.
+         -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input
          CLK          => clkIo,         -- Fast Source Synchronous SERDES clock from BUFIO

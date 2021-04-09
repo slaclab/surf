@@ -28,6 +28,8 @@ use surf.Pgp4Pkg.all;
 entity RoguePgp4Sim is
    generic (
       TPD_G         : time                        := 1 ns;
+      SYNTH_MODE_G  : string                      := "inferred";
+      MEMORY_TYPE_G : string                      := "block";
       PORT_NUM_G    : natural range 1024 to 49151 := 9000;
       NUM_VC_G      : integer range 1 to 16       := 4;
       EN_SIDEBAND_G : boolean                     := true);
