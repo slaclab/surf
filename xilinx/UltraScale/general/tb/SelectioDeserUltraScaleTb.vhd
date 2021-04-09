@@ -116,7 +116,7 @@ begin
          clk      => clk128,
          rst      => rst128,
          validIn  => txMaster.tValid,
-         readyIn  => txMaster.tUser(SSI_EOFE_C+8),
+         readyIn  => txSlave.tReady,
          sof      => txMaster.tUser(SSI_SOF_C),
          eof      => txMaster.tLast,
          dataIn   => txMaster.tData(15 downto 0),
@@ -231,7 +231,6 @@ begin
    rxMaster.tData(15 downto 0)  <= sspData(0);
    rxMaster.tUser(SSI_SOF_C)    <= sspSof(0);
    rxMaster.tLast               <= sspEof(0);
-   rxMaster.tUser(SSI_EOFE_C+8) <= sspEofe(0);
 
    U_SsiPrbsRx : entity surf.SsiPrbsRx
       generic map (
