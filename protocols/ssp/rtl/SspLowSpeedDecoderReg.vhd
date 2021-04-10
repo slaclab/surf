@@ -35,6 +35,7 @@ entity SspLowSpeedDecoderReg is
       errorDet        : in  slv(NUM_LANE_G-1 downto 0);
       bitSlip         : in  slv(NUM_LANE_G-1 downto 0);
       locked          : in  slv(NUM_LANE_G-1 downto 0);
+      idleCode        : in  slv(NUM_LANE_G-1 downto 0);
       enUsrDlyCfg     : out sl;
       usrDlyCfg       : out slv(8 downto 0);
       minEyeWidth     : out slv(7 downto 0);
@@ -120,8 +121,8 @@ begin
          mAxiWriteMaster => writeMaster,
          mAxiWriteSlave  => writeSlave);
 
-   comb : process (deserRst, dlyConfig, r, readMaster, statusCnt, statusOut,
-                   writeMaster) is
+   comb : process (deserRst, dlyConfig, idleCode, r, readMaster, statusCnt,
+                   statusOut, writeMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -156,6 +157,8 @@ begin
       axiSlaveRegister (axilEp, x"814", 0, v.polarity);
       axiSlaveRegister (axilEp, x"818", 0, v.bitOrder);
       axiSlaveRegister (axilEp, x"81C", 0, v.errorMask);
+
+      axiSlaveRegisterR(axilEp, x"900", 0, idleCode);
 
       axiSlaveRegister (axilEp, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);

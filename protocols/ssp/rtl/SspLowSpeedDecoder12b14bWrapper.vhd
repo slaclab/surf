@@ -66,6 +66,7 @@ architecture mapping of SspLowSpeedDecoder12b14bWrapper is
    signal errorDet       : slv(NUM_LANE_G-1 downto 0);
    signal bitSlip        : slv(NUM_LANE_G-1 downto 0);
    signal locked         : slv(NUM_LANE_G-1 downto 0);
+   signal idleCode       : slv(NUM_LANE_G-1 downto 0);
 
 begin
 
@@ -99,6 +100,7 @@ begin
             errorDet       => errorDet(i),
             bitSlip        => bitSlip(i),
             locked         => locked(i),
+            idleCode       => idleCode(i),
             -- SSP Frame Output
             rxLinkUp       => rxLinkUp(i),
             rxValid        => rxValid(i),
@@ -123,6 +125,7 @@ begin
          errorDet        => errorDet,
          bitSlip         => bitSlip,
          locked          => locked,
+         idleCode        => idleCode,
          enUsrDlyCfg     => enUsrDlyCfg,
          usrDlyCfg       => usrDlyCfg,
          minEyeWidth     => minEyeWidth,
