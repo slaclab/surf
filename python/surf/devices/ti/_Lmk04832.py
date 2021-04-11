@@ -72,6 +72,14 @@ class Lmk04832(ti.Lmk048Base):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x016D',
+            description  = '',
+            offset       = (0x016D << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x016E',
             description  = 'PLL2_LD_MUX, PLL2_LD_TYPE',
             offset       = (0x016E << 2),
@@ -95,3 +103,9 @@ class Lmk04832(ti.Lmk048Base):
             bitSize      = 8,
             mode         = 'WO',
         ))
+        ###############################
+        ## Commands
+        ###############################
+        #@self.command(description='Load the CodeLoader .MAC file',value='',)
+        #def LoadCodeLoaderMacFile(arg):
+        #    print("overloaded code loader")
