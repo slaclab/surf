@@ -16,7 +16,6 @@ import ast
 class Lmk048Base(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-#        super().__init__(size = 0x1<<13, **kwargs)
 
         self.sysrefMode = 2 # 2 pulse sysref mode, 3 continuous sysref mode
 
