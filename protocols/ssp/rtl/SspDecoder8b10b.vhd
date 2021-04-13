@@ -85,8 +85,8 @@ begin
 
    idleCode  <= idleInt;
    validDec  <= validDecInt;
-   codeError <= codeErrorInt;
-   -- codeError <= (not(idleInt) or codeErrorInt) when(gearboxAligned = '0') else codeErrorInt;
+   -- codeError <= codeErrorInt;
+   codeError <= (not(idleInt) or codeErrorInt) when(gearboxAligned = '0') else codeErrorInt;
    dispError <= dispErrorInt;
 
    codeErrorInt <= uor(codeErrorVec);
