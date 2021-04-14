@@ -1,5 +1,6 @@
 var classSspDecoder10b12b_1_1rtl =
 [
+    [ "idleInt", "classSspDecoder10b12b_1_1rtl.html#a9bf7f4933e877e3b51c461ed05899702", null ],
     [ "validDecInt", "classSspDecoder10b12b_1_1rtl.html#a37a1b439834b61261b541a63512b4369", null ],
     [ "codeErrorInt", "classSspDecoder10b12b_1_1rtl.html#a2adefd3ba7fc4de6439e001024cfffbb", null ],
     [ "dispErrorInt", "classSspDecoder10b12b_1_1rtl.html#a70c3ad24a5842cd42415740e187368ad", null ],

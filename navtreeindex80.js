@@ -1,5 +1,13 @@
 var NAVTREEINDEX80 =
 {
+"classPgp2bGtp7VarLatWrapper_1_1mapping.html#afbd3bc54b66b58f3555e07bcf7429e50":[1,0,397,0,4],
+"classPgp2bGtp7VarLat_1_1mapping.html":[1,0,396,0],
+"classPgp2bGtp7VarLat_1_1mapping.html#aa0bda2b97d64a7aed7e00ff8f3a7e1ea":[1,0,396,0,0],
+"classPgp2bGtx7FixedLatTb.html":[1,0,399],
+"classPgp2bGtx7FixedLatTb.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,399,1],
+"classPgp2bGtx7FixedLatTb.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,399,2],
+"classPgp2bGtx7FixedLatTb_1_1tb.html":[1,0,399,0],
+"classPgp2bGtx7FixedLatTb_1_1tb.html#a02378b901d8d0c06a7d7708014d37625":[1,0,399,0,14],
 "classPgp2bGtx7FixedLatTb_1_1tb.html#a0539c4f65e934eaaede56ac4322b71dc":[1,0,399,0,17],
 "classPgp2bGtx7FixedLatTb_1_1tb.html#a06b735d92cd60c21942dd513aacccbf5":[1,0,399,0,20],
 "classPgp2bGtx7FixedLatTb_1_1tb.html#a08f909994746432ab001f486b0089b83":[1,0,399,0,10],
@@ -241,13 +249,5 @@ var NAVTREEINDEX80 =
 "classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a466b3f4adfe7f37acfaf2f719cd774a6":[1,0,400,0,3],
 "classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a4cb0a50e73b5e259ec4952f4b6ddced8":[1,0,400,0,4],
 "classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a51326fcc49829c7f13ac3035e27a8442":[1,0,400,0,11],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a5b2e6c9b2eb0d37c349b0e407296427d":[1,0,400,0,13],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a617e0dd82430a636dddaedb49888a9ad":[1,0,400,0,9],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a73191898b8664f136e5bcc6f2b7cd2de":[1,0,400,0,33],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a7be30d42cf9a1e2dabfbc6bc6c862ea0":[1,0,400,0,26],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a806131f85728f99dffd5ac57dce217fa":[1,0,400,0,27],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a80c7dd086f207ca2790b5c82408beead":[1,0,400,0,38],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a81bc6a671a5b5f0b96cf8dfaf603fe0b":[1,0,400,0,34],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a81bc6a671a5b5f0b96cf8dfaf603fe0b":[1,0,400,0,35],
-"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a89dfd387aaa5dc3c74cd08d663ffc8e2":[1,0,400,0,24]
+"classPgp2bGtx7FixedLatWrapper_1_1rtl.html#a5b2e6c9b2eb0d37c349b0e407296427d":[1,0,400,0,13]
 };

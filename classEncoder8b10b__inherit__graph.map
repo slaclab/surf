@@ -1,7 +1,8 @@
 <map id="Encoder8b10b" name="Encoder8b10b">
-<area shape="rect" id="node1" title=" " alt="" coords="113,5,227,32"/>
-<area shape="rect" id="node2" href="$classPgpParallelSimModel.html" title=" " alt="" coords="5,80,164,107"/>
-<area shape="rect" id="node3" href="$classSspEncoder8b10b.html" title=" " alt="" coords="188,80,325,107"/>
-<area shape="rect" id="node4" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="90,155,245,181"/>
-<area shape="rect" id="node5" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="269,155,423,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="157,5,272,32"/>
+<area shape="rect" id="node2" href="$classPgpParallelSimModel.html" title=" " alt="" coords="50,80,209,107"/>
+<area shape="rect" id="node3" href="$classSspEncoder8b10b.html" title=" " alt="" coords="233,80,370,107"/>
+<area shape="rect" id="node4" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="5,155,200,181"/>
+<area shape="rect" id="node5" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="224,155,379,181"/>
+<area shape="rect" id="node6" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="403,155,557,181"/>
 </map>

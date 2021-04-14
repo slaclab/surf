@@ -12,6 +12,8 @@ var classOutputBufferReg =
     [ "R", "classOutputBufferReg.html#a29d21962a0ef2cdc1550b1cd1be9f760", null ],
     [ "S", "classOutputBufferReg.html#ab7195094e9ff980822a8a130207ec874", null ],
     [ "T", "classOutputBufferReg.html#ae7d02c4ed08a154b2c2a1c53f0951328", null ],
+    [ "inv", "classOutputBufferReg.html#abf34d3fc462cc02bf13181d8c410791f", null ],
+    [ "dly", "classOutputBufferReg.html#a63251b0046f456829f5019094a3b0deb", null ],
     [ "O", "classOutputBufferReg.html#a6ddf5b90418a2bd43ec88a5017854c09", null ],
     [ "OB", "classOutputBufferReg.html#a44cf9ff95f0f562ca3900549a74540d9", null ],
     [ "ieee", "classOutputBufferReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],

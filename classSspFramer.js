@@ -27,8 +27,8 @@ var classSspFramer =
     [ "dataKOut", "classSspFramer.html#a3f51822b9f9bf9b103cab8957dfa3496", null ],
     [ "ieee", "classSspFramer.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classSspFramer.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "STD_LOGIC_UNSIGNED", "classSspFramer.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
-    [ "STD_LOGIC_ARITH", "classSspFramer.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
+    [ "std_logic_arith", "classSspFramer.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
+    [ "std_logic_unsigned", "classSspFramer.html#a598da929e807d58939b47499e8bc9fa8", null ],
     [ "surf", "classSspFramer.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classSspFramer.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

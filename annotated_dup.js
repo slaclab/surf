@@ -529,6 +529,7 @@ var annotated_dup =
     [ "SelectioDeserLane7Series", "classSelectioDeserLane7Series.html", "classSelectioDeserLane7Series" ],
     [ "SelectioDeserLaneUltraScale", "classSelectioDeserLaneUltraScale.html", "classSelectioDeserLaneUltraScale" ],
     [ "SelectioDeserUltraScale", "classSelectioDeserUltraScale.html", "classSelectioDeserUltraScale" ],
+    [ "SelectioDeserUltraScaleTb", "classSelectioDeserUltraScaleTb.html", "classSelectioDeserUltraScaleTb" ],
     [ "SelectIoRxGearboxAligner", "classSelectIoRxGearboxAligner.html", "classSelectIoRxGearboxAligner" ],
     [ "SemWrapper", "classSemWrapper.html", "classSemWrapper" ],
     [ "Sff8472", "classSff8472.html", "classSff8472" ],

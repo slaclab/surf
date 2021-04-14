@@ -1,7 +1,8 @@
 <map id="SspEncoder8b10b" name="SspEncoder8b10b">
-<area shape="rect" id="node1" title=" " alt="" coords="103,80,241,107"/>
-<area shape="rect" id="node4" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="5,155,160,181"/>
-<area shape="rect" id="node5" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="185,155,338,181"/>
-<area shape="rect" id="node2" href="$classSspFramer.html" title=" " alt="" coords="64,5,155,32"/>
-<area shape="rect" id="node3" href="$classEncoder8b10b.html" title=" " alt="" coords="179,5,293,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="233,80,370,107"/>
+<area shape="rect" id="node4" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="5,155,200,181"/>
+<area shape="rect" id="node5" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="224,155,379,181"/>
+<area shape="rect" id="node6" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="403,155,557,181"/>
+<area shape="rect" id="node2" href="$classSspFramer.html" title=" " alt="" coords="193,5,284,32"/>
+<area shape="rect" id="node3" href="$classEncoder8b10b.html" title=" " alt="" coords="308,5,423,32"/>
 </map>
