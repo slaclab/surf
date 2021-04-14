@@ -54,7 +54,7 @@ class Si5324(pr.Device):
         ##############################
         # Commands
         ##############################
-        @self.command(value='config/pll/PLLConfig_128Mbps.txt',description="Load the .txt from DSPLLsim",)
+        @self.command(value='',description="Load the .txt from DSPLLsim",)
         def LoadTxtFile(arg):
             # Check if non-empty argument
             if (arg != ""):
