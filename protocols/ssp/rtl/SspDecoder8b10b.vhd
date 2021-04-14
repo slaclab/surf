@@ -45,6 +45,7 @@ entity SspDecoder8b10b is
       eof            : out sl;
       eofe           : out sl;
       -- Decoder Monitoring
+      idleCode       : out sl;
       validDec       : out sl;
       codeError      : out sl;
       dispError      : out sl);
@@ -55,6 +56,7 @@ architecture rtl of SspDecoder8b10b is
    signal codeErrorVec : slv(1 downto 0);
    signal dispErrorVec : slv(1 downto 0);
 
+   signal idleInt      : sl;
    signal validDecInt  : sl;
    signal codeErrorInt : sl;
    signal dispErrorInt : sl;
@@ -81,8 +83,9 @@ begin
          codeErr  => codeErrorVec,
          dispErr  => dispErrorVec);
 
+   idleCode  <= idleInt;
    validDec  <= validDecInt;
-   codeError <= (not(idle) or codeErrorInt) when(gearboxAligned = '0') else codeErrorInt;
+   codeError <= codeErrorInt;
    dispError <= dispErrorInt;
 
    codeErrorInt <= uor(codeErrorVec);
@@ -117,7 +120,7 @@ begin
          dataOut        => dataOut,
          validOut       => validOut,
          errorOut       => errorOut,
-         idle           => idle,
+         idle           => idleInt,
          sof            => sof,
          eof            => eof,
          eofe           => eofe);

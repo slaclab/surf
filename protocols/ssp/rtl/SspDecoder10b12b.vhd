@@ -45,6 +45,7 @@ entity SspDecoder10b12b is
       eof            : out sl;
       eofe           : out sl;
       -- Decoder Monitoring
+      idleCode       : out sl;
       validDec       : out sl;
       codeError      : out sl;
       dispError      : out sl);
@@ -52,6 +53,7 @@ end entity SspDecoder10b12b;
 
 architecture rtl of SspDecoder10b12b is
 
+   signal idleInt      : sl;
    signal validDecInt  : sl;
    signal codeErrorInt : sl;
    signal dispErrorInt : sl;
@@ -77,6 +79,7 @@ begin
          codeError => codeErrorInt,
          dispError => dispErrorInt);
 
+   idleCode  <= idleInt;
    validDec  <= validDecInt;
    codeError <= codeErrorInt;
    dispError <= dispErrorInt;
@@ -110,6 +113,7 @@ begin
          dataOut        => dataOut,
          validOut       => validOut,
          errorOut       => errorOut,
+         idle           => idleInt,
          sof            => sof,
          eof            => eof,
          eofe           => eofe);
