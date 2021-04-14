@@ -42,6 +42,7 @@ entity SspLowSpeedDecoderLane is
       polarity       : in  sl;
       bitOrder       : in  slv(1 downto 0);
       errorMask      : in  slv(2 downto 0);
+      lockOnIdle     : in  sl;
       errorDet       : out sl;
       bitSlip        : out sl;
       locked         : out sl;
@@ -75,6 +76,7 @@ architecture mapping of SspLowSpeedDecoderLane is
    signal decodeCodeErr   : sl := '0';
    signal decodeDispErr   : sl := '0';
 
+   signal codeError       : sl := '0';
    signal lineCodeErr     : sl := '0';
    signal lineCodeDispErr : sl := '0';
    signal linkOutOfSync   : sl := '0';
@@ -156,9 +158,18 @@ begin
          errorDet        => errorDet,
          locked          => gearboxAligned);
 
-   lineCodeErr     <= decodeCodeErr and not(errorMask(0));
+   lineCodeErr     <= codeError and not(errorMask(0));
    lineCodeDispErr <= decodeDispErr and not(errorMask(1));
    linkOutOfSync   <= decodeOutOfSync and not(errorMask(2));
+
+   process(decodeCodeErr, gearboxAligned, idle, lockOnIdle)
+   begin
+      if (lockOnIdle = '0') or (gearboxAligned = '1') then
+         codeError <= decodeCodeErr;
+      else
+         codeError <= decodeCodeErr or not(idle);
+      end if;
+   end process;
 
    GEN_10B12B : if (DATA_WIDTH_G = 10) generate
       U_Decoder : entity surf.SspDecoder10b12b

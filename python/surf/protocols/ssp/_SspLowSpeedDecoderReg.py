@@ -182,6 +182,14 @@ class SspLowSpeedDecoderReg(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'LockOnIdleOnly',
+            description  = '1: requires only IDLE code during the lock up procedure then any any code link is locked , 0: any code for locking',
+            offset       = 0x904,
+            bitSize      = 1,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'RollOverEn',
             description  = 'Rollover enable for status counters',
             offset       = 0xFF8,
