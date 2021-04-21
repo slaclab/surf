@@ -1,8 +1,9 @@
 <map id="SimpleDualPortRamXpm" name="SimpleDualPortRamXpm">
-<area shape="rect" id="node1" title=" " alt="" coords="303,5,485,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="351,5,533,32"/>
 <area shape="rect" id="node2" href="$classAxiRam.html" title=" " alt="" coords="205,80,279,107"/>
 <area shape="rect" id="node6" href="$classRssiCore.html" title=" " alt="" coords="355,80,433,107"/>
-<area shape="rect" id="node11" href="$classSi5345.html" title=" " alt="" coords="458,80,525,107"/>
+<area shape="rect" id="node11" href="$classSi5324.html" title=" " alt="" coords="458,80,525,107"/>
+<area shape="rect" id="node12" href="$classSi5345.html" title=" " alt="" coords="549,80,615,107"/>
 <area shape="rect" id="node3" href="$classAxiRamTb.html" title=" " alt="" coords="5,155,95,181"/>
 <area shape="rect" id="node4" href="$classAxiRssiCoreTb.html" title=" " alt="" coords="119,155,235,181"/>
 <area shape="rect" id="node5" href="$classSrpV3AxiTb.html" title=" " alt="" coords="259,155,356,181"/>

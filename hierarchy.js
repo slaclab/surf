@@ -1349,6 +1349,8 @@ var hierarchy =
       [ "GigEthLvdsUltraScaleWrapper", "classGigEthLvdsUltraScaleWrapper.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
+      [ "SpiMaster", "classSpiMaster.html", null ],
       [ "RstSync", "classRstSync.html", null ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
         [ "RstSync", "classRstSync.html", null ]

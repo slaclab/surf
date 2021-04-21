@@ -12,7 +12,7 @@ var classClockManagerUltraScale =
     [ "CLKIN_PERIOD_G", "classClockManagerUltraScale.html#a8e5add9d445bcb9f9ae5cf39b8d3d61d", null ],
     [ "DIVCLK_DIVIDE_G", "classClockManagerUltraScale.html#a2f12280fbc3be1205268fe97afe2cfa5", null ],
     [ "CLKFBOUT_MULT_F_G", "classClockManagerUltraScale.html#a5f478d5b156f503387eb22f262ef27e7", null ],
-    [ "CLKFBOUT_MULT_G", "classClockManagerUltraScale.html#a0d800ac4e1ee3bfee5fc02a0e88311f6", null ],
+    [ "CLKFBOUT_MULT_G", "classClockManagerUltraScale.html#a5a46f417e7ee3b1dc7666a06f26b8d67", null ],
     [ "CLKOUT0_DIVIDE_F_G", "classClockManagerUltraScale.html#a74ae966c401adea1dbce1122f1cfb937", null ],
     [ "CLKOUT0_DIVIDE_G", "classClockManagerUltraScale.html#aaed14640de1c6cfb7cab228cd7afe5e1", null ],
     [ "CLKOUT1_DIVIDE_G", "classClockManagerUltraScale.html#a0dfb1b08086852c3345d9dfe65712c7a", null ],

@@ -537,6 +537,7 @@ var annotated_dup =
     [ "Sgmii88E1111Mdio", "classSgmii88E1111Mdio.html", "classSgmii88E1111Mdio" ],
     [ "SgmiiDp83867LvdsUltraScale", "classSgmiiDp83867LvdsUltraScale.html", "classSgmiiDp83867LvdsUltraScale" ],
     [ "SgmiiDp83867Mdio", "classSgmiiDp83867Mdio.html", "classSgmiiDp83867Mdio" ],
+    [ "Si5324", "classSi5324.html", "classSi5324" ],
     [ "Si5345", "classSi5345.html", "classSi5345" ],
     [ "SimpleDualPortRam", "classSimpleDualPortRam.html", "classSimpleDualPortRam" ],
     [ "SimpleDualPortRamAlteraMf", "classSimpleDualPortRamAlteraMf.html", "classSimpleDualPortRamAlteraMf" ],
