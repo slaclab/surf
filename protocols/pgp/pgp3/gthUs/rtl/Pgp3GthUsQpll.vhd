@@ -105,8 +105,16 @@ architecture mapping of Pgp3GthUsQpll is
       ----------------------------------------
       if (refClkFreq = 156.25E+6) or (refClkFreq = 312.5E+6) then
 
+         -- Check for 15 Gb/s rate
+         if (RATE_G = "15.46875Gbps") then
+            retVar.QPLL_CFG4        := "0000000000011011";
+            retVar.QPLL_CP          := "0111111111";
+            retVar.QPLL_FBDIV       := 99;
+            retVar.QPLL_LOCK_CFG    := "0010010111101000";
+            retVar.QPLL_LOCK_CFG_G3 := "0010010111101000";
+
          -- Check for non-10Gb/s rate
-         if (rate /= "10.3125Gbps") then
+         elsif (rate /= "10.3125Gbps") then
             retVar.QPLL_CP    := "0111111111";
             retVar.QPLL_FBDIV := 80;
          end if;
@@ -159,8 +167,8 @@ architecture mapping of Pgp3GthUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
       severity error;
 
    assert ((REFCLK_FREQ_G = 156.25E+6) or (REFCLK_FREQ_G = 185.7142855E+6) or (REFCLK_FREQ_G = 312.5E+6) or (REFCLK_FREQ_G = 371.428571E+6))
