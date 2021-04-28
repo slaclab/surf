@@ -125,6 +125,10 @@ architecture rtl of AxiLiteCrossbar is
 
 begin
 
+   assert (NUM_MASTER_SLOTS_G = MASTERS_CONFIG_G'length)
+      report "Mismatch between NUM_MASTER_SLOTS_G and MASTERS_CONFIG_G'length"
+      severity error;
+
    print(DEBUG_G, "AXI_LITE_CROSSBAR: " & LF &
          "NUM_SLAVE_SLOTS_G: " & integer'image(NUM_SLAVE_SLOTS_G) & LF &
          "NUM_MASTER_SLOTS_G: " & integer'image(NUM_MASTER_SLOTS_G) & LF &
