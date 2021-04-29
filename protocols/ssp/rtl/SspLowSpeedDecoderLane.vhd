@@ -42,9 +42,11 @@ entity SspLowSpeedDecoderLane is
       polarity       : in  sl;
       bitOrder       : in  slv(1 downto 0);
       errorMask      : in  slv(2 downto 0);
+      lockOnIdle     : in  sl;
       errorDet       : out sl;
       bitSlip        : out sl;
       locked         : out sl;
+      idleCode       : out sl;
       -- SSP Frame Output
       rxLinkUp       : out sl;
       rxValid        : out sl;
@@ -58,24 +60,26 @@ architecture mapping of SspLowSpeedDecoderLane is
 
    constant ENCODE_WIDTH_C : positive := ite(DATA_WIDTH_G = 16, 20, DATA_WIDTH_G+2);
 
-   signal deserDataMask : slv(7 downto 0);
+   signal deserDataMask : slv(7 downto 0) := (others => '0');
 
-   signal reset          : sl;
-   signal gearboxAligned : sl;
-   signal slip           : sl;
-   signal validOut       : sl;
+   signal reset          : sl := '1';
+   signal gearboxAligned : sl := '0';
+   signal slip           : sl := '0';
+   signal validOut       : sl := '0';
+   signal idle           : sl := '0';
 
-   signal encodeValid : sl;
-   signal encodeData  : slv(ENCODE_WIDTH_C-1 downto 0);
+   signal encodeValid : sl                             := '0';
+   signal encodeData  : slv(ENCODE_WIDTH_C-1 downto 0) := (others => '0');
 
-   signal decodeValid     : sl;
-   signal decodeOutOfSync : sl;
-   signal decodeCodeErr   : sl;
-   signal decodeDispErr   : sl;
+   signal decodeValid     : sl := '0';
+   signal decodeOutOfSync : sl := '0';
+   signal decodeCodeErr   : sl := '0';
+   signal decodeDispErr   : sl := '0';
 
-   signal lineCodeErr     : sl;
-   signal lineCodeDispErr : sl;
-   signal linkOutOfSync   : sl;
+   signal codeError       : sl := '0';
+   signal lineCodeErr     : sl := '0';
+   signal lineCodeDispErr : sl := '0';
+   signal linkOutOfSync   : sl := '0';
 
 begin
 
@@ -89,6 +93,7 @@ begin
          bitSlip  <= slip;
          rxLinkUp <= gearboxAligned after TPD_G;
          locked   <= gearboxAligned after TPD_G;
+         idleCode <= idle           after TPD_G;
       end if;
    end process;
 
@@ -153,9 +158,18 @@ begin
          errorDet        => errorDet,
          locked          => gearboxAligned);
 
-   lineCodeErr     <= decodeCodeErr and not(errorMask(0));
+   lineCodeErr     <= codeError and not(errorMask(0));
    lineCodeDispErr <= decodeDispErr and not(errorMask(1));
    linkOutOfSync   <= decodeOutOfSync and not(errorMask(2));
+
+   process(decodeCodeErr, gearboxAligned, idle, lockOnIdle)
+   begin
+      if (lockOnIdle = '0') or (gearboxAligned = '1') then
+         codeError <= decodeCodeErr;
+      else
+         codeError <= decodeCodeErr or not(idle);
+      end if;
+   end process;
 
    GEN_10B12B : if (DATA_WIDTH_G = 10) generate
       U_Decoder : entity surf.SspDecoder10b12b
@@ -179,6 +193,7 @@ begin
             eof            => rxEof,
             eofe           => rxEofe,
             -- Decoder Monitoring
+            idleCode       => idle,
             validDec       => decodeValid,
             codeError      => decodeCodeErr,
             dispError      => decodeDispErr);
@@ -206,6 +221,7 @@ begin
             eof            => rxEof,
             eofe           => rxEofe,
             -- Decoder Monitoring
+            idleCode       => idle,
             validDec       => decodeValid,
             codeError      => decodeCodeErr,
             dispError      => decodeDispErr);
@@ -233,6 +249,7 @@ begin
             eof            => rxEof,
             eofe           => rxEofe,
             -- Decoder Monitoring
+            idleCode       => idle,
             validDec       => decodeValid,
             codeError      => decodeCodeErr,
             dispError      => decodeDispErr);
