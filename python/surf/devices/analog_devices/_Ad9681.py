@@ -17,6 +17,7 @@ import pyrogue as pr
 import rogue.interfaces.memory as rim
 import math
 
+
 class Ad9681Config(pr.Device):
     def __init__(self,
                  description = 'Configure one side of an AD9249 ADC',
@@ -317,11 +318,17 @@ class Ad9681Config(pr.Device):
                 0b10: '12 bits',
             },
         ))
-
+        
+        def nonBlockingTouchZero(cmd, arg):
+            print(f'Sending nonblocking touch zero command for {cmd.path}')
+            cmd._set(0, -1)
+            pr.startTransaction(cmd._block, type=rim.Write, forceWr=True, checkEach=False, variable=cmd, index=-1)
+            
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
             offset=0x3FC,
-            function=pr.BaseCommand.touchZero,
+            function=nonBlockingTouchZero
+#            function=pr.BaseCommand.touchZero,
         ))
 
     def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
@@ -448,6 +455,12 @@ class Ad9681Readout(pr.Device):
             bitOffset   = 0,
         ))
 
+        def queuedTouch(cmd, arg):
+            print(f'Queueing command {cmd.path}({arg})')
+            cmd._set(arg, -1)
+            pr.startTransaction(cmd._block, type=rim.Write, forceWr=True, checkEach=False, variable=cmd, index=-1)
+
+        
         self.add(pr.RemoteCommand(
             name='FreezeDebug',
             description='Freeze all of the AdcChannel registers',
@@ -456,7 +469,8 @@ class Ad9681Readout(pr.Device):
             bitSize=1,
             bitOffset=0,
             base=pr.UInt,
-            function=pr.RemoteCommand.touch))
+            function= queuedTouch))
+#            function=pr.RemoteCommand.touch))
 
 
     def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
@@ -466,7 +480,7 @@ class Ad9681Readout(pr.Device):
         checkEach = checkEach or self.forceCheckEach
 
         if variable is not None:
-            freeze = isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
+            freeze = variable.name.startswith('AdcChannel')
             if freeze:
                 self.FreezeDebug(1)
             pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
