@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -25,9 +24,9 @@ use surf.SsiPkg.all;
 entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
-      AXIL_RESP_C     : boolean := false;
-      AXIL_ADDR_MSB_C : boolean := false;   -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
-      AXIL_ADDR_SEL_C : boolean := false);
+      AXIL_RESP_G     : boolean := false;
+      AXIL_ADDR_MSB_G : boolean := false;   -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_ADDR_SEL_G : boolean := false);
    port (
       -- Master AXI-Lite Interface
       mAxilWriteMaster : out AxiLiteWriteMasterType;
@@ -98,28 +97,28 @@ architecture mapping of MicroblazeBasicCoreWrapper is
 begin
 
    -- Address space = [0x00000000:0x7FFFFFFF]
-   LOWER_2GB : if (AXIL_ADDR_MSB_C = false) and (AXIL_ADDR_SEL_C = false) generate
+   LOWER_2GB : if (AXIL_ADDR_MSB_G = false) and (AXIL_ADDR_SEL_G = false) generate
       mAxilWriteMaster.awaddr <= '0' & awaddr(30 downto 0);
       mAxilReadMaster.araddr  <= '0' & araddr(30 downto 0);
    end generate;
 
    -- Address space = [0x80000000:0xFFFFFFFF]
-   HIGH_2GB : if (AXIL_ADDR_MSB_C = true) and (AXIL_ADDR_SEL_C = false) generate
+   HIGH_2GB : if (AXIL_ADDR_MSB_G = true) and (AXIL_ADDR_SEL_G = false) generate
       mAxilWriteMaster.awaddr <= '1' & awaddr(30 downto 0);
       mAxilReadMaster.araddr  <= '1' & araddr(30 downto 0);
    end generate;
-   
-   SEL_ADDR : if (AXIL_ADDR_SEL_C = true) generate
+
+   SEL_ADDR : if (AXIL_ADDR_SEL_G = true) generate
       mAxilWriteMaster.awaddr <= addr_sel & awaddr(30 downto 0);
       mAxilReadMaster.araddr  <= addr_sel & araddr(30 downto 0);
    end generate;
 
-   BYPASS_RESP : if (AXIL_RESP_C = false) generate
+   BYPASS_RESP : if (AXIL_RESP_G = false) generate
       bresp <= AXI_RESP_OK_C;
       rresp <= AXI_RESP_OK_C;
    end generate;
 
-   USE_RESP : if (AXIL_RESP_C = true) generate
+   USE_RESP : if (AXIL_RESP_G = true) generate
       bresp <= mAxilWriteSlave.bresp;
       rresp <= mAxilReadSlave.rresp;
    end generate;
