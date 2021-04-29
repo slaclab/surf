@@ -27,7 +27,7 @@ if { [info exists ::env(SDK_SRC_PATH)] != 1 }  {
       } elseif { $::env(VIVADO_VERSION) <= 2018.2 } {
          loadBlockDesign -path "$::DIR_PATH/bd/2017.3/MicroblazeBasicCore.bd"
       } else {
-         loadBlockDesign -path "$::DIR_PATH/bd/2018.3/MicroblazeBasicCore.bd"
+         loadBlockDesign -path "$::DIR_PATH/bd/2020.1/MicroblazeBasicCore.bd"
       }
    }
 
