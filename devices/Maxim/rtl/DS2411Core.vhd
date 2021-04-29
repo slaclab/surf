@@ -37,6 +37,8 @@ entity DS2411Core is
       rst       : in    sl;
       -- ID Prom Signals
       fdSerSdio : inout sl;
+      -- output hookup of the fdSerSdio (optional)
+      fdSerDin  : out   sl;
       -- Serial Number
       fdValue   : out   slv(63 downto 0);
       fdValid   : out   sl);
@@ -56,7 +58,7 @@ architecture rtl of DS2411Core is
 
    signal setOutLow,
       fdValidSet,
-      fdSerDin,
+      iFdSerDin,
       bitSet,
       bitCntEn : sl := '0';
    signal bitCntRst,
@@ -83,12 +85,13 @@ begin
       FD_SER_SDIO_BUFT : IOBUF
          port map (
             I  => '0',
-            O  => fdSerDin,
+            O  => iFdSerDin,
             IO => fdSerSdio,
             T  => setOutLowInv);
 
 --      fdSerSdio <= '0' when(setOutLow = '1') else 'Z';
---      fdSerDin  <= fdSerSdio;
+--      iFdSerDin  <= fdSerSdio;
+      fdSerDin <= iFdSerDin;
 
       -- Sync state logic
       process (clk, rst)
@@ -108,7 +111,7 @@ begin
 
             -- Bit Set Of Received Data
             if bitSet = '1' then
-               fdSerial(conv_integer(bitCnt)) <= fdSerDin after TPD_G;
+               fdSerial(conv_integer(bitCnt)) <= iFdSerDin after TPD_G;
             end if;
 
             -- Bit Counter
