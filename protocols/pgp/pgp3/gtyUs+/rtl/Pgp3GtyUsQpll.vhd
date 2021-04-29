@@ -52,12 +52,21 @@ end Pgp3GtyUsQpll;
 
 architecture mapping of Pgp3GtyUsQpll is
 
-   constant QPLL_CFG2_C     : slv(15 downto 0) := ite((RATE_G = "10.3125Gbps"), b"0000111111000000", b"0000111111000011");
-   constant QPLL_CP_G3_C    : slv(9 downto 0)  := ite((RATE_G = "3.125Gbps"), b"0001111111", b"0000001111");
-   constant QPLL_FBDIV_C    : positive         := ite((RATE_G = "6.25Gbps"), 80, 66);
-   constant QPLL_FBDIV_G3_C : positive         := ite((RATE_G = "3.125Gbps"), 80, 160);
-   constant QPLL_LPF_C      : slv(9 downto 0)  := ite((RATE_G = "10.3125Gbps"), b"1000111111", b"1000011111");
-   constant QPLL_LPF_G3_C   : slv(9 downto 0)  := ite((RATE_G = "3.125Gbps"), b"0111010100", b"0111010101");
+   constant QPLL_CFG2_C : slv(15 downto 0) :=
+      ite((RATE_G = "10.3125Gbps"), b"0000111111000000",
+          ite((RATE_G = "15.46875Gbps"), b"0000111111000001",
+              b"0000111111000011"));
+   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0001111111", b"0000001111");
+   constant QPLL_FBDIV_C : positive :=
+      ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps"), 80,
+          ite((RATE_G = "15.46875Gbps"), 99,
+              66));
+   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps"), 80, 160);
+   constant QPLL_LPF_C      : slv(9 downto 0) :=
+      ite((RATE_G = "10.3125Gbps"), b"1000111111",
+          ite((RATE_G = "15.46875Gbps"), b"1101111111",
+              b"1000011111"));
+   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0111010100", b"0111010101");
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -73,8 +82,8 @@ architecture mapping of Pgp3GtyUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
       severity error;
 
    GEN_VEC :

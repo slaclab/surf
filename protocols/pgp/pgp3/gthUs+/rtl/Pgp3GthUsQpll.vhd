@@ -53,8 +53,30 @@ end Pgp3GthUsQpll;
 
 architecture mapping of Pgp3GthUsQpll is
 
-   constant QPLL_CP_C    : slv(9 downto 0) := ite((RATE_G = "10.3125Gbps"), "0000011111", "0111111111");
-   constant QPLL_FBDIV_C : positive        := ite((RATE_G = "10.3125Gbps"), 66, 80);
+   constant PPF_CFG_C : slv(15 downto 0) :=
+      ite((RATE_G = "10.3125Gbps"), b"0000011000000000",
+          ite((RATE_G = "15.46875Gbps"), b"0000111100000000",
+              b"0000100000000000"));
+
+   constant QPLL_CFG2_C : slv(15 downto 0) :=
+      ite((RATE_G = "10.3125Gbps"), b"0000111111000000",
+          ite((RATE_G = "15.46875Gbps"), b"0000111111000001",
+              b"0000111111000011"));
+
+   constant QPLL_CFG4_C : slv(15 downto 0) :=
+      ite((RATE_G = "10.3125Gbps"), b"0000000000000011",
+          ite((RATE_G = "15.46875Gbps"), b"0000000001000101",
+              b"0000000000000100"));
+
+   constant QPLL_FBDIV_C : positive :=
+      ite((RATE_G = "10.3125Gbps"), 66,
+          ite((RATE_G = "15.46875Gbps"), 99,
+              80));
+
+   constant QPLL_LPF_C : slv(9 downto 0) :=
+      ite((RATE_G = "10.3125Gbps"), b"1000111111",
+          ite((RATE_G = "15.46875Gbps"), b"1101111111",
+              b"1000011111"));
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -70,8 +92,8 @@ architecture mapping of Pgp3GthUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
       severity error;
 
    GEN_VEC :
@@ -113,23 +135,24 @@ begin
          -- AXI-Lite Parameters
          EN_DRP_G           => EN_DRP_G,
          -- QPLL Configuration Parameters
-         QPLL_CFG0_G        => (others => x"321C"),
-         QPLL_CFG1_G        => (others => x"1018"),
-         QPLL_CFG1_G3_G     => (others => x"1018"),
-         QPLL_CFG2_G        => (others => x"0048"),
-         QPLL_CFG2_G3_G     => (others => x"0048"),
-         QPLL_CFG3_G        => (others => x"0120"),
-         QPLL_CFG4_G        => (others => x"0009"),
-         QPLL_CP_G          => (others => QPLL_CP_C),
-         QPLL_CP_G3_G       => (others => "1111111111"),
+         PPF_CFG_G          => (others => PPF_CFG_C),
+         QPLL_CFG0_G        => (others => b"0011001100011100"),
+         QPLL_CFG1_G        => (others => b"1101000000111000"),
+         QPLL_CFG1_G3_G     => (others => b"1101000000111000"),
+         QPLL_CFG2_G        => (others => QPLL_CFG2_C),
+         QPLL_CFG2_G3_G     => (others => QPLL_CFG2_C),
+         QPLL_CFG3_G        => (others => b"0000000100100000"),
+         QPLL_CFG4_G        => (others => QPLL_CFG4_C),
+         QPLL_CP_G          => (others => b"0011111111"),
+         QPLL_CP_G3_G       => (others => b"0000001111"),
          QPLL_FBDIV_G       => (others => QPLL_FBDIV_C),
-         QPLL_FBDIV_G3_G    => (others => 80),
-         QPLL_INIT_CFG0_G   => (others => x"02B2"),
-         QPLL_INIT_CFG1_G   => (others => x"00"),
-         QPLL_LOCK_CFG_G    => (others => x"21E8"),
-         QPLL_LOCK_CFG_G3_G => (others => x"21E8"),
-         QPLL_LPF_G         => (others => "1111111100"),
-         QPLL_LPF_G3_G      => (others => "0000010101"),
+         QPLL_FBDIV_G3_G    => (others => 160),
+         QPLL_INIT_CFG0_G   => (others => b"0000001010110010"),
+         QPLL_INIT_CFG1_G   => (others => b"00000000"),
+         QPLL_LOCK_CFG_G    => (others => b"0010010111101000"),
+         QPLL_LOCK_CFG_G3_G => (others => b"0010010111101000"),
+         QPLL_LPF_G         => (others => QPLL_LPF_C),
+         QPLL_LPF_G3_G      => (others => b"0111010101"),
          QPLL_REFCLK_DIV_G  => (others => 1),
          -- Clock Selects
          QPLL_REFCLK_SEL_G  => (others => "001"))

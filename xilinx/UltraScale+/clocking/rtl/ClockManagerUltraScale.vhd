@@ -39,7 +39,7 @@ entity ClockManagerUltraScale is
       CLKIN_PERIOD_G         : real                             := 10.0;  -- Input period in ns );
       DIVCLK_DIVIDE_G        : integer range 1 to 106           := 1;
       CLKFBOUT_MULT_F_G      : real range 1.0 to 128.0          := 1.0;
-      CLKFBOUT_MULT_G        : integer range 2 to 128           := 5;
+      CLKFBOUT_MULT_G        : integer range 1 to 19            := 5;
       CLKOUT0_DIVIDE_F_G     : real range 1.0 to 128.0          := 1.0;
       CLKOUT0_DIVIDE_G       : integer range 1 to 128           := 1;
       CLKOUT1_DIVIDE_G       : integer range 1 to 128           := 1;
