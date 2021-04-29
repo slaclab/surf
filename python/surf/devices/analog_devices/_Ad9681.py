@@ -334,8 +334,8 @@ class Ad9681Config(pr.Device):
     def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
         pr.Device.writeBlocks(self, force=force, recurse=True, variable=variable, checkEach=checkEach, index=index)
         self.DeviceUpdate()
-        
-        
+
+
 
 
 class Ad9681Readout(pr.Device):
