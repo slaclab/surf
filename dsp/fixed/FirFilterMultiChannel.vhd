@@ -253,7 +253,7 @@ begin
          for j in PARALLEL_G-1 downto 0 loop
 
             -- Truncating the LSBs
-            v.mAxisMaster.tData(j*WIDTH_G+WIDTH_G-1 downto j*WIDTH_G) := cascout(TAP_SIZE_G-1, j)(2*WIDTH_G-1 downto WIDTH_G);
+            v.mAxisMaster.tData(j*WIDTH_G+WIDTH_G-1 downto j*WIDTH_G) := cascout(TAP_SIZE_G-1, j)(2*WIDTH_G-2 downto WIDTH_G-1);
 
          end loop;
 
