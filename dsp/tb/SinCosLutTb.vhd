@@ -24,10 +24,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.ComplexFixedPkg.all;
 
-entity SinCosLut_tb is
-end entity SinCosLut_tb;
+entity SinCosLutTb is
+end entity SinCosLutTb;
 
-architecture test of SinCosLut_tb is
+architecture test of SinCosLutTb is
 
    constant PHASE_WIDTH_C : integer := 18;
 

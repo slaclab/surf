@@ -41,7 +41,7 @@ use surf.ComplexFixedPkg.all;
 --
 -- Defaults to wrap and trucnated output for size(y)
 
-entity complexMultAdd is
+entity cfixedMultAdd is
    generic (
       TPD_G                : time                      := 1 ns;
       REG_OUT_G            : boolean                   := false;
@@ -62,9 +62,9 @@ entity complexMultAdd is
       --acout : out cfixed;
       y    : out cfixed;
       yVld : out sl);
-end entity complexMultAdd;
+end entity cfixedMultAdd;
 
-architecture rtl of complexMultAdd is
+architecture rtl of cfixedMultAdd is
 
    constant DELAY_C  : natural := 4 + ite(REG_OUT_G, 1, 0);
 
@@ -138,7 +138,7 @@ begin
       end loop;
 
 
-      -- Real part of complexMultAdd
+      -- Real part of cfixedMultAdd
       v.m_ii := r.areg(0).im * r.breg(0).im;
       v.p_ii := resize(r.m_ii - v.creg(CIN_REG_G).re, r.p_ii, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
       v.m_rr := r.areg(1).re * r.breg(1).re;
@@ -148,7 +148,7 @@ begin
          v.p_rr := resize(r.m_rr - r.p_ii, r.p_rr, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
       end if;
 
-      -- Imag part of complexMultAdd
+      -- Imag part of cfixedMultAdd
       v.m_ir := r.areg(0).im * r.breg(0).re;
       v.p_ir := resize(r.m_ir + v.creg(CIN_REG_G).im, r.p_ir, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
       v.m_ri := r.areg(1).re * r.breg(1).im;

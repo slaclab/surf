@@ -20,10 +20,10 @@ use ieee.fixed_pkg.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity FirAverage_tb is
-end entity FirAverage_tb;
+entity FirAverageTb is
+end entity FirAverageTb;
 
-architecture test of FirAverage_tb is
+architecture test of FirAverageTb is
 
    constant TPD_C        : time    := 1 ns;
    constant CLK_PERIOD_C : time    := 10 ns;

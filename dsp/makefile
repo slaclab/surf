@@ -30,27 +30,28 @@ $(shell find $(SURF_DIR) -type f -name '*Csa3.vhd') \
 $(shell find $(SURF_DIR) -type f -name '*Add3.vhd') \
 $(shell find $(SURF_DIR) -type f -name '*SfixedMultAdd.vhd') \
 $(shell find $(SURF_DIR) -type f -name '*SfixedMult.vhd') \
-$(shell find $(SURF_DIR) -type f -name '*ComplexMultAdd.vhd') \
-$(shell find $(SURF_DIR) -type f -name '*ComplexMult.vhd') \
+$(shell find $(SURF_DIR) -type f -name '*CfixedMultAdd.vhd') \
+$(shell find $(SURF_DIR) -type f -name '*CfixedMult.vhd') \
+$(shell find $(SURF_DIR) -type f -name '*CfixedPreAddMult.vhd') \
 $(shell find $(SURF_DIR) -type f -name '*IirSimple.vhd') \
 $(shell find $(SURF_DIR) -type f -name '*FirAverage.vhd') \
 $(shell find $(SURF_DIR) -type f -name '*SinCosLut.vhd') \
 $(shell find $(SURF_DIR) -type f -name '*SinCosTaylor.vhd')
 
 
-dsp_tbs = PreAddComplexMult_tb \
-ComplexMultAdd_tb \
-IirSimple_tb \
-FirAverage_tb \
-SinCosLut_tb \
+dspTbs = CfixedPreAddMultTb \
+CfixedMultAddTb \
+IirSimpleTb \
+FirAverageTb \
+SinCosLutTb \
 
 
-$(dsp_tbs): %: $(surf_files)
+$(dspTbs): %: $(surf_files)
 	$(GHDL) -c $(GHDLFLAGS) $(surf_files) $(TBDIR)/$@.vhd -e $@
 
-test: $(dsp_tbs)
+test: $(dspTbs)
 
 _clean:
-	rm -f *.o *.cf *_tb $(all)
+	rm -f *.o *.cf *Tb $(all)
 
 clean: _clean

@@ -39,7 +39,7 @@ use surf.ComplexFixedPkg.all;
 --
 -- Defaults to wrap and trucnated output for size(y)
 
-entity complexMult is
+entity cfixedMult is
    generic (
       TPD_G                : time                      := 1 ns;
       SWAP_INP_A_G         : boolean                   := false;
@@ -58,9 +58,9 @@ entity complexMult is
       bVld : in  sl := '0';
       y    : out cfixed;
       yVld : out sl);
-end entity complexMult;
+end entity cfixedMult;
 
-architecture rtl of complexMult is
+architecture rtl of cfixedMult is
 
    constant C_HIGH_BIT_C : integer := a.re'high + b.re'high + 1;
    constant C_LOW_BIT_C  : integer := a.re'low  + b.re'low;
@@ -84,7 +84,7 @@ begin
       c.im(y.im'low - 1) <= '1';
    end generate GEN_RND_SIMPLE;
 
-   U_MULT_ADD : entity surf.ComplexMultAdd
+   U_MULT_ADD : entity surf.CfixedMultAdd
       generic map (
          TPD_G                => TPD_G, 
          REG_OUT_G            => REG_OUT_G,

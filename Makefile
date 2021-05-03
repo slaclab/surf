@@ -44,8 +44,9 @@ $(shell find . -type f -name '*Add3.vhd') \
 $(shell find . -type f -name '*SfixedPreAddMultAdd.vhd') \
 $(shell find . -type f -name '*SfixedMultAdd.vhd') \
 $(shell find . -type f -name '*SfixedMult.vhd') \
-$(shell find . -type f -name '*ComplexMultAdd.vhd') \
-$(shell find . -type f -name '*ComplexMult.vhd') \
+$(shell find . -type f -name '*CfixedPreAddMult.vhd') \
+$(shell find . -type f -name '*CfixedMultAdd.vhd') \
+$(shell find . -type f -name '*CfixedMult.vhd') \
 $(shell find . -type f -name '*IirSimple.vhd') \
 $(shell find . -type f -name '*FirAverage.vhd') \
 $(shell find . -type f -name '*SinCosLut.vhd') \

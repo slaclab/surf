@@ -25,7 +25,7 @@ use surf.ComplexFixedPkg.all;
 --  pre add complex multiply (A + D) * B
 --  inferres 4 DSP slices when using REG_IN_G = ture, delay is 5
 
-entity PreAddComplexMult is
+entity CfixedPreAddMult is
    generic (
       TPD_G            : time                 := 1 ns;
       REG_IN_G         : boolean              := true;
@@ -45,9 +45,9 @@ entity PreAddComplexMult is
       bVld   : in  sl := '0';
       y      : out cfixed;
       yVld   : out sl);
-end PreAddComplexMult;
+end CfixedPreAddMult;
 
-architecture rtl of PreAddComplexMult is
+architecture rtl of CfixedPreAddMult is
 
    constant DELAY_C        : integer := 4 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
 

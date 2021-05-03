@@ -20,10 +20,10 @@ use ieee.fixed_pkg.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity IirSimple_tb is
-end entity IirSimple_tb;
+entity IirSimpleTb is
+end entity IirSimpleTb;
 
-architecture test of IirSimple_tb is
+architecture test of IirSimpleTb is
 
    constant TPD_C        : time    := 1 ns;
    constant CLK_PERIOD_C : time    := 10 ns;

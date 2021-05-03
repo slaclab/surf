@@ -20,10 +20,10 @@ use ieee.fixed_pkg.all;
 library surf;
 use surf.ComplexFixedPkg.all;
 
-entity complexMultAdd_tb is
-end entity complexMultAdd_tb;
+entity CfixedMultAddTb is
+end entity CfixedMultAddTb;
 
-architecture test of complexMultAdd_tb is
+architecture test of CfixedMultAddTb is
 
    constant CLK_PERIOD_C : time    := 10 ns;
    constant ERROR_TOL_C  : real    := 0.0001;
@@ -132,7 +132,7 @@ begin
       end if;
    end process p_cnt;
 
-   U_DUT : entity work.complexMultAdd
+   U_DUT : entity work.cfixedMultAdd
       generic map (
          CIN_REG_G => 2)
       port map (

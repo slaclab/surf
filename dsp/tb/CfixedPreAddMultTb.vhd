@@ -21,10 +21,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.ComplexFixedPkg.all;
 
-entity preAddComplexMult_tb is
-end entity preAddComplexMult_tb;
+entity CfixedPreAddMultTb is
+end entity CfixedPreAddMultTb;
 
-architecture test of preAddComplexMult_tb is
+architecture test of CfixedPreAddMultTb is
 
    constant CLK_PERIOD_C  : time    := 10 ns;
    constant ERROR_TOL_C   : real    := 0.0001;
@@ -142,7 +142,7 @@ begin
       end if;
    end process p_cnt;
 
-   U_DUT : entity work.preAddComplexMult
+   U_DUT : entity work.CfixedPreAddMult
       generic map (
          REG_IN_G  => true,
          REG_OUT_G => false)

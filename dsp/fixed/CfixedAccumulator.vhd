@@ -22,7 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.ComplexFixedPkg.all;
 
-entity ComplexAccumulator is
+entity CfixedAccumulator is
    generic (
       TPD_G         : time    := 1 ns;
       XIL_DEVICE_G  : string  := "ULTRASCALE_PLUS";
@@ -41,13 +41,13 @@ entity ComplexAccumulator is
       validOut  : out sl;
       userOut   : out slv(USER_WIDTH_G - 1 downto 0);
       dout      : out cfixed);
-end entity ComplexAccumulator;
+end entity CfixedAccumulator;
 
-architecture rtl of ComplexAccumulator is
+architecture rtl of CfixedAccumulator is
 
 begin
 
-   U_REAL_ACCUM : entity surf.Accumulator
+   U_REAL_ACCUM : entity surf.SfixedAccumulator
       generic map (
          TPD_G         => TPD_G,
          XIL_DEVICE_G  => XIL_DEVICE_G,

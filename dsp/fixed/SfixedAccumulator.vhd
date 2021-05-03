@@ -21,7 +21,7 @@ use ieee.fixed_float_types.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity Accumulator is
+entity SfixedAccumulator is
    generic (
       TPD_G         : time    := 1 ns;
       XIL_DEVICE_G  : string  := "ULTRASCALE_PLUS";
@@ -40,9 +40,9 @@ entity Accumulator is
       validOut  : out sl;
       userOut   : out slv(USER_WIDTH_G - 1 downto 0);
       dout      : out sfixed);
-end entity Accumulator;
+end entity SfixedAccumulator;
 
-architecture rtl of Accumulator is
+architecture rtl of SfixedAccumulator is
 
    constant TOT_LATENCY_C  : integer := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
    constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
