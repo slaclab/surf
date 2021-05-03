@@ -15,7 +15,7 @@
 
 import pyrogue as pr
 import rogue.interfaces.memory as rim
-import math
+# import math
 
 class Ad9681Config(pr.Device):
     def __init__(self,
@@ -361,7 +361,7 @@ class Ad9681Readout(pr.Device):
                     base         = pr.UInt,
                     mode         = 'RW',
                     verify       = False,
-            ))
+                ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
