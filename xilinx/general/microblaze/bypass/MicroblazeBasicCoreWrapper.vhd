@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -25,8 +24,9 @@ use surf.SsiPkg.all;
 entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
-      AXIL_RESP_C     : boolean := false;
-      AXIL_ADDR_MSB_C : boolean := false);  -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_RESP_G     : boolean := false;
+      AXIL_ADDR_MSB_G : boolean := false;   -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_ADDR_SEL_G : boolean := false);
    port (
       -- Master AXI-Lite Interface
       mAxilWriteMaster : out AxiLiteWriteMasterType;
