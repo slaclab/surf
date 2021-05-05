@@ -1,8 +1,8 @@
 var classPgpEthCoreTb_1_1testbed =
 [
     [ "PHY_AXIS", "classPgpEthCoreTb_1_1testbed.html#a0647bc4401de203db4e526e8aaa206b4", null ],
-    [ "PROCESS_148", "classPgpEthCoreTb_1_1testbed.html#a93da8bbef3e931a6319e24f69cab7452", null ],
-    [ "PROCESS_149", "classPgpEthCoreTb_1_1testbed.html#ad3ae3bd545fe7f9c250b82f90230c570", null ],
+    [ "PROCESS_149", "classPgpEthCoreTb_1_1testbed.html#a6910210e7b30972fcb805111c073fa4c", null ],
+    [ "PROCESS_150", "classPgpEthCoreTb_1_1testbed.html#a6309a8d1b01cf49186998b43412660d8", null ],
     [ "test", "classPgpEthCoreTb_1_1testbed.html#a05a671c66aefea124cc08b76ea6d30bb", null ],
     [ "TPD_G", "classPgpEthCoreTb_1_1testbed.html#ae1b9083af233edd49d7c57de1ce468f7", null ],
     [ "PRBS_SEED_SIZE_C", "classPgpEthCoreTb_1_1testbed.html#a086286520647df942c4f26a3c0df9226", null ],

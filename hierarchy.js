@@ -336,7 +336,6 @@ var hierarchy =
           ] ]
         ] ]
       ] ],
-      [ "SpiMaster", "classSpiMaster.html", null ],
       [ "AxisToJtagCore", "classAxisToJtagCore.html", [
         [ "JtagSerDesCore", "classJtagSerDesCore.html", null ]
       ] ],
@@ -819,6 +818,9 @@ var hierarchy =
       [ "Fifo", "classFifo.html", null ],
       [ "Fifo", "classFifo.html", null ],
       [ "JtagSerDesCore", "classJtagSerDesCore.html", null ],
+      [ "AxiSpiMaster", "classAxiSpiMaster.html", [
+        [ "SpiMaster", "classSpiMaster.html", null ]
+      ] ],
       [ "RstSync", "classRstSync.html", null ],
       [ "RstSync", "classRstSync.html", null ],
       [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", [

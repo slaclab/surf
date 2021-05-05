@@ -373,6 +373,7 @@ var annotated_dup =
     [ "JesdTxTest", "classJesdTxTest.html", "classJesdTxTest" ],
     [ "JtagSerDesCore", "classJtagSerDesCore.html", "classJtagSerDesCore" ],
     [ "JtagSerDesCoreTb", "classJtagSerDesCoreTb.html", "classJtagSerDesCoreTb" ],
+    [ "Lmk048Base", "classLmk048Base.html", "classLmk048Base" ],
     [ "LutRam", "classLutRam.html", "classLutRam" ],
     [ "MasterAxiIpIntegrator", "classMasterAxiIpIntegrator.html", "classMasterAxiIpIntegrator" ],
     [ "MasterAxiLiteIpIntegrator", "classMasterAxiLiteIpIntegrator.html", "classMasterAxiLiteIpIntegrator" ],

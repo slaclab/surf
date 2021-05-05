@@ -2,8 +2,9 @@ var classMicroblazeBasicCoreWrapper =
 [
     [ "MicroblazeBasicCoreWrapper.mapping", "classMicroblazeBasicCoreWrapper_1_1mapping.html", "classMicroblazeBasicCoreWrapper_1_1mapping" ],
     [ "TPD_G", "classMicroblazeBasicCoreWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "AXIL_RESP_C", "classMicroblazeBasicCoreWrapper.html#a1135186fd3e2138aa1ccdfae0ee8b240", null ],
-    [ "AXIL_ADDR_MSB_C", "classMicroblazeBasicCoreWrapper.html#a250148307488f750d037da4b30fd915f", null ],
+    [ "AXIL_RESP_G", "classMicroblazeBasicCoreWrapper.html#a181cf47a7d2caafa18cd6371b5e484b5", null ],
+    [ "AXIL_ADDR_MSB_G", "classMicroblazeBasicCoreWrapper.html#aefd129593f17a4a2dce992054bc378f2", null ],
+    [ "AXIL_ADDR_SEL_G", "classMicroblazeBasicCoreWrapper.html#aaf8354af1b2aa54017456042ebe036e0", null ],
     [ "mAxilWriteMaster", "classMicroblazeBasicCoreWrapper.html#a10ef6b8e9a94c06fcae36a87645fcf9f", null ],
     [ "mAxilWriteSlave", "classMicroblazeBasicCoreWrapper.html#afde89d75af3e29180fd91550de27927d", null ],
     [ "mAxilReadMaster", "classMicroblazeBasicCoreWrapper.html#a951cb0795e99f7e459cd3ba888623e5d", null ],

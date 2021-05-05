@@ -9,6 +9,7 @@ var classDS2411Core =
     [ "clk", "classDS2411Core.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classDS2411Core.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "fdSerSdio", "classDS2411Core.html#a4bff9e182ad92064994188baac66e104", null ],
+    [ "fdSerDin", "classDS2411Core.html#ac73cc611ace8a3f20cff859c29e10245", null ],
     [ "fdValue", "classDS2411Core.html#acf23b957d1d5667ffbd0f6357ef9fd3c", null ],
     [ "fdValid", "classDS2411Core.html#a314d696d4eb435c47c8eaf51a2b21e4b", null ],
     [ "ieee", "classDS2411Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
