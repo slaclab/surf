@@ -94,7 +94,7 @@ begin
          v.vld(0) := aVld and bVld;
          v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
          -- cVld comes in 2 c-c later
-         v.vld(3) := v.vld(3) and cVld;
+         v.vld(2) := v.vld(2) and cVld;
       else
          v.vld(0) := aVld and bVld and cVld;
          v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
