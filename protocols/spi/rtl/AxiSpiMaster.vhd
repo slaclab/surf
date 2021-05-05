@@ -40,6 +40,7 @@ entity AxiSpiMaster is
       DATA_SIZE_G       : natural  := 8;
       MODE_G            : string   := "RW";  -- Or "WO" (write only),  "RO" (read only)
       SHADOW_EN_G       : boolean  := false;
+      SHADOW_MEM_TYPE_G : string   := "block";
       CPHA_G            : sl       := '0';
       CPOL_G            : sl       := '0';
       CLK_PERIOD_G      : real     := 6.4E-9;
@@ -107,7 +108,7 @@ begin
       U_DualPortRam_1 : entity surf.DualPortRam
          generic map (
             TPD_G         => TPD_G,
-            MEMORY_TYPE_G => "distributed",
+            MEMORY_TYPE_G => SHADOW_MEM_TYPE_G,
             REG_EN_G      => false,
             DATA_WIDTH_G  => DATA_SIZE_G,
             ADDR_WIDTH_G  => ADDRESS_SIZE_G)
