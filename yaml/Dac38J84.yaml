@@ -314,11 +314,15 @@ Dac38J84: &Dac38J84
 
         # Disable and initialize JESD
         - entry:    InitJesd
-          value:    0x1E
+          value:    0xF
+        - entry:    JesdRstN
+          value:    0x0
 
         # Enable JESD
         - entry:    InitJesd
-          value:    0x01
+          value:    0x0
+        - entry:    JesdRstN
+          value:    0x1
 
         # Enable TX
         - entry:    EnableTx
