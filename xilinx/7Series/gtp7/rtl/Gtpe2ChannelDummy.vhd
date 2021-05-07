@@ -43,7 +43,7 @@ begin
 
    ----------------------------------------------------
    -- https://www.xilinx.com/support/answers/70060.html
-   ----------------------------------------------------   
+   ----------------------------------------------------
    NOT_SIM : if (SIMULATION_G = false) generate
 
       U_Gtp7QuadPll : entity surf.Gtp7QuadPll
