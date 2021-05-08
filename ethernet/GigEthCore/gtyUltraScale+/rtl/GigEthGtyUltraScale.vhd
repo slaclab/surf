@@ -138,24 +138,30 @@ begin
    ------------------
    -- Synchronization
    ------------------
-   U_AxiLiteAsync : entity surf.AxiLiteAsync
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Slave Port
-         sAxiClk         => axiLiteClk,
-         sAxiClkRst      => axiLiteRst,
-         sAxiReadMaster  => axiLiteReadMaster,
-         sAxiReadSlave   => axiLiteReadSlave,
-         sAxiWriteMaster => axiLiteWriteMaster,
-         sAxiWriteSlave  => axiLiteWriteSlave,
-         -- Master Port
-         mAxiClk         => sysClk125,
-         mAxiClkRst      => sysRst125,
-         mAxiReadMaster  => mAxiReadMaster,
-         mAxiReadSlave   => mAxiReadSlave,
-         mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);
+   GEN_REG : if (EN_AXI_REG_G = true) generate
+      U_AxiLiteAsync : entity surf.AxiLiteAsync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Slave Port
+            sAxiClk         => axiLiteClk,
+            sAxiClkRst      => axiLiteRst,
+            sAxiReadMaster  => axiLiteReadMaster,
+            sAxiReadSlave   => axiLiteReadSlave,
+            sAxiWriteMaster => axiLiteWriteMaster,
+            sAxiWriteSlave  => axiLiteWriteSlave,
+            -- Master Port
+            mAxiClk         => sysClk125,
+            mAxiClkRst      => sysRst125,
+            mAxiReadMaster  => mAxiReadMaster,
+            mAxiReadSlave   => mAxiReadSlave,
+            mAxiWriteMaster => mAxiWriteMaster,
+            mAxiWriteSlave  => mAxiWriteSlave);
+   end generate;
+   BYP_REG : if (EN_AXI_REG_G = false) generate
+      axiLiteReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiLiteWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   end generate;
 
    areset <= extRst or config.softRst or sysRst125;
 
