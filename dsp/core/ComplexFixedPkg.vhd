@@ -54,7 +54,7 @@ package ComplexFixedPkg is
    function "*" (L : sfixed;  R : cfixed) return cfixed;
 
    -- logB(3, 8) --> ceil(log3(8)) == 2
-   function logB (BASE : natural; ARG : natural; ITER : natural := 0) return natural;
+   function logB (BASE : natural; ARG : natural) return natural;
 
 
 
@@ -208,12 +208,12 @@ package body ComplexFixedPkg is
       return ret;
    end function to_sfixedArray;
 
-   function logB (BASE : natural; ARG : natural; ITER : natural := 0) return natural is
+   function logB (BASE : natural; ARG : natural) return natural is
    begin
-      if ARG < base then
-         return iter + 1;
+      if ARG <= BASE then
+         return 1;
       else
-         return logB(ARG/base, iter + 1);
+         return logB(BASE, ARG/BASE);
       end if;
    end function logB;
 
