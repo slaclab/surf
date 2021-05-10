@@ -158,7 +158,7 @@ begin
    end generate;
 
 
-  comb : process( a, b, c, sum, r ) is
+  comb : process( a, b, c, inputA, inputB, inputC, sum, r ) is
       variable v : RegType;
   begin
 
