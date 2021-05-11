@@ -69,7 +69,7 @@ class AxiVersion(pr.Device):
         ))
 
         def parseUpTime(var,read):
-            seconds=var.dependencies[0].get(read)
+            seconds=var.dependencies[0].value() #get(read=read)
             if seconds == 0xFFFFFFFF:
                 click.secho(f'Invalid {var.path} detected', fg='red')
                 return 'Invalid'
@@ -189,7 +189,7 @@ class AxiVersion(pr.Device):
             name         = 'GitHashShort',
             mode         = 'RO',
             dependencies = [self.GitHash],
-            linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):07x}',
+            linkedGet    = lambda read: f'{(self.GitHash.get(read=False) >> 132):07x}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -214,7 +214,7 @@ class AxiVersion(pr.Device):
         ))
 
         def parseBuildStamp(var,read):
-            buildStamp = var.dependencies[0].get(read)
+            buildStamp = var.dependencies[0].get(read=False)
             if buildStamp is None:
                 return ''
             else:
@@ -272,16 +272,16 @@ class AxiVersion(pr.Device):
 
     def printStatus(self):
         try:
-            gitHash = self.GitHash.get()
+            gitHash = self.GitHash.value()
             print("Path         = {}".format(self.path))
-            print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
-            print("UpTime       = {}".format(self.UpTime.get()))
+            print("FwVersion    = {}".format(hex(self.FpgaVersion.value())))
+            print("UpTime       = {}".format(self.UpTime.value()))
             if (gitHash != 0):
-                print("GitHash      = {}".format(hex(self.GitHash.get())))
+                print("GitHash      = {}".format(hex(self.GitHash.value())))
             else:
                 print("GitHash      = dirty (uncommitted code)")
-            print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
-            print("FwTarget     = {}".format(self.ImageName.get()))      # Read buildstamp here
+            print("XilinxDnaId  = {}".format(hex(self.DeviceDna.value())))
+            print("FwTarget     = {}".format(self.ImageName.value()))      # Read buildstamp here
             print("BuildEnv     = {}".format(self.BuildEnv.value()))
             print("BuildServer  = {}".format(self.BuildServer.value()))
             print("BuildDate    = {}".format(self.BuildDate.value()))
