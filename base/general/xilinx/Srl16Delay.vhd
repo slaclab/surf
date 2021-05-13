@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Shift Register Delay module for std_logic_vectors
+-- Description: SRL16 delay module - pack 2 SRL16 per slice
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -11,6 +11,7 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -31,7 +32,7 @@ entity Srl16Delay is
       clk   : in  sl;
       din   : in  slv(WIDTH_G-1 downto 0);
       dout  : out slv(WIDTH_G-1 downto 0);
-      dly_2 : in  slv(3 downto 0) := toSlv(DELAY_G-2, 4)); -- slv for DELAY-2);
+      dly_2 : in  slv(3 downto 0) := toSlv(DELAY_G-2, 4)); -- slv for DELAY-2, runtime optional
 end entity Srl16Delay;
 
 architecture rtl of Srl16Delay is
@@ -47,6 +48,7 @@ begin
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       BIT_DELAY : for i in WIDTH_G-1 downto 0 generate
+         -- https://www.element14.com/community/groups/fpga-group/blog/2018/09/04/the-art-of-fpga-design-post-9
          attribute rloc of shift_reg:label is "X0Y"&INTEGER'image(i/8);
       begin
          shift_reg: SRL16E
@@ -66,6 +68,7 @@ begin
 
    GEN_ULTRASCALE : if (XIL_DEVICE_G = "ULTRASCALE") or (XIL_DEVICE_G = "ULTRASCALE_PLUS") generate
       BIT_DELAY : for i in WIDTH_G-1 downto 0 generate
+         -- https://www.element14.com/community/groups/fpga-group/blog/2018/09/04/the-art-of-fpga-design-post-9
          attribute rloc of shift_reg:label is "X0Y"&INTEGER'image(i/16);
       begin
          shift_reg: SRL16E

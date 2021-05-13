@@ -58,6 +58,7 @@ package StdRtlPkg is
    function isPowerOf2 (number       : natural) return boolean;
    function isPowerOf2 (vector       : slv) return boolean;
    function log2 (constant number    : integer) return natural;
+   function logB (base : natural; number : natural) return natural;
    function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
    function wordCount (number : positive; wordSize : positive := 8) return natural;
@@ -753,6 +754,24 @@ package body StdRtlPkg is
       end if;
       return integer(ceil(ieee.math_real.log2(real(number))));
    end function;
+
+   ---------------------------------------------------------------------------------------------------------------------
+   -- Function: log2
+   -- Purpose: Finds the log arbirary baseof an integer
+   -- output is rounded up to nearest integer
+   --    logB(3, 8) --> ceil(log3(8)) == 2
+   -- Arg: base   - arbitrary base for log
+   --    : number - integer to find log arbitrary base of
+   -- Returns: Integer ceil(log(base, number))
+   ---------------------------------------------------------------------------------------------------------------------
+   function logB (base : natural; number : natural) return natural is
+   begin
+      if number <= base then
+         return 1;
+      else
+         return logB(base, number/base) + 1;
+      end if;
+   end function logB;
 
    -- Find number of bits needed to store a number
    function bitSize (constant number : natural ) return positive is
