@@ -1,6 +1,6 @@
-GHDL ?= ghdl
+GHDL ?= /usr/local/bin/ghdl
 GHDLFLAGS=-P/usr/local/lib/ghdl/xilinx-vivado --std=08 -frelaxed --work=surf
-CFLAGS=-O3 -Wall
+CFLAGS=-O3 -fPIE
 UNISIMDIR=/usr/local/lib/ghdl/
 
 default: test
@@ -47,7 +47,7 @@ SinCosLutTb \
 
 
 $(dspTbs): %: $(surf_files)
-	$(GHDL) -c $(GHDLFLAGS) $(surf_files) $(TBDIR)/$@.vhd -e $@
+	$(GHDL) -c $(CFLAGS) $(GHDLFLAGS) $(surf_files) $(TBDIR)/$@.vhd -e $@
 
 test: $(dspTbs)
 
