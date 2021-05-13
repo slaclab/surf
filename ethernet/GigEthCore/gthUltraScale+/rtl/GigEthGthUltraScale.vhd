@@ -24,12 +24,19 @@ use surf.GigEthPkg.all;
 
 entity GigEthGthUltraScale is
    generic (
-      TPD_G         : time                := 1 ns;
-      PAUSE_EN_G    : boolean             := true;
+      TPD_G             : time                := 1 ns;
+      -- MAC Configurations
+      INT_PIPE_STAGES_G : natural             := 1;
+      PIPE_STAGES_G     : natural             := 1;
+      FIFO_ADDR_WIDTH_G : positive            := 12;  -- single 4K UltraRAM
+      SYNTH_MODE_G      : string              := "xpm";
+      MEMORY_TYPE_G     : string              := "ultra";
+      JUMBO_G           : boolean             := true;
+      PAUSE_EN_G        : boolean             := true;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G  : boolean             := false;
+      EN_AXI_REG_G      : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -131,24 +138,30 @@ begin
    ------------------
    -- Synchronization
    ------------------
-   U_AxiLiteAsync : entity surf.AxiLiteAsync
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Slave Port
-         sAxiClk         => axiLiteClk,
-         sAxiClkRst      => axiLiteRst,
-         sAxiReadMaster  => axiLiteReadMaster,
-         sAxiReadSlave   => axiLiteReadSlave,
-         sAxiWriteMaster => axiLiteWriteMaster,
-         sAxiWriteSlave  => axiLiteWriteSlave,
-         -- Master Port
-         mAxiClk         => sysClk125,
-         mAxiClkRst      => sysRst125,
-         mAxiReadMaster  => mAxiReadMaster,
-         mAxiReadSlave   => mAxiReadSlave,
-         mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);
+   GEN_REG : if (EN_AXI_REG_G = true) generate
+      U_AxiLiteAsync : entity surf.AxiLiteAsync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Slave Port
+            sAxiClk         => axiLiteClk,
+            sAxiClkRst      => axiLiteRst,
+            sAxiReadMaster  => axiLiteReadMaster,
+            sAxiReadSlave   => axiLiteReadSlave,
+            sAxiWriteMaster => axiLiteWriteMaster,
+            sAxiWriteSlave  => axiLiteWriteSlave,
+            -- Master Port
+            mAxiClk         => sysClk125,
+            mAxiClkRst      => sysRst125,
+            mAxiReadMaster  => mAxiReadMaster,
+            mAxiReadSlave   => mAxiReadSlave,
+            mAxiWriteMaster => mAxiWriteMaster,
+            mAxiWriteSlave  => mAxiWriteSlave);
+   end generate;
+   BYP_REG : if (EN_AXI_REG_G = false) generate
+      axiLiteReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiLiteWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   end generate;
 
    areset <= extRst or config.softRst or sysRst125;
 
@@ -167,11 +180,14 @@ begin
    U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G             => TPD_G,
+         INT_PIPE_STAGES_G => INT_PIPE_STAGES_G,
+         PIPE_STAGES_G     => PIPE_STAGES_G,
+         FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G,
+         MEMORY_TYPE_G     => MEMORY_TYPE_G,
+         JUMBO_G           => JUMBO_G,
          PAUSE_EN_G        => PAUSE_EN_G,
          PAUSE_512BITS_G   => PAUSE_512BITS_C,
-         FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
-         SYNTH_MODE_G      => "xpm",
-         MEMORY_TYPE_G     => "ultra",
          PHY_TYPE_G        => "GMII",
          PRIM_CONFIG_G     => AXIS_CONFIG_G)
       port map (
