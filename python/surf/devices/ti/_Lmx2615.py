@@ -707,8 +707,14 @@ class Lmx2615(pr.Device):
 
         #######################
 
+
+        @self.command(description='Enable SPI readback',)
+        def enSpiReadback():
+            self.MUXOUT_LD_SEL.set(0x0)
+
         @self.command(description='Power Up procedure',)
         def pwrUp():
+            print('lmx pwrUp')
             # Setup for SPI readback mode
             self.MUXOUT_LD_SEL.set(0x0)
 
@@ -718,6 +724,7 @@ class Lmx2615(pr.Device):
             # Toggle the reset
             self.RESET.set(0x1)
             self.RESET.set(0x0)
+
         @self.command(description='Load the CodeLoader Hex Export file',value='',)
         def LoadCodeLoaderHexFile(arg):
             with open(arg, 'r') as ifd:
@@ -728,5 +735,8 @@ class Lmx2615(pr.Device):
                         data = int("0x" + s[2][-4:], 0)
                     else:
                         data = int("0x" + s[1][-4:], 0)
-                    print(f'writing {addr}: {data}')
+                    print(f'writing {addr:#04x}: {data:#06x}')
                     self._rawWrite( 4 * addr, data)
+            self.MUXOUT_LD_SEL.set(0x0)
+            self.readBlocks(recurse=True)
+            self.checkBlocks(recurse=True)
