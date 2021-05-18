@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -115,6 +114,23 @@ architecture rtl of AxiDualPortRam is
 
 begin
 
+   ------------------------------------------------------------
+   --       Supported RAM memory configurations
+   ------------------------------------------------------------
+   --    SYNTH_MODE_G     |    MEMORY_TYPE_G   | READ_LATENCY_G
+   ------------------------------------------------------------
+   -- "XPM" or "inferred" | "block" or "ultra" |      1 ~ 3
+   ------------------------------------------------------------
+   --       "XPM"         |  "distributed"     |      0 ~ 3
+   ------------------------------------------------------------
+   --       "inferred"    |  "distributed"     |      0 ~ 1
+   ------------------------------------------------------------
+   assert
+      (MEMORY_TYPE_G /= "distributed" and (READ_LATENCY_G >= 1 and READ_LATENCY_G      <= 3)) or
+      (SYNTH_MODE_G = "xpm" and MEMORY_TYPE_G = "distributed" and (READ_LATENCY_G      <= 3)) or
+      (SYNTH_MODE_G = "inferred" and MEMORY_TYPE_G = "distributed" and (READ_LATENCY_G <= 1))
+      report "RAM memory configuration not supported" severity failure;
+
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
       U_RAM : entity surf.TrueDualPortRamXpm
          generic map (
@@ -123,6 +139,7 @@ begin
             MEMORY_TYPE_G       => MEMORY_TYPE_G,
             MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
             MEMORY_INIT_PARAM_G => MEMORY_INIT_PARAM_G,
+            WRITE_MODE_G        => ite(MEMORY_TYPE_G = "distributed", "read_first", "no_change"),
             READ_LATENCY_G      => READ_LATENCY_G,
             DATA_WIDTH_G        => DATA_WIDTH_G,
             BYTE_WR_EN_G        => true,
