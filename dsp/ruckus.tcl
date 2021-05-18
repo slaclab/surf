@@ -2,9 +2,10 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Load Source Code
-loadSource -lib surf -dir "$::DIR_PATH/core"  -fileType "VHDL 2008"
-loadSource -lib surf -dir "$::DIR_PATH/fixed" -fileType "VHDL 2008"
-loadSource -lib surf -dir "$::DIR_PATH/logic" -fileType "VHDL 2008"
+loadSource -lib surf -dir "$::DIR_PATH/core"   -fileType "VHDL 2008"
+loadSource -lib surf -dir "$::DIR_PATH/fixed"  -fileType "VHDL 2008"
+loadSource -lib surf -dir "$::DIR_PATH/logic"  -fileType "VHDL 2008"
+loadSource -lib surf -dir "$::DIR_PATH/xilinx" -fileType "VHDL 2008"
 # loadSource -lib surf -dir "$::DIR_PATH/float" -fileType "VHDL 2008"
 
 # Load Simulation

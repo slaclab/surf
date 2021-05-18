@@ -58,6 +58,7 @@ package StdRtlPkg is
    function isPowerOf2 (number       : natural) return boolean;
    function isPowerOf2 (vector       : slv) return boolean;
    function log2 (constant number    : integer) return natural;
+   function logB (base : natural; number : natural) return natural;
    function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
    function wordCount (number : positive; wordSize : positive := 8) return natural;
@@ -109,6 +110,8 @@ package StdRtlPkg is
    function maximum (a : IntegerArray) return integer;
    function minimum (left, right : integer) return integer;
    function minimum (a : IntegerArray) return integer;
+   function sort    (a : IntegerArray) return IntegerArray;
+   function median  (a : IntegerArray) return integer;
 
    -- One line if-then-else functions. Useful for assigning constants based on generics.
    function ite(i : boolean; t : boolean; e : boolean) return boolean;
@@ -752,6 +755,24 @@ package body StdRtlPkg is
       return integer(ceil(ieee.math_real.log2(real(number))));
    end function;
 
+   ---------------------------------------------------------------------------------------------------------------------
+   -- Function: log2
+   -- Purpose: Finds the log arbirary baseof an integer
+   -- output is rounded up to nearest integer
+   --    logB(3, 8) --> ceil(log3(8)) == 2
+   -- Arg: base   - arbitrary base for log
+   --    : number - integer to find log arbitrary base of
+   -- Returns: Integer ceil(log(base, number))
+   ---------------------------------------------------------------------------------------------------------------------
+   function logB (base : natural; number : natural) return natural is
+   begin
+      if number <= base then
+         return 1;
+      else
+         return logB(base, number/base) + 1;
+      end if;
+   end function logB;
+
    -- Find number of bits needed to store a number
    function bitSize (constant number : natural ) return positive is
    begin
@@ -1192,6 +1213,38 @@ package body StdRtlPkg is
       end loop;
       return max;
    end function minimum;
+
+   -- simple insertion sort
+   function sort (
+      a : IntegerArray)
+      return IntegerArray is
+      variable sorted : IntegerArray(a'range) := a;
+      variable key : Integer;
+      variable j   : Integer;
+   begin
+      for i in (a'low + 1) to a'high loop
+         key := sorted(i);
+         j   := i - 1;
+         while ( (j >= a'low) and (sorted(j) > key) ) loop
+            sorted(j + 1) := sorted(j);
+            j := j - 1;
+         end loop;
+         sorted(j + 1) := key;
+      end loop;
+      return sorted;
+   end function sort;
+
+
+   function median (
+      a : IntegerArray)
+      return integer is
+      variable sorted : integerArray(a'range);
+      variable med    : Integer;
+   begin
+      med := (a'high + a'low) / 2;
+      sorted := sort(a);
+      return sorted(med);
+   end function median;
    -----------------------------
    -- conv_std_logic_vector functions
    -- without calling the STD_LOGIC_ARITH library
@@ -1403,7 +1456,7 @@ package body StdRtlPkg is
 
    function toBuildInfo (din : slv) return BuildInfoRetType is
       variable ret : BuildInfoRetType;
-      variable i   : natural;
+      --variable i   : natural;
    begin
       for i in 0 to 255 loop
          ret.buildString(i/4)(8*(i mod 4)+7 downto 8*(i mod 4)) := din(2047-(8*i) downto 2040-(8*i));
