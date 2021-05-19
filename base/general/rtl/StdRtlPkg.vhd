@@ -756,8 +756,8 @@ package body StdRtlPkg is
    end function;
 
    ---------------------------------------------------------------------------------------------------------------------
-   -- Function: log2
-   -- Purpose: Finds the log arbirary baseof an integer
+   -- Function: logB
+   -- Purpose: Finds the log arbitrary base of an integer
    -- output is rounded up to nearest integer
    --    logB(3, 8) --> ceil(log3(8)) == 2
    -- Arg: base   - arbitrary base for log
