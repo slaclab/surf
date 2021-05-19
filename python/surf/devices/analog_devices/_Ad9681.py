@@ -469,8 +469,7 @@ class Ad9681Readout(pr.Device):
             bitSize=1,
             bitOffset=0,
             base=pr.UInt,
-            function= queuedTouch))
-#            function=pr.RemoteCommand.touch))
+            function=pr.RemoteCommand.touch))
 
 
     def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
