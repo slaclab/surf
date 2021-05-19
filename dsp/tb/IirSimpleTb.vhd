@@ -47,7 +47,7 @@ architecture test of IirSimpleTb is
        cnt      : integer;
        passed   : sl;
        failed   : sl;
-       done     : sl;
+       halt     : sl;
        dinR     : real;
        doutR    : real;
        din      : sfixed(0 downto -15);
@@ -66,7 +66,7 @@ architecture test of IirSimpleTb is
       cnt       => 0,
       passed    => '0',
       failed    => '0',
-      done      => '0',
+      halt      => '0',
       dinR      => 0.0,
       doutR     => 0.0,
       din       => (others => '0'),
@@ -101,7 +101,7 @@ begin
          RST_START_DELAY_G => 1 ns,
          RST_HOLD_TIME_G   => 1 us)
       port map (
-         done => r.done,
+         halt => r.halt,
          clkP => clk,
          clkN => open,
          rst  => rst,
@@ -183,11 +183,11 @@ begin
             end if;
 
          when FAILED_S =>
-            v.done   := '1';
+            v.halt   := '1';
             v.failed := '1';
 
          when PASSED_S =>
-            v.done   := '1';
+            v.halt   := '1';
             v.passed := '1';
 
          when others =>
