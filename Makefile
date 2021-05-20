@@ -5,7 +5,7 @@
 
 GHDL=ghdl
 GHDL_WORKDIR=ghdl
-GHDLFLAGS= --workdir=${GHDL_WORKDIR} --work=work --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
+GHDLFLAGS= --workdir=${GHDL_WORKDIR} --work=surf --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
 GHDLRUNFLAGS=
 
 PATHS = $(shell find -type f -name '*.vhd')
@@ -36,6 +36,23 @@ $(shell find . -type f -name '*InputBufferReg.vhd') \
 $(shell find . -type f -name '*OutputBufferReg.vhd') \
 $(shell find . -type f -name '*GthUltraScaleQuadPll.vhd') \
 $(shell find . -type f -name '*MicroblazeBasicCoreWrapper.vhd') \
+$(shell find . -type f -name '*ComplexFixedPkg.vhd') \
+$(shell find . -type f -name '*SfixedDelay.vhd') \
+$(shell find . -type f -name '*CfixedDelay.vhd') \
+$(shell find . -type f -name '*Csa3.vhd') \
+$(shell find . -type f -name '*Add3.vhd') \
+$(shell find . -type f -name '*SfixedPreAddMultAdd.vhd') \
+$(shell find . -type f -name '*SfixedMultAdd.vhd') \
+$(shell find . -type f -name '*SfixedMult.vhd') \
+$(shell find . -type f -name '*CfixedPreAddMult.vhd') \
+$(shell find . -type f -name '*CfixedMultAdd.vhd') \
+$(shell find . -type f -name '*CfixedMult.vhd') \
+$(shell find . -type f -name '*IirSimple.vhd') \
+$(shell find . -type f -name '*FirAverage.vhd') \
+$(shell find . -type f -name '*SinCosLut.vhd') \
+$(shell find . -type f -name '*SinCosTaylor.vhd')
+
+
 
 FILES = $(filter-out $(EXCLUDE),$(wildcard $(PATHS)))
 
@@ -63,12 +80,14 @@ import : $(FILES)
 	@echo Importing:
 	@echo "============================================================================="
 	$(GHDL) -i $(GHDLFLAGS) $(FILES)
+	$(GHDL) -i $(GHDLFLAGS) --std=08 $(EXCLUDE)
 
 syntax: $(FILES)
 	@echo "============================================================================="
 	@echo Syntax Checking:
 	@echo "============================================================================="
 	$(GHDL) -s $(GHDLFLAGS) $(FILES)
+	$(GHDL) -s $(GHDLFLAGS) --std=08 $(EXCLUDE)
 
 makefiles: $(MAKEFILES)
 

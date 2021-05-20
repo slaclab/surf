@@ -32,7 +32,7 @@ entity SlvDelayRam is
       RST_POLARITY_G : sl        := '1';  -- '1' for active high rst, '0' for active low
       MEMORY_TYPE_G  : string    := "block";
       DO_REG_G       : boolean   := true;
-      DELAY_G        : integer range 3 to (2**24) := 1;  --max number of clock cycle delays. MAX delay stages when using
+      DELAY_G        : integer range 3 to (2**24) := 3;  --max number of clock cycle delays. MAX delay stages when using
       WIDTH_G        : positive  := 1);
    port (
       clk      : in  sl;
