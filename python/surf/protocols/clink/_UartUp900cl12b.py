@@ -17,8 +17,8 @@ import pyrogue as pr
 import surf.protocols.clink as clink
 
 class UartUp900cl12bRx(clink.ClinkSerialRx):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, path,**kwargs):
+        super().__init__(path=path,**kwargs)
 
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
@@ -29,7 +29,7 @@ class UartUp900cl12bRx(clink.ClinkSerialRx):
             # print (ba[i])
 
             if (c == '\r'):
-                print("Got Response: {}".format(''.join(self._cur)))
+                print(self._path+": Got Response: {}".format(''.join(self._cur)))
                 self._cur = []
             elif (c != '') and (ba[i] != 1):
                 self._cur.append(c)
@@ -39,10 +39,10 @@ class UartUp900cl12b(pr.Device):
         super().__init__(**kwargs)
 
         # Attach the serial devices
-        self._rx = clink.UartUp900cl12bRx()
+        self._rx = clink.UartUp900cl12bRx(self.path)
         pr.streamConnect(serial,self._rx)
 
-        self._tx = clink.ClinkSerialTx()
+        self._tx = clink.ClinkSerialTx(self.path)
         pr.streamConnect(self._tx,serial)
 
         @self.command(value='', name='SendString', description='Send a command string')
@@ -161,3 +161,8 @@ class UartUp900cl12b(pr.Device):
             value        = '',
             localSet     = lambda value: self._tx.sendString(f'bn{value}') if value!='' else ''
         ))
+
+    def _rootAttached(self,parent,root):
+        super()._rootAttached(parent,root)
+        self._rx._path = self.path
+        self._tx._path = self.path
