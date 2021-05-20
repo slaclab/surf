@@ -7,6 +7,7 @@ var classClkRst =
     [ "RST_HOLD_TIME_G", "classClkRst.html#a2815527acf44a7bffd14ddacd1dcbd4d", null ],
     [ "SYNC_RESET_G", "classClkRst.html#a48f51469ea07f48df666871415fe7657", null ],
     [ "hold", "classClkRst.html#ac16dbfd4d031007d986467a48d324a18", null ],
+    [ "halt", "classClkRst.html#ad11f22c8be083d0a65c737f402acc55d", null ],
     [ "clkP", "classClkRst.html#a3688d714027b5ec2968b61a59475f7c9", null ],
     [ "clkN", "classClkRst.html#ad7f95463d23ab7f2fd4f528971c55b79", null ],
     [ "rst", "classClkRst.html#ae203fe3202d027c6307925512c96c187", null ],

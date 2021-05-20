@@ -2,6 +2,12 @@ var classGigEthGtyUltraScale =
 [
     [ "mapping", "classGigEthGtyUltraScale_1_1mapping.html", "classGigEthGtyUltraScale_1_1mapping" ],
     [ "TPD_G", "classGigEthGtyUltraScale.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "INT_PIPE_STAGES_G", "classGigEthGtyUltraScale.html#a6fd7d952829a6fe922f0fbcf940fe472", null ],
+    [ "PIPE_STAGES_G", "classGigEthGtyUltraScale.html#a91eb8c73b60497fed4baf5855a7b980f", null ],
+    [ "FIFO_ADDR_WIDTH_G", "classGigEthGtyUltraScale.html#af963c6d05b13e5792c30d6b6e8f60894", null ],
+    [ "SYNTH_MODE_G", "classGigEthGtyUltraScale.html#a77fd95eb08d4c3e9a6a1ba7cb777d5b2", null ],
+    [ "MEMORY_TYPE_G", "classGigEthGtyUltraScale.html#a2df151e499acff7dcbecb0fedffa60cb", null ],
+    [ "JUMBO_G", "classGigEthGtyUltraScale.html#af3c2b3ea37b9a6acb725bb242dbb570a", null ],
     [ "PAUSE_EN_G", "classGigEthGtyUltraScale.html#a3523b0b120676ac086f277320024a115", null ],
     [ "EN_AXI_REG_G", "classGigEthGtyUltraScale.html#aaa0b8676b87db73331ef9162511e97fa", null ],
     [ "AXIS_CONFIG_G", "classGigEthGtyUltraScale.html#a701761914fd09b26dd95a64cd3df8bf6", null ],

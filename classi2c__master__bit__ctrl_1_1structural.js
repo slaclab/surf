@@ -2,10 +2,10 @@ var classi2c__master__bit__ctrl_1_1structural =
 [
     [ "gen_clken", "classi2c__master__bit__ctrl_1_1structural.html#ab31b44b1e1aa1f585840aca3450e1a7c", null ],
     [ "synch_scl_sda", "classi2c__master__bit__ctrl_1_1structural.html#af5a64efa33adb238d025b9256f8ca376", null ],
-    [ "PROCESS_130", "classi2c__master__bit__ctrl_1_1structural.html#a543be838cbc403967349bfc549b413e6", null ],
+    [ "PROCESS_132", "classi2c__master__bit__ctrl_1_1structural.html#ab74cd6a8fa04a1015a5ad6b6d74befa3", null ],
     [ "gen_al", "classi2c__master__bit__ctrl_1_1structural.html#a48efa78976afdc772eb091b1c74376e0", null ],
     [ "sync_scl_sda", "classi2c__master__bit__ctrl_1_1structural.html#a7d40f8c7b1742a11c418d5d3abc5b8b7", null ],
-    [ "PROCESS_131", "classi2c__master__bit__ctrl_1_1structural.html#a1883b35f1773b296fa6202afc4587fc4", null ],
+    [ "PROCESS_133", "classi2c__master__bit__ctrl_1_1structural.html#a668eaead170e34511b5432f4c24962fe", null ],
     [ "gen_ald", "classi2c__master__bit__ctrl_1_1structural.html#a2508f1e0d3a8e01c4d4ce9804252ff87", null ],
     [ "detect_sta_sto", "classi2c__master__bit__ctrl_1_1structural.html#aa4006fe0925b631ba6661b293d9ca568", null ],
     [ "gen_busy", "classi2c__master__bit__ctrl_1_1structural.html#a4d7671276fabfef89a1691e33fff91fb", null ],

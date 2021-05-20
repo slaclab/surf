@@ -1,0 +1,26 @@
+var classSinCosTaylor_1_1rtl =
+[
+    [ "seq", "classSinCosTaylor_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
+    [ "LUT_LATENCY_C", "classSinCosTaylor_1_1rtl.html#a1bd8d82c297088279800aea53b9d2681", null ],
+    [ "MULT_LATENCY_C", "classSinCosTaylor_1_1rtl.html#a8a3d024766208757165f1f828189b07a", null ],
+    [ "ADD_LATENCY_C", "classSinCosTaylor_1_1rtl.html#a9a3ab220cc3194a5391d299c8e175353", null ],
+    [ "TOT_LATENCY_C", "classSinCosTaylor_1_1rtl.html#a9971910af3b5e7d5fabd30313a250d6b", null ],
+    [ "TRUN_BITS_C", "classSinCosTaylor_1_1rtl.html#aa4ca3eab206fb9e76dddde5f97f4d013", null ],
+    [ "M_PI_C", "classSinCosTaylor_1_1rtl.html#ab8be11261dcf2cc60c495334376478f5", null ],
+    [ "phaseTrun", "classSinCosTaylor_1_1rtl.html#a2eef7cbdf67a60423c89ac80b39df3b3", null ],
+    [ "phaseRemainder", "classSinCosTaylor_1_1rtl.html#ac6630fb2c402d0c12a2ba8423d91ea3b", null ],
+    [ "phaseRad", "classSinCosTaylor_1_1rtl.html#acd2557f456bc1cd1ee875cc7339c6f71", null ],
+    [ "sinCosTrun", "classSinCosTaylor_1_1rtl.html#a9e3c802d564e4ab55438f31e0345b265", null ],
+    [ "sinCosTrunDelay", "classSinCosTaylor_1_1rtl.html#ac91f903d502ea86ab42c03519b2b25c7", null ],
+    [ "sinPiInt", "classSinCosTaylor_1_1rtl.html#a3c2898297893d7fee59abaef127545c2", null ],
+    [ "cosPiInt", "classSinCosTaylor_1_1rtl.html#ae23793ff7c995f5818ddd181bb5b9b75", null ],
+    [ "sinCosCorr", "classSinCosTaylor_1_1rtl.html#af760e21275999e90f078be7f8bccd075", null ],
+    [ "slvDelayIn", "classSinCosTaylor_1_1rtl.html#aa504c613ad3a4d74ccff6032f9585218", null ],
+    [ "slvDelayOut", "classSinCosTaylor_1_1rtl.html#a784b4e23c14639a73f914d71f4aeaf5b", null ],
+    [ "u_match_tot_delay", "classSinCosTaylor_1_1rtl.html#af84ecfa59786254271d3d60c77f07d36", null ],
+    [ "u_sin_cos_lut", "classSinCosTaylor_1_1rtl.html#ae5627a18f553417fbb4f9617f022b335", null ],
+    [ "u_match_delay", "classSinCosTaylor_1_1rtl.html#a5774a20e1a855900a97724849698d4ce", null ],
+    [ "u_mult_pi", "classSinCosTaylor_1_1rtl.html#a8eb2350be969bc517b6d5e2a8d4870ee", null ],
+    [ "u_mult_cos", "classSinCosTaylor_1_1rtl.html#a9a672dc06c19306ba7f92cd950b17a05", null ],
+    [ "u_mult_sin", "classSinCosTaylor_1_1rtl.html#ab582819e3ae4f7853913b9c2a386f01a", null ]
+];

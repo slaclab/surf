@@ -37,5 +37,11 @@ var classGigEthGthUltraScale =
     [ "AxiStreamPkg", "classGigEthGthUltraScale.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "AxiLitePkg", "classGigEthGthUltraScale.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "EthMacPkg", "classGigEthGthUltraScale.html#ac1625414338993fe184c68bfdbb48894", null ],
-    [ "GigEthPkg", "classGigEthGthUltraScale.html#a7054ae9206250afffc41f05ba746d55d", null ]
+    [ "GigEthPkg", "classGigEthGthUltraScale.html#a7054ae9206250afffc41f05ba746d55d", null ],
+    [ "INT_PIPE_STAGES_G", "classGigEthGthUltraScale.html#a6fd7d952829a6fe922f0fbcf940fe472", null ],
+    [ "PIPE_STAGES_G", "classGigEthGthUltraScale.html#a91eb8c73b60497fed4baf5855a7b980f", null ],
+    [ "FIFO_ADDR_WIDTH_G", "classGigEthGthUltraScale.html#af963c6d05b13e5792c30d6b6e8f60894", null ],
+    [ "SYNTH_MODE_G", "classGigEthGthUltraScale.html#a77fd95eb08d4c3e9a6a1ba7cb777d5b2", null ],
+    [ "MEMORY_TYPE_G", "classGigEthGthUltraScale.html#a2df151e499acff7dcbecb0fedffa60cb", null ],
+    [ "JUMBO_G", "classGigEthGthUltraScale.html#af3c2b3ea37b9a6acb725bb242dbb570a", null ]
 ];

@@ -444,6 +444,17 @@ var hierarchy =
       ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "BoxcarIntegrator", "classBoxcarIntegrator.html", null ],
+      [ "SfixedAccumulator", "classSfixedAccumulator.html", [
+        [ "SlvFixedDelay", "classSlvFixedDelay.html", [
+          [ "Srl16Delay", "classSrl16Delay.html", null ],
+          [ "LutFixedDelay", "classLutFixedDelay.html", [
+            [ "SinglePortRamPrimitive", "classSinglePortRamPrimitive.html", null ]
+          ] ]
+        ] ]
+      ] ],
+      [ "cfixedMultAdd", "classcfixedMultAdd.html", null ],
+      [ "cfixedMultAdd", "classcfixedMultAdd.html", null ],
+      [ "CfixedPreAddMult", "classCfixedPreAddMult.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "ClinkFraming", "classClinkFraming.html", [
         [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
@@ -616,6 +627,16 @@ var hierarchy =
       ] ],
       [ "RstSync", "classRstSync.html", null ],
       [ "FifoCascade", "classFifoCascade.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "FirAverage", "classFirAverage.html", [
+        [ "SlvFixedDelay", "classSlvFixedDelay.html", null ],
+        [ "sfixedDelay", "classsfixedDelay.html", [
+          [ "SlvFixedDelay", "classSlvFixedDelay.html", null ]
+        ] ],
+        [ "add3", "classadd3.html", [
+          [ "csa3", "classcsa3.html", null ]
+        ] ]
+      ] ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "FirFilterTap", "classFirFilterTap.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
@@ -766,6 +787,12 @@ var hierarchy =
         [ "I2cRegSlave", "classI2cRegSlave.html", [
           [ "I2cSlave", "classI2cSlave.html", null ]
         ] ]
+      ] ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "IirSimple", "classIirSimple.html", [
+        [ "SlvFixedDelay", "classSlvFixedDelay.html", null ],
+        [ "sfixedDelay", "classsfixedDelay.html", null ],
+        [ "add3", "classadd3.html", null ]
       ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "IpV4Engine", "classIpV4Engine.html", null ],
@@ -1353,6 +1380,16 @@ var hierarchy =
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "SinCosTaylor", "classSinCosTaylor.html", [
+        [ "SlvFixedDelay", "classSlvFixedDelay.html", null ],
+        [ "SinCosLut", "classSinCosLut.html", [
+          [ "SlvFixedDelay", "classSlvFixedDelay.html", null ]
+        ] ],
+        [ "cfixedDelay", "classcfixedDelay.html", [
+          [ "SlvFixedDelay", "classSlvFixedDelay.html", null ]
+        ] ],
+        [ "sfixedMult", "classsfixedMult.html", null ]
+      ] ],
       [ "RstSync", "classRstSync.html", null ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
         [ "RstSync", "classRstSync.html", null ]

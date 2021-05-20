@@ -1,6 +1,6 @@
 var classPgpEthCaui4Gty_1_1mapping =
 [
-    [ "PROCESS_151", "classPgpEthCaui4Gty_1_1mapping.html#a762ded7c87fe679c3dd5aca82e1df4c5", null ],
+    [ "PROCESS_153", "classPgpEthCaui4Gty_1_1mapping.html#ad3aa3e82fcec7e4af66019dc962c782b", null ],
     [ "RX_POLARITY_C", "classPgpEthCaui4Gty_1_1mapping.html#ab8e451008c18b0d6aec32766ce3d90fa", null ],
     [ "TX_POLARITY_C", "classPgpEthCaui4Gty_1_1mapping.html#a2ff8266e9fe41936afa8a44fca7800d3", null ],
     [ "TX_DIFF_CTRL_C", "classPgpEthCaui4Gty_1_1mapping.html#a833449693e6851cc59fb2ceb8afe0ad9", null ],

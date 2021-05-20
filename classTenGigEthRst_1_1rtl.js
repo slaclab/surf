@@ -1,7 +1,7 @@
 var classTenGigEthRst_1_1rtl =
 [
-    [ "PROCESS_117", "classTenGigEthRst_1_1rtl.html#a6a073a877a0f6f99d940932d7873d828", null ],
-    [ "PROCESS_118", "classTenGigEthRst_1_1rtl.html#a8e626dc639f913598a8ac65a10a9260d", null ],
+    [ "PROCESS_119", "classTenGigEthRst_1_1rtl.html#a11b4190bbc91cf87a74ca0c575843eb4", null ],
+    [ "PROCESS_120", "classTenGigEthRst_1_1rtl.html#a7adee77a8eb1c95bf4a207ecccd6d46d", null ],
     [ "txClock", "classTenGigEthRst_1_1rtl.html#a86042e114122e490418a9a041c4405d9", null ],
     [ "txReset", "classTenGigEthRst_1_1rtl.html#a9ab127485c16e288919c552436df4e98", null ],
     [ "txReady", "classTenGigEthRst_1_1rtl.html#adb452312af110b3bec3e4bb0e324cfa1", null ],

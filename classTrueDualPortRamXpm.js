@@ -7,6 +7,7 @@ var classTrueDualPortRamXpm =
     [ "MEMORY_TYPE_G", "classTrueDualPortRamXpm.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "MEMORY_INIT_FILE_G", "classTrueDualPortRamXpm.html#acb08f679e4ba93bb1157583610b6c22f", null ],
     [ "MEMORY_INIT_PARAM_G", "classTrueDualPortRamXpm.html#ae8af6b64d6e7bf1437f4089f6037439e", null ],
+    [ "WRITE_MODE_G", "classTrueDualPortRamXpm.html#a264e0dd4c0d1d1e6208e01430d77d1eb", null ],
     [ "READ_LATENCY_G", "classTrueDualPortRamXpm.html#acb05581c327d80d1e643030e67a027d8", null ],
     [ "DATA_WIDTH_G", "classTrueDualPortRamXpm.html#a04b2b321f81f02681a52c6c7d92ff12e", null ],
     [ "BYTE_WR_EN_G", "classTrueDualPortRamXpm.html#a3ccd28c3760c5ddd434a9aabc40b6f19", null ],

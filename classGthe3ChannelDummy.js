@@ -2,6 +2,7 @@ var classGthe3ChannelDummy =
 [
     [ "mapping", "classGthe3ChannelDummy_1_1mapping.html", "classGthe3ChannelDummy_1_1mapping" ],
     [ "TPD_G", "classGthe3ChannelDummy.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIMULATION_G", "classGthe3ChannelDummy.html#ac6de36aa80aba7f5067e4172962ede27", null ],
     [ "WIDTH_G", "classGthe3ChannelDummy.html#ae84f33a3479549bdacbcfe28fae5def6", null ],
     [ "refClk", "classGthe3ChannelDummy.html#ac4171903b015d49f213cc19bd668670d", null ],
     [ "gtRxP", "classGthe3ChannelDummy.html#a51dce567f27f70c20acc65197f1f2188", null ],

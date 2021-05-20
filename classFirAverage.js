@@ -1,0 +1,27 @@
+var classFirAverage =
+[
+    [ "rtl", "classFirAverage_1_1rtl.html", "classFirAverage_1_1rtl" ],
+    [ "TPD_G", "classFirAverage.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "XIL_DEVICE_G", "classFirAverage.html#a786202484c38d94223779f0149e41a73", null ],
+    [ "USE_CSA3_G", "classFirAverage.html#a5baa7e3832e1ad0288ecfeed71b191a6", null ],
+    [ "BRAM_THRESH_G", "classFirAverage.html#a457b548a1ad44a02bc50dcddfc7a126a", null ],
+    [ "FIR_LEN_G", "classFirAverage.html#adab3400060f846c93ecf4116b57090b6", null ],
+    [ "ILEAVE_CHAN_G", "classFirAverage.html#ad194a4e8366d8b031cf0902eb73f0823", null ],
+    [ "USER_WIDTH_G", "classFirAverage.html#aa4560ab002b1e2299163cf4b54e68383", null ],
+    [ "REG_IN_G", "classFirAverage.html#a7833a1277cc0bd77c89503a97e4c4023", null ],
+    [ "REG_OUT_G", "classFirAverage.html#a8b83597137b73c6f89820367e7a9663c", null ],
+    [ "clk", "classFirAverage.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
+    [ "rst", "classFirAverage.html#a259ed46e9599b8818b73ef2eb0bcb7e9", null ],
+    [ "validIn", "classFirAverage.html#a663a2694a196e69467604ee3ec4a3f80", null ],
+    [ "userIn", "classFirAverage.html#adf4f2119fe36065552d31911842cf6e6", null ],
+    [ "din", "classFirAverage.html#ac7ca129ea69847c54ef45f307b397b89", null ],
+    [ "validOut", "classFirAverage.html#ab585e269fe996a854c92c8bc20c1c8b1", null ],
+    [ "userOut", "classFirAverage.html#a504c1494398fcebe33fd23e27a7c0082", null ],
+    [ "dout", "classFirAverage.html#a6e8ab76bd04e0c6908368ba33032574d", null ],
+    [ "ieee", "classFirAverage.html#a0a6af6eef40212dbaf130d57ce711256", null ],
+    [ "std_logic_1164", "classFirAverage.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "fixed_pkg", "classFirAverage.html#aad86249c80e8c1e7ee1c4748aba748e3", null ],
+    [ "fixed_float_types", "classFirAverage.html#a824691d871b9db6a0485012e2e32bd88", null ],
+    [ "surf", "classFirAverage.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
+    [ "StdRtlPkg", "classFirAverage.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+];

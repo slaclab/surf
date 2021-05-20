@@ -5,7 +5,7 @@ var classSlvDelayRam =
     [ "RST_POLARITY_G", "classSlvDelayRam.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "MEMORY_TYPE_G", "classSlvDelayRam.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
     [ "DO_REG_G", "classSlvDelayRam.html#a983c9e934d9d6241b23ee8f3b623373b", null ],
-    [ "DELAY_G", "classSlvDelayRam.html#aa52fc187f30ec334f2ebd19606e6fad9", null ],
+    [ "DELAY_G", "classSlvDelayRam.html#a7518d745ac73f6a3fa4ad710a0cf4e16", null ],
     [ "WIDTH_G", "classSlvDelayRam.html#ae84f33a3479549bdacbcfe28fae5def6", null ],
     [ "clk", "classSlvDelayRam.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSlvDelayRam.html#a18ff76fd793d71b40b09bc86df834bce", null ],

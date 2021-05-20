@@ -1,0 +1,11 @@
+<map id="SinCosTaylor" name="SinCosTaylor">
+<area shape="rect" id="node1" title=" " alt="" coords="122,304,227,331"/>
+<area shape="rect" id="node9" href="$classSinCosLutTb.html" title=" " alt="" coords="123,379,226,405"/>
+<area shape="rect" id="node2" href="$classSlvFixedDelay.html" title=" " alt="" coords="59,155,173,181"/>
+<area shape="rect" id="node6" href="$classSinCosLut.html" title=" " alt="" coords="73,229,159,256"/>
+<area shape="rect" id="node7" href="$classcfixedDelay.html" title=" " alt="" coords="184,229,283,256"/>
+<area shape="rect" id="node3" href="$classSrl16Delay.html" title=" " alt="" coords="5,80,99,107"/>
+<area shape="rect" id="node4" href="$classLutFixedDelay.html" title=" " alt="" coords="123,80,237,107"/>
+<area shape="rect" id="node5" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="91,5,269,32"/>
+<area shape="rect" id="node8" href="$classsfixedMult.html" title=" " alt="" coords="307,229,413,256"/>
+</map>

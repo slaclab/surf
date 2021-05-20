@@ -54,5 +54,11 @@ var classGigEthGthUltraScaleWrapper =
     [ "EthMacPkg", "classGigEthGthUltraScaleWrapper.html#ac1625414338993fe184c68bfdbb48894", null ],
     [ "GigEthPkg", "classGigEthGthUltraScaleWrapper.html#a7054ae9206250afffc41f05ba746d55d", null ],
     [ "unisim", "classGigEthGthUltraScaleWrapper.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classGigEthGthUltraScaleWrapper.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "vcomponents", "classGigEthGthUltraScaleWrapper.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "INT_PIPE_STAGES_G", "classGigEthGthUltraScaleWrapper.html#a6fd7d952829a6fe922f0fbcf940fe472", null ],
+    [ "PIPE_STAGES_G", "classGigEthGthUltraScaleWrapper.html#a91eb8c73b60497fed4baf5855a7b980f", null ],
+    [ "FIFO_ADDR_WIDTH_G", "classGigEthGthUltraScaleWrapper.html#af963c6d05b13e5792c30d6b6e8f60894", null ],
+    [ "SYNTH_MODE_G", "classGigEthGthUltraScaleWrapper.html#a77fd95eb08d4c3e9a6a1ba7cb777d5b2", null ],
+    [ "MEMORY_TYPE_G", "classGigEthGthUltraScaleWrapper.html#a2df151e499acff7dcbecb0fedffa60cb", null ],
+    [ "JUMBO_G", "classGigEthGthUltraScaleWrapper.html#af3c2b3ea37b9a6acb725bb242dbb570a", null ]
 ];
