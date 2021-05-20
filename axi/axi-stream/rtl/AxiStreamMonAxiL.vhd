@@ -155,7 +155,7 @@ begin
          TPD_G          => TPD_G,
          SYNTH_MODE_G   => "inferred",
          MEMORY_TYPE_G  => ite(ADDR_WIDTH_C > 5, "block", "distributed"),
-         READ_LATENCY_G => 3,
+         READ_LATENCY_G => ite(ADDR_WIDTH_C > 5, 2, 1),
          AXI_WR_EN_G    => false,
          SYS_WR_EN_G    => true,
          COMMON_CLK_G   => false,

@@ -29,7 +29,7 @@ entity ClkRst is
       SYNC_RESET_G      : boolean := false);
    port (
       hold : in  sl := '0';
-      done : in  sl := '0';
+      halt : in  sl := '0';
       clkP : out sl := '0';
       clkN : out sl := '1';             -- Inverted clock
       rst  : out sl := '1';
@@ -56,7 +56,7 @@ begin
    begin
       wait for CLK_DELAY_G;
       while (true) loop
-         if (done = '0') then
+         if (halt = '0') then
             if (hold = '1') then
                clkFb <= clkFb;
             else
