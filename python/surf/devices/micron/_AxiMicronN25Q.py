@@ -87,7 +87,7 @@ class AxiMicronN25Q(pr.Device):
                 bulkOpEn    = False,
                 hidden      = True,
                 verify      = False,
-           ))
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = 'CmdReg',
