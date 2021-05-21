@@ -50,6 +50,19 @@ class AxiMicronN25Q(pr.Device):
         ##############################
         if self._useVars:
 
+            self.add(pr.RemoteVariable(
+                name        = 'PasswordLock',
+                offset      = 0x00,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+            ))
+
             self.add(pr.RemoteVariable(name='ModeReg',
                                        offset=0x04,
                                        base=pr.UInt,
