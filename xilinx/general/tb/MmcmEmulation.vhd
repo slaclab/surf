@@ -114,7 +114,7 @@ architecture MmcmEmulation of MmcmEmulation is
 
 begin
 
-   LOCKED  <= uAnd(phasedUp) when(RST = '0') else '0';
+   LOCKED  <= uAnd(phasedUp);
    CLKOUT0 <= clkOut(0);
    CLKOUT1 <= clkOut(1);
    CLKOUT2 <= clkOut(2);
