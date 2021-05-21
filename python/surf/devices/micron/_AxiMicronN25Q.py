@@ -63,53 +63,60 @@ class AxiMicronN25Q(pr.Device):
                 verify      = False,
             ))
 
-            self.add(pr.RemoteVariable(name='ModeReg',
-                                       offset=0x04,
-                                       base=pr.UInt,
-                                       bitSize=32,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+            self.add(pr.RemoteVariable(
+                name        = 'ModeReg',
+                offset      = 0x04,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+           ))
 
-            self.add(pr.RemoteVariable(name='AddrReg',
-                                       offset=0x08,
-                                       base=pr.UInt,
-                                       bitSize=32,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+            self.add(pr.RemoteVariable(
+                name        = 'AddrReg',
+                offset      = 0x08,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+           ))
 
-            self.add(pr.RemoteVariable(name='CmdReg',
-                                       offset=0x0C,
-                                       base=pr.UInt,
-                                       bitSize=32,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+            self.add(pr.RemoteVariable(
+                name        = 'CmdReg',
+                offset      = 0x0C,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+           ))
 
-            self.add(pr.RemoteVariable(name='DataReg',
-                                       offset=0x200,
-                                       base=pr.UInt,
-                                       bitSize=32*64,
-                                       bitOffset=0,
-                                       numValues=64,
-                                       valueBits=32,
-                                       valueStride=32,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
-
+            self.add(pr.RemoteVariable(
+                name        = 'DataReg',
+                offset      = 0x200,
+                base        = pr.UInt,
+                bitSize     = 32*64,
+                bitOffset   = 0,
+                numValues   = 64,
+                valueBits   = 32,
+                valueStride = 32,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+           ))
 
         ##############################
         # Constants
