@@ -74,7 +74,7 @@ class AxiMicronN25Q(pr.Device):
                 bulkOpEn    = False,
                 hidden      = True,
                 verify      = False,
-           ))
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = 'AddrReg',
@@ -100,7 +100,7 @@ class AxiMicronN25Q(pr.Device):
                 bulkOpEn    = False,
                 hidden      = True,
                 verify      = False,
-           ))
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = 'DataReg',
@@ -116,7 +116,7 @@ class AxiMicronN25Q(pr.Device):
                 bulkOpEn    = False,
                 hidden      = True,
                 verify      = False,
-           ))
+            ))
 
         ##############################
         # Constants
