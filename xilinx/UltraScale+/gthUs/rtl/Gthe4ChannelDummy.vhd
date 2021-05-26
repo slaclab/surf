@@ -27,11 +27,12 @@ entity Gthe4ChannelDummy is
       SIMULATION_G : boolean  := false;
       WIDTH_G      : positive := 1);
    port (
-      refClk : in  sl;                  -- Required by DRC REQP #2
-      gtRxP  : in  slv(WIDTH_G-1 downto 0);
-      gtRxN  : in  slv(WIDTH_G-1 downto 0);
-      gtTxP  : out slv(WIDTH_G-1 downto 0);
-      gtTxN  : out slv(WIDTH_G-1 downto 0));
+      refClk   : in  sl;                -- Required by DRC REQP #2
+      rxoutclk : out slv(WIDTH_G-1 downto 0);  -- Required if terminating external OBUFDS_GTE
+      gtRxP    : in  slv(WIDTH_G-1 downto 0);
+      gtRxN    : in  slv(WIDTH_G-1 downto 0);
+      gtTxP    : out slv(WIDTH_G-1 downto 0);
+      gtTxN    : out slv(WIDTH_G-1 downto 0));
 end entity Gthe4ChannelDummy;
 
 architecture mapping of Gthe4ChannelDummy is
@@ -111,7 +112,7 @@ begin
                RXOSINTSTARTED       => open,
                RXOSINTSTROBEDONE    => open,
                RXOSINTSTROBESTARTED => open,
-               RXOUTCLK             => open,
+               RXOUTCLK             => rxoutclk(i),
                RXOUTCLKFABRIC       => open,
                RXOUTCLKPCS          => open,
                RXPHALIGNDONE        => open,
