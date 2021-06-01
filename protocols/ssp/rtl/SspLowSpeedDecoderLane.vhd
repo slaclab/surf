@@ -22,10 +22,10 @@ use surf.StdRtlPkg.all;
 
 entity SspLowSpeedDecoderLane is
    generic (
-      TPD_G           : time     := 1 ns;
-      DATA_WIDTH_G    : positive := 10;
-      DLY_STEP_SIZE_G : positive := 1;
-      SIMULATION_G    : boolean  := false);
+      TPD_G           : time                    := 1 ns;
+      SIMULATION_G    : boolean                 := false;
+      DATA_WIDTH_G    : positive                := 10;
+      DLY_STEP_SIZE_G : positive range 1 to 255 := 1);
    port (
       -- Clock and Reset Interface
       clk            : in  sl;

@@ -23,10 +23,10 @@ use surf.AxiLitePkg.all;
 
 entity SspLowSpeedDecoder8b10bWrapper is
    generic (
-      TPD_G           : time     := 1 ns;
-      SIMULATION_G    : boolean  := false;
-      DLY_STEP_SIZE_G : positive := 1;
-      NUM_LANE_G      : positive := 1);
+      TPD_G           : time                    := 1 ns;
+      SIMULATION_G    : boolean                 := false;
+      DLY_STEP_SIZE_G : positive range 1 to 255 := 1;
+      NUM_LANE_G      : positive                := 1);
    port (
       -- Deserialization Interface (deserClk domain)
       deserClk        : in  sl;
@@ -80,9 +80,9 @@ begin
       U_Lane : entity surf.SspLowSpeedDecoderLane
          generic map (
             TPD_G           => TPD_G,
+            SIMULATION_G    => SIMULATION_G,            
             DATA_WIDTH_G    => DATA_WIDTH_C,
-            DLY_STEP_SIZE_G => DLY_STEP_SIZE_G,
-            SIMULATION_G    => SIMULATION_G)
+            DLY_STEP_SIZE_G => DLY_STEP_SIZE_G)
          port map (
             -- Clock and Reset Interface
             clk            => deserClk,
