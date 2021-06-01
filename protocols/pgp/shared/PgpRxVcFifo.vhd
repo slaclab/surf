@@ -25,6 +25,7 @@ entity PgpRxVcFifo is
    generic (
       TPD_G               : time     := 1 ns;
       ROGUE_SIM_EN_G      : boolean  := false;
+      FILTER_G            : boolean  := false;
       INT_PIPE_STAGES_G   : natural  := 0;
       PIPE_STAGES_G       : natural  := 1;
       VALID_THOLD_G       : positive := 1;
@@ -58,6 +59,15 @@ architecture mapping of PgpRxVcFifo is
    signal axisReset : sl;
    signal pgpReset  : sl;
 
+   signal filterMaster : AxiStreamMasterType;
+   signal filterSlave  : AxiStreamSlaveType;
+   signal filterCtrl   : AxiStreamCtrlType;
+
+   signal fifoMaster     : AxiStreamMasterType;
+   signal fifoSlave      : AxiStreamSlaveType;
+   signal fifoCtrl       : AxiStreamCtrlType;
+   signal fifoTLastTUser : slv(7 downto 0);
+
 begin
 
    U_axisRst : entity surf.RstPipeline
@@ -86,6 +96,34 @@ begin
       pgpMaster <= tmp;
    end process;
 
+   IB_FILTER_GEN : if (FILTER_G) generate
+      U_IbFilter : entity surf.SsiIbFrameFilter
+         generic map (
+            TPD_G            => TPD_G,
+            SLAVE_READY_EN_G => ROGUE_SIM_EN_G,
+            AXIS_CONFIG_G    => PHY_AXI_CONFIG_G)
+         port map (
+            -- Clock and Reset
+            axisClk        => pgpClk,
+            axisRst        => pgpRst,
+            -- Slave Interface
+            sAxisMaster    => pgpMaster,
+            sAxisSlave     => pgpRxSlave,
+            sAxisCtrl      => pgpRxCtrl,
+            sAxisDropWord  => open,
+            sAxisDropFrame => open,
+            -- Master Interface
+            mAxisMaster    => filterMaster,
+            mAxisSlave     => filterSlave,
+            mAxisCtrl      => filterCtrl);
+   end generate IB_FILTER_GEN;
+
+   NO_IB_FILTER_GEN : if (not FILTER_G) generate
+      filterMaster <= pgpMaster;
+      pgpRxSlave   <= filterSlave;
+      pgpRxCtrl    <= filterCtrl;
+   end generate NO_IB_FILTER_GEN;
+
    U_Fifo : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
@@ -94,7 +132,7 @@ begin
          PIPE_STAGES_G       => PIPE_STAGES_G,
          VALID_THOLD_G       => VALID_THOLD_G,
          VALID_BURST_MODE_G  => VALID_BURST_MODE_G,
-         SLAVE_READY_EN_G    => ROGUE_SIM_EN_G,
+         SLAVE_READY_EN_G    => ROGUE_SIM_EN_G or FILTER_G,
          -- FIFO configurations
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
@@ -108,13 +146,41 @@ begin
          -- Slave Port
          sAxisClk    => pgpClk,
          sAxisRst    => pgpReset,
-         sAxisMaster => pgpMaster,
-         sAxisCtrl   => pgpRxCtrl,
-         sAxisSlave  => pgpRxSlave,
+         sAxisMaster => filterMaster,
+         sAxisCtrl   => filterCtrl,
+         sAxisSlave  => filterSlave,
          -- Master Port
          mAxisClk    => axisClk,
          mAxisRst    => axisReset,
-         mAxisMaster => axisMaster,
-         mAxisSlave  => axisSlave);
+         mAxisMaster => fifoMaster,
+         mAxisSlave  => fifoSlave,
+         mTLastTUser => fifoTLastTUser);
+
+   OB_FILTER_GEN : if (FILTER_G) generate
+      U_ObFilter : entity surf.SsiObFrameFilter
+         generic map (
+            TPD_G         => TPD_G,
+            VALID_THOLD_G => VALID_THOLD_G,
+            PIPE_STAGES_G => 1,
+            AXIS_CONFIG_G => APP_AXI_CONFIG_G)
+         port map (
+            -- Clock and Reset
+            axisClk        => axisClk,
+            axisRst        => axisReset,
+            -- Slave Interface (sAxisClk domain)
+            sAxisMaster    => fifoMaster,
+            sAxisSlave     => fifoSlave,
+            sTLastTUser    => fifoTLastTUser,
+            -- Master Interface
+            mAxisMaster    => axisMaster,
+            mAxisSlave     => axisSlave,
+            mAxisDropWord  => open,
+            mAxisDropFrame => open);
+   end generate OB_FILTER_GEN;
+
+   NO_OB_FILTER_G : if (not FILTER_G) generate
+      axisMaster <= fifoMaster;
+      fifoSlave  <= axisSlave;
+   end generate NO_OB_FILTER_G;
 
 end mapping;
