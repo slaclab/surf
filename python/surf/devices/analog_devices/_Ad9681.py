@@ -326,9 +326,7 @@ class Ad9681Config(pr.Device):
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
             offset=0x3FC,
-            function=nonBlockingTouchZero,
-#            function=pr.BaseCommand.touchZero,
-        ))
+            function=pr.BaseCommand.touchZero))
 
     def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
         pr.Device.writeBlocks(self, force=force, recurse=True, variable=variable, checkEach=checkEach, index=index)
