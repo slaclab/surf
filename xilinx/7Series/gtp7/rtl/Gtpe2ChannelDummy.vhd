@@ -25,13 +25,16 @@ entity Gtpe2ChannelDummy is
    generic (
       TPD_G        : time                  := 1 ns;
       SIMULATION_G : boolean               := false;
+      EXT_QPLL_G   : boolean               := false;
       WIDTH_G      : positive range 1 to 4 := 1);
    port (
-      refClk : in  sl;                  -- Required by DRC REQP #48
-      gtRxP  : in  slv(WIDTH_G-1 downto 0);
-      gtRxN  : in  slv(WIDTH_G-1 downto 0);
-      gtTxP  : out slv(WIDTH_G-1 downto 0);
-      gtTxN  : out slv(WIDTH_G-1 downto 0));
+      refClk           : in  sl;        -- Required by DRC REQP #48
+      qPllOutClkExt    : in  slv(1 downto 0) := "00";
+      qPllOutRefClkExt : in  slv(1 downto 0) := "00";
+      gtRxP            : in  slv(WIDTH_G-1 downto 0);
+      gtRxN            : in  slv(WIDTH_G-1 downto 0);
+      gtTxP            : out slv(WIDTH_G-1 downto 0);
+      gtTxN            : out slv(WIDTH_G-1 downto 0));
 end entity Gtpe2ChannelDummy;
 
 architecture mapping of Gtpe2ChannelDummy is
@@ -46,18 +49,25 @@ begin
    ----------------------------------------------------
    NOT_SIM : if (SIMULATION_G = false) generate
 
-      U_Gtp7QuadPll : entity surf.Gtp7QuadPll
-         generic map (
-            TPD_G             => TPD_G,
-            PLL0_REFCLK_SEL_G => "111",
-            PLL1_REFCLK_SEL_G => "111")
-         port map (
-            qPllRefClk     => (others => refClk),
-            qplllockdetclk => (others => refClk),
-            qPllOutClk     => qPllOutClk,
-            qPllOutRefClk  => qPllOutRefClk,
-            qPllPowerDown  => (others => '1'),
-            qPllReset      => (others => '1'));
+      INT_QPLL : if (EXT_QPLL_G = false) generate
+         U_Gtp7QuadPll : entity surf.Gtp7QuadPll
+            generic map (
+               TPD_G             => TPD_G,
+               PLL0_REFCLK_SEL_G => "111",
+               PLL1_REFCLK_SEL_G => "111")
+            port map (
+               qPllRefClk     => (others => refClk),
+               qplllockdetclk => (others => refClk),
+               qPllOutClk     => qPllOutClk,
+               qPllOutRefClk  => qPllOutRefClk,
+               qPllPowerDown  => (others => '1'),
+               qPllReset      => (others => '1'));
+      end generate;
+
+      EXT_QPLL : if (EXT_QPLL_G = true) generate
+         qPllOutClk    <= qPllOutClkExt;
+         qPllOutRefClk <= qPllOutRefClkExt;
+      end generate;
 
       GEN_VEC :
       for i in WIDTH_G-1 downto 0 generate
