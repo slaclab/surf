@@ -64,13 +64,13 @@ architecture rtl of cfixedMult is
 
    constant C_HIGH_BIT_C : integer := a.re'high + b.re'high + 1;
    constant C_LOW_BIT_C  : integer := a.re'low  + b.re'low;
-   
+
    signal c    : cfixed( re(C_HIGH_BIT_C downto C_LOW_BIT_C), im(C_HIGH_BIT_C downto C_LOW_BIT_C)) := (
          re => (others => '0'),
          im => (others => '0'));
-         
+
    signal cVld : sl := '1';
-   
+
    signal aInt : cfixed(re(a.re'range), im(a.im'range));
    signal bInt : cfixed(re(b.re'range), im(b.im'range));
 
@@ -79,21 +79,21 @@ begin
    aInt <= swap(a) when SWAP_INP_A_G else a;
    bInt <= swap(b) when SWAP_INP_B_G else b;
 
-   GEN_RND_SIMPLE : if RND_SIMPLE_G generate 
+   GEN_RND_SIMPLE : if RND_SIMPLE_G generate
       c.re(y.re'low - 1) <= '1';
       c.im(y.im'low - 1) <= '1';
    end generate GEN_RND_SIMPLE;
 
    U_MULT_ADD : entity surf.CfixedMultAdd
       generic map (
-         TPD_G                => TPD_G, 
+         TPD_G                => TPD_G,
          REG_OUT_G            => REG_OUT_G,
          CIN_REG_G            => 1,
-         ACCUMULATE_G         => ACCUMULATE_G, 
-         OUT_OVERFLOW_STYLE_G => OUT_OVERFLOW_STYLE_G, 
+         ACCUMULATE_G         => ACCUMULATE_G,
+         OUT_OVERFLOW_STYLE_G => OUT_OVERFLOW_STYLE_G,
          OUT_ROUNDING_STYLE_G => OUT_ROUNDING_STYLE_G)
       port map (
-         clk  => clk, 
+         clk  => clk,
          rst  => rst,
          a    => aInt,
          aVld => aVld,
@@ -101,7 +101,7 @@ begin
          bVld => bVld,
          c    => c,
          cVld => cVld,
-         y    => y, 
+         y    => y,
          yVld => yVld);
 
 end architecture rtl;

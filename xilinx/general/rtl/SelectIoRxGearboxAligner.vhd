@@ -23,7 +23,7 @@ use surf.StdRtlPkg.all;
 entity SelectIoRxGearboxAligner is
    generic (
       TPD_G           : time     := 1 ns;
-      SIMULATION_G    : boolean  := false;      
+      SIMULATION_G    : boolean  := false;
       CODE_TYPE_G     : string   := "LINE_CODE";  -- or "SCRAMBLER"
       DLY_STEP_SIZE_G : positive range 1 to 255 := 1);  -- 1 for Ultrascale or 16 for 7-Series
    port (

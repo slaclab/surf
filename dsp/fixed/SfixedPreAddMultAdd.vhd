@@ -105,7 +105,7 @@ begin
       v.vld(0) := aVld and dVld and bVld and cVld;
       v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
 
-      
+
       if ADD_A_G then
          v.preAdd := r.dreg + r.areg;
       else
