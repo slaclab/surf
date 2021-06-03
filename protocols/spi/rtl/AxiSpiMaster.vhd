@@ -238,19 +238,6 @@ begin
 
    end process comb;
 
---    shadow_mem : process (axiClk) is
---    begin
---       if (SHADOW_EN_G) then
---          if (rising_edge(axiClk)) then
---             if (memWe = '1') then
---                mem(conv_integer(memAddr)) <= r.wrData(DATA_SIZE_G-1 downto 0);
---             end if;
---             memData    <= mem(conv_integer(memAddr))    after TPD_G;
---             shadowData <= mem(conv_integer(shadowAddr)) after TPD_G;
---          end if;
---       end if;
---    end process shadow_mem;
-
    seq : process (axiClk) is
    begin
       if (rising_edge(axiClk)) then
