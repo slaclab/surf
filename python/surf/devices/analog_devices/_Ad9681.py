@@ -15,8 +15,7 @@
 
 import pyrogue as pr
 import rogue.interfaces.memory as rim
-import math
-
+# import math
 
 class Ad9681Config(pr.Device):
     def __init__(self,
@@ -318,12 +317,12 @@ class Ad9681Config(pr.Device):
                 0b10: '12 bits',
             },
         ))
-        
+
         def nonBlockingTouchZero(cmd, arg):
             print(f'Sending nonblocking touch zero command for {cmd.path}')
             cmd._set(0, -1)
             pr.startTransaction(cmd._block, type=rim.Write, forceWr=True, checkEach=False, variable=cmd, index=-1)
-            
+
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
             offset=0x3FC,
@@ -357,30 +356,33 @@ class Ad9681Readout(pr.Device):
             delayBits = 6
 
 
-        for ch in range(channels):
-            for i in range(2):
-                self.add(pr.RemoteVariable(
-                    name         = f'ChannelDelay[{ch}][{i}]',
-                    description  = f'IDELAY value for serial channel {ch}_{i}',
-                    offset       = ch*8 + i*4,
-                    bitSize      = delayBits,
-                    bitOffset    = 0,
-                    base         = pr.UInt,
-                    mode         = 'RW',
-                    verify       = False,
-            ))
+        for i in range(2):
+            self.add(pr.RemoteVariable(
+                name         = f'Delay[{i}]',
+                description  = f'IDELAY value for serial channel {i}',
+                offset       = i*4,
+                bitSize      = delayBits,
+                bitOffset    = 0,
+                base         = pr.UInt,
+                mode         = 'RW',
+                verify       = False))
+
+        self.add(pr.RemoteCommand(
+            name = 'Realign',
+            offset = 0x20,
+            bitSize = 1,
+            function = pr.RemoteCommand.touchOne))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = f'FrameDelay[{i}]',
-                description = f'IDELAY value for FCO_{i}',
-                offset      = 0x40 + i*4,
-                bitSize     = delayBits,
+                name        = f'ErrorDetCount[{i}]',
+                offset      = 0x30+ 4*i,
+                bitSize     = 16,
                 bitOffset   = 0,
                 base        = pr.UInt,
-                mode        = 'RW',
-                verify       = False,
+                mode        = 'RO',
             ))
+
 
         for i in range(2):
             self.add(pr.RemoteVariable(
@@ -460,7 +462,7 @@ class Ad9681Readout(pr.Device):
             cmd._set(arg, -1)
             pr.startTransaction(cmd._block, type=rim.Write, forceWr=True, checkEach=False, variable=cmd, index=-1)
 
-        
+
         self.add(pr.RemoteCommand(
             name='FreezeDebug',
             description='Freeze all of the AdcChannel registers',
@@ -479,7 +481,7 @@ class Ad9681Readout(pr.Device):
         checkEach = checkEach or self.forceCheckEach
 
         if variable is not None:
-            freeze = variable.name.startswith('AdcChannel')
+            freeze = isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
             if freeze:
                 self.FreezeDebug(1)
             pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
