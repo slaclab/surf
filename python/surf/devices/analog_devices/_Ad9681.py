@@ -326,7 +326,7 @@ class Ad9681Config(pr.Device):
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
             offset=0x3FC,
-            function=nonBlockingTouchZero
+            function=nonBlockingTouchZero,
 #            function=pr.BaseCommand.touchZero,
         ))
 
