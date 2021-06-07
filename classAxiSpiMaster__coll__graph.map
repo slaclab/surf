@@ -1,4 +1,7 @@
 <map id="AxiSpiMaster" name="AxiSpiMaster">
-<area shape="rect" id="node1" title=" " alt="" coords="5,80,113,107"/>
-<area shape="rect" id="node2" href="$classSpiMaster.html" title=" " alt="" coords="16,5,103,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="143,155,251,181"/>
+<area shape="rect" id="node2" href="$classDualPortRam.html" title=" " alt="" coords="83,80,191,107"/>
+<area shape="rect" id="node3" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,5,140,32"/>
+<area shape="rect" id="node4" href="$classLutRam.html" title=" " alt="" coords="165,5,237,32"/>
+<area shape="rect" id="node5" href="$classSpiMaster.html" title=" " alt="" coords="215,80,301,107"/>
 </map>

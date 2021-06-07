@@ -1,8 +1,5 @@
 var NAVTREEINDEX33 =
 {
-"classClinkFramerTb.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,173,7],
-"classClinkFramerTb.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,173,5],
-"classClinkFramerTb.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,173,2],
 "classClinkFramerTb.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,173,6],
 "classClinkFramerTb_1_1test.html":[1,0,173,0],
 "classClinkFramerTb_1_1test.html#a019649dbd65e5020969d02c1a1063c9e":[1,0,173,0,13],
@@ -249,5 +246,8 @@ var NAVTREEINDEX33 =
 "classClinkUartThrottle_1_1rtl.html":[1,0,178,0],
 "classClinkUartThrottle_1_1rtl.html#a00d1d083e5af2601e06a9f3da30308f1":[1,0,178,0,0],
 "classClinkUartThrottle_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,178,0,12],
-"classClinkUartThrottle_1_1rtl.html#a0f659fbdb07bdf1835659c38bb4d17b9":[1,0,178,0,9]
+"classClinkUartThrottle_1_1rtl.html#a0f659fbdb07bdf1835659c38bb4d17b9":[1,0,178,0,9],
+"classClinkUartThrottle_1_1rtl.html#a2797b7827b0e93e4fa25db62d31bcfa3":[1,0,178,0,13],
+"classClinkUartThrottle_1_1rtl.html#a28856b17234a472126dc6b705c8a42f3":[1,0,178,0,3],
+"classClinkUartThrottle_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,178,0,4]
 };

@@ -1,8 +1,5 @@
 var NAVTREEINDEX56 =
 {
-"classGth7RecClkMonitor_1_1RTL.html#a154625ed7477a4c6a28f8cb90d2dcfd4":[1,0,292,0,48],
-"classGth7RecClkMonitor_1_1RTL.html#a1b427742920dfddf63f7e16c421fe063":[1,0,292,0,4],
-"classGth7RecClkMonitor_1_1RTL.html#a1dad6101749adc865ea724cfb8e9f496":[1,0,292,0,43],
 "classGth7RecClkMonitor_1_1RTL.html#a1f703f216c87147e0c27ad8c3d6a1757":[1,0,292,0,44],
 "classGth7RecClkMonitor_1_1RTL.html#a22cc84b323685cb3e5dfc8eef83c71ed":[1,0,292,0,32],
 "classGth7RecClkMonitor_1_1RTL.html#a23616be260fa9fe7e7d4f10adc242518":[1,0,292,0,14],
@@ -249,5 +246,8 @@ var NAVTREEINDEX56 =
 "classGth7TxManualPhaseAligner.html#a3d0784a4116187d1e68b5cc0d1828ef9":[1,0,296,3],
 "classGth7TxManualPhaseAligner.html#a42b36fcf08284a22e1b8d133c18e2935":[1,0,296,12],
 "classGth7TxManualPhaseAligner.html#a47f5dafb9ed8efc2db57f8fe7fad8618":[1,0,296,4],
-"classGth7TxManualPhaseAligner.html#a50f017c19a267b9cde95d5b6877c3bb1":[1,0,296,6]
+"classGth7TxManualPhaseAligner.html#a50f017c19a267b9cde95d5b6877c3bb1":[1,0,296,6],
+"classGth7TxManualPhaseAligner.html#a5e5c50da20f704a63c86c4d5b8f30964":[1,0,296,7],
+"classGth7TxManualPhaseAligner.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,296,1],
+"classGth7TxManualPhaseAligner.html#a85b54de4d2925bd8ca551059869a6c07":[1,0,296,9]
 };

@@ -2,8 +2,9 @@ var classSelectIoRxGearboxAligner =
 [
     [ "SelectIoRxGearboxAligner.rtl", "classSelectIoRxGearboxAligner_1_1rtl.html", "classSelectIoRxGearboxAligner_1_1rtl" ],
     [ "TPD_G", "classSelectIoRxGearboxAligner.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "CODE_TYPE_G", "classSelectIoRxGearboxAligner.html#abc2b0e47614e4073652497073bd1d8ec", null ],
     [ "SIMULATION_G", "classSelectIoRxGearboxAligner.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "CODE_TYPE_G", "classSelectIoRxGearboxAligner.html#abc2b0e47614e4073652497073bd1d8ec", null ],
+    [ "DLY_STEP_SIZE_G", "classSelectIoRxGearboxAligner.html#aaec7c6daae575408100a3f860ca5e71b", null ],
     [ "clk", "classSelectIoRxGearboxAligner.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSelectIoRxGearboxAligner.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "lineCodeValid", "classSelectIoRxGearboxAligner.html#a525e7292063ba60e6243ab5ea6f1713e", null ],

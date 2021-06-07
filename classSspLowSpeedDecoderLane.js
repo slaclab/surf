@@ -2,8 +2,9 @@ var classSspLowSpeedDecoderLane =
 [
     [ "SspLowSpeedDecoderLane.mapping", "classSspLowSpeedDecoderLane_1_1mapping.html", "classSspLowSpeedDecoderLane_1_1mapping" ],
     [ "TPD_G", "classSspLowSpeedDecoderLane.html#a67a837684e4f18c2d236ac1d053b419b", null ],
-    [ "DATA_WIDTH_G", "classSspLowSpeedDecoderLane.html#a0106ebf9dbcdbaad1a29f6db5ad74a5b", null ],
     [ "SIMULATION_G", "classSspLowSpeedDecoderLane.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "DATA_WIDTH_G", "classSspLowSpeedDecoderLane.html#a0106ebf9dbcdbaad1a29f6db5ad74a5b", null ],
+    [ "DLY_STEP_SIZE_G", "classSspLowSpeedDecoderLane.html#aaec7c6daae575408100a3f860ca5e71b", null ],
     [ "clk", "classSspLowSpeedDecoderLane.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSspLowSpeedDecoderLane.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "deserData", "classSspLowSpeedDecoderLane.html#a150f0cae866ebd12395b7e956113a1f4", null ],

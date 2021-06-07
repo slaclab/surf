@@ -5,6 +5,7 @@ var classGthe3ChannelDummy =
     [ "SIMULATION_G", "classGthe3ChannelDummy.html#ac6de36aa80aba7f5067e4172962ede27", null ],
     [ "WIDTH_G", "classGthe3ChannelDummy.html#ae84f33a3479549bdacbcfe28fae5def6", null ],
     [ "refClk", "classGthe3ChannelDummy.html#ac4171903b015d49f213cc19bd668670d", null ],
+    [ "rxoutclk", "classGthe3ChannelDummy.html#a6c7178230a81197d6f75814a1add9631", null ],
     [ "gtRxP", "classGthe3ChannelDummy.html#a51dce567f27f70c20acc65197f1f2188", null ],
     [ "gtRxN", "classGthe3ChannelDummy.html#a32f3255256d69176f18f6a574038c4bc", null ],
     [ "gtTxP", "classGthe3ChannelDummy.html#a2a5cf97993acc7bf79e46a13e4fa5e1e", null ],

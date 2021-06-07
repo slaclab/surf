@@ -846,6 +846,7 @@ var hierarchy =
       [ "Fifo", "classFifo.html", null ],
       [ "JtagSerDesCore", "classJtagSerDesCore.html", null ],
       [ "AxiSpiMaster", "classAxiSpiMaster.html", [
+        [ "DualPortRam", "classDualPortRam.html", null ],
         [ "SpiMaster", "classSpiMaster.html", null ]
       ] ],
       [ "RstSync", "classRstSync.html", null ],

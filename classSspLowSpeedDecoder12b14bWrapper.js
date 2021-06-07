@@ -3,6 +3,7 @@ var classSspLowSpeedDecoder12b14bWrapper =
     [ "SspLowSpeedDecoder12b14bWrapper.mapping", "classSspLowSpeedDecoder12b14bWrapper_1_1mapping.html", "classSspLowSpeedDecoder12b14bWrapper_1_1mapping" ],
     [ "TPD_G", "classSspLowSpeedDecoder12b14bWrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SIMULATION_G", "classSspLowSpeedDecoder12b14bWrapper.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "DLY_STEP_SIZE_G", "classSspLowSpeedDecoder12b14bWrapper.html#aaec7c6daae575408100a3f860ca5e71b", null ],
     [ "NUM_LANE_G", "classSspLowSpeedDecoder12b14bWrapper.html#aad6baf03a2a17fd6cbd9553bfb4601f0", null ],
     [ "deserClk", "classSspLowSpeedDecoder12b14bWrapper.html#a91a07d78046b635cd7ec2ac6bc148e3b", null ],
     [ "deserRst", "classSspLowSpeedDecoder12b14bWrapper.html#a0d7ab501207b235be5958503cfdf4a3f", null ],

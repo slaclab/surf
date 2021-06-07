@@ -6,6 +6,7 @@ var classAxiSpiMaster =
     [ "DATA_SIZE_G", "classAxiSpiMaster.html#a7d6f78fec2e0eda2e39203ff261270e8", null ],
     [ "MODE_G", "classAxiSpiMaster.html#a86b262055c60fbba020bb95065d73f3e", null ],
     [ "SHADOW_EN_G", "classAxiSpiMaster.html#aa9ac75c200be1a8633ec9650dda9b967", null ],
+    [ "SHADOW_MEM_TYPE_G", "classAxiSpiMaster.html#a88762e3bba889ff429495adb380d8eca", null ],
     [ "CPHA_G", "classAxiSpiMaster.html#a4acc137fe3c0af607bf1894e83921f14", null ],
     [ "CPOL_G", "classAxiSpiMaster.html#ac41754daeab6105619a91f34519d4747", null ],
     [ "CLK_PERIOD_G", "classAxiSpiMaster.html#aa1b05411769edd4978c581f756b8b4a4", null ],
