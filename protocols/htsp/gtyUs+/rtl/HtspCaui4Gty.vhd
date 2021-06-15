@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for PGP Ethernet with GTY-based CAUI4 PHY
+-- Description: Wrapper for HTSP Ethernet with GTY-based CAUI4 PHY
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,24 +19,23 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
-use surf.PgpEthPkg.all;
+use surf.HtspPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
-entity PgpEthCaui4Gty is
+entity HtspCaui4Gty is
    generic (
       TPD_G                 : time                        := 1 ns;
       SIM_SPEEDUP_G         : boolean                     := false;
       ROGUE_SIM_EN_G        : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G  : natural range 1024 to 49151 := 9000;
       REFCLK_TYPE_G         : boolean                     := true;  -- false = 156.25 MHz, true = 161.1328125 MHz
-      -- PGP Settings
+      -- HTSP Settings
       NUM_VC_G              : integer range 1 to 16       := 4;
       TX_MAX_PAYLOAD_SIZE_G : positive                    := 8192;  -- Must be a multiple of 64B (in units of bytes)
       -- Misc Debug Settings
@@ -54,22 +53,22 @@ entity PgpEthCaui4Gty is
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
       stableRst       : in  sl;
-      -- PGP Clock and Reset
-      pgpClk          : out sl;
-      pgpRst          : out sl;
+      -- HTSP Clock and Reset
+      htspClk         : out sl;
+      htspRst         : out sl;
       -- Non VC Rx Signals
-      pgpRxIn         : in  PgpEthRxInType                           := PGP_ETH_RX_IN_INIT_C;
-      pgpRxOut        : out PgpEthRxOutType;
+      htspRxIn        : in  HtspRxInType                             := HTSP_RX_IN_INIT_C;
+      htspRxOut       : out HtspRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn         : in  PgpEthTxInType                           := PGP_ETH_TX_IN_INIT_C;
-      pgpTxOut        : out PgpEthTxOutType;
+      htspTxIn        : in  HtspTxInType                             := HTSP_TX_IN_INIT_C;
+      htspTxOut       : out HtspTxOutType;
       -- Frame Transmit Interface
-      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      htspTxMasters   : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      htspTxSlaves    : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Frame Receive Interface
-      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-      pgpRxSlaves     : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_SLAVE_INIT_C);  -- Simulation Only
+      htspRxMasters   : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      htspRxCtrl      : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      htspRxSlaves    : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_SLAVE_INIT_C);  -- Simulation Only
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                                       := '0';
       axilRst         : in  sl                                       := '0';
@@ -87,9 +86,9 @@ entity PgpEthCaui4Gty is
       gtTxP           : out slv(3 downto 0);
       gtTxN           : out slv(3 downto 0));
 
-end PgpEthCaui4Gty;
+end HtspCaui4Gty;
 
-architecture mapping of PgpEthCaui4Gty is
+architecture mapping of HtspCaui4Gty is
 
    constant RX_POLARITY_C : slv(9 downto 0) := ("000000" & RX_POLARITY_G);
    constant TX_POLARITY_C : slv(9 downto 0) := ("000000" & TX_POLARITY_G);
@@ -127,10 +126,10 @@ architecture mapping of PgpEthCaui4Gty is
       8 => "11111",
       9 => "11111");
 
-   signal phyClk    : sl;
-   signal phyRst    : sl;
-   signal phyUsrRst : sl;
-   signal pgpRefClk : sl;
+   signal phyClk     : sl;
+   signal phyRst     : sl;
+   signal phyUsrRst  : sl;
+   signal htspRefClk : sl;
 
    signal phyRxMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal phyRxMasterReg0 : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -153,24 +152,24 @@ begin
    assert (isPowerOf2(TX_MAX_PAYLOAD_SIZE_G) = true)
       report "MAX_PAYLOAD_SIZE_G must be power of 2" severity failure;
 
-   REAL_PGP : if (not ROGUE_SIM_EN_G) generate
+   REAL_HTSP : if (not ROGUE_SIM_EN_G) generate
 
-      pgpClk <= phyClk;
+      htspClk <= phyClk;
 
-      U_pgpRst : entity surf.RstPipeline
+      U_htspRst : entity surf.RstPipeline
          generic map (
             TPD_G => TPD_G)
          port map (
             clk    => phyClk,
             rstIn  => phyRst,
-            rstOut => pgpRst);
+            rstOut => htspRst);
 
       stableReset <= stableRst or phyUsrRst;
 
-      U_Core : entity surf.PgpEthCore
+      U_Core : entity surf.HtspCore
          generic map (
             TPD_G                 => TPD_G,
-            -- PGP Settings
+            -- HTSP Settings
             NUM_VC_G              => NUM_VC_G,
             TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_G,
             -- Misc Debug Settings
@@ -180,24 +179,24 @@ begin
             TX_DIFF_CTRL_G        => TX_DIFF_CTRL_C,
             TX_PRE_CURSOR_G       => TX_PRE_CURSOR_C,
             TX_POST_CURSOR_G      => TX_POST_CURSOR_C,
-            -- PGP Settings
+            -- HTSP Settings
             AXIL_WRITE_EN_G       => AXIL_WRITE_EN_G,
             AXIL_BASE_ADDR_G      => AXIL_BASE_ADDR_G,
             AXIL_CLK_FREQ_G       => AXIL_CLK_FREQ_G)
          port map (
             -- Clock and Reset
-            pgpClk          => phyClk,
-            pgpRst          => phyRst,
+            htspClk         => phyClk,
+            htspRst         => phyRst,
             -- Tx User interface
-            pgpTxIn         => pgpTxIn,
-            pgpTxOut        => pgpTxOut,
-            pgpTxMasters    => pgpTxMasters,
-            pgpTxSlaves     => pgpTxSlaves,
+            htspTxIn        => htspTxIn,
+            htspTxOut       => htspTxOut,
+            htspTxMasters   => htspTxMasters,
+            htspTxSlaves    => htspTxSlaves,
             -- Rx User interface
-            pgpRxIn         => pgpRxIn,
-            pgpRxOut        => pgpRxOut,
-            pgpRxMasters    => pgpRxMasters,
-            pgpRxCtrl       => pgpRxCtrl,
+            htspRxIn        => htspRxIn,
+            htspRxOut       => htspRxOut,
+            htspRxMasters   => htspRxMasters,
+            htspRxCtrl      => htspRxCtrl,
             -- Tx PHY Interface
             phyTxRdy        => phyReady,
             phyTxMaster     => phyTxMaster,
@@ -270,33 +269,33 @@ begin
             gtTxP        => gtTxP,
             gtTxN        => gtTxN);
 
-   end generate REAL_PGP;
+   end generate REAL_HTSP;
 
-   SIM_PGP : if (ROGUE_SIM_EN_G) generate
+   SIM_HTSP : if (ROGUE_SIM_EN_G) generate
 
-      U_Rogue : entity surf.RoguePgpEthSim
+      U_Rogue : entity surf.RogueHtspSim
          generic map(
             TPD_G      => TPD_G,
             PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
             NUM_VC_G   => NUM_VC_G)
          port map(
             -- GT Ports
-            pgpRefClk       => pgpRefClk,
-            -- PGP Clock and Reset
-            pgpClk          => pgpClk,
-            pgpRst          => pgpRst,
+            htspRefClk      => htspRefClk,
+            -- HTSP Clock and Reset
+            htspClk         => htspClk,
+            htspRst         => htspRst,
             -- Non VC Rx Signals
-            pgpRxIn         => pgpRxIn,
-            pgpRxOut        => pgpRxOut,
+            htspRxIn        => htspRxIn,
+            htspRxOut       => htspRxOut,
             -- Non VC Tx Signals
-            pgpTxIn         => pgpTxIn,
-            pgpTxOut        => pgpTxOut,
+            htspTxIn        => htspTxIn,
+            htspTxOut       => htspTxOut,
             -- Frame Transmit Interface
-            pgpTxMasters    => pgpTxMasters,
-            pgpTxSlaves     => pgpTxSlaves,
+            htspTxMasters   => htspTxMasters,
+            htspTxSlaves    => htspTxSlaves,
             -- Frame Receive Interface
-            pgpRxMasters    => pgpRxMasters,
-            pgpRxSlaves     => pgpRxSlaves,
+            htspRxMasters   => htspRxMasters,
+            htspRxSlaves    => htspRxSlaves,
             -- AXI-Lite Register Interface (axilClk domain)
             axilClk         => axilClk,
             axilRst         => axilRst,
@@ -305,7 +304,7 @@ begin
             axilWriteMaster => axilWriteMaster,
             axilWriteSlave  => axilWriteSlave);
 
-      U_pgpRefClk : IBUFDS_GTE4
+      U_htspRefClk : IBUFDS_GTE4
          generic map (
             REFCLK_EN_TX_PATH  => '0',
             REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
@@ -314,12 +313,12 @@ begin
             I     => gtRefClkP,
             IB    => gtRefClkN,
             CEB   => '0',
-            ODIV2 => pgpRefClk,
+            ODIV2 => htspRefClk,
             O     => open);
 
       gtTxP <= x"0";
       gtTxN <= x"F";
 
-   end generate SIM_PGP;
+   end generate SIM_HTSP;
 
 end mapping;

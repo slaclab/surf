@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGP Ethernet Core
+-- Description: HTSP Ethernet Core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -16,17 +16,16 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
-use surf.PgpEthPkg.all;
+use surf.HtspPkg.all;
 
-entity PgpEthCore is
+entity HtspCore is
    generic (
       TPD_G                 : time                   := 1 ns;
-      -- PGP Settings
+      -- HTSP Settings
       NUM_VC_G              : positive range 1 to 16 := 4;
       TX_MAX_PAYLOAD_SIZE_G : positive               := 8192;  -- Must be a multiple of 64B (in units of bytes)
       -- Misc Debug Settings
@@ -42,18 +41,18 @@ entity PgpEthCore is
       AXIL_CLK_FREQ_G       : real                   := 156.25E+6);
    port (
       -- Clock and Reset
-      pgpClk          : in  sl;
-      pgpRst          : in  sl;
+      htspClk         : in  sl;
+      htspRst         : in  sl;
       -- Tx User interface
-      pgpTxIn         : in  PgpEthTxInType         := PGP_ETH_TX_IN_INIT_C;
-      pgpTxOut        : out PgpEthTxOutType;
-      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      htspTxIn        : in  HtspTxInType           := HTSP_TX_IN_INIT_C;
+      htspTxOut       : out HtspTxOutType;
+      htspTxMasters   : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      htspTxSlaves    : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Rx User interface
-      pgpRxIn         : in  PgpEthRxInType         := PGP_ETH_RX_IN_INIT_C;
-      pgpRxOut        : out PgpEthRxOutType;
-      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      htspRxIn        : in  HtspRxInType           := HTSP_RX_IN_INIT_C;
+      htspRxOut       : out HtspRxOutType;
+      htspRxMasters   : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      htspRxCtrl      : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       -- Tx PHY interface
       phyTxRdy        : in  sl;
       phyTxMaster     : out AxiStreamMasterType;
@@ -77,18 +76,18 @@ entity PgpEthCore is
       axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-end entity PgpEthCore;
+end entity HtspCore;
 
-architecture mapping of PgpEthCore is
+architecture mapping of HtspCore is
 
    signal locRxLinkReady : sl;
    signal remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
    signal remRxLinkReady : sl;
 
-   signal pgpTxInInt  : PgpEthTxInType;
-   signal pgpTxOutInt : PgpEthTxOutType;
-   signal pgpRxInInt  : PgpEthRxInType;
-   signal pgpRxOutInt : PgpEthRxOutType;
+   signal htspTxInInt  : HtspTxInType;
+   signal htspTxOutInt : HtspTxOutType;
+   signal htspRxInInt  : HtspRxInType;
+   signal htspRxOutInt : HtspRxOutType;
 
    signal broadcastMac : slv(47 downto 0);
    signal remoteMac    : slv(47 downto 0);
@@ -101,21 +100,21 @@ architecture mapping of PgpEthCore is
    attribute dont_touch                   : string;
    attribute dont_touch of locRxLinkReady : signal is "TRUE";
    attribute dont_touch of remRxLinkReady : signal is "TRUE";
-   attribute dont_touch of pgpTxInInt     : signal is "TRUE";
-   attribute dont_touch of pgpTxOutInt    : signal is "TRUE";
-   attribute dont_touch of pgpRxInInt     : signal is "TRUE";
-   attribute dont_touch of pgpRxOutInt    : signal is "TRUE";
+   attribute dont_touch of htspTxInInt    : signal is "TRUE";
+   attribute dont_touch of htspTxOutInt   : signal is "TRUE";
+   attribute dont_touch of htspRxInInt    : signal is "TRUE";
+   attribute dont_touch of htspRxOutInt   : signal is "TRUE";
 
 begin
 
    assert (isPowerOf2(TX_MAX_PAYLOAD_SIZE_G) = true)
       report "TX_MAX_PAYLOAD_SIZE_G must be power of 2" severity failure;
 
-   phyUsrRst <= pgpRxInInt.resetRx;
-   pgpRxOut  <= pgpRxOutInt;
-   pgpTxOut  <= pgpTxOutInt;
+   phyUsrRst <= htspRxInInt.resetRx;
+   htspRxOut <= htspRxOutInt;
+   htspTxOut <= htspTxOutInt;
 
-   U_Tx : entity surf.PgpEthTx
+   U_Tx : entity surf.HtspTx
       generic map (
          TPD_G              => TPD_G,
          NUM_VC_G           => NUM_VC_G,
@@ -127,14 +126,14 @@ begin
          broadcastMac   => broadcastMac,
          etherType      => etherType,
          -- Tx User interface
-         pgpClk         => pgpClk,
-         pgpRst         => pgpRst,
-         pgpTxIn        => pgpTxInInt,
-         pgpTxOut       => pgpTxOutInt,
-         pgpTxMasters   => pgpTxMasters,
-         pgpTxSlaves    => pgpTxSlaves,
+         htspClk        => htspClk,
+         htspRst        => htspRst,
+         htspTxIn       => htspTxInInt,
+         htspTxOut      => htspTxOutInt,
+         htspTxMasters  => htspTxMasters,
+         htspTxSlaves   => htspTxSlaves,
          -- Status of receive and remote FIFOs
-         locRxFifoCtrl  => pgpRxCtrl,
+         locRxFifoCtrl  => htspRxCtrl,
          locRxLinkReady => locRxLinkReadyReg,
          remRxFifoCtrl  => remRxFifoCtrlReg,
          remRxLinkReady => remRxLinkReadyReg,
@@ -144,16 +143,16 @@ begin
          phyTxSlave     => phyTxSlave);
 
    -- Help with making timing
-   process (pgpClk) is
+   process (htspClk) is
    begin
-      if rising_edge(pgpClk) then
+      if rising_edge(htspClk) then
          locRxLinkReadyReg <= locRxLinkReady after TPD_G;
          remRxFifoCtrlReg  <= remRxFifoCtrl  after TPD_G;
          remRxLinkReadyReg <= remRxLinkReady after TPD_G;
       end if;
    end process;
 
-   U_Rx : entity surf.PgpEthRx
+   U_Rx : entity surf.HtspRx
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -164,11 +163,11 @@ begin
          broadcastMac   => broadcastMac,
          etherType      => etherType,
          -- Rx User interface
-         pgpClk         => pgpClk,
-         pgpRst         => pgpRst,
-         pgpRxIn        => pgpRxInInt,
-         pgpRxOut       => pgpRxOutInt,
-         pgpRxMasters   => pgpRxMasters,
+         htspClk        => htspClk,
+         htspRst        => htspRst,
+         htspRxIn       => htspRxInInt,
+         htspRxOut      => htspRxOutInt,
+         htspRxMasters  => htspRxMasters,
          -- Status of local receive FIFOs
          remRxFifoCtrl  => remRxFifoCtrl,
          remRxLinkReady => remRxLinkReady,
@@ -177,7 +176,7 @@ begin
          phyRxRdy       => phyRxRdy,
          phyRxMaster    => phyRxMaster);
 
-   U_AxiLite : entity surf.PgpEthAxiL
+   U_AxiLite : entity surf.HtspAxiL
       generic map (
          TPD_G            => TPD_G,
          WRITE_EN_G       => AXIL_WRITE_EN_G,
@@ -191,16 +190,16 @@ begin
          TX_POST_CURSOR_G => TX_POST_CURSOR_G)
       port map (
          -- Clock and Reset
-         pgpClk          => pgpClk,
-         pgpRst          => pgpRst,
+         htspClk         => htspClk,
+         htspRst         => htspRst,
          -- Tx User interface
-         pgpTxIn         => pgpTxInInt,
-         pgpTxOut        => pgpTxOutInt,
-         locTxIn         => pgpTxIn,
+         htspTxIn        => htspTxInInt,
+         htspTxOut       => htspTxOutInt,
+         locTxIn         => htspTxIn,
          -- Rx User interface
-         pgpRxIn         => pgpRxInInt,
-         pgpRxOut        => pgpRxOutInt,
-         locRxIn         => pgpRxIn,
+         htspRxIn        => htspRxInInt,
+         htspRxOut       => htspRxOutInt,
+         locRxIn         => htspRxIn,
          -- Ethernet Configuration
          remoteMac       => remoteMac,
          localMac        => localMac,

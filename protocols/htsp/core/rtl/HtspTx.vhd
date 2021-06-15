@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGP Ethernet Transmitter
+-- Description: HTSP Ethernet Transmitter
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,14 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use surf.PgpEthPkg.all;
+use surf.HtspPkg.all;
 
-entity PgpEthTx is
+entity HtspTx is
    generic (
       TPD_G              : time                   := 1 ns;
       NUM_VC_G           : positive range 1 to 16 := 1;
@@ -38,12 +37,12 @@ entity PgpEthTx is
       broadcastMac   : in  slv(47 downto 0);
       etherType      : in  slv(15 downto 0);
       -- User interface
-      pgpClk         : in  sl;
-      pgpRst         : in  sl;
-      pgpTxIn        : in  PgpEthTxInType;
-      pgpTxOut       : out PgpEthTxOutType;
-      pgpTxMasters   : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves    : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      htspClk        : in  sl;
+      htspRst        : in  sl;
+      htspTxIn       : in  HtspTxInType;
+      htspTxOut      : out HtspTxOutType;
+      htspTxMasters  : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      htspTxSlaves   : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Status of receive and remote FIFOs
       locRxFifoCtrl  : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       locRxLinkReady : in  sl;
@@ -53,9 +52,9 @@ entity PgpEthTx is
       phyTxRdy       : in  sl;
       phyTxMaster    : out AxiStreamMasterType;
       phyTxSlave     : in  AxiStreamSlaveType);
-end entity PgpEthTx;
+end entity HtspTx;
 
-architecture rtl of PgpEthTx is
+architecture rtl of HtspTx is
 
    constant MAX_SIZE_C : positive := (MAX_PAYLOAD_SIZE_G/64);  -- units of 512-bit words
 
@@ -78,8 +77,8 @@ architecture rtl of PgpEthTx is
       pause        : slv(15 downto 0);
       lastPausSent : slv(15 downto 0);
       tDest        : slv(7 downto 0);
-      pgpTxOut     : PgpEthTxOutType;
-      pgpTxSlave   : AxiStreamSlaveType;
+      htspTxOut    : HtspTxOutType;
+      htspTxSlave  : AxiStreamSlaveType;
       txMaster     : AxiStreamMasterType;
       state        : StateType;
    end record RegType;
@@ -96,8 +95,8 @@ architecture rtl of PgpEthTx is
       pause        => (others => '0'),
       lastPausSent => (others => '0'),
       tDest        => (others => '0'),
-      pgpTxOut     => PGP_ETH_TX_OUT_INIT_C,
-      pgpTxSlave   => AXI_STREAM_SLAVE_INIT_C,
+      htspTxOut    => HTSP_TX_OUT_INIT_C,
+      htspTxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster     => AXI_STREAM_MASTER_INIT_C,
       state        => IDLE_S);
 
@@ -107,8 +106,8 @@ architecture rtl of PgpEthTx is
    signal ibTxMasters : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
    signal ibTxSlaves  : AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
 
-   signal pgpTxMaster : AxiStreamMasterType;
-   signal pgpTxSlave  : AxiStreamSlaveType;
+   signal htspTxMaster : AxiStreamMasterType;
+   signal htspTxSlave  : AxiStreamSlaveType;
 
    signal txSlave : AxiStreamSlaveType;
 
@@ -128,10 +127,10 @@ begin
             TPD_G         => TPD_G,
             PIPE_STAGES_G => 1)
          port map (
-            axisClk     => pgpClk,
-            axisRst     => pgpRst,
-            sAxisMaster => pgpTxMasters(i),
-            sAxisSlave  => pgpTxSlaves(i),
+            axisClk     => htspClk,
+            axisRst     => htspRst,
+            sAxisMaster => htspTxMasters(i),
+            sAxisSlave  => htspTxSlaves(i),
             mAxisMaster => ibTxMasters(i),
             mAxisSlave  => ibTxSlaves(i));
 
@@ -149,16 +148,16 @@ begin
          ILEAVE_ON_NOTVALID_G => true,
          ILEAVE_REARB_G       => MAX_SIZE_C)
       port map (
-         axisClk      => pgpClk,
-         axisRst      => pgpRst,
+         axisClk      => htspClk,
+         axisRst      => htspRst,
          disableSel   => r.disableSel,
          sAxisMasters => ibTxMasters,
          sAxisSlaves  => ibTxSlaves,
-         mAxisMaster  => pgpTxMaster,
-         mAxisSlave   => pgpTxSlave);
+         mAxisMaster  => htspTxMaster,
+         mAxisSlave   => htspTxSlave);
 
-   comb : process (broadcastMac, etherType, locRxFifoCtrl, locRxLinkReady,
-                   localMac, pgpRst, pgpTxIn, pgpTxMaster, phyTxRdy, r,
+   comb : process (broadcastMac, etherType, htspRst, htspTxIn, htspTxMaster,
+                   locRxFifoCtrl, locRxLinkReady, localMac, phyTxRdy, r,
                    remRxFifoCtrl, remRxLinkReady, remoteMac, txSlave) is
       variable v          : RegType;
       variable remoteRdy  : sl;
@@ -170,18 +169,18 @@ begin
 
       -- Update the variable
       pauseEvent := '0';
-      remoteRdy  := pgpTxIn.flowCntlDis or remRxLinkReady;
+      remoteRdy  := htspTxIn.flowCntlDis or remRxLinkReady;
       hdrXsum    := (others => '0');
 
       -- Update/Reset the flags
-      v.pgpTxOut.opCodeReady := '0';
-      v.pgpTxOut.frameTx     := '0';
-      v.pgpTxOut.frameTxErr  := '0';
-      v.pgpTxOut.phyTxActive := phyTxRdy;
-      v.pgpTxOut.linkReady   := phyTxRdy;
+      v.htspTxOut.opCodeReady := '0';
+      v.htspTxOut.frameTx     := '0';
+      v.htspTxOut.frameTxErr  := '0';
+      v.htspTxOut.phyTxActive := phyTxRdy;
+      v.htspTxOut.linkReady   := phyTxRdy;
 
       -- AXI Stream Flow Control
-      v.pgpTxSlave.tReady := '0';
+      v.htspTxSlave.tReady := '0';
       if txSlave.tReady = '1' then
          v.txMaster.tValid := '0';
          v.txMaster.tLast  := '0';
@@ -192,9 +191,9 @@ begin
       -- Loop through the bits
       for i in NUM_VC_G-1 downto 0 loop
 
-         -- Map the FIFO control bits to PGP non-VC bus
-         v.pgpTxOut.locOverflow(i) := locRxFifoCtrl(i).overflow;
-         v.pgpTxOut.locPause(i)    := locRxFifoCtrl(i).pause;
+         -- Map the FIFO control bits to HTSP non-VC bus
+         v.htspTxOut.locOverflow(i) := locRxFifoCtrl(i).overflow;
+         v.htspTxOut.locPause(i)    := locRxFifoCtrl(i).pause;
 
          -- Latch the pause bits with the payload transport
          if (locRxFifoCtrl(i).pause = '1') then
@@ -209,10 +208,10 @@ begin
       end loop;
 
       -- Keep delayed copy
-      v.nullInterval := pgpTxIn.nullInterval;
+      v.nullInterval := htspTxIn.nullInterval;
 
       -- Check for change in configuration
-      if (pgpTxIn.nullInterval /= r.nullInterval) then
+      if (htspTxIn.nullInterval /= r.nullInterval) then
          -- Force a NULL message
          v.nullCnt := (others => '0');
       -- Check if need to decrement the counter
@@ -237,9 +236,9 @@ begin
                elsif (remoteRdy = '1') then
 
                   -- Check for send event
-                  if (pgpTxMaster.tValid = '1') or  -- payload data
-                     (pgpTxIn.opCodeEn = '1') or    -- OP-Code Event
-                     (pauseEvent = '1') then        -- 0->1 pause event
+                  if (htspTxMaster.tValid = '1') or  -- payload data
+                     (htspTxIn.opCodeEn = '1') or    -- OP-Code Event
+                     (pauseEvent = '1') then         -- 0->1 pause event
 
                      -- Next state
                      v.state := HDR_S;
@@ -264,7 +263,7 @@ begin
                v.txMaster.tData := (others => '0');
 
                -- Insert the SOF bit
-               ssiSetUserSof(PGP_ETH_AXIS_CONFIG_C, v.txMaster, '1');
+               ssiSetUserSof(HTSP_AXIS_CONFIG_C, v.txMaster, '1');
 
                -- Check if remote link up
                if (remoteRdy = '1') then
@@ -282,7 +281,7 @@ begin
                v.txMaster.tData(111 downto 96) := etherType;
 
                -- BYTE[14] = Version
-               v.txMaster.tData(119 downto 112) := PGP_ETH_VERSION_C;
+               v.txMaster.tData(119 downto 112) := HTSP_VERSION_C;
 
                -- BYTE[15] = TID
                v.txMaster.tData(127 downto 120) := r.tid;
@@ -291,19 +290,19 @@ begin
                v.txMaster.tData(143 downto 128) := v.pause;
 
                -- Check if there is payload
-               if (pgpTxMaster.tValid = '1') then
+               if (htspTxMaster.tValid = '1') then
 
-                  -- Match the PHY TDEST to PGP tDEST (useful for debugging)
-                  v.txMaster.tDest := pgpTxMaster.tDest;
+                  -- Match the PHY TDEST to HTSP tDEST (useful for debugging)
+                  v.txMaster.tDest := htspTxMaster.tDest;
 
                   -- BYTE[18] = Virtual Channel Index
-                  v.txMaster.tData(151 downto 144) := pgpTxMaster.tDest;
+                  v.txMaster.tData(151 downto 144) := htspTxMaster.tDest;
 
                   -- BYTE[19] = SOF
-                  v.txMaster.tData(152) := r.sof(conv_integer(pgpTxMaster.tDest));
+                  v.txMaster.tData(152) := r.sof(conv_integer(htspTxMaster.tDest));
 
                   -- Reset the flag
-                  v.sof(conv_integer(pgpTxMaster.tDest)) := '0';
+                  v.sof(conv_integer(htspTxMaster.tDest)) := '0';
 
                else
 
@@ -316,7 +315,7 @@ begin
                end if;
 
                -- BYTE[20] = OP-Code Enable
-               v.txMaster.tData(160) := pgpTxIn.opCodeEn and remoteRdy;
+               v.txMaster.tData(160) := htspTxIn.opCodeEn and remoteRdy;
 
                -- BYTE[21] = RxLinkReady
                v.txMaster.tData(168) := locRxLinkReady;
@@ -329,13 +328,13 @@ begin
                --------------------------------
 
                -- BYTE[47:32] = OpCodeData
-               v.txMaster.tData(383 downto 256) := pgpTxIn.opCode;
+               v.txMaster.tData(383 downto 256) := htspTxIn.opCode;
 
                -- BYTE[63:48] = LocalData
-               v.txMaster.tData(511 downto 384) := pgpTxIn.locData;
+               v.txMaster.tData(511 downto 384) := htspTxIn.locData;
 
                -- Accept the OP-code
-               v.pgpTxOut.opCodeReady := pgpTxIn.opCodeEn and remoteRdy;
+               v.htspTxOut.opCodeReady := htspTxIn.opCodeEn and remoteRdy;
 
                -- Increment the counter
                v.tid := r.tid + 1;
@@ -351,12 +350,12 @@ begin
                   v.state          := IDLE_S;
 
                -- Check if there is payload
-               elsif (pgpTxMaster.tValid = '1') then
+               elsif (htspTxMaster.tValid = '1') then
                   -- Track the current tDest
-                  v.tDest := pgpTxMaster.tDest;
+                  v.tDest := htspTxMaster.tDest;
 
                   -- Reset the counters
-                  v.pgpTxOut.frameTxSize := (others => '0');
+                  v.htspTxOut.frameTxSize := (others => '0');
 
                   -- Next state
                   v.state := PAYLOAD_S;
@@ -385,10 +384,10 @@ begin
          ----------------------------------------------------------------------
          when PAYLOAD_S =>
             -- Check if ready to move data
-            if (v.txMaster.tValid = '0') and (pgpTxMaster.tValid = '1') then
+            if (v.txMaster.tValid = '0') and (htspTxMaster.tValid = '1') then
 
                -- Check for change in tDEST
-               if (pgpTxMaster.tDest /= r.tDest) then
+               if (htspTxMaster.tDest /= r.tDest) then
 
                   -- Next state
                   v.state := FOOTER_S;
@@ -396,14 +395,14 @@ begin
                else
 
                   -- Accept the data
-                  v.pgpTxSlave.tReady := '1';
+                  v.htspTxSlave.tReady := '1';
 
                   -- Move the data
-                  v.txMaster := pgpTxMaster;
+                  v.txMaster := htspTxMaster;
 
                   -- Check the non-tKeep bytes to zero
                   for i in 63 downto 0 loop
-                     if pgpTxMaster.tKeep(i) = '0' then
+                     if htspTxMaster.tKeep(i) = '0' then
                         v.txMaster.tData(8*i+7 downto 8*i) := x"00";
                      end if;
                   end loop;
@@ -414,20 +413,20 @@ begin
                   v.txMaster.tUser := (others => '0');
 
                   -- Increment the counters
-                  v.wrdCnt               := r.wrdCnt + 1;
-                  v.pgpTxOut.frameTxSize := r.pgpTxOut.frameTxSize + getTKeep(pgpTxMaster.tKeep, PGP_ETH_AXIS_CONFIG_C);
+                  v.wrdCnt                := r.wrdCnt + 1;
+                  v.htspTxOut.frameTxSize := r.htspTxOut.frameTxSize + getTKeep(htspTxMaster.tKeep, HTSP_AXIS_CONFIG_C);
 
                   -- Sample the metadata
-                  v.eof      := pgpTxMaster.tLast;
-                  v.eofe     := ssiGetUserEofe(PGP_ETH_AXIS_CONFIG_C, pgpTxMaster) and pgpTxMaster.tLast;
-                  v.lastKeep := pgpTxMaster.tKeep(63 downto 0);
+                  v.eof      := htspTxMaster.tLast;
+                  v.eofe     := ssiGetUserEofe(HTSP_AXIS_CONFIG_C, htspTxMaster) and htspTxMaster.tLast;
+                  v.lastKeep := htspTxMaster.tKeep(63 downto 0);
 
                   -- Check for EOF or max payload size
-                  if (pgpTxMaster.tLast = '1') or (r.wrdCnt = MAX_SIZE_C-1) then
+                  if (htspTxMaster.tLast = '1') or (r.wrdCnt = MAX_SIZE_C-1) then
 
                      -- Check if need to arm for SOF
-                     if (pgpTxMaster.tLast = '1') then
-                        v.sof(conv_integer(pgpTxMaster.tDest)) := '1';
+                     if (htspTxMaster.tLast = '1') then
+                        v.sof(conv_integer(htspTxMaster.tDest)) := '1';
                      end if;
 
                      -- Next state
@@ -450,7 +449,7 @@ begin
                v.txMaster.tData(47 downto 0) := (others => '0');
 
                -- Forward the lastKeep/eof/eofe
-               v.txMaster.tData(7 downto 0) := toSlv(getTKeep(r.lastKeep, PGP_ETH_AXIS_CONFIG_C), 8);
+               v.txMaster.tData(7 downto 0) := toSlv(getTKeep(r.lastKeep, HTSP_AXIS_CONFIG_C), 8);
                v.txMaster.tData(8)          := r.eof;
                v.txMaster.tData(9)          := r.eofe;
 
@@ -458,10 +457,10 @@ begin
                v.txMaster.tData(31 downto 16) := v.pause;
 
                -- Forward the payload size
-               v.txMaster.tData(47 downto 32) := r.pgpTxOut.frameTxSize;
+               v.txMaster.tData(47 downto 32) := r.htspTxOut.frameTxSize;
 
                -- Update flag
-               v.pgpTxOut.frameTx := '1';
+               v.htspTxOut.frameTx := '1';
 
                -- Sample the last pause sent
                v.lastPausSent := v.pause;
@@ -482,22 +481,22 @@ begin
       -- Check if next state is IDLE_S and currently not in IDLE_S
       if (v.state = IDLE_S) and (r.state /= IDLE_S) then
          -- Pre-set the counter
-         v.nullCnt := pgpTxIn.nullInterval;
+         v.nullCnt := htspTxIn.nullInterval;
       end if;
 
-      -- All flow control overridden by pgpTxIn 'disable' and 'flowCntlDis'
+      -- All flow control overridden by htspTxIn 'disable' and 'flowCntlDis'
       for i in NUM_VC_G-1 downto 0 loop
 
          -- Forced disable
-         if (pgpTxIn.disable = '1') then
+         if (htspTxIn.disable = '1') then
             v.disableSel(i) := '1';
 
          -- No flow control
-         elsif (pgpTxIn.flowCntlDis = '1') then
+         elsif (htspTxIn.flowCntlDis = '1') then
             v.disableSel(i) := '0';
 
          -- Prevent disabling while in the middle of payload transport
-         elsif (v.state = PAYLOAD_S) and (pgpTxMaster.tDest = i)then
+         elsif (v.state = PAYLOAD_S) and (htspTxMaster.tDest = i)then
             v.disableSel(i) := '0';
 
          -- Else disable same as remote pause
@@ -508,13 +507,13 @@ begin
       end loop;
 
       -- Outputs
-      pgpTxSlave <= v.pgpTxSlave;
+      htspTxSlave <= v.htspTxSlave;
 
-      pgpTxOut             <= r.pgpTxOut;
-      pgpTxOut.opCodeReady <= v.pgpTxOut.opCodeReady;
+      htspTxOut             <= r.htspTxOut;
+      htspTxOut.opCodeReady <= v.htspTxOut.opCodeReady;
 
       -- Reset
-      if (pgpRst = '1') then
+      if (htspRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -523,9 +522,9 @@ begin
 
    end process comb;
 
-   seq : process (pgpClk) is
+   seq : process (htspClk) is
    begin
-      if rising_edge(pgpClk) then
+      if rising_edge(htspClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -535,8 +534,8 @@ begin
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1)
       port map (
-         axisClk     => pgpClk,
-         axisRst     => pgpRst,
+         axisClk     => htspClk,
+         axisRst     => htspRst,
          sAxisMaster => r.txMaster,
          sAxisSlave  => txSlave,
          mAxisMaster => phyTxMaster,
