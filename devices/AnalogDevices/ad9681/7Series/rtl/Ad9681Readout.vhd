@@ -110,18 +110,16 @@ architecture rtl of Ad9681Readout is
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
       errorDet : sl;
-      adcValid : sl;
    end record;
 
    type AdcRegArray is array (natural range <>) of AdcRegType;
 
    constant ADC_REG_INIT_C : AdcRegType := (
-      errorDet => '0',
-      adcValid => '0');
+      errorDet => '0');
 
-   signal adcR     : AdcRegArray(1 downto 0) := (others => ADC_REG_INIT_C);
-   signal adcRin   : AdcRegArray(1 downto 0);
-   signal adcValid : slv(1 downto 0);
+
+   signal adcR   : AdcRegArray(1 downto 0) := (others => ADC_REG_INIT_C);
+   signal adcRin : AdcRegArray(1 downto 0);
 
 
    -- Local Signals
@@ -251,15 +249,15 @@ begin
             dataIn  => axilR.invert,
             dataOut => invertSync(i));
 
-      Synchronizer_REALIGN : entity surf.Synchronizer
+      Synchronizer_REALIGN : entity surf.SynchronizerEdge
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 3)
          port map (
-            clk     => adcBitClkR(i),
-            rst     => adcBitRst(i),
-            dataIn  => axilR.realign,
-            dataOut => realignSync(i));
+            clk        => adcBitClkR(i),
+            rst        => adcBitRst(i),
+            dataIn     => axilR.realign,
+            risingEdge => realignSync(i));
 
       Synchronizer_USR_DELAY_SET : entity surf.Synchronizer
          generic map (
@@ -308,8 +306,6 @@ begin
       v := axilR;
 
       v.delaySet := "00";
-      v.realign  := '0';
-
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
@@ -498,13 +494,13 @@ begin
             TPD_G           => TPD_G,
             SIMULATION_G    => SIMULATION_G,
             CODE_TYPE_G     => "LINE_CODE",
-            DLY_STEP_SIZE_G => 8)
+            DLY_STEP_SIZE_G => 16)
          port map (
             clk             => adcBitClkR(i),       -- [in]
             rst             => adcBitRst(i),        -- [in]
             lineCodeValid   => '1',                 -- [in]
             lineCodeErr     => adcR(i).errorDet,    -- [in]
-            lineCodeDispErr => '0',                 -- [in]
+            lineCodeDispErr => realignSync(i),      -- [in]
             linkOutOfSync   => '0',                 -- [in]
             rxHeaderValid   => '0',                 -- [in]
             rxHeader        => (others => '0'),     -- [in]
@@ -523,7 +519,7 @@ begin
       -------------------------------------------------------------------------------------------------
       -- ADC Bit Clocked Logic
       -------------------------------------------------------------------------------------------------
-      adcComb : process (adcFrame, adcR, locked) is
+      adcComb : process (adcFrame, adcR) is
          variable v : AdcRegType;
       begin
          v          := adcR(i);
@@ -556,8 +552,7 @@ begin
 --             v.adcValid := '1';
 --          end if;
 
-         adcRin(i)   <= v;
-         adcValid(i) <= locked(i);
+         adcRin(i) <= v;
 
       end process adcComb;
 
@@ -572,10 +567,10 @@ begin
 
    end generate;
 
-   GLUE_COMB : process (adcData, adcValid, invertSync) is
+   GLUE_COMB : process (adcData, invertSync, locked) is
    begin
       for ch in NUM_CHANNELS_C-1 downto 0 loop
-         if (adcValid = "11") then
+         if (locked = "11") then
             -- Locked, output adc data
             if invertSync(0) = '1' then
                -- Invert all bits but keep 2 LSBs clear
