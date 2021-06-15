@@ -12,7 +12,7 @@ import pyrogue as pr
 
 import surf.ethernet.udp as udp
 
-class PgpEthAxiL(pr.Device):
+class HtspAxiL(pr.Device):
     def __init__(self,
                  description     = "Configuration and status a PGP ETH link",
                  numVc           = 4,
