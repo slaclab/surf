@@ -358,7 +358,7 @@ class Ad9681Readout(pr.Device):
             self.add(pr.RemoteVariable(
                 name         = f'Delay[{i}]',
                 description  = f'IDELAY value for serial channel {i}',
-                disp         = '{:d}'.
+                disp         = '{:d}',
                 offset       = i*4,
                 bitSize      = delayBits,
                 bitOffset    = 0,
@@ -375,7 +375,7 @@ class Ad9681Readout(pr.Device):
         for i in range(2):
             self.add(pr.RemoteVariable(
                 name        = f'ErrorDetCount[{i}]',
-                disp         = '{:d}'.                
+                disp         = '{:d}',
                 offset      = 0x30+ 4*i,
                 bitSize     = 16,
                 bitOffset   = 0,
@@ -388,7 +388,7 @@ class Ad9681Readout(pr.Device):
             self.add(pr.RemoteVariable(
                 name        = f'LostLockCount[{i}]',
                 description = 'Number of times that frame lock has been lost since reset',
-                disp         = '{:d}'.                
+                disp         = '{:d}',
                 offset      = 0x50+ 4*i,
                 bitSize     = 16,
                 bitOffset   = 0,
