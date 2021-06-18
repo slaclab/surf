@@ -53,7 +53,7 @@ begin
          TPD_G         => 1 ns,
          PORT_NUM_G    => 9000,         -- Using ports 9000 and 9001
          SSI_EN_G      => true,
-         CHAN_COUNT_G  => 1,
+         CHAN_MASK_G  => (others => '0'),
          AXIS_CONFIG_G => AXIS_CONFIG_C)
       port map (
          axisClk     => axiClk,
