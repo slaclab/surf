@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI-Lite block to manage the PGP Ethernet interface.
+-- Description: AXI-Lite block to manage the HTSP Ethernet interface.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,13 +19,12 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use surf.PgpEthPkg.all;
+use surf.HtspPkg.all;
 
-entity PgpEthAxiL is
+entity HtspAxiL is
    generic (
       TPD_G            : time                  := 1 ns;
       WRITE_EN_G       : boolean               := false;  -- Set to false when on remote end of a link
@@ -39,16 +38,16 @@ entity PgpEthAxiL is
       TX_POST_CURSOR_G : Slv5Array(9 downto 0) := (others => "00000"));
    port (
       -- Clock and Reset
-      pgpClk          : in  sl;
-      pgpRst          : in  sl;
-      -- Tx User interface (pgpClk domain)
-      pgpTxIn         : out PgpEthTxInType;
-      pgpTxOut        : in  PgpEthTxOutType;
-      locTxIn         : in  PgpEthTxInType := PGP_ETH_TX_IN_INIT_C;
-      -- RX PGP Interface (pgpClk domain)
-      pgpRxIn         : out PgpEthRxInType;
-      pgpRxOut        : in  PgpEthRxOutType;
-      locRxIn         : in  PgpEthRxInType := PGP_ETH_RX_IN_INIT_C;
+      htspClk         : in  sl;
+      htspRst         : in  sl;
+      -- Tx User interface (htspClk domain)
+      htspTxIn        : out HtspTxInType;
+      htspTxOut       : in  HtspTxOutType;
+      locTxIn         : in  HtspTxInType := HTSP_TX_IN_INIT_C;
+      -- RX HTSP Interface (htspClk domain)
+      htspRxIn        : out HtspRxInType;
+      htspRxOut       : in  HtspRxOutType;
+      locRxIn         : in  HtspRxInType := HTSP_RX_IN_INIT_C;
       -- Ethernet Configuration
       remoteMac       : in  slv(47 downto 0);
       localMac        : in  slv(47 downto 0);
@@ -68,9 +67,9 @@ entity PgpEthAxiL is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end PgpEthAxiL;
+end HtspAxiL;
 
-architecture rtl of PgpEthAxiL is
+architecture rtl of HtspAxiL is
 
    constant NUM_AXIL_MASTERS_C : positive := 2;
 
@@ -90,8 +89,8 @@ architecture rtl of PgpEthAxiL is
       txDiffCtrl     : Slv5Array(9 downto 0);
       txPreCursor    : Slv5Array(9 downto 0);
       txPostCursor   : Slv5Array(9 downto 0);
-      pgpTxIn        : PgpEthTxInType;
-      pgpRxIn        : PgpEthRxInType;
+      htspTxIn       : HtspTxInType;
+      htspRxIn       : HtspRxInType;
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
    end record RegType;
@@ -106,8 +105,8 @@ architecture rtl of PgpEthAxiL is
       txDiffCtrl     => TX_DIFF_CTRL_G,
       txPreCursor    => TX_PRE_CURSOR_G,
       txPostCursor   => TX_POST_CURSOR_G,
-      pgpTxIn        => PGP_ETH_TX_IN_INIT_C,
-      pgpRxIn        => PGP_ETH_RX_IN_INIT_C,
+      htspTxIn       => HTSP_TX_IN_INIT_C,
+      htspRxIn       => HTSP_RX_IN_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
 
@@ -129,7 +128,7 @@ architecture rtl of PgpEthAxiL is
 
    signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
 
-   signal syncTxIn : PgpEthTxInType;
+   signal syncTxIn : HtspTxInType;
 
 begin
 
@@ -160,23 +159,23 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         wrClk                  => pgpClk,
-         statusIn(60)           => pgpRst,
-         statusIn(59)           => pgpRxOut.opCodeEn,
-         statusIn(58)           => pgpTxOut.opCodeReady,
-         statusIn(57)           => pgpRxOut.remRxLinkReady,
-         statusIn(56)           => pgpRxOut.linkDown,
-         statusIn(55)           => pgpRxOut.linkReady,
-         statusIn(54)           => pgpTxOut.linkReady,
-         statusIn(53)           => pgpRxOut.phyRxActive,
-         statusIn(52)           => pgpTxOut.phyTxActive,
-         statusIn(51)           => pgpRxOut.frameRxErr,
-         statusIn(50)           => pgpRxOut.frameRx,
-         statusIn(49)           => pgpTxOut.frameTxErr,
-         statusIn(48)           => pgpTxOut.frameTx,
-         statusIn(47 downto 32) => pgpTxOut.locOverflow,
-         statusIn(31 downto 16) => pgpTxOut.locPause,
-         statusIn(15 downto 0)  => pgpRxOut.remRxPause,
+         wrClk                  => htspClk,
+         statusIn(60)           => htspRst,
+         statusIn(59)           => htspRxOut.opCodeEn,
+         statusIn(58)           => htspTxOut.opCodeReady,
+         statusIn(57)           => htspRxOut.remRxLinkReady,
+         statusIn(56)           => htspRxOut.linkDown,
+         statusIn(55)           => htspRxOut.linkReady,
+         statusIn(54)           => htspTxOut.linkReady,
+         statusIn(53)           => htspRxOut.phyRxActive,
+         statusIn(52)           => htspTxOut.phyTxActive,
+         statusIn(51)           => htspRxOut.frameRxErr,
+         statusIn(50)           => htspRxOut.frameRx,
+         statusIn(49)           => htspTxOut.frameTxErr,
+         statusIn(48)           => htspTxOut.frameTx,
+         statusIn(47 downto 32) => htspTxOut.locOverflow,
+         statusIn(31 downto 16) => htspTxOut.locPause,
+         statusIn(15 downto 0)  => htspRxOut.remRxPause,
          -- Outbound Status/control Signals (axilClk domain)
          statusOut              => statusOut,
          cntRstIn               => r.cntRst,
@@ -197,7 +196,7 @@ begin
       port map (
          freqOut => freqMeasured,
          -- Clocks
-         clkIn   => pgpClk,
+         clkIn   => htspClk,
          locClk  => axilClk,
          refClk  => axilClk);
 
@@ -207,10 +206,10 @@ begin
          WIDTH_G => 16)
       port map (
          -- Write Interface (wrClk domain)
-         wrClk   => pgpClk,
-         wrRst   => pgpRst,
-         wrEn    => pgpTxOut.frameTx,
-         dataIn  => pgpTxOut.frameTxSize,
+         wrClk   => htspClk,
+         wrRst   => htspRst,
+         wrEn    => htspTxOut.frameTx,
+         dataIn  => htspTxOut.frameTxSize,
          -- Read Interface (rdClk domain)
          rdClk   => axilClk,
          rstStat => r.cntRst,
@@ -223,10 +222,10 @@ begin
          WIDTH_G => 16)
       port map (
          -- Write Interface (wrClk domain)
-         wrClk   => pgpClk,
-         wrRst   => pgpRst,
-         wrEn    => pgpRxOut.frameRx,
-         dataIn  => pgpRxOut.frameRxSize,
+         wrClk   => htspClk,
+         wrRst   => htspRst,
+         wrEn    => htspRxOut.frameRx,
+         dataIn  => htspRxOut.frameRxSize,
          -- Read Interface (rdClk domain)
          rdClk   => axilClk,
          rstStat => r.cntRst,
@@ -266,13 +265,13 @@ begin
       if (WRITE_EN_G) then
 
          axiSlaveRegister(axilEp, x"30", 0, v.loopback);
-         axiSlaveRegister(axilEp, x"30", 8, v.pgpTxIn.disable);
-         axiSlaveRegister(axilEp, x"30", 9, v.pgpTxIn.flowCntlDis);
-         axiSlaveRegister(axilEp, x"30", 10, v.pgpRxIn.resetRx);
+         axiSlaveRegister(axilEp, x"30", 8, v.htspTxIn.disable);
+         axiSlaveRegister(axilEp, x"30", 9, v.htspTxIn.flowCntlDis);
+         axiSlaveRegister(axilEp, x"30", 10, v.htspRxIn.resetRx);
 
          axiSlaveRegister(axilEp, x"38", 0, v.rxPolarity);
          axiSlaveRegister(axilEp, x"38", 16, v.txPolarity);
-         axiSlaveRegister(axilEp, x"3C", 0, v.pgpTxIn.nullInterval);
+         axiSlaveRegister(axilEp, x"3C", 0, v.htspTxIn.nullInterval);
 
          for i in 9 downto 0 loop
             axiSlaveRegister(axilEp, toSlv(64+(4*i), 8), 0, v.txDiffCtrl(i));
@@ -286,13 +285,13 @@ begin
       else
 
          axiSlaveRegisterR(axilEp, x"30", 0, r.loopback);
-         axiSlaveRegisterR(axilEp, x"30", 8, r.pgpTxIn.disable);
-         axiSlaveRegisterR(axilEp, x"30", 9, r.pgpTxIn.flowCntlDis);
-         axiSlaveRegisterR(axilEp, x"30", 10, r.pgpRxIn.resetRx);
+         axiSlaveRegisterR(axilEp, x"30", 8, r.htspTxIn.disable);
+         axiSlaveRegisterR(axilEp, x"30", 9, r.htspTxIn.flowCntlDis);
+         axiSlaveRegisterR(axilEp, x"30", 10, r.htspRxIn.resetRx);
 
          axiSlaveRegisterR(axilEp, x"38", 0, r.rxPolarity);
          axiSlaveRegisterR(axilEp, x"38", 16, r.txPolarity);
-         axiSlaveRegisterR(axilEp, x"3C", 0, r.pgpTxIn.nullInterval);
+         axiSlaveRegisterR(axilEp, x"3C", 0, r.htspTxIn.nullInterval);
 
          for i in 9 downto 0 loop
             axiSlaveRegisterR(axilEp, toSlv(64+(4*i), 8), 0, r.txDiffCtrl(i));
@@ -348,7 +347,7 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 16)
       port map (
-         clk     => pgpClk,
+         clk     => htspClk,
          dataIn  => r.etherType,
          dataOut => etherType);
 
@@ -357,7 +356,7 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 48)
       port map (
-         clk     => pgpClk,
+         clk     => htspClk,
          dataIn  => r.broadcastMac,
          dataOut => broadcastMac);
 
@@ -366,8 +365,8 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 32)
       port map (
-         clk     => pgpClk,
-         dataIn  => r.pgpTxIn.nullInterval,
+         clk     => htspClk,
+         dataIn  => r.htspTxIn.nullInterval,
          dataOut => syncTxIn.nullInterval);
 
    U_SyncBits : entity surf.SynchronizerVector
@@ -375,20 +374,20 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => 2)
       port map (
-         clk        => pgpClk,
+         clk        => htspClk,
          -- Inputs
-         dataIn(0)  => r.pgpTxIn.disable,
-         dataIn(1)  => r.pgpTxIn.flowCntlDis,
+         dataIn(0)  => r.htspTxIn.disable,
+         dataIn(1)  => r.htspTxIn.flowCntlDis,
          -- Outputs
          dataOut(0) => syncTxIn.disable,
          dataOut(1) => syncTxIn.flowCntlDis);
 
-   pgpTxIn.disable      <= locTxIn.disable or syncTxIn.disable;
-   pgpTxIn.flowCntlDis  <= locTxIn.flowCntlDis or syncTxIn.flowCntlDis;
-   pgpTxIn.nullInterval <= syncTxIn.nullInterval;
-   pgpTxIn.opCodeEn     <= locTxIn.opCodeEn;
-   pgpTxIn.opCode       <= locTxIn.opCode;
-   pgpTxIn.locData      <= locTxIn.locData;
-   pgpRxIn.resetRx      <= locRxIn.resetRx or r.pgpRxIn.resetRx;
+   htspTxIn.disable      <= locTxIn.disable or syncTxIn.disable;
+   htspTxIn.flowCntlDis  <= locTxIn.flowCntlDis or syncTxIn.flowCntlDis;
+   htspTxIn.nullInterval <= syncTxIn.nullInterval;
+   htspTxIn.opCodeEn     <= locTxIn.opCodeEn;
+   htspTxIn.opCode       <= locTxIn.opCode;
+   htspTxIn.locData      <= locTxIn.locData;
+   htspRxIn.resetRx      <= locRxIn.resetRx or r.htspRxIn.resetRx;
 
 end rtl;

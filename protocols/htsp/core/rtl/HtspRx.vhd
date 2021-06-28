@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGP Ethernet Receiver
+-- Description: HTSP Ethernet Receiver
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,14 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-use surf.PgpEthPkg.all;
+use surf.HtspPkg.all;
 
-entity PgpEthRx is
+entity HtspRx is
    generic (
       TPD_G    : time                  := 1 ns;
       NUM_VC_G : integer range 1 to 16 := 4);
@@ -37,11 +36,11 @@ entity PgpEthRx is
       broadcastMac   : in  slv(47 downto 0);
       etherType      : in  slv(15 downto 0);
       -- User interface
-      pgpClk         : in  sl;
-      pgpRst         : in  sl;
-      pgpRxIn        : in  PgpEthRxInType;
-      pgpRxOut       : out PgpEthRxOutType;
-      pgpRxMasters   : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      htspClk        : in  sl;
+      htspRst        : in  sl;
+      htspRxIn       : in  HtspRxInType;
+      htspRxOut      : out HtspRxOutType;
+      htspRxMasters  : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       -- Status of local receive FIFOs
       remRxFifoCtrl  : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       remRxLinkReady : out sl;
@@ -49,9 +48,9 @@ entity PgpEthRx is
       -- PHY interface
       phyRxRdy       : in  sl;
       phyRxMaster    : in  AxiStreamMasterType);
-end entity PgpEthRx;
+end entity HtspRx;
 
-architecture rtl of PgpEthRx is
+architecture rtl of HtspRx is
 
    type StateType is (
       IDLE_S,
@@ -65,9 +64,9 @@ architecture rtl of PgpEthRx is
       tid            : slv(7 downto 0);
       tDest          : slv(7 downto 0);
       remoteMac      : slv(47 downto 0);
-      pgpRxOut       : PgpEthRxOutType;
+      htspRxOut      : HtspRxOutType;
       remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-      pgpRxMasters   : AxiStreamMasterArray(1 downto 0);
+      htspRxMasters  : AxiStreamMasterArray(1 downto 0);
       state          : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
@@ -78,22 +77,22 @@ architecture rtl of PgpEthRx is
       tid            => (others => '0'),
       tDest          => (others => '0'),
       remoteMac      => (others => '0'),
-      pgpRxOut       => PGP_ETH_RX_OUT_INIT_C,
+      htspRxOut      => HTSP_RX_OUT_INIT_C,
       remRxFifoCtrl  => (others => AXI_STREAM_CTRL_INIT_C),
-      pgpRxMasters   => (others => AXI_STREAM_MASTER_INIT_C),
+      htspRxMasters  => (others => AXI_STREAM_MASTER_INIT_C),
       state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal pgpRxMaster : AxiStreamMasterType;
+   signal htspRxMaster : AxiStreamMasterType;
 
    attribute dont_touch      : string;
    attribute dont_touch of r : signal is "TRUE";
 
 begin
 
-   comb : process (broadcastMac, etherType, localMac, pgpRst, phyRxMaster,
+   comb : process (broadcastMac, etherType, htspRst, localMac, phyRxMaster,
                    phyRxRdy, r) is
       variable v       : RegType;
       variable eofe    : sl;
@@ -103,25 +102,25 @@ begin
       v := r;
 
       -- Update variables
-      eofe    := ssiGetUserEofe(PGP_ETH_AXIS_CONFIG_C, phyRxMaster);
+      eofe    := ssiGetUserEofe(HTSP_AXIS_CONFIG_C, phyRxMaster);
       hdrXsum := (others => '0');
 
       -- Update/Reset the flags
-      v.pgpRxOut.phyRxActive    := phyRxRdy;
-      v.pgpRxOut.linkReady      := r.locRxLinkReady;
-      v.pgpRxOut.frameRx        := '0';
-      v.pgpRxOut.frameRxErr     := '0';
-      v.pgpRxOut.linkDown       := '0';
-      v.pgpRxOut.opCodeEn       := '0';
-      v.pgpRxOut.remRxLinkReady := r.remRxLinkReady;
-      v.pgpRxMasters(0).tValid  := '0';
+      v.htspRxOut.phyRxActive    := phyRxRdy;
+      v.htspRxOut.linkReady      := r.locRxLinkReady;
+      v.htspRxOut.frameRx        := '0';
+      v.htspRxOut.frameRxErr     := '0';
+      v.htspRxOut.linkDown       := '0';
+      v.htspRxOut.opCodeEn       := '0';
+      v.htspRxOut.remRxLinkReady := r.remRxLinkReady;
+      v.htspRxMasters(0).tValid  := '0';
 
       -- Check for PHY not ready
       if (phyRxRdy = '0') then
          -- Close the connection
-         v.aliveCnt          := (others => '0');
-         v.locRxLinkReady    := '0';
-         v.pgpRxOut.linkDown := r.locRxLinkReady;
+         v.aliveCnt           := (others => '0');
+         v.locRxLinkReady     := '0';
+         v.htspRxOut.linkDown := r.locRxLinkReady;
 
       -- Check for roll over
       elsif (r.aliveCnt = 0) then
@@ -139,7 +138,7 @@ begin
       -- Check for link down event
       if (v.aliveCnt = 0) and (r.aliveCnt /= 0) then
          -- Set the flag
-         v.pgpRxOut.linkDown := '1';
+         v.htspRxOut.linkDown := '1';
       end if;
 
       -- State Machine
@@ -163,18 +162,18 @@ begin
                ---------------------------
                if ((phyRxMaster.tData(47 downto 0) = localMac) or (phyRxMaster.tData(47 downto 0) = broadcastMac))  -- BYTE[5:0] = Destination MAC or Broadcast MAC
                   and (phyRxMaster.tData(111 downto 96) = etherType)  -- BYTE[13:12] = EtherType
-                  and (phyRxMaster.tData(119 downto 112) = PGP_ETH_VERSION_C) then  -- BYTE[14] = Version
+                  and (phyRxMaster.tData(119 downto 112) = HTSP_VERSION_C) then  -- BYTE[14] = Version
 
                   -- Check for invalid checksum
                   if (phyRxMaster.tData(255 downto 240) /= hdrXsum) then  -- Valid checksum
 
                      -- Close the connection
-                     v.aliveCnt          := (others => '0');
-                     v.locRxLinkReady    := '0';
-                     v.pgpRxOut.linkDown := r.locRxLinkReady;
+                     v.aliveCnt           := (others => '0');
+                     v.locRxLinkReady     := '0';
+                     v.htspRxOut.linkDown := r.locRxLinkReady;
 
                      -- Set the flag
-                     v.pgpRxOut.frameRxErr := '1';
+                     v.htspRxOut.frameRxErr := '1';
 
                   -- Else good checksum
                   else
@@ -189,7 +188,7 @@ begin
                      v.tid := phyRxMaster.tData(127 downto 120);
 
                      -- BYTE[17:16] = Virtual Channel Pause
-                     v.pgpRxOut.remRxPause := phyRxMaster.tData(143 downto 128);
+                     v.htspRxOut.remRxPause := phyRxMaster.tData(143 downto 128);
 
                      -- Check if not NULL marker (BYTE[18] != 0xFF)
                      if (phyRxMaster.tData(151 downto 144) /= x"FF") then
@@ -206,10 +205,10 @@ begin
                      if (phyRxMaster.tData(160) = '1') then
 
                         -- BYTE[20] = OP-Code Enable
-                        v.pgpRxOut.opCodeEn := '1';
+                        v.htspRxOut.opCodeEn := '1';
 
                         -- BYTE[47:32] = OpCodeData
-                        v.pgpRxOut.opCode := phyRxMaster.tData(383 downto 256);
+                        v.htspRxOut.opCode := phyRxMaster.tData(383 downto 256);
 
                      end if;
 
@@ -218,13 +217,13 @@ begin
                      v.remRxLinkReady := phyRxMaster.tData(168);
 
                      -- BYTE[63:48] = LocalData
-                     v.pgpRxOut.remLinkData := phyRxMaster.tData(511 downto 384);
+                     v.htspRxOut.remLinkData := phyRxMaster.tData(511 downto 384);
 
                      -- Check if not NULL marker (BYTE[18] != 0xFF) and not EOF
                      if (phyRxMaster.tData(151 downto 144) /= x"FF") and (phyRxMaster.tLast = '0') then
 
                         -- Reset the counter
-                        v.pgpRxOut.frameRxSize := (others => '0');
+                        v.htspRxOut.frameRxSize := (others => '0');
 
                         -- Next state
                         v.state := PAYLOAD_S;
@@ -240,17 +239,17 @@ begin
             if (phyRxMaster.tValid = '1') and (phyRxRdy = '1') then
 
                -- Advance the output pipeline
-               v.pgpRxMasters(0) := r.pgpRxMasters(1);
+               v.htspRxMasters(0) := r.htspRxMasters(1);
 
                -- Cache the data
-               v.pgpRxMasters(1) := phyRxMaster;
+               v.htspRxMasters(1) := phyRxMaster;
 
                -- Update the metadata
-               v.pgpRxMasters(1).tLast := '0';
-               v.pgpRxMasters(1).tKeep := (others => '1');
-               v.pgpRxMasters(1).tUser := (others => '0');
-               v.pgpRxMasters(1).tDest := r.tDest;
-               ssiSetUserSof(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(1), r.sof);
+               v.htspRxMasters(1).tLast := '0';
+               v.htspRxMasters(1).tKeep := (others => '1');
+               v.htspRxMasters(1).tUser := (others => '0');
+               v.htspRxMasters(1).tDest := r.tDest;
+               ssiSetUserSof(HTSP_AXIS_CONFIG_C, v.htspRxMasters(1), r.sof);
 
                -- Reset the flag
                v.sof := '0';
@@ -259,24 +258,24 @@ begin
                if (phyRxMaster.tLast = '1') then
 
                   -- Stop the footer from getting in user data stream
-                  v.pgpRxMasters(1).tValid := '0';
+                  v.htspRxMasters(1).tValid := '0';
 
                   -- Update the last data stream metadata
-                  v.pgpRxMasters(0).tKeep := genTKeep(conv_integer(phyRxMaster.tData(7 downto 0)));
+                  v.htspRxMasters(0).tKeep := genTKeep(conv_integer(phyRxMaster.tData(7 downto 0)));
 
                   -- Increment the counter
-                  v.pgpRxOut.frameRxSize := r.pgpRxOut.frameRxSize + getTKeep(v.pgpRxMasters(0).tKeep, PGP_ETH_AXIS_CONFIG_C);
+                  v.htspRxOut.frameRxSize := r.htspRxOut.frameRxSize + getTKeep(v.htspRxMasters(0).tKeep, HTSP_AXIS_CONFIG_C);
 
                   -- Check error checking
                   if (phyRxMaster.tKeep(63 downto 0) /= x"0000_0000_0000_003F") or  -- non-64-bit footer
-                     (phyRxMaster.tData(47 downto 32) /= v.pgpRxOut.frameRxSize) then  -- footer size doesn't match measured payload size
+                     (phyRxMaster.tData(47 downto 32) /= v.htspRxOut.frameRxSize) then  -- footer size doesn't match measured payload size
 
                      -- Terminate the frame with error
-                     v.pgpRxMasters(0).tLast := '1';
-                     ssiSetUserEofe(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(0), '1');
+                     v.htspRxMasters(0).tLast := '1';
+                     ssiSetUserEofe(HTSP_AXIS_CONFIG_C, v.htspRxMasters(0), '1');
 
                      -- Set the flag
-                     v.pgpRxOut.frameRxErr := '1';
+                     v.htspRxOut.frameRxErr := '1';
 
                      -- Closing the connection
                      v.aliveCnt := (others => '0');
@@ -284,20 +283,20 @@ begin
                   else
 
                      -- Set EOF (force EOF if EOFE detected)
-                     v.pgpRxMasters(0).tLast := phyRxMaster.tData(8) or phyRxMaster.tData(9);
+                     v.htspRxMasters(0).tLast := phyRxMaster.tData(8) or phyRxMaster.tData(9);
 
                      -- Set EOFE
                      eofe := eofe or phyRxMaster.tData(9);
-                     ssiSetUserEofe(PGP_ETH_AXIS_CONFIG_C, v.pgpRxMasters(0), eofe);
+                     ssiSetUserEofe(HTSP_AXIS_CONFIG_C, v.htspRxMasters(0), eofe);
 
                      -- Set the flag
-                     v.pgpRxOut.frameRxErr := eofe;
+                     v.htspRxOut.frameRxErr := eofe;
 
                      -- Set the flag
-                     v.pgpRxOut.frameRx := v.pgpRxMasters(0).tLast and not eofe;
+                     v.htspRxOut.frameRx := v.htspRxMasters(0).tLast and not eofe;
 
                      -- BYTE[3:2] = Virtual Channel Pause
-                     v.pgpRxOut.remRxPause := phyRxMaster.tData(31 downto 16);
+                     v.htspRxOut.remRxPause := phyRxMaster.tData(31 downto 16);
 
                   end if;
 
@@ -308,9 +307,9 @@ begin
                else
 
                   -- Monitor the Payload frame size
-                  if (v.pgpRxMasters(0).tValid = '1') then
+                  if (v.htspRxMasters(0).tValid = '1') then
                      -- Increment the counter
-                     v.pgpRxOut.frameRxSize := r.pgpRxOut.frameRxSize + getTKeep(v.pgpRxMasters(0).tKeep, PGP_ETH_AXIS_CONFIG_C);
+                     v.htspRxOut.frameRxSize := r.htspRxOut.frameRxSize + getTKeep(v.htspRxMasters(0).tKeep, HTSP_AXIS_CONFIG_C);
                   end if;
 
                end if;
@@ -326,11 +325,11 @@ begin
 
       -- Map the pause bits into the record type
       for i in NUM_VC_G-1 downto 0 loop
-         v.remRxFifoCtrl(i).pause := v.pgpRxOut.remRxPause(i);
+         v.remRxFifoCtrl(i).pause := v.htspRxOut.remRxPause(i);
       end loop;
 
       -- Check if link went down down
-      if (r.pgpRxOut.linkDown = '1') then
+      if (r.htspRxOut.linkDown = '1') then
          -- Reset the remote mac
          v.remoteMac      := (others => '0');
          -- Reset the status flag
@@ -338,15 +337,15 @@ begin
       end if;
 
       -- Outputs
-      pgpRxMaster    <= r.pgpRxMasters(0);
-      pgpRxOut       <= r.pgpRxOut;
+      htspRxMaster   <= r.htspRxMasters(0);
+      htspRxOut      <= r.htspRxOut;
       remoteMac      <= r.remoteMac;
       locRxLinkReady <= r.locRxLinkReady;
       remRxLinkReady <= r.remRxLinkReady;
       remRxFifoCtrl  <= r.remRxFifoCtrl;
 
       -- Reset
-      if (pgpRst = '1') then
+      if (htspRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -355,9 +354,9 @@ begin
 
    end process comb;
 
-   seq : process (pgpClk) is
+   seq : process (htspClk) is
    begin
-      if rising_edge(pgpClk) then
+      if rising_edge(htspClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -371,11 +370,11 @@ begin
          TDEST_HIGH_G  => 7,
          TDEST_LOW_G   => 0)
       port map (
-         axisClk      => pgpClk,
-         axisRst      => pgpRst,
-         sAxisMaster  => pgpRxMaster,
+         axisClk      => htspClk,
+         axisRst      => htspRst,
+         sAxisMaster  => htspRxMaster,
          sAxisSlave   => open,
-         mAxisMasters => pgpRxMasters,
+         mAxisMasters => htspRxMasters,
          mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));
 
 end rtl;

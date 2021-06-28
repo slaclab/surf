@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation Testbed for testing the PgpEthCore
+-- Description: Simulation Testbed for testing the HtspCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,19 +19,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
-use surf.PgpEthPkg.all;
+use surf.HtspPkg.all;
 
-entity PgpEthCoreTb is
+entity HtspCoreTb is
 
-end PgpEthCoreTb;
+end HtspCoreTb;
 
-architecture testbed of PgpEthCoreTb is
+architecture testbed of HtspCoreTb is
 
    constant TPD_G : time := 1 ns;
 
@@ -68,11 +67,11 @@ architecture testbed of PgpEthCoreTb is
    signal rxMaster    : AxiStreamMasterType;
    signal phyRxMaster : AxiStreamMasterType;
 
-   signal pgpTxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
-   signal pgpTxSlaves  : AxiStreamSlaveArray(NUM_VC_C-1 downto 0);
+   signal htspTxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
+   signal htspTxSlaves  : AxiStreamSlaveArray(NUM_VC_C-1 downto 0);
 
-   signal pgpRxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(NUM_VC_C-1 downto 0);
+   signal htspRxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
+   signal htspRxCtrl    : AxiStreamCtrlArray(NUM_VC_C-1 downto 0);
 
    signal rxMasters : AxiStreamMasterArray(NUM_VC_C-1 downto 0);
    signal rxSlaves  : AxiStreamSlaveArray(NUM_VC_C-1 downto 0);
@@ -102,21 +101,21 @@ begin
       port map (
          clkP => txusrclk2);
 
-   U_Core : entity surf.PgpEthCore
+   U_Core : entity surf.HtspCore
       generic map (
          TPD_G                 => TPD_G,
          NUM_VC_G              => NUM_VC_C,
          TX_MAX_PAYLOAD_SIZE_G => TX_MAX_PAYLOAD_SIZE_C)
       port map (
          -- Clock and Reset
-         pgpClk          => clk,
-         pgpRst          => rst,
+         htspClk         => clk,
+         htspRst         => rst,
          -- Tx User interface
-         pgpTxMasters    => pgpTxMasters,
-         pgpTxSlaves     => pgpTxSlaves,
+         htspTxMasters   => htspTxMasters,
+         htspTxSlaves    => htspTxSlaves,
          -- Rx User interface
-         pgpRxMasters    => pgpRxMasters,
-         pgpRxCtrl       => pgpRxCtrl,
+         htspRxMasters   => htspRxMasters,
+         htspRxCtrl      => htspRxCtrl,
          -- Tx PHY Interface
          phyTxRdy        => '1',
          phyTxMaster     => phyTxMaster,
@@ -145,8 +144,8 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => log2(TX_MAX_PAYLOAD_SIZE_C/64)+1,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => HTSP_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -171,8 +170,8 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => HTSP_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => txusrclk2,
@@ -209,12 +208,12 @@ begin
             AXI_EN_G                   => '0',
             GEN_SYNC_FIFO_G            => true,
             PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
-            MASTER_AXI_STREAM_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
+            MASTER_AXI_STREAM_CONFIG_G => HTSP_AXIS_CONFIG_C)
          port map (
             mAxisClk     => clk,
             mAxisRst     => rst,
-            mAxisMaster  => pgpTxMasters(i),
-            mAxisSlave   => pgpTxSlaves(i),
+            mAxisMaster  => htspTxMasters(i),
+            mAxisSlave   => htspTxSlaves(i),
             locClk       => clk,
             locRst       => rst,
             trig         => '1',
@@ -229,14 +228,14 @@ begin
             FIFO_FIXED_THRESH_G => true,
             FIFO_ADDR_WIDTH_G   => 9,
             FIFO_PAUSE_THRESH_G => 2**7,
-            SLAVE_AXI_CONFIG_G  => PGP_ETH_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => CHOKE_AXIS_CONFIG_C)  -- Bottleneck the bandwidth
          port map (
             -- Slave Interface
             sAxisClk    => clk,
             sAxisRst    => rst,
-            sAxisMaster => pgpRxMasters(i),
-            sAxisCtrl   => pgpRxCtrl(i),
+            sAxisMaster => htspRxMasters(i),
+            sAxisCtrl   => htspRxCtrl(i),
             -- Master Interface
             mAxisClk    => clk,
             mAxisRst    => rst,
