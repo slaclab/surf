@@ -18,6 +18,12 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue.interfaces.memory as rim
+
+class SparseString(pr.String):
+    modelId   = rim.PyFunc # Not yet supported
+    def fromBytes(self, ba):
+        return bytearray([ba[x] for x in range(0, len(ba), 4)]).decode()
 
 class Sff8472(pr.Device):
     def __init__(self,diagnostics=False,**kwargs):
@@ -142,6 +148,7 @@ class Sff8472(pr.Device):
                 0x80: 'Capable of 64GFC',
                 0x81: 'Capable of 128GFC',
             },
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -184,9 +191,9 @@ class Sff8472(pr.Device):
             offset       = (3 << 2),
             bitSize      = 8,
             mode         = 'RO',
-            base         = pr.UInt,
             number       = 8,
             stride       = 4,
+            hidden       = True,
         )
 
         self.add(pr.RemoteVariable(
@@ -204,6 +211,7 @@ class Sff8472(pr.Device):
                 0x5: 'SONET Scrambled',
                 0x6: '64B/66B',
             },
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -212,8 +220,9 @@ class Sff8472(pr.Device):
             offset      = (12 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
             units       = '100 Mbps',
+            disp        = '{:d}',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -235,6 +244,7 @@ class Sff8472(pr.Device):
                 0x9: 'Unspecified',
                 0xA: 'FC-PI-5 (16/8/4G Independent TX and RX Rate Select) High=16G, Low=8/4G',
             },
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -243,8 +253,9 @@ class Sff8472(pr.Device):
             offset      = (14 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
             units       = 'km',
+            disp        = '{:d}',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -253,8 +264,9 @@ class Sff8472(pr.Device):
             offset      = (15 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
             units       = '100 m',
+            disp        = '{:d}',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -263,29 +275,9 @@ class Sff8472(pr.Device):
             offset      = (16 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
             units       = '10 m',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'Length62um',
-            description = 'Link length supported for 62.5/125 um OM1 fiber',
-            offset      = (17 << 2),
-            bitSize     = 8,
-            mode        = 'RO',
-            base        = pr.UInt,
-            units       = '10 m',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'LengthCopper',
-            description = 'Link length supported for copper and Active Cable,',
-            offset      = (18 << 2),
-            bitSize     = 8,
-            mode        = 'RO',
-            base        = pr.UInt,
-            units       = 'm',
-
+            disp        = '{:d}',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -294,20 +286,42 @@ class Sff8472(pr.Device):
             offset      = (19 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
             units       = '10 m',
+            disp        = '{:d}',
+            hidden      = True,
         ))
 
-        self.addRemoteVariables(
+        self.add(pr.RemoteVariable(
+            name        = 'Length62um',
+            description = 'Link length supported for 62.5/125 um OM1 fiber',
+            offset      = (17 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            units       = '10 m',
+            disp        = '{:d}',
+            hidden      = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'LengthCopper',
+            description = 'Link length supported for copper and Active Cable,',
+            offset      = (18 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            units       = 'm',
+            disp        = '{:d}',
+            hidden      = True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'VendorName',
             description  = 'SFP vendor name (ASCII)',
             offset       = (20 << 2),
-            bitSize      = 8,
+            bitSize      = 32*16,
+            bitOffset    = 0x00,
+            base         = SparseString,
             mode         = 'RO',
-            base         = pr.UInt,
-            number       = 16,
-            stride       = 4,
-        )
+        ))
 
         self.addRemoteVariables(
             name         = 'VendorOui',
@@ -315,32 +329,30 @@ class Sff8472(pr.Device):
             offset       = (37 << 2),
             bitSize      = 8,
             mode         = 'RO',
-            base         = pr.UInt,
             number       = 3,
             stride       = 4,
+            hidden       = True,
         )
 
-        self.addRemoteVariables(
+        self.add(pr.RemoteVariable(
             name         = 'VendorPn',
             description  = 'Part number provided by SFP vendor (ASCII)',
             offset       = (40 << 2),
-            bitSize      = 8,
+            bitSize      = 32*16,
+            bitOffset    = 0x00,
+            base         = SparseString,
             mode         = 'RO',
-            base         = pr.UInt,
-            number       = 16,
-            stride       = 4,
-        )
+        ))
 
-        self.addRemoteVariables(
+        self.add(pr.RemoteVariable(
             name         = 'VendorRev',
             description  = 'Revision level for part number provided by vendor (ASCII)',
             offset       = (56 << 2),
-            bitSize      = 8,
+            bitSize      = 32*4,
+            bitOffset    = 0x00,
+            base         = SparseString,
             mode         = 'RO',
-            base         = pr.UInt,
-            number       = 4,
-            stride       = 4,
-        )
+        ))
 
         self.addRemoteVariables(
             name         = 'Wavelength',
@@ -348,9 +360,9 @@ class Sff8472(pr.Device):
             offset       = (60 << 2),
             bitSize      = 8,
             mode         = 'RO',
-            base         = pr.UInt,
             number       = 2,
             stride       = 4,
+            hidden       = True,
         )
 
         self.add(pr.RemoteVariable(
@@ -359,7 +371,7 @@ class Sff8472(pr.Device):
             offset      = (63 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
+            hidden       = True,
         ))
 
         ####################
@@ -372,9 +384,9 @@ class Sff8472(pr.Device):
             offset       = (64 << 2),
             bitSize      = 8,
             mode         = 'RO',
-            base         = pr.UInt,
             number       = 2,
             stride       = 4,
+            hidden       = True,
         )
 
         self.add(pr.RemoteVariable(
@@ -383,8 +395,9 @@ class Sff8472(pr.Device):
             offset      = (66 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
             units       = '%',
+            disp        = '{:d}',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -393,31 +406,46 @@ class Sff8472(pr.Device):
             offset      = (67 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
             units       = '%',
+            disp        = '{:d}',
+            hidden      = True,
         ))
 
-        self.addRemoteVariables(
+        self.add(pr.RemoteVariable(
             name         = 'VendorSn',
             description  = 'Serial number provided by vendor (ASCII)',
             offset       = (68 << 2),
-            bitSize      = 8,
+            bitSize      = 32*16,
+            bitOffset    = 0x00,
+            base         = SparseString,
             mode         = 'RO',
-            base         = pr.UInt,
-            number       = 16,
-            stride       = 4,
-        )
+        ))
+
+        def getDate(var):
+            year  = '20' + var.dependencies[0].value() + var.dependencies[1].value()
+            month = var.dependencies[2].value() + var.dependencies[3].value()
+            day   = var.dependencies[4].value() + var.dependencies[5].value()
+            return f'{month}/{day}/{year}'
 
         self.addRemoteVariables(
             name         = 'DateCode',
-            description  = 'Vendor’s manufacturing date code',
+            description  = 'Vendor’s manufacturing date code (ASCII)',
             offset       = (84 << 2),
             bitSize      = 8,
             mode         = 'RO',
-            base         = pr.UInt,
-            number       = 8,
+            number       = 6,
             stride       = 4,
+            base         = pr.String,
+            hidden      = True,
         )
+
+        self.add(pr.LinkVariable(
+            name         = 'ManufactureDate',
+            description  = 'Vendor’s manufacturing date code (ASCII)',
+            mode         = 'RO',
+            linkedGet    = getDate,
+            dependencies = [self.DateCode[x] for x in range(6)],
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'DiagnosticMonitoringType',
@@ -425,7 +453,7 @@ class Sff8472(pr.Device):
             offset      = (92 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -434,7 +462,7 @@ class Sff8472(pr.Device):
             offset      = (93 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -443,7 +471,7 @@ class Sff8472(pr.Device):
             offset      = (94 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -452,7 +480,7 @@ class Sff8472(pr.Device):
             offset      = (95 << 2),
             bitSize     = 8,
             mode        = 'RO',
-            base        = pr.UInt,
+            hidden      = True,
         ))
 
         ###########################
@@ -465,9 +493,9 @@ class Sff8472(pr.Device):
             offset       = (96 << 2),
             bitSize      = 8,
             mode         = 'RO',
-            base         = pr.UInt,
             number       = 32,
             stride       = 4,
+            hidden       = True,
         )
 
         #####################################################
@@ -479,15 +507,50 @@ class Sff8472(pr.Device):
         ######################################
         if diagnostics:
 
+            def getTemp(var):
+                msb = var.dependencies[0].value()
+                lsb = var.dependencies[1].value()
+                raw = (msb << 8) | lsb
+                # Return value in units of degC
+                return float(raw)*0.004
+
+            def getVolt(var):
+                msb = var.dependencies[0].value()
+                lsb = var.dependencies[1].value()
+                raw = (msb << 8) | lsb
+                # Return value in units of Volts
+                return float(raw)*100.0E-6
+
+            def getTxBias(var):
+                msb = var.dependencies[0].value()
+                lsb = var.dependencies[1].value()
+                raw = (msb << 8) | lsb
+                # Return value in units of mA
+                return float(raw)*0.002
+
+            def getOpticalPwr(var):
+                msb = var.dependencies[0].value()
+                lsb = var.dependencies[1].value()
+                raw = (msb << 8) | lsb
+                # Return value in units of mW
+                return float(raw)*0.0001
+
+            def getTec(var):
+                msb = var.dependencies[0].value()
+                lsb = var.dependencies[1].value()
+                raw = (msb << 8) | lsb
+                # Return value in units of mA
+                return float(raw)*0.1
+
             self.addRemoteVariables(
                 name         = 'ExtCalConstants',
                 description  = 'Diagnostic Calibration Constants for Ext Cal',
                 offset       = ((256+56) << 2),
                 bitSize      = 8,
                 mode         = 'RO',
-                base         = pr.UInt,
                 number       = 36,
                 stride       = 4,
+                hidden       = True,
             )
 
             self.add(pr.RemoteVariable(
@@ -496,7 +559,7 @@ class Sff8472(pr.Device):
                 offset      = ((256+95) << 2),
                 bitSize     = 8,
                 mode        = 'RO',
-                base        = pr.UInt,
+                hidden      = True,
             ))
 
             self.addRemoteVariables(
@@ -505,10 +568,60 @@ class Sff8472(pr.Device):
                 offset       = ((256+96) << 2),
                 bitSize      = 8,
                 mode         = 'RO',
-                base         = pr.UInt,
-                number       = 10,
+                number       = 14,
                 stride       = 4,
+                hidden       = True,
             )
+
+            self.add(pr.LinkVariable(
+                name         = 'Temperature',
+                description  = 'Internally measured module temperature',
+                mode         = 'RO',
+                units        = 'degC',
+                linkedGet    = getTemp,
+                disp         = '{:1.3f}',
+                dependencies = [self.Diagnostics[0],self.Diagnostics[1]],
+            ))
+
+            self.add(pr.LinkVariable(
+                name         = 'Vcc',
+                description  = 'Internally measured supply voltage in transceiver',
+                mode         = 'RO',
+                units        = 'V',
+                linkedGet    = getVolt,
+                disp         = '{:1.3f}',
+                dependencies = [self.Diagnostics[2],self.Diagnostics[3]],
+            ))
+
+            self.add(pr.LinkVariable(
+                name         = 'TxBias',
+                description  = 'Internally measured TX Bias Current',
+                mode         = 'RO',
+                units        = 'mA',
+                linkedGet    = getTxBias,
+                disp         = '{:1.3f}',
+                dependencies = [self.Diagnostics[4],self.Diagnostics[5]],
+            ))
+
+            self.add(pr.LinkVariable(
+                name         = 'TxPower',
+                description  = 'Measured TX output power',
+                mode         = 'RO',
+                units        = 'mW',
+                linkedGet    = getOpticalPwr,
+                disp         = '{:1.3f}',
+                dependencies = [self.Diagnostics[6],self.Diagnostics[7]],
+            ))
+
+            self.add(pr.LinkVariable(
+                name         = 'RxPower',
+                description  = 'Measured RX output power',
+                mode         = 'RO',
+                units        = 'mW',
+                linkedGet    = getOpticalPwr,
+                disp         = '{:1.3f}',
+                dependencies = [self.Diagnostics[8],self.Diagnostics[9]],
+            ))
 
             self.add(pr.RemoteVariable(
                 name        = 'StatusControl',
@@ -516,7 +629,7 @@ class Sff8472(pr.Device):
                 offset      = ((256+110) << 2),
                 bitSize     = 8,
                 mode        = 'RO',
-                base        = pr.UInt,
+                hidden       = True,
             ))
 
             self.addRemoteVariables(
@@ -525,9 +638,9 @@ class Sff8472(pr.Device):
                 offset       = ((256+112) << 2),
                 bitSize      = 8,
                 mode         = 'RO',
-                base         = pr.UInt,
                 number       = 2,
                 stride       = 4,
+                hidden       = True,
             )
 
             self.addRemoteVariables(
@@ -536,9 +649,9 @@ class Sff8472(pr.Device):
                 offset       = ((256+116) << 2),
                 bitSize      = 8,
                 mode         = 'RO',
-                base         = pr.UInt,
                 number       = 2,
                 stride       = 4,
+                hidden       = True,
             )
 
             self.addRemoteVariables(
@@ -547,9 +660,9 @@ class Sff8472(pr.Device):
                 offset       = ((256+118) << 2),
                 bitSize      = 8,
                 mode         = 'RO',
-                base         = pr.UInt,
                 number       = 2,
                 stride       = 4,
+                hidden       = True,
             )
 
             ######################################
@@ -561,9 +674,9 @@ class Sff8472(pr.Device):
                 offset       = ((256+120) << 2),
                 bitSize      = 8,
                 mode         = 'RO',
-                base         = pr.UInt,
                 number       = 8,
                 stride       = 4,
+                hidden       = True,
             )
 
             self.addRemoteVariables(
@@ -572,7 +685,6 @@ class Sff8472(pr.Device):
                 offset       = ((256+128) << 2),
                 bitSize      = 8,
                 mode         = 'RW',
-                base         = pr.UInt,
                 number       = 120,
                 stride       = 4,
                 hidden       = True,
@@ -584,7 +696,7 @@ class Sff8472(pr.Device):
                 offset       = ((256+248) << 2),
                 bitSize      = 8,
                 mode         = 'RO',
-                base         = pr.UInt,
                 number       = 8,
                 stride       = 4,
+                hidden       = True,
             )
