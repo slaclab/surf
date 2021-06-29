@@ -22,6 +22,7 @@ import rogue.interfaces.memory as rim
 
 class SparseString(pr.String):
     modelId   = rim.PyFunc # Not yet supported
+
     def fromBytes(self, ba):
         return bytearray([ba[x] for x in range(0, len(ba), 4)]).decode()
 
