@@ -30,6 +30,29 @@ class Sff8472(pr.Device):
     def __init__(self,diagnostics=False,**kwargs):
         super().__init__(**kwargs)
 
+        # Can't use SparseString + bulk memory read if there is a AXI-Lite Proxy
+        # So recoded using 4 byte transactions + this get function
+        def parseStrArray16Byte(var):
+            retVar = ''
+            for x in range(16):
+                retVar += var.dependencies[x].value()
+            return retVar
+
+        # Can't use SparseString + bulk memory read if there is a AXI-Lite Proxy
+        # So recoded using 4 byte transactions + this get function
+        def parseStrArray4Byte(var):
+            retVar = ''
+            for x in range(4):
+                retVar += var.dependencies[x].value()
+            return retVar
+
+        # Used to decode the "dateCode" variable
+        def getDate(var):
+            year  = '20' + var.dependencies[0].value() + var.dependencies[1].value()
+            month = var.dependencies[2].value() + var.dependencies[3].value()
+            day   = var.dependencies[4].value() + var.dependencies[5].value()
+            return f'{month}/{day}/{year}'
+
         #####################################################
         #       Serial ID: Data Fields – Address A0h        #
         #####################################################
@@ -314,14 +337,24 @@ class Sff8472(pr.Device):
             hidden      = True,
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'VendorName',
+        self.addRemoteVariables(
+            name         = 'VendorNameRaw',
             description  = 'SFP vendor name (ASCII)',
             offset       = (20 << 2),
-            bitSize      = 32*16,
-            bitOffset    = 0x00,
-            base         = SparseString,
+            bitSize      = 8,
             mode         = 'RO',
+            base         = pr.String,
+            number       = 16,
+            stride       = 4,
+            hidden       = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'VendorName',
+            description  = 'SFP vendor name (ASCII)',
+            mode         = 'RO',
+            linkedGet    = parseStrArray16Byte,
+            dependencies = [self.VendorNameRaw[x] for x in range(16)],
         ))
 
         self.addRemoteVariables(
@@ -335,24 +368,44 @@ class Sff8472(pr.Device):
             hidden       = True,
         )
 
-        self.add(pr.RemoteVariable(
-            name         = 'VendorPn',
+        self.addRemoteVariables(
+            name         = 'VendorPnRaw',
             description  = 'Part number provided by SFP vendor (ASCII)',
             offset       = (40 << 2),
-            bitSize      = 32*16,
-            bitOffset    = 0x00,
-            base         = SparseString,
+            bitSize      = 8,
             mode         = 'RO',
+            base         = pr.String,
+            number       = 16,
+            stride       = 4,
+            hidden       = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'VendorPn',
+            description  = 'Part number provided by SFP vendor (ASCII)',
+            mode         = 'RO',
+            linkedGet    = parseStrArray16Byte,
+            dependencies = [self.VendorPnRaw[x] for x in range(16)],
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'VendorRev',
+        self.addRemoteVariables(
+            name         = 'VendorRevRaw',
             description  = 'Revision level for part number provided by vendor (ASCII)',
             offset       = (56 << 2),
-            bitSize      = 32*4,
-            bitOffset    = 0x00,
-            base         = SparseString,
+            bitSize      = 8,
             mode         = 'RO',
+            base         = pr.String,
+            number       = 4,
+            stride       = 4,
+            hidden       = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'VendorRev',
+            description  = 'Revision level for part number provided by vendor (ASCII)',
+            mode         = 'RO',
+            linkedGet    = parseStrArray4Byte,
+            dependencies = [self.VendorRevRaw[x] for x in range(4)],
         ))
 
         self.addRemoteVariables(
@@ -412,21 +465,25 @@ class Sff8472(pr.Device):
             hidden      = True,
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'VendorSn',
+        self.addRemoteVariables(
+            name         = 'VendorSnRaw',
             description  = 'Serial number provided by vendor (ASCII)',
             offset       = (68 << 2),
-            bitSize      = 32*16,
-            bitOffset    = 0x00,
-            base         = SparseString,
+            bitSize      = 8,
             mode         = 'RO',
-        ))
+            base         = pr.String,
+            number       = 16,
+            stride       = 4,
+            hidden       = True,
+        )
 
-        def getDate(var):
-            year  = '20' + var.dependencies[0].value() + var.dependencies[1].value()
-            month = var.dependencies[2].value() + var.dependencies[3].value()
-            day   = var.dependencies[4].value() + var.dependencies[5].value()
-            return f'{month}/{day}/{year}'
+        self.add(pr.LinkVariable(
+            name         = 'VendorSn',
+            description  = 'Serial number provided by vendor (ASCII)',
+            mode         = 'RO',
+            linkedGet    = parseStrArray16Byte,
+            dependencies = [self.VendorSnRaw[x] for x in range(16)],
+        ))
 
         self.addRemoteVariables(
             name         = 'DateCode',
