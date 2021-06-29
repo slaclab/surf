@@ -33,6 +33,7 @@ entity Pgp4GthUsWrapper is
    generic (
       TPD_G                       : time                        := 1 ns;
       ROGUE_SIM_EN_G              : boolean                     := false;
+      ROGUE_SIM_SIDEBAND_G        : boolean                     := true;
       ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
       SYNTH_MODE_G                : string                      := "inferred";
       MEMORY_TYPE_G               : string                      := "block";
@@ -282,6 +283,7 @@ begin
                SYNTH_MODE_G  => SYNTH_MODE_G,
                MEMORY_TYPE_G => MEMORY_TYPE_G,
                PORT_NUM_G    => (ROGUE_SIM_PORT_NUM_G+(i*34)),
+               EN_SIDEBAND_G => ROGUE_SIM_SIDEBAND_G,
                NUM_VC_G      => NUM_VC_G)
             port map(
                -- GT Ports
