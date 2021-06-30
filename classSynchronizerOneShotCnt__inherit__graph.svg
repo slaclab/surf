@@ -484,16 +484,16 @@ var sectionId = 'dynsection-0';
 <!-- Node19 -->
 <g id="node19" class="node">
 <title>Node19</title>
-<g id="a_node19"><a xlink:href="classPgpEthAxiL.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="1350,-793.5 1350,-812.5 1421,-812.5 1421,-793.5 1350,-793.5"/>
-<text text-anchor="middle" x="1385.5" y="-800.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthAxiL</text>
+<g id="a_node19"><a xlink:href="classHtspAxiL.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="1355.5,-793.5 1355.5,-812.5 1415.5,-812.5 1415.5,-793.5 1355.5,-793.5"/>
+<text text-anchor="middle" x="1385.5" y="-800.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspAxiL</text>
 </a>
 </g>
 </g>
 <!-- Node18&#45;&gt;Node19 -->
 <g id="edge20" class="edge">
 <title>Node18&#45;&gt;Node19</title>
-<path fill="none" stroke="midnightblue" d="M1208.94,-758.93C1231.33,-766.9 1261.12,-776.9 1288,-784 1308.31,-789.36 1331.38,-793.96 1349.87,-797.28"/>
+<path fill="none" stroke="midnightblue" d="M1208.94,-758.93C1231.33,-766.9 1261.12,-776.9 1288,-784 1310.29,-789.88 1335.9,-794.85 1355.14,-798.22"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="1210.12,-755.64 1199.53,-755.55 1207.75,-762.22 1210.12,-755.64"/>
 </g>
 <!-- Node25 -->

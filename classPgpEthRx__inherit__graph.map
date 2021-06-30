@@ -1,9 +1,0 @@
-<map id="PgpEthRx" name="PgpEthRx">
-<area shape="rect" id="node1" title=" " alt="" coords="107,155,191,181"/>
-<area shape="rect" id="node4" href="$classPgpEthCore.html" title=" " alt="" coords="100,229,197,256"/>
-<area shape="rect" id="node2" href="$classAxiStreamDeMux.html" title=" " alt="" coords="81,80,217,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamPipeline.html" title=" " alt="" coords="77,5,220,32"/>
-<area shape="rect" id="node5" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="13,304,140,331"/>
-<area shape="rect" id="node7" href="$classPgpEthCoreTb.html" title=" " alt="" coords="164,304,277,331"/>
-<area shape="rect" id="node6" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="5,379,148,405"/>
-</map>

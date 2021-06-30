@@ -782,6 +782,52 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "Heartbeat", "classHeartbeat.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
+      [ "HtspCaui4Gty", "classHtspCaui4Gty.html", [
+        [ "RstPipeline", "classRstPipeline.html", null ],
+        [ "HtspCore", "classHtspCore.html", [
+          [ "HtspTx", "classHtspTx.html", [
+            [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+            [ "AxiStreamMux", "classAxiStreamMux.html", null ]
+          ] ],
+          [ "HtspRx", "classHtspRx.html", [
+            [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
+          ] ],
+          [ "HtspAxiL", "classHtspAxiL.html", [
+            [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+            [ "AxiLiteRamSyncStatusVector", "classAxiLiteRamSyncStatusVector.html", [
+              [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
+              [ "SyncStatusVector", "classSyncStatusVector.html", null ]
+            ] ],
+            [ "SyncClockFreq", "classSyncClockFreq.html", null ],
+            [ "SyncMinMax", "classSyncMinMax.html", null ]
+          ] ]
+        ] ],
+        [ "Caui4GtyIpWrapper", "classCaui4GtyIpWrapper.html", [
+          [ "PwrUpRst", "classPwrUpRst.html", null ],
+          [ "ClockManagerUltraScale", "classClockManagerUltraScale.html", null ],
+          [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
+        ] ],
+        [ "RogueHtspSim", "classRogueHtspSim.html", [
+          [ "PwrUpRst", "classPwrUpRst.html", null ],
+          [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", [
+            [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
+            [ "AxiStreamResize", "classAxiStreamResize.html", null ],
+            [ "RogueTcpStream", "classRogueTcpStream.html", null ],
+            [ "AxiStreamMux", "classAxiStreamMux.html", null ]
+          ] ],
+          [ "RogueSideBandWrap", "classRogueSideBandWrap.html", [
+            [ "RogueSideBand", "classRogueSideBand.html", null ]
+          ] ]
+        ] ]
+      ] ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "HtspCore", "classHtspCore.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
       [ "I2cRegMaster", "classI2cRegMaster.html", null ],
       [ "i2cRamSlave", "classi2cRamSlave.html", [
         [ "I2cRegSlave", "classI2cRegSlave.html", [
@@ -1027,15 +1073,8 @@ var hierarchy =
       ] ],
       [ "RoguePgp3Sim", "classRoguePgp3Sim.html", [
         [ "PwrUpRst", "classPwrUpRst.html", null ],
-        [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", [
-          [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
-          [ "AxiStreamResize", "classAxiStreamResize.html", null ],
-          [ "RogueTcpStream", "classRogueTcpStream.html", null ],
-          [ "AxiStreamMux", "classAxiStreamMux.html", null ]
-        ] ],
-        [ "RogueSideBandWrap", "classRogueSideBandWrap.html", [
-          [ "RogueSideBand", "classRogueSideBand.html", null ]
-        ] ]
+        [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", null ],
+        [ "RogueSideBandWrap", "classRogueSideBandWrap.html", null ]
       ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "Pgp3Gtp7Wrapper", "classPgp3Gtp7Wrapper.html", [
@@ -1168,45 +1207,6 @@ var hierarchy =
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "Pgp2bLane", "classPgp2bLane.html", null ],
-      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
-      [ "ClkRst", "classClkRst.html", null ],
-      [ "PgpEthCaui4Gty", "classPgpEthCaui4Gty.html", [
-        [ "RstPipeline", "classRstPipeline.html", null ],
-        [ "PgpEthCore", "classPgpEthCore.html", [
-          [ "PgpEthTx", "classPgpEthTx.html", [
-            [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-            [ "AxiStreamMux", "classAxiStreamMux.html", null ]
-          ] ],
-          [ "PgpEthRx", "classPgpEthRx.html", [
-            [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
-          ] ],
-          [ "PgpEthAxiL", "classPgpEthAxiL.html", [
-            [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
-            [ "AxiLiteRamSyncStatusVector", "classAxiLiteRamSyncStatusVector.html", [
-              [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
-              [ "SyncStatusVector", "classSyncStatusVector.html", null ]
-            ] ],
-            [ "SyncClockFreq", "classSyncClockFreq.html", null ],
-            [ "SyncMinMax", "classSyncMinMax.html", null ]
-          ] ]
-        ] ],
-        [ "Caui4GtyIpWrapper", "classCaui4GtyIpWrapper.html", [
-          [ "PwrUpRst", "classPwrUpRst.html", null ],
-          [ "ClockManagerUltraScale", "classClockManagerUltraScale.html", null ],
-          [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
-        ] ],
-        [ "RoguePgpEthSim", "classRoguePgpEthSim.html", [
-          [ "PwrUpRst", "classPwrUpRst.html", null ],
-          [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", null ],
-          [ "RogueSideBandWrap", "classRogueSideBandWrap.html", null ]
-        ] ]
-      ] ],
-      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
-      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
-      [ "ClkRst", "classClkRst.html", null ],
-      [ "PgpEthCore", "classPgpEthCore.html", null ],
-      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
-      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "SlvDelay", "classSlvDelay.html", null ],
       [ "Decoder8b10b", "classDecoder8b10b.html", null ],

@@ -13,10 +13,10 @@
 <area shape="rect" id="node17" href="$classFirFilterMultiChannel.html" title=" " alt="" coords="484,411,641,437"/>
 <area shape="rect" id="node18" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="477,461,649,488"/>
 <area shape="rect" id="node19" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="485,512,641,539"/>
-<area shape="rect" id="node6" href="$classPgpEthAxiL.html" title=" " alt="" coords="718,107,813,133"/>
-<area shape="rect" id="node7" href="$classPgpEthCore.html" title=" " alt="" coords="863,107,960,133"/>
-<area shape="rect" id="node8" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="1008,81,1135,108"/>
-<area shape="rect" id="node10" href="$classPgpEthCoreTb.html" title=" " alt="" coords="1015,132,1128,159"/>
-<area shape="rect" id="node9" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="1183,81,1325,108"/>
+<area shape="rect" id="node6" href="$classHtspAxiL.html" title=" " alt="" coords="725,107,805,133"/>
+<area shape="rect" id="node7" href="$classHtspCore.html" title=" " alt="" coords="863,107,945,133"/>
+<area shape="rect" id="node8" href="$classHtspCaui4Gty.html" title=" " alt="" coords="993,81,1105,108"/>
+<area shape="rect" id="node10" href="$classHtspCoreTb.html" title=" " alt="" coords="1000,132,1099,159"/>
+<area shape="rect" id="node9" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="1153,81,1281,108"/>
 <area shape="rect" id="node15" href="$classAxiMonAxiL.html" title=" " alt="" coords="716,309,815,336"/>
 </map>

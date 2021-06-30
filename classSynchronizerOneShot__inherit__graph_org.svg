@@ -744,16 +744,16 @@
 <!-- Node69 -->
 <g id="node45" class="node">
 <title>Node69</title>
-<g id="a_node45"><a xlink:href="classPgpEthAxiL.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="649.5,-532.5 649.5,-551.5 720.5,-551.5 720.5,-532.5 649.5,-532.5"/>
-<text text-anchor="middle" x="685" y="-539.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthAxiL</text>
+<g id="a_node45"><a xlink:href="classHtspAxiL.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="655,-532.5 655,-551.5 715,-551.5 715,-532.5 655,-532.5"/>
+<text text-anchor="middle" x="685" y="-539.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspAxiL</text>
 </a>
 </g>
 </g>
 <!-- Node117&#45;&gt;Node69 -->
 <g id="edge52" class="edge">
 <title>Node117&#45;&gt;Node69</title>
-<path fill="none" stroke="midnightblue" d="M538.64,-513.53C573.04,-520.27 618.35,-529.14 649.18,-535.18"/>
+<path fill="none" stroke="midnightblue" d="M538.75,-513.55C575.28,-520.7 624.06,-530.26 654.76,-536.27"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="539.28,-510.09 528.79,-511.6 537.93,-516.96 539.28,-510.09"/>
 </g>
 <!-- Node129&#45;&gt;Node92 -->

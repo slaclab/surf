@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 1384;
+var viewWidth = 1351;
 var viewHeight = 408;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>AxiDualPortRam</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-404 1380,-404 1380,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-404 1347,-404 1347,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -463,77 +463,77 @@ var sectionId = 'dynsection-0';
 <!-- Node20 -->
 <g id="node20" class="node">
 <title>Node20</title>
-<g id="a_node20"><a xlink:href="classPgpEthAxiL.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="920.5,-304.5 920.5,-323.5 991.5,-323.5 991.5,-304.5 920.5,-304.5"/>
-<text text-anchor="middle" x="956" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthAxiL</text>
+<g id="a_node20"><a xlink:href="classHtspAxiL.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="926,-304.5 926,-323.5 986,-323.5 986,-304.5 926,-304.5"/>
+<text text-anchor="middle" x="956" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspAxiL</text>
 </a>
 </g>
 </g>
 <!-- Node19&#45;&gt;Node20 -->
 <g id="edge20" class="edge">
 <title>Node19&#45;&gt;Node20</title>
-<path fill="none" stroke="midnightblue" d="M893.15,-314C902.75,-314 912.05,-314 920.39,-314"/>
+<path fill="none" stroke="midnightblue" d="M893.37,-314C905,-314 916.18,-314 925.75,-314"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="893.08,-310.5 883.08,-314 893.08,-317.5 893.08,-310.5"/>
 </g>
 <!-- Node21 -->
 <g id="node21" class="node">
 <title>Node21</title>
-<g id="a_node21"><a xlink:href="classPgpEthCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1029,-304.5 1029,-323.5 1102,-323.5 1102,-304.5 1029,-304.5"/>
-<text text-anchor="middle" x="1065.5" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthCore</text>
+<g id="a_node21"><a xlink:href="classHtspCore.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1029,-304.5 1029,-323.5 1091,-323.5 1091,-304.5 1029,-304.5"/>
+<text text-anchor="middle" x="1060" y="-311.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspCore</text>
 </a>
 </g>
 </g>
 <!-- Node20&#45;&gt;Node21 -->
 <g id="edge21" class="edge">
 <title>Node20&#45;&gt;Node21</title>
-<path fill="none" stroke="midnightblue" d="M1001.64,-314C1010.71,-314 1020.14,-314 1028.85,-314"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1001.61,-310.5 991.61,-314 1001.61,-317.5 1001.61,-310.5"/>
+<path fill="none" stroke="midnightblue" d="M996.26,-314C1007.02,-314 1018.52,-314 1028.7,-314"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="996.23,-310.5 986.23,-314 996.23,-317.5 996.23,-310.5"/>
 </g>
 <!-- Node22 -->
 <g id="node22" class="node">
 <title>Node22</title>
-<g id="a_node22"><a xlink:href="classPgpEthCaui4Gty.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1138,-323.5 1138,-342.5 1233,-342.5 1233,-323.5 1138,-323.5"/>
-<text text-anchor="middle" x="1185.5" y="-330.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthCaui4Gty</text>
+<g id="a_node22"><a xlink:href="classHtspCaui4Gty.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1127,-323.5 1127,-342.5 1211,-342.5 1211,-323.5 1127,-323.5"/>
+<text text-anchor="middle" x="1169" y="-330.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspCaui4Gty</text>
 </a>
 </g>
 </g>
 <!-- Node21&#45;&gt;Node22 -->
 <g id="edge22" class="edge">
 <title>Node21&#45;&gt;Node22</title>
-<path fill="none" stroke="midnightblue" d="M1112.28,-321.37C1120.71,-322.73 1129.53,-324.15 1137.99,-325.51"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1112.65,-317.89 1102.22,-319.75 1111.54,-324.8 1112.65,-317.89"/>
+<path fill="none" stroke="midnightblue" d="M1101.1,-321.12C1109.55,-322.62 1118.47,-324.21 1126.96,-325.71"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1101.55,-317.65 1091.09,-319.34 1100.32,-324.54 1101.55,-317.65"/>
 </g>
 <!-- Node24 -->
 <g id="node24" class="node">
 <title>Node24</title>
-<g id="a_node24"><a xlink:href="classPgpEthCoreTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1143,-285.5 1143,-304.5 1228,-304.5 1228,-285.5 1143,-285.5"/>
-<text text-anchor="middle" x="1185.5" y="-292.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthCoreTb</text>
+<g id="a_node24"><a xlink:href="classHtspCoreTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1132,-285.5 1132,-304.5 1206,-304.5 1206,-285.5 1132,-285.5"/>
+<text text-anchor="middle" x="1169" y="-292.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspCoreTb</text>
 </a>
 </g>
 </g>
 <!-- Node21&#45;&gt;Node24 -->
 <g id="edge24" class="edge">
 <title>Node21&#45;&gt;Node24</title>
-<path fill="none" stroke="midnightblue" d="M1112.38,-306.61C1122.36,-305.01 1132.87,-303.31 1142.68,-301.73"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1111.54,-303.2 1102.22,-308.25 1112.65,-310.11 1111.54,-303.2"/>
+<path fill="none" stroke="midnightblue" d="M1101.21,-306.86C1111.21,-305.08 1121.88,-303.19 1131.68,-301.45"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1100.32,-303.46 1091.09,-308.66 1101.55,-310.35 1100.32,-303.46"/>
 </g>
 <!-- Node23 -->
 <g id="node23" class="node">
 <title>Node23</title>
-<g id="a_node23"><a xlink:href="classPgpEthCaui4GtyTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1269,-323.5 1269,-342.5 1376,-342.5 1376,-323.5 1269,-323.5"/>
-<text text-anchor="middle" x="1322.5" y="-330.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthCaui4GtyTb</text>
+<g id="a_node23"><a xlink:href="classHtspCaui4GtyTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1247,-323.5 1247,-342.5 1343,-342.5 1343,-323.5 1247,-323.5"/>
+<text text-anchor="middle" x="1295" y="-330.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspCaui4GtyTb</text>
 </a>
 </g>
 </g>
 <!-- Node22&#45;&gt;Node23 -->
 <g id="edge23" class="edge">
 <title>Node22&#45;&gt;Node23</title>
-<path fill="none" stroke="midnightblue" d="M1243.43,-333C1251.82,-333 1260.43,-333 1268.74,-333"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1243.34,-329.5 1233.34,-333 1243.34,-336.5 1243.34,-329.5"/>
+<path fill="none" stroke="midnightblue" d="M1221.41,-333C1229.85,-333 1238.56,-333 1246.89,-333"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1221.29,-329.5 1211.29,-333 1221.29,-336.5 1221.29,-329.5"/>
 </g>
 <!-- Node29 -->
 <g id="node29" class="node">

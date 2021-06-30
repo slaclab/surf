@@ -3,6 +3,7 @@ var classPgp4Gtx7Wrapper =
     [ "rtl", "classPgp4Gtx7Wrapper_1_1rtl.html", "classPgp4Gtx7Wrapper_1_1rtl" ],
     [ "TPD_G", "classPgp4Gtx7Wrapper.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "ROGUE_SIM_EN_G", "classPgp4Gtx7Wrapper.html#a92a72632fb2e2d517a68118ea779b0f8", null ],
+    [ "ROGUE_SIM_SIDEBAND_G", "classPgp4Gtx7Wrapper.html#aa230ec248898a9ac53895f6c86257bec", null ],
     [ "ROGUE_SIM_PORT_NUM_G", "classPgp4Gtx7Wrapper.html#ab54f1e424d2afd80fd092d2cef3846ad", null ],
     [ "NUM_LANES_G", "classPgp4Gtx7Wrapper.html#ad5f8912efaa7b98fc9fcc4697b8bb70e", null ],
     [ "NUM_VC_G", "classPgp4Gtx7Wrapper.html#a379146dc9f4d498c6525646c3c2d3251", null ],

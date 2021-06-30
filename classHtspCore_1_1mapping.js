@@ -1,0 +1,27 @@
+var classHtspCore_1_1mapping =
+[
+    [ "PROCESS_134", "classHtspCore_1_1mapping.html#a444fb7825d94349305c72bc259e8dac3", null ],
+    [ "locRxLinkReady", "classHtspCore_1_1mapping.html#af732331854c1d22082f84c052551e885", null ],
+    [ "remRxFifoCtrl", "classHtspCore_1_1mapping.html#ae21a096ecb8e2da71acdf08923a24a85", null ],
+    [ "remRxLinkReady", "classHtspCore_1_1mapping.html#a5cc711a055da64281b790dea6de334ba", null ],
+    [ "htspTxInInt", "classHtspCore_1_1mapping.html#a1ead29a586c4da5137a08fb8ade17168", null ],
+    [ "htspTxOutInt", "classHtspCore_1_1mapping.html#af3e67d69c67b98ab5fc47b59169dcb35", null ],
+    [ "htspRxInInt", "classHtspCore_1_1mapping.html#a8bf65ba140b3646cb7e730256e7dfa8d", null ],
+    [ "htspRxOutInt", "classHtspCore_1_1mapping.html#af2c0386d39685d8313dd9b50be7db3e3", null ],
+    [ "broadcastMac", "classHtspCore_1_1mapping.html#a27e6e7bbc0ba89a38a3ab284f03909b8", null ],
+    [ "remoteMac", "classHtspCore_1_1mapping.html#ace758b6bee0950af5890f29a335ff3ef", null ],
+    [ "etherType", "classHtspCore_1_1mapping.html#afcdeb96c84fde9bc6b1f192bc2ecd867", null ],
+    [ "remRxFifoCtrlReg", "classHtspCore_1_1mapping.html#ae9cdab3b7e2723ebe408c18172b9a2ac", null ],
+    [ "remRxLinkReadyReg", "classHtspCore_1_1mapping.html#aece2f40cfe68f219d8914887eced930d", null ],
+    [ "locRxLinkReadyReg", "classHtspCore_1_1mapping.html#a395399d3e73bba7e8b897e501c5f0c95", null ],
+    [ "dont_touch", "classHtspCore_1_1mapping.html#a01107ea068eda641f9073c07d04ffcb7", null ],
+    [ "dont_touch", "classHtspCore_1_1mapping.html#aacc4cfe977300a4f0401f7b2ad6fc318", null ],
+    [ "dont_touch", "classHtspCore_1_1mapping.html#a6ab74e9faef4c0051f7f8f0fb2daa128", null ],
+    [ "dont_touch", "classHtspCore_1_1mapping.html#a734449b56190220ac3e4f76f1b699935", null ],
+    [ "dont_touch", "classHtspCore_1_1mapping.html#a00ed2bd01911fcc0ab7e42ca871b55f9", null ],
+    [ "dont_touch", "classHtspCore_1_1mapping.html#a08b1e398773f07c8dd16f7ce8ca4374f", null ],
+    [ "dont_touch", "classHtspCore_1_1mapping.html#a3623a44e6dec670a07153933c6ca9c77", null ],
+    [ "u_tx", "classHtspCore_1_1mapping.html#a55bb269eff3d06364a23f29c12f29b16", null ],
+    [ "u_rx", "classHtspCore_1_1mapping.html#abd0b8310274ce5649e93dea53a1bef28", null ],
+    [ "u_axilite", "classHtspCore_1_1mapping.html#a46d9143b960e3f7cd010877f5667659f", null ]
+];

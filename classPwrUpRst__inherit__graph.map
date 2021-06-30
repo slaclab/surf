@@ -27,9 +27,9 @@
 <area shape="rect" id="node35" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="735,1373,875,1400"/>
 <area shape="rect" id="node36" href="$classPgp4Gtx7Wrapper.html" title=" " alt="" coords="735,1424,875,1451"/>
 <area shape="rect" id="node37" href="$classPgp3GtyUsQpll.html" title=" " alt="" coords="472,1323,592,1349"/>
-<area shape="rect" id="node40" href="$classRoguePgp3Sim.html" title=" " alt="" coords="472,1221,592,1248"/>
-<area shape="rect" id="node41" href="$classRoguePgp4Sim.html" title=" " alt="" coords="472,1272,592,1299"/>
-<area shape="rect" id="node42" href="$classRoguePgpEthSim.html" title=" " alt="" coords="465,461,599,488"/>
+<area shape="rect" id="node40" href="$classRogueHtspSim.html" title=" " alt="" coords="473,461,591,488"/>
+<area shape="rect" id="node41" href="$classRoguePgp3Sim.html" title=" " alt="" coords="472,1221,592,1248"/>
+<area shape="rect" id="node42" href="$classRoguePgp4Sim.html" title=" " alt="" coords="472,1272,592,1299"/>
 <area shape="rect" id="node43" href="$classTenGigEthGth7Clk.html" title=" " alt="" coords="463,1525,601,1552"/>
 <area shape="rect" id="node45" href="$classTenGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="416,1576,648,1603"/>
 <area shape="rect" id="node46" href="$classTenGigEthGtx7Clk.html" title=" " alt="" coords="463,1627,601,1653"/>
@@ -38,7 +38,7 @@
 <area shape="rect" id="node49" href="$classXauiGtyUltraScaleWrapper.html" title=" " alt="" coords="434,1779,630,1805"/>
 <area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="160,892,235,919"/>
 <area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,892,112,919"/>
-<area shape="rect" id="node5" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="742,436,869,463"/>
+<area shape="rect" id="node5" href="$classHtspCaui4Gty.html" title=" " alt="" coords="749,436,861,463"/>
 <area shape="rect" id="node17" href="$classGigEthLvdsUltraScaleWrapper.html" title=" " alt="" coords="697,664,914,691"/>
 <area shape="rect" id="node24" href="$classPgp2bGtx7FixedLatTb.html" title=" " alt="" coords="724,943,887,969"/>
 <area shape="rect" id="node25" href="$classPgp2bGtx7FixedLatWrapperTb.html" title=" " alt="" coords="696,993,915,1020"/>

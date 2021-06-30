@@ -429,16 +429,16 @@
 <!-- Node18 -->
 <g id="node18" class="node">
 <title>Node18</title>
-<g id="a_node18"><a xlink:href="classPgpEthAxiL.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="red" points="1316,-831.5 1316,-850.5 1387,-850.5 1387,-831.5 1316,-831.5"/>
-<text text-anchor="middle" x="1351.5" y="-838.5" font-family="Helvetica,sans-Serif" font-size="10.00">PgpEthAxiL</text>
+<g id="a_node18"><a xlink:href="classHtspAxiL.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="red" points="1321.5,-831.5 1321.5,-850.5 1381.5,-850.5 1381.5,-831.5 1321.5,-831.5"/>
+<text text-anchor="middle" x="1351.5" y="-838.5" font-family="Helvetica,sans-Serif" font-size="10.00">HtspAxiL</text>
 </a>
 </g>
 </g>
 <!-- Node17&#45;&gt;Node18 -->
 <g id="edge20" class="edge">
 <title>Node17&#45;&gt;Node18</title>
-<path fill="none" stroke="midnightblue" d="M1174.94,-796.93C1197.33,-804.9 1227.12,-814.9 1254,-822 1274.31,-827.36 1297.38,-831.96 1315.87,-835.28"/>
+<path fill="none" stroke="midnightblue" d="M1174.94,-796.93C1197.33,-804.9 1227.12,-814.9 1254,-822 1276.29,-827.88 1301.9,-832.85 1321.14,-836.22"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="1176.12,-793.64 1165.53,-793.55 1173.75,-800.22 1176.12,-793.64"/>
 </g>
 <!-- Node24 -->

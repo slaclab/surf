@@ -1,6 +1,6 @@
 <map id="Caui4GtyIpWrapper" name="Caui4GtyIpWrapper">
 <area shape="rect" id="node1" title=" " alt="" coords="1187,164,1336,191"/>
-<area shape="rect" id="node28" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="1384,164,1511,191"/>
+<area shape="rect" id="node28" href="$classHtspCaui4Gty.html" title=" " alt="" coords="1384,164,1496,191"/>
 <area shape="rect" id="node2" href="$classPwrUpRst.html" title=" " alt="" coords="1005,76,1090,103"/>
 <area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="205,5,280,32"/>
 <area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
@@ -27,5 +27,5 @@
 <area shape="rect" id="node21" href="$classAxiStreamPipeline.html" title=" " alt="" coords="373,512,516,539"/>
 <area shape="rect" id="node22" href="$classFifoCascade.html" title=" " alt="" coords="767,335,886,361"/>
 <area shape="rect" id="node23" href="$classFifo.html" title=" " alt="" coords="599,309,663,336"/>
-<area shape="rect" id="node29" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="1559,164,1701,191"/>
+<area shape="rect" id="node29" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="1544,164,1672,191"/>
 </map>

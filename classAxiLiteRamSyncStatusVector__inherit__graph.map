@@ -1,6 +1,6 @@
 <map id="AxiLiteRamSyncStatusVector" name="AxiLiteRamSyncStatusVector">
 <area shape="rect" id="node1" title=" " alt="" coords="1524,247,1735,273"/>
-<area shape="rect" id="node25" href="$classPgpEthAxiL.html" title=" " alt="" coords="1783,247,1877,273"/>
+<area shape="rect" id="node25" href="$classHtspAxiL.html" title=" " alt="" coords="1783,247,1863,273"/>
 <area shape="rect" id="node2" href="$classAxiDualPortRam.html" title=" " alt="" coords="865,183,995,209"/>
 <area shape="rect" id="node3" href="$classTrueDualPortRamXpm.html" title=" " alt="" coords="613,208,778,235"/>
 <area shape="rect" id="node4" href="$classTrueDualPortRamAlteraMf.html" title=" " alt="" coords="600,56,791,83"/>
@@ -24,8 +24,8 @@
 <area shape="rect" id="node19" href="$classSynchronizerVector.html" title=" " alt="" coords="1108,335,1255,361"/>
 <area shape="rect" id="node20" href="$classSynchronizerOneShotCntVector.html" title=" " alt="" coords="1069,284,1293,311"/>
 <area shape="rect" id="node21" href="$classSynchronizerOneShot.html" title=" " alt="" coords="373,360,552,387"/>
-<area shape="rect" id="node26" href="$classPgpEthCore.html" title=" " alt="" coords="1925,247,2023,273"/>
-<area shape="rect" id="node27" href="$classPgpEthCaui4Gty.html" title=" " alt="" coords="2071,221,2197,248"/>
-<area shape="rect" id="node29" href="$classPgpEthCoreTb.html" title=" " alt="" coords="2077,272,2191,299"/>
-<area shape="rect" id="node28" href="$classPgpEthCaui4GtyTb.html" title=" " alt="" coords="2245,221,2388,248"/>
+<area shape="rect" id="node26" href="$classHtspCore.html" title=" " alt="" coords="1911,247,1993,273"/>
+<area shape="rect" id="node27" href="$classHtspCaui4Gty.html" title=" " alt="" coords="2041,221,2153,248"/>
+<area shape="rect" id="node29" href="$classHtspCoreTb.html" title=" " alt="" coords="2048,272,2147,299"/>
+<area shape="rect" id="node28" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="2201,221,2329,248"/>
 </map>

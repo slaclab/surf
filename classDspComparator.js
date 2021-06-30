@@ -5,7 +5,7 @@ var classDspComparator =
     [ "RST_POLARITY_G", "classDspComparator.html#a8a9f56ec06b173cf46dc7160fd7c1f30", null ],
     [ "USE_DSP_G", "classDspComparator.html#ad457dba6b997f7dd6b4bbbc37812c21f", null ],
     [ "PIPE_STAGES_G", "classDspComparator.html#a64f444b9c1b2c38c6724c0b6487e0f7a", null ],
-    [ "WIDTH_G", "classDspComparator.html#a3a08e5a7fe9a2a9c0a2087bdf4611d2d", null ],
+    [ "WIDTH_G", "classDspComparator.html#a27bf480c051c7caab6589b0ed8ff6bbb", null ],
     [ "clk", "classDspComparator.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classDspComparator.html#a18ff76fd793d71b40b09bc86df834bce", null ],
     [ "ibValid", "classDspComparator.html#aea175478e28603d9d34c7aa903cfc70f", null ],
