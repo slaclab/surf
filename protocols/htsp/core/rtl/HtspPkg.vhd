@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : PgpEth: https://confluence.slac.stanford.edu/x/pQmODw
+-- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Package for PGP Ethernet
+-- Description: Package for HTSP Ethernet
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,17 +19,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-package PgpEthPkg is
+package HtspPkg is
 
-   constant PGP_ETH_VERSION_C : slv(7 downto 0) := x"01";
+   constant HTSP_VERSION_C : slv(7 downto 0) := x"01";
 
-   constant PGP_ETH_AXIS_CONFIG_C : AxiStreamConfigType :=
+   constant HTSP_CLK_FREQ_C : real := 195.658E+6;  -- Units of Hz
+
+   constant HTSP_AXIS_CONFIG_C : AxiStreamConfigType :=
       ssiAxiStreamConfig(
          dataBytes => (512/8),          -- 512-bit interface
          tKeepMode => TKEEP_COMP_C,
@@ -37,18 +38,18 @@ package PgpEthPkg is
          tDestBits => 4,
          tUserBits => 2);
 
-   type PgpEthTxInType is record
+   type HtspTxInType is record
       disable      : sl;
       flowCntlDis  : sl;
       nullInterval : slv(31 downto 0);  -- Only used in network mode
       opCodeEn     : sl;
       opCode       : slv(127 downto 0);
       locData      : slv(127 downto 0);
-   end record PgpEthTxInType;
+   end record HtspTxInType;
 
-   type PgpEthTxInArray is array (natural range<>) of PgpEthTxInType;
+   type HtspTxInArray is array (natural range<>) of HtspTxInType;
 
-   constant PGP_ETH_TX_IN_INIT_C : PgpEthTxInType := (
+   constant HTSP_TX_IN_INIT_C : HtspTxInType := (
       disable      => '0',
       flowCntlDis  => '0',
       nullInterval => toSlv(127, 32),
@@ -56,7 +57,7 @@ package PgpEthPkg is
       opCode       => (others => '0'),
       locData      => (others => '0'));
 
-   type PgpEthTxOutType is record
+   type HtspTxOutType is record
       locOverflow : slv(15 downto 0);
       locPause    : slv(15 downto 0);
       phyTxActive : sl;
@@ -67,9 +68,9 @@ package PgpEthPkg is
       frameTxSize : slv(15 downto 0);
    end record;
 
-   type PgpEthTxOutArray is array (natural range<>) of PgpEthTxOutType;
+   type HtspTxOutArray is array (natural range<>) of HtspTxOutType;
 
-   constant PGP_ETH_TX_OUT_INIT_C : PgpEthTxOutType := (
+   constant HTSP_TX_OUT_INIT_C : HtspTxOutType := (
       locOverflow => (others => '0'),
       locPause    => (others => '0'),
       phyTxActive => '0',
@@ -79,16 +80,16 @@ package PgpEthPkg is
       frameTxErr  => '0',
       frameTxSize => (others => '0'));
 
-   type PgpEthRxInType is record
+   type HtspRxInType is record
       resetRx : sl;
-   end record PgpEthRxInType;
+   end record HtspRxInType;
 
-   type PgpEthRxInArray is array (natural range<>) of PgpEthRxInType;
+   type HtspRxInArray is array (natural range<>) of HtspRxInType;
 
-   constant PGP_ETH_RX_IN_INIT_C : PgpEthRxInType := (
+   constant HTSP_RX_IN_INIT_C : HtspRxInType := (
       resetRx => '0');
 
-   type PgpEthRxOutType is record
+   type HtspRxOutType is record
       phyRxActive    : sl;
       linkReady      : sl;                 -- locRxLinkReady
       frameRx        : sl;                 -- A good frame was received
@@ -100,11 +101,11 @@ package PgpEthPkg is
       remLinkData    : slv(127 downto 0);  -- Far end data
       remRxLinkReady : sl;                 -- Far end RX has link
       remRxPause     : slv(15 downto 0);   -- Far end pause status
-   end record PgpEthRxOutType;
+   end record HtspRxOutType;
 
-   type PgpEthRxOutArray is array (natural range<>) of PgpEthRxOutType;
+   type HtspRxOutArray is array (natural range<>) of HtspRxOutType;
 
-   constant PGP_ETH_RX_OUT_INIT_C : PgpEthRxOutType := (
+   constant HTSP_RX_OUT_INIT_C : HtspRxOutType := (
       phyRxActive    => '0',
       linkReady      => '0',
       frameRx        => '0',
@@ -117,4 +118,4 @@ package PgpEthPkg is
       remRxLinkReady => '0',
       remRxPause     => (others => '0'));
 
-end package PgpEthPkg;
+end package HtspPkg;

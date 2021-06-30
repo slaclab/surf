@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -26,7 +25,7 @@ entity DspComparator is
       RST_POLARITY_G : sl                     := '1';  -- '1' for active high rst, '0' for active low
       USE_DSP_G      : string                 := "yes";
       PIPE_STAGES_G  : natural range 0 to 1   := 0;
-      WIDTH_G        : positive range 2 to 48 := 32);
+      WIDTH_G        : positive range 2 to 96 := 32);
    port (
       clk     : in  sl;
       rst     : in  sl := not(RST_POLARITY_G);
