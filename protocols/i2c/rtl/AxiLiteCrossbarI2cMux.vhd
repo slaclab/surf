@@ -24,7 +24,7 @@ use surf.I2cMuxPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity AxiI2cRegMasterMux is
+entity AxiLiteCrossbarI2cMux is
    generic (
       TPD_G            : time               := 1 ns;
       AXIL_PROXY_G     : boolean            := false;
@@ -46,9 +46,9 @@ entity AxiI2cRegMasterMux is
       -- I2C Ports
       scl             : inout sl;
       sda             : inout sl);
-end AxiI2cRegMasterMux;
+end AxiLiteCrossbarI2cMux;
 
-architecture mapping of AxiI2cRegMasterMux is
+architecture mapping of AxiLiteCrossbarI2cMux is
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1
    --       FILTER_G = (min_pulse_time / clk_period) + 1
