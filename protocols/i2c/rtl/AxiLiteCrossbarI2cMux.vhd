@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI-Lite I2C Register Master with I2C Multiplexer
+-- Description: Sets the I2C MUX path before sending the TXN to the AXI-Lite XBAR
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -26,26 +26,36 @@ use unisim.vcomponents.all;
 
 entity AxiLiteCrossbarI2cMux is
    generic (
-      TPD_G            : time               := 1 ns;
-      AXIL_PROXY_G     : boolean            := false;
-      MUX_DECODE_MAP_G : Slv8Array          := I2C_MUX_DECODE_MAP_TCA9548_C;
-      I2C_MUX_ADDR_G   : slv(6 downto 0)    := b"1110_000";
-      DEVICE_MAP_G     : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
-      I2C_SCL_FREQ_G   : real               := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G  : real               := 100.0E-9;    -- units of seconds
-      AXIL_CLK_FREQ_G  : real               := 156.25E+6);  -- units of Hz
+      TPD_G              : time                             := 1 ns;
+      AXIL_PROXY_G       : boolean                          := false;
+      -- I2C MUX Generics
+      MUX_DECODE_MAP_G   : Slv8Array                        := I2C_MUX_DECODE_MAP_TCA9548_C;
+      I2C_MUX_ADDR_G     : slv(6 downto 0)                  := b"1110_000";
+      I2C_SCL_FREQ_G     : real                             := 400.0E+3;  -- units of Hz
+      I2C_MIN_PULSE_G    : real                             := 100.0E-9;  -- units of seconds
+      AXIL_CLK_FREQ_G    : real                             := 156.25E+6;  -- units of Hz
+      -- AXI-Lite Crossbar Generics
+      NUM_MASTER_SLOTS_G : natural range 1 to 64            := 4;
+      DEC_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
+      MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray := AXIL_XBAR_CFG_DEFAULT_C;
+      DEBUG_G            : boolean                          := false);
    port (
       -- Clocks and Resets
-      axilClk         : in    sl;
-      axilRst         : in    sl;
-      -- AXI-Lite Register Interface
-      axilReadMaster  : in    AxiLiteReadMasterType;
-      axilReadSlave   : out   AxiLiteReadSlaveType;
-      axilWriteMaster : in    AxiLiteWriteMasterType;
-      axilWriteSlave  : out   AxiLiteWriteSlaveType;
-      -- I2C Ports
-      scl             : inout sl;
-      sda             : inout sl);
+      axilClk           : in  sl;
+      axilRst           : in  sl;
+      -- Slave AXI-Lite Interface
+      sAxilReadMaster   : in  AxiLiteReadMasterType;
+      sAxilReadSlave    : out AxiLiteReadSlaveType;
+      sAxilWriteMaster  : in  AxiLiteWriteMasterType;
+      sAxilWriteSlave   : out AxiLiteWriteSlaveType;
+      -- Master AXI-Lite Interfaces
+      mAxilWriteMasters : out AxiLiteWriteMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
+      mAxilWriteSlaves  : in  AxiLiteWriteSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0);
+      mAxilReadMasters  : out AxiLiteReadMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
+      mAxilReadSlaves   : in  AxiLiteReadSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0);
+      -- I2C MUX Ports
+      i2ci              : in  i2c_in_type;
+      i2co              : out i2c_out_type);
 end AxiLiteCrossbarI2cMux;
 
 architecture mapping of AxiLiteCrossbarI2cMux is
@@ -56,91 +66,73 @@ architecture mapping of AxiLiteCrossbarI2cMux is
    constant PRESCALE_C       : natural := (getTimeRatio(AXIL_CLK_FREQ_G, I2C_SCL_5xFREQ_C)) - 1;
    constant FILTER_C         : natural := natural(AXIL_CLK_FREQ_G * I2C_MIN_PULSE_G) + 1;
 
-   constant DEVICE_MAP_LENGTH_C : natural := DEVICE_MAP_G'length+1;  -- Append the I2C to the top of the device map
+   constant DEVICE_MAP_C : I2cAxiLiteDevType := (
+      MakeI2cAxiLiteDevType(
+         i2cAddress  => I2C_MUX_ADDR_G,
+         dataSize    => 8,              -- in units of bits
+         addrSize    => 0,              -- in units of bits
+         endianness  => '0',            -- Little endian
+         repeatStart => '0'));          -- Repeat Start
 
-   constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to DEVICE_MAP_LENGTH_C-1) := (
-      0 to DEVICE_MAP_G'length-1 => DEVICE_MAP_G(0 to DEVICE_MAP_G'length-1),
-      DEVICE_MAP_LENGTH_C-1      => MakeI2cAxiLiteDevType(  -- Enhanced interface
-         i2cAddress              => I2C_MUX_ADDR_G,
-         dataSize                => 8,  -- in units of bits
-         addrSize                => 0,  -- in units of bits
-         endianness              => '0',                    -- Little endian
-         repeatStart             => '0'));                  -- Repeat Start
-
-   -- Number of device register space address bits mapped into axi bus is determined by
-   -- the maximum address size of all the devices.
-   constant I2C_REG_ADDR_SIZE_C : natural := maxAddrSize(DEVICE_MAP_C);
-
-   constant I2C_REG_AXI_ADDR_LOW_C  : natural := 2;
-   constant I2C_REG_AXI_ADDR_HIGH_C : natural :=
-      ite(I2C_REG_ADDR_SIZE_C = 0,
-          2,
-          I2C_REG_AXI_ADDR_LOW_C + I2C_REG_ADDR_SIZE_C-1);
-
-   subtype I2C_REG_AXI_ADDR_RANGE_C is natural range
-      I2C_REG_AXI_ADDR_HIGH_C downto I2C_REG_AXI_ADDR_LOW_C;
-
-   -- Number of device address bits mapped into axi bus space is determined by number of devices
-   constant I2C_DEV_AXI_ADDR_LOW_C : natural := I2C_REG_AXI_ADDR_HIGH_C + 1;
-   constant I2C_DEV_AXI_ADDR_HIGH_C : natural := ite(
-      (DEVICE_MAP_LENGTH_C = 1),
-      I2C_DEV_AXI_ADDR_LOW_C,
-      (I2C_DEV_AXI_ADDR_LOW_C + log2(DEVICE_MAP_LENGTH_C) - 1));
-
-   subtype I2C_DEV_AXI_ADDR_RANGE_C is natural range
-      I2C_DEV_AXI_ADDR_HIGH_C downto I2C_DEV_AXI_ADDR_LOW_C;
-
-   constant I2C_DEV_AXI_ADDR_WIDTH_C : positive := (I2C_DEV_AXI_ADDR_HIGH_C-I2C_DEV_AXI_ADDR_LOW_C)+1;
+   constant I2C_MUX_INIT_C : I2cRegMasterInType := (
+      i2cAddr     => DEVICE_MAP_C.i2cAddress,
+      tenbit      => DEVICE_MAP_C.i2cTenbit,
+      regAddr     => (others => '0'),
+      regWrData   => (others => '0'),
+      regOp       => '1',               -- 1 for write, 0 for read
+      regAddrSkip => '1',               -- No memory address in the MUX
+      regAddrSize => (others => '0'),
+      regDataSize => (others => '0'),
+      regReq      => '0',
+      busReq      => '0',
+      endianness  => DEVICE_MAP_C.endianness,
+      repeatStart => DEVICE_MAP_C.repeatStart);
 
    type StateType is (
       IDLE_S,
       MUX_S,
-      REQ_TXN_S,
-      ACK_TXN_S);
+      XBAR_S);
 
    type RegType is record
-      rnw             : sl;
-      proxyReadSlave  : AxiLiteReadSlaveType;
-      proxyWriteSlave : AxiLiteWriteSlaveType;
-      req             : AxiLiteReqType;
-      state           : StateType;
+      rnw            : sl;
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
+      i2cRegMasterIn : I2cRegMasterInType;
+      req            : AxiLiteReqType;
+      state          : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      rnw             => '0',
-      proxyReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      proxyWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      req             => AXI_LITE_REQ_INIT_C,
-      state           => IDLE_S);
+      rnw            => '0',
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      i2cRegMasterIn => I2C_MUX_INIT_C,
+      req            => AXI_LITE_REQ_INIT_C,
+      state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal ack : AxiLiteAckType;
+   signal axilReadMaster  : AxiLiteReadMasterType;
+   signal axilReadSlave   : AxiLiteReadSlaveType;
+   signal axilWriteMaster : AxiLiteWriteMasterType;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
-   signal proxyReadMaster  : AxiLiteReadMasterType;
-   signal proxyReadSlave   : AxiLiteReadSlaveType;
-   signal proxyWriteMaster : AxiLiteWriteMasterType;
-   signal proxyWriteSlave  : AxiLiteWriteSlaveType;
-
-   signal readMaster  : AxiLiteReadMasterType;
-   signal readSlave   : AxiLiteReadSlaveType;
-   signal writeMaster : AxiLiteWriteMasterType;
-   signal writeSlave  : AxiLiteWriteSlaveType;
-
-   signal i2cRegMasterIn  : I2cRegMasterInType;
    signal i2cRegMasterOut : I2cRegMasterOutType;
 
-   signal i2ci : i2c_in_type;
-   signal i2co : i2c_out_type;
+   signal ack             : AxiLiteAckType;
+   signal xbarReadMaster  : AxiLiteReadMasterType;
+   signal xbarReadSlave   : AxiLiteReadSlaveType;
+   signal xbarWriteMaster : AxiLiteWriteMasterType;
+   signal xbarWriteSlave  : AxiLiteWriteSlaveType;
 
 begin
 
    BYP_PROXY : if (AXIL_PROXY_G = false) generate
-      proxyReadMaster  <= axilReadMaster;
-      axilReadSlave    <= proxyReadSlave;
-      proxyWriteMaster <= axilWriteMaster;
-      axilWriteSlave   <= proxyWriteSlave;
+      axilReadMaster  <= sAxilReadMaster;
+      sAxilReadSlave  <= axilReadSlave;
+      axilWriteMaster <= sAxilWriteMaster;
+      sAxilWriteSlave <= axilWriteSlave;
    end generate BYP_PROXY;
 
    GEN_PROXY : if (AXIL_PROXY_G = true) generate
@@ -152,69 +144,88 @@ begin
             axiClk          => axilClk,
             axiRst          => axilRst,
             -- AXI-Lite Register Interface
-            sAxiReadMaster  => axilReadMaster,
-            sAxiReadSlave   => axilReadSlave,
-            sAxiWriteMaster => axilWriteMaster,
-            sAxiWriteSlave  => axilWriteSlave,
+            sAxiReadMaster  => sAxilReadMaster,
+            sAxiReadSlave   => sAxilReadSlave,
+            sAxiWriteMaster => sAxilWriteMaster,
+            sAxiWriteSlave  => sAxilWriteSlave,
             -- AXI-Lite Register Interface
-            mAxiReadMaster  => proxyReadMaster,
-            mAxiReadSlave   => proxyReadSlave,
-            mAxiWriteMaster => proxyWriteMaster,
-            mAxiWriteSlave  => proxyWriteSlave);
+            mAxiReadMaster  => axilReadMaster,
+            mAxiReadSlave   => axilReadSlave,
+            mAxiWriteMaster => axilWriteMaster,
+            mAxiWriteSlave  => axilWriteSlave);
    end generate GEN_PROXY;
 
-   comb : process (ack, axilRst, proxyReadMaster, proxyWriteMaster, r) is
-      variable v           : regType;
-      variable wrIdx       : integer;
-      variable rdIdx       : integer;
-      variable proxyStatus : AxiLiteStatusType;
+   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster,
+                   i2cRegMasterOut, r) is
+      variable v          : regType;
+      variable wrIdx      : integer;
+      variable rdIdx      : integer;
+      variable axilStatus : AxiLiteStatusType;
    begin
       -- Latch the current value
       v := r;
 
       -- Update the variables
-      wrIdx := conv_integer(proxyWriteMaster.awaddr(I2C_DEV_AXI_ADDR_RANGE_C));
-      rdIdx := conv_integer(proxyReadMaster.araddr(I2C_DEV_AXI_ADDR_RANGE_C));
+      wrIdx := 0;                       -- init
+      rdIdx := 0;                       -- init
+      for m in MASTERS_CONFIG_G'range loop
+
+         -- Check for write address match
+         if ((MASTERS_CONFIG_G(m).addrBits = 32)
+             or (
+                StdMatch(  -- Use std_match to allow dontcares ('-')
+                   axilWriteMaster.awaddr(31 downto MASTERS_CONFIG_G(m).addrBits),
+                   MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
+                and (MASTERS_CONFIG_G(m).connectivity(0) = '1')))
+         then
+            wrIdx := m;
+         end if;
+
+         -- Check for read address match
+         if ((MASTERS_CONFIG_G(m).addrBits = 32)
+             or (
+                StdMatch(  -- Use std_match to allow dontcares ('-')
+                   axilReadMaster.araddr(31 downto MASTERS_CONFIG_G(m).addrBits),
+                   MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
+                and (MASTERS_CONFIG_G(m).connectivity(0) = '1')))
+         then
+            rdIdx := m;
+         end if;
+
+      end loop;
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(proxyWriteMaster, proxyReadMaster, v.proxyWriteSlave, v.proxyReadSlave, proxyStatus);
+      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       -- State Machine
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset the buses
-            v.req.wrData                            := (others => '0');
-            v.req.address                           := (others => '0');
-            v.req.address(I2C_DEV_AXI_ADDR_RANGE_C) := toSlv(DEVICE_MAP_LENGTH_C-1, I2C_DEV_AXI_ADDR_WIDTH_C);
-
             -- Check if ready for next transaction
             if (ack.done = '0') then
 
                -- Check for a write TXN
-               if (proxyStatus.writeEnable = '1') then
+               if (axilStatus.writeEnable = '1') then
 
                   -- Set the flag
                   v.rnw := '0';
 
-                  -- Setup the AXI-Lite Master request
-                  v.req.request            := '1';
-                  v.req.rnw                := '0';  -- Only write TXN for setting up MUX
-                  v.req.wrData(7 downto 0) := MUX_DECODE_MAP_G(wrIdx);
+                  -- Setup the I2C MUX
+                  v.i2cRegMasterIn.regReq                := '1';
+                  v.i2cRegMasterIn.regWrData(7 downto 0) := MUX_DECODE_MAP_G(wrIdx);
 
                   -- Next state
                   v.state := MUX_S;
 
                -- Check for a read TXN
-               elsif (proxyStatus.readEnable = '1') then
+               elsif (axilStatus.readEnable = '1') then
 
                   -- Set the flag
                   v.rnw := '1';
 
-                  -- Setup the AXI-Lite Master request
-                  v.req.request            := '1';
-                  v.req.rnw                := '0';  -- Only write TXN for setting up MUX
-                  v.req.wrData(7 downto 0) := MUX_DECODE_MAP_G(rdIdx);
+                  -- Setup the I2C MUX
+                  v.i2cRegMasterIn.regReq                := '1';
+                  v.i2cRegMasterIn.regWrData(7 downto 0) := MUX_DECODE_MAP_G(rdIdx);
 
                   -- Next state
                   v.state := MUX_S;
@@ -225,28 +236,28 @@ begin
          ----------------------------------------------------------------------
          when MUX_S =>
             -- Wait for DONE to set
-            if (ack.done = '1') then
+            if (i2cRegMasterOut.regAck = '1' and r.i2cRegMasterIn.regReq = '1') then
 
                -- Reset the flag
-               v.req.request := '0';
+               v.i2cRegMasterIn.regReq := '0';
 
                -- Check for bus error
-               if (ack.resp /= AXI_RESP_OK_C) then
+               if (i2cRegMasterOut.regFail = '1') then
 
                   -- Check for a write TXN
                   if (r.rnw = '0') then
 
                      -- Send the response
-                     axiSlaveWriteResponse(v.proxyWriteSlave, ack.resp);
+                     axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_SLVERR_C);
 
                   -- Else read TXN
                   else
 
                      -- Return the error code value
-                     v.proxyReadSlave.rData := ack.rdData;
+                     v.axilReadSlave.rData := x"000000" & i2cRegMasterOut.regFailCode;
 
                      -- Send the response
-                     axiSlaveReadResponse(v.proxyReadSlave, ack.resp);
+                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_SLVERR_C);
 
                   end if;
 
@@ -255,41 +266,29 @@ begin
 
                else
 
+                  -- Setup the AXI-Lite Master request
+                  v.req.request := '1';
+                  v.req.rnw     := r.rnw;
+                  v.req.wrData  := axilWriteMaster.wData;
+
+                  -- Check for a write TXN
+                  if (r.rnw = '0') then
+                     v.req.address := axilWriteMaster.awaddr;
+
+                  -- Else read TXN
+                  else
+                     v.req.address := axilReadMaster.araddr;
+
+                  end if;
+
                   -- Next state
-                  v.state := REQ_TXN_S;
+                  v.state := XBAR_S;
 
                end if;
 
             end if;
          ----------------------------------------------------------------------
-         when REQ_TXN_S =>
-            -- Check if ready for next transaction
-            if (ack.done = '0') then
-
-               -- Setup the AXI-Lite Master request
-               v.req.request := '1';
-               v.req.rnw     := r.rnw;
-
-               -- Check for a write TXN
-               if (r.rnw = '0') then
-
-                  v.req.address := proxyWriteMaster.awaddr;
-                  v.req.wrData  := proxyWriteMaster.wData;
-
-               -- Else read TXN
-               else
-
-                  v.req.address := proxyReadMaster.araddr;
-                  v.req.wrData  := proxyReadMaster.rData;
-
-               end if;
-
-               -- Next state
-               v.state := ACK_TXN_S;
-
-            end if;
-         ----------------------------------------------------------------------
-         when ACK_TXN_S =>
+         when XBAR_S =>
             -- Wait for DONE to set
             if (ack.done = '1') then
 
@@ -300,16 +299,16 @@ begin
                if (r.rnw = '0') then
 
                   -- Send the response
-                  axiSlaveWriteResponse(v.proxyWriteSlave, ack.resp);
+                  axiSlaveWriteResponse(v.axilWriteSlave, ack.resp);
 
                -- Else read TXN
                else
 
                   -- Return the read value
-                  v.proxyReadSlave.rData := ack.rdData;
+                  v.axilReadSlave.rData := ack.rdData;
 
                   -- Send the response
-                  axiSlaveReadResponse(v.proxyReadSlave, ack.resp);
+                  axiSlaveReadResponse(v.axilReadSlave, ack.resp);
 
                end if;
 
@@ -329,8 +328,8 @@ begin
       rin <= v;
 
       -- Outputs
-      proxyReadSlave  <= r.proxyReadSlave;
-      proxyWriteSlave <= r.proxyWriteSlave;
+      axilReadSlave  <= r.axilReadSlave;
+      axilWriteSlave <= r.axilWriteSlave;
 
    end process comb;
 
@@ -340,36 +339,6 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   U_AxiLiteMaster : entity surf.AxiLiteMaster
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         req             => r.req,
-         ack             => ack,
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilWriteMaster => writeMaster,
-         axilWriteSlave  => writeSlave,
-         axilReadMaster  => readMaster,
-         axilReadSlave   => readSlave);
-
-   U_I2cRegMasterAxiBridge : entity surf.I2cRegMasterAxiBridge
-      generic map (
-         TPD_G        => TPD_G,
-         DEVICE_MAP_G => DEVICE_MAP_C)
-      port map (
-         -- I2C Register Interface
-         i2cRegMasterIn  => i2cRegMasterIn,
-         i2cRegMasterOut => i2cRegMasterOut,
-         -- AXI-Lite Register Interface
-         axiReadMaster   => readMaster,
-         axiReadSlave    => readSlave,
-         axiWriteMaster  => writeMaster,
-         axiWriteSlave   => writeSlave,
-         -- Clocks and Resets
-         axiClk          => axilClk,
-         axiRst          => axilRst);
 
    U_I2cRegMaster : entity surf.I2cRegMaster
       generic map(
@@ -382,24 +351,46 @@ begin
          i2ci   => i2ci,
          i2co   => i2co,
          -- I2C Register Interface
-         regIn  => i2cRegMasterIn,
+         regIn  => r.i2cRegMasterIn,
          regOut => i2cRegMasterOut,
          -- Clock and Reset
          clk    => axilClk,
          srst   => axilRst);
 
-   IOBUF_SCL : IOBUF
+   U_XbarAxilMaster : entity surf.AxiLiteMaster
+      generic map (
+         TPD_G => TPD_G)
       port map (
-         O  => i2ci.scl,                -- Buffer output
-         IO => scl,  -- Buffer inout port (connect directly to top-level port)
-         I  => i2co.scl,                -- Buffer input
-         T  => i2co.scloen);  -- 3-state enable input, high=input, low=output
+         req             => r.req,
+         ack             => ack,
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilWriteMaster => xbarWriteMaster,
+         axilWriteSlave  => xbarWriteSlave,
+         axilReadMaster  => xbarReadMaster,
+         axilReadSlave   => xbarReadSlave);
 
-   IOBUF_SDA : IOBUF
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_MASTER_SLOTS_G,
+         DEC_ERROR_RESP_G   => DEC_ERROR_RESP_G,
+         MASTERS_CONFIG_G   => MASTERS_CONFIG_G,
+         DEBUG_G            => DEBUG_G)
       port map (
-         O  => i2ci.sda,                -- Buffer output
-         IO => sda,  -- Buffer inout port (connect directly to top-level port)
-         I  => i2co.sda,                -- Buffer input
-         T  => i2co.sdaoen);  -- 3-state enable input, high=input, low=output
+         -- Clock and Resets
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         -- Slave AXI-Lite Interface
+         sAxiWriteMasters(0) => xbarWriteMaster,
+         sAxiWriteSlaves(0)  => xbarWriteSlave,
+         sAxiReadMasters(0)  => xbarReadMaster,
+         sAxiReadSlaves(0)   => xbarReadSlave,
+         -- Master AXI-Lite Interfaces
+         mAxiWriteMasters    => mAxilWriteMasters,
+         mAxiWriteSlaves     => mAxilWriteSlaves,
+         mAxiReadMasters     => mAxilReadMasters,
+         mAxiReadSlaves      => mAxilReadSlaves);
 
 end mapping;
