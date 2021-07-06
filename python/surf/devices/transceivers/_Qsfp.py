@@ -26,15 +26,6 @@ class Qsfp(pr.Device):
         # Lower Page 00h
         ################
 
-        self.add(pr.RemoteVariable(
-            name         = 'Identifier',
-            description  = 'Type of serial transceiver',
-            offset       = (0 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            enum         = transceivers.IdentifierDict,
-        ))
-
         self.addRemoteVariables(
             name         = 'DevMon',
             description  = 'Diagnostic Monitor Data',
@@ -132,6 +123,128 @@ class Qsfp(pr.Device):
                 disp         = '{:1.3f}',
                 dependencies = [self.TxPwrRaw[2*i+0],self.TxPwrRaw[2*i+1]],
             ))
+
+        ################
+        # Upper Page 00h
+        ################
+
+        self.add(pr.RemoteVariable(
+            name         = 'Identifier',
+            description  = 'Type of serial transceiver',
+            offset       = (128 << 2),
+            bitSize      = 8,
+            mode         = 'RO',
+            enum         = transceivers.IdentifierDict,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Connector',
+            description = 'Code for connector type',
+            offset      = (130 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            enum        = transceivers.ConnectorDict,
+        ))
+
+        self.addRemoteVariables(
+            name         = 'VendorNameRaw',
+            description  = 'SFP vendor name (ASCII)',
+            offset       = (148 << 2),
+            bitSize      = 8,
+            mode         = 'RO',
+            base         = pr.String,
+            number       = 16,
+            stride       = 4,
+            hidden       = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'VendorName',
+            description  = 'SFP vendor name (ASCII)',
+            mode         = 'RO',
+            linkedGet    = transceivers.parseStrArrayByte,
+            dependencies = [self.VendorNameRaw[x] for x in range(16)],
+        ))
+
+        self.addRemoteVariables(
+            name         = 'VendorPnRaw',
+            description  = 'Part number provided by SFP vendor (ASCII)',
+            offset       = (168 << 2),
+            bitSize      = 8,
+            mode         = 'RO',
+            base         = pr.String,
+            number       = 16,
+            stride       = 4,
+            hidden       = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'VendorPn',
+            description  = 'Part number provided by SFP vendor (ASCII)',
+            mode         = 'RO',
+            linkedGet    = transceivers.parseStrArrayByte,
+            dependencies = [self.VendorPnRaw[x] for x in range(16)],
+        ))
+
+        self.addRemoteVariables(
+            name         = 'VendorRevRaw',
+            description  = 'Revision level for part number provided by vendor (ASCII)',
+            offset       = (184 << 2),
+            bitSize      = 8,
+            mode         = 'RO',
+            base         = pr.String,
+            number       = 2,
+            stride       = 4,
+            hidden       = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'VendorRev',
+            description  = 'Revision level for part number provided by vendor (ASCII)',
+            mode         = 'RO',
+            linkedGet    = transceivers.parseStrArrayByte,
+            dependencies = [self.VendorRevRaw[x] for x in range(2)],
+        ))
+
+        self.addRemoteVariables(
+            name         = 'VendorSnRaw',
+            description  = 'Serial number provided by vendor (ASCII)',
+            offset       = (196 << 2),
+            bitSize      = 8,
+            mode         = 'RO',
+            base         = pr.String,
+            number       = 16,
+            stride       = 4,
+            hidden       = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'VendorSn',
+            description  = 'Serial number provided by vendor (ASCII)',
+            mode         = 'RO',
+            linkedGet    = transceivers.parseStrArrayByte,
+            dependencies = [self.VendorSnRaw[x] for x in range(16)],
+        ))
+
+        self.addRemoteVariables(
+            name         = 'DateCode',
+            description  = 'Vendor’s manufacturing date code (ASCII)',
+            offset       = (212 << 2),
+            bitSize      = 8,
+            mode         = 'RO',
+            number       = 6,
+            stride       = 4,
+            base         = pr.String,
+            hidden      = True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'ManufactureDate',
+            description  = 'Vendor’s manufacturing date code (ASCII)',
+            mode         = 'RO',
+            linkedGet    = transceivers.getDate,
+            dependencies = [self.DateCode[x] for x in [0,1,4,5,2,3] ],
+        ))
 
         ###############################################################
         # TODO: Need to add the ability in the future to use

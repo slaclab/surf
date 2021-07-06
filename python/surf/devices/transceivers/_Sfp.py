@@ -64,7 +64,7 @@ class Sfp(pr.Device):
             name         = 'VendorName',
             description  = 'SFP vendor name (ASCII)',
             mode         = 'RO',
-            linkedGet    = transceivers.parseStrArray16Byte,
+            linkedGet    = transceivers.parseStrArrayByte,
             dependencies = [self.VendorNameRaw[x] for x in range(16)],
         ))
 
@@ -84,7 +84,7 @@ class Sfp(pr.Device):
             name         = 'VendorPn',
             description  = 'Part number provided by SFP vendor (ASCII)',
             mode         = 'RO',
-            linkedGet    = transceivers.parseStrArray16Byte,
+            linkedGet    = transceivers.parseStrArrayByte,
             dependencies = [self.VendorPnRaw[x] for x in range(16)],
         ))
 
@@ -104,7 +104,7 @@ class Sfp(pr.Device):
             name         = 'VendorRev',
             description  = 'Revision level for part number provided by vendor (ASCII)',
             mode         = 'RO',
-            linkedGet    = transceivers.parseStrArray4Byte,
+            linkedGet    = transceivers.parseStrArrayByte,
             dependencies = [self.VendorRevRaw[x] for x in range(4)],
         ))
 
@@ -128,7 +128,7 @@ class Sfp(pr.Device):
             name         = 'VendorSn',
             description  = 'Serial number provided by vendor (ASCII)',
             mode         = 'RO',
-            linkedGet    = transceivers.parseStrArray16Byte,
+            linkedGet    = transceivers.parseStrArrayByte,
             dependencies = [self.VendorSnRaw[x] for x in range(16)],
         ))
 
