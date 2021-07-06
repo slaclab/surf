@@ -14,17 +14,9 @@ import math
 
 # Can't use SparseString + bulk memory read if there is a AXI-Lite Proxy
 # So recoded using 4 byte transactions + this get function
-def parseStrArray16Byte(var):
+def parseStrArrayByte(var):
     retVar = ''
-    for x in range(16):
-        retVar += var.dependencies[x].value()
-    return retVar
-
-# Can't use SparseString + bulk memory read if there is a AXI-Lite Proxy
-# So recoded using 4 byte transactions + this get function
-def parseStrArray4Byte(var):
-    retVar = ''
-    for x in range(4):
+    for x in range(len(var.dependencies)):
         retVar += var.dependencies[x].value()
     return retVar
 
