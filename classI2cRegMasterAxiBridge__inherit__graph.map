@@ -1,5 +1,6 @@
 <map id="I2cRegMasterAxiBridge" name="I2cRegMasterAxiBridge">
 <area shape="rect" id="node1" title=" " alt="" coords="5,5,180,32"/>
-<area shape="rect" id="node2" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="27,80,159,107"/>
-<area shape="rect" id="node3" href="$classSff8472.html" title=" " alt="" coords="57,155,128,181"/>
+<area shape="rect" id="node2" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="11,80,174,107"/>
+<area shape="rect" id="node3" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="27,155,159,181"/>
+<area shape="rect" id="node4" href="$classSff8472.html" title=" " alt="" coords="57,229,128,256"/>
 </map>

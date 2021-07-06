@@ -1,0 +1,10 @@
+<map id="AxiLiteCrossbarI2cMux" name="AxiLiteCrossbarI2cMux">
+<area shape="rect" id="node1" title=" " alt="" coords="149,304,320,331"/>
+<area shape="rect" id="node2" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="5,229,155,256"/>
+<area shape="rect" id="node3" href="$classAxiLiteMaster.html" title=" " alt="" coords="24,155,136,181"/>
+<area shape="rect" id="node4" href="$classI2cRegMaster.html" title=" " alt="" coords="179,229,290,256"/>
+<area shape="rect" id="node5" href="$classI2cMaster.html" title=" " alt="" coords="191,155,278,181"/>
+<area shape="rect" id="node6" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="155,80,314,107"/>
+<area shape="rect" id="node7" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="161,5,308,32"/>
+<area shape="rect" id="node8" href="$classAxiLiteCrossbar.html" title=" " alt="" coords="314,229,438,256"/>
+</map>

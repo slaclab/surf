@@ -1,7 +1,9 @@
 <map id="AxiLiteMasterProxy" name="AxiLiteMasterProxy">
-<area shape="rect" id="node1" title=" " alt="" coords="60,80,209,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="148,80,297,107"/>
 <area shape="rect" id="node3" href="$classAxiI2cEeprom.html" title=" " alt="" coords="5,155,117,181"/>
-<area shape="rect" id="node4" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="142,155,274,181"/>
-<area shape="rect" id="node2" href="$classAxiLiteMaster.html" title=" " alt="" coords="79,5,191,32"/>
-<area shape="rect" id="node5" href="$classSff8472.html" title=" " alt="" coords="173,229,243,256"/>
+<area shape="rect" id="node4" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="141,155,304,181"/>
+<area shape="rect" id="node7" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="328,155,499,181"/>
+<area shape="rect" id="node2" href="$classAxiLiteMaster.html" title=" " alt="" coords="167,5,279,32"/>
+<area shape="rect" id="node5" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="157,229,289,256"/>
+<area shape="rect" id="node6" href="$classSff8472.html" title=" " alt="" coords="187,304,258,331"/>
 </map>

@@ -132,6 +132,9 @@ var hierarchy =
       [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
+      [ "AxiLiteMasterProxy", "classAxiLiteMasterProxy.html", null ],
+      [ "I2cRegMaster", "classI2cRegMaster.html", null ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "FifoCascade", "classFifoCascade.html", [
         [ "Fifo", "classFifo.html", [
           [ "FifoXpm", "classFifoXpm.html", [
@@ -1349,9 +1352,11 @@ var hierarchy =
       ] ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "AxiI2cRegMaster", "classAxiI2cRegMaster.html", [
-        [ "AxiLiteMasterProxy", "classAxiLiteMasterProxy.html", null ],
-        [ "I2cRegMasterAxiBridge", "classI2cRegMasterAxiBridge.html", null ],
-        [ "I2cRegMaster", "classI2cRegMaster.html", null ]
+        [ "AxiI2cRegMasterCore", "classAxiI2cRegMasterCore.html", [
+          [ "AxiLiteMasterProxy", "classAxiLiteMasterProxy.html", null ],
+          [ "I2cRegMasterAxiBridge", "classI2cRegMasterAxiBridge.html", null ],
+          [ "I2cRegMaster", "classI2cRegMaster.html", null ]
+        ] ]
       ] ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
       [ "Sgmii88E1111Mdio", "classSgmii88E1111Mdio.html", [
