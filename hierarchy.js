@@ -1206,6 +1206,21 @@ var hierarchy =
       [ "Pgp4Tx", "classPgp4Tx.html", null ],
       [ "Pgp4Rx", "classPgp4Rx.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "Pgp4TxLite", "classPgp4TxLite.html", [
+        [ "Synchronizer", "classSynchronizer.html", null ],
+        [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+        [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+        [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+        [ "Pgp4TxLiteProtocol", "classPgp4TxLiteProtocol.html", [
+          [ "Crc32Parallel", "classCrc32Parallel.html", null ]
+        ] ],
+        [ "Scrambler", "classScrambler.html", null ]
+      ] ],
+      [ "Pgp4Rx", "classPgp4Rx.html", null ],
+      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
+      [ "Pgp4TxLite", "classPgp4TxLite.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],

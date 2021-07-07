@@ -13,8 +13,8 @@
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="235.5,-224.5 235.5,-243.5 328.5,-243.5 328.5,-224.5 235.5,-224.5"/>
-<text text-anchor="middle" x="282" y="-231.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4RxProtocol</text>
+<polygon fill="#bfbfbf" stroke="black" points="273.5,-224.5 273.5,-243.5 366.5,-243.5 366.5,-224.5 273.5,-224.5"/>
+<text text-anchor="middle" x="320" y="-231.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4RxProtocol</text>
 </a>
 </g>
 </g>
@@ -22,46 +22,46 @@
 <g id="node4" class="node">
 <title>Node4</title>
 <g id="a_node4"><a xlink:href="classPgp4Rx.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="255.5,-168.5 255.5,-187.5 308.5,-187.5 308.5,-168.5 255.5,-168.5"/>
-<text text-anchor="middle" x="282" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Rx</text>
+<polygon fill="white" stroke="black" points="293.5,-168.5 293.5,-187.5 346.5,-187.5 346.5,-168.5 293.5,-168.5"/>
+<text text-anchor="middle" x="320" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Rx</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node4 -->
 <g id="edge3" class="edge">
 <title>Node1&#45;&gt;Node4</title>
-<path fill="none" stroke="midnightblue" d="M282,-213.8C282,-204.91 282,-194.78 282,-187.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="278.5,-214.08 282,-224.08 285.5,-214.08 278.5,-214.08"/>
+<path fill="none" stroke="midnightblue" d="M320,-213.8C320,-204.91 320,-194.78 320,-187.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="316.5,-214.08 320,-224.08 323.5,-214.08 316.5,-214.08"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="classSynchronizerEdge.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="230,-280.5 230,-299.5 334,-299.5 334,-280.5 230,-280.5"/>
-<text text-anchor="middle" x="282" y="-287.5" font-family="Helvetica,sans-Serif" font-size="10.00">SynchronizerEdge</text>
+<polygon fill="white" stroke="black" points="268,-280.5 268,-299.5 372,-299.5 372,-280.5 268,-280.5"/>
+<text text-anchor="middle" x="320" y="-287.5" font-family="Helvetica,sans-Serif" font-size="10.00">SynchronizerEdge</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
 <title>Node2&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M282,-269.8C282,-260.91 282,-250.78 282,-243.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="278.5,-270.08 282,-280.08 285.5,-270.08 278.5,-270.08"/>
+<path fill="none" stroke="midnightblue" d="M320,-269.8C320,-260.91 320,-250.78 320,-243.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="316.5,-270.08 320,-280.08 323.5,-270.08 316.5,-270.08"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:href="classSynchronizer.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="242,-336.5 242,-355.5 322,-355.5 322,-336.5 242,-336.5"/>
-<text text-anchor="middle" x="282" y="-343.5" font-family="Helvetica,sans-Serif" font-size="10.00">Synchronizer</text>
+<polygon fill="white" stroke="black" points="280,-336.5 280,-355.5 360,-355.5 360,-336.5 280,-336.5"/>
+<text text-anchor="middle" x="320" y="-343.5" font-family="Helvetica,sans-Serif" font-size="10.00">Synchronizer</text>
 </a>
 </g>
 </g>
 <!-- Node3&#45;&gt;Node2 -->
 <g id="edge2" class="edge">
 <title>Node3&#45;&gt;Node2</title>
-<path fill="none" stroke="midnightblue" d="M282,-325.8C282,-316.91 282,-306.78 282,-299.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="278.5,-326.08 282,-336.08 285.5,-326.08 278.5,-326.08"/>
+<path fill="none" stroke="midnightblue" d="M320,-325.8C320,-316.91 320,-306.78 320,-299.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="316.5,-326.08 320,-336.08 323.5,-326.08 316.5,-326.08"/>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">
@@ -75,8 +75,8 @@
 <!-- Node4&#45;&gt;Node5 -->
 <g id="edge4" class="edge">
 <title>Node4&#45;&gt;Node5</title>
-<path fill="none" stroke="midnightblue" d="M269.94,-159.86C263.36,-150.5 255.49,-139.33 250.16,-131.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="267.11,-161.92 275.73,-168.08 272.83,-157.89 267.11,-161.92"/>
+<path fill="none" stroke="midnightblue" d="M299.42,-162.38C285.69,-152.62 268.07,-140.11 256.43,-131.83"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="297.61,-165.38 307.79,-168.32 301.66,-159.68 297.61,-165.38"/>
 </g>
 <!-- Node14 -->
 <g id="node14" class="node">
@@ -90,8 +90,23 @@
 <!-- Node4&#45;&gt;Node14 -->
 <g id="edge13" class="edge">
 <title>Node4&#45;&gt;Node14</title>
-<path fill="none" stroke="midnightblue" d="M294.06,-159.86C300.64,-150.5 308.51,-139.33 313.84,-131.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="291.17,-157.89 288.27,-168.08 296.89,-161.92 291.17,-157.89"/>
+<path fill="none" stroke="midnightblue" d="M320,-157.8C320,-148.91 320,-138.78 320,-131.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="316.5,-158.08 320,-168.08 323.5,-158.08 316.5,-158.08"/>
+</g>
+<!-- Node15 -->
+<g id="node15" class="node">
+<title>Node15</title>
+<g id="a_node15"><a xlink:href="classPgp4TxLiteTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="364.5,-112.5 364.5,-131.5 447.5,-131.5 447.5,-112.5 364.5,-112.5"/>
+<text text-anchor="middle" x="406" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4TxLiteTb</text>
+</a>
+</g>
+</g>
+<!-- Node4&#45;&gt;Node15 -->
+<g id="edge14" class="edge">
+<title>Node4&#45;&gt;Node15</title>
+<path fill="none" stroke="midnightblue" d="M342.45,-162.9C358.22,-153 378.81,-140.07 392.22,-131.65"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="340.43,-160.04 333.82,-168.32 344.15,-165.97 340.43,-160.04"/>
 </g>
 <!-- Node6 -->
 <g id="node6" class="node">
