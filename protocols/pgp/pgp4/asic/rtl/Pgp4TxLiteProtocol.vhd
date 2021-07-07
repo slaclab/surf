@@ -285,7 +285,7 @@ begin
                -- Check for EOF
                if (pgpTxMaster.tLast = '1') then
                   v.doEof      := '1';
-                  v.tUserLast  := axiStreamGetUserField(PGP4_AXIS_CONFIG_C, pgpTxMaster);
+                  v.tUserLast  := pgpTxMaster.tUser(15 downto 14);
                   v.frameTx    := '1';
                   v.frameTxErr := v.tUserLast(SSI_EOFE_C);
                end if;
