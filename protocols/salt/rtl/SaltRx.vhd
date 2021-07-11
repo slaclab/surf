@@ -26,8 +26,8 @@ use surf.SaltPkg.all;
 
 entity SaltRx is
    generic (
-      TPD_G               : time                := 1 ns;
-      COMMON_RX_CLK_G     : boolean             := false;  -- Set to true if mAxisClk and clk are the same clock
+      TPD_G               : time    := 1 ns;
+      COMMON_RX_CLK_G     : boolean := false;  -- Set to true if mAxisClk and clk are the same clock
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Master Port
@@ -323,7 +323,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => 0,
-         VALID_THOLD_G       => 0, -- 0 = cache frame before SSI outbound filter check
+         VALID_THOLD_G       => 0,  -- 0 = cache frame before SSI outbound filter check
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => COMMON_RX_CLK_G,
