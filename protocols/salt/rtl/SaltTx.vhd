@@ -26,8 +26,8 @@ use surf.SaltPkg.all;
 
 entity SaltTx is
    generic (
-      TPD_G              : time                := 1 ns;
-      COMMON_TX_CLK_G    : boolean             := false;  -- Set to true if sAxisClk and clk are the same clock
+      TPD_G              : time    := 1 ns;
+      COMMON_TX_CLK_G    : boolean := false;  -- Set to true if sAxisClk and clk are the same clock
       SLAVE_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
@@ -232,7 +232,7 @@ begin
                -- Mask off tLast for intergap monitoring
                v.sMaster.tLast  := '0';
                -- Increment the counters
-               v.length         := r.length + getTKeep(tKeep,SSI_SALT_CONFIG_C);
+               v.length         := r.length + getTKeep(tKeep, SSI_SALT_CONFIG_C);
                v.size           := r.size + 1;
                -- Check for EOF
                if rxMaster.tLast = '1' then
