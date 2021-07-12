@@ -56,7 +56,7 @@ end entity SelectIoRxGearboxAligner;
 
 architecture rtl of SelectIoRxGearboxAligner is
 
-   constant SLIP_WAIT_C : positive := ite(SIMULATION_G, 10, 100);
+   constant SLIP_WAIT_C : positive := 100;
 
    type StateType is (
       UNLOCKED_S,
