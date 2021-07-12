@@ -1,8 +1,11 @@
 <map id="SelectIoRxGearboxAligner" name="SelectIoRxGearboxAligner">
-<area shape="rect" id="node1" title=" " alt="" coords="5,78,197,105"/>
-<area shape="rect" id="node2" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="245,78,441,105"/>
-<area shape="rect" id="node3" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="513,5,726,47"/>
-<area shape="rect" id="node4" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="513,71,726,112"/>
-<area shape="rect" id="node5" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="489,137,749,163"/>
-<area shape="rect" id="node6" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="797,137,992,163"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,72,197,99"/>
+<area shape="rect" id="node2" href="$classSaltRxLvds.html" title=" " alt="" coords="296,27,391,53"/>
+<area shape="rect" id="node5" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="245,97,441,124"/>
+<area shape="rect" id="node3" href="$classSaltCore.html" title=" " alt="" coords="581,5,658,32"/>
+<area shape="rect" id="node4" href="$classSaltCoreTb.html" title=" " alt="" coords="848,5,941,32"/>
+<area shape="rect" id="node6" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="513,57,726,98"/>
+<area shape="rect" id="node7" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="513,122,726,163"/>
+<area shape="rect" id="node8" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="489,188,749,215"/>
+<area shape="rect" id="node9" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="797,188,992,215"/>
 </map>

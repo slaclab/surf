@@ -1,22 +1,25 @@
 <map id="Decoder8b10b" name="Decoder8b10b">
-<area shape="rect" id="node1" title=" " alt="" coords="5,157,121,184"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,183,121,209"/>
 <area shape="rect" id="node2" href="$classGtp16FixedLatCore.html" title=" " alt="" coords="176,5,321,32"/>
 <area shape="rect" id="node3" href="$classGtpDualFixedLatCore.html" title=" " alt="" coords="169,56,328,83"/>
 <area shape="rect" id="node4" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="177,107,321,133"/>
 <area shape="rect" id="node6" href="$classPgp2bGtp7FixedLat.html" title=" " alt="" coords="175,157,322,184"/>
 <area shape="rect" id="node8" href="$classPgp2bGtx7Fixedlat.html" title=" " alt="" coords="177,208,321,235"/>
 <area shape="rect" id="node12" href="$classPgpParallelSimModel.html" title=" " alt="" coords="169,259,328,285"/>
-<area shape="rect" id="node13" href="$classSspDecoder8b10b.html" title=" " alt="" coords="179,309,318,336"/>
+<area shape="rect" id="node13" href="$classSaltRxLvds.html" title=" " alt="" coords="201,309,296,336"/>
+<area shape="rect" id="node16" href="$classSspDecoder8b10b.html" title=" " alt="" coords="179,360,318,387"/>
 <area shape="rect" id="node5" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="376,107,579,133"/>
 <area shape="rect" id="node7" href="$classPgp2bGtp7FixedLatWrapper.html" title=" " alt="" coords="376,157,579,184"/>
 <area shape="rect" id="node9" href="$classPgp2bGtx7FixedLatWrapper.html" title=" " alt="" coords="376,208,579,235"/>
-<area shape="rect" id="node10" href="$classPgp2bGtx7FixedLatTb.html" title=" " alt="" coords="675,171,838,197"/>
-<area shape="rect" id="node11" href="$classPgp2bGtx7FixedLatWrapperTb.html" title=" " alt="" coords="647,221,866,248"/>
-<area shape="rect" id="node14" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="400,259,555,285"/>
-<area shape="rect" id="node15" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="401,309,554,336"/>
-<area shape="rect" id="node16" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="379,360,575,387"/>
-<area shape="rect" id="node17" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="650,287,863,329"/>
-<area shape="rect" id="node18" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="650,353,863,394"/>
-<area shape="rect" id="node19" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="627,419,887,445"/>
-<area shape="rect" id="node20" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="935,419,1129,445"/>
+<area shape="rect" id="node10" href="$classPgp2bGtx7FixedLatTb.html" title=" " alt="" coords="675,169,838,196"/>
+<area shape="rect" id="node11" href="$classPgp2bGtx7FixedLatWrapperTb.html" title=" " alt="" coords="647,220,866,247"/>
+<area shape="rect" id="node14" href="$classSaltCore.html" title=" " alt="" coords="439,284,516,311"/>
+<area shape="rect" id="node15" href="$classSaltCoreTb.html" title=" " alt="" coords="710,284,803,311"/>
+<area shape="rect" id="node17" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="400,335,555,361"/>
+<area shape="rect" id="node18" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="401,385,554,412"/>
+<area shape="rect" id="node19" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="379,436,575,463"/>
+<area shape="rect" id="node20" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="650,363,863,405"/>
+<area shape="rect" id="node21" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="650,429,863,470"/>
+<area shape="rect" id="node22" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="627,495,887,521"/>
+<area shape="rect" id="node23" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="935,495,1129,521"/>
 </map>

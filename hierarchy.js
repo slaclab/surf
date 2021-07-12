@@ -1299,28 +1299,34 @@ var hierarchy =
       [ "SaciSlave", "classSaciSlave.html", null ],
       [ "SaciSlaveRam", "classSaciSlaveRam.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
-      [ "SaltDelayCtrl", "classSaltDelayCtrl.html", [
-        [ "RstSync", "classRstSync.html", null ]
-      ] ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
-      [ "Salt7Series", "classSalt7Series.html", [
+      [ "SaltCore", "classSaltCore.html", [
+        [ "SaltTxLvds", "classSaltTxLvds.html", [
+          [ "Encoder8b10b", "classEncoder8b10b.html", null ],
+          [ "AsyncGearbox", "classAsyncGearbox.html", null ],
+          [ "SaltTxSer", "classSaltTxSer.html", null ]
+        ] ],
         [ "SaltTx", "classSaltTx.html", [
           [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
           [ "SaltTxResize", "classSaltTxResize.html", null ]
+        ] ],
+        [ "SaltRxLvds", "classSaltRxLvds.html", [
+          [ "SaltRxDeser", "classSaltRxDeser.html", [
+            [ "SelectioDeserLane7Series", "classSelectioDeserLane7Series.html", null ],
+            [ "SelectioDeserLaneUltraScale", "classSelectioDeserLaneUltraScale.html", [
+              [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", null ]
+            ] ]
+          ] ],
+          [ "AsyncGearbox", "classAsyncGearbox.html", null ],
+          [ "Decoder8b10b", "classDecoder8b10b.html", null ],
+          [ "SelectIoRxGearboxAligner", "classSelectIoRxGearboxAligner.html", null ]
         ] ],
         [ "SaltRx", "classSaltRx.html", [
           [ "SsiFifo", "classSsiFifo.html", null ]
         ] ]
       ] ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
-      [ "ClkRst", "classClkRst.html", null ],
-      [ "SaltDelayCtrl", "classSaltDelayCtrl.html", null ],
-      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
-      [ "SaltUltraScale", "classSaltUltraScale.html", [
-        [ "SaltTx", "classSaltTx.html", null ],
-        [ "SaltRx", "classSaltRx.html", null ]
-      ] ],
-      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
+      [ "RstSync", "classRstSync.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "JesdLmfcGen", "classJesdLmfcGen.html", null ],
       [ "JesdTxLane", "classJesdTxLane.html", null ],
@@ -1338,9 +1344,7 @@ var hierarchy =
         [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ],
         [ "ClkRst", "classClkRst.html", null ],
         [ "RstPipeline", "classRstPipeline.html", null ],
-        [ "SelectioDeserLaneUltraScale", "classSelectioDeserLaneUltraScale.html", [
-          [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", null ]
-        ] ]
+        [ "SelectioDeserLaneUltraScale", "classSelectioDeserLaneUltraScale.html", null ]
       ] ],
       [ "SspLowSpeedDecoder8b10bWrapper", "classSspLowSpeedDecoder8b10bWrapper.html", [
         [ "SspLowSpeedDecoderLane", "classSspLowSpeedDecoderLane.html", [

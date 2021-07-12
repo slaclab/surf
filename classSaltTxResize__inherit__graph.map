@@ -1,8 +1,6 @@
 <map id="SaltTxResize" name="SaltTxResize">
-<area shape="rect" id="node1" title=" " alt="" coords="79,5,186,32"/>
-<area shape="rect" id="node2" href="$classSaltTx.html" title=" " alt="" coords="101,80,164,107"/>
-<area shape="rect" id="node3" href="$classSalt7Series.html" title=" " alt="" coords="21,155,116,181"/>
-<area shape="rect" id="node5" href="$classSaltUltraScale.html" title=" " alt="" coords="145,155,259,181"/>
-<area shape="rect" id="node4" href="$classSalt7SeriesTb.html" title=" " alt="" coords="5,229,116,256"/>
-<area shape="rect" id="node6" href="$classSaltUltraScaleTb.html" title=" " alt="" coords="141,229,271,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,112,32"/>
+<area shape="rect" id="node2" href="$classSaltTx.html" title=" " alt="" coords="27,80,90,107"/>
+<area shape="rect" id="node3" href="$classSaltCore.html" title=" " alt="" coords="20,155,97,181"/>
+<area shape="rect" id="node4" href="$classSaltCoreTb.html" title=" " alt="" coords="12,229,105,256"/>
 </map>

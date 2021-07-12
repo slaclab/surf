@@ -1,7 +1,6 @@
 <map id="SaltTx" name="SaltTx">
 <area shape="rect" id="node1" title=" " alt="" coords="1153,233,1216,260"/>
-<area shape="rect" id="node21" href="$classSalt7Series.html" title=" " alt="" coords="1274,208,1369,235"/>
-<area shape="rect" id="node23" href="$classSaltUltraScale.html" title=" " alt="" coords="1264,259,1379,285"/>
+<area shape="rect" id="node21" href="$classSaltCore.html" title=" " alt="" coords="1264,233,1341,260"/>
 <area shape="rect" id="node2" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="956,208,1105,235"/>
 <area shape="rect" id="node3" href="$classAxiStreamGearbox.html" title=" " alt="" coords="745,132,908,159"/>
 <area shape="rect" id="node4" href="$classAxiStreamResize.html" title=" " alt="" coords="564,81,697,108"/>
@@ -21,6 +20,5 @@
 <area shape="rect" id="node17" href="$classFifoRdFsm.html" title=" " alt="" coords="197,157,288,184"/>
 <area shape="rect" id="node18" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,208,319,235"/>
 <area shape="rect" id="node20" href="$classSaltTxResize.html" title=" " alt="" coords="977,259,1084,285"/>
-<area shape="rect" id="node22" href="$classSalt7SeriesTb.html" title=" " alt="" coords="1437,208,1547,235"/>
-<area shape="rect" id="node24" href="$classSaltUltraScaleTb.html" title=" " alt="" coords="1427,259,1557,285"/>
+<area shape="rect" id="node22" href="$classSaltCoreTb.html" title=" " alt="" coords="1389,233,1483,260"/>
 </map>
