@@ -33,25 +33,25 @@ entity Pgp4TxLiteWrapper is
       txValid    : in  sl;                 -- tValid
       txReady    : out sl;                 -- tReady
       txData     : in  slv(63 downto 0);   -- tData
-      txEnable   : in  sl;
       txSof      : in  sl;                 -- tUser.FirstByte.BIT1
       txEof      : in  sl;                 -- tLast
       txEofe     : in  sl;                 -- tUser.LastByte.BIT0
       -- 66-bit Output Interface
-      phyTxValid : out sl;
+      phyTxValid : out sl;                 -- tValid
+      phyTxReady : in  sl;                 -- tReady
       phyTxData  : out slv(65 downto 0));  -- 2-bit header packed on MSB
 end entity Pgp4TxLiteWrapper;
 
 architecture mapping of Pgp4TxLiteWrapper is
 
    signal pgpTxIn : Pgp4TxInType := (
-      disable      => '0',              -- TX is enabled
-      flowCntlDis  => '1',  -- Disable PGPv4 pause flow control from RX side
-      resetTx      => '0',              -- Not resetting TX
-      skpInterval  => (others => '0'),  -- No skips (assumes clock source synchronous system)
-      opCodeEn     => '0',              -- OP-code mode not being implemented
-      opCodeData   => (others => '0'),
-      locData      => (others => '0'));  -- sideband locData not being implemented
+      disable     => '0',               -- TX is enabled
+      flowCntlDis => '1',  -- Disable PGPv4 pause flow control from RX side
+      resetTx     => '0',               -- Not resetting TX
+      skpInterval => (others => '0'),  -- No skips (assumes clock source synchronous system)
+      opCodeEn    => '0',               -- OP-code mode not being implemented
+      opCodeData  => (others => '0'),
+      locData     => (others => '0'));  -- sideband locData not being implemented
 
    signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal pgpTxSlave  : AxiStreamSlaveType;
@@ -78,12 +78,12 @@ begin
          pgpTxRst        => rst,
          pgpTxIn         => pgpTxIn,
          pgpTxOut        => open,
-         pgpTxActive     => txEnable,
+         pgpTxActive     => '1',
          pgpTxMasters(0) => pgpTxMaster,
          pgpTxSlaves(0)  => pgpTxSlave,
          -- PHY interface
          phyTxActive     => '1',
-         phyTxReady      => '1',
+         phyTxReady      => phyTxReady,
          phyTxValid      => phyTxValid,
          phyTxStart      => open,
          phyTxData       => phyTxData(63 downto 0),

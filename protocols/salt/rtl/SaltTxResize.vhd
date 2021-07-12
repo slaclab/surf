@@ -127,8 +127,8 @@ begin
       rin <= v;
 
       -- Registered Outputs
-      txEn    <= r.txEn;
-      txData  <= r.txData;
+      txEn   <= r.txEn;
+      txData <= r.txData;
 
    end process comb;
 
