@@ -44,6 +44,7 @@ entity SaltCore is
       clk156MHz      : in  sl;
       rst156MHz      : in  sl;
       clk625MHz      : in  sl;
+      -- Status Interface
       linkUp         : out sl;
       txPktSent      : out sl;
       txEofeSent     : out sl;

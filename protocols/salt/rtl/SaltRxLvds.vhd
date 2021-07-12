@@ -82,8 +82,18 @@ architecture rtl of SaltRxLvds is
    signal codeError : sl;
    signal dispError : sl;
    signal slip      : sl;
+   signal linkUp    : sl;
+
+   signal enUsrDlyCfgSync    : sl;
+   signal usrDlyCfgSync      : slv(8 downto 0);
+   signal bypFirstBerDetSync : sl;
+   signal minEyeWidthSync    : slv(7 downto 0);
+   signal lockingCntCfgSync  : slv(23 downto 0);
+
 
 begin
+
+   rxLinkUp <= linkUp;
 
    U_SaltRxDeser : entity surf.SaltRxDeser
       generic map (
@@ -169,16 +179,35 @@ begin
          dlyLoad         => dlyLoad,
          dlyCfg          => dlyCfg,
          -- Configuration Interface
-         enUsrDlyCfg     => enUsrDlyCfg,
-         usrDlyCfg       => usrDlyCfg,
-         bypFirstBerDet  => bypFirstBerDet,
-         minEyeWidth     => minEyeWidth,
-         lockingCntCfg   => lockingCntCfg,
+         enUsrDlyCfg     => enUsrDlyCfgSync,
+         usrDlyCfg       => usrDlyCfgSync,
+         bypFirstBerDet  => bypFirstBerDetSync,
+         minEyeWidth     => minEyeWidthSync,
+         lockingCntCfg   => lockingCntCfgSync,
          -- Status Interface
          errorDet        => open,
-         locked          => rxLinkUp);
+         locked          => linkUp);
 
-   comb : process (data, dataK, r, rst125MHz) is
+   U_SyncConfig : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 43)
+      port map (
+         clk                   => clk125MHz,
+         -- Input
+         dataIn(23 downto 0)   => lockingCntCfg,
+         dataIn(31 downto 24)  => minEyeWidth,
+         dataIn(40 downto 32)  => usrDlyCfg,
+         dataIn(41)            => enUsrDlyCfg,
+         dataIn(42)            => bypFirstBerDet,
+         -- Output
+         dataOut(23 downto 0)  => lockingCntCfgSync,
+         dataOut(31 downto 24) => minEyeWidthSync,
+         dataOut(40 downto 32) => usrDlyCfgSync,
+         dataOut(41)           => enUsrDlyCfgSync,
+         dataOut(42)           => bypFirstBerDetSync);
+
+   comb : process (data, dataK, linkUp, r, rst125MHz) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -219,7 +248,7 @@ begin
       rxData <= r.rxData;
 
       -- Reset
-      if (rst125MHz = '1') then
+      if (rst125MHz = '1') or (linkUp = '0') then
          v := REG_INIT_C;
       end if;
 

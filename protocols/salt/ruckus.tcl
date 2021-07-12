@@ -21,5 +21,6 @@ if { ${family} eq {kintexu} ||
 }
 
 # Load the source code
-loadSource -lib surf -dir "$::DIR_PATH/rtl"
-loadSource -lib surf -dir "$::DIR_PATH/rtl/${fpgaType}"
+loadSource -lib surf -dir           "$::DIR_PATH/rtl"
+loadSource -lib surf -dir           "$::DIR_PATH/rtl/${fpgaType}"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
