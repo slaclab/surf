@@ -33,32 +33,38 @@ entity SaltCore is
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- 1.25 Gbps LVDS TX
-      txP         : out sl;
-      txN         : out sl;
+      txP            : out sl;
+      txN            : out sl;
       -- 1.25 Gbps LVDS RX
-      rxP         : in  sl;
-      rxN         : in  sl;
+      rxP            : in  sl;
+      rxN            : in  sl;
       -- Reference Signals
-      clk125MHz   : in  sl;
-      rst125MHz   : in  sl;
-      clk156MHz   : in  sl;
-      rst156MHz   : in  sl;
-      clk625MHz   : in  sl;
-      linkUp      : out sl;
-      txPktSent   : out sl;
-      txEofeSent  : out sl;
-      rxPktRcvd   : out sl;
-      rxErrDet    : out sl;
+      clk125MHz      : in  sl;
+      rst125MHz      : in  sl;
+      clk156MHz      : in  sl;
+      rst156MHz      : in  sl;
+      clk625MHz      : in  sl;
+      linkUp         : out sl;
+      txPktSent      : out sl;
+      txEofeSent     : out sl;
+      rxPktRcvd      : out sl;
+      rxErrDet       : out sl;
+      -- Configuration Interface
+      enUsrDlyCfg    : in  sl               := '0';  -- Enable User delay config
+      usrDlyCfg      : in  slv(8 downto 0)  := (others => '0');  -- User delay config
+      bypFirstBerDet : in  sl               := '1';  -- Set to '1' if IDELAY full scale range > 2 Unit Intervals (UI) of serial rate (example: IDELAY range 2.5ns  > 1 ns "1Gb/s" )
+      minEyeWidth    : in  slv(7 downto 0)  := toSlv(80, 8);  -- Sets the minimum eye width required for locking (units of IDELAY step)
+      lockingCntCfg  : in  slv(23 downto 0) := ite(SIMULATION_G, x"00_0064", x"00_FFFF");  -- Number of error-free event before state=LOCKED_S
       -- Slave Port
-      sAxisClk    : in  sl;
-      sAxisRst    : in  sl;
-      sAxisMaster : in  AxiStreamMasterType;
-      sAxisSlave  : out AxiStreamSlaveType;
+      sAxisClk       : in  sl;
+      sAxisRst       : in  sl;
+      sAxisMaster    : in  AxiStreamMasterType;
+      sAxisSlave     : out AxiStreamSlaveType;
       -- Master Port
-      mAxisClk    : in  sl;
-      mAxisRst    : in  sl;
-      mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);
+      mAxisClk       : in  sl;
+      mAxisRst       : in  sl;
+      mAxisMaster    : out AxiStreamMasterType;
+      mAxisSlave     : in  AxiStreamSlaveType);
 end SaltCore;
 
 architecture mapping of SaltCore is
@@ -136,19 +142,25 @@ begin
             REF_FREQ_G      => REF_FREQ_G)
          port map(
             -- Clocks and Resets
-            clk125MHz => clk125MHz,
-            rst125MHz => rst125MHz,
-            clk156MHz => clk156MHz,
-            rst156MHz => rst156MHz,
-            clk625MHz => clk625MHz,
+            clk125MHz      => clk125MHz,
+            rst125MHz      => rst125MHz,
+            clk156MHz      => clk156MHz,
+            rst156MHz      => rst156MHz,
+            clk625MHz      => clk625MHz,
             -- GMII Interface
-            rxEn      => rxEn,
-            rxErr     => rxErr,
-            rxData    => rxData,
-            rxLinkUp  => rxLinkUp,
+            rxEn           => rxEn,
+            rxErr          => rxErr,
+            rxData         => rxData,
+            rxLinkUp       => rxLinkUp,
+            -- Configuration Interface
+            enUsrDlyCfg    => enUsrDlyCfg,
+            usrDlyCfg      => usrDlyCfg,
+            bypFirstBerDet => bypFirstBerDet,
+            minEyeWidth    => minEyeWidth,
+            lockingCntCfg  => lockingCntCfg,
             -- LVDS RX Port
-            rxP       => rxP,
-            rxN       => rxN);
+            rxP            => rxP,
+            rxN            => rxN);
 
       U_SaltRx : entity surf.SaltRx
          generic map(
