@@ -14,7 +14,7 @@ AxiStreamMonChannel: &AxiStreamMonChannel
   class: MMIODev
   configPrio: 1
   description: "AXI stream monitoring channel"
-  size: 0x2000
+  size: 0x0040
   children:
     ########################################################
     ### Registers                                        ###
