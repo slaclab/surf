@@ -207,6 +207,20 @@ class ClinkChannel(pr.Device):
                     expand = False,
                 ))
 
+            # Check for Imperx C1921 camera
+            elif (camType=='ImperxC1921'):
+
+                # Override defaults
+                self.SerThrottle._default = 115200
+
+                # Add the device
+                self.add(surf.protocols.clink.UartImperxC1921(
+                    name        = 'UartImperxC1921',
+                    serial      = serial,
+                    expand      = False,
+                ))
+
+
             # Check for OPA1000 camera
             elif (camType=='Opal1000'):
 
