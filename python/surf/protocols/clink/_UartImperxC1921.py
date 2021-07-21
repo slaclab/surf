@@ -105,6 +105,15 @@ class UartImperxC1921(pr.Device):
             localSet     = createCmd(addr=0x601C)
         ))
 
+        self.add(pr.LocalVariable(
+            name         = 'SW_Trigger',
+            description  = 'Command instructs camera to generate one short trigger pulse.',
+            mode         = 'WO',
+            value        = '',
+            hidden       = True,
+            localSet     = createCmd(addr=0x6030)
+        ))
+
         ##################################################
         # Gain, Offset, Exposure Control and MAOIRegisters
         ##################################################

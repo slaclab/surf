@@ -212,6 +212,7 @@ class ClinkChannel(pr.Device):
 
                 # Override defaults
                 self.BaudRate._default = 115200
+                self.SerThrottle._default = 10000
 
                 # Add the device
                 self.add(surf.protocols.clink.UartImperxC1921(
