@@ -134,7 +134,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'A2D_Bits',
-            description  = '0x0 – 8 bits, 0x1 – 10 bits, 0x2 –12 bits',
+            description  = '0x0 - 8 bits, 0x1 - 10 bits, 0x2  - 12 bits',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0008)
@@ -142,18 +142,10 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'AOI_Control',
-            description  = '0x0 – MAOI disable, 0x1 – MAOI enable with frame rate increase, 0x2 – MAOI enable with constant frame rate',
+            description  = '0x0 - MAOI disable, 0x1 - MAOI enable with frame rate increase, 0x2 - MAOI enable with constant frame rate',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0010)
-        ))
-
-        self.add(pr.LocalVariable(
-            name         = 'Aoi_HwM_Ofs',
-            description  = 'MAOI offset in horizontal direction',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x0014)
         ))
 
         self.add(pr.LocalVariable(
@@ -190,7 +182,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Hrz_Decim_En',
-            description  = '0x0 – Horizontal Decimation disable, 0x1 – Horizontal Decimation enable',
+            description  = '0x0 - Horizontal Decimation disable, 0x1 - Horizontal Decimation enable',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0024)
@@ -198,7 +190,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Ver_Decim_En',
-            description  = '0x0 – Vertical Decimation disable, 0x1 – Vertical Decimation enable',
+            description  = '0x0 - Vertical Decimation disable, 0x1 - Vertical Decimation enable',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0028)
@@ -206,7 +198,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Ver_Bin_En',
-            description  = '0x0 – No Vertical Binning, 0x1 – 2x Vertical Binning',
+            description  = '0x0 - No Vertical Binning, 0x1 - 2x Vertical Binning',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x002C)
@@ -214,7 +206,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Img_Hrev_en',
-            description  = '0x0 – Horizontal Flip Disable, 0x1 – Horizontal Flip enable',
+            description  = '0x0 - Horizontal Flip Disable, 0x1 - Horizontal Flip enable',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0030)
@@ -222,7 +214,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Img_Vrev_en',
-            description  = '0x0 – Vertical Flip Disable, 0x1 – Vertical Flip enable',
+            description  = '0x0 - Vertical Flip Disable, 0x1 - Vertical Flip enable',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0034)
@@ -230,7 +222,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'BLK_Adj_en',
-            description  = '0x0 – enable user black level correction, 0x1 – Auto black level correction',
+            description  = '0x0 - enable user black level correction, 0x1 - Auto black level correction',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0038)
@@ -246,7 +238,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Exp_Ctl_Mod',
-            description  = '0x0 – off – no exposure control, 0x1 – pulse width – for triggering, 0x2 – internal – exposure control, 0x3 – N/A',
+            description  = '0x0 - off - no exposure control, 0x1 - pulse width - for triggering, 0x2 - internal - exposure control, 0x3 - N/A',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0040)
@@ -262,7 +254,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Prg_Frmt_En',
-            description  = '0x0 – disable Long Integration time, 0x1 – enable Long Integration time',
+            description  = '0x0 - disable Long Integration time, 0x1 - enable Long Integration time',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0048)
@@ -285,7 +277,7 @@ class UartImperxC1921(pr.Device):
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'Aec_Exp_Min',
+            name         = 'Aec_Exp_Max',
             description  = 'maximum exposure time limit',
             mode         = 'RW',
             value        = '',
@@ -298,7 +290,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Bit_Dpt_Sel',
-            description  = '0x0 – 8-bit, 0x1 – 10-bit, 0x2 – 12-bit, 0x3 – reserved',
+            description  = '0x0 - 8-bit, 0x1 - 10-bit, 0x2 - 12-bit, 0x3 - reserved',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0100)
@@ -306,7 +298,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Dat_Fmt_Sel',
-            description  = '0x0 – Base (2 taps), 0x1 – Base (3 taps), 0x2 – Medium, 0x3 – Full, 0x4 -- DECA, 0x5 to 0x7 – reserved',
+            description  = '0x0 - Base (2 taps), 0x1 - Base (3 taps), 0x2 - Medium, 0x3 - Full, 0x4 -- DECA, 0x5 to 0x7 - reserved',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0104)
@@ -314,7 +306,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Test_Mod_Sel',
-            description  = '0x0 – no test pattern, 0x1 to 0x9 - test patterns, 0xA to 0xF – reserved',
+            description  = '0x0 - no test pattern, 0x1 to 0x9 - test patterns, 0xA to 0xF - reserved',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0108)
@@ -330,7 +322,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Hor_Bin_En',
-            description  = '0x0 – No horizontal binning, 0x1 – 2x horizontal binning',
+            description  = '0x0 - No horizontal binning, 0x1 - 2x horizontal binning',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0110)
@@ -338,7 +330,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'LUT_En',
-            description  = '0x0 – No LUT selected, 0x1 to 0x4 - LUT[1:4], 0x5 to 0x7 – unused',
+            description  = '0x0 - No LUT selected, 0x1 to 0x4 - LUT[1:4], 0x5 to 0x7 - unused',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0114)
@@ -346,7 +338,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'BPC_En',
-            description  = '0x0 – BPC disable, 0x1 to 0x5 - BPC modes',
+            description  = '0x0 - BPC disable, 0x1 to 0x5 - BPC modes',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x011C)
@@ -362,7 +354,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'FFC_En',
-            description  = '0x0 – FFC disable, 0x1 – FFC 1 enable, 0x2 – FFC 2 enable',
+            description  = '0x0 - FFC disable, 0x1 - FFC 1 enable, 0x2 - FFC 2 enable',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0124)
@@ -370,7 +362,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Neg_Img_En',
-            description  = '0x0 – Positive image, 0x1 – Negative image',
+            description  = '0x0 - Positive image, 0x1 - Negative image',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0128)
@@ -378,7 +370,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Aoi_Slv1_En',
-            description  = '0x0 – SAOI disable, 0x1 to 0x8 - SAOI modes',
+            description  = '0x0 - SAOI disable, 0x1 to 0x8 - SAOI modes',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x012C)
@@ -418,7 +410,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Aec_Ctl_En',
-            description  = '0x0 – disable auto exposure control, 0x1 – enable auto exposure control',
+            description  = '0x0 - disable auto exposure control, 0x1 - enable auto exposure control',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0140)
@@ -426,7 +418,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Agc_Ctl_En',
-            description  = '0x0 – disable auto gain control, 0x1 – enable auto gain control',
+            description  = '0x0 - disable auto gain control, 0x1 - enable auto gain control',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0144)
@@ -442,7 +434,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Avg_Peak_Sel',
-            description  = '0x0 – average luminance, 0x1 – peak luminance, 0x2 or 0x3 – reserved',
+            description  = '0x0 - average luminance, 0x1 - peak luminance, 0x2 or 0x3 - reserved',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x014C)
@@ -522,7 +514,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Trg_Mode_En',
-            description  = '0x0 – trigger is disabled, free running mode, 0x1 – trigger is enabled; camera in trigger mode',
+            description  = '0x0 - trigger is disabled, free running mode, 0x1 - trigger is enabled; camera in trigger mode',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0500)
@@ -538,7 +530,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Trg_Edg_Sel',
-            description  = '0x0 – rising edge, 0x1 – falling edge',
+            description  = '0x0 - rising edge, 0x1 - falling edge',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0508)
@@ -570,7 +562,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Trg_Mod_Sel',
-            description  = '0x0 – standard triggering, 0x1 – fast triggering, 0x2 to 0xF – reserved',
+            description  = '0x0 - standard triggering, 0x1 - fast triggering, 0x2 to 0xF - reserved',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0518)
@@ -594,7 +586,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Trg_Str_En',
-            description  = '0x0 – disable Trigger Strobe, 0x1 – enable Trigger Strobe #1, 0x2 – enable Trigger Strobe #1, 0x3 – enable both Trigger Strobe #1 and #2',
+            description  = '0x0 - disable Trigger Strobe, 0x1 - enable Trigger Strobe #1, 0x2 - enable Trigger Strobe #1, 0x3 - enable both Trigger Strobe #1 and #2',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0524)
@@ -690,7 +682,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'Pls_Gen_En',
-            description  = '0x0 – disable Pulse Gen, 0x1 – enable Pulse Gen',
+            description  = '0x0 - disable Pulse Gen, 0x1 - enable Pulse Gen',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0554)
@@ -698,7 +690,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'OUT1_Pol_sel',
-            description  = '0x0 – active LOW, 0x1 – active HIGH',
+            description  = '0x0 - active LOW, 0x1 - active HIGH',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0558)
@@ -714,7 +706,7 @@ class UartImperxC1921(pr.Device):
 
         self.add(pr.LocalVariable(
             name         = 'OUT2_Pol_sel',
-            description  = '0x0 – active LOW, 0x1 – active HIGH',
+            description  = '0x0 - active LOW, 0x1 - active HIGH',
             mode         = 'RW',
             value        = '',
             localSet     = createCmd(addr=0x0560)

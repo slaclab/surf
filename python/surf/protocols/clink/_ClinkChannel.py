@@ -211,7 +211,7 @@ class ClinkChannel(pr.Device):
             elif (camType=='ImperxC1921'):
 
                 # Override defaults
-                self.SerThrottle._default = 115200
+                self.BaudRate._default = 115200
 
                 # Add the device
                 self.add(surf.protocols.clink.UartImperxC1921(
@@ -237,6 +237,9 @@ class ClinkChannel(pr.Device):
             # Check for Piranha4 camera
             elif (camType=='Piranha4'):
 
+                # Override defaults
+                self.BaudRate._default = 9600
+
                 # Add the device
                 self.add(surf.protocols.clink.UartPiranha4(
                     name        = 'UartPiranha4',
@@ -248,6 +251,7 @@ class ClinkChannel(pr.Device):
             elif (camType=='Up900cl12b'):
 
                 # Override defaults
+                self.BaudRate._default = 9600
                 self.SerThrottle._default = 30000
 
                 # Add the device
