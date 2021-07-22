@@ -91,8 +91,8 @@ package body SaciMultiPixelPkg is
    begin
       return toSlv(asic*(2**22), 32);
    end function;
-   
-   
+
+
    -- SaciMultiPixel.vhd and SaciMultiPixelPkg.vhd is only intended for the oldest ePix100a
    -- removing version dependency for all other ASIC types
    function getNumColumns (version : slv ) return integer is
