@@ -68,6 +68,9 @@ architecture rtl of AxiStreamBytePacker is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- attribute MARK_DEBUG      : string;
+   -- attribute MARK_DEBUG of r : signal is "TRUE";
+
 begin
 
    comb : process (r, axiRst, sAxisMaster ) is
