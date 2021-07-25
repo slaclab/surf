@@ -59,6 +59,36 @@ AxiStreamMonChannel: &AxiStreamMonChannel
       pollSecs:    1.0
       description: "Min Frame Rate"
     ########################################################
+    Bandwidth:
+      at:
+        offset:    0x18
+      class:       IntField
+      sizeBits:    64
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Current Bandwidth"
+    ########################################################
+    BandwidthMax:
+      at:
+        offset:    0x20
+      class:       IntField
+      sizeBits:    64
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Max Bandwidth"
+    ########################################################
+    BandwidthMin:
+      at:
+        offset:    0x28
+      class:       IntField
+      sizeBits:    64
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Min Bandwidth"
+    ########################################################
     FrameSize:
       at:
         offset:    0x30
