@@ -25,6 +25,7 @@ entity SaltRxLvds is
    generic (
       TPD_G           : time    := 1 ns;
       SIMULATION_G    : boolean := false;
+      SIM_DEVICE_G    : string  := "ULTRASCALE";
       IODELAY_GROUP_G : string  := "SALT_GROUP";
       REF_FREQ_G      : real    := 200.0);  -- IDELAYCTRL's REFCLK (in units of Hz)
    port (
@@ -98,6 +99,7 @@ begin
    U_SaltRxDeser : entity surf.SaltRxDeser
       generic map (
          TPD_G           => TPD_G,
+         SIM_DEVICE_G    => SIM_DEVICE_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G,
          REF_FREQ_G      => REF_FREQ_G)
       port map (

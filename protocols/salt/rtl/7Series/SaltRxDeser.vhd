@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 entity SaltRxDeser is
    generic (
       TPD_G           : time   := 1 ns;
+      SIM_DEVICE_G    : string := "ULTRASCALE";
       IODELAY_GROUP_G : string := "SALT_GROUP";
       REF_FREQ_G      : real   := 200.0);  -- IDELAYCTRL's REFCLK (in units of Hz)
    port (

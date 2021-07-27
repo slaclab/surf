@@ -23,6 +23,7 @@ entity SaltCore is
    generic (
       TPD_G               : time    := 1 ns;
       SIMULATION_G        : boolean := false;
+      SIM_DEVICE_G        : string  := "ULTRASCALE";
       TX_ENABLE_G         : boolean := true;
       RX_ENABLE_G         : boolean := true;
       COMMON_TX_CLK_G     : boolean := false;  -- Set to true if sAxisClk and clk are the same clock
@@ -87,7 +88,8 @@ begin
 
       U_SaltTxLvds : entity surf.SaltTxLvds
          generic map(
-            TPD_G => TPD_G)
+            TPD_G        => TPD_G,
+            SIM_DEVICE_G => SIM_DEVICE_G)
          port map(
             -- Clocks and Resets
             clk125MHz => clk125MHz,
@@ -139,6 +141,7 @@ begin
          generic map(
             TPD_G           => TPD_G,
             SIMULATION_G    => SIMULATION_G,
+            SIM_DEVICE_G    => SIM_DEVICE_G,
             IODELAY_GROUP_G => IODELAY_GROUP_G,
             REF_FREQ_G      => REF_FREQ_G)
          port map(
