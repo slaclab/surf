@@ -48,7 +48,7 @@ begin
    U_OSERDESE3 : OSERDESE3
       generic map (
          DATA_WIDTH => 8,
-         SIM_DEVICE => "ULTRASCALE")
+         SIM_DEVICE => SIM_DEVICE_G)
       port map (
          CLK    => clkx4,
          CLKDIV => clkx1,
