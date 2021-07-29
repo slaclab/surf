@@ -3,6 +3,7 @@ var classSaltCore =
     [ "SaltCore.mapping", "classSaltCore_1_1mapping.html", "classSaltCore_1_1mapping" ],
     [ "TPD_G", "classSaltCore.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SIMULATION_G", "classSaltCore.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "SIM_DEVICE_G", "classSaltCore.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "TX_ENABLE_G", "classSaltCore.html#af98732ca4d35527413497b2a4b52d377", null ],
     [ "RX_ENABLE_G", "classSaltCore.html#aaaa78a467d674298eb84f2e159debf7b", null ],
     [ "COMMON_TX_CLK_G", "classSaltCore.html#a1d11edc3131810ae5191fcf3f31bd928", null ],

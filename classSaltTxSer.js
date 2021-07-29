@@ -2,6 +2,7 @@ var classSaltTxSer =
 [
     [ "SaltTxSer.mapping", "classSaltTxSer_1_1mapping.html", "classSaltTxSer_1_1mapping" ],
     [ "TPD_G", "classSaltTxSer.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIM_DEVICE_G", "classSaltTxSer.html#ae18fe94357253df259ab4c194f8826a6", null ],
     [ "txP", "classSaltTxSer.html#a82c520dfeaf62d6d83b33bf055c75abf", null ],
     [ "txN", "classSaltTxSer.html#aba15dbc65eb484f535c12b56e41ba335", null ],
     [ "clkx4", "classSaltTxSer.html#a285ff9d45f6d863ac2d9f584fab419e5", null ],

@@ -3,6 +3,7 @@ var classSaltRxLvds =
     [ "SaltRxLvds.rtl", "classSaltRxLvds_1_1rtl.html", "classSaltRxLvds_1_1rtl" ],
     [ "TPD_G", "classSaltRxLvds.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SIMULATION_G", "classSaltRxLvds.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "SIM_DEVICE_G", "classSaltRxLvds.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "IODELAY_GROUP_G", "classSaltRxLvds.html#acfb3e4eee28368cc32dbd1185a512112", null ],
     [ "REF_FREQ_G", "classSaltRxLvds.html#a91d8f6aa3aaa2a00b248c7dfb1585d9d", null ],
     [ "clk125MHz", "classSaltRxLvds.html#ad653d9f491f02858d6d787f357b31ef5", null ],

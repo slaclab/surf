@@ -3,6 +3,7 @@ var classSelectioDeserUltraScale =
     [ "SelectioDeserUltraScale.mapping", "classSelectioDeserUltraScale_1_1mapping.html", "classSelectioDeserUltraScale_1_1mapping" ],
     [ "TPD_G", "classSelectioDeserUltraScale.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SIMULATION_G", "classSelectioDeserUltraScale.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "SIM_DEVICE_G", "classSelectioDeserUltraScale.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "EXT_PLL_G", "classSelectioDeserUltraScale.html#ad0bbd1aae898ef288db4ffdc7a9a1a7f", null ],
     [ "NUM_LANE_G", "classSelectioDeserUltraScale.html#aad6baf03a2a17fd6cbd9553bfb4601f0", null ],
     [ "CLKIN_PERIOD_G", "classSelectioDeserUltraScale.html#a8e5add9d445bcb9f9ae5cf39b8d3d61d", null ],

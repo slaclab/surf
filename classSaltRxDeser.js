@@ -2,6 +2,7 @@ var classSaltRxDeser =
 [
     [ "SaltRxDeser.mapping", "classSaltRxDeser_1_1mapping.html", "classSaltRxDeser_1_1mapping" ],
     [ "TPD_G", "classSaltRxDeser.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIM_DEVICE_G", "classSaltRxDeser.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "IODELAY_GROUP_G", "classSaltRxDeser.html#acfb3e4eee28368cc32dbd1185a512112", null ],
     [ "REF_FREQ_G", "classSaltRxDeser.html#a91d8f6aa3aaa2a00b248c7dfb1585d9d", null ],
     [ "rxP", "classSaltRxDeser.html#a913eedfbeec5a3a17e74c5ec8afb5c01", null ],

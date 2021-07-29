@@ -2,6 +2,7 @@ var classSelectioDeserLaneUltraScale =
 [
     [ "SelectioDeserLaneUltraScale.mapping", "classSelectioDeserLaneUltraScale_1_1mapping.html", "classSelectioDeserLaneUltraScale_1_1mapping" ],
     [ "TPD_G", "classSelectioDeserLaneUltraScale.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIM_DEVICE_G", "classSelectioDeserLaneUltraScale.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "rxP", "classSelectioDeserLaneUltraScale.html#a913eedfbeec5a3a17e74c5ec8afb5c01", null ],
     [ "rxN", "classSelectioDeserLaneUltraScale.html#aa3a347e29c0ec08aadc0b641805508e1", null ],
     [ "clkx4", "classSelectioDeserLaneUltraScale.html#a285ff9d45f6d863ac2d9f584fab419e5", null ],

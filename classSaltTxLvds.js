@@ -2,6 +2,7 @@ var classSaltTxLvds =
 [
     [ "SaltTxLvds.rtl", "classSaltTxLvds_1_1rtl.html", "classSaltTxLvds_1_1rtl" ],
     [ "TPD_G", "classSaltTxLvds.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "SIM_DEVICE_G", "classSaltTxLvds.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "clk125MHz", "classSaltTxLvds.html#ad653d9f491f02858d6d787f357b31ef5", null ],
     [ "rst125MHz", "classSaltTxLvds.html#a765f9e3865998be81425d52d64b943cf", null ],
     [ "clk156MHz", "classSaltTxLvds.html#a383623cc79b6f7fbe5027b54b9d2d3c7", null ],
