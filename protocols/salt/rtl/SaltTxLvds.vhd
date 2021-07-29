@@ -23,7 +23,8 @@ use surf.Code8b10bPkg.all;
 
 entity SaltTxLvds is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SIM_DEVICE_G : string := "ULTRASCALE");
    port (
       -- Clocks and Resets
       clk125MHz : in  sl;
@@ -168,7 +169,8 @@ begin
 
    U_TxSer : entity surf.SaltTxSer
       generic map (
-         TPD_G => TPD_G)
+         TPD_G        => TPD_G,
+         SIM_DEVICE_G => SIM_DEVICE_G)
       port map (
          -- SELECTIO Ports
          txP    => txP,

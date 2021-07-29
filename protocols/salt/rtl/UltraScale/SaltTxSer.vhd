@@ -25,7 +25,8 @@ use unisim.vcomponents.all;
 
 entity SaltTxSer is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SIM_DEVICE_G : string := "ULTRASCALE");
    port (
       -- SELECTIO Ports
       txP    : out sl;
@@ -47,7 +48,7 @@ begin
    U_OSERDESE3 : OSERDESE3
       generic map (
          DATA_WIDTH => 8,
-         SIM_DEVICE => "ULTRASCALE")
+         SIM_DEVICE => SIM_DEVICE_G)
       port map (
          CLK    => clkx4,
          CLKDIV => clkx1,
