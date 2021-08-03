@@ -12,7 +12,6 @@ if { ${family} eq {kintexu} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} ||
-     ${family} eq {qzynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} } {
    loadSource -lib surf -dir  "$::DIR_PATH/lvdsUltraScale"
 }

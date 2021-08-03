@@ -20,7 +20,6 @@ if { ${family} eq {kintexu} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} ||
-     ${family} eq {qzynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale"
 }
