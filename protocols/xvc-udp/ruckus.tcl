@@ -11,7 +11,7 @@ if { [isVersal] == true } {
    loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
    # Get the family type
-   set family [getFpgaFamily]
+   set family [getFpgaArch]
 
    if { ${family} eq {artix7}  ||
         ${family} eq {kintex7} ||

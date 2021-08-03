@@ -5,7 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadSource -lib surf -dir "$::DIR_PATH/core"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {kintexu} ||
      ${family} eq {kintexuplus} ||

@@ -2,7 +2,7 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 # Load Source Code
 loadSource -lib surf -dir "$::DIR_PATH/rtl"

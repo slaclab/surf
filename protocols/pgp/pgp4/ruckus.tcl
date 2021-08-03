@@ -6,7 +6,7 @@ loadRuckusTcl "$::DIR_PATH/core"
 loadRuckusTcl "$::DIR_PATH/asic"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {artix7} } {
    loadRuckusTcl "$::DIR_PATH/gtp7"

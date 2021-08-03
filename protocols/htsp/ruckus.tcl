@@ -5,7 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl "$::DIR_PATH/core"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||

@@ -2,7 +2,7 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {artix7}  ||
      ${family} eq {kintex7} ||

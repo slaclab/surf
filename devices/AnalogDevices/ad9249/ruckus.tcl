@@ -6,7 +6,7 @@ loadSource -lib surf -dir "$::DIR_PATH/core"
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {artix7}  ||
      ${family} eq {kintex7} ||
