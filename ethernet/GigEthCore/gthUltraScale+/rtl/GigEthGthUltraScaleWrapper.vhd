@@ -31,6 +31,13 @@ entity GigEthGthUltraScaleWrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
+      -- MAC Configurations
+      INT_PIPE_STAGES_G  : natural                          := 1;
+      PIPE_STAGES_G      : natural                          := 1;
+      FIFO_ADDR_WIDTH_G  : positive                         := 12;  -- single 4K UltraRAM
+      SYNTH_MODE_G       : string                           := "xpm";
+      MEMORY_TYPE_G      : string                           := "ultra";
+      JUMBO_G            : boolean                          := true;
       PAUSE_EN_G         : boolean                          := true;
       -- Clocking Configurations
       EXT_PLL_G          : boolean                          := false;
@@ -192,12 +199,19 @@ begin
 
       U_GigEthGthUltraScale : entity surf.GigEthGthUltraScale
          generic map (
-            TPD_G         => TPD_G,
-            PAUSE_EN_G    => PAUSE_EN_G,
+            TPD_G             => TPD_G,
+            -- MAC Configurations
+            INT_PIPE_STAGES_G => INT_PIPE_STAGES_G,
+            PIPE_STAGES_G     => PIPE_STAGES_G,
+            FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+            SYNTH_MODE_G      => SYNTH_MODE_G,
+            MEMORY_TYPE_G     => MEMORY_TYPE_G,
+            JUMBO_G           => JUMBO_G,
+            PAUSE_EN_G        => PAUSE_EN_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G  => EN_AXI_REG_G,
+            EN_AXI_REG_G      => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G     => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

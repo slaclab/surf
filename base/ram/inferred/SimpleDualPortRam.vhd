@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -65,9 +64,9 @@ architecture rtl of SimpleDualPortRam is
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
-   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0);
+   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
 
-   signal weaByteInt : slv(weaByte'range);
+   signal weaByteInt : slv(weaByte'range) := (others => '0');
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;

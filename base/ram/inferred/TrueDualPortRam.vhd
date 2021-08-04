@@ -72,11 +72,11 @@ architecture rtl of TrueDualPortRam is
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
-   signal doutAInt : slv(FULL_DATA_WIDTH_C-1 downto 0);
-   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0);
+   signal doutAInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
+   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
 
-   signal weaByteInt : slv(weaByte'range);
-   signal webByteInt : slv(webByte'range);
+   signal weaByteInt : slv(weaByte'range) := (others => '0');
+   signal webByteInt : slv(webByte'range) := (others => '0');
 
    -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;

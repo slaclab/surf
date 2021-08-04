@@ -19,8 +19,8 @@ import rogue.interfaces.stream
 import surf.protocols.clink as clink
 
 class UartBaslerAceRx(clink.ClinkSerialRx):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, path, **kwargs):
+        super().__init__(path=path,**kwargs)
 
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
@@ -29,14 +29,15 @@ class UartBaslerAceRx(clink.ClinkSerialRx):
         for i in range(0,len(ba),4):
             # Check for ACK
             if ba[i] == 0x06:
-                print ( 'Got ACK Response' )
+                print ( self._path+': Got ACK Response' )
             # Check for ACK
             if ba[i] == 0x15:
-                print ( 'Got NACK Response' )
+                print ( self._path+': Got NACK Response' )
 
 class UartBaslerAceTx(rogue.interfaces.stream.Master):
-    def __init__(self, **kwargs):
+    def __init__(self, path, **kwargs):
         super().__init__(**kwargs)
+        self._path = path
 
     def sendCmd(self,addr,data):
         # Create the byte array to be filled
@@ -68,10 +69,10 @@ class UartBaslerAceTx(rogue.interfaces.stream.Master):
         # BFE field is always 0x03
         ba[4*12] = 0x3
 
-        # dbgstring = ''
-        # for i in range(13):
-            # dbgstring += '0x{0:0{1}X},'.format(ba[4*i],2)
-        # print(dbgstring)
+        dbgstring = ''
+        for i in range(13):
+            dbgstring += '0x{0:0{1}X},'.format(ba[4*i],2)
+        print ( self._path+': SendString: %s' % dbgstring[:-1] )
 
         # Send the byte array
         frame = self._reqFrame(len(ba),True)
@@ -83,10 +84,10 @@ class UartBaslerAce(pr.Device):
         super().__init__(**kwargs)
 
         # Attach the serial devices
-        self._rx = clink.UartBaslerAceRx()
+        self._rx = clink.UartBaslerAceRx(self.path)
         pr.streamConnect(serial,self._rx)
 
-        self._tx = clink.UartBaslerAceTx()
+        self._tx = clink.UartBaslerAceTx(self.path)
         pr.streamConnect(self._tx,serial)
 
         def createCmd(addr):
@@ -269,3 +270,8 @@ class UartBaslerAce(pr.Device):
             value        = '',
             localSet     = createCmd(addr=0x00040404)
         ))
+
+    def _rootAttached(self,parent,root):
+        super()._rootAttached(parent,root)
+        self._rx._path = self.path
+        self._tx._path = self.path

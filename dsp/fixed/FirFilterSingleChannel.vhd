@@ -173,7 +173,7 @@ begin
          end loop;
 
          -- Truncating the LSBs
-         v.tData := cascout(TAP_SIZE_G-1)(2*WIDTH_G-1 downto WIDTH_G);
+         v.tData := cascout(TAP_SIZE_G-1)(2*WIDTH_G-2 downto WIDTH_G-1);
 
          -- Check the latency init counter
          if (r.cnt = TAP_SIZE_G-1) then

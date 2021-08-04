@@ -22,9 +22,10 @@ use surf.StdRtlPkg.all;
 
 entity SelectIoRxGearboxAligner is
    generic (
-      TPD_G        : time    := 1 ns;
-      CODE_TYPE_G  : string  := "LINE_CODE";  -- or "SCRAMBLER"
-      SIMULATION_G : boolean := false);
+      TPD_G           : time     := 1 ns;
+      SIMULATION_G    : boolean  := false;
+      CODE_TYPE_G     : string   := "LINE_CODE";  -- or "SCRAMBLER"
+      DLY_STEP_SIZE_G : positive range 1 to 255 := 1);  -- 1 for Ultrascale or 16 for 7-Series
    port (
       -- Clock and Reset
       clk             : in  sl;
@@ -55,7 +56,7 @@ end entity SelectIoRxGearboxAligner;
 
 architecture rtl of SelectIoRxGearboxAligner is
 
-   constant SLIP_WAIT_C : positive := ite(SIMULATION_G, 10, 100);
+   constant SLIP_WAIT_C : positive := 100;
 
    type StateType is (
       UNLOCKED_S,
@@ -134,7 +135,7 @@ begin
          else
 
             -- Increment the counter
-            v.dlyConfig := r.dlyConfig + 1;
+            v.dlyConfig := r.dlyConfig + DLY_STEP_SIZE_G;
 
             -- Reset the flag
             v.firstError := '1';
@@ -281,7 +282,7 @@ begin
 
                      -- Update the Delay module
                      v.dlyLoad(1) := '1';
-                     v.dlyConfig  := r.dlyConfig + 1;
+                     v.dlyConfig  := r.dlyConfig + DLY_STEP_SIZE_G;
 
                      -- Next state
                      v.state := SLIP_WAIT_S;
@@ -311,7 +312,7 @@ begin
 
                   -- Update the Delay module
                   v.dlyLoad(1) := '1';
-                  v.dlyConfig  := r.dlyConfig + 1;
+                  v.dlyConfig  := r.dlyConfig + DLY_STEP_SIZE_G;
 
                   -- Check for last count or first header error after min. eye width
                   if (scanCnt >= 255) or (v.errorDet = '1') then

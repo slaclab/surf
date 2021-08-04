@@ -41,6 +41,7 @@ class McsReader():
         self.lastAddr  = 0
         baseAddr       = 0
         idx            = 0
+        firstAddr      = True
 
         # Check for non-compressed .MCS file
         if fnmatch.fnmatch(filename, '*.mcs'):
@@ -120,11 +121,12 @@ class McsReader():
                                 # Check if not the start address
                                 if (address != self.startAddr):
                                     # Check for non-contiguous address
-                                    if ( address != (self.lastAddr+1) ):
+                                    if ( address != (self.lastAddr+1) ) and firstAddr is False:
                                         click.secho('\n non-contiguous address detected: PreviousAddress={:x}, CurrentAddress={:x}'.format(self.lastAddr,address), fg='red')
                                         raise McsException('McsReader.open(): failed')
                                     else:
                                         self.lastAddr = address
+                                        firstAddr     = False
                             # Save the last address
                             self.endAddr = address
 

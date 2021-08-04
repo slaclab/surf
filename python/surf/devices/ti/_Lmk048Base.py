@@ -9,8 +9,9 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+# import time
 import re
-import ast
+# import ast
 
 class Lmk048Base(pr.Device):
     def __init__(self, **kwargs):
@@ -1066,45 +1067,139 @@ class Lmk048Base(pr.Device):
             mode         = 'WO',
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = '3WIREDIS',
+            description  = 'DISABLE 3 WIRE MODE',
+            offset       = (0x0000 << 2),
+            bitSize      = 1,
+            bitOffset    = 4,
+            mode         = 'WO',
+        ))
+
         ##############################
         # Commands
         ##############################
         @self.command(description='Load the CodeLoader .MAC file',value='',)
+        def LoadCodeLoaderHexFile(arg):
+            with open(arg, 'r') as ifd:
+                for i, line in enumerate(ifd):
+                    s = str.split(line)
+                    addr = int(s[0][1:], 0)
+                    if len(s) == 3:
+                        data = int("0x" + s[2][-2:], 0)
+                    else:
+                        data = int("0x" + s[1][-2:], 0)
+                    if addr == 0:
+                        v = getattr(self, 'RESET')
+                        rst = (data >> 7) & 1
+                        v.set(rst)
+                        v = getattr(self, '3WIREDIS')
+                        dis = (data >> 4) & 1
+                        v.set(dis)
+                    elif addr == 2:
+                        v = getattr(self, 'POWER_DOWN')
+                        power_down = data & 1
+                        v.set(power_down)
+                    elif addr == 3:
+                        v = getattr(self, 'ID_DEVICE_TYPE')
+                        if (v.get() != data):
+                            print('ID_DEVICE_TYPE mismatch')
+                    elif addr == 4:
+                        v = getattr(self, 'ID_PROD_LOWER')
+                        if (v.get() != data):
+                            print('ID_PROD_LOWER mismatch')
+                    elif addr == 5:
+                        v = getattr(self, 'ID_PROD_UPPER')
+                        if (v.get() != data):
+                            print('ID_PROD_UPPER mismatch')
+                    elif addr == 6:
+                        v = getattr(self, 'ID_MASKREV')
+                        if (v.get() != data):
+                            print('ID_MASKREV mismatch')
+                    elif addr == 12:
+                        v = getattr(self, 'ID_VNDR_UPPER')
+                        if (v.get() != data):
+                            print('ID_VNDR_UPPER mismatch')
+                    elif addr == 13:
+                        v = getattr(self, 'ID_VNDR_LOWER')
+                        if (v.get() != data):
+                            print('ID_VNDR_LOWER mismatch')
+                    else:
+                        v = getattr(self, 'LmkReg_0x%04X'%addr)
+                        v.set(data)
+
+        @self.command(description='Load the CodeLoader .MAC file',value='',)
         def LoadCodeLoaderMacFile(arg):
             addr = 0
+            modes = False
             # Open the input file
             with open(arg, 'r') as ifd:
                 for i, line in enumerate(ifd):
                     line = line.strip()
-                    if (i<18):
-                        if (i==0) and ( line != '[SETUP]'):
-                            print ('invalid file detected at line#1')
-                            break
-                        elif (i==5) and ( line != 'PART=LMK04828B'):
-                            print ('invalid file detected at line#6')
-                            break
-                        elif (i==11) and ( line != '[MODES]'):
-                            print ('invalid file detected at line#12')
-                            break
-                        elif (i==12) and ( line != 'NAME00=R0 (INIT)'):
-                            print ('invalid file detected at line#13')
-                            break
-                    elif (i<232):
-                        if(i%2):
-                            pat = re.compile('[=]')
-                            fields=pat.split(line)
-                            data = (ast.literal_eval(fields[1])&0xFF)
-                            v = getattr(self, 'LmkReg_0x%04X'%addr)
-                            v.set(data)
-                            if(addr==357):
-                                self.LmkReg_0x0171.set(0xAA)
-                                self.LmkReg_0x0172.set(0x02)
-                                self.LmkReg_0x0173.set(0x00)
-                                self.LmkReg_0x0174.set(0x00)
+                    pat = re.compile('[=]')
+                    fields = pat.split(line)
+                    if (i==0) and ( line != '[SETUP]'):
+                        print ('Invalid file detected at line#1')
+                        break
+                    elif fields[0] == 'PART':
+                        print(f'Configuring {fields[1]}')
+                    elif modes:
+                        if line == '':
+                            modes = False
                         else:
-                            pat = re.compile('[R\t\n]')
-                            fields=pat.split(line)
-                            addr = ast.literal_eval(fields[1])
+                            if (line == 'NAME00=R0 (INIT)'):
+                                addr = 0
+                            elif re.match('NAME*', fields[0]):
+                                pat = re.compile('[R\t\n]')
+                                fields = pat.split(line)
+                                addr = int(fields[1])
+                            elif re.match('VALUE*', fields[0]):
+                                data = int(fields[1]) & 0xFF
+                                if addr == 0:
+                                    v = getattr(self, 'RESET')
+                                    rst = (data >> 7) & 1
+                                    v.set(rst)
+                                    v = getattr(self, '3WIREDIS')
+                                    dis = (data >> 4) & 1
+                                    v.set(dis)
+                                elif addr == 2:
+                                    v = getattr(self, 'POWER_DOWN')
+                                    power_down = data & 1
+                                    v.set(power_down)
+                                elif addr == 3:
+                                    v = getattr(self, 'ID_DEVICE_TYPE')
+                                    if (v.get() != data):
+                                        print('ID_DEVICE_TYPE mismatch')
+                                elif addr == 4:
+                                    v = getattr(self, 'ID_PROD_LOWER')
+                                    if (v.get() != data):
+                                        print('ID_PROD_LOWER mismatch')
+                                elif addr == 5:
+                                    v = getattr(self, 'ID_PROD_UPPER')
+                                    if (v.get() != data):
+                                        print('ID_PROD_UPPER mismatch')
+                                elif addr == 6:
+                                    v = getattr(self, 'ID_MASKREV')
+                                    if (v.get() != data):
+                                        print('ID_MASKREV mismatch')
+                                elif addr == 12:
+                                    v = getattr(self, 'ID_VNDR_UPPER')
+                                    if (v.get() != data):
+                                        print('ID_VNDR_UPPER mismatch')
+                                elif addr == 13:
+                                    v = getattr(self, 'ID_VNDR_LOWER')
+                                    if (v.get() != data):
+                                        print('ID_VNDR_LOWER mismatch')
+                                else:
+                                    v = getattr(self, 'LmkReg_0x%04X'%addr)
+                                    v.set(data)
+                            else:
+                                modes = False
+                                print('Invalid configuration, expected name,value pairs: ')
+                                print('    NAME00=R0')
+                                print('    VALUE00=0')
+                    elif (line == '[MODES]'):
+                        modes = True
                     else:
                         pass
             ifd.close()

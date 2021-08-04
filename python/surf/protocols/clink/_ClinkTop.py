@@ -271,9 +271,14 @@ class ClinkTop(pr.Device):
                 # Same config as 85 MHz
                 self.Pll[i].Config85MHz()
 
+            # Check for 40 MHz configuration
+            if (self.PllConfig[i].get() == '40MHz'):
+                self.Pll[i].Config40MHz()
+
             # Check for 25 MHz configuration
             if (self.PllConfig[i].get() == '25MHz'):
                 self.Pll[i].Config25MHz()
+
 
         # Release the reset after configuration
         self.RstPll.set(0x0)

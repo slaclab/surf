@@ -23,9 +23,10 @@ use surf.AxiLitePkg.all;
 
 entity SspLowSpeedDecoder12b14bWrapper is
    generic (
-      TPD_G        : time     := 1 ns;
-      SIMULATION_G : boolean  := false;
-      NUM_LANE_G   : positive := 1);
+      TPD_G           : time                    := 1 ns;
+      SIMULATION_G    : boolean                 := false;
+      DLY_STEP_SIZE_G : positive range 1 to 255 := 1;
+      NUM_LANE_G      : positive                := 1);
    port (
       -- Deserialization Interface (deserClk domain)
       deserClk        : in  sl;
@@ -60,11 +61,14 @@ architecture mapping of SspLowSpeedDecoder12b14bWrapper is
    signal minEyeWidth    : slv(7 downto 0);
    signal lockingCntCfg  : slv(23 downto 0);
    signal bypFirstBerDet : sl;
+   signal lockOnIdle     : sl;
    signal bitOrder       : slv(1 downto 0);
+   signal errorMask      : slv(2 downto 0);
    signal polarity       : slv(NUM_LANE_G-1 downto 0);
    signal errorDet       : slv(NUM_LANE_G-1 downto 0);
    signal bitSlip        : slv(NUM_LANE_G-1 downto 0);
    signal locked         : slv(NUM_LANE_G-1 downto 0);
+   signal idleCode       : slv(NUM_LANE_G-1 downto 0);
 
 begin
 
@@ -75,9 +79,10 @@ begin
 
       U_Lane : entity surf.SspLowSpeedDecoderLane
          generic map (
-            TPD_G        => TPD_G,
-            DATA_WIDTH_G => DATA_WIDTH_C,
-            SIMULATION_G => SIMULATION_G)
+            TPD_G           => TPD_G,
+            SIMULATION_G    => SIMULATION_G,
+            DATA_WIDTH_G    => DATA_WIDTH_C,
+            DLY_STEP_SIZE_G => DLY_STEP_SIZE_G)
          port map (
             -- Clock and Reset Interface
             clk            => deserClk,
@@ -94,9 +99,12 @@ begin
             bypFirstBerDet => bypFirstBerDet,
             polarity       => polarity(i),
             bitOrder       => bitOrder,
+            errorMask      => errorMask,
+            lockOnIdle     => lockOnIdle,
             errorDet       => errorDet(i),
             bitSlip        => bitSlip(i),
             locked         => locked(i),
+            idleCode       => idleCode(i),
             -- SSP Frame Output
             rxLinkUp       => rxLinkUp(i),
             rxValid        => rxValid(i),
@@ -121,6 +129,7 @@ begin
          errorDet        => errorDet,
          bitSlip         => bitSlip,
          locked          => locked,
+         idleCode        => idleCode,
          enUsrDlyCfg     => enUsrDlyCfg,
          usrDlyCfg       => usrDlyCfg,
          minEyeWidth     => minEyeWidth,
@@ -128,6 +137,8 @@ begin
          bypFirstBerDet  => bypFirstBerDet,
          polarity        => polarity,
          bitOrder        => bitOrder,
+         errorMask       => errorMask,
+         lockOnIdle      => lockOnIdle,
          -- AXI-Lite Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,

@@ -70,7 +70,7 @@ architecture rtl of DeviceDna7Series is
    signal locClk  : sl;
    signal locRst  : sl;
 
-   signal locClkInv : sl;
+   signal locClkInv  : sl;
    signal locClkInvR : sl;
 
 begin
@@ -138,12 +138,14 @@ begin
             if r.dnaShift = '1' then
                -- Shift register
                v.dnaValue := r.dnaValue(DNA_SHIFT_LENGTH_C-2 downto 0) & dnaDout;
-               -- Increment the counter
-               v.bitCount := r.bitCount + 1;
                -- Check the counter value
                if (r.bitCount = DNA_SHIFT_LENGTH_C-1) then
                   -- Next State
-                  v.state := DONE_S;
+                  v.bitCount := 0;
+                  v.state    := DONE_S;
+               else
+                  -- Increment the counter
+                  v.bitCount := r.bitCount + 1;
                end if;
             end if;
          ----------------------------------------------------------------------
