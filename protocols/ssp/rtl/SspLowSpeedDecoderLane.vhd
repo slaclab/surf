@@ -22,9 +22,10 @@ use surf.StdRtlPkg.all;
 
 entity SspLowSpeedDecoderLane is
    generic (
-      TPD_G        : time     := 1 ns;
-      DATA_WIDTH_G : positive := 10;
-      SIMULATION_G : boolean  := false);
+      TPD_G           : time                    := 1 ns;
+      SIMULATION_G    : boolean                 := false;
+      DATA_WIDTH_G    : positive                := 10;
+      DLY_STEP_SIZE_G : positive range 1 to 255 := 1);
    port (
       -- Clock and Reset Interface
       clk            : in  sl;
@@ -128,9 +129,10 @@ begin
 
    U_GearboxAligner : entity surf.SelectIoRxGearboxAligner
       generic map (
-         TPD_G        => TPD_G,
-         CODE_TYPE_G  => "LINE_CODE",
-         SIMULATION_G => SIMULATION_G)
+         TPD_G           => TPD_G,
+         CODE_TYPE_G     => "LINE_CODE",
+         DLY_STEP_SIZE_G => DLY_STEP_SIZE_G,
+         SIMULATION_G    => SIMULATION_G)
       port map (
          -- Clock and Reset
          clk             => clk,

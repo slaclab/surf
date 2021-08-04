@@ -25,7 +25,8 @@ use unisim.vcomponents.all;
 
 entity SelectioDeserLaneUltraScale is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SIM_DEVICE_G : string := "ULTRASCALE");
    port (
       -- SELECTIO Ports
       rxP     : in  sl;
@@ -58,7 +59,7 @@ begin
    U_DELAY : entity surf.Idelaye3Wrapper
       generic map (
          DELAY_FORMAT     => "COUNT",
-         SIM_DEVICE       => "ULTRASCALE",
+         SIM_DEVICE       => SIM_DEVICE_G,
          DELAY_VALUE      => 0,
          REFCLK_FREQUENCY => 300.0,     -- IDELAYCTRL not used in COUNT mode
          UPDATE_MODE      => "ASYNC",
@@ -84,7 +85,7 @@ begin
          DATA_WIDTH     => 8,
          FIFO_ENABLE    => "FALSE",
          FIFO_SYNC_MODE => "FALSE",
-         SIM_DEVICE     => "ULTRASCALE")
+         SIM_DEVICE     => SIM_DEVICE_G)
       port map (
          D           => rxDly,
          Q           => dataOut,
