@@ -93,7 +93,7 @@ begin
             TPD_G         => TPD_G,
             PORT_NUM_G    => (PORT_NUM_G + i*2),
             SSI_EN_G      => true,
-            CHAN_MASK_G  => (others => '0'),
+            CHAN_COUNT_G  => 1,
             AXIS_CONFIG_G => PGP_ETH_AXIS_CONFIG_C)
          port map (
             axisClk     => clk,
