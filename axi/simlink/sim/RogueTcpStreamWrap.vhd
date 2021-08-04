@@ -55,11 +55,10 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   constant CHAN_COUNT_C : integer := ite(CHAN_COUNT_G = 0,  -- If 0, use CHAN_MASK_G
-                                          ite(CHAN_MASK_G = X"00",  -- If CHAN_MASK_G=X"00", size=1
-                                              1,
-                                              2**conv_integer(onesCount(CHAN_MASK_G))),
-                                          CHAN_COUNT_G);  -- Use CHAN_COUNT_G if non-zero
+   constant CHAN_COUNT_C : integer := ite(CHAN_COUNT_G /= 0, CHAN_COUNT_G, -- If not 0, use CHAN_COUNT_G
+                                          ite(CHAN_MASK_G = X"00",  1, -- determin chan count from mask
+                                              2**conv_integer(onesCount(CHAN_MASK_G))));
+
 
    -- Generate a correct channel mask if using CHAN_COUNT_C
    constant CHAN_MASK_C : slv(7 downto 0) := ite(CHAN_COUNT_G = 0, CHAN_MASK_G,
