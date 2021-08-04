@@ -43,7 +43,7 @@ architecture rtl of sfixedDelay is
 
    signal slvDelayIn  : slv(SLV_LEN_C-1 downto 0);
    signal slvDelayOut : slv(SLV_LEN_C-1 downto 0);
-   
+
 begin
 
    slvDelayIn(slvDelayIn'high)                                            <= validIn;

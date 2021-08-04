@@ -80,7 +80,7 @@ begin
       U_Lane : entity surf.SspLowSpeedDecoderLane
          generic map (
             TPD_G           => TPD_G,
-            SIMULATION_G    => SIMULATION_G,            
+            SIMULATION_G    => SIMULATION_G,
             DATA_WIDTH_G    => DATA_WIDTH_C,
             DLY_STEP_SIZE_G => DLY_STEP_SIZE_G)
          port map (

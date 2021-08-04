@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 
 package SaciMultiPixelPkg is
 
-   constant FPGA_VERSION_C : slv(31 downto 0) := x"00000000";
+   constant FPGA_VERSION_C : slv(31 downto 0) := x"E0000000";
 
    type MultiPixelWriteType is record
       asic       : slv(1 downto 0);
@@ -92,25 +92,12 @@ package body SaciMultiPixelPkg is
       return toSlv(asic*(2**22), 32);
    end function;
 
+
+   -- SaciMultiPixel.vhd and SaciMultiPixelPkg.vhd is only intended for the oldest ePix100a
+   -- removing version dependency for all other ASIC types
    function getNumColumns (version : slv ) return integer is
    begin
-      assert (version(31 downto 24) = x"E0" or
-              version(31 downto 24) = x"EA" or
-              version(31 downto 24) = x"E2" or
-              version(31 downto 24) = x"E3") report "Unable to determine ASIC type from version string!" severity failure;
-      --Epix 100p and Epix100a
-      if (version(31 downto 24) = x"E0" or version(31 downto 24) = x"EA") then
-         return EPIX100_COLS_PER_ROW;
-      --Epix 10k
-      elsif (version(31 downto 24) = x"E2") then
-         return EPIX10K_COLS_PER_ROW;
-      --Epix S
-      elsif (version(31 downto 24) = x"E3") then
-         return EPIXS_COLS_PER_ROW;
-      --Other (default to Epix 100)
-      else
-         return EPIX100_COLS_PER_ROW;
-      end if;
+      return EPIX100_COLS_PER_ROW;
    end function;
 
    function getWordsPerSuperRow (version : slv ) return integer is

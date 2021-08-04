@@ -50,14 +50,14 @@ end ClinkFraming;
 
 architecture rtl of ClinkFraming is
 
-   constant SLV_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 10, tDestBits => 0);
+   constant SLV_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 16, tDestBits => 0);
    constant MST_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 16, tDestBits => 0);
 
    type RegType is record
       ready    : sl;
       portData : ClDataType;
       byteData : ClDataType;
-      bytes    : integer range 1 to 10;
+      bytes    : integer range 1 to 16;
       inFrame  : sl;
       dump     : sl;
       status   : ClChanStatusType;
@@ -99,7 +99,7 @@ begin
       v := r;
 
       ---------------------------------
-      -- Map parrallel data to ports
+      -- Map parallel data to ports
       -- Taken from cameraLink spec V2.0
       ---------------------------------
       v.status.running := '0';

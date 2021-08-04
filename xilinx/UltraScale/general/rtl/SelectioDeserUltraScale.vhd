@@ -28,6 +28,7 @@ entity SelectioDeserUltraScale is
    generic (
       TPD_G            : time     := 1 ns;
       SIMULATION_G     : boolean  := false;
+      SIM_DEVICE_G     : string   := "ULTRASCALE";
       EXT_PLL_G        : boolean  := false;
       NUM_LANE_G       : positive := 1;
       CLKIN_PERIOD_G   : real     := 10.0;  -- 100 MHz
@@ -208,7 +209,8 @@ begin
 
       U_Lane : entity surf.SelectioDeserLaneUltraScale
          generic map (
-            TPD_G => TPD_G)
+            TPD_G        => TPD_G,
+            SIM_DEVICE_G => SIM_DEVICE_G)
          port map (
             -- SELECTIO Ports
             rxP     => rxP(i),

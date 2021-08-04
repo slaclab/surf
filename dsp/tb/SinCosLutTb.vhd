@@ -84,7 +84,7 @@ begin
                write(lin, comma);
                write(lin, to_real(dout.im));
                writeline(outf, lin);
-            when RUN_CNT_C => 
+            when RUN_CNT_C =>
                run <= false;
                report CR & LF & CR & LF &
                   "Test PASSED!" & CR & LF
