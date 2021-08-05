@@ -15,8 +15,6 @@
 
 import pyrogue as pr
 
-import time
-
 class AxiStreamRingBuffer(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
