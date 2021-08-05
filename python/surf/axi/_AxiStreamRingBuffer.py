@@ -62,28 +62,29 @@ class AxiStreamRingBuffer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'IntBufferClear',
-            description  = 'Internal Buffer Clear Control',
+            name         = 'TrigCnt',
+            description  = 'current value of the trigger counter',
             offset       = 0x4,
-            bitSize      = 1,
+            bitSize      = 32,
+            bitOffset    = 0,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TrigBurst',
+            description  = 'Used to burst N number of trigger frames from local triggering',
+            offset       = 0x8,
+            bitSize      = 32,
             bitOffset    = 0,
             mode         = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'IntBufferEnable',
-            description  = 'Internal Buffer Enable Control',
-            offset       = 0x8,
+            name         = 'ContinuousMode',
+            description  = 'Sets local triggering into continuous trigger mode',
+            offset       = 0xC,
             bitSize      = 1,
             bitOffset    = 0,
             mode         = 'RW',
         ))
-
-        @self.command()
-        def IntTrig():
-            self.IntBufferEnable.set(0)
-            self.IntBufferClear.set(1)
-            self.IntBufferClear.set(0)
-            self.IntBufferEnable.set(1)
-            time.sleep(0.1)
-            self.IntBufferEnable.set(0)

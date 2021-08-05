@@ -74,6 +74,8 @@ architecture rtl of AxiStreamRingBuffer is
    ------------------------------
    type DataRegType is record
       enable       : sl;
+      cleared      : sl;
+      armed        : sl;
       ramWrEn      : sl;
       readReq      : sl;
       ramWrData    : slv(8*DATA_BYTES_G-1 downto 0);
@@ -84,6 +86,8 @@ architecture rtl of AxiStreamRingBuffer is
 
    constant DATA_REG_INIT_C : DataRegType := (
       enable       => '0',
+      cleared      => '1',              -- Only set HIGH after reset
+      armed        => '0',
       ramWrEn      => '0',
       readReq      => '0',
       ramWrData    => (others => '0'),
@@ -100,11 +104,19 @@ architecture rtl of AxiStreamRingBuffer is
    --------------------------------
    -- AXI-Lite clock domain signals
    --------------------------------
-   type StateType is (
+   type DataStateType is (
       IDLE_S,
       MOVE_S);
 
+   type TrigStateType is (
+      IDLE_S,
+      CLEAR_S,
+      ARMED_S,
+      WAIT_S);
+
    type AxilRegType is record
+      trigCnt        : slv(31 downto 0);
+      continuous     : sl;
       bufferEnable   : sl;
       bufferClear    : sl;
       wordCnt        : slv(RAM_ADDR_WIDTH_G-1 downto 0);
@@ -113,10 +125,13 @@ architecture rtl of AxiStreamRingBuffer is
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
       txMaster       : AxiStreamMasterType;
-      state          : StateType;
+      dataState      : DataStateType;
+      trigState      : TrigStateType;
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
+      trigCnt        => (others => '0'),
+      continuous     => '0',
       bufferEnable   => '0',
       bufferClear    => '0',
       wordCnt        => (others => '0'),
@@ -125,7 +140,8 @@ architecture rtl of AxiStreamRingBuffer is
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       txMaster       => axiStreamMasterInit(AXIS_CONFIG_C),
-      state          => IDLE_S);
+      dataState      => IDLE_S,
+      trigState      => IDLE_S);
 
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
@@ -137,6 +153,8 @@ architecture rtl of AxiStreamRingBuffer is
    signal extBufferEnable : sl;
    signal extBufferClear  : sl;
    signal readReq         : sl;
+   signal cleared         : sl;
+   signal armed           : sl;
 
    signal txSlave : AxiStreamSlaveType;
 
@@ -211,23 +229,17 @@ begin
    --------------------------------------------------
    -- Synchronize AXI registers to data clock dataClk
    --------------------------------------------------
-   U_Sync_bufferEnable : entity surf.Synchronizer
+   U_SyncVec_dataClk : entity surf.SynchronizerVector
       generic map (
-         TPD_G => TPD_G)
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
       port map (
-         clk     => dataClk,
-         rst     => dataRst,
-         dataIn  => axilR.bufferEnable,
-         dataOut => bufferEnableSync);
-
-   U_Sync_bufferClear : entity surf.SynchronizerOneShot
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => dataClk,
-         rst     => dataRst,
-         dataIn  => axilR.bufferClear,
-         dataOut => bufferClearSync);
+         clk        => dataClk,
+         rst        => dataRst,
+         dataIn(0)  => axilR.bufferEnable,
+         dataIn(1)  => axilR.bufferClear,
+         dataOut(0) => bufferEnableSync,
+         dataOut(1) => bufferClearSync);
 
    --------------------------
    -- Main AXI-Stream process
@@ -242,6 +254,7 @@ begin
       -- Reset strobes
       v.ramWrEn := '0';
       v.readReq := '0';
+      v.cleared := '0';
 
       -- Default assignment
       v.ramWrData := dataValue;
@@ -257,6 +270,7 @@ begin
          -- Check if the write pointer = read pointer
          if (v.nextAddr = dataR.firstAddr) then
             v.firstAddr := dataR.firstAddr + 1;
+            v.armed     := '1';
          end if;
          -- Calculate the length of the buffer
          v.bufferLength := dataR.nextAddr - dataR.firstAddr;
@@ -304,30 +318,28 @@ begin
          dout(1*RAM_ADDR_WIDTH_G-1 downto 0*RAM_ADDR_WIDTH_G) => firstAddr,
          dout(2*RAM_ADDR_WIDTH_G-1 downto 1*RAM_ADDR_WIDTH_G) => bufferLength);
 
-   U_Sync_dataBufferEn : entity surf.Synchronizer
+   U_SyncVec_axilClk : entity surf.SynchronizerVector
       generic map (
-         TPD_G => TPD_G)
+         TPD_G   => TPD_G,
+         WIDTH_G => 4)
       port map (
-         clk     => axilClk,
-         rst     => axilRst,
-         dataIn  => bufferEnable,
-         dataOut => extBufferEnable);
-
-   U_Sync_dataBufferClr : entity surf.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => axilClk,
-         rst     => axilRst,
-         dataIn  => bufferClear,
-         dataOut => extbufferClear);
+         clk        => axilClk,
+         rst        => axilRst,
+         dataIn(0)  => bufferEnable,
+         dataIn(1)  => bufferClear,
+         dataIn(2)  => dataR.cleared,
+         dataIn(3)  => dataR.armed,
+         dataOut(0) => extBufferEnable,
+         dataOut(1) => extbufferClear,
+         dataOut(2) => cleared,
+         dataOut(3) => armed);
 
    ------------------------
    -- Main AXI-Lite process
    ------------------------
-   axiComb : process (axilR, axilReadMaster, axilRst, axilWriteMaster,
-                      bufferLength, extBufferClear, extBufferEnable, firstAddr,
-                      ramRdData, readReq, txSlave) is
+   axiComb : process (armed, axilR, axilReadMaster, axilRst, axilWriteMaster,
+                      bufferLength, cleared, extBufferClear, extBufferEnable,
+                      firstAddr, ramRdData, readReq, txSlave) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -338,9 +350,6 @@ begin
       -- AXI-Lite Transactions
       ------------------------
 
-      -- Reset strobes
-      v.bufferClear := '0';
-
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -348,12 +357,65 @@ begin
       axiSlaveRegisterR(axilEp, x"0", 20, toSlv(RAM_ADDR_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"0", 28, extBufferClear);
       axiSlaveRegisterR(axilEp, x"0", 29, extBufferEnable);
+      axiSlaveRegisterR(axilEp, x"4", 0, axilR.trigCnt);
 
-      axiSlaveRegister (axilEp, x"4", 0, v.bufferClear);
-      axiSlaveRegister (axilEp, x"8", 0, v.bufferEnable);
+      axiSlaveRegister (axilEp, x"8", 0, v.trigCnt);
+      axiSlaveRegister (axilEp, x"C", 0, v.continuous);
 
       -- Close the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      ------------------------
+      -- Local Trigger Logic
+      ------------------------
+
+      case axilR.trigState is
+         ----------------------------------------------------------------------
+         when IDLE_S =>
+            -- Check for trigger request
+            if (axilR.trigCnt /= 0) or (axilR.continuous = '1') then
+               -- Set the flags
+               v.bufferClear  := '1';
+               v.bufferEnable := '1';
+               -- Check if we need to decrement the counter
+               if (axilR.trigCnt /= 0) then
+                  -- Decrement the counter
+                  v.trigCnt := axilR.trigCnt - 1;
+               end if;
+               -- Next state
+               v.trigState := CLEAR_S;
+            else
+               -- Reset the flags
+               v.bufferClear  := '0';
+               v.bufferEnable := '0';
+            end if;
+         ----------------------------------------------------------------------
+         when CLEAR_S =>
+            -- Check if cleared
+            if (cleared = '1') then
+               -- Set the flags
+               v.bufferClear  := '0';
+               v.bufferEnable := '1';
+               -- Next state
+               v.trigState    := ARMED_S;
+            end if;
+         ----------------------------------------------------------------------
+         when ARMED_S =>
+            -- Check if armed
+            if (armed = '1') then
+               -- Set the flags
+               v.bufferClear  := '0';
+               v.bufferEnable := '0';
+               -- Next state
+               v.trigState    := WAIT_S;
+            end if;
+         ----------------------------------------------------------------------
+         when WAIT_S =>
+            -- Set the flags
+            v.bufferClear  := '0';
+            v.bufferEnable := '0';
+      ----------------------------------------------------------------------
+      end case;
 
       ------------------------
       -- AXI-Stream
@@ -369,7 +431,7 @@ begin
          v.txMaster := axiStreamMasterInit(AXIS_CONFIG_C);
       end if;
 
-      case axilR.state is
+      case axilR.dataState is
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the counter
@@ -379,7 +441,7 @@ begin
             if (readReq = '1') then
 
                -- Next state
-               v.state := MOVE_S;
+               v.dataState := MOVE_S;
 
             end if;
          ----------------------------------------------------------------------
@@ -405,8 +467,9 @@ begin
                   -- Set the EOF bit
                   v.txMaster.tLast := '1';
 
-                  -- Next state
-                  v.state := IDLE_S;
+                  -- Next states
+                  v.dataState := IDLE_S;
+                  v.trigState := IDLE_S;
 
                else
                   -- Increment the counter
