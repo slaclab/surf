@@ -25,6 +25,7 @@ class AxiMicronP30(pr.Device):
     def __init__(self,
             description = "AXI-Lite Micron P30 PROM",
             tryCount    = 5,
+            hidden      = True,
             **kwargs):
 
         self._useVars = rogue.Version.greaterThanEqual('5.4.0')
@@ -37,6 +38,7 @@ class AxiMicronP30(pr.Device):
         super().__init__(
             description = description,
             size        = size,
+            hidden      = hidden,
             **kwargs)
 
         self._mcs = surf.misc.McsReader()
