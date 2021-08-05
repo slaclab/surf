@@ -19,9 +19,10 @@ class Axi24LC64FT(pr.Device):
     def __init__(self,
                  nelms       = 0x800,
                  instantiate = True,
+                 hidden      = True,
                  **kwargs):
 
-        super().__init__(**kwargs)
+        super().__init__(hidden=hidden,**kwargs)
 
         ##############################
         # Variables

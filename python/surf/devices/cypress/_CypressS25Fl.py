@@ -22,9 +22,10 @@ class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
     def __init__(self,
                  description = "Container for Cypress S25FL PROM device",
                  addrMode    = True, # False = 24-bit Address mode, True = 32-bit Address Mode
+                 hidden      = True,
                  **kwargs):
 
-        super().__init__(description = description, addrMode = addrMode, **kwargs)
+        super().__init__(description=description, hidden=hidden, addrMode=addrMode, **kwargs)
 
         ########################################
         # Overwrite with Cypress S25FL Constants
