@@ -5,7 +5,7 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl "$::DIR_PATH/core"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {artix7} } {
    loadRuckusTcl "$::DIR_PATH/gtp7"
@@ -33,8 +33,7 @@ if { ${family} eq {kintexu} } {
 
 if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} ||
-     ${family} eq {qzynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }
