@@ -162,7 +162,7 @@ begin
             SLAVE_READY_EN_G    => false,                -- Using pause
             GEN_SYNC_FIFO_G     => true,
             SYNTH_MODE_G        => "xpm",
-            MEMORY_TYPE_G       => "uram",
+            MEMORY_TYPE_G       => "ultra",
             FIFO_ADDR_WIDTH_G   => 12,  -- 4k URAM,
             FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 1024,                 -- 1/4 of buffer
