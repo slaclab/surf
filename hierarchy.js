@@ -56,6 +56,15 @@ var hierarchy =
         [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ],
         [ "MmcmEmulation", "classMmcmEmulation.html", null ]
       ] ],
+      [ "RstSync", "classRstSync.html", null ],
+      [ "AdiConfigSlave", "classAdiConfigSlave.html", null ],
+      [ "Ad9681Serializer", "classAd9681Serializer.html", null ],
+      [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ],
+      [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "Synchronizer", "classSynchronizer.html", null ],
+      [ "SynchronizerOneShotCnt", "classSynchronizerOneShotCnt.html", null ],
+      [ "Ad9681Deserializer", "classAd9681Deserializer.html", null ],
+      [ "SelectIoRxGearboxAligner", "classSelectIoRxGearboxAligner.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "AxiAd5780Reg", "classAxiAd5780Reg.html", [
@@ -423,6 +432,12 @@ var hierarchy =
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
       ] ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
+      [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
+      [ "SimpleDualPortRamAlteraMf", "classSimpleDualPortRamAlteraMf.html", null ],
+      [ "SimpleDualPortRam", "classSimpleDualPortRam.html", null ],
+      [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+      [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "Fifo", "classFifo.html", null ],
       [ "AxiStreamSelector", "classAxiStreamSelector.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],

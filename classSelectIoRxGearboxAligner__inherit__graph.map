@@ -1,11 +1,12 @@
 <map id="SelectIoRxGearboxAligner" name="SelectIoRxGearboxAligner">
-<area shape="rect" id="node1" title=" " alt="" coords="5,72,197,99"/>
-<area shape="rect" id="node2" href="$classSaltRxLvds.html" title=" " alt="" coords="296,27,391,53"/>
-<area shape="rect" id="node5" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="245,97,441,124"/>
-<area shape="rect" id="node3" href="$classSaltCore.html" title=" " alt="" coords="581,5,658,32"/>
-<area shape="rect" id="node4" href="$classSaltCoreTb.html" title=" " alt="" coords="848,5,941,32"/>
-<area shape="rect" id="node6" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="513,57,726,98"/>
-<area shape="rect" id="node7" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="513,122,726,163"/>
-<area shape="rect" id="node8" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="489,188,749,215"/>
-<area shape="rect" id="node9" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="797,188,992,215"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,197,83"/>
+<area shape="rect" id="node2" href="$classAd9681Readout.html" title=" " alt="" coords="281,5,406,32"/>
+<area shape="rect" id="node3" href="$classSaltRxLvds.html" title=" " alt="" coords="296,56,391,83"/>
+<area shape="rect" id="node6" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="245,127,441,153"/>
+<area shape="rect" id="node4" href="$classSaltCore.html" title=" " alt="" coords="581,35,658,61"/>
+<area shape="rect" id="node5" href="$classSaltCoreTb.html" title=" " alt="" coords="848,35,941,61"/>
+<area shape="rect" id="node7" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="513,86,726,127"/>
+<area shape="rect" id="node8" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="513,151,726,193"/>
+<area shape="rect" id="node9" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="489,217,749,244"/>
+<area shape="rect" id="node10" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="797,217,992,244"/>
 </map>

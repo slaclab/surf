@@ -42,7 +42,7 @@
 <area shape="rect" id="node28" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="873,487,1056,513"/>
 <area shape="rect" id="node29" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="872,284,1057,311"/>
 <area shape="rect" id="node30" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="890,335,1039,361"/>
-<area shape="rect" id="node31" href="$classCaui4GtyIpWrapper.html" title=" " alt="" coords="890,385,1039,412"/>
+<area shape="rect" id="node31" href="$classAxiStreamRingBuffer.html" title=" " alt="" coords="885,385,1044,412"/>
 <area shape="rect" id="node36" href="$classFifoFwftTb.html" title=" " alt="" coords="701,816,792,843"/>
 <area shape="rect" id="node38" href="$classFwftCntTb.html" title=" " alt="" coords="703,867,791,893"/>
 <area shape="rect" id="node47" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="677,968,817,995"/>

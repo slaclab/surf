@@ -1,10 +1,11 @@
 <map id="SpiMaster" name="SpiMaster">
-<area shape="rect" id="node1" title=" " alt="" coords="309,5,395,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="386,5,473,32"/>
 <area shape="rect" id="node2" href="$classAd9249Config.html" title=" " alt="" coords="5,80,117,107"/>
-<area shape="rect" id="node3" href="$classadc32rf45.html" title=" " alt="" coords="142,80,229,107"/>
-<area shape="rect" id="node4" href="$classads54j60.html" title=" " alt="" coords="253,80,334,107"/>
-<area shape="rect" id="node5" href="$classAxiSpiMaster.html" title=" " alt="" coords="358,80,466,107"/>
-<area shape="rect" id="node7" href="$classSi5324.html" title=" " alt="" coords="491,80,557,107"/>
-<area shape="rect" id="node8" href="$classSi5345.html" title=" " alt="" coords="581,80,648,107"/>
-<area shape="rect" id="node6" href="$classLmk048Base.html" title=" " alt="" coords="359,155,465,181"/>
+<area shape="rect" id="node3" href="$classAd9681Config.html" title=" " alt="" coords="141,80,253,107"/>
+<area shape="rect" id="node4" href="$classadc32rf45.html" title=" " alt="" coords="278,80,365,107"/>
+<area shape="rect" id="node5" href="$classads54j60.html" title=" " alt="" coords="389,80,470,107"/>
+<area shape="rect" id="node6" href="$classAxiSpiMaster.html" title=" " alt="" coords="494,80,602,107"/>
+<area shape="rect" id="node8" href="$classSi5324.html" title=" " alt="" coords="627,80,693,107"/>
+<area shape="rect" id="node9" href="$classSi5345.html" title=" " alt="" coords="717,80,784,107"/>
+<area shape="rect" id="node7" href="$classLmk048Base.html" title=" " alt="" coords="495,155,601,181"/>
 </map>

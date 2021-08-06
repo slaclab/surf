@@ -1,6 +1,6 @@
 var classAxiDac7654Spi_1_1rtl =
 [
-    [ "PROCESS_94", "classAxiDac7654Spi_1_1rtl.html#aa97ba49471d2a88cf2a26461c604e580", null ],
+    [ "PROCESS_95", "classAxiDac7654Spi_1_1rtl.html#a34643a978a1c0234a6b3d62ef50ede12", null ],
     [ "AXI_CLK_PERIOD_C", "classAxiDac7654Spi_1_1rtl.html#a8e26a816fb15f1d7721e7c29d37ca5f3", null ],
     [ "MAX_CNT_C", "classAxiDac7654Spi_1_1rtl.html#a2849df70cd703e451b9743f428cf8d2c", null ],
     [ "StateType", "classAxiDac7654Spi_1_1rtl.html#a5cf7bca0fbf92ae8c431c7939cdba56c", null ],
