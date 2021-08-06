@@ -26,8 +26,8 @@ entity RogueTcpStreamWrap is
       TPD_G         : time                        := 1 ns;
       PORT_NUM_G    : natural range 1024 to 49151 := 9000;
       SSI_EN_G      : boolean                     := true;
-      CHAN_COUNT_G  : natural range 0 to 256      := 1;  -- set to 0 to activate CHAN_MASK_G instead
-      CHAN_MASK_G   : slv(7 downto 0)             := "00000000";
+      CHAN_COUNT_G  : natural range 0 to 256      := 1;
+      CHAN_MASK_G   : slv(7 downto 0)             := "00000000";  -- Overrides CHAN_COUNT_G if non-zero
       TDEST_MASK_G  : slv(7 downto 0)             := x"00";  -- Sets output TDEST when CHAN_COUNT_G=1
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
@@ -55,13 +55,13 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   constant CHAN_COUNT_C : integer := ite(CHAN_COUNT_G /= 0, CHAN_COUNT_G, -- If not 0, use CHAN_COUNT_G
-                                          ite(CHAN_MASK_G = X"00",  1, -- determin chan count from mask
-                                              2**conv_integer(onesCount(CHAN_MASK_G))));
+   -- Use CHAN_MASK_G to determine CHAN_COUNT_C if non-zero, else use CHAN_COUNT_G
+   constant CHAN_COUNT_C : integer := ite(CHAN_MASK_G = X"00", CHAN_COUNT_G,
+                                          2**conv_integer(onesCount(CHAN_MASK_G)));
 
 
-   -- Generate a correct channel mask if using CHAN_COUNT_C
-   constant CHAN_MASK_C : slv(7 downto 0) := ite(CHAN_COUNT_G = 0, CHAN_MASK_G,
+   -- Generate a correct channel mask if using CHAN_COUNT_G
+   constant CHAN_MASK_C : slv(7 downto 0) := ite(CHAN_MASK_G /= X"00", CHAN_MASK_G,
                                                  toSlv(2**bitSize(CHAN_COUNT_G-1)-1, 8));
 
    function channelMap return Slv8Array
