@@ -62,7 +62,7 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
 
    -- Generate a correct channel mask if using CHAN_COUNT_G
    constant CHAN_MASK_C : slv(7 downto 0) := ite(CHAN_MASK_G /= X"00", CHAN_MASK_G,
-                                                 toSlv(2**bitSize(CHAN_COUNT_G-1)-1, 8));
+                                                 toSlv(2**log2(CHAN_COUNT_G)-1, 8));
 
    function channelMap return Slv8Array
    is
