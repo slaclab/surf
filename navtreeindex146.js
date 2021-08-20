@@ -1,5 +1,11 @@
 var NAVTREEINDEX146 =
 {
+"classiq32bTo16b.html#a4ed4b33462e029a12dbd1133ed084f42":[1,0,374,8],
+"classiq32bTo16b.html#a598da929e807d58939b47499e8bc9fa8":[1,0,374,18],
+"classiq32bTo16b.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,374,1],
+"classiq32bTo16b.html#a6d911b9f06ce1e3a958bda21558461f2":[1,0,374,7],
+"classiq32bTo16b.html#a917be5be928e0ed990a19e87b11f7669":[1,0,374,5],
+"classiq32bTo16b.html#aa76312f8bd2061dd028fbed3428756cf":[1,0,374,15],
 "classiq32bTo16b.html#ab3c259fbcfa43748d0f3f32890f0ed4d":[1,0,374,3],
 "classiq32bTo16b.html#ab585e269fe996a854c92c8bc20c1c8b1":[1,0,374,12],
 "classiq32bTo16b.html#abebb14f271decc786c870074b66249b8":[1,0,374,14],
@@ -243,9 +249,5 @@ var NAVTREEINDEX146 =
 "classstream__tb_1_1stream__tb.html#ac874fd2b2639401e4d77200088886b2e":[1,0,634,0,0],
 "classstream__tb_1_1stream__tb.html#aef9060a28c75cac535947edddddfd0a1":[1,0,634,0,2],
 "functions.html":[1,3,0],
-"functions_vars.html":[1,3,1],
-"hierarchy.html":[1,2],
-"index.html":[],
-"namespaces.html":[0,0],
-"pages.html":[]
+"functions_vars.html":[1,3,1]
 };
