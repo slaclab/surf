@@ -34,9 +34,9 @@ entity Ad9681Readout is
    generic (
       TPD_G : time := 1 ns;
 
-      IODELAY_GROUP_G   : string          := "DEFAULT_GROUP";
-      IDELAYCTRL_FREQ_G : real            := 200.0;
-      DEFAULT_DELAY_G   : slv(4 downto 0) := (others => '0'));
+      IODELAY_GROUP_G   : string                    := "DEFAULT_GROUP";
+      IDELAYCTRL_FREQ_G : real                      := 200.0;
+      DEFAULT_DELAY_G   : integer range 0 to 2**5-1 := 0);
    port (
       -- Master system clock, 125Mhz
       axilClk : in sl;
@@ -46,7 +46,7 @@ entity Ad9681Readout is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
       axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axilReadSlave   : out AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
 
       -- Reset for adc deserializer
       adcClkRst : in sl;
@@ -56,8 +56,8 @@ entity Ad9681Readout is
 
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
-      adcStreams   : out AxiStreamMasterArray(7 downto 0) :=  (others => axiStreamMasterInit(AD9681_AXIS_CFG_G)));
-   
+      adcStreams   : out AxiStreamMasterArray(7 downto 0) := (others => axiStreamMasterInit(AD9681_AXIS_CFG_G)));
+
 end Ad9681Readout;
 
 -- Define architecture
@@ -90,7 +90,7 @@ architecture rtl of Ad9681Readout is
    constant AXIL_REG_INIT_C : AxilRegType := (
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      delay          => DEFAULT_DELAY_G,
+      delay          => toSlv(DEFAULT_DELAY_G, 5),
       dataDelaySet   => (others => (others => '1')),
       frameDelaySet  => "11",
       freezeDebug    => '0',
@@ -137,11 +137,11 @@ architecture rtl of Ad9681Readout is
    signal adcBitClkR     : slv(1 downto 0);
    signal adcBitRst      : slv(1 downto 0);
 
-   signal adcFramePad   : slv(1 downto 0);
-   signal adcFrame      : slv8Array(1 downto 0);
-   signal adcFrameSync  : slv8Array(1 downto 0);
-   signal adcDataPad    : slv8Array(1 downto 0);
-   signal adcData       : AdcDataArray(1 downto 0);
+   signal adcFramePad  : slv(1 downto 0);
+   signal adcFrame     : slv8Array(1 downto 0);
+   signal adcFrameSync : slv8Array(1 downto 0);
+   signal adcDataPad   : slv8Array(1 downto 0);
+   signal adcData      : AdcDataArray(1 downto 0);
 
    signal curDelayFrame : slv5Array(1 downto 0);
    signal curDelayData  : DelayDataArray(1 downto 0);
@@ -245,15 +245,15 @@ begin
       for i in 1 downto 0 loop
          for ch in 0 to NUM_CHANNELS_C-1 loop
             axiSlaveRegister(axilEp, X"00"+toSlv((ch*8+i*4), 8), 0, v.delay);
-            axiWrDetect(axilEp, X"00"+toSlv((ch*8+i*4), 8),  v.dataDelaySet(i)(ch));
+            axiWrDetect(axilEp, X"00"+toSlv((ch*8+i*4), 8), v.dataDelaySet(i)(ch));
 
-            axiSlaveRegisterR(axilEp, X"00"+toSlv((ch*8+i*4), 8), 0, axilR.curDelayData(i)(ch));            
+            axiSlaveRegisterR(axilEp, X"00"+toSlv((ch*8+i*4), 8), 0, axilR.curDelayData(i)(ch));
          end loop;
-         
+
          axiSlaveRegister(axilEp, X"40"+toSlv(i*4, 8), 0, v.delay);
          axiWrDetect(axilEp, X"40"+toSlv(i*4, 8), v.frameDelaySet(i));
 
-         axiSlaveRegisterR(axilEp, X"40", 0, axilR.curDelayFrame(i));         
+         axiSlaveRegisterR(axilEp, X"40", 0, axilR.curDelayFrame(i));
       end loop;
 
 
@@ -361,6 +361,7 @@ begin
       U_FRAME_DESERIALIZER : entity surf.Ad9681Deserializer
          generic map (
             TPD_G             => TPD_G,
+            DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
             IODELAY_GROUP_G   => IODELAY_GROUP_G,
             IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G)
          port map (
@@ -396,6 +397,7 @@ begin
          U_DATA_DESERIALIZER : entity surf.Ad9681Deserializer
             generic map (
                TPD_G             => TPD_G,
+               DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
                IODELAY_GROUP_G   => IODELAY_GROUP_G,
                IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G)
             port map (
