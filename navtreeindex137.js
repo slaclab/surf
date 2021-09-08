@@ -1,5 +1,8 @@
 var NAVTREEINDEX137 =
 {
+"classTrueDualPortRamXpm.html#a063be98099abe71dfd431e3295e231e5":[1,0,670,27],
+"classTrueDualPortRamXpm.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,670,29],
+"classTrueDualPortRamXpm.html#a0de49fbe6e07a265532ec49da1f5c4bb":[1,0,670,14],
 "classTrueDualPortRamXpm.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,670,31],
 "classTrueDualPortRamXpm.html#a15744a2b5a69e47974a097e472b24220":[1,0,670,24],
 "classTrueDualPortRamXpm.html#a16d01cc341237949cc0e82472f53a2ca":[1,0,670,35],
@@ -246,8 +249,5 @@ var NAVTREEINDEX137 =
 "classUartRx_1_1rtl.html#ab449d5df2c1589fe20a9551742e11f08":[1,0,675,0,4],
 "classUartRx_1_1rtl.html#ad094762b572f8fc14051052e0ffb7bc9":[1,0,675,0,18],
 "classUartRx_1_1rtl.html#ade4de2a008a5f96235206eb18081481c":[1,0,675,0,15],
-"classUartRx_1_1rtl.html#afbaa6bb6d4de66025277ca28244d5302":[1,0,675,0,7],
-"classUartSem.html":[1,0,676],
-"classUartSem.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,676,12],
-"classUartSem.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,676,15]
+"classUartRx_1_1rtl.html#afbaa6bb6d4de66025277ca28244d5302":[1,0,675,0,7]
 };

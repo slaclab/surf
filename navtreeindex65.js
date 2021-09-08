@@ -1,5 +1,8 @@
 var NAVTREEINDEX65 =
 {
+"classGtx7QuadPll.html#a86db10f54a9c33e8d57906c86bfb4215":[1,0,325,18],
+"classGtx7QuadPll.html#a86f0292469878d2c30a2994fabb3cee4":[1,0,325,22],
+"classGtx7QuadPll.html#a8d3281f98c411a9bde09f737156b08ce":[1,0,325,19],
 "classGtx7QuadPll.html#a910a2f0d4ffe9e284509f71d6b1f5c0c":[1,0,325,10],
 "classGtx7QuadPll.html#a962f1c6a2adaac3e10a6f7fa3d111e01":[1,0,325,30],
 "classGtx7QuadPll.html#aa1cb22e959d47364391e5eb4ef86927c":[1,0,325,31],
@@ -246,8 +249,5 @@ var NAVTREEINDEX65 =
 "classGtx7RxRst_1_1RTL.html#af11d64f241f86d0443d66d63debb8cc7":[1,0,328,0,35],
 "classGtx7RxRst_1_1RTL.html#af3a3eaa8cfb8911da50373028807b355":[1,0,328,0,65],
 "classGtx7RxRst_1_1RTL.html#afdc70ffba6cf2e4fe484f99603663d5b":[1,0,328,0,9],
-"classGtx7RxRst_1_1RTL.html#afe4ebc02e133680867a4718b5e10eeab":[1,0,328,0,44],
-"classGtx7TxManualPhaseAligner.html":[1,0,329],
-"classGtx7TxManualPhaseAligner.html#a00d491665bafd7a2518d210d3e571312":[1,0,329,10],
-"classGtx7TxManualPhaseAligner.html#a111c939469f7a132a63b5c9bbe705f24":[1,0,329,8]
+"classGtx7RxRst_1_1RTL.html#afe4ebc02e133680867a4718b5e10eeab":[1,0,328,0,44]
 };

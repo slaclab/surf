@@ -37,6 +37,7 @@ var classGtx7Core_1_1rtl =
     [ "rxUserRdyInt", "classGtx7Core_1_1rtl.html#aa94194002c5e1db03c167940403d622c", null ],
     [ "rxUserResetInt", "classGtx7Core_1_1rtl.html#a446667a5452d6620204ed4b6411e9201", null ],
     [ "rxFsmResetDone", "classGtx7Core_1_1rtl.html#ae994519f5f8c4f50e1c59717ee58ae20", null ],
+    [ "rxResetDoneAll", "classGtx7Core_1_1rtl.html#ad097b16cc69b71caceae55ca4d0b5a46", null ],
     [ "rxRstTxUserRdy", "classGtx7Core_1_1rtl.html#a594afa6af439ec9317f9d07188f8c1f3", null ],
     [ "rxRecClkStable", "classGtx7Core_1_1rtl.html#aae0b262257a210948b9d09e1f4d5ec88", null ],
     [ "rxRecClkMonitorRestart", "classGtx7Core_1_1rtl.html#a7ec52e856ef8b9a95bca657c1224ce6c", null ],

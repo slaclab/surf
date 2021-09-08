@@ -1,5 +1,8 @@
 var NAVTREEINDEX83 =
 {
+"classPgp2bGth7VarLatWrapper.html#a0b182373718b47c496844894f3f04425":[1,0,421,20],
+"classPgp2bGth7VarLatWrapper.html#a0bb19750a9564f792a32a2eb34e4f734":[1,0,421,33],
+"classPgp2bGth7VarLatWrapper.html#a0fa5aa8cc88321e20bc76e6f00e9598f":[1,0,421,22],
 "classPgp2bGth7VarLatWrapper.html#a13a5297b5dcdfc588489fca190759b42":[1,0,421,12],
 "classPgp2bGth7VarLatWrapper.html#a14259fae0e380a1bda742e2c6bfb7a74":[1,0,421,26],
 "classPgp2bGth7VarLatWrapper.html#a22f8db74a5a4c77e7e2767279ca36e7f":[1,0,421,39],
@@ -119,8 +122,8 @@ var NAVTREEINDEX83 =
 "classPgp2bGthUltra_1_1mapping.html#acf87e4966a588f240955f56ade7d7035":[1,0,422,0,18],
 "classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,422,0,15],
 "classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,422,0,21],
-"classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,422,0,13],
 "classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,422,0,19],
+"classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,422,0,13],
 "classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,422,0,14],
 "classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,422,0,20],
 "classPgp2bGthUltra_1_1mapping.html#af533e69f56301f5d9882da58422ab3ac":[1,0,422,0,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX83 =
 "classPgp2bGtp7FixedLatWrapper.html#a762b446ddef001083e8cfc52dc38385f":[1,0,424,2],
 "classPgp2bGtp7FixedLatWrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,424,85],
 "classPgp2bGtp7FixedLatWrapper.html#a786b1c3b51b3f4ee97728d0e8c72b227":[1,0,424,18],
-"classPgp2bGtp7FixedLatWrapper.html#a80e5574c28ce6fd06510648d63787843":[1,0,424,78],
-"classPgp2bGtp7FixedLatWrapper.html#a82c25c9f65a5591f5ee27842718a1a62":[1,0,424,57],
-"classPgp2bGtp7FixedLatWrapper.html#a849ca82fbda7200a33de82190f03c975":[1,0,424,42],
-"classPgp2bGtp7FixedLatWrapper.html#a86db10f54a9c33e8d57906c86bfb4215":[1,0,424,73]
+"classPgp2bGtp7FixedLatWrapper.html#a80e5574c28ce6fd06510648d63787843":[1,0,424,78]
 };
