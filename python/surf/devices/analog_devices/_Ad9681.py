@@ -318,15 +318,11 @@ class Ad9681Config(pr.Device):
             },
         ))
 
-        def nonBlockingTouchZero(cmd, arg):
-            print(f'Sending nonblocking touch zero command for {cmd.path}')
-            cmd._set(0, -1)
-            pr.startTransaction(cmd._block, type=rim.Write, forceWr=True, checkEach=False, variable=cmd, index=-1)
-
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
             offset=0x3FC,
-            function=pr.BaseCommand.touchZero))
+            function=pr.BaseCommand.touchZero,
+        ))
 
     def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
         pr.Device.writeBlocks(self, force=force, recurse=True, variable=variable, checkEach=checkEach, index=index)
@@ -354,41 +350,35 @@ class Ad9681Readout(pr.Device):
             delayBits = 6
 
 
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name         = f'Delay[{i}]',
-                description  = f'IDELAY value for serial channel {i}',
-                disp         = '{:d}',
-                offset       = i*4,
-                bitSize      = delayBits,
-                bitOffset    = 0,
-                base         = pr.UInt,
-                mode         = 'RW',
-                verify       = False))
-
-        self.add(pr.RemoteCommand(
-            name = 'Realign',
-            offset = 0x20,
-            bitSize = 1,
-            function = pr.RemoteCommand.toggle))
+        for ch in range(channels):
+            for i in range(2):
+                self.add(pr.RemoteVariable(
+                    name         = f'ChannelDelay[{ch}][{i}]',
+                    description  = f'IDELAY value for serial channel {ch}_{i}',
+                    offset       = ch*8 + i*4,
+                    bitSize      = delayBits,
+                    bitOffset    = 0,
+                    base         = pr.UInt,
+                    mode         = 'RW',
+                    verify       = False,
+                ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name        = f'ErrorDetCount[{i}]',
-                disp         = '{:d}',
-                offset      = 0x30+ 4*i,
-                bitSize     = 16,
+                name        = f'FrameDelay[{i}]',
+                description = f'IDELAY value for FCO_{i}',
+                offset      = 0x40 + i*4,
+                bitSize     = delayBits,
                 bitOffset   = 0,
                 base        = pr.UInt,
-                mode        = 'RO',
+                mode        = 'RW',
+                verify       = False,
             ))
-
 
         for i in range(2):
             self.add(pr.RemoteVariable(
                 name        = f'LostLockCount[{i}]',
                 description = 'Number of times that frame lock has been lost since reset',
-                disp         = '{:d}',
                 offset      = 0x50+ 4*i,
                 bitSize     = 16,
                 bitOffset   = 0,
@@ -457,12 +447,6 @@ class Ad9681Readout(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
         ))
-
-        def queuedTouch(cmd, arg):
-            print(f'Queueing command {cmd.path}({arg})')
-            cmd._set(arg, -1)
-            pr.startTransaction(cmd._block, type=rim.Write, forceWr=True, checkEach=False, variable=cmd, index=-1)
-
 
         self.add(pr.RemoteCommand(
             name='FreezeDebug',
