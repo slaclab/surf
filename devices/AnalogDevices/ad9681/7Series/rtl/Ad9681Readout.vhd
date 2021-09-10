@@ -83,6 +83,7 @@ architecture rtl of Ad9681Readout is
       readoutDebug1  : slv16Array(NUM_CHANNELS_C-1 downto 0);
       lockedCountRst : sl;
       invert         : sl;
+      relock         : slv(1 downto 0);
       curDelayFrame  : slv5Array(1 downto 0);
       curDelayData   : DelayDataArray(1 downto 0);
    end record;
@@ -98,6 +99,7 @@ architecture rtl of Ad9681Readout is
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
       invert         => '0',
+      relock         => "00",
       curDelayFrame  => (others => (others => '0')),
       curDelayData   => (others => (others => (others => '0'))));
 
@@ -110,20 +112,24 @@ architecture rtl of Ad9681Readout is
    -------------------------------------------------------------------------------------------------
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
+   type SyncStateType is (RESET_S, SYNCING_S, SYNCED_S);
+
    type AdcRegType is record
-      slip     : sl;
-      count    : slv(5 downto 0);
-      locked   : sl;
-      adcValid : sl;
+      state  : SyncStateType;
+      slip   : sl;
+      count  : slv(5 downto 0);
+      locked : sl;
+      reset  : sl;
    end record;
 
    type AdcRegArray is array (natural range <>) of AdcRegType;
 
    constant ADC_REG_INIT_C : AdcRegType := (
-      slip     => '0',
-      count    => (others => '0'),
-      locked   => '0',
-      adcValid => '0');
+      state  => RESET_S,
+      slip   => '0',
+      count  => (others => '0'),
+      locked => '0',
+      reset  => '1');
 
    signal adcR     : AdcRegArray(1 downto 0) := (others => ADC_REG_INIT_C);
    signal adcRin   : AdcRegArray(1 downto 0);
@@ -157,6 +163,7 @@ architecture rtl of Ad9681Readout is
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_C-1 downto 0);
 
    signal invertSync : slv(1 downto 0);
+   signal relockSync : slv(1 downto 0);
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -212,7 +219,20 @@ begin
             dataIn  => axilR.invert,
             dataOut => invertSync(i));
 
+      Synchronizer_3 : entity surf.Synchronizer
+         generic map (
+            TPD_G    => TPD_G,
+            STAGES_G => 2)
+         port map (
+            clk     => adcBitClkR(i),
+--            rst     => axilRst,
+            dataIn  => axilR.relock(i),
+            dataOut => relockSync(i));
+
+
    end generate SYNC_GEN;
+
+
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
@@ -272,6 +292,8 @@ begin
 
       axiSlaveRegister(axilEp, X"60", 0, v.invert);
 
+      axiSlaveRegister(axilEp, X"70", 0, v.relock);
+
       -- Debug registers. Output the last 2 words received
       for ch in 0 to NUM_CHANNELS_C-1 loop
          axiSlaveRegisterR(axilEp, X"80"+toSlv((ch*4), 8), 0, axilR.readoutDebug0(ch));
@@ -298,6 +320,8 @@ begin
          axilR <= axilRin after TPD_G;
       end if;
    end process axilSeq;
+
+
 
 
    GEN_PARTS : for i in 1 downto 0 generate
@@ -368,7 +392,7 @@ begin
             clkIo    => adcBitClkIo(i),
             clkIoInv => adcBitClkIoInv(i),
             clkR     => adcBitClkR(i),
-            rst      => adcBitRst(i),
+            rst      => adcR(i).reset,  --adcBitRst(i),
             slip     => adcR(i).slip,
             sysClk   => axilClk,
             curDelay => curDelayFrame(i),
@@ -404,7 +428,7 @@ begin
                clkIo    => adcBitClkIo(i),
                clkIoInv => adcBitClkIoInv(i),
                clkR     => adcBitClkR(i),
-               rst      => adcBitRst(i),
+               rst      => adcR(i).reset,  --adcBitRst(i),
                slip     => adcR(i).slip,
                sysClk   => axilClk,
                curDelay => curDelayData(i)(ch),
@@ -419,40 +443,54 @@ begin
       -------------------------------------------------------------------------------------------------
       -- ADC Bit Clocked Logic
       -------------------------------------------------------------------------------------------------
-      adcComb : process (adcFrame, adcR) is
+      adcComb : process (adcFrame, adcR, relockSync) is
          variable v : AdcRegType;
       begin
-         v          := adcR(i);
-         v.adcValid := '0';
+         v := adcR(i);
+
          ----------------------------------------------------------------------------------------------
          -- Slip bits until correct alignment seen
          ----------------------------------------------------------------------------------------------
-         v.slip     := '0';
+         v.slip  := '0';
+         v.reset := '0';
 
-         if (adcR(i).count = 0) then
-            if (adcFrame(i) = "11110000") then
+         v.count := adcR(i).count + 1;
+
+         case adcR(i).state is
+            when RESET_S =>
+               v.reset := '1';
+               if (adcR(i).count = "111111") then
+                  v.state := SYNCING_S;
+               end if;
+
+            when SYNCING_S =>
+               if (adcR(i).count = "111111") then
+                  if (adcFrame(i) = "11110000") then
+                     v.state := SYNCED_S;
+                  else
+                     v.slip := '1';
+                  end if;
+               end if;
+
+            when SYNCED_S =>
                v.locked := '1';
-            else
-               v.locked := '0';
-               v.slip   := '1';
-               v.count  := adcR(i).count + 1;
-            end if;
-         end if;
+               v.count  := (others => '0');
+               if (adcFrame(i) /= "11110000") then
+                  v.state := RESET_S;
+               end if;
 
-         if (adcR(i).count /= 0) then
-            v.count := adcR(i).count + 1;
-         end if;
+            when others => null;
+         end case;
 
+         if (relockSync(i) = '1') then
+            v.state := RESET_S;
+         end if;
 
          ----------------------------------------------------------------------------------------------
          -- Look for Frame rising edges and write data to fifos
          ----------------------------------------------------------------------------------------------
-         if (adcR(i).locked = '1' and adcFrame(i) = "11110000") then
-            v.adcValid := '1';
-         end if;
-
          adcRin(i)   <= v;
-         adcValid(i) <= v.adcValid;
+         adcValid(i) <= adcR(i).locked;
 
       end process adcComb;
 

@@ -426,7 +426,7 @@ class Ad9681Readout(pr.Device):
                 bitSize     = 32,
                 bitOffset   = 0,
                 base        = pr.UInt,
-                disp        = '{:_x}',
+                disp        = '{:09_x}',
                 mode        = 'RO',
             ))
 
@@ -458,6 +458,15 @@ class Ad9681Readout(pr.Device):
             base=pr.UInt,
             function=pr.RemoteCommand.touch))
 
+        self.add(pr.RemoteCommand(
+            name='Relock',
+            hidden=False,
+            offset=0x70,
+            bitSize=2,
+            bitOffset=0,
+            base=pr.UInt,
+            function=pr.RemoteCommand.createToggle([0, 3, 0])))
+        
 
     def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
         """
