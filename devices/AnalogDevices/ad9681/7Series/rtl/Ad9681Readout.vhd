@@ -273,7 +273,7 @@ begin
          axiSlaveRegister(axilEp, X"40"+toSlv(i*4, 8), 0, v.delay);
          axiWrDetect(axilEp, X"40"+toSlv(i*4, 8), v.frameDelaySet(i));
 
-         axiSlaveRegisterR(axilEp, X"40", 0, axilR.curDelayFrame(i));
+         axiSlaveRegisterR(axilEp, X"40"+toSlv(i*4, 8), 0, axilR.curDelayFrame(i));
       end loop;
 
 
@@ -451,8 +451,9 @@ begin
          ----------------------------------------------------------------------------------------------
          -- Slip bits until correct alignment seen
          ----------------------------------------------------------------------------------------------
-         v.slip  := '0';
-         v.reset := '0';
+         v.slip   := '0';
+         v.reset  := '0';
+         v.locked := '0';
 
          v.count := adcR(i).count + 1;
 
