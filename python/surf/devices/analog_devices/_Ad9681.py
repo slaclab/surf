@@ -466,7 +466,7 @@ class Ad9681Readout(pr.Device):
             bitOffset=0,
             base=pr.UInt,
             function=pr.RemoteCommand.createToggle([0, 3, 0])))
-        
+
 
     def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
         """
