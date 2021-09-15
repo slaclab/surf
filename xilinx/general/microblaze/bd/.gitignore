@@ -1,2 +1,0 @@
-# Ignore the .TCL files from CopyBdCores() (ruckus@v2.0.3)
-*.tcl
