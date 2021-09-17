@@ -19,7 +19,12 @@ if { [info exists ::env(SDK_SRC_PATH)] != 1 }  {
       loadSource -lib surf -path "$::DIR_PATH/generate/MicroblazeBasicCoreWrapper.vhd"
 
       # Load the .bd file
-      loadBlockDesign -path "$::DIR_PATH/bd/2020.1/MicroblazeBasicCore.bd"
+      if { $::env(VIVADO_VERSION) < 2021.1 } {
+         loadBlockDesign -path "$::DIR_PATH/bd/2020.1/MicroblazeBasicCore.bd"
+      } else {
+         loadBlockDesign -path "$::DIR_PATH/bd/2021.1/MicroblazeBasicCore.tcl"
+      }
+
    }
 
 }

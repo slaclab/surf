@@ -228,7 +228,7 @@ class Qsfp(pr.Device):
 
         self.addRemoteVariables(
             name         = 'DateCode',
-            description  = 'Vendor’s manufacturing date code (ASCII)',
+            description  = 'Vendor\'s manufacturing date code (ASCII)',
             offset       = (212 << 2),
             bitSize      = 8,
             mode         = 'RO',
@@ -240,7 +240,7 @@ class Qsfp(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'ManufactureDate',
-            description  = 'Vendor’s manufacturing date code (ASCII)',
+            description  = 'Vendor\'s manufacturing date code (ASCII)',
             mode         = 'RO',
             linkedGet    = transceivers.getDate,
             dependencies = [self.DateCode[x] for x in [0,1,4,5,2,3] ],

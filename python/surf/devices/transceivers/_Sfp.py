@@ -134,7 +134,7 @@ class Sfp(pr.Device):
 
         self.addRemoteVariables(
             name         = 'DateCode',
-            description  = 'Vendor’s manufacturing date code (ASCII)',
+            description  = 'Vendor\'s manufacturing date code (ASCII)',
             offset       = (84 << 2),
             bitSize      = 8,
             mode         = 'RO',
@@ -146,7 +146,7 @@ class Sfp(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'ManufactureDate',
-            description  = 'Vendor’s manufacturing date code (ASCII)',
+            description  = 'Vendor\'s manufacturing date code (ASCII)',
             mode         = 'RO',
             linkedGet    = transceivers.getDate,
             dependencies = [self.DateCode[x] for x in range(6)],

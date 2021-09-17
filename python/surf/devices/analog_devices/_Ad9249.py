@@ -412,9 +412,9 @@ class Ad9249ReadoutGroup(pr.Device):
 
         else:
             self.FreezeDebug(1)
-            #for block in self._blocks:
-            #    if block.bulkOpEn:
-            #        pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
+            for block in self._blocks:
+                if block.bulkOpEn:
+                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
             self.FreezeDebug(0)
 
             if recurse:

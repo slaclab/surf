@@ -26,6 +26,7 @@ class AxiMicronN25Q(pr.Device):
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             addrMode    = True, # False = 24-bit Address mode, True = 32-bit Address Mode
             tryCount    = 5,
+            hidden      = True,
             **kwargs):
 
         self._useVars = rogue.Version.greaterThanEqual('5.4.0')
@@ -38,6 +39,7 @@ class AxiMicronN25Q(pr.Device):
         super().__init__(
             description = description,
             size        = size,
+            hidden      = hidden,
             **kwargs)
 
         self._mcs      = surf.misc.McsReader()
