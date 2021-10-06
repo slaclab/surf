@@ -253,7 +253,10 @@ class AxiMicronN25Q(pr.Device):
         wordCnt = 0
         byteCnt = 0
         # Create a burst data array
-        dataArray = [0] * 64
+        if self._useVars:
+            dataArray = self.getDataReg(read=False)
+        else:
+            dataArray = [0] * 64
         # Setup the status bar
         with click.progressbar(
             length   = self._mcs.size,
@@ -476,8 +479,8 @@ class AxiMicronN25Q(pr.Device):
         else:
             self._rawWrite(offset=0x200,data=values,tryCount=self._tryCount) # Deprecated
 
-    def getDataReg(self):
+    def getDataReg(self,read=True):
         if self._useVars:
-            return self.DataReg.get()
+            return self.DataReg.get(read=read)
         else:
             return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount)) # Deprecated
