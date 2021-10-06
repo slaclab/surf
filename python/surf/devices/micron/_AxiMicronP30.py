@@ -208,7 +208,7 @@ class AxiMicronP30(pr.Device):
     def writeProm(self):
         # Create a burst data array
         if self._useVars:
-            dataArray = self.BurstData.get()
+            dataArray = self.BurstData.get(read=False)
         else:
             dataArray = [0] * 256
 
