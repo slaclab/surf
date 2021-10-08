@@ -436,7 +436,7 @@ class Ad9681Readout(pr.Device):
                 mode = 'RO',
                 disp = '{:1.9f}',
                 variable = self.AdcChannel[i],
-                linkedGet = lambda r=self.AdcChannel[i]: 2*pr.twosComplement(r.value()>>18, 14)/2**14,
+                linkedGet = lambda read, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read)>>18, 14)/2**14,
                 units = 'V'))
 
         self.add(pr.RemoteCommand(
@@ -475,7 +475,7 @@ class Ad9681Readout(pr.Device):
         checkEach = checkEach or self.forceCheckEach
 
         if variable is not None:
-            freeze = isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
+            freeze = False #isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
             if freeze:
                 self.FreezeDebug(1)
             pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
