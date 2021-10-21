@@ -106,7 +106,7 @@ begin
    PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 15625000)        -- 100 ms
+         DURATION_G => 156250000)       -- 1000 ms
       port map (
          arst   => extRst,
          clk    => coreClock,
@@ -145,12 +145,12 @@ begin
 
       TenGigEthGthUltraScale_Inst : entity surf.TenGigEthGthUltraScale
          generic map (
-            TPD_G           => TPD_G,
-            PAUSE_EN_G      => PAUSE_EN_G,
+            TPD_G         => TPD_G,
+            PAUSE_EN_G    => PAUSE_EN_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G    => EN_AXI_REG_G,
+            EN_AXI_REG_G  => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),
