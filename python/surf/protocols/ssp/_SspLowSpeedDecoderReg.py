@@ -53,6 +53,15 @@ class SspLowSpeedDecoderReg(pr.Device):
         ))
 
         self.addRemoteVariables(
+            name         = 'UsrDlyCfg',
+            offset       = 0x500,
+            bitSize      = 9,
+            mode         = 'RW',
+            number       = numberLanes,
+            stride       = 4,
+        )
+
+        self.addRemoteVariables(
             name         = 'DlyConfig',
             offset       = 0x600,
             bitSize      = 9,
@@ -88,13 +97,16 @@ class SspLowSpeedDecoderReg(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'UsrDlyCfg',
-            description  = 'User delay config',
-            offset       = 0x804,
-            bitSize      = 9,
-            mode         = 'RW',
-        ))
+#####################################
+# Changed from "common" to 1 per lane
+#####################################
+#        self.add(pr.RemoteVariable(
+#            name         = 'UsrDlyCfg',
+#            description  = 'User delay config',
+#            offset       = 0x804,
+#            bitSize      = 9,
+#            mode         = 'RW',
+#        ))
 
         self.add(pr.RemoteVariable(
             name         = 'MinEyeWidth',
