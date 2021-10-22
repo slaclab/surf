@@ -12,6 +12,7 @@ var classRssiCoreWrapper =
     [ "PIPE_STAGES_G", "classRssiCoreWrapper.html#aa5b701cabb832036aea0132bf6159d5a", null ],
     [ "APP_STREAMS_G", "classRssiCoreWrapper.html#adc854cd57bcc4de17c8e6f8f2a8ff159", null ],
     [ "APP_STREAM_ROUTES_G", "classRssiCoreWrapper.html#a3a53bdd834fc46a26b7315e631b7ccc3", null ],
+    [ "APP_STREAM_PRIORITY_G", "classRssiCoreWrapper.html#a7d49e8e190cf5d63c440ea8b9e1a35ff", null ],
     [ "APP_ILEAVE_EN_G", "classRssiCoreWrapper.html#a9129f260742e599a6992caff26dd5fe8", null ],
     [ "BYP_TX_BUFFER_G", "classRssiCoreWrapper.html#a553a3bd6c2bbb66ffbe09f130859bd19", null ],
     [ "BYP_RX_BUFFER_G", "classRssiCoreWrapper.html#aa27f0631c117558ec5cf48efec00aa91", null ],

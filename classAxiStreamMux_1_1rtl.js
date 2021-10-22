@@ -1,7 +1,8 @@
 var classAxiStreamMux_1_1rtl =
 [
     [ "ROUTE_TABLE_REMAP", "classAxiStreamMux_1_1rtl.html#ada66ed30909e913104e4569d6e3641a2", null ],
-    [ "comb", "classAxiStreamMux_1_1rtl.html#ac84435cd7f0c454020a84bb6f076534b", null ],
+    [ "PRIORITY_CONTROL", "classAxiStreamMux_1_1rtl.html#adee9963c363224a1e4742a82856d0d88", null ],
+    [ "comb", "classAxiStreamMux_1_1rtl.html#a0285bfb5a07b6fb222268fccc5e30ae7", null ],
     [ "seq", "classAxiStreamMux_1_1rtl.html#a60cf6c6e46dc89a140bc8bff4d98f732", null ],
     [ "DEST_SIZE_C", "classAxiStreamMux_1_1rtl.html#ade98ad0ef8109a88f77d4cf304910beb", null ],
     [ "ARB_BITS_C", "classAxiStreamMux_1_1rtl.html#a794dcf5b200246aa72e83a2ba226adbe", null ],
@@ -18,5 +19,6 @@ var classAxiStreamMux_1_1rtl =
     [ "sAxisMastersTmp", "classAxiStreamMux_1_1rtl.html#a27e95b1998128b44173f3c51b135e035", null ],
     [ "pipeAxisMaster", "classAxiStreamMux_1_1rtl.html#a97c9364528b895be56cde665ba2630e5", null ],
     [ "pipeAxisSlave", "classAxiStreamMux_1_1rtl.html#a0f16d9b9212e56adf85dd6e1db5d7459", null ],
+    [ "intDisableSel", "classAxiStreamMux_1_1rtl.html#a7c5ebf2ecc7217fc88516a7124bba38a", null ],
     [ "axistreampipeline_1", "classAxiStreamMux_1_1rtl.html#ae8edc0156a44c2b4c251337348698ca9", null ]
 ];

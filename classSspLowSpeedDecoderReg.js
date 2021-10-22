@@ -13,7 +13,7 @@ var classSspLowSpeedDecoderReg =
     [ "locked", "classSspLowSpeedDecoderReg.html#afb39f26771fcaf10b0fd13d0f7d3ad22", null ],
     [ "idleCode", "classSspLowSpeedDecoderReg.html#a92a675f787e841e539b2af16156020e2", null ],
     [ "enUsrDlyCfg", "classSspLowSpeedDecoderReg.html#a4b70b2576f1302df9dea050c5d90dd3b", null ],
-    [ "usrDlyCfg", "classSspLowSpeedDecoderReg.html#a4f50ae02ef092ebb939634e2cd4272d3", null ],
+    [ "usrDlyCfg", "classSspLowSpeedDecoderReg.html#a6dbf723e284e1a324499a8786628a74c", null ],
     [ "minEyeWidth", "classSspLowSpeedDecoderReg.html#ac488fcecebe46eb35d6452e47977740a", null ],
     [ "lockingCntCfg", "classSspLowSpeedDecoderReg.html#a77a2e0c89ae8ebf4da6bc95ebf93112b", null ],
     [ "bypFirstBerDet", "classSspLowSpeedDecoderReg.html#a40774d335ed994f8fb86087421cd558e", null ],

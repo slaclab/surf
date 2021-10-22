@@ -3,7 +3,7 @@ var classSspLowSpeedDecoder10b12bWrapper_1_1mapping =
     [ "DATA_WIDTH_C", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a61d26ab3ae5c02bf955ed4f7b0f766e6", null ],
     [ "dlyConfig", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a50788b729fbe248b49ed55bad60edad3", null ],
     [ "enUsrDlyCfg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#af610c47796cb403aba59a531b6f75ab7", null ],
-    [ "usrDlyCfg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#aba2f04c69c8b01b91e448a201d601c6c", null ],
+    [ "usrDlyCfg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#ae7aed50144ea7845b164a742191981e6", null ],
     [ "minEyeWidth", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a3141f83263d9d49bea23f5cdbb26ff68", null ],
     [ "lockingCntCfg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a7022f6aab10f1f8d1a51b1cea6a9fd93", null ],
     [ "bypFirstBerDet", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a12bba366d472ac60a472a8a7cbd36d70", null ],

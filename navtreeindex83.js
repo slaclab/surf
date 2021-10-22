@@ -1,5 +1,8 @@
 var NAVTREEINDEX83 =
 {
+"classPgp2bGth7VarLat.html#afb7e59d6aa7a701168a318975ed16087":[1,0,420,19],
+"classPgp2bGth7VarLatWrapper.html":[1,0,421],
+"classPgp2bGth7VarLatWrapper.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,421,42],
 "classPgp2bGth7VarLatWrapper.html#a0b182373718b47c496844894f3f04425":[1,0,421,20],
 "classPgp2bGth7VarLatWrapper.html#a0bb19750a9564f792a32a2eb34e4f734":[1,0,421,33],
 "classPgp2bGth7VarLatWrapper.html#a0fa5aa8cc88321e20bc76e6f00e9598f":[1,0,421,22],
@@ -122,8 +125,8 @@ var NAVTREEINDEX83 =
 "classPgp2bGthUltra_1_1mapping.html#acf87e4966a588f240955f56ade7d7035":[1,0,422,0,18],
 "classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,422,0,15],
 "classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,422,0,21],
-"classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,422,0,19],
 "classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,422,0,13],
+"classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,422,0,19],
 "classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,422,0,14],
 "classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,422,0,20],
 "classPgp2bGthUltra_1_1mapping.html#af533e69f56301f5d9882da58422ab3ac":[1,0,422,0,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX83 =
 "classPgp2bGtp7FixedLatWrapper.html#a72ba8ef3f19fc4028378f33e903049f6":[1,0,424,71],
 "classPgp2bGtp7FixedLatWrapper.html#a735c7f88aa2c884e295fc6dfec593ac0":[1,0,424,43],
 "classPgp2bGtp7FixedLatWrapper.html#a7371621fe50124bfc5c566d007efbd54":[1,0,424,12],
-"classPgp2bGtp7FixedLatWrapper.html#a762b446ddef001083e8cfc52dc38385f":[1,0,424,2],
-"classPgp2bGtp7FixedLatWrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,424,85],
-"classPgp2bGtp7FixedLatWrapper.html#a786b1c3b51b3f4ee97728d0e8c72b227":[1,0,424,18],
-"classPgp2bGtp7FixedLatWrapper.html#a80e5574c28ce6fd06510648d63787843":[1,0,424,78]
+"classPgp2bGtp7FixedLatWrapper.html#a762b446ddef001083e8cfc52dc38385f":[1,0,424,2]
 };
