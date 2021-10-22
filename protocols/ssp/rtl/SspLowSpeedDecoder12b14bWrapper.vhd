@@ -57,7 +57,7 @@ architecture mapping of SspLowSpeedDecoder12b14bWrapper is
    signal dlyConfig : Slv9Array(NUM_LANE_G-1 downto 0);
 
    signal enUsrDlyCfg    : sl;
-   signal usrDlyCfg      : slv(8 downto 0);
+   signal usrDlyCfg      : Slv9Array(NUM_LANE_G-1 downto 0);
    signal minEyeWidth    : slv(7 downto 0);
    signal lockingCntCfg  : slv(23 downto 0);
    signal bypFirstBerDet : sl;
@@ -93,7 +93,7 @@ begin
             dlyCfg         => dlyConfig(i),
             -- Config/Status Interface
             enUsrDlyCfg    => enUsrDlyCfg,
-            usrDlyCfg      => usrDlyCfg,
+            usrDlyCfg      => usrDlyCfg(i),
             minEyeWidth    => minEyeWidth,
             lockingCntCfg  => lockingCntCfg,
             bypFirstBerDet => bypFirstBerDet,

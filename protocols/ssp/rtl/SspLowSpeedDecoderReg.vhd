@@ -37,7 +37,7 @@ entity SspLowSpeedDecoderReg is
       locked          : in  slv(NUM_LANE_G-1 downto 0);
       idleCode        : in  slv(NUM_LANE_G-1 downto 0);
       enUsrDlyCfg     : out sl;
-      usrDlyCfg       : out slv(8 downto 0);
+      usrDlyCfg       : out Slv9Array(NUM_LANE_G-1 downto 0);
       minEyeWidth     : out slv(7 downto 0);
       lockingCntCfg   : out slv(23 downto 0);
       bypFirstBerDet  : out sl;
@@ -61,7 +61,7 @@ architecture mapping of SspLowSpeedDecoderReg is
 
    type RegType is record
       enUsrDlyCfg    : sl;
-      usrDlyCfg      : slv(8 downto 0);
+      usrDlyCfg      : Slv9Array(NUM_LANE_G-1 downto 0);
       minEyeWidth    : slv(7 downto 0);
       lockingCntCfg  : slv(23 downto 0);
       bypFirstBerDet : sl;
@@ -77,7 +77,7 @@ architecture mapping of SspLowSpeedDecoderReg is
 
    constant REG_INIT_C : RegType := (
       enUsrDlyCfg    => ite(SIMULATION_G, '1', '0'),
-      usrDlyCfg      => toSlv(219, 9),
+      usrDlyCfg      => (others => toSlv(219, 9)),
       minEyeWidth    => toSlv(80, 8),
       lockingCntCfg  => ite(SIMULATION_G, x"00_0004", x"00_FFFF"),
       bypFirstBerDet => '1',
@@ -144,15 +144,22 @@ begin
       end loop;
       axiSlaveRegisterR(axilEp, x"400", 0, statusOut);
 
-      for i in NUM_LANE_G-1 downto 0 loop  -- Address starts at 0x600
+      for i in NUM_LANE_G-1 downto 0 loop
+
+         -- Address starts at 0x500
+         axiSlaveRegister (axilEp, toSlv(1280+4*i, 12), 0, v.usrDlyCfg(i));
+
+         -- Address starts at 0x600
          axiSlaveRegisterR(axilEp, toSlv(1536+4*i, 12), 0, dlyConfig(i));
+
+
       end loop;
 
       axiSlaveRegisterR(axilEp, x"7FC", 0, toSlv(DATA_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"7FC", 8, toSlv(NUM_LANE_G, 8));
 
       axiSlaveRegister (axilEp, x"800", 0, v.enUsrDlyCfg);
-      axiSlaveRegister (axilEp, x"804", 0, v.usrDlyCfg);
+      -- axiSlaveRegister (axilEp, x"804", 0, v.usrDlyCfg); -- Changed from "common" to 1 per lane
       axiSlaveRegister (axilEp, x"808", 0, v.minEyeWidth);
       axiSlaveRegister (axilEp, x"80C", 0, v.lockingCntCfg);
 
