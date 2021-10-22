@@ -203,7 +203,10 @@ class AxiMicronMt28ew(pr.Device):
         # Reset the PROM
         self._resetCmd()
         # Create a burst data array
-        dataArray = [0] * 256
+        if self._useVars:
+            dataArray = self.BurstData.get(read=False)
+        else:
+            dataArray = [0] * 256
 
         # Set the block transfer size
         if self._useVars:
