@@ -394,7 +394,7 @@ class Ad9249ReadoutGroup(pr.Device):
 
     @staticmethod
     def getDelay(var, read):
-        return var.dependencies[0].get(read)
+        return var.dependencies[0].get(read=read)
 
     def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
         """

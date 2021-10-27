@@ -69,7 +69,7 @@ class AxiVersion(pr.Device):
         ))
 
         def parseUpTime(var,read):
-            seconds=var.dependencies[0].get(read)
+            seconds=var.dependencies[0].get(read=read)
             if seconds == 0xFFFFFFFF:
                 click.secho(f'Invalid {var.path} detected', fg='red')
                 return 'Invalid'
@@ -189,7 +189,7 @@ class AxiVersion(pr.Device):
             name         = 'GitHashShort',
             mode         = 'RO',
             dependencies = [self.GitHash],
-            linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):07x}',
+            linkedGet    = lambda read: f'{(self.GitHash.get(read=read) >> 132):07x}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -214,7 +214,7 @@ class AxiVersion(pr.Device):
         ))
 
         def parseBuildStamp(var,read):
-            buildStamp = var.dependencies[0].get(read)
+            buildStamp = var.dependencies[0].get(read=read)
             if buildStamp is None:
                 return ''
             else:
