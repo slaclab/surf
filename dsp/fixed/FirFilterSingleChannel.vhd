@@ -70,8 +70,6 @@ architecture mapping of FirFilterSingleChannel is
 
    type RegType is record
       cnt        : natural range 0 to TAP_SIZE_G-1;
---      datain     : slv(WIDTH_G-1 downto 0);
---      cascin     : CascArray;
       coeffin    : CoeffArray;
       ibReady    : sl;
       tValid     : sl;
@@ -81,8 +79,6 @@ architecture mapping of FirFilterSingleChannel is
    end record RegType;
    constant REG_INIT_C : RegType := (
       cnt        => 0,
---      datain     => (others => '0'),
---      cascin     => (others => (others => '0')),
       coeffin    => COEFFICIENTS_C,
       ibReady    => '0',
       tValid     => '0',
@@ -96,7 +92,6 @@ architecture mapping of FirFilterSingleChannel is
    signal cascin  : CascArray;
    signal cascout : CascArray;
 
---   signal datain    : slv(WIDTH_G-1 downto 0);
    signal tReady    : sl;
    signal ibReadyFb : sl;
 
@@ -128,8 +123,7 @@ begin
          mAxiWriteMaster => writeMaster,
          mAxiWriteSlave  => writeSlave);
 
-   comb : process (cascout, din, ibValid, r, readMaster, rst, tReady,
-                   writeMaster) is
+   comb : process (cascout, ibReadyFb, ibValid, r, readMaster, rst, tReady, writeMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -159,10 +153,6 @@ begin
          -- Accept the data
          v.ibReady := '1';
 
-         -- Latch the value
---         v.datain := din;
-
-
          -- Truncating the LSBs
          v.tData := cascout(TAP_SIZE_G-1)(2*WIDTH_G-2 downto WIDTH_G-1);
 
@@ -182,8 +172,6 @@ begin
       readSlave  <= r.readSlave;
       ibReadyFb  <= v.ibReady;
       ibReady    <= ibReadyFb;
---      datain     <= v.datain;
-      --cascin     <= v.cascin;
 
       -- Reset
       if (rst = RST_POLARITY_G) then
