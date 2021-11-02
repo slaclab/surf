@@ -7,7 +7,7 @@
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
-
+import scipy
 import pyrogue as pr
 
 class FirFilterSingleChannel(pr.Device):
@@ -24,28 +24,14 @@ class FirFilterSingleChannel(pr.Device):
         if dataWordBitSize is None:
             raise ValueError( f'{self.path}: dataWordBitSize is undefined' )
 
-        def addBoolPair(tap):
-            self.add(pr.RemoteVariable(
-                name         = f'RawTap[{tap}]',
-                description  = f'Tap[{tap}] Fixed Point Coefficient',
-                offset       = 4*tap,
-                bitSize      = dataWordBitSize,
-                base         = pr.Int,
-                mode         = 'RW',
-                hidden       = True,
-            ))
+        self.add(pr.RemoteVariable(
+            name = f'Taps',
+            offset = 0,
+            disp = '{:0.04f}',
+            bitSize = 32*numberTaps,
+            valueBits = dataWordBitSize,
+            numValues = numberTaps,
+            valueStride = 32,
+            base = pr.Fixed(dataWordBitSize, dataWordBitSize-1)))
 
-            var = self.variables[ f'RawTap[{tap}]' ]
-
-            self.add(pr.LinkVariable(
-                name         = f'Tap[{tap}]',
-                description  = f'Tap[{tap}] Floating Point Coefficient',
-                mode         = 'RW',
-                linkedGet    = lambda: var.value()/2**dataWordBitSize,
-                linkedSet    = lambda value, write: var.set(int(value*2**dataWordBitSize)),
-                dependencies = [var],
-                disp         = '{:1.3f}',
-            ))
-
-        for tap in range(numberTaps):
-            addBoolPair(tap=tap)
+            
