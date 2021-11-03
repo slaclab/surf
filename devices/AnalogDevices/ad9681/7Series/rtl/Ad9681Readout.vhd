@@ -389,9 +389,9 @@ begin
             IODELAY_GROUP_G   => IODELAY_GROUP_G,
             IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G)
          port map (
-            clkIo    => adcBitClkIo(i),
-            clkIoInv => adcBitClkIoInv(i),
-            clkR     => adcBitClkR(i),
+            clkIo    => adcBitClkIo(0),
+            clkIoInv => adcBitClkIoInv(0),
+            clkR     => adcBitClkR(0),
             rst      => adcR(i).reset,  --adcBitRst(i),
             slip     => adcR(i).slip,
             sysClk   => axilClk,
@@ -425,9 +425,9 @@ begin
                IODELAY_GROUP_G   => IODELAY_GROUP_G,
                IDELAYCTRL_FREQ_G => IDELAYCTRL_FREQ_G)
             port map (
-               clkIo    => adcBitClkIo(i),
-               clkIoInv => adcBitClkIoInv(i),
-               clkR     => adcBitClkR(i),
+               clkIo    => adcBitClkIo(0),
+               clkIoInv => adcBitClkIoInv(0),
+               clkR     => adcBitClkR(0),
                rst      => adcR(i).reset,  --adcBitRst(i),
                slip     => adcR(i).slip,
                sysClk   => axilClk,
@@ -497,9 +497,9 @@ begin
 
       adcSeq : process (adcBitClkR, adcBitRst) is
       begin
-         if (adcBitRst(i) = '1') then
+         if (adcBitRst(0) = '1') then
             adcR(i) <= ADC_REG_INIT_C after TPD_G;
-         elsif (rising_edge(adcBitClkR(i))) then
+         elsif (rising_edge(adcBitClkR(0))) then
             adcR(i) <= adcRin(i) after TPD_G;
          end if;
       end process adcSeq;
