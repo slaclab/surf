@@ -48,8 +48,8 @@ end AxiStreamTap;
 
 architecture structure of AxiStreamTap is
 
-   constant ROUTES_C : Slv8Array := (0 => "--------",
-                                     1 => toSlv(TAP_DEST_G, 8));
+   constant ROUTES_C : Slv8Array := (0 => toSlv(TAP_DEST_G, 8),
+                                     1 => "--------");
 
    signal iAxisMaster : AxiStreamMasterType;
    signal iAxisSlave  : AxiStreamSlaveType;
@@ -66,10 +66,10 @@ begin
       port map (
          sAxisMaster     => sAxisMaster,
          sAxisSlave      => sAxisSlave,
-         mAxisMasters(0) => iAxisMaster,
-         mAxisMasters(1) => tmAxisMaster,
-         mAxisSlaves(0)  => iAxisSlave,
-         mAxisSlaves(1)  => tmAxisSlave,
+         mAxisMasters(0) => tmAxisMaster,
+         mAxisMasters(1) => iAxisMaster,
+         mAxisSlaves(0)  => tmAxisSlave,
+         mAxisSlaves(1)  => iAxisSlave,
          axisClk         => axisClk,
          axisRst         => axisRst);
 
@@ -86,10 +86,10 @@ begin
       port map (
          axisClk         => axisClk,
          axisRst         => axisRst,
-         sAxisMasters(0) => iAxisMaster,
-         sAxisMasters(1) => tsAxisMaster,
-         sAxisSlaves(0)  => iAxisSlave,
-         sAxisSlaves(1)  => tsAxisSlave,
+         sAxisMasters(0) => tsAxisMaster,
+         sAxisMasters(1) => iAxisMaster,
+         sAxisSlaves(0)  => tsAxisSlave,
+         sAxisSlaves(1)  => iAxisSlave,
          mAxisMaster     => mAxisMaster,
          mAxisSlave      => mAxisSlave);
 
