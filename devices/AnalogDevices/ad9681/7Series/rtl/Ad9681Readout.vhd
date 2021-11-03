@@ -537,7 +537,7 @@ begin
             end if;
          else
             -- Not locked
-            tmp(ch) <= (others => '1');  --"10" & "00000000000000";
+            tmp(ch) := (others => '1');  --"10" & "00000000000000";
          end if;
       end loop;
       fifoWrData <= tmp;
