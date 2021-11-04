@@ -78,7 +78,7 @@ begin
          TPD_G                => TPD_G,
          PIPE_STAGES_G        => PIPE_STAGES_G,
          NUM_SLAVES_G         => 2,
-         MODE_G               => "ROUTED",
+         MODE_G               => "PASSTRHOUGH",
          TDEST_ROUTES_G       => ROUTES_C,
          ILEAVE_EN_G          => true,
          ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
