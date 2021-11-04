@@ -21,13 +21,13 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity FifoAlteraMf is
+entity FifoXpm is
    generic (
       TPD_G           : time     := 1 ns;
       RST_POLARITY_G  : sl       := '1';  -- '1' for active high rst, '0' for active low
       FWFT_EN_G       : boolean  := false;
       GEN_SYNC_FIFO_G : boolean  := false;
-      MEMORY_TYPE_G   : string   := "auto";
+      MEMORY_TYPE_G   : string   := "block";
       SYNC_STAGES_G   : positive := 3;
       PIPE_STAGES_G   : natural  := 0;
       DATA_WIDTH_G    : positive := 18;
@@ -58,10 +58,13 @@ entity FifoAlteraMf is
       prog_empty    : out sl                           := '0';
       almost_empty  : out sl                           := '0';
       empty         : out sl                           := '0');
-end FifoAlteraMf;
+end FifoXpm;
 
-architecture mapping of FifoAlteraMf is
+architecture mapping of FifoXpm is
 
 begin
+
+   assert (false)
+      report "surf.base.fifo: FifoXpm not supported" severity failure;
 
 end mapping;
