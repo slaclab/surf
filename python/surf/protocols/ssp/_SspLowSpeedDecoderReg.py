@@ -47,10 +47,19 @@ class SspLowSpeedDecoderReg(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'Locked',
             offset       = 0x400,
-            bitSize      = 2,
+            bitSize      = numberLanes,
             mode         = 'RO',
             pollInterval = 1,
         ))
+
+        self.addRemoteVariables(
+            name         = 'UsrDlyCfg',
+            offset       = 0x500,
+            bitSize      = 9,
+            mode         = 'RW',
+            number       = numberLanes,
+            stride       = 4,
+        )
 
         self.addRemoteVariables(
             name         = 'DlyConfig',
@@ -88,13 +97,16 @@ class SspLowSpeedDecoderReg(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'UsrDlyCfg',
-            description  = 'User delay config',
-            offset       = 0x804,
-            bitSize      = 9,
-            mode         = 'RW',
-        ))
+#####################################
+# Changed from "common" to 1 per lane
+#####################################
+#        self.add(pr.RemoteVariable(
+#            name         = 'UsrDlyCfg',
+#            description  = 'User delay config',
+#            offset       = 0x804,
+#            bitSize      = 9,
+#            mode         = 'RW',
+#        ))
 
         self.add(pr.RemoteVariable(
             name         = 'MinEyeWidth',
@@ -143,6 +155,49 @@ class SspLowSpeedDecoderReg(pr.Device):
             offset       = 0x818,
             bitSize      = 1,
             bitOffset    = 1,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MaskOffCodeErr',
+            description  = '1: Mask off codeErr (debug only) , 0: normal operation',
+            offset       = 0x81C,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MaskOffDispErr',
+            description  = '1: Mask off dsispErr (debug only) , 0: normal operation',
+            offset       = 0x81C,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MaskOffOutOfSync',
+            description  = '1: Mask off OutOfSync (debug only) , 0: normal operation',
+            offset       = 0x81C,
+            bitSize      = 1,
+            bitOffset    = 2,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'IdleCode',
+            offset       = 0x900,
+            bitSize      = numberLanes,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'LockOnIdleOnly',
+            description  = '1: requires only IDLE code during the lock up procedure then any any code link is locked , 0: any code for locking',
+            offset       = 0x904,
+            bitSize      = 1,
             mode         = 'RW',
         ))
 

@@ -31,6 +31,7 @@ entity TrueDualPortRamXpm is
       MEMORY_TYPE_G       : string                     := "block";
       MEMORY_INIT_FILE_G  : string                     := "none";
       MEMORY_INIT_PARAM_G : string                     := "0";
+      WRITE_MODE_G        : string                     := "no_change";
       READ_LATENCY_G      : natural range 0 to 100     := 1;
       DATA_WIDTH_G        : integer range 1 to (2**24) := 16;
       BYTE_WR_EN_G        : boolean                    := false;
@@ -91,8 +92,8 @@ begin
          WAKEUP_TIME             => "disable_sleep",  -- "disable_sleep" to disable dynamic power saving option
          WRITE_DATA_WIDTH_A      => DATA_WIDTH_G,
          WRITE_DATA_WIDTH_B      => DATA_WIDTH_G,
-         WRITE_MODE_A            => ite(READ_LATENCY_G = 0, "read_first", "no_change"),  -- Default value = no_change
-         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", "no_change"))  -- Default value = no_change
+         WRITE_MODE_A            => ite(READ_LATENCY_G = 0, "read_first", WRITE_MODE_G),  -- Default value = no_change
+         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", WRITE_MODE_G))  -- Default value = no_change
       port map (
          -- Port A
          clka           => clka,

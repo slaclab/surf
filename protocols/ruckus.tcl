@@ -5,6 +5,8 @@ source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 loadRuckusTcl "$::DIR_PATH/batcher"
 loadRuckusTcl "$::DIR_PATH/clink"
 loadRuckusTcl "$::DIR_PATH/glink"
+loadRuckusTcl "$::DIR_PATH/hamming-ecc"
+loadRuckusTcl "$::DIR_PATH/htsp"
 loadRuckusTcl "$::DIR_PATH/i2c"
 loadRuckusTcl "$::DIR_PATH/jesd204b"
 loadRuckusTcl "$::DIR_PATH/jtag"

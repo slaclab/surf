@@ -20,7 +20,7 @@ class RfTile(pr.Device):
             self,
             description = "RFSoC data converter tile registers",
             **kwargs):
-        super().__init__(description=description, size=0x2000, **kwargs)
+        super().__init__(description=description, **kwargs)
 
         ##############################
         # Variables
@@ -96,7 +96,7 @@ class RfTile(pr.Device):
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name         = f'Interrupt[{i}]',
+                name         = f'InterruptCh[{i}]',
                 description  = f'Converter {i} interrupt enable',
                 offset       =  0x0208 + 8*i,
                 bitSize      =  32,
@@ -105,7 +105,7 @@ class RfTile(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name         = f'InterruptEnable[{i}]',
+                name         = f'InterruptEnableCh[{i}]',
                 description  = f'Converter {i} interrupt register',
                 offset       =  0x020C + 8*i,
                 bitSize      =  32,

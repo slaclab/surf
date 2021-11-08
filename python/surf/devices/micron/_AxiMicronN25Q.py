@@ -14,6 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue   as pr
+import rogue
 import surf.misc
 import click
 import time
@@ -25,17 +26,99 @@ class AxiMicronN25Q(pr.Device):
             description = "AXI-Lite Micron N25Q and Micron MT25Q PROM",
             addrMode    = True, # False = 24-bit Address mode, True = 32-bit Address Mode
             tryCount    = 5,
+            hidden      = True,
             **kwargs):
+
+        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
+
+        if self._useVars:
+            size = 0
+        else:
+            size = (0x1 << 10)
 
         super().__init__(
             description = description,
-            size        = (0x1 << 10),
+            size        = size,
+            hidden      = hidden,
             **kwargs)
 
         self._mcs      = surf.misc.McsReader()
         self._addrMode = addrMode
         self._progDone = False
         self._tryCount = tryCount
+
+        ##############################
+        # Setup variables
+        ##############################
+        if self._useVars:
+
+            self.add(pr.RemoteVariable(
+                name        = 'PasswordLock',
+                offset      = 0x00,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = 'ModeReg',
+                offset      = 0x04,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = 'AddrReg',
+                offset      = 0x08,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = 'CmdReg',
+                offset      = 0x0C,
+                base        = pr.UInt,
+                bitSize     = 32,
+                bitOffset   = 0,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = 'DataReg',
+                offset      = 0x200,
+                base        = pr.UInt,
+                bitSize     = 32*64,
+                bitOffset   = 0,
+                numValues   = 64,
+                valueBits   = 32,
+                valueStride = 32,
+                retryCount  = tryCount,
+                updateNotify= False,
+                bulkOpEn    = False,
+                hidden      = True,
+                verify      = False,
+            ))
 
         ##############################
         # Constants
@@ -170,7 +253,10 @@ class AxiMicronN25Q(pr.Device):
         wordCnt = 0
         byteCnt = 0
         # Create a burst data array
-        dataArray = [0] * 64
+        if self._useVars:
+            dataArray = self.getDataReg(read=False)
+        else:
+            dataArray = [0] * 64
         # Setup the status bar
         with click.progressbar(
             length   = self._mcs.size,
@@ -357,24 +443,44 @@ class AxiMicronN25Q(pr.Device):
     #########################################
     # All the rawWrite and rawRead commands #
     #########################################
-
     def setModeReg(self):
-        if (self._addrMode):
-            self._rawWrite(offset=0x04,data=0x1,tryCount=self._tryCount)
+        if self._useVars:
+            if (self._addrMode):
+                self.ModeReg.set(value=0x1)
+            else:
+                self.ModeReg.set(value=0x0)
         else:
-            self._rawWrite(offset=0x04,data=0x0,tryCount=self._tryCount)
+            if (self._addrMode):
+                self._rawWrite(offset=0x04,data=0x1,tryCount=self._tryCount) # Deprecated
+            else:
+                self._rawWrite(offset=0x04,data=0x0,tryCount=self._tryCount) # Deprecated
 
     def setAddrReg(self,value):
-        self._rawWrite(offset=0x08,data=value,tryCount=self._tryCount)
+        if self._useVars:
+            self.AddrReg.set(value=value)
+        else:
+            self._rawWrite(offset=0x08,data=value,tryCount=self._tryCount) # Deprecated
 
     def setCmdReg(self,value):
-        self._rawWrite(offset=0x0C,data=value,tryCount=self._tryCount)
+        if self._useVars:
+            self.CmdReg.set(value=value)
+        else:
+            self._rawWrite(offset=0x0C,data=value,tryCount=self._tryCount) # Deprecated
 
     def getCmdReg(self):
-        return (self._rawRead(offset=0x0C,tryCount=self._tryCount))
+        if self._useVars:
+            return self.CmdReg.get()
+        else:
+            return (self._rawRead(offset=0x0C,tryCount=self._tryCount)) # Deprecated
 
     def setDataReg(self,values):
-        self._rawWrite(offset=0x200,data=values,tryCount=self._tryCount)
+        if self._useVars:
+            self.DataReg.set(values)
+        else:
+            self._rawWrite(offset=0x200,data=values,tryCount=self._tryCount) # Deprecated
 
-    def getDataReg(self):
-        return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount))
+    def getDataReg(self,read=True):
+        if self._useVars:
+            return self.DataReg.get(read=read)
+        else:
+            return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount)) # Deprecated

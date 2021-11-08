@@ -9,4 +9,4 @@
 ##############################################################################
 from surf.protocols.pgp._Pgp2bAxi   import *
 from surf.protocols.pgp._Pgp3AxiL   import *
-from surf.protocols.pgp._PgpEthAxiL import *
+from surf.protocols.pgp._Pgp4AxiL   import *

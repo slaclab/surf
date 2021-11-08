@@ -11,7 +11,7 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import surf.axi as axi
+from surf import axi
 
 class AxiMonAxiL(axi.AxiStreamMonAxiL):
     def __init__(self, numberLanes=1, **kwargs):

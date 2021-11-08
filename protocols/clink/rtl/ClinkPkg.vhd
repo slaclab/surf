@@ -141,7 +141,7 @@ package ClinkPkg is
    ------------------------------------
    type ClDataType is record
       valid : sl;
-      data  : Slv8Array(9 downto 0);
+      data  : Slv8Array(15 downto 0);
       dv    : sl;
       fv    : sl;
       lv    : sl;

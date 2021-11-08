@@ -2,7 +2,7 @@
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 # Load Source Code
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
@@ -22,7 +22,6 @@ if { ${family} eq {kintexu} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} ||
-     ${family} eq {qzynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} } {
    loadSource -lib surf -dir  "$::DIR_PATH/UltraScale"
 }

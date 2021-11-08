@@ -18,7 +18,7 @@ import surf.xilinx
 
 class RfDataConverter(pr.Device):
     def __init__(self, **kwargs):
-        super().__init__(size=0x40000, **kwargs)
+        super().__init__(**kwargs)
 
         ##############################
         # Variables

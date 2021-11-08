@@ -12,18 +12,21 @@ import pyrogue as pr
 
 class Lmx2615(pr.Device):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(size = (1 << 12), **kwargs)
 
-        #######################
+        #####################################################################
         # Address = 0x00 (R0)
-        #######################
+        # Write only because MUXOUT_LD_SEL's default is not readback SPI mode
+        #####################################################################
 
         self.add(pr.RemoteVariable(
             name         = 'VCO_PHASE_SYNC',
             offset       = (0x00 << 2),
             bitOffset    = 14,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -31,7 +34,9 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 9,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -39,7 +44,9 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 7,
             bitSize      = 2,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 0,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -47,7 +54,9 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 3,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -56,6 +65,8 @@ class Lmx2615(pr.Device):
             bitOffset    = 2,
             bitSize      = 1,
             mode         = 'RW',
+            value        = 0,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -63,7 +74,9 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 1,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 0,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -71,7 +84,9 @@ class Lmx2615(pr.Device):
             offset       = (0x00 << 2),
             bitOffset    = 0,
             bitSize      = 1,
-            mode         = 'RW',
+            mode         = 'WO',
+            value        = 0,
+            overlapEn    = True,
         ))
 
         #######################
@@ -84,6 +99,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 3,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -96,6 +112,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 14,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -104,6 +121,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 11,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -116,6 +134,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 12,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -128,6 +147,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 4,
             bitSize      = 8,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -140,6 +160,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 8,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -152,6 +173,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 4,
             bitSize      = 3,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -164,6 +186,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 9,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -176,6 +199,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 8,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -188,6 +212,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 11,
             bitSize      = 3,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -196,6 +221,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 10,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -208,6 +234,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 14,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -220,6 +247,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 3,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -232,6 +260,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -244,6 +273,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 8,
             bitSize      = 6,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -256,6 +286,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -268,6 +299,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -280,6 +312,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -292,6 +325,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -304,6 +338,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -316,6 +351,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -328,6 +364,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 8,
             bitSize      = 6,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -336,6 +373,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 7,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -344,6 +382,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 6,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -352,6 +391,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 5,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -360,6 +400,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 3,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -372,6 +413,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 11,
             bitSize      = 2,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -380,6 +422,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 6,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -392,6 +435,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 2,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -404,6 +448,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 15,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -416,6 +461,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -428,6 +474,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -440,6 +487,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -452,6 +500,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -464,6 +513,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 5,
             bitSize      = 3,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -472,6 +522,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 4,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -480,6 +531,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 3,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -488,6 +540,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 2,
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -500,6 +553,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 11,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -512,6 +566,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 6,
             bitSize      = 6,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -520,6 +575,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 6,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -532,6 +588,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 12,
             bitSize      = 4,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -540,6 +597,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 6,
             bitSize      = 6,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -548,6 +606,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 6,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -560,6 +619,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 6,
             bitSize      = 5,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
@@ -572,6 +632,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 9,
             bitSize      = 2,
             mode         = 'RO',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -580,6 +641,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 5,
             bitSize      = 3,
             mode         = 'RO',
+            overlapEn    = True,
         ))
 
         #######################
@@ -592,6 +654,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 8,
             mode         = 'RO',
+            overlapEn    = True,
         ))
 
         #######################
@@ -604,6 +667,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 9,
             mode         = 'RO',
+            overlapEn    = True,
         ))
 
         #######################
@@ -616,6 +680,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 16,
             mode         = 'RO',
+            overlapEn    = True,
         ))
 
         #######################
@@ -628,6 +693,7 @@ class Lmx2615(pr.Device):
             bitOffset    = 3,
             bitSize      = 7,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -636,6 +702,41 @@ class Lmx2615(pr.Device):
             bitOffset    = 0,
             bitSize      = 3,
             mode         = 'RW',
+            overlapEn    = True,
         ))
 
         #######################
+
+
+        @self.command(description='Enable SPI readback',)
+        def enSpiReadback():
+            self.MUXOUT_LD_SEL.set(0x0)
+
+        @self.command(description='Power Up procedure',)
+        def pwrUp():
+            print('lmx pwrUp')
+            # Setup for SPI readback mode
+            self.MUXOUT_LD_SEL.set(0x0)
+
+            # Power up the device
+            self.POWERDOWN.set(0x0)
+
+            # Toggle the reset
+            self.RESET.set(0x1)
+            self.RESET.set(0x0)
+
+        @self.command(description='Load the CodeLoader Hex Export file',value='',)
+        def LoadCodeLoaderHexFile(arg):
+            with open(arg, 'r') as ifd:
+                for i, line in enumerate(ifd):
+                    s = str.split(line)
+                    addr = int(s[0][1:], 0)
+                    if len(s) == 3:
+                        data = int("0x" + s[2][-4:], 0)
+                    else:
+                        data = int("0x" + s[1][-4:], 0)
+                    print(f'writing {addr:#04x}: {data:#06x}')
+                    self._rawWrite( 4 * addr, data)
+            self.MUXOUT_LD_SEL.set(0x0)
+            self.readBlocks(recurse=True)
+            self.checkBlocks(recurse=True)

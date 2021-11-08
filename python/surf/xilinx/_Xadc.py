@@ -25,6 +25,9 @@ class Xadc(pr.Device):
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
+        if isinstance(auxChannels, int):
+            auxChannels = list(range(auxChannels))
+
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
                 name         = ("Raw"+name),
@@ -303,31 +306,29 @@ class Xadc(pr.Device):
                 the 16-bit register.      """,
         )
 
-        self.addRemoteVariables(
-            name         = "AuxRaw",
-            offset       =  0x240,
-            bitSize      =  12,
-            bitOffset    =  4,
-            base         = pr.UInt,
-            mode         = "RO",
-            number       =  auxChannels,
-            stride       =  4,
-            description = """
+        for ch in auxChannels:
+            self.add(pr.RemoteVariable(
+                name         = f'AuxRaw[{ch}]',
+                offset       =  0x240 + ch*4,
+                bitSize      =  12,
+                bitOffset    =  4,
+                base         = pr.UInt,
+                mode         = "RO",
+                description = """
                 The results of the conversions on auxiliary analog input
                 channels are stored in this register. The data is MSB
                 justified in the 16-bit register (Read Only). The 12 MSBs correspond to
                 the transfer function shown in Figure 2-1, page 24 or
                 Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode
                 settings.""",
-        )
+            ))
 
-        for i in range(auxChannels):
             self.add(pr.LinkVariable(
-                name=f'Aux[{i}]',
+                name=f'Aux[{ch}]',
                 units='V',
                 disp='{:1.3f}',
                 mode='RO',
-                variable=self.AuxRaw[i],
+                variable=self.AuxRaw[ch],
                 linkedGet=self.convAuxVoltage))
 
         if (zynq):

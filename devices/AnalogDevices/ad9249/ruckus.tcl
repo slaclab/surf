@@ -6,7 +6,7 @@ loadSource -lib surf -dir "$::DIR_PATH/core"
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {artix7}  ||
      ${family} eq {kintex7} ||
@@ -20,7 +20,6 @@ if { ${family} eq {kintexu} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} ||
-     ${family} eq {qzynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale"
 }

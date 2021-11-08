@@ -35,13 +35,16 @@ entity SspLowSpeedDecoderReg is
       errorDet        : in  slv(NUM_LANE_G-1 downto 0);
       bitSlip         : in  slv(NUM_LANE_G-1 downto 0);
       locked          : in  slv(NUM_LANE_G-1 downto 0);
+      idleCode        : in  slv(NUM_LANE_G-1 downto 0);
       enUsrDlyCfg     : out sl;
-      usrDlyCfg       : out slv(8 downto 0);
+      usrDlyCfg       : out Slv9Array(NUM_LANE_G-1 downto 0);
       minEyeWidth     : out slv(7 downto 0);
       lockingCntCfg   : out slv(23 downto 0);
       bypFirstBerDet  : out sl;
       polarity        : out slv(NUM_LANE_G-1 downto 0);
       bitOrder        : out slv(1 downto 0);
+      errorMask       : out slv(2 downto 0);
+      lockOnIdle      : out sl;
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -58,12 +61,14 @@ architecture mapping of SspLowSpeedDecoderReg is
 
    type RegType is record
       enUsrDlyCfg    : sl;
-      usrDlyCfg      : slv(8 downto 0);
+      usrDlyCfg      : Slv9Array(NUM_LANE_G-1 downto 0);
       minEyeWidth    : slv(7 downto 0);
       lockingCntCfg  : slv(23 downto 0);
       bypFirstBerDet : sl;
       polarity       : slv(NUM_LANE_G-1 downto 0);
       bitOrder       : slv(1 downto 0);
+      errorMask      : slv(2 downto 0);
+      lockOnIdle     : sl;
       cntRst         : sl;
       rollOverEn     : slv(STATUS_SIZE_C-1 downto 0);
       readSlave      : AxiLiteReadSlaveType;
@@ -72,12 +77,14 @@ architecture mapping of SspLowSpeedDecoderReg is
 
    constant REG_INIT_C : RegType := (
       enUsrDlyCfg    => ite(SIMULATION_G, '1', '0'),
-      usrDlyCfg      => toSlv(219, 9),
+      usrDlyCfg      => (others => toSlv(219, 9)),
       minEyeWidth    => toSlv(80, 8),
       lockingCntCfg  => ite(SIMULATION_G, x"00_0004", x"00_FFFF"),
       bypFirstBerDet => '1',
       polarity       => (others => '0'),
       bitOrder       => (others => '0'),
+      errorMask      => (others => '0'),
+      lockOnIdle     => '0',
       cntRst         => '1',
       rollOverEn     => (others => '0'),
       readSlave      => AXI_LITE_READ_SLAVE_INIT_C,
@@ -117,8 +124,8 @@ begin
          mAxiWriteMaster => writeMaster,
          mAxiWriteSlave  => writeSlave);
 
-   comb : process (deserRst, dlyConfig, r, readMaster, statusCnt, statusOut,
-                   writeMaster) is
+   comb : process (deserRst, dlyConfig, idleCode, r, readMaster, statusCnt,
+                   statusOut, writeMaster) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -137,21 +144,33 @@ begin
       end loop;
       axiSlaveRegisterR(axilEp, x"400", 0, statusOut);
 
-      for i in NUM_LANE_G-1 downto 0 loop  -- Address starts at 0x600
+      for i in NUM_LANE_G-1 downto 0 loop
+
+         -- Address starts at 0x500
+         axiSlaveRegister (axilEp, toSlv(1280+4*i, 12), 0, v.usrDlyCfg(i));
+
+         -- Address starts at 0x600
          axiSlaveRegisterR(axilEp, toSlv(1536+4*i, 12), 0, dlyConfig(i));
+
+
       end loop;
 
       axiSlaveRegisterR(axilEp, x"7FC", 0, toSlv(DATA_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"7FC", 8, toSlv(NUM_LANE_G, 8));
 
       axiSlaveRegister (axilEp, x"800", 0, v.enUsrDlyCfg);
-      axiSlaveRegister (axilEp, x"804", 0, v.usrDlyCfg);
+      -- axiSlaveRegister (axilEp, x"804", 0, v.usrDlyCfg); -- Changed from "common" to 1 per lane
       axiSlaveRegister (axilEp, x"808", 0, v.minEyeWidth);
       axiSlaveRegister (axilEp, x"80C", 0, v.lockingCntCfg);
 
       axiSlaveRegister (axilEp, x"810", 0, v.bypFirstBerDet);
       axiSlaveRegister (axilEp, x"814", 0, v.polarity);
       axiSlaveRegister (axilEp, x"818", 0, v.bitOrder);
+      axiSlaveRegister (axilEp, x"81C", 0, v.errorMask);
+
+
+      axiSlaveRegisterR(axilEp, x"900", 0, idleCode);
+      axiSlaveRegister (axilEp, x"904", 0, v.lockOnIdle);
 
       axiSlaveRegister (axilEp, x"FF8", 0, v.rollOverEn);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
@@ -169,6 +188,8 @@ begin
       bypFirstBerDet <= r.bypFirstBerDet;
       polarity       <= r.polarity;
       bitOrder       <= r.bitOrder;
+      errorMask      <= r.errorMask;
+      lockOnIdle     <= r.lockOnIdle;
 
       -- Synchronous Reset
       if (deserRst = '1') then

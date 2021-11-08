@@ -21,10 +21,10 @@ class UartPiranha4(pr.Device):
         super().__init__(**kwargs)
 
         # Attach the serial devices
-        self._rx = clink.ClinkSerialRx()
+        self._rx = clink.ClinkSerialRx(self.path)
         pr.streamConnect(serial,self._rx)
 
-        self._tx = clink.ClinkSerialTx()
+        self._tx = clink.ClinkSerialTx(self.path)
         pr.streamConnect(self._tx,serial)
 
         @self.command(value='', name='SendString', description='Send a command string')
@@ -360,3 +360,8 @@ class UartPiranha4(pr.Device):
             description  = 'Send the Escape Char',
             function     = lambda cmd: self._tx.sendEscape()
         ))
+
+    def _rootAttached(self,parent,root):
+        super()._rootAttached(parent,root)
+        self._rx._path = self.path
+        self._tx._path = self.path

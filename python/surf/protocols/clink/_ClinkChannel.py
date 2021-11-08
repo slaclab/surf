@@ -194,11 +194,39 @@ class ClinkChannel(pr.Device):
         # Check if serial interface defined
         if serial is not None:
 
-            # Check for OPA1000 camera
-            if (camType=='Opal1000'):
+            # Check for BaslerAce camera
+            if (camType=='BaslerAce'):
 
                 # Override defaults
-                self.BaudRate._default    = 57600
+                self.BaudRate._default = 9600
+
+                # Add the device
+                self.add(surf.protocols.clink.UartBaslerAce(
+                    name   = 'UartBaslerAce',
+                    serial = serial,
+                    expand = False,
+                ))
+
+            # Check for Imperx C1921 camera
+            elif (camType=='ImperxC1921'):
+
+                # Override defaults
+                self.BaudRate._default = 115200
+                self.SerThrottle._default = 10000
+
+                # Add the device
+                self.add(surf.protocols.clink.UartImperxC1921(
+                    name        = 'UartImperxC1921',
+                    serial      = serial,
+                    expand      = False,
+                ))
+
+
+            # Check for OPA1000 camera
+            elif (camType=='Opal1000'):
+
+                # Override defaults
+                self.BaudRate._default = 57600
 
                 # Add the device
                 self.add(surf.protocols.clink.UartOpal1000(
@@ -209,6 +237,9 @@ class ClinkChannel(pr.Device):
 
             # Check for Piranha4 camera
             elif (camType=='Piranha4'):
+
+                # Override defaults
+                self.BaudRate._default = 9600
 
                 # Add the device
                 self.add(surf.protocols.clink.UartPiranha4(
@@ -221,6 +252,7 @@ class ClinkChannel(pr.Device):
             elif (camType=='Up900cl12b'):
 
                 # Override defaults
+                self.BaudRate._default = 9600
                 self.SerThrottle._default = 30000
 
                 # Add the device

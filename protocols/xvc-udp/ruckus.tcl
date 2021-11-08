@@ -1,14 +1,17 @@
 # Load RUCKUS environment and library
 source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
 
+if { [isVersal] == true } {
+   set versalType true
+
 # Check for version 2018.3 of Vivado (or later)
-if { $::env(VIVADO_VERSION) >= 2018.3 } {
+} elseif { $::env(VIVADO_VERSION) >= 2018.3 } {
 
    # Load the wrapper source code
    loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
    # Get the family type
-   set family [getFpgaFamily]
+   set family [getFpgaArch]
 
    if { ${family} eq {artix7}  ||
         ${family} eq {kintex7} ||
@@ -22,8 +25,7 @@ if { $::env(VIVADO_VERSION) >= 2018.3 } {
         ${family} eq {virtexuplus} ||
         ${family} eq {virtexuplusHBM} ||
         ${family} eq {zynquplus} ||
-        ${family} eq {zynquplusRFSOC} ||
-        ${family} eq {qzynquplusRFSOC} } {
+        ${family} eq {zynquplusRFSOC} } {
       set dirType "UltraScale"
    }
 

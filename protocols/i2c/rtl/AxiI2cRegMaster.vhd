@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -45,91 +44,36 @@ entity AxiI2cRegMaster is
       sel            : out   slv(DEVICE_MAP_G'length-1 downto 0);
       scl            : inout sl;
       sda            : inout sl);
-
 end AxiI2cRegMaster;
 
 architecture mapping of AxiI2cRegMaster is
 
-   -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1
-   --       FILTER_G = (min_pulse_time / clk_period) + 1
-   constant I2C_SCL_5xFREQ_C : real    := 5.0 * I2C_SCL_FREQ_G;
-   constant PRESCALE_C       : natural := (getTimeRatio(AXI_CLK_FREQ_G, I2C_SCL_5xFREQ_C)) - 1;
-   constant FILTER_C         : natural := natural(AXI_CLK_FREQ_G * I2C_MIN_PULSE_G) + 1;
-
-   signal i2cRegMasterIn  : I2cRegMasterInType;
-   signal i2cRegMasterOut : I2cRegMasterOutType;
-
    signal i2ci : i2c_in_type;
    signal i2co : i2c_out_type;
 
-   signal proxyReadMaster  : AxiLiteReadMasterType;
-   signal proxyReadSlave   : AxiLiteReadSlaveType;
-   signal proxyWriteMaster : AxiLiteWriteMasterType;
-   signal proxyWriteSlave  : AxiLiteWriteSlaveType;
-
 begin
 
-   BYP_PROXY : if (AXIL_PROXY_G = false) generate
-      proxyReadMaster  <= axiReadMaster;
-      axiReadSlave     <= proxyReadSlave;
-      proxyWriteMaster <= axiWriteMaster;
-      axiWriteSlave    <= proxyWriteSlave;
-   end generate BYP_PROXY;
-
-   GEN_PROXY : if (AXIL_PROXY_G = true) generate
-      U_AxiLiteMasterProxy : entity surf.AxiLiteMasterProxy
-         generic map (
-            TPD_G => TPD_G)
-         port map (
-            -- Clocks and Resets
-            axiClk          => axiClk,
-            axiRst          => axiRst,
-            -- AXI-Lite Register Interface
-            sAxiReadMaster  => axiReadMaster,
-            sAxiReadSlave   => axiReadSlave,
-            sAxiWriteMaster => axiWriteMaster,
-            sAxiWriteSlave  => axiWriteSlave,
-            -- AXI-Lite Register Interface
-            mAxiReadMaster  => proxyReadMaster,
-            mAxiReadSlave   => proxyReadSlave,
-            mAxiWriteMaster => proxyWriteMaster,
-            mAxiWriteSlave  => proxyWriteSlave);
-   end generate GEN_PROXY;
-
-   U_I2cRegMasterAxiBridge : entity surf.I2cRegMasterAxiBridge
+   U_Core : entity surf.AxiI2cRegMasterCore
       generic map (
-         TPD_G        => TPD_G,
-         DEVICE_MAP_G => DEVICE_MAP_G)
+         TPD_G           => TPD_G,
+         AXIL_PROXY_G    => AXIL_PROXY_G,
+         DEVICE_MAP_G    => DEVICE_MAP_G,
+         I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
+         I2C_MIN_PULSE_G => I2C_MIN_PULSE_G,
+         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G)
       port map (
-         -- I2C Register Interface
-         i2cRegMasterIn  => i2cRegMasterIn,
-         i2cRegMasterOut => i2cRegMasterOut,
-         i2cSelectOut    => sel,
-         -- AXI-Lite Register Interface
-         axiReadMaster   => proxyReadMaster,
-         axiReadSlave    => proxyReadSlave,
-         axiWriteMaster  => proxyWriteMaster,
-         axiWriteSlave   => proxyWriteSlave,
          -- Clocks and Resets
-         axiClk          => axiClk,
-         axiRst          => axiRst);
-
-   U_I2cRegMaster : entity surf.I2cRegMaster
-      generic map(
-         TPD_G                => TPD_G,
-         OUTPUT_EN_POLARITY_G => 0,
-         FILTER_G             => FILTER_C,
-         PRESCALE_G           => PRESCALE_C)
-      port map (
-         -- I2C Port Interface
-         i2ci   => i2ci,
-         i2co   => i2co,
-         -- I2C Register Interface
-         regIn  => i2cRegMasterIn,
-         regOut => i2cRegMasterOut,
-         -- Clock and Reset
-         clk    => axiClk,
-         srst   => axiRst);
+         axiClk         => axiClk,
+         axiRst         => axiRst,
+         -- AXI-Lite Register Interface
+         axiReadMaster  => axiReadMaster,
+         axiReadSlave   => axiReadSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave,
+         -- I2C Ports
+         sel            => sel,
+         i2ci           => i2ci,
+         i2co           => i2co);
 
    IOBUF_SCL : IOBUF
       port map (
