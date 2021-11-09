@@ -26,6 +26,7 @@ entity FirFilterTap is
    port (
       -- Clock Only (Infer into DSP)
       clk     : in  sl;
+      en      : in  sl := '1';
       -- Data and tap coefficient Interface
       datain  : in  slv(WIDTH_G-1 downto 0);
       coeffin : in  slv(WIDTH_G-1 downto 0);
@@ -79,7 +80,9 @@ begin
    seq : process (clk) is
    begin
       if rising_edge(clk) then
-         r <= rin after TPD_G;
+         if (en = '1') then
+            r <= rin after TPD_G;
+         end if;
       end if;
    end process seq;
 
