@@ -98,51 +98,68 @@ architecture mapping of FirFilterSingleChannel is
    signal tReady    : sl;
    signal ibReadyFb : sl;
 
-   signal readMaster  : AxiLiteReadMasterType;
-   signal readSlave   : AxiLiteReadSlaveType;
-   signal writeMaster : AxiLiteWriteMasterType;
-   signal writeSlave  : AxiLiteWriteSlaveType;
+   signal axiWrValid : sl;
+   signal axiWrAddr  : slv(NUM_ADDR_BITS_C-1 downto 0);
+   signal axiWrData  : slv(31 downto 0);
 
 begin
 
-   U_AxiLiteAsync : entity surf.AxiLiteAsync
-      generic map (
-         TPD_G           => TPD_G,
-         COMMON_CLK_G    => COMMON_CLK_G,
-         NUM_ADDR_BITS_G => NUM_ADDR_BITS_C)
-      port map (
-         -- Slave Interface
-         sAxiClk         => axilClk,
-         sAxiClkRst      => axilRst,
-         sAxiReadMaster  => axilReadMaster,
-         sAxiReadSlave   => axilReadSlave,
-         sAxiWriteMaster => axilWriteMaster,
-         sAxiWriteSlave  => axilWriteSlave,
-         -- Master Interface
-         mAxiClk         => clk,
-         mAxiClkRst      => rst,
-         mAxiReadMaster  => readMaster,
-         mAxiReadSlave   => readSlave,
-         mAxiWriteMaster => writeMaster,
-         mAxiWriteSlave  => writeSlave);
+--    U_AxiLiteAsync : entity surf.AxiLiteAsync
+--       generic map (
+--          TPD_G           => TPD_G,
+--          COMMON_CLK_G    => COMMON_CLK_G,
+--          NUM_ADDR_BITS_G => NUM_ADDR_BITS_C)
+--       port map (
+--          -- Slave Interface
+--          sAxiClk         => axilClk,
+--          sAxiClkRst      => axilRst,
+--          sAxiReadMaster  => axilReadMaster,
+--          sAxiReadSlave   => axilReadSlave,
+--          sAxiWriteMaster => axilWriteMaster,
+--          sAxiWriteSlave  => axilWriteSlave,
+--          -- Master Interface
+--          mAxiClk         => clk,
+--          mAxiClkRst      => rst,
+--          mAxiReadMaster  => readMaster,
+--          mAxiReadSlave   => readSlave,
+--          mAxiWriteMaster => writeMaster,
+--          mAxiWriteSlave  => writeSlave);
 
-   comb : process (cascout, ibReadyFb, ibValid, r, readMaster, rst, tReady, writeMaster) is
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
+      generic map (
+         TPD_G            => TPD_G,
+         SYNTH_MODE_G     => "inferred",
+         MEMORY_TYPE_G    => "distributed",
+         READ_LATENCY_G   => 0,
+         AXI_WR_EN_G      => true,
+         SYS_WR_EN_G      => false,
+         SYS_BYTE_WR_EN_G => false,
+         COMMON_CLK_G     => COMMON_CLK_G,
+         ADDR_WIDTH_G     => NUM_ADDR_BITS_C,
+         DATA_WIDTH_G     => 32)
+      port map (
+         axiClk         => axilClk,          -- [in]
+         axiRst         => axilRst,          -- [in]
+         axiReadMaster  => axilReadMaster,   -- [in]
+         axiReadSlave   => axilReadSlave,    -- [out]
+         axiWriteMaster => axilWriteMaster,  -- [in]
+         axiWriteSlave  => axilWriteSlave,   -- [out]
+         clk            => clk,              -- [in]
+         rst            => rst,              -- [in]
+         axiWrValid     => axiWrValid,       -- [out]
+         axiWrAddr      => axiWrAddr,        -- [out]
+         axiWrData      => axiWrData);       -- [out]
+
+   comb : process (axiWrAddr, axiWrData, axiWrValid, cascout, ibReadyFb, ibValid, r, rst, tReady) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
       -- Latch the current value
       v := r;
 
-      -- Determine the transaction type
-      axiSlaveWaitTxn(axilEp, writeMaster, readMaster, v.writeSlave, v.readSlave);
-
-      -- Map the registers
-      for i in TAP_SIZE_G-1 downto 0 loop
-         axiSlaveRegister (axilEp, toSlv((4*i), NUM_ADDR_BITS_C), 0, v.coeffin(i));
-      end loop;
-
-      -- Closeout the transaction
-      axiSlaveDefault(axilEp, v.writeSlave, v.readSlave, AXI_RESP_DECERR_C);
+      if (axiWrValid = '1') then
+         v.coeffin(to_integer(unsigned(axiWrAddr))) := axiWrData(COEFF_WIDTH_G-1 downto 0);
+      end if;
 
       -- Flow Control
       v.ibReady := '0';
@@ -171,8 +188,8 @@ begin
       end if;
 
       -- Outputs
-      writeSlave <= r.writeSlave;
-      readSlave  <= r.readSlave;
+--       writeSlave <= r.writeSlave;
+--       readSlave  <= r.readSlave;
       ibReadyFb  <= v.ibReady;
       ibReady    <= ibReadyFb;
 
