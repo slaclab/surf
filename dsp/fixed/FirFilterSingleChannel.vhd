@@ -26,8 +26,9 @@ entity FirFilterSingleChannel is
       RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
       PIPE_STAGES_G  : natural := 0;
       COMMON_CLK_G   : boolean := false;
-      TAP_SIZE_G     : positive;        -- Number of programmable taps
-      WIDTH_G        : positive;        -- Number of bits per data word
+      NUM_TAPS_G     : positive;        -- Number of programmable taps
+      DIN_WIDTH_G    : positive;        -- Number of bits per data word
+      COEFF_WIDTH_G  : positive;
       COEFFICIENTS_G : IntegerArray);   -- Tap Coefficients Init Constants
    port (
       -- Clock and Reset
@@ -36,11 +37,11 @@ entity FirFilterSingleChannel is
       -- Inbound Interface
       ibValid         : in  sl := '1';
       ibReady         : out sl;
-      din             : in  slv(WIDTH_G-1 downto 0);
+      din             : in  slv(DIN_WIDTH_G-1 downto 0);
       -- Outbound Interface
       obValid         : out sl;
       obReady         : in  sl := '1';
-      dout            : out slv(WIDTH_G-1 downto 0);
+      dout            : out slv(DIN_WIDTH_G-1 downto 0);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -52,28 +53,30 @@ end FirFilterSingleChannel;
 
 architecture mapping of FirFilterSingleChannel is
 
-   type CoeffArray is array (TAP_SIZE_G-1 downto 0) of slv(WIDTH_G-1 downto 0);
-   type CascArray is array (TAP_SIZE_G-1 downto 0) of slv(2*WIDTH_G downto 0);
+   constant CASC_WIDTH_C : integer := COEFF_WIDTH_G + DIN_WIDTH_G + log2(NUM_TAPS_G);
+
+   type CoeffArray is array (NUM_TAPS_G-1 downto 0) of slv(COEFF_WIDTH_G-1 downto 0);
+   type CascArray is array (NUM_TAPS_G-1 downto 0) of slv(CASC_WIDTH_C-1 downto 0);
 
    impure function InitCoeffArray return CoeffArray is
       variable retValue : CoeffArray := (others => (others => '0'));
    begin
-      for i in 0 to TAP_SIZE_G-1 loop
-         retValue(i) := std_logic_vector(to_signed(COEFFICIENTS_G(i), WIDTH_G));
+      for i in 0 to NUM_TAPS_G-1 loop
+         retValue(i) := std_logic_vector(to_signed(COEFFICIENTS_G(i), COEFF_WIDTH_G));
       end loop;
       return(retValue);
    end function;
 
    constant COEFFICIENTS_C : CoeffArray := InitCoeffArray;
 
-   constant NUM_ADDR_BITS_C : positive := bitSize(TAP_SIZE_G-1)+2;
+   constant NUM_ADDR_BITS_C : positive := bitSize(NUM_TAPS_G-1);
 
    type RegType is record
-      cnt        : natural range 0 to TAP_SIZE_G-1;
+      cnt        : natural range 0 to NUM_TAPS_G-1;
       coeffin    : CoeffArray;
       ibReady    : sl;
       tValid     : sl;
-      tdata      : slv(WIDTH_G-1 downto 0);
+      tdata      : slv(DIN_WIDTH_G-1 downto 0);
       readSlave  : AxiLiteReadSlaveType;
       writeSlave : AxiLiteWriteSlaveType;
    end record RegType;
@@ -153,11 +156,11 @@ begin
          -- Accept the data
          v.ibReady := '1';
 
-         -- Truncating the LSBs
-         v.tData := cascout(TAP_SIZE_G-1)(2*WIDTH_G-2 downto WIDTH_G-1);
+         -- Truncate the fractional bits (COEFF_WIDTH_G-1) and overflow bits
+         v.tData := cascout(NUM_TAPS_G-1)(DIN_WIDTH_G-1+COEFF_WIDTH_G-1 downto COEFF_WIDTH_G-1);
 
          -- Check the latency init counter
-         if (r.cnt = TAP_SIZE_G-1) then
+         if (r.cnt = NUM_TAPS_G-1) then
             -- Output data now valid
             v.tValid := '1';
          else
@@ -186,7 +189,7 @@ begin
    -- Load zero into the 1st tap's cascaded input
    cascin(0) <= (others => '0');
    -- Map to the cascaded input
-   CASC : for i in TAP_SIZE_G-2 downto 0 generate
+   CASC : for i in NUM_TAPS_G-2 downto 0 generate
       -- Use the previous cascade out values
       cascin(i+1) <= cascout(i);
    end generate;
@@ -200,19 +203,21 @@ begin
    end process seq;
 
    GEN_TAP :
-   for i in TAP_SIZE_G-1 downto 0 generate
+   for i in NUM_TAPS_G-1 downto 0 generate
 
       U_Tap : entity surf.FirFilterTap
          generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => WIDTH_G)
+            TPD_G         => TPD_G,
+            DIN_WIDTH_G   => DIN_WIDTH_G,
+            COEFF_WIDTH_G => COEFF_WIDTH_G,
+            CASC_WIDTH_G  => CASC_WIDTH_C)
          port map (
             -- Clock Only (Infer into DSP)
             clk     => clk,
             en      => ibReadyFb,
             -- Data and tap coefficient Interface
             datain  => din,  -- Common data input because Transpose Multiply-Accumulate architecture
-            coeffin => r.coeffin(TAP_SIZE_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
+            coeffin => r.coeffin(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
             -- Cascade Interface
             cascin  => cascin(i),
             cascout => cascout(i));
@@ -223,7 +228,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         DATA_WIDTH_G   => WIDTH_G,
+         DATA_WIDTH_G   => DIN_WIDTH_G,
          PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
          -- Slave Port
