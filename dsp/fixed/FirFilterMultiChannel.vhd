@@ -307,7 +307,9 @@ begin
          U_Tap : entity surf.FirFilterTap
             generic map (
                TPD_G   => TPD_G,
-               WIDTH_G => WIDTH_G)
+               DIN_WIDTH_G => WIDTH_G,
+               COEFF_WIDTH_G => WIDTH_G,
+               CASC_WIDTH_G => 2*WIDTH_G+1)
             port map (
                -- Clock Only (Infer into DSP)
                clk     => axisClk,
