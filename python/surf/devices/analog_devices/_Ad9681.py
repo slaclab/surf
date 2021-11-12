@@ -418,6 +418,17 @@ class Ad9681Readout(pr.Device):
             mode        = 'RW',
         ))
 
+        self.add(pr.RemoteVariable(
+            name        = 'Negate',
+            description = "Optional ADC data negation (two's complement)",
+            offset      = 0x60,
+            bitSize     = 1,
+            bitOffset   = 1,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+        
+
         for i in range(channels):
             self.add(pr.RemoteVariable(
                 name        = f'AdcChannel[{i:d}]',

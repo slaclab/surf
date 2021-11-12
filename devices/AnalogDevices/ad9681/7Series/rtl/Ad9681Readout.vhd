@@ -37,8 +37,8 @@ entity Ad9681Readout is
       IODELAY_GROUP_G   : string                    := "DEFAULT_GROUP";
       IDELAYCTRL_FREQ_G : real                      := 200.0;
       DEFAULT_DELAY_G   : integer range 0 to 2**5-1 := 0;
-      INVERT_G : boolean := false;
-      NEGATE_G : boolean := false);
+      INVERT_G          : boolean                   := false;
+      NEGATE_G          : boolean                   := false);
    port (
       -- Master system clock, 125Mhz
       axilClk : in sl;
@@ -85,7 +85,7 @@ architecture rtl of Ad9681Readout is
       readoutDebug1  : slv16Array(NUM_CHANNELS_C-1 downto 0);
       lockedCountRst : sl;
       invert         : sl;
-      negate : sl;
+      negate         : sl;
       relock         : slv(1 downto 0);
       curDelayFrame  : slv5Array(1 downto 0);
       curDelayData   : DelayDataArray(1 downto 0);
@@ -102,7 +102,7 @@ architecture rtl of Ad9681Readout is
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
       invert         => toSl(INVERT_G),
-      negate => toSl(NEGATE_G),
+      negate         => toSl(NEGATE_G),
       relock         => "00",
       curDelayFrame  => (others => (others => '0')),
       curDelayData   => (others => (others => (others => '0'))));
@@ -167,7 +167,7 @@ architecture rtl of Ad9681Readout is
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_C-1 downto 0);
 
    signal invertSync : slv(1 downto 0);
-   signal negateSync : slv(1 downto 0);   
+   signal negateSync : slv(1 downto 0);
    signal relockSync : slv(1 downto 0);
 
 begin
@@ -232,7 +232,7 @@ begin
             clk     => adcBitClkR(i),
             dataIn  => axilR.negate,
             dataOut => negateSync(i));
-      
+
 
       Synchronizer_3 : entity surf.Synchronizer
          generic map (
@@ -306,7 +306,7 @@ begin
       axiSlaveRegister(axilEp, X"5C", 0, v.lockedCountRst);
 
       axiSlaveRegister(axilEp, X"60", 0, v.invert);
-      axiSlaveRegister(axilEp, X"60", 1, v.negate);      
+      axiSlaveRegister(axilEp, X"60", 1, v.negate);
 
       axiSlaveRegister(axilEp, X"70", 0, v.relock);
 
@@ -527,13 +527,18 @@ begin
    begin
       for ch in NUM_CHANNELS_C-1 downto 0 loop
          if (adcValid = "11") then
-            tmp(ch) := adcData(1)(ch) & adcData(0)(ch);            
+            tmp(ch) := adcData(1)(ch) & adcData(0)(ch);
             -- Locked, output adc data
             if invertSync(0) = '1' then
                -- Invert all bits but keep 2 LSBs clear
                tmp(ch) := (X"FFFF" - tmp(ch)) and X"FFFC";
             elsif (negateSync(0) = '1') then
-               tmp(ch) := not(tmp(ch)) + 1;
+               if (tmp(ch) = X"8000") then
+                  -- Negative 1 case
+                  tmp(Ch) := X"7FFC";
+               else
+                  tmp(ch) := (not(tmp(ch)(15 downto 2)) + 1) & "00";                  
+               end if;
             end if;
          else
             -- Not locked
