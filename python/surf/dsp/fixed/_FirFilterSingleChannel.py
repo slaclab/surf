@@ -13,25 +13,19 @@ import pyrogue as pr
 class FirFilterSingleChannel(pr.Device):
     def __init__(
             self,
-            numberTaps      = None, # TAP_SIZE_G
-            dataWordBitSize = None, # WIDTH_G
+            numberTaps, # NUM_TAPS_G
+            coeffWordBitSize, # COEFF_WIDTH_G
             **kwargs):
         super().__init__(**kwargs)
-
-        if numberTaps is None:
-            raise ValueError( f'{self.path}: numberTaps is undefined' )
-
-        if dataWordBitSize is None:
-            raise ValueError( f'{self.path}: dataWordBitSize is undefined' )
 
         self.add(pr.RemoteVariable(
             name = f'Taps',
             offset = 0,
             disp = '{:0.04f}',
             bitSize = 32*numberTaps,
-            valueBits = dataWordBitSize,
+            valueBits = coeffWordBitSize,
             numValues = numberTaps,
             valueStride = 32,
-            base = pr.Fixed(dataWordBitSize, dataWordBitSize-1)))
+            base = pr.Fixed(coeffWordBitSize, coeffWordBitSize-1)))
 
             
