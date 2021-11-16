@@ -25,14 +25,14 @@ class UartUp900cl12bRx(clink.ClinkSerialRx):
         frame.read(ba,0)
 
         for i in range(0,len(ba),4):
-            c = chr(ba[i])
-            print (c)
+            # print (ba[i])
 
-            # if (c == '\r'):
-                # print(self._path+": Got Response: {}".format(''.join(self._cur)))
-                # self._cur = []
-            # elif (c != '') and (ba[i] != 1):
-                # self._cur.append(c)
+            if (ba[i] == 1) or (ba[i] == 0x3F):
+                self._cur.append(hex(ba[i]))
+                print(self._path+": Got Response: {}".format(''.join(self._cur)))
+                self._cur = []
+            elif (ba[i] != 1) and (ba[i] != 0x3F):
+                self._cur.append(hex(ba[i]) + ' ')
 
 class UartUp900cl12b(pr.Device):
     def __init__(self, serial=None, **kwargs):
