@@ -28,9 +28,8 @@ entity FirFilterMultiChannel is
       NUM_CHANNELS_G     : positive;    -- Number of data channels
       PARALLEL_G         : positive;    -- Number of parallel channel processing
       DATA_WIDTH_G       : positive;    -- Number of bits per data word
-      COEFF_WIDTH_G      : positive;
-      SHARED_COEFF_G     : boolean      := true;    -- Coefficients are shared between channels
-      COEFFICIENTS_G     : IntegerArray := (0 => 0);  -- Only valid when SHARED_COEFF_G=true
+      COEFF_WIDTH_G      : positive;    -- Number of bits per coefficient
+      COEFFICIENTS_G     : IntegerArray := (0 => 0);  -- Initial coefficients
       MEMORY_INIT_FILE_G : string       := "none";  -- Used to load tap coefficients into RAM at boot up
       MEMORY_TYPE_G      : string       := "distributed";
       SYNTH_MODE_G       : string       := "inferred");
@@ -53,27 +52,24 @@ end FirFilterMultiChannel;
 
 architecture mapping of FirFilterMultiChannel is
 
-   constant WORDS_PER_FRAME_C : positive := NUM_CHANNELS_G/PARALLEL_G;
-   constant RAM_ADDR_WIDTH_C  : positive := bitSize(WORDS_PER_FRAME_C-1);
+   constant WORDS_PER_FRAME_C     : positive := NUM_CHANNELS_G/PARALLEL_G;
+   constant CASC_RAM_ADDR_WIDTH_C : positive := bitSize(WORDS_PER_FRAME_C-1);
 
+   -- Number of bits needed to hold multiply accumulate without rollover
    constant CASC_WIDTH_C : integer := COEFF_WIDTH_G + DATA_WIDTH_G + log2(NUM_TAPS_G);
 
    constant CASC_RAM_DATA_WIDTH_C : integer := CASC_WIDTH_C*NUM_TAPS_G*PARALLEL_G;
-   constant COEF_RAM_DATA_WIDTH_C : integer := COEFF_WIDTH_G*NUM_TAPS_G*ite(SHARED_COEFF_G, 1, PARALLEL_G);
+   constant COEF_RAM_DATA_WIDTH_C : integer := COEFF_WIDTH_G*NUM_TAPS_G;
 
    type DataArray is array (PARALLEL_G-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   type CoeffArray is array (NUM_TAPS_G-1 downto 0, PARALLEL_G-1 downto 0) of slv(COEFF_WIDTH_G-1 downto 0);
    type CascArray is array (NUM_TAPS_G-1 downto 0, PARALLEL_G-1 downto 0) of slv(CASC_WIDTH_C-1 downto 0);
 
-   -------------------------------------------------------------------------------------------------
-   -- Special stuff for shared coefficients
-   -------------------------------------------------------------------------------------------------
-   constant SHARED_COEFF_RAM_ADDR_WIDTH_G : integer := bitSize(NUM_TAPS_G-1);
+   constant COEFF_RAM_ADDR_WIDTH_G : integer := bitSize(NUM_TAPS_G-1);
 
-   type SharedCoeffArray is array (NUM_TAPS_G-1 downto 0) of slv(COEFF_WIDTH_G-1 downto 0);
+   type CoeffArray is array (NUM_TAPS_G-1 downto 0) of slv(COEFF_WIDTH_G-1 downto 0);
 
-   impure function initSharedCoeffArray return SharedCoeffArray is
-      variable retValue : SharedCoeffArray := (others => (others => '0'));
+   impure function initCoeffArray return CoeffArray is
+      variable retValue : CoeffArray := (others => (others => '0'));
    begin
       for i in COEFFICIENTS_G'range loop
          retValue(i) := std_logic_vector(to_signed(COEFFICIENTS_G(i), COEFF_WIDTH_G));
@@ -81,7 +77,7 @@ architecture mapping of FirFilterMultiChannel is
       return(retValue);
    end function;
 
-   constant COEFFICIENTS_C : SharedCoeffArray := initSharedCoeffArray;
+   constant COEFFICIENTS_C : CoeffArray := initCoeffArray;
    -------------------------------------------------------------------------------------------------
 
 
@@ -109,22 +105,10 @@ architecture mapping of FirFilterMultiChannel is
       return(retValue);
    end function;
 
-   function toCoeffArray (din : slv) return CoeffArray is
-      variable retValue : CoeffArray := (others => (others => (others => '0')));
-      variable idx      : integer    := 0;
-   begin
-      for j in 0 to PARALLEL_G-1 loop
-         for i in 0 to NUM_TAPS_G-1 loop
-            assignRecord(idx, din, retValue(i, j));
-         end loop;
-      end loop;
-      return(retValue);
-   end function;
-
    type RegType is record
       ramWe       : sl;
-      addr        : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-      coeffin     : SharedCoeffArray;
+      addr        : slv(CASC_RAM_ADDR_WIDTH_C-1 downto 0);
+      coeffin     : CoeffArray;
       sAxisSlave  : AxiStreamSlaveType;
       axisMeta    : AxiStreamMasterType;
       mAxisMaster : AxiStreamMasterType;
@@ -141,23 +125,21 @@ architecture mapping of FirFilterMultiChannel is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal datain  : DataArray;
-   signal coeffin : CoeffArray;
+   signal datain : DataArray;
 
    signal cascEn    : sl;
    signal cascin    : CascArray;
    signal cascout   : CascArray;
    signal cascCache : CascArray;
 
-   signal ramWe      : sl;
-   signal raddr      : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-   signal waddr      : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-   signal coeffinSlv : slv(COEF_RAM_DATA_WIDTH_C-1 downto 0);
-   signal ramDin     : slv(CASC_RAM_DATA_WIDTH_C-1 downto 0);
-   signal ramDout    : slv(CASC_RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramWe   : sl;
+   signal raddr   : slv(CASC_RAM_ADDR_WIDTH_C-1 downto 0);
+   signal waddr   : slv(CASC_RAM_ADDR_WIDTH_C-1 downto 0);
+   signal ramDin  : slv(CASC_RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramDout : slv(CASC_RAM_DATA_WIDTH_C-1 downto 0);
 
    signal axiWrValid : sl;
-   signal axiWrAddr  : slv(SHARED_COEFF_RAM_ADDR_WIDTH_G-1 downto 0);
+   signal axiWrAddr  : slv(COEFF_RAM_ADDR_WIDTH_G-1 downto 0);
    signal axiWrData  : slv(31 downto 0);
 
 
@@ -170,65 +152,30 @@ begin
       report "NUM_CHANNELS_G must be >= PARALLEL_G" severity failure;
 
 
-   SHARED_COEFF_RAM_GEN : if (SHARED_COEFF_G) generate
-      U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
-         generic map (
-            TPD_G            => TPD_G,
-            SYNTH_MODE_G     => "inferred",
-            MEMORY_TYPE_G    => "distributed",
-            READ_LATENCY_G   => 0,
-            AXI_WR_EN_G      => true,
-            SYS_WR_EN_G      => false,
-            SYS_BYTE_WR_EN_G => false,
-            COMMON_CLK_G     => false,
-            ADDR_WIDTH_G     => SHARED_COEFF_RAM_ADDR_WIDTH_G,
-            DATA_WIDTH_G     => 32)
-         port map (
-            axiClk         => axilClk,          -- [in]
-            axiRst         => axilRst,          -- [in]
-            axiReadMaster  => axilReadMaster,   -- [in]
-            axiReadSlave   => axilReadSlave,    -- [out]
-            axiWriteMaster => axilWriteMaster,  -- [in]
-            axiWriteSlave  => axilWriteSlave,   -- [out]
-            clk            => axisClk,          -- [in]
-            rst            => axisRst,          -- [in]
-            axiWrValid     => axiWrValid,       -- [out]
-            axiWrAddr      => axiWrAddr,        -- [out]
-            axiWrData      => axiWrData);       -- [out]
-
-      GEN_COEFFIN_TAP : for i in NUM_TAPS_G-1 downto 0 generate
-         GEN_COEFFIN_PARALLEL : for j in PARALLEL_G-1 downto 0 generate
-            coeffin(i, j) <= r.coeffin(i);
-         end generate GEN_COEFFIN_PARALLEL;
-      end generate GEN_COEFFIN_TAP;
-
-   end generate SHARED_COEFF_RAM_GEN;
-
-   NOT_SHARED_COEFF_RAM_GEN : if (not SHARED_COEFF_G) generate
-      U_TapCoeff : entity surf.AxiDualPortRam
-         generic map (
-            TPD_G              => TPD_G,
-            SYNTH_MODE_G       => ite(MEMORY_INIT_FILE_G /= "none", "xpm", SYNTH_MODE_G),
-            MEMORY_INIT_FILE_G => MEMORY_INIT_FILE_G,
-            MEMORY_TYPE_G      => MEMORY_TYPE_G,
-            READ_LATENCY_G     => 1,
-            ADDR_WIDTH_G       => RAM_ADDR_WIDTH_C,
-            DATA_WIDTH_G       => COEF_RAM_DATA_WIDTH_C)
-         port map (
-            -- Axi Port
-            axiClk         => axilClk,
-            axiRst         => axilRst,
-            axiReadMaster  => axilReadMaster,
-            axiReadSlave   => axilReadSlave,
-            axiWriteMaster => axilWriteMaster,
-            axiWriteSlave  => axilWriteSlave,
-            -- Standard Port
-            clk            => axisClk,
-            addr           => raddr,
-            dout           => coeffinSlv);
-
-      coeffin <= toCoeffArray(coeffinSlv);
-   end generate NOT_SHARED_COEFF_RAM_GEN;
+   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
+      generic map (
+         TPD_G            => TPD_G,
+         SYNTH_MODE_G     => "inferred",
+         MEMORY_TYPE_G    => "distributed",
+         READ_LATENCY_G   => 0,
+         AXI_WR_EN_G      => true,
+         SYS_WR_EN_G      => false,
+         SYS_BYTE_WR_EN_G => false,
+         COMMON_CLK_G     => false,
+         ADDR_WIDTH_G     => COEFF_RAM_ADDR_WIDTH_G,
+         DATA_WIDTH_G     => 32)
+      port map (
+         axiClk         => axilClk,          -- [in]
+         axiRst         => axilRst,          -- [in]
+         axiReadMaster  => axilReadMaster,   -- [in]
+         axiReadSlave   => axilReadSlave,    -- [out]
+         axiWriteMaster => axilWriteMaster,  -- [in]
+         axiWriteSlave  => axilWriteSlave,   -- [out]
+         clk            => axisClk,          -- [in]
+         rst            => axisRst,          -- [in]
+         axiWrValid     => axiWrValid,       -- [out]
+         axiWrAddr      => axiWrAddr,        -- [out]
+         axiWrData      => axiWrData);       -- [out]
 
    GEN_CACHE : if (WORDS_PER_FRAME_C > 1) generate
 
@@ -236,7 +183,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             MEMORY_TYPE_G => MEMORY_TYPE_G,
-            ADDR_WIDTH_G  => RAM_ADDR_WIDTH_C,
+            ADDR_WIDTH_G  => CASC_RAM_ADDR_WIDTH_C,
             DATA_WIDTH_G  => CASC_RAM_DATA_WIDTH_C)
          port map (
             -- Port A
@@ -368,11 +315,8 @@ begin
       end if;
    end process seq;
 
-   GEN_TAP :
-   for i in NUM_TAPS_G-1 downto 0 generate
-
-      GEN_PARALLEL :
-      for j in PARALLEL_G-1 downto 0 generate
+   GEN_TAP : for i in NUM_TAPS_G-1 downto 0 generate
+      GEN_PARALLEL : for j in PARALLEL_G-1 downto 0 generate
 
          U_Tap : entity surf.FirFilterTap
             generic map (
@@ -386,13 +330,12 @@ begin
                en      => cascEn,
                -- Data and tap coefficient Interface
                datain  => datain(j),  -- Common data input because Transpose Multiply-Accumulate architecture
-               coeffin => coeffin(NUM_TAPS_G-1-i, j),  -- Reversed order because Transpose Multiply-Accumulate architecture
+               coeffin => r.coeffin(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
                -- Cascade Interface
                cascin  => cascin(i, j),
                cascout => cascout(i, j));
 
       end generate GEN_PARALLEL;
-
    end generate GEN_TAP;
 
 end mapping;
