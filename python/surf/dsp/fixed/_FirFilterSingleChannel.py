@@ -7,7 +7,6 @@
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
-import scipy
 import pyrogue as pr
 
 class FirFilterSingleChannel(pr.Device):
