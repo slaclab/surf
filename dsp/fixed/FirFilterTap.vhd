@@ -22,7 +22,7 @@ use surf.StdRtlPkg.all;
 entity FirFilterTap is
    generic (
       TPD_G         : time     := 1 ns;
-      DIN_WIDTH_G   : positive := 12;
+      DATA_WIDTH_G   : positive := 12;
       COEFF_WIDTH_G : positive := 12;
       CASC_WIDTH_G  : positive := 25);
    port (
@@ -30,7 +30,7 @@ entity FirFilterTap is
       clk     : in  sl;
       en      : in  sl := '1';
       -- Data and tap coefficient Interface
-      datain  : in  slv(DIN_WIDTH_G-1 downto 0);
+      datain  : in  slv(DATA_WIDTH_G-1 downto 0);
       coeffin : in  slv(COEFF_WIDTH_G-1 downto 0);
       -- Cascade Interface
       cascin  : in  slv(CASC_WIDTH_G-1 downto 0);
@@ -39,7 +39,7 @@ end FirFilterTap;
 
 architecture rtl of FirFilterTap is
 
-   constant PROD_WIDTH_C : integer := DIN_WIDTH_G + COEFF_WIDTH_G;
+   constant PROD_WIDTH_C : integer := DATA_WIDTH_G + COEFF_WIDTH_G;
 
    type RegType is record
       accum : signed(CASC_WIDTH_G-1 downto 0);
@@ -54,7 +54,7 @@ begin
 
    comb : process (cascin, coeffin, datain, r) is
       variable v       : RegType;
-      variable din     : signed(DIN_WIDTH_G-1 downto 0);
+      variable din     : signed(DATA_WIDTH_G-1 downto 0);
       variable coeff   : signed(COEFF_WIDTH_G-1 downto 0);
       variable product : signed(PROD_WIDTH_C-1 downto 0);
       variable cascade : signed(CASC_WIDTH_G-1 downto 0);
