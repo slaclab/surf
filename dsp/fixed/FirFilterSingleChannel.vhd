@@ -22,12 +22,13 @@ use surf.AxiLitePkg.all;
 
 entity FirFilterSingleChannel is
    generic (
-      TPD_G          : time         := 1 ns;
-      COMMON_CLK_G   : boolean      := false;
-      NUM_TAPS_G     : positive;                   -- Number of filter taps
-      DATA_WIDTH_G   : positive;                   -- Number of bits per data word
-      COEFF_WIDTH_G  : positive range 1 to 32;     -- Number of bits per coefficient word
-      COEFFICIENTS_G : IntegerArray := (0 => 0));  -- Tap Coefficients Init Constants
+      TPD_G            : time         := 1 ns;
+      COMMON_CLK_G     : boolean      := false;
+      NUM_TAPS_G       : positive;                   -- Number of filter taps
+      SIDEBAND_WIDTH_G : natural      := 0;
+      DATA_WIDTH_G     : positive;                   -- Number of bits per data word
+      COEFF_WIDTH_G    : positive range 1 to 32;     -- Number of bits per coefficient word
+      COEFFICIENTS_G   : IntegerArray := (0 => 0));  -- Tap Coefficients Init Constants
    port (
       -- Clock and Reset
       clk             : in  sl;
@@ -36,10 +37,12 @@ entity FirFilterSingleChannel is
       ibValid         : in  sl                     := '1';
       ibReady         : out sl;
       din             : in  slv(DATA_WIDTH_G-1 downto 0);
+      sbIn            : in  slv(SIDEBAND_WIDTH_G-1 downto 0);
       -- Outbound Interface
       obValid         : out sl;
       obReady         : in  sl                     := '1';
       dout            : out slv(DATA_WIDTH_G-1 downto 0);
+      sbOut           : out slv(SIDEBAND_WIDTH_G-1 downto 0);
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -69,21 +72,25 @@ architecture mapping of FirFilterSingleChannel is
 
    constant NUM_ADDR_BITS_C : positive := bitSize(NUM_TAPS_G-1);
 
+   constant FILTER_DELAY_C : integer := (NUM_TAPS_G-1)/2;
+
+   type SidebandPipelineArray is array (FILTER_DELAY_C-1 downto 0) of slv(SIDEBAND_WIDTH_G-1 downto 0);
+
    type RegType is record
-      cnt        : natural range 0 to NUM_TAPS_G-1;
       coeffin    : CoeffArray;
       ibReady    : sl;
-      tValid     : sl;
       tdata      : slv(DATA_WIDTH_G-1 downto 0);
+      sideband   : SidebandPipelineArray;
+      tValid     : slv(FILTER_DELAY_C-1 downto 0);
       readSlave  : AxiLiteReadSlaveType;
       writeSlave : AxiLiteWriteSlaveType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      cnt        => 0,
       coeffin    => COEFFICIENTS_C,
       ibReady    => '0',
-      tValid     => '0',
       tdata      => (others => '0'),
+      tValid     => (others => '0'),
+      sideband   => (others => (others => '0')),
       readSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -140,7 +147,7 @@ begin
       -- Flow Control
       v.ibReady := '0';
       if (obReady = '1') then
-         v.tValid := '0';
+         v.tValid(0) := '0';
       end if;
 
       -- Check for new data
@@ -149,17 +156,15 @@ begin
          -- Accept the data
          v.ibReady := '1';
 
-         -- Truncate the fractional bits (COEFF_WIDTH_G-1) and overflow bits
-         v.tData := cascout(NUM_TAPS_G-1)(DATA_WIDTH_G-1+COEFF_WIDTH_G-1 downto COEFF_WIDTH_G-1);
+         -- Move the sideband and valid pipelines
+         v.tValid(0)   := '1';
+         v.sideband(0) := sbIn;
 
-         -- Check the latency init counter
-         if (r.cnt = NUM_TAPS_G-1) then
-            -- Output data now valid
-            v.tValid := '1';
-         else
-            -- Increment the count
-            v.cnt := r.cnt + 1;
-         end if;
+         v.tValid(FILTER_DELAY_C-1 downto 1)   := r.tValid(FILTER_DELAY_C-2 downto 0);
+         v.sideband(FILTER_DELAY_C-1 downto 1) := r.sideband(FILTER_DELAY_C-2 downto 0);
+
+         -- Truncate the fractional bits (COEFF_WIDTH_G-1) and overflow bits for output
+         v.tData := cascout(NUM_TAPS_G-1)(DATA_WIDTH_G-1+COEFF_WIDTH_G-1 downto COEFF_WIDTH_G-1);
 
       end if;
 
@@ -167,11 +172,14 @@ begin
       cascTapEn <= v.ibReady;
       ibReady   <= v.ibReady;
       dout      <= r.tdata;
-      obValid   <= r.tValid;
+      obValid   <= r.tValid(FILTER_DELAY_C-1);
+      sbOut     <= r.sideband(FILTER_DELAY_C-1);
 
       -- Reset
       if (rst = RST_POLARITY_G) then
-         v := REG_INIT_C;
+         v          := REG_INIT_C;
+         -- Allow sidebind to use SRL
+         v.sideband := r.sideband;
       end if;
 
       -- Register the variable for next clock cycle
