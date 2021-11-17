@@ -132,14 +132,14 @@ begin
          axiWrAddr      => axiWrAddr,        -- [out]
          axiWrData      => axiWrData);       -- [out]
 
-   comb : process (axiWrAddr, axiWrData, axiWrValid, cascTapEn, cascout, ibValid, obReady, r, rst) is
+   comb : process (axiWrAddr, axiWrData, axiWrValid, cascout, ibValid, obReady, r, rst, sbIn) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
       -- Latch the current value
       v := r;
 
-      -- Capture coefficients in shadow registers when updated in AxiDualPortRam      
+      -- Capture coefficients in shadow registers when updated in AxiDualPortRam
       if (axiWrValid = '1') then
          v.coeffin(to_integer(unsigned(axiWrAddr))) := axiWrData(COEFF_WIDTH_G-1 downto 0);
       end if;
@@ -151,7 +151,7 @@ begin
       end if;
 
       -- Check for new data
-      if (ibValid = '1') and (v.tValid = '0') then
+      if (ibValid = '1') and (v.tValid(0) = '0') then
 
          -- Accept the data
          v.ibReady := '1';
@@ -176,7 +176,7 @@ begin
       sbOut     <= r.sideband(FILTER_DELAY_C-1);
 
       -- Reset
-      if (rst = RST_POLARITY_G) then
+      if (rst = '1') then
          v          := REG_INIT_C;
          -- Allow sidebind to use SRL
          v.sideband := r.sideband;
