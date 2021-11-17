@@ -62,7 +62,7 @@ architecture mapping of FirFilterSingleChannel is
    impure function initCoeffArray return CoeffArray is
       variable retValue : CoeffArray := (others => (others => '0'));
    begin
-      for i in 0 to COEFFICIENTS_G'range loop
+      for i in COEFFICIENTS_G'range loop
          retValue(i) := std_logic_vector(to_signed(COEFFICIENTS_G(i), COEFF_WIDTH_G));
       end loop;
       return(retValue);
