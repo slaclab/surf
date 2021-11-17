@@ -1,4 +1,5 @@
 -------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for clink framer
 -------------------------------------------------------------------------------
@@ -16,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -29,7 +29,7 @@ architecture test of ClinkFramerTb is
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16, -- 128 bits
+      TDATA_BYTES_C => 16,              -- 128 bits
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -42,22 +42,23 @@ architecture test of ClinkFramerTb is
    signal sysClk : sl;
    signal sysRst : sl;
 
-   signal linkMode     : slv(3 downto 0);
-   signal dataMode     : slv(3 downto 0);
-   signal dataEn       : sl;
-   signal frameCount   : slv(31 downto 0);
-   signal dropCount    : slv(31 downto 0);
+   signal parData  : Slv28Array(2 downto 0);
+   signal parValid : slv(2 downto 0);
+   signal parReady : sl;
 
-   signal locked       : slv(2 downto 0);
-   signal running      : sl;
-   signal parData      : Slv28Array(2 downto 0);
-   signal parValid     : slv(2 downto 0);
-   signal parReady     : sl;
+   signal dataMaster : AxiStreamMasterType;
+   signal dataSlave  : AxiStreamSlaveType;
 
-   signal dataMaster   : AxiStreamMasterType;
-   signal dataSlave    : AxiStreamSlaveType;
+   signal testCount : slv(7 downto 0);
 
-   signal testCount    : slv(7 downto 0);
+   signal sUartMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sUartSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal mUartMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal loopback    : sl;
+
+   signal chanConfig : ClChanConfigType              := CL_CHAN_CONFIG_INIT_C;
+   signal chanStatus : ClChanStatusType              := CL_CHAN_STATUS_INIT_C;
+   signal linkStatus : ClLinkStatusArray(2 downto 0) := (others => CL_LINK_STATUS_INIT_C);
 
 begin
 
@@ -67,7 +68,7 @@ begin
    U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 10030 ns)  -- Hold reset for this long)
       port map (
          clkP => sysClk,
@@ -75,17 +76,20 @@ begin
          rst  => sysRst,
          rstL => open);
 
-   linkMode <= CLM_DECA_C;
-   dataMode <= CDM_8BIT_C;
-   dataEn   <= '1';
-   locked   <= (others=>'1');
+   chanConfig.linkMode  <= CLM_DECA_C;
+   chanConfig.dataMode  <= CDM_8BIT_C;
+   chanConfig.dataEn    <= '1';
+   linkStatus(0).locked <= '1';
+   linkStatus(1).locked <= '1';
+   linkStatus(2).locked <= '1';
 
-   process ( sysClk ) begin
+   process (sysClk)
+   begin
       if rising_edge(sysClk) then
          if sysRst = '1' then
-            parData     <= (others=>(others=>'0')) after TPD_G;
-            parValid    <= (others=>'0') after TPD_G;
-            testCount   <= (others=>'0') after TPD_G;
+            parData   <= (others => (others => '0')) after TPD_G;
+            parValid  <= (others => '0')             after TPD_G;
+            testCount <= (others => '0')             after TPD_G;
          else
 
             parValid <= parValid xor "111" after TPD_G;
@@ -93,68 +97,79 @@ begin
             if parValid(0) = '1' then
 
                if testCount = 255 then
-                  testCount <= (others=>'0') after TPD_G;
+                  testCount <= (others => '0') after TPD_G;
                else
                   testCount <= testCount + 1 after TPD_G;
                end if;
 
                if testCount > 10 and testCount <= 20 then
-                  parData(0)(25) <= '1' after TPD_G; -- fv
-                  parData(0)(24) <= '1' after TPD_G; -- lv
-                  parData(1)(27) <= '1' after TPD_G; -- lv
-                  parData(2)(27) <= '1' after TPD_G; -- lv
+                  parData(0)(25) <= '1' after TPD_G;  -- fv
+                  parData(0)(24) <= '1' after TPD_G;  -- lv
+                  parData(1)(27) <= '1' after TPD_G;  -- lv
+                  parData(2)(27) <= '1' after TPD_G;  -- lv
                else
-                  parData(0)(25) <= '0' after TPD_G; -- fv
-                  parData(0)(24) <= '0' after TPD_G; -- lv
-                  parData(1)(27) <= '0' after TPD_G; -- lv
-                  parData(2)(27) <= '0' after TPD_G; -- lv
+                  parData(0)(25) <= '0' after TPD_G;  -- fv
+                  parData(0)(24) <= '0' after TPD_G;  -- lv
+                  parData(1)(27) <= '0' after TPD_G;  -- lv
+                  parData(2)(27) <= '0' after TPD_G;  -- lv
                end if;
             end if;
+
+            sUartMaster.tValid <= '0' after TPD_G;
+            if sUartSlave.tReady = '1' then
+               sUartMaster.tValid            <= '1'                               after TPD_G;
+               sUartMaster.tData(7 downto 0) <= sUartMaster.tData(7 downto 0) + 1 after TPD_G;
+            end if;
+
          end if;
       end if;
    end process;
 
 
-   U_Framing: entity surf.ClinkFraming
+   U_Framing : entity surf.ClinkFraming
       generic map (
          TPD_G              => TPD_G,
          DATA_AXIS_CONFIG_G => AXIS_CONFIG_C)
       port map (
-         sysClk       => sysClk,
-         sysRst       => sysRst,
+         sysClk     => sysClk,
+         sysRst     => sysRst,
          -- Config and status
-         linkMode      => linkMode,
-         dataMode      => dataMode,
-         dataEn        => dataEn,
-         frameCount    => frameCount,
-         dropCount     => dropCount,
+         chanConfig => chanConfig,
+         chanStatus => chanStatus,
+         linkStatus => linkStatus,
          -- Data interface
-         locked        => locked,
-         running       => running,
-         parData       => parData,
-         parValid      => parValid,
-         parReady      => parReady,
+         parData    => parData,
+         parValid   => parValid,
+         parReady   => parReady,
          -- Camera data
-         dataMaster    => dataMaster,
-         dataSlave     => dataSlave);
+         dataClk    => sysClk,
+         dataRst    => sysRst,
+         dataMaster => dataMaster,
+         dataSlave  => dataSlave);
 
    dataSlave <= AXI_STREAM_SLAVE_FORCE_C;
 
    U_Uart : entity surf.ClinkUart
       generic map (
          TPD_G              => TPD_G,
-         CLK_FREQ_G         => 200.0e6)
+         UART_AXIS_CONFIG_G => AXIS_CONFIG_C)
       port map (
-         clk             => sysClk,
-         rst             => sysRst,
-         baud            => toSlv(9600,24),
-         sUartMaster     => AXI_STREAM_MASTER_INIT_C,
-         sUartSlave      => open,
-         sUartCtrl       => open,
-         mUartMaster     => open,
-         mUartSlave      => AXI_STREAM_SLAVE_INIT_C,
-         rxIn            => '1',
-         txOut           => open);
+         -- Clock and reset, 200Mhz
+         intClk      => sysClk,
+         intRst      => sysRst,
+         -- Configurations
+         baud        => toSlv(9600, 24),
+         throttle    => toSlv(1, 16),
+         -- Data In/Out
+         uartClk     => sysClk,
+         uartRst     => sysRst,
+         sUartMaster => sUartMaster,
+         sUartSlave  => sUartSlave,
+         mUartMaster => mUartMaster,
+         mUartSlave  => AXI_STREAM_SLAVE_FORCE_C,
+         -- Serial data
+         rxIn        => loopback,
+         txOut       => loopback);
 
 end test;
 
