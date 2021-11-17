@@ -96,7 +96,7 @@ package ClinkPkg is
       swCamCtrlEn : slv(3 downto 0);
       serBaud     : slv(23 downto 0);
       serThrottle : slv(15 downto 0);
-      linkMode    : slv(3 downto 0);
+      linkMode    : slv(2 downto 0);
       dataMode    : slv(3 downto 0);
       tapCount    : slv(3 downto 0);
       frameMode   : slv(3 downto 0);
