@@ -23,16 +23,16 @@ use surf.AxiStreamPkg.all;
 
 entity FirFilterMultiChannel is
    generic (
-      TPD_G              : time         := 1 ns;
-      NUM_TAPS_G         : positive;    -- Number of programmable taps
-      NUM_CHANNELS_G     : positive;    -- Number of data channels
-      PARALLEL_G         : positive;    -- Number of parallel channel processing
-      DATA_WIDTH_G       : positive;    -- Number of bits per data word
-      COEFF_WIDTH_G      : positive;    -- Number of bits per coefficient
-      COEFFICIENTS_G     : IntegerArray := (0 => 0);  -- Initial coefficients
-      MEMORY_INIT_FILE_G : string       := "none";  -- Used to load tap coefficients into RAM at boot up
-      MEMORY_TYPE_G      : string       := "distributed";
-      SYNTH_MODE_G       : string       := "inferred");
+      TPD_G          : time         := 1 ns;
+      COMMON_CLOCK_G : boolean      := false;     -- True if axisClk and axiClk are the same
+      NUM_TAPS_G     : positive;                  -- Number of filter taps
+      NUM_CHANNELS_G : positive;                  -- Number of data channels
+      PARALLEL_G     : positive;                  -- Number of parallel channel processing
+      DATA_WIDTH_G   : positive;                  -- Number of bits per data word
+      COEFF_WIDTH_G  : positive range 1 to 32;                  -- Number of bits per coefficient
+      COEFFICIENTS_G : IntegerArray := (0 => 0);  -- Initial coefficients
+      MEMORY_TYPE_G  : string       := "distributed";
+      SYNTH_MODE_G   : string       := "inferred");
    port (
       -- AXI Stream Interface (axilClk domain)
       axisClk         : in  sl;
@@ -44,9 +44,9 @@ entity FirFilterMultiChannel is
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end FirFilterMultiChannel;
 
@@ -138,9 +138,9 @@ architecture mapping of FirFilterMultiChannel is
    signal ramDin  : slv(CASC_RAM_DATA_WIDTH_C-1 downto 0);
    signal ramDout : slv(CASC_RAM_DATA_WIDTH_C-1 downto 0);
 
-   signal axiWrValid : sl;
-   signal axiWrAddr  : slv(COEFF_RAM_ADDR_WIDTH_G-1 downto 0);
-   signal axiWrData  : slv(31 downto 0);
+   signal axiWrValid : sl                                     := '0';
+   signal axiWrAddr  : slv(COEFF_RAM_ADDR_WIDTH_G-1 downto 0) := (others => '0');
+   signal axiWrData  : slv(31 downto 0)                       := (others => '0');
 
 
 begin
@@ -161,7 +161,7 @@ begin
          AXI_WR_EN_G      => true,
          SYS_WR_EN_G      => false,
          SYS_BYTE_WR_EN_G => false,
-         COMMON_CLK_G     => false,
+         COMMON_CLK_G     => COMMON_CLK_G,
          ADDR_WIDTH_G     => COEFF_RAM_ADDR_WIDTH_G,
          DATA_WIDTH_G     => 32)
       port map (
@@ -207,7 +207,7 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Capture coefficient shadow registers
+      -- Capture coefficients in shadow registers when updated in AxiDualPortRam
       if (axiWrValid = '1') then
          v.coeffin(to_integer(unsigned(axiWrAddr))) := axiWrData(COEFF_WIDTH_G-1 downto 0);
       end if;
@@ -282,6 +282,17 @@ begin
 
    end process comb;
 
+
+   seq : process (axisClk) is
+   begin
+      if rising_edge(axisClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
+   -------------------------------------------------------------------------------------------------
+   -- Cascade glue logic
+   -------------------------------------------------------------------------------------------------
    GLUE : process (cascCache, cascout, sAxisMaster) is
    begin
       for j in PARALLEL_G-1 downto 0 loop
@@ -307,13 +318,6 @@ begin
 
    end process GLUE;
 
-
-   seq : process (axisClk) is
-   begin
-      if rising_edge(axisClk) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
 
    GEN_TAP : for i in NUM_TAPS_G-1 downto 0 generate
       GEN_PARALLEL : for j in PARALLEL_G-1 downto 0 generate
