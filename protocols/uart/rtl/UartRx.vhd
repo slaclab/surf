@@ -130,7 +130,7 @@ begin
          when WAIT_FULL_S =>
             if (baudClkEn = '1') then
                v.baudClkEnCount := r.baudClkEnCount + 1;
-               if (r.baudClkEnCount = (BAUD_MULT_G-1)) then
+               if (r.baudClkEnCount = (BAUD_MULT_G-2)) then
                   v.baudClkEnCount := (others => '0');
                   v.rxState        := r.waitState;
                end if;
