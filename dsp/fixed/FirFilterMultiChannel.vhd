@@ -201,7 +201,7 @@ begin
 
    end generate;
 
-   comb : process (axisRst, cascCache, cascout, mAxisSlave, r, sAxisMaster) is
+   comb : process (axiWrAddr, axiWrData, axiWrValid, axisRst, cascout, mAxisSlave, r, sAxisMaster) is
       variable v : RegType;
    begin
       -- Latch the current value
