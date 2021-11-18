@@ -19,7 +19,7 @@ class FirFilterMultiChannel(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name = f'Taps',
+            name = 'Taps',
             offset = 0,
             disp = '{:0.04f}',
             bitSize = 32*numberTaps,
