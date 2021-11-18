@@ -150,6 +150,7 @@ begin
       axiSlaveRegisterR(axilEp, x"120", 0, chanStatus(0).running);
       axiSlaveRegisterR(axilEp, x"124", 0, chanStatus(0).frameCount);
       axiSlaveRegisterR(axilEp, x"128", 0, chanStatus(0).dropCount);
+      axiSlaveRegisterR(axilEp, x"12C", 0, chanStatus(0).frameSize);
 
       -- Channel B Config
       axiSlaveRegister (axilEp, x"200", 0, v.chanConfig(1).linkMode);
@@ -168,6 +169,7 @@ begin
       axiSlaveRegisterR(axilEp, x"220", 0, chanStatus(1).running);
       axiSlaveRegisterR(axilEp, x"224", 0, chanStatus(1).frameCount);
       axiSlaveRegisterR(axilEp, x"228", 0, chanStatus(1).dropCount);
+      axiSlaveRegisterR(axilEp, x"22C", 0, chanStatus(1).frameSize);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
