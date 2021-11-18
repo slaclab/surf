@@ -186,6 +186,18 @@ class ClinkChannel(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = "FrameSize",
+            description  = "Camera Image size",
+            offset       =  0x2C,
+            bitSize      =  32,
+            bitOffset    =  0,
+            disp         = '{}',
+            mode         = "RO",
+            units        = "bytes",
+            pollInterval = 1,
+        ))
+
         ##############################################################################
 
         self._rx = None

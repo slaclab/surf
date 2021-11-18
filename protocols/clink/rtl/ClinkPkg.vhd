@@ -72,19 +72,19 @@ package ClinkPkg is
    -- Link Status Record
    ------------------------------------
    type ClLinkStatusType is record
-      clkInFreq      : slv(31 downto 0);
-      clinkClkFreq   : slv(31 downto 0);
-      locked         : sl;
-      delay          : slv(4 downto 0);
-      shiftCnt       : slv(2 downto 0);
+      clkInFreq    : slv(31 downto 0);
+      clinkClkFreq : slv(31 downto 0);
+      locked       : sl;
+      delay        : slv(4 downto 0);
+      shiftCnt     : slv(2 downto 0);
    end record ClLinkStatusType;
 
    constant CL_LINK_STATUS_INIT_C : ClLinkStatusType := (
-      clkInFreq      => (others => '0'),
-      clinkClkFreq   => (others => '0'),
-      locked         => '0',
-      delay          => (others => '0'),
-      shiftCnt       => (others => '0'));
+      clkInFreq    => (others => '0'),
+      clinkClkFreq => (others => '0'),
+      locked       => '0',
+      delay        => (others => '0'),
+      shiftCnt     => (others => '0'));
 
    type ClLinkStatusArray is array (natural range<>) of ClLinkStatusType;
 
@@ -96,7 +96,7 @@ package ClinkPkg is
       swCamCtrlEn : slv(3 downto 0);
       serBaud     : slv(23 downto 0);
       serThrottle : slv(15 downto 0);
-      linkMode    : slv(3 downto 0);
+      linkMode    : slv(2 downto 0);
       dataMode    : slv(3 downto 0);
       tapCount    : slv(3 downto 0);
       frameMode   : slv(3 downto 0);
@@ -125,12 +125,14 @@ package ClinkPkg is
    ------------------------------------
    type ClChanStatusType is record
       running    : sl;
+      frameSize  : slv(31 downto 0);
       frameCount : slv(31 downto 0);
       dropCount  : slv(31 downto 0);
    end record ClChanStatusType;
 
    constant CL_CHAN_STATUS_INIT_C : ClChanStatusType := (
       running    => '0',
+      frameSize  => (others => '0'),
       frameCount => (others => '0'),
       dropCount  => (others => '0'));
 
