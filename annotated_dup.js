@@ -188,6 +188,7 @@ var annotated_dup =
     [ "ClinkReg", "classClinkReg.html", "classClinkReg" ],
     [ "ClinkTop", "classClinkTop.html", "classClinkTop" ],
     [ "ClinkUart", "classClinkUart.html", "classClinkUart" ],
+    [ "ClinkUartTb", "classClinkUartTb.html", "classClinkUartTb" ],
     [ "ClinkUartThrottle", "classClinkUartThrottle.html", "classClinkUartThrottle" ],
     [ "ClkOutBufDiff", "classClkOutBufDiff.html", "classClkOutBufDiff" ],
     [ "ClkOutBufSingle", "classClkOutBufSingle.html", "classClkOutBufSingle" ],

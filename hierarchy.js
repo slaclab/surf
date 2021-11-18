@@ -513,6 +513,8 @@ var hierarchy =
       ] ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "ClinkFraming", "classClinkFraming.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "ClinkUart", "classClinkUart.html", null ],
       [ "Encoder12b14b", "classEncoder12b14b.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "Decoder12b14b", "classDecoder12b14b.html", null ],

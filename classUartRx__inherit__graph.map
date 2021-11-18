@@ -1,13 +1,14 @@
 <map id="UartRx" name="UartRx">
-<area shape="rect" id="node1" title=" " alt="" coords="210,155,277,181"/>
-<area shape="rect" id="node4" href="$classClinkUart.html" title=" " alt="" coords="126,229,209,256"/>
-<area shape="rect" id="node8" href="$classUartWrapper.html" title=" " alt="" coords="321,229,427,256"/>
-<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title=" " alt="" coords="174,80,313,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="190,5,297,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="273,155,339,181"/>
+<area shape="rect" id="node4" href="$classClinkUart.html" title=" " alt="" coords="193,229,275,256"/>
+<area shape="rect" id="node9" href="$classUartWrapper.html" title=" " alt="" coords="444,229,549,256"/>
+<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title=" " alt="" coords="237,80,375,107"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="253,5,359,32"/>
 <area shape="rect" id="node5" href="$classClinkCtrl.html" title=" " alt="" coords="5,304,84,331"/>
 <area shape="rect" id="node7" href="$classClinkFramerTb.html" title=" " alt="" coords="109,304,226,331"/>
+<area shape="rect" id="node8" href="$classClinkUartTb.html" title=" " alt="" coords="250,304,349,331"/>
 <area shape="rect" id="node6" href="$classClinkTop.html" title=" " alt="" coords="6,379,83,405"/>
-<area shape="rect" id="node9" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="251,304,391,331"/>
-<area shape="rect" id="node10" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="296,379,452,405"/>
-<area shape="rect" id="node11" href="$classUartSem.html" title=" " alt="" coords="467,304,545,331"/>
+<area shape="rect" id="node10" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="373,304,513,331"/>
+<area shape="rect" id="node11" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="419,379,575,405"/>
+<area shape="rect" id="node12" href="$classUartSem.html" title=" " alt="" coords="589,304,668,331"/>
 </map>
