@@ -26,8 +26,8 @@ use surf.ClinkPkg.all;
 
 entity ClinkFraming is
    generic (
-      TPD_G              : time                := 1 ns;
-      COMMON_DATA_CLK_G  : boolean             := false;  -- true if dataClk=sysClk
+      TPD_G              : time    := 1 ns;
+      COMMON_DATA_CLK_G  : boolean := false;  -- true if dataClk=sysClk
       DATA_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
@@ -54,6 +54,7 @@ architecture rtl of ClinkFraming is
    constant MST_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 16, tDestBits => 0);
 
    type RegType is record
+      byteCnt  : slv(31 downto 0);
       ready    : sl;
       portData : ClDataType;
       byteData : ClDataType;
@@ -66,6 +67,7 @@ architecture rtl of ClinkFraming is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      byteCnt  => (others => '0'),
       ready    => '1',
       portData => CL_DATA_INIT_C,
       byteData => CL_DATA_INIT_C,
@@ -362,6 +364,7 @@ begin
          if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
             v.inFrame       := '1';
             v.master.tValid := '1';
+            v.byteCnt       := r.byteCnt + r.bytes;
          end if;
 
          -- Backpressure
@@ -386,9 +389,13 @@ begin
 
             -- Check for no data at end of frame
             if (r.byteData.lv = '0') then
-               v.master.tKeep := (others => '0');
+               v.master.tKeep     := (others => '0');
+               v.status.frameSize := r.byteCnt;
+            else
+               v.status.frameSize := v.byteCnt;
             end if;
 
+            v.byteCnt := (others => '0');
             v.inFrame := '0';
             v.dump    := '0';
          end if;
@@ -401,6 +408,7 @@ begin
 
       -- Check for counter reset
       if (chanConfig.cntRst = '1') then
+         v.status.frameSize  := (others => '0');
          v.status.frameCount := (others => '0');
          v.status.dropCount  := (others => '0');
       end if;
