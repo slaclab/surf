@@ -26,5 +26,3 @@ class FirFilterSingleChannel(pr.Device):
             numValues = numberTaps,
             valueStride = 32,
             base = pr.Fixed(coeffWordBitSize, coeffWordBitSize-1)))
-
-            
