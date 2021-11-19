@@ -92,6 +92,10 @@ package ClinkPkg is
    -- Channel Configuration Record
    ------------------------------------
    type ClChanConfigType is record
+      hSkip       : slv(15 downto 0);
+      hActive     : slv(15 downto 0);
+      vSkip       : slv(15 downto 0);
+      vActive     : slv(15 downto 0);
       swCamCtrl   : slv(3 downto 0);
       swCamCtrlEn : slv(3 downto 0);
       serBaud     : slv(23 downto 0);
@@ -106,6 +110,10 @@ package ClinkPkg is
    end record ClChanConfigType;
 
    constant CL_CHAN_CONFIG_INIT_C : ClChanConfigType := (
+      hSkip       => (others => '0'),
+      hActive     => (others => '1'),
+      vSkip       => (others => '0'),
+      vActive     => (others => '1'),
       swCamCtrl   => (others => '0'),
       swCamCtrlEn => (others => '0'),
       serBaud     => toSlv(9600, 24),   -- Default of 9600 baud
