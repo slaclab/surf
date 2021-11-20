@@ -1,5 +1,8 @@
 var NAVTREEINDEX48 =
 {
+"classFifoSync.html#aa5b701cabb832036aea0132bf6159d5a":[1,0,261,7],
+"classFifoSync.html#aa8c0b99c4da49a0e85f6369f29047d02":[1,0,261,21],
+"classFifoSync.html#aa8d3be3c0bd549aea97ab15a18985180":[1,0,261,11],
 "classFifoSync.html#ac19eab973cb6c0196eed65d74fc49dca":[1,0,261,4],
 "classFifoSync.html#ac9d0fd649bb09079eb97e0431bab5b80":[1,0,261,6],
 "classFifoSync.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,261,35],
@@ -246,8 +249,5 @@ var NAVTREEINDEX48 =
 "classFirAverageTb_1_1test.html#a3b1faa4ddd8d80991fcd8b47cdab7b71":[1,0,266,0,23],
 "classFirAverageTb_1_1test.html#a401fa33a0ca2c6010965f00e5a231aec":[1,0,266,0,10],
 "classFirAverageTb_1_1test.html#a4a1dd66bf793ce17c5f25b5e3f74ca7c":[1,0,266,0,1],
-"classFirAverageTb_1_1test.html#a4d1aa26dcfa648e02cbb0964cddbdbfe":[1,0,266,0,31],
-"classFirAverageTb_1_1test.html#a5805fd30f2a2f1c12a308bc18649828a":[1,0,266,0,32],
-"classFirAverageTb_1_1test.html#a61828db4fa40728b47c3767e8c07cb97":[1,0,266,0,6],
-"classFirAverageTb_1_1test.html#a621eaceab9ebae5e71066392baf7f18c":[1,0,266,0,28]
+"classFirAverageTb_1_1test.html#a4d1aa26dcfa648e02cbb0964cddbdbfe":[1,0,266,0,31]
 };

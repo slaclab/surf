@@ -1,5 +1,8 @@
 var NAVTREEINDEX118 =
 {
+"classSgmiiDp83867LvdsUltraScale.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,568,1],
+"classSgmiiDp83867LvdsUltraScale.html#a68210ee0c78c4a70f70b487e5e702546":[1,0,568,24],
+"classSgmiiDp83867LvdsUltraScale.html#a6fa003e78ac1d0162e999173ad9b2003":[1,0,568,26],
 "classSgmiiDp83867LvdsUltraScale.html#a701761914fd09b26dd95a64cd3df8bf6":[1,0,568,6],
 "classSgmiiDp83867LvdsUltraScale.html#a70745fd92ee607173d218a8768ebffea":[1,0,568,4],
 "classSgmiiDp83867LvdsUltraScale.html#a77560a004a3260721bccf9a619cd5923":[1,0,568,31],
@@ -246,8 +249,5 @@ var NAVTREEINDEX118 =
 "classSimpleDualPortRamAlteraMf.html#ae10218b9280bd97ed982c1aa2644c6d7":[1,0,573,14],
 "classSimpleDualPortRamAlteraMf.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,573,26],
 "classSimpleDualPortRamAlteraMf_1_1rtl.html":[1,0,573,0],
-"classSimpleDualPortRamXpm.html":[1,0,574],
-"classSimpleDualPortRamXpm.html#a0073970f1392f10032ffbb4c4164e1a9":[1,0,574,20],
-"classSimpleDualPortRamXpm.html#a04b2b321f81f02681a52c6c7d92ff12e":[1,0,574,8],
-"classSimpleDualPortRamXpm.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,574,23]
+"classSimpleDualPortRamXpm.html":[1,0,574]
 };

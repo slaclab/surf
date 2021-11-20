@@ -1,5 +1,8 @@
 var NAVTREEINDEX147 =
 {
+"classsfixedPreAddMultAdd.html#aaba09d6abb6bf6afbf97fe6b5200e240":[1,0,565,3],
+"classsfixedPreAddMultAdd.html#aad86249c80e8c1e7ee1c4748aba748e3":[1,0,565,20],
+"classsfixedPreAddMultAdd.html#abf845d768bd7a679b2099e194ea71a44":[1,0,565,11],
 "classsfixedPreAddMultAdd.html#ac0671093a6fc3e792194dd353bf85dd7":[1,0,565,17],
 "classsfixedPreAddMultAdd.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,565,22],
 "classsfixedPreAddMultAdd.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,565,19],

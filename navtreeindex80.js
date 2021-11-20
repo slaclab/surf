@@ -1,5 +1,8 @@
 var NAVTREEINDEX80 =
 {
+"classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,409,0,6],
+"classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl.html#a3a01625e5f3d13101025ef2ad44d35db":[1,0,409,0,8],
+"classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe":[1,0,409,0,7],
 "classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl.html#a5ca9317d4281403de99b2ac6e0bf1198":[1,0,409,0,22],
 "classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl.html#a652f0a349b9fc055ac6c4586a7088737":[1,0,409,0,20],
 "classMdioLinkIrqHandler_1_1MdioLinkIrqHandlerImpl.html#a65371ce2dabe056c3f04f419cf59c1d5":[1,0,409,0,21],
@@ -246,8 +249,5 @@ var NAVTREEINDEX80 =
 "classOutputBufferReg.html#a4c994cd435d417fcd0d32b009561a1f7":[1,0,416,3],
 "classOutputBufferReg.html#a50e4ce7d828478ea1e30fe0d7a05b0d8":[1,0,416,7],
 "classOutputBufferReg.html#a54ec304cbe9558ce7df625cf740f3b6f":[1,0,416,2],
-"classOutputBufferReg.html#a598da929e807d58939b47499e8bc9fa8":[1,0,416,18],
-"classOutputBufferReg.html#a63251b0046f456829f5019094a3b0deb":[1,0,416,13],
-"classOutputBufferReg.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,416,1],
-"classOutputBufferReg.html#a6ddf5b90418a2bd43ec88a5017854c09":[1,0,416,14]
+"classOutputBufferReg.html#a598da929e807d58939b47499e8bc9fa8":[1,0,416,18]
 };
