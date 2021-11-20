@@ -198,6 +198,38 @@ class ClinkChannel(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = "HSkip",
+            description  = "# of cycle to skip from the start of CLINK LineValid (LV)",
+            offset       =  0x30,
+            bitSize      =  16,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "HActive",
+            description  = "# of active cycle after HSkip while CLINK LineValid (LV) is active",
+            offset       =  0x34,
+            bitSize      =  16,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "VSkip",
+            description  = "# of lines to skip from the start of CLINK FrameValid (FV)",
+            offset       =  0x38,
+            bitSize      =  16,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "VActive",
+            description  = "# of active lines after VSkip while CLINK FrameValid (FV) is active",
+            offset       =  0x3C,
+            bitSize      =  16,
+            mode         = "RW",
+        ))
+
         ##############################################################################
 
         self._rx = None
