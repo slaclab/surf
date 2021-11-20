@@ -255,42 +255,24 @@ begin
       -- Check for VALID
       if (v.portData.valid = '1') then
 
-         -- Check of non-lv
-         if (v.portData.lv = '0') then
-            -- Reset the counter
-            v.hCnt := (others => '0');
-         else
-            -- Increment the counter
-            v.hCnt := r.hCnt + 1;
-            -- Check if out of bound
-            if (r.hCnt < chanConfig.hSkip) then
-               -- Reset dv
-               v.portData.dv := '0';
-            end if;
-            -- Check if out of bound
-            if (r.hCnt >= (chanConfig.hSkip+chanConfig.hActive)) then
-               -- Reset dv
-               v.portData.dv := '0';
-            end if;
-         end if;
-
-         -- Keep a delayed copy
-         v.lineValid := v.portData.lv;
-
-         -- Check for a falling edge of LV
-         if (r.lineValid = '1') and (v.lineValid = '0') then
-            -- Increment the counter
-            v.vCnt := r.vCnt + 1;
-         end if;
-
          -- Check of non-fv
          if (v.portData.fv = '0') then
             -- Reset the counter
-            v.vCnt := (others => '0');
+            v.vCnt      := (others => '0');
+            v.lineValid := '0';
          else
 
+            -- Keep a delayed copy
+            v.lineValid := v.portData.lv;
+
+            -- Check for a falling edge of LV
+            if (r.lineValid = '1') and (v.lineValid = '0') then
+               -- Increment the counter
+               v.vCnt := r.vCnt + 1;
+            end if;
+
             -- Check if out of bound
-            if (r.vCnt < chanConfig.vSkip) then
+            if (r.vCnt < chanConfig.vSkip) and (chanConfig.vSkip /= 0) then
                -- Reset dv
                v.portData.dv := '0';
             end if;
@@ -301,6 +283,25 @@ begin
                v.portData.dv := '0';
             end if;
 
+         end if;
+
+         -- Check of non-lv
+         if (v.portData.lv = '0') then
+            -- Reset the counter
+            v.hCnt := (others => '0');
+         else
+            -- Increment the counter
+            v.hCnt := r.hCnt + 1;
+            -- Check if out of bound
+            if (r.hCnt < chanConfig.hSkip) and (chanConfig.hSkip /= 0) then
+               -- Reset lv
+               v.portData.lv := '0';
+            end if;
+            -- Check if out of bound
+            if (r.hCnt >= (chanConfig.hSkip+chanConfig.hActive)) then
+               -- Reset dv
+               v.portData.lv := '0';
+            end if;
          end if;
 
       end if;
