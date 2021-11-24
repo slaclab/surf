@@ -120,7 +120,7 @@ begin
                   v.tData(63 downto 0)   := ibIcmpMaster.tData(63 downto 0);
                   -- Swap the IP addresses
                   v.tData(95 downto 64)  := ibIcmpMaster.tData(127 downto 96);  -- SRC IP
-                  v.tData(127 downto 96) := ibIcmpMaster.tData(95 downto 64);   -- DST IP
+                  v.tData(127 downto 96) := ibIcmpMaster.tData(95 downto 64);  -- DST IP
                   if ibIcmpMaster.tData(127 downto 96) = localIp then
                      -- Next state
                      v.state := RX_HDR_S;
@@ -136,8 +136,14 @@ begin
                   -- Map the inbound checksum to little Endian
                   v.checksum(15 downto 8) := ibIcmpMaster.tData(55 downto 48);
                   v.checksum(7 downto 0)  := ibIcmpMaster.tData(63 downto 56);
-                  -- Update the checksum for outbound data packet
-                  v.checksum              := v.checksum + x"0800";
+                  -- Check if roll over case
+                  if (v.checksum >= x"F800") then
+                     -- Update the checksum for outbound data packet
+                     v.checksum := v.checksum + x"0801";
+                  else
+                     -- Update the checksum for outbound data packet
+                     v.checksum := v.checksum + x"0800";
+                  end if;
                   ---------------------------------------------------------
                   -- Note: To save FPGA resources, we do NOT cache the data
                   --       for properly calculating the checksum.  Instead,
@@ -151,7 +157,7 @@ begin
                   v.obIcmpMaster.tData(127 downto 0) := r.tData;
                   ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.obIcmpMaster, '1');
                   -- Next state
-                  v.state                 := TX_HDR_S;
+                  v.state                            := TX_HDR_S;
                else
                   -- Next state
                   v.state := IDLE_S;
@@ -166,7 +172,7 @@ begin
                -- Send the IPv4 base header
                v.obIcmpMaster.tValid               := '1';
                v.obIcmpMaster.tData(31 downto 0)   := ibIcmpMaster.tData(31 downto 0);
-               v.obIcmpMaster.tData(47 downto 32)  := x"0000";                  -- Echo reply
+               v.obIcmpMaster.tData(47 downto 32)  := x"0000";  -- Echo reply
                v.obIcmpMaster.tData(55 downto 48)  := r.checksum(15 downto 8);
                v.obIcmpMaster.tData(63 downto 56)  := r.checksum(7 downto 0);
                v.obIcmpMaster.tData(127 downto 64) := ibIcmpMaster.tData(127 downto 64);
