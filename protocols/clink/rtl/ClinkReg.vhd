@@ -150,6 +150,13 @@ begin
       axiSlaveRegisterR(axilEp, x"120", 0, chanStatus(0).running);
       axiSlaveRegisterR(axilEp, x"124", 0, chanStatus(0).frameCount);
       axiSlaveRegisterR(axilEp, x"128", 0, chanStatus(0).dropCount);
+      axiSlaveRegisterR(axilEp, x"12C", 0, chanStatus(0).frameSize);
+
+      -- Channel A ROI
+      axiSlaveRegister (axilEp, x"130", 0, v.chanConfig(0).hSkip);
+      axiSlaveRegister (axilEp, x"134", 0, v.chanConfig(0).hActive);
+      axiSlaveRegister (axilEp, x"138", 0, v.chanConfig(0).vSkip);
+      axiSlaveRegister (axilEp, x"13C", 0, v.chanConfig(0).vActive);
 
       -- Channel B Config
       axiSlaveRegister (axilEp, x"200", 0, v.chanConfig(1).linkMode);
@@ -168,6 +175,13 @@ begin
       axiSlaveRegisterR(axilEp, x"220", 0, chanStatus(1).running);
       axiSlaveRegisterR(axilEp, x"224", 0, chanStatus(1).frameCount);
       axiSlaveRegisterR(axilEp, x"228", 0, chanStatus(1).dropCount);
+      axiSlaveRegisterR(axilEp, x"22C", 0, chanStatus(1).frameSize);
+
+      -- Channel B ROI
+      axiSlaveRegister (axilEp, x"230", 0, v.chanConfig(1).hSkip);
+      axiSlaveRegister (axilEp, x"234", 0, v.chanConfig(1).hActive);
+      axiSlaveRegister (axilEp, x"238", 0, v.chanConfig(1).vSkip);
+      axiSlaveRegister (axilEp, x"23C", 0, v.chanConfig(1).vActive);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 

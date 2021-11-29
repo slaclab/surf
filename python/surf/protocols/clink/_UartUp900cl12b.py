@@ -16,9 +16,15 @@
 import pyrogue as pr
 import surf.protocols.clink as clink
 
+serialMap = {}
+serialMap[0x01] = 'SOH'
+serialMap[0x0A] = 'NL'
+serialMap[0x0D] = 'CR'
+
 class UartUp900cl12bRx(clink.ClinkSerialRx):
     def __init__(self, path,**kwargs):
         super().__init__(path=path,**kwargs)
+        self._hex = []
 
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
@@ -26,13 +32,21 @@ class UartUp900cl12bRx(clink.ClinkSerialRx):
 
         for i in range(0,len(ba),4):
             c = chr(ba[i])
-            # print (ba[i])
+            #print( "Up900 Rcvd:  %c (0x%02X)" % (c, ba[i]))
 
-            if (c == '\r'):
-                print(self._path+": Got Response: {}".format(''.join(self._cur)))
-                self._cur = []
-            elif (c != '') and (ba[i] != 1):
+            if c.isascii() and (c.isalnum() or c.isspace()):
                 self._cur.append(c)
+            elif ba[i] in serialMap:
+                self._cur.append(' ' + serialMap[ba[i]])
+            else:
+                self._cur.append(' 0x%02X' % ba[i])
+            self._hex.append(' 0x%02X' % ba[i])
+
+            if (ba[i] == 0x01) or (c == '?'):
+                print(self._path+": Got Response: {}".format(''.join(self._cur)))
+                print(self._path+": Hex Response: {}".format(''.join(self._hex)))
+                self._cur = []
+                self._hex = []
 
 class UartUp900cl12b(pr.Device):
     def __init__(self, serial=None, **kwargs):

@@ -26,8 +26,8 @@ use surf.ClinkPkg.all;
 
 entity ClinkFraming is
    generic (
-      TPD_G              : time                := 1 ns;
-      COMMON_DATA_CLK_G  : boolean             := false;  -- true if dataClk=sysClk
+      TPD_G              : time    := 1 ns;
+      COMMON_DATA_CLK_G  : boolean := false;  -- true if dataClk=sysClk
       DATA_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
@@ -54,27 +54,35 @@ architecture rtl of ClinkFraming is
    constant MST_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 16, tDestBits => 0);
 
    type RegType is record
-      ready    : sl;
-      portData : ClDataType;
-      byteData : ClDataType;
-      bytes    : integer range 1 to 16;
-      inFrame  : sl;
-      dump     : sl;
-      status   : ClChanStatusType;
-      master   : AxiStreamMasterType;
-      pipeline : AxiStreamMasterArray(1 downto 0);
+      hCnt      : slv(15 downto 0);
+      vCnt      : slv(15 downto 0);
+      byteCnt   : slv(31 downto 0);
+      lineValid : sl;
+      ready     : sl;
+      portData  : ClDataType;
+      byteData  : ClDataType;
+      bytes     : integer range 1 to 16;
+      inFrame   : sl;
+      dump      : sl;
+      status    : ClChanStatusType;
+      master    : AxiStreamMasterType;
+      pipeline  : AxiStreamMasterArray(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ready    => '1',
-      portData => CL_DATA_INIT_C,
-      byteData => CL_DATA_INIT_C,
-      bytes    => 1,
-      inFrame  => '0',
-      dump     => '0',
-      status   => CL_CHAN_STATUS_INIT_C,
-      master   => AXI_STREAM_MASTER_INIT_C,
-      pipeline => (others => AXI_STREAM_MASTER_INIT_C));
+      hCnt      => (others => '0'),
+      vCnt      => (others => '0'),
+      byteCnt   => (others => '0'),
+      lineValid => '0',
+      ready     => '1',
+      portData  => CL_DATA_INIT_C,
+      byteData  => CL_DATA_INIT_C,
+      bytes     => 1,
+      inFrame   => '0',
+      dump      => '0',
+      status    => CL_CHAN_STATUS_INIT_C,
+      master    => AXI_STREAM_MASTER_INIT_C,
+      pipeline  => (others => AXI_STREAM_MASTER_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -244,6 +252,60 @@ begin
       -- Drive ready, dump when not running
       v.ready := v.portData.valid or (not r.status.running);
 
+      -- Check for VALID
+      if (v.portData.valid = '1') then
+
+         -- Check of non-fv
+         if (v.portData.fv = '0') then
+            -- Reset the counter
+            v.vCnt      := (others => '0');
+            v.lineValid := '0';
+         else
+
+            -- Keep a delayed copy
+            v.lineValid := v.portData.lv;
+
+            -- Check for a falling edge of LV
+            if (r.lineValid = '1') and (v.lineValid = '0') then
+               -- Increment the counter
+               v.vCnt := r.vCnt + 1;
+            end if;
+
+            -- Check if out of bound
+            if (r.vCnt < chanConfig.vSkip) and (chanConfig.vSkip /= 0) then
+               -- Reset dv
+               v.portData.dv := '0';
+            end if;
+
+            -- Check if out of bound
+            if (r.vCnt >= (chanConfig.vSkip+chanConfig.vActive)) then
+               -- Reset dv
+               v.portData.dv := '0';
+            end if;
+
+         end if;
+
+         -- Check of non-lv
+         if (v.portData.lv = '0') then
+            -- Reset the counter
+            v.hCnt := (others => '0');
+         else
+            -- Increment the counter
+            v.hCnt := r.hCnt + 1;
+            -- Check if out of bound
+            if (r.hCnt < chanConfig.hSkip) and (chanConfig.hSkip /= 0) then
+               -- Reset lv
+               v.portData.lv := '0';
+            end if;
+            -- Check if out of bound
+            if (r.hCnt >= (chanConfig.hSkip+chanConfig.hActive)) then
+               -- Reset dv
+               v.portData.lv := '0';
+            end if;
+         end if;
+
+      end if;
+
       ---------------------------------
       -- Map data bytes
       ---------------------------------
@@ -362,6 +424,7 @@ begin
          if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
             v.inFrame       := '1';
             v.master.tValid := '1';
+            v.byteCnt       := r.byteCnt + r.bytes;
          end if;
 
          -- Backpressure
@@ -386,9 +449,13 @@ begin
 
             -- Check for no data at end of frame
             if (r.byteData.lv = '0') then
-               v.master.tKeep := (others => '0');
+               v.master.tKeep     := (others => '0');
+               v.status.frameSize := r.byteCnt;
+            else
+               v.status.frameSize := v.byteCnt;
             end if;
 
+            v.byteCnt := (others => '0');
             v.inFrame := '0';
             v.dump    := '0';
          end if;
@@ -401,6 +468,7 @@ begin
 
       -- Check for counter reset
       if (chanConfig.cntRst = '1') then
+         v.status.frameSize  := (others => '0');
          v.status.frameCount := (others => '0');
          v.status.dropCount  := (others => '0');
       end if;
