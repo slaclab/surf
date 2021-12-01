@@ -15,7 +15,10 @@ requirements:
      - git
      - gitpython
      - numpy
-
+   host:
+     - python
+     - rogue
+     - numpy
    run:
      - python
      - rogue
