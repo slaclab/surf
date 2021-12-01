@@ -1,12 +1,12 @@
 package:
   name: surf
-  version: {{ GIT_DESCRIBE_TAG }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG') }}
 
 source:
    path: ..
 
 build:
-   number: {{ GIT_DESCRIBE_NUMBER|int }}
+   number: {{ environ.get('GIT_DESCRIBE_NUMBER',0) }}
 
 requirements:
    build:
