@@ -100,6 +100,9 @@ begin
       report "EMPTY_THRES_G must be <= ((2**ADDR_WIDTH_G)-2)"
       severity failure;
 
+   assert (FIFO_MEMORY_TYPE_G /= "mixed")
+      report "FIFO_MEMORY_TYPE_G=mixed is not supported in SYNTH_MODE_G=inferred yet" severity failure;
+
    comb : process (doutb, r, rd_en, wrIndex, wrRdy) is
       variable v      : RegType;
       variable wrAddr : slv(ADDR_WIDTH_G-1 downto 0);
