@@ -14,6 +14,9 @@ from surf.xilinx._Gthe3Channel        import *
 from surf.xilinx._Gtxe2Channel        import *
 from surf.xilinx._Gtpe2Channel        import *
 from surf.xilinx._Gtpe2Common         import *
-from surf.xilinx._Xadc                import *
 from surf.xilinx._RfTile              import *
 from surf.xilinx._RfDataConverter     import *
+from surf.xilinx._TmrInject           import *
+from surf.xilinx._TmrManager          import *
+from surf.xilinx._TmrSem              import *
+from surf.xilinx._Xadc                import *
