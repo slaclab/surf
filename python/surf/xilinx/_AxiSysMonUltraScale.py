@@ -162,7 +162,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitSize      = 12,
             bitOffset    = 4,
             units        = "V",
-            function     = self.convCoreVoltage,
+            function     = self.convAuxVoltage,
             pollInterval = 5,
             description  = "VP/VN's ADC value",
         )
