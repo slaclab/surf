@@ -1,24 +1,21 @@
 package:
   name: surf
-  version: {{ environ.get('GIT_DESCRIBE_TAG') }}
+  version: {{ GIT_DESCRIBE_TAG }}
 
 source:
    path: ..
 
 build:
-   number: {{ environ.get('GIT_DESCRIBE_NUMBER',0) }}
+   number: {{ GIT_DESCRIBE_NUMBER|int }}
 
 requirements:
    build:
-     - python
+     - python<3.8
      - rogue
      - git
      - gitpython
      - numpy
-   host:
-     - python
-     - rogue
-     - numpy
+
    run:
      - python
      - rogue
