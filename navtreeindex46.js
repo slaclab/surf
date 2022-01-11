@@ -1,5 +1,6 @@
 var NAVTREEINDEX46 =
 {
+"classEthMacTxPause.html#ac1625414338993fe184c68bfdbb48894":[1,0,250,29],
 "classEthMacTxPause.html#ac407bfccf5646aadea71dae233c2fbac":[1,0,250,21],
 "classEthMacTxPause.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,250,26],
 "classEthMacTxPause.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,250,23],
@@ -248,6 +249,5 @@ var NAVTREEINDEX46 =
 "classFifoCascade.html#a400db103e7b52fb031db1b515eeafdaa":[1,0,256,29],
 "classFifoCascade.html#a421be43cbfb30a3fcf43014ad4443f97":[1,0,256,19],
 "classFifoCascade.html#a5aa26d6e89a28af8e3faa4ded7760ab4":[1,0,256,25],
-"classFifoCascade.html#a608847e226c256a47ee2713644710553":[1,0,256,20],
-"classFifoCascade.html#a679052ea3c06e78e1226fcab1eb05fd6":[1,0,256,10]
+"classFifoCascade.html#a608847e226c256a47ee2713644710553":[1,0,256,20]
 };

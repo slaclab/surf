@@ -1,5 +1,6 @@
 var NAVTREEINDEX47 =
 {
+"classFifoCascade.html#a679052ea3c06e78e1226fcab1eb05fd6":[1,0,256,10],
 "classFifoCascade.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,256,1],
 "classFifoCascade.html#a690564d64aa8e37d3ffa7aa2c377f50e":[1,0,256,11],
 "classFifoCascade.html#a696e413cf631bea13e4955f0163248e4":[1,0,256,16],
@@ -248,6 +249,5 @@ var NAVTREEINDEX47 =
 "classFifoSync.html#a8562dfa3c7970041e8fb901d9c0e4ecf":[1,0,261,14],
 "classFifoSync.html#a8645252baa9610da0b1ecf73811d25ae":[1,0,261,28],
 "classFifoSync.html#a8977203ddc2debf324097e3fd9ab1381":[1,0,261,5],
-"classFifoSync.html#a8a9f56ec06b173cf46dc7160fd7c1f30":[1,0,261,2],
-"classFifoSync.html#a8d3ac6f28bddcb70f4274b04cdcb55a2":[1,0,261,9]
+"classFifoSync.html#a8a9f56ec06b173cf46dc7160fd7c1f30":[1,0,261,2]
 };

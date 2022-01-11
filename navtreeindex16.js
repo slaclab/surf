@@ -1,5 +1,6 @@
 var NAVTREEINDEX16 =
 {
+"classAxiReadPathFifo_1_1rtl.html#ab88b27eda4077ee376e00b23c6476828":[1,0,87,0,31],
 "classAxiReadPathFifo_1_1rtl.html#ac34d52512c8170b624eb95586c4c5855":[1,0,87,0,11],
 "classAxiReadPathFifo_1_1rtl.html#aca00a7f2a77f4c315c0fb4f7ac1b0f4c":[1,0,87,0,14],
 "classAxiReadPathFifo_1_1rtl.html#ad5b547923a58fe4634778b2ab4215740":[1,0,87,0,24],
@@ -248,6 +249,5 @@ var NAVTREEINDEX16 =
 "classAxiRssiCoreWrapper.html#adc854cd57bcc4de17c8e6f8f2a8ff159":[1,0,92,5],
 "classAxiRssiCoreWrapper.html#ae06e95e8eb0d75afb7c291563033dae6":[1,0,92,7],
 "classAxiRssiCoreWrapper.html#ae513f1009d8d7aa112086171cf9897d9":[1,0,92,24],
-"classAxiRssiCoreWrapper.html#aea6e148a613a3109e803301e7a624f03":[1,0,92,30],
-"classAxiRssiCoreWrapper.html#af2db959d931f2b0b6f80861172b0b285":[1,0,92,8]
+"classAxiRssiCoreWrapper.html#aea6e148a613a3109e803301e7a624f03":[1,0,92,30]
 };

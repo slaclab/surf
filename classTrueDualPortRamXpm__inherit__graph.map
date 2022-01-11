@@ -1,7 +1,7 @@
 <map id="TrueDualPortRamXpm" name="TrueDualPortRamXpm">
-<area shape="rect" id="node1" title=" " alt="" coords="5,284,171,311"/>
-<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title=" " alt="" coords="237,259,366,285"/>
-<area shape="rect" id="node20" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="219,309,384,336"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,309,171,336"/>
+<area shape="rect" id="node2" href="$classAxiDualPortRam.html" title=" " alt="" coords="237,284,366,311"/>
+<area shape="rect" id="node22" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="219,335,384,361"/>
 <area shape="rect" id="node3" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="435,5,640,32"/>
 <area shape="rect" id="node4" href="$classAxiLiteAsyncTb.html" title=" " alt="" coords="476,56,599,83"/>
 <area shape="rect" id="node5" href="$classAxiLiteRamSyncStatusVector.html" title=" " alt="" coords="432,107,643,133"/>
@@ -11,12 +11,14 @@
 <area shape="rect" id="node14" href="$classAxiStreamMonAxiL.html" title=" " alt="" coords="464,309,611,336"/>
 <area shape="rect" id="node16" href="$classClinkTop.html" title=" " alt="" coords="499,360,576,387"/>
 <area shape="rect" id="node17" href="$classFirFilterMultiChannel.html" title=" " alt="" coords="459,411,616,437"/>
-<area shape="rect" id="node18" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="451,461,623,488"/>
-<area shape="rect" id="node19" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="459,512,615,539"/>
-<area shape="rect" id="node6" href="$classHtspAxiL.html" title=" " alt="" coords="700,107,780,133"/>
-<area shape="rect" id="node7" href="$classHtspCore.html" title=" " alt="" coords="837,107,920,133"/>
-<area shape="rect" id="node8" href="$classHtspCaui4Gty.html" title=" " alt="" coords="968,81,1080,108"/>
-<area shape="rect" id="node10" href="$classHtspCoreTb.html" title=" " alt="" coords="975,132,1073,159"/>
-<area shape="rect" id="node9" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="1128,81,1256,108"/>
-<area shape="rect" id="node15" href="$classAxiMonAxiL.html" title=" " alt="" coords="691,309,789,336"/>
+<area shape="rect" id="node18" href="$classFirFilterSingleChannel.html" title=" " alt="" coords="455,461,619,488"/>
+<area shape="rect" id="node20" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="451,512,623,539"/>
+<area shape="rect" id="node21" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="459,563,615,589"/>
+<area shape="rect" id="node6" href="$classHtspAxiL.html" title=" " alt="" coords="741,107,821,133"/>
+<area shape="rect" id="node7" href="$classHtspCore.html" title=" " alt="" coords="919,107,1001,133"/>
+<area shape="rect" id="node8" href="$classHtspCaui4Gty.html" title=" " alt="" coords="1049,81,1161,108"/>
+<area shape="rect" id="node10" href="$classHtspCoreTb.html" title=" " alt="" coords="1056,132,1155,159"/>
+<area shape="rect" id="node9" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="1209,81,1337,108"/>
+<area shape="rect" id="node15" href="$classAxiMonAxiL.html" title=" " alt="" coords="731,309,830,336"/>
+<area shape="rect" id="node19" href="$classFirFilterSingleChannelTb.html" title=" " alt="" coords="691,461,871,488"/>
 </map>

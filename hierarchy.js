@@ -661,7 +661,7 @@ var hierarchy =
       [ "FirFilterTap", "classFirFilterTap.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "FirFilterSingleChannel", "classFirFilterSingleChannel.html", [
-        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+        [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
         [ "FirFilterTap", "classFirFilterTap.html", null ]
       ] ],
       [ "ClkRst", "classClkRst.html", null ],

@@ -1,5 +1,6 @@
 var NAVTREEINDEX4 =
 {
+"classAxiAd5780Core.html#a6f4d2d397844cd26bc824df9c2076317":[1,0,20,7],
 "classAxiAd5780Core.html#a7d8781c632c75ab0fdde6e592fd13d60":[1,0,20,12],
 "classAxiAd5780Core.html#a82571368c463a52e90b4676481bb0826":[1,0,20,3],
 "classAxiAd5780Core.html#a86d8df2f785854df97f17242a39a6b48":[1,0,20,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX4 =
 "classAxiAd9467Pll_1_1mapping.html":[1,0,27,0],
 "classAxiAd9467Pll_1_1mapping.html#a16f3b5d1681dd1006cc2a7d8682ee6d6":[1,0,27,0,5],
 "classAxiAd9467Pll_1_1mapping.html#a39f495cfd32d83cf7def26e04bac0545":[1,0,27,0,8],
-"classAxiAd9467Pll_1_1mapping.html#a5d6a7c15aa870f4534614e36c7544d29":[1,0,27,0,0],
-"classAxiAd9467Pll_1_1mapping.html#a627ccf8b324b43eba1c074ced499aba5":[1,0,27,0,1]
+"classAxiAd9467Pll_1_1mapping.html#a5d6a7c15aa870f4534614e36c7544d29":[1,0,27,0,0]
 };

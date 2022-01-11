@@ -1,5 +1,6 @@
 var NAVTREEINDEX7 =
 {
+"classAxiDualPortRamIpIntegrator.html#af9456da6938ffbb6e38b7b53217171c0":[1,0,39,37],
 "classAxiDualPortRamIpIntegrator.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,39,47],
 "classAxiDualPortRamIpIntegrator_1_1mapping.html":[1,0,39,0],
 "classAxiDualPortRamIpIntegrator_1_1mapping.html#a1782fa3475d32437789c71bcd21dc2e0":[1,0,39,0,17],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "classAxiLiteAsyncTb.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,45,4],
 "classAxiLiteAsyncTb.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,45,6],
 "classAxiLiteAsyncTb_1_1tb.html":[1,0,45,0],
-"classAxiLiteAsyncTb_1_1tb.html#a0354276bb7c58a2324dfc1ce05628969":[1,0,45,0,4],
-"classAxiLiteAsyncTb_1_1tb.html#a05a671c66aefea124cc08b76ea6d30bb":[1,0,45,0,0]
+"classAxiLiteAsyncTb_1_1tb.html#a0354276bb7c58a2324dfc1ce05628969":[1,0,45,0,4]
 };

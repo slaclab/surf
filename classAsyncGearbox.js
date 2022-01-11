@@ -6,6 +6,7 @@ var classAsyncGearbox =
     [ "SLAVE_BIT_REVERSE_G", "classAsyncGearbox.html#a42109a93eada830d976d4f8edd90b0ba", null ],
     [ "MASTER_WIDTH_G", "classAsyncGearbox.html#ab6d418a4e07961409a51e4195d6485fa", null ],
     [ "MASTER_BIT_REVERSE_G", "classAsyncGearbox.html#ac07b6873b01fb29dd06f9b8d5e99389e", null ],
+    [ "EN_EXT_CTRL_G", "classAsyncGearbox.html#a8e8a9a5d983ba7ee597f468729c449e5", null ],
     [ "INPUT_PIPE_STAGES_G", "classAsyncGearbox.html#ab97074ce3ef0b6b96d8486e24ad4dc66", null ],
     [ "OUTPUT_PIPE_STAGES_G", "classAsyncGearbox.html#a1e8e27a48bf5c0dd160777ba7ac29436", null ],
     [ "FIFO_MEMORY_TYPE_G", "classAsyncGearbox.html#ad7fa25fcbee4e5bfd5dbf724b5bc281a", null ],
