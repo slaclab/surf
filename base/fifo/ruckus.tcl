@@ -18,3 +18,8 @@ if { $::env(VIVADO_VERSION) < 2019.1 } {
    # Load the wrapper
    loadSource -lib surf -path "$::DIR_PATH/rtl/xilinx/FifoXpm.vhd"
 }
+
+# https://support.xilinx.com/s/article/67815?language=en_US
+if { $::env(VIVADO_VERSION) >= 2021.2 } {
+   set_property XPM_LIBRARIES XPM_MEMORY [current_project]
+}
