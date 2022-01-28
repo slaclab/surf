@@ -387,7 +387,7 @@ package body AxiStreamPkg is
             -- .....................................
             ----------------------------------------------------
             if (tKeepFull(i) = '1') then
-               retVar := (i+1);
+               retVar := (retVar+1);
             end if;
          end loop;
       end if;
