@@ -126,5 +126,5 @@ class Lmk04828(ti.Lmk048Base):
             mode         = 'WO',
         ))
 
-        # # Default to simple view
-        # self.simpleView(simpleViewList)
+        # Default to simple view
+        self.simpleView(simpleViewList)
