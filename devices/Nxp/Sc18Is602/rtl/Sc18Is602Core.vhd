@@ -113,6 +113,10 @@ architecture rtl of Sc18Is602Core is
 
    signal regOut : I2cRegMasterOutType;
 
+   -- attribute dont_touch           : string;
+   -- attribute dont_touch of r      : signal is "TRUE";
+   -- attribute dont_touch of regOut : signal is "TRUE";
+
 begin
 
    U_I2cRegMaster : entity surf.I2cRegMaster
@@ -274,8 +278,9 @@ begin
                v.regIn.regReq := '1';
                v.regIn.regOp  := '0';   -- 0 for I2C read operation
 
-               -- Skip the address bytes on next transaction
-               v.regIn.regAddrSkip := '1';
+               -- Setup the reg sizes
+               v.regIn.regAddrSize := ADDR_SIZE_C(rdIdx);  -- Function ID is not included in read back
+               v.regIn.regDataSize := DATA_SIZE_C(rdIdx);
 
                -- Next state
                v.state := READ_ACK_S;
