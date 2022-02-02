@@ -15,7 +15,7 @@ import time
 import queue
 
 class _Regs(pr.Device):
-    def __init__(self, pollPeriod=0.1, **kwargs):
+    def __init__(self, pollPeriod=0.0, **kwargs):
         super().__init__(**kwargs)
 
         self._pollPeriod = pollPeriod
@@ -147,8 +147,8 @@ class _ProxySlave(rogue.interfaces.memory.Slave):
 
 class AxiLiteMasterProxy(pr.Device):
 
-    def __init__(self, hidden=True,**kwargs):
-        super().__init__(hidden=hidden, pollPeriod=0.1, **kwargs)
+    def __init__(self, hidden=True, pollPeriod=0.0, **kwargs):
+        super().__init__(hidden=hidden, **kwargs)
 
         self.add(_Regs(
             name    = 'Regs',
