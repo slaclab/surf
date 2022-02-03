@@ -53,16 +53,22 @@ architecture rtl of Sc18Is602Core is
    constant ADDRESS_MAX_SIZE_C : positive := maximum(ADDRESS_SIZE_G);
 
    constant ADDR_SIZE_C : Slv2Array(3 downto 0) := (
-      0 => toSlv(wordCount(ADDRESS_SIZE_G(0), 8) - 1, 2),
-      1 => toSlv(wordCount(ADDRESS_SIZE_G(1), 8) - 1, 2),
-      2 => toSlv(wordCount(ADDRESS_SIZE_G(2), 8) - 1, 2),
-      3 => toSlv(wordCount(ADDRESS_SIZE_G(3), 8) - 1, 2));
+      0 => toSlv(wordCount(ADDRESS_SIZE_G(0)+1, 8) - 1, 2),
+      1 => toSlv(wordCount(ADDRESS_SIZE_G(1)+1, 8) - 1, 2),
+      2 => toSlv(wordCount(ADDRESS_SIZE_G(2)+1, 8) - 1, 2),
+      3 => toSlv(wordCount(ADDRESS_SIZE_G(3)+1, 8) - 1, 2));
 
    constant DATA_SIZE_C : Slv2Array(3 downto 0) := (
       0 => toSlv(wordCount(DATA_SIZE_G(0), 8) - 1, 2),
       1 => toSlv(wordCount(DATA_SIZE_G(1), 8) - 1, 2),
       2 => toSlv(wordCount(DATA_SIZE_G(2), 8) - 1, 2),
       3 => toSlv(wordCount(DATA_SIZE_G(3), 8) - 1, 2));
+
+   constant READ_SIZE_C : Slv2Array(3 downto 0) := (
+      0 => toSlv(wordCount(ADDRESS_SIZE_G(0)+1+DATA_SIZE_G(0), 8) - 1, 2),
+      1 => toSlv(wordCount(ADDRESS_SIZE_G(1)+1+DATA_SIZE_G(1), 8) - 1, 2),
+      2 => toSlv(wordCount(ADDRESS_SIZE_G(2)+1+DATA_SIZE_G(2), 8) - 1, 2),
+      3 => toSlv(wordCount(ADDRESS_SIZE_G(3)+1+DATA_SIZE_G(3), 8) - 1, 2));
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1
    --       FILTER_G = (min_pulse_time / clk_period) + 1
@@ -113,11 +119,23 @@ architecture rtl of Sc18Is602Core is
 
    signal regOut : I2cRegMasterOutType;
 
-   -- attribute dont_touch           : string;
-   -- attribute dont_touch of r      : signal is "TRUE";
-   -- attribute dont_touch of regOut : signal is "TRUE";
+   attribute dont_touch           : string;
+   attribute dont_touch of r      : signal is "TRUE";
+   attribute dont_touch of regOut : signal is "TRUE";
 
 begin
+
+   assert (wordCount(ADDRESS_SIZE_G(0)+1+DATA_SIZE_G(0), 8) <= 4)
+      report "ADDRESS_SIZE_G(0)+1+DATA_SIZE_G(0) > 4 bytes is not supported" severity failure;
+
+   assert (wordCount(ADDRESS_SIZE_G(1)+1+DATA_SIZE_G(1), 8) <= 4)
+      report "ADDRESS_SIZE_G(1)+1+DATA_SIZE_G(1) > 4 bytes is not supported" severity failure;
+
+   assert (wordCount(ADDRESS_SIZE_G(2)+1+DATA_SIZE_G(2), 8) <= 4)
+      report "ADDRESS_SIZE_G(2)+1+DATA_SIZE_G(2) > 4 bytes is not supported" severity failure;
+
+   assert (wordCount(ADDRESS_SIZE_G(3)+1+DATA_SIZE_G(3), 8) <= 4)
+      report "ADDRESS_SIZE_G(3)+1+DATA_SIZE_G(3) > 4 bytes is not supported" severity failure;
 
    U_I2cRegMaster : entity surf.I2cRegMaster
       generic map(
@@ -160,9 +178,6 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset flag
-            v.regIn.regAddrSkip := '0';
-
             -- Check if I2C FSM is ready
             if regOut.regAck = '0' then
 
@@ -190,7 +205,7 @@ begin
                   v.regIn.regAddr(ADDRESS_SIZE_G(wrIdx)+1+wrIdx) := '1';
 
                   -- Setup the reg sizes
-                  v.regIn.regAddrSize := ADDR_SIZE_C(wrIdx);  -- plus one for function ID byte
+                  v.regIn.regAddrSize := ADDR_SIZE_C(wrIdx)+1;  -- plus one for function ID byte
                   v.regIn.regDataSize := DATA_SIZE_C(wrIdx);
 
                   -- Next state
@@ -274,13 +289,13 @@ begin
             -- Check if I2C FSM is ready
             if regOut.regAck = '0' then
 
-               -- Send write transaction to I2cRegMaster
-               v.regIn.regReq := '1';
-               v.regIn.regOp  := '0';   -- 0 for I2C read operation
+               -- Send read transaction to I2cRegMaster
+               v.regIn.regReq      := '1';
+               v.regIn.regOp       := '0';  -- 0 for I2C read operation
+               v.regIn.regAddrSkip := '1';  -- Skip writing the address because reading out buffer
 
                -- Setup the reg sizes
-               v.regIn.regAddrSize := ADDR_SIZE_C(rdIdx);  -- Function ID is not included in read back
-               v.regIn.regDataSize := DATA_SIZE_C(rdIdx);
+               v.regIn.regDataSize := READ_SIZE_C(rdIdx);  --  function ID byte is not included in cache read
 
                -- Next state
                v.state := READ_ACK_S;
@@ -292,7 +307,8 @@ begin
             if regOut.regAck = '1' then
 
                -- Reset the flag
-               v.regIn.regReq := '0';
+               v.regIn.regReq      := '0';
+               v.regIn.regAddrSkip := '0';
 
                -- Forward the readout data
                v.axilReadSlave.rdata := regOut.regRdData;
