@@ -194,19 +194,35 @@ begin
                   -- Setup the reg data
                   v.regIn.regWrData := axilWriteMaster.wData;
 
-                  -- Setup the reg address
-                  v.regIn.regAddr                                   := (others => '0');
-                  v.regIn.regAddr(ADDRESS_SIZE_G(wrIdx)-1 downto 0) := axilWriteMaster.awaddr(ADDRESS_SIZE_G(wrIdx)+1 downto 2);
+                  -- Check for configuration path
+                  if (axilWriteMaster.awaddr(4+ADDRESS_MAX_SIZE_C) = '1') then
 
-                  -- Set the SPI R/W flag
-                  v.regIn.regAddr(ADDRESS_SIZE_G(wrIdx)) := '0';  -- 0 for SPI write operation
+                     -- Skip writing the address because reading out buffer
+                     v.regIn.regAddrSkip := '1';
 
-                  -- Set the function ID
-                  v.regIn.regAddr(ADDRESS_SIZE_G(wrIdx)+1+wrIdx) := '1';
+                     -- Insert the function ID
+                     v.regIn.regWrData(15 downto 8) := axilWriteMaster.awaddr(9 downto 2);
 
-                  -- Setup the reg sizes
-                  v.regIn.regAddrSize := ADDR_SIZE_C(wrIdx)+1;  -- plus one for function ID byte
-                  v.regIn.regDataSize := DATA_SIZE_C(wrIdx);
+                     -- Setup the reg sizes
+                     v.regIn.regDataSize := "01";  -- two bytes (fucntion ID + CMD bytes)
+
+                  else
+
+                     -- Setup the reg address
+                     v.regIn.regAddr                                   := (others => '0');
+                     v.regIn.regAddr(ADDRESS_SIZE_G(wrIdx)-1 downto 0) := axilWriteMaster.awaddr(ADDRESS_SIZE_G(wrIdx)+1 downto 2);
+
+                     -- Set the SPI R/W flag
+                     v.regIn.regAddr(ADDRESS_SIZE_G(wrIdx)) := '0';  -- 0 for SPI write operation
+
+                     -- Set the function ID
+                     v.regIn.regAddr(ADDRESS_SIZE_G(wrIdx)+1+wrIdx) := '1';
+
+                     -- Setup the reg sizes
+                     v.regIn.regAddrSize := ADDR_SIZE_C(wrIdx)+1;  -- plus one for function ID byte
+                     v.regIn.regDataSize := DATA_SIZE_C(wrIdx);
+
+                  end if;
 
                   -- Next state
                   v.state := WRITE_ACK_S;
@@ -250,7 +266,8 @@ begin
             if regOut.regAck = '1' then
 
                -- Reset the flag
-               v.regIn.regReq := '0';
+               v.regIn.regReq      := '0';
+               v.regIn.regAddrSkip := '0';
 
                -- Send AXI-Lite response
                axiSlaveWriteResponse(v.axilWriteSlave, axilResp);
