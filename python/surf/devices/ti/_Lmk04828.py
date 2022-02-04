@@ -36,6 +36,23 @@ class Lmk04828(ti.Lmk048Base):
             **kwargs):
         super().__init__(**kwargs)
 
+        reservedList = [
+            0x0102,0x010A,
+            0x0112,0x011A,
+            0x0122,0x012A,
+            0x0132,0x0189,0x018A,0x018B,
+        ]
+
+        for offset in reservedList:
+            self.add(pr.RemoteVariable(
+                name         = f'LmkReg_0x{"{0:0{1}X}".format(offset,4)}',
+                description  = 'RESERVED',
+                offset       = (offset << 2),
+                bitSize      = 8,
+                mode         = 'WO',
+                hidden       = True,
+            ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0145',
             description  = 'Always program to 127 (0x7F)',
