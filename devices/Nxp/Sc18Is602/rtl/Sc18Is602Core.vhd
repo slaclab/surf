@@ -119,9 +119,9 @@ architecture rtl of Sc18Is602Core is
 
    signal regOut : I2cRegMasterOutType;
 
-   attribute dont_touch           : string;
-   attribute dont_touch of r      : signal is "TRUE";
-   attribute dont_touch of regOut : signal is "TRUE";
+   -- attribute dont_touch           : string;
+   -- attribute dont_touch of r      : signal is "TRUE";
+   -- attribute dont_touch of regOut : signal is "TRUE";
 
 begin
 
