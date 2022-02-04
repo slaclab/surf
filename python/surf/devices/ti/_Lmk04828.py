@@ -45,7 +45,7 @@ class Lmk04828(ti.Lmk048Base):
 
         for offset in reservedList:
             self.add(pr.RemoteVariable(
-                name         = f'LmkReg_0x{"{0:0{1}X}".format(offset,4)}',
+                name         = f'LmkReg_0x{offset:04x}',
                 description  = 'RESERVED',
                 offset       = (offset << 2),
                 bitSize      = 8,
