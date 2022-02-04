@@ -1,6 +1,4 @@
 -------------------------------------------------------------------------------
--- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
--------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Use to limit the max AXI stream frame rate
