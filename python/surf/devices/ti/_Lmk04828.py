@@ -36,6 +36,23 @@ class Lmk04828(ti.Lmk048Base):
             **kwargs):
         super().__init__(**kwargs)
 
+        reservedList = [
+            0x0102,0x010A,
+            0x0112,0x011A,
+            0x0122,0x012A,
+            0x0132,0x0189,0x018A,0x018B,
+        ]
+
+        for offset in reservedList:
+            self.add(pr.RemoteVariable(
+                name         = f'LmkReg_0x{offset:04X}',
+                description  = 'RESERVED',
+                offset       = (offset << 2),
+                bitSize      = 8,
+                mode         = 'WO',
+                hidden       = True,
+            ))
+
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0145',
             description  = 'Always program to 127 (0x7F)',
@@ -128,12 +145,3 @@ class Lmk04828(ti.Lmk048Base):
 
         # Default to simple view
         self.simpleView(simpleViewList)
-
-        @self.command(description='Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks',)
-        def Init(self):
-            super().Init()
-
-            # Fixed Register:
-            self.LmkReg_0x0145.set(0x7F) # Always program this register to value 127 (0x7F)
-            self.LmkReg_0x0171.set(0xAA) # Always program to 170 (0xAA)
-            self.LmkReg_0x0172.set(0x02) # Always program to 2 (0x02)

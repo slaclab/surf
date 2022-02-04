@@ -11,10 +11,11 @@
 import pyrogue as pr
 
 class Lmk048Base(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, allowHexFileRst=True,**kwargs):
         super().__init__(**kwargs)
 
-        self.sysrefMode = 2 # 2 pulse sysref mode, 3 continuous sysref mode
+        self.sysrefMode      = 2 # 2 pulse sysref mode, 3 continuous sysref mode
+        self.allowHexFileRst = allowHexFileRst
 
         ##############################
         # Variables
@@ -1055,6 +1056,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x000D << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1063,6 +1065,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x000C << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1071,6 +1074,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0006 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1079,6 +1083,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0005 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1087,6 +1092,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0004 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1095,6 +1101,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0003 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1140,31 +1147,32 @@ class Lmk048Base(pr.Device):
                     else:
                         data = int("0x" + s[1][-2:], 0)
                     if addr == 0:
-                        self.LmkReg_0x0000.set(data)
+                        if self.allowHexFileRst:
+                            self.LmkReg_0x0000.set(data)
                     elif addr == 3:
                         v = getattr(self, 'ID_DEVICE_TYPE')
                         if (v.get() != data):
-                            print('ID_DEVICE_TYPE mismatch')
+                            print(f'ID_DEVICE_TYPE mismatch: {v.get()} != {data}')
                     elif addr == 4:
                         v = getattr(self, 'ID_PROD_LOWER')
                         if (v.get() != data):
-                            print('ID_PROD_LOWER mismatch')
+                            print(f'ID_PROD_LOWER mismatch: {v.get()} != {data}')
                     elif addr == 5:
                         v = getattr(self, 'ID_PROD_UPPER')
                         if (v.get() != data):
-                            print('ID_PROD_UPPER mismatch')
+                            print(f'ID_PROD_UPPER mismatch: {v.get()} != {data}')
                     elif addr == 6:
                         v = getattr(self, 'ID_MASKREV')
                         if (v.get() != data):
-                            print('ID_MASKREV mismatch')
+                            print(f'ID_MASKREV mismatch: {v.get()} != {data}')
                     elif addr == 12:
                         v = getattr(self, 'ID_VNDR_UPPER')
                         if (v.get() != data):
-                            print('ID_VNDR_UPPER mismatch')
+                            print(f'ID_VNDR_UPPER mismatch: {v.get()} != {data}')
                     elif addr == 13:
                         v = getattr(self, 'ID_VNDR_LOWER')
                         if (v.get() != data):
-                            print('ID_VNDR_LOWER mismatch')
+                            print(f'ID_VNDR_LOWER mismatch: {v.get()} != {data}')
                     else:
                         v = getattr(self, 'LmkReg_0x%04X'%addr)
                         v.set(data)
