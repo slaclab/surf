@@ -12,7 +12,7 @@ import pyrogue as pr
 
 class AxiStreamFrameRateLimiter(pr.Device):
     def __init__(self,**kwargs):
-        super().__init__(description=description, **kwargs)
+        super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CLK_FREQ_G',
