@@ -366,7 +366,7 @@ begin
    end generate;
 
    FbNoBufg : if (not FB_BUFG_G) generate
-      clkFbOut <= clkFbIn;
+      clkFbIn <= clkFbOut;
    end generate;
 
    OutBufgGen : if (OUTPUT_BUFG_G) generate
