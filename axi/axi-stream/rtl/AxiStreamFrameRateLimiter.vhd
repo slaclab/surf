@@ -140,8 +140,11 @@ begin
                -- Check if not limiting
                if (r.rateLimit = 0) or (r.rateLimit /= r.frameCnt) then
 
-                  -- Increment the counter
-                  v.frameCnt := r.frameCnt + 1;
+                  -- Check for non-zero case
+                  if (r.rateLimit /= 0) then
+                     -- Increment the counter
+                     v.frameCnt := r.frameCnt + 1;
+                  end if;
 
                   -- Accept the data
                   v.sAxisSlave.tReady := '1';
