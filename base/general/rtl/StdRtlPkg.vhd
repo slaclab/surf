@@ -108,8 +108,14 @@ package StdRtlPkg is
 
    function maximum (left, right : integer) return integer;
    function maximum (a : IntegerArray) return integer;
+   function maximum (a : PositiveArray) return integer;
+   function maximum (a : NaturalArray) return integer;
+
    function minimum (left, right : integer) return integer;
    function minimum (a : IntegerArray) return integer;
+   function minimum (a : PositiveArray) return integer;
+   function minimum (a : NaturalArray) return integer;
+
    function sort    (a : IntegerArray) return IntegerArray;
    function median  (a : IntegerArray) return integer;
 
@@ -1194,6 +1200,32 @@ package body StdRtlPkg is
       return max;
    end function maximum;
 
+   function maximum (
+      a : PositiveArray)
+      return positive is
+      variable max : positive := a(a'low);
+   begin
+      for i in a'range loop
+         if (a(i) > max) then
+            max := a(i);
+         end if;
+      end loop;
+      return max;
+   end function maximum;
+
+   function maximum (
+      a : NaturalArray)
+      return natural is
+      variable max : natural := a(a'low);
+   begin
+      for i in a'range loop
+         if (a(i) > max) then
+            max := a(i);
+         end if;
+      end loop;
+      return max;
+   end function maximum;
+
    function minimum (left, right : integer) return integer is
    begin
       if left < right then return left;
@@ -1205,6 +1237,32 @@ package body StdRtlPkg is
       a : IntegerArray)
       return integer is
       variable max : integer := a(a'low);
+   begin
+      for i in a'range loop
+         if (a(i) < max) then
+            max := a(i);
+         end if;
+      end loop;
+      return max;
+   end function minimum;
+
+   function minimum (
+      a : PositiveArray)
+      return positive is
+      variable max : positive := a(a'low);
+   begin
+      for i in a'range loop
+         if (a(i) < max) then
+            max := a(i);
+         end if;
+      end loop;
+      return max;
+   end function minimum;
+
+   function minimum (
+      a : NaturalArray)
+      return natural is
+      variable max : natural := a(a'low);
    begin
       for i in a'range loop
          if (a(i) < max) then
