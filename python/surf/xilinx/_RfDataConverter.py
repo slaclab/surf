@@ -29,7 +29,6 @@ class RfDataConverter(pr.Device):
             offset       =  0x0000,
             bitSize      =  8,
             bitOffset    =  24,
-            base         = pr.UInt,
             mode         = "RO",
         ))
 
@@ -39,7 +38,6 @@ class RfDataConverter(pr.Device):
             offset       =  0x0000,
             bitSize      =  8,
             bitOffset    =  16,
-            base         = pr.UInt,
             mode         = "RO",
         ))
 
@@ -49,7 +47,6 @@ class RfDataConverter(pr.Device):
             offset       =  0x0000,
             bitSize      =  8,
             bitOffset    =  8,
-            base         = pr.UInt,
             mode         = "RO",
         ))
 
@@ -59,7 +56,6 @@ class RfDataConverter(pr.Device):
             offset       =  0x0004,
             bitSize      =  1,
             bitOffset    =  0,
-            base         = pr.UInt,
             mode         = "WO",
         ))
 
@@ -69,8 +65,8 @@ class RfDataConverter(pr.Device):
             offset       =  0x0100,
             bitSize      =  8,
             bitOffset    =  0,
-            base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -79,8 +75,8 @@ class RfDataConverter(pr.Device):
             offset       =  0x0100,
             bitSize      =  1,
             bitOffset    =  31,
-            base         = pr.UInt,
             mode         = "RO",
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -89,8 +85,8 @@ class RfDataConverter(pr.Device):
             offset       =  0x0104,
             bitSize      =  8,
             bitOffset    =  0,
-            base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -99,8 +95,8 @@ class RfDataConverter(pr.Device):
             offset       =  0x0104,
             bitSize      =  1,
             bitOffset    =  31,
-            base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,
         ))
 
         for i in range(4):
