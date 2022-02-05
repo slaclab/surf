@@ -411,6 +411,9 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
+      [ "AxiLiteRegs", "classAxiLiteRegs.html", null ],
+      [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
@@ -1344,6 +1347,9 @@ var hierarchy =
       ] ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "RstSync", "classRstSync.html", null ],
+      [ "Sc18Is602Core", "classSc18Is602Core.html", [
+        [ "I2cRegMaster", "classI2cRegMaster.html", null ]
+      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "JesdLmfcGen", "classJesdLmfcGen.html", null ],
       [ "JesdTxLane", "classJesdTxLane.html", null ],

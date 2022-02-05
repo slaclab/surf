@@ -1,6 +1,6 @@
 var classpgp__test =
 [
-    [ "pgp_test.pgp_test", "classpgp__test_1_1pgp__test.html", "classpgp__test_1_1pgp__test" ],
+    [ "pgp_test", "classpgp__test_1_1pgp__test.html", "classpgp__test_1_1pgp__test" ],
     [ "ieee", "classpgp__test.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classpgp__test.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classpgp__test.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
