@@ -388,7 +388,7 @@ package body AxiStreamPkg is
             ----------------------------------------------------
             if (tKeepFull(i) = '1') then
                if (axisConfig.TKEEP_MODE_C = TKEEP_COMP_C) then
-                  -- Assume LSBs are active when calculating active bytes in TKEEP_COMP_C mode                  
+                  -- Assume LSBs are active when calculating active bytes in TKEEP_COMP_C mode
                   retVar := (i+1);
                else
                   -- TKEEP_NORMAL_C mode
