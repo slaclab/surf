@@ -136,13 +136,13 @@ begin
                v.opCode(i) := '1';      -- single cycle strobe
             end if;
 
-         end loop
+         end loop;
 
-            ---------------------------------------------------------------------------
-            -- Reset strobes within this "if" statement such that the pulse width of the reset
-            -- output can be controlled by the number of CODE_RST_C sent by the FPGA
-            ---------------------------------------------------------------------------
-            v.rst := '0';
+         ---------------------------------------------------------------------------
+         -- Reset strobes within this "if" statement such that the pulse width of the reset
+         -- output can be controlled by the number of CODE_RST_C sent by the FPGA
+         ---------------------------------------------------------------------------
+         v.rst  := '0';
          v.rstL := '1';
 
          -- Check for global reset
