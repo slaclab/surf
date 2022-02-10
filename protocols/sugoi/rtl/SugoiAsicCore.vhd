@@ -29,13 +29,15 @@ entity SugoiAsicCore is
    port (
       -- Clock and Reset
       clk             : in  sl;
-      rst             : out sl; -- Active HIGH global reset
-      rstL            : out sl; -- Active LOW global reset
+      rst             : out sl;               -- Active HIGH global reset
+      rstL            : out sl;               -- Active LOW global reset
       -- SUGOI Serial Ports
-      rx              : in  sl; -- serial rate = clk frequency
-      tx              : out sl; -- serial rate = clk frequency
+      rx              : in  sl;               -- serial rate = clk frequency
+      tx              : out sl;               -- serial rate = clk frequency
+      -- Link Status
+      linkup          : out sl;
       -- Trigger/Timing Command Bus
-      opCode          : out slv(7 downto 0); -- 1-bit per Control code
+      opCode          : out slv(7 downto 0);  -- 1-bit per Control code
       -- AXI-Lite Master Interface
       axilReadMaster  : out AxiLiteReadMasterType;
       axilReadSlave   : in  AxiLiteReadSlaveType;
@@ -76,7 +78,7 @@ begin
       port map (
          -- Clock and Reset
          clk          => clk,
-         rst          => '0',  -- Never reset on global reset command
+         rst          => '0',           -- Never reset on global reset command
          -- Slip Interface
          slip         => rxSlip,
          -- Slave Interface
@@ -95,7 +97,7 @@ begin
       port map (
          -- Clock and Reset
          clk        => clk,
-         rst        => '0',  -- Never reset on global reset command
+         rst        => '0',             -- Never reset on global reset command
          -- Encoded Interface
          validIn    => rxEncodeValid,
          dataIn     => rxEncodeData,
@@ -119,6 +121,8 @@ begin
          clk             => clk,
          rst             => rst,
          rstL            => rstL,
+         -- Link Status
+         linkup          => linkup,
          -- Trigger/Timing Command Bus
          opCode          => opCode,
          -- RX Interface
@@ -147,7 +151,7 @@ begin
       port map (
          -- Clock and Reset
          clk      => clk,
-         rst      => '0',  -- Never reset on global reset command
+         rst      => '0',               -- Never reset on global reset command
          -- Decoded Interface
          validIn  => txDecodeValid,
          dataIn   => txDecodeData,
@@ -167,7 +171,7 @@ begin
       port map (
          -- Clock and Reset
          clk           => clk,
-         rst           => '0',  -- Never reset on global reset command
+         rst           => '0',          -- Never reset on global reset command
          -- Slave Interface
          slaveValid    => txEncodeValid,
          slaveData     => txEncodeData,

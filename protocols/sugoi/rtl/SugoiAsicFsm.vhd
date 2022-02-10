@@ -32,6 +32,8 @@ entity SugoiAsicFsm is
       clk             : in  sl;
       rst             : out sl;
       rstL            : out sl;
+      -- Link Status
+      linkup          : out sl;
       -- Trigger/Timing Command Bus
       opCode          : out slv(7 downto 0);
       -- RX Interface
@@ -59,6 +61,7 @@ architecture rtl of SugoiAsicFsm is
       WAIT_S);
 
    type RegType is record
+      linkup          : sl;
       rst             : sl;
       rstL            : sl;
       opCode          : slv(7 downto 0);
@@ -66,13 +69,14 @@ architecture rtl of SugoiAsicFsm is
       txValid         : sl;
       txData          : slv(7 downto 0);
       txDataK         : sl;
-      stableCnt       : slv(11 downto 0);
+      stableCnt       : slv(7 downto 0);
       byteCnt         : slv(1 downto 0);
       axilWriteMaster : AxiLiteWriteMasterType;
       axilReadMaster  : AxiLiteReadMasterType;
       state           : StateType;
    end record;
    constant REG_INIT_C : RegType := (
+      linkup          => '0',
       rst             => '0',  -- Don't publish reset during FSM reset process
       rstL            => '1',  -- Don't publish reset during FSM reset process
       opCode          => (others => '0'),
@@ -200,13 +204,23 @@ begin
       case (r.state) is
          ----------------------------------------------------------------------
          when INIT_S =>
-            -- Check stable counter
-            if r.stableCnt = 0 then
-               -- Next state
-               v.state := RX_SOF_S;
-            else
-               -- Decrement the counter
-               v.stableCnt := r.stableCnt - 1;
+            -- Check for valid
+            if (rxValid = '1') then
+
+               -- Check stable counter
+               if r.stableCnt = 0 then
+
+                  -- Set the flag
+                  v.linkup := '1';
+
+                  -- Next state
+                  v.state := RX_SOF_S;
+
+               else
+                  -- Decrement the counter
+                  v.stableCnt := r.stableCnt - 1;
+               end if;
+
             end if;
          ----------------------------------------------------------------------
          when RX_SOF_S =>
@@ -218,7 +232,7 @@ begin
          ----------------------------------------------------------------------
          when RX_HEADER_S =>
             -- Wait for non-control word
-            if (rxValid = '1')and (rxDataK = '0') then
+            if (rxValid = '1') and (rxDataK = '0') then
 
                -- Echo the header
                v.txValid := '1';
@@ -436,6 +450,7 @@ begin
       end if;
 
       -- Outputs
+      linkup          <= r.linkup;
       rst             <= r.rst;
       rstL            <= r.rstL;
       opCode          <= r.opCode;
