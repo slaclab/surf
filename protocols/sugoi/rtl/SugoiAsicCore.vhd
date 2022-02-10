@@ -29,13 +29,13 @@ entity SugoiAsicCore is
    port (
       -- Clock and Reset
       clk             : in  sl;
-      rst             : out sl;
-      rstL            : out sl;
-      -- Serial Ports Ports
-      rx              : in  sl;
-      tx              : out sl;
+      rst             : out sl; -- Active HIGH global reset
+      rstL            : out sl; -- Active LOW global reset
+      -- SUGOI Serial Ports 
+      rx              : in  sl; -- serial rate = clk frequency
+      tx              : out sl; -- serial rate = clk frequency
       -- Trigger/Timing Command Bus
-      opCode          : out slv(7 downto 0);
+      opCode          : out slv(7 downto 0); -- 1-bit per Control code
       -- AXI-Lite Master Interface
       axilReadMaster  : out AxiLiteReadMasterType;
       axilReadSlave   : in  AxiLiteReadSlaveType;
@@ -43,7 +43,7 @@ entity SugoiAsicCore is
       axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end entity SugoiAsicCore;
 
-architecture rtl of SugoiAsicCore is
+architecture mapping of SugoiAsicCore is
 
    signal rxEncodeValid : sl;
    signal rxEncodeData  : slv(9 downto 0);
@@ -68,7 +68,7 @@ begin
    ---------------
    -- 1:10 Gearbox
    ---------------
-   U_Gearbox_Cmd : entity surf.Gearbox
+   U_Deserializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
          SLAVE_WIDTH_G  => 1,
@@ -159,7 +159,7 @@ begin
    ---------------
    -- 10:1 Gearbox
    ---------------
-   U_Gearbox_Cmd : entity surf.Gearbox
+   U_Serializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
          SLAVE_WIDTH_G  => 1,
@@ -173,4 +173,5 @@ begin
          slaveData     => txEncodeData,
          -- Master Interface
          masterData(0) => tx);
-end rtl;
+         
+end mapping;
