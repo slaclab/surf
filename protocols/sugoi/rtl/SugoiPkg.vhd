@@ -24,7 +24,7 @@ use surf.Code8b10bPkg.all;
 
 package SugoiPkg is
 
-   constant SUGIO_VERSION_C : slv(2 downto 0) = "001";  -- 0x1
+   constant SUGIO_VERSION_C : slv(2 downto 0) := "001";  -- 0x1
 
    -------------------------
    -- Header bit mapping
