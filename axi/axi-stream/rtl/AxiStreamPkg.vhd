@@ -393,6 +393,7 @@ package body AxiStreamPkg is
                else
                   -- TKEEP_NORMAL_C mode
                   retVar := retVar + 1;
+               end if;
             end if;
          end loop;
       end if;
