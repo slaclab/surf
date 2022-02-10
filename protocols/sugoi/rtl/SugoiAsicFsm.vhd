@@ -34,13 +34,13 @@ entity SugoiAsicFsm is
       rstL            : out sl;
       -- Trigger/Timing Command Bus
       opCode          : out slv(7 downto 0);
-      -- RX Interface      
+      -- RX Interface
       rxValid         : in  sl;
       rxData          : in  slv(7 downto 0);
       rxDataK         : in  sl;
       rxError         : in  sl;
       rxSlip          : out sl;
-      -- RX Interface      
+      -- RX Interface
       txValid         : out sl;
       txData          : out slv(7 downto 0);
       txDataK         : out sl;
@@ -59,32 +59,28 @@ architecture rtl of SugoiAsicFsm is
       WAIT_S);
 
    type RegType is record
-      rst    : sl;
-      rstL   : sl;
-      opCode : slv(7 downto 0);
-      rxSlip : sl;
-
-
-
+      rst             : sl;
+      rstL            : sl;
+      opCode          : slv(7 downto 0);
+      rxSlip          : sl;
       txValid         : sl;
       txData          : slv(7 downto 0);
       txDataK         : sl;
+      stableCnt       : slv(11 downto 0);
       byteCnt         : slv(1 downto 0);
       axilWriteMaster : AxiLiteWriteMasterType;
       axilReadMaster  : AxiLiteReadMasterType;
       state           : StateType;
    end record;
    constant REG_INIT_C : RegType := (
-      rst    => '0',  -- Don't publish reset during FSM reset process
-      rstL   => '1',  -- Don't publish reset during FSM reset process
-      opCode => (others => '0'),
-      rxSlip => '0',
-
-
-
+      rst             => '0',  -- Don't publish reset during FSM reset process
+      rstL            => '1',  -- Don't publish reset during FSM reset process
+      opCode          => (others => '0'),
+      rxSlip          => '1',           -- Assert RX slip on reset condition
       txValid         => '0',
       txData          => CODE_IDLE_C,
       txDataK         => '1',
+      stableCnt       => (others => '1'),  -- Pre-set counter value on reset condition
       byteCnt         => (others => '0'),
       axilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
       axilReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
@@ -110,25 +106,24 @@ begin
 
       -- Check for not(INIT_S) and active control code
       if (r.state /= INIT_S) and (rxValid = '1') and (rxDataK = '1') then
+         ----------------------------------------------------------------------
+         -- Note: Better not to echo "garage" during INIT_S back to FPGA
+         ----------------------------------------------------------------------
 
          -- Echo the control code
          v.txValid := '1';
          v.txData  := rxData;
          v.txDataK := '1';
 
-         ----------------------------------------------------------------------
-         -- Note: Better not to echo "garage" during INIT_S back to FPGA
-         ----------------------------------------------------------------------
-
          -- Check for unexpected SOF
          if (r.state /= RX_SOF_S) and (rxData = CODE_SOF_C) then
-            -- Echo back with IDLE
+            -- Echo back with IDLE instead
             v.txData := CODE_IDLE_C;
          end if;
 
          -- Check for unexpected EOF
          if (r.state /= RX_EOF_S) and (rxData = CODE_EOF_C) then
-            -- Echo back with IDLE
+            -- Echo back with IDLE instead
             v.txData := CODE_IDLE_C;
          end if;
 
@@ -144,7 +139,7 @@ begin
          end loop
 
             ---------------------------------------------------------------------------
-            -- Reset strobes within this "if" statement such that the pulse width of the reset 
+            -- Reset strobes within this "if" statement such that the pulse width of the reset
             -- output can be controlled by the number of CODE_RST_C sent by the FPGA
             ---------------------------------------------------------------------------
             v.rst := '0';
@@ -171,9 +166,9 @@ begin
          v.axilReadMaster.rready := '0';
 
          -- Latch the memory bus responds
-         v.footer(1 downto 0) := axilReadSlave.rresp;
+         v.footer(SUGIO_FOOTER_BUS_RESP_FIELD_C) := axilReadSlave.rresp;
 
-         -- Move the data
+         -- Save the data
          v.memData := axilReadSlave.rdata;
 
       end if;
@@ -192,10 +187,13 @@ begin
 
       -- Check the slave.bvalid flag
       if axilWriteSlave.bvalid = '1' then
+
          -- Reset the flag
          v.axilWriteMaster.bready := '0';
+
          -- Latch the memory bus responds
-         v.footer(1 downto 0)     := axilWriteSlave.bresp;
+         v.footer(SUGIO_FOOTER_BUS_RESP_FIELD_C) := axilWriteSlave.bresp;
+
       end if;
 
       -- State Machine
@@ -208,14 +206,10 @@ begin
                v.state := RX_SOF_S;
             else
                -- Decrement the counter
-               v.stableCnt := r.stableCnt + 1;
+               v.stableCnt := r.stableCnt - 1;
             end if;
          ----------------------------------------------------------------------
          when RX_SOF_S =>
-            -- Reset flags
-            v.footer      := (others => '0');
-            v.devSelected := '0';
-            v.RnW         := '0';
             -- Wait for SOF
             if (rxValid = '1')and (rxDataK = '1') and (rxData = CODE_SOF_C)then
                -- Next state
@@ -237,22 +231,28 @@ begin
                   v.footer(SUGIO_FOOTER_VER_MISMATCH_C) := '1';
                end if;
 
-               -- Check for non-zero device ID
-               if (rxData(SUGIO_HDR_DDEV_ID_FIELD_C) /= 0) then
-                  -- Decrement the device ID
-                  v.txData(SUGIO_HDR_DDEV_ID_FIELD_C) := rxData(SUGIO_HDR_DDEV_ID_FIELD_C) -1;
-               end if;
-
                -- Check if read or write operation
                if (rxData(SUGIO_HDR_OP_TYPE_C) = '1') then
                   -- Set the flag
                   v.RnW := '1';
+               else
+                  -- Set the flag
+                  v.RnW := '0';
                end if;
 
-               -- Check for device ID is index to current device
+               -- Check for non-zero device ID
+               if (rxData(SUGIO_HDR_DDEV_ID_FIELD_C) /= 0) then
+                  -- Decrement the device ID
+                  v.txData(SUGIO_HDR_DDEV_ID_FIELD_C) := rxData(SUGIO_HDR_DDEV_ID_FIELD_C) - 1;
+               end if;
+
+               -- Check for device ID is index to local device
                if (rxData(SUGIO_HDR_DDEV_ID_FIELD_C) = 1) then
                   -- Set the flag
                   v.devSelected := '1';
+               else
+                  -- Set the flag
+                  v.devSelected := '0';
                end if;
 
                -- Next state
@@ -264,7 +264,7 @@ begin
             -- Wait for non-control word
             if (rxValid = '1')and (rxDataK = '0') then
 
-               -- Echo the address
+               -- Echo the address bytes
                v.txValid := '1';
                v.txData  := rxData;
                v.txDataK := '0';
@@ -278,6 +278,13 @@ begin
 
                -- Check the counter
                if (r.byteCnt = 3) then
+
+                  -- Check if not 32-bit word alignment in the address
+                  if (rxData(1 downto 0) /= "00") then
+                     -- Set the flag
+                     v.footer(SUGIO_FOOTER_NOT_ADDR_ALIGN_C) := '1';
+                  end if;
+
                   -- Next state
                   v.state := RX_DATA_S;
                end if;
@@ -326,33 +333,27 @@ begin
             end if;
          ----------------------------------------------------------------------
          when RX_EOF_S =>
-            -- Wait for valid
-            if (rxValid = '1') then
+            -- Wait for EOF
+            if (rxValid = '1')and (rxDataK = '1') and (rxData = CODE_EOF_C)then
 
-               -- Check for missing frame marker
-               if (rxDataK /= '1') or (rxData /= CODE_EOF_C) then
-                  -- Set the error flag
-                  v.footer(SUGIO_FOOTER_FRAMING_ERROR_C) := '1';
-               end if;
-
-               -- De-select the device if error was detected during framing
-               if (v.footer /= 0) then
-                  v.devSelected := '0';
-               end if;
+               -- Send IDLE char
+               v.txValid := '1';
+               v.txData  := CODE_IDLE_C;
+               v.txDataK := '1';
 
                -- Check for read operation
                if (r.RnW = '1') then
                   -- Start AXI-Lite read transaction
-                  v.axilReadMaster.arvalid := v.devSelected;
-                  v.axilReadMaster.rready  := v.devSelected;
+                  v.axilReadMaster.arvalid := r.devSelected;
+                  v.axilReadMaster.rready  := r.devSelected;
                   -- Next state
                   v.state                  := RD_TXN_S;
                -- Else write operation
                else
                   -- Start AXI-Lite write transaction
-                  v.axilWriteMaster.awvalid := v.devSelected;
-                  v.axilWriteMaster.wvalid  := v.devSelected;
-                  v.axilWriteMaster.bready  := v.devSelected;
+                  v.axilWriteMaster.awvalid := r.devSelected;
+                  v.axilWriteMaster.wvalid  := r.devSelected;
+                  v.axilWriteMaster.bready  := r.devSelected;
                   -- Next state
                   v.state                   := WR_TXN_S;
                end if;
@@ -405,6 +406,9 @@ begin
                v.txData  := r.footer;
                v.txDataK := '0';
 
+               -- Reset flags
+               v.footer := (others => '0');
+
                -- Next state
                v.state := TX_EOF_S;
 
@@ -426,17 +430,24 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Outputs
-      rst     <= r.rst;
-      rstL    <= r.rstL;
-      opCode  <= r.opCode;
-      rxSlip  <= r.rxSlip;
-      txValid <= r.txValid;
-      txData  <= r.txData;
-      txDataK <= r.txDataK;
+      -- De-select the device if error was detected during framing
+      if (r.footer /= 0) then
+         v.devSelected := '0';
+      end if;
 
-      -- Reset
-      if (rxValid = '1') and (rxError = '1') then
+      -- Outputs
+      rst             <= r.rst;
+      rstL            <= r.rstL;
+      opCode          <= r.opCode;
+      rxSlip          <= r.rxSlip;
+      txValid         <= r.txValid;
+      txData          <= r.txData;
+      txDataK         <= r.txDataK;
+      axilReadMaster  <= r.axilReadMaster;
+      axilWriteMaster <= r.axilWriteMaster;
+
+      -- Check for active error condition + enough time for data pipeline to be stable
+      if (rxValid = '1') and (rxError = '1') and (r.stableCnt(r.stableCnt'high) = '0') then
          v := REG_INIT_C;
       end if;
 

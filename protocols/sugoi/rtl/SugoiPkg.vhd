@@ -24,18 +24,26 @@ use surf.Code8b10bPkg.all;
 
 package SugoiPkg is
 
-   constant SUGIO_VERSION_C : slv(2 downto 0) = "001"; -- 0x1
+   constant SUGIO_VERSION_C : slv(2 downto 0) = "001";  -- 0x1
 
+   -------------------------
+   -- Header bit mapping
+   -------------------------
    subtype SUGIO_HDR_VERSION_FIELD_C is natural range 2 downto 0;
    constant SUGIO_HDR_OP_TYPE_C : positive := 3;
    subtype SUGIO_HDR_DDEV_ID_FIELD_C is natural range 7 downto 4;
-   
-   constant SUGIO_FOOTER_VER_MISMATCH_C : positive := 7;
-   
 
-   constant PAYLOAD_SIZE_C : positive := 10; -- Units of bytes
+   -------------------------
+   -- Header bit mapping
+   -------------------------
+   subtype SUGIO_FOOTER_BUS_RESP_FIELD_C is natural range 1 downto 0;
+   constant SUGIO_FOOTER_VER_MISMATCH_C   : positive := 2;
+   constant SUGIO_FOOTER_NOT_ADDR_ALIGN_C : positive := 3;
 
-   constant CODE_IDLE_C : slv(7 downto 0) := K_28_5_C; --  Comma Character
+   -------------------------
+   -- Control Code Constants
+   -------------------------
+   constant CODE_IDLE_C : slv(7 downto 0) := K_28_5_C;  --  Comma Character
    constant CODE_SOF_C  : slv(7 downto 0) := K_28_0_C;
    constant CODE_EOF_C  : slv(7 downto 0) := K_30_7_C;
    constant CODE_TRIG_C : Slv8Array(7 downto 0) := (
@@ -43,11 +51,11 @@ package SugoiPkg is
       1 => K_28_3_C,
       2 => K_28_4_C,
       3 => K_28_6_C,
-      4 => K_28_7_C, --  Comma Character
+      4 => K_28_7_C,                                    --  Comma Character
       5 => K_23_7_C,
       6 => K_27_7_C,
       7 => K_29_7_C);
-   constant CODE_RST_C : slv(7 downto 0) := K_28_1_C; --  Comma Character
+   constant CODE_RST_C : slv(7 downto 0) := K_28_1_C;   --  Comma Character
 
 end package SugoiPkg;
 

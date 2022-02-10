@@ -31,7 +31,7 @@ entity SugoiAsicCore is
       clk             : in  sl;
       rst             : out sl; -- Active HIGH global reset
       rstL            : out sl; -- Active LOW global reset
-      -- SUGOI Serial Ports 
+      -- SUGOI Serial Ports
       rx              : in  sl; -- serial rate = clk frequency
       tx              : out sl; -- serial rate = clk frequency
       -- Trigger/Timing Command Bus
@@ -173,5 +173,5 @@ begin
          slaveData     => txEncodeData,
          -- Master Interface
          masterData(0) => tx);
-         
+
 end mapping;
