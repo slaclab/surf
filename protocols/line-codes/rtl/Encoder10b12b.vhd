@@ -74,7 +74,7 @@ begin
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
+      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) and (validIn = '1') then
          v.validOut := '1';
          encode10b12b(
             dataIn  => dataIn,
