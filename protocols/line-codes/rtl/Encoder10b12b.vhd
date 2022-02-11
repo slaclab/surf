@@ -64,7 +64,7 @@ architecture rtl of Encoder10b12b is
 
 begin
 
-   comb : process (dataIn, dataKIn, r, readyOut, rst) is
+   comb : process (dataIn, dataKIn, r, readyOut, rst, validIn) is
       variable v : RegType;
    begin
       v := r;

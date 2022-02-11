@@ -67,7 +67,7 @@ architecture rtl of Encoder12b14b is
 
 begin
 
-   comb : process (dataIn, dataKIn, dispIn, r, rst) is
+   comb : process (dataIn, dataKIn, dispIn, r, rst, validIn) is
       variable v         : RegType;
       variable dispInTmp : slv(1 downto 0);
       variable invalidK  : sl;

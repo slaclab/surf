@@ -63,7 +63,7 @@ architecture rtl of Encoder8b10b is
 
 begin
 
-   comb : process (dataIn, dataKIn, r, readyOut, rst) is
+   comb : process (dataIn, dataKIn, r, readyOut, rst, validIn) is
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
