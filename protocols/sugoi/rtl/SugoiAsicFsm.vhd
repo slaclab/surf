@@ -22,7 +22,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use surf.Code8b10bPkg.all;
+use surf.SugoiPkg.all;
 
 entity SugoiAsicFsm is
    generic (
@@ -57,8 +57,17 @@ architecture rtl of SugoiAsicFsm is
 
    type StateType is (
       INIT_S,
-      IDLE_S,
-      WAIT_S);
+      RX_SOF_S,
+      RX_HEADER_S,
+      RX_ADDR_S,
+      RX_DATA_S,
+      RX_FOOTER_S,
+      RX_EOF_S,
+      RD_TXN_S,
+      WR_TXN_S,
+      TX_DATA_S,
+      TX_FOOTER_S,
+      TX_EOF_S);
 
    type RegType is record
       linkup          : sl;
@@ -68,6 +77,10 @@ architecture rtl of SugoiAsicFsm is
       rxSlip          : sl;
       txValid         : sl;
       txData          : slv(7 downto 0);
+      footer          : slv(7 downto 0);
+      memData         : slv(31 downto 0);
+      RnW             : sl;
+      devSelected     : sl;
       txDataK         : sl;
       stableCnt       : slv(7 downto 0);
       byteCnt         : slv(1 downto 0);
@@ -83,6 +96,10 @@ architecture rtl of SugoiAsicFsm is
       rxSlip          => '1',           -- Assert RX slip on reset condition
       txValid         => '0',
       txData          => CODE_IDLE_C,
+      memData         => (others => '0'),
+      footer          => (others => '0'),
+      RnW             => '0',
+      devSelected     => '0',
       txDataK         => '1',
       stableCnt       => (others => '1'),  -- Pre-set counter value on reset condition
       byteCnt         => (others => '0'),
@@ -394,7 +411,7 @@ begin
 
                -- Send the memory data
                v.txValid := '1';
-               v.txData  := memData(31 downto 24);
+               v.txData  := r.memData(31 downto 24);
                v.txDataK := '0';
 
                -- Update the byte shift register
@@ -438,7 +455,7 @@ begin
                v.txDataK := '1';
 
                -- Next state
-               v.state := SOF_S;
+               v.state := RX_SOF_S;
 
             end if;
       ----------------------------------------------------------------------

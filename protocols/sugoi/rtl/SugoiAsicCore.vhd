@@ -52,14 +52,14 @@ architecture mapping of SugoiAsicCore is
    signal rxSlip        : sl;
 
    signal rxDecodeValid : sl;
-   signal rxDecodeData  : slv(9 downto 0);
+   signal rxDecodeData  : slv(7 downto 0);
    signal rxDecodeDataK : sl;
    signal rxCodeErr     : sl;
    signal rxDispErr     : sl;
    signal rxError       : sl;
 
    signal txDecodeValid : sl;
-   signal txDecodeData  : slv(9 downto 0);
+   signal txDecodeData  : slv(7 downto 0);
    signal txDecodeDataK : sl;
 
    signal txEncodeValid : sl;
@@ -96,17 +96,17 @@ begin
          NUM_BYTES_G => 1)
       port map (
          -- Clock and Reset
-         clk        => clk,
-         rst        => '0',             -- Never reset on global reset command
+         clk         => clk,
+         rst         => '0',            -- Never reset on global reset command
          -- Encoded Interface
-         validIn    => rxEncodeValid,
-         dataIn     => rxEncodeData,
+         validIn     => rxEncodeValid,
+         dataIn      => rxEncodeData,
          -- Encoded Interface
-         validOut   => rxDecodeValid,
-         dataOut    => rxDecodeData,
-         dataKOut   => rxDecodeDataK,
-         codeErr(0) => rxCodeErr,
-         dispErr(0) => rxDispErr);
+         validOut    => rxDecodeValid,
+         dataOut     => rxDecodeData,
+         dataKOut(0) => rxDecodeDataK,
+         codeErr(0)  => rxCodeErr,
+         dispErr(0)  => rxDispErr);
 
    rxError <= rxCodeErr or rxDispErr;
 
@@ -150,15 +150,15 @@ begin
          NUM_BYTES_G => 1)
       port map (
          -- Clock and Reset
-         clk      => clk,
-         rst      => '0',               -- Never reset on global reset command
+         clk        => clk,
+         rst        => '0',             -- Never reset on global reset command
          -- Decoded Interface
-         validIn  => txDecodeValid,
-         dataIn   => txDecodeData,
-         dataKIn  => txDecodeDataK,
+         validIn    => txDecodeValid,
+         dataIn     => txDecodeData,
+         dataKIn(0) => txDecodeDataK,
          -- Encoded Interface
-         validOut => txEncodeValid,
-         dataOut  => txEncodeData);
+         validOut   => txEncodeValid,
+         dataOut    => txEncodeData);
 
    ---------------
    -- 10:1 Gearbox
@@ -166,8 +166,8 @@ begin
    U_Serializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
-         SLAVE_WIDTH_G  => 1,
-         MASTER_WIDTH_G => 10)
+         SLAVE_WIDTH_G  => 10,
+         MASTER_WIDTH_G => 1)
       port map (
          -- Clock and Reset
          clk           => clk,
