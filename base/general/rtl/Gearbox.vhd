@@ -50,16 +50,16 @@ end entity Gearbox;
 
 architecture rtl of Gearbox is
 
-   constant MAX_C : integer := maximum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
-   constant MIN_C : integer := minimum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
+   constant MAX_C : positive := maximum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
+   constant MIN_C : positive := minimum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
 
    -- Don't need the +1 if slip is not used.
-   constant SHIFT_WIDTH_C : integer := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C + 1;
+   constant SHIFT_WIDTH_C : positive := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C + 1;
 
    type RegType is record
       masterValid : sl;
       shiftReg    : slv(SHIFT_WIDTH_C-1 downto 0);
-      writeIndex  : integer range 0 to SHIFT_WIDTH_C-1;
+      writeIndex  : natural range 0 to SHIFT_WIDTH_C-1;
       slaveReady  : sl;
       slip        : sl;
    end record;
@@ -89,9 +89,9 @@ begin
          v.masterValid := '0';
       end if;
 
-      -- Slip input by incrementing the writeIndex
+      -- Slip input by incrementing the writeIndex and non-zero write index
       v.slip := slip;
-      if (slip = '1') and (r.slip = '0') and (rst = '0') then
+      if (slip = '1') and (r.slip = '0') and (rst = '0') and (r.writeIndex /= 0) then
          v.writeIndex := r.writeIndex - 1;
       end if;
 
