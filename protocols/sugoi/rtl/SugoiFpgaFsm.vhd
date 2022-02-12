@@ -109,6 +109,9 @@ architecture rtl of SugoiFpgaFsm is
       linkUpCnt      : slv(CNT_WIDTH_C-1 downto 0);
       timerConfig    : slv(23 downto 0);
       timer          : slv(23 downto 0);
+      enLatencyCnt   : sl;
+      latencyCnt     : slv(CNT_WIDTH_C-1 downto 0);
+      latency        : slv(CNT_WIDTH_C-1 downto 0);
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
       state          : StateType;
@@ -144,6 +147,9 @@ architecture rtl of SugoiFpgaFsm is
       linkUpCnt      => (others => '0'),
       timerConfig    => (others => '1'),
       timer          => (others => '0'),
+      enLatencyCnt   => '0',
+      latencyCnt     => (others => '0'),
+      latency        => (others => '0'),
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       state          => IDLE_S);
@@ -171,6 +177,12 @@ begin
       v.txStrobe    := '0';
       v.rstCnt      := '0';
       v.opCodeForce := (others => '0');
+
+      -- Round trip latency using the SOF control code
+      if (r.enLatencyCnt = '1') and (r.latencyCnt /= MAX_CNT_C) then
+         -- Increment the counter
+         v.latencyCnt := r.latencyCnt + 1;
+      end if;
 
       -- Check for heartbeat event
       if (r.heartbeatCnt = 0) then
@@ -257,6 +269,17 @@ begin
                v.txDatak := '0';
             end if;
 
+            -- Check for SOF
+            if (r.txByteCnt = 0) then
+
+               -- Set the flag
+               v.enLatencyCnt := '1';
+
+               -- Reset the counter
+               v.latencyCnt := (others => '0');
+
+            end if;
+
          end if;
 
       end if;
@@ -266,10 +289,19 @@ begin
 
          -- Check for SOF
          if (rxDataK = '1') and (rxData = CODE_SOF_C) then
+
             -- Pre-set counter
-            v.rxByteCnt          := 1;
+            v.rxByteCnt := 1;
+
             -- Receive acknowledge message
             v.rxMsg(r.rxByteCnt) := rxData;
+
+            -- Reset the flag
+            v.enLatencyCnt := '0';
+
+            -- Save the measurement value
+            v.latency := r.latencyCnt;
+
          end if;
 
          -- Check of data payload and SOF was received
@@ -347,6 +379,7 @@ begin
 
                axiSlaveRegisterR(axilEp, x"A0", 0, r.errorDetCnt);
                axiSlaveRegisterR(axilEp, x"A4", 0, r.linkUpCnt);
+               axiSlaveRegisterR(axilEp, x"A8", 0, r.latency);  -- Round trip SOF latency
 
                axiSlaveRegister(axilEp, x"FC", 0, v.rstCnt);
 

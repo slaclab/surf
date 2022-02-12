@@ -28,8 +28,8 @@ entity SugoiTopTb is end SugoiTopTb;
 
 architecture testbed of SugoiTopTb is
 
-   constant NUM_ASIC_C      : positive := 1;
-   constant NUM_ADDR_BITS_C : positive := 16;
+   constant NUM_ASIC_C      : positive := 7;
+   constant NUM_ADDR_BITS_C : positive := 28;
    constant ADDR_STRIDE_C   : positive := (2**NUM_ADDR_BITS_C);
 
    constant CLK_PERIOD_G : time := 10 ns;
@@ -54,14 +54,22 @@ architecture testbed of SugoiTopTb is
    signal txP : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
    signal txN : slv(NUM_ASIC_C-1 downto 0) := (others => '1');
 
-   signal linkup     : slv(NUM_ASIC_C downto 0)         := (others => '0');
-   signal globalRst  : slv(NUM_ASIC_C-1 downto 0)       := (others => '0');
-   signal globalRstL : slv(NUM_ASIC_C-1 downto 0)       := (others => '0');
-   signal opCode     : Slv8Array(NUM_ASIC_C-1 downto 0) := (others => (others => '0'));
+   signal linkup : slv(NUM_ASIC_C downto 0) := (others => '0');
 
-   signal fpgaGlobalRst : sl              := '0';
-   signal fpgaOpCode    : slv(7 downto 0) := (others => '0');
-   signal fpgaStrobe    : sl              := '0';
+   signal globalRst  : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
+   signal globalRstL : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
+
+   signal opCode       : Slv8Array(NUM_ASIC_C-1 downto 0) := (others => (others => '0'));
+   signal opCodeBit    : sl                               := '0';
+   signal opCodeBitSel : natural                          := 0;
+
+   signal fpgaGlobalRst  : sl              := '0';
+   signal fpgaOpCode     : slv(7 downto 0) := (others => '0');
+   signal fpgaOpCodeMask : slv(7 downto 0) := (others => '0');
+   signal fpgaStrobe     : sl              := '0';
+
+   signal startTrigTraffic : sl              := '0';
+   signal trafficOpCode    : slv(7 downto 0) := (others => '0');
 
 begin
 
@@ -131,7 +139,7 @@ begin
          timingClk       => axilClk,
          timingRst       => axilRst,
          sugioGlobalRst  => fpgaGlobalRst,
-         sugioOpCode     => fpgaOpCode,
+         sugioOpCode     => fpgaOpCodeMask,
          sugioStrobe     => fpgaStrobe,
          sugioLinkup     => linkup(NUM_ASIC_C),
          -- AXI-Lite Master Interface (axilClk domain)
@@ -142,9 +150,39 @@ begin
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave);
 
-   ---------------------------------
-   -- AXI-Lite Register Transactions
-   ---------------------------------
+   fpgaOpCodeMask <= fpgaOpCode or trafficOpCode;
+
+   opCodeBit <= opCode(0)(opCodeBitSel);
+
+   gen_trig_traffic : process is
+      variable idx : slv(2 downto 0) := (others => '0');
+      variable i   : natural;
+   begin
+      wait until startTrigTraffic = '1';
+
+      while (true) loop
+
+         -- Increment counter
+         idx := idx + 1;
+
+         -- Toggle the bit
+         wait until axilClk'event and axilClk = '1';
+         trafficOpCode(conv_integer(idx)) <= '1';
+         wait until axilClk'event and axilClk = '1';
+         trafficOpCode(conv_integer(idx)) <= '0';
+
+         -- Wait 7 strobes (random prime number, not power of 2)
+         for i in 0 to 6 loop
+            wait until fpgaStrobe'event and fpgaStrobe = '1';
+         end loop;
+
+      end loop;
+
+   end process gen_trig_traffic;
+
+   ------------------------
+   -- Code Converge Testing
+   ------------------------
    test : process is
       variable addr   : slv(31 downto 0) := (others => '0');
       variable wrData : slv(31 downto 0) := (others => '0');
@@ -159,17 +197,78 @@ begin
       -- Wait for all links to be established
       wait until uAnd(linkup) = '1';
 
+      ------------------------
+      -- Firmware Global Reset
+      ------------------------
+      fpgaGlobalRst <= '1';
+      wait until globalRst(0)'event and globalRst(0) = '1';
+      fpgaGlobalRst <= '0';
+      wait until globalRst(0)'event and globalRst(0) = '0';
+
+      ------------------------
+      -- Software Global Reset
+      ------------------------
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"0000_0028", x"0000_0001", true);
+      wait until globalRst(0)'event and globalRst(0) = '1';
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"0000_0028", x"0000_0000", true);
+      wait until globalRst(0)'event and globalRst(0) = '0';
+
+      -----------------------------------------
+      -- Validate the trigger op-code interface
+      -----------------------------------------
+      for i in 0 to 7 loop
+
+         -- Address the opcode bit to use for opCodeBit'event
+         opCodeBitSel <= i;
+
+         --------------------------
+         -- Firmware Trigger Opcode
+         --------------------------
+         wait until axilClk'event and axilClk = '1';
+         fpgaOpCode(i) <= '1';
+         wait until axilClk'event and axilClk = '1';
+         fpgaOpCode(i) <= '0';
+         wait until opCodeBit'event and opCodeBit = '1';
+
+         --------------------------
+         -- Software Trigger Opcode
+         --------------------------
+         axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"0000_002C", toSlv(2**i, 32), true);
+         wait until opCodeBit'event and opCodeBit = '1';
+
+      end loop;
+
+      -----------------------------------------------------------
+      -- Enable the trigger opcode traffic during register access
+      -----------------------------------------------------------
+      startTrigTraffic <= '1';
+
       -----------------------------------------------------
       -- axiSlaveRegister(axilEp, x"18", 0, v.usrDlyCfg);
       -----------------------------------------------------
       addr   := x"0000_0018";
-      wrData := x"0000_0055";
+      wrData := x"0000_00AA";
       axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addr, wrData, true);
       axiLiteBusSimRead (axilClk, axilReadMaster, axilReadSlave, addr, rdData, true);
-
-      -- Verify the the TXN
+      -- Verify the TXN
       if (wrData /= rdData) then
          assert false report "Simulation Failed!" severity failure;
+      end if;
+
+      ------------------------------------
+      --  None 32-bit word aligned address
+      ------------------------------------
+      addr   := toSlv(ADDR_STRIDE_C+5, 32);  -- address not 32-bit word address aligned
+      wrData := x"BABE_CAFE";
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addr, wrData, true);
+      -- Verify the bus error
+      if (axilWriteSlave.bresp = 0) then
+         assert false report "Simulation Failed: 32-bit write address alignment!" severity failure;
+      end if;
+      axiLiteBusSimRead (axilClk, axilReadMaster, axilReadSlave, addr, rdData, true);
+      -- Verify the bus error
+      if (axilReadSlave.rresp = 0) then
+         assert false report "Simulation Failed: 32-bit read address alignment!" severity failure;
       end if;
 
       -------------------------------------------------
@@ -179,9 +278,9 @@ begin
          -- Sweep the byte positions
          for j in 0 to 3 loop
 
-            -----------------------------------------------------
-            -- axiSlaveRegister(axilEp, x"004", 0, v.scratchPad);
-            -----------------------------------------------------
+            -----------------------------------------------
+            -- Swapper the data byte field in SUGIO payload
+            -----------------------------------------------
             addr   := toSlv((i+1)*ADDR_STRIDE_C+4, 32);
             wrData := toSlv(2**(8*j)+i, 32);
             axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addr, wrData, true);
@@ -189,24 +288,22 @@ begin
 
             -- Verify the the TXN
             if (wrData /= rdData) then
-               assert false report "Simulation Failed!" severity failure;
+               assert false report "Simulation Failed: Data Byte sweep!" severity failure;
+            end if;
+
+            --------------------------------------------------
+            -- Swapper the address byte field in SUGIO payload
+            --------------------------------------------------
+            addr := toSlv((i+1)*ADDR_STRIDE_C+(ADDR_STRIDE_C/2)+4*(2**(8*j)), 32);
+            axiLiteBusSimRead (axilClk, axilReadMaster, axilReadSlave, addr, rdData, true);
+
+            -- Verify the the TXN
+            if (addr(NUM_ADDR_BITS_C-1 downto 0) /= rdData(NUM_ADDR_BITS_C-1 downto 0)) then
+               assert false report "Simulation Failed: Address Byte sweep!" severity failure;
             end if;
 
          end loop;
       end loop;
-
-      -----------------------------------------------------
-      -- axiSlaveRegister(axilEp, x"18", 0, v.usrDlyCfg);
-      -----------------------------------------------------
-      addr   := x"0000_0018";
-      wrData := x"0000_00AA";
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addr, wrData, true);
-      axiLiteBusSimRead (axilClk, axilReadMaster, axilReadSlave, addr, rdData, true);
-
-      -- Verify the the TXN
-      if (wrData /= rdData) then
-         assert false report "Simulation Failed!" severity failure;
-      end if;
 
       -- Simulation Pass testing
       assert false report "Simulation Passed!" severity failure;

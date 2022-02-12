@@ -86,7 +86,6 @@ architecture mapping of SugoiFpgaCore is
    signal rxDecodeDataK : sl;
    signal rxCodeErr     : sl;
    signal rxDispErr     : sl;
-   signal rxError       : sl;
 
    signal txStrobe      : sl;
    signal txDecodeData  : slv(7 downto 0);

@@ -73,9 +73,9 @@ architecture mapping of SugoiAsicSimModel is
    signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);  -- DON'T TERMINATE to exercise a "broken module" (BROKEN_INDEX_C) on the bus
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_INIT_C);
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);  -- DON'T TERMINATE to exercise a "broken module" (BROKEN_INDEX_C) on the bus
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
 
    signal clk   : sl;
    signal rx    : sl;
@@ -83,6 +83,12 @@ architecture mapping of SugoiAsicSimModel is
    signal reset : sl;
 
 begin
+
+   -- Set the read data to be equal to the read address for swapping/verifying all address bytes
+   axilReadSlaves(1).rdata   <= axilReadMasters(1).araddr;
+   axilReadSlaves(1).arready <= axilReadMasters(1).arvalid;
+   axilReadSlaves(1).rvalid  <= axilReadMasters(1).rready;
+
 
    rst <= reset;
 
