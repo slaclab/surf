@@ -73,6 +73,11 @@ architecture rtl of SugoiFpgaFsm is
 
    type CntArray is array (natural range <>) of slv(CNT_WIDTH_C-1 downto 0);
 
+   type StateType is (
+      IDLE_S,
+      TXN_S,
+      RESP_S);
+
    type RegType is record
       disableClk     : sl;
       disableTx      : sl;
@@ -104,9 +109,9 @@ architecture rtl of SugoiFpgaFsm is
       linkUpCnt      : slv(CNT_WIDTH_C-1 downto 0);
       timerConfig    : slv(23 downto 0);
       timer          : slv(23 downto 0);
-      txnActive      : sl;
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
+      state          : StateType;
    end record;
    constant REG_INIT_C : RegType := (
       disableClk     => '0',
@@ -139,9 +144,9 @@ architecture rtl of SugoiFpgaFsm is
       linkUpCnt      => (others => '0'),
       timerConfig    => (others => '1'),
       timer          => (others => '0'),
-      txnActive      => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -155,8 +160,8 @@ begin
       variable RnW      : sl;
       variable devIdx   : natural;
       variable addr     : slv(31 downto 0);
-      variable axilEp   : AxiLiteEndpointType;
       variable axilResp : slv(1 downto 0);
+      variable axilEp   : AxiLiteEndpointType;
    begin
       -- Latch the current value
       v := r;
@@ -217,7 +222,7 @@ begin
          for i in 0 to 7 loop
 
             -- Latch the opCode values
-            if (opCode(i) = '1') then
+            if (v.opCode(i) = '1') then
 
                -- Check for IDLE code
                if (v.txData = CODE_IDLE_C) then
@@ -289,164 +294,194 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Update the variables
-      addr     := (others => '0');
       axilResp := (others => '0');
+      RnW      := '0';
+      addr     := (others => '0');
+      devIdx   := 0;
+
+      -- Check for Read TXN
+      if (axilEp.axiStatus.readEnable = '1') then
+         RnW                              := '1';
+         addr(NUM_ADDR_BITS_G-1 downto 0) := axilReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0);
+         devIdx                           := conv_integer(axilReadMaster.araddr(3+NUM_ADDR_BITS_G downto NUM_ADDR_BITS_G));
+      end if;
+
+      -- Check for Write TXN
       if (axilEp.axiStatus.writeEnable = '1') then
          RnW                              := '0';
          addr(NUM_ADDR_BITS_G-1 downto 0) := axilWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0);
          devIdx                           := conv_integer(axilWriteMaster.awaddr(3+NUM_ADDR_BITS_G downto NUM_ADDR_BITS_G));
-      elsif (axilEp.axiStatus.readEnable = '1') then
-         RnW                              := '1';
-         addr(NUM_ADDR_BITS_G-1 downto 0) := axilReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0);
-         devIdx                           := conv_integer(axilReadMaster.araddr(3+NUM_ADDR_BITS_G downto NUM_ADDR_BITS_G));
-      else
-         RnW    := '0';
-         devIdx := 0;
       end if;
 
-      -- Check for read or write transactions
-      if (r.txnActive = '0') and ((axilEp.axiStatus.writeEnable = '1') or (axilEp.axiStatus.readEnable = '1')) then
+      -- State Machine
+      case (r.state) is
+         ----------------------------------------------------------------------
+         when IDLE_S =>
+            -- Check if device address = 0
+            if (devIdx = 0) then
 
-         -- Check if device address = 0
-         if (devIdx = 0) then
+               axiSlaveRegister(axilEp, x"00", 0, v.disableClk);
+               axiSlaveRegister(axilEp, x"04", 0, v.disableTx);
+               axiSlaveRegister(axilEp, x"08", 0, v.polarityTx);
+               axiSlaveRegister(axilEp, x"0C", 0, v.polarityRx);
 
-            axiSlaveRegister(axilEp, x"00", 0, v.disableClk);
-            axiSlaveRegister(axilEp, x"00", 1, v.disableTx);
-            axiSlaveRegister(axilEp, x"00", 2, v.polarityTx);
-            axiSlaveRegister(axilEp, x"00", 3, v.polarityRx);
-            axiSlaveRegister(axilEp, x"00", 4, v.bypFirstBerDet);
-            axiSlaveRegister(axilEp, x"00", 5, v.enUsrDlyCfg);
-            axiSlaveRegister(axilEp, x"00", 16, v.usrDlyCfg);
+               axiSlaveRegister(axilEp, x"10", 0, v.bypFirstBerDet);
+               axiSlaveRegister(axilEp, x"14", 0, v.enUsrDlyCfg);
+               axiSlaveRegister(axilEp, x"18", 0, v.usrDlyCfg);
+               axiSlaveRegister(axilEp, x"1C", 0, v.lockingCntCfg);
 
-            axiSlaveRegister(axilEp, x"04", 0, v.minEyeWidth);
-            axiSlaveRegister(axilEp, x"04", 8, v.lockingCntCfg);
+               axiSlaveRegister(axilEp, x"20", 0, v.minEyeWidth);
+               axiSlaveRegister(axilEp, x"24", 0, v.timerConfig);
+               axiSlaveRegister(axilEp, x"28", 0, v.globalRstForce);  -- SW force
+               axiSlaveRegister(axilEp, x"2C", 0, v.opCodeForce);  -- SW force
 
-            axiSlaveRegister(axilEp, x"08", 0, v.globalRstForce);  -- SW force
-            axiSlaveRegister(axilEp, x"0C", 0, v.opCodeForce);     -- SW force
-            axiSlaveRegister(axilEp, x"0C", 8, v.rstCnt);
+               axiSlaveRegisterR(axilEp, x"80", 0, r.dropTrigCnt(0));
+               axiSlaveRegisterR(axilEp, x"84", 0, r.dropTrigCnt(1));
+               axiSlaveRegisterR(axilEp, x"88", 0, r.dropTrigCnt(2));
+               axiSlaveRegisterR(axilEp, x"8C", 0, r.dropTrigCnt(3));
 
-            axiSlaveRegister(axilEp, x"0C", 0, v.timerConfig);
+               axiSlaveRegisterR(axilEp, x"90", 0, r.dropTrigCnt(4));
+               axiSlaveRegisterR(axilEp, x"94", 0, r.dropTrigCnt(5));
+               axiSlaveRegisterR(axilEp, x"98", 0, r.dropTrigCnt(6));
+               axiSlaveRegisterR(axilEp, x"9C", 0, r.dropTrigCnt(7));
 
-            axiSlaveRegisterR(axilEp, x"10", 0, r.dropTrigCnt(0));
-            axiSlaveRegisterR(axilEp, x"14", 0, r.dropTrigCnt(1));
-            axiSlaveRegisterR(axilEp, x"18", 0, r.dropTrigCnt(2));
-            axiSlaveRegisterR(axilEp, x"1C", 0, r.dropTrigCnt(3));
+               axiSlaveRegisterR(axilEp, x"A0", 0, r.errorDetCnt);
+               axiSlaveRegisterR(axilEp, x"A4", 0, r.linkUpCnt);
 
-            axiSlaveRegisterR(axilEp, x"20", 0, r.dropTrigCnt(4));
-            axiSlaveRegisterR(axilEp, x"24", 0, r.dropTrigCnt(5));
-            axiSlaveRegisterR(axilEp, x"28", 0, r.dropTrigCnt(6));
-            axiSlaveRegisterR(axilEp, x"2C", 0, r.dropTrigCnt(7));
+               axiSlaveRegister(axilEp, x"FC", 0, v.rstCnt);
 
-            axiSlaveRegisterR(axilEp, x"30", 0, r.errorDetCnt);
-            axiSlaveRegisterR(axilEp, x"34", 0, r.linkUpCnt);
+               -- Close the transaction
+               axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
-            -- Close the transaction
-            axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+            -- Check for read or write transactions
+            elsif (axilEp.axiStatus.writeEnable = '1') or (axilEp.axiStatus.readEnable = '1') then
 
-         else
+               -- Setup the request message
+               v.txMsg(0)  := CODE_SOF_C;
+               v.txMsg(1)  := toSlv(devIdx, 4) & RnW & "001";  --  Header
+               v.txMsg(2)  := addr(31 downto 24);
+               v.txMsg(3)  := addr(23 downto 16);
+               v.txMsg(4)  := addr(15 downto 8);
+               v.txMsg(5)  := addr(7 downto 0);
+               v.txMsg(6)  := axilWriteMaster.wData(31 downto 24);
+               v.txMsg(7)  := axilWriteMaster.wData(23 downto 16);
+               v.txMsg(8)  := axilWriteMaster.wData(15 downto 8);
+               v.txMsg(9)  := axilWriteMaster.wData(7 downto 0);
+               v.txMsg(10) := x"00";                           -- Footer
+               v.txMsg(11) := CODE_EOF_C;
 
-            -- Setup the request message
-            v.txMsg(0)  := CODE_SOF_C;
-            v.txMsg(1)  := toSlv(devIdx, 4) & RnW & "001";  --  Header
-            v.txMsg(2)  := addr(31 downto 24);
-            v.txMsg(3)  := addr(23 downto 16);
-            v.txMsg(4)  := addr(15 downto 8);
-            v.txMsg(5)  := addr(7 downto 0);
-            v.txMsg(6)  := axilWriteMaster.wData(31 downto 24);
-            v.txMsg(7)  := axilWriteMaster.wData(23 downto 16);
-            v.txMsg(8)  := axilWriteMaster.wData(15 downto 8);
-            v.txMsg(9)  := axilWriteMaster.wData(7 downto 0);
-            v.txMsg(10) := x"00";                           -- Footer
-            v.txMsg(11) := CODE_EOF_C;
+               -- Reset the counter
+               v.rxByteCnt := 0;
+               v.txByteCnt := 0;
 
-            -- Reset the counter
-            v.rxByteCnt := 0;
-            v.txByteCnt := 0;
+               -- Start the timer
+               v.timer := r.timerConfig;
 
-            -- Start the timer
-            v.timer := r.timerConfig;
+               -- Next state
+               v.state := TXN_S;
 
-            -- Set the flag
-            v.txnActive := '1';
-
-         end if;
-
-      end if;
-
-      -- Check if outstanding transaction
-      if (r.txnActive = '1') then
-
-         -- Check for timeout or acknowledgment received
-         if (r.timer = 0) or (r.rxByteCnt = 12) then
-
-            -- Set the flag
-            v.txnActive := '0';
-
-            -- Pre-set the counter
-            v.rxByteCnt := 12;
-            v.txByteCnt := 12;
-
-            -- Check for timeout
-            if (r.timer = 0) then
-               axilResp(1) := '1';
             end if;
+         ----------------------------------------------------------------------
+         when TXN_S =>
+            -- Check for timeout or acknowledgment received
+            if (r.timer = 0) or (r.rxByteCnt = 12) then
 
-            -- Check for mismatch in SOF/EOF
-            if (r.rxMsg(0) /= CODE_SOF_C) or (r.rxMsg(11) /= CODE_EOF_C) then
-               axilResp(1) := '1';
-            end if;
+               -- Pre-set counters
+               v.rxByteCnt := 12;
+               v.txByteCnt := 12;
 
-            -- Check for mismatch if frame size
-            if (r.rxByteCnt /= 12) then
-               axilResp(1) := '1';
-            end if;
+               -- Check for timeout
+               if (r.timer = 0) then
+                  axilResp(1) := '1';
+               end if;
 
-            -- Check for mismatch in Version
-            if (r.rxMsg(1)(2 downto 0) /= "001") then
-               axilResp(1) := '1';
-            end if;
+               -- Check for mismatch in SOF/EOF
+               if (r.rxMsg(0) /= CODE_SOF_C) or (r.rxMsg(11) /= CODE_EOF_C) then
+                  axilResp(1) := '1';
+               end if;
 
-            -- Check for mismatch in operation type
-            if (r.rxMsg(1)(4) /= r.txMsg(1)(4)) then
-               axilResp(1) := '1';
-            end if;
+               -- Check for mismatch if frame size
+               if (r.rxByteCnt /= 12) then
+                  axilResp(1) := '1';
+               end if;
 
-            -- Check for dev address not processed
-            if (r.rxMsg(1)(7 downto 4) /= 0) then
-               axilResp(1) := '1';
-            end if;
+               -- Check for mismatch in Version
+               if (r.rxMsg(1)(SUGIO_HDR_VERSION_FIELD_C) /= "001") then
+                  axilResp(1) := '1';
+               end if;
 
-            -- Check for wrong address echo'd back
-            if (r.rxMsg(2) /= r.txMsg(2)) or (r.rxMsg(3) /= r.txMsg(3)) or (r.rxMsg(4) /= r.txMsg(4)) or (r.rxMsg(5) /= r.txMsg(5)) then
-               axilResp(0) := '1';
-            end if;
+               -- Check for mismatch in operation type
+               if (r.rxMsg(1)(SUGIO_HDR_OP_TYPE_C) /= r.txMsg(1)(SUGIO_HDR_OP_TYPE_C)) then
+                  axilResp(1) := '1';
+               end if;
 
-            -- If write operation, check if wrong data echo'd back
-            if (r.txMsg(1)(4) = '0') then
-               if (r.rxMsg(6) /= r.txMsg(6)) or (r.rxMsg(7) /= r.txMsg(7)) or (r.rxMsg(8) /= r.txMsg(8)) or (r.rxMsg(9) /= r.txMsg(9)) then
+               -- Check for dev address not processed
+               if (r.rxMsg(1)(SUGIO_HDR_DDEV_ID_FIELD_C) /= 0) then
+                  axilResp(1) := '1';
+               end if;
+
+               -- Check for wrong address echo'd back
+               if (r.rxMsg(2) /= r.txMsg(2)) or (r.rxMsg(3) /= r.txMsg(3)) or (r.rxMsg(4) /= r.txMsg(4)) or (r.rxMsg(5) /= r.txMsg(5)) then
                   axilResp(0) := '1';
                end if;
-            end if;
 
-            -- Check for non-zero footer
-            if (r.rxMsg(10) /= 0) then
-               axilResp(0) := '1';
-            end if;
+               -- If write operation, check if wrong data echo'd back
+               if (r.txMsg(1)(4) = '0') then
+                  if (r.rxMsg(6) /= r.txMsg(6)) or (r.rxMsg(7) /= r.txMsg(7)) or (r.rxMsg(8) /= r.txMsg(8)) or (r.rxMsg(9) /= r.txMsg(9)) then
+                     axilResp(0) := '1';
+                  end if;
+               end if;
 
+               -- Check for non-zero footer
+               if (r.rxMsg(10) /= 0) then
+                  axilResp(0) := '1';
+               end if;
+
+               -- Check for read operation
+               if (r.txMsg(1)(SUGIO_HDR_OP_TYPE_C) = '1') then
+                  -- Forward the readout data
+                  v.axilReadSlave.rdata := r.rxMsg(6) & r.rxMsg(7) & r.rxMsg(8) & r.rxMsg(9);
+                  -- Send AXI-Lite response
+                  axiSlaveReadResponse(v.axilReadSlave, axilResp);
+               -- Else write operation
+               else
+                  -- Send AXI-Lite response
+                  axiSlaveWriteResponse(v.axilWriteSlave, axilResp);
+               end if;
+
+               -- Next state
+               v.state := RESP_S;
+
+            end if;
+         ----------------------------------------------------------------------
+         when RESP_S =>
             -- Check for read operation
-            if (r.txMsg(1)(4) = '1') then
-               -- Forward the readout data
-               v.axilReadSlave.rdata := r.rxMsg(6) & r.rxMsg(7) & r.rxMsg(8) & r.rxMsg(9);
-               -- Send AXI-Lite response
-               axiSlaveReadResponse(v.axilReadSlave, axilResp);
+            if (r.txMsg(1)(SUGIO_HDR_OP_TYPE_C) = '1') then
+
+               -- Closeout TXN
+               axiSlaveWaitReadTxn(axilReadMaster, v.axilReadSlave, axilEp.axiStatus.readEnable);
+
+               -- Check if TXN completed
+               if (r.axilReadSlave.rvalid = '1') then
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
+
             -- Else write operation
             else
-               -- Send AXI-Lite response
-               axiSlaveWriteResponse(v.axilWriteSlave, axilResp);
-            end if;
 
-         end if;
-      end if;
+               -- Closeout TXN
+               axiSlaveWaitWriteTxn(axilWriteMaster, v.axilWriteSlave, axilEp.axiStatus.writeEnable);
+
+               -- Check if TXN completed
+               if (r.axilWriteSlave.bvalid = '1') then
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
+
+            end if;
+      ----------------------------------------------------------------------
+      end case;
 
       -- Check for error event
       v.errorDet := errorDet;
@@ -468,6 +503,8 @@ begin
       end if;
 
       -- Outputs
+      axilReadSlave  <= r.axilReadSlave;
+      axilWriteSlave <= r.axilWriteSlave;
       txStrobe       <= r.txStrobe;
       txData         <= r.txData;
       txDataK        <= r.txDataK;
@@ -480,8 +517,6 @@ begin
       bypFirstBerDet <= r.bypFirstBerDet;
       minEyeWidth    <= r.minEyeWidth;
       lockingCntCfg  <= r.lockingCntCfg;
-      axilReadSlave  <= r.axilReadSlave;
-      axilWriteSlave <= r.axilWriteSlave;
 
       -- Synchronous Reset
       if (rst = '1') then

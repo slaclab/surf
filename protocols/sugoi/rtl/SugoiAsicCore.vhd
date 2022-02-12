@@ -92,8 +92,11 @@ begin
    ----------------
    U_Decode : entity surf.Decoder8b10b
       generic map (
-         TPD_G       => TPD_G,
-         NUM_BYTES_G => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',         -- active HIGH reset
+         -- FLOW_CTRL_EN_G => true, -- placeholder incase FLOW_CTRL_EN_G is added in the future
+         RST_ASYNC_G    => false,
+         NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk         => clk,
@@ -146,8 +149,11 @@ begin
    ----------------
    U_Encode : entity surf.Encoder8b10b
       generic map (
-         TPD_G       => TPD_G,
-         NUM_BYTES_G => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',         -- active HIGH reset
+         FLOW_CTRL_EN_G => true,
+         RST_ASYNC_G    => false,
+         NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk        => clk,

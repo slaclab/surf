@@ -332,7 +332,7 @@ begin
                v.txDataK := '1';
 
                -- Set the write and memory data buses
-               v.axilWriteMaster.wdata := r.axilWriteMaster.awaddr(23 downto 0) & rxData;
+               v.axilWriteMaster.wdata := r.axilWriteMaster.wdata(23 downto 0) & rxData;
                v.memData               := r.memData(23 downto 0) & rxData;
 
                -- Increment the counter

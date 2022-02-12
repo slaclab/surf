@@ -65,7 +65,6 @@ architecture mapping of SugoiFpgaCore is
    signal writeMaster : AxiLiteWriteMasterType;
    signal writeSlave  : AxiLiteWriteSlaveType;
 
-
    signal rx            : sl;
    signal rxEncodeValid : sl;
    signal rxEncodeData  : slv(9 downto 0);
@@ -158,7 +157,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,
-         DLY_STEP_SIZE_G => ite(XIL_DEVICE_G = "7SERIES", 16, 1),
+         DLY_STEP_SIZE_G => ite(SIMULATION_G or (XIL_DEVICE_G = "7SERIES"), 16, 1),
          CODE_TYPE_G     => "LINE_CODE")
       port map (
          -- Clock and Reset
@@ -212,8 +211,11 @@ begin
    ----------------
    U_Decode : entity surf.Decoder8b10b
       generic map (
-         TPD_G       => TPD_G,
-         NUM_BYTES_G => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',         -- active HIGH reset
+         -- FLOW_CTRL_EN_G => true, -- placeholder incase FLOW_CTRL_EN_G is added in the future
+         RST_ASYNC_G    => false,
+         NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk         => timingClk,
@@ -276,8 +278,11 @@ begin
    ----------------
    U_Encode : entity surf.Encoder8b10b
       generic map (
-         TPD_G       => TPD_G,
-         NUM_BYTES_G => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',         -- active HIGH reset
+         FLOW_CTRL_EN_G => true,
+         RST_ASYNC_G    => false,
+         NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk        => timingClk,

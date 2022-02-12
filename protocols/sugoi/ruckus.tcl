@@ -24,5 +24,5 @@ if { ${family} eq {kintexu} ||
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
 loadSource -lib surf -dir "$::DIR_PATH/rtl/${fpgaType}"
 
-# # Load Simulation
-# loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
+# Load Simulation
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
