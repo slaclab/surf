@@ -243,9 +243,9 @@ begin
       -----------------------------------------------------------
       startTrigTraffic <= '1';
 
-      -----------------------------------------------------
-      -- axiSlaveRegister(axilEp, x"18", 0, v.usrDlyCfg);
-      -----------------------------------------------------
+      -----------------------------
+      -- Local FPGA register Access
+      -----------------------------
       addr   := x"0000_0018";
       wrData := x"0000_00AA";
       axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addr, wrData, true);
@@ -256,7 +256,7 @@ begin
       end if;
 
       ------------------------------------
-      --  None 32-bit word aligned address
+      --  None 32-bit word address aligned
       ------------------------------------
       addr   := toSlv(ADDR_STRIDE_C+5, 32);  -- address not 32-bit word address aligned
       wrData := x"BABE_CAFE";
@@ -278,9 +278,9 @@ begin
          -- Sweep the byte positions
          for j in 0 to 3 loop
 
-            -----------------------------------------------
-            -- Swapper the data byte field in SUGIO payload
-            -----------------------------------------------
+            ------------------------------------------------
+            -- Sweeping the data byte field in SUGIO payload
+            ------------------------------------------------
             addr   := toSlv((i+1)*ADDR_STRIDE_C+4, 32);
             wrData := toSlv(2**(8*j)+i, 32);
             axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addr, wrData, true);
@@ -291,9 +291,9 @@ begin
                assert false report "Simulation Failed: Data Byte sweep!" severity failure;
             end if;
 
-            --------------------------------------------------
-            -- Swapper the address byte field in SUGIO payload
-            --------------------------------------------------
+            ---------------------------------------------------
+            -- Sweeping the address byte field in SUGIO payload
+            ---------------------------------------------------
             addr := toSlv((i+1)*ADDR_STRIDE_C+(ADDR_STRIDE_C/2)+4*(2**(8*j)), 32);
             axiLiteBusSimRead (axilClk, axilReadMaster, axilReadSlave, addr, rdData, true);
 
