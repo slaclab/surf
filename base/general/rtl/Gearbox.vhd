@@ -96,6 +96,7 @@ begin
             v.writeIndex := r.writeIndex - 1;
          else
             v.writeIndex := SHIFT_WIDTH-1;
+         end if;
       end if;
 
       -- Only do anything if ready for data output
