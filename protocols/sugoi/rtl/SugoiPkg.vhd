@@ -39,6 +39,7 @@ package SugoiPkg is
    subtype SUGIO_FOOTER_BUS_RESP_FIELD_C is natural range 1 downto 0;
    constant SUGIO_FOOTER_VER_MISMATCH_C   : positive := 2;
    constant SUGIO_FOOTER_NOT_ADDR_ALIGN_C : positive := 3;
+   constant SUGIO_FOOTER_XSUM_ERROR_C     : positive := 4;
 
    -------------------------
    -- Control Code Constants

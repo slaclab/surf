@@ -97,10 +97,12 @@ architecture rtl of SugoiFpgaFsm is
       heartbeat      : sl;
       txData         : slv(7 downto 0);
       txDataK        : sl;
-      txByteCnt      : natural range 0 to 12;
-      txMsg          : Slv8Array(11 downto 0);
-      rxByteCnt      : natural range 0 to 12;
-      rxMsg          : Slv8Array(11 downto 0);
+      txByteCnt      : natural range 0 to 13;
+      txXsum         : slv(7 downto 0);
+      txMsg          : Slv8Array(12 downto 0);
+      rxByteCnt      : natural range 0 to 13;
+      rxXsum         : slv(7 downto 0);
+      rxMsg          : Slv8Array(12 downto 0);
       rstCnt         : sl;
       errorDet       : sl;
       gearboxAligned : sl;
@@ -135,9 +137,11 @@ architecture rtl of SugoiFpgaFsm is
       txStrobe       => '0',
       txData         => CODE_IDLE_C,
       txDataK        => '1',
-      txByteCnt      => 12,
+      txByteCnt      => 13,
+      txXsum         => (others => '0'),
       txMsg          => (others => (others => '0')),
-      rxByteCnt      => 12,
+      rxByteCnt      => 13,
+      rxXsum         => (others => '0'),
       rxMsg          => (others => (others => '0')),
       rstCnt         => '0',
       errorDet       => '0',
@@ -255,16 +259,19 @@ begin
          v.opCode    := (others => '0');
 
          -- Check for IDLE code
-         if (v.txData = CODE_IDLE_C) and (r.txByteCnt /= 12) then
+         if (v.txData = CODE_IDLE_C) and (r.txByteCnt /= 13) then
 
             -- Send request message
             v.txData := r.txMsg(r.txByteCnt);
+
+            -- Update checksum
+            v.txXsum := r.txXsum + v.txData;
 
             -- Increment the counter
             v.txByteCnt := r.txByteCnt + 1;
 
             -- Check for payload
-            if (r.txByteCnt /= 0) and (r.txByteCnt /= 11) then
+            if (r.txByteCnt /= 0) and (r.txByteCnt /= 12) then
                -- Reset the flag
                v.txDatak := '0';
             end if;
@@ -280,12 +287,33 @@ begin
 
             end if;
 
+            -- Check for header
+            if (r.txByteCnt = 1) then
+               -- Init the checksum value
+               v.txXsum := r.txMsg(1);
+            end if;
+
+            -- Check for checksum
+            if (r.txByteCnt = 11) then
+               -- Send the checksum value (-- one's complement)
+               v.txData    := not(r.txXsum);
+               v.txMsg(11) := not(r.txXsum);  -- Save the value for debugging
+               -- Don't update txXsum (sim debug only)
+               v.txXsum    := r.txXsum;
+            end if;
+
+            -- Check if EOF
+            if (r.txByteCnt = 12) then
+               -- Don't update txXsum (sim debug only)
+               v.txXsum := r.txXsum;
+            end if;
+
          end if;
 
       end if;
 
       -- Check for RX valid and receiving the ACK message
-      if (rxValid = '1') and (r.rxByteCnt /= 12) then
+      if (rxValid = '1') and (r.rxByteCnt /= 13) then
 
          -- Check for SOF
          if (rxDataK = '1') and (rxData = CODE_SOF_C) then
@@ -306,18 +334,41 @@ begin
 
          -- Check of data payload and SOF was received
          if (rxDataK = '0') and (r.rxByteCnt /= 0) then
+
             -- Increment the counter
-            v.rxByteCnt          := r.rxByteCnt + 1;
+            v.rxByteCnt := r.rxByteCnt + 1;
+
             -- Receive acknowledge message
             v.rxMsg(r.rxByteCnt) := rxData;
+
+            -- Update checksum
+            v.rxXsum := r.rxXsum + rxData;
+
+            -- Check for header
+            if (r.rxByteCnt = 1) then
+               -- Init the checksum value
+               v.rxXsum := rxData;
+            end if;
+
+            -- Check for checksum
+            if (r.rxByteCnt = 11) and (rxData /= not(r.rxXsum)) then
+               -- Sent the footer's checksum error bit
+               v.rxMsg(10)(SUGIO_FOOTER_XSUM_ERROR_C) := '1';
+               -- Don't update rxXsum (sim debug only)
+               v.rxXsum                               := r.rxXsum;
+            end if;
+
          end if;
 
          -- Check of EOF and SOF was received
          if (rxDataK = '1') and (rxData = CODE_EOF_C) and (r.rxByteCnt /= 0) then
+
             -- Increment the counter
-            v.rxByteCnt          := r.rxByteCnt + 1;
+            v.rxByteCnt := r.rxByteCnt + 1;
+
             -- Receive acknowledge message
             v.rxMsg(r.rxByteCnt) := rxData;
+
          end if;
 
       end if;
@@ -401,7 +452,8 @@ begin
                v.txMsg(8)  := axilWriteMaster.wData(15 downto 8);
                v.txMsg(9)  := axilWriteMaster.wData(7 downto 0);
                v.txMsg(10) := x"00";                           -- Footer
-               v.txMsg(11) := CODE_EOF_C;
+               v.txMsg(11) := x"00";                           -- checksum
+               v.txMsg(12) := CODE_EOF_C;
 
                -- Reset the counter
                v.rxByteCnt := 0;
@@ -417,11 +469,11 @@ begin
          ----------------------------------------------------------------------
          when TXN_S =>
             -- Check for timeout or acknowledgment received
-            if (r.timer = 0) or (r.rxByteCnt = 12) then
+            if (r.timer = 0) or (r.rxByteCnt = 13) then
 
                -- Pre-set counters
-               v.rxByteCnt := 12;
-               v.txByteCnt := 12;
+               v.rxByteCnt := 13;
+               v.txByteCnt := 13;
 
                -- Check for timeout
                if (r.timer = 0) then
@@ -429,12 +481,12 @@ begin
                end if;
 
                -- Check for mismatch in SOF/EOF
-               if (r.rxMsg(0) /= CODE_SOF_C) or (r.rxMsg(11) /= CODE_EOF_C) then
+               if (r.rxMsg(0) /= CODE_SOF_C) or (r.rxMsg(12) /= CODE_EOF_C) then
                   axilResp(1) := '1';
                end if;
 
                -- Check for mismatch if frame size
-               if (r.rxByteCnt /= 12) then
+               if (r.rxByteCnt /= 13) then
                   axilResp(1) := '1';
                end if;
 

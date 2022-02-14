@@ -62,11 +62,13 @@ architecture rtl of SugoiAsicFsm is
       RX_ADDR_S,
       RX_DATA_S,
       RX_FOOTER_S,
+      RX_XSUM_S,
       RX_EOF_S,
       RD_TXN_S,
       WR_TXN_S,
       TX_DATA_S,
       TX_FOOTER_S,
+      TX_XSUM_S,
       TX_EOF_S);
 
    type RegType is record
@@ -77,8 +79,10 @@ architecture rtl of SugoiAsicFsm is
       rxSlip          : sl;
       txValid         : sl;
       txData          : slv(7 downto 0);
-      footer          : slv(7 downto 0);
       memData         : slv(31 downto 0);
+      footer          : slv(7 downto 0);
+      rxXsum          : slv(7 downto 0);
+      txXsum          : slv(7 downto 0);
       RnW             : sl;
       devSelected     : sl;
       txDataK         : sl;
@@ -98,6 +102,8 @@ architecture rtl of SugoiAsicFsm is
       txData          => CODE_IDLE_C,
       memData         => (others => '0'),
       footer          => (others => '0'),
+      rxXsum          => (others => '0'),
+      txXsum          => (others => '0'),
       RnW             => '0',
       devSelected     => '0',
       txDataK         => '1',
@@ -125,16 +131,13 @@ begin
       v.txValid := '0';
       v.opCode  := (others => '0');
 
+      -- Echo the message back by default
+      v.txValid := rxValid;
+      v.txData  := rxData;
+      v.txDataK := rxDataK;
+
       -- Check for not(INIT_S) and active control code
       if (r.state /= INIT_S) and (rxValid = '1') and (rxDataK = '1') then
-         ----------------------------------------------------------------------
-         -- Note: Better not to echo "garage" during INIT_S back to FPGA
-         ----------------------------------------------------------------------
-
-         -- Echo the control code
-         v.txValid := '1';
-         v.txData  := rxData;
-         v.txDataK := '1';
 
          -- Check for unexpected SOF
          if (r.state /= RX_SOF_S) and (rxData = CODE_SOF_C) then
@@ -251,11 +254,6 @@ begin
             -- Wait for non-control word
             if (rxValid = '1') and (rxDataK = '0') then
 
-               -- Echo the header
-               v.txValid := '1';
-               v.txData  := rxData;
-               v.txDataK := '0';
-
                -- Check for version number mismatch
                if (rxData(SUGIO_HDR_VERSION_FIELD_C) /= SUGIO_VERSION_C) then
                   -- Set the error flag
@@ -277,6 +275,10 @@ begin
                   v.txData(SUGIO_HDR_DDEV_ID_FIELD_C) := rxData(SUGIO_HDR_DDEV_ID_FIELD_C) - 1;
                end if;
 
+               -- Init the RX/TX checksums
+               v.rxXsum := rxData;
+               v.txXsum := v.txData;
+
                -- Check for device ID is index to local device
                if (rxData(SUGIO_HDR_DDEV_ID_FIELD_C) = 1) then
                   -- Set the flag
@@ -295,10 +297,9 @@ begin
             -- Wait for non-control word
             if (rxValid = '1')and (rxDataK = '0') then
 
-               -- Echo the address bytes
-               v.txValid := '1';
-               v.txData  := rxData;
-               v.txDataK := '0';
+               -- Update the RX/TX checksums
+               v.rxXsum := r.rxXsum + rxData;
+               v.txXsum := r.txXsum + v.txData;
 
                -- Set the address
                v.axilReadMaster.araddr  := r.axilReadMaster.araddr(23 downto 0) & rxData;
@@ -331,6 +332,9 @@ begin
                v.txData  := CODE_IDLE_C;
                v.txDataK := '1';
 
+               -- Update the RX checksum only
+               v.rxXsum := r.rxXsum + rxData;
+
                -- Set the write and memory data buses
                v.axilWriteMaster.wdata := r.axilWriteMaster.wdata(23 downto 0) & rxData;
                v.memData               := r.memData(23 downto 0) & rxData;
@@ -355,8 +359,42 @@ begin
                v.txData  := CODE_IDLE_C;
                v.txDataK := '1';
 
+               -- Update the RX checksum only
+               v.rxXsum := r.rxXsum + rxData;
+
                -- OR the remote footer value with local
                v.footer := r.footer or rxData;
+
+               -- Check for non-zero footer
+               if (v.footer /= 0) then
+                  -- Set the flag
+                  v.devSelected := '0';
+               end if;
+
+               -- Next state
+               v.state := RX_XSUM_S;
+
+            end if;
+         ----------------------------------------------------------------------
+         when RX_XSUM_S =>
+            -- Wait for non-control word
+            if (rxValid = '1')and (rxDataK = '0') then
+
+               -- Send IDLE char
+               v.txValid := '1';
+               v.txData  := CODE_IDLE_C;
+               v.txDataK := '1';
+
+               -- Check if wrong checksum
+               if (rxData /= not(r.rxXsum)) then
+
+                  -- Set the flag
+                  v.devSelected := '0';
+
+                  -- Set the footer error bit
+                  v.footer(SUGIO_FOOTER_XSUM_ERROR_C) := '1';
+
+               end if;
 
                -- Next state
                v.state := RX_EOF_S;
@@ -414,6 +452,9 @@ begin
                v.txData  := r.memData(31 downto 24);
                v.txDataK := '0';
 
+               -- Update the TX checksum only
+               v.txXsum := r.txXsum + v.txData;
+
                -- Update the byte shift register
                v.memData := r.memData(23 downto 0) & x"00";
 
@@ -437,8 +478,25 @@ begin
                v.txData  := r.footer;
                v.txDataK := '0';
 
+               -- Update the TX checksum only
+               v.txXsum := r.txXsum + v.txData;
+
                -- Reset flags
                v.footer := (others => '0');
+
+               -- Next state
+               v.state := TX_XSUM_S;
+
+            end if;
+         ----------------------------------------------------------------------
+         when TX_XSUM_S =>
+            -- Wait for IDLE word
+            if (rxValid = '1') and (rxDataK = '1') and (rxData = CODE_IDLE_C) then
+
+               -- Send the checksum value
+               v.txValid := '1';
+               v.txData  := not(r.txXsum);  --  one's complement
+               v.txDataK := '0';
 
                -- Next state
                v.state := TX_EOF_S;
