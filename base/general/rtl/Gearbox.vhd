@@ -95,7 +95,7 @@ begin
          if (r.writeIndex /= 0) then
             v.writeIndex := r.writeIndex - 1;
          else
-            v.writeIndex := SHIFT_WIDTH-1;
+            v.writeIndex := SHIFT_WIDTH_C-1;
          end if;
       end if;
 
