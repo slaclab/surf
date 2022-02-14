@@ -442,7 +442,7 @@ begin
 
                -- Setup the request message
                v.txMsg(0)  := CODE_SOF_C;
-               v.txMsg(1)  := toSlv(devIdx, 4) & RnW & "001";  --  Header
+               v.txMsg(1)  := toSlv(devIdx, 4) & RnW & SUGIO_VERSION_C;  --  Header
                v.txMsg(2)  := addr(31 downto 24);
                v.txMsg(3)  := addr(23 downto 16);
                v.txMsg(4)  := addr(15 downto 8);
@@ -491,7 +491,7 @@ begin
                end if;
 
                -- Check for mismatch in Version
-               if (r.rxMsg(1)(SUGIO_HDR_VERSION_FIELD_C) /= "001") then
+               if (r.rxMsg(1)(SUGIO_HDR_VERSION_FIELD_C) /= SUGIO_VERSION_C) then
                   axilResp(1) := '1';
                end if;
 

@@ -261,13 +261,7 @@ begin
                end if;
 
                -- Check if read or write operation
-               if (rxData(SUGIO_HDR_OP_TYPE_C) = '1') then
-                  -- Set the flag
-                  v.RnW := '1';
-               else
-                  -- Set the flag
-                  v.RnW := '0';
-               end if;
+               v.RnW := rxData(SUGIO_HDR_OP_TYPE_C);
 
                -- Check for non-zero device ID
                if (rxData(SUGIO_HDR_DDEV_ID_FIELD_C) /= 0) then
