@@ -28,7 +28,7 @@ entity SugoiTopTb is end SugoiTopTb;
 
 architecture testbed of SugoiTopTb is
 
-   constant NUM_ASIC_C      : positive := 1;
+   constant NUM_ASIC_C      : positive := 4;
    constant NUM_ADDR_BITS_C : positive := 28;
    constant ADDR_STRIDE_C   : positive := (2**NUM_ADDR_BITS_C);
 
@@ -238,10 +238,10 @@ begin
 
       end loop;
 
-      -- -----------------------------------------------------------
-      -- -- Enable the trigger opcode traffic during register access
-      -- -----------------------------------------------------------
-      -- startTrigTraffic <= '1';
+      -----------------------------------------------------------
+      -- Enable the trigger opcode traffic during register access
+      -----------------------------------------------------------
+      startTrigTraffic <= '1';
 
       -----------------------------
       -- Local FPGA register Access
