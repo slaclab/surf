@@ -63,7 +63,7 @@ architecture rtl of Encoder8b10b is
 
 begin
 
-   comb : process (dataIn, dataKIn, r, readyOut, rst) is
+   comb : process (dataIn, dataKIn, r, readyOut, rst, validIn) is
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
@@ -74,7 +74,7 @@ begin
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
+      if ((v.validOut = '0') and (validIn = '1')) or (FLOW_CTRL_EN_G = false) then
          v.validOut := '1';
 
          dispChainVar := r.runDisp;
@@ -103,7 +103,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(clk)) then
          if clkEn = '1' then
