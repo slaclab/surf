@@ -69,7 +69,7 @@ architecture rtl of Gearbox is
       shiftReg    => (others => '0'),
       writeIndex  => 0,
       slaveReady  => '0',
-      slip        => '1'); -- 0x1 to prevent a slip on first cycle after reset
+      slip        => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -92,7 +92,10 @@ begin
       -- Slip input by incrementing the writeIndex
       v.slip := slip;
       if (slip = '1') and (r.slip = '0') and (rst = '0') then
-         v.writeIndex := r.writeIndex - 1;
+         if (r.writeIndex /= 0) then
+            v.writeIndex := r.writeIndex - 1;
+         else
+            v.writeIndex := SHIFT_WIDTH-1;
       end if;
 
       -- Only do anything if ready for data output
