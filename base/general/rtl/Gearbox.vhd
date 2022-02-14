@@ -89,7 +89,7 @@ begin
          v.masterValid := '0';
       end if;
 
-      -- Slip input by incrementing the writeIndex and non-zero write index
+      -- Slip input by incrementing the writeIndex
       v.slip := slip;
       if (slip = '1') and (r.slip = '0') and (rst = '0') then
          v.writeIndex := r.writeIndex - 1;
