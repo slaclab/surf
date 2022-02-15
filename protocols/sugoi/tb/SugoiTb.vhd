@@ -126,7 +126,7 @@ begin
          TPD_G           => TPD_G,
          SIMULATION_G    => true,
          NUM_ADDR_BITS_G => NUM_ADDR_BITS_C,
-         XIL_DEVICE_G    => "ULTRASCALE")
+         DEVICE_FAMILY_G    => "ULTRASCALE")
       port map (
          -- SUGOI Serial Ports
          sugioRxP        => txP(NUM_SUB_C-1),

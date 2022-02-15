@@ -30,7 +30,7 @@ entity SugoiManagerRx is
       TPD_G           : time   := 1 ns;
       SIM_DEVICE_G    : string := "ULTRASCALE";
       IODELAY_GROUP_G : string := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode
-      REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL not used in COUNT mode
+      REF_FREQ_G      : real   := 300.0);         -- IDELAYCTRL not used in COUNT mode
    port (
       -- Clock and Reset
       clk     : in  sl;
@@ -56,49 +56,43 @@ architecture mapping of SugoiManagerRx is
 
 begin
 
-   U_IBUFDS : IBUFDS
-      port map (
-         I  => rxP,
-         IB => rxN,
-         O  => rxIn);
+   GEN_7SERIES : if (DEVICE_FAMILY_G = "7SERIES") generate
+      U_SugoiManagerRx_1 : entity surf.SugoiManagerRx7Series
+         generic map (
+            TPD_G           => TPD_G,
+            SIM_DEVICE_G    => SIM_DEVICE_G,
+            IODELAY_GROUP_G => IODELAY_GROUP_G,
+            REF_FREQ_G      => REF_FREQ_G)
+         port map (
+            clk     => clk,             -- [in]
+            rst     => rst,             -- [in]
+            rxP     => rxP,             -- [in]
+            rxN     => rxN,             -- [in]
+            dlyLoad => dlyLoad,         -- [in]
+            dlyCfg  => dlyCfg,          -- [in]
+            inv     => inv,             -- [in]
+            rx      => rx);             -- [out]
 
-   U_DELAY : entity surf.Idelaye3Wrapper
-      generic map (
-         DELAY_FORMAT     => "COUNT",
-         SIM_DEVICE       => SIM_DEVICE_G,
-         DELAY_VALUE      => 0,
-         REFCLK_FREQUENCY => REF_FREQ_G,  -- IDELAYCTRL not used in COUNT mode
-         UPDATE_MODE      => "ASYNC",
-         CASCADE          => "NONE",
-         DELAY_SRC        => "IDATAIN",
-         DELAY_TYPE       => "VAR_LOAD")
-      port map(
-         DATAIN      => '0',
-         IDATAIN     => rxIn,
-         DATAOUT     => rxDly,
-         CLK         => clk,
-         RST         => rst,
-         CE          => '0',
-         INC         => '0',
-         LOAD        => dlyLoad,
-         EN_VTC      => '0',
-         CASC_IN     => '0',
-         CASC_RETURN => '0',
-         CNTVALUEIN  => dlyCfg);
+   end generate GEN_7SERIES;
 
-   U_IDDR : IDDRE1
-      generic map (
-         DDR_CLK_EDGE => "SAME_EDGE_PIPELINED")  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
-      port map (
-         Q1 => Q1,
-         Q2 => Q2,
-         C  => clk,                     -- 1-bit input: High-speed clock
-         CB => clkL,   -- 1-bit input: Inversion of High-speed clock C
-         D  => rxDly,                   -- 1-bit input: Serial Data Input
-         R  => rst);                    -- 1-bit input: Active High Async Reset
+   GEN_ULTRASCALE : if (DEVICE_FAMILY_G = "ULTRASCALE" or DEVICE_FAMILY_G = "ULTRASCALE_PLUS") generate
+      U_SugoiManagerRx_1 : entity surf.SugoiManagerRxUltrascale
+         generic map (
+            TPD_G           => TPD_G,
+            SIM_DEVICE_G    => SIM_DEVICE_G,
+            IODELAY_GROUP_G => IODELAY_GROUP_G,
+            REF_FREQ_G      => REF_FREQ_G)
+         port map (
+            clk     => clk,             -- [in]
+            rst     => rst,             -- [in]
+            rxP     => rxP,             -- [in]
+            rxN     => rxN,             -- [in]
+            dlyLoad => dlyLoad,         -- [in]
+            dlyCfg  => dlyCfg,          -- [in]
+            inv     => inv,             -- [in]
+            rx      => rx);             -- [out]
 
-   clkL <= not(clk);
+   end generate GEN_ULTRASCALE;
 
-   rx <= Q1 xor inv;
 
 end mapping;

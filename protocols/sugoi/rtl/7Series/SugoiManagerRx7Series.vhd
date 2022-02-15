@@ -25,10 +25,10 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity SugoiManagerRx is
+entity SugoiManagerRx7Series is
    generic (
       TPD_G           : time   := 1 ns;
-      SIM_DEVICE_G    : string := "7SERIES";
+      DEVICE_FAMILY_G    : string := "7SERIES";
       IODELAY_GROUP_G : string := "DESER_GROUP";
       REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL's REFCLK (in units of Hz)
    port (
@@ -44,9 +44,9 @@ entity SugoiManagerRx is
       -- Output
       inv     : in  sl;
       rx      : out sl);
-end SugoiManagerRx;
+end SugoiManagerRx7Series;
 
-architecture mapping of SugoiManagerRx is
+architecture mapping of SugoiManagerRx7Series is
 
    signal rxIn  : sl;
    signal rxDly : sl;
