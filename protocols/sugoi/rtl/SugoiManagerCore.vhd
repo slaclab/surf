@@ -28,12 +28,12 @@ entity SugoiManagerCore is
       TPD_G           : time    := 1 ns;
       SIMULATION_G    : boolean := false;
       COMMON_CLK_G    : boolean := false;  -- Set true if timingClk & axilClk are same signal
-      NUM_ADDR_BITS_G : positive;       -- Number of AXI-Lite address bits in the Subordinate
+      NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the Subordinate
       TX_POLARITY_G   : sl      := '0';
       RX_POLARITY_G   : sl      := '0';
-      DEVICE_FAMILY_G : string;         -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
+      DEVICE_FAMILY_G : string;  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
       IODELAY_GROUP_G : string  := "DESER_GROUP";  -- Only used if DEVICE_FAMILY_G="7SERIES"
-      REF_FREQ_G      : real    := 300.0);         -- Only used if DEVICE_FAMILY_G="7SERIES"
+      REF_FREQ_G      : real    := 300.0);  -- Only used if DEVICE_FAMILY_G="7SERIES"
    port (
       -- SUGOI Serial Ports
       sugioRxP        : in  sl;
@@ -333,8 +333,8 @@ begin
    -------------------
    U_sugioClk : entity surf.ClkOutBufDiff
       generic map (
-         TPD_G           => TPD_G,
-         DEVICE_FAMILY_G => DEVICE_FAMILY_G)
+         TPD_G        => TPD_G,
+         XIL_DEVICE_G => DEVICE_FAMILY_G)
       port map (
          clkIn   => timingClk,
          rstIn   => disableClk,

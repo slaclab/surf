@@ -28,9 +28,9 @@ use unisim.vcomponents.all;
 entity SugoiManagerRx is
    generic (
       TPD_G           : time   := 1 ns;
-      SIM_DEVICE_G    : string := "ULTRASCALE";
+      DEVICE_FAMILY_G : string := "ULTRASCALE";
       IODELAY_GROUP_G : string := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode
-      REF_FREQ_G      : real   := 300.0);         -- IDELAYCTRL not used in COUNT mode
+      REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL not used in COUNT mode
    port (
       -- Clock and Reset
       clk     : in  sl;
@@ -48,19 +48,13 @@ end SugoiManagerRx;
 
 architecture mapping of SugoiManagerRx is
 
-   signal rxIn  : sl;
-   signal rxDly : sl;
-   signal clkL  : sl;
-   signal Q1    : sl;
-   signal Q2    : sl;
-
 begin
 
    GEN_7SERIES : if (DEVICE_FAMILY_G = "7SERIES") generate
       U_SugoiManagerRx_1 : entity surf.SugoiManagerRx7Series
          generic map (
             TPD_G           => TPD_G,
-            SIM_DEVICE_G    => SIM_DEVICE_G,
+            DEVICE_FAMILY_G => DEVICE_FAMILY_G,
             IODELAY_GROUP_G => IODELAY_GROUP_G,
             REF_FREQ_G      => REF_FREQ_G)
          port map (
@@ -75,11 +69,11 @@ begin
 
    end generate GEN_7SERIES;
 
-   GEN_ULTRASCALE : if (DEVICE_FAMILY_G = "ULTRASCALE" or DEVICE_FAMILY_G = "ULTRASCALE_PLUS") generate
+   GEN_ULTRASCALE : if (DEVICE_FAMILY_G = "ULTRASCALE") or (DEVICE_FAMILY_G = "ULTRASCALE_PLUS") generate
       U_SugoiManagerRx_1 : entity surf.SugoiManagerRxUltrascale
          generic map (
             TPD_G           => TPD_G,
-            SIM_DEVICE_G    => SIM_DEVICE_G,
+            DEVICE_FAMILY_G => DEVICE_FAMILY_G,
             IODELAY_GROUP_G => IODELAY_GROUP_G,
             REF_FREQ_G      => REF_FREQ_G)
          port map (
@@ -93,6 +87,5 @@ begin
             rx      => rx);             -- [out]
 
    end generate GEN_ULTRASCALE;
-
 
 end mapping;

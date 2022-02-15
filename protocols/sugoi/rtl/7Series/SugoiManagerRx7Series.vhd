@@ -28,7 +28,7 @@ use unisim.vcomponents.all;
 entity SugoiManagerRx7Series is
    generic (
       TPD_G           : time   := 1 ns;
-      DEVICE_FAMILY_G    : string := "7SERIES";
+      DEVICE_FAMILY_G : string := "7SERIES";
       IODELAY_GROUP_G : string := "DESER_GROUP";
       REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL's REFCLK (in units of Hz)
    port (
