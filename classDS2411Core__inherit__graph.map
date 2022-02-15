@@ -1,9 +1,11 @@
 <map id="DS2411Core" name="DS2411Core">
-<area shape="rect" id="node1" title=" " alt="" coords="372,5,475,32"/>
-<area shape="rect" id="node2" href="$classAxiVersion.html" title=" " alt="" coords="309,80,399,107"/>
-<area shape="rect" id="node7" href="$classAxiVersionLegacy.html" title=" " alt="" coords="424,80,561,107"/>
-<area shape="rect" id="node3" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="5,155,167,181"/>
-<area shape="rect" id="node4" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="191,155,357,181"/>
-<area shape="rect" id="node5" href="$classAxiVersionTb.html" title=" " alt="" coords="382,155,489,181"/>
-<area shape="rect" id="node6" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="513,155,635,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,132,108,159"/>
+<area shape="rect" id="node2" href="$classAxiVersion.html" title=" " alt="" coords="179,107,270,133"/>
+<area shape="rect" id="node9" href="$classAxiVersionLegacy.html" title=" " alt="" coords="156,157,293,184"/>
+<area shape="rect" id="node3" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="361,5,523,32"/>
+<area shape="rect" id="node4" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="359,56,525,83"/>
+<area shape="rect" id="node5" href="$classAxiVersionTb.html" title=" " alt="" coords="389,107,495,133"/>
+<area shape="rect" id="node6" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="381,157,503,184"/>
+<area shape="rect" id="node7" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="341,208,543,235"/>
+<area shape="rect" id="node8" href="$classSugoiTopTb.html" title=" " alt="" coords="591,208,687,235"/>
 </map>

@@ -1514,6 +1514,35 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
+      [ "SugoiSubordinateSimModel", "classSugoiSubordinateSimModel.html", [
+        [ "SugoiSubordinateCore", "classSugoiSubordinateCore.html", [
+          [ "Gearbox", "classGearbox.html", null ],
+          [ "Decoder8b10b", "classDecoder8b10b.html", null ],
+          [ "SugoiSubordinateFsm", "classSugoiSubordinateFsm.html", null ],
+          [ "Encoder8b10b", "classEncoder8b10b.html", null ]
+        ] ],
+        [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+        [ "AxiVersion", "classAxiVersion.html", null ],
+        [ "OutputBufferReg", "classOutputBufferReg.html", null ],
+        [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ]
+      ] ],
+      [ "SugoiManagerCore", "classSugoiManagerCore.html", [
+        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+        [ "SugoiManagerRx", "classSugoiManagerRx.html", [
+          [ "SugoiManagerRx7Series", "classSugoiManagerRx7Series.html", null ],
+          [ "SugoiManagerRxUltrascale", "classSugoiManagerRxUltrascale.html", [
+            [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", null ]
+          ] ]
+        ] ],
+        [ "SelectIoRxGearboxAligner", "classSelectIoRxGearboxAligner.html", null ],
+        [ "Gearbox", "classGearbox.html", null ],
+        [ "Decoder8b10b", "classDecoder8b10b.html", null ],
+        [ "SugoiManagerFsm", "classSugoiManagerFsm.html", null ],
+        [ "Encoder8b10b", "classEncoder8b10b.html", null ],
+        [ "OutputBufferReg", "classOutputBufferReg.html", null ],
+        [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ]
+      ] ],
+      [ "ClkRst", "classClkRst.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
       [ "ClkRst", "classClkRst.html", null ],

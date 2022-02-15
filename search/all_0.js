@@ -38,5 +38,6 @@ var searchData=
   ['_5fssipkg_35',['_SsiPkg',['../class__SsiPkg.html',1,'']]],
   ['_5fstdlib_36',['_stdlib',['../class__stdlib.html',1,'']]],
   ['_5fstdrtlpkg_37',['_StdRtlPkg',['../class__StdRtlPkg.html',1,'']]],
-  ['_5ftextutilpkg_38',['_TextUtilPkg',['../class__TextUtilPkg.html',1,'']]]
+  ['_5fsugoipkg_38',['_SugoiPkg',['../class__SugoiPkg.html',1,'']]],
+  ['_5ftextutilpkg_39',['_TextUtilPkg',['../class__TextUtilPkg.html',1,'']]]
 ];

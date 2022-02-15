@@ -1,6 +1,6 @@
 var classEncoder10b12b_1_1rtl =
 [
-    [ "comb", "classEncoder10b12b_1_1rtl.html#a01f88f60920bebf48921869fbda85090", null ],
+    [ "comb", "classEncoder10b12b_1_1rtl.html#aea3d5a1c1c98d0f0bc2892cdbe3413a0", null ],
     [ "seq", "classEncoder10b12b_1_1rtl.html#a379489c8f4b30170bee2b86c285c12f7", null ],
     [ "RegType", "classEncoder10b12b_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "validOut", "classEncoder10b12b_1_1rtl.html#ab4df1b82e89d785d8a84578c0daebc83", null ],
