@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: ASIC Finite State Machine (FSM)
+-- Description: Subordinate Finite State Machine (FSM)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SugoiPkg.all;
 
-entity SugoiAsicFsm is
+entity SugoiSubordinateFsm is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -51,9 +51,9 @@ entity SugoiAsicFsm is
       axilReadSlave   : in  AxiLiteReadSlaveType;
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType);
-end entity SugoiAsicFsm;
+end entity SugoiSubordinateFsm;
 
-architecture rtl of SugoiAsicFsm is
+architecture rtl of SugoiSubordinateFsm is
 
    type StateType is (
       INIT_S,
@@ -164,7 +164,7 @@ begin
 
          ---------------------------------------------------------------------------
          -- Reset strobes within this "if" statement such that the pulse width of the reset
-         -- output can be controlled by the number of CODE_RST_C sent by the FPGA
+         -- output can be controlled by the number of CODE_RST_C sent by the manager
          ---------------------------------------------------------------------------
          v.rst  := '0';
          v.rstL := '1';

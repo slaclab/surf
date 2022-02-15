@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: ASIC Simulation Model
+-- Description: Subordinate Simulation Model
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -29,7 +29,7 @@ use ruckus.BuildInfoPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity SugoiAsicSimModel is
+entity SugoiSubordinateSimModel is
    generic (
       TPD_G           : time     := 1 ns;
       NUM_ADDR_BITS_G : positive := 16);
@@ -50,9 +50,9 @@ entity SugoiAsicSimModel is
       rstL    : out sl;                 -- Active LOW global reset
       -- Trigger/Timing Command Bus
       opCode  : out slv(7 downto 0));   -- 1-bit per Control code
-end entity SugoiAsicSimModel;
+end entity SugoiSubordinateSimModel;
 
-architecture mapping of SugoiAsicSimModel is
+architecture mapping of SugoiSubordinateSimModel is
 
    constant GET_BUILD_INFO_C : BuildInfoRetType := toBuildInfo(BUILD_INFO_C);
    constant MOD_BUILD_INFO_C : BuildInfoRetType := (
@@ -104,7 +104,7 @@ begin
          IB => rxN,
          O  => rx);
 
-   U_Core : entity surf.SugoiAsicCore
+   U_Core : entity surf.SugoiSubordinateCore
       generic map (
          TPD_G => TPD_G)
       port map (

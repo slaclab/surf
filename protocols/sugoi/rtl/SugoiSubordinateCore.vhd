@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Top-level for ASIC side
+-- Description: Top-level for Subordinate side
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -23,7 +23,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity SugoiAsicCore is
+entity SugoiSubordinateCore is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -43,9 +43,9 @@ entity SugoiAsicCore is
       axilReadSlave   : in  AxiLiteReadSlaveType;
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType);
-end entity SugoiAsicCore;
+end entity SugoiSubordinateCore;
 
-architecture mapping of SugoiAsicCore is
+architecture mapping of SugoiSubordinateCore is
 
    signal rxEncodeValid : sl;
    signal rxEncodeData  : slv(9 downto 0);
@@ -116,7 +116,7 @@ begin
    -------------
    -- FSM Module
    -------------
-   U_Fsm : entity surf.SugoiAsicFsm
+   U_Fsm : entity surf.SugoiSubordinateFsm
       generic map (
          TPD_G => TPD_G)
       port map (

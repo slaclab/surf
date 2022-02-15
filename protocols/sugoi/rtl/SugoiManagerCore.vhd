@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Top-level for FPGA side
+-- Description: Top-level for Manager side
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -23,12 +23,12 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity SugoiFpgaCore is
+entity SugoiManagerCore is
    generic (
       TPD_G           : time    := 1 ns;
       SIMULATION_G    : boolean := false;
       COMMON_CLK_G    : boolean := false;  -- Set true if timingClk & axilClk are same signal
-      NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the ASIC
+      NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the Subordinate
       TX_POLARITY_G   : sl      := '0';
       RX_POLARITY_G   : sl      := '0';
       XIL_DEVICE_G    : string;  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
@@ -56,9 +56,9 @@ entity SugoiFpgaCore is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end entity SugoiFpgaCore;
+end entity SugoiManagerCore;
 
-architecture mapping of SugoiFpgaCore is
+architecture mapping of SugoiManagerCore is
 
    signal readMaster  : AxiLiteReadMasterType;
    signal readSlave   : AxiLiteReadSlaveType;
@@ -132,7 +132,7 @@ begin
    ---------------------------
    -- RX IDELAY + I/O Register
    ---------------------------
-   U_Rx : entity surf.SugoiFpgaRx
+   U_Rx : entity surf.SugoiManagerRx
       generic map (
          TPD_G           => TPD_G,
          SIM_DEVICE_G    => XIL_DEVICE_G,
@@ -232,7 +232,7 @@ begin
    -------------
    -- FSM Module
    -------------
-   U_Fsm : entity surf.SugoiFpgaFsm
+   U_Fsm : entity surf.SugoiManagerFsm
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,

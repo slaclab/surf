@@ -28,7 +28,7 @@ entity SugoiTopTb is end SugoiTopTb;
 
 architecture testbed of SugoiTopTb is
 
-   constant NUM_ASIC_C      : positive := 4;
+   constant NUM_SUB_C       : positive := 4;
    constant NUM_ADDR_BITS_C : positive := 28;
    constant ADDR_STRIDE_C   : positive := (2**NUM_ADDR_BITS_C);
 
@@ -42,31 +42,31 @@ architecture testbed of SugoiTopTb is
    signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
 
-   signal clkInP : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
-   signal clkInN : slv(NUM_ASIC_C-1 downto 0) := (others => '1');
+   signal clkInP : slv(NUM_SUB_C-1 downto 0) := (others => '0');
+   signal clkInN : slv(NUM_SUB_C-1 downto 0) := (others => '1');
 
-   signal clkOutP : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
-   signal clkOutN : slv(NUM_ASIC_C-1 downto 0) := (others => '1');
+   signal clkOutP : slv(NUM_SUB_C-1 downto 0) := (others => '0');
+   signal clkOutN : slv(NUM_SUB_C-1 downto 0) := (others => '1');
 
-   signal rxP : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
-   signal rxN : slv(NUM_ASIC_C-1 downto 0) := (others => '1');
+   signal rxP : slv(NUM_SUB_C-1 downto 0) := (others => '0');
+   signal rxN : slv(NUM_SUB_C-1 downto 0) := (others => '1');
 
-   signal txP : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
-   signal txN : slv(NUM_ASIC_C-1 downto 0) := (others => '1');
+   signal txP : slv(NUM_SUB_C-1 downto 0) := (others => '0');
+   signal txN : slv(NUM_SUB_C-1 downto 0) := (others => '1');
 
-   signal linkup : slv(NUM_ASIC_C downto 0) := (others => '0');
+   signal linkup : slv(NUM_SUB_C downto 0) := (others => '0');
 
-   signal globalRst  : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
-   signal globalRstL : slv(NUM_ASIC_C-1 downto 0) := (others => '0');
+   signal globalRst  : slv(NUM_SUB_C-1 downto 0) := (others => '0');
+   signal globalRstL : slv(NUM_SUB_C-1 downto 0) := (others => '0');
 
-   signal opCode       : Slv8Array(NUM_ASIC_C-1 downto 0) := (others => (others => '0'));
-   signal opCodeBit    : sl                               := '0';
-   signal opCodeBitSel : natural                          := 0;
+   signal opCode       : Slv8Array(NUM_SUB_C-1 downto 0) := (others => (others => '0'));
+   signal opCodeBit    : sl                              := '0';
+   signal opCodeBitSel : natural                         := 0;
 
-   signal fpgaGlobalRst  : sl              := '0';
-   signal fpgaOpCode     : slv(7 downto 0) := (others => '0');
-   signal fpgaOpCodeMask : slv(7 downto 0) := (others => '0');
-   signal fpgaStrobe     : sl              := '0';
+   signal manGlobalRst  : sl              := '0';
+   signal manOpCode     : slv(7 downto 0) := (others => '0');
+   signal manOpCodeMask : slv(7 downto 0) := (others => '0');
+   signal manStrobe     : sl              := '0';
 
    signal startTrigTraffic : sl              := '0';
    signal trafficOpCode    : slv(7 downto 0) := (others => '0');
@@ -82,10 +82,10 @@ begin
          clkP => axilClk,
          rst  => axilRst);
 
-   GEN_ASIC :
-   for i in 0 to NUM_ASIC_C-1 generate
+   GEN_SUB :
+   for i in 0 to NUM_SUB_C-1 generate
 
-      U_SimModel : entity surf.SugoiAsicSimModel
+      U_SimModel : entity surf.SugoiSubordinateSimModel
          generic map (
             TPD_G           => TPD_G,
             NUM_ADDR_BITS_G => NUM_ADDR_BITS_C)
@@ -119,9 +119,9 @@ begin
 
       end generate;
 
-   end generate GEN_ASIC;
+   end generate GEN_SUB;
 
-   U_Fpga : entity surf.SugoiFpgaCore
+   U_Manager : entity surf.SugoiManagerCore
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => true,
@@ -129,8 +129,8 @@ begin
          XIL_DEVICE_G    => "ULTRASCALE")
       port map (
          -- SUGOI Serial Ports
-         sugioRxP        => txP(NUM_ASIC_C-1),
-         sugioRxN        => txN(NUM_ASIC_C-1),
+         sugioRxP        => txP(NUM_SUB_C-1),
+         sugioRxN        => txN(NUM_SUB_C-1),
          sugioTxP        => rxP(0),
          sugioTxN        => rxN(0),
          sugioClkP       => clkInP(0),
@@ -138,10 +138,10 @@ begin
          -- Timing and Trigger Interface (timingClk domain)
          timingClk       => axilClk,
          timingRst       => axilRst,
-         sugioGlobalRst  => fpgaGlobalRst,
-         sugioOpCode     => fpgaOpCodeMask,
-         sugioStrobe     => fpgaStrobe,
-         sugioLinkup     => linkup(NUM_ASIC_C),
+         sugioGlobalRst  => manGlobalRst,
+         sugioOpCode     => manOpCodeMask,
+         sugioStrobe     => manStrobe,
+         sugioLinkup     => linkup(NUM_SUB_C),
          -- AXI-Lite Master Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -150,7 +150,7 @@ begin
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave);
 
-   fpgaOpCodeMask <= fpgaOpCode or trafficOpCode;
+   manOpCodeMask <= manOpCode or trafficOpCode;
 
    opCodeBit <= opCode(0)(opCodeBitSel);
 
@@ -173,7 +173,7 @@ begin
 
          -- Wait 7 strobes (random prime number, not power of 2)
          for i in 0 to 6 loop
-            wait until fpgaStrobe'event and fpgaStrobe = '1';
+            wait until manStrobe'event and manStrobe = '1';
          end loop;
 
       end loop;
@@ -200,9 +200,9 @@ begin
       ------------------------
       -- Firmware Global Reset
       ------------------------
-      fpgaGlobalRst <= '1';
+      manGlobalRst <= '1';
       wait until globalRst(0)'event and globalRst(0) = '1';
-      fpgaGlobalRst <= '0';
+      manGlobalRst <= '0';
       wait until globalRst(0)'event and globalRst(0) = '0';
 
       ------------------------
@@ -225,9 +225,9 @@ begin
          -- Firmware Trigger Opcode
          --------------------------
          wait until axilClk'event and axilClk = '1';
-         fpgaOpCode(i) <= '1';
+         manOpCode(i) <= '1';
          wait until axilClk'event and axilClk = '1';
-         fpgaOpCode(i) <= '0';
+         manOpCode(i) <= '0';
          wait until opCodeBit'event and opCodeBit = '1';
 
          --------------------------
@@ -243,9 +243,9 @@ begin
       -----------------------------------------------------------
       startTrigTraffic <= '1';
 
-      -----------------------------
-      -- Local FPGA register Access
-      -----------------------------
+      --------------------------------
+      -- Local Manager register Access
+      --------------------------------
       addr   := x"0000_0018";
       wrData := x"0000_00AA";
       axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, addr, wrData, true);
@@ -272,9 +272,9 @@ begin
       end if;
 
       -------------------------------------------------
-      -- Read and Write to ASICs' AxiVersion scratchpad
+      -- Read and Write to SUBs' AxiVersion scratchpad
       -------------------------------------------------
-      for i in 0 to NUM_ASIC_C-1 loop
+      for i in 0 to NUM_SUB_C-1 loop
          -- Sweep the byte positions
          for j in 0 to 3 loop
 

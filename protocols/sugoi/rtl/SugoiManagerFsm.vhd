@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: FPGA Finite State Machine (FSM)
+-- Description: Manager Finite State Machine (FSM)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -24,11 +24,11 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SugoiPkg.all;
 
-entity SugoiFpgaFsm is
+entity SugoiManagerFsm is
    generic (
       TPD_G           : time    := 1 ns;
       SIMULATION_G    : boolean := false;
-      NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the ASIC
+      NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the Subordinate
       TX_POLARITY_G   : sl      := '0';
       RX_POLARITY_G   : sl      := '0');
    port (
@@ -63,9 +63,9 @@ entity SugoiFpgaFsm is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end entity SugoiFpgaFsm;
+end entity SugoiManagerFsm;
 
-architecture rtl of SugoiFpgaFsm is
+architecture rtl of SugoiManagerFsm is
 
    constant CNT_WIDTH_C : positive := 16;
 
@@ -230,7 +230,7 @@ begin
 
          -- Check for global reset or forced from software
          if (v.globalRst = '1') or (r.globalRstForce = '1') then
-            -- Send reset to ASIC
+            -- Send reset to Subordinate
             v.txData := CODE_RST_C;
          end if;
 
@@ -242,7 +242,7 @@ begin
 
                -- Check for IDLE code
                if (v.txData = CODE_IDLE_C) then
-                  -- Send trigger to ASIC
+                  -- Send trigger to Subordinate
                   v.txData := CODE_TRIG_C(i);
 
                elsif (r.dropTrigCnt(i) /= MAX_CNT_C) then

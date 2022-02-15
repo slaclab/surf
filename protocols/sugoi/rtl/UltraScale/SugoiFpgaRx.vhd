@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: FPGA side Receiver
+-- Description: Manager side Receiver
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity SugoiFpgaRx is
+entity SugoiManagerRx is
    generic (
       TPD_G           : time   := 1 ns;
       SIM_DEVICE_G    : string := "ULTRASCALE";
@@ -44,9 +44,9 @@ entity SugoiFpgaRx is
       -- Output
       inv     : in  sl;
       rx      : out sl);
-end SugoiFpgaRx;
+end SugoiManagerRx;
 
-architecture mapping of SugoiFpgaRx is
+architecture mapping of SugoiManagerRx is
 
    signal rxIn  : sl;
    signal rxDly : sl;
