@@ -47,6 +47,12 @@ package I2cMuxPkg is
       2 => b"0000_0110",
       3 => b"0000_0111");
 
+   constant I2C_MUX_DECODE_MAP_PCA9546A_C : Slv8Array(3 downto 0) := (
+      0 => b"0000_0001",
+      1 => b"0000_0010",
+      2 => b"0000_0100",
+      3 => b"0000_1000");
+
    constant I2C_MUX_DECODE_MAP_PCA9540B_C : Slv8Array(1 downto 0) := (
       0 => b"0000_0100",
       1 => b"0000_0101");
