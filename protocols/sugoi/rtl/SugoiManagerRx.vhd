@@ -27,10 +27,11 @@ use unisim.vcomponents.all;
 
 entity SugoiManagerRx is
    generic (
-      TPD_G           : time   := 1 ns;
-      DEVICE_FAMILY_G : string := "ULTRASCALE";
-      IODELAY_GROUP_G : string := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode
-      REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL not used in COUNT mode
+      TPD_G           : time    := 1 ns;
+      DIFF_PAIR_G     : boolean := true;
+      DEVICE_FAMILY_G : string  := "ULTRASCALE";
+      IODELAY_GROUP_G : string  := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode
+      REF_FREQ_G      : real    := 300.0);  -- IDELAYCTRL not used in COUNT mode
    port (
       -- Clock and Reset
       clk     : in  sl;
@@ -54,6 +55,7 @@ begin
       U_SugoiManagerRx_1 : entity surf.SugoiManagerRx7Series
          generic map (
             TPD_G           => TPD_G,
+            DIFF_PAIR_G     => DIFF_PAIR_G,
             DEVICE_FAMILY_G => DEVICE_FAMILY_G,
             IODELAY_GROUP_G => IODELAY_GROUP_G,
             REF_FREQ_G      => REF_FREQ_G)
@@ -73,6 +75,7 @@ begin
       U_SugoiManagerRx_1 : entity surf.SugoiManagerRxUltrascale
          generic map (
             TPD_G           => TPD_G,
+            DIFF_PAIR_G     => DIFF_PAIR_G,
             DEVICE_FAMILY_G => DEVICE_FAMILY_G,
             IODELAY_GROUP_G => IODELAY_GROUP_G,
             REF_FREQ_G      => REF_FREQ_G)
