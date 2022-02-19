@@ -27,10 +27,11 @@ use unisim.vcomponents.all;
 
 entity SugoiManagerRxUltrascale is
    generic (
-      TPD_G           : time   := 1 ns;
-      DEVICE_FAMILY_G : string := "ULTRASCALE";
-      IODELAY_GROUP_G : string := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode
-      REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL not used in COUNT mode
+      TPD_G           : time    := 1 ns;
+      DIFF_PAIR_G     : boolean := true;
+      DEVICE_FAMILY_G : string  := "ULTRASCALE";
+      IODELAY_GROUP_G : string  := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode
+      REF_FREQ_G      : real    := 300.0);  -- IDELAYCTRL not used in COUNT mode
    port (
       -- Clock and Reset
       clk     : in  sl;
@@ -56,11 +57,19 @@ architecture mapping of SugoiManagerRxUltrascale is
 
 begin
 
-   U_IBUFDS : IBUFDS
-      port map (
-         I  => rxP,
-         IB => rxN,
-         O  => rxIn);
+   GEN_LVDS : if (DIFF_PAIR_G = true) generate
+      U_IBUFDS : IBUFDS
+         port map (
+            I  => rxP,
+            IB => rxN,
+            O  => rxIn);
+   end generate;
+   GEN_CMOS : if (DIFF_PAIR_G = false) generate
+      U_IBUF : IBUF
+         port map (
+            I => rxP,
+            O => rxIn);
+   end generate;
 
    U_DELAY : entity surf.Idelaye3Wrapper
       generic map (

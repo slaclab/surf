@@ -27,6 +27,7 @@ entity SugoiManagerCore is
    generic (
       TPD_G           : time    := 1 ns;
       SIMULATION_G    : boolean := false;
+      DIFF_PAIR_G     : boolean := true;
       COMMON_CLK_G    : boolean := false;  -- Set true if timingClk & axilClk are same signal
       NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the Subordinate
       TX_POLARITY_G   : sl      := '0';
@@ -36,12 +37,12 @@ entity SugoiManagerCore is
       REF_FREQ_G      : real    := 300.0);  -- Only used if DEVICE_FAMILY_G="7SERIES"
    port (
       -- SUGOI Serial Ports
-      sugioRxP        : in  sl;
-      sugioRxN        : in  sl;
-      sugioTxP        : out sl;
-      sugioTxN        : out sl;
-      sugioClkP       : out sl;
-      sugioClkN       : out sl;
+      sugioRxP        : in  sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
+      sugioRxN        : in  sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
+      sugioTxP        : out sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
+      sugioTxN        : out sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
+      sugioClkP       : out sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
+      sugioClkN       : out sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
       -- Timing and Trigger Interface (timingClk domain)
       timingClk       : in  sl;
       timingRst       : in  sl;
@@ -135,6 +136,7 @@ begin
    U_Rx : entity surf.SugoiManagerRx
       generic map (
          TPD_G           => TPD_G,
+         DIFF_PAIR_G     => DIFF_PAIR_G,
          DEVICE_FAMILY_G => DEVICE_FAMILY_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G,
          REF_FREQ_G      => REF_FREQ_G)
@@ -318,7 +320,7 @@ begin
    U_sugioTx : entity surf.OutputBufferReg
       generic map (
          TPD_G       => TPD_G,
-         DIFF_PAIR_G => true)
+         DIFF_PAIR_G => DIFF_PAIR_G)
       port map (
          I   => tx,
          C   => timingClk,
@@ -331,14 +333,27 @@ begin
    -------------------
    -- CLK I/O Register
    -------------------
-   U_sugioClk : entity surf.ClkOutBufDiff
-      generic map (
-         TPD_G        => TPD_G,
-         XIL_DEVICE_G => DEVICE_FAMILY_G)
-      port map (
-         clkIn   => timingClk,
-         rstIn   => disableClk,
-         clkOutP => sugioClkP,
-         clkOutN => sugioClkN);
+   GEN_LVDS : if (DIFF_PAIR_G = true) generate
+      U_sugioClk : entity surf.ClkOutBufDiff
+         generic map (
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => DEVICE_FAMILY_G)
+         port map (
+            clkIn   => timingClk,
+            rstIn   => disableClk,
+            clkOutP => sugioClkP,
+            clkOutN => sugioClkN);
+   end generate;
+   GEN_CMOS : if (DIFF_PAIR_G = false) generate
+      U_sugioClk : entity surf.ClkOutBufSingle
+         generic map (
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => DEVICE_FAMILY_G)
+         port map (
+            clkIn  => timingClk,
+            rstIn  => disableClk,
+            clkOut => sugioClkP);
+      sugioClkN <= '0';
+   end generate;
 
 end mapping;

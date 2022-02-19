@@ -27,10 +27,11 @@ use unisim.vcomponents.all;
 
 entity SugoiManagerRx7Series is
    generic (
-      TPD_G           : time   := 1 ns;
-      DEVICE_FAMILY_G : string := "7SERIES";
-      IODELAY_GROUP_G : string := "DESER_GROUP";
-      REF_FREQ_G      : real   := 300.0);  -- IDELAYCTRL's REFCLK (in units of Hz)
+      TPD_G           : time    := 1 ns;
+      DIFF_PAIR_G     : boolean := true;
+      DEVICE_FAMILY_G : string  := "7SERIES";
+      IODELAY_GROUP_G : string  := "DESER_GROUP";
+      REF_FREQ_G      : real    := 300.0);  -- IDELAYCTRL's REFCLK (in units of Hz)
    port (
       -- Clock and Reset
       clk     : in  sl;
@@ -58,11 +59,19 @@ architecture mapping of SugoiManagerRx7Series is
 
 begin
 
-   U_IBUFDS : IBUFDS
-      port map (
-         I  => rxP,
-         IB => rxN,
-         O  => rxIn);
+   GEN_LVDS : if (DIFF_PAIR_G = true) generate
+      U_IBUFDS : IBUFDS
+         port map (
+            I  => rxP,
+            IB => rxN,
+            O  => rxIn);
+   end generate;
+   GEN_CMOS : if (DIFF_PAIR_G = false) generate
+      U_IBUF : IBUF
+         port map (
+            I => rxP,
+            O => rxIn);
+   end generate;
 
    U_DELAY : IDELAYE2
       generic map (
