@@ -1540,7 +1540,8 @@ var hierarchy =
         [ "SugoiManagerFsm", "classSugoiManagerFsm.html", null ],
         [ "Encoder8b10b", "classEncoder8b10b.html", null ],
         [ "OutputBufferReg", "classOutputBufferReg.html", null ],
-        [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ]
+        [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ],
+        [ "ClkOutBufSingle", "classClkOutBufSingle.html", null ]
       ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],

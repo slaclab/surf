@@ -3,6 +3,7 @@ var classSugoiManagerCore =
     [ "SugoiManagerCore.mapping", "classSugoiManagerCore_1_1mapping.html", "classSugoiManagerCore_1_1mapping" ],
     [ "TPD_G", "classSugoiManagerCore.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "SIMULATION_G", "classSugoiManagerCore.html#ac6de36aa80aba7f5067e4172962ede27", null ],
+    [ "DIFF_PAIR_G", "classSugoiManagerCore.html#a275f875807a93101fb5b5036c6e49a8f", null ],
     [ "COMMON_CLK_G", "classSugoiManagerCore.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "NUM_ADDR_BITS_G", "classSugoiManagerCore.html#a9ec8274d7855d9be72c75c6b41fa7501", null ],
     [ "TX_POLARITY_G", "classSugoiManagerCore.html#a6f84bc5a7ad8afb07acc85c679296a49", null ],

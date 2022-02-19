@@ -2,6 +2,7 @@ var classSugoiManagerRx7Series =
 [
     [ "SugoiManagerRx7Series.mapping", "classSugoiManagerRx7Series_1_1mapping.html", "classSugoiManagerRx7Series_1_1mapping" ],
     [ "TPD_G", "classSugoiManagerRx7Series.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "DIFF_PAIR_G", "classSugoiManagerRx7Series.html#a275f875807a93101fb5b5036c6e49a8f", null ],
     [ "DEVICE_FAMILY_G", "classSugoiManagerRx7Series.html#abc1d0a9e128aa8327c44aa83a55c1a3d", null ],
     [ "IODELAY_GROUP_G", "classSugoiManagerRx7Series.html#a80e62a2dd6f6f983707e729125c90e30", null ],
     [ "REF_FREQ_G", "classSugoiManagerRx7Series.html#af57c385a15a90eae71c1552f83caa79b", null ],
