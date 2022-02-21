@@ -57,6 +57,7 @@ entity SugoiManagerFsm is
       minEyeWidth     : out slv(7 downto 0);
       lockingCntCfg   : out slv(23 downto 0);
       errorDet        : in  sl;
+      eyeWidth        : in  slv(8 downto 0);
       gearboxAligned  : in  sl;
       -- AXI-Lite Master Interface
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -163,8 +164,9 @@ architecture rtl of SugoiManagerFsm is
 
 begin
 
-   comb : process (axilReadMaster, axilWriteMaster, errorDet, gearboxAligned,
-                   globalRst, opCode, r, rst, rxData, rxDataK, rxValid) is
+   comb : process (axilReadMaster, axilWriteMaster, errorDet, eyeWidth,
+                   gearboxAligned, globalRst, opCode, r, rst, rxData, rxDataK,
+                   rxValid) is
       variable v        : RegType;
       variable i        : natural;
       variable RnW      : sl;
@@ -431,6 +433,7 @@ begin
                axiSlaveRegisterR(axilEp, x"A0", 0, r.errorDetCnt);
                axiSlaveRegisterR(axilEp, x"A4", 0, r.linkUpCnt);
                axiSlaveRegisterR(axilEp, x"A8", 0, r.latency);  -- Round trip SOF latency
+               axiSlaveRegisterR(axilEp, x"AC", 0, eyeWidth);
 
                axiSlaveRegister(axilEp, x"FC", 0, v.rstCnt);
 
@@ -451,8 +454,8 @@ begin
                v.txMsg(7)  := axilWriteMaster.wData(23 downto 16);
                v.txMsg(8)  := axilWriteMaster.wData(15 downto 8);
                v.txMsg(9)  := axilWriteMaster.wData(7 downto 0);
-               v.txMsg(10) := x"00";                           -- Footer
-               v.txMsg(11) := x"00";                           -- checksum
+               v.txMsg(10) := x"00";    -- Footer
+               v.txMsg(11) := x"00";    -- checksum
                v.txMsg(12) := CODE_EOF_C;
 
                -- Reset the counter
