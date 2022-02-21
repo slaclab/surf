@@ -41,7 +41,7 @@ package FrontEndSaciPkg is
   type FrontEndSaciCmdCntlOutType is record
     cmdEn     : sl;                     -- Command available
     cmdOpCode : slv(7 downto 0);        -- Command Op Code
-    cmdCtxOut : slv(23 downto 0);       -- Command payload
+    cmdCtxOut : slv(23 downto 0);       -- Command Context
   end record;
 
   -- Upstream Data Buffer Interface
