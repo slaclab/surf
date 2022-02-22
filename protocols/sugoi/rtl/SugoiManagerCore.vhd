@@ -78,6 +78,7 @@ architecture mapping of SugoiManagerCore is
 
    signal enUsrDlyCfg    : sl;
    signal usrDlyCfg      : slv(8 downto 0);
+   signal eyeWidth       : slv(8 downto 0);
    signal bypFirstBerDet : sl;
    signal minEyeWidth    : slv(7 downto 0);
    signal lockingCntCfg  : slv(23 downto 0);
@@ -185,6 +186,7 @@ begin
          lockingCntCfg   => lockingCntCfg,
          -- Status Interface
          errorDet        => errorDet,
+         eyeWidth        => eyeWidth,
          locked          => gearboxAligned);
 
    ---------------
@@ -267,6 +269,7 @@ begin
          minEyeWidth     => minEyeWidth,
          lockingCntCfg   => lockingCntCfg,
          errorDet        => errorDet,
+         eyeWidth        => eyeWidth,
          gearboxAligned  => gearboxAligned,
          -- AXI-Lite Master Interface
          axilReadMaster  => readMaster,

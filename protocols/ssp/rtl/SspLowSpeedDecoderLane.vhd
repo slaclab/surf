@@ -46,6 +46,7 @@ entity SspLowSpeedDecoderLane is
       lockOnIdle     : in  sl;
       errorDet       : out sl;
       bitSlip        : out sl;
+      eyeWidth       : out slv(8 downto 0);
       locked         : out sl;
       idleCode       : out sl;
       -- SSP Frame Output
@@ -158,6 +159,7 @@ begin
          lockingCntCfg   => lockingCntCfg,
          -- Status Interface
          errorDet        => errorDet,
+         eyeWidth        => eyeWidth,
          locked          => gearboxAligned);
 
    lineCodeErr     <= codeError and not(errorMask(0));
