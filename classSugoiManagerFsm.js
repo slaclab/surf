@@ -26,6 +26,7 @@ var classSugoiManagerFsm =
     [ "minEyeWidth", "classSugoiManagerFsm.html#ac488fcecebe46eb35d6452e47977740a", null ],
     [ "lockingCntCfg", "classSugoiManagerFsm.html#a77a2e0c89ae8ebf4da6bc95ebf93112b", null ],
     [ "errorDet", "classSugoiManagerFsm.html#a63923e9ffc67a6e22f3ead5f270ec1c6", null ],
+    [ "eyeWidth", "classSugoiManagerFsm.html#a13046d8348e99b99ce849037d100dbee", null ],
     [ "gearboxAligned", "classSugoiManagerFsm.html#a0cbc17d5db3efb53504b08d8ae0153b2", null ],
     [ "axilReadMaster", "classSugoiManagerFsm.html#aada3e73ee8db4190524295bfa4dff085", null ],
     [ "axilReadSlave", "classSugoiManagerFsm.html#a22f8db74a5a4c77e7e2767279ca36e7f", null ],

@@ -10,6 +10,7 @@ var classSspLowSpeedDecoderReg =
     [ "dlyConfig", "classSspLowSpeedDecoderReg.html#a89736f779cbd5d0d30d98ba145d129ac", null ],
     [ "errorDet", "classSspLowSpeedDecoderReg.html#a38e95da0dd711a9dc10c04f37b56b0a5", null ],
     [ "bitSlip", "classSspLowSpeedDecoderReg.html#a8111f2a86de8bd9d111fe875d11141a0", null ],
+    [ "eyeWidth", "classSspLowSpeedDecoderReg.html#a8ebbf44c436cff92275230c92ed2c5ac", null ],
     [ "locked", "classSspLowSpeedDecoderReg.html#afb39f26771fcaf10b0fd13d0f7d3ad22", null ],
     [ "idleCode", "classSspLowSpeedDecoderReg.html#a92a675f787e841e539b2af16156020e2", null ],
     [ "enUsrDlyCfg", "classSspLowSpeedDecoderReg.html#a4b70b2576f1302df9dea050c5d90dd3b", null ],

@@ -1,8 +1,5 @@
 var annotated_dup =
 [
-    [ "SsiCmdMasterPulser", null, [
-      [ "SsiCmdMasterPulser.rtl", "classSsiCmdMasterPulser_1_1rtl.html", "classSsiCmdMasterPulser_1_1rtl" ]
-    ] ],
     [ "Ad9249", "classAd9249.html", "classAd9249" ],
     [ "Ad9249Config", "classAd9249Config.html", "classAd9249Config" ],
     [ "Ad9249ConfigNoPullup", "classAd9249ConfigNoPullup.html", "classAd9249ConfigNoPullup" ],
@@ -607,6 +604,7 @@ var annotated_dup =
     [ "SrpV3Core", "classSrpV3Core.html", "classSrpV3Core" ],
     [ "SsiAxiLiteMaster", "classSsiAxiLiteMaster.html", "classSsiAxiLiteMaster" ],
     [ "SsiCmdMaster", "classSsiCmdMaster.html", "classSsiCmdMaster" ],
+    [ "SsiCmdMasterPulser", "classSsiCmdMasterPulser.html", "classSsiCmdMasterPulser" ],
     [ "SsiDbgTap", "classSsiDbgTap.html", "classSsiDbgTap" ],
     [ "SsiFifo", "classSsiFifo.html", "classSsiFifo" ],
     [ "SsiFifoTb", "classSsiFifoTb.html", "classSsiFifoTb" ],

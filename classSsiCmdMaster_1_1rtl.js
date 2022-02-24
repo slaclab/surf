@@ -1,5 +1,7 @@
 var classSsiCmdMaster_1_1rtl =
 [
+    [ "comb", "classSsiCmdMaster_1_1rtl.html#aa9d28467ad5b601137c00bdc36d422e8", null ],
+    [ "seq", "classSsiCmdMaster_1_1rtl.html#a914ae0cff4baf4337ce86f651046a088", null ],
     [ "fifoAxisMaster", "classSsiCmdMaster_1_1rtl.html#a0478fcf25f03b58e8c0006444d6e5a25", null ],
     [ "fifoAxisSlave", "classSsiCmdMaster_1_1rtl.html#adef45ed1b3db84b89fe42b48a3efa1ec", null ],
     [ "StateType", "classSsiCmdMaster_1_1rtl.html#a04f6fd637a1d52ec532db855f2ad29dc", null ],

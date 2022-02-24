@@ -21,6 +21,7 @@ var classSspLowSpeedDecoderLane =
     [ "lockOnIdle", "classSspLowSpeedDecoderLane.html#aa9dd7c6afb199ef8287734ff73485a35", null ],
     [ "errorDet", "classSspLowSpeedDecoderLane.html#ab3e1dbe7c15798e8691847a2dee391df", null ],
     [ "bitSlip", "classSspLowSpeedDecoderLane.html#ace9930ee5d59f8c6a27130534710ce5f", null ],
+    [ "eyeWidth", "classSspLowSpeedDecoderLane.html#a5b1651f7b95bfa1a1e3f092e35f07737", null ],
     [ "locked", "classSspLowSpeedDecoderLane.html#a70b11b0ba45996843099f091eacf0a86", null ],
     [ "idleCode", "classSspLowSpeedDecoderLane.html#a7b7d445782f6b351d361ce7b9c5195be", null ],
     [ "rxLinkUp", "classSspLowSpeedDecoderLane.html#a26b3d64b5e38344405fb25937eef8ed3", null ],

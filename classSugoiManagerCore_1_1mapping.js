@@ -14,6 +14,7 @@ var classSugoiManagerCore_1_1mapping =
     [ "dlyCfg", "classSugoiManagerCore_1_1mapping.html#a76c4df75b3801a1d0d6c32c24a714d66", null ],
     [ "enUsrDlyCfg", "classSugoiManagerCore_1_1mapping.html#af610c47796cb403aba59a531b6f75ab7", null ],
     [ "usrDlyCfg", "classSugoiManagerCore_1_1mapping.html#aba2f04c69c8b01b91e448a201d601c6c", null ],
+    [ "eyeWidth", "classSugoiManagerCore_1_1mapping.html#aa9323d21cb96adedcab9e4d5631745c8", null ],
     [ "bypFirstBerDet", "classSugoiManagerCore_1_1mapping.html#a12bba366d472ac60a472a8a7cbd36d70", null ],
     [ "minEyeWidth", "classSugoiManagerCore_1_1mapping.html#a3141f83263d9d49bea23f5cdbb26ff68", null ],
     [ "lockingCntCfg", "classSugoiManagerCore_1_1mapping.html#a7022f6aab10f1f8d1a51b1cea6a9fd93", null ],

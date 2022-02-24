@@ -13,6 +13,7 @@ var classSspLowSpeedDecoder8b10bWrapper_1_1mapping =
     [ "polarity", "classSspLowSpeedDecoder8b10bWrapper_1_1mapping.html#a4811ee363406ea1bfda546a237529491", null ],
     [ "errorDet", "classSspLowSpeedDecoder8b10bWrapper_1_1mapping.html#a12758e33591cf60db685fae7eb9d1f35", null ],
     [ "bitSlip", "classSspLowSpeedDecoder8b10bWrapper_1_1mapping.html#a6e3fbe75b68b834ae3de34d939ac2345", null ],
+    [ "eyeWidth", "classSspLowSpeedDecoder8b10bWrapper_1_1mapping.html#a42c2468c80a9896b1f61780b3b66152c", null ],
     [ "locked", "classSspLowSpeedDecoder8b10bWrapper_1_1mapping.html#a057bf068b2a27bfd360237f6f2edea72", null ],
     [ "idleCode", "classSspLowSpeedDecoder8b10bWrapper_1_1mapping.html#a2ae6c45966e1738d51352d724ead11cc", null ],
     [ "u_lane", "classSspLowSpeedDecoder8b10bWrapper_1_1mapping.html#abd8ce21ea1b24611f31cc2ee1089f665", null ],
