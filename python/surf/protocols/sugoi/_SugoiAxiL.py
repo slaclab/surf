@@ -145,6 +145,15 @@ class SugoiAxiL(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'EyeWidth',
+            description  = 'Measured eye width after locking completed',
+            offset       = 0xAC,
+            bitSize      = 9,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
         self.add(pr.RemoteCommand(
             name         = 'CountReset',
             description  = 'Status counter reset',

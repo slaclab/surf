@@ -138,7 +138,7 @@ begin
 
          case r.txnNumber is
             when "000" =>
-               v.cmdMaster.context := fifoAxisMaster.tData(31 downto 8);
+               v.cmdMaster.ctx := fifoAxisMaster.tData(31 downto 8);
             when "001" =>
                v.cmdMaster.opCode := fifoAxisMaster.tData(7 downto 0);
             when "011" =>
