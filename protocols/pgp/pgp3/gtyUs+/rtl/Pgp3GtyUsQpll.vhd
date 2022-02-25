@@ -28,15 +28,16 @@ use unisim.vcomponents.all;
 
 entity Pgp3GtyUsQpll is
    generic (
-      TPD_G    : time    := 1 ns;
-      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      EN_DRP_G : boolean := true);
+      TPD_G         : time    := 1 ns;
+      REFCLK_FREQ_G : real    := 156.25E+6;  -- or 100.0E+6 or 161.1328125E+6
+      RATE_G        : string  := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      EN_DRP_G      : boolean := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
       stableRst       : in  sl;
       -- QPLL Clocking
-      pgpRefClk       : in  sl;         -- 156.25 MHz
+      pgpRefClk       : in  sl;  -- 156.25 MHz or 100.0E+6 or 161.1328125E+6
       qpllLock        : out Slv2Array(3 downto 0);
       qpllClk         : out Slv2Array(3 downto 0);
       qpllRefclk      : out Slv2Array(3 downto 0);
@@ -52,21 +53,44 @@ end Pgp3GtyUsQpll;
 
 architecture mapping of Pgp3GtyUsQpll is
 
-   constant QPLL_CFG2_C : slv(15 downto 0) :=
-      ite((RATE_G = "10.3125Gbps"), b"0000111111000000",
-          ite((RATE_G = "15.46875Gbps"), b"0000111111000001",
-              b"0000111111000011"));
-   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0001111111", b"0000001111");
-   constant QPLL_FBDIV_C : positive :=
-      ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps"), 80,
-          ite((RATE_G = "15.46875Gbps"), 99,
-              66));
-   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps"), 80, 160);
-   constant QPLL_LPF_C      : slv(9 downto 0) :=
-      ite((RATE_G = "10.3125Gbps"), b"1000111111",
-          ite((RATE_G = "15.46875Gbps"), b"1101111111",
-              b"1000011111"));
-   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0111010100", b"0111010101");
+   -------------------------------
+   -- Reference Clock = 156.25 MHz
+   -------------------------------
+   constant QPLL156_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0001111111", b"0000001111");
+
+   constant QPLL156_FBDIV_C : positive := ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps"), 80,
+                                              ite((RATE_G = "15.46875Gbps"), 99, 66)
+                                              );
+
+   constant QPLL156_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps"), 80, 160);
+
+   constant QPLL156_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0111010100", b"0111010101");
+
+   ------------------------------------
+   -- Reference Clock = 161.1328125 MHz
+   ------------------------------------
+   constant QPLL161_FBDIV_C : positive := ite((RATE_G = "15.46875Gbps"), 96, 64);
+
+   -------------------------
+   -- Overall Configurations
+   -------------------------
+   constant QPLL_CFG2_C : slv(15 downto 0) := ite((RATE_G = "10.3125Gbps"), b"0000111111000000",
+                                                  ite((RATE_G = "15.46875Gbps"), b"0000111111000001", b"0000111111000011")
+                                                  );
+
+   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((REFCLK_FREQ_G = 156.25E+6), QPLL156_CP_G3_C, b"0000001111");
+
+   constant QPLL_FBDIV_C : positive := ite((REFCLK_FREQ_G = 156.25E+6), QPLL156_FBDIV_C,
+                                           ite((REFCLK_FREQ_G = 100.0E+6), 125, QPLL161_FBDIV_C)
+                                           );
+
+   constant QPLL_FBDIV_G3_C : positive := ite((REFCLK_FREQ_G = 156.25E+6), QPLL156_FBDIV_G3_C, 160);
+
+   constant QPLL_LPF_C : slv(9 downto 0) := ite((RATE_G = "10.3125Gbps"), b"1000111111",
+                                                ite((RATE_G = "15.46875Gbps"), b"1101111111", b"1000011111")
+                                                );
+
+   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((REFCLK_FREQ_G = 156.25E+6), QPLL156_LPF_G3_C, b"0111010101");
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -82,8 +106,28 @@ architecture mapping of Pgp3GtyUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
+   assert ((REFCLK_FREQ_G = 100.0E+6) or (REFCLK_FREQ_G = 156.25E+6) or (REFCLK_FREQ_G = 161.1328125E+6))
+      report "REFCLK_FREQ_G: Must be either 100.0E+6 or 156.25E+6 or 161.1328125E+6"
+      severity error;
+
+   ----------------------------------------------------------------------------
+   --          Table of supported reference clocks versus serial rates       --
+   ----------------------------------------------------------------------------
+   -- Reference Clock   |  100 MHz  | 156.25 MHz   | 161.1328125             --
+   ----------------------------------------------------------------------------
+   -- 3.125Gbps         |  YES      | YES          | NO                      --
+   -- 6.25Gbps          |  YES      | YES          | NO                      --
+   -- 10.3125Gbps       |  NO       | YES          | YES                     --
+   -- 12.5Gbps          |  YES      | YES          | NO                      --
+   -- 15.46875Gbps      |  NO       | YES          | YES                     --
+   ----------------------------------------------------------------------------
+   assert
+      ((RATE_G = "3.125Gbps") and ((REFCLK_FREQ_G = 100.0E+6) or (REFCLK_FREQ_G = 156.25E+6)))
+      or ((RATE_G = "6.25Gbps") and ((REFCLK_FREQ_G = 100.0E+6) or (REFCLK_FREQ_G = 156.25E+6)))
+      or ((RATE_G = "10.3125Gbps") and ((REFCLK_FREQ_G = 161.1328125E+6) or (REFCLK_FREQ_G = 156.25E+6)))
+      or ((RATE_G = "12.5Gbps") and ((REFCLK_FREQ_G = 100.0E+6) or (REFCLK_FREQ_G = 156.25E+6)))
+      or ((RATE_G = "15.46875Gbps") and ((REFCLK_FREQ_G = 161.1328125E+6) or (REFCLK_FREQ_G = 156.25E+6)))
+      report "RATE_G: Must be either 3.125Gbps(100MHz or 156.25MHz) or 6.25Gbps(100MHz or 156.25MHz) or 10.3125Gbps(161.1328125MHz or 156.25MHz) or 12.5Gbps(100MHz or 156.25MHz) or 15.46875Gbps(161.1328125MHz or 156.25MHz)"
       severity error;
 
    GEN_VEC :
