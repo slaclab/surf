@@ -107,7 +107,7 @@ begin
          rst  => rst,
          rstL => open);
 
-   U_DUT : entity work.IirSimple
+   U_DUT : entity surf.IirSimple
       generic map (
          TPD_G         => TPD_C,
          USE_CSA3_G    => true,

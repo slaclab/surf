@@ -133,7 +133,7 @@ begin
    ------------------------------
    -- Client: IPv4/ARP/UDP Engine
    ------------------------------
-   U_CltUdp : entity work.UdpEngineWrapper
+   U_CltUdp : entity surf.UdpEngineWrapper
       generic map (
          -- Simulation Generics
          TPD_G               => TPD_C,
@@ -228,7 +228,7 @@ begin
    ------------------------------
    -- Server: IPv4/ARP/UDP Engine
    ------------------------------
-   U_SrvUdp : entity work.UdpEngineWrapper
+   U_SrvUdp : entity surf.UdpEngineWrapper
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_C,
