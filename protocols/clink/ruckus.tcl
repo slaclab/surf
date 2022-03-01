@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
+source $::env(RUCKUS_PROC_TCL_QUIET)
 
 # Get the family type
 set family [getFpgaArch]

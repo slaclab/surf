@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
+source $::env(RUCKUS_PROC_TCL_QUIET)
 
 # Load local source Code and constraints
 if { $::env(VIVADO_VERSION) >= 2020.1 } {

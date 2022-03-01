@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
+source $::env(RUCKUS_PROC_TCL_QUIET)
 
 # Check for submodule tagging
 if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMODULE_LOCKS) == 0 } {
@@ -18,4 +18,8 @@ loadRuckusTcl "$::DIR_PATH/dsp"
 loadRuckusTcl "$::DIR_PATH/devices"
 loadRuckusTcl "$::DIR_PATH/ethernet"
 loadRuckusTcl "$::DIR_PATH/protocols"
-loadRuckusTcl "$::DIR_PATH/xilinx"
+
+# Check for non-zero Vivado version (in-case non-Vivado project)
+if {  $::env(VIVADO_VERSION) > 0.0} {
+   loadRuckusTcl "$::DIR_PATH/xilinx"
+}

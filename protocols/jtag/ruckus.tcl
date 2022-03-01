@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
+source $::env(RUCKUS_PROC_TCL_QUIET)
 
 if { ($::env(VIVADO_VERSION) >= 2016.4) && ([isVersal] != true) } {
 

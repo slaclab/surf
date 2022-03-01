@@ -1,4 +1,4 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
+source $::env(RUCKUS_PROC_TCL_QUIET)
 
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
