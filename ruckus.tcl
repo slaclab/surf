@@ -18,8 +18,4 @@ loadRuckusTcl "$::DIR_PATH/dsp"
 loadRuckusTcl "$::DIR_PATH/devices"
 loadRuckusTcl "$::DIR_PATH/ethernet"
 loadRuckusTcl "$::DIR_PATH/protocols"
-
-# Check for non-zero Vivado version (in-case non-Vivado project)
-if {  $::env(VIVADO_VERSION) > 0.0} {
-   loadRuckusTcl "$::DIR_PATH/xilinx"
-}
+loadRuckusTcl "$::DIR_PATH/xilinx"

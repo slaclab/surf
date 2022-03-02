@@ -5,4 +5,6 @@ source $::env(RUCKUS_PROC_TCL_QUIET)
 if {  $::env(VIVADO_VERSION) > 0.0} {
    # Load the source code
    loadSource -lib surf -dir "$::DIR_PATH/rtl"
+} else {
+   loadSource -lib surf -dir  "$::DIR_PATH/dummy"
 }

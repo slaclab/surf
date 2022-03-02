@@ -4,6 +4,7 @@ source $::env(RUCKUS_PROC_TCL_QUIET)
 # Load ruckus files
 loadRuckusTcl "$::DIR_PATH/batcher"
 loadRuckusTcl "$::DIR_PATH/hamming-ecc"
+loadRuckusTcl "$::DIR_PATH/i2c"
 loadRuckusTcl "$::DIR_PATH/jesd204b"
 loadRuckusTcl "$::DIR_PATH/jtag"
 loadRuckusTcl "$::DIR_PATH/line-codes"
@@ -23,7 +24,6 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/clink"
    loadRuckusTcl "$::DIR_PATH/glink"
    loadRuckusTcl "$::DIR_PATH/htsp"
-   loadRuckusTcl "$::DIR_PATH/i2c"
    loadRuckusTcl "$::DIR_PATH/pgp"
    loadRuckusTcl "$::DIR_PATH/pmbus"
    loadRuckusTcl "$::DIR_PATH/salt"
