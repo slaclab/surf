@@ -18,9 +18,6 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity IoBufWrapper is
    generic (
       TPD_G : time := 1 ns);
