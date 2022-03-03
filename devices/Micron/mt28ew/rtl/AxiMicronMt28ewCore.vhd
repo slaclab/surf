@@ -55,7 +55,7 @@ begin
 
    GEN_IOBUF :
    for i in 15 downto 0 generate
-      IOBUF_inst : IOBUF
+      IOBUF_inst : entity surf.IoBufWrapper
          port map (
             O  => flashDout(i),         -- Buffer output
             IO => flashInOut.dq(i),  -- Buffer inout port (connect directly to top-level port)

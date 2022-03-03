@@ -33,9 +33,6 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity AxiI2cEeprom is
    generic (
       TPD_G           : time            := 1 ns;
@@ -121,14 +118,14 @@ begin
          axilClk         => axilClk,
          axilRst         => axilRst);
 
-   IOBUF_SCL : IOBUF
+   IOBUF_SCL : entity surf.IoBufWrapper
       port map (
          O  => i2ci.scl,                -- Buffer output
          IO => scl,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.scl,                -- Buffer input
          T  => i2co.scloen);  -- 3-state enable input, high=input, low=output
 
-   IOBUF_SDA : IOBUF
+   IOBUF_SDA : entity surf.IoBufWrapper
       port map (
          O  => i2ci.sda,                -- Buffer output
          IO => sda,  -- Buffer inout port (connect directly to top-level port)

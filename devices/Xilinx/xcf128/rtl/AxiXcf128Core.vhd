@@ -52,7 +52,7 @@ begin
 
    GEN_IOBUF :
    for i in 15 downto 0 generate
-      IOBUF_inst : IOBUF
+      IOBUF_inst : entity surf.IoBufWrapper
          port map (
             O  => status.data(i),       -- Buffer output
             IO => xcfInOut.data(i),     -- Buffer inout port (connect directly to top-level port)
