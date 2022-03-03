@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
 
 # Load ruckus files
 loadRuckusTcl "$::DIR_PATH/batcher"
@@ -22,5 +22,6 @@ loadRuckusTcl "$::DIR_PATH/spi"
 loadRuckusTcl "$::DIR_PATH/srp"
 loadRuckusTcl "$::DIR_PATH/ssi"
 loadRuckusTcl "$::DIR_PATH/ssp"
+loadRuckusTcl "$::DIR_PATH/sugoi"
 loadRuckusTcl "$::DIR_PATH/uart"
 loadRuckusTcl "$::DIR_PATH/xvc-udp"

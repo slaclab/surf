@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
 
 # Load target's source code and constraints
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"

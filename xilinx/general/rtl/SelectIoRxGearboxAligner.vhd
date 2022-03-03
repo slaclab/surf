@@ -22,10 +22,10 @@ use surf.StdRtlPkg.all;
 
 entity SelectIoRxGearboxAligner is
    generic (
-      TPD_G           : time     := 1 ns;
-      SIMULATION_G    : boolean  := false;
-      CODE_TYPE_G     : string   := "LINE_CODE";  -- or "SCRAMBLER"
-      DLY_STEP_SIZE_G : positive range 1 to 255 := 1);  -- 1 for Ultrascale or 16 for 7-Series
+      TPD_G           : time                   := 1 ns;
+      SIMULATION_G    : boolean                := false;
+      CODE_TYPE_G     : string                 := "LINE_CODE";  -- or "SCRAMBLER"
+      DLY_STEP_SIZE_G : positive range 1 to 16 := 1);  -- 1 for Ultrascale or 16 for 7-Series
    port (
       -- Clock and Reset
       clk             : in  sl;
@@ -50,6 +50,7 @@ entity SelectIoRxGearboxAligner is
       minEyeWidth     : in  slv(7 downto 0)  := toSlv(80, 8);  -- Sets the minimum eye width required for locking (units of IDELAY step)
       lockingCntCfg   : in  slv(23 downto 0) := ite(SIMULATION_G, x"00_0064", x"00_FFFF");  -- Number of error-free event before state=LOCKED_S
       -- Status Interface
+      eyeWidth        : out slv(8 downto 0);
       errorDet        : out sl;
       locked          : out sl);
 end entity SelectIoRxGearboxAligner;
@@ -80,6 +81,7 @@ architecture rtl of SelectIoRxGearboxAligner is
       firstError  : sl;
       armed       : sl;
       scanDone    : sl;
+      eyeWidth    : slv(8 downto 0);
       locked      : sl;
       state       : StateType;
    end record RegType;
@@ -97,6 +99,7 @@ architecture rtl of SelectIoRxGearboxAligner is
       firstError  => '0',
       armed       => '0',
       scanDone    => '0',
+      eyeWidth    => (others => '0'),
       locked      => '0',
       state       => UNLOCKED_S);
 
@@ -320,6 +323,9 @@ begin
                      -- Set to half way between eye
                      v.dlyConfig := r.dlyCache + scanHalf;
 
+                     -- Update the status register with measured value
+                     v.eyeWidth := scanCnt;
+
                      -- Set the flag
                      v.scanDone := '1';
 
@@ -413,6 +419,7 @@ begin
       end if;
 
       -- Outputs
+      eyeWidth <= r.eyeWidth;
       locked   <= r.locked;
       bitSlip  <= r.bitSlip;
       dlyLoad  <= r.dlyLoad(0);
