@@ -25,10 +25,10 @@ entity IoBufWrapper is
    generic (
       TPD_G : time := 1 ns);
    port (
-      O    : out   sl;                  -- Buffer output
-      IO   : inout sl;  -- Buffer inout port (connect directly to top-level port)
-      I => : in    sl;                  -- Buffer input
-      T => : in    sl);  -- 3-state enable input, high=input, low=output
+      O  : out   sl;                    -- Buffer output
+      IO : inout sl;  -- Buffer inout port (connect directly to top-level port)
+      I  : in    sl;                    -- Buffer input
+      T  : in    sl);  -- 3-state enable input, high=input, low=output
 end IoBufWrapper;
 
 architecture rtl of IoBufWrapper is
