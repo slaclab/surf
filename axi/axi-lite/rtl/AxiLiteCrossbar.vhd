@@ -125,6 +125,7 @@ architecture rtl of AxiLiteCrossbar is
 
 begin
 
+-- synopsys translate_off
    assert (NUM_MASTER_SLOTS_G = MASTERS_CONFIG_G'length)
       report "Mismatch between NUM_MASTER_SLOTS_G and MASTERS_CONFIG_G'length"
       severity error;
@@ -141,6 +142,7 @@ begin
             "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
             "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity));
    end generate printCfg;
+-- synopsys translate_on
 
    comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r,
                    sAxiReadMasters, sAxiWriteMasters) is
