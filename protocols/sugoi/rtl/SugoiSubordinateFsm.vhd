@@ -518,6 +518,21 @@ begin
          v.devSelected := '0';
       end if;
 
+      -- Check for global reset
+      if (r.rst = '1') then
+
+         -- Reset counters
+         v.byteCnt := (others => '0');
+
+         -- Reset the state machine
+         v.state := RX_SOF_S;
+
+         -- Reset the AXI-Lite interface
+         v.axilReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
+         v.axilWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
+
+      end if;
+
       -- Outputs
       linkup          <= r.linkup;
       rst             <= r.rst;
