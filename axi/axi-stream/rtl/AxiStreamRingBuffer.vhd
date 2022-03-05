@@ -146,6 +146,9 @@ architecture rtl of AxiStreamRingBuffer is
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
 
+   signal fifoDin  : slv(2*RAM_ADDR_WIDTH_G-1 downto 0);
+   signal fifoDout : slv(2*RAM_ADDR_WIDTH_G-1 downto 0);
+
    signal ramRdData    : slv(8*DATA_BYTES_G-1 downto 0);
    signal firstAddr    : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    signal bufferLength : slv(RAM_ADDR_WIDTH_G-1 downto 0);
@@ -306,17 +309,21 @@ begin
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 2*RAM_ADDR_WIDTH_G)
       port map (
-         rst                                                  => axilRst,
+         rst    => axilRst,
          -- Write Interface
-         wr_clk                                               => dataClk,
-         wr_en                                                => dataR.readReq,
-         din(1*RAM_ADDR_WIDTH_G-1 downto 0*RAM_ADDR_WIDTH_G)  => dataR.firstAddr,
-         din(2*RAM_ADDR_WIDTH_G-1 downto 1*RAM_ADDR_WIDTH_G)  => dataR.bufferLength,
+         wr_clk => dataClk,
+         wr_en  => dataR.readReq,
+         din    => fifoDin,
          -- Read interface
-         rd_clk                                               => axilClk,
-         valid                                                => readReq,
-         dout(1*RAM_ADDR_WIDTH_G-1 downto 0*RAM_ADDR_WIDTH_G) => firstAddr,
-         dout(2*RAM_ADDR_WIDTH_G-1 downto 1*RAM_ADDR_WIDTH_G) => bufferLength);
+         rd_clk => axilClk,
+         valid  => readReq,
+         dout   => fifoDout);
+
+   fifoDin(1*RAM_ADDR_WIDTH_G-1 downto 0*RAM_ADDR_WIDTH_G) <= dataR.firstAddr;
+   fifoDin(2*RAM_ADDR_WIDTH_G-1 downto 1*RAM_ADDR_WIDTH_G) <= dataR.bufferLength;
+
+   firstAddr    <= fifoDout(1*RAM_ADDR_WIDTH_G-1 downto 0*RAM_ADDR_WIDTH_G);
+   bufferLength <= fifoDout(2*RAM_ADDR_WIDTH_G-1 downto 1*RAM_ADDR_WIDTH_G);
 
    U_SyncVec_axilClk : entity surf.SynchronizerVector
       generic map (

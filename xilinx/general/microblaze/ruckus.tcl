@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
+source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
 
 # Check if Microblaze source code path defined
 if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
