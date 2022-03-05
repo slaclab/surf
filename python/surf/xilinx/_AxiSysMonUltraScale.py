@@ -13,10 +13,13 @@ import pyrogue as pr
 class AxiSysMonUltraScale(pr.Device):
     def __init__(
             self,
-            description  = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
-            XIL_DEVICE_G = "ULTRASCALE",
+            description    = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
+            XIL_DEVICE_G   = "ULTRASCALE",
+            simpleViewList = ["Temperature", "VccInt", "VccAux", "VccBram"],
             **kwargs):
         super().__init__(description=description, **kwargs)
+
+        self.simpleViewList = simpleViewList
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
@@ -162,7 +165,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitSize      = 12,
             bitOffset    = 4,
             units        = "V",
-            function     = self.convCoreVoltage,
+            function     = self.convAuxVoltage,
             pollInterval = 5,
             description  = "VP/VN's ADC value",
         )
@@ -566,5 +569,5 @@ class AxiSysMonUltraScale(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["Temperature", "VccInt", "VccAux", "VccBram"]
+        vars = self.simpleViewList
         self.hideVariables(hidden=False, variables=vars)

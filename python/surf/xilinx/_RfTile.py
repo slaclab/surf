@@ -18,10 +18,29 @@ import pyrogue as pr
 class RfTile(pr.Device):
     def __init__(
             self,
+            gen3        = True, # True if using RFSoC GEN3 Hardware
             description = "RFSoC data converter tile registers",
             **kwargs):
         super().__init__(description=description, **kwargs)
 
+        powerOnSequenceSteps = {
+            0:  "Device_Power-up_and_Configuration[0]",
+            1:  "Device_Power-up_and_Configuration[1]",
+            2:  "Device_Power-up_and_Configuration[2]",
+            3:  "Power_Supply_Adjustment[0]",
+            4:  "Power_Supply_Adjustment[1]",
+            5:  "Power_Supply_Adjustment[2]",
+            6:  "Clock_Configuration[0]",
+            7:  "Clock_Configuration[1]",
+            8:  "Clock_Configuration[2]",
+            9:  "Clock_Configuration[3]",
+            10: "Clock_Configuration[4]",
+            11: "Converter_Calibration[0]",
+            12: "Converter_Calibration[1]",
+            13: "Converter_Calibration[2]",
+            14: "Wait_for_deassertion_of_AXI4-Stream_reset",
+            15: "Done",
+        }
         ##############################
         # Variables
         ##############################
@@ -31,8 +50,7 @@ class RfTile(pr.Device):
             offset       =  0x0004,
             bitSize      =  1,
             bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
+            mode         = "WO",
         ))
 
         self.add(pr.RemoteVariable(
@@ -40,8 +58,10 @@ class RfTile(pr.Device):
             description  = "End state for power-on sequence",
             offset       =  0x0008,
             bitSize      =  8,
-            base         = pr.UInt,
+            bitOffset    =  0,
             mode         = "RW",
+            enum         = powerOnSequenceSteps,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -50,8 +70,9 @@ class RfTile(pr.Device):
             offset       =  0x0008,
             bitSize      =  8,
             bitOffset    =  8,
-            base         = pr.UInt,
             mode         = "RW",
+            enum         = powerOnSequenceSteps,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -60,8 +81,9 @@ class RfTile(pr.Device):
             offset       =  0x000C,
             bitSize      =  8,
             bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
+            pollInterval = 1,
+            enum         = powerOnSequenceSteps,
         ))
 
         self.add(pr.RemoteVariable(
@@ -70,9 +92,20 @@ class RfTile(pr.Device):
             offset       =  0x0038,
             bitSize      =  8,
             bitOffset    =  0,
-            base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,
         ))
+
+        if gen3:
+            self.add(pr.RemoteVariable(
+                name         = "ClockDetector",
+                description  = "Clock detector status. Asserted High when the tile clock detector has detected a valid clock on its local clock input.",
+                offset       =  0x0084,
+                bitSize      =  1,
+                bitOffset    =  0,
+                mode         = "RO",
+                pollInterval = 1,
+            ))
 
         self.add(pr.RemoteVariable(
             name         = "InterruptStatus",
@@ -80,18 +113,18 @@ class RfTile(pr.Device):
             offset       =  0x0200,
             bitSize      =  4,
             bitOffset    =  0,
-            base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
             name         = "InterruptEnable",
             description  = "interrupt status register",
             offset       =  0x0204,
-            bitSize      =  4,
+            bitSize      =  5,
             bitOffset    =  0,
-            base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,
         ))
 
         for i in range(4):
@@ -100,8 +133,8 @@ class RfTile(pr.Device):
                 description  = f'Converter {i} interrupt enable',
                 offset       =  0x0208 + 8*i,
                 bitSize      =  32,
-                base         = pr.UInt,
                 mode         = "RW",
+                hidden       = True,
             ))
 
             self.add(pr.RemoteVariable(
@@ -109,8 +142,8 @@ class RfTile(pr.Device):
                 description  = f'Converter {i} interrupt register',
                 offset       =  0x020C + 8*i,
                 bitSize      =  32,
-                base         = pr.UInt,
                 mode         = "RW",
+                hidden       = True,
             ))
 
         self.add(pr.RemoteVariable(
@@ -119,8 +152,8 @@ class RfTile(pr.Device):
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -129,8 +162,8 @@ class RfTile(pr.Device):
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  1,
-            base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -139,8 +172,8 @@ class RfTile(pr.Device):
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  2,
-            base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -149,8 +182,8 @@ class RfTile(pr.Device):
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  3,
-            base         = pr.UInt,
-            mode         = "RW",
+            mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -159,6 +192,6 @@ class RfTile(pr.Device):
             offset       =  0x0230,
             bitSize      =  1,
             bitOffset    =  0,
-            base         = pr.UInt,
             mode         = "RW",
+            hidden       = True,
         ))

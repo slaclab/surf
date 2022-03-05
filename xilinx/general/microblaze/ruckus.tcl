@@ -1,8 +1,8 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source -quiet $::env(RUCKUS_DIR)/vivado/proc.tcl
 
 # Check if Microblaze source code path defined
-if { [info exists ::env(SDK_SRC_PATH)] != 1 }  {
+if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
 
    # Load a dummy module
    loadSource -lib surf -path "$::DIR_PATH/bypass/MicroblazeBasicCoreWrapper.vhd"

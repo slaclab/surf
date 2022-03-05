@@ -64,7 +64,7 @@ architecture rtl of Encoder10b12b is
 
 begin
 
-   comb : process (dataIn, dataKIn, r, readyOut, rst) is
+   comb : process (dataIn, dataKIn, r, readyOut, rst, validIn) is
       variable v : RegType;
    begin
       v := r;
@@ -74,7 +74,7 @@ begin
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
+      if ((v.validOut = '0') and (validIn = '1')) or (FLOW_CTRL_EN_G = false) then
          v.validOut := '1';
          encode10b12b(
             dataIn  => dataIn,
