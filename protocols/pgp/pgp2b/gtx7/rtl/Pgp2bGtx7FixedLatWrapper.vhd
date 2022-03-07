@@ -79,13 +79,13 @@ entity Pgp2bGtx7FixedLatWrapper is
    port (
       -- Manual Reset
       stableClkIn      : in  sl                               := '0';
-      extRst           : in  sl := '0';;
+      extRst           : in  sl                               := '0';
       -- Status and Clock Signals
       txPllLock        : out sl;
       rxPllLock        : out sl;
       -- Output internally configured clocks
       pgpTxClkOut      : out sl;
-      pgpTxRstOut      : out sl;      
+      pgpTxRstOut      : out sl;
       pgpRxClkOut      : out sl;
       pgpRxRstOut      : out sl;
       stableClkOut     : out sl;
@@ -101,7 +101,7 @@ entity Pgp2bGtx7FixedLatWrapper is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
       -- GT Pins
       gtgClk           : in  sl                               := '0';
       gtClk0P          : in  sl                               := '0';
