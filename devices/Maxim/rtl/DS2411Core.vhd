@@ -82,7 +82,7 @@ begin
    NORMAL_GEN : if (SIMULATION_G = false) generate
 
       setOutLowInv <= not setOutLow;
-      FD_SER_SDIO_BUFT : IOBUF
+      FD_SER_SDIO_BUFT : entity surf.IoBufWrapper
          port map (
             I  => '0',
             O  => iFdSerDin,
