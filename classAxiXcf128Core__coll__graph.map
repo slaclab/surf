@@ -1,4 +1,5 @@
 <map id="AxiXcf128Core" name="AxiXcf128Core">
-<area shape="rect" id="node1" title=" " alt="" coords="5,80,124,107"/>
-<area shape="rect" id="node2" href="$classAxiXcf128Reg.html" title=" " alt="" coords="8,5,121,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="69,80,188,107"/>
+<area shape="rect" id="node2" href="$classIoBufWrapper.html" title=" " alt="" coords="5,5,116,32"/>
+<area shape="rect" id="node3" href="$classAxiXcf128Reg.html" title=" " alt="" coords="140,5,253,32"/>
 </map>

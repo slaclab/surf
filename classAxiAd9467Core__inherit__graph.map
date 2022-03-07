@@ -1,6 +1,6 @@
 <map id="AxiAd9467Core" name="AxiAd9467Core">
-<area shape="rect" id="node1" title=" " alt="" coords="881,309,1004,336"/>
-<area shape="rect" id="node2" href="$classAxiAd9467Reg.html" title=" " alt="" coords="709,208,827,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="881,360,1004,387"/>
+<area shape="rect" id="node2" href="$classAxiAd9467Reg.html" title=" " alt="" coords="709,233,827,260"/>
 <area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="519,157,643,184"/>
 <area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="197,309,289,336"/>
 <area shape="rect" id="node7" href="$classFifoAsync.html" title=" " alt="" coords="373,183,459,209"/>
@@ -12,10 +12,11 @@
 <area shape="rect" id="node11" href="$classFifoRdFsm.html" title=" " alt="" coords="197,157,288,184"/>
 <area shape="rect" id="node12" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,208,319,235"/>
 <area shape="rect" id="node13" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,259,314,285"/>
-<area shape="rect" id="node14" href="$classAxiAd9467Spi.html" title=" " alt="" coords="712,259,824,285"/>
-<area shape="rect" id="node15" href="$classAxiAd9467Pll.html" title=" " alt="" coords="714,309,822,336"/>
-<area shape="rect" id="node16" href="$classClkOutBufDiff.html" title=" " alt="" coords="525,309,636,336"/>
-<area shape="rect" id="node17" href="$classAxiAd9467Deser.html" title=" " alt="" coords="703,360,833,387"/>
-<area shape="rect" id="node18" href="$classAxiAd9467DeserBit.html" title=" " alt="" coords="507,360,655,387"/>
-<area shape="rect" id="node19" href="$classAxiAd9467Mon.html" title=" " alt="" coords="708,411,828,437"/>
+<area shape="rect" id="node14" href="$classAxiAd9467Spi.html" title=" " alt="" coords="712,309,824,336"/>
+<area shape="rect" id="node15" href="$classIoBufWrapper.html" title=" " alt="" coords="525,309,636,336"/>
+<area shape="rect" id="node16" href="$classAxiAd9467Pll.html" title=" " alt="" coords="714,360,822,387"/>
+<area shape="rect" id="node17" href="$classClkOutBufDiff.html" title=" " alt="" coords="525,360,636,387"/>
+<area shape="rect" id="node18" href="$classAxiAd9467Deser.html" title=" " alt="" coords="703,411,833,437"/>
+<area shape="rect" id="node19" href="$classAxiAd9467DeserBit.html" title=" " alt="" coords="507,411,655,437"/>
+<area shape="rect" id="node20" href="$classAxiAd9467Mon.html" title=" " alt="" coords="708,461,828,488"/>
 </map>

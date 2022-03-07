@@ -1,5 +1,6 @@
 var classTrueDualPortRamXpm =
 [
+    [ "TrueDualPortRamXpm.mapping", "classTrueDualPortRamXpm_1_1mapping.html", null ],
     [ "TrueDualPortRamXpm.rtl", "classTrueDualPortRamXpm_1_1rtl.html", "classTrueDualPortRamXpm_1_1rtl" ],
     [ "TPD_G", "classTrueDualPortRamXpm.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_CLK_G", "classTrueDualPortRamXpm.html#a762b446ddef001083e8cfc52dc38385f", null ],
@@ -20,7 +21,7 @@ var classTrueDualPortRamXpm =
     [ "rsta", "classTrueDualPortRamXpm.html#aa0a293f84036fe9809012174a3321342", null ],
     [ "addra", "classTrueDualPortRamXpm.html#a90726144fdea03ebb52ed50145a861f0", null ],
     [ "dina", "classTrueDualPortRamXpm.html#ae10218b9280bd97ed982c1aa2644c6d7", null ],
-    [ "douta", "classTrueDualPortRamXpm.html#a4565ce9b7bfb4735620161676667f181", null ],
+    [ "douta", "classTrueDualPortRamXpm.html#ac4129e8d2565878cf53b21121cda3d73", null ],
     [ "clkb", "classTrueDualPortRamXpm.html#a2762b9bc70face6539eaeb895b683cf8", null ],
     [ "enb", "classTrueDualPortRamXpm.html#a8b8a1a5b69743da2413e2e63007d934f", null ],
     [ "web", "classTrueDualPortRamXpm.html#aae848a898c3561c72b0d8b1e738512b7", null ],
@@ -31,8 +32,8 @@ var classTrueDualPortRamXpm =
     [ "doutb", "classTrueDualPortRamXpm.html#a2e4f875e3a4219cc504ff2f9a8205092", null ],
     [ "ieee", "classTrueDualPortRamXpm.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classTrueDualPortRamXpm.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classTrueDualPortRamXpm.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "std_logic_unsigned", "classTrueDualPortRamXpm.html#a598da929e807d58939b47499e8bc9fa8", null ],
+    [ "std_logic_arith", "classTrueDualPortRamXpm.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
     [ "surf", "classTrueDualPortRamXpm.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classTrueDualPortRamXpm.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "xpm", "classTrueDualPortRamXpm.html#a16d01cc341237949cc0e82472f53a2ca", null ],

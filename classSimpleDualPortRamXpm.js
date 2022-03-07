@@ -1,5 +1,6 @@
 var classSimpleDualPortRamXpm =
 [
+    [ "SimpleDualPortRamXpm.mapping", "classSimpleDualPortRamXpm_1_1mapping.html", null ],
     [ "SimpleDualPortRamXpm.rtl", "classSimpleDualPortRamXpm_1_1rtl.html", "classSimpleDualPortRamXpm_1_1rtl" ],
     [ "TPD_G", "classSimpleDualPortRamXpm.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "COMMON_CLK_G", "classSimpleDualPortRamXpm.html#a762b446ddef001083e8cfc52dc38385f", null ],
@@ -22,7 +23,7 @@ var classSimpleDualPortRamXpm =
     [ "regceb", "classSimpleDualPortRamXpm.html#a15744a2b5a69e47974a097e472b24220", null ],
     [ "rstb", "classSimpleDualPortRamXpm.html#a0073970f1392f10032ffbb4c4164e1a9", null ],
     [ "addrb", "classSimpleDualPortRamXpm.html#a42d34e19643bbb7db10c856e39be1f70", null ],
-    [ "doutb", "classSimpleDualPortRamXpm.html#a0ed4cde484ee5ed08f4bcfed67335ba7", null ],
+    [ "doutb", "classSimpleDualPortRamXpm.html#a4f11a276b182bcc440f333a2a605ae81", null ],
     [ "ieee", "classSimpleDualPortRamXpm.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classSimpleDualPortRamXpm.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "std_logic_arith", "classSimpleDualPortRamXpm.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],

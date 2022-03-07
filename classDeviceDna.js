@@ -1,5 +1,6 @@
 var classDeviceDna =
 [
+    [ "mapping", "classDeviceDna_1_1mapping.html", null ],
     [ "rtl", "classDeviceDna_1_1rtl.html", "classDeviceDna_1_1rtl" ],
     [ "TPD_G", "classDeviceDna.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "XIL_DEVICE_G", "classDeviceDna.html#ad73f3e1bc362541946cf886a1bf2c994", null ],
@@ -10,8 +11,8 @@ var classDeviceDna =
     [ "clk", "classDeviceDna.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classDeviceDna.html#a5e055e2244f51a31f609da3af2c8a8c7", null ],
     [ "slowClk", "classDeviceDna.html#a320c66a1f5d0c7677159427780e573ab", null ],
-    [ "dnaValue", "classDeviceDna.html#a49e0a2d3b1d235f2aae842e2e1c0c646", null ],
-    [ "dnaValid", "classDeviceDna.html#a7c73792298deb408cbde719fc0009b09", null ],
+    [ "dnaValue", "classDeviceDna.html#ab217bdba0efc4fafffe9fbaf547458eb", null ],
+    [ "dnaValid", "classDeviceDna.html#a39337a03bcb3ef10a4217eae56d783be", null ],
     [ "ieee", "classDeviceDna.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classDeviceDna.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "surf", "classDeviceDna.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],

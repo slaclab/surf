@@ -34,6 +34,7 @@ var hierarchy =
         [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ]
       ] ],
       [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "SynchronizerOneShotCnt", "classSynchronizerOneShotCnt.html", [
         [ "SynchronizerOneShot", "classSynchronizerOneShot.html", [
           [ "RstSync", "classRstSync.html", null ],
@@ -61,6 +62,7 @@ var hierarchy =
       [ "Ad9681Serializer", "classAd9681Serializer.html", null ],
       [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "Synchronizer", "classSynchronizer.html", null ],
       [ "SynchronizerOneShotCnt", "classSynchronizerOneShotCnt.html", null ],
       [ "Ad9681Deserializer", "classAd9681Deserializer.html", null ],
@@ -86,7 +88,9 @@ var hierarchy =
         [ "RstSync", "classRstSync.html", null ],
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
       ] ],
-      [ "AxiAd9467Spi", "classAxiAd9467Spi.html", null ],
+      [ "AxiAd9467Spi", "classAxiAd9467Spi.html", [
+        [ "IoBufWrapper", "classIoBufWrapper.html", null ]
+      ] ],
       [ "AxiAd9467Pll", "classAxiAd9467Pll.html", [
         [ "ClkOutBufDiff", "classClkOutBufDiff.html", null ]
       ] ],
@@ -137,6 +141,7 @@ var hierarchy =
           ] ]
         ] ]
       ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
@@ -180,7 +185,9 @@ var hierarchy =
             [ "SynchronizerVector", "classSynchronizerVector.html", null ]
           ] ]
         ] ],
-        [ "DS2411Core", "classDS2411Core.html", null ],
+        [ "DS2411Core", "classDS2411Core.html", [
+          [ "IoBufWrapper", "classIoBufWrapper.html", null ]
+        ] ],
         [ "Iprog", "classIprog.html", [
           [ "Iprog7Series", "classIprog7Series.html", [
             [ "RstSync", "classRstSync.html", null ],
@@ -199,6 +206,7 @@ var hierarchy =
       [ "AxiLitePMbusMasterCore", "classAxiLitePMbusMasterCore.html", [
         [ "I2cRegMaster", "classI2cRegMaster.html", null ]
       ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "DualPortRam", "classDualPortRam.html", null ],
       [ "Synchronizer", "classSynchronizer.html", null ],
       [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
@@ -243,6 +251,7 @@ var hierarchy =
       [ "AxiLiteWriteFilter", "classAxiLiteWriteFilter.html", null ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "AxiLtc2270Reg", "classAxiLtc2270Reg.html", [
+        [ "IoBufWrapper", "classIoBufWrapper.html", null ],
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
       ] ],
       [ "AxiLtc2270Deser", "classAxiLtc2270Deser.html", [
@@ -251,12 +260,14 @@ var hierarchy =
         [ "AxiLtc2270DeserBit", "classAxiLtc2270DeserBit.html", null ],
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
       ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "AxiMicronMt28ewReg", "classAxiMicronMt28ewReg.html", [
         [ "SimpleDualPortRam", "classSimpleDualPortRam.html", null ]
       ] ],
       [ "AxiMicronN25QReg", "classAxiMicronN25QReg.html", [
         [ "SimpleDualPortRam", "classSimpleDualPortRam.html", null ]
       ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "AxiMicronP30Reg", "classAxiMicronP30Reg.html", [
         [ "SimpleDualPortRam", "classSimpleDualPortRam.html", null ]
       ] ],
@@ -456,6 +467,7 @@ var hierarchy =
       [ "AxiWritePathFifo", "classAxiWritePathFifo.html", [
         [ "FifoCascade", "classFifoCascade.html", null ]
       ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "AxiXcf128Reg", "classAxiXcf128Reg.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "BoxcarFilter", "classBoxcarFilter.html", [
@@ -918,6 +930,7 @@ var hierarchy =
         [ "DualPortRam", "classDualPortRam.html", null ],
         [ "SpiMaster", "classSpiMaster.html", null ]
       ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "RstSync", "classRstSync.html", null ],
       [ "RstSync", "classRstSync.html", null ],
       [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", [
@@ -1350,6 +1363,7 @@ var hierarchy =
       [ "Sc18Is602Core", "classSc18Is602Core.html", [
         [ "I2cRegMaster", "classI2cRegMaster.html", null ]
       ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "JesdLmfcGen", "classJesdLmfcGen.html", null ],
       [ "JesdTxLane", "classJesdTxLane.html", null ],
@@ -1398,7 +1412,8 @@ var hierarchy =
           [ "AxiLiteMasterProxy", "classAxiLiteMasterProxy.html", null ],
           [ "I2cRegMasterAxiBridge", "classI2cRegMasterAxiBridge.html", null ],
           [ "I2cRegMaster", "classI2cRegMaster.html", null ]
-        ] ]
+        ] ],
+        [ "IoBufWrapper", "classIoBufWrapper.html", null ]
       ] ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
       [ "Sgmii88E1111Mdio", "classSgmii88E1111Mdio.html", [

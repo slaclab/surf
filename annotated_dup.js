@@ -362,6 +362,7 @@ var annotated_dup =
     [ "IirSimple", "classIirSimple.html", "classIirSimple" ],
     [ "IirSimpleTb", "classIirSimpleTb.html", "classIirSimpleTb" ],
     [ "InputBufferReg", "classInputBufferReg.html", "classInputBufferReg" ],
+    [ "IoBufWrapper", "classIoBufWrapper.html", "classIoBufWrapper" ],
     [ "IpBusToAxiLite", "classIpBusToAxiLite.html", "classIpBusToAxiLite" ],
     [ "Iprog", "classIprog.html", "classIprog" ],
     [ "Iprog7Series", "classIprog7Series.html", "classIprog7Series" ],

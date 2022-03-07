@@ -12,8 +12,6 @@ var classLutFixedDelay =
     [ "std_logic_1164", "classLutFixedDelay.html#acd03516902501cd1c7296a98e22c6fcb", null ],
     [ "numeric_std", "classLutFixedDelay.html#a2edc34402b573437d5f25fa90ba4013e", null ],
     [ "math_real", "classLutFixedDelay.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
-    [ "UNISIM", "classLutFixedDelay.html#afd13b50585152f6756d196bf3f1c52ac", null ],
-    [ "VComponents", "classLutFixedDelay.html#a0b4e29910fa9741df9382cff5f62bbdb", null ],
     [ "surf", "classLutFixedDelay.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
     [ "StdRtlPkg", "classLutFixedDelay.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
 ];

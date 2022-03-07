@@ -38,6 +38,8 @@ var classAxiStreamRingBuffer_1_1rtl =
     [ "AXIL_REG_INIT_C", "classAxiStreamRingBuffer_1_1rtl.html#ab574052aa320169f489ff36456734afb", null ],
     [ "axilR", "classAxiStreamRingBuffer_1_1rtl.html#ae346b7653e08867fa048aad6ca92eab6", null ],
     [ "axilRin", "classAxiStreamRingBuffer_1_1rtl.html#a07a18cb172d3678a48a13bedfde717be", null ],
+    [ "fifoDin", "classAxiStreamRingBuffer_1_1rtl.html#a57d2f2c50c7a9a6602b38c6539bcc264", null ],
+    [ "fifoDout", "classAxiStreamRingBuffer_1_1rtl.html#a169512b26169fe0462208bd964212dc4", null ],
     [ "ramRdData", "classAxiStreamRingBuffer_1_1rtl.html#afc445d3b08a9f74388f1517f83a54887", null ],
     [ "extBufferEnable", "classAxiStreamRingBuffer_1_1rtl.html#a3e6e9fc01efb92f31d743ab7f16bceae", null ],
     [ "extBufferClear", "classAxiStreamRingBuffer_1_1rtl.html#a9ac2830cb4daa7e6f1395d03c9d909b2", null ],

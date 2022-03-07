@@ -1,5 +1,6 @@
 var classOutputBufferReg =
 [
+    [ "OutputBufferReg.mapping", "classOutputBufferReg_1_1mapping.html", null ],
     [ "rtl", "classOutputBufferReg_1_1rtl.html", "classOutputBufferReg_1_1rtl" ],
     [ "TPD_G", "classOutputBufferReg.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "DIFF_PAIR_G", "classOutputBufferReg.html#a54ec304cbe9558ce7df625cf740f3b6f", null ],
