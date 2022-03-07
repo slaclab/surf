@@ -256,7 +256,9 @@ begin
             CLKIN_PERIOD_G     => TX_CM_CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G    => TX_CM_DIVCLK_DIVIDE_G,
             CLKFBOUT_MULT_F_G  => TX_CM_CLKFBOUT_MULT_F_G,
+            CLKFBOUT_MULT_G    => TX_CM_CLKFBOUT_MULT_G,
             CLKOUT0_DIVIDE_F_G => TX_CM_CLKOUT_DIVIDE_F_G,
+            CLKOUT0_DIVIDE_G   => TX_CM_CLKOUT_DIVIDE_G,
             CLKOUT0_RST_HOLD_G => 16)
          port map(
             clkIn     => pgpTxClkBase,
@@ -432,7 +434,9 @@ begin
             CLKIN_PERIOD_G     => RX_CM_CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G    => RX_CM_DIVCLK_DIVIDE_G,
             CLKFBOUT_MULT_F_G  => RX_CM_CLKFBOUT_MULT_F_G,
+            CLKFBOUT_MULT_G    => RX_CM_CLKFBOUT_MULT_G,
             CLKOUT0_DIVIDE_F_G => RX_CM_CLKOUT_DIVIDE_F_G,
+            CLKOUT0_DIVIDE_G   => RX_CM_CLKOUT_DIVIDE_G,
             CLKOUT0_RST_HOLD_G => 16)
          port map (
             clkIn     => pgpRxRecClk,
