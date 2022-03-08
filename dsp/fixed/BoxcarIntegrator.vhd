@@ -171,7 +171,7 @@ begin
             v.obData := r.obData + r.ibDataE;
 
             -- Check if full
-            if r.obFullD = '1' then
+            if r.obFull = '1' then
                v.obData := v.obData - ramDoutE;
             end if;
 
