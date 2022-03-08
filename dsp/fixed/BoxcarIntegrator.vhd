@@ -126,8 +126,9 @@ begin
 
       -- Clear the output valid and period latches
       if obAck = '1' then
-         v.obValid  := '0';
-         v.obPeriod := '0';
+         v.obValid   := '0';
+         v.obPeriod  := '0';
+         v.obPeriodD := '0';
       end if;
 
       -- Input stage, setup addresses
