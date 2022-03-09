@@ -1,5 +1,7 @@
 var NAVTREEINDEX133 =
 {
+"classSugoiSubordinateCore_1_1mapping.html#ae796db144d47620dbb83b20bcaac1153":[1,0,646,0,4],
+"classSugoiSubordinateCore_1_1mapping.html#aed3f951519ef5eef234cef233961aae7":[1,0,646,0,18],
 "classSugoiSubordinateCore_1_1mapping.html#aff66981276b1762b0b50284269184321":[1,0,646,0,16],
 "classSugoiSubordinateFsm.html":[1,0,647],
 "classSugoiSubordinateFsm.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,647,19],
@@ -247,7 +249,5 @@ var NAVTREEINDEX133 =
 "classSyncMinMax_1_1rtl.html#aa69c583410082c42efe7bed3c3f945ae":[1,0,661,0,8],
 "classSyncMinMax_1_1rtl.html#aab02aec6ac42050f2da8dc2a0f4da9b4":[1,0,661,0,14],
 "classSyncMinMax_1_1rtl.html#aaed19ee161f265236ebe3c6dd078fac1":[1,0,661,0,15],
-"classSyncMinMax_1_1rtl.html#ab46b47748443b8438225cf5f577fc4c7":[1,0,661,0,24],
-"classSyncMinMax_1_1rtl.html#ab8e60ce1fbded05bbaabe7d8569f60c4":[1,0,661,0,21],
-"classSyncMinMax_1_1rtl.html#abae6e97cf6c951026c9f66bcf1eec30b":[1,0,661,0,0]
+"classSyncMinMax_1_1rtl.html#ab46b47748443b8438225cf5f577fc4c7":[1,0,661,0,24]
 };

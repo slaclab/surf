@@ -1,5 +1,7 @@
 var NAVTREEINDEX108 =
 {
+"classRogueHtspSim.html#aeb0f8ac01fd98882d3d8ec637b0d431b":[1,0,508,19],
+"classRogueHtspSim.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,508,27],
 "classRogueHtspSim.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,508,28],
 "classRogueHtspSim.html#afc4e32afdddd4f67d60fc72c1161539c":[1,0,508,6],
 "classRogueHtspSim.html#aff8b8110aac6fa547024317245d4d8f5":[1,0,508,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX108 =
 "classRogueTcpStreamWrap.html":[1,0,517],
 "classRogueTcpStreamWrap.html#a044b1bf79201c595c20474cecf020a5d":[1,0,517,9],
 "classRogueTcpStreamWrap.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,517,14],
-"classRogueTcpStreamWrap.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,517,16],
-"classRogueTcpStreamWrap.html#a4be737583df4493f37e21b9da4a67377":[1,0,517,10],
-"classRogueTcpStreamWrap.html#a4e7681b5766a6f51851dfb086a6bf45a":[1,0,517,11]
+"classRogueTcpStreamWrap.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,517,16]
 };

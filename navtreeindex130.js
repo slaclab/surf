@@ -1,5 +1,7 @@
 var NAVTREEINDEX130 =
 {
+"classSspEncoder10b12b.html#a88a19215511b604b0e74572992fdb286":[1,0,629,15],
+"classSspEncoder10b12b.html#aa5bdf0d20c0d09e302fc9ffcd5105ffd":[1,0,629,5],
 "classSspEncoder10b12b.html#ab585e269fe996a854c92c8bc20c1c8b1":[1,0,629,13],
 "classSspEncoder10b12b.html#ac2a600fa2248248a52a4ee28f9fc64d5":[1,0,629,2],
 "classSspEncoder10b12b.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,629,20],
@@ -247,7 +249,5 @@ var NAVTREEINDEX130 =
 "classSspLowSpeedDecoder8b10bWrapper.html#a1e5f5a87fc87a063082a552941cf2742":[1,0,636,14],
 "classSspLowSpeedDecoder8b10bWrapper.html#a22f8db74a5a4c77e7e2767279ca36e7f":[1,0,636,19],
 "classSspLowSpeedDecoder8b10bWrapper.html#a43226a4887ee6112490e9b65bb784166":[1,0,636,10],
-"classSspLowSpeedDecoder8b10bWrapper.html#a4a05631e90c51a08272d2b5338b63197":[1,0,636,9],
-"classSspLowSpeedDecoder8b10bWrapper.html#a4b36ee28c73fadc67fe1a670f1ba11ff":[1,0,636,17],
-"classSspLowSpeedDecoder8b10bWrapper.html#a598da929e807d58939b47499e8bc9fa8":[1,0,636,25]
+"classSspLowSpeedDecoder8b10bWrapper.html#a4a05631e90c51a08272d2b5338b63197":[1,0,636,9]
 };

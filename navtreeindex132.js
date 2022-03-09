@@ -1,5 +1,7 @@
 var NAVTREEINDEX132 =
 {
+"classSugoiManagerCore_1_1mapping.html#a22ffdb9b7de35db6e4f5145408fd2321":[1,0,641,0,3],
+"classSugoiManagerCore_1_1mapping.html#a2a1385c1007793e864f8b07f273d5f12":[1,0,641,0,10],
 "classSugoiManagerCore_1_1mapping.html#a2e0925f8efb015206b62e882f1433433":[1,0,641,0,35],
 "classSugoiManagerCore_1_1mapping.html#a2e8059274a73516616f2e09ec1894a5d":[1,0,641,0,18],
 "classSugoiManagerCore_1_1mapping.html#a30d9bb7e7ffbc84107b19cc9bf7be941":[1,0,641,0,29],
@@ -247,7 +249,5 @@ var NAVTREEINDEX132 =
 "classSugoiSubordinateCore_1_1mapping.html#aa803c6fa5fd8d8b15c27b50951512cbc":[1,0,646,0,2],
 "classSugoiSubordinateCore_1_1mapping.html#abaef73b60f399193022cf1796b9b0286":[1,0,646,0,9],
 "classSugoiSubordinateCore_1_1mapping.html#ad0b7587447f1a33ae7960a0a77026f1a":[1,0,646,0,17],
-"classSugoiSubordinateCore_1_1mapping.html#ae5eddb5f0c28a05e3d7f2c0b7344f4e9":[1,0,646,0,5],
-"classSugoiSubordinateCore_1_1mapping.html#ae796db144d47620dbb83b20bcaac1153":[1,0,646,0,4],
-"classSugoiSubordinateCore_1_1mapping.html#aed3f951519ef5eef234cef233961aae7":[1,0,646,0,18]
+"classSugoiSubordinateCore_1_1mapping.html#ae5eddb5f0c28a05e3d7f2c0b7344f4e9":[1,0,646,0,5]
 };

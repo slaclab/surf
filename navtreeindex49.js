@@ -1,5 +1,7 @@
 var NAVTREEINDEX49 =
 {
+"classFirAverage.html#a504c1494398fcebe33fd23e27a7c0082":[1,0,265,16],
+"classFirAverage.html#a5baa7e3832e1ad0288ecfeed71b191a6":[1,0,265,3],
 "classFirAverage.html#a663a2694a196e69467604ee3ec4a3f80":[1,0,265,12],
 "classFirAverage.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,265,1],
 "classFirAverage.html#a6e8ab76bd04e0c6908368ba33032574d":[1,0,265,17],
@@ -247,7 +249,5 @@ var NAVTREEINDEX49 =
 "classFirFilterSingleChannel_1_1mapping.html#aacc57b70b557793692e81b02bb47b504":[1,0,268,0,27],
 "classFirFilterSingleChannel_1_1mapping.html#ab09fec209433f419e304cbf1ce4252cf":[1,0,268,0,26],
 "classFirFilterSingleChannel_1_1mapping.html#ab78ac0615f007538467b7a0589ad5a87":[1,0,268,0,23],
-"classFirFilterSingleChannel_1_1mapping.html#abf196de3a92812ae29e759247a7f863e":[1,0,268,0,7],
-"classFirFilterSingleChannel_1_1mapping.html#ac380c2fbfd6d1fa0bc02466ff241bb2a":[1,0,268,0,9],
-"classFirFilterSingleChannel_1_1mapping.html#ac436de7661a5e5800848d7c88983d953":[1,0,268,0,24]
+"classFirFilterSingleChannel_1_1mapping.html#abf196de3a92812ae29e759247a7f863e":[1,0,268,0,7]
 };

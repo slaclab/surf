@@ -1,5 +1,7 @@
 var NAVTREEINDEX78 =
 {
+"classJtagSerDesCore.html#a8f4b7a50e12af2edb9d233f19bd8ff74":[1,0,399,14],
+"classJtagSerDesCore.html#a91a54e948d74f4167b775bc677c4655d":[1,0,399,13],
 "classJtagSerDesCore.html#a97eb7041a82f1dae3925c88c8cca6a23":[1,0,399,3],
 "classJtagSerDesCore.html#aa147d7c535e924cc780eab24baf91083":[1,0,399,15],
 "classJtagSerDesCore.html#aac7ebcb12bf25df7b734be755e08ac2e":[1,0,399,17],
@@ -247,7 +249,5 @@ var NAVTREEINDEX78 =
 "classMasterAxiIpIntegrator.html#a99badacc4ec47eef59f2a25e3fb1b197":[1,0,404,59],
 "classMasterAxiIpIntegrator.html#a9ba82d2323dc594efbf2d5e8f43f0f75":[1,0,404,48],
 "classMasterAxiIpIntegrator.html#a9d46e0f3d2449674ba9121a806ee363f":[1,0,404,60],
-"classMasterAxiIpIntegrator.html#a9e04a181b850d296b8744f84d9ef02ae":[1,0,404,66],
-"classMasterAxiIpIntegrator.html#a9f4465bb8beaf30df615ce3556b6db8c":[1,0,404,41],
-"classMasterAxiIpIntegrator.html#aa56bddf91a0faad9e21f95e1abeaa2cd":[1,0,404,47]
+"classMasterAxiIpIntegrator.html#a9e04a181b850d296b8744f84d9ef02ae":[1,0,404,66]
 };

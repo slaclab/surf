@@ -1,5 +1,7 @@
 var NAVTREEINDEX37 =
 {
+"classClockManager7.html#ab67adeaf8d6f8dcd9ff430876e88f190":[1,0,192,3],
+"classClockManager7.html#ac08b1a4ba1a481e3329de4c8b4865577":[1,0,192,40],
 "classClockManager7.html#ac48a953d0e2de6b29c3968ee79d119e0":[1,0,192,43],
 "classClockManager7.html#ac6de36aa80aba7f5067e4172962ede27":[1,0,192,2],
 "classClockManager7.html#ac898cbbea7d65115e02e913f73bea12d":[1,0,192,48],
@@ -247,7 +249,5 @@ var NAVTREEINDEX37 =
 "classCrc32Parallel.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,197,15],
 "classCrc32Parallel.html#a1f1bdc16d91e0f7e33706927990011e8":[1,0,197,3],
 "classCrc32Parallel.html#a2a54008b13e6b9efc527f0a64e1df1c1":[1,0,197,10],
-"classCrc32Parallel.html#a35b4efd1cf9f710ef0c2e59027cd1bb2":[1,0,197,5],
-"classCrc32Parallel.html#a370fb83b8e913a0d9595d6d7766db927":[1,0,197,7],
-"classCrc32Parallel.html#a438a3a2eedd2236ed2cdc8e99a7b1e0f":[1,0,197,12]
+"classCrc32Parallel.html#a35b4efd1cf9f710ef0c2e59027cd1bb2":[1,0,197,5]
 };

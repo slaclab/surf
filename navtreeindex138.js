@@ -1,5 +1,7 @@
 var NAVTREEINDEX138 =
 {
+"classTenGigEthGtx7Clk.html#ae7e49c11aae06f64f309fd7b18bc8d98":[1,0,674,10],
+"classTenGigEthGtx7Clk.html#aea5262eebea53d0001c865bf74d8271a":[1,0,674,4],
 "classTenGigEthGtx7Clk.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,674,19],
 "classTenGigEthGtx7Clk_1_1mapping.html":[1,0,674,0],
 "classTenGigEthGtx7Clk_1_1mapping.html#a2eb6961f05f7a2088ed707e7a8f300e6":[1,0,674,0,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX138 =
 "classTenGigEthGtyUltraScaleWrapper.html#ad47a9a4b7d3c60b1cf6d48ba035cc90e":[1,0,679,8],
 "classTenGigEthGtyUltraScaleWrapper.html#ae06955a8d7e3c3a1620cc67284bf8b78":[1,0,679,21],
 "classTenGigEthGtyUltraScaleWrapper.html#ae7e49c11aae06f64f309fd7b18bc8d98":[1,0,679,34],
-"classTenGigEthGtyUltraScaleWrapper.html#ae96dd4c972bae909f4289c235f368985":[1,0,679,11],
-"classTenGigEthGtyUltraScaleWrapper.html#aececcd812e91143659f950152da7ac48":[1,0,679,10],
-"classTenGigEthGtyUltraScaleWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,679,42]
+"classTenGigEthGtyUltraScaleWrapper.html#ae96dd4c972bae909f4289c235f368985":[1,0,679,11]
 };
