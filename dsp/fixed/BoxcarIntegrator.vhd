@@ -126,8 +126,9 @@ begin
 
       -- Clear the output valid and period latches
       if obAck = '1' then
-         v.obValid  := '0';
-         v.obPeriod := '0';
+         v.obValid   := '0';
+         v.obPeriod  := '0';
+         v.obPeriodD := '0';
       end if;
 
       -- Input stage, setup addresses
@@ -170,7 +171,7 @@ begin
             v.obData := r.obData + r.ibDataE;
 
             -- Check if full
-            if r.obFullD = '1' then
+            if r.obFull = '1' then
                v.obData := v.obData - ramDoutE;
             end if;
 
