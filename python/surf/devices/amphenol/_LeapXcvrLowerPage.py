@@ -346,7 +346,7 @@ class LeapXcvrLowerPage(pr.Device):
             offset      = (41 << 2),
             bitSize     = 5,
             bitOffset   = 0,
-            mode        = rwType,
+            mode        = 'RO',
         ))
 
         if isTx:
@@ -375,34 +375,26 @@ class LeapXcvrLowerPage(pr.Device):
                 mode        = 'WO',
             ))
 
-        self.add(pr.RemoteVariable(
-            name        = 'TxChDisableMsb' if isTx else 'RxChDisableMsb',
-            offset      = (52 << 2),
-            bitSize     = 4,
-            bitOffset   = 0,
-            mode        = rwType,
-            hidden      = True,
-        ))
+        if not isTx:
 
-        self.add(pr.RemoteVariable(
-            name        = 'TxChDisableLsb' if isTx else 'RxChDisableLsb',
-            offset      = (53 << 2),
-            bitSize     = 8,
-            bitOffset   = 0,
-            mode        = rwType,
-            hidden      = True,
-        ))
-
-        if isTx:
-            self.add(pr.LinkVariable(
-                name         = 'TxChDisable',
-                mode         = rwType,
-                disp         = '0x{:x}',
-                linkedGet    = lambda: self.TxChDisableLsb.value()+256*self.TxChDisableMsb.value(),
-                linkedSet    = lambda value, write: self.TxChDisableLsb.set(value&0xFF) or self.TxChDisableMsb.set(value>>8),
-                dependencies = [self.TxChDisableLsb,self.TxChDisableMsb],
+            self.add(pr.RemoteVariable(
+                name        = 'RxChDisableMsb',
+                offset      = (52 << 2),
+                bitSize     = 4,
+                bitOffset   = 0,
+                mode        = rwType,
+                hidden      = True,
             ))
-        else:
+
+            self.add(pr.RemoteVariable(
+                name        = 'RxChDisableLsb',
+                offset      = (53 << 2),
+                bitSize     = 8,
+                bitOffset   = 0,
+                mode        = rwType,
+                hidden      = True,
+            ))
+
             self.add(pr.LinkVariable(
                 name         = 'RxChDisable',
                 mode         = rwType,

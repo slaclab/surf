@@ -24,10 +24,11 @@ use surf.I2cPkg.all;
 
 entity LeapXcvrCore is
    generic (
-      TPD_G           : time := 1 ns;
-      I2C_SCL_FREQ_G  : real := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G : real := 100.0E-9;    -- units of seconds      
-      AXIL_CLK_FREQ_G : real := 156.25E+6);  -- units of Hz
+      TPD_G           : time            := 1 ns;
+      I2C_BASE_ADDR_G : slv(3 downto 0) := "0000";    -- A[3:0] pin config
+      I2C_SCL_FREQ_G  : real            := 100.0E+3;  -- units of Hz
+      I2C_MIN_PULSE_G : real            := 100.0E-9;  -- units of seconds
+      AXIL_CLK_FREQ_G : real            := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
       i2ci            : in  i2c_in_type;
@@ -53,20 +54,23 @@ architecture rtl of LeapXcvrCore is
    constant PRESCALE_C       : natural := (getTimeRatio(AXIL_CLK_FREQ_G, I2C_SCL_5xFREQ_C)) - 1;
    constant FILTER_C         : natural := natural(AXIL_CLK_FREQ_G * I2C_MIN_PULSE_G) + 1;
 
+   constant TIMEOUT_C : natural := getTimeRatio(40.0E-3, (1.0/AXIL_CLK_FREQ_G))-1;
+
    type StateType is (
       BOOT_CONFIG_S,
       IDLE_S,
       PAGE_REQ_S,
       PAGE_ACK_S,
       DATA_REQ_S,
-      DATA_ACK_S);
+      DATA_ACK_S,
+      WAIT_S);
 
    type RegType is record
+      timer          : natural range 0 to TIMEOUT_C;
       reset          : sl;
       booting        : sl;
       axiRd          : sl;
       txSel          : sl;
-      hwAddr         : slv(3 downto 0);
       data           : slv(7 downto 0);
       addr           : slv(7 downto 0);
       page           : slv(7 downto 0);
@@ -77,11 +81,11 @@ architecture rtl of LeapXcvrCore is
    end record;
 
    constant REG_INIT_C : RegType := (
+      timer          => 0,
       reset          => '0',
       booting        => '1',
       axiRd          => '0',
       txSel          => '0',
-      hwAddr         => (others => '0'),
       data           => (others => '0'),
       addr           => (others => '0'),
       page           => (others => '0'),
@@ -108,6 +112,12 @@ begin
    begin
       -- Latch the current value
       v := r;
+
+      -- Check the timer
+      if (r.timer /= 0) then
+         -- Decrement the timer
+         v.timer := r.timer - 1;
+      end if;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
@@ -137,14 +147,13 @@ begin
                v.axiRd := '0';
 
                -- Save the data/address
-               v.data   := axilWriteMaster.wdata(7 downto 0);
-               v.addr   := axilWriteMaster.awaddr(9 downto 2);
-               v.page   := b"000_0000" & axilWriteMaster.awaddr(10);
-               v.txSel  := axilWriteMaster.awaddr(11);
-               v.hwAddr := axilWriteMaster.awaddr(15 downto 12);  -- A[3:0]
+               v.data  := axilWriteMaster.wdata(7 downto 0);
+               v.addr  := axilWriteMaster.awaddr(9 downto 2);
+               v.page  := b"000_0000" & axilWriteMaster.awaddr(10);
+               v.txSel := axilWriteMaster.awaddr(11);
 
                -- Check for Reset register access
-               if (axilWriteMaster.awaddr(10 downto 2) = b"1_0000_0000") then
+               if (axilWriteMaster.awaddr(11 downto 2) = 0) then
 
                   -- Set reset output
                   v.reset := axilWriteMaster.wdata(0);
@@ -164,13 +173,12 @@ begin
                v.axiRd := '1';
 
                -- Save the address
-               v.addr   := axilReadMaster.araddr(9 downto 2);
-               v.page   := b"000_0000" & axilReadMaster.araddr(10);
-               v.txSel  := axilReadMaster.araddr(11);
-               v.hwAddr := axilReadMaster.araddr(15 downto 12);  -- A[3:0]
+               v.addr  := axilReadMaster.araddr(9 downto 2);
+               v.page  := b"000_0000" & axilReadMaster.araddr(10);
+               v.txSel := axilReadMaster.araddr(11);
 
                -- Check for Reset register access
-               if (axilReadMaster.araddr(10 downto 2) = b"1_0000_0000") then
+               if (axilReadMaster.araddr(11 downto 2) = 0) then
 
                   -- Forward the readout data
                   v.axilReadSlave.rdata(0) := r.reset;
@@ -190,7 +198,7 @@ begin
             if regOut.regAck = '0' then
 
                -- Set the I2C hardware address
-               v.regIn.i2cAddr := ("000" & "10" & r.TxSel & r.hwAddr);
+               v.regIn.i2cAddr := ("000" & "10" & r.TxSel & I2C_BASE_ADDR_G);
 
                -- Set the PAGE address
                v.regIn.regAddr(7 downto 0) := x"7F";
@@ -266,13 +274,13 @@ begin
                -- Reset the flag
                v.regIn.regReq := '0';
 
-               -- Check if booting
-               if (r.booting = '1') then
+               -- Check for write operation
+               if (r.regIn.regOp = '1') then
+                  v.timer := TIMEOUT_C;
+               end if;
 
-                  -- Next state
-                  v.state := BOOT_CONFIG_S;
-
-               else
+               -- Check if not booting
+               if (r.booting = '0') then
 
                   -- Check if read transaction type
                   if (r.axiRd = '1') then
@@ -288,9 +296,24 @@ begin
                      axiSlaveWriteResponse(v.axilWriteSlave, axilResp);
                   end if;
 
+               end if;
+
+               -- Next state
+               v.state := WAIT_S;
+
+            end if;
+         ----------------------------------------------------------------------
+         when WAIT_S =>
+            -- Check for timeout
+            if (r.timer = 0) then
+
+               -- Check if booting
+               if (r.booting = '1') then
+                  -- Next state
+                  v.state := BOOT_CONFIG_S;
+               else
                   -- Next state
                   v.state := IDLE_S;
-
                end if;
 
             end if;

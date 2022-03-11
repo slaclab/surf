@@ -22,6 +22,13 @@ class LeapXcvr(pr.Device):
             value        = writeEn,
         ))
 
+        self.add(pr.RemoteVariable(
+            name        = 'HardwareReset',
+            offset      = 0x000,
+            bitSize     = 1,
+            mode        = 'RW',
+        ))
+
         self.add(amphenol.LeapXcvrLowerPage(
             name    = 'RxLower',
             isTx    = False,
