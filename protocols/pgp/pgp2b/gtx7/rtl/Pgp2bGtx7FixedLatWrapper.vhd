@@ -252,6 +252,10 @@ begin
 
    -- pgpTxClk and stable clock might be the same
    pgpTxClkBase <= txOutClk when TX_USER_CLK_SRC_G = "txOutClk" else
+                   gtClk0 when TX_USER_CLK_SRC_G = "gtClk0" else
+                   gtClk0Div2 when TX_USER_CLK_SRC_G = "gtClk0Div2" else
+                   gtClk1 when TX_USER_CLK_SRC_G = "gtClk1" else
+                   gtClk1Div2 when TX_USER_CLK_SRC_G = "gtClk1Div2" else                   
                    stableClk when STABLE_CLK_SRC_G = TX_REFCLK_SRC_G else
                    txRefClk;
 
