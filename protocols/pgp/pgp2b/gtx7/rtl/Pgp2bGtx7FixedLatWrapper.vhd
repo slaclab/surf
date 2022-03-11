@@ -32,17 +32,19 @@ use unisim.vcomponents.all;
 entity Pgp2bGtx7FixedLatWrapper is
    generic (
       TPD_G                   : time                   := 1 ns;
+      COMMON_CLK_G            : boolean                := false;
       SIM_GTRESET_SPEEDUP_G   : string                 := "FALSE";
       SIM_VERSION_G           : string                 := "4.0";
       SIMULATION_G            : boolean                := false;
       -- PGP Settings
-      VC_INTERLEAVE_G         : integer                := 0;         -- No interleave Frames
-      PAYLOAD_CNT_TOP_G       : integer                := 7;         -- Top bit for payload counter
+      VC_INTERLEAVE_G         : integer                := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G       : integer                := 7;  -- Top bit for payload counter
       NUM_VC_EN_G             : integer range 1 to 4   := 4;
+      EXT_RST_POLARITY_G      : sl                     := '1';
       TX_POLARITY_G           : sl                     := '0';
       RX_POLARITY_G           : sl                     := '0';
-      TX_ENABLE_G             : boolean                := true;      -- Enable TX direction
-      RX_ENABLE_G             : boolean                := true;      -- Enable RX direction
+      TX_ENABLE_G             : boolean                := true;           -- Enable TX direction
+      RX_ENABLE_G             : boolean                := true;           -- Enable RX direction
       -- CM Configurations
       TX_CM_EN_G              : boolean                := false;
       TX_CM_TYPE_G            : string                 := "MMCM";
@@ -66,11 +68,15 @@ entity Pgp2bGtx7FixedLatWrapper is
       PMA_RSV_G               : bit_vector             := x"00018480";
       RX_OS_CFG_G             : bit_vector             := "0000010000000";        -- Set by wizard
       RXCDR_CFG_G             : bit_vector             := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G            : sl                     := '0';       -- Set by wizard
+      RXDFEXYDEN_G            : sl                     := '0';            -- Set by wizard
       RX_DFE_KL_CFG2_G        : bit_vector             := x"3008E56A";
       -- PLL and clock configurations
-      STABLE_CLK_SRC_G        : string                 := "gtClk0";  -- or "gtClk0" or "gtClk1"
+      STABLE_CLK_SRC_G        : string                 := "stableClkIn";  -- or "gtClk0" or "gtClk1"
       TX_REFCLK_SRC_G         : string                 := "gtClk0";
+      TX_USER_CLK_SRC_G       : string                 := "txRefClk";     -- or "txOutClk"
+      TX_BUF_EN_G             : boolean                := false;
+      TX_OUTCLK_SRC_G         : string                 := "PLLREFCLK";
+      TX_PHASE_ALIGN_G        : string                 := "MANUAL";
       RX_REFCLK_SRC_G         : string                 := "gtClk1";
       CPLL_CFG_G              : Gtx7CPllCfgType        := getGtx7CPllCfg(250.0E6, 3.125E9);
       QPLL_CFG_G              : Gtx7QPllCfgType        := getGtx7QPllCfg(156.25e6, 3.125e9);
@@ -129,8 +135,10 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
 
    constant GTX7_CFG_C : Gtx7CfgType := getGtx7Cfg(TX_PLL_G, RX_PLL_G, CPLL_CFG_G, QPLL_CFG_G);
 
-   signal gtClk0 : sl := '0';
-   signal gtClk1 : sl := '0';
+   signal gtClk0     : sl := '0';
+   signal gtClk0Div2 : sl;
+   signal gtClk1     : sl := '0';
+   signal gtClk1Div2 : sl;
 
    signal txRefClk : sl := '0';
    signal txOutClk : sl := '0';
@@ -141,9 +149,11 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
    signal stableClk     : sl := '0';
    signal stableRst     : sl := '0';
 
-   signal pgpTxClkBase : sl;
-   signal pgpTxClk     : sl;
-   signal pgpTxReset   : sl;
+   signal pgpTxClkBase    : sl;
+   signal pgpTxClk        : sl;
+   signal pgpTxReset      : sl;
+   signal pgpTxMmcmReset  : sl;
+   signal pgpTxMmcmLocked : sl;
 
    signal pgpRxRecClk     : sl;
    signal pgpRxRecClkRst  : sl;
@@ -176,7 +186,7 @@ begin
             I     => gtClk0P,
             IB    => gtClk0N,
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => gtClk0Div2,
             O     => gtClk0);
    end generate;
 
@@ -186,7 +196,7 @@ begin
             I     => gtClk1P,
             IB    => gtClk1N,
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => gtClk1Div2,
             O     => gtClk1);
    end generate;
 
@@ -194,7 +204,9 @@ begin
    -- Create the stable clock and reset
    -------------------------------------------------------------------------------------------------
    stableClkRef <= gtClk0 when STABLE_CLK_SRC_G = "gtClk0" else
-                   gtClk1 when STABLE_CLK_SRC_G = "gtClk1" else
+                   gtClk0Div2 when STABLE_CLK_SRC_G = "gtClk0Div2" else
+                   gtClk1     when STABLE_CLK_SRC_G = "gtClk1" else
+                   gtClk1Div2 when STABLE_CLK_SRC_G = "gtClk1Div2" else
                    '0';
 
 
@@ -212,7 +224,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          SIM_SPEEDUP_G  => SIMULATION_G,
-         IN_POLARITY_G  => '1',
+         IN_POLARITY_G  => EXT_RST_POLARITY_G,
          OUT_POLARITY_G => '1')
       port map (
          arst   => extRst,
@@ -239,7 +251,8 @@ begin
 
 
    -- pgpTxClk and stable clock might be the same
-   pgpTxClkBase <= stableClk when STABLE_CLK_SRC_G = TX_REFCLK_SRC_G else
+   pgpTxClkBase <= txOutClk when TX_USER_CLK_SRC_G = "txOutClk" else
+                   stableClk when STABLE_CLK_SRC_G = TX_REFCLK_SRC_G else
                    txRefClk;
 
    TX_CM_GEN : if (TX_CM_EN_G) generate
@@ -247,7 +260,7 @@ begin
          generic map(
             TPD_G              => TPD_G,
             TYPE_G             => TX_CM_TYPE_G,
-            INPUT_BUFG_G       => (TX_REFCLK_SRC_G /= STABLE_CLK_SRC_G),
+            INPUT_BUFG_G       => ((TX_USER_CLK_SRC_G = "txOutClk") or (TX_REFCLK_SRC_G /= STABLE_CLK_SRC_G)),
             FB_BUFG_G          => true,
             RST_IN_POLARITY_G  => '1',
             NUM_CLOCKS_G       => 1,
@@ -262,13 +275,18 @@ begin
             CLKOUT0_RST_HOLD_G => 16)
          port map(
             clkIn     => pgpTxClkBase,
-            rstIn     => extRst,
+            rstIn     => pgpTxMmcmReset,
             clkOut(0) => pgpTxClk,
-            rstOut(0) => pgpTxReset);
+            locked    => pgpTxMmcmLocked);
+
+      pgpTxReset <= extRst;
+
    end generate TX_CM_GEN;
 
    NO_TX_CM_GEN : if (not TX_CM_EN_G) generate
-      PGP_TX_CLK_BUFG : if (TX_REFCLK_SRC_G /= STABLE_CLK_SRC_G) generate
+      pgpTxMmcmLocked <= '1';
+      
+      PGP_TX_CLK_BUFG : if (TX_USER_CLK_SRC_G = "txOutClk") or (TX_REFCLK_SRC_G /= STABLE_CLK_SRC_G) generate
          BUFG_pgpTxClk : BUFG
             port map (
                i => pgpTxClkBase,
@@ -283,8 +301,9 @@ begin
                clk      => pgpTxClk,     -- [in]
                asyncRst => extRst,       -- [in]
                syncRst  => pgpTxReset);  -- [out]
+
       end generate PGP_TX_CLK_BUFG;
-      NO_PGP_TX_CLK_BUFG : if (TX_REFCLK_SRC_G = STABLE_CLK_SRC_G) generate
+      NO_PGP_TX_CLK_BUFG : if (TX_USER_CLK_SRC_G /= "txOutClk") and (TX_REFCLK_SRC_G = STABLE_CLK_SRC_G) generate
          pgpTxClk   <= pgpTxClkBase;
          pgpTxReset <= stableRst;
       end generate;
@@ -338,6 +357,7 @@ begin
    Pgp2bGtx7Fixedlat_Inst : entity surf.Pgp2bGtx7Fixedlat
       generic map (
          TPD_G                 => TPD_G,
+         COMMON_CLK_G          => COMMON_CLK_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
          SIM_VERSION_G         => SIM_VERSION_G,
          SIMULATION_G          => SIMULATION_G,
@@ -355,9 +375,9 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
-         TX_BUF_EN_G           => false,
-         TX_OUTCLK_SRC_G       => "PLLREFCLK",
-         TX_PHASE_ALIGN_G      => "MANUAL",
+         TX_BUF_EN_G           => TX_BUF_EN_G,
+         TX_OUTCLK_SRC_G       => TX_OUTCLK_SRC_G,
+         TX_PHASE_ALIGN_G      => TX_PHASE_ALIGN_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
@@ -387,6 +407,9 @@ begin
          -- Tx Clocking
          pgpTxReset       => pgpTxReset,
          pgpTxClk         => pgpTxClk,
+         pgpTxMmcmReset   => pgpTxMmcmReset,
+         pgpTxMmcmLocked  => pgpTxMmcmLocked,
+
          -- Rx clocking
          pgpRxReset       => pgpRxReset,   --extRst,
          pgpRxRecClk      => pgpRxRecClk,
