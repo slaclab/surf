@@ -112,7 +112,7 @@ class LeapXcvrUpperPage00(pr.Device):
         self.add(pr.RemoteVariable(
             name        = 'LaserWavelengthMsb',
             offset      = (135 << 2),
-            bitSize     = 4,
+            bitSize     = 8,
             bitOffset   = 0,
             mode        = 'RO',
             hidden      = True,
@@ -131,6 +131,7 @@ class LeapXcvrUpperPage00(pr.Device):
             name         = 'LaserWavelength',
             mode         = 'RO',
             disp         = '0x{:x}',
+            typeStr      = 'UInt16',
             linkedGet    = lambda: self.LaserWavelengthLsb.value()+256*self.LaserWavelengthMsb.value(),
             dependencies = [self.LaserWavelengthLsb,self.LaserWavelengthMsb],
         ))
@@ -138,7 +139,7 @@ class LeapXcvrUpperPage00(pr.Device):
         self.add(pr.RemoteVariable(
             name        = 'MaxWavelengthDeviationMsb',
             offset      = (137 << 2),
-            bitSize     = 4,
+            bitSize     = 8,
             bitOffset   = 0,
             mode        = 'RO',
             hidden      = True,
@@ -157,6 +158,7 @@ class LeapXcvrUpperPage00(pr.Device):
             name         = 'MaxWavelengthDeviation',
             mode         = 'RO',
             disp         = '0x{:x}',
+            typeStr      = 'UInt16',
             linkedGet    = lambda: self.MaxWavelengthDeviationLsb.value()+256*self.MaxWavelengthDeviationMsb.value(),
             dependencies = [self.MaxWavelengthDeviationLsb,self.MaxWavelengthDeviationMsb],
         ))
@@ -419,6 +421,7 @@ class LeapXcvrUpperPage00(pr.Device):
             mode         = 'RO',
             disp         = '0x{:x}',
             units        = '0.5m',
+            typeStr      = 'UInt16',
             linkedGet    = lambda: self.CableLengthLsb.value()+256*self.CableLengthMsb.value(),
             dependencies = [self.CableLengthLsb,self.CableLengthMsb],
         ))
@@ -454,7 +457,8 @@ class LeapXcvrUpperPage00(pr.Device):
         self.add(pr.LinkVariable(
             name         = 'VendorOUI',
             mode         = 'RO',
-            disp         = '0x{:X}',
+            disp         = '0x{:x}',
+            typeStr      = 'UInt12',
             linkedGet    = lambda: self.VendorOuiRaw[2].value()+(2**8)*self.VendorOuiRaw[1].value()+(2**16)*self.VendorOuiRaw[0].value(),
             dependencies = [self.VendorOuiRaw[x] for x in range(3)],
         ))
