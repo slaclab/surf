@@ -8,6 +8,7 @@ loadRuckusTcl "$::DIR_PATH/Microchip"
 
 # Check for non-zero Vivado version (in-case non-Vivado project)
 if {  $::env(VIVADO_VERSION) > 0.0} {
+   loadRuckusTcl "$::DIR_PATH/Amphenol"
    loadRuckusTcl "$::DIR_PATH/AnalogDevices"
    loadRuckusTcl "$::DIR_PATH/Linear"
    loadRuckusTcl "$::DIR_PATH/Micron"
