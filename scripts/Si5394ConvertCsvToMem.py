@@ -61,9 +61,8 @@ cnt = 3 # Init the counter
 #    that is running due to device state change previous to this script
 #    being processed.
 #######################################################################
-for i in range(300):
-    ofd.write('FFFFFF' + ',')
-cnt = cnt + 300
+ofd.write('FFFFFF' + ',')
+cnt = cnt + 1
 
 # Open the .CSV file
 with open(args.csvFile) as csvfile:
