@@ -13,9 +13,7 @@ import surf.devices.silabs as silabs
 class Si5394(silabs.Si5394Lite):
     def __init__(
             self,
-            simpleDisplay = False,
-            # simpleDisplay = True,
-            advanceUser   = True,
-            # advanceUser   = False,
+            simpleDisplay = True,
+            advanceUser   = False,
             **kwargs):
         super().__init__(simpleDisplay=simpleDisplay,advanceUser=advanceUser,liteVersion=False,**kwargs)

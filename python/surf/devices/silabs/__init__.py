@@ -13,6 +13,5 @@ from surf.devices.silabs._Si5345Pages import *
 from surf.devices.silabs._Si5345Lite  import *
 from surf.devices.silabs._Si5345      import *
 
-from surf.devices.silabs._Si5394Pages import *
 from surf.devices.silabs._Si5394Lite  import *
 from surf.devices.silabs._Si5394      import *
