@@ -62,7 +62,14 @@ architecture rtl of Si5394I2cCore is
 
    constant I2C_ADDR_C : slv(9 downto 0) := ("000" & "11010" & I2C_BASE_ADDR_G);
 
-   constant TIMEOUT_CAL_C : natural := getTimeRatio(300.0E-3, (1.0/AXIL_CLK_FREQ_G))-1;
+   --------------------------------------------------------------------
+   -- Wait 300 ms for Grade A/B/C/D/J/K/L/M, Wait 625ms for Grade P/E
+   --------------------------------------------------------------------
+   constant TIMEOUT_CAL_C : natural := getTimeRatio(625.0E-3, (1.0/AXIL_CLK_FREQ_G))-1;
+
+   -----------------------------------------------------------
+   -- T_buf = Bus Free Time between a STOP and START Condition
+   -----------------------------------------------------------
    constant TIMEOUT_I2C_C : natural := getTimeRatio(10.00E-6, (1.0/AXIL_CLK_FREQ_G))-1;
 
    constant MY_I2C_REG_MASTER_IN_INIT_C : I2cRegMasterInType := (
@@ -80,6 +87,7 @@ architecture rtl of Si5394I2cCore is
       repeatStart => '0');
 
    type StateType is (
+      POR_WAIT_S,
       BOOT_ROM_S,
       IDLE_S,
       PAGE_REQ_S,
@@ -102,7 +110,7 @@ architecture rtl of Si5394I2cCore is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      timer          => 0,
+      timer          => TIMEOUT_CAL_C,  -- POR wait is max 35 ms < TIMEOUT_CAL_C = 625 ms
       axiRd          => '0',
       ramAddr        => (others => '0'),
       booting        => ite(BOOT_ROM_C, '1', '0'),
@@ -112,7 +120,7 @@ architecture rtl of Si5394I2cCore is
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       regIn          => MY_I2C_REG_MASTER_IN_INIT_C,
-      state          => BOOT_ROM_S);
+      state          => POR_WAIT_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -174,6 +182,16 @@ begin
 
          -- State Machine
          case r.state is
+            ----------------------------------------------------------------------
+            when POR_WAIT_S =>
+               -- Check if booting
+               if (r.booting = '1') then
+                  -- Next state
+                  v.state := BOOT_ROM_S;
+               else
+                  -- Next state
+                  v.state := IDLE_S;
+               end if;
             ----------------------------------------------------------------------
             when BOOT_ROM_S =>
                -- Set the flag
@@ -359,7 +377,6 @@ begin
       -- Outputs
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
-      rstL           <= not(axilRst);
       booting        <= r.booting;
 
       -- Reset
@@ -400,5 +417,16 @@ begin
          -- Clock and Reset
          clk    => axilClk,
          srst   => axilRst);
+
+   U_rstL : entity surf.PwrUpRst
+      generic map(
+         TPD_G          => TPD_G,
+         DURATION_G     => getTimeRatio(100.0E-9, (1.0/AXIL_CLK_FREQ_G)),  -- min 100 ns pulse
+         IN_POLARITY_G  => '1',         -- active HIGH input
+         OUT_POLARITY_G => '0')         -- active LOW output
+      port map (
+         clk    => axilClk,
+         arst   => axilRst,
+         rstOut => rstL);
 
 end rtl;

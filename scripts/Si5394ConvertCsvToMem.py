@@ -56,10 +56,13 @@ ofd.write('0540' + '01' + ',')
 cnt = 3 # Init the counter
 
 #######################################################################
-# Delay 300 msec
+# Wait 300 ms for Grade A/B/C/D/J/K/L/M, Wait 625ms for Grade P/E
+#######################################################################
 #    Delay is worst case time for device to complete any calibration
 #    that is running due to device state change previous to this script
 #    being processed.
+#######################################################################
+#    0xFFFFFF is special code in firmware boot ROM to wait 625 ms
 #######################################################################
 ofd.write('FFFFFF' + ',')
 cnt = cnt + 1
