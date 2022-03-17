@@ -21,7 +21,7 @@ if { ${family} eq {kintexu} ||
 }
 
 # Check for non-zero Vivado version (in-case non-Vivado project)
-if {  $::env(VIVADO_VERSION) > 0.0} {
+if { ($::env(VIVADO_VERSION) >= 0.0) && ([isVersal] != true) } {
    # Load the source code
    loadSource -lib surf -dir           "$::DIR_PATH/rtl"
    loadSource -lib surf -dir           "$::DIR_PATH/rtl/${fpgaType}"

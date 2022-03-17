@@ -28,9 +28,10 @@ use unisim.vcomponents.all;
 
 entity Pgp3GtyUsQpll is
    generic (
-      TPD_G    : time    := 1 ns;
-      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      EN_DRP_G : boolean := true);
+      TPD_G             : time            := 1 ns;
+      RATE_G            : string          := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      QPLL_REFCLK_SEL_G : slv(2 downto 0) := "001";
+      EN_DRP_G          : boolean         := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -144,7 +145,7 @@ begin
          QPLL_LPF_G3_G      => (others => QPLL_LPF_G3_C),
          QPLL_REFCLK_DIV_G  => (others => 1),
          -- Clock Selects
-         QPLL_REFCLK_SEL_G  => (others => "001"))
+         QPLL_REFCLK_SEL_G  => (others => QPLL_REFCLK_SEL_G))
       port map (
          qPllRefClk       => pllRefClk,
          qPllOutClk       => pllOutClk,

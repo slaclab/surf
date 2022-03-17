@@ -7,11 +7,6 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.devices.silabs._Si5324      import *
-
-from surf.devices.silabs._Si5345Pages import *
-from surf.devices.silabs._Si5345Lite  import *
-from surf.devices.silabs._Si5345      import *
-
-from surf.devices.silabs._Si5394Lite  import *
-from surf.devices.silabs._Si5394      import *
+from surf.devices.amphenol._LeapXcvrLowerPage  import *
+from surf.devices.amphenol._LeapXcvrUpperPages import *
+from surf.devices.amphenol._LeapXcvr           import *
