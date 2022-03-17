@@ -1,0 +1,27 @@
+var classLeapXcvr =
+[
+    [ "mapping", "classLeapXcvr_1_1mapping.html", "classLeapXcvr_1_1mapping" ],
+    [ "TPD_G", "classLeapXcvr.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "I2C_BASE_ADDR_G", "classLeapXcvr.html#a056a3a167df3f1b94878c38fa2edd8fa", null ],
+    [ "I2C_SCL_FREQ_G", "classLeapXcvr.html#a67315ea2dece0a3d7cbdd3b307f1647d", null ],
+    [ "I2C_MIN_PULSE_G", "classLeapXcvr.html#aa93dd372e172883312e7aba72e530921", null ],
+    [ "AXIL_CLK_FREQ_G", "classLeapXcvr.html#a073ff796d69f24757efa7131691bd12f", null ],
+    [ "scl", "classLeapXcvr.html#a9ae4a7e6fabccfbd210c5bc55be6e76a", null ],
+    [ "sda", "classLeapXcvr.html#a41a66323a1658f8a6ef5c62397afa3e3", null ],
+    [ "intL", "classLeapXcvr.html#aeee156dcb75d6c6170f84674a8ded973", null ],
+    [ "rstL", "classLeapXcvr.html#a9e2dfa47c19ba260368554e07f3e89f2", null ],
+    [ "axilReadMaster", "classLeapXcvr.html#aada3e73ee8db4190524295bfa4dff085", null ],
+    [ "axilReadSlave", "classLeapXcvr.html#a22f8db74a5a4c77e7e2767279ca36e7f", null ],
+    [ "axilWriteMaster", "classLeapXcvr.html#a8cc88283087926e934bb67651263b053", null ],
+    [ "axilWriteSlave", "classLeapXcvr.html#a80e5574c28ce6fd06510648d63787843", null ],
+    [ "axilClk", "classLeapXcvr.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],
+    [ "axilRst", "classLeapXcvr.html#a4b36ee28c73fadc67fe1a670f1ba11ff", null ],
+    [ "ieee", "classLeapXcvr.html#a0a6af6eef40212dbaf130d57ce711256", null ],
+    [ "std_logic_1164", "classLeapXcvr.html#acd03516902501cd1c7296a98e22c6fcb", null ],
+    [ "surf", "classLeapXcvr.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
+    [ "StdRtlPkg", "classLeapXcvr.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
+    [ "AxiLitePkg", "classLeapXcvr.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
+    [ "I2cPkg", "classLeapXcvr.html#a3345a70e845069bf678d5aa1733529b6", null ],
+    [ "unisim", "classLeapXcvr.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
+    [ "vcomponents", "classLeapXcvr.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+];

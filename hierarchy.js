@@ -926,6 +926,10 @@ var hierarchy =
       [ "Fifo", "classFifo.html", null ],
       [ "Fifo", "classFifo.html", null ],
       [ "JtagSerDesCore", "classJtagSerDesCore.html", null ],
+      [ "LeapXcvrCore", "classLeapXcvrCore.html", [
+        [ "I2cRegMaster", "classI2cRegMaster.html", null ]
+      ] ],
+      [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "AxiSpiMaster", "classAxiSpiMaster.html", [
         [ "DualPortRam", "classDualPortRam.html", null ],
         [ "SpiMaster", "classSpiMaster.html", null ]
@@ -1443,6 +1447,11 @@ var hierarchy =
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "Si5394I2cCore", "classSi5394I2cCore.html", [
+        [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
+        [ "I2cRegMaster", "classI2cRegMaster.html", null ],
+        [ "PwrUpRst", "classPwrUpRst.html", null ]
+      ] ],
       [ "SinCosTaylor", "classSinCosTaylor.html", [
         [ "SlvFixedDelay", "classSlvFixedDelay.html", null ],
         [ "SinCosLut", "classSinCosLut.html", [

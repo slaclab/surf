@@ -3,6 +3,7 @@ var classPgp3GtyUsQpll =
     [ "Pgp3GtyUsQpll.mapping", "classPgp3GtyUsQpll_1_1mapping.html", "classPgp3GtyUsQpll_1_1mapping" ],
     [ "TPD_G", "classPgp3GtyUsQpll.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RATE_G", "classPgp3GtyUsQpll.html#a0f1b05ab4c65c103dc102097d352eb63", null ],
+    [ "QPLL_REFCLK_SEL_G", "classPgp3GtyUsQpll.html#a0743d2f53eee4c6a78f44022d39b4a70", null ],
     [ "EN_DRP_G", "classPgp3GtyUsQpll.html#adc2d033559dcfd31442b0113a54a5c96", null ],
     [ "stableClk", "classPgp3GtyUsQpll.html#a99bde91ce6737f250f72c51ea41e8bc4", null ],
     [ "stableRst", "classPgp3GtyUsQpll.html#a4ded3206a751966927a343f794356ff1", null ],
