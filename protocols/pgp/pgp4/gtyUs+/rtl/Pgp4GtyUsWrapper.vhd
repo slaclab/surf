@@ -58,6 +58,8 @@ entity Pgp4GtyUsWrapper is
       WRITE_EN_G                  : boolean                     := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32       := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32       := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');
       AXIL_CLK_FREQ_G             : real                        := 125.0E+6);
    port (
@@ -228,6 +230,8 @@ begin
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
                AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
+               STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+               ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
                AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
             port map (
                -- Stable Clock and Reset
