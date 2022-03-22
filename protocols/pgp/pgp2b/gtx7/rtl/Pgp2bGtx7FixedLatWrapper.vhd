@@ -252,11 +252,11 @@ begin
 
    -- pgpTxClk and stable clock might be the same
    pgpTxClkBase <= txOutClk when TX_USER_CLK_SRC_G = "txOutClk" else
-                   stableClk when STABLE_CLK_SRC_G = TX_USER_CLK_SRC_G else                   
-                   gtClk0 when TX_USER_CLK_SRC_G = "gtClk0" else
+                   stableClk  when STABLE_CLK_SRC_G = TX_USER_CLK_SRC_G else
+                   gtClk0     when TX_USER_CLK_SRC_G = "gtClk0" else
                    gtClk0Div2 when TX_USER_CLK_SRC_G = "gtClk0Div2" else
-                   gtClk1 when TX_USER_CLK_SRC_G = "gtClk1" else
-                   gtClk1Div2 when TX_USER_CLK_SRC_G = "gtClk1Div2" else                   
+                   gtClk1     when TX_USER_CLK_SRC_G = "gtClk1" else
+                   gtClk1Div2 when TX_USER_CLK_SRC_G = "gtClk1Div2" else
                    txRefClk;
 
    TX_CM_GEN : if (TX_CM_EN_G) generate
@@ -289,7 +289,7 @@ begin
 
    NO_TX_CM_GEN : if (not TX_CM_EN_G) generate
       pgpTxMmcmLocked <= '1';
-      
+
       PGP_TX_CLK_BUFG : if (TX_USER_CLK_SRC_G = "txOutClk") generate
          BUFG_pgpTxClk : BUFG
             port map (
