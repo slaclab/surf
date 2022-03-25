@@ -26,6 +26,8 @@ var classPgp4GtyUsWrapper =
     [ "WRITE_EN_G", "classPgp4GtyUsWrapper.html#a5b6ddcaedd4bece6af5692124051e05e", null ],
     [ "TX_POLARITY_G", "classPgp4GtyUsWrapper.html#acaf868b533291869c286dad2a808c878", null ],
     [ "RX_POLARITY_G", "classPgp4GtyUsWrapper.html#a7bf9875806dee5949bc255deda69e251", null ],
+    [ "STATUS_CNT_WIDTH_G", "classPgp4GtyUsWrapper.html#a3605a36452b6e0f12b4999c8844a1888", null ],
+    [ "ERROR_CNT_WIDTH_G", "classPgp4GtyUsWrapper.html#abfd691800a558fbc2f377e7c01316391", null ],
     [ "AXIL_BASE_ADDR_G", "classPgp4GtyUsWrapper.html#ae1903f9ae02f4ffed7c029858fbcae3b", null ],
     [ "AXIL_CLK_FREQ_G", "classPgp4GtyUsWrapper.html#aa8c313950fb63b06b58f786459dbf499", null ],
     [ "stableClk", "classPgp4GtyUsWrapper.html#a99bde91ce6737f250f72c51ea41e8bc4", null ],

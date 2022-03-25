@@ -1,5 +1,9 @@
 var NAVTREEINDEX133 =
 {
+"classSugoiManagerFsm.html#ad700de01a191cb7e3075cf169caf0ecb":[1,0,646,8],
+"classSugoiManagerFsm.html#ae5fac9c050f2ea82aae6f52a87feaca6":[1,0,646,16],
+"classSugoiManagerFsm.html#af18d39ad7dc956a95e2d9d6f7a5e5c4b":[1,0,646,11],
+"classSugoiManagerFsm.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,646,37],
 "classSugoiManagerFsm.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,646,38],
 "classSugoiManagerFsm_1_1rtl.html":[1,0,646,0],
 "classSugoiManagerFsm_1_1rtl.html#a01ed83e36490f00b8c1bcbae7d18d210":[1,0,646,0,2],
@@ -136,8 +140,8 @@ var NAVTREEINDEX133 =
 "classSugoiManagerRxUltrascale_1_1mapping.html#a9340c13136f0a6eb092679cd89c8af16":[1,0,649,0,3],
 "classSugoiManagerRxUltrascale_1_1mapping.html#afb2e3891fa0dd57ef61b7d25f3169d01":[1,0,649,0,8],
 "classSugoiManagerRx_1_1mapping.html":[1,0,647,0],
-"classSugoiManagerRx_1_1mapping.html#a9793231d566e82d7722928dd1ba6bd33":[1,0,647,0,1],
 "classSugoiManagerRx_1_1mapping.html#a9793231d566e82d7722928dd1ba6bd33":[1,0,647,0,0],
+"classSugoiManagerRx_1_1mapping.html#a9793231d566e82d7722928dd1ba6bd33":[1,0,647,0,1],
 "classSugoiSubordinateCore.html":[1,0,650],
 "classSugoiSubordinateCore.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,650,13],
 "classSugoiSubordinateCore.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,650,15],
@@ -245,9 +249,5 @@ var NAVTREEINDEX133 =
 "classSugoiSubordinateSimModel.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,652,1],
 "classSugoiSubordinateSimModel.html#a825fcc35e3fa09e5902af523a76e1287":[1,0,652,23],
 "classSugoiSubordinateSimModel.html#a82c520dfeaf62d6d83b33bf055c75abf":[1,0,652,7],
-"classSugoiSubordinateSimModel.html#a913eedfbeec5a3a17e74c5ec8afb5c01":[1,0,652,5],
-"classSugoiSubordinateSimModel.html#a94310da302d18fe04084cde31f898d92":[1,0,652,11],
-"classSugoiSubordinateSimModel.html#a9e2dfa47c19ba260368554e07f3e89f2":[1,0,652,13],
-"classSugoiSubordinateSimModel.html#aa3a347e29c0ec08aadc0b641805508e1":[1,0,652,6],
-"classSugoiSubordinateSimModel.html#aba15dbc65eb484f535c12b56e41ba335":[1,0,652,8]
+"classSugoiSubordinateSimModel.html#a913eedfbeec5a3a17e74c5ec8afb5c01":[1,0,652,5]
 };

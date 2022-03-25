@@ -1,5 +1,9 @@
 var NAVTREEINDEX146 =
 {
+"classXauiGtx7Wrapper.html#a701761914fd09b26dd95a64cd3df8bf6":[1,0,715,6],
+"classXauiGtx7Wrapper.html#a71126e0f0562163e6201855d7f9aba60":[1,0,715,15],
+"classXauiGtx7Wrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,715,35],
+"classXauiGtx7Wrapper.html#a79efed8b9e2d06c9b19dbc3892265fcf":[1,0,715,30],
 "classXauiGtx7Wrapper.html#a7ad3a4a257fb19256a258aee4d3bd3e6":[1,0,715,17],
 "classXauiGtx7Wrapper.html#a801845adeff5dc1b781cbe115d94a59d":[1,0,715,4],
 "classXauiGtx7Wrapper.html#a8b63c6d850de876b8ad9872d73b0be97":[1,0,715,12],
@@ -205,8 +209,8 @@ var NAVTREEINDEX146 =
 "classXauiReg_1_1rtl.html#a5def7595592ebed6cc310896277ed5f1":[1,0,718,0,24],
 "classXauiReg_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8":[1,0,718,0,2],
 "classXauiReg_1_1rtl.html#a61c9d9a3a446a2115f17b2f686f140a6":[1,0,718,0,11],
-"classXauiReg_1_1rtl.html#a7b77be6e66e71df9ff9b5744c462580f":[1,0,718,0,18],
 "classXauiReg_1_1rtl.html#a7b77be6e66e71df9ff9b5744c462580f":[1,0,718,0,17],
+"classXauiReg_1_1rtl.html#a7b77be6e66e71df9ff9b5744c462580f":[1,0,718,0,18],
 "classXauiReg_1_1rtl.html#a95a63d4c74bd9338c49f080b7c5e0615":[1,0,718,0,8],
 "classXauiReg_1_1rtl.html#aa4630c7712460eb52ed50e3bd8ffc5e2":[1,0,718,0,22],
 "classXauiReg_1_1rtl.html#aacf86cd640aa88e50988484c400f0771":[1,0,718,0,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX146 =
 "classadc32rf45_1_1rtl.html#a141b49943700806ca33c85a672cdfdea":[1,0,12,0,19],
 "classadc32rf45_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,12,0,4],
 "classadc32rf45_1_1rtl.html#a4b4f529896a14ead78e2814e414ababb":[1,0,12,0,8],
-"classadc32rf45_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe":[1,0,12,0,18],
-"classadc32rf45_1_1rtl.html#a4d86b7d1107fcb1cc3847b46b1692312":[1,0,12,0,9],
-"classadc32rf45_1_1rtl.html#a51a851d731237845e4bcc412fd88a665":[1,0,12,0,0],
-"classadc32rf45_1_1rtl.html#a59b51404b5797f84648a868d1358218c":[1,0,12,0,6],
-"classadc32rf45_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8":[1,0,12,0,1]
+"classadc32rf45_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe":[1,0,12,0,18]
 };
