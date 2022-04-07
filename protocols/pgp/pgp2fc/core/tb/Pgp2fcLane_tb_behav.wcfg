@@ -1,0 +1,1197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="Pgp2fcLane_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="Pgp2fcLane_tb" />
+            <top_module name="arbiterpkg" />
+            <top_module name="axilitepkg" />
+            <top_module name="axistreampkg" />
+            <top_module name="glbl" />
+            <top_module name="pgp2fcpkg" />
+            <top_module name="ssipkg" />
+            <top_module name="stdrtlpkg" />
+            <top_module name="textutilpkg" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="40000001fs"></ZoomEndTime>
+      <Cursor1Time time="40000000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="175"></NameColumnWidth>
+      <ValueColumnWidth column_width="74"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="40" />
+   <wvobject type="logic" fp_name="/Pgp2fcLane_tb/locClk">
+      <obj_property name="ElementShortName">locClk</obj_property>
+      <obj_property name="ObjectShortName">locClk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Pgp2fcLane_tb/locClkRst">
+      <obj_property name="ElementShortName">locClkRst</obj_property>
+      <obj_property name="ObjectShortName">locClkRst</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Pgp2fcLane_tb/slowClk">
+      <obj_property name="ElementShortName">slowClk</obj_property>
+      <obj_property name="ObjectShortName">slowClk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Pgp2fcLane_tb/slowClkRst">
+      <obj_property name="ElementShortName">slowClkRst</obj_property>
+      <obj_property name="ObjectShortName">slowClkRst</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Pgp2fcLane_tb/enable">
+      <obj_property name="ElementShortName">enable</obj_property>
+      <obj_property name="ObjectShortName">enable</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/txEnable">
+      <obj_property name="ElementShortName">txEnable[0:0]</obj_property>
+      <obj_property name="ObjectShortName">txEnable[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/txBusy">
+      <obj_property name="ElementShortName">txBusy[0:0]</obj_property>
+      <obj_property name="ObjectShortName">txBusy[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/txLength">
+      <obj_property name="ElementShortName">txLength[0:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">txLength[0:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/prbsTxMasters">
+      <obj_property name="ElementShortName">prbsTxMasters[3:0]</obj_property>
+      <obj_property name="ObjectShortName">prbsTxMasters[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/prbsTxSlaves">
+      <obj_property name="ElementShortName">prbsTxSlaves[3:0]</obj_property>
+      <obj_property name="ObjectShortName">prbsTxSlaves[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/lprbsTxMasters">
+      <obj_property name="ElementShortName">lprbsTxMasters[0:0]</obj_property>
+      <obj_property name="ObjectShortName">lprbsTxMasters[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/lprbsTxSlaves">
+      <obj_property name="ElementShortName">lprbsTxSlaves[0:0]</obj_property>
+      <obj_property name="ObjectShortName">lprbsTxSlaves[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/prbsRxMasters">
+      <obj_property name="ElementShortName">prbsRxMasters[3:0]</obj_property>
+      <obj_property name="ObjectShortName">prbsRxMasters[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/prbsRxSlaves">
+      <obj_property name="ElementShortName">prbsRxSlaves[0:0]</obj_property>
+      <obj_property name="ObjectShortName">prbsRxSlaves[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/prbsRxCtrl">
+      <obj_property name="ElementShortName">prbsRxCtrl[3:0]</obj_property>
+      <obj_property name="ObjectShortName">prbsRxCtrl[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/iprbsRxMasters">
+      <obj_property name="ElementShortName">iprbsRxMasters[0:0]</obj_property>
+      <obj_property name="ObjectShortName">iprbsRxMasters[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/iprbsRxSlaves">
+      <obj_property name="ElementShortName">iprbsRxSlaves[0:0]</obj_property>
+      <obj_property name="ObjectShortName">iprbsRxSlaves[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/iprbsRxCtrl">
+      <obj_property name="ElementShortName">iprbsRxCtrl[0:0]</obj_property>
+      <obj_property name="ObjectShortName">iprbsRxCtrl[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/updatedResults">
+      <obj_property name="ElementShortName">updatedResults[0:0]</obj_property>
+      <obj_property name="ObjectShortName">updatedResults[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/errMissedPacket">
+      <obj_property name="ElementShortName">errMissedPacket[0:0]</obj_property>
+      <obj_property name="ObjectShortName">errMissedPacket[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/errLength">
+      <obj_property name="ElementShortName">errLength[0:0]</obj_property>
+      <obj_property name="ObjectShortName">errLength[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/errEofe">
+      <obj_property name="ElementShortName">errEofe[0:0]</obj_property>
+      <obj_property name="ObjectShortName">errEofe[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/errDataBus">
+      <obj_property name="ElementShortName">errDataBus[0:0]</obj_property>
+      <obj_property name="ObjectShortName">errDataBus[0:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/errWordCnt">
+      <obj_property name="ElementShortName">errWordCnt[0:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">errWordCnt[0:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/packetLength">
+      <obj_property name="ElementShortName">packetLength[0:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">packetLength[0:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/phyTxLaneOut">
+      <obj_property name="ElementShortName">phyTxLaneOut</obj_property>
+      <obj_property name="ObjectShortName">phyTxLaneOut</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/phyRxLaneIn">
+      <obj_property name="ElementShortName">phyRxLaneIn</obj_property>
+      <obj_property name="ObjectShortName">phyRxLaneIn</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/pgpTxIn">
+      <obj_property name="ElementShortName">pgpTxIn</obj_property>
+      <obj_property name="ObjectShortName">pgpTxIn</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/pgpTxOut">
+      <obj_property name="ElementShortName">pgpTxOut</obj_property>
+      <obj_property name="ObjectShortName">pgpTxOut</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/pgpRxIn">
+      <obj_property name="ElementShortName">pgpRxIn</obj_property>
+      <obj_property name="ObjectShortName">pgpRxIn</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/pgpRxOut">
+      <obj_property name="ElementShortName">pgpRxOut</obj_property>
+      <obj_property name="ObjectShortName">pgpRxOut</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Pgp2fcLane_tb/fcTxSend">
+      <obj_property name="ElementShortName">fcTxSend</obj_property>
+      <obj_property name="ObjectShortName">fcTxSend</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/fcTxWord">
+      <obj_property name="ElementShortName">fcTxWord[15:0]</obj_property>
+      <obj_property name="ObjectShortName">fcTxWord[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Pgp2fcLane_tb/fcRxRecv">
+      <obj_property name="ElementShortName">fcRxRecv</obj_property>
+      <obj_property name="ObjectShortName">fcRxRecv</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Pgp2fcLane_tb/fcRxWord">
+      <obj_property name="ElementShortName">fcRxWord[15:0]</obj_property>
+      <obj_property name="ObjectShortName">fcRxWord[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="group" fp_name="group2014">
+      <obj_property name="label">TX PRBS</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/mAxisClk">
+         <obj_property name="ElementShortName">mAxisClk</obj_property>
+         <obj_property name="ObjectShortName">mAxisClk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/mAxisRst">
+         <obj_property name="ElementShortName">mAxisRst</obj_property>
+         <obj_property name="ObjectShortName">mAxisRst</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/mAxisMaster">
+         <obj_property name="ElementShortName">mAxisMaster</obj_property>
+         <obj_property name="ObjectShortName">mAxisMaster</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/mAxisSlave">
+         <obj_property name="ElementShortName">mAxisSlave</obj_property>
+         <obj_property name="ObjectShortName">mAxisSlave</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/locClk">
+         <obj_property name="ElementShortName">locClk</obj_property>
+         <obj_property name="ObjectShortName">locClk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/locRst">
+         <obj_property name="ElementShortName">locRst</obj_property>
+         <obj_property name="ObjectShortName">locRst</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/trig">
+         <obj_property name="ElementShortName">trig</obj_property>
+         <obj_property name="ObjectShortName">trig</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/packetLength">
+         <obj_property name="ElementShortName">packetLength[31:0]</obj_property>
+         <obj_property name="ObjectShortName">packetLength[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/forceEofe">
+         <obj_property name="ElementShortName">forceEofe</obj_property>
+         <obj_property name="ObjectShortName">forceEofe</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/busy">
+         <obj_property name="ElementShortName">busy</obj_property>
+         <obj_property name="ObjectShortName">busy</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/tDest">
+         <obj_property name="ElementShortName">tDest[7:0]</obj_property>
+         <obj_property name="ObjectShortName">tDest[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/tId">
+         <obj_property name="ElementShortName">tId[7:0]</obj_property>
+         <obj_property name="ObjectShortName">tId[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/axilReadMaster">
+         <obj_property name="ElementShortName">axilReadMaster</obj_property>
+         <obj_property name="ObjectShortName">axilReadMaster</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/axilReadSlave">
+         <obj_property name="ElementShortName">axilReadSlave</obj_property>
+         <obj_property name="ObjectShortName">axilReadSlave</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/axilWriteMaster">
+         <obj_property name="ElementShortName">axilWriteMaster</obj_property>
+         <obj_property name="ObjectShortName">axilWriteMaster</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/axilWriteSlave">
+         <obj_property name="ElementShortName">axilWriteSlave</obj_property>
+         <obj_property name="ObjectShortName">axilWriteSlave</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/r">
+         <obj_property name="ElementShortName">r</obj_property>
+         <obj_property name="ObjectShortName">r</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/rin">
+         <obj_property name="ElementShortName">rin</obj_property>
+         <obj_property name="ObjectShortName">rin</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/txSlave">
+         <obj_property name="ElementShortName">txSlave</obj_property>
+         <obj_property name="ObjectShortName">txSlave</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/\U_TxGen(0)\/U_SsiPrbsTx/txCtrl">
+         <obj_property name="ElementShortName">txCtrl</obj_property>
+         <obj_property name="ObjectShortName">txCtrl</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group3237">
+      <obj_property name="label">TX Phy</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pgpTxClkEn">
+         <obj_property name="ElementShortName">pgpTxClkEn</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkEn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pgpTxClk">
+         <obj_property name="ElementShortName">pgpTxClk</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pgpTxClkRst">
+         <obj_property name="ElementShortName">pgpTxClkRst</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkRst</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pgpTxLinkReady">
+         <obj_property name="ElementShortName">pgpTxLinkReady</obj_property>
+         <obj_property name="ObjectShortName">pgpTxLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pgpBusy">
+         <obj_property name="ElementShortName">pgpBusy</obj_property>
+         <obj_property name="ObjectShortName">pgpBusy</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/fcSend">
+         <obj_property name="ElementShortName">fcSend</obj_property>
+         <obj_property name="ObjectShortName">fcSend</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/fcWord">
+         <obj_property name="ElementShortName">fcWord[15:0]</obj_property>
+         <obj_property name="ObjectShortName">fcWord[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pgpLocLinkReady">
+         <obj_property name="ElementShortName">pgpLocLinkReady</obj_property>
+         <obj_property name="ObjectShortName">pgpLocLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pgpLocData">
+         <obj_property name="ElementShortName">pgpLocData[7:0]</obj_property>
+         <obj_property name="ObjectShortName">pgpLocData[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellTxSOC">
+         <obj_property name="ElementShortName">cellTxSOC</obj_property>
+         <obj_property name="ObjectShortName">cellTxSOC</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellTxSOF">
+         <obj_property name="ElementShortName">cellTxSOF</obj_property>
+         <obj_property name="ObjectShortName">cellTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellTxEOC">
+         <obj_property name="ElementShortName">cellTxEOC</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOC</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellTxEOF">
+         <obj_property name="ElementShortName">cellTxEOF</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellTxEOFE">
+         <obj_property name="ElementShortName">cellTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellTxData">
+         <obj_property name="ElementShortName">cellTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">cellTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/phyTxData">
+         <obj_property name="ElementShortName">phyTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">phyTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/phyTxDataK">
+         <obj_property name="ElementShortName">phyTxDataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">phyTxDataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/phyTxReady">
+         <obj_property name="ElementShortName">phyTxReady</obj_property>
+         <obj_property name="ObjectShortName">phyTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/intTxLinkReady">
+         <obj_property name="ElementShortName">intTxLinkReady</obj_property>
+         <obj_property name="ObjectShortName">intTxLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/nxtTxLinkReady">
+         <obj_property name="ElementShortName">nxtTxLinkReady</obj_property>
+         <obj_property name="ObjectShortName">nxtTxLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/nxtTxData">
+         <obj_property name="ElementShortName">nxtTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">nxtTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/nxtTxDataK">
+         <obj_property name="ElementShortName">nxtTxDataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">nxtTxDataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/intTxData">
+         <obj_property name="ElementShortName">intTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">intTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/intTxDataK">
+         <obj_property name="ElementShortName">intTxDataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">intTxDataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/ltsAData">
+         <obj_property name="ElementShortName">ltsAData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">ltsAData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/ltsADataK">
+         <obj_property name="ElementShortName">ltsADataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">ltsADataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/ltsBData">
+         <obj_property name="ElementShortName">ltsBData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">ltsBData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/ltsBDataK">
+         <obj_property name="ElementShortName">ltsBDataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">ltsBDataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellData">
+         <obj_property name="ElementShortName">cellData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">cellData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/cellDataK">
+         <obj_property name="ElementShortName">cellDataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">cellDataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/fcData">
+         <obj_property name="ElementShortName">fcData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">fcData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/fcDataK">
+         <obj_property name="ElementShortName">fcDataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">fcDataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/fcWordLatch">
+         <obj_property name="ElementShortName">fcWordLatch[15:0]</obj_property>
+         <obj_property name="ObjectShortName">fcWordLatch[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="other" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/fcWordCount">
+         <obj_property name="ElementShortName">fcWordCount</obj_property>
+         <obj_property name="ObjectShortName">fcWordCount</obj_property>
+      </wvobject>
+      <wvobject type="other" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/curState">
+         <obj_property name="ElementShortName">curState</obj_property>
+         <obj_property name="ObjectShortName">curState</obj_property>
+      </wvobject>
+      <wvobject type="other" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/nxtState">
+         <obj_property name="ElementShortName">nxtState</obj_property>
+         <obj_property name="ObjectShortName">nxtState</obj_property>
+      </wvobject>
+      <wvobject type="other" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/pendState">
+         <obj_property name="ElementShortName">pendState</obj_property>
+         <obj_property name="ObjectShortName">pendState</obj_property>
+      </wvobject>
+      <wvobject type="other" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxPhy/holdState">
+         <obj_property name="ElementShortName">holdState</obj_property>
+         <obj_property name="ObjectShortName">holdState</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group2813">
+      <obj_property name="label">TX</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/pgpTxClkEn">
+         <obj_property name="ElementShortName">pgpTxClkEn</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkEn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/pgpTxClk">
+         <obj_property name="ElementShortName">pgpTxClk</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/pgpTxClkRst">
+         <obj_property name="ElementShortName">pgpTxClkRst</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkRst</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/fcSend">
+         <obj_property name="ElementShortName">fcSend</obj_property>
+         <obj_property name="ObjectShortName">fcSend</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/fcWord">
+         <obj_property name="ElementShortName">fcWord[15:0]</obj_property>
+         <obj_property name="ObjectShortName">fcWord[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/pgpTxIn">
+         <obj_property name="ElementShortName">pgpTxIn</obj_property>
+         <obj_property name="ObjectShortName">pgpTxIn</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/pgpTxOut">
+         <obj_property name="ElementShortName">pgpTxOut</obj_property>
+         <obj_property name="ObjectShortName">pgpTxOut</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/locLinkReady">
+         <obj_property name="ElementShortName">locLinkReady</obj_property>
+         <obj_property name="ObjectShortName">locLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/pgpTxMasters">
+         <obj_property name="ElementShortName">pgpTxMasters[3:0]</obj_property>
+         <obj_property name="ObjectShortName">pgpTxMasters[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/pgpTxSlaves">
+         <obj_property name="ElementShortName">pgpTxSlaves[3:0]</obj_property>
+         <obj_property name="ObjectShortName">pgpTxSlaves[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/locFifoStatus">
+         <obj_property name="ElementShortName">locFifoStatus[3:0]</obj_property>
+         <obj_property name="ObjectShortName">locFifoStatus[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/remFifoStatus">
+         <obj_property name="ElementShortName">remFifoStatus[3:0]</obj_property>
+         <obj_property name="ObjectShortName">remFifoStatus[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/phyTxLaneOut">
+         <obj_property name="ElementShortName">phyTxLaneOut</obj_property>
+         <obj_property name="ObjectShortName">phyTxLaneOut</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/phyTxReady">
+         <obj_property name="ElementShortName">phyTxReady</obj_property>
+         <obj_property name="ObjectShortName">phyTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/cellTxSOC">
+         <obj_property name="ElementShortName">cellTxSOC</obj_property>
+         <obj_property name="ObjectShortName">cellTxSOC</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/cellTxSOF">
+         <obj_property name="ElementShortName">cellTxSOF</obj_property>
+         <obj_property name="ObjectShortName">cellTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/cellTxEOC">
+         <obj_property name="ElementShortName">cellTxEOC</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOC</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/cellTxEOF">
+         <obj_property name="ElementShortName">cellTxEOF</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/cellTxEOFE">
+         <obj_property name="ElementShortName">cellTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/cellTxData">
+         <obj_property name="ElementShortName">cellTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">cellTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/schTxSOF">
+         <obj_property name="ElementShortName">schTxSOF</obj_property>
+         <obj_property name="ObjectShortName">schTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/schTxEOF">
+         <obj_property name="ElementShortName">schTxEOF</obj_property>
+         <obj_property name="ObjectShortName">schTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/schTxIdle">
+         <obj_property name="ElementShortName">schTxIdle</obj_property>
+         <obj_property name="ObjectShortName">schTxIdle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/schTxReq">
+         <obj_property name="ElementShortName">schTxReq</obj_property>
+         <obj_property name="ObjectShortName">schTxReq</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/schTxAck">
+         <obj_property name="ElementShortName">schTxAck</obj_property>
+         <obj_property name="ObjectShortName">schTxAck</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/schTxDataVc">
+         <obj_property name="ElementShortName">schTxDataVc[1:0]</obj_property>
+         <obj_property name="ObjectShortName">schTxDataVc[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intTxLinkReady">
+         <obj_property name="ElementShortName">intTxLinkReady</obj_property>
+         <obj_property name="ObjectShortName">intTxLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intTxBusy">
+         <obj_property name="ElementShortName">intTxBusy</obj_property>
+         <obj_property name="ObjectShortName">intTxBusy</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/schTxTimeout">
+         <obj_property name="ElementShortName">schTxTimeout</obj_property>
+         <obj_property name="ObjectShortName">schTxTimeout</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intPhyTxData">
+         <obj_property name="ElementShortName">intPhyTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">intPhyTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intPhyTxDataK">
+         <obj_property name="ElementShortName">intPhyTxDataK[1:0]</obj_property>
+         <obj_property name="ObjectShortName">intPhyTxDataK[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxIn">
+         <obj_property name="ElementShortName">crcTxIn[15:0]</obj_property>
+         <obj_property name="ObjectShortName">crcTxIn[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxInit">
+         <obj_property name="ElementShortName">crcTxInit</obj_property>
+         <obj_property name="ObjectShortName">crcTxInit</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxValid">
+         <obj_property name="ElementShortName">crcTxValid</obj_property>
+         <obj_property name="ObjectShortName">crcTxValid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxOut">
+         <obj_property name="ElementShortName">crcTxOut[31:0]</obj_property>
+         <obj_property name="ObjectShortName">crcTxOut[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxOutAdjust">
+         <obj_property name="ElementShortName">crcTxOutAdjust[31:0]</obj_property>
+         <obj_property name="ObjectShortName">crcTxOutAdjust[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxRst">
+         <obj_property name="ElementShortName">crcTxRst</obj_property>
+         <obj_property name="ObjectShortName">crcTxRst</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxInAdjust">
+         <obj_property name="ElementShortName">crcTxInAdjust[31:0]</obj_property>
+         <obj_property name="ObjectShortName">crcTxInAdjust[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/crcTxWidthAdjust">
+         <obj_property name="ElementShortName">crcTxWidthAdjust[2:0]</obj_property>
+         <obj_property name="ObjectShortName">crcTxWidthAdjust[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intTxSof">
+         <obj_property name="ElementShortName">intTxSof[3:0]</obj_property>
+         <obj_property name="ObjectShortName">intTxSof[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intTxEofe">
+         <obj_property name="ElementShortName">intTxEofe[3:0]</obj_property>
+         <obj_property name="ObjectShortName">intTxEofe[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intvalid">
+         <obj_property name="ElementShortName">intvalid[3:0]</obj_property>
+         <obj_property name="ObjectShortName">intvalid[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/rawReady">
+         <obj_property name="ElementShortName">rawReady[3:0]</obj_property>
+         <obj_property name="ObjectShortName">rawReady[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/syncLocPause">
+         <obj_property name="ElementShortName">syncLocPause[3:0]</obj_property>
+         <obj_property name="ObjectShortName">syncLocPause[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/syncLocOverFlow">
+         <obj_property name="ElementShortName">syncLocOverFlow[3:0]</obj_property>
+         <obj_property name="ObjectShortName">syncLocOverFlow[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/syncRemPause">
+         <obj_property name="ElementShortName">syncRemPause[3:0]</obj_property>
+         <obj_property name="ObjectShortName">syncRemPause[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/gateRemPause">
+         <obj_property name="ElementShortName">gateRemPause[3:0]</obj_property>
+         <obj_property name="ObjectShortName">gateRemPause[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/syncLocLinkReady">
+         <obj_property name="ElementShortName">syncLocLinkReady</obj_property>
+         <obj_property name="ObjectShortName">syncLocLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intTxMasters">
+         <obj_property name="ElementShortName">intTxMasters[3:0]</obj_property>
+         <obj_property name="ObjectShortName">intTxMasters[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/intTxSlaves">
+         <obj_property name="ElementShortName">intTxSlaves[3:0]</obj_property>
+         <obj_property name="ObjectShortName">intTxSlaves[3:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group3341">
+      <obj_property name="label">TX Cell</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/pgpTxClkEn">
+         <obj_property name="ElementShortName">pgpTxClkEn</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkEn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/pgpTxClk">
+         <obj_property name="ElementShortName">pgpTxClk</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/pgpTxClkRst">
+         <obj_property name="ElementShortName">pgpTxClkRst</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkRst</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/pgpTxLinkReady">
+         <obj_property name="ElementShortName">pgpTxLinkReady</obj_property>
+         <obj_property name="ObjectShortName">pgpTxLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/pgpTxBusy">
+         <obj_property name="ElementShortName">pgpTxBusy</obj_property>
+         <obj_property name="ObjectShortName">pgpTxBusy</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellTxSOC">
+         <obj_property name="ElementShortName">cellTxSOC</obj_property>
+         <obj_property name="ObjectShortName">cellTxSOC</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellTxSOF">
+         <obj_property name="ElementShortName">cellTxSOF</obj_property>
+         <obj_property name="ObjectShortName">cellTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellTxEOC">
+         <obj_property name="ElementShortName">cellTxEOC</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOC</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellTxEOF">
+         <obj_property name="ElementShortName">cellTxEOF</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellTxEOFE">
+         <obj_property name="ElementShortName">cellTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">cellTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellTxData">
+         <obj_property name="ElementShortName">cellTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">cellTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/schTxSOF">
+         <obj_property name="ElementShortName">schTxSOF</obj_property>
+         <obj_property name="ObjectShortName">schTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/schTxEOF">
+         <obj_property name="ElementShortName">schTxEOF</obj_property>
+         <obj_property name="ObjectShortName">schTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/schTxIdle">
+         <obj_property name="ElementShortName">schTxIdle</obj_property>
+         <obj_property name="ObjectShortName">schTxIdle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/schTxReq">
+         <obj_property name="ElementShortName">schTxReq</obj_property>
+         <obj_property name="ObjectShortName">schTxReq</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/schTxAck">
+         <obj_property name="ElementShortName">schTxAck</obj_property>
+         <obj_property name="ObjectShortName">schTxAck</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/schTxTimeout">
+         <obj_property name="ElementShortName">schTxTimeout</obj_property>
+         <obj_property name="ObjectShortName">schTxTimeout</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/schTxDataVc">
+         <obj_property name="ElementShortName">schTxDataVc[1:0]</obj_property>
+         <obj_property name="ObjectShortName">schTxDataVc[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0FrameTxValid">
+         <obj_property name="ElementShortName">vc0FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc0FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0FrameTxReady">
+         <obj_property name="ElementShortName">vc0FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">vc0FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0FrameTxSOF">
+         <obj_property name="ElementShortName">vc0FrameTxSOF</obj_property>
+         <obj_property name="ObjectShortName">vc0FrameTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0FrameTxEOF">
+         <obj_property name="ElementShortName">vc0FrameTxEOF</obj_property>
+         <obj_property name="ObjectShortName">vc0FrameTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0FrameTxEOFE">
+         <obj_property name="ElementShortName">vc0FrameTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">vc0FrameTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0FrameTxData">
+         <obj_property name="ElementShortName">vc0FrameTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">vc0FrameTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0LocAlmostFull">
+         <obj_property name="ElementShortName">vc0LocAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc0LocAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0LocOverflow">
+         <obj_property name="ElementShortName">vc0LocOverflow</obj_property>
+         <obj_property name="ObjectShortName">vc0LocOverflow</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0RemAlmostFull">
+         <obj_property name="ElementShortName">vc0RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc0RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1FrameTxValid">
+         <obj_property name="ElementShortName">vc1FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc1FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1FrameTxReady">
+         <obj_property name="ElementShortName">vc1FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">vc1FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1FrameTxSOF">
+         <obj_property name="ElementShortName">vc1FrameTxSOF</obj_property>
+         <obj_property name="ObjectShortName">vc1FrameTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1FrameTxEOF">
+         <obj_property name="ElementShortName">vc1FrameTxEOF</obj_property>
+         <obj_property name="ObjectShortName">vc1FrameTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1FrameTxEOFE">
+         <obj_property name="ElementShortName">vc1FrameTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">vc1FrameTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1FrameTxData">
+         <obj_property name="ElementShortName">vc1FrameTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">vc1FrameTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1LocAlmostFull">
+         <obj_property name="ElementShortName">vc1LocAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc1LocAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1LocOverflow">
+         <obj_property name="ElementShortName">vc1LocOverflow</obj_property>
+         <obj_property name="ObjectShortName">vc1LocOverflow</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1RemAlmostFull">
+         <obj_property name="ElementShortName">vc1RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc1RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2FrameTxValid">
+         <obj_property name="ElementShortName">vc2FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc2FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2FrameTxReady">
+         <obj_property name="ElementShortName">vc2FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">vc2FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2FrameTxSOF">
+         <obj_property name="ElementShortName">vc2FrameTxSOF</obj_property>
+         <obj_property name="ObjectShortName">vc2FrameTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2FrameTxEOF">
+         <obj_property name="ElementShortName">vc2FrameTxEOF</obj_property>
+         <obj_property name="ObjectShortName">vc2FrameTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2FrameTxEOFE">
+         <obj_property name="ElementShortName">vc2FrameTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">vc2FrameTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2FrameTxData">
+         <obj_property name="ElementShortName">vc2FrameTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">vc2FrameTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2LocAlmostFull">
+         <obj_property name="ElementShortName">vc2LocAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc2LocAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2LocOverflow">
+         <obj_property name="ElementShortName">vc2LocOverflow</obj_property>
+         <obj_property name="ObjectShortName">vc2LocOverflow</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2RemAlmostFull">
+         <obj_property name="ElementShortName">vc2RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc2RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3FrameTxValid">
+         <obj_property name="ElementShortName">vc3FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc3FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3FrameTxReady">
+         <obj_property name="ElementShortName">vc3FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">vc3FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3FrameTxSOF">
+         <obj_property name="ElementShortName">vc3FrameTxSOF</obj_property>
+         <obj_property name="ObjectShortName">vc3FrameTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3FrameTxEOF">
+         <obj_property name="ElementShortName">vc3FrameTxEOF</obj_property>
+         <obj_property name="ObjectShortName">vc3FrameTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3FrameTxEOFE">
+         <obj_property name="ElementShortName">vc3FrameTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">vc3FrameTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3FrameTxData">
+         <obj_property name="ElementShortName">vc3FrameTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">vc3FrameTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3LocAlmostFull">
+         <obj_property name="ElementShortName">vc3LocAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc3LocAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3LocOverflow">
+         <obj_property name="ElementShortName">vc3LocOverflow</obj_property>
+         <obj_property name="ObjectShortName">vc3LocOverflow</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3RemAlmostFull">
+         <obj_property name="ElementShortName">vc3RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc3RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/crcTxIn">
+         <obj_property name="ElementShortName">crcTxIn[15:0]</obj_property>
+         <obj_property name="ObjectShortName">crcTxIn[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/crcTxInit">
+         <obj_property name="ElementShortName">crcTxInit</obj_property>
+         <obj_property name="ObjectShortName">crcTxInit</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/crcTxValid">
+         <obj_property name="ElementShortName">crcTxValid</obj_property>
+         <obj_property name="ObjectShortName">crcTxValid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/crcTxOut">
+         <obj_property name="ElementShortName">crcTxOut[31:0]</obj_property>
+         <obj_property name="ObjectShortName">crcTxOut[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/muxFrameTxValid">
+         <obj_property name="ElementShortName">muxFrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">muxFrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/muxFrameTxSOF">
+         <obj_property name="ElementShortName">muxFrameTxSOF</obj_property>
+         <obj_property name="ObjectShortName">muxFrameTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/muxFrameTxEOF">
+         <obj_property name="ElementShortName">muxFrameTxEOF</obj_property>
+         <obj_property name="ObjectShortName">muxFrameTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/muxFrameTxEOFE">
+         <obj_property name="ElementShortName">muxFrameTxEOFE</obj_property>
+         <obj_property name="ObjectShortName">muxFrameTxEOFE</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/muxFrameTxData">
+         <obj_property name="ElementShortName">muxFrameTxData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">muxFrameTxData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/muxRemAlmostFull">
+         <obj_property name="ElementShortName">muxRemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">muxRemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellCnt">
+         <obj_property name="ElementShortName">cellCnt[7:0]</obj_property>
+         <obj_property name="ObjectShortName">cellCnt[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/cellCntRst">
+         <obj_property name="ElementShortName">cellCntRst</obj_property>
+         <obj_property name="ObjectShortName">cellCntRst</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtFrameTxReady">
+         <obj_property name="ElementShortName">nxtFrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">nxtFrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtType">
+         <obj_property name="ElementShortName">nxtType[2:0]</obj_property>
+         <obj_property name="ObjectShortName">nxtType[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtTypeLast">
+         <obj_property name="ElementShortName">nxtTypeLast[2:0]</obj_property>
+         <obj_property name="ObjectShortName">nxtTypeLast[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/curTypeLast">
+         <obj_property name="ElementShortName">curTypeLast[2:0]</obj_property>
+         <obj_property name="ObjectShortName">curTypeLast[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtTxSOF">
+         <obj_property name="ElementShortName">nxtTxSOF</obj_property>
+         <obj_property name="ObjectShortName">nxtTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtTxEOF">
+         <obj_property name="ElementShortName">nxtTxEOF</obj_property>
+         <obj_property name="ObjectShortName">nxtTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtTxAck">
+         <obj_property name="ElementShortName">nxtTxAck</obj_property>
+         <obj_property name="ObjectShortName">nxtTxAck</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtData">
+         <obj_property name="ElementShortName">nxtData[15:0]</obj_property>
+         <obj_property name="ObjectShortName">nxtData[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/eocWord">
+         <obj_property name="ElementShortName">eocWord[15:0]</obj_property>
+         <obj_property name="ObjectShortName">eocWord[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/socWord">
+         <obj_property name="ElementShortName">socWord[15:0]</obj_property>
+         <obj_property name="ObjectShortName">socWord[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/crcWordA">
+         <obj_property name="ElementShortName">crcWordA[15:0]</obj_property>
+         <obj_property name="ObjectShortName">crcWordA[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/crcWordB">
+         <obj_property name="ElementShortName">crcWordB[15:0]</obj_property>
+         <obj_property name="ObjectShortName">crcWordB[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/serialCntEn">
+         <obj_property name="ElementShortName">serialCntEn</obj_property>
+         <obj_property name="ObjectShortName">serialCntEn</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc0Serial">
+         <obj_property name="ElementShortName">vc0Serial[5:0]</obj_property>
+         <obj_property name="ObjectShortName">vc0Serial[5:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc1Serial">
+         <obj_property name="ElementShortName">vc1Serial[5:0]</obj_property>
+         <obj_property name="ObjectShortName">vc1Serial[5:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc2Serial">
+         <obj_property name="ElementShortName">vc2Serial[5:0]</obj_property>
+         <obj_property name="ObjectShortName">vc2Serial[5:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/vc3Serial">
+         <obj_property name="ElementShortName">vc3Serial[5:0]</obj_property>
+         <obj_property name="ObjectShortName">vc3Serial[5:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/muxSerial">
+         <obj_property name="ElementShortName">muxSerial[5:0]</obj_property>
+         <obj_property name="ObjectShortName">muxSerial[5:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly0Data">
+         <obj_property name="ElementShortName">dly0Data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">dly0Data[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly0Type">
+         <obj_property name="ElementShortName">dly0Type[2:0]</obj_property>
+         <obj_property name="ObjectShortName">dly0Type[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly1Data">
+         <obj_property name="ElementShortName">dly1Data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">dly1Data[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly1Type">
+         <obj_property name="ElementShortName">dly1Type[2:0]</obj_property>
+         <obj_property name="ObjectShortName">dly1Type[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly2Data">
+         <obj_property name="ElementShortName">dly2Data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">dly2Data[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly2Type">
+         <obj_property name="ElementShortName">dly2Type[2:0]</obj_property>
+         <obj_property name="ObjectShortName">dly2Type[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly3Data">
+         <obj_property name="ElementShortName">dly3Data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">dly3Data[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly3Type">
+         <obj_property name="ElementShortName">dly3Type[2:0]</obj_property>
+         <obj_property name="ObjectShortName">dly3Type[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly4Data">
+         <obj_property name="ElementShortName">dly4Data[15:0]</obj_property>
+         <obj_property name="ObjectShortName">dly4Data[15:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/dly4Type">
+         <obj_property name="ElementShortName">dly4Type[2:0]</obj_property>
+         <obj_property name="ObjectShortName">dly4Type[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/int0FrameTxReady">
+         <obj_property name="ElementShortName">int0FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">int0FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/int1FrameTxReady">
+         <obj_property name="ElementShortName">int1FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">int1FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/int2FrameTxReady">
+         <obj_property name="ElementShortName">int2FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">int2FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/int3FrameTxReady">
+         <obj_property name="ElementShortName">int3FrameTxReady</obj_property>
+         <obj_property name="ObjectShortName">int3FrameTxReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/intTimeout">
+         <obj_property name="ElementShortName">intTimeout</obj_property>
+         <obj_property name="ObjectShortName">intTimeout</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/intOverflow">
+         <obj_property name="ElementShortName">intOverflow[3:0]</obj_property>
+         <obj_property name="ObjectShortName">intOverflow[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/curState">
+         <obj_property name="ElementShortName">curState[2:0]</obj_property>
+         <obj_property name="ObjectShortName">curState[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxCell/nxtState">
+         <obj_property name="ElementShortName">nxtState[2:0]</obj_property>
+         <obj_property name="ObjectShortName">nxtState[2:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group3383">
+      <obj_property name="label">TX Sched</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/pgpTxClkEn">
+         <obj_property name="ElementShortName">pgpTxClkEn</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkEn</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/pgpTxClk">
+         <obj_property name="ElementShortName">pgpTxClk</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/pgpTxClkRst">
+         <obj_property name="ElementShortName">pgpTxClkRst</obj_property>
+         <obj_property name="ObjectShortName">pgpTxClkRst</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/pgpTxFlush">
+         <obj_property name="ElementShortName">pgpTxFlush</obj_property>
+         <obj_property name="ObjectShortName">pgpTxFlush</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/pgpTxLinkReady">
+         <obj_property name="ElementShortName">pgpTxLinkReady</obj_property>
+         <obj_property name="ObjectShortName">pgpTxLinkReady</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/pgpTxBusy">
+         <obj_property name="ElementShortName">pgpTxBusy</obj_property>
+         <obj_property name="ObjectShortName">pgpTxBusy</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/schTxSOF">
+         <obj_property name="ElementShortName">schTxSOF</obj_property>
+         <obj_property name="ObjectShortName">schTxSOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/schTxEOF">
+         <obj_property name="ElementShortName">schTxEOF</obj_property>
+         <obj_property name="ObjectShortName">schTxEOF</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/schTxIdle">
+         <obj_property name="ElementShortName">schTxIdle</obj_property>
+         <obj_property name="ObjectShortName">schTxIdle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/schTxReq">
+         <obj_property name="ElementShortName">schTxReq</obj_property>
+         <obj_property name="ObjectShortName">schTxReq</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/schTxAck">
+         <obj_property name="ElementShortName">schTxAck</obj_property>
+         <obj_property name="ObjectShortName">schTxAck</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/schTxTimeout">
+         <obj_property name="ElementShortName">schTxTimeout</obj_property>
+         <obj_property name="ObjectShortName">schTxTimeout</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/schTxDataVc">
+         <obj_property name="ElementShortName">schTxDataVc[1:0]</obj_property>
+         <obj_property name="ObjectShortName">schTxDataVc[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc0FrameTxValid">
+         <obj_property name="ElementShortName">vc0FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc0FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc1FrameTxValid">
+         <obj_property name="ElementShortName">vc1FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc1FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc2FrameTxValid">
+         <obj_property name="ElementShortName">vc2FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc2FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc3FrameTxValid">
+         <obj_property name="ElementShortName">vc3FrameTxValid</obj_property>
+         <obj_property name="ObjectShortName">vc3FrameTxValid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc0RemAlmostFull">
+         <obj_property name="ElementShortName">vc0RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc0RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc1RemAlmostFull">
+         <obj_property name="ElementShortName">vc1RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc1RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc2RemAlmostFull">
+         <obj_property name="ElementShortName">vc2RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc2RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vc3RemAlmostFull">
+         <obj_property name="ElementShortName">vc3RemAlmostFull</obj_property>
+         <obj_property name="ObjectShortName">vc3RemAlmostFull</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/currValid">
+         <obj_property name="ElementShortName">currValid</obj_property>
+         <obj_property name="ObjectShortName">currValid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/currVc">
+         <obj_property name="ElementShortName">currVc[1:0]</obj_property>
+         <obj_property name="ObjectShortName">currVc[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/nextVc">
+         <obj_property name="ElementShortName">nextVc[1:0]</obj_property>
+         <obj_property name="ObjectShortName">nextVc[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/arbVc">
+         <obj_property name="ElementShortName">arbVc[1:0]</obj_property>
+         <obj_property name="ObjectShortName">arbVc[1:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/arbValid">
+         <obj_property name="ElementShortName">arbValid</obj_property>
+         <obj_property name="ObjectShortName">arbValid</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vcInFrame">
+         <obj_property name="ElementShortName">vcInFrame[3:0]</obj_property>
+         <obj_property name="ObjectShortName">vcInFrame[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/intTxReq">
+         <obj_property name="ElementShortName">intTxReq</obj_property>
+         <obj_property name="ObjectShortName">intTxReq</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/intTxIdle">
+         <obj_property name="ElementShortName">intTxIdle</obj_property>
+         <obj_property name="ObjectShortName">intTxIdle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/nxtTxReq">
+         <obj_property name="ElementShortName">nxtTxReq</obj_property>
+         <obj_property name="ObjectShortName">nxtTxReq</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/nxtTxIdle">
+         <obj_property name="ElementShortName">nxtTxIdle</obj_property>
+         <obj_property name="ObjectShortName">nxtTxIdle</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/nxtTxTimeout">
+         <obj_property name="ElementShortName">nxtTxTimeout</obj_property>
+         <obj_property name="ObjectShortName">nxtTxTimeout</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/intTxTimeout">
+         <obj_property name="ElementShortName">intTxTimeout</obj_property>
+         <obj_property name="ObjectShortName">intTxTimeout</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vcTimerA">
+         <obj_property name="ElementShortName">vcTimerA[23:0]</obj_property>
+         <obj_property name="ObjectShortName">vcTimerA[23:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vcTimerB">
+         <obj_property name="ElementShortName">vcTimerB[23:0]</obj_property>
+         <obj_property name="ObjectShortName">vcTimerB[23:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vcTimerC">
+         <obj_property name="ElementShortName">vcTimerC[23:0]</obj_property>
+         <obj_property name="ObjectShortName">vcTimerC[23:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vcTimerD">
+         <obj_property name="ElementShortName">vcTimerD[23:0]</obj_property>
+         <obj_property name="ObjectShortName">vcTimerD[23:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/vcTimeout">
+         <obj_property name="ElementShortName">vcTimeout[3:0]</obj_property>
+         <obj_property name="ObjectShortName">vcTimeout[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/gateTxValid">
+         <obj_property name="ElementShortName">gateTxValid[3:0]</obj_property>
+         <obj_property name="ObjectShortName">gateTxValid[3:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/curState">
+         <obj_property name="ElementShortName">curState[2:0]</obj_property>
+         <obj_property name="ObjectShortName">curState[2:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Pgp2fcLane_tb/U_Pgp/u_txengen/U_Pgp2fcTx/U_Pgp2fcTxSched/nxtState">
+         <obj_property name="ElementShortName">nxtState[2:0]</obj_property>
+         <obj_property name="ObjectShortName">nxtState[2:0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>
