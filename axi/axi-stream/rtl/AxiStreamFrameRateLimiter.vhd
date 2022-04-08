@@ -53,6 +53,9 @@ architecture rtl of AxiStreamFrameRateLimiter is
    constant TIMEOUT_C : natural := getTimeRatio(AXIS_CLK_FREQ_G, REFRESH_RATE_G)-1;
 
    constant BACKPRESSURE_C : slv(31 downto 0) := ite(BACKPRESSURE_G, x"0000_0001", x"0000_0000");
+   constant INI_WRITE_REG_C : Slv32Array(1 downto 0) := (
+      0 => toSlv(DEFAULT_MAX_RATE_G, 32),
+      1 => BACKPRESSURE_C);
 
    type StateType is (
       IDLE_S,
@@ -97,9 +100,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          NUM_WRITE_REG_G => 2,
-         INI_WRITE_REG_G => (
-            0            => toSlv(DEFAULT_MAX_RATE_G, 32),
-            1            => BACKPRESSURE_C),
+         INI_WRITE_REG_G => INI_WRITE_REG_C,
          NUM_READ_REG_G  => 3)
       port map (
          -- AXI-Lite Bus
