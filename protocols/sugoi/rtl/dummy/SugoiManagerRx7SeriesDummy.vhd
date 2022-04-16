@@ -49,7 +49,7 @@ architecture mapping of SugoiManagerRx7Series is
 begin
 
    assert (false)
-      report "surf.protocols.sugio: SugoiManagerRx7Series not supported" severity failure;
+      report "surf.protocols.sugoi: SugoiManagerRx7Series not supported" severity failure;
 
 end mapping;
 

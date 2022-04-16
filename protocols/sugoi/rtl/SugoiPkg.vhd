@@ -24,22 +24,22 @@ use surf.Code8b10bPkg.all;
 
 package SugoiPkg is
 
-   constant SUGIO_VERSION_C : slv(2 downto 0) := "001";  -- 0x1
+   constant SUGOI_VERSION_C : slv(2 downto 0) := "001";  -- 0x1
 
    -------------------------
    -- Header bit mapping
    -------------------------
-   subtype SUGIO_HDR_VERSION_FIELD_C is natural range 2 downto 0;
-   constant SUGIO_HDR_OP_TYPE_C : positive := 3;
-   subtype SUGIO_HDR_DDEV_ID_FIELD_C is natural range 7 downto 4;
+   subtype SUGOI_HDR_VERSION_FIELD_C is natural range 2 downto 0;
+   constant SUGOI_HDR_OP_TYPE_C : positive := 3;
+   subtype SUGOI_HDR_DDEV_ID_FIELD_C is natural range 7 downto 4;
 
    -------------------------
    -- Header bit mapping
    -------------------------
-   subtype SUGIO_FOOTER_BUS_RESP_FIELD_C is natural range 1 downto 0;
-   constant SUGIO_FOOTER_VER_MISMATCH_C   : positive := 2;
-   constant SUGIO_FOOTER_NOT_ADDR_ALIGN_C : positive := 3;
-   constant SUGIO_FOOTER_XSUM_ERROR_C     : positive := 4;
+   subtype SUGOI_FOOTER_BUS_RESP_FIELD_C is natural range 1 downto 0;
+   constant SUGOI_FOOTER_VER_MISMATCH_C   : positive := 2;
+   constant SUGOI_FOOTER_NOT_ADDR_ALIGN_C : positive := 3;
+   constant SUGOI_FOOTER_XSUM_ERROR_C     : positive := 4;
 
    -------------------------
    -- Control Code Constants
