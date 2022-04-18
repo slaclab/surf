@@ -1,6 +1,6 @@
 var classPgp3Tb_1_1tb =
 [
-    [ "PROCESS_196", "classPgp3Tb_1_1tb.html#a5df54d8e69832fbcd872ff8efb67e755", null ],
+    [ "PROCESS_240", "classPgp3Tb_1_1tb.html#a3ac14620d1b73f835f6784cc84e7ed53", null ],
     [ "TPD_G", "classPgp3Tb_1_1tb.html#ae1b9083af233edd49d7c57de1ce468f7", null ],
     [ "TX_CELL_WORDS_MAX_G", "classPgp3Tb_1_1tb.html#ae5f329775fd2d3f0b5b72f8b7c618a19", null ],
     [ "NUM_VC_G", "classPgp3Tb_1_1tb.html#a4b54d592bdf5a47bfbebffdf6fb283c3", null ],

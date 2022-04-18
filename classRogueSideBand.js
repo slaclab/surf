@@ -1,6 +1,6 @@
 var classRogueSideBand =
 [
-    [ "RogueSideBand.RogueSideBand", "classRogueSideBand_1_1RogueSideBand.html", "classRogueSideBand_1_1RogueSideBand" ],
+    [ "RogueSideBand", "classRogueSideBand_1_1RogueSideBand.html", "classRogueSideBand_1_1RogueSideBand" ],
     [ "clock", "classRogueSideBand.html#adfc2d5e995e9c6876b2e55bf6a5c4071", null ],
     [ "reset", "classRogueSideBand.html#aad8dc6359d9e23dabcbf342fadf2fa06", null ],
     [ "portNum", "classRogueSideBand.html#af08a109672b119b87964de7b3cfda694", null ],

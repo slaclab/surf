@@ -4,6 +4,7 @@ var classAxiStreamFrameRateLimiter =
     [ "TPD_G", "classAxiStreamFrameRateLimiter.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "PIPE_STAGES_G", "classAxiStreamFrameRateLimiter.html#aa5b701cabb832036aea0132bf6159d5a", null ],
     [ "COMMON_CLK_G", "classAxiStreamFrameRateLimiter.html#a762b446ddef001083e8cfc52dc38385f", null ],
+    [ "BACKPRESSURE_G", "classAxiStreamFrameRateLimiter.html#a9dfed0ebdd40748fe64646a42ac99399", null ],
     [ "AXIS_CLK_FREQ_G", "classAxiStreamFrameRateLimiter.html#ad459d012af0700c2b2299cf90a94f09f", null ],
     [ "REFRESH_RATE_G", "classAxiStreamFrameRateLimiter.html#a12ba14cb2c0e17aefad9e56902e3d45e", null ],
     [ "DEFAULT_MAX_RATE_G", "classAxiStreamFrameRateLimiter.html#ab3023e8e612c2a8c414c61c25e12c9c8", null ],

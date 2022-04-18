@@ -41,7 +41,7 @@ var classSugoiManagerCore_1_1mapping =
     [ "u_fsm", "classSugoiManagerCore_1_1mapping.html#aff66981276b1762b0b50284269184321", null ],
     [ "u_encode", "classSugoiManagerCore_1_1mapping.html#ad0b7587447f1a33ae7960a0a77026f1a", null ],
     [ "u_serializer", "classSugoiManagerCore_1_1mapping.html#aed3f951519ef5eef234cef233961aae7", null ],
-    [ "u_sugiotx", "classSugoiManagerCore_1_1mapping.html#adc418ba97624d8dd6f4e20458f6039a7", null ],
-    [ "u_sugioclk", "classSugoiManagerCore_1_1mapping.html#a1fa5d04970f5423aa3d1a213b5b330b7", null ],
-    [ "u_sugioclk", "classSugoiManagerCore_1_1mapping.html#a1fa5d04970f5423aa3d1a213b5b330b7", null ]
+    [ "u_sugoitx", "classSugoiManagerCore_1_1mapping.html#ac1ac254784961b830f1acecca6255101", null ],
+    [ "u_sugoiclk", "classSugoiManagerCore_1_1mapping.html#a4e9e9a6d42fbdebd91b23e164f7351e4", null ],
+    [ "u_sugoiclk", "classSugoiManagerCore_1_1mapping.html#a4e9e9a6d42fbdebd91b23e164f7351e4", null ]
 ];

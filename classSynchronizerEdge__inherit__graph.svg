@@ -289,18 +289,18 @@ var sectionId = 'dynsection-0';
 <path fill="none" stroke="midnightblue" d="M174.88,-314.32C201.32,-401.13 308.62,-753.5 327.99,-817.13"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="178.21,-313.23 171.95,-304.69 171.52,-315.27 178.21,-313.23"/>
 </g>
-<!-- Node186 -->
+<!-- Node187 -->
 <g id="node49" class="node">
-<title>Node186</title>
+<title>Node187</title>
 <g id="a_node49"><a xlink:href="classUartRx.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="307,-0.5 307,-19.5 357,-19.5 357,-0.5 307,-0.5"/>
 <text text-anchor="middle" x="332" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">UartRx</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node186 -->
+<!-- Node1&#45;&gt;Node187 -->
 <g id="edge59" class="edge">
-<title>Node1&#45;&gt;Node186</title>
+<title>Node1&#45;&gt;Node187</title>
 <path fill="none" stroke="midnightblue" d="M169.34,-275.01C171.31,-225.57 183.52,-96.71 256,-29 269.64,-16.25 290.58,-11.75 306.87,-10.29"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="165.83,-275.19 169.04,-285.29 172.83,-275.4 165.83,-275.19"/>
 </g>
@@ -772,63 +772,63 @@ var sectionId = 'dynsection-0';
 <path fill="none" stroke="midnightblue" d="M402.71,-825.65C457.77,-827.2 535.2,-835.35 596,-865 647.95,-890.33 692.01,-946.67 708.28,-969.3"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="402.77,-822.15 392.69,-825.43 402.62,-829.14 402.77,-822.15"/>
 </g>
-<!-- Node168 -->
+<!-- Node169 -->
 <g id="node45" class="node">
-<title>Node168</title>
+<title>Node169</title>
 <g id="a_node45"><a xlink:href="classSynchronizerOneShotTb.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="453.5,-912.5 453.5,-931.5 586.5,-931.5 586.5,-912.5 453.5,-912.5"/>
 <text text-anchor="middle" x="520" y="-919.5" font-family="Helvetica,sans-Serif" font-size="10.00">SynchronizerOneShotTb</text>
 </a>
 </g>
 </g>
-<!-- Node82&#45;&gt;Node168 -->
+<!-- Node82&#45;&gt;Node169 -->
 <g id="edge55" class="edge">
-<title>Node82&#45;&gt;Node168</title>
+<title>Node82&#45;&gt;Node169</title>
 <path fill="none" stroke="midnightblue" d="M352.04,-843.17C373.2,-860.36 409.02,-887.2 444,-903 452.32,-906.76 461.52,-909.86 470.53,-912.39"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="354.11,-840.34 344.17,-836.67 349.65,-845.74 354.11,-840.34"/>
 </g>
-<!-- Node169 -->
+<!-- Node170 -->
 <g id="node46" class="node">
-<title>Node169</title>
+<title>Node170</title>
 <g id="a_node46"><a xlink:href="classSynchronizerOneShotVector.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="444,-874.5 444,-893.5 596,-893.5 596,-874.5 444,-874.5"/>
 <text text-anchor="middle" x="520" y="-881.5" font-family="Helvetica,sans-Serif" font-size="10.00">SynchronizerOneShotVector</text>
 </a>
 </g>
 </g>
-<!-- Node82&#45;&gt;Node169 -->
+<!-- Node82&#45;&gt;Node170 -->
 <g id="edge56" class="edge">
-<title>Node82&#45;&gt;Node169</title>
+<title>Node82&#45;&gt;Node170</title>
 <path fill="none" stroke="midnightblue" d="M373.86,-839.52C408.17,-850.04 456.48,-864.84 487.77,-874.43"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="374.72,-836.12 364.13,-836.54 372.67,-842.82 374.72,-836.12"/>
 </g>
-<!-- Node170 -->
+<!-- Node171 -->
 <g id="node47" class="node">
-<title>Node170</title>
+<title>Node171</title>
 <g id="a_node47"><a xlink:href="classSyncMinMax.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="480.5,-798.5 480.5,-817.5 559.5,-817.5 559.5,-798.5 480.5,-798.5"/>
 <text text-anchor="middle" x="520" y="-805.5" font-family="Helvetica,sans-Serif" font-size="10.00">SyncMinMax</text>
 </a>
 </g>
 </g>
-<!-- Node82&#45;&gt;Node170 -->
+<!-- Node82&#45;&gt;Node171 -->
 <g id="edge57" class="edge">
-<title>Node82&#45;&gt;Node170</title>
+<title>Node82&#45;&gt;Node171</title>
 <path fill="none" stroke="midnightblue" d="M402.58,-819.89C428.95,-817.2 458.01,-814.23 480.5,-811.93"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="402.21,-816.41 392.62,-820.91 402.92,-823.38 402.21,-816.41"/>
 </g>
-<!-- Node181 -->
+<!-- Node182 -->
 <g id="node48" class="node">
-<title>Node181</title>
+<title>Node182</title>
 <g id="a_node48"><a xlink:href="classSyncTrigPeriod.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="black" points="476,-760.5 476,-779.5 564,-779.5 564,-760.5 476,-760.5"/>
 <text text-anchor="middle" x="520" y="-767.5" font-family="Helvetica,sans-Serif" font-size="10.00">SyncTrigPeriod</text>
 </a>
 </g>
 </g>
-<!-- Node82&#45;&gt;Node181 -->
+<!-- Node82&#45;&gt;Node182 -->
 <g id="edge58" class="edge">
-<title>Node82&#45;&gt;Node181</title>
+<title>Node82&#45;&gt;Node182</title>
 <path fill="none" stroke="midnightblue" d="M368.28,-814.1C389.98,-806.37 418.43,-796.6 444,-789 455.2,-785.67 467.45,-782.41 478.74,-779.55"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="367.05,-810.82 358.82,-817.49 369.42,-817.41 367.05,-810.82"/>
 </g>

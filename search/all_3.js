@@ -38,6 +38,7 @@ var searchData=
   ['crc32_277',['Crc32',['../classCrc32.html',1,'']]],
   ['crc32parallel_278',['Crc32Parallel',['../classCrc32Parallel.html',1,'']]],
   ['crc32rtl_279',['CRC32Rtl',['../classCRC32Rtl.html',1,'']]],
-  ['crcpkg_280',['CrcPkg',['../classCrcPkg.html',1,'']]],
-  ['csa3_281',['csa3',['../classcsa3.html',1,'']]]
+  ['crc7rtl_280',['CRC7Rtl',['../classCRC7Rtl.html',1,'']]],
+  ['crcpkg_281',['CrcPkg',['../classCrcPkg.html',1,'']]],
+  ['csa3_282',['csa3',['../classcsa3.html',1,'']]]
 ];
