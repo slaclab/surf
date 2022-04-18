@@ -48,3 +48,11 @@ class AxiStreamFrameRateLimiter(pr.Device):
             bitSize      =  32,
             mode         = 'RW',
         ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'BackpressureMode',
+            description  = '1: Assert back pressure when rate throttling, 0: Drop frames when rate throttling',
+            offset       =  0x104,
+            bitSize      =  1,
+            mode         = 'RW',
+        ))
