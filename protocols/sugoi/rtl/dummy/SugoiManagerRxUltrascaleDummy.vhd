@@ -49,6 +49,6 @@ architecture mapping of SugoiManagerRxUltrascale is
 begin
 
    assert (false)
-      report "surf.protocols.sugio: SugoiManagerRxUltrascale not supported" severity failure;
+      report "surf.protocols.sugoi: SugoiManagerRxUltrascale not supported" severity failure;
 
 end mapping;

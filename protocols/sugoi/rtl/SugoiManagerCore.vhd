@@ -37,19 +37,19 @@ entity SugoiManagerCore is
       REF_FREQ_G      : real    := 300.0);  -- Only used if DEVICE_FAMILY_G="7SERIES"
    port (
       -- SUGOI Serial Ports
-      sugioRxP        : in  sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
-      sugioRxN        : in  sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
-      sugioTxP        : out sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
-      sugioTxN        : out sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
-      sugioClkP       : out sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
-      sugioClkN       : out sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
+      sugoiRxP        : in  sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
+      sugoiRxN        : in  sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
+      sugoiTxP        : out sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
+      sugoiTxN        : out sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
+      sugoiClkP       : out sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
+      sugoiClkN       : out sl;  -- DIFF_PAIR_G=false then UNUSED, DIFF_PAIR_G=true then LVDS
       -- Timing and Trigger Interface (timingClk domain)
       timingClk       : in  sl;
       timingRst       : in  sl;
-      sugioGlobalRst  : in  sl;
-      sugioOpCode     : in  slv(7 downto 0);       -- 1-bit per Control code
-      sugioStrobe     : out sl;         -- 1 strobe every 10 cycles
-      sugioLinkup     : out sl;
+      sugoiGlobalRst  : in  sl;
+      sugoiOpCode     : in  slv(7 downto 0);       -- 1-bit per Control code
+      sugoiStrobe     : out sl;         -- 1 strobe every 10 cycles
+      sugoiLinkup     : out sl;
       -- AXI-Lite Master Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -104,8 +104,8 @@ architecture mapping of SugoiManagerCore is
 
 begin
 
-   sugioLinkup <= gearboxAligned;
-   sugioStrobe <= txStrobe;             -- 1 strobe every 10 cycles
+   sugoiLinkup <= gearboxAligned;
+   sugoiStrobe <= txStrobe;             -- 1 strobe every 10 cycles
 
    --------------------------------------------
    -- Move the AXI-Lite Bus to timingClk Domain
@@ -146,8 +146,8 @@ begin
          clk     => timingClk,
          rst     => timingRst,
          -- SELECTIO Ports
-         rxP     => sugioRxP,
-         rxN     => sugioRxN,
+         rxP     => sugoiRxP,
+         rxN     => sugoiRxN,
          -- Delay Configuration
          dlyLoad => dlyLoad,
          dlyCfg  => dlyCfg,
@@ -248,8 +248,8 @@ begin
          clk             => timingClk,
          rst             => timingRst,
          -- Timing and Trigger Interface
-         globalRst       => sugioGlobalRst,
-         opCode          => sugioOpCode,
+         globalRst       => sugoiGlobalRst,
+         opCode          => sugoiOpCode,
          -- RX Interface
          rxValid         => rxDecodeValid,
          rxData          => rxDecodeData,
@@ -320,7 +320,7 @@ begin
    --------------------------------------
    -- TX I/O Register + half cycle deskew
    --------------------------------------
-   U_sugioTx : entity surf.OutputBufferReg
+   U_sugoiTx : entity surf.OutputBufferReg
       generic map (
          TPD_G       => TPD_G,
          DIFF_PAIR_G => DIFF_PAIR_G)
@@ -330,33 +330,33 @@ begin
          SR  => disableTx,
          inv => polarityTx,
          dly => '1',                    -- deskew the data by half clock cycle
-         O   => sugioTxP,
-         OB  => sugioTxN);
+         O   => sugoiTxP,
+         OB  => sugoiTxN);
 
    -------------------
    -- CLK I/O Register
    -------------------
    GEN_LVDS : if (DIFF_PAIR_G = true) generate
-      U_sugioClk : entity surf.ClkOutBufDiff
+      U_sugoiClk : entity surf.ClkOutBufDiff
          generic map (
             TPD_G        => TPD_G,
             XIL_DEVICE_G => DEVICE_FAMILY_G)
          port map (
             clkIn   => timingClk,
             rstIn   => disableClk,
-            clkOutP => sugioClkP,
-            clkOutN => sugioClkN);
+            clkOutP => sugoiClkP,
+            clkOutN => sugoiClkN);
    end generate;
    GEN_CMOS : if (DIFF_PAIR_G = false) generate
-      U_sugioClk : entity surf.ClkOutBufSingle
+      U_sugoiClk : entity surf.ClkOutBufSingle
          generic map (
             TPD_G        => TPD_G,
             XIL_DEVICE_G => DEVICE_FAMILY_G)
          port map (
             clkIn  => timingClk,
             rstIn  => disableClk,
-            clkOut => sugioClkP);
-      sugioClkN <= '0';
+            clkOut => sugoiClkP);
+      sugoiClkN <= '0';
    end generate;
 
 end mapping;
