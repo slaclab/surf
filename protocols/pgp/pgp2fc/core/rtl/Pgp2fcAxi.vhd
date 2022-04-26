@@ -141,7 +141,7 @@ entity Pgp2fcAxi is
       pgpRxIn     : out Pgp2fcRxCtrlInType;
       pgpRxOut    : in  Pgp2fcRxStatusOutType;
       locRxIn     : in  Pgp2fcRxCtrlInType := PGP2FC_RX_CTRL_IN_INIT_C;
-      
+
       -- RX PGP Link Alignment Control (axilClk domain)
       linkAlignRst        : out sl;
       linkAligned         : in sl := '0';
@@ -151,7 +151,7 @@ entity Pgp2fcAxi is
       linkAlignPhaseReq   : out sl;
       linkAlignPhase      : in sl := '0';
       linkAlignPhaseValid : in sl := '0';
-      
+
       -- Protocol error for error tracking (pgpRxClk domain)
       protocolError       : in sl := '0';
 
@@ -253,13 +253,13 @@ architecture structure of Pgp2fcAxi is
       frameCount      : slv(STATUS_CNT_WIDTH_G-1 downto 0);
       remPause        : slv(3 downto 0);
       rxClkFreq       : slv(31 downto 0);
-      
+
       aligned         : sl;
       alignSlideDone  : sl;
       alignPhase      : sl;
       alignPhaseValid : sl;
       protocolErrorCount : slv(ERROR_CNT_WIDTH_G-1 downto 0);
-      
+
       rxFcRecvCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       rxFcErrCount    : slv(ERROR_CNT_WIDTH_G-1 downto 0);
    end record RxStatusType;
@@ -278,7 +278,7 @@ architecture structure of Pgp2fcAxi is
       frameErrCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       frameCount      : slv(STATUS_CNT_WIDTH_G-1 downto 0);
       txClkFreq       : slv(31 downto 0);
-      
+
       txFcSentCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
    end record TxStatusType;
 
@@ -315,7 +315,7 @@ begin
    U_RxDataSyncDis : if COMMON_RX_CLK_G generate
       rxStatusSync.remLinkData <= pgpRxOut.remLinkData;
    end generate;
-   
+
    -- Errror counters and non counted values
    U_RxError : entity surf.SyncStatusVector
       generic map (
@@ -388,7 +388,7 @@ begin
    rxStatusSync.rxFcRecvCount   <= muxSlVectorArray(rxErrorCntOut, 15);
    rxStatusSync.rxFcErrCount    <= muxSlVectorArray(rxErrorCntOut, 16);
    rxStatusSync.protocolErrorCount <= muxSlVectorArray(rxErrorCntOut, 17);
-   
+
    rxStatusSync.aligned         <= linkAligned;
    rxStatusSync.alignSlideDone  <= linkAlignSlideDone;
    rxStatusSync.alignPhase      <= linkAlignPhase;
@@ -606,7 +606,7 @@ begin
    pgpRxIn.flush    <= locRxIn.flush or rxFlush;
    pgpRxIn.resetRx  <= locRxIn.resetRx or rxReset;
    pgpRxIn.loopback <= locRxIn.loopback or r.loopBack;
-   
+
    linkAlignRst      <= r.alignRst;
    linkAlignOverride <= r.alignOverride;
    linkAlignSlide    <= r.alignSlide;
@@ -632,7 +632,7 @@ begin
       variable axiStatus : AxiLiteStatusType;
    begin
       v := r;
-      
+
       -- Automatic clear
       v.alignSlide := '0';
       v.alignPhaseReq := '0';

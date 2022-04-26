@@ -4,7 +4,7 @@
 -- provided that this copyright statement is not removed from the file
 -- and that any derivative work contains the original copyright notice
 -- and the associated disclaimer.
--- 
+--
 -- THIS SOURCE FILE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS
 -- OR IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 -- WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
@@ -31,7 +31,7 @@ architecture imp_crc of CRC7Rtl is
 begin
    crc_out <= lfsr_c when crc_en = '1' else lfsr_q;
    crc_out_r <= lfsr_q;
-   
+
    lfsr_c(0) <= lfsr_q(2) xor lfsr_q(3) xor lfsr_q(6) xor data_in(0) xor data_in(1) xor data_in(2) xor data_in(3) xor data_in(4) xor data_in(6) xor data_in(10) xor data_in(11) xor data_in(14);
    lfsr_c(1) <= lfsr_q(3) xor lfsr_q(4) xor lfsr_q(7) xor data_in(1) xor data_in(2) xor data_in(3) xor data_in(4) xor data_in(5) xor data_in(7) xor data_in(11) xor data_in(12) xor data_in(15);
    lfsr_c(2) <= lfsr_q(0) xor lfsr_q(4) xor lfsr_q(5) xor data_in(2) xor data_in(3) xor data_in(4) xor data_in(5) xor data_in(6) xor data_in(8) xor data_in(12) xor data_in(13);
@@ -40,7 +40,7 @@ begin
    lfsr_c(5) <= lfsr_q(1) xor lfsr_q(3) xor lfsr_q(4) xor lfsr_q(5) xor lfsr_q(7) xor data_in(2) xor data_in(3) xor data_in(4) xor data_in(7) xor data_in(9) xor data_in(11) xor data_in(12) xor data_in(13) xor data_in(15);
    lfsr_c(6) <= lfsr_q(0) xor lfsr_q(2) xor lfsr_q(4) xor lfsr_q(5) xor lfsr_q(6) xor data_in(3) xor data_in(4) xor data_in(5) xor data_in(8) xor data_in(10) xor data_in(12) xor data_in(13) xor data_in(14);
    lfsr_c(7) <= lfsr_q(1) xor lfsr_q(2) xor lfsr_q(5) xor lfsr_q(7) xor data_in(0) xor data_in(1) xor data_in(2) xor data_in(3) xor data_in(5) xor data_in(9) xor data_in(10) xor data_in(13) xor data_in(15);
-   
+
    process (clk) begin
       if (rising_edge(clk)) then
          if (rst = '1') then
@@ -50,5 +50,5 @@ begin
          end if;
       end if;
    end process;
-   
+
 end architecture imp_crc;
