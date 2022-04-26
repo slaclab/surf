@@ -40,10 +40,10 @@ entity Pgp2fcTxPhy is
 
       -- Link is ready
       pgpTxLinkReady    : out sl;                               -- Local side has link
-      
+
       -- Phy is busy
       pgpBusy           : out sl;                               -- Pause incoming PGP datastream
-      
+
       -- Fast control interface
       fcSend            : in  sl;                               -- Latch fcWord and send it out, will cause pgpBusy to assert
       fcWord            : in  slv(16*FC_WORDS_G-1 downto 0);    -- Control word to send
@@ -88,10 +88,10 @@ architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
    signal cellDataK      : slv(1  downto 0);
    signal fcData         : slv(15 downto 0);
    signal fcDataK        : slv(1  downto 0);
-   
+
    signal fcWordLatch    : slv(16*FC_WORDS_G-1 downto 0);
    signal fcWordCount    : integer range 0 to FC_WORDS_G;
-   
+
    signal crcRst         : sl;
    signal crcEn          : sl;
    signal crcDataIn      : slv(15 downto 0);
@@ -105,7 +105,7 @@ architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
       ST_FC_C,
       ST_CELL_C,
       ST_EMPTY_C);
-      
+
    signal curState   : fsm_states;
    signal nxtState   : fsm_states;
    signal pendState  : fsm_states; -- Next state if FC wasn't triggered
@@ -143,7 +143,7 @@ begin
    process ( pgpTxClk ) begin
       if rising_edge(pgpTxClk) then
          fcSent <= '0';
-      
+
          if fcSend = '1' then
             fcWordLatch <= fcWord;
          end if;
@@ -165,7 +165,7 @@ begin
    -- Link control state machine
    process ( curState, holdState, fcSend, fcWordCount, fcData, fcDataK, intTxLinkReady, cellTxEOC,
              ltsAData, ltsADataK, ltsBData, ltsBDataK, cellData, cellDataK ) begin
-          
+
       case curState is
 
          -- Wait for lock state
@@ -293,7 +293,7 @@ begin
 
    -- Cell Data, upper control
    cellDataK(1) <= '0';
-   
+
    -- Fast Control data packaging
    fcComb: process(fcWord, fcWordLatch, fcWordCount, crcOut) begin
       if (fcWordCount = 0) then
@@ -316,10 +316,10 @@ begin
          crcDataIn <= fcWordLatch(fcWordCount*16+7 downto (fcWordCount-1)*16+8);
       end if;
    end process;
-   
+
    crcRst <= '1' when fcWordCount = FC_WORDS_G else '0';
    crcEn <= '1' when curState = ST_FC_C else '0';
-   
+
    U_Crc7 : entity surf.CRC7Rtl
    port map (
       rst     => crcRst,

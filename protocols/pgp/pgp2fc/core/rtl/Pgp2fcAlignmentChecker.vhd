@@ -52,7 +52,7 @@ begin
    dispErrors <= '1' when rxLane.dispErr /= "00" else '0';
    decErrors <= '1' when rxLane.decErr /= "00" else '0';
    wrongAlign <= '1' when rxLane.dataK(1) = '1' else '0';
-   
+
    process (clk) begin
       if (rising_edge(clk)) then
          if (syncRst = '1' and LATCH_ERROR = true) then

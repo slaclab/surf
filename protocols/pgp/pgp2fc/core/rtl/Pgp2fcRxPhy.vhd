@@ -115,13 +115,13 @@ architecture Pgp2fcRxPhy of Pgp2fcRxPhy is
    signal dlyRxLinkError      : sl                               := '0';
    signal intRxInit           : sl                               := '0';
    signal nxtRxInit           : sl;
-   
+
    signal intFcRecv           : sl                               := '0';
    signal intFcBusy           : sl                               := '0';
    signal intFcErr            : sl                               := '0';
    signal fcWordCounter       : integer range 0 to FC_WORDS_G    := 0;
    signal fcWordBuffer        : slv(16*FC_WORDS_G-1 downto 0)    := (others => '0');
-   
+
    signal crcRst              : sl;
    signal crcEn               : sl;
    signal crcDataIn           : slv(15 downto 0);
@@ -145,7 +145,7 @@ begin
 
    -- RX Interface Init
    phyRxInit <= intRxInit;
-   
+
    -- Fast Control Receiver Interface
    fcRecv <= intFcRecv;
    fcWord <= fcWordBuffer when intFcRecv = '1' else (others => '0'); -- Zeroing can be removed to improve routing if required
@@ -464,7 +464,7 @@ begin
             fcWordBuffer(7 downto 0) <= dly0RxData(15 downto 8);
          elsif fcWordCounter = FC_WORDS_G then
             fcWordBuffer(FC_WORDS_G*16-1 downto (FC_WORDS_G-1)*16+8) <= dly0RxData(7 downto 0);
-            
+
             -- Check CRC too
             if (crcOut = dly0RxData(15 downto 8)) then
                intFcRecv <= '1';
@@ -476,11 +476,11 @@ begin
          end if;
       end if;
    end process;
-   
+
    crcRst <= '1' when fcWordCounter = FC_WORDS_G else '0';
    crcEn <= '1' when rxDetectFcWordEnRaw = '1' or fcWordCounter /= 0 else '0';
    crcDataIn <= dly0RxData when fcWordCounter /= FC_WORDS_G else x"00" & dly0RxData(7 downto 0);
-   
+
    U_Crc7 : entity surf.CRC7Rtl
    port map (
       rst     => crcRst,
@@ -620,7 +620,7 @@ begin
          else
             rxDetectFcWordEnRaw <= '0';
          end if;
-         
+
          -- SOC Detect
          if (dly0RxDataK = "01" and dly0RxData(7 downto 0) = K_SOC_C) then
             rxDetectSOCRaw <= '1';
