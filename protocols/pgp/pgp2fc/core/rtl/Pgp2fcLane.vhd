@@ -30,7 +30,7 @@ use surf.SsiPkg.all;
 entity Pgp2fcLane is
    generic (
       TPD_G             : time                             := 1 ns;
-      FC_WORDS_G        : integer range 1 to 4             := 1;    -- Number of lanes, 1-2
+      FC_WORDS_G        : integer range 1 to 4             := 1;    -- Number of words in FC bus
       VC_INTERLEAVE_G   : integer                          := 1;    -- Interleave Frames
       PAYLOAD_CNT_TOP_G : integer                          := 7;    -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4             := 4;
@@ -49,8 +49,8 @@ entity Pgp2fcLane is
       pgpTxClkRst       : in  sl := '0';
       
       -- Fast control input interface
-      fcTxSend          : in  sl := '0';
-      fcTxWord          : in  slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
+      pgpTxFcValid          : in  sl := '0';
+      pgpTxFcWord          : in  slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
 
       -- Non-VC related IO
       pgpTxIn           : in  Pgp2fcTxCtrlInType := PGP2FC_TX_CTRL_IN_INIT_C;
@@ -74,8 +74,8 @@ entity Pgp2fcLane is
       pgpRxClkRst       : in  sl := '0';
       
       -- Fast control output interface
-      fcRxRecv          : out sl;
-      fcRxWord          : out slv(16*FC_WORDS_G-1 downto 0);
+      pgpRxFcValid          : out sl;
+      pgpRxFcWord          : out slv(16*FC_WORDS_G-1 downto 0);
 
       -- Non-VC related IO
       pgpRxIn           : in  Pgp2fcRxCtrlInType := PGP2FC_RX_CTRL_IN_INIT_C;
@@ -125,8 +125,8 @@ begin
             pgpTxClkEn         => pgpTxClkEn,
             pgpTxClk           => pgpTxClk,
             pgpTxClkRst        => pgpTxClkRst,
-            fcSend             => fcTxSend,
-            fcWord             => fcTxWord,
+            fcSend             => pgpTxFcValid,
+            fcWord             => pgpTxFcWord,
             pgpTxIn            => pgpTxIn,
             pgpTxOut           => pgpTxOut,
             locLinkReady       => intRxOut.linkReady,
@@ -162,8 +162,8 @@ begin
             pgpRxClkEn        => pgpRxClkEn,
             pgpRxClk          => pgpRxClk,
             pgpRxClkRst       => pgpRxClkRst,
-            fcRecv            => fcRxRecv,
-            fcWord            => fcRxWord,
+            fcRecv            => pgpRxFcValid,
+            fcWord            => pgpRxFcWord,
             pgpRxIn           => pgpRxIn,
             pgpRxOut          => intRxOut,
             pgpRxMaster       => intRxMaster,
