@@ -98,11 +98,11 @@ entity Pgp2fcGtp7Wrapper is
       pgpRxRstOut      : out sl;
       stableClkOut     : out sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  Pgp2bRxInType;
-      pgpRxOut         : out Pgp2bRxOutType;
+      pgpRxIn          : in  Pgp2fcRxCtrlInType;
+      pgpRxOut         : out Pgp2fcRxStatusOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  Pgp2bTxInType;
-      pgpTxOut         : out Pgp2bTxOutType;
+      pgpTxIn          : in  Pgp2fcTxCtrlInType;
+      pgpTxOut         : out Pgp2fcTxStatusOutType;
       -- Fast control TX interface
       pgpTxFcValid     : in  sl                               := '0';
       pgpTxFcWord      : in  slv(16*FC_WORDS_G-1 downto 0)    := (others => '0');
