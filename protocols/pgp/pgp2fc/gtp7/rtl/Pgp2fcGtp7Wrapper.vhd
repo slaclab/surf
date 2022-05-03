@@ -21,7 +21,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.Pgp2bPkg.all;
+use surf.Pgp2fcPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Gtp7CfgPkg.all;
@@ -98,11 +98,11 @@ entity Pgp2fcGtp7Wrapper is
       pgpRxRstOut      : out sl;
       stableClkOut     : out sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  Pgp2fcRxCtrlInType;
-      pgpRxOut         : out Pgp2fcRxStatusOutType;
+      pgpRxIn          : in  Pgp2fcRxInType;
+      pgpRxOut         : out Pgp2fcRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  Pgp2fcTxCtrlInType;
-      pgpTxOut         : out Pgp2fcTxStatusOutType;
+      pgpTxIn          : in  Pgp2fcTxInType;
+      pgpTxOut         : out Pgp2fcTxOutType;
       -- Fast control TX interface
       pgpTxFcValid     : in  sl                               := '0';
       pgpTxFcWord      : in  slv(16*FC_WORDS_G-1 downto 0)    := (others => '0');
@@ -392,7 +392,7 @@ begin
          axilWriteSlave  => locAxilWriteSlaves(1));  -- [out]
 
 
-   Pgp2fcGtp7_Inst : entity surf.Pgp2fcbGtp7
+   Pgp2fcGtp7_Inst : entity surf.Pgp2fcGtp7
       generic map (
          TPD_G                 => TPD_G,
          COMMON_CLK_G          => COMMON_CLK_G,

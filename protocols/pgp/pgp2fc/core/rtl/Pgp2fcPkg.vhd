@@ -51,20 +51,20 @@ package Pgp2fcPkg is
    -- PGP RX non-data types
    -----------------------------------------------------
 
-   type Pgp2fcRxCtrlInType is record
+   type Pgp2fcRxInType is record
       flush    : sl;                    -- Flush the link
       resetRx  : sl;                    -- Reset RX transceiver path
       loopback : slv(2 downto 0);       -- Transceiver loopback
-   end record Pgp2fcRxCtrlInType;
+   end record Pgp2fcRxInType;
 
-   type Pgp2fcRxCtrlInArray is array (natural range <>) of Pgp2fcRxCtrlInType;
+   type Pgp2fcRxInArray is array (natural range <>) of Pgp2fcRxInType;
 
-   constant PGP2FC_RX_CTRL_IN_INIT_C : Pgp2fcRxCtrlInType := (
+   constant PGP2FC_RX_IN_INIT_C : Pgp2fcRxInType := (
       flush    => '0',
       resetRx  => '0',
       loopback => "000");
 
-   type Pgp2fcRxStatusOutType is record
+   type Pgp2fcRxOutType is record
       phyRxReady   : sl;                -- RX Phy is ready
       linkReady    : sl;                -- Local side has link
       fcRecv       : sl;                -- Fast Control word received
@@ -78,11 +78,11 @@ package Pgp2fcPkg is
       remLinkData  : slv(7 downto 0);   -- Far end side User Data
       remOverflow  : slv(3 downto 0);   -- Far end overflow status
       remPause     : slv(3 downto 0);   -- Far end pause status
-   end record Pgp2fcRxStatusOutType;
+   end record Pgp2fcRxOutType;
 
-   type Pgp2fcRxStatusOutArray is array (natural range <>) of Pgp2fcRxStatusOutType;
+   type Pgp2fcRxOutArray is array (natural range <>) of Pgp2fcRxOutType;
 
-   constant PGP2FC_RX_STATUS_OUT_INIT_C : Pgp2fcRxStatusOutType := (
+   constant PGP2FC_RX_OUT_INIT_C : Pgp2fcRxOutType := (
       phyRxReady   => '0',
       linkReady    => '0',
       fcRecv       => '0',
@@ -101,31 +101,31 @@ package Pgp2fcPkg is
    -- PGP2FC TX non-data types
    -----------------------------------------------------
 
-   type Pgp2fcTxCtrlInType is record
+   type Pgp2fcTxInType is record
       flush       : sl;                 -- Flush the link
       locData     : slv(7 downto 0);    -- Near end side User Data
       flowCntlDis : sl;                 -- Ignore flow control
       resetTx     : sl;                 -- Reset tx phy
       resetGt     : sl;
-   end record Pgp2fcTxCtrlInType;
+   end record Pgp2fcTxInType;
 
-   type Pgp2fcTxCtrlInArray is array (natural range <>) of Pgp2fcTxCtrlInType;
+   type Pgp2fcTxInArray is array (natural range <>) of Pgp2fcTxInType;
 
-   constant PGP2FC_TX_CTRL_IN_INIT_C : Pgp2fcTxCtrlInType := (
+   constant PGP2FC_TX_IN_INIT_C : Pgp2fcTxInType := (
       flush       => '0',
       locData     => (others => '0'),
       flowCntlDis => '0',
       resetTx     => '0',
       resetGt     => '0');
 
-   constant PGP2FC_TX_CTRL_IN_HALF_DUPLEX_C : Pgp2fcTxCtrlInType := (
+   constant PGP2FC_TX_IN_HALF_DUPLEX_C : Pgp2fcTxInType := (
       flush       => '0',
       locData     => (others => '0'),
       flowCntlDis => '1',
       resetTx     => '0',
       resetGt     => '0');
 
-   type Pgp2fcTxStatusOutType is record
+   type Pgp2fcTxOutType is record
       locOverflow : slv(3 downto 0);    -- Local overflow status
       locPause    : slv(3 downto 0);    -- Local pause status
       phyTxReady  : sl;                 -- TX Phy is ready
@@ -133,11 +133,11 @@ package Pgp2fcPkg is
       fcSent      : sl;                 -- Fast Control word sent
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
-   end record Pgp2fcTxStatusOutType;
+   end record Pgp2fcTxOutType;
 
-   type Pgp2fcTxStatusOutArray is array (natural range <>) of Pgp2fcTxStatusOutType;
+   type Pgp2fcTxOutArray is array (natural range <>) of Pgp2fcTxOutType;
 
-   constant PGP2FC_TX_STATUS_OUT_INIT_C : Pgp2fcTxStatusOutType := (
+   constant PGP2FC_TX_OUT_INIT_C : Pgp2fcTxOutType := (
       locOverflow => (others => '0'),
       locPause    => (others => '0'),
       phyTxReady  => '0',

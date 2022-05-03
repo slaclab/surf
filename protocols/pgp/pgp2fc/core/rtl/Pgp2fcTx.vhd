@@ -46,8 +46,8 @@ entity Pgp2fcTx is
       fcWord            : in  slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
       
       -- Non-VC related IO
-      pgpTxIn           : in  Pgp2fcTxCtrlInType;
-      pgpTxOut          : out Pgp2fcTxStatusOutType;
+      pgpTxIn           : in  Pgp2fcTxInType;
+      pgpTxOut          : out Pgp2fcTxOutType;
       locLinkReady      : in  sl;
 
       -- VC Interface

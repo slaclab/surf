@@ -131,16 +131,16 @@ entity Pgp2fcAxi is
       -- TX PGP Interface (pgpTxClk domain)
       pgpTxClk    : in  sl;
       pgpTxClkRst : in  sl;
-      pgpTxIn     : out Pgp2fcTxCtrlInType;
-      pgpTxOut    : in  Pgp2fcTxStatusOutType;
-      locTxIn     : in  Pgp2fcTxCtrlInType := PGP2FC_TX_CTRL_IN_INIT_C;
+      pgpTxIn     : out Pgp2fcTxInType;
+      pgpTxOut    : in  Pgp2fcTxOutType;
+      locTxIn     : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
 
       -- RX PGP Interface (pgpRxClk domain)
       pgpRxClk    : in  sl;
       pgpRxClkRst : in  sl;
-      pgpRxIn     : out Pgp2fcRxCtrlInType;
-      pgpRxOut    : in  Pgp2fcRxStatusOutType;
-      locRxIn     : in  Pgp2fcRxCtrlInType := PGP2FC_RX_CTRL_IN_INIT_C;
+      pgpRxIn     : out Pgp2fcRxInType;
+      pgpRxOut    : in  Pgp2fcRxOutType;
+      locRxIn     : in  Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
       
       -- RX PGP Link Alignment Control (axilClk domain)
       linkAlignRst        : out sl;

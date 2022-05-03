@@ -45,8 +45,8 @@ entity Pgp2fcRx is
       fcErr            : out sl := '0';
 
       -- Non-VC related IO
-      pgpRxIn          : in  Pgp2fcRxCtrlInType;
-      pgpRxOut         : out Pgp2fcRxStatusOutType;
+      pgpRxIn          : in  Pgp2fcRxInType;
+      pgpRxOut         : out Pgp2fcRxOutType;
 
       -- VC Output
       pgpRxMaster      : out AxiStreamMasterType;

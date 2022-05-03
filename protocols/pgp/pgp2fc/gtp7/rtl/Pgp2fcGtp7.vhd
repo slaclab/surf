@@ -20,7 +20,7 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.Pgp2bPkg.all;
+use surf.Pgp2fcPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
@@ -105,12 +105,12 @@ entity Pgp2fcGtp7 is
       pgpRxMmcmLocked : in  sl := '1';
 
       -- Non VC Rx Signals
-      pgpRxIn  : in  Pgp2bRxInType;
-      pgpRxOut : out Pgp2bRxOutType;
+      pgpRxIn  : in  Pgp2fcRxInType;
+      pgpRxOut : out Pgp2fcRxOutType;
 
       -- Non VC Tx Signals
-      pgpTxIn  : in  Pgp2bTxInType;
-      pgpTxOut : out Pgp2bTxOutType;
+      pgpTxIn  : in  Pgp2fcTxInType;
+      pgpTxOut : out Pgp2fcTxOutType;
 
       -- Fast control TX interface
       pgpTxFcValid : in sl                            := '0';
@@ -165,7 +165,6 @@ architecture rtl of Pgp2fcGtp7 is
    signal dataValid    : sl;                -- no decode or disparity errors
    signal dataValidTmp : sl;                -- no decode or disparity errors
    signal phyRxLaneIn  : Pgp2fcRxPhyLaneInType;
-   signal phyRxLaneOut : Pgp2fcRxPhyLaneOutType;
    signal phyRxReady   : sl;                -- To RxRst
    signal phyRxInit    : sl;                -- To RxRst
 
@@ -259,12 +258,12 @@ begin
          clk      => pgpRxClk,
          rst      => gtRxResetDone,
          dataIn   => gtRxData,
-         dataOut  => phyRxLanesIn(0).data,
-         dataKOut => phyRxLanesIn(0).dataK,
-         codeErr  => phyRxLanesIn(0).decErr,
-         dispErr  => phyRxLanesIn(0).dispErr);
+         dataOut  => phyRxLaneIn.data,
+         dataKOut => phyRxLaneIn.dataK,
+         codeErr  => phyRxLaneIn.decErr,
+         dispErr  => phyRxLaneIn.dispErr);
 
-   dataValidTmp <= not (uOr(phyRxLanesIn(0).decErr) or uOr(phyRxLanesIn(0).dispErr));
+   dataValidTmp <= not (uOr(phyRxLaneIn.decErr) or uOr(phyRxLaneIn.dispErr));
 
    -------------------------------------------------------------------------------------------------
    -- Filter on dataValid so that it doesn't drop immediately on errors
@@ -387,8 +386,8 @@ begin
          txMmcmLockedIn   => pgpTxMmcmLocked,
          txUserResetIn    => pgpTxReset,
          txResetDoneOut   => gtTxResetDone,
-         txDataIn         => phyTxLanesOut(0).data,
-         txCharIsKIn      => phyTxLanesOut(0).dataK,
+         txDataIn         => phyTxLaneOut.data,
+         txCharIsKIn      => phyTxLaneOut.dataK,
          txPolarityIn     => TX_POLARITY_G,
          txBufStatusOut   => open,      -- Not using tx buff
          loopbackIn       => pgpRxIn.loopback,
