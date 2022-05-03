@@ -1,0 +1,211 @@
+-------------------------------------------------------------------------------
+-- Title      : CoaXPress Protocol: http://jiia.org/wp-content/themes/jiia/pdf/standard_dl/coaxpress/CXP-001-2021.pdf
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: CoaXPress GTH Ultrascale Core Module
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.CoaXPressPkg.all;
+
+entity CoaXPressGthUs is
+   generic (
+      TPD_G              : time                   := 1 ns;
+      CXP_RATE_G         : CxpSpeedType           := CXP_12_C;
+      NUM_LANES_G        : positive               := 1;
+      STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
+      AXIS_CONFIG_G      : AxiStreamConfigType;
+      AXIL_BASE_ADDR_G   : slv(31 downto 0)       := (others => '0');
+      AXIL_CLK_FREQ_G    : real                   := 156.25E+6);
+   port (
+      -- Stable Clock and Reset
+      stableClk25     : in  sl;  -- GT needs a stable clock to "boot up" (25 MHz)
+      stableRst25     : in  sl;
+      -- QPLL Interface
+      qpllLock        : in  Slv2Array(NUM_LANES_G-1 downto 0);
+      qpllclk         : in  Slv2Array(NUM_LANES_G-1 downto 0);
+      qpllrefclk      : in  Slv2Array(NUM_LANES_G-1 downto 0);
+      qpllRst         : out Slv2Array(NUM_LANES_G-1 downto 0);
+      -- GT Ports
+      gtTxP           : out slv(NUM_LANES_G-1 downto 0);
+      gtTxN           : out slv(NUM_LANES_G-1 downto 0);
+      gtRxP           : in  slv(NUM_LANES_G-1 downto 0);
+      gtRxN           : in  slv(NUM_LANES_G-1 downto 0);
+      -- Trigger Interface (trigClk domain)
+      trigClk         : out sl;
+      trigRst         : out sl;
+      trigger         : in  sl;
+      -- Data Interface (dataClk domain)
+      dataClk         : in  sl;
+      dataRst         : in  sl;
+      dataMaster      : out AxiStreamMasterType;
+      dataSlave       : in  AxiStreamSlaveType;
+      -- Config Interface (cfgClk domain)
+      cfgClk          : in  sl;
+      cfgRst          : in  sl;
+      cfgIbMaster     : in  AxiStreamMasterType;
+      cfgIbSlave      : out AxiStreamSlaveType;
+      cfgObMaster     : out AxiStreamMasterType;
+      cfgObSlave      : in  AxiStreamSlaveType;
+      -- AXI-Lite Register Interface (axilClk domain)
+      axilClk         : in  sl                     := '0';
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+end CoaXPressGthUs;
+
+architecture mapping of CoaXPressGthUs is
+
+   constant MON_AXIL_INDEX_C   : integer := 0;
+   constant DRP_AXIL_INDEX_C   : integer := 1;
+   constant NUM_AXIL_MASTERS_C : integer := (1+NUM_LANES_G);
+
+   constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 16, 12);
+
+   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+
+   signal txClk    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txRst    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txData   : slv32Array(NUM_LANES_G-1 downto 0) := (others => (others => '0'));
+   signal txLinkUp : slv(NUM_LANES_G-1 downto 0);
+
+   signal rxClk     : slv(NUM_LANES_G-1 downto 0);
+   signal rxRst     : slv(NUM_LANES_G-1 downto 0);
+   signal rxData    : slv32Array(NUM_LANES_G-1 downto 0);
+   signal rxDataK   : Slv4Array(NUM_LANES_G-1 downto 0);
+   signal rxDispErr : slv(NUM_LANES_G-1 downto 0);
+   signal rxDecErr  : slv(NUM_LANES_G-1 downto 0);
+   signal rxLinkUp  : slv(NUM_LANES_G-1 downto 0);
+
+begin
+
+   trigClk <= txClk(0);
+   trigRst <= txRst(0);
+
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => XBAR_CONFIG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => axilWriteMasters,
+         mAxiWriteSlaves     => axilWriteSlaves,
+         mAxiReadMasters     => axilReadMasters,
+         mAxiReadSlaves      => axilReadSlaves);
+
+   U_Core : entity surf.CoaXPressCore
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_LANES_G        => NUM_LANES_G,
+         STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+         AXIS_CONFIG_G      => AXIS_CONFIG_G,
+         AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
+      port map (
+         -- Data Interface (dataClk domain)
+         dataClk         => dataClk,
+         dataRst         => dataRst,
+         dataMaster      => dataMaster,
+         dataSlave       => dataSlave,
+         -- Config Interface (cfgClk domain)
+         cfgClk          => cfgClk,
+         cfgRst          => cfgRst,
+         cfgIbMaster     => cfgIbMaster,
+         cfgIbSlave      => cfgIbSlave,
+         cfgObMaster     => cfgObMaster,
+         cfgObSlave      => cfgObSlave,
+         -- Tx Interface (txClk domain)
+         txClk           => txClk(0),
+         txRst           => txRst(0),
+         txData          => txData(0),
+         txTrig          => trigger,
+         txLinkUp        => txLinkUp(0),
+         -- Rx Interface (rxClk domain)
+         rxClk           => rxClk,
+         rxRst           => rxRst,
+         rxData          => rxData,
+         rxDataK         => rxDataK,
+         rxDispErr       => rxDispErr,
+         rxDecErr        => rxDecErr,
+         rxLinkUp        => rxLinkUp,
+         -- AXI-Lite Register Interface (axilClk domain)
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMasters(MON_AXIL_INDEX_C),
+         axilReadSlave   => axilReadSlaves(MON_AXIL_INDEX_C),
+         axilWriteMaster => axilWriteMasters(MON_AXIL_INDEX_C),
+         axilWriteSlave  => axilWriteSlaves(MON_AXIL_INDEX_C));
+
+   --------------------------
+   -- Wrapper for GTH IP core
+   --------------------------
+   GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
+      U_Gth : entity surf.CoaXPressGthUsIpWrapper
+         generic map (
+            TPD_G      => TPD_G,
+            CXP_RATE_G => CXP_RATE_G)
+         port map (
+            -- Stable Clock and Reset
+            stableClk25     => stableClk25,
+            stableRst25     => stableRst25,
+            -- QPLL Interface
+            qpllLock        => qpllLock(i),
+            qpllclk         => qpllclk(i),
+            qpllrefclk      => qpllrefclk(i),
+            qpllRst         => qpllRst(i),
+            -- GT Ports
+            gtRxP           => gtRxP(i),
+            gtRxN           => gtRxN(i),
+            gtTxP           => gtTxP(i),
+            gtTxN           => gtTxN(i),
+            -- Tx Interface (txClk domain)
+            txClk           => txClk(i),
+            txRst           => txRst(i),
+            txData          => txData(i),
+            txLinkUp        => txLinkUp(i),
+            -- Rx Interface (rxClk domain)
+            rxClk           => rxClk(i),
+            rxRst           => rxRst(i),
+            rxData          => rxData(i),
+            rxDataK         => rxDataK(i),
+            rxDispErr       => rxDispErr(i),
+            rxDecErr        => rxDecErr(i),
+            rxLinkUp        => rxLinkUp(i),
+            -- AXI-Lite Register Interface (axilClk domain)
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C+i),
+            axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C+i),
+            axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C+i),
+            axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C+i));
+   end generate GEN_LANE;
+
+end mapping;
