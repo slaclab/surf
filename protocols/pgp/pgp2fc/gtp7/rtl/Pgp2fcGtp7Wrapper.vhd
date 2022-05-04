@@ -306,27 +306,21 @@ begin
    NO_TX_CM_GEN : if (not TX_CM_EN_G) generate
       pgpTxMmcmLocked <= '1';
 
-      PGP_TX_CLK_BUFG : if (TX_USER_CLK_SRC_G = "txOutClk") generate
-         BUFG_pgpTxClk : BUFG
-            port map (
-               i => pgpTxClkBase,
-               o => pgpTxClk);
+      BUFG_pgpTxClk : BUFG
+         port map (
+            i => pgpTxClkBase,
+            o => pgpTxClk);
 
-         RstSync_pgpTxRst : entity surf.RstSync
-            generic map (
-               TPD_G           => TPD_G,
-               RELEASE_DELAY_G => 16,
-               OUT_REG_RST_G   => true)
-            port map (
-               clk      => pgpTxClk,     -- [in]
-               asyncRst => extRst,       -- [in]
-               syncRst  => pgpTxReset);  -- [out]
+      RstSync_pgpTxRst : entity surf.RstSync
+         generic map (
+            TPD_G           => TPD_G,
+            RELEASE_DELAY_G => 16,
+            OUT_REG_RST_G   => true)
+         port map (
+            clk      => pgpTxClk,       -- [in]
+            asyncRst => extRst,         -- [in]
+            syncRst  => pgpTxReset);    -- [out]
 
-      end generate PGP_TX_CLK_BUFG;
-      NO_PGP_TX_CLK_BUFG : if (TX_USER_CLK_SRC_G /= "txOutClk") generate
-         pgpTxClk   <= pgpTxClkBase;
-         pgpTxReset <= stableRst;
-      end generate;
    end generate NO_TX_CM_GEN;
 
    -- PGP RX Reset
