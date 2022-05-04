@@ -29,10 +29,10 @@ use unisim.vcomponents.all;
 
 entity CoaXPressGthUsQpll is
    generic (
-      TPD_G              : time                  := 1 ns;
-      CXP_RATE_G         : CxpSpeedType          := CXP_12_C;
+      TPD_G             : time                  := 1 ns;
+      CXP_RATE_G        : CxpSpeedType          := CXP_12_C;
       QPLL_REFCLK_SEL_G : Slv3Array(1 downto 0) := (0 => "001", 1 => "111");  -- Default: 156.25MHz=gtRefClk, 250MHz=fabric
-      EN_DRP_G           : boolean               := true);
+      EN_DRP_G          : boolean               := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -76,43 +76,43 @@ architecture mapping of CoaXPressGthUsQpll is
       QPLL_REFCLK_DIV  : natural;
    end record QpllConfig;
    constant QPLL0_C : QpllConfig := (
-      QPLL_CFG0        => "0011001000011100",
-      QPLL_CFG1        => "0001000000011000",
-      QPLL_CFG1_G3     => "0001000000011000",
-      QPLL_CFG2        => "0000000001001000",
-      QPLL_CFG2_G3     => "0000000001001000",
-      QPLL_CFG3        => "0000000100100000",
-      QPLL_CFG4        => "0000000000001001",
-      QPLL_CP          => "0000011111",
-      QPLL_CP_G3       => "1111111111",
-      QPLL_FBDIV       => 66,
+      QPLL_CFG0        => b"0011001000011100",
+      QPLL_CFG1        => b"0001000000011000",
+      QPLL_CFG1_G3     => b"0001000000011000",
+      QPLL_CFG2        => b"0000000001001000",
+      QPLL_CFG2_G3     => b"0000000001001000",
+      QPLL_CFG3        => b"0000000100100000",
+      QPLL_CFG4        => b"0000000000000000",
+      QPLL_CP          => b"0111111111",
+      QPLL_CP_G3       => b"1111111111",
+      QPLL_FBDIV       => 80,
       QPLL_FBDIV_G3    => 80,
-      QPLL_INIT_CFG0   => "0000001010110010",
-      QPLL_INIT_CFG1   => "00000000",
-      QPLL_LOCK_CFG    => "0010000111101000",
-      QPLL_LOCK_CFG_G3 => "0010000111101000",
-      QPLL_LPF         => "1111111100",
-      QPLL_LPF_G3      => "0000010101",
+      QPLL_INIT_CFG0   => b"0000001010110010",
+      QPLL_INIT_CFG1   => b"00000000",
+      QPLL_LOCK_CFG    => b"0010000111101000",
+      QPLL_LOCK_CFG_G3 => b"0010000111101000",
+      QPLL_LPF         => b"1111111100",
+      QPLL_LPF_G3      => b"0000010101",
       QPLL_REFCLK_DIV  => 1);
    constant QPLL1_C : QpllConfig := (
-      QPLL_CFG0        => "0011001000011100",
-      QPLL_CFG1        => "0001000000011000",
-      QPLL_CFG1_G3     => "0001000000011000",
-      QPLL_CFG2        => "0000000001001000",
-      QPLL_CFG2_G3     => "0000000001001000",
-      QPLL_CFG3        => "0000000100100000",
-      QPLL_CFG4        => "0000000000001001",
-      QPLL_CP          => "0000011111",
-      QPLL_CP_G3       => "1111111111",
-      QPLL_FBDIV       => 66,
+      QPLL_CFG0        => b"0011001000011100",
+      QPLL_CFG1        => b"0001000000011000",
+      QPLL_CFG1_G3     => b"0001000000011000",
+      QPLL_CFG2        => b"0000000001000000",
+      QPLL_CFG2_G3     => b"0000000001000000",
+      QPLL_CFG3        => b"0000000100100000",
+      QPLL_CFG4        => b"0000000000000000",
+      QPLL_CP          => b"0111111111",
+      QPLL_CP_G3       => b"1111111111",
+      QPLL_FBDIV       => 128,
       QPLL_FBDIV_G3    => 80,
-      QPLL_INIT_CFG0   => "0000001010110010",
-      QPLL_INIT_CFG1   => "00000000",
-      QPLL_LOCK_CFG    => "0010000111101000",
-      QPLL_LOCK_CFG_G3 => "0010000111101000",
-      QPLL_LPF         => "1111111100",
-      QPLL_LPF_G3      => "0000010101",
-      QPLL_REFCLK_DIV  => 1);
+      QPLL_INIT_CFG0   => b"0000001010110010",
+      QPLL_INIT_CFG1   => b"00000000",
+      QPLL_LOCK_CFG    => b"0010000111101000",
+      QPLL_LOCK_CFG_G3 => b"0010000111101000",
+      QPLL_LPF         => b"1111111100",
+      QPLL_LPF_G3      => b"0000010101",
+      QPLL_REFCLK_DIV  => 3);
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -193,22 +193,21 @@ begin
          -- Clock Selects
          QPLL_REFCLK_SEL_G  => QPLL_REFCLK_SEL_G)
       port map (
-         qPllRefClk       => pllRefClk,
-         qPllOutClk       => pllOutClk,
-         qPllOutRefClk    => pllOutRefClk,
-         qPllFbClkLost    => pllFbClkLost,
-         qPllLock         => pllLock,
-         qPllLockDetClk   => pllLockDetClk,
-         qPllRefClkLost   => pllRefClkLost,
-         qPllPowerDown(0) => '0',       -- Never power down QPLL[0]
-         qPllPowerDown(1) => '1',       -- Power down QPLL[1]
-         qPllReset        => pllReset,
+         qPllRefClk      => pllRefClk,
+         qPllOutClk      => pllOutClk,
+         qPllOutRefClk   => pllOutRefClk,
+         qPllFbClkLost   => pllFbClkLost,
+         qPllLock        => pllLock,
+         qPllLockDetClk  => pllLockDetClk,
+         qPllRefClkLost  => pllRefClkLost,
+         qPllPowerDown   => "00",       -- Never power down QPLL
+         qPllReset       => pllReset,
          -- AXI Lite interface
-         axilClk          => axilClk,
-         axilRst          => axilRst,
-         axilReadMaster   => axilReadMaster,
-         axilReadSlave    => axilReadSlave,
-         axilWriteMaster  => axilWriteMaster,
-         axilWriteSlave   => axilWriteSlave);
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave);
 
 end mapping;

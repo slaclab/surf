@@ -38,9 +38,9 @@ entity CoaXPressAxiL is
       swTrig          : out sl;
       txTrigDrop      : in  sl;
       txLinkUp        : in  sl;
-      -- Rx Interface (rxClk[0] domain)
-      rxClk           : in  sl;
-      rxRst           : in  sl;
+      -- Rx Interface (rxClk domain)
+      rxClk           : in  slv(NUM_LANES_G-1 downto 0);
+      rxRst           : in  slv(NUM_LANES_G-1 downto 0);
       rxDispErr       : in  slv(NUM_LANES_G-1 downto 0);
       rxDecErr        : in  slv(NUM_LANES_G-1 downto 0);
       rxFifoOverflow  : in  slv(NUM_LANES_G-1 downto 0);
@@ -93,11 +93,14 @@ architecture rtl of CoaXPressAxiL is
 
    signal txStatusOut : slv(2 downto 0);
    signal trigFreq    : slv(31 downto 0);
+   signal txClkFreq   : slv(31 downto 0);
+   signal rxClkFreq   : Slv32Array(NUM_LANES_G-1 downto 0);
 
 begin
 
-   process (axilRst, r, rxCntOut, rxDecErrCnt, rxDispErrCnt, rxFifoOverflowCnt,
-            rxLinkUpCnt, rxLinkUpStatus, trigFreq, txCntOut, txStatusOut) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxClkFreq, rxCntOut,
+            rxDecErrCnt, rxDispErrCnt, rxFifoOverflowCnt, rxLinkUpCnt,
+            rxLinkUpStatus, trigFreq, txClkFreq, txCntOut, txStatusOut) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -112,16 +115,22 @@ begin
       ------------------------
       -- AXI-Lite Transactions
       ------------------------
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+
       for i in 0 to NUM_LANES_G-1 loop
          axiSlaveRegisterR(axilEp, x"000"+toSlv(i*4+0*64, 12), 0, muxSlVectorArray(rxLinkUpCnt, i));  -- 0x000:0x03F
          axiSlaveRegisterR(axilEp, x"040"+toSlv(i*4+1*64, 12), 0, muxSlVectorArray(rxFifoOverflowCnt, i));  -- 0x040:0x07F
          axiSlaveRegisterR(axilEp, x"080"+toSlv(i*4+2*64, 12), 0, muxSlVectorArray(rxDecErrCnt, i));  -- 0x080:0x0BF
          axiSlaveRegisterR(axilEp, x"0C0"+toSlv(i*4+3*64, 12), 0, muxSlVectorArray(rxDispErrCnt, i));  -- 0x0C0:0x0FF
+         axiSlaveRegisterR(axilEp, x"100"+toSlv(i*4+4*64, 12), 0, rxClkFreq(i));  -- 0x100:0x13F
       end loop;
 
       axiSlaveRegisterR(axilEp, x"700", 0, rxLinkUpStatus);
       axiSlaveRegisterR(axilEp, x"704", 0, txStatusOut);
       axiSlaveRegisterR(axilEp, x"708", 0, trigFreq);
+      axiSlaveRegisterR(axilEp, x"70C", 0, txClkFreq);
 
       axiSlaveRegisterR(axilEp, x"710", 0, muxSlVectorArray(rxCntOut, 0));
       axiSlaveRegisterR(axilEp, x"714", 0, muxSlVectorArray(rxCntOut, 1));
@@ -130,6 +139,8 @@ begin
       axiSlaveRegisterR(axilEp, x"724", 0, muxSlVectorArray(txCntOut, 1));
       axiSlaveRegisterR(axilEp, x"728", 0, muxSlVectorArray(txCntOut, 2));
 
+      axiSlaveRegisterR(axilEp, x"FF0", 0, toSlv(NUM_LANES_G, 8));
+      axiSlaveRegisterR(axilEp, x"FF0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegister (axilEp, X"FF4", 0, v.swTrig);
       axiSlaveRegister (axilEp, X"FF8", 0, v.rxFifoRst);
       axiSlaveRegister (axilEp, X"FFC", 0, v.cntRst);
@@ -203,6 +214,18 @@ begin
          locClk      => axilClk,
          refClk      => axilClk);
 
+   U_txClkFreq : entity surf.SyncClockFreq
+      generic map (
+         TPD_G          => TPD_G,
+         REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
+         COMMON_CLK_G   => true,        -- locClk = refClk
+         CNT_WIDTH_G    => 32)
+      port map (
+         freqOut => txClkFreq,
+         clkIn   => txClk,
+         locClk  => axilClk,
+         refClk  => axilClk);
+
    ---------------------------
    -- Receiver Synchronization
    ---------------------------
@@ -211,8 +234,8 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => rxClk,
-         rst     => rxRst,
+         clk     => rxClk(0),
+         rst     => rxRst(0),
          dataIn  => r.rxFifoRst,
          dataOut => rxFifoRst);
 
@@ -221,8 +244,8 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => NUM_LANES_G)
       port map (
-         clk     => rxClk,
-         rst     => rxRst,
+         clk     => rxClk(0),
+         rst     => rxRst(0),
          dataIn  => rxDispErr,
          dataOut => rxDispErrSync);
 
@@ -235,8 +258,8 @@ begin
          statusIn => rxDispErrSync,
          cntRstIn => r.cntRst,
          cntOut   => rxDispErrCnt,
-         wrClk    => rxClk,
-         wrRst    => rxRst,
+         wrClk    => rxClk(0),
+         wrRst    => rxRst(0),
          rdClk    => axilClk,
          rdRst    => axilRst);
 
@@ -245,8 +268,8 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => NUM_LANES_G)
       port map (
-         clk     => rxClk,
-         rst     => rxRst,
+         clk     => rxClk(0),
+         rst     => rxRst(0),
          dataIn  => rxDecErr,
          dataOut => rxDecErrSync);
 
@@ -259,8 +282,8 @@ begin
          statusIn => rxDecErrSync,
          cntRstIn => r.cntRst,
          cntOut   => rxDecErrCnt,
-         wrClk    => rxClk,
-         wrRst    => rxRst,
+         wrClk    => rxClk(0),
+         wrRst    => rxRst(0),
          rdClk    => axilClk,
          rdRst    => axilRst);
 
@@ -269,8 +292,8 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => NUM_LANES_G)
       port map (
-         clk     => rxClk,
-         rst     => rxRst,
+         clk     => rxClk(0),
+         rst     => rxRst(0),
          dataIn  => rxFifoOverflow,
          dataOut => rxFifoOverflowSync);
 
@@ -283,8 +306,8 @@ begin
          statusIn => rxFifoOverflowSync,
          cntRstIn => r.cntRst,
          cntOut   => rxFifoOverflowCnt,
-         wrClk    => rxClk,
-         wrRst    => rxRst,
+         wrClk    => rxClk(0),
+         wrRst    => rxRst(0),
          rdClk    => axilClk,
          rdRst    => axilRst);
 
@@ -293,8 +316,8 @@ begin
          TPD_G   => TPD_G,
          WIDTH_G => NUM_LANES_G)
       port map (
-         clk     => rxClk,
-         rst     => rxRst,
+         clk     => rxClk(0),
+         rst     => rxRst(0),
          dataIn  => rxLinkUp,
          dataOut => rxLinkUpSync);
 
@@ -308,8 +331,8 @@ begin
          statusOut => rxLinkUpStatus,
          cntRstIn  => r.cntRst,
          cntOut    => rxLinkUpCnt,
-         wrClk     => rxClk,
-         wrRst     => rxRst,
+         wrClk     => rxClk(0),
+         wrRst     => rxRst(0),
          rdClk     => axilClk,
          rdRst     => axilRst);
 
@@ -323,10 +346,27 @@ begin
          statusIn(1) => rxDataDrop,
          cntRstIn    => r.cntRst,
          cntOut      => rxCntOut,
-         wrClk       => rxClk,
-         wrRst       => rxRst,
+         wrClk       => rxClk(0),
+         wrRst       => rxRst(0),
          rdClk       => axilClk,
          rdRst       => axilRst);
+
+   GEN_VEC :
+   for i in (NUM_LANES_G-1) downto 0 generate
+
+      U_rxClkFreq : entity surf.SyncClockFreq
+         generic map (
+            TPD_G          => TPD_G,
+            REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
+            COMMON_CLK_G   => true,     -- locClk = refClk
+            CNT_WIDTH_G    => 32)
+         port map (
+            freqOut => rxClkFreq(i),
+            clkIn   => rxClk(i),
+            locClk  => axilClk,
+            refClk  => axilClk);
+
+   end generate GEN_VEC;
 
 end rtl;
 

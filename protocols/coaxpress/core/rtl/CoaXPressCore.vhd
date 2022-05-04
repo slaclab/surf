@@ -58,12 +58,12 @@ entity CoaXPressCore is
       rxDecErr        : in  slv(NUM_LANES_G-1 downto 0);
       rxLinkUp        : in  slv(NUM_LANES_G-1 downto 0);
       -- AXI-Lite Register Interface (axilClk domain)
-      axilClk         : in  sl                     := '0';
-      axilRst         : in  sl                     := '0';
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end entity CoaXPressCore;
 
 architecture mapping of CoaXPressCore is
@@ -137,9 +137,9 @@ begin
          swTrig          => swTrig,
          txTrigDrop      => txTrigDrop,
          txLinkUp        => txLinkUp,
-         -- Rx Interface (rxClk[0] domain)
-         rxClk           => rxClk(0),
-         rxRst           => rxRst(0),
+         -- Rx Interface (rxClk domain)
+         rxClk           => rxClk,
+         rxRst           => rxRst,
          rxDispErr       => rxDispErr,
          rxDecErr        => rxDecErr,
          rxFifoRst       => rxFifoRst,
