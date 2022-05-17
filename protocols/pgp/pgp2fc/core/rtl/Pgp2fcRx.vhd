@@ -38,7 +38,7 @@ entity Pgp2fcRx is
       pgpRxClkEn       : in  sl := '1'; -- Master clock enable
       pgpRxClk         : in  sl;        -- Master clock
       pgpRxClkRst      : in  sl;        -- Synchronous reset input
-      
+
       -- Fast control interface
       fcRecv           : out sl := '0';
       fcWord           : out slv(16*FC_WORDS_G-1 downto 0);

@@ -29,14 +29,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
-
-library unisim;
-use unisim.vcomponents.all;
 
 entity AxiI2cEepromCore is
    generic (

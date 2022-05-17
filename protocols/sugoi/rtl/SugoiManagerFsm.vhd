@@ -355,7 +355,7 @@ begin
             -- Check for checksum
             if (r.rxByteCnt = 11) and (rxData /= not(r.rxXsum)) then
                -- Sent the footer's checksum error bit
-               v.rxMsg(10)(SUGIO_FOOTER_XSUM_ERROR_C) := '1';
+               v.rxMsg(10)(SUGOI_FOOTER_XSUM_ERROR_C) := '1';
                -- Don't update rxXsum (sim debug only)
                v.rxXsum                               := r.rxXsum;
             end if;
@@ -445,7 +445,7 @@ begin
 
                -- Setup the request message
                v.txMsg(0)  := CODE_SOF_C;
-               v.txMsg(1)  := toSlv(devIdx, 4) & RnW & SUGIO_VERSION_C;  --  Header
+               v.txMsg(1)  := toSlv(devIdx, 4) & RnW & SUGOI_VERSION_C;  --  Header
                v.txMsg(2)  := addr(31 downto 24);
                v.txMsg(3)  := addr(23 downto 16);
                v.txMsg(4)  := addr(15 downto 8);
@@ -494,17 +494,17 @@ begin
                end if;
 
                -- Check for mismatch in Version
-               if (r.rxMsg(1)(SUGIO_HDR_VERSION_FIELD_C) /= SUGIO_VERSION_C) then
+               if (r.rxMsg(1)(SUGOI_HDR_VERSION_FIELD_C) /= SUGOI_VERSION_C) then
                   axilResp(1) := '1';
                end if;
 
                -- Check for mismatch in operation type
-               if (r.rxMsg(1)(SUGIO_HDR_OP_TYPE_C) /= r.txMsg(1)(SUGIO_HDR_OP_TYPE_C)) then
+               if (r.rxMsg(1)(SUGOI_HDR_OP_TYPE_C) /= r.txMsg(1)(SUGOI_HDR_OP_TYPE_C)) then
                   axilResp(1) := '1';
                end if;
 
                -- Check for dev address not processed
-               if (r.rxMsg(1)(SUGIO_HDR_DDEV_ID_FIELD_C) /= 0) then
+               if (r.rxMsg(1)(SUGOI_HDR_DDEV_ID_FIELD_C) /= 0) then
                   axilResp(1) := '1';
                end if;
 
@@ -526,7 +526,7 @@ begin
                end if;
 
                -- Check for read operation
-               if (r.txMsg(1)(SUGIO_HDR_OP_TYPE_C) = '1') then
+               if (r.txMsg(1)(SUGOI_HDR_OP_TYPE_C) = '1') then
                   -- Forward the readout data
                   v.axilReadSlave.rdata := r.rxMsg(6) & r.rxMsg(7) & r.rxMsg(8) & r.rxMsg(9);
                   -- Send AXI-Lite response
@@ -544,7 +544,7 @@ begin
          ----------------------------------------------------------------------
          when RESP_S =>
             -- Check for read operation
-            if (r.txMsg(1)(SUGIO_HDR_OP_TYPE_C) = '1') then
+            if (r.txMsg(1)(SUGOI_HDR_OP_TYPE_C) = '1') then
 
                -- Closeout TXN
                axiSlaveWaitReadTxn(axilReadMaster, v.axilReadSlave, axilEp.axiStatus.readEnable);

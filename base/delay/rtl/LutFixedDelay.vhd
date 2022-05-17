@@ -18,9 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
-library UNISIM;
-use UNISIM.VComponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 

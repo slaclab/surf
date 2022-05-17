@@ -129,19 +129,19 @@ begin
          DEVICE_FAMILY_G    => "ULTRASCALE")
       port map (
          -- SUGOI Serial Ports
-         sugioRxP        => txP(NUM_SUB_C-1),
-         sugioRxN        => txN(NUM_SUB_C-1),
-         sugioTxP        => rxP(0),
-         sugioTxN        => rxN(0),
-         sugioClkP       => clkInP(0),
-         sugioClkN       => clkInN(0),
+         sugoiRxP        => txP(NUM_SUB_C-1),
+         sugoiRxN        => txN(NUM_SUB_C-1),
+         sugoiTxP        => rxP(0),
+         sugoiTxN        => rxN(0),
+         sugoiClkP       => clkInP(0),
+         sugoiClkN       => clkInN(0),
          -- Timing and Trigger Interface (timingClk domain)
          timingClk       => axilClk,
          timingRst       => axilRst,
-         sugioGlobalRst  => manGlobalRst,
-         sugioOpCode     => manOpCodeMask,
-         sugioStrobe     => manStrobe,
-         sugioLinkup     => linkup(NUM_SUB_C),
+         sugoiGlobalRst  => manGlobalRst,
+         sugoiOpCode     => manOpCodeMask,
+         sugoiStrobe     => manStrobe,
+         sugoiLinkup     => linkup(NUM_SUB_C),
          -- AXI-Lite Master Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,
@@ -279,7 +279,7 @@ begin
          for j in 0 to 3 loop
 
             ------------------------------------------------
-            -- Sweeping the data byte field in SUGIO payload
+            -- Sweeping the data byte field in SUGOI payload
             ------------------------------------------------
             addr   := toSlv((i+1)*ADDR_STRIDE_C+4, 32);
             wrData := toSlv(2**(8*j)+i, 32);
@@ -292,7 +292,7 @@ begin
             end if;
 
             ---------------------------------------------------
-            -- Sweeping the address byte field in SUGIO payload
+            -- Sweeping the address byte field in SUGOI payload
             ---------------------------------------------------
             addr := toSlv((i+1)*ADDR_STRIDE_C+(ADDR_STRIDE_C/2)+4*(2**(8*j)), 32);
             axiLiteBusSimRead (axilClk, axilReadMaster, axilReadSlave, addr, rdData, true);
