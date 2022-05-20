@@ -37,7 +37,7 @@ entity Pgp2fcGtp7Wrapper is
       SIM_VERSION_G           : string                 := "2.0";
       SIMULATION_G            : boolean                := false;
       -- PGP Settings
-      FC_WORDS_G              : integer range 1 to 4   := 1;
+      FC_WORDS_G              : integer range 1 to 8   := 1;
       VC_INTERLEAVE_G         : integer                := 0;      -- No interleave Frames
       PAYLOAD_CNT_TOP_G       : integer                := 7;      -- Top bit for payload counter
       NUM_VC_EN_G             : integer range 1 to 4   := 4;
