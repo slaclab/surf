@@ -332,7 +332,7 @@ begin
    end generate;
 
    FbNoBufg : if (not FB_BUFG_G) generate
-      clkFbOut <= clkFbIn;
+      clkFbIn <= clkFbOut;
    end generate;
 
    ClkOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate

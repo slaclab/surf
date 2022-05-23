@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
 
 # Get the family type
 set family [getFpgaArch]
@@ -20,7 +20,10 @@ if { ${family} eq {kintexu} ||
    set fpgaType "UltraScale"
 }
 
-# Load the source code
-loadSource -lib surf -dir           "$::DIR_PATH/rtl"
-loadSource -lib surf -dir           "$::DIR_PATH/rtl/${fpgaType}"
-loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
+# Check for non-zero Vivado version (in-case non-Vivado project)
+if { ($::env(VIVADO_VERSION) >= 0.0) && ([isVersal] != true) } {
+   # Load the source code
+   loadSource -lib surf -dir           "$::DIR_PATH/rtl"
+   loadSource -lib surf -dir           "$::DIR_PATH/rtl/${fpgaType}"
+   loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
+}

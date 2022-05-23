@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI-Lite I2C Register Master
+-- Description: Wrapper for LeapXcvrCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -23,66 +23,68 @@ use surf.I2cPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity AxiI2cRegMaster is
+entity LeapXcvr is
    generic (
-      TPD_G           : time               := 1 ns;
-      AXIL_PROXY_G    : boolean            := false;
-      DEVICE_MAP_G    : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
-      I2C_SCL_FREQ_G  : real               := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G : real               := 100.0E-9;    -- units of seconds
-      AXI_CLK_FREQ_G  : real               := 156.25E+6);  -- units of Hz
+      TPD_G           : time            := 1 ns;
+      I2C_BASE_ADDR_G : slv(3 downto 0) := "0000";    -- A[3:0] pin config
+      I2C_SCL_FREQ_G  : real            := 100.0E+3;  -- units of Hz
+      I2C_MIN_PULSE_G : real            := 100.0E-9;  -- units of seconds
+      AXIL_CLK_FREQ_G : real            := 156.25E+6);  -- units of Hz
    port (
-      -- Clocks and Resets
-      axiClk         : in    sl;
-      axiRst         : in    sl;
-      -- AXI-Lite Register Interface
-      axiReadMaster  : in    AxiLiteReadMasterType;
-      axiReadSlave   : out   AxiLiteReadSlaveType;
-      axiWriteMaster : in    AxiLiteWriteMasterType;
-      axiWriteSlave  : out   AxiLiteWriteSlaveType;
       -- I2C Ports
-      sel            : out   slv(DEVICE_MAP_G'length-1 downto 0);
-      scl            : inout sl;
-      sda            : inout sl);
-end AxiI2cRegMaster;
+      scl             : inout sl;
+      sda             : inout sl;
+      -- Optional I/O Ports
+      intL            : in    sl := '1';
+      rstL            : out   sl;
+      -- AXI-Lite Register Interface
+      axilReadMaster  : in    AxiLiteReadMasterType;
+      axilReadSlave   : out   AxiLiteReadSlaveType;
+      axilWriteMaster : in    AxiLiteWriteMasterType;
+      axilWriteSlave  : out   AxiLiteWriteSlaveType;
+      -- Clocks and Resets
+      axilClk         : in    sl;
+      axilRst         : in    sl);
+end LeapXcvr;
 
-architecture mapping of AxiI2cRegMaster is
+architecture mapping of LeapXcvr is
 
    signal i2ci : i2c_in_type;
    signal i2co : i2c_out_type;
 
 begin
 
-   U_Core : entity surf.AxiI2cRegMasterCore
+   U_Core : entity surf.LeapXcvrCore
       generic map (
          TPD_G           => TPD_G,
-         AXIL_PROXY_G    => AXIL_PROXY_G,
-         DEVICE_MAP_G    => DEVICE_MAP_G,
+         I2C_BASE_ADDR_G => I2C_BASE_ADDR_G,
          I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
          I2C_MIN_PULSE_G => I2C_MIN_PULSE_G,
-         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G)
+         AXIL_CLK_FREQ_G => AXIL_CLK_FREQ_G)
       port map (
-         -- Clocks and Resets
-         axiClk         => axiClk,
-         axiRst         => axiRst,
+         -- I2C Interface
+         i2ci            => i2ci,
+         i2co            => i2co,
+         -- Optional I/O Ports
+         intL            => intL,
+         rstL            => rstL,
          -- AXI-Lite Register Interface
-         axiReadMaster  => axiReadMaster,
-         axiReadSlave   => axiReadSlave,
-         axiWriteMaster => axiWriteMaster,
-         axiWriteSlave  => axiWriteSlave,
-         -- I2C Ports
-         sel            => sel,
-         i2ci           => i2ci,
-         i2co           => i2co);
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- Clocks and Resets
+         axilClk         => axilClk,
+         axilRst         => axilRst);
 
-   IOBUF_SCL : IOBUF
+   IOBUF_SCL : entity surf.IoBufWrapper
       port map (
          O  => i2ci.scl,                -- Buffer output
          IO => scl,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.scl,                -- Buffer input
          T  => i2co.scloen);  -- 3-state enable input, high=input, low=output
 
-   IOBUF_SDA : IOBUF
+   IOBUF_SDA : entity surf.IoBufWrapper
       port map (
          O  => i2ci.sda,                -- Buffer output
          IO => sda,  -- Buffer inout port (connect directly to top-level port)

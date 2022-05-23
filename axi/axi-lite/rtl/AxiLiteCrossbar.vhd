@@ -125,6 +125,7 @@ architecture rtl of AxiLiteCrossbar is
 
 begin
 
+-- synopsys translate_off
    assert (NUM_MASTER_SLOTS_G = MASTERS_CONFIG_G'length)
       report "Mismatch between NUM_MASTER_SLOTS_G and MASTERS_CONFIG_G'length"
       severity error;
@@ -141,8 +142,10 @@ begin
             "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
             "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity));
    end generate printCfg;
+-- synopsys translate_on
 
-   comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sAxiReadMasters, sAxiWriteMasters) is
+   comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r,
+                   sAxiReadMasters, sAxiWriteMasters) is
       variable v            : RegType;
       variable sAxiStatuses : AxiStatusArray(NUM_SLAVE_SLOTS_G-1 downto 0);
       variable mRdReqs      : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
@@ -178,7 +181,7 @@ begin
                      -- Check for address match
                      if ((MASTERS_CONFIG_G(m).addrBits = 32)
                          or (
-                            StdMatch(   -- Use std_match to allow dontcares ('-')
+                            StdMatch(  -- Use std_match to allow dontcares ('-')
                                sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                                MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                             and (MASTERS_CONFIG_G(m).connectivity(s) = '1')))
@@ -250,7 +253,7 @@ begin
                      -- Check for address match
                      if ((MASTERS_CONFIG_G(m).addrBits = 32)
                          or (
-                            StdMatch(   -- Use std_match to allow dontcares ('-')
+                            StdMatch(  -- Use std_match to allow dontcares ('-')
                                sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                                MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                             and (MASTERS_CONFIG_G(m).connectivity(s) = '1')))
@@ -373,8 +376,10 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         if (MASTERS_CONFIG_G(m).addrBits /= 32) then
+            v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         end if;
 
 
          -- Read path processing
@@ -425,8 +430,10 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         if (MASTERS_CONFIG_G(m).addrBits /= 32) then
+            v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         end if;
 
       end loop;
 

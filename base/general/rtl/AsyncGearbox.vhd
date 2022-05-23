@@ -29,6 +29,7 @@ entity AsyncGearbox is
       SLAVE_BIT_REVERSE_G  : boolean  := false;
       MASTER_WIDTH_G       : positive;
       MASTER_BIT_REVERSE_G : boolean  := false;
+      EN_EXT_CTRL_G        : boolean  := true;  -- Set to false if slaveBitOrder, masterBitOrder and slip ports are unused for better performance
       -- Pipelining generics
       INPUT_PIPE_STAGES_G  : natural  := 0;
       OUTPUT_PIPE_STAGES_G : natural  := 0;
@@ -67,9 +68,9 @@ architecture mapping of AsyncGearbox is
    signal gearboxDataOut        : slv(MASTER_WIDTH_G-1 downto 0);
    signal gearboxValidOut       : sl;
    signal gearboxReadyOut       : sl;
-   signal gearboxSlip           : sl;
-   signal gearboxSlaveBitOrder  : sl;
-   signal gearboxMasterBitOrder : sl;
+   signal gearboxSlip           : sl := '0';
+   signal gearboxSlaveBitOrder  : sl := ite(SLAVE_BIT_REVERSE_G, '1', '0');
+   signal gearboxMasterBitOrder : sl := ite(MASTER_BIT_REVERSE_G, '1', '0');
    signal almostFull            : sl;
    signal writeEnable           : sl;
    signal asyncFifoRst          : sl;
@@ -81,32 +82,35 @@ begin
 
    asyncFifoRst <= slaveRst or masterRst;
 
-   U_SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => fastClk,            -- [in]
-         rst     => fastRst,            -- [in]
-         dataIn  => slip,               -- [in]
-         dataOut => gearboxSlip);       -- [out]
+   GEN_EN_EXT_CTRL : if (EN_EXT_CTRL_G) generate
 
-   U_slaveBitOrder : entity surf.Synchronizer
-      generic map (
-         TPD_G  => TPD_G,
-         INIT_G => ite(SLAVE_BIT_REVERSE_G, "11", "00"))
-      port map (
-         clk     => fastClk,
-         dataIn  => slaveBitOrder,
-         dataOut => gearboxSlaveBitOrder);
+      U_slip : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk     => fastClk,
+            dataIn  => slip,
+            dataOut => gearboxSlip);
 
-   U_masterBitOrder : entity surf.Synchronizer
-      generic map (
-         TPD_G  => TPD_G,
-         INIT_G => ite(MASTER_BIT_REVERSE_G, "11", "00"))
-      port map (
-         clk     => fastClk,
-         dataIn  => masterBitOrder,
-         dataOut => gearboxMasterBitOrder);
+      U_slaveBitOrder : entity surf.Synchronizer
+         generic map (
+            TPD_G  => TPD_G,
+            INIT_G => ite(SLAVE_BIT_REVERSE_G, "11", "00"))
+         port map (
+            clk     => fastClk,
+            dataIn  => slaveBitOrder,
+            dataOut => gearboxSlaveBitOrder);
+
+      U_masterBitOrder : entity surf.Synchronizer
+         generic map (
+            TPD_G  => TPD_G,
+            INIT_G => ite(MASTER_BIT_REVERSE_G, "11", "00"))
+         port map (
+            clk     => fastClk,
+            dataIn  => masterBitOrder,
+            dataOut => gearboxMasterBitOrder);
+
+   end generate GEN_EN_EXT_CTRL;
 
    SLAVE_FIFO_GEN : if (not SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity surf.FifoAsync

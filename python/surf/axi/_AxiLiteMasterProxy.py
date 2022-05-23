@@ -15,8 +15,10 @@ import time
 import queue
 
 class _Regs(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, pollPeriod=0.0, **kwargs):
         super().__init__(**kwargs)
+
+        self._pollPeriod = pollPeriod
 
         self._queue = queue.Queue()
         self._pollThread = threading.Thread(target=self._pollWorker)
@@ -114,7 +116,7 @@ class _Regs(pr.Device):
                 while done is False:
                     done = self.Done.get(read=True)
                     #print(f'Polled done: {done}')
-                    time.sleep(.1)
+                    time.sleep(self._pollPeriod)
 
                 # Check for error flags
                 resp = self.Resp.get(read=True)
@@ -145,14 +147,15 @@ class _ProxySlave(rogue.interfaces.memory.Slave):
 
 class AxiLiteMasterProxy(pr.Device):
 
-    def __init__(self, hidden=True,**kwargs):
-        super().__init__(hidden=hidden,**kwargs)
+    def __init__(self, hidden=True, pollPeriod=0.0, **kwargs):
+        super().__init__(hidden=hidden, **kwargs)
 
         self.add(_Regs(
             name    = 'Regs',
             memBase = self,
             offset  = 0x0000,
             hidden  = hidden,
+            pollPeriod = pollPeriod,
         ))
         self.proxy = _ProxySlave(self.Regs)
 
