@@ -29,7 +29,7 @@ use surf.Pgp2fcPkg.all;
 entity Pgp2fcTxPhy is
    generic (
       TPD_G         : time                 := 1 ns;
-      FC_WORDS_G    : integer range 1 to 4 := 1                 -- Number of 16-bit words for fast control, max is packet size minus 1
+      FC_WORDS_G    : integer range 1 to 8 := 1                 -- Number of 16-bit words for fast control, max is packet size minus 1
    );
    port (
 

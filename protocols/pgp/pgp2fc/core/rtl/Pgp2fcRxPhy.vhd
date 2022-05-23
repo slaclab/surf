@@ -27,7 +27,7 @@ use surf.Pgp2fcPkg.all;
 entity Pgp2fcRxPhy is
    generic (
       TPD_G         : time                 := 1 ns;
-      FC_WORDS_G    : integer range 1 to 4 := 1
+      FC_WORDS_G    : integer range 1 to 8 := 1
       );
    port (
 

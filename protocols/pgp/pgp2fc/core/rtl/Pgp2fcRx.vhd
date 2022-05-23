@@ -29,7 +29,7 @@ use surf.SsiPkg.all;
 entity Pgp2fcRx is
    generic (
       TPD_G             : time                 := 1 ns;
-      FC_WORDS_G        : integer range 1 to 4 := 1;
+      FC_WORDS_G        : integer range 1 to 8 := 1;
       PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
    );
    port (

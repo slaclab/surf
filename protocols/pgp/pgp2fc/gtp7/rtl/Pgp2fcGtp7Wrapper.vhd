@@ -408,6 +408,7 @@ begin
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
+         FC_WORDS_G            => FC_WORDS_G,
          PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G           => NUM_VC_EN_G,
          TX_POLARITY_G         => TX_POLARITY_G,
