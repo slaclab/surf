@@ -23,12 +23,12 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
-use surf.Pgp2bPkg.all;
+use surf.Pgp2fcPkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity Pgp2bGtyUltra is
+entity Pgp2fcGtyUltra is
    generic (
       TPD_G             : time                 := 1 ns;
       ----------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ entity Pgp2bGtyUltra is
       NUM_VC_EN_G       : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
       stableRst        : in  sl;
       gtRefClk         : in  sl;
       -- Gt Serial IO
@@ -54,21 +54,26 @@ entity Pgp2bGtyUltra is
       -- Tx Clocking
       pgpTxReset       : in  sl;
       pgpTxResetDone   : out sl;
-      pgpTxOutClk      : out sl;        -- recovered clock
+      pgpTxOutClk      : out sl;                      -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
       pgpRxResetDone   : out sl;
-      pgpRxOutClk      : out sl;        -- recovered clock
+      pgpRxOutClk      : out sl;                      -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmLocked  : in  sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  Pgp2bRxInType;
-      pgpRxOut         : out Pgp2bRxOutType;
+      pgpRxIn          : in  Pgp2fcRxInType;
+      pgpRxOut         : out Pgp2fcRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  Pgp2bTxInType;
-      pgpTxOut         : out Pgp2bTxOutType;
+      pgpTxIn          : in  Pgp2fcTxInType;
+      pgpTxOut         : out Pgp2fcTxOutType;
+      -- FC signals
+      pgpTxFcValid     : in  sl                               := '0';
+      pgpTxFcWord      : in  slv(16*FC_WORDS_G-1 downto 0)    := (others => '0');
+      pgpRxFcValid     : out sl;
+      pgpRxFcWord      : out slv(16*FC_WORDS_G-1 downto 0);
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
@@ -83,9 +88,9 @@ entity Pgp2bGtyUltra is
       axilReadSlave    : out AxiLiteReadSlaveType;
       axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave   : out AxiLiteWriteSlaveType);
-end Pgp2bGtyUltra;
+end Pgp2fcGtyUltra;
 
-architecture mapping of Pgp2bGtyUltra is
+architecture mapping of Pgp2fcGtyUltra is
 
    signal resetGtSync : sl;
    signal gtHardReset : sl;
@@ -93,14 +98,14 @@ architecture mapping of Pgp2bGtyUltra is
    -- PgpRx Signals
    signal resetRxSync   : sl;
    signal gtRxUserReset : sl;
-   signal phyRxLaneIn   : Pgp2bRxPhyLaneInType;
-   signal phyRxLaneOut  : Pgp2bRxPhyLaneOutType;
+   signal phyRxLaneIn   : Pgp2fcRxPhyLaneInType;
+   signal phyRxLaneOut  : Pgp2fcRxPhyLaneOutType;
    signal phyRxReady    : sl;
    signal phyRxInit     : sl;
 
    -- PgpTx Signals
    signal gtTxUserReset : sl;
-   signal phyTxLaneOut  : Pgp2bTxPhyLaneOutType;
+   signal phyTxLaneOut  : Pgp2fcTxPhyLaneOutType;
    signal phyTxReady    : sl;
 
    signal phyRxInitSync : sl;
@@ -151,9 +156,9 @@ begin
          clk    => stableClk,           -- [in]
          rstOut => gtTxUserReset);      -- [out]
 
-   U_Pgp2bLane : entity surf.Pgp2bLane
+   U_Pgp2fcLane : entity surf.Pgp2fcLane
       generic map (
-         LANE_CNT_G        => 1,
+         FC_WORDS_G        => FC_WORDS_G,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G,
@@ -162,6 +167,8 @@ begin
       port map (
          pgpTxClk         => pgpTxClk,
          pgpTxClkRst      => pgpTxReset,
+         pgpTxFcValid     => pgpTxFcValid,
+         pgpTxFcWord      => pgpTxFcWord,
          pgpTxIn          => pgpTxIn,
          pgpTxOut         => pgpTxOut,
          pgpTxMasters     => pgpTxMasters,
@@ -170,6 +177,8 @@ begin
          phyTxReady       => phyTxReady,
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => pgpRxReset,
+         pgpRxFcValid     => pgpRxFcValid,
+         pgpRxFcWord      => pgprxFcWord,
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,
@@ -183,7 +192,7 @@ begin
    --------------------------
    -- Wrapper for GTY IP core
    --------------------------
-   PgpGtyCoreWrapper_1 : entity surf.PgpGtyCoreWrapper
+   PgpGtyCoreWrapper_1 : entity surf.Pgp2fcGtyCoreWrapper
       generic map (
          TPD_G => TPD_G)
       port map (

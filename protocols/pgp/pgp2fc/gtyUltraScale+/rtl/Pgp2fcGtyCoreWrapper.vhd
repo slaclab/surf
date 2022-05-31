@@ -21,7 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity PgpGtyCoreWrapper is
+entity Pgp2fcGtyCoreWrapper is
 
    generic (
       TPD_G : time := 1 ns);
@@ -66,11 +66,11 @@ entity PgpGtyCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 
-end entity PgpGtyCoreWrapper;
+end entity Pgp2fcGtyCoreWrapper;
 
-architecture mapping of PgpGtyCoreWrapper is
+architecture mapping of Pgp2fcGtyCoreWrapper is
 
-   component PgpGtyCore
+   component Pgp2fcGtyCore
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
@@ -150,7 +150,7 @@ architecture mapping of PgpGtyCoreWrapper is
 begin
 
    -- Note: Has to be generated from aurora core in order to work properly
-   U_PgpGtyCore : PgpGtyCore
+   U_Pgp2fcGtyCore : Pgp2fcGtyCore
       port map (
          gtwiz_userclk_tx_active_in(0)         => txUsrClkActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrClkActive,
