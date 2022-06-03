@@ -190,7 +190,7 @@ begin
          v.axilReadMaster.rready := '0';
 
          -- Latch the memory bus responds
-         v.footer(SUGIO_FOOTER_BUS_RESP_FIELD_C) := axilReadSlave.rresp;
+         v.footer(SUGOI_FOOTER_BUS_RESP_FIELD_C) := axilReadSlave.rresp;
 
          -- Save the data
          v.memData := axilReadSlave.rdata;
@@ -216,7 +216,7 @@ begin
          v.axilWriteMaster.bready := '0';
 
          -- Latch the memory bus responds
-         v.footer(SUGIO_FOOTER_BUS_RESP_FIELD_C) := axilWriteSlave.bresp;
+         v.footer(SUGOI_FOOTER_BUS_RESP_FIELD_C) := axilWriteSlave.bresp;
 
       end if;
 
@@ -255,18 +255,18 @@ begin
             if (rxValid = '1') and (rxDataK = '0') then
 
                -- Check for version number mismatch
-               if (rxData(SUGIO_HDR_VERSION_FIELD_C) /= SUGIO_VERSION_C) then
+               if (rxData(SUGOI_HDR_VERSION_FIELD_C) /= SUGOI_VERSION_C) then
                   -- Set the error flag
-                  v.footer(SUGIO_FOOTER_VER_MISMATCH_C) := '1';
+                  v.footer(SUGOI_FOOTER_VER_MISMATCH_C) := '1';
                end if;
 
                -- Check if read or write operation
-               v.RnW := rxData(SUGIO_HDR_OP_TYPE_C);
+               v.RnW := rxData(SUGOI_HDR_OP_TYPE_C);
 
                -- Check for non-zero device ID
-               if (rxData(SUGIO_HDR_DDEV_ID_FIELD_C) /= 0) then
+               if (rxData(SUGOI_HDR_DDEV_ID_FIELD_C) /= 0) then
                   -- Decrement the device ID
-                  v.txData(SUGIO_HDR_DDEV_ID_FIELD_C) := rxData(SUGIO_HDR_DDEV_ID_FIELD_C) - 1;
+                  v.txData(SUGOI_HDR_DDEV_ID_FIELD_C) := rxData(SUGOI_HDR_DDEV_ID_FIELD_C) - 1;
                end if;
 
                -- Init the RX/TX checksums
@@ -274,7 +274,7 @@ begin
                v.txXsum := v.txData;
 
                -- Check for device ID is index to local device
-               if (rxData(SUGIO_HDR_DDEV_ID_FIELD_C) = 1) then
+               if (rxData(SUGOI_HDR_DDEV_ID_FIELD_C) = 1) then
                   -- Set the flag
                   v.devSelected := '1';
                else
@@ -308,7 +308,7 @@ begin
                   -- Check if not 32-bit word alignment in the address
                   if (rxData(1 downto 0) /= "00") then
                      -- Set the flag
-                     v.footer(SUGIO_FOOTER_NOT_ADDR_ALIGN_C) := '1';
+                     v.footer(SUGOI_FOOTER_NOT_ADDR_ALIGN_C) := '1';
                   end if;
 
                   -- Next state
@@ -386,7 +386,7 @@ begin
                   v.devSelected := '0';
 
                   -- Set the footer error bit
-                  v.footer(SUGIO_FOOTER_XSUM_ERROR_C) := '1';
+                  v.footer(SUGOI_FOOTER_XSUM_ERROR_C) := '1';
 
                end if;
 
@@ -516,6 +516,21 @@ begin
       -- De-select the device if error was detected during framing
       if (r.footer /= 0) then
          v.devSelected := '0';
+      end if;
+
+      -- Check for global reset
+      if (r.rst = '1') then
+
+         -- Reset counters
+         v.byteCnt := (others => '0');
+
+         -- Reset the state machine
+         v.state := RX_SOF_S;
+
+         -- Reset the AXI-Lite interface
+         v.axilReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
+         v.axilWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
+
       end if;
 
       -- Outputs

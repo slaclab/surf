@@ -21,9 +21,6 @@ use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 use surf.I2cMuxPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity AxiLiteCrossbarI2cMux is
    generic (
       TPD_G              : time                             := 1 ns;
