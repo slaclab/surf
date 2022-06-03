@@ -375,6 +375,18 @@ class Ad9681Readout(pr.Device):
                 verify       = False,
             ))
 
+        @self.command()
+        def AllDelay0(arg):
+            self.FrameDelay[0].set(arg)
+            for ch in range(8):
+                self.ChannelDelay[ch][0].set(arg)
+
+        @self.command()
+        def AllDelay1(arg):
+            self.FrameDelay[1].set(arg)
+            for ch in range(8):
+                self.ChannelDelay[ch][1].set(arg)
+
         for i in range(2):
             self.add(pr.RemoteVariable(
                 name        = f'LostLockCount[{i}]',
