@@ -331,7 +331,7 @@ class Ad9681Config(pr.Device):
 
 
 
-class Ad9681Readout(pr.Device):
+class Ad9681ReadoutManual(pr.Device):
     def __init__(self,
                  name        = 'Ad9249Readout',
                  description = 'Configure readout of 1 bank of an AD9249',
@@ -515,3 +515,187 @@ class Ad9681Readout(pr.Device):
             if recurse:
                 for key,value in self.devices.items():
                     value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
+
+class Ad9681Readout(pr.Device):
+    def __init__(self,
+                 name        = 'Ad9249Readout',
+                 description = 'Configure readout of 1 bank of an AD9249',
+                 fpga        = '7series',
+                 channels    = 8,
+                 **kwargs):
+
+        assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 0 and 8'
+        super().__init__(name=name, description=description, **kwargs)
+
+        if fpga == '7series':
+            delayBits = 6
+        elif fpga == 'ultrascale':
+            delayBits = 10
+        else:
+            delayBits = 6
+
+        self.add(pr.RemoteVariable(
+            name         = f'EnUsrDelay',
+            description  = f'Enable manual delay value',
+            offset       = 0x20,
+            bitSize      = 1,
+            bitOffset    = 0,
+            base         = pr.Bool,
+            mode         = 'RW',
+            verify       = True,
+            ))
+
+        for i in range(2):
+            self.add(pr.RemoteVariable(
+                name         = f'Delay[{i}]',
+                description  = f'IDELAY value for serial channel {i}',
+                offset       = i*4,
+                bitSize      = delayBits,
+                bitOffset    = 0,
+                base         = pr.UInt,
+                mode         = 'RW',
+                verify       = False,
+            ))
+
+        for i in range(2):
+            self.add(pr.RemoteVariable(
+                name        = f'ErrorDetCount[{i}]',
+                description = 'Number of times that frame lock has been lost since reset',
+                offset      = 0x30+ 4*i,
+                disp = '{:d}',
+                bitSize     = 16,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                mode        = 'RO',
+            ))
+            
+
+        for i in range(2):
+            self.add(pr.RemoteVariable(
+                name        = f'LostLockCount[{i}]',
+                description = 'Number of times that frame lock has been lost since reset',
+                offset      = 0x50+ 4*i,
+                bitSize     = 16,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                mode        = 'RO',
+            ))
+
+        for i in range(2):
+            self.add(pr.RemoteVariable(
+                name        = f'Locked[{i}]',
+                description = 'Readout has locked on to the frame boundary',
+                offset      = 0x50+ 4*i,
+                bitSize     = 1,
+                bitOffset   = 16,
+                base        = pr.Bool,
+                mode        = 'RO',
+            ))
+
+        for i in range(2):
+            self.add(pr.RemoteVariable(
+                name        = f'AdcFrameSync[{i}]',
+                description = 'Last deserialized FCO value for debug',
+                offset      = 0x58,
+                bitSize     = 8,
+                bitOffset   = i*8,
+                base        = pr.UInt,
+                mode        = 'RO',
+            ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Invert',
+            description = 'Optional ADC data inversion (offset binary only)',
+            offset      = 0x60,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Negate',
+            description = "Optional ADC data negation (two's complement)",
+            offset      = 0x60,
+            bitSize     = 1,
+            bitOffset   = 1,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+        
+
+        for i in range(channels):
+            self.add(pr.RemoteVariable(
+                name        = f'AdcChannel[{i:d}]',
+                description = f'Last deserialized channel {i:d} ADC value for debug',
+                offset      = 0x80 + (i*4),
+                bitSize     = 32,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                disp        = '{:09_x}',
+                mode        = 'RO',
+            ))
+
+        for i in range(channels):
+            self.add(pr.LinkVariable(
+                name = f'AdcVoltage[{i}]',
+                mode = 'RO',
+                disp = '{:1.9f}',
+                variable = self.AdcChannel[i],
+                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
+                units = 'V'))
+
+        self.add(pr.RemoteCommand(
+            name        = 'LostLockCountReset',
+            description = 'Reset LostLockCount',
+            function    = pr.BaseCommand.toggle,
+            offset      = 0x5C,
+            bitSize     = 1,
+            bitOffset   = 0,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name='FreezeDebug',
+            description='Freeze all of the AdcChannel registers',
+            hidden=True,
+            offset=0xA0,
+            bitSize=1,
+            bitOffset=0,
+            base=pr.UInt,
+            function=pr.RemoteCommand.touch))
+
+        self.add(pr.RemoteCommand(
+            name='Relock',
+            hidden=False,
+            offset=0x70,
+            bitSize=2,
+            bitOffset=0,
+            base=pr.UInt,
+            function=pr.RemoteCommand.createToggle([0, 3, 0])))
+
+
+    def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
+        """
+        Perform background reads
+        """
+        checkEach = checkEach or self.forceCheckEach
+
+        if variable is not None:
+            freeze = False #isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
+            if freeze:
+                self.FreezeDebug(1)
+            pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
+            if freeze:
+                self.FreezeDebug(0)
+
+        else:
+            self.FreezeDebug(1)
+            for block in self._blocks:
+                if block.bulkOpEn:
+                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
+            self.FreezeDebug(0)
+
+            if recurse:
+                for key,value in self.devices.items():
+                    value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
+                    
