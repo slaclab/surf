@@ -329,10 +329,8 @@ begin
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      -- Write delay values to IDELAY primatives
       -- Overriding gearbox aligner
-      -- All writes go to same r.delay register,
-      if (r.enUsrDly = '0') then
+      if (axilR.enUsrDly = '0') then
          v.usrDly := curDelay;
       end if;
 
