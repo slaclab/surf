@@ -1,0 +1,500 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description:
+-- Generic AXI Stream FIFO that supports TDEST interleaving
+-- using an AXI4 memory for the buffering of the AXI stream frames
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+
+entity AxiStreamDmaV2Fifo is
+   generic (
+      TPD_G              : time                     := 1 ns;
+      -- FIFO Configuration
+      BUFF_FRAME_WIDTH_G : positive                 := 20;  -- Buffer Frame size (units of address bits)
+      AXI_BUFFER_WIDTH_G : positive                 := 30;  -- Total AXI Memory for FIFO buffering (units of address bits)
+      SYNTH_MODE_G       : string                   := "inferred";
+      MEMORY_TYPE_G      : string                   := "block";
+      -- AXI Stream Configurations
+      AXIS_CONFIG_G      : AxiStreamConfigType;
+      -- AXI4 Configurations
+      AXI_BASE_ADDR_G    : slv(63 downto 0)         := x"0000_0000_0000_0000";  -- Memory Base Address Offset
+      AXI_CONFIG_G       : AxiConfigType;
+      AXI_BURST_G        : slv(1 downto 0)          := "01";
+      AXI_CACHE_G        : slv(3 downto 0)          := "1111";
+      BURST_BYTES_G      : positive range 1 to 4096 := 4096);
+   port (
+      -- Clock and Reset
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      -- AXI4 Interface
+      axiReadMaster   : out AxiReadMasterType;
+      axiReadSlave    : in  AxiReadSlaveType;
+      axiWriteMaster  : out AxiWriteMasterType;
+      axiWriteSlave   : in  AxiWriteSlaveType;
+      -- AXI Stream Interface
+      sAxisMaster     : in  AxiStreamMasterType;
+      sAxisSlave      : out AxiStreamSlaveType;  -- tReady flow control only
+      sAxisCtrl       : out AxiStreamCtrlType;   -- Only used to signal pause
+      mAxisMaster     : out AxiStreamMasterType;
+      mAxisSlave      : in  AxiStreamSlaveType;
+      -- Optional: AXI-Lite Interface
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
+end AxiStreamDmaV2Fifo;
+
+architecture rtl of AxiStreamDmaV2Fifo is
+
+   constant ADDR_WIDTH_C     : positive := AXI_BUFFER_WIDTH_G-BUFF_FRAME_WIDTH_G;
+   constant RD_QUEUE_WIDTH_C : positive := ADDR_WIDTH_C+1+(BUFF_FRAME_WIDTH_G+1)+(2*AXIS_CONFIG_G.TUSER_BITS_C)+AXIS_CONFIG_G.TDEST_BITS_C+AXIS_CONFIG_G.TID_BITS_C;
+
+   -- Using a local version (instead of AxiDmaPkg generalized functions) that's better logic optimized for this module
+   function localToSlv (r : AxiReadDmaDescReqType) return slv is
+      variable retValue : slv(RD_QUEUE_WIDTH_C-1 downto 0) := (others => '0');
+      variable i        : integer                          := 0;
+   begin
+      assignSlv(i, retValue, r.buffId(ADDR_WIDTH_C-1 downto 0));
+      assignSlv(i, retValue, r.continue);
+      assignSlv(i, retValue, r.size(BUFF_FRAME_WIDTH_G downto 0));
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TUSER_BITS_C /= 0) then
+         assignSlv(i, retValue, r.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+         assignSlv(i, retValue, r.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TDEST_BITS_C /= 0) then
+         assignSlv(i, retValue, r.dest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TID bits
+      if (AXIS_CONFIG_G.TID_BITS_C /= 0) then
+         assignSlv(i, retValue, r.id(AXIS_CONFIG_G.TID_BITS_C-1 downto 0));
+      end if;
+
+      return(retValue);
+   end function;
+
+   function localToAxiReadDmaDescReq (din : slv; valid : sl) return AxiReadDmaDescReqType is
+      variable desc : AxiReadDmaDescReqType := AXI_READ_DMA_DESC_REQ_INIT_C;
+      variable i    : integer               := 0;
+   begin
+      desc.valid := valid;
+      assignRecord(i, din, desc.buffId(ADDR_WIDTH_C-1 downto 0));
+      assignRecord(i, din, desc.continue);
+      assignRecord(i, din, desc.size(BUFF_FRAME_WIDTH_G downto 0));
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TUSER_BITS_C /= 0) then
+         assignRecord(i, din, desc.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+         assignRecord(i, din, desc.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TDEST bits
+      if (AXIS_CONFIG_G.TDEST_BITS_C /= 0) then
+         assignRecord(i, din, desc.dest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0));
+      end if;
+
+      -- Check for none-zero TID bits
+      if (AXIS_CONFIG_G.TID_BITS_C /= 0) then
+         assignRecord(i, din, desc.id(AXIS_CONFIG_G.TID_BITS_C-1 downto 0));
+      end if;
+
+      -- Set base address offset
+      desc.address := AXI_BASE_ADDR_G;
+
+      -- Update the address with respect to buffer index
+      desc.address(AXI_BUFFER_WIDTH_G-1 downto BUFF_FRAME_WIDTH_G) := desc.buffId(ADDR_WIDTH_C-1 downto 0);
+
+      return(desc);
+   end function;
+
+   type stateType is (
+      RESET_S,
+      INIT_S,
+      IDLE_S);
+
+   type RegType is record
+      queueReset      : sl;
+      wrIndexValid    : sl;
+      wrIndexReady    : sl;
+      wrIndex         : slv(ADDR_WIDTH_C-1 downto 0);
+      dmaWrDescAck    : AxiWriteDmaDescAckType;
+      dmaWrDescRetAck : sl;
+      rdQueueValid    : sl;
+      rdQueueReady    : sl;
+      rdQueueData     : slv(RD_QUEUE_WIDTH_C-1 downto 0);
+      dmaRdDescReq    : AxiReadDmaDescReqType;
+      dmaRdDescRetAck : sl;
+      sAxisCtrl       : AxiStreamCtrlType;
+      pauseThresh     : slv(ADDR_WIDTH_C-1 downto 0);
+      axilReadSlave   : AxiLiteReadSlaveType;
+      axilWriteSlave  : AxiLiteWriteSlaveType;
+      state           : StateType;
+   end record;
+   constant REG_INIT_C : RegType := (
+      queueReset      => '1',
+      wrIndexValid    => '0',
+      wrIndexReady    => '0',
+      wrIndex         => (others => '1'),
+      dmaWrDescAck    => AXI_WRITE_DMA_DESC_ACK_INIT_C,
+      dmaWrDescRetAck => '0',
+      rdQueueValid    => '0',
+      rdQueueReady    => '0',
+      rdQueueData     => (others => '0'),
+      dmaRdDescReq    => AXI_READ_DMA_DESC_REQ_INIT_C,
+      dmaRdDescRetAck => '0',
+      sAxisCtrl       => AXI_STREAM_CTRL_INIT_C,
+      pauseThresh     => toSlv(2**(ADDR_WIDTH_C-1), ADDR_WIDTH_C),  -- Default: 50% buffers in queue
+      axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
+      state           => RESET_S);
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+   signal dmaWrDescReq    : AxiWriteDmaDescReqType;
+   signal dmaWrDescAck    : AxiWriteDmaDescAckType;
+   signal dmaWrDescRet    : AxiWriteDmaDescRetType;
+   signal dmaWrDescRetAck : sl;
+
+   signal dmaRdDescReq    : AxiReadDmaDescReqType;
+   signal dmaRdDescAck    : sl;
+   signal dmaRdDescRet    : AxiReadDmaDescRetType;
+   signal dmaRdDescRetAck : sl;
+   signal dmaRdIdle       : sl;
+
+   signal wrBuffCnt    : slv(ADDR_WIDTH_C-1 downto 0);
+   signal wrIndex      : slv(ADDR_WIDTH_C-1 downto 0);
+   signal wrIndexValid : sl;
+   signal wrIndexReady : sl;
+
+   signal rdQueueData  : slv(RD_QUEUE_WIDTH_C-1 downto 0);
+   signal rdQueueValid : sl;
+   signal rdQueueReady : sl;
+
+begin
+
+   assert (isPowerOf2(BURST_BYTES_G) = true)
+      report "BURST_BYTES_G must be power of 2" severity failure;
+
+   ---------------------
+   -- Inbound Controller
+   ---------------------
+   U_IbDma : entity surf.AxiStreamDmaV2Write
+      generic map (
+         TPD_G          => TPD_G,
+         AXI_READY_EN_G => true,
+         AXIS_CONFIG_G  => AXIS_CONFIG_G,
+         AXI_CONFIG_G   => AXI_CONFIG_G,
+         BURST_BYTES_G  => BURST_BYTES_G)
+      port map (
+         -- Clock/Reset
+         axiClk          => axiClk,
+         axiRst          => axiRst,
+         -- DMA write descriptor request, ack and return
+         dmaWrDescReq    => dmaWrDescReq,
+         dmaWrDescAck    => dmaWrDescAck,
+         dmaWrDescRet    => dmaWrDescRet,
+         dmaWrDescRetAck => dmaWrDescRetAck,
+         -- Config and status
+         axiCache        => AXI_CACHE_G,
+         -- Streaming Interface
+         axisMaster      => sAxisMaster,
+         axisSlave       => sAxisSlave,
+         -- AXI Interface
+         axiWriteMaster  => axiWriteMaster,
+         axiWriteSlave   => axiWriteSlave);
+
+   ----------------------
+   -- Outbound Controller
+   ----------------------
+   U_ObDma : entity surf.AxiStreamDmaV2Read
+      generic map (
+         TPD_G           => TPD_G,
+         AXIS_READY_EN_G => true,
+         AXIS_CONFIG_G   => AXIS_CONFIG_G,
+         AXI_CONFIG_G    => AXI_CONFIG_G,
+         BURST_BYTES_G   => BURST_BYTES_G)
+      port map (
+         -- Clock/Reset
+         axiClk          => axiClk,
+         axiRst          => axiRst,
+         -- DMA Control Interface
+         dmaRdDescReq    => dmaRdDescReq,
+         dmaRdDescAck    => dmaRdDescAck,
+         dmaRdDescRet    => dmaRdDescRet,
+         dmaRdDescRetAck => dmaRdDescRetAck,
+         -- Config and status
+         dmaRdIdle       => dmaRdIdle,
+         axiCache        => AXI_CACHE_G,
+         -- Streaming Interface
+         axisMaster      => mAxisMaster,
+         axisSlave       => mAxisSlave,
+         axisCtrl        => AXI_STREAM_CTRL_UNUSED_C,
+         -- AXI Interface
+         axiReadMaster   => axiReadMaster,
+         axiReadSlave    => axiReadSlave);
+
+   --------------
+   -- Write Queue
+   --------------
+   U_WriteQueue : entity surf.Fifo
+      generic map (
+         TPD_G           => TPD_G,
+         FWFT_EN_G       => true,
+         GEN_SYNC_FIFO_G => true,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,
+         DATA_WIDTH_G    => ADDR_WIDTH_C,
+         ADDR_WIDTH_G    => ADDR_WIDTH_C)
+      port map (
+         rst           => r.queueReset,
+         -- Write Interface
+         wr_clk        => axiClk,
+         wr_en         => r.wrIndexValid,
+         din           => r.wrIndex,
+         -- Read Interface
+         rd_clk        => axiClk,
+         rd_data_count => wrBuffCnt,
+         valid         => wrIndexValid,
+         rd_en         => wrIndexReady,
+         dout          => wrIndex);
+
+   -------------
+   -- Read Queue
+   -------------
+   U_ReadQueue : entity surf.Fifo
+      generic map (
+         TPD_G           => TPD_G,
+         FWFT_EN_G       => true,
+         GEN_SYNC_FIFO_G => true,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,
+         DATA_WIDTH_G    => RD_QUEUE_WIDTH_C,
+         ADDR_WIDTH_G    => ADDR_WIDTH_C)
+      port map (
+         rst    => r.queueReset,
+         -- Write Interface
+         wr_clk => axiClk,
+         wr_en  => r.rdQueueValid,
+         din    => r.rdQueueData,
+         -- Read Interface
+         rd_clk => axiClk,
+         valid  => rdQueueValid,
+         rd_en  => rdQueueReady,
+         dout   => rdQueueData);
+
+   comb : process (axiRst, axilReadMaster, axilWriteMaster, dmaRdDescRet,
+                   dmaRdIdle, dmaWrDescReq, dmaWrDescRet, r, rdQueueData,
+                   rdQueueValid, wrBuffCnt, wrIndex, wrIndexValid) is
+      variable v        : RegType;
+      variable varRdReq : AxiReadDmaDescReqType;
+      variable axilEp   : AxiLiteEndPointType;
+   begin
+      -- Latch the current value
+      v := r;
+
+      -- Init() variables
+      varRdReq := AXI_READ_DMA_DESC_REQ_INIT_C;
+
+      -- Reset flags
+      v.queueReset         := '0';
+      v.wrIndexValid       := '0';
+      v.wrIndexReady       := '0';
+      v.dmaWrDescAck.valid := '0';
+      v.dmaWrDescRetAck    := '0';
+      v.rdQueueValid       := '0';
+      v.rdQueueReady       := '0';
+      v.dmaRdDescReq.valid := '0';
+      v.dmaRdDescRetAck    := '0';
+
+      -- State machine
+      case r.state is
+         ----------------------------------------------------------------------
+         when RESET_S =>
+            -- Wait for reset to de-assert
+            if r.queueReset = '0' then
+               -- Next State
+               v.state := INIT_S;
+            end if;
+         ----------------------------------------------------------------------
+         when INIT_S =>
+            -- Initialize the Write queue
+            v.wrIndexValid := '1';
+
+            -- Increment the counter
+            v.wrIndex := r.wrIndex + 1;
+
+            -- Check the counter
+            if v.wrIndex = (2**ADDR_WIDTH_C)-1 then
+               -- Next State
+               v.state := IDLE_S;
+            end if;
+         ----------------------------------------------------------------------
+         when IDLE_S =>
+            -- Check for next DMA write REQ and write queue not empty
+            if (wrIndexValid = '1') and (dmaWrDescReq.valid = '1') and (r.wrIndexReady = '0') then
+
+               -- Acknowledge the request
+               v.wrIndexReady       := '1';
+               v.dmaWrDescAck.valid := '1';
+
+               -- Set base address offset
+               v.dmaWrDescAck.address := AXI_BASE_ADDR_G;
+
+               -- Update the address with respect to buffer index
+               v.dmaWrDescAck.address(AXI_BUFFER_WIDTH_G-1 downto BUFF_FRAME_WIDTH_G) := wrIndex;
+
+               -- Set the max buffer size
+               v.dmaWrDescAck.maxSize := toSlv(2**BUFF_FRAME_WIDTH_G, 32);
+
+               -- Enable continuous mode
+               v.dmaWrDescAck.contEn := '1';
+
+               -- Set the buffer ID
+               v.dmaWrDescAck.buffId(ADDR_WIDTH_C-1 downto 0) := wrIndex;
+
+            end if;
+      --------------------------------------------------------------------------------
+      end case;
+
+      -- Check for return index
+      if (dmaWrDescRet.valid = '1') and (r.dmaWrDescRetAck = '0') then
+
+         -- Acknowledge the request
+         v.dmaWrDescRetAck := '1';
+
+         -- Create a DMA Read Descriptor Request
+         varRdReq.buffId    := dmaWrDescRet.buffId;
+         varRdReq.firstUser := dmaWrDescRet.firstUser;
+         varRdReq.lastUser  := dmaWrDescRet.lastUser;
+         varRdReq.size      := dmaWrDescRet.size;
+         varRdReq.continue  := dmaWrDescRet.continue;
+         varRdReq.dest      := dmaWrDescRet.dest;
+         varRdReq.id        := dmaWrDescRet.id;
+
+         -- Convert request into a SLV and write it into the Read Queue
+         v.rdQueueValid := '1';
+         v.rdQueueData  := localToSlv(varRdReq);
+
+      end if;
+
+      -- Check if new read in the queue and DMA Read is idle
+      if (rdQueueValid = '1') and (dmaRdIdle = '1') and (r.rdQueueReady = '0') then
+
+         -- Acknowledge the request
+         v.rdQueueReady := '1';
+
+         -- Set the read descriptor request
+         v.dmaRdDescReq := localToAxiReadDmaDescReq(rdQueueData, '1');
+
+      end if;
+
+      -- Check for read descriptor return
+      if (dmaRdDescRet.valid = '1') and (r.dmaRdDescRetAck = '0') then
+
+         -- Acknowledge the request
+         v.dmaRdDescRetAck := '1';
+
+         -- Return buffer to write queue
+         v.wrIndexValid := '1';
+         v.wrIndex      := dmaRdDescRet.buffId(ADDR_WIDTH_C-1 downto 0);
+
+      end if;
+
+      --------------------------------------------------------------------------------
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+
+      -- Map the read registers
+      axiSlaveRegisterR(axilEp, x"00", 0, toSlv(1, 4));  -- Version 1
+
+      axiSlaveRegisterR(axilEp, x"04", 8, AXI_BASE_ADDR_G);
+
+      axiSlaveRegisterR(axilEp, x"0C", 0, AXI_CACHE_G);
+      axiSlaveRegisterR(axilEp, x"0C", 8, AXI_BURST_G);
+
+      axiSlaveRegisterR(axilEp, x"10", 0, toSlv(AXI_CONFIG_G.LEN_BITS_C, 8));
+      axiSlaveRegisterR(axilEp, x"10", 8, toSlv(AXI_CONFIG_G.ID_BITS_C, 8));
+      axiSlaveRegisterR(axilEp, x"10", 16, toSlv(AXI_CONFIG_G.DATA_BYTES_C, 8));
+      axiSlaveRegisterR(axilEp, x"10", 24, toSlv(AXI_CONFIG_G.ADDR_WIDTH_C, 8));
+
+      axiSlaveRegisterR(axilEp, x"14", 0, toSlv(AXIS_CONFIG_G.TDEST_BITS_C, 8));
+      axiSlaveRegisterR(axilEp, x"14", 8, toSlv(AXIS_CONFIG_G.TID_BITS_C, 8));
+      axiSlaveRegisterR(axilEp, x"14", 16, toSlv(AXIS_CONFIG_G.TUSER_BITS_C, 8));
+      axiSlaveRegisterR(axilEp, x"14", 24, toSlv(AXIS_CONFIG_G.TDATA_BYTES_C, 8));
+
+      axiSlaveRegisterR(axilEp, x"18", 0, toSlv(BUFF_FRAME_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"18", 8, toSlv(AXI_BUFFER_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"18", 16, toSlv(BURST_BYTES_G, 16));
+
+      axiSlaveRegisterR(axilEp, x"1C", 0, wrBuffCnt);
+      axiSlaveRegister (axilEp, x"20", 0, v.pauseThresh);
+
+      -- Closeout the transaction
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      --------------------------------------------------------------------------------
+
+      -- Check if write buffer count is below threshold
+      if (wrBuffCnt <= r.pauseThresh) then
+         v.sAxisCtrl.pause := '1';
+      else
+         v.sAxisCtrl.pause := '0';
+      end if;
+
+      --------------------------------------------------------------------------------
+
+      -- Outputs
+      axilWriteSlave  <= r.axilWriteSlave;
+      axilReadSlave   <= r.axilReadSlave;
+      wrIndexReady    <= v.wrIndexReady;
+      dmaWrDescAck    <= v.dmaWrDescAck;
+      dmaWrDescRetAck <= v.dmaWrDescRetAck;
+      rdQueueReady    <= v.rdQueueReady;
+      dmaRdDescReq    <= v.dmaRdDescReq;
+      dmaRdDescRetAck <= v.dmaRdDescRetAck;
+      sAxisCtrl       <= r.sAxisCtrl;
+
+      -- Reset
+      if (axiRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+   end process comb;
+
+   seq : process (axiClk) is
+   begin
+      if rising_edge(axiClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
+end rtl;
