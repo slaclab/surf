@@ -29,6 +29,7 @@ use surf.AxiDmaPkg.all;
 entity AxiStreamDmaV2Fifo is
    generic (
       TPD_G              : time                     := 1 ns;
+      COMMON_CLK_G       : boolean                  := false;  -- true if axilClk=axiClk
       -- FIFO Configuration
       BUFF_FRAME_WIDTH_G : positive                 := 20;  -- Buffer Frame size (units of address bits)
       AXI_BUFFER_WIDTH_G : positive                 := 30;  -- Total AXI Memory for FIFO buffering (units of address bits)
@@ -43,24 +44,25 @@ entity AxiStreamDmaV2Fifo is
       AXI_CACHE_G        : slv(3 downto 0)          := "1111";
       BURST_BYTES_G      : positive range 1 to 4096 := 4096);
    port (
-      -- Clock and Reset
+      -- AXI4 Interface (axiClk domain)
       axiClk          : in  sl;
       axiRst          : in  sl;
-      -- AXI4 Interface
       axiReadMaster   : out AxiReadMasterType;
       axiReadSlave    : in  AxiReadSlaveType;
       axiWriteMaster  : out AxiWriteMasterType;
       axiWriteSlave   : in  AxiWriteSlaveType;
-      -- AXI Stream Interface
+      -- AXI Stream Interface (axiClk domain)
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;  -- tReady flow control only
       sAxisCtrl       : out AxiStreamCtrlType;   -- Only used to signal pause
       mAxisMaster     : out AxiStreamMasterType;
       mAxisSlave      : in  AxiStreamSlaveType;
-      -- Optional: AXI-Lite Interface
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      -- Optional: AXI-Lite Interface (axilClk domain)
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end AxiStreamDmaV2Fifo;
 
@@ -150,8 +152,8 @@ architecture rtl of AxiStreamDmaV2Fifo is
       dmaRdDescRetAck : sl;
       sAxisCtrl       : AxiStreamCtrlType;
       pauseThresh     : slv(ADDR_WIDTH_C-1 downto 0);
-      axilReadSlave   : AxiLiteReadSlaveType;
-      axilWriteSlave  : AxiLiteWriteSlaveType;
+      regReadSlave    : AxiLiteReadSlaveType;
+      regWriteSlave   : AxiLiteWriteSlaveType;
       state           : StateType;
    end record;
    constant REG_INIT_C : RegType := (
@@ -168,8 +170,8 @@ architecture rtl of AxiStreamDmaV2Fifo is
       dmaRdDescRetAck => '0',
       sAxisCtrl       => AXI_STREAM_CTRL_INIT_C,
       pauseThresh     => toSlv(2**(ADDR_WIDTH_C-1), ADDR_WIDTH_C),  -- Default: 50% buffers in queue
-      axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
-      axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
+      regReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
+      regWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       state           => RESET_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -194,6 +196,11 @@ architecture rtl of AxiStreamDmaV2Fifo is
    signal rdQueueData  : slv(RD_QUEUE_WIDTH_C-1 downto 0);
    signal rdQueueValid : sl;
    signal rdQueueReady : sl;
+
+   signal regReadMaster  : AxiLiteReadMasterType;
+   signal regReadSlave   : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+   signal regWriteMaster : AxiLiteWriteMasterType;
+   signal regWriteSlave  : AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
 begin
 
@@ -307,9 +314,30 @@ begin
          rd_en  => rdQueueReady,
          dout   => rdQueueData);
 
-   comb : process (axiRst, axilReadMaster, axilWriteMaster, dmaRdDescRet,
-                   dmaRdIdle, dmaWrDescReq, dmaWrDescRet, r, rdQueueData,
-                   rdQueueValid, wrBuffCnt, wrIndex, wrIndexValid) is
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
+      generic map (
+         TPD_G           => TPD_G,
+         COMMON_CLK_G    => COMMON_CLK_G,
+         NUM_ADDR_BITS_G => 8)
+      port map (
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMaster,
+         sAxiReadSlave   => axilReadSlave,
+         sAxiWriteMaster => axilWriteMaster,
+         sAxiWriteSlave  => axilWriteSlave,
+         -- Master Interface
+         mAxiClk         => axiClk,
+         mAxiClkRst      => axiRst,
+         mAxiReadMaster  => regReadMaster,
+         mAxiReadSlave   => regReadSlave,
+         mAxiWriteMaster => regWriteMaster,
+         mAxiWriteSlave  => regWriteSlave);
+
+   comb : process (axiRst, dmaRdDescRet, dmaRdIdle, dmaWrDescReq, dmaWrDescRet,
+                   r, rdQueueData, rdQueueValid, regReadMaster, regWriteMaster,
+                   wrBuffCnt, wrIndex, wrIndexValid) is
       variable v        : RegType;
       variable varRdReq : AxiReadDmaDescReqType;
       variable axilEp   : AxiLiteEndPointType;
@@ -428,7 +456,7 @@ begin
       --------------------------------------------------------------------------------
 
       -- Determine the transaction type
-      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
+      axiSlaveWaitTxn(axilEp, regWriteMaster, regReadMaster, v.regWriteSlave, v.regReadSlave);
 
       -- Map the read registers
       axiSlaveRegisterR(axilEp, x"00", 0, toSlv(1, 4));  -- Version 1
@@ -456,7 +484,7 @@ begin
       axiSlaveRegister (axilEp, x"20", 0, v.pauseThresh);
 
       -- Closeout the transaction
-      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+      axiSlaveDefault(axilEp, v.regWriteSlave, v.regReadSlave, AXI_RESP_DECERR_C);
 
       --------------------------------------------------------------------------------
 
@@ -470,8 +498,8 @@ begin
       --------------------------------------------------------------------------------
 
       -- Outputs
-      axilWriteSlave  <= r.axilWriteSlave;
-      axilReadSlave   <= r.axilReadSlave;
+      regWriteSlave   <= r.regWriteSlave;
+      regReadSlave    <= r.regReadSlave;
       wrIndexReady    <= v.wrIndexReady;
       dmaWrDescAck    <= v.dmaWrDescAck;
       dmaWrDescRetAck <= v.dmaWrDescRetAck;
