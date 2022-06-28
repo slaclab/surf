@@ -141,6 +141,7 @@ architecture rtl of AxiStreamDmaV2Fifo is
 
    type RegType is record
       reset           : sl;
+      rstCnt          : sl;
       wrIndexValid    : sl;
       wrIndexReady    : sl;
       wrIndex         : slv(ADDR_WIDTH_C-1 downto 0);
@@ -153,12 +154,15 @@ architecture rtl of AxiStreamDmaV2Fifo is
       dmaRdDescRetAck : sl;
       sAxisCtrl       : AxiStreamCtrlType;
       pauseThresh     : slv(ADDR_WIDTH_C-1 downto 0);
+      pauseCnt        : slv(15 downto 0);
       regReadSlave    : AxiLiteReadSlaveType;
       regWriteSlave   : AxiLiteWriteSlaveType;
+      txnLatecy       : Slv8Array(3 downto 0);
       state           : StateType;
    end record;
    constant REG_INIT_C : RegType := (
       reset           => '1',
+      rstCnt          => '0',
       wrIndexValid    => '0',
       wrIndexReady    => '0',
       wrIndex         => (others => '1'),
@@ -171,8 +175,10 @@ architecture rtl of AxiStreamDmaV2Fifo is
       dmaRdDescRetAck => '0',
       sAxisCtrl       => AXI_STREAM_CTRL_INIT_C,
       pauseThresh     => toSlv(2**(ADDR_WIDTH_C-1), ADDR_WIDTH_C),  -- Default: 50% buffers in queue
+      pauseCnt        => (others => '0'),
       regReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
       regWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
+      txnLatecy       => (others => (others => '0')),
       state           => RESET_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -194,6 +200,7 @@ architecture rtl of AxiStreamDmaV2Fifo is
    signal wrIndexValid : sl;
    signal wrIndexReady : sl;
 
+   signal rdBuffCnt    : slv(ADDR_WIDTH_C-1 downto 0);
    signal rdQueueData  : slv(RD_QUEUE_WIDTH_C-1 downto 0);
    signal rdQueueValid : sl;
    signal rdQueueReady : sl;
@@ -304,16 +311,17 @@ begin
          DATA_WIDTH_G    => RD_QUEUE_WIDTH_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_C)
       port map (
-         rst    => r.reset,
+         rst           => r.reset,
          -- Write Interface
-         wr_clk => axiClk,
-         wr_en  => r.rdQueueValid,
-         din    => r.rdQueueData,
+         wr_clk        => axiClk,
+         wr_en         => r.rdQueueValid,
+         din           => r.rdQueueData,
          -- Read Interface
-         rd_clk => axiClk,
-         valid  => rdQueueValid,
-         rd_en  => rdQueueReady,
-         dout   => rdQueueData);
+         rd_clk        => axiClk,
+         rd_data_count => rdBuffCnt,
+         valid         => rdQueueValid,
+         rd_en         => rdQueueReady,
+         dout          => rdQueueData);
 
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
@@ -337,8 +345,9 @@ begin
          mAxiWriteSlave  => regWriteSlave);
 
    comb : process (axiReady, axiRst, dmaRdDescRet, dmaRdIdle, dmaWrDescReq,
-                   dmaWrDescRet, r, rdQueueData, rdQueueValid, regReadMaster,
-                   regWriteMaster, wrBuffCnt, wrIndex, wrIndexValid) is
+                   dmaWrDescRet, r, rdBuffCnt, rdQueueData, rdQueueValid,
+                   regReadMaster, regWriteMaster, wrBuffCnt, wrIndex,
+                   wrIndexValid) is
       variable v        : RegType;
       variable varRdReq : AxiReadDmaDescReqType;
       variable axilEp   : AxiLiteEndPointType;
@@ -351,6 +360,7 @@ begin
 
       -- Reset flags
       v.reset              := '0';
+      v.rstCnt             := '0';
       v.wrIndexValid       := '0';
       v.wrIndexReady       := '0';
       v.dmaWrDescAck.valid := '0';
@@ -359,6 +369,11 @@ begin
       v.rdQueueReady       := '0';
       v.dmaRdDescReq.valid := '0';
       v.dmaRdDescRetAck    := '0';
+
+      -- Update the shift registers
+      for i in 3 downto 0 loop
+         v.txnLatecy(i) := r.txnLatecy(i)(6 downto 0) & '0';
+      end loop;
 
       -- State machine
       case r.state is
@@ -385,9 +400,10 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for next DMA write REQ and write queue not empty
-            if (wrIndexValid = '1') and (dmaWrDescReq.valid = '1') and (r.wrIndexReady = '0') then
+            if (wrIndexValid = '1') and (dmaWrDescReq.valid = '1') and (r.txnLatecy(0) = 0) then
 
                -- Acknowledge the request
+               v.txnLatecy(0)(0)    := '1';
                v.wrIndexReady       := '1';
                v.dmaWrDescAck.valid := '1';
 
@@ -411,9 +427,10 @@ begin
       end case;
 
       -- Check for return index
-      if (dmaWrDescRet.valid = '1') and (r.dmaWrDescRetAck = '0') then
+      if (dmaWrDescRet.valid = '1') and (r.txnLatecy(1) = 0) then
 
          -- Acknowledge the request
+         v.txnLatecy(1)(0) := '1';
          v.dmaWrDescRetAck := '1';
 
          -- Create a DMA Read Descriptor Request
@@ -432,10 +449,11 @@ begin
       end if;
 
       -- Check if new read in the queue and DMA Read is idle
-      if (rdQueueValid = '1') and (dmaRdIdle = '1') and (r.rdQueueReady = '0') then
+      if (rdQueueValid = '1') and (dmaRdIdle = '1') and (r.txnLatecy(2) = 0) then
 
          -- Acknowledge the request
-         v.rdQueueReady := '1';
+         v.txnLatecy(2)(0) := '1';
+         v.rdQueueReady    := '1';
 
          -- Set the read descriptor request
          v.dmaRdDescReq := localToAxiReadDmaDescReq(rdQueueData, '1');
@@ -443,9 +461,10 @@ begin
       end if;
 
       -- Check for read descriptor return
-      if (dmaRdDescRet.valid = '1') and (r.dmaRdDescRetAck = '0') then
+      if (dmaRdDescRet.valid = '1') and (r.txnLatecy(3) = 0) then
 
          -- Acknowledge the request
+         v.txnLatecy(3)(0) := '1';
          v.dmaRdDescRetAck := '1';
 
          -- Return buffer to write queue
@@ -481,8 +500,15 @@ begin
       axiSlaveRegisterR(axilEp, x"18", 8, toSlv(AXI_BUFFER_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"18", 16, toSlv(BURST_BYTES_G, 16));
 
-      axiSlaveRegisterR(axilEp, x"1C", 0, wrBuffCnt);
-      axiSlaveRegister (axilEp, x"20", 0, v.pauseThresh);
+      axiSlaveRegisterR(axilEp, x"1C", 0, rdBuffCnt);
+      axiSlaveRegisterR(axilEp, x"1C", 16, wrBuffCnt);
+
+      axiSlaveRegisterR(axilEp, x"20", 0, r.pauseCnt);
+      axiSlaveRegisterR(axilEp, x"20", 16, r.sAxisCtrl.pause);
+
+      axiSlaveRegister (axilEp, x"24", 0, v.pauseThresh);
+
+      axiSlaveRegister (axilEp, x"FC", 0, v.rstCnt);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.regWriteSlave, v.regReadSlave, AXI_RESP_DECERR_C);
@@ -496,17 +522,27 @@ begin
          v.sAxisCtrl.pause := '0';
       end if;
 
+      -- Check for pause event
+      if (r.sAxisCtrl.pause = '0') and (v.sAxisCtrl.pause = '1') and (r.pauseCnt /= x"FFFF") then
+         v.pauseCnt := r.pauseCnt + 1;
+      end if;
+
+      -- Check if we need to reset status counters
+      if (r.rstCnt = '1') then
+         v.pauseCnt := (others => '0');
+      end if;
+
       --------------------------------------------------------------------------------
 
       -- Outputs
       regWriteSlave   <= r.regWriteSlave;
       regReadSlave    <= r.regReadSlave;
-      wrIndexReady    <= v.wrIndexReady;
-      dmaWrDescAck    <= v.dmaWrDescAck;
-      dmaWrDescRetAck <= v.dmaWrDescRetAck;
-      rdQueueReady    <= v.rdQueueReady;
-      dmaRdDescReq    <= v.dmaRdDescReq;
-      dmaRdDescRetAck <= v.dmaRdDescRetAck;
+      wrIndexReady    <= r.wrIndexReady;
+      dmaWrDescAck    <= r.dmaWrDescAck;
+      dmaWrDescRetAck <= r.dmaWrDescRetAck;
+      rdQueueReady    <= r.rdQueueReady;
+      dmaRdDescReq    <= r.dmaRdDescReq;
+      dmaRdDescRetAck <= r.dmaRdDescRetAck;
       sAxisCtrl       <= r.sAxisCtrl;
 
       -- Reset or AXI Memory interface not ready
