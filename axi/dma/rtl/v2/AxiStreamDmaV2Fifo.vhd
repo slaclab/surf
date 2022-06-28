@@ -47,6 +47,7 @@ entity AxiStreamDmaV2Fifo is
       -- AXI4 Interface (axiClk domain)
       axiClk          : in  sl;
       axiRst          : in  sl;
+      axiReady        : in  sl;
       axiReadMaster   : out AxiReadMasterType;
       axiReadSlave    : in  AxiReadSlaveType;
       axiWriteMaster  : out AxiWriteMasterType;
@@ -139,7 +140,7 @@ architecture rtl of AxiStreamDmaV2Fifo is
       IDLE_S);
 
    type RegType is record
-      queueReset      : sl;
+      reset           : sl;
       wrIndexValid    : sl;
       wrIndexReady    : sl;
       wrIndex         : slv(ADDR_WIDTH_C-1 downto 0);
@@ -157,7 +158,7 @@ architecture rtl of AxiStreamDmaV2Fifo is
       state           : StateType;
    end record;
    constant REG_INIT_C : RegType := (
-      queueReset      => '1',
+      reset           => '1',
       wrIndexValid    => '0',
       wrIndexReady    => '0',
       wrIndex         => (others => '1'),
@@ -220,7 +221,7 @@ begin
       port map (
          -- Clock/Reset
          axiClk          => axiClk,
-         axiRst          => axiRst,
+         axiRst          => r.reset,
          -- DMA write descriptor request, ack and return
          dmaWrDescReq    => dmaWrDescReq,
          dmaWrDescAck    => dmaWrDescAck,
@@ -248,7 +249,7 @@ begin
       port map (
          -- Clock/Reset
          axiClk          => axiClk,
-         axiRst          => axiRst,
+         axiRst          => r.reset,
          -- DMA Control Interface
          dmaRdDescReq    => dmaRdDescReq,
          dmaRdDescAck    => dmaRdDescAck,
@@ -278,7 +279,7 @@ begin
          DATA_WIDTH_G    => ADDR_WIDTH_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_C)
       port map (
-         rst           => r.queueReset,
+         rst           => r.reset,
          -- Write Interface
          wr_clk        => axiClk,
          wr_en         => r.wrIndexValid,
@@ -303,7 +304,7 @@ begin
          DATA_WIDTH_G    => RD_QUEUE_WIDTH_C,
          ADDR_WIDTH_G    => ADDR_WIDTH_C)
       port map (
-         rst    => r.queueReset,
+         rst    => r.reset,
          -- Write Interface
          wr_clk => axiClk,
          wr_en  => r.rdQueueValid,
@@ -329,15 +330,15 @@ begin
          sAxiWriteSlave  => axilWriteSlave,
          -- Master Interface
          mAxiClk         => axiClk,
-         mAxiClkRst      => axiRst,
+         mAxiClkRst      => r.reset,
          mAxiReadMaster  => regReadMaster,
          mAxiReadSlave   => regReadSlave,
          mAxiWriteMaster => regWriteMaster,
          mAxiWriteSlave  => regWriteSlave);
 
-   comb : process (axiRst, dmaRdDescRet, dmaRdIdle, dmaWrDescReq, dmaWrDescRet,
-                   r, rdQueueData, rdQueueValid, regReadMaster, regWriteMaster,
-                   wrBuffCnt, wrIndex, wrIndexValid) is
+   comb : process (axiReady, axiRst, dmaRdDescRet, dmaRdIdle, dmaWrDescReq,
+                   dmaWrDescRet, r, rdQueueData, rdQueueValid, regReadMaster,
+                   regWriteMaster, wrBuffCnt, wrIndex, wrIndexValid) is
       variable v        : RegType;
       variable varRdReq : AxiReadDmaDescReqType;
       variable axilEp   : AxiLiteEndPointType;
@@ -349,7 +350,7 @@ begin
       varRdReq := AXI_READ_DMA_DESC_REQ_INIT_C;
 
       -- Reset flags
-      v.queueReset         := '0';
+      v.reset              := '0';
       v.wrIndexValid       := '0';
       v.wrIndexReady       := '0';
       v.dmaWrDescAck.valid := '0';
@@ -364,7 +365,7 @@ begin
          ----------------------------------------------------------------------
          when RESET_S =>
             -- Wait for reset to de-assert
-            if r.queueReset = '0' then
+            if (r.reset = '0') then
                -- Next State
                v.state := INIT_S;
             end if;
@@ -508,8 +509,8 @@ begin
       dmaRdDescRetAck <= v.dmaRdDescRetAck;
       sAxisCtrl       <= r.sAxisCtrl;
 
-      -- Reset
-      if (axiRst = '1') then
+      -- Reset or AXI Memory interface not ready
+      if (axiRst = '1') or (axiReady = '0') then
          v := REG_INIT_C;
       end if;
 
