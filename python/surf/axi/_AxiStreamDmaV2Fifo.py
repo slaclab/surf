@@ -36,7 +36,7 @@ class AxiStreamDmaV2Fifo(pr.Device):
             mode      ='RO',
             hidden    = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name      ='AXI_BURST_G',
             offset    = 0x0C,
@@ -44,7 +44,7 @@ class AxiStreamDmaV2Fifo(pr.Device):
             bitOffset = 4,
             mode      ='RO',
             hidden    = True,
-        ))        
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='AXI_LEN_BITS_C',
@@ -154,8 +154,8 @@ class AxiStreamDmaV2Fifo(pr.Device):
             mode      ='RO',
             disp      = '{:d}',
             hidden    = True,
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         ='QueueBufferCnt',
             offset       = 0x1C,
@@ -163,7 +163,7 @@ class AxiStreamDmaV2Fifo(pr.Device):
             bitOffset    = 0,
             mode         = 'RO',
             pollInterval = 1,
-        ))        
+        ))
 
         self.add(pr.RemoteVariable(
             name         ='FreeListBufferCnt',
@@ -182,7 +182,7 @@ class AxiStreamDmaV2Fifo(pr.Device):
             mode         = 'RO',
             pollInterval = 1,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         ='FreeListPause',
             offset       = 0x20,
@@ -190,7 +190,7 @@ class AxiStreamDmaV2Fifo(pr.Device):
             bitOffset    = 16,
             mode         = 'RO',
             pollInterval = 1,
-        ))        
+        ))
 
         self.add(pr.RemoteVariable(
             name      ='FreeListPauseThresh',
