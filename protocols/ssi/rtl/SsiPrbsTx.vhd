@@ -145,86 +145,44 @@ begin
 
    assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256) or (PRBS_SEED_SIZE_G = 512)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256,512]" severity failure;
 
-   comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst,
-                   packetLength, r, tDest, tId, trig, txCtrl, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst, packetLength, r, tDest, tId,
+                   trig, txCtrl, txSlave) is
       variable v             : RegType;
-      variable axilStatus    : AxiLiteStatusType;
-      variable axilWriteResp : slv(1 downto 0);
-      variable axilReadResp  : slv(1 downto 0);
+      variable axilEp        : AxiLiteEndpointType;
    begin
       -- Latch the current value
       v := r;
 
       ----------------------------------------------------------------------------------------------
-      -- Axi-Lite interface
+      -- Axi-Lite Registers
       ----------------------------------------------------------------------------------------------
-      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      if (axilStatus.writeEnable = '1') then
-         axilWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         case (axilWriteMaster.awaddr(7 downto 0)) is
-            when X"00" =>
-               v.axiEn   := axilWriteMaster.wdata(0);
-               v.trig    := axilWriteMaster.wdata(1);
-               -- BIT2 reserved for busy
-               -- BIT3 reserved for overflow
-               -- BIT4 reserved
-               v.cntData := axilWriteMaster.wdata(5);
-            when X"04" =>
-               v.packetLength := axilWriteMaster.wdata(31 downto 0);
-            when X"08" =>
-               v.tDest   := axilWriteMaster.wdata(7 downto 0);
-               v.tId     := axilWriteMaster.wdata(15 downto 8);
-            when X"18" =>
-               v.oneShot := axilWriteMaster.wdata(0);
-            when X"1C" =>
-               v.trigDly := axilWriteMaster.wdata(31 downto 0);
-            when others =>
-               axilWriteResp := AXI_RESP_DECERR_C;
-         end case;
-         axiSlaveWriteResponse(v.axilWriteSlave);
-      end if;
+      axiSlaveRegister(axilEp, X"00", 0, v.axiEn);
+      axiSlaveRegister(axilEp, X"00", 1, v.trig);
+      axiSlaveRegisterR(axilEp, X"00", 2, r.busy);
+      axiSlaveRegisterR(axilEp, X"00", 3, r.overflow);
+      axiSlaveRegister(axilEp, X"00", 5, v.cntData);
 
-      if (axilStatus.readEnable = '1') then
-         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         case (axilReadMaster.araddr(7 downto 0)) is
-            when X"00" =>
-               v.axilReadSlave.rdata(0) := r.axiEn;
-               v.axilReadSlave.rdata(1) := r.trig;
-               v.axilReadSlave.rdata(2) := r.busy;
-               v.axilReadSlave.rdata(3) := r.overflow;
-               -- BIT4 reserved
-               v.axilReadSlave.rdata(5) := r.cntData;
-            when X"04" =>
-               v.axilReadSlave.rdata(31 downto 0) := r.packetLength;
-            when X"08" =>
-               v.axilReadSlave.rdata(7 downto 0)  := r.tDest;
-               v.axilReadSlave.rdata(15 downto 8) := r.tId;
-            when X"0C" =>
-               v.axilReadSlave.rdata(31 downto 0) := r.dataCnt;
-            when X"10" =>
-               if (PRBS_SEED_SIZE_G < 32) then
-                  v.axilReadSlave.rdata(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
-               else
-                  v.axilReadSlave.rdata(31 downto 0) := r.eventCnt(31 downto 0);
-               end if;
-            when X"14" =>
-               if (PRBS_SEED_SIZE_G < 32) then
-                  v.axilReadSlave.rdata(PRBS_SEED_SIZE_G-1 downto 0) := r.randomData;
-               else
-                  v.axilReadSlave.rdata(31 downto 0) := r.randomData(31 downto 0);
-               end if;
-            when X"1C" =>
-               v.axilReadSlave.rdata(31 downto 0):= r.trigDly;
-            when others =>
-               axilReadResp := AXI_RESP_DECERR_C;
-         end case;
-         axiSlaveReadResponse(v.axilReadSlave);
-      end if;
+      axiSlaveRegister(axilEp, X"04", 0, v.packetLength);
+      axiSlaveRegister(axilEp, X"08", 0, v.tDest);
+      axiSlaveRegister(axilEp, X"08", 8, v.tId);
+      axiSlaveRegister(axilEp, X"18", 0, v.oneShot);
+      axiSlaveRegister(axilEp, X"1C", 0, v.trigDly);
+
+      axiSlaveRegisterR(axilEp, X"10", 0, r.eventCnt(minimum(PRBS_SEED_SIZE_G-1, 31) downto 0));
+      axiSlaveRegisterR(axilEp, X"14", 0, r.randomData(minimum(PRBS_SEED_SIZE_G-1, 31) downto 0));
+      axiSlaveRegisterR(axilEp, X"1C", 0, r.trigDly);
+
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      ----------------------------------------------------------------------------------------------
+      -- PRBS Stream Logic
+      ----------------------------------------------------------------------------------------------
 
       -- Check for delay between AXI triggers
       if (r.trigDlyCnt = r.trigDly) or (r.trigDly /= v.trigDly) then
-         v.trigDlyCnt := (others=>'0');
+         v.trigDlyCnt := (others => '0');
          v.trigger    := r.trig;
       elsif (r.trigger = '0') then
          v.trigDlyCnt := r.trigDlyCnt + 1;
@@ -261,8 +219,8 @@ begin
             -- Check for a trigger
             if (r.trigger = '1') or (r.oneShot = '1') then
                -- Reset the one shot
-               v.oneShot := '0';
-               v.trigger := '0';
+               v.oneShot            := '0';
+               v.trigger            := '0';
                -- Latch the generator seed
                v.randomData         := r.eventCnt;
                -- Set the busy flag
