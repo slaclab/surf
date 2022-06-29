@@ -2,6 +2,7 @@ var classPgp2bGtx7Fixedlat =
 [
     [ "rtl", "classPgp2bGtx7Fixedlat_1_1rtl.html", "classPgp2bGtx7Fixedlat_1_1rtl" ],
     [ "TPD_G", "classPgp2bGtx7Fixedlat.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "COMMON_CLK_G", "classPgp2bGtx7Fixedlat.html#a762b446ddef001083e8cfc52dc38385f", null ],
     [ "SIM_GTRESET_SPEEDUP_G", "classPgp2bGtx7Fixedlat.html#a768d0e7a328f4805db656d82ee7d9b93", null ],
     [ "SIM_VERSION_G", "classPgp2bGtx7Fixedlat.html#ad88213237ac8c07cfbf32c5a58110db3", null ],
     [ "SIMULATION_G", "classPgp2bGtx7Fixedlat.html#ac6de36aa80aba7f5067e4172962ede27", null ],
@@ -48,6 +49,8 @@ var classPgp2bGtx7Fixedlat =
     [ "gtTxP", "classPgp2bGtx7Fixedlat.html#a723076ac451ab1151d81b66560e05579", null ],
     [ "pgpTxReset", "classPgp2bGtx7Fixedlat.html#ad3d9b1cf6398f0166335802c7e7d1764", null ],
     [ "pgpTxClk", "classPgp2bGtx7Fixedlat.html#adc3581aed6013ad7345d41131725a335", null ],
+    [ "pgpTxMmcmReset", "classPgp2bGtx7Fixedlat.html#a508698742f0975da492e947c85b8710e", null ],
+    [ "pgpTxMmcmLocked", "classPgp2bGtx7Fixedlat.html#a45571c5fe3559eceb482411e7b5eb7b8", null ],
     [ "pgpRxReset", "classPgp2bGtx7Fixedlat.html#a4fde677b8af8e0481a7391b45ff85065", null ],
     [ "pgpRxRecClk", "classPgp2bGtx7Fixedlat.html#a14698ad87395ed0308f97cdffe8ae6bc", null ],
     [ "pgpRxRecClkRst", "classPgp2bGtx7Fixedlat.html#a01c09b49ccc6cc7aecaf878665fc4622", null ],

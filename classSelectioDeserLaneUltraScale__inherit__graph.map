@@ -4,8 +4,9 @@
 <area shape="rect" id="node8" href="$classSelectioDeserUltraScale.html" title=" " alt="" coords="134,229,313,256"/>
 <area shape="rect" id="node2" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="73,80,206,107"/>
 <area shape="rect" id="node3" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="70,5,209,32"/>
-<area shape="rect" id="node5" href="$classSaltRxLvds.html" title=" " alt="" coords="8,304,103,331"/>
-<area shape="rect" id="node6" href="$classSaltCore.html" title=" " alt="" coords="17,379,94,405"/>
-<area shape="rect" id="node7" href="$classSaltCoreTb.html" title=" " alt="" coords="9,453,102,480"/>
-<area shape="rect" id="node9" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="127,304,322,331"/>
+<area shape="rect" id="node5" href="$classSaltRxLvds.html" title=" " alt="" coords="7,304,101,331"/>
+<area shape="rect" id="node6" href="$classSaltCore.html" title=" " alt="" coords="15,379,93,405"/>
+<area shape="rect" id="node7" href="$classSaltCoreTb.html" title=" " alt="" coords="7,453,101,480"/>
+<area shape="rect" id="node9" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="126,304,321,331"/>
+<area shape="rect" id="node10" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="345,304,621,331"/>
 </map>

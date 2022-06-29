@@ -453,18 +453,18 @@
 <path fill="none" stroke="midnightblue" d="M426.8,-580.91C430.5,-663.32 448.48,-976.9 510,-1050 515.37,-1056.38 522.55,-1061.06 530.22,-1064.5"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="430.29,-580.51 426.36,-570.67 423.29,-580.81 430.29,-580.51"/>
 </g>
-<!-- Node143 -->
+<!-- Node144 -->
 <g id="node49" class="node">
-<title>Node143</title>
+<title>Node144</title>
 <g id="a_node49"><a xlink:href="classXauiReg.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="550,-0.5 550,-19.5 607,-19.5 607,-0.5 550,-0.5"/>
 <text text-anchor="middle" x="578.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">XauiReg</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node143 -->
+<!-- Node1&#45;&gt;Node144 -->
 <g id="edge57" class="edge">
-<title>Node1&#45;&gt;Node143</title>
+<title>Node1&#45;&gt;Node144</title>
 <path fill="none" stroke="midnightblue" d="M426.36,-541.19C428.35,-454.23 440.6,-107.1 510,-29 519.95,-17.81 535.92,-12.98 549.83,-10.99"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="422.86,-541.21 426.15,-551.28 429.86,-541.36 422.86,-541.21"/>
 </g>

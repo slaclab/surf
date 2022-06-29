@@ -1,15 +1,16 @@
 <map id="Encoder8b10b" name="Encoder8b10b">
-<area shape="rect" id="node1" title=" " alt="" coords="5,132,120,159"/>
-<area shape="rect" id="node2" href="$classPgpParallelSimModel.html" title=" " alt="" coords="172,31,331,57"/>
-<area shape="rect" id="node3" href="$classSaltTxLvds.html" title=" " alt="" coords="205,81,298,108"/>
-<area shape="rect" id="node6" href="$classSspEncoder8b10b.html" title=" " alt="" coords="183,132,320,159"/>
-<area shape="rect" id="node10" href="$classSugoiManagerCore.html" title=" " alt="" coords="179,183,324,209"/>
-<area shape="rect" id="node12" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="168,233,335,260"/>
-<area shape="rect" id="node4" href="$classSaltCore.html" title=" " alt="" coords="445,5,522,32"/>
-<area shape="rect" id="node5" href="$classSaltCoreTb.html" title=" " alt="" coords="633,5,727,32"/>
-<area shape="rect" id="node7" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="386,56,581,83"/>
-<area shape="rect" id="node8" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="406,107,561,133"/>
-<area shape="rect" id="node9" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="407,157,560,184"/>
-<area shape="rect" id="node11" href="$classSugoiTopTb.html" title=" " alt="" coords="632,233,728,260"/>
-<area shape="rect" id="node13" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="383,259,584,285"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,157,120,184"/>
+<area shape="rect" id="node2" href="$classPgpParallelSimModel.html" title=" " alt="" coords="172,56,331,83"/>
+<area shape="rect" id="node3" href="$classSaltTxLvds.html" title=" " alt="" coords="205,107,298,133"/>
+<area shape="rect" id="node6" href="$classSspEncoder8b10b.html" title=" " alt="" coords="183,157,320,184"/>
+<area shape="rect" id="node11" href="$classSugoiManagerCore.html" title=" " alt="" coords="179,233,324,260"/>
+<area shape="rect" id="node13" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="168,296,335,323"/>
+<area shape="rect" id="node4" href="$classSaltCore.html" title=" " alt="" coords="482,5,559,32"/>
+<area shape="rect" id="node5" href="$classSaltCoreTb.html" title=" " alt="" coords="708,5,801,32"/>
+<area shape="rect" id="node7" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="423,56,618,83"/>
+<area shape="rect" id="node8" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="443,107,598,133"/>
+<area shape="rect" id="node9" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="444,157,597,184"/>
+<area shape="rect" id="node10" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="383,208,659,235"/>
+<area shape="rect" id="node12" href="$classSugoiTopTb.html" title=" " alt="" coords="707,284,803,311"/>
+<area shape="rect" id="node14" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="420,309,621,336"/>
 </map>
