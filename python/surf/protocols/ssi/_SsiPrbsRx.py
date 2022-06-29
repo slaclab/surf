@@ -80,7 +80,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RxFifoOverflowCnt",
-            description  = "",
+            description  = "Number of times the RX FIFO has overflowed",
             offset       =  0x18,
             bitSize      =  32,
             mode         = "RO",
@@ -89,7 +89,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RxFifoPauseCnt",
-            description  = "",
+            description  = "Number of times the RX FIFO has paused",
             offset       =  0x1C,
             bitSize      =  32,
             mode         = "RO",
@@ -98,7 +98,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxFifoOverflowCnt",
-            description  = "",
+            description  = "Number of times the TX FIFO has overflowed",
             offset       =  0x20,
             bitSize      =  32,
             mode         = "RO",
@@ -107,7 +107,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxFifoPauseCnt",
-            description  = "",
+            description  = "Number of times the TX FIFO has paused",
             offset       =  0x24,
             bitSize      =  32,
             mode         = "RO",
@@ -116,7 +116,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "Dummy",
-            description  = "",
+            description  = "Writable register that does nothing",
             offset       =  0x28,
             bitSize      =  32,
             mode         = "RW",
@@ -124,8 +124,8 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "Status",
-            description  = "",
-            offset       =  0x1C0,
+            description  = "Current status of several internal values",
+            offset       =  0x70,
             bitSize      =  32,
             mode         = "RO",
             pollInterval = 1,
@@ -134,7 +134,7 @@ class SsiPrbsRx(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "PacketLength",
             description  = "",
-            offset       =  0x1C4,
+            offset       =  0x74,
             bitSize      =  32,
             mode         = "RO",
             pollInterval = 1,
@@ -142,7 +142,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'WordSize',
-            offset = 0xF1 << 2,
+            offset = 0xF8,
             mode = 'RO',
             disp = '{:d}',
             hidden = False))
@@ -150,7 +150,7 @@ class SsiPrbsRx(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "PacketRateRaw",
             description  = "",
-            offset       =  0x1C8,
+            offset       =  0x78,
             bitSize      =  32,
             mode         = "RO",
             pollInterval = 1,
@@ -189,7 +189,7 @@ class SsiPrbsRx(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "WordErrCnt",
             description  = "",
-            offset       =  0x1D0,
+            offset       =  0x80,
             bitSize      =  32,
             mode         = "RO",
             pollInterval = 1,
@@ -198,7 +198,7 @@ class SsiPrbsRx(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "RolloverEnable",
             description  = "",
-            offset       =  0x3C0,
+            offset       =  0xF0,
             bitSize      =  32,
             mode         = "RW",
         ))
@@ -206,7 +206,7 @@ class SsiPrbsRx(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "BypassErrorChecking",
             description  = "Used to bypass the error checking",
-            offset       =  0x3F8,
+            offset       =  0xF4,
             bitSize      =  1,
             mode         = "RW",
         ))
@@ -214,7 +214,7 @@ class SsiPrbsRx(pr.Device):
         self.add(pr.RemoteCommand(
             name         = "CountReset",
             description  = "Status counter reset",
-            offset       =  0x3FC,
+            offset       =  0xFC,
             bitSize      =  1,
             function     = pr.BaseCommand.touchOne
         ))
