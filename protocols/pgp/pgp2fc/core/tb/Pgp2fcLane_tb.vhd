@@ -75,12 +75,12 @@ architecture Pgp2fcLane_tb of Pgp2fcLane_tb is
    signal pgpTxOut          : Pgp2fcTxOutType;
    signal pgpRxIn           : Pgp2fcRxInType;
    signal pgpRxOut          : Pgp2fcRxOutType;
-   
+
    signal fcTxSend          : sl := '0';
    signal fcTxWord          : slv(FC_WORDS*16-1 downto 0) := (others => '0');
    signal fcRxRecv          : sl;
    signal fcRxWord          : slv(FC_WORDS*16-1 downto 0);
-   
+
    signal fcInterval        : integer range 0 to FC_INTERVAL-1 := FC_START_VAL;
    signal fcCounter         : unsigned(FC_WORDS*16-1 downto 0) := (others => '0');
 
@@ -130,21 +130,21 @@ begin
       enable <= '1';
       wait;
    end process;
-   
+
    process (locClk) begin
       if rising_edge(locClk) then
          fcTxSend <= '0';
          fcTxWord <= (others => '0');
          fcInterval <= FC_START_VAL;
          fcCounter <= fcCounter;
-      
+
          if enable = '1' and FC_ENABLE = true then
             if fcInterval = FC_INTERVAL-1 then
                fcInterval <= 0;
             else
                fcInterval <= fcInterval + 1;
             end if;
-            
+
             if fcInterval = 0 then
                fcTxSend <= '1';
                fcTxWord <= slv(fcCounter);

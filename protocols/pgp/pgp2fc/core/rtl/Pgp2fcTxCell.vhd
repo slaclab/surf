@@ -38,7 +38,7 @@ entity Pgp2fcTxCell is
 
       -- Link is ready
       pgpTxLinkReady    : in  sl;                               -- Local side has link
-      
+
       -- Phy is busy
       pgpTxBusy         : in  sl;
 

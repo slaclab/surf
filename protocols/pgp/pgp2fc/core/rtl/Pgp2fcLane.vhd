@@ -47,7 +47,7 @@ entity Pgp2fcLane is
       pgpTxClkEn        : in  sl := '1';
       pgpTxClk          : in  sl := '0';
       pgpTxClkRst       : in  sl := '0';
-      
+
       -- Fast control input interface
       fcTxSend          : in  sl := '0';
       fcTxWord          : in  slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
@@ -72,7 +72,7 @@ entity Pgp2fcLane is
       pgpRxClkEn        : in  sl := '1';
       pgpRxClk          : in  sl := '0';
       pgpRxClkRst       : in  sl := '0';
-      
+
       -- Fast control output interface
       fcRxRecv          : out sl;
       fcRxWord          : out slv(16*FC_WORDS_G-1 downto 0);

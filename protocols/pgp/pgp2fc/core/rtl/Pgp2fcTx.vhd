@@ -40,11 +40,11 @@ entity Pgp2fcTx is
       pgpTxClkEn        : in  sl := '1';-- Master clock enable
       pgpTxClk          : in  sl;       -- Master clock
       pgpTxClkRst       : in  sl;       -- Synchronous reset input
-      
+
       -- Fast control interface
       fcSend            : in  sl := '0';
       fcWord            : in  slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
-      
+
       -- Non-VC related IO
       pgpTxIn           : in  Pgp2fcTxCtrlInType;
       pgpTxOut          : out Pgp2fcTxStatusOutType;
