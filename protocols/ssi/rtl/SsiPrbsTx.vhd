@@ -167,6 +167,7 @@ begin
       axiSlaveRegister(axilEp, X"04", 0, v.packetLength);
       axiSlaveRegister(axilEp, X"08", 0, v.tDest);
       axiSlaveRegister(axilEp, X"08", 8, v.tId);
+      axiSlaveRegister(axilEp, X"0C", 0, v.dataCnt);
       axiSlaveRegister(axilEp, X"18", 0, v.oneShot);
       axiSlaveRegister(axilEp, X"1C", 0, v.trigDly);
 
