@@ -160,21 +160,21 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Map the registers
-      axiSlaveRegister(axilEp, x"000", 0, v.statReset);
-      axiSlaveRegister(axilEp, x"004", 0, v.packetLength);
-      axiSlaveRegister(axilEp, x"008", 0, v.genPeriod);
-      axiSlaveRegister(axilEp, x"00C", 0, v.genEnable);
-      axiSlaveRegister(axilEp, x"00C", 1, v.genOne);
+      axiSlaveRegister(axilEp, x"00", 0, v.statReset);
+      axiSlaveRegister(axilEp, x"04", 0, v.packetLength);
+      axiSlaveRegister(axilEp, x"08", 0, v.genPeriod);
+      axiSlaveRegister(axilEp, x"0C", 0, v.genEnable);
+      axiSlaveRegister(axilEp, x"0C", 1, v.genOne);
 
-      axiSlaveRegisterR(axilEp, x"010", 0, r.genMissed);
-      axiSlaveRegisterR(axilEp, x"014", 0, frameRate);
-      axiSlaveRegisterR(axilEp, x"018", 0, frameRateMax);
-      axiSlaveRegisterR(axilEp, x"01C", 0, frameRateMin);
-      axiSlaveRegisterR(axilEp, x"020", 0, bandwidth);
-      axiSlaveRegisterR(axilEp, x"028", 0, bandwidthMax);
-      axiSlaveRegisterR(axilEp, x"030", 0, bandwidthMin);
+      axiSlaveRegisterR(axilEp, x"10", 0, r.genMissed);
+      axiSlaveRegisterR(axilEp, x"14", 0, frameRate);
+      axiSlaveRegisterR(axilEp, x"18", 0, frameRateMax);
+      axiSlaveRegisterR(axilEp, x"1C", 0, frameRateMin);
+      axiSlaveRegisterR(axilEp, x"20", 0, bandwidth);
+      axiSlaveRegisterR(axilEp, x"28", 0, bandwidthMax);
+      axiSlaveRegisterR(axilEp, x"30", 0, bandwidthMin);
 
-      axiSlaveRegisterR(axilEp, x"040", 0, r.frameCount);
+      axiSlaveRegisterR(axilEp, x"40", 0, r.frameCount);
 
       -- End transaction block
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_OK_C);
