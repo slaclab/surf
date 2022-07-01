@@ -38,13 +38,17 @@ entity SsiPrbsRateGen is
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
       -- AXI Stream Configurations
       AXIS_CLK_FREQ_G            : real                       := 156.25E+6;  -- units of Hz
-      AXIS_CONFIG_G              : AxiStreamConfigType);
+      AXIS_CONFIG_G              : AxiStreamConfigType;
+    -- Clock Configuration
+      USE_AXIL_CLK_G : boolean := false);
    port (
       -- Master Port (mAxisClk)
       mAxisClk        : in  sl;
       mAxisRst        : in  sl;
       mAxisMaster     : out AxiStreamMasterType;
       mAxisSlave      : in  AxiStreamSlaveType;
+      axilClk : in sl := '0';
+      axilRst : in sl := '0';
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
@@ -78,7 +82,7 @@ architecture rtl of SsiPrbsRateGen is
       genMissed      => (others=>'0'),
       genCount       => (others=>'0'),
       frameCount     => (others=>'0'),
-      statReset      => '1');
+      statReset      => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -93,18 +97,25 @@ architecture rtl of SsiPrbsRateGen is
    signal bandwidthMin : slv(63 downto 0);
    signal busy         : sl;
 
+   signal localClk : sl;
+   signal localRst : sl;
+
 begin
 
    mAxisMaster <= iAxisMaster;
    iAxisSlave  <= mAxisSlave;
 
+   localClk <= axilClk when USE_AXIL_CLK_G else mAxisClk;
+   localRst <= axilRst when USE_AXIL_CLK_G else mAxisRst;
+
    U_PrbsTx: entity surf.SsiPrbsTx
       generic map (
-         TPD_G                      => TPD_G,
+        TPD_G                      => TPD_G,
+        AXI_EN_G => '0',
          VALID_THOLD_G              => VALID_THOLD_G,
          VALID_BURST_MODE_G         => VALID_BURST_MODE_G,
          MEMORY_TYPE_G              => MEMORY_TYPE_G,
-         GEN_SYNC_FIFO_G            => true,
+         GEN_SYNC_FIFO_G            => not USE_AXIL_CLK_G,
          CASCADE_SIZE_G             => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_G,
          MASTER_AXI_STREAM_CONFIG_G => AXIS_CONFIG_G)
@@ -113,8 +124,8 @@ begin
          mAxisRst        => mAxisRst,
          mAxisMaster     => iAxisMaster,
          mAxisSlave      => iAxisSlave,
-         locClk          => mAxisClk,
-         locRst          => mAxisRst,
+         locClk          => localClk,
+         locRst          => localRst,
          trig            => r.trig,
          busy            => busy,
          packetLength    => r.packetLength);
@@ -130,7 +141,7 @@ begin
          axisRst       => mAxisRst,
          axisMaster    => iAxisMaster,
          axisSlave     => iAxisSlave,
-         statusClk     => mAxisClk,
+         statusClk     => localClk,
          statusRst     => r.statReset,
          frameRate     => frameRate,
          frameRateMax  => frameRateMax,
@@ -140,10 +151,9 @@ begin
          bandwidthMin  => bandwidthMin);
 
 
-   comb : process (axilReadMaster, axilWriteMaster, r, mAxisRst, busy,
-                   frameRate, frameRateMax, frameRateMin,
-                   bandwidth, bandwidthMax, bandwidthMin,
-                   iAxisMaster, iAxisSlave ) is
+   comb : process (axilReadMaster, axilWriteMaster, bandwidth, bandwidthMax,
+                   bandwidthMin, busy, frameRate, frameRateMax, frameRateMin,
+                   mAxisRst, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -207,7 +217,7 @@ begin
       end if;
 
       -- Reset
-      if (mAxisRst = '1') then
+      if (localRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -220,9 +230,9 @@ begin
 
    end process comb;
 
-   seq : process (mAxisClk) is
+   seq : process (localClk) is
    begin
-      if (rising_edge(mAxisClk)) then
+      if (rising_edge(localClk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
