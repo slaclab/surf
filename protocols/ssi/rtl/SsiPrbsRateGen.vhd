@@ -36,6 +36,7 @@ entity SsiPrbsRateGen is
       MEMORY_TYPE_G              : string                     := "block";
       CASCADE_SIZE_G             : natural range 1 to (2**24) := 1;
       FIFO_ADDR_WIDTH_G          : natural range 4 to 48      := 9;
+      PRBS_SEED_SIZE_G           : natural range 32 to 512    := 32;
       -- AXI Stream Configurations
       AXIS_CLK_FREQ_G            : real                       := 156.25E+6;  -- units of Hz
       AXIS_CONFIG_G              : AxiStreamConfigType;
@@ -118,6 +119,7 @@ begin
          GEN_SYNC_FIFO_G            => not USE_AXIL_CLK_G,
          CASCADE_SIZE_G             => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_G,
+         PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_G,
          MASTER_AXI_STREAM_CONFIG_G => AXIS_CONFIG_G)
       port map (
          mAxisClk        => mAxisClk,
