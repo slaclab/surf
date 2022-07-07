@@ -14,7 +14,7 @@
 import pyrogue as pr
 
 class SsiPrbsRateGen(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, clock_freq=125.0e6, **kwargs):
         super().__init__(**kwargs)
 
         ##############################
@@ -43,7 +43,7 @@ class SsiPrbsRateGen(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Period",
+            name         = "RawPeriod",
             description  = "",
             offset       = 0x08,
             bitSize      = 32,
@@ -51,6 +51,28 @@ class SsiPrbsRateGen(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
+
+        def get_conv(var):
+            return clock_freq / (self.RawPeriod.value()+1)
+
+        def set_conv(value, write):
+            if value <= 0:
+                self.RawPeriod.set(0xFFFFFFFF, write=write)
+            else:
+                v = int(clock_freq / value)-1
+                if v > 0xFFFFFFFF:
+                    v = 0xFFFFFFFF
+                self.RawPeriod.set(v, write=write)
+
+        self.add(pr.LinkVariable(
+            name = 'TxRate',
+            dependencies = [self.RawPeriod],
+            units = 'Hz',
+            disp = '{:0.3f}',
+            linkedGet = get_conv,
+            linkedSet = set_conv))
+
+
 
         self.add(pr.RemoteVariable(
             name         = "TxEn",
@@ -80,6 +102,7 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
+            disp = '{:d}',            
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -91,6 +114,8 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
+            units = 'Hz',
+            disp = '{:d}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -102,6 +127,7 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
+            disp = '{:d}',            
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -113,6 +139,7 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
+            disp = '{:d}',            
             pollInterval = 1,
             mode         = "RO",
         ))
