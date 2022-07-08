@@ -89,6 +89,7 @@ architecture rtl of AxiStreamMon is
    signal bwMax : slv(39 downto 0);
    signal bwMin : slv(39 downto 0);
 
+   signal frameRateRst     : sl;
    signal frameRateUpdate  : sl;
    signal frameRateSync    : slv(31 downto 0);
    signal frameRateMaxSync : slv(31 downto 0);
@@ -98,6 +99,15 @@ architecture rtl of AxiStreamMon is
    -- attribute dont_touch of r     : signal is "true";
 
 begin
+
+  
+   U_RstSync : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => axisClk,
+         asyncRst => statusRst,
+         syncRst  => frameRateReset);
 
    U_packetRate : entity surf.SyncTrigRate
       generic map (
@@ -116,7 +126,7 @@ begin
          trigRateOutMin  => frameRateMinSync,
          -- Clocks
          locClk          => axisClk,
-         locRst          => axisRst,
+         locRst          => frameRateReset,
          refClk          => axisClk,
          refRst          => axisRst);
 
