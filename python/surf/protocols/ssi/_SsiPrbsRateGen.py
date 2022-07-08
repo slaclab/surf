@@ -215,6 +215,6 @@ class SsiPrbsRateGen(pr.Device):
             mode         = "RO",
         ))
 
-        @staticmethod
-        def convMbps(var):
-            return var.dependencies[0].value() * 8e-6
+    @staticmethod
+    def convMbps(var):
+        return var.dependencies[0].value() * 8e-6
