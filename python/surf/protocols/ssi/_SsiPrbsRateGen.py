@@ -17,6 +17,31 @@ class SsiPrbsRateGen(pr.Device):
     def __init__(self, clock_freq=125.0e6, **kwargs):
         super().__init__(**kwargs)
 
+
+        ##############################
+        # Functions
+        ##############################
+        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
+                    self.add(pr.RemoteVariable(
+                        name         = ("Raw"+name),
+                        offset       = offset,
+                        bitSize      = bitSize,
+                        bitOffset    = bitOffset,
+                        base         = pr.UInt,
+                        mode         = 'RO',
+                        description  = description,
+                        pollInterval = pollInterval,
+                        hidden       = True,
+                    ))
+                    self.add(pr.LinkVariable(
+                        name         = name,
+                        mode         = 'RO',
+                        units        = units,
+                        linkedGet    = function,
+                        disp         = '{:1.1f}',
+                        dependencies = [self.variables["Raw"+name]],
+                    ))
+
         ##############################
         # Variables
         ##############################
@@ -189,28 +214,6 @@ class SsiPrbsRateGen(pr.Device):
             pollInterval = 1,
             mode         = "RO",
         ))
-
-
-        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
-                    self.add(pr.RemoteVariable(
-                        name         = ("Raw"+name),
-                        offset       = offset,
-                        bitSize      = bitSize,
-                        bitOffset    = bitOffset,
-                        base         = pr.UInt,
-                        mode         = 'RO',
-                        description  = description,
-                        pollInterval = pollInterval,
-                        hidden       = True,
-                    ))
-                    self.add(pr.LinkVariable(
-                        name         = name,
-                        mode         = 'RO',
-                        units        = units,
-                        linkedGet    = function,
-                        disp         = '{:1.1f}',
-                        dependencies = [self.variables["Raw"+name]],
-                    ))
 
         @staticmethod
         def convMbps(var):
