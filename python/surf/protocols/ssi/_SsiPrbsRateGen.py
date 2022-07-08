@@ -114,8 +114,8 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
-            units = 'Hz',
-            disp = '{:d}',
+            units        = 'Hz',
+            disp         = '{:d}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -127,7 +127,8 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
-            disp = '{:d}',            
+            units        = 'Hz',
+            disp         = '{:d}',            
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -139,44 +140,45 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
-            disp = '{:d}',            
+            units        = 'Hz',
+            disp         = '{:d}',            
             pollInterval = 1,
             mode         = "RO",
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = "BandWidth",
-            description  = "",
+        addPair(
+            name         = 'Bandwidth',
+            description  = "Current Bandwidth",
             offset       = 0x20,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
+            function     = self.convMbps,
+            units        = 'Mbps',
             pollInterval = 1,
-            mode         = "RO",
-        ))
+        )
 
-        self.add(pr.RemoteVariable(
-            name         = "BandWidthMax",
-            description  = "",
+        addPair(
+            name         = 'BandwidthMax',
+            description  = "Max Bandwidth",
             offset       = 0x28,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
+            function     = self.convMbps,
+            units        = 'Mbps',
             pollInterval = 1,
-            mode         = "RO",
-        ))
+        )
 
-        self.add(pr.RemoteVariable(
-            name         = "BandWidthMin",
-            description  = "",
+        addPair(
+            name         = 'BandwidthMin',
+            description  = "Min Bandwidth",
             offset       = 0x30,
             bitSize      = 64,
             bitOffset    = 0,
-            base         = pr.UInt,
+            function     = self.convMbps,
+            units        = 'Mbps',
             pollInterval = 1,
-            mode         = "RO",
-        ))
-
+        )
+        
         self.add(pr.RemoteVariable(
             name         = "FrameCount",
             description  = "",
@@ -187,3 +189,29 @@ class SsiPrbsRateGen(pr.Device):
             pollInterval = 1,
             mode         = "RO",
         ))
+
+
+        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
+                    self.add(pr.RemoteVariable(
+                        name         = ("Raw"+name),
+                        offset       = offset,
+                        bitSize      = bitSize,
+                        bitOffset    = bitOffset,
+                        base         = pr.UInt,
+                        mode         = 'RO',
+                        description  = description,
+                        pollInterval = pollInterval,
+                        hidden       = True,
+                    ))
+                    self.add(pr.LinkVariable(
+                        name         = name,
+                        mode         = 'RO',
+                        units        = units,
+                        linkedGet    = function,
+                        disp         = '{:1.1f}',
+                        dependencies = [self.variables["Raw"+name]],
+                    ))
+
+        @staticmethod
+        def convMbps(var):
+            return var.dependencies[0].value() * 8e-6
