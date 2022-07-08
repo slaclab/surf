@@ -89,7 +89,7 @@ architecture rtl of AxiStreamMon is
    signal bwMax : slv(39 downto 0);
    signal bwMin : slv(39 downto 0);
 
-   signal frameRateRst     : sl;
+   signal frameRateReset   : sl;
    signal frameRateUpdate  : sl;
    signal frameRateSync    : slv(31 downto 0);
    signal frameRateMaxSync : slv(31 downto 0);
