@@ -265,7 +265,7 @@ begin
          WIDTH_G      => 32)
       port map (
          -- ASYNC statistics reset
-         rstStat => axisRst,
+         rstStat => statusRst,
          -- Write Interface (wrClk domain)
          wrClk   => axisClk,
          wrEn    => r.sizeValid,
@@ -283,7 +283,7 @@ begin
          WIDTH_G      => 40)
       port map (
          -- ASYNC statistics reset
-         rstStat => axisRst,
+         rstStat => statusRst,
          -- Write Interface (wrClk domain)
          wrClk   => axisClk,
          wrEn    => r.updated,
