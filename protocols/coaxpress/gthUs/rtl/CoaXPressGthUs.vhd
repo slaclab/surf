@@ -40,8 +40,8 @@ entity CoaXPressGthUs is
       stableRst25     : in  sl;
       -- QPLL Interface
       qpllLock        : in  Slv2Array(NUM_LANES_G-1 downto 0);
-      qpllclk         : in  Slv2Array(NUM_LANES_G-1 downto 0);
-      qpllrefclk      : in  Slv2Array(NUM_LANES_G-1 downto 0);
+      qpllClk         : in  Slv2Array(NUM_LANES_G-1 downto 0);
+      qpllRefclk      : in  Slv2Array(NUM_LANES_G-1 downto 0);
       qpllRst         : out Slv2Array(NUM_LANES_G-1 downto 0);
       -- GT Ports
       gtTxP           : out slv(NUM_LANES_G-1 downto 0);
