@@ -43,6 +43,7 @@ entity SsiPrbsTx is
       CASCADE_SIZE_G             : positive                := 1;
       FIFO_ADDR_WIDTH_G          : positive                := 9;
       FIFO_PAUSE_THRESH_G        : positive                := 2**8;
+      FIFO_INT_WIDTH_SELECT_G    : string                  := "WIDE";
       -- PRBS Configurations
       PRBS_SEED_SIZE_G           : natural range 32 to 512 := 32;
       PRBS_TAPS_G                : NaturalArray            := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
@@ -74,7 +75,8 @@ end SsiPrbsTx;
 
 architecture rtl of SsiPrbsTx is
 
-   constant PRBS_BYTES_C : natural := wordCount(PRBS_SEED_SIZE_G, 8);
+   constant EVENT_CNT_SIZE_C : integer := minimum(PRBS_SEED_SIZE_G, 32);
+   constant PRBS_BYTES_C     : natural := wordCount(PRBS_SEED_SIZE_G, 8);
    constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => PRBS_BYTES_C,
@@ -83,6 +85,7 @@ architecture rtl of SsiPrbsTx is
       TKEEP_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TKEEP_MODE_C,
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TUSER_MODE_C);
+
 
    type StateType is (
       IDLE_S,
@@ -98,7 +101,7 @@ architecture rtl of SsiPrbsTx is
       dataCnt        : slv(31 downto 0);
       trigDly        : slv(31 downto 0);
       trigDlyCnt     : slv(31 downto 0);
-      eventCnt       : slv(PRBS_SEED_SIZE_G-1 downto 0);
+      eventCnt       : slv(EVENT_CNT_SIZE_C-1 downto 0);
       randomData     : slv(PRBS_SEED_SIZE_G-1 downto 0);
       txAxisMaster   : AxiStreamMasterType;
       state          : StateType;
@@ -121,7 +124,7 @@ architecture rtl of SsiPrbsTx is
       dataCnt        => (others => '0'),
       trigDly        => AXI_DEFAULT_TRIG_DLY_G,
       trigDlyCnt     => (others => '0'),
-      eventCnt       => toSlv(1, PRBS_SEED_SIZE_G),
+      eventCnt       => toSlv(1, EVENT_CNT_SIZE_C),
       randomData     => (others => '0'),
       txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
       state          => IDLE_S,
@@ -147,8 +150,8 @@ begin
 
    comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst, packetLength, r, tDest, tId,
                    trig, txCtrl, txSlave) is
-      variable v             : RegType;
-      variable axilEp        : AxiLiteEndpointType;
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndpointType;
    begin
       -- Latch the current value
       v := r;
@@ -171,7 +174,7 @@ begin
       axiSlaveRegister(axilEp, X"18", 0, v.oneShot);
       axiSlaveRegister(axilEp, X"1C", 0, v.trigDly);
 
-      axiSlaveRegisterR(axilEp, X"10", 0, r.eventCnt(minimum(PRBS_SEED_SIZE_G-1, 31) downto 0));
+      axiSlaveRegisterR(axilEp, X"10", 0, r.eventCnt);
       axiSlaveRegisterR(axilEp, X"14", 0, r.randomData(minimum(PRBS_SEED_SIZE_G-1, 31) downto 0));
       axiSlaveRegisterR(axilEp, X"1C", 0, r.trigDly);
 
@@ -220,17 +223,17 @@ begin
             -- Check for a trigger
             if (r.trigger = '1') or (r.oneShot = '1') then
                -- Reset the one shot
-               v.oneShot            := '0';
-               v.trigger            := '0';
+               v.oneShot                                 := '0';
+               v.trigger                                 := '0';
                -- Latch the generator seed
-               v.randomData         := r.eventCnt;
+               v.randomData(EVENT_CNT_SIZE_C-1 downto 0) := r.eventCnt;
                -- Set the busy flag
-               v.busy               := '1';
+               v.busy                                    := '1';
                -- Reset the overflow flag
-               v.overflow           := '0';
+               v.overflow                                := '0';
                -- Latch the configuration
-               v.txAxisMaster.tDest := r.tDest;
-               v.txAxisMaster.tId   := r.tId;
+               v.txAxisMaster.tDest                      := r.tDest;
+               v.txAxisMaster.tId                        := r.tId;
                -- Check the packet length request value
                if r.packetLength = 0 then
                   -- Force minimum packet length of 2 (+1)
@@ -250,7 +253,7 @@ begin
             if v.txAxisMaster.tvalid = '0' then
                -- Send the random seed word
                v.txAxisMaster.tvalid                             := '1';
-               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
+               v.txAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0) := r.eventCnt;
                -- Generate the next random data word
 --               for i in 0 to PRBS_SEED_SIZE_G-1 loop
                v.randomData                                      := lfsrShift(v.randomData, PRBS_TAPS_G, '0');
@@ -355,6 +358,7 @@ begin
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          CASCADE_PAUSE_SEL_G => (CASCADE_SIZE_G-1),
+         INT_WIDTH_SELECT_G  => FIFO_INT_WIDTH_SELECT_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
          MASTER_AXI_CONFIG_G => MASTER_AXI_STREAM_CONFIG_G)

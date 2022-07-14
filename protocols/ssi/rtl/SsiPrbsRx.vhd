@@ -40,6 +40,7 @@ entity SsiPrbsRx is
       FIFO_PAUSE_THRESH_G       : positive                 := 2**8;
       SYNTH_MODE_G              : string                   := "inferred";
       MEMORY_TYPE_G             : string                   := "block";
+      FIFO_INT_WIDTH_SELECT_G   : string                   := "WIDE";
       -- PRBS Config
       PRBS_SEED_SIZE_G          : positive range 32 to 512 := 32;
       PRBS_TAPS_G               : NaturalArray             := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
@@ -78,8 +79,9 @@ end SsiPrbsRx;
 
 architecture rtl of SsiPrbsRx is
 
-   constant MAX_CNT_C    : slv(31 downto 0) := (others => '1');
-   constant PRBS_BYTES_C : natural          := wordCount(PRBS_SEED_SIZE_G, 8);
+   constant MAX_CNT_C        : slv(31 downto 0) := (others => '1');
+   constant EVENT_CNT_SIZE_C : integer          := minimum(PRBS_SEED_SIZE_G, 32);
+   constant PRBS_BYTES_C     : natural          := wordCount(PRBS_SEED_SIZE_G, 8);
    constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => PRBS_BYTES_C,
@@ -88,6 +90,8 @@ architecture rtl of SsiPrbsRx is
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+
 
    type StateType is (
       IDLE_S,
@@ -108,7 +112,7 @@ architecture rtl of SsiPrbsRx is
       bitPntr         : slv(log2(PRBS_SEED_SIZE_G)-1 downto 0);
       errorBits       : slv(PRBS_SEED_SIZE_G-1 downto 0);
       errWordCnt      : slv(31 downto 0);
-      eventCnt        : slv(PRBS_SEED_SIZE_G-1 downto 0);
+      eventCnt        : slv(EVENT_CNT_SIZE_C-1 downto 0);
       randomData      : slv(PRBS_SEED_SIZE_G-1 downto 0);
       dataCnt         : slv(31 downto 0);
       stopTime        : slv(31 downto 0);
@@ -133,7 +137,7 @@ architecture rtl of SsiPrbsRx is
       bitPntr         => (others => '0'),
       errorBits       => (others => '0'),
       errWordCnt      => (others => '0'),
-      eventCnt        => toSlv(1, PRBS_SEED_SIZE_G),
+      eventCnt        => toSlv(1, EVENT_CNT_SIZE_C),
       randomData      => (others => '0'),
       dataCnt         => (others => '0'),
       stopTime        => (others => '0'),
@@ -225,6 +229,7 @@ begin
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
+         INT_WIDTH_SELECT_G  => FIFO_INT_WIDTH_SELECT_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_STREAM_CONFIG_G,
          MASTER_AXI_CONFIG_G => PRBS_SSI_CONFIG_C)
@@ -340,17 +345,17 @@ begin
                      v.eofe            := '0';
 
                      -- Check if we have missed a packet
-                     if (rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) /= r.eventCnt) then
+                     if (rxAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0) /= r.eventCnt) then
                         -- Set the error flags
                         v.errMissedPacket := '1';
                         v.errorDet        := '1';
                      end if;
 
                      -- Align the event counter to the next packet
-                     v.eventCnt := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) + 1;
+                     v.eventCnt := rxAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0) + 1;
 
                      -- Latch the SEED for the randomization
-                     v.randomData := rxAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0);
+                     v.randomData(EVENT_CNT_SIZE_C-1 downto 0) := rxAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0);
 
                      -- Set the busy flag
                      v.busy := '1';
@@ -612,7 +617,7 @@ begin
       axiSlaveRegisterR(axilEp, X"1C", 0, pause0Cnt);
       axiSlaveRegisterR(axilEp, X"20", 0, overflow1Cnt);
       axiSlaveRegisterR(axilEp, X"24", 0, pause1Cnt);
-      axiSlaveRegister(axilEp, X"28", 0, v.dummy);      
+      axiSlaveRegister(axilEp, X"28", 0, v.dummy);
       axiSlaveRegisterR(axilEp, X"70", 0, errMissedPacketSync);
       axiSlaveRegisterR(axilEp, X"70", 1, errLengthSync);
       axiSlaveRegisterR(axilEp, X"70", 2, errEofeSync);
@@ -628,11 +633,11 @@ begin
       axiSlaveRegisterR(axilEp, X"7C", 0, X"00000000");  -- legacy errBitCntSync
       axiSlaveRegisterR(axilEp, X"80", 0, errWordCntSync);
       axiSlaveRegister(axilEp, X"F0", 0, v.rollOverEn);
-      axiSlaveRegister(axilEp, X"F4", 0, v.bypCheck);      
-      axiSlaveRegisterR(axilEp, X"F8", 0,  toSlv(PRBS_SEED_SIZE_G, 32));
-      axiWrDetect(axilEp, X"FC", v.cntRst);      
+      axiSlaveRegister(axilEp, X"F4", 0, v.bypCheck);
+      axiSlaveRegisterR(axilEp, X"F8", 0, toSlv(PRBS_SEED_SIZE_G, 32));
+      axiWrDetect(axilEp, X"FC", v.cntRst);
 
-      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);      
+      axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
       if axiRst = '1' then
