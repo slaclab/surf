@@ -22,12 +22,13 @@ use surf.I2cPkg.all;
 
 entity AxiI2cRegMaster is
    generic (
-      TPD_G           : time               := 1 ns;
-      AXIL_PROXY_G    : boolean            := false;
-      DEVICE_MAP_G    : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
-      I2C_SCL_FREQ_G  : real               := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G : real               := 100.0E-9;    -- units of seconds
-      AXI_CLK_FREQ_G  : real               := 156.25E+6);  -- units of Hz
+      TPD_G             : time               := 1 ns;
+      AXIL_PROXY_G      : boolean            := false;
+      BEHAVIORAL_MODE_G : boolean            := false;
+      DEVICE_MAP_G      : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C;
+      I2C_SCL_FREQ_G    : real               := 100.0E+3;  -- units of Hz
+      I2C_MIN_PULSE_G   : real               := 100.0E-9;  -- units of seconds
+      AXI_CLK_FREQ_G    : real               := 156.25E+6);  -- units of Hz
    port (
       -- Clocks and Resets
       axiClk         : in    sl;
@@ -72,18 +73,32 @@ begin
          i2ci           => i2ci,
          i2co           => i2co);
 
-   IOBUF_SCL : entity surf.IoBufWrapper
-      port map (
-         O  => i2ci.scl,                -- Buffer output
-         IO => scl,  -- Buffer inout port (connect directly to top-level port)
-         I  => i2co.scl,                -- Buffer input
-         T  => i2co.scloen);  -- 3-state enable input, high=input, low=output
+   PRIMATIVE_MODE : if (BEHAVIORAL_MODE_G = false) generate
 
-   IOBUF_SDA : entity surf.IoBufWrapper
-      port map (
-         O  => i2ci.sda,                -- Buffer output
-         IO => sda,  -- Buffer inout port (connect directly to top-level port)
-         I  => i2co.sda,                -- Buffer input
-         T  => i2co.sdaoen);  -- 3-state enable input, high=input, low=output
+      IOBUF_SCL : entity surf.IoBufWrapper
+         port map (
+            O  => i2ci.scl,             -- Buffer output
+            IO => scl,  -- Buffer inout port (connect directly to top-level port)
+            I  => i2co.scl,             -- Buffer input
+            T  => i2co.scloen);  -- 3-state enable input, high=input, low=output
+
+      IOBUF_SDA : entity surf.IoBufWrapper
+         port map (
+            O  => i2ci.sda,             -- Buffer output
+            IO => sda,  -- Buffer inout port (connect directly to top-level port)
+            I  => i2co.sda,             -- Buffer input
+            T  => i2co.sdaoen);  -- 3-state enable input, high=input, low=output
+
+   end generate;
+
+   BEHAVIORAL_MODE : if (BEHAVIORAL_MODE_G = true) generate
+
+      -- https://stackoverflow.com/questions/19117584/weak-h-pullup-on-inout-bidirectional-signal-in-simulation
+      scl      <= i2co.scl when i2co.scloen = '0' else 'H';
+      i2ci.scl <= scl;
+      sda      <= i2co.sda when i2co.sdaoen = '0' else 'H';
+      i2ci.sda <= sda;
+
+   end generate;
 
 end mapping;
