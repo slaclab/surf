@@ -47,6 +47,9 @@ package Pgp2fcPkg is
    -- ID Constant
    constant PGP2FC_ID_C : slv(3 downto 0) := "0111";
 
+   constant MAX_FC_WORDS_C : integer := 8;
+   constant MAX_FC_BITS_C  : integer := MAX_FC_WORDS_C * 16;
+
    -----------------------------------------------------
    -- PGP RX non-data types
    -----------------------------------------------------
@@ -65,19 +68,20 @@ package Pgp2fcPkg is
       loopback => "000");
 
    type Pgp2fcRxOutType is record
-      phyRxReady   : sl;                -- RX Phy is ready
-      linkReady    : sl;                -- Local side has link
-      fcRecv       : sl;                -- Fast Control word received
-      fcRecvErr    : sl;                -- Fast Control word received with error
-      frameRx      : sl;                -- A good frame was received
-      frameRxErr   : sl;                -- An errored frame was received
-      cellError    : sl;                -- A cell error has occured
-      linkDown     : sl;                -- A link down event has occured
-      linkError    : sl;                -- A link error has occured
-      remLinkReady : sl;                -- Far end side has link
-      remLinkData  : slv(7 downto 0);   -- Far end side User Data
-      remOverflow  : slv(3 downto 0);   -- Far end overflow status
-      remPause     : slv(3 downto 0);   -- Far end pause status
+      phyRxReady   : sl;                             -- RX Phy is ready
+      linkReady    : sl;                             -- Local side has link
+      frameRx      : sl;                             -- A good frame was received
+      frameRxErr   : sl;                             -- An errored frame was received
+      cellError    : sl;                             -- A cell error has occured
+      linkDown     : sl;                             -- A link down event has occured
+      linkError    : sl;                             -- A link error has occured
+      fcValid      : sl;                             -- Fast Control word received
+      fcError      : sl;                             -- Fast Control word received with error
+      fcWord       : slv(MAX_FC_BITS_C-1 downto 0);  -- Fast control word
+      remLinkReady : sl;                             -- Far end side has link
+      remLinkData  : slv(7 downto 0);                -- Far end side User Data
+      remOverflow  : slv(3 downto 0);                -- Far end overflow status
+      remPause     : slv(3 downto 0);                -- Far end pause status
    end record Pgp2fcRxOutType;
 
    type Pgp2fcRxOutArray is array (natural range <>) of Pgp2fcRxOutType;
@@ -85,13 +89,14 @@ package Pgp2fcPkg is
    constant PGP2FC_RX_OUT_INIT_C : Pgp2fcRxOutType := (
       phyRxReady   => '0',
       linkReady    => '0',
-      fcRecv       => '0',
-      fcRecvErr    => '0',
       frameRx      => '0',
       frameRxErr   => '0',
       cellError    => '0',
       linkDown     => '0',
       linkError    => '0',
+      fcValid      => '0',
+      fcError      => '0',
+      fcWord       => (others => '0'),
       remLinkReady => '0',
       remLinkData  => (others => '0'),
       remOverflow  => (others => '0'),
@@ -102,10 +107,12 @@ package Pgp2fcPkg is
    -----------------------------------------------------
 
    type Pgp2fcTxInType is record
-      flush       : sl;                 -- Flush the link
-      locData     : slv(7 downto 0);    -- Near end side User Data
-      flowCntlDis : sl;                 -- Ignore flow control
-      resetTx     : sl;                 -- Reset tx phy
+      flush       : sl;                             -- Flush the link
+      fcValid     : sl;                             -- Fast Control word send
+      fcWord      : slv(MAX_FC_BITS_C-1 downto 0);  -- Fast Control word
+      locData     : slv(7 downto 0);                -- Near end side User Data
+      flowCntlDis : sl;                             -- Ignore flow control
+      resetTx     : sl;                             -- Reset tx phy
       resetGt     : sl;
    end record Pgp2fcTxInType;
 
@@ -113,6 +120,8 @@ package Pgp2fcPkg is
 
    constant PGP2FC_TX_IN_INIT_C : Pgp2fcTxInType := (
       flush       => '0',
+      fcValid     => '0',
+      fcWord      => (others => '0'),
       locData     => (others => '0'),
       flowCntlDis => '0',
       resetTx     => '0',
@@ -120,6 +129,8 @@ package Pgp2fcPkg is
 
    constant PGP2FC_TX_IN_HALF_DUPLEX_C : Pgp2fcTxInType := (
       flush       => '0',
+      fcValid     => '0',
+      fcWord      => (others => '0'),
       locData     => (others => '0'),
       flowCntlDis => '1',
       resetTx     => '0',

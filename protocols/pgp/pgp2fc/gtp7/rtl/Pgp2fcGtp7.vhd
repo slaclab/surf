@@ -112,14 +112,6 @@ entity Pgp2fcGtp7 is
       pgpTxIn  : in  Pgp2fcTxInType;
       pgpTxOut : out Pgp2fcTxOutType;
 
-      -- Fast control TX interface
-      pgpTxFcValid : in sl                            := '0';
-      pgpTxFcWord  : in slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
-
-      -- Fast control RX interface
-      pgpRxFcValid : out sl;
-      pgpRxFcWord  : out slv(16*FC_WORDS_G-1 downto 0);
-
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0);
@@ -208,8 +200,6 @@ begin
          pgpTxClkEn       => '1',               -- [in]
          pgpTxClk         => pgpTxClk,          -- [in]
          pgpTxClkRst      => pgpTxReset,        -- [in]
-         pgpTxFcValid     => pgpTxFcValid,      -- [in]
-         pgpTxFcWord      => pgpTxFcWord,       -- [in]
          pgpTxIn          => pgpTxIn,           -- [in]
          pgpTxOut         => pgpTxOut,          -- [out]
          pgpTxMasters     => pgpTxMasters,      -- [in]
@@ -219,8 +209,6 @@ begin
          pgpRxClkEn       => '1',               -- [in]
          pgpRxClk         => pgpRxClk,          -- [in]
          pgpRxClkRst      => pgpRxResetInt,     -- [in]
-         pgpRxFcValid     => pgpRxFcValid,      -- [out]
-         pgpRxFcWord      => pgpRxFcWord,       -- [out]
          pgpRxIn          => pgpRxIn,           -- [in]
          pgpRxOut         => pgpRxOut,          -- [out]
          pgpRxMasters     => pgpRxMasters,      -- [out]

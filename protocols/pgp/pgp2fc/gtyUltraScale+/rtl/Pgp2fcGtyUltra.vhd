@@ -34,6 +34,7 @@ entity Pgp2fcGtyUltra is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
+      FC_WORDS_G        : integer range 1 to 8 := 1;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
       TX_ENABLE_G       : boolean              := true;
@@ -69,11 +70,6 @@ entity Pgp2fcGtyUltra is
       -- Non VC Tx Signals
       pgpTxIn          : in  Pgp2fcTxInType;
       pgpTxOut         : out Pgp2fcTxOutType;
-      -- FC signals
-      pgpTxFcValid     : in  sl                               := '0';
-      pgpTxFcWord      : in  slv(16*FC_WORDS_G-1 downto 0)    := (others => '0');
-      pgpRxFcValid     : out sl;
-      pgpRxFcWord      : out slv(16*FC_WORDS_G-1 downto 0);
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
       pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
       pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
@@ -99,7 +95,6 @@ architecture mapping of Pgp2fcGtyUltra is
    signal resetRxSync   : sl;
    signal gtRxUserReset : sl;
    signal phyRxLaneIn   : Pgp2fcRxPhyLaneInType;
-   signal phyRxLaneOut  : Pgp2fcRxPhyLaneOutType;
    signal phyRxReady    : sl;
    signal phyRxInit     : sl;
 
@@ -167,25 +162,20 @@ begin
       port map (
          pgpTxClk         => pgpTxClk,
          pgpTxClkRst      => pgpTxReset,
-         pgpTxFcValid     => pgpTxFcValid,
-         pgpTxFcWord      => pgpTxFcWord,
          pgpTxIn          => pgpTxIn,
          pgpTxOut         => pgpTxOut,
          pgpTxMasters     => pgpTxMasters,
          pgpTxSlaves      => pgpTxSlaves,
-         phyTxLanesOut(0) => phyTxLaneOut,
+         phyTxLaneOut     => phyTxLaneOut,
          phyTxReady       => phyTxReady,
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => pgpRxReset,
-         pgpRxFcValid     => pgpRxFcValid,
-         pgpRxFcWord      => pgprxFcWord,
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => pgpRxMasterMuxed,
          pgpRxCtrl        => pgpRxCtrl,
-         phyRxLanesOut(0) => phyRxLaneOut,
-         phyRxLanesIn(0)  => phyRxLaneIn,
+         phyRxLaneIn      => phyRxLaneIn,
          phyRxReady       => phyRxReady,
          phyRxInit        => phyRxInit);
 

@@ -48,10 +48,6 @@ entity Pgp2fcLane is
       pgpTxClk    : in sl := '0';
       pgpTxClkRst : in sl := '0';
 
-      -- Fast control input interface
-      pgpTxFcValid : in sl                            := '0';
-      pgpTxFcWord  : in slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
-
       -- Non-VC related IO
       pgpTxIn  : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
       pgpTxOut : out Pgp2fcTxOutType;
@@ -72,10 +68,6 @@ entity Pgp2fcLane is
       pgpRxClkEn  : in sl := '1';
       pgpRxClk    : in sl := '0';
       pgpRxClkRst : in sl := '0';
-
-      -- Fast control output interface
-      pgpRxFcValid : out sl;
-      pgpRxFcWord  : out slv(16*FC_WORDS_G-1 downto 0);
 
       -- Non-VC related IO
       pgpRxIn  : in  Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
@@ -125,8 +117,6 @@ begin
                pgpTxClkEn    => pgpTxClkEn,
                pgpTxClk      => pgpTxClk,
                pgpTxClkRst   => pgpTxClkRst,
-               fcSend        => pgpTxFcValid,
-               fcWord        => pgpTxFcWord,
                pgpTxIn       => pgpTxIn,
                pgpTxOut      => pgpTxOut,
                locLinkReady  => intRxOut.linkReady,
@@ -162,8 +152,6 @@ begin
                pgpRxClkEn    => pgpRxClkEn,
                pgpRxClk      => pgpRxClk,
                pgpRxClkRst   => pgpRxClkRst,
-               fcRecv        => pgpRxFcValid,
-               fcWord        => pgpRxFcWord,
                pgpRxIn       => pgpRxIn,
                pgpRxOut      => intRxOut,
                pgpRxMaster   => intRxMaster,
