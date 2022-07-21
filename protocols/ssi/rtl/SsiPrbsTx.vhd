@@ -126,7 +126,7 @@ architecture rtl of SsiPrbsTx is
       trigDlyCnt     => (others => '0'),
       eventCnt       => toSlv(1, EVENT_CNT_SIZE_C),
       randomData     => (others => '0'),
-      txAxisMaster   => AXI_STREAM_MASTER_INIT_C,
+      txAxisMaster   => axiStreamMasterInit(PRBS_SSI_CONFIG_C),
       state          => IDLE_S,
       axiEn          => AXI_EN_G,
       oneShot        => '0',
@@ -211,7 +211,6 @@ begin
          v.txAxisMaster.tValid := '0';
          v.txAxisMaster.tLast  := '0';
          v.txAxisMaster.tUser  := (others => '0');
-         v.txAxisMaster.tKeep  := (others => '1');
       end if;
 
       -- State Machine
