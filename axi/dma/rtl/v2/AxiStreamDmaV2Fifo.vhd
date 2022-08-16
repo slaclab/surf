@@ -42,7 +42,8 @@ entity AxiStreamDmaV2Fifo is
       AXI_CONFIG_G       : AxiConfigType;
       AXI_BURST_G        : slv(1 downto 0)          := "01";
       AXI_CACHE_G        : slv(3 downto 0)          := "1111";
-      BURST_BYTES_G      : positive range 1 to 4096 := 4096);
+      BURST_BYTES_G      : positive range 1 to 4096 := 4096;
+      RD_PEND_THRESH_G   : positive                 := 1);  -- In units of bytes
    port (
       -- AXI4 Interface (axiClk domain)
       axiClk          : in  sl;
@@ -252,7 +253,8 @@ begin
          AXIS_READY_EN_G => true,
          AXIS_CONFIG_G   => AXIS_CONFIG_G,
          AXI_CONFIG_G    => AXI_CONFIG_G,
-         BURST_BYTES_G   => BURST_BYTES_G)
+         BURST_BYTES_G   => BURST_BYTES_G,
+         PEND_THRESH_G   => RD_PEND_THRESH_G)
       port map (
          -- Clock/Reset
          axiClk          => axiClk,
