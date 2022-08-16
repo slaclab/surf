@@ -252,6 +252,7 @@ begin
             if v.txAxisMaster.tvalid = '0' then
                -- Send the random seed word
                v.txAxisMaster.tvalid                             := '1';
+               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := (others => '0');
                v.txAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0) := r.eventCnt;
                -- Generate the next random data word
 --               for i in 0 to PRBS_SEED_SIZE_G-1 loop
