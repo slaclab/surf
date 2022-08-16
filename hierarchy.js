@@ -627,7 +627,8 @@ var hierarchy =
             [ "AxiStreamMux", "classAxiStreamMux.html", null ],
             [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
           ] ],
-          [ "IcmpEngine", "classIcmpEngine.html", null ]
+          [ "IcmpEngine", "classIcmpEngine.html", null ],
+          [ "IgmpV2Engine", "classIgmpV2Engine.html", null ]
         ] ],
         [ "UdpEngine", "classUdpEngine.html", [
           [ "UdpEngineRx", "classUdpEngineRx.html", [

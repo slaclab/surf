@@ -361,6 +361,7 @@ var annotated_dup =
     [ "I2cSlave", "classI2cSlave.html", "classI2cSlave" ],
     [ "IcmpEngine", "classIcmpEngine.html", "classIcmpEngine" ],
     [ "Idelaye3Wrapper", "classIdelaye3Wrapper.html", "classIdelaye3Wrapper" ],
+    [ "IgmpV2Engine", "classIgmpV2Engine.html", "classIgmpV2Engine" ],
     [ "IirSimple", "classIirSimple.html", "classIirSimple" ],
     [ "IirSimpleTb", "classIirSimpleTb.html", "classIirSimpleTb" ],
     [ "InputBufferReg", "classInputBufferReg.html", "classInputBufferReg" ],

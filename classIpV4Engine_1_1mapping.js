@@ -1,7 +1,8 @@
 var classIpV4Engine_1_1mapping =
 [
     [ "GenIPv4List", "classIpV4Engine_1_1mapping.html#a794a5fb51ba1dab6f17a792b6b7fea24", null ],
-    [ "PROTOCOL_C", "classIpV4Engine_1_1mapping.html#ab99e743df4b1076be29ab1e275862b86", null ],
+    [ "PROTOCOL_SIZE_C", "classIpV4Engine_1_1mapping.html#a4397c105e680dae525b2c6d683472e0f", null ],
+    [ "PROTOCOL_C", "classIpV4Engine_1_1mapping.html#a71e4905445ffa209901ef3b11456b721", null ],
     [ "ibArpMaster", "classIpV4Engine_1_1mapping.html#ab997765808ea4f260d3d20edd0ea77b7", null ],
     [ "ibArpSlave", "classIpV4Engine_1_1mapping.html#ae5826558d3dc83fee1251cf1f2d787bd", null ],
     [ "obArpMaster", "classIpV4Engine_1_1mapping.html#a52f2b556e6f728b4e40c4b5b5d557cce", null ],
@@ -12,14 +13,15 @@ var classIpV4Engine_1_1mapping =
     [ "obIpv4Slave", "classIpV4Engine_1_1mapping.html#a1ec20cdf6d91087cc51f9420c11ee8fc", null ],
     [ "localhostMaster", "classIpV4Engine_1_1mapping.html#a8011484b31e0bf3e036e2b9836a4a85f", null ],
     [ "localhostSlave", "classIpV4Engine_1_1mapping.html#a90dd3b06498506a8ebcf4b534447dd4f", null ],
-    [ "ibMasters", "classIpV4Engine_1_1mapping.html#a0a509c27c71d585c90d408bed0ea06d3", null ],
-    [ "ibSlaves", "classIpV4Engine_1_1mapping.html#ad7a800f10fbe44d6a37b2aafa1c6edb8", null ],
-    [ "obMasters", "classIpV4Engine_1_1mapping.html#ac65347607303831a3f66cfd559364a71", null ],
-    [ "obSlaves", "classIpV4Engine_1_1mapping.html#a5a5a519c9b24dae769ce6a4fc6cb0906", null ],
+    [ "ibMasters", "classIpV4Engine_1_1mapping.html#a7a3b7d192cc96bc4d12db09e4ef7fa2c", null ],
+    [ "ibSlaves", "classIpV4Engine_1_1mapping.html#a3f67b234fc4cd40fe9657e02a2054373", null ],
+    [ "obMasters", "classIpV4Engine_1_1mapping.html#a9c5654690f567fb0895549c5b56d705e", null ],
+    [ "obSlaves", "classIpV4Engine_1_1mapping.html#a0b9a5ffdf4263a54f6e36e0b11bae3da", null ],
     [ "u_ethframedemux", "classIpV4Engine_1_1mapping.html#ad4cb20cffb6b1345fb78bd0cae275914", null ],
     [ "u_ethframemux", "classIpV4Engine_1_1mapping.html#a4cb3e4c9f30b38ccea5042fa4295855e", null ],
     [ "u_arpengine", "classIpV4Engine_1_1mapping.html#adfc14b28017dcb8c6c9229e4994d1434", null ],
     [ "u_ipv4enginerx", "classIpV4Engine_1_1mapping.html#ab270ec8c0d0aafefcc5c3ec1332837ab", null ],
     [ "u_ipv4enginetx", "classIpV4Engine_1_1mapping.html#a9104ac5b0458771afe9a0b8930b79d44", null ],
-    [ "u_icmpengine", "classIpV4Engine_1_1mapping.html#a1a5e4d857857dad21aab6a44e92d5ae5", null ]
+    [ "u_icmpengine", "classIpV4Engine_1_1mapping.html#a1a5e4d857857dad21aab6a44e92d5ae5", null ],
+    [ "u_igmpv2engine", "classIpV4Engine_1_1mapping.html#a3e552766da2882b157627204fd67f635", null ]
 ];

@@ -1,5 +1,9 @@
 var NAVTREEINDEX66 =
 {
+"classGtx7QuadPll_1_1mapping.html#a6467be1f1f6fa8e475af1418accdd1b3":[1,0,328,0,8],
+"classGtx7QuadPll_1_1mapping.html#ac954cdfb38167edb6f81eedcba6738be":[1,0,328,0,7],
+"classGtx7QuadPll_1_1mapping.html#acd904b950d70252271db56607e382010":[1,0,328,0,14],
+"classGtx7QuadPll_1_1mapping.html#adb6c399bd7353e4be39adbe07cb80161":[1,0,328,0,12],
 "classGtx7QuadPll_1_1mapping.html#afc67c3016a67b9b56fdb967a3cb76df9":[1,0,328,0,4],
 "classGtx7QuadPll_1_1mapping.html#afd7f391d3930b1485f88cee60a8c0c5a":[1,0,328,0,5],
 "classGtx7RecClkMonitor.html":[1,0,329],
@@ -245,9 +249,5 @@ var NAVTREEINDEX66 =
 "classGtx7TxManualPhaseAligner_1_1rtl.html#a7a1589a8a0c03765f7026f10990073e8":[1,0,332,0,14],
 "classGtx7TxManualPhaseAligner_1_1rtl.html#a941536b79ecd2fb963365701fd3d7da6":[1,0,332,0,18],
 "classGtx7TxManualPhaseAligner_1_1rtl.html#a98b08f5b9da7e7caccfad897a4c00bb6":[1,0,332,0,7],
-"classGtx7TxManualPhaseAligner_1_1rtl.html#a99c5a34c7d76d828cbce46d8bf7f286d":[1,0,332,0,2],
-"classGtx7TxManualPhaseAligner_1_1rtl.html#a9a4e922c145b46a8772393ae964fe18d":[1,0,332,0,8],
-"classGtx7TxManualPhaseAligner_1_1rtl.html#aa10dcd26aa53cd5808d47e8db1d58945":[1,0,332,0,15],
-"classGtx7TxManualPhaseAligner_1_1rtl.html#aab2977867c5858135eab32868292ae2f":[1,0,332,0,10],
-"classGtx7TxManualPhaseAligner_1_1rtl.html#abbd8d77a01d52f051bbf3fc14236a178":[1,0,332,0,16]
+"classGtx7TxManualPhaseAligner_1_1rtl.html#a99c5a34c7d76d828cbce46d8bf7f286d":[1,0,332,0,2]
 };

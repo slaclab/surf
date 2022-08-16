@@ -13,6 +13,7 @@ var classAxiStreamDmaV2Fifo =
     [ "AXI_BURST_G", "classAxiStreamDmaV2Fifo.html#a056b407dcdfca6742311295ace4d9dca", null ],
     [ "AXI_CACHE_G", "classAxiStreamDmaV2Fifo.html#a2b41715df1d68ccd8f96916eada55a94", null ],
     [ "BURST_BYTES_G", "classAxiStreamDmaV2Fifo.html#a7f86f26501606032b52ffad309bfb92d", null ],
+    [ "RD_PEND_THRESH_G", "classAxiStreamDmaV2Fifo.html#aea73e90be9da23f0fc894cfe3682f26c", null ],
     [ "axiClk", "classAxiStreamDmaV2Fifo.html#a7d8781c632c75ab0fdde6e592fd13d60", null ],
     [ "axiRst", "classAxiStreamDmaV2Fifo.html#a399a775bae9ae4819d5af6838a95e28e", null ],
     [ "axiReady", "classAxiStreamDmaV2Fifo.html#ad20d55a641aba71879ab303276e9a842", null ],

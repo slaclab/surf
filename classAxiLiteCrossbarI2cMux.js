@@ -22,6 +22,7 @@ var classAxiLiteCrossbarI2cMux =
     [ "mAxilWriteSlaves", "classAxiLiteCrossbarI2cMux.html#a0a2aeb6740580b597b0c360c2235b29d", null ],
     [ "mAxilReadMasters", "classAxiLiteCrossbarI2cMux.html#a7c239cd980b227d1295df05b2b1a3b3d", null ],
     [ "mAxilReadSlaves", "classAxiLiteCrossbarI2cMux.html#ada1b5e25cb0aa0bd40459f7837cd596e", null ],
+    [ "i2cRstL", "classAxiLiteCrossbarI2cMux.html#a44e0722026b3f78fdee2a9b0171fcf99", null ],
     [ "i2ci", "classAxiLiteCrossbarI2cMux.html#a4a55a0fba97a04a4e298abceb40f0b76", null ],
     [ "i2co", "classAxiLiteCrossbarI2cMux.html#a51e0c2a43f1828a920beaa0135141066", null ],
     [ "ieee", "classAxiLiteCrossbarI2cMux.html#a0a6af6eef40212dbaf130d57ce711256", null ],
