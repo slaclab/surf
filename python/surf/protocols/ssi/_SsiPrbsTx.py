@@ -164,7 +164,7 @@ class SsiPrbsTx(pr.Device):
                 if v > 0xFFFFFFFF:
                     v = 0xFFFFFFFF
                 self.TrigDly.set(v, write=write)
-        
+
         self.add(pr.LinkVariable(
             name = 'TrigRate',
             dependencies = [self.TrigDly],

@@ -22,25 +22,25 @@ class SsiPrbsRateGen(pr.Device):
         # Functions
         ##############################
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
-                    self.add(pr.RemoteVariable(
-                        name         = ("Raw"+name),
-                        offset       = offset,
-                        bitSize      = bitSize,
-                        bitOffset    = bitOffset,
-                        base         = pr.UInt,
-                        mode         = 'RO',
-                        description  = description,
-                        pollInterval = pollInterval,
-                        hidden       = True,
-                    ))
-                    self.add(pr.LinkVariable(
-                        name         = name,
-                        mode         = 'RO',
-                        units        = units,
-                        linkedGet    = function,
-                        disp         = '{:1.1f}',
-                        dependencies = [self.variables["Raw"+name]],
-                    ))
+            self.add(pr.RemoteVariable(
+                name         = ("Raw"+name),
+                offset       = offset,
+                bitSize      = bitSize,
+                bitOffset    = bitOffset,
+                base         = pr.UInt,
+                mode         = 'RO',
+                description  = description,
+                pollInterval = pollInterval,
+                hidden       = True,
+            ))
+            self.add(pr.LinkVariable(
+                name         = name,
+                mode         = 'RO',
+                units        = units,
+                linkedGet    = function,
+                disp         = '{:1.1f}',
+                dependencies = [self.variables["Raw"+name]],
+            ))
 
         ##############################
         # Variables
@@ -127,7 +127,7 @@ class SsiPrbsRateGen(pr.Device):
             bitSize      = 32,
             bitOffset    = 0,
             base         = pr.UInt,
-            disp = '{:d}',            
+            disp         = '{:d}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -153,7 +153,7 @@ class SsiPrbsRateGen(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             units        = 'Hz',
-            disp         = '{:d}',            
+            disp         = '{:d}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -166,7 +166,7 @@ class SsiPrbsRateGen(pr.Device):
             bitOffset    = 0,
             base         = pr.UInt,
             units        = 'Hz',
-            disp         = '{:d}',            
+            disp         = '{:d}',
             pollInterval = 1,
             mode         = "RO",
         ))
@@ -203,7 +203,7 @@ class SsiPrbsRateGen(pr.Device):
             units        = 'Mbps',
             pollInterval = 1,
         )
-        
+
         self.add(pr.RemoteVariable(
             name         = "FrameCount",
             description  = "",
