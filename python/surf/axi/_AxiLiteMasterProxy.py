@@ -86,24 +86,25 @@ class _Regs(pr.Device):
                 addr = transaction.address()
                 #print('Writing address')
                 self.Addr.set(addr, write=True)
-                #print(f'Wrote address {addr:x}')
+                print(f'Wrote address {addr:x}')
 
                 if transaction.type() == rogue.interfaces.memory.Write:
                     # Convert data bytes to int and write data to proxy register
-                    transaction.getData(self._dataBa, 0)
-                    data = int.from_bytes(self._dataBa, 'little', signed=False)
+                    dataBa = bytearray(4)
+                    transaction.getData(dataBa, 0)
+                    data = int.from_bytes(dataBa, 'little', signed=False)
                     self.Data.set(data, write=True)
-                    #print(f'Wrote data {data:x}')
+                    print(f'Wrote data {data:x}')
 
                     # Kick off the proxy transaction
                     self.Rnw.setDisp('Write', write=True)
-                    #print(f'Started write transaction: {tranId}')
+                    print(f'Started write transaction: {transaction.id()}')
 
                 elif (transaction.type() == rogue.interfaces.memory.Read) or (transaction.type() == rogue.interfaces.memory.Verify):
 
                     # Kick off the read proxy txn
                     self.Rnw.setDisp('Read', write=True)
-                    #print(f'Started read transaction: {tranId}')
+                    print(f'Started read transaction: {transaction.id()}')
 
                 else:
                     # Post transactions not allowed
@@ -120,7 +121,7 @@ class _Regs(pr.Device):
 
                 # Check for error flags
                 resp = self.Resp.get(read=True)
-                #print(f'Resp: {resp}')
+                print(f'Resp: {resp}')
                 if resp != 0:
                     transaction.error(f'AXIL tranaction failed with RESP: {resp}')
 
@@ -129,7 +130,7 @@ class _Regs(pr.Device):
                     transaction.done()
                 else:
                     data = self.Data.get(read=True)
-                    #print(f'Got read data: {data:x}')
+                    print(f'Got read data: {data:x}')
                     dataBa = bytearray(data.to_bytes(4, 'little', signed=False))
                     #print(dataBa)
                     transaction.setData(dataBa, 0)
