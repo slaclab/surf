@@ -35,6 +35,7 @@ entity Ad9249ReadoutGroup is
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
+      SIM_DEVICE_G      : string               := "ULTRASCALE";
       D_DELAY_CASCADE_G : boolean              := false;
       F_DELAY_CASCADE_G : boolean              := false;
       IDELAYCTRL_FREQ_G : real                 := 200.0;
@@ -377,6 +378,7 @@ begin
    U_FRAME_DESERIALIZER : entity surf.Ad9249Deserializer
       generic map (
          TPD_G             => TPD_G,
+         SIM_DEVICE_G      => SIM_DEVICE_G,
          IODELAY_GROUP_G   => "DEFAULT_GROUP",
          IDELAY_CASCADE_G  => F_DELAY_CASCADE_G,
          IDELAYCTRL_FREQ_G => 350.0,
@@ -426,6 +428,7 @@ begin
       U_DATA_DESERIALIZER : entity surf.Ad9249Deserializer
          generic map (
             TPD_G             => TPD_G,
+            SIM_DEVICE_G      => SIM_DEVICE_G,
             IODELAY_GROUP_G   => "DEFAULT_GROUP",
             IDELAY_CASCADE_G  => D_DELAY_CASCADE_G,
             IDELAYCTRL_FREQ_G => 350.0,

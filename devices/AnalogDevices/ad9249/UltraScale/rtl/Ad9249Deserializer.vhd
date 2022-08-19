@@ -33,6 +33,7 @@ use surf.Ad9249Pkg.all;
 entity Ad9249Deserializer is
    generic (
       TPD_G             : time                 := 1 ns;
+      SIM_DEVICE_G      : string               := "ULTRASCALE";
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
       IDELAY_CASCADE_G  : boolean              := false;
       IDELAYCTRL_FREQ_G : real                 := 300.0;
@@ -118,7 +119,7 @@ begin
          IS_CLK_INVERTED  => '0',       -- Optional inversion for CLK
          IS_RST_INVERTED  => '0',       -- Optional inversion for RST
          REFCLK_FREQUENCY => IDELAYCTRL_FREQ_G,  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
-         SIM_DEVICE       => "ULTRASCALE",  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
+         SIM_DEVICE       => SIM_DEVICE_G,  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
          -- ULTRASCALE_PLUS_ES2)
          UPDATE_MODE      => "ASYNC"  -- Determines when updates to the delay will take effect (ASYNC, MANUAL,
        -- SYNC)
@@ -190,7 +191,7 @@ begin
          IS_CLK_B_INVERTED => '1',      -- Optional inversion for CLK_B
          IS_CLK_INVERTED   => '0',      -- Optional inversion for CLK
          IS_RST_INVERTED   => '0',      -- Optional inversion for RST
-         SIM_DEVICE        => "ULTRASCALE"  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
+         SIM_DEVICE        => SIM_DEVICE_G  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
       )
       port map (
          FIFO_EMPTY      => open,       -- 1-bit output: FIFO empty flag
