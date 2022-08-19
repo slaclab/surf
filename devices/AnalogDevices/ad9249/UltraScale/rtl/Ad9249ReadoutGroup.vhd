@@ -174,11 +174,6 @@ architecture rtl of Ad9249ReadoutGroup is
 
    signal invertSync    : sl;
 
-   attribute KEEP_HIERARCHY                     : string;
-   attribute KEEP_HIERARCHY of AdcClk_I_Ibufds  : label is "TRUE";
-   attribute dont_touch                         : string;
-   attribute dont_touch of adcDclk              : signal is "TRUE";
-
 begin
    -------------------------------------------------------------------------------------------------
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
@@ -315,23 +310,21 @@ begin
       end if;
    end process axilSeq;
 
-
-   AdcClk_I_Ibufds : IBUFDS
-   generic map (
-      DQS_BIAS => "FALSE"
-   )
-   port map (
-      I  => adcSerial.dClkP,
-      IB => adcSerial.dClkN,
-      O  => adcDclk
-   );
-
    -------------------------------------------------------------------------------------------------
    -- Create Clocks
    -------------------------------------------------------------------------------------------------
 
    G_MMCM : if USE_MMCME_G = true generate
 
+      AdcClk_I_Ibufds : IBUFDS
+      generic map (
+         DQS_BIAS => "FALSE"
+      )
+      port map (
+         I  => adcSerial.dClkP,
+         IB => adcSerial.dClkN,
+         O  => adcDclk
+      );
 
       ------------------------------------------
       -- Generate clocks from ADC incoming clock
