@@ -39,7 +39,7 @@ class Si570(pr.Device):
         
 
         self.add(pr.RemoteVariable(
-            name = 'HS_DIV',
+            name = 'HS_DIV_RAW',
             offset = 7 * ADDR_SIZE,
             bitSize = 3,
             bitOffset = 5,
@@ -50,6 +50,12 @@ class Si570(pr.Device):
                 3: '7',
                 5: '9',
                 7: '11'}))
+
+        self.add(pr.LinkVariable(
+            name 'HS_DIV',
+            dependencies = [self.HS_DIV_RAW],
+            linkedGet = lambda read: int(self.HS_DIV_RAW.get(read=read))
+            linkedSet = lambda value, write: self.HS_DIV_RAW.setDisp(str(value))))
 
         self.add(pr.RemoteVariable(
             name = 'RFREQ_RAW',
@@ -124,14 +130,15 @@ class Si570(pr.Device):
             fdco = value * hs_div * n1
             rfreq = fdco / self.fxtal.get(read=true)
 
-            print(f'Si570 setting new params, {n1=}, {hs_div=}, {rfreq=}')
+            print(f'Si570 setting new params, {n1=}, {hs_div=}, {rfreq=}, {fcdo=}')
+            return
 
             # Freeze
             self.FreezeDCO.set(1, write=True)
 
             # Write new config
             self.N1.set(n1, write=False)
-            self.HS_DIV.setDisp(str(hs_div), write=False)
+            self.HS_DIV.set(hs_div, write=False)
             self.RFREQ.set(rfreq, write=False)
             self.writeAndVerifyBlocks()
 
@@ -140,10 +147,18 @@ class Si570(pr.Device):
 
             # NewFreq
             self.NewFreq()
-            
 
+        def get_freq(read):
+            n1 = self.N1.get(read=read)
+            hs_div = self.HS_DIV.get(read=read)
+            rfreq = self.RFREQ.get(read=read)
+            fxtal = self.fxtal.get(read=read)
+
+            return (fxtal * rfreq)/(hs_div * n1)
         
 
-                 
-            
-
+        self.add(pr.LinkVariable(
+            name = 'Frequency',
+            dependencies = [self.N1, self.HS_DIV, self.RFREQ, self.fxtal],
+            linkedGet = get_freq,
+            linkedSet = set_freq))
