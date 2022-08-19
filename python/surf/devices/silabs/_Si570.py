@@ -175,27 +175,28 @@ class Si570(pr.Device):
         def set_freq(value, write):
             if write is False:
                 return
-            
-            n1, hs_div = find_params(value)
-            fdco = value * hs_div * n1
-            rfreq = fdco / self.fxtal.get(read=True)
 
-            print(f'Si570 setting new params, {n1=}, {hs_div=}, {rfreq=}, {fdco=}')
+            with self.root.updateGroup():
+                n1, hs_div = find_params(value)
+                fdco = value * hs_div * n1
+                rfreq = fdco / self.fxtal.get(read=True)
 
-            # Freeze
-            self.FreezeDCO.set(1, write=True)
+                print(f'Si570 setting new params, {n1=}, {hs_div=}, {rfreq=}, {fdco=}')
 
-            # Write new config
-            self.N1.set(n1, write=False)
-            self.HS_DIV.set(hs_div, write=False)
-            self.RFREQ.set(rfreq, write=False)
-            self.writeAndVerifyBlocks()
+                # Freeze
+                self.FreezeDCO.set(1, write=True)
 
-            # Unfreeze
-            self.FreezeDCO.set(0, write=True)
+                # Write new config
+                self.N1.set(n1, write=False)
+                self.HS_DIV.set(hs_div, write=False)
+                self.RFREQ.set(rfreq, write=False)
+                self.writeAndVerifyBlocks()
 
-            # NewFreq
-            self.NewFreq()
+                # Unfreeze
+                self.FreezeDCO.set(0, write=True)
+
+                # NewFreq
+                self.NewFreq()
 
         def get_freq(read):
             n1 = self.N1.get(read=read)
