@@ -44,15 +44,15 @@ end Max5443;
 architecture rtl of Max5443 is
 
    type RegType is record
-      vDacSetting   : Slv16Array(NUM_CHIPS_G-1 downto 0);
-      axiReadSlave  : AxiLiteReadSlaveType;
-      axiWriteSlave : AxiLiteWriteSlaveType;
+      vDacSetting    : Slv16Array(NUM_CHIPS_G-1 downto 0);
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      vDacSetting   => (others => (others => '0')),
-      axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
+      vDacSetting    => (others => (others => '0')),
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -70,7 +70,7 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------
-   comb : process (axilReadMaster, axilWriteMaster, r) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
 
@@ -90,7 +90,7 @@ begin
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
-      if axilReset = '1' then
+      if axilRst = '1' then
          v := REG_INIT_C;
       end if;
 
@@ -118,7 +118,7 @@ begin
             TPD_G => TPD_G)
          port map (
             sysClk    => axilClk,
-            sysClkRst => axilReset,
+            sysClkRst => axilRst,
             dacData   => r.vDacSetting(i),
             dacDin    => dacDinSig(i),
             dacSclk   => dacSclkSig(i),
