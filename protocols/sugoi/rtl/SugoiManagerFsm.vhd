@@ -150,7 +150,7 @@ architecture rtl of SugoiManagerFsm is
       dropTrigCnt    => (others => (others => '0')),
       errorDetCnt    => (others => '0'),
       linkUpCnt      => (others => '0'),
-      timerConfig    => (others => '1'),
+      timerConfig    => toSlv(1024, 24),
       timer          => (others => '0'),
       enLatencyCnt   => '0',
       latencyCnt     => (others => '0'),
