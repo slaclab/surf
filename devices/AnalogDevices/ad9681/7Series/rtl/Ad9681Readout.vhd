@@ -100,7 +100,7 @@ architecture rtl of Ad9681Readout is
       lockedCountRst => '0',
       invert         => toSl(INVERT_G),
       negate         => toSl(NEGATE_G),
-      realign        => '0',
+      realign        => '1',
       minEyeWidth    => X"50");
 
    signal lockedSync      : slv(1 downto 0);
