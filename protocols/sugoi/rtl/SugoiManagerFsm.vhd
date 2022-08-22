@@ -126,9 +126,9 @@ architecture rtl of SugoiManagerFsm is
       polarityRx     => RX_POLARITY_G,
       enUsrDlyCfg    => '0',            -- Enable User delay config
       usrDlyCfg      => (others => '0'),  -- User delay config
-      bypFirstBerDet => '0',  -- Set to '1' if IDELAY full scale range > 2 Unit Intervals (UI) of serial rate (example: IDELAY range 2.5ns  > 1 ns "1Gb/s" )
+      bypFirstBerDet => '1',  -- Set to '1' if IDELAY full scale range > 2 Unit Intervals (UI) of serial rate (example: IDELAY range 2.5ns  > 1 ns "1Gb/s" )
       minEyeWidth    => toSlv(80, 8),  -- Sets the minimum eye width required for locking (units of IDELAY step)
-      lockingCntCfg  => ite(SIMULATION_G, x"00_0064", x"00_FFFF"),  -- Number of error-free event before state=LOCKED_S
+      lockingCntCfg  => ite(SIMULATION_G, x"00_0064", x"00_0FFF"),  -- Number of error-free event before state=LOCKED_S
       heartbeatCnt   => 9,
       globalRst      => '0',
       globalRstForce => '0',
@@ -201,8 +201,12 @@ begin
          v.heartbeatCnt := r.heartbeatCnt - 1;
       end if;
 
-      -- Check if not communication timed out
-      if (r.timer /= 0) then
+      -- Check for no link lock
+      if (r.gearboxAligned = '0') then
+         v.timer := (others => '0');
+
+      -- Else check if not communication timed out
+      elsif (r.timer /= 0) then
          -- Decrement the counter
          v.timer := r.timer - 1;
       end if;
@@ -434,6 +438,8 @@ begin
                axiSlaveRegisterR(axilEp, x"A4", 0, r.linkUpCnt);
                axiSlaveRegisterR(axilEp, x"A8", 0, r.latency);  -- Round trip SOF latency
                axiSlaveRegisterR(axilEp, x"AC", 0, eyeWidth);
+
+               axiSlaveRegisterR(axilEp, x"B0", 0, r.gearboxAligned);
 
                axiSlaveRegister(axilEp, x"FC", 0, v.rstCnt);
 
