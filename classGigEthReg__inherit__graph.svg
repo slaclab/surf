@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 1724;
+var viewWidth = 1523;
 var viewHeight = 413;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>GigEthReg</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-409 1720,-409 1720,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-409 1519,-409 1519,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -458,121 +458,91 @@ var sectionId = 'dynsection-0';
 <g id="node21" class="node">
 <title>Node21</title>
 <g id="a_node21"><a xlink:href="classGigEthGth7Wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1381,-385.5 1381,-404.5 1494,-404.5 1494,-385.5 1381,-385.5"/>
-<text text-anchor="middle" x="1437.5" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGth7Wrapper</text>
+<polygon fill="white" stroke="black" points="1379,-385.5 1379,-404.5 1492,-404.5 1492,-385.5 1379,-385.5"/>
+<text text-anchor="middle" x="1435.5" y="-392.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGth7Wrapper</text>
 </a>
 </g>
 </g>
 <!-- Node20&#45;&gt;Node21 -->
 <g id="edge25" class="edge">
 <title>Node20&#45;&gt;Node21</title>
-<path fill="none" stroke="midnightblue" d="M1305.46,-395C1328.43,-395 1356.5,-395 1380.77,-395"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1305.29,-391.5 1295.29,-395 1305.29,-398.5 1305.29,-391.5"/>
+<path fill="none" stroke="midnightblue" d="M1305.59,-395C1328.04,-395 1355.31,-395 1378.97,-395"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1305.31,-391.5 1295.31,-395 1305.31,-398.5 1305.31,-391.5"/>
 </g>
 <!-- Node23 -->
 <g id="node23" class="node">
 <title>Node23</title>
 <g id="a_node23"><a xlink:href="classGigEthGthUltraScaleWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1358.5,-347.5 1358.5,-366.5 1516.5,-366.5 1516.5,-347.5 1358.5,-347.5"/>
-<text text-anchor="middle" x="1437.5" y="-354.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGthUltraScaleWrapper</text>
+<polygon fill="white" stroke="black" points="1356.5,-347.5 1356.5,-366.5 1514.5,-366.5 1514.5,-347.5 1356.5,-347.5"/>
+<text text-anchor="middle" x="1435.5" y="-354.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGthUltraScaleWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node22&#45;&gt;Node23 -->
 <g id="edge27" class="edge">
 <title>Node22&#45;&gt;Node23</title>
-<path fill="none" stroke="midnightblue" d="M1327.61,-357C1337.65,-357 1348.07,-357 1358.31,-357"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1327.3,-353.5 1317.3,-357 1327.3,-360.5 1327.3,-353.5"/>
+<path fill="none" stroke="midnightblue" d="M1327.29,-357C1336.8,-357 1346.63,-357 1356.32,-357"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1327.14,-353.5 1317.14,-357 1327.14,-360.5 1327.14,-353.5"/>
 </g>
 <!-- Node25 -->
 <g id="node25" class="node">
 <title>Node25</title>
 <g id="a_node25"><a xlink:href="classGigEthGtp7Wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1381,-309.5 1381,-328.5 1494,-328.5 1494,-309.5 1381,-309.5"/>
-<text text-anchor="middle" x="1437.5" y="-316.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtp7Wrapper</text>
+<polygon fill="white" stroke="black" points="1379,-309.5 1379,-328.5 1492,-328.5 1492,-309.5 1379,-309.5"/>
+<text text-anchor="middle" x="1435.5" y="-316.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtp7Wrapper</text>
 </a>
 </g>
 </g>
 <!-- Node24&#45;&gt;Node25 -->
 <g id="edge29" class="edge">
 <title>Node24&#45;&gt;Node25</title>
-<path fill="none" stroke="midnightblue" d="M1305.46,-319C1328.43,-319 1356.5,-319 1380.77,-319"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1305.29,-315.5 1295.29,-319 1305.29,-322.5 1305.29,-315.5"/>
+<path fill="none" stroke="midnightblue" d="M1305.59,-319C1328.04,-319 1355.31,-319 1378.97,-319"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1305.31,-315.5 1295.31,-319 1305.31,-322.5 1305.31,-315.5"/>
 </g>
 <!-- Node27 -->
 <g id="node27" class="node">
 <title>Node27</title>
 <g id="a_node27"><a xlink:href="classGigEthGtx7Wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1381,-271.5 1381,-290.5 1494,-290.5 1494,-271.5 1381,-271.5"/>
-<text text-anchor="middle" x="1437.5" y="-278.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtx7Wrapper</text>
+<polygon fill="white" stroke="black" points="1379,-271.5 1379,-290.5 1492,-290.5 1492,-271.5 1379,-271.5"/>
+<text text-anchor="middle" x="1435.5" y="-278.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtx7Wrapper</text>
 </a>
 </g>
 </g>
 <!-- Node26&#45;&gt;Node27 -->
 <g id="edge31" class="edge">
 <title>Node26&#45;&gt;Node27</title>
-<path fill="none" stroke="midnightblue" d="M1305.46,-281C1328.43,-281 1356.5,-281 1380.77,-281"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1305.29,-277.5 1295.29,-281 1305.29,-284.5 1305.29,-277.5"/>
+<path fill="none" stroke="midnightblue" d="M1305.59,-281C1328.04,-281 1355.31,-281 1378.97,-281"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1305.31,-277.5 1295.31,-281 1305.31,-284.5 1305.31,-277.5"/>
 </g>
 <!-- Node29 -->
 <g id="node29" class="node">
 <title>Node29</title>
 <g id="a_node29"><a xlink:href="classGigEthGtyUltraScaleWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1358.5,-233.5 1358.5,-252.5 1516.5,-252.5 1516.5,-233.5 1358.5,-233.5"/>
-<text text-anchor="middle" x="1437.5" y="-240.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtyUltraScaleWrapper</text>
+<polygon fill="white" stroke="black" points="1356.5,-233.5 1356.5,-252.5 1514.5,-252.5 1514.5,-233.5 1356.5,-233.5"/>
+<text text-anchor="middle" x="1435.5" y="-240.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthGtyUltraScaleWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node28&#45;&gt;Node29 -->
 <g id="edge33" class="edge">
 <title>Node28&#45;&gt;Node29</title>
-<path fill="none" stroke="midnightblue" d="M1327.61,-243C1337.65,-243 1348.07,-243 1358.31,-243"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1327.3,-239.5 1317.3,-243 1327.3,-246.5 1327.3,-239.5"/>
+<path fill="none" stroke="midnightblue" d="M1327.29,-243C1336.8,-243 1346.63,-243 1356.32,-243"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1327.14,-239.5 1317.14,-243 1327.14,-246.5 1327.14,-239.5"/>
 </g>
 <!-- Node31 -->
 <g id="node31" class="node">
 <title>Node31</title>
-<g id="a_node31"><a xlink:href="classGigEthLvdsUltraScaleWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1356,-195.5 1356,-214.5 1519,-214.5 1519,-195.5 1356,-195.5"/>
-<text text-anchor="middle" x="1437.5" y="-202.5" font-family="Helvetica,sans-Serif" font-size="10.00">GigEthLvdsUltraScaleWrapper</text>
+<g id="a_node31"><a xlink:href="classSgmii88E1111LvdsUltraScale.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1356,-195.5 1356,-214.5 1515,-214.5 1515,-195.5 1356,-195.5"/>
+<text text-anchor="middle" x="1435.5" y="-202.5" font-family="Helvetica,sans-Serif" font-size="10.00">Sgmii88E1111LvdsUltraScale</text>
 </a>
 </g>
 </g>
 <!-- Node30&#45;&gt;Node31 -->
 <g id="edge35" class="edge">
 <title>Node30&#45;&gt;Node31</title>
-<path fill="none" stroke="midnightblue" d="M1330.36,-205C1338.76,-205 1347.39,-205 1355.92,-205"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1330.25,-201.5 1320.25,-205 1330.25,-208.5 1330.25,-201.5"/>
-</g>
-<!-- Node32 -->
-<g id="node32" class="node">
-<title>Node32</title>
-<g id="a_node32"><a xlink:href="classSgmii88E1111LvdsUltraScale.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1556,-214.5 1556,-233.5 1715,-233.5 1715,-214.5 1556,-214.5"/>
-<text text-anchor="middle" x="1635.5" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">Sgmii88E1111LvdsUltraScale</text>
-</a>
-</g>
-</g>
-<!-- Node31&#45;&gt;Node32 -->
-<g id="edge36" class="edge">
-<title>Node31&#45;&gt;Node32</title>
-<path fill="none" stroke="midnightblue" d="M1529.1,-213.78C1538.02,-214.65 1547.03,-215.52 1555.82,-216.37"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1529.36,-210.29 1519.07,-212.81 1528.68,-217.26 1529.36,-210.29"/>
-</g>
-<!-- Node33 -->
-<g id="node33" class="node">
-<title>Node33</title>
-<g id="a_node33"><a xlink:href="classSgmiiDp83867LvdsUltraScale.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1555,-176.5 1555,-195.5 1716,-195.5 1716,-176.5 1555,-176.5"/>
-<text text-anchor="middle" x="1635.5" y="-183.5" font-family="Helvetica,sans-Serif" font-size="10.00">SgmiiDp83867LvdsUltraScale</text>
-</a>
-</g>
-</g>
-<!-- Node31&#45;&gt;Node33 -->
-<g id="edge37" class="edge">
-<title>Node31&#45;&gt;Node33</title>
-<path fill="none" stroke="midnightblue" d="M1529.11,-196.22C1537.71,-195.38 1546.39,-194.54 1554.88,-193.72"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1528.68,-192.74 1519.07,-197.19 1529.36,-199.71 1528.68,-192.74"/>
+<path fill="none" stroke="midnightblue" d="M1330.21,-205C1338.65,-205 1347.3,-205 1355.85,-205"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1330.05,-201.5 1320.05,-205 1330.05,-208.5 1330.05,-201.5"/>
 </g>
 </g>
 </svg>

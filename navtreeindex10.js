@@ -1,7 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"classAxiLitePMbusMaster.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,53,16],
-"classAxiLitePMbusMaster.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,53,15],
 "classAxiLitePMbusMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,53,17],
 "classAxiLitePMbusMaster.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,53,18],
 "classAxiLitePMbusMasterCore.html":[1,0,54],
@@ -249,5 +247,7 @@ var NAVTREEINDEX10 =
 "classAxiLiteSaciMaster.html#a8e1fd4ab848b98a0c700b34cf7c90b36":[1,0,59,14],
 "classAxiLiteSaciMaster.html#a8f4a13ec167ce07a5fa9d533d5a3bc01":[1,0,59,5],
 "classAxiLiteSaciMaster.html#aaa5dbafd39595f85c82c3fe89b70a999":[1,0,59,11],
-"classAxiLiteSaciMaster.html#aada3e73ee8db4190524295bfa4dff085":[1,0,59,16]
+"classAxiLiteSaciMaster.html#aada3e73ee8db4190524295bfa4dff085":[1,0,59,16],
+"classAxiLiteSaciMaster.html#ab2b935daa6349909236e789cbbc1e0ed":[1,0,59,27],
+"classAxiLiteSaciMaster.html#ab72c3e870494f6807af9390c81310cac":[1,0,59,6]
 };

@@ -1,6 +1,6 @@
 var classTenGigEthGthUltraScale_1_1mapping =
 [
-    [ "PROCESS_122", "classTenGigEthGthUltraScale_1_1mapping.html#a13a4c630e672dd0c0e1c963e7b46e3e2", null ],
+    [ "PROCESS_126", "classTenGigEthGthUltraScale_1_1mapping.html#a884b05fe55fcda542cb19f1b541c5f4d", null ],
     [ "TenGigEthGthUltraScale156p25MHzCore", "classTenGigEthGthUltraScale_1_1mapping.html#a17501e10a86595b0b2ce58d714482640", null ],
     [ "mAxiReadMaster", "classTenGigEthGthUltraScale_1_1mapping.html#a8d9db6e7acad978d1a87b4cf0f9a9ae5", null ],
     [ "mAxiReadSlave", "classTenGigEthGthUltraScale_1_1mapping.html#a1a8b3b5af5a859ddec65981e11c0ee69", null ],

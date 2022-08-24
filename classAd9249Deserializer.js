@@ -21,6 +21,7 @@ var classAd9249Deserializer =
     [ "StdRtlPkg", "classAd9249Deserializer.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "UNISIM", "classAd9249Deserializer.html#afd13b50585152f6756d196bf3f1c52ac", null ],
     [ "vcomponents", "classAd9249Deserializer.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
+    [ "SIM_DEVICE_G", "classAd9249Deserializer.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "IDELAY_CASCADE_G", "classAd9249Deserializer.html#af7a5fea17e51ec351574854fdf3fb815", null ],
     [ "DEFAULT_DELAY_G", "classAd9249Deserializer.html#abd65c5998440f174a06bf60447377297", null ],
     [ "ADC_INVERT_CH_G", "classAd9249Deserializer.html#adc97f6bf762aa770d366b814e7b53c4d", null ],

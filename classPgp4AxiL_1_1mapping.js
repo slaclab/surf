@@ -1,7 +1,7 @@
 var classPgp4AxiL_1_1mapping =
 [
-    [ "PROCESS_244", "classPgp4AxiL_1_1mapping.html#a4799b4fa72bcca8feaf53e2337623a3a", null ],
-    [ "PROCESS_245", "classPgp4AxiL_1_1mapping.html#a01489b53a481918983037d3478d36b78", null ],
+    [ "PROCESS_248", "classPgp4AxiL_1_1mapping.html#ac3e3c3bebb7f6a2304187ab3b0e1e223", null ],
+    [ "PROCESS_249", "classPgp4AxiL_1_1mapping.html#a50354bfde3790825268d11f1e898384c", null ],
     [ "RX_STATUS_CNT_SIZE_C", "classPgp4AxiL_1_1mapping.html#a11ec46e2cde145c3a097927eb49c8154", null ],
     [ "RX_ERROR_CNT_SIZE_C", "classPgp4AxiL_1_1mapping.html#aa603faa439912bf35607f2e17c4c42ca", null ],
     [ "TX_STATUS_CNT_SIZE_C", "classPgp4AxiL_1_1mapping.html#a44350e840f4239e590f20edd90e4fe79", null ],

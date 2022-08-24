@@ -1,6 +1,0 @@
-<map id="GigEthLvdsClockEnable" name="GigEthLvdsClockEnable">
-<area shape="rect" id="node1" title=" " alt="" coords="143,5,317,32"/>
-<area shape="rect" id="node2" href="$classGigEthLvdsUltraScaleWrapper.html" title=" " alt="" coords="121,80,339,107"/>
-<area shape="rect" id="node3" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="5,155,217,181"/>
-<area shape="rect" id="node4" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="241,155,456,181"/>
-</map>

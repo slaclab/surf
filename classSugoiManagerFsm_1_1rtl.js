@@ -45,7 +45,7 @@ var classSugoiManagerFsm_1_1rtl =
     [ "axilWriteSlave", "classSugoiManagerFsm_1_1rtl.html#a1b43705cc2da350eb0df1e71fb23ab88", null ],
     [ "axilReadSlave", "classSugoiManagerFsm_1_1rtl.html#a5daf374ea804f394dee40a30d3e2e12f", null ],
     [ "state", "classSugoiManagerFsm_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe", null ],
-    [ "REG_INIT_C", "classSugoiManagerFsm_1_1rtl.html#a4bb1781834064ceccbd9d2425a5384e2", null ],
+    [ "REG_INIT_C", "classSugoiManagerFsm_1_1rtl.html#ae2761fc737737f77ba6e7d589f443e8c", null ],
     [ "r", "classSugoiManagerFsm_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classSugoiManagerFsm_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ]
 ];

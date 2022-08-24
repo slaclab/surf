@@ -28,6 +28,7 @@ var classAd9249ReadoutGroup =
     [ "AxiLitePkg", "classAd9249ReadoutGroup.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
     [ "AxiStreamPkg", "classAd9249ReadoutGroup.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "Ad9249Pkg", "classAd9249ReadoutGroup.html#af6b33265da6fc3ff22ecfea761e52e63", null ],
+    [ "SIM_DEVICE_G", "classAd9249ReadoutGroup.html#ac7791539253cb39c775f328b0e419a8a", null ],
     [ "D_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a8990dde40765b6e681a95bbebfb5bfe3", null ],
     [ "F_DELAY_CASCADE_G", "classAd9249ReadoutGroup.html#a4c976259118e2959f7ebbe2ee3d96609", null ],
     [ "USE_MMCME_G", "classAd9249ReadoutGroup.html#aeb6c4a722f7aa7b53f5bba1ab912d28d", null ],

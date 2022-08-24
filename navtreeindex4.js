@@ -1,7 +1,5 @@
 var NAVTREEINDEX4 =
 {
-"classAxiAd5780Core.html#a7d8781c632c75ab0fdde6e592fd13d60":[1,0,19,12],
-"classAxiAd5780Core.html#a82571368c463a52e90b4676481bb0826":[1,0,19,3],
 "classAxiAd5780Core.html#a86d8df2f785854df97f17242a39a6b48":[1,0,19,4],
 "classAxiAd5780Core.html#a88ffac2ab61bb803af9237ba80978c17":[1,0,19,2],
 "classAxiAd5780Core.html#abf08eac4311749af56c8ec14b1903091":[1,0,19,10],
@@ -249,5 +247,7 @@ var NAVTREEINDEX4 =
 "classAxiAd9467Pll_1_1mapping.html#a16f3b5d1681dd1006cc2a7d8682ee6d6":[1,0,26,0,5],
 "classAxiAd9467Pll_1_1mapping.html#a39f495cfd32d83cf7def26e04bac0545":[1,0,26,0,8],
 "classAxiAd9467Pll_1_1mapping.html#a5d6a7c15aa870f4534614e36c7544d29":[1,0,26,0,0],
-"classAxiAd9467Pll_1_1mapping.html#a627ccf8b324b43eba1c074ced499aba5":[1,0,26,0,1]
+"classAxiAd9467Pll_1_1mapping.html#a627ccf8b324b43eba1c074ced499aba5":[1,0,26,0,1],
+"classAxiAd9467Pll_1_1mapping.html#a82eada26e9f3261b44868183161ffcfe":[1,0,26,0,6],
+"classAxiAd9467Pll_1_1mapping.html#aaa1f152fee43e975a36c276b91daf45a":[1,0,26,0,3]
 };

@@ -946,6 +946,7 @@ var hierarchy =
       [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", [
         [ "RstSync", "classRstSync.html", null ]
       ] ],
+      [ "Max5443DacCntrl", "classMax5443DacCntrl.html", null ],
       [ "SsiInsertSof", "classSsiInsertSof.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "SyncStatusVector", "classSyncStatusVector.html", null ],
@@ -1466,22 +1467,16 @@ var hierarchy =
           ] ]
         ] ]
       ] ],
-      [ "GigEthLvdsUltraScaleWrapper", "classGigEthLvdsUltraScaleWrapper.html", [
-        [ "PwrUpRst", "classPwrUpRst.html", null ],
-        [ "GigEthLvdsClockEnable", "classGigEthLvdsClockEnable.html", null ],
-        [ "GigEthLvdsUltraScale", "classGigEthLvdsUltraScale.html", [
-          [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
-          [ "PwrUpRst", "classPwrUpRst.html", null ],
-          [ "EthMacTop", "classEthMacTop.html", null ],
-          [ "GigEthReg", "classGigEthReg.html", null ]
-        ] ]
+      [ "GigEthLvdsUltraScale", "classGigEthLvdsUltraScale.html", [
+        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+        [ "EthMacTop", "classEthMacTop.html", null ],
+        [ "GigEthReg", "classGigEthReg.html", null ]
       ] ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
       [ "SgmiiDp83867Mdio", "classSgmiiDp83867Mdio.html", [
         [ "MdioLinkIrqHandler", "classMdioLinkIrqHandler.html", null ]
       ] ],
       [ "SynchronizerVector", "classSynchronizerVector.html", null ],
-      [ "GigEthLvdsUltraScaleWrapper", "classGigEthLvdsUltraScaleWrapper.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],

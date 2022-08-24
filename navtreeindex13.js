@@ -1,7 +1,5 @@
 var NAVTREEINDEX13 =
 {
-"classAxiLtc2270DeserBit_1_1rtl.html#ac4cb19b0be16e4f33385670fb3ccfabd":[1,0,71,0,4],
-"classAxiLtc2270DeserBit_1_1rtl.html#ac5360a6e69d74ed668909bd57454845c":[1,0,71,0,5],
 "classAxiLtc2270DeserBit_1_1rtl.html#ac874f112f21883cdb3e24fdc62aec10b":[1,0,71,0,6],
 "classAxiLtc2270DeserBit_1_1rtl.html#afbc93464add0836592e0addbb4781443":[1,0,71,0,1],
 "classAxiLtc2270Deser_1_1rtl.html":[1,0,70,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX13 =
 "classAxiMicronMt28ewReg_1_1rtl.html#a6519a8b26ef02e303f8e4db0903e2ce5":[1,0,75,0,18],
 "classAxiMicronMt28ewReg_1_1rtl.html#a73a087ea6499d8fb98bc7f9b1755c9ce":[1,0,75,0,8],
 "classAxiMicronMt28ewReg_1_1rtl.html#a7ae8f74cb7ad7351f3e3d2f3dfee5ba1":[1,0,75,0,9],
-"classAxiMicronMt28ewReg_1_1rtl.html#a7b3d882366a64c2ac15fd948a07d66bf":[1,0,75,0,19]
+"classAxiMicronMt28ewReg_1_1rtl.html#a7b3d882366a64c2ac15fd948a07d66bf":[1,0,75,0,19],
+"classAxiMicronMt28ewReg_1_1rtl.html#a82e44be616edff119792796f542f4cd1":[1,0,75,0,2],
+"classAxiMicronMt28ewReg_1_1rtl.html#a99eeed1fa9f9b8d7a37188aff4232824":[1,0,75,0,27]
 };

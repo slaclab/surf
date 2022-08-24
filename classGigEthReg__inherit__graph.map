@@ -24,12 +24,10 @@
 <area shape="rect" id="node17" href="$classFifoRdFsm.html" title=" " alt="" coords="197,417,288,444"/>
 <area shape="rect" id="node18" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,468,319,495"/>
 <area shape="rect" id="node19" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,519,314,545"/>
-<area shape="rect" id="node21" href="$classGigEthGth7Wrapper.html" title=" " alt="" coords="1847,5,1997,32"/>
-<area shape="rect" id="node23" href="$classGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="1817,56,2027,83"/>
-<area shape="rect" id="node25" href="$classGigEthGtp7Wrapper.html" title=" " alt="" coords="1847,107,1997,133"/>
-<area shape="rect" id="node27" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="1847,157,1997,184"/>
-<area shape="rect" id="node29" href="$classGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="1817,208,2027,235"/>
-<area shape="rect" id="node31" href="$classGigEthLvdsUltraScaleWrapper.html" title=" " alt="" coords="1813,259,2031,285"/>
-<area shape="rect" id="node32" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="2080,233,2292,260"/>
-<area shape="rect" id="node33" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="2079,284,2293,311"/>
+<area shape="rect" id="node21" href="$classGigEthGth7Wrapper.html" title=" " alt="" coords="1844,5,1995,32"/>
+<area shape="rect" id="node23" href="$classGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="1814,56,2025,83"/>
+<area shape="rect" id="node25" href="$classGigEthGtp7Wrapper.html" title=" " alt="" coords="1844,107,1995,133"/>
+<area shape="rect" id="node27" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="1844,157,1995,184"/>
+<area shape="rect" id="node29" href="$classGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="1814,208,2025,235"/>
+<area shape="rect" id="node31" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="1813,259,2025,285"/>
 </map>

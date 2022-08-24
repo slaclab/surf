@@ -1,7 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"classAxiAds42lb69Pll_1_1mapping.html#a039b22526eeb1fdca4a3b0d6b1f66ffd":[1,0,32,0,24],
-"classAxiAds42lb69Pll_1_1mapping.html#a09c3cff88b6ee03d0e1273562219f12c":[1,0,32,0,23],
 "classAxiAds42lb69Pll_1_1mapping.html#a13d3258c1a5b5d2f2f1a1613678de197":[1,0,32,0,18],
 "classAxiAds42lb69Pll_1_1mapping.html#a13d3258c1a5b5d2f2f1a1613678de197":[1,0,32,0,20],
 "classAxiAds42lb69Pll_1_1mapping.html#a13d3258c1a5b5d2f2f1a1613678de197":[1,0,32,0,25],
@@ -152,13 +150,13 @@ var NAVTREEINDEX6 =
 "classAxiDac7654Spi_1_1rtl.html#a15168fda6f5887a49771d5f42f956114":[1,0,36,0,14],
 "classAxiDac7654Spi_1_1rtl.html#a25db8a449d108cfa440f7dbcbc9961d0":[1,0,36,0,4],
 "classAxiDac7654Spi_1_1rtl.html#a2849df70cd703e451b9743f428cf8d2c":[1,0,36,0,2],
-"classAxiDac7654Spi_1_1rtl.html#a34643a978a1c0234a6b3d62ef50ede12":[1,0,36,0,0],
 "classAxiDac7654Spi_1_1rtl.html#a36fdb7426682cd0020ae18910dae6464":[1,0,36,0,6],
 "classAxiDac7654Spi_1_1rtl.html#a4b835ee2ea093dc50f46932dce90beba":[1,0,36,0,10],
 "classAxiDac7654Spi_1_1rtl.html#a5ccd6bbf9bb6e52b4149b83a6d19ba09":[1,0,36,0,5],
 "classAxiDac7654Spi_1_1rtl.html#a5cf7bca0fbf92ae8c431c7939cdba56c":[1,0,36,0,3],
 "classAxiDac7654Spi_1_1rtl.html#a8e26a816fb15f1d7721e7c29d37ca5f3":[1,0,36,0,1],
 "classAxiDac7654Spi_1_1rtl.html#a90e6ee319dd99e96fbd9f854fdf01417":[1,0,36,0,8],
+"classAxiDac7654Spi_1_1rtl.html#aa978689eae4b450f0eb6b70ae0cc0325":[1,0,36,0,0],
 "classAxiDac7654Spi_1_1rtl.html#ac04189f5868f7cc5070a3512c8bbb190":[1,0,36,0,7],
 "classAxiDac7654Spi_1_1rtl.html#acc3c89f86028d9582dfad94c9cb8dc6a":[1,0,36,0,9],
 "classAxiDac7654Spi_1_1rtl.html#ad99a757f9411c2ffce5e6baba14b46c8":[1,0,36,0,12],
@@ -249,5 +247,7 @@ var NAVTREEINDEX6 =
 "classAxiDualPortRamIpIntegrator.html#af1f1cbf67bf647ba58353c261719a3a0":[1,0,38,17],
 "classAxiDualPortRamIpIntegrator.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,38,46],
 "classAxiDualPortRamIpIntegrator.html#af4ff05f9f7cd750b9bbe0b753fea8a6f":[1,0,38,20],
-"classAxiDualPortRamIpIntegrator.html#af9456da6938ffbb6e38b7b53217171c0":[1,0,38,37]
+"classAxiDualPortRamIpIntegrator.html#af9456da6938ffbb6e38b7b53217171c0":[1,0,38,37],
+"classAxiDualPortRamIpIntegrator.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,38,47],
+"classAxiDualPortRamIpIntegrator_1_1mapping.html":[1,0,38,0]
 };
