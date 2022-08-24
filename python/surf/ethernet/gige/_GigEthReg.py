@@ -15,6 +15,8 @@
 
 import pyrogue as pr
 
+from surf.ethernet import udp
+
 class GigEthReg(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -30,7 +32,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "RxPauseCount",
@@ -39,7 +43,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "TxPauseCount",
@@ -48,7 +54,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "RxCountEn",
@@ -57,7 +65,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "RxOverflowCount",
@@ -66,7 +76,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "RxCrcErrorCount",
@@ -75,7 +87,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "TxCountEn",
@@ -84,7 +98,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "TxUnderRunCount",
@@ -93,7 +109,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = "TxNotReadyCount",
@@ -102,7 +120,9 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
-            disp         = '{:d}'))
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
 
 
         self.add(pr.RemoteVariable(
@@ -112,6 +132,7 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -121,15 +142,24 @@ class GigEthReg(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             mode         = "RO",
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "MacAddress",
-            offset       =  0x200,
-            bitSize      =  48,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RO",
+            name         = 'MacAddress',
+            description  = 'MacAddress (big-Endian configuration)',
+            offset       = 0x200,
+            bitSize      = 48,
+            mode         = 'RO',
+            hidden       = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'MAC_ADDRESS',
+            description  = 'MacAddress (human readable)',
+            mode         = 'RO',
+            linkedGet    = udp.getMacValue,
+            dependencies = [self.variables['MacAddress']],
         ))
 
         self.add(pr.RemoteVariable(
