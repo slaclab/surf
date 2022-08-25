@@ -33,7 +33,7 @@
 -- K28.6  | I/O acknowledgment
 -- K28.1  | Used for alignment
 -- K28.2  | Trigger indication
--- K28.3  | Stream marker – see section 10.2
+-- K28.3  | Stream marker - see section 10.2
 -- K28.4  | Trigger indication
 -- K28.5  | Used for alignment
 -- K29.7  | End of data packet indication
@@ -46,7 +46,7 @@
 -- The recommended heartbeat message interval (see section 9.7) is 10 milliseconds.
 -- The low speed connection bit rate shall be certain fractions of 125 Mbps
 -- The common use case is for trigger from Host to Device.
--- In CXP v1.x, LinkTrigger0 was called “rising edge” and LinkTrigger1 “falling edge”.
+-- In CXP v1.x, LinkTrigger0 was called "rising edge" and LinkTrigger1 "falling edge".
 -- The Device or Host transmitting a trigger packet shall use the following rules:
 --    After completion of a trigger packet transmission it shall not send a new trigger packet until it has
 --    received an acknowledgment from the Host or Device receiving the packet.
