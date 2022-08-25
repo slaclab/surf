@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: CoaXPress GTH Ultrascale Core Module
+-- Description: CoaXPress Gty Ultrascale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,7 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.CoaXPressPkg.all;
 
-entity CoaXPressGthUs is
+entity CoaXPressGtyUs is
    generic (
       TPD_G              : time                   := 1 ns;
       CXP_RATE_G         : CxpSpeedType           := CXP_12_C;
@@ -71,9 +71,9 @@ entity CoaXPressGthUs is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end CoaXPressGthUs;
+end CoaXPressGtyUs;
 
-architecture mapping of CoaXPressGthUs is
+architecture mapping of CoaXPressGtyUs is
 
    constant MON_AXIL_INDEX_C   : integer := 0;
    constant DRP_AXIL_INDEX_C   : integer := 1;
@@ -165,10 +165,10 @@ begin
          axilWriteSlave  => axilWriteSlaves(MON_AXIL_INDEX_C));
 
    --------------------------
-   -- Wrapper for GTH IP core
+   -- Wrapper for Gty IP core
    --------------------------
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-      U_Gth : entity surf.CoaXPressGthUsIpWrapper
+      U_Gty : entity surf.CoaXPressGtyUsIpWrapper
          generic map (
             TPD_G      => TPD_G,
             CXP_RATE_G => CXP_RATE_G)

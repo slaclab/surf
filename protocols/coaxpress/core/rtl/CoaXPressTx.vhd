@@ -140,9 +140,10 @@ begin
    ---------------
    U_Serializer : entity surf.Gearbox
       generic map (
-         TPD_G          => TPD_G,
-         SLAVE_WIDTH_G  => 10,
-         MASTER_WIDTH_G => 1)
+         TPD_G                => TPD_G,
+         SLAVE_WIDTH_G        => 10,
+         SLAVE_BIT_REVERSE_G  => false,
+         MASTER_WIDTH_G       => 1)
       port map (
          -- Clock and Reset
          clk           => txClk,

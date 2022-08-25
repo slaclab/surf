@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: CoaXPress GTH Ultrascale IP core Wrapper
+-- Description: CoaXPress Gty Ultrascale IP core Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -22,7 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.CoaXPressPkg.all;
 
-entity CoaXPressGthUsIpWrapper is
+entity CoaXPressGtyUsIpWrapper is
    generic (
       TPD_G      : time         := 1 ns;
       CXP_RATE_G : CxpSpeedType := CXP_12_C);
@@ -60,11 +60,11 @@ entity CoaXPressGthUsIpWrapper is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end entity CoaXPressGthUsIpWrapper;
+end entity CoaXPressGtyUsIpWrapper;
 
-architecture mapping of CoaXPressGthUsIpWrapper is
+architecture mapping of CoaXPressGtyUsIpWrapper is
 
-   component CoaXPressGthUsIp12G
+   component CoaXPressGtyUsIp12G
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
          gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
@@ -76,14 +76,6 @@ architecture mapping of CoaXPressGthUsIpWrapper is
          gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
          gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
          gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_tx_reset_in       : in  std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_tx_start_user_in  : in  std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_tx_done_out       : out std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_tx_error_out      : out std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_rx_reset_in       : in  std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_rx_start_user_in  : in  std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_rx_done_out       : out std_logic_vector(0 downto 0);
-         gtwiz_buffbypass_rx_error_out      : out std_logic_vector(0 downto 0);
          gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
          gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
          gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
@@ -99,13 +91,13 @@ architecture mapping of CoaXPressGthUsIpWrapper is
          gtwiz_reset_qpll1reset_out         : out std_logic_vector(0 downto 0);
          gtwiz_userdata_tx_in               : in  std_logic_vector(31 downto 0);
          gtwiz_userdata_rx_out              : out std_logic_vector(31 downto 0);
-         drpaddr_in                         : in  std_logic_vector(8 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
          drpclk_in                          : in  std_logic_vector(0 downto 0);
          drpdi_in                           : in  std_logic_vector(15 downto 0);
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
-         gthrxn_in                          : in  std_logic_vector(0 downto 0);
-         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         gtyrxn_in                          : in  std_logic_vector(0 downto 0);
+         gtyrxp_in                          : in  std_logic_vector(0 downto 0);
          qpll0clk_in                        : in  std_logic_vector(0 downto 0);
          qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
          qpll1clk_in                        : in  std_logic_vector(0 downto 0);
@@ -116,9 +108,9 @@ architecture mapping of CoaXPressGthUsIpWrapper is
          rxpcommaalignen_in                 : in  std_logic_vector(0 downto 0);
          drpdo_out                          : out std_logic_vector(15 downto 0);
          drprdy_out                         : out std_logic_vector(0 downto 0);
-         gthtxn_out                         : out std_logic_vector(0 downto 0);
-         gthtxp_out                         : out std_logic_vector(0 downto 0);
          gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         gtytxn_out                         : out std_logic_vector(0 downto 0);
+         gtytxp_out                         : out std_logic_vector(0 downto 0);
          rxbyteisaligned_out                : out std_logic_vector(0 downto 0);
          rxbyterealign_out                  : out std_logic_vector(0 downto 0);
          rxcommadet_out                     : out std_logic_vector(0 downto 0);
@@ -127,25 +119,23 @@ architecture mapping of CoaXPressGthUsIpWrapper is
          rxctrl2_out                        : out std_logic_vector(7 downto 0);
          rxctrl3_out                        : out std_logic_vector(7 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0)
          );
    end component;
 
-   signal txClock     : sl;
-   signal txReset     : sl;
-   signal txDone      : sl;
-   signal txBypDone   : sl;
-   signal txActive    : sl;
-   signal txUsrClkRst : sl;
+   signal txClock   : sl;
+   signal txReset   : sl;
+   signal txDone    : sl;
+   signal txPmaDone : sl;
+   signal txResetIn : sl;
+   signal txActive  : sl;
 
-   signal rxClock     : sl;
-   signal rxReset     : sl;
-   signal rxDone      : sl;
-   signal rxBypDone   : sl;
-   signal rxActive    : sl;
-   signal rxUsrReset  : sl;
-   signal rxUsrClkRst : sl;
+   signal rxClock   : sl;
+   signal rxReset   : sl;
+   signal rxDone    : sl;
+   signal rxPmaDone : sl;
+   signal rxResetIn : sl;
+   signal rxActive  : sl;
 
    signal rxDataInt : slv(31 downto 0) := (others => '0');
    signal rxctrl0   : slv(15 downto 0) := (others => '0');
@@ -153,7 +143,7 @@ architecture mapping of CoaXPressGthUsIpWrapper is
    signal rxctrl2   : slv(7 downto 0)  := (others => '0');
    signal rxctrl3   : slv(7 downto 0)  := (others => '0');
 
-   signal drpAddr : slv(8 downto 0)  := (others => '0');
+   signal drpAddr : slv(9 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
    signal drpDo   : slv(15 downto 0) := (others => '0');
    signal drpEn   : sl               := '0';
@@ -170,7 +160,7 @@ begin
    -- TX Clock and Resets
    ----------------------
    txClk   <= txClock;
-   txReset <= stableRst25 or not(txDone) or not(txBypDone);
+   txReset <= stableRst25 or not(txDone);
 
    U_txRst : entity surf.RstSync
       generic map (
@@ -194,22 +184,11 @@ begin
          asyncRst => txReset,
          syncRst  => txLinkUp);
 
-   U_txUsrClkRst : entity surf.RstSync
-      generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1',
-         OUT_REG_RST_G  => true)
-      port map (
-         clk      => txClock,
-         asyncRst => txActive,
-         syncRst  => txUsrClkRst);
-
    ----------------------
    -- RX Clock and Resets
    ----------------------
    rxClk   <= rxClock;
-   rxReset <= stableRst25 or not(rxDone) or not(rxBypDone);
+   rxReset <= stableRst25 or not(rxDone);
    U_rxRst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
@@ -221,19 +200,6 @@ begin
          asyncRst => rxReset,
          syncRst  => rxRst);
 
-   U_rxUsrClkRst : entity surf.RstSync
-      generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1',
-         OUT_REG_RST_G  => true)
-      port map (
-         clk      => rxClock,
-         asyncRst => rxUsrReset,
-         syncRst  => rxUsrClkRst);
-
-   rxUsrReset <= not(rxActive) or not(txBypDone);
-
    -------------------------------
    -- Register to help with timing
    -------------------------------
@@ -244,31 +210,33 @@ begin
          rxDataK   <= rxctrl0(3 downto 0)      after TPD_G;
          rxDispErr <= uOr(rxctrl1(3 downto 0)) after TPD_G;
          rxDecErr  <= uOr(rxctrl3(3 downto 0)) after TPD_G;
-         rxLinkUp  <= rxBypDone and rxDone     after TPD_G;
+         rxLinkUp  <= rxDone                   after TPD_G;
       end if;
    end process;
 
+   -- The TX user clocking helper block should be held in reset until the clock source of that block is known to be
+   -- stable. The following assignment is an example of how that stability can be determined, based on the selected TX
+   -- user clock source. Replace the assignment with the appropriate signal or logic to achieve that behavior as needed.
+   txResetIn <= not(txPmaDone);
+
+   -- The RX user clocking helper block should be held in reset until the clock source of that block is known to be
+   -- stable. The following assignment is an example of how that stability can be determined, based on the selected RX
+   -- user clock source. Replace the assignment with the appropriate signal or logic to achieve that behavior as needed.
+   rxResetIn <= not(rxPmaDone);
+
    GEN_12G : if (CXP_RATE_G = CXP_12_C) generate
-      U_GT : CoaXPressGthUsIp12G
+      U_GT : CoaXPressGtyUsIp12G
          port map (
-            gtwiz_userclk_tx_reset_in          => (others => '0'),
+            gtwiz_userclk_tx_reset_in(0)       => txResetIn,
             gtwiz_userclk_tx_srcclk_out        => open,
             gtwiz_userclk_tx_usrclk_out        => open,
             gtwiz_userclk_tx_usrclk2_out(0)    => txClock,
             gtwiz_userclk_tx_active_out(0)     => txActive,
-            gtwiz_userclk_rx_reset_in          => (others => '0'),
+            gtwiz_userclk_rx_reset_in(0)       => rxResetIn,
             gtwiz_userclk_rx_srcclk_out        => open,
             gtwiz_userclk_rx_usrclk_out        => open,
             gtwiz_userclk_rx_usrclk2_out(0)    => rxClock,
             gtwiz_userclk_rx_active_out(0)     => rxActive,
-            gtwiz_buffbypass_tx_reset_in(0)    => txUsrClkRst,
-            gtwiz_buffbypass_tx_start_user_in  => (others => '0'),
-            gtwiz_buffbypass_tx_done_out(0)    => txBypDone,
-            gtwiz_buffbypass_tx_error_out      => open,
-            gtwiz_buffbypass_rx_reset_in(0)    => rxUsrClkRst,
-            gtwiz_buffbypass_rx_start_user_in  => (others => '0'),
-            gtwiz_buffbypass_rx_done_out(0)    => rxBypDone,
-            gtwiz_buffbypass_rx_error_out      => open,
             gtwiz_reset_clk_freerun_in(0)      => stableClk25,
             gtwiz_reset_all_in(0)              => stableRst25,
             gtwiz_reset_tx_pll_and_datapath_in => (others => '0'),
@@ -289,8 +257,8 @@ begin
             drpdi_in                           => drpDi,
             drpen_in(0)                        => drpEn,
             drpwe_in(0)                        => drpWe,
-            gthrxn_in(0)                       => gtRxN,
-            gthrxp_in(0)                       => gtRxP,
+            Gtyrxn_in(0)                       => gtRxN,
+            Gtyrxp_in(0)                       => gtRxP,
             qpll0clk_in(0)                     => qpllclk(0),
             qpll0refclk_in(0)                  => qpllrefclk(0),
             qpll1clk_in(0)                     => qpllclk(1),
@@ -301,9 +269,9 @@ begin
             rxpcommaalignen_in                 => (others => '1'),
             drpdo_out                          => drpDo,
             drprdy_out(0)                      => drpRdy,
-            gthtxn_out(0)                      => gtTxN,
-            gthtxp_out(0)                      => gtTxP,
             gtpowergood_out                    => open,
+            Gtytxn_out(0)                      => gtTxN,
+            Gtytxp_out(0)                      => gtTxP,
             rxbyteisaligned_out                => open,
             rxbyterealign_out                  => open,
             rxcommadet_out                     => open,
@@ -311,9 +279,8 @@ begin
             rxctrl1_out                        => rxctrl1,
             rxctrl2_out                        => rxctrl2,
             rxctrl3_out                        => rxctrl3,
-            rxpmaresetdone_out                 => open,
-            txpmaresetdone_out                 => open,
-            txprgdivresetdone_out              => open);
+            rxpmaresetdone_out(0)              => rxPmaDone,
+            txpmaresetdone_out(0)              => txPmaDone);
    end generate GEN_12G;
 
    U_Drp : entity surf.AxiLiteToDrp
@@ -321,7 +288,7 @@ begin
          TPD_G            => TPD_G,
          COMMON_CLK_G     => false,
          EN_ARBITRATION_G => false,
-         ADDR_WIDTH_G     => 9,
+         ADDR_WIDTH_G     => 10,
          DATA_WIDTH_G     => 16)
       port map (
          axilClk         => axilClk,

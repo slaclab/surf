@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: CoaXPress GTH Ultrascale QPLL Wrapper
+-- Description: CoaXPress Gty Ultrascale QPLL Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -27,7 +27,7 @@ use surf.CoaXPressPkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity CoaXPressGthUsQpll is
+entity CoaXPressGtyUsQpll is
    generic (
       TPD_G             : time                  := 1 ns;
       CXP_RATE_G        : CxpSpeedType          := CXP_12_C;
@@ -51,9 +51,9 @@ entity CoaXPressGthUsQpll is
       axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
-end CoaXPressGthUsQpll;
+end CoaXPressGtyUsQpll;
 
-architecture mapping of CoaXPressGthUsQpll is
+architecture mapping of CoaXPressGtyUsQpll is
 
    type QpllConfig is record
       QPLL_CFG0        : slv(15 downto 0);
@@ -76,42 +76,42 @@ architecture mapping of CoaXPressGthUsQpll is
       QPLL_REFCLK_DIV  : natural;
    end record QpllConfig;
    constant QPLL0_C : QpllConfig := (
-      QPLL_CFG0        => b"0011001000011100",
-      QPLL_CFG1        => b"0001000000011000",
-      QPLL_CFG1_G3     => b"0001000000011000",
-      QPLL_CFG2        => b"0000000001001000",
-      QPLL_CFG2_G3     => b"0000000001001000",
+      QPLL_CFG0        => b"0011001100011100",
+      QPLL_CFG1        => b"1101000000111000",
+      QPLL_CFG1_G3     => b"1101000000111000",
+      QPLL_CFG2        => b"0000111111000011",
+      QPLL_CFG2_G3     => b"0000111111000011",
       QPLL_CFG3        => b"0000000100100000",
-      QPLL_CFG4        => b"0000000000000000",
-      QPLL_CP          => b"0111111111",
-      QPLL_CP_G3       => b"1111111111",
+      QPLL_CFG4        => b"0000000000000010",
+      QPLL_CP          => b"0011111111",
+      QPLL_CP_G3       => b"0000001111",
       QPLL_FBDIV       => 80,
-      QPLL_FBDIV_G3    => 80,
+      QPLL_FBDIV_G3    => 160,
       QPLL_INIT_CFG0   => b"0000001010110010",
       QPLL_INIT_CFG1   => b"00000000",
-      QPLL_LOCK_CFG    => b"0010000111101000",
-      QPLL_LOCK_CFG_G3 => b"0010000111101000",
-      QPLL_LPF         => b"1111111100",
-      QPLL_LPF_G3      => b"0000010101",
+      QPLL_LOCK_CFG    => b"0010010111101000",
+      QPLL_LOCK_CFG_G3 => b"0010010111101000",
+      QPLL_LPF         => b"1000011111",
+      QPLL_LPF_G3      => b"0111010101",
       QPLL_REFCLK_DIV  => 1);
    constant QPLL1_C : QpllConfig := (
-      QPLL_CFG0        => b"0011001000011100",
-      QPLL_CFG1        => b"0001000000011000",
-      QPLL_CFG1_G3     => b"0001000000011000",
-      QPLL_CFG2        => b"0000000001000000",
-      QPLL_CFG2_G3     => b"0000000001000000",
+      QPLL_CFG0        => b"0011001100011100",
+      QPLL_CFG1        => b"1101000000111000",
+      QPLL_CFG1_G3     => b"1101000000111000",
+      QPLL_CFG2        => b"0000111111000001",
+      QPLL_CFG2_G3     => b"0000111111000001",
       QPLL_CFG3        => b"0000000100100000",
-      QPLL_CFG4        => b"0000000000000000",
-      QPLL_CP          => b"0111111111",
-      QPLL_CP_G3       => b"1111111111",
+      QPLL_CFG4        => b"0000000000000010",
+      QPLL_CP          => b"0011111111",
+      QPLL_CP_G3       => b"0001111111",
       QPLL_FBDIV       => 128,
       QPLL_FBDIV_G3    => 80,
       QPLL_INIT_CFG0   => b"0000001010110010",
       QPLL_INIT_CFG1   => b"00000000",
-      QPLL_LOCK_CFG    => b"0010000111101000",
-      QPLL_LOCK_CFG_G3 => b"0010000111101000",
-      QPLL_LPF         => b"1111111100",
-      QPLL_LPF_G3      => b"0000010101",
+      QPLL_LOCK_CFG    => b"0010010111101000",
+      QPLL_LOCK_CFG_G3 => b"0010010111101000",
+      QPLL_LPF         => b"1000011101",
+      QPLL_LPF_G3      => b"0111010100",
       QPLL_REFCLK_DIV  => 3);
 
    signal pllRefClk     : slv(1 downto 0);
@@ -139,7 +139,7 @@ begin
 
          qpllClk(i)(j)    <= pllOutClk(j);
          qpllRefclk(i)(j) <= pllOutRefClk(j);
-         qpllLock(i)(j)   <= pllLock(j) and not(lockedStrobe(i)(j));  -- trick the GTH state machine of lock transition
+         qpllLock(i)(j)   <= pllLock(j) and not(lockedStrobe(i)(j));  -- trick the Gty state machine of lock transition
 
          ----------------------------------------------------------------------------
          -- Prevent the gtQPllRst of this lane disrupting the other lanes in the QUAD
@@ -165,7 +165,7 @@ begin
    pllRefClk(1)  <= refClk250;
    pllLockDetClk <= stableClk & stableClk;
 
-   U_QPLL : entity surf.GthUltraScaleQuadPll
+   U_QPLL : entity surf.GtyUltraScaleQuadPll
       generic map (
          -- Simulation Parameters
          TPD_G              => TPD_G,
