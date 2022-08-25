@@ -154,6 +154,15 @@ class SugoiAxiL(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'LinkUp',
+            description  = 'High when the gearbox alignment is completed',
+            offset       = 0xB0,
+            bitSize      = 1,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
         self.add(pr.RemoteCommand(
             name         = 'CountReset',
             description  = 'Status counter reset',
