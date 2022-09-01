@@ -100,7 +100,7 @@ architecture rtl of AxiStreamMon is
 
 begin
 
-  
+
    U_RstSync : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
