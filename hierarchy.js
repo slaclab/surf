@@ -274,6 +274,7 @@ var hierarchy =
       [ "AxiStreamMonAxiL", "classAxiStreamMonAxiL.html", [
         [ "RstSync", "classRstSync.html", null ],
         [ "AxiStreamMon", "classAxiStreamMon.html", [
+          [ "RstSync", "classRstSync.html", null ],
           [ "SyncTrigRate", "classSyncTrigRate.html", null ],
           [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
           [ "SyncMinMax", "classSyncMinMax.html", null ]

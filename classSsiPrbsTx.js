@@ -13,6 +13,7 @@ var classSsiPrbsTx =
     [ "CASCADE_SIZE_G", "classSsiPrbsTx.html#acaad3239d6ac206e087136445ad56292", null ],
     [ "FIFO_ADDR_WIDTH_G", "classSsiPrbsTx.html#aa9eb9788cf75308c2198716ee609ef3e", null ],
     [ "FIFO_PAUSE_THRESH_G", "classSsiPrbsTx.html#aa35502d5f555d56eb712c97cbcc079f4", null ],
+    [ "FIFO_INT_WIDTH_SELECT_G", "classSsiPrbsTx.html#aeeff739ee303b55b811d923a7af094c3", null ],
     [ "PRBS_SEED_SIZE_G", "classSsiPrbsTx.html#acf6ef269473efb72661845af23652b28", null ],
     [ "PRBS_TAPS_G", "classSsiPrbsTx.html#a2fee5b70adcddf5f3bb3190348d3fcfd", null ],
     [ "PRBS_INCREMENT_G", "classSsiPrbsTx.html#ab77ee4c05dff6ccc28632ae5e1eabeff", null ],

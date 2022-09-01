@@ -814,18 +814,18 @@ var sectionId = 'dynsection-0';
 <path fill="none" stroke="midnightblue" d="M650.68,-162C671.97,-162 695.21,-162 713.3,-162"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="650.41,-158.5 640.41,-162 650.41,-165.5 650.41,-158.5"/>
 </g>
-<!-- Node65 -->
+<!-- Node66 -->
 <g id="node47" class="node">
-<title>Node65</title>
+<title>Node66</title>
 <g id="a_node47"><a xlink:href="classSyncTrigRate.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="706,-114.5 706,-133.5 786,-133.5 786,-114.5 706,-114.5"/>
 <text text-anchor="middle" x="746" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">SyncTrigRate</text>
 </a>
 </g>
 </g>
-<!-- Node69&#45;&gt;Node65 -->
+<!-- Node69&#45;&gt;Node66 -->
 <g id="edge68" class="edge">
-<title>Node69&#45;&gt;Node65</title>
+<title>Node69&#45;&gt;Node66</title>
 <path fill="none" stroke="midnightblue" d="M640.48,-149.96C661.85,-144.65 686.61,-138.5 706.67,-133.52"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="639.47,-146.6 630.61,-152.41 641.16,-153.4 639.47,-146.6"/>
 </g>
@@ -880,24 +880,24 @@ var sectionId = 'dynsection-0';
 <path fill="none" stroke="midnightblue" d="M508.32,-48C519.38,-48 530.32,-48 540.42,-48"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="508.14,-44.5 498.14,-48 508.14,-51.5 508.14,-44.5"/>
 </g>
-<!-- Node65&#45;&gt;Node1 -->
+<!-- Node66&#45;&gt;Node1 -->
 <g id="edge66" class="edge">
-<title>Node65&#45;&gt;Node1</title>
+<title>Node66&#45;&gt;Node1</title>
 <path fill="none" stroke="midnightblue" d="M795.61,-137.02C799.9,-138.8 804.1,-140.79 808,-143 840.2,-161.26 870.71,-193.39 884.82,-209.39"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="796.71,-133.69 786.11,-133.45 794.24,-140.25 796.71,-133.69"/>
 </g>
-<!-- Node66 -->
+<!-- Node67 -->
 <g id="node48" class="node">
-<title>Node66</title>
+<title>Node67</title>
 <g id="a_node48"><a xlink:href="classSynchronizerOneShot.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="red" points="353.5,-76.5 353.5,-95.5 474.5,-95.5 474.5,-76.5 353.5,-76.5"/>
 <text text-anchor="middle" x="414" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">SynchronizerOneShot</text>
 </a>
 </g>
 </g>
-<!-- Node66&#45;&gt;Node65 -->
+<!-- Node67&#45;&gt;Node66 -->
 <g id="edge67" class="edge">
-<title>Node66&#45;&gt;Node65</title>
+<title>Node67&#45;&gt;Node66</title>
 <path fill="none" stroke="midnightblue" d="M484.82,-89.64C531.23,-92.57 593.43,-97.45 648,-105 667.21,-107.66 688.36,-111.67 705.99,-115.32"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="484.77,-86.13 474.58,-89.01 484.34,-93.12 484.77,-86.13"/>
 </g>
@@ -910,15 +910,15 @@ var sectionId = 'dynsection-0';
 </a>
 </g>
 </g>
-<!-- Node66&#45;&gt;Node70 -->
+<!-- Node67&#45;&gt;Node70 -->
 <g id="edge70" class="edge">
-<title>Node66&#45;&gt;Node70</title>
+<title>Node67&#45;&gt;Node70</title>
 <path fill="none" stroke="midnightblue" d="M469.08,-97.74C495.66,-103.51 527.07,-110.33 551.22,-115.58"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="469.67,-94.29 459.16,-95.59 468.19,-101.13 469.67,-94.29"/>
 </g>
-<!-- Node70&#45;&gt;Node65 -->
+<!-- Node70&#45;&gt;Node66 -->
 <g id="edge69" class="edge">
-<title>Node70&#45;&gt;Node65</title>
+<title>Node70&#45;&gt;Node66</title>
 <path fill="none" stroke="midnightblue" d="M640.65,-124C661.7,-124 686.01,-124 705.87,-124"/>
 <polygon fill="midnightblue" stroke="midnightblue" points="640.61,-120.5 630.61,-124 640.61,-127.5 640.61,-120.5"/>
 </g>

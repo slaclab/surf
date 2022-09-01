@@ -10,6 +10,7 @@ var classSsiPrbsRx =
     [ "FIFO_PAUSE_THRESH_G", "classSsiPrbsRx.html#aa35502d5f555d56eb712c97cbcc079f4", null ],
     [ "SYNTH_MODE_G", "classSsiPrbsRx.html#a2429d17ce4f9328a982076af9f733ab3", null ],
     [ "MEMORY_TYPE_G", "classSsiPrbsRx.html#ac19eab973cb6c0196eed65d74fc49dca", null ],
+    [ "FIFO_INT_WIDTH_SELECT_G", "classSsiPrbsRx.html#aeeff739ee303b55b811d923a7af094c3", null ],
     [ "PRBS_SEED_SIZE_G", "classSsiPrbsRx.html#a8dab4c8cc24b47a2cb0c77a36a009260", null ],
     [ "PRBS_TAPS_G", "classSsiPrbsRx.html#a2fee5b70adcddf5f3bb3190348d3fcfd", null ],
     [ "SLAVE_AXI_STREAM_CONFIG_G", "classSsiPrbsRx.html#a0dee8e9cc6dc11e3f7919ead8090eb7b", null ],

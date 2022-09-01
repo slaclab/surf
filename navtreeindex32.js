@@ -1,5 +1,8 @@
 var NAVTREEINDEX32 =
 {
+"classAxisJtagDebugBridge.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,94,17],
+"classAxisJtagDebugBridge.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,94,15],
+"classAxisJtagDebugBridge.html#ad7b982b3f46935258120384b103faf19":[1,0,94,4],
 "classAxisJtagDebugBridge.html#ae092f845ab9780e1259abbaac6652c00":[1,0,94,5],
 "classAxisJtagDebugBridge.html#ae3f6db4be2de82c87436374f37fc2cb2":[1,0,94,3],
 "classAxisJtagDebugBridge.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,94,18],
@@ -246,8 +249,5 @@ var NAVTREEINDEX32 =
 "classAxisToJtag_1_1AxisToJtagImpl.html#ab99f8669a7d20d6b60dd96be7d4c85ac":[1,0,96,0,43],
 "classAxisToJtag_1_1AxisToJtagImpl.html#ab9eb5b142eccd5aa43dc219d0a99906c":[1,0,96,0,26],
 "classAxisToJtag_1_1AxisToJtagImpl.html#aba2e32e7959e413a162c042d6e09f93e":[1,0,96,0,41],
-"classAxisToJtag_1_1AxisToJtagImpl.html#abcded5e019e178530c05bb1cd1d71857":[1,0,96,0,27],
-"classAxisToJtag_1_1AxisToJtagImpl.html#abdd0f7360206fdb660235348ed76c4ba":[1,0,96,0,14],
-"classAxisToJtag_1_1AxisToJtagImpl.html#abe7904b054a8cf70f3e2c7d4a8e8f941":[1,0,96,0,28],
-"classAxisToJtag_1_1AxisToJtagImpl.html#ac2711fd72ab7252f8a52e50a869edb61":[1,0,96,0,17]
+"classAxisToJtag_1_1AxisToJtagImpl.html#abcded5e019e178530c05bb1cd1d71857":[1,0,96,0,27]
 };

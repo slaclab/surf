@@ -1,5 +1,8 @@
 var NAVTREEINDEX56 =
 {
+"classGigEthGtyUltraScale.html#a2370d68d090b7a9d9791a4c31b83778e":[1,0,285,27],
+"classGigEthGtyUltraScale.html#a2df151e499acff7dcbecb0fedffa60cb":[1,0,285,6],
+"classGigEthGtyUltraScale.html#a3523b0b120676ac086f277320024a115":[1,0,285,8],
 "classGigEthGtyUltraScale.html#a3563e3c4c7f5d4dd9280d67313c2f392":[1,0,285,17],
 "classGigEthGtyUltraScale.html#a4a79f23d896469af5b3a5c3fb264c2c4":[1,0,285,11],
 "classGigEthGtyUltraScale.html#a5b6d962ecac1ef0244a5ce305394b0c5":[1,0,285,15],
@@ -246,8 +249,5 @@ var NAVTREEINDEX56 =
 "classGth7AutoPhaseAligner.html#aa4b2b25246a821511120e3149b003563":[1,0,298,10],
 "classGth7AutoPhaseAligner.html#abb8e1d1ee9a06d80c19d9ce95cde2c8f":[1,0,298,2],
 "classGth7AutoPhaseAligner.html#ade22a6b2bc1026f6e0ce3a214990512c":[1,0,298,3],
-"classGth7AutoPhaseAligner.html#ae00f3f04545af57582ff10609eee23e2":[1,0,298,11],
-"classGth7AutoPhaseAligner.html#ae4f03c286607f3181e16b9aa12d0c6d4":[1,0,298,9],
-"classGth7AutoPhaseAligner_1_1RTL.html":[1,0,298,0],
-"classGth7AutoPhaseAligner_1_1RTL.html#a068564424adf39fd0048aab4cbbdfdb6":[1,0,298,0,9]
+"classGth7AutoPhaseAligner.html#ae00f3f04545af57582ff10609eee23e2":[1,0,298,11]
 };

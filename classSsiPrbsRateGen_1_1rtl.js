@@ -1,7 +1,7 @@
 var classSsiPrbsRateGen_1_1rtl =
 [
-    [ "comb", "classSsiPrbsRateGen_1_1rtl.html#a8bf2f74ece8f647fdeca8a5057e5c028", null ],
-    [ "seq", "classSsiPrbsRateGen_1_1rtl.html#a308c02b698196700ea6669abeb872e29", null ],
+    [ "comb", "classSsiPrbsRateGen_1_1rtl.html#a3a767f2c78242244a976b3cdf75a9462", null ],
+    [ "seq", "classSsiPrbsRateGen_1_1rtl.html#a58ada7dd914b71b5b96828c2b7e2d8fc", null ],
     [ "RegType", "classSsiPrbsRateGen_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "axilReadSlave", "classSsiPrbsRateGen_1_1rtl.html#a5daf374ea804f394dee40a30d3e2e12f", null ],
     [ "axilWriteSlave", "classSsiPrbsRateGen_1_1rtl.html#a1b43705cc2da350eb0df1e71fb23ab88", null ],
@@ -14,7 +14,7 @@ var classSsiPrbsRateGen_1_1rtl =
     [ "genCount", "classSsiPrbsRateGen_1_1rtl.html#a864dc91954c7266a8dbc4471175f07fe", null ],
     [ "frameCount", "classSsiPrbsRateGen_1_1rtl.html#ab06ad7931c37bc9983aa6fc942c9ec1c", null ],
     [ "statReset", "classSsiPrbsRateGen_1_1rtl.html#a8ab4ea614dfbd2158be05a5a0f2323c8", null ],
-    [ "REG_INIT_C", "classSsiPrbsRateGen_1_1rtl.html#a42d2f5f166e9f698d516e4efc07e331f", null ],
+    [ "REG_INIT_C", "classSsiPrbsRateGen_1_1rtl.html#ae0e1ebd0243e26c0ce3c1f91f7670930", null ],
     [ "r", "classSsiPrbsRateGen_1_1rtl.html#a0498304adc5e9a77df9df664a54ee3d3", null ],
     [ "rin", "classSsiPrbsRateGen_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "iAxisMaster", "classSsiPrbsRateGen_1_1rtl.html#af5eb3b3554d2a933827009a8685ec635", null ],
@@ -26,6 +26,8 @@ var classSsiPrbsRateGen_1_1rtl =
     [ "bandwidthMax", "classSsiPrbsRateGen_1_1rtl.html#a106b152cf6efe2db67b00948bf896e66", null ],
     [ "bandwidthMin", "classSsiPrbsRateGen_1_1rtl.html#a267b2a7ec2ebddc2f903c2dc076d6013", null ],
     [ "busy", "classSsiPrbsRateGen_1_1rtl.html#a55660505efd1374c89e6c2dd3c3cfc6c", null ],
+    [ "localClk", "classSsiPrbsRateGen_1_1rtl.html#ac7c6a08cf6d9f7ca55feca31b5dfeedf", null ],
+    [ "localRst", "classSsiPrbsRateGen_1_1rtl.html#a8f154549dd78c6ca20caf5d0689359f7", null ],
     [ "u_prbstx", "classSsiPrbsRateGen_1_1rtl.html#a121ff49f3928f59c4e7b0e0017d8591d", null ],
     [ "u_monitor", "classSsiPrbsRateGen_1_1rtl.html#a107d9ab245b504e012fe4b5ff6e1d16d", null ]
 ];
