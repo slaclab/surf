@@ -166,6 +166,7 @@ class CoaXPressAxiL(pr.Device):
             offset       = 0xFF0,
             bitSize      = 8,
             bitOffset    = 0,
+            disp         = '{:d}',
             mode         = 'RO',
         ))
 
@@ -174,6 +175,7 @@ class CoaXPressAxiL(pr.Device):
             offset       = 0xFF0,
             bitSize      = 8,
             bitOffset    = 8,
+            disp         = '{:d}',
             mode         = 'RO',
         ))
 
