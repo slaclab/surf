@@ -36,6 +36,7 @@ entity CoaXPressAxiL is
       txRst           : in  sl;
       txTrig          : in  sl;
       swTrig          : out sl;
+      txRate          : out sl;
       txTrigDrop      : in  sl;
       txLinkUp        : in  sl;
       -- Rx Interface (rxClk domain)
@@ -48,6 +49,11 @@ entity CoaXPressAxiL is
       rxCfgDrop       : in  sl;
       rxDataDrop      : in  sl;
       rxFifoRst       : out sl;
+      -- Config Interface (cfgClk domain)
+      cfgClk          : in  sl;
+      cfgRst          : in  sl;
+      configTimerSize : out slv(23 downto 0);
+      configErrResp   : out slv(1 downto 0);
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -60,19 +66,25 @@ end CoaXPressAxiL;
 architecture rtl of CoaXPressAxiL is
 
    type RegType is record
-      swTrig         : sl;
-      rxFifoRst      : sl;
-      cntRst         : sl;
-      axilWriteSlave : AxiLiteWriteSlaveType;
-      axilReadSlave  : AxiLiteReadSlaveType;
+      configTimerSize : slv(23 downto 0);
+      configErrResp   : slv(1 downto 0);
+      txRate          : sl;
+      swTrig          : sl;
+      rxFifoRst       : sl;
+      cntRst          : sl;
+      axilWriteSlave  : AxiLiteWriteSlaveType;
+      axilReadSlave   : AxiLiteReadSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      swTrig         => '0',
-      rxFifoRst      => '0',
-      cntRst         => '0',
-      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
+      configTimerSize => (others => '1'),
+      configErrResp   => (others => '1'),
+      txRate          => '0',
+      swTrig          => '0',
+      rxFifoRst       => '0',
+      cntRst          => '0',
+      axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
+      axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -139,6 +151,10 @@ begin
       axiSlaveRegisterR(axilEp, x"724", 0, muxSlVectorArray(txCntOut, 1));
       axiSlaveRegisterR(axilEp, x"728", 0, muxSlVectorArray(txCntOut, 2));
 
+      axiSlaveRegister (axilEp, x"FEC", 0, v.configTimerSize);
+      axiSlaveRegister (axilEp, x"FEC", 24, v.configErrResp);
+      axiSlaveRegister (axilEp, x"FEC", 26, v.txRate);
+
       axiSlaveRegisterR(axilEp, x"FF0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegister (axilEp, X"FF4", 0, v.swTrig);
@@ -181,6 +197,14 @@ begin
          rst     => txRst,
          dataIn  => r.swTrig,
          dataOut => swTrig);
+
+   U_txRate : entity surf.Synchronizer
+      generic map (
+         TPD_G   => TPD_G)
+      port map (
+         clk     => txClk,
+         dataIn  => r.txRate,
+         dataOut => txRate);
 
    U_txCntOut : entity surf.SyncStatusVector
       generic map (
@@ -367,6 +391,28 @@ begin
             refClk  => axilClk);
 
    end generate GEN_VEC;
+
+   --------------------------------
+   -- Configuration Synchronization
+   --------------------------------
+
+   U_configTimerSize : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 24)
+      port map (
+         clk     => cfgClk,
+         dataIn  => r.configTimerSize,
+         dataOut => configTimerSize);
+
+   U_configErrResp : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 2)
+      port map (
+         clk     => cfgClk,
+         dataIn  => r.configErrResp,
+         dataOut => configErrResp);
 
 end rtl;
 

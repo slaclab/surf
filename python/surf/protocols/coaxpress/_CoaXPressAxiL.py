@@ -162,6 +162,30 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'ConfigTimerSize',
+            offset       = 0xFEC,
+            bitSize      = 24,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ConfigErrResp',
+            offset       = 0xFEC,
+            bitSize      = 2,
+            bitOffset    = 24,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxRate',
+            offset       = 0xFEC,
+            bitSize      = 1,
+            bitOffset    = 26,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'NUM_LANES_G',
             offset       = 0xFF0,
             bitSize      = 8,

@@ -22,7 +22,6 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
-use surf.SsiPkg.all;
 use surf.CoaXPressPkg.all;
 
 entity CoaXPressTx is
@@ -30,25 +29,23 @@ entity CoaXPressTx is
       TPD_G         : time := 1 ns;
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
-      -- Config Interface (cfgClk domain)
-      cfgClk      : in  sl;
-      cfgRst      : in  sl;
-      cfgIbMaster : in  AxiStreamMasterType;
-      cfgIbSlave  : out AxiStreamSlaveType;
-      -- Tx Interface (txClk domain)
+      -- Clock and Reset
       txClk       : in  sl;
       txRst       : in  sl;
+      -- Config Interface
+      cfgTxMaster : in  AxiStreamMasterType;
+      cfgTxSlave  : out AxiStreamSlaveType;
+      -- Tx Interface
       txData      : out slv(31 downto 0);
       swTrig      : in  sl;
+      txRate      : in  sl;
       txTrig      : in  sl;
       txTrigDrop  : out sl);
 end entity CoaXPressTx;
 
 architecture mapping of CoaXPressTx is
 
-   signal cfgMaster : AxiStreamMasterType;
-   signal cfgSlave  : AxiStreamSlaveType;
-
+   signal gearboxReady  : sl;
    signal txStrobe      : sl;
    signal txDecodeData  : slv(7 downto 0);
    signal txDecodeDataK : sl;
@@ -61,35 +58,6 @@ architecture mapping of CoaXPressTx is
 
 begin
 
-   -----------------------------------
-   -- Move config AXIS to txClk domain
-   -- and resize to 1 byte tdata width
-   -----------------------------------
-   U_cfgIb : entity surf.AxiStreamFifoV2
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         VALID_THOLD_G       => 0,      -- 0 = only when frame ready
-         -- FIFO configurations
-         INT_WIDTH_SELECT_G  => "NARROW",
-         MEMORY_TYPE_G       => "block",
-         GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 9,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(1))
-      port map (
-         -- Slave Port
-         sAxisClk    => cfgClk,
-         sAxisRst    => cfgRst,
-         sAxisMaster => cfgIbMaster,
-         sAxisSlave  => cfgIbSlave,
-         -- Master Port
-         mAxisClk    => txClk,
-         mAxisRst    => txRst,
-         mAxisMaster => cfgMaster,
-         mAxisSlave  => cfgSlave);
-
    -------------
    -- FSM Module
    -------------
@@ -98,18 +66,20 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         txClk      => txClk,
-         txRst      => txRst,
+         txClk        => txClk,
+         txRst        => txRst,
          -- Config Interface
-         cfgMaster  => cfgMaster,
-         cfgSlave   => cfgSlave,
+         cfgMaster    => cfgTxMaster,
+         cfgSlave     => cfgTxSlave,
          -- Trigger Interface
-         txTrig     => trigger,
-         txTrigDrop => txTrigDrop,
+         txTrig       => trigger,
+         txTrigDrop   => txTrigDrop,
          -- TX PHY Interface
-         txStrobe   => txStrobe,
-         txData     => txDecodeData,
-         txDataK    => txDecodeDataK);
+         txRate       => txRate,
+         gearboxReady => gearboxReady,
+         txStrobe     => txStrobe,
+         txData       => txDecodeData,
+         txDataK      => txDecodeDataK);
 
    trigger <= txTrig or swTrig;
 
@@ -140,10 +110,10 @@ begin
    ---------------
    U_Serializer : entity surf.Gearbox
       generic map (
-         TPD_G                => TPD_G,
-         SLAVE_WIDTH_G        => 10,
-         SLAVE_BIT_REVERSE_G  => false,
-         MASTER_WIDTH_G       => 1)
+         TPD_G               => TPD_G,
+         SLAVE_WIDTH_G       => 10,
+         SLAVE_BIT_REVERSE_G => false,
+         MASTER_WIDTH_G      => 1)
       port map (
          -- Clock and Reset
          clk           => txClk,
@@ -152,7 +122,8 @@ begin
          slaveValid    => txEncodeValid,
          slaveData     => txEncodeData,
          -- Master Interface
-         masterData(0) => txbit);
+         masterData(0) => txbit,
+         masterReady   => gearboxReady);
 
    -- Serial rate = TX clock frequency
    txData <= (others => txbit);

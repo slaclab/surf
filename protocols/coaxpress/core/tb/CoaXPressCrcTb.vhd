@@ -21,13 +21,78 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.CoaXPressPkg.all;
+use surf.CrcPkg.all;
+use surf.Code8b10bPkg.all;
 
 entity CoaXPressCrcTb is
 end entity CoaXPressCrcTb;
 
 architecture tb of CoaXPressCrcTb is
 
+   constant CRC_POLY_C : slv(31 downto 0)  := x"04C11DB7";
+   signal inputWord    : slv(127 downto 0) := x"00000000_04000000_02020202_FBFBFBFB";
+
+   signal outputCrc : slv(31 downto 0);
+   signal dataEnc   : slv(9 downto 0);
+
+   signal clk : sl := '0';
+   signal rst : sl := '0';
+
 begin
+
+   U_ClkRst : entity surf.ClkRst
+      generic map (
+         CLK_PERIOD_G      => 10 ns,
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 1000 ns)
+      port map (
+         clkP => clk,
+         rst  => rst);
+
+   U_Encode : entity surf.Encoder8b10b
+      generic map (
+         RST_POLARITY_G => '1',         -- active HIGH reset
+         FLOW_CTRL_EN_G => false,
+         RST_ASYNC_G    => false,
+         NUM_BYTES_G    => 1)
+      port map (
+         -- Clock and Reset
+         clk        => clk,
+         rst        => rst,
+         -- Decoded Interface
+         dataIn     => K_28_5_C,
+         dataKIn(0) => '1',
+         -- Encoded Interface
+         dataOut    => dataEnc);
+
+   process(inputWord)
+      variable crc     : slv(31 downto 0);
+      variable retVar  : slv(31 downto 0);
+      variable byteXor : slv(7 downto 0);
+   begin
+      -- Init
+      crc     := x"FFFFFFFF";
+      byteXor := (others => '0');
+
+      for i in 8 to 15 loop
+         byteXor := crc(31 downto 24) xor bitReverse(inputWord(8*i+7 downto 8*i));
+         crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CRC_POLY_C);
+      end loop;
+
+      for i in 0 to 3 loop
+         retVar(8*i+7 downto 8*i) := bitReverse(crc(8*i+7 downto 8*i));
+      end loop;
+
+      -- To aid understanding, a complete control command packet
+      -- without tag (a read of address 0) is shown here, with the resulting CRC shown in red:
+      -- K27.7 K27.7 K27.7 K27.7
+      -- 0x02 0x02 0x02 0x02
+      -- 0x00 0x00 0x00 0x04
+      -- 0x00 0x00 0x00 0x00
+      -- 0x56 0x86 0x5D 0x6F <----- CRC-32
+      -- K29.7 K29.7 K29.7 K29.7.
+      outputCrc <= endianSwap(retVar);
+
+   end process;
 
 end architecture tb;

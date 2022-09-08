@@ -68,7 +68,14 @@ end entity CoaXPressCore;
 
 architecture mapping of CoaXPressCore is
 
+   signal configTimerSize : slv(23 downto 0);
+   signal configErrResp   : slv(1 downto 0);
+   signal cfgTxMaster     : AxiStreamMasterType;
+   signal cfgTxSlave      : AxiStreamSlaveType;
+   signal cfgRxMaster     : AxiStreamMasterType;
+
    signal swTrig     : sl;
+   signal txRate     : sl;
    signal txTrigDrop : sl;
 
    signal rxFifoRst      : sl;
@@ -78,21 +85,45 @@ architecture mapping of CoaXPressCore is
 
 begin
 
-   U_Tx : entity surf.CoaXPressTx
+   U_Config : entity surf.CoaXPressConfig
       generic map (
          TPD_G         => TPD_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Config Interface (cfgClk domain)
-         cfgClk      => cfgClk,
-         cfgRst      => cfgRst,
-         cfgIbMaster => cfgIbMaster,
-         cfgIbSlave  => cfgIbSlave,
-         -- Tx Interface (txClk domain)
+         cfgClk          => cfgClk,
+         cfgRst          => cfgRst,
+         configTimerSize => configTimerSize,
+         configErrResp   => configErrResp,
+         cfgIbMaster     => cfgIbMaster,
+         cfgIbSlave      => cfgIbSlave,
+         cfgObMaster     => cfgObMaster,
+         cfgObSlave      => cfgObSlave,
+         -- TX Interface (txClk domain)
+         txClk           => txClk,
+         txRst           => txRst,
+         cfgTxMaster     => cfgTxMaster,
+         cfgTxSlave      => cfgTxSlave,
+         -- RX Interface (rxClk domain)
+         rxClk           => rxClk(0),
+         rxRst           => rxRst(0),
+         cfgRxMaster     => cfgRxMaster);
+
+   U_Tx : entity surf.CoaXPressTx
+      generic map (
+         TPD_G         => TPD_G,
+         AXIS_CONFIG_G => AXIS_CONFIG_G)
+      port map (
+         -- Clock and Reset
          txClk       => txClk,
          txRst       => txRst,
+         -- Config Interface
+         cfgTxMaster => cfgTxMaster,
+         cfgTxSlave  => cfgTxSlave,
+         -- Tx Interface
          txData      => txData,
          swTrig      => swTrig,
+         txRate      => txRate,
          txTrig      => txTrig,
          txTrigDrop  => txTrigDrop);
 
@@ -107,11 +138,6 @@ begin
          dataRst        => dataRst,
          dataMaster     => dataMaster,
          dataSlave      => dataSlave,
-         -- Config Interface (cfgClk domain)
-         cfgClk         => cfgClk,
-         cfgRst         => cfgRst,
-         cfgObMaster    => cfgObMaster,
-         cfgObSlave     => cfgObSlave,
          -- Rx Interface (rxClk domain)
          rxClk          => rxClk,
          rxRst          => rxRst,
@@ -121,7 +147,8 @@ begin
          rxFifoOverflow => rxFifoOverflow,
          rxData         => rxData,
          rxDataK        => rxDataK,
-         rxLinkUp       => rxLinkUp);
+         rxLinkUp       => rxLinkUp,
+         cfgRxMaster    => cfgRxMaster);
 
    U_Axil : entity surf.CoaXPressAxiL
       generic map (
@@ -135,6 +162,7 @@ begin
          txRst           => txRst,
          txTrig          => txTrig,
          swTrig          => swTrig,
+         txRate          => txRate,
          txTrigDrop      => txTrigDrop,
          txLinkUp        => txLinkUp,
          -- Rx Interface (rxClk domain)
@@ -147,6 +175,11 @@ begin
          rxDataDrop      => rxDataDrop,
          rxFifoOverflow  => rxFifoOverflow,
          rxLinkUp        => rxLinkUp,
+         -- Config Interface (cfgClk domain)
+         cfgClk          => cfgClk,
+         cfgRst          => cfgClk,
+         configTimerSize => configTimerSize,
+         configErrResp   => configErrResp,
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,

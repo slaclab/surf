@@ -36,11 +36,8 @@ entity CoaXPressRx is
       dataRst        : in  sl;
       dataMaster     : out AxiStreamMasterType;
       dataSlave      : in  AxiStreamSlaveType;
-      -- Config Interface (cfgClk domain)
-      cfgClk         : in  sl;
-      cfgRst         : in  sl;
-      cfgObMaster    : out AxiStreamMasterType;
-      cfgObSlave     : in  AxiStreamSlaveType;
+      -- Config Interface (rxClk[0] domain)
+      cfgRxMaster    : out AxiStreamMasterType;
       -- Rx Interface (rxClk domain)
       rxClk          : in  slv(NUM_LANES_G-1 downto 0);
       rxRst          : in  slv(NUM_LANES_G-1 downto 0);
@@ -113,7 +110,7 @@ begin
          rxClk      => rxClk(0),
          rxRst      => rxRst(0),
          -- Config Interface
-         cfgMaster  => rxCfgMaster,
+         cfgMaster  => cfgRxMaster,
          -- Data Interface
          dataMaster => rxDataMaster,
          -- TX PHY Interface
@@ -122,33 +119,6 @@ begin
          rxData     => data,
          rxDataK    => dataK,
          rxLinkUp   => rxLinkUp);
-
-   --------------
-   -- Config FIFO
-   --------------
-   U_cfgOb : entity surf.SsiFifo
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false,
-         -- FIFO configurations
-         MEMORY_TYPE_G       => "block",
-         GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 9,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4),
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
-      port map (
-         -- Slave Port
-         sAxisClk       => rxClk(0),
-         sAxisRst       => rxRst(0),
-         sAxisMaster    => rxCfgMaster,
-         sAxisDropFrame => rxCfgDrop,
-         -- Master Port
-         mAxisClk       => cfgClk,
-         mAxisRst       => cfgRst,
-         mAxisMaster    => cfgObMaster,
-         mAxisSlave     => cfgObSlave);
 
    ------------
    -- Data FIFO

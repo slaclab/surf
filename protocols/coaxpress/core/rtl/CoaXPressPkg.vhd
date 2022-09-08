@@ -62,6 +62,8 @@ use surf.Code8b10bPkg.all;
 
 package CoaXPressPkg is
 
+   constant CXP_CRC_POLY_C : slv(31 downto 0) := x"04C11DB7";
+
    constant CXP_HS_LINK_TRIG_SIZE_C : positive := 3; -- 3 words
    constant CXP_HS_LINK_TRIG_C      : slv(31 downto 0) := K_28_2_C & K_28_2_C & K_28_2_C & K_28_2_C;
 

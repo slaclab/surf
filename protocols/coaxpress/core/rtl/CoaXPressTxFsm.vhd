@@ -31,18 +31,20 @@ entity CoaXPressTxFsm is
       TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
-      txClk      : in  sl;
-      txRst      : in  sl;
+      txClk        : in  sl;
+      txRst        : in  sl;
       -- Config Interface
-      cfgMaster  : in  AxiStreamMasterType;
-      cfgSlave   : out AxiStreamSlaveType;
+      cfgMaster    : in  AxiStreamMasterType;
+      cfgSlave     : out AxiStreamSlaveType;
       -- Trigger Interface
-      txTrig     : in  sl;
-      txTrigDrop : out sl;
+      txTrig       : in  sl;
+      txTrigDrop   : out sl;
       -- TX PHY Interface
-      txStrobe   : out sl;
-      txData     : out slv(7 downto 0);
-      txDataK    : out sl);
+      txRate       : in  sl;
+      gearboxReady : out sl;
+      txStrobe     : out sl;
+      txData       : out slv(7 downto 0);
+      txDataK      : out sl);
 end entity CoaXPressTxFsm;
 
 architecture rtl of CoaXPressTxFsm is
@@ -66,13 +68,9 @@ architecture rtl of CoaXPressTxFsm is
       8 => toSlv(8*24, 8),
       9 => toSlv(9*24, 8));
 
-   type StateType is (
-      SOF_S,
-      PAYLOAD_S,
-      EOF_S);
-
    type RegType is record
       -- Heartbeat
+      gearboxReady : sl;
       heartbeat    : sl;
       heartbeatCnt : natural range 0 to 9;
       -- Trigger
@@ -89,12 +87,11 @@ architecture rtl of CoaXPressTxFsm is
       txDataK      : sl;
       -- Config
       cfgSlave     : AxiStreamSlaveType;
-      stateCnt     : slv(1 downto 0);
-      state        : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       -- Heartbeat
+      gearboxReady => '1',
       heartbeat    => '0',
       heartbeatCnt => 9,
       -- Trigger
@@ -110,16 +107,14 @@ architecture rtl of CoaXPressTxFsm is
       txData       => K_28_5_C,
       txDataK      => '1',
       -- Config
-      cfgSlave     => AXI_STREAM_SLAVE_INIT_C,
-      stateCnt     => "00",
-      state        => SOF_S);
+      cfgSlave     => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (cfgMaster, r, txRst, txTrig) is
+   comb : process (cfgMaster, r, txRate, txRst, txTrig) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -131,16 +126,28 @@ begin
       v.txTrigDrop := '0';
       v.cfgSlave   := AXI_STREAM_SLAVE_INIT_C;
 
+      --------------------------------
+      -- Generate gearbox ready signal
+      --------------------------------
+      -- txRate=0: 20.83 Mbps (48ns UI)
+      -- txRate=1: 41.60 Mbps (24ns UI)
+      --------------------------------
+      v.gearboxReady := not(r.gearboxReady) or txRate;
+
       -- Check for heartbeat event
       if (r.heartbeatCnt = 0) then
 
-         -- Pre-set the counter
-         v.heartbeatCnt := 9;
+         if (txRate = '1') or (r.gearboxReady = '0') then
+            -- Pre-set the counter
+            v.heartbeatCnt := 9;
+            v.gearboxReady := '1';      -- phase locking to heartbeat
 
-         -- Set the flag
-         v.heartbeat := '1';
+            -- Set the flag
+            v.heartbeat := '1';
+         end if;
 
-      else
+      -- Throttle the decrement based on txRate
+      elsif (txRate = '1') or (r.gearboxReady = '0') then
          -- Decrement the counter
          v.heartbeatCnt := r.heartbeatCnt - 1;
       end if;
@@ -198,57 +205,12 @@ begin
          -- Check if moving config message
          elsif (cfgMaster.tValid = '1') and (r.txIdle = '0') then
 
-            -- State Machine
-            case (r.state) is
-               ----------------------------------------------------------------------
-               when SOF_S =>
-                  -- Update the TX data
-                  v.txData  := K_27_7_C;
-                  v.txDataK := '1';
+            -- Accept the data
+            v.cfgSlave.tReady := '1';
 
-                  -- Increment the counter
-                  v.stateCnt := r.stateCnt + 1;
-
-                  -- Increment the counter
-                  if (r.stateCnt = 3) then
-                     -- Next state
-                     v.state := PAYLOAD_S;
-                  end if;
-               ----------------------------------------------------------------------
-               when PAYLOAD_S =>
-                  -- Accept the data
-                  v.cfgSlave.tReady := '1';
-
-                  -- Update the TX data
-                  v.txData  := cfgMaster.tData(7 downto 0);
-                  v.txDataK := '0';
-
-                  -- Check for last byte
-                  if (cfgMaster.tLast = '1') then
-                     -- Next state
-                     v.state := EOF_S;
-                  end if;
-               ----------------------------------------------------------------------
-               when EOF_S =>
-                  -- Update the TX data
-                  v.txData  := K_29_7_C;
-                  v.txDataK := '1';
-
-                  -- Increment the counter
-                  v.stateCnt := r.stateCnt + 1;
-
-                  -- Increment the counter
-                  if (r.stateCnt = 3) then
-
-                     -- Set the flag
-                     v.txIdle := '1';
-
-                     -- Next state
-                     v.state := SOF_S;
-
-                  end if;
-            ----------------------------------------------------------------------
-            end case;
+            -- Send the configuration message
+            v.txData  := cfgMaster.tData(7 downto 0);
+            v.txDataK := cfgMaster.tUser(0);
 
          -- Insert the IDLE
          else
@@ -268,11 +230,12 @@ begin
       end if;
 
       -- Outputs
-      cfgSlave   <= v.cfgSlave;
-      txStrobe   <= r.txStrobe;
-      txData     <= r.txData;
-      txDataK    <= r.txDataK;
-      txTrigDrop <= r.txTrigDrop;
+      cfgSlave     <= v.cfgSlave;
+      gearboxReady <= r.gearboxReady;
+      txStrobe     <= r.txStrobe;
+      txData       <= r.txData;
+      txDataK      <= r.txDataK;
+      txTrigDrop   <= r.txTrigDrop;
 
       -- Reset
       if (txRst = '1') then
