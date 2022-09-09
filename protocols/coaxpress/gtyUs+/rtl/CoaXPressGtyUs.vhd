@@ -82,22 +82,22 @@ architecture mapping of CoaXPressGtyUs is
    constant XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 16, 12);
 
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)   := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
    signal txClk    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal txRst    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal txData   : slv32Array(NUM_LANES_G-1 downto 0) := (others => (others => '0'));
    signal txLinkUp : slv(NUM_LANES_G-1 downto 0);
 
-   signal rxClk     : slv(NUM_LANES_G-1 downto 0);
-   signal rxRst     : slv(NUM_LANES_G-1 downto 0);
-   signal rxData    : slv32Array(NUM_LANES_G-1 downto 0);
-   signal rxDataK   : Slv4Array(NUM_LANES_G-1 downto 0);
-   signal rxDispErr : slv(NUM_LANES_G-1 downto 0);
-   signal rxDecErr  : slv(NUM_LANES_G-1 downto 0);
-   signal rxLinkUp  : slv(NUM_LANES_G-1 downto 0);
+   signal rxClk     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal rxRst     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal rxData    : slv32Array(NUM_LANES_G-1 downto 0) := (others => (others => '0'));
+   signal rxDataK   : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => (others => '0'));
+   signal rxDispErr : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal rxDecErr  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal rxLinkUp  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
 
 begin
 
@@ -143,9 +143,9 @@ begin
          cfgObMaster     => cfgObMaster,
          cfgObSlave      => cfgObSlave,
          -- Tx Interface (txClk domain)
-         txClk           => txClk(0),
-         txRst           => txRst(0),
-         txData          => txData(0),
+         txClk           => txClk,
+         txRst           => txRst,
+         txData          => txData,
          txTrig          => trigger,
          txLinkUp        => txLinkUp(0),
          -- Rx Interface (rxClk domain)

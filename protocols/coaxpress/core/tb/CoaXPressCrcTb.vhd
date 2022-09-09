@@ -21,6 +21,7 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 use surf.CrcPkg.all;
 use surf.Code8b10bPkg.all;
 
@@ -29,11 +30,28 @@ end entity CoaXPressCrcTb;
 
 architecture tb of CoaXPressCrcTb is
 
+   constant TX_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => (8/8),           -- 8-bit data interface
+      TDEST_BITS_C  => 0,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => 1,
+      TUSER_MODE_C  => TUSER_NORMAL_C);
+
    constant CRC_POLY_C : slv(31 downto 0)  := x"04C11DB7";
-   signal inputWord    : slv(127 downto 0) := x"00000000_04000000_02020202_FBFBFBFB";
+   signal inputWord    : slv(191 downto 0) := x"FDFDFDFD_00000000_00000000_04000000_02020202_FBFBFBFB";
+   signal inputUser    : slv(191 downto 0) := x"FFFFFFFF_00000000_00000000_04000000_02020202_FFFFFFFF";
+
+   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+
+   signal cfgTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal cfgTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
    signal outputCrc : slv(31 downto 0);
    signal dataEnc   : slv(9 downto 0);
+   signal cnt       : slv(7 downto 0) := x"00";
 
    signal clk : sl := '0';
    signal rst : sl := '0';
@@ -93,6 +111,58 @@ begin
       -- K29.7 K29.7 K29.7 K29.7.
       outputCrc <= endianSwap(retVar);
 
+   end process;
+
+   TX_FIFO : entity surf.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => 1 ns,
+         -- FIFO configurations
+         MEMORY_TYPE_G       => "block",
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => TX_CONFIG_C,
+         MASTER_AXI_CONFIG_G => TX_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => clk,
+         sAxisRst    => rst,
+         sAxisMaster => txMaster,
+         sAxisSlave  => txSlave,
+         -- Master Port
+         mAxisClk    => clk,
+         mAxisRst    => rst,
+         mAxisMaster => cfgTxMaster,
+         mAxisSlave  => cfgTxSlave);
+
+   process(clk)
+   begin
+      if rising_edge(clk) then
+         cnt <= cnt + 1 after 1 ns;
+         if rst = '1' then
+            txMaster.tStrb <= (others => '0') after 1 ns;
+         else
+            if cnt = 0 then
+               txMaster.tValid              <= '1'                  after 1 ns;
+               txMaster.tLast               <= '0'                  after 1 ns;
+               txMaster.tData(191 downto 0) <= inputWord            after 1 ns;
+               txMaster.tUser(191 downto 0) <= inputUser            after 1 ns;
+               txMaster.tKeep(23 downto 0)  <= (others => '1')      after 1 ns;
+               txMaster.tStrb(23 downto 0)  <= x"FF_00_00_00_00_FF" after 1 ns;
+            elsif cnt < 24 then
+               txMaster.tValid <= '1'                                                             after 1 ns;
+               txMaster.tData  <= x"00" & txMaster.tData(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 8) after 1 ns;
+               txMaster.tUser  <= x"00" & txMaster.tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 8) after 1 ns;
+               txMaster.tStrb  <= x"00" & txMaster.tStrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8) after 1 ns;
+               if cnt = 23 then
+                  txMaster.tLast <= '1' after 1 ns;
+               end if;
+            else
+               txMaster.tValid <= '0' after 1 ns;
+            end if;
+         end if;
+      end if;
    end process;
 
 end architecture tb;

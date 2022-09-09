@@ -54,30 +54,35 @@ end entity CoaXPressConfig;
 
 architecture rtl of CoaXPressConfig is
 
-   constant TX_WIDE_CONFIG_C : AxiStreamConfigType := (
+   constant TX_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => (224/8),         -- 224-bit data interface
+      TDATA_BYTES_C => (8/8),           -- 8-bit data interface
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
       TUSER_BITS_C  => 1,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   constant TX_NARROW_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => TX_WIDE_CONFIG_C.TSTRB_EN_C,
-      TDATA_BYTES_C => (8/8),           -- 8-bit data interface
-      TDEST_BITS_C  => TX_WIDE_CONFIG_C.TDEST_BITS_C,
-      TID_BITS_C    => TX_WIDE_CONFIG_C.TID_BITS_C,
-      TKEEP_MODE_C  => TX_WIDE_CONFIG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => TX_WIDE_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => TX_WIDE_CONFIG_C.TUSER_MODE_C);
+   constant RX_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => TX_CONFIG_C.TSTRB_EN_C,
+      TDATA_BYTES_C => (64/8),          -- 64-bit data interface
+      TDEST_BITS_C  => TX_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => TX_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => TX_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => TX_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => TX_CONFIG_C.TUSER_MODE_C);
 
    type StateType is (
       IDLE_S,
       CRC_S,
+      XFER_S,
       RESP_S);
 
    type RegType is record
+      tValid         : slv(31 downto 0);
+      tData          : Slv8Array(31 downto 0);
+      tDataK         : slv(31 downto 0);
+      idx            : natural range 0 to 31;
       timer          : slv(23 downto 0);
       txMaster       : AxiStreamMasterType;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -86,6 +91,10 @@ architecture rtl of CoaXPressConfig is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      tValid         => (others => '0'),
+      tData          => (others => (others => '0')),
+      tDataK         => (others => '0'),
+      idx            => 0,
       timer          => (others => '0'),
       txMaster       => AXI_STREAM_MASTER_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -101,6 +110,12 @@ architecture rtl of CoaXPressConfig is
    signal txSlave   : AxiStreamSlaveType;
    signal rxMaster  : AxiStreamMasterType;
    signal rxRstSync : sl;
+
+   attribute dont_touch              : string;
+   attribute dont_touch of r         : signal is "TRUE";
+   attribute dont_touch of txSlave   : signal is "TRUE";
+   attribute dont_touch of rxMaster  : signal is "TRUE";
+   attribute dont_touch of rxRstSync : signal is "TRUE";
 
 begin
 
@@ -159,46 +174,68 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Reset Counter
+            -- Reset Counters
             v.timer := configTimerSize;
 
             -- Check if ready to move data
             if (r.txMaster.tValid = '0') then
 
-               -- Reset the tUser/tKeep field
-               v.txMaster.tUser := (others => '0');
-               v.txMaster.tKeep := (others => '0');
+               -- Reset bus
+               v.tValid := (others => '0');
+               v.tDataK := (others => '0');
 
                -- Check if write transaction
                if (axilStatus.writeEnable = '1') then
 
                   -- Start of packet indication
-                  v.txMaster.tData(31 downto 0) := K_27_7_C & K_27_7_C & K_27_7_C & K_27_7_C;
-                  v.txMaster.tUser(31 downto 0) := (others => '1');  -- txDataK marker
+                  for i in 0 to 3 loop
+                     v.tValid(i) := '1';
+                     v.tDataK(i) := '1';
+                     v.tData(i)  := K_27_7_C;
+                  end loop;
 
-                  -- Control command indication – without tag
-                  v.txMaster.tData(63 downto 32) := x"02_02_02_02";
+                  -- Control command indication - without tag
+                  for i in 4 to 7 loop
+                     v.tValid(i) := '1';
+                     v.tData(i)  := x"02";
+                  end loop;
 
                   -- Word[0].Char[P0] = Cmd (0x01 = Memory Write)
-                  v.txMaster.tData(71 downto 64) := x"01";
+                  v.tValid(8) := '1';
+                  v.tData(8)  := x"01";
 
                   -- Word[0].Char[P3:P1] = Size (always 4 byte access)
-                  v.txMaster.tData(95 downto 72) := x"04_00_00";  -- big endian
+                  v.tValid(11 downto 9) := "111";
+                  v.tData(9)            := x"00";
+                  v.tData(10)           := x"00";
+                  v.tData(11)           := x"04";
 
                   -- Word[1] = Addr
-                  v.txMaster.tData(127 downto 96) := endianSwap(axilWriteMaster.awaddr);
+                  v.tValid(15 downto 12) := "1111";
+                  v.tData(12)            := axilWriteMaster.awaddr(31 downto 24);
+                  v.tData(13)            := axilWriteMaster.awaddr(23 downto 16);
+                  v.tData(14)            := axilWriteMaster.awaddr(15 downto 8);
+                  v.tData(15)            := axilWriteMaster.awaddr(7 downto 0);
 
                   -- Word[2] = Write Data
-                  v.txMaster.tData(159 downto 128) := endianSwap(axilWriteMaster.wdata);
+                  v.tValid(19 downto 16) := "1111";
+                  v.tData(16)            := axilWriteMaster.wdata(31 downto 24);
+                  v.tData(17)            := axilWriteMaster.wdata(23 downto 16);
+                  v.tData(18)            := axilWriteMaster.wdata(15 downto 8);
+                  v.tData(19)            := axilWriteMaster.wdata(7 downto 0);
 
                   -- Word[3] = CRC-32 (placeholder)
-                  v.txMaster.tData(191 downto 160) := x"00_00_00_00";
+                  for i in 20 to 23 loop
+                     v.tValid(i) := '1';
+                     v.tData(i)  := x"00";
+                  end loop;
 
-                  -- Start of packet indication
-                  v.txMaster.tData(223 downto 192) := K_29_7_C & K_29_7_C & K_29_7_C & K_29_7_C;
-                  v.txMaster.tUser(223 downto 192) := (others => '1');  -- txDataK marker
-                  v.txMaster.tKeep(27 downto 0)    := (others => '1');
-                  v.txMaster.tLast                 := '1';
+                  -- End of packet indication
+                  for i in 24 to 27 loop
+                     v.tValid(i) := '1';
+                     v.tDataK(i) := '1';
+                     v.tData(i)  := K_29_7_C;
+                  end loop;
 
                   -- Next State
                   v.state := CRC_S;
@@ -207,29 +244,46 @@ begin
                elsif (axilStatus.readEnable = '1') then
 
                   -- Start of packet indication
-                  v.txMaster.tData(31 downto 0) := K_27_7_C & K_27_7_C & K_27_7_C & K_27_7_C;
-                  v.txMaster.tUser(31 downto 0) := (others => '1');  -- txDataK marker
+                  for i in 0 to 3 loop
+                     v.tValid(i) := '1';
+                     v.tDataK(i) := '1';
+                     v.tData(i)  := K_27_7_C;
+                  end loop;
 
-                  -- Control command indication – without tag
-                  v.txMaster.tData(63 downto 32) := x"02_02_02_02";
+                  -- Control command indication - without tag
+                  for i in 4 to 7 loop
+                     v.tValid(i) := '1';
+                     v.tData(i)  := x"02";
+                  end loop;
 
                   -- Word[0].Char[P0] = Cmd (0x00 = Memory Read)
-                  v.txMaster.tData(71 downto 64) := x"00";
+                  v.tValid(8) := '1';
+                  v.tData(8)  := x"00";
 
                   -- Word[0].Char[P3:P1] = Size (always 4 byte access)
-                  v.txMaster.tData(95 downto 72) := x"04_00_00";  -- big endian
+                  v.tValid(11 downto 9) := "111";
+                  v.tData(9)            := x"00";
+                  v.tData(10)           := x"00";
+                  v.tData(11)           := x"04";
 
                   -- Word[1] = Addr
-                  v.txMaster.tData(127 downto 96) := endianSwap(axilReadMaster.araddr);
+                  v.tData(12) := axilReadMaster.araddr(31 downto 24);
+                  v.tData(13) := axilReadMaster.araddr(23 downto 16);
+                  v.tData(14) := axilReadMaster.araddr(15 downto 8);
+                  v.tData(15) := axilReadMaster.araddr(7 downto 0);
 
                   -- Word[2] = CRC-32 (placeholder)
-                  v.txMaster.tData(159 downto 128) := x"00_00_00_00";
+                  for i in 16 to 19 loop
+                     v.tValid(i) := '1';
+                     v.tData(i)  := x"00";
+                  end loop;
 
-                  -- Start of packet indication
-                  v.txMaster.tData(191 downto 160) := K_29_7_C & K_29_7_C & K_29_7_C & K_29_7_C;
-                  v.txMaster.tUser(191 downto 160) := (others => '1');  -- txDataK marker
-                  v.txMaster.tKeep(23 downto 0)    := (others => '1');
-                  v.txMaster.tLast                 := '1';
+                  -- End of packet indication
+                  for i in 20 to 23 loop
+                     v.tValid(i) := '1';
+                     v.tDataK(i) := '1';
+                     v.tData(i)  := K_29_7_C;
+                  end loop;
 
                   -- Next State
                   v.state := CRC_S;
@@ -242,13 +296,13 @@ begin
             -- Check if write transaction
             if (axilStatus.writeEnable = '1') then
                for i in 8 to 19 loop
-                  byteXor := crc(31 downto 24) xor bitReverse(r.txMaster.tData(8*i+7 downto 8*i));
+                  byteXor := crc(31 downto 24) xor bitReverse(r.tData(i));
                   crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CXP_CRC_POLY_C);
                end loop;
             -- Else read transaction
             else
                for i in 8 to 15 loop
-                  byteXor := crc(31 downto 24) xor bitReverse(r.txMaster.tData(8*i+7 downto 8*i));
+                  byteXor := crc(31 downto 24) xor bitReverse(r.tData(i));
                   crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CXP_CRC_POLY_C);
                end loop;
             end if;
@@ -261,18 +315,43 @@ begin
             -- Check if write transaction
             if (axilStatus.writeEnable = '1') then
                -- Word[3] = CRC-32
-               v.txMaster.tData(191 downto 160) := endianSwap(retVar);
+               v.tData(20) := retVar(31 downto 24);
+               v.tData(21) := retVar(23 downto 16);
+               v.tData(22) := retVar(15 downto 8);
+               v.tData(23) := retVar(7 downto 0);
             -- Else read transaction
             else
                -- Word[2] = CRC-32
-               v.txMaster.tData(159 downto 128) := endianSwap(retVar);
+               v.tData(16) := retVar(31 downto 24);
+               v.tData(17) := retVar(23 downto 16);
+               v.tData(18) := retVar(15 downto 8);
+               v.tData(19) := retVar(7 downto 0);
             end if;
 
-            -- Send the transaction
-            v.txMaster.tValid := '1';
-
             -- Next State
-            v.state := IDLE_S;
+            v.state := XFER_S;
+         ----------------------------------------------------------------------
+         when XFER_S =>
+            -- Check if ready to move data
+            if (r.txMaster.tValid = '0') then
+
+               -- Send the transaction
+               v.txMaster.tValid            := r.tValid(r.idx);
+               v.txMaster.tData(7 downto 0) := r.tData(r.idx);
+               v.txMaster.tUser(0)          := r.tDataK(r.idx);
+
+               -- Check counter
+               if (r.idx = 31) then
+                  -- Reset counter
+                  v.idx   := 0;
+                  -- Next State
+                  v.state := RESP_S;
+               else
+                  -- Increment counter
+                  v.idx := r.idx + 1;
+               end if;
+
+            end if;
          ----------------------------------------------------------------------
          when RESP_S =>
             -- Check if RX link is down
@@ -293,7 +372,7 @@ begin
                end if;
 
                -- Copy the read data bus
-               v.axilReadSlave.rdata := endianSwap(rxMaster.tData(95 downto 64));
+               v.axilReadSlave.rdata := endianSwap(rxMaster.tData(63 downto 32));
 
                -- Check if write transaction
                if (axilStatus.writeEnable = '1') then
@@ -342,13 +421,12 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          -- FIFO configurations
-         INT_WIDTH_SELECT_G  => "NARROW",
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => TX_WIDE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => TX_NARROW_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => TX_CONFIG_C,
+         MASTER_AXI_CONFIG_G => TX_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => cfgClk,
@@ -371,8 +449,8 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => TX_WIDE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => TX_WIDE_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => RX_CONFIG_C,
+         MASTER_AXI_CONFIG_G => RX_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => rxClk,

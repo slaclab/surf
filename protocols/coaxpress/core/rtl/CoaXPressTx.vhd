@@ -27,16 +27,17 @@ use surf.CoaXPressPkg.all;
 entity CoaXPressTx is
    generic (
       TPD_G         : time := 1 ns;
+      NUM_LANES_G   : positive := 1;
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and Reset
-      txClk       : in  sl;
-      txRst       : in  sl;
+      txClk       : in  slv(NUM_LANES_G-1 downto 0);
+      txRst       : in  slv(NUM_LANES_G-1 downto 0);
       -- Config Interface
       cfgTxMaster : in  AxiStreamMasterType;
       cfgTxSlave  : out AxiStreamSlaveType;
       -- Tx Interface
-      txData      : out slv(31 downto 0);
+      txData      : out slv32Array(NUM_LANES_G-1 downto 0);
       swTrig      : in  sl;
       txRate      : in  sl;
       txTrig      : in  sl;
@@ -45,14 +46,16 @@ end entity CoaXPressTx;
 
 architecture mapping of CoaXPressTx is
 
-   signal gearboxReady  : sl;
    signal txStrobe      : sl;
    signal txDecodeData  : slv(7 downto 0);
    signal txDecodeDataK : sl;
 
    signal txEncodeValid : sl;
    signal txEncodeData  : slv(9 downto 0);
-   signal txbit         : sl;
+   signal txbit         : slv(NUM_LANES_G-1 downto 0);
+
+   signal gearboxReady : sl;
+   signal gearboxbit   : sl;
 
    signal trigger : sl;
 
@@ -66,8 +69,8 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         txClk        => txClk,
-         txRst        => txRst,
+         txClk        => txClk(0),
+         txRst        => txRst(0),
          -- Config Interface
          cfgMaster    => cfgTxMaster,
          cfgSlave     => cfgTxSlave,
@@ -95,8 +98,8 @@ begin
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
-         clk        => txClk,
-         rst        => txRst,
+         clk        => txClk(0),
+         rst        => txRst(0),
          -- Decoded Interface
          validIn    => txStrobe,
          dataIn     => txDecodeData,
@@ -116,16 +119,35 @@ begin
          MASTER_WIDTH_G      => 1)
       port map (
          -- Clock and Reset
-         clk           => txClk,
-         rst           => txRst,
+         clk           => txClk(0),
+         rst           => txRst(0),
          -- Slave Interface
          slaveValid    => txEncodeValid,
          slaveData     => txEncodeData,
          -- Master Interface
-         masterData(0) => txbit,
+         masterData(0) => gearboxbit,
          masterReady   => gearboxReady);
 
-   -- Serial rate = TX clock frequency
-   txData <= (others => txbit);
+   GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
+
+      U_SyncFifo : entity surf.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            COMMON_CLK_G => ite(i = 0, true, false),
+            DATA_WIDTH_G => 1)
+         port map (
+            -- Asynchronous Reset
+            rst     => txRst(i),
+            -- Write Ports (wr_clk domain)
+            wr_clk  => txClk(0),
+            din(0)  => gearboxbit,
+            -- Read Ports (rd_clk domain)
+            rd_clk  => txClk(i),
+            dout(0) => txbit(i));
+
+      -- Serial rate = TX clock frequency
+      txData(i) <= (others => txbit(i));
+
+   end generate GEN_LANE;
 
 end mapping;

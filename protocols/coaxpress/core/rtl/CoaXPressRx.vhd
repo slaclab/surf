@@ -42,9 +42,8 @@ entity CoaXPressRx is
       rxClk          : in  slv(NUM_LANES_G-1 downto 0);
       rxRst          : in  slv(NUM_LANES_G-1 downto 0);
       rxFifoRst      : in  sl;
-      rxCfgDrop      : out sl;
       rxDataDrop     : out sl;
-      rxFifoOverflow : out slv(NUM_LANES_G-1 downto 0);
+      rxFifoOverflow : out slv(NUM_LANES_G-1 downto 0) := (others=>'0'); -- TODO
       rxData         : in  slv32Array(NUM_LANES_G-1 downto 0);
       rxDataK        : in  Slv4Array(NUM_LANES_G-1 downto 0);
       rxLinkUp       : in  slv(NUM_LANES_G-1 downto 0));
@@ -52,73 +51,32 @@ end entity CoaXPressRx;
 
 architecture mapping of CoaXPressRx is
 
-   signal rxCfgMaster  : AxiStreamMasterType;
-   signal rxDataMaster : AxiStreamMasterType;
-
-   signal data  : slv32Array(NUM_LANES_G-1 downto 0);
-   signal dataK : Slv4Array(NUM_LANES_G-1 downto 0);
-
-   signal rxValid : slv(NUM_LANES_G-1 downto 0);
-   signal rxReady : slv(NUM_LANES_G-1 downto 0);
-
-   signal fifoRst : sl;
-   signal fifWr   : slv(NUM_LANES_G-1 downto 0);
+   signal cfgMasters  : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
+   signal dataMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
 
 begin
 
-   fifoRst <= uOr(not(rxLinkUp)) or rxFifoRst;
+   cfgRxMaster <= cfgMasters(0);
 
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
 
-      -- Don't write the IDLEs
-      fifWr(i) <= '0' when(rxData(i) = CXP_IDLE_C) and (rxDataK(i) = CXP_IDLE_K_C) else '1';
-
-      U_Fifo : entity surf.FifoAsync
+      U_Lane : entity surf.CoaXPressRxLane
          generic map (
-            TPD_G         => TPD_G,
-            MEMORY_TYPE_G => "block",
-            FWFT_EN_G     => true,
-            PIPE_STAGES_G => 0,
-            DATA_WIDTH_G  => 36,
-            ADDR_WIDTH_G  => 10)
+            TPD_G => TPD_G)
          port map (
-            rst                => fifoRst,
-            -- Write Ports
-            wr_clk             => rxClk(i),
-            wr_en              => fifWr(i),
-            din(31 downto 0)   => rxData(i),
-            din(35 downto 32)  => rxDataK(i),
-            overflow           => rxFifoOverflow(i),
-            -- Read Ports
-            rd_clk             => rxClk(0),
-            valid              => rxValid(i),
-            rd_en              => rxReady(i),
-            dout(31 downto 0)  => data(i),
-            dout(35 downto 32) => dataK(i));
+            -- Clock and Reset
+            rxClk      => rxClk(i),
+            rxRst      => rxRst(i),
+            -- Config Interface
+            cfgMaster  => cfgMasters(i),
+            -- Data Interface
+            dataMaster => dataMasters(i),
+            -- RX PHY Interface
+            rxData     => rxData(i),
+            rxDataK    => rxDataK(i),
+            rxLinkUp   => rxLinkUp(i));
 
    end generate GEN_LANE;
-
-   -------------
-   -- FSM Module
-   -------------
-   U_Fsm : entity surf.CoaXPressRxFsm
-      generic map (
-         TPD_G       => TPD_G,
-         NUM_LANES_G => NUM_LANES_G)
-      port map (
-         -- Clock and Reset
-         rxClk      => rxClk(0),
-         rxRst      => rxRst(0),
-         -- Config Interface
-         cfgMaster  => cfgRxMaster,
-         -- Data Interface
-         dataMaster => rxDataMaster,
-         -- TX PHY Interface
-         rxValid    => rxValid,
-         rxReady    => rxReady,
-         rxData     => data,
-         rxDataK    => dataK,
-         rxLinkUp   => rxLinkUp);
 
    ------------
    -- Data FIFO
@@ -139,7 +97,7 @@ begin
          -- Slave Port
          sAxisClk       => rxClk(0),
          sAxisRst       => rxRst(0),
-         sAxisMaster    => rxDataMaster,
+         sAxisMaster    => dataMasters(0),
          sAxisDropFrame => rxDataDrop,
          -- Master Port
          mAxisClk       => dataClk,

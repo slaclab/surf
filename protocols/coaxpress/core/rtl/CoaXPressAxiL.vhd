@@ -46,7 +46,6 @@ entity CoaXPressAxiL is
       rxDecErr        : in  slv(NUM_LANES_G-1 downto 0);
       rxFifoOverflow  : in  slv(NUM_LANES_G-1 downto 0);
       rxLinkUp        : in  slv(NUM_LANES_G-1 downto 0);
-      rxCfgDrop       : in  sl;
       rxDataDrop      : in  sl;
       rxFifoRst       : out sl;
       -- Config Interface (cfgClk domain)
@@ -64,6 +63,9 @@ entity CoaXPressAxiL is
 end CoaXPressAxiL;
 
 architecture rtl of CoaXPressAxiL is
+
+   constant RX_STATUS_CNT_C : positive := 1;
+   constant TX_STATUS_CNT_C : positive := 3;
 
    type RegType is record
       configTimerSize : slv(23 downto 0);
@@ -94,8 +96,8 @@ architecture rtl of CoaXPressAxiL is
    signal rxDecErrCnt       : SlVectorArray(NUM_LANES_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
    signal rxDispErrCnt      : SlVectorArray(NUM_LANES_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal rxCntOut : SlVectorArray(1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
-   signal txCntOut : SlVectorArray(2 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+   signal rxCntOut : SlVectorArray(RX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+   signal txCntOut : SlVectorArray(TX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
    signal rxDispErrSync      : slv(NUM_LANES_G-1 downto 0);
    signal rxDecErrSync       : slv(NUM_LANES_G-1 downto 0);
@@ -145,7 +147,7 @@ begin
       axiSlaveRegisterR(axilEp, x"70C", 0, txClkFreq);
 
       axiSlaveRegisterR(axilEp, x"710", 0, muxSlVectorArray(rxCntOut, 0));
-      axiSlaveRegisterR(axilEp, x"714", 0, muxSlVectorArray(rxCntOut, 1));
+      -- axiSlaveRegisterR(axilEp, x"714", 0, muxSlVectorArray(rxCntOut, 1));
 
       axiSlaveRegisterR(axilEp, x"720", 0, muxSlVectorArray(txCntOut, 0));
       axiSlaveRegisterR(axilEp, x"724", 0, muxSlVectorArray(txCntOut, 1));
@@ -200,7 +202,7 @@ begin
 
    U_txRate : entity surf.Synchronizer
       generic map (
-         TPD_G   => TPD_G)
+         TPD_G => TPD_G)
       port map (
          clk     => txClk,
          dataIn  => r.txRate,
@@ -364,10 +366,9 @@ begin
       generic map (
          TPD_G       => TPD_G,
          CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => 2)
+         WIDTH_G     => RX_STATUS_CNT_C)
       port map (
-         statusIn(0) => rxCfgDrop,
-         statusIn(1) => rxDataDrop,
+         statusIn(0) => rxDataDrop,
          cntRstIn    => r.cntRst,
          cntOut      => rxCntOut,
          wrClk       => rxClk(0),

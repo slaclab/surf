@@ -122,16 +122,8 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxCfgDropCnt',
-            offset       = 0x710,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
             name         = 'RxDataDropCnt',
-            offset       = 0x714,
+            offset       = 0x710,
             bitSize      = statusCountBits,
             mode         = 'RO',
             pollInterval = 1,
