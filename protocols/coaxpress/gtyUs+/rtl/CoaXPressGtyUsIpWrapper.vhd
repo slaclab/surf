@@ -27,9 +27,6 @@ entity CoaXPressGtyUsIpWrapper is
       TPD_G      : time         := 1 ns;
       CXP_RATE_G : CxpSpeedType := CXP_12_C);
    port (
-      -- Stable Clock and Reset
-      stableClk25     : in  sl;
-      stableRst25     : in  sl;
       -- QPLL Interface
       qpllLock        : in  slv(1 downto 0);
       qpllclk         : in  slv(1 downto 0);
@@ -44,6 +41,7 @@ entity CoaXPressGtyUsIpWrapper is
       txClk           : out sl;
       txRst           : out sl;
       txData          : in  slv(31 downto 0);
+      txDataK         : in  slv(3 downto 0);
       txLinkUp        : out sl;
       -- Rx Interface (rxClk domain)
       rxClk           : out sl;
@@ -83,12 +81,10 @@ architecture mapping of CoaXPressGtyUsIpWrapper is
          gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
          gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
          gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
-         gtwiz_reset_qpll1lock_in           : in  std_logic_vector(0 downto 0);
          gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
          gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
          gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
          gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
-         gtwiz_reset_qpll1reset_out         : out std_logic_vector(0 downto 0);
          gtwiz_userdata_tx_in               : in  std_logic_vector(31 downto 0);
          gtwiz_userdata_rx_out              : out std_logic_vector(31 downto 0);
          drpaddr_in                         : in  std_logic_vector(9 downto 0);
@@ -106,6 +102,10 @@ architecture mapping of CoaXPressGtyUsIpWrapper is
          rxcommadeten_in                    : in  std_logic_vector(0 downto 0);
          rxmcommaalignen_in                 : in  std_logic_vector(0 downto 0);
          rxpcommaalignen_in                 : in  std_logic_vector(0 downto 0);
+         tx8b10ben_in                       : in  std_logic_vector(0 downto 0);
+         txctrl0_in                         : in  std_logic_vector(15 downto 0);
+         txctrl1_in                         : in  std_logic_vector(15 downto 0);
+         txctrl2_in                         : in  std_logic_vector(7 downto 0);
          drpdo_out                          : out std_logic_vector(15 downto 0);
          drprdy_out                         : out std_logic_vector(0 downto 0);
          gtpowergood_out                    : out std_logic_vector(0 downto 0);
@@ -129,6 +129,8 @@ architecture mapping of CoaXPressGtyUsIpWrapper is
    signal txPmaDone : sl;
    signal txResetIn : sl;
    signal txActive  : sl;
+   signal txctrl2   : slv(7 downto 0)  := x"0" & CXP_IDLE_K_C;
+   signal txDataInt : slv(31 downto 0) := CXP_IDLE_C;
 
    signal rxClock   : sl;
    signal rxReset   : sl;
@@ -160,7 +162,7 @@ begin
    -- TX Clock and Resets
    ----------------------
    txClk   <= txClock;
-   txReset <= stableRst25 or not(txDone);
+   txReset <= axilRst or not(txDone);
 
    U_txRst : entity surf.RstSync
       generic map (
@@ -184,11 +186,26 @@ begin
          asyncRst => txReset,
          syncRst  => txLinkUp);
 
+   -- Register to help with timing
+   process(txClock)
+   begin
+      if rising_edge(txClock) then
+         txDataInt <= txData         after TPD_G;
+         txctrl2   <= x"0" & txDataK after TPD_G;
+      end if;
+   end process;
+
+   -- The TX user clocking helper block should be held in reset until the clock source of that block is known to be
+   -- stable. The following assignment is an example of how that stability can be determined, based on the selected TX
+   -- user clock source. Replace the assignment with the appropriate signal or logic to achieve that behavior as needed.
+   txResetIn <= not(txPmaDone);
+
    ----------------------
    -- RX Clock and Resets
    ----------------------
    rxClk   <= rxClock;
-   rxReset <= stableRst25 or not(rxDone);
+   rxReset <= axilRst or not(rxDone);
+
    U_rxRst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
@@ -200,9 +217,18 @@ begin
          asyncRst => rxReset,
          syncRst  => rxRst);
 
-   -------------------------------
+   U_rxLinkUp : entity surf.RstSync
+      generic map (
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '0',
+         OUT_REG_RST_G  => true)
+      port map (
+         clk      => rxClock,
+         asyncRst => rxReset,
+         syncRst  => rxLinkUp);
+
    -- Register to help with timing
-   -------------------------------
    process(rxClock)
    begin
       if rising_edge(rxClock) then
@@ -210,14 +236,8 @@ begin
          rxDataK   <= rxctrl0(3 downto 0)      after TPD_G;
          rxDispErr <= uOr(rxctrl1(3 downto 0)) after TPD_G;
          rxDecErr  <= uOr(rxctrl3(3 downto 0)) after TPD_G;
-         rxLinkUp  <= rxDone                   after TPD_G;
       end if;
    end process;
-
-   -- The TX user clocking helper block should be held in reset until the clock source of that block is known to be
-   -- stable. The following assignment is an example of how that stability can be determined, based on the selected TX
-   -- user clock source. Replace the assignment with the appropriate signal or logic to achieve that behavior as needed.
-   txResetIn <= not(txPmaDone);
 
    -- The RX user clocking helper block should be held in reset until the clock source of that block is known to be
    -- stable. The following assignment is an example of how that stability can be determined, based on the selected RX
@@ -237,23 +257,21 @@ begin
             gtwiz_userclk_rx_usrclk_out        => open,
             gtwiz_userclk_rx_usrclk2_out(0)    => rxClock,
             gtwiz_userclk_rx_active_out(0)     => rxActive,
-            gtwiz_reset_clk_freerun_in(0)      => stableClk25,
-            gtwiz_reset_all_in(0)              => stableRst25,
+            gtwiz_reset_clk_freerun_in(0)      => axilClk,
+            gtwiz_reset_all_in(0)              => axilRst,
             gtwiz_reset_tx_pll_and_datapath_in => (others => '0'),
             gtwiz_reset_tx_datapath_in         => (others => '0'),
             gtwiz_reset_rx_pll_and_datapath_in => (others => '0'),
             gtwiz_reset_rx_datapath_in         => (others => '0'),
             gtwiz_reset_qpll0lock_in(0)        => qpllLock(0),
-            gtwiz_reset_qpll1lock_in(0)        => qpllLock(1),
             gtwiz_reset_rx_cdr_stable_out      => open,
             gtwiz_reset_tx_done_out(0)         => txDone,
             gtwiz_reset_rx_done_out(0)         => rxDone,
             gtwiz_reset_qpll0reset_out(0)      => qpllRst(0),
-            gtwiz_reset_qpll1reset_out(0)      => qpllRst(1),
-            gtwiz_userdata_tx_in               => txData,
+            gtwiz_userdata_tx_in               => txDataInt,
             gtwiz_userdata_rx_out              => rxDataInt,
             drpaddr_in                         => drpAddr,
-            drpclk_in(0)                       => stableClk25,
+            drpclk_in(0)                       => axilClk,
             drpdi_in                           => drpDi,
             drpen_in(0)                        => drpEn,
             drpwe_in(0)                        => drpWe,
@@ -267,6 +285,10 @@ begin
             rxcommadeten_in                    => (others => '1'),
             rxmcommaalignen_in                 => (others => '1'),
             rxpcommaalignen_in                 => (others => '1'),
+            tx8b10ben_in                       => (others => '1'),
+            txctrl0_in                         => (others => '0'),
+            txctrl1_in                         => (others => '0'),
+            txctrl2_in                         => txctrl2,
             drpdo_out                          => drpDo,
             drprdy_out(0)                      => drpRdy,
             gtpowergood_out                    => open,
@@ -286,7 +308,7 @@ begin
    U_Drp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         COMMON_CLK_G     => false,
+         COMMON_CLK_G     => true,
          EN_ARBITRATION_G => false,
          ADDR_WIDTH_G     => 10,
          DATA_WIDTH_G     => 16)
@@ -297,8 +319,8 @@ begin
          axilReadSlave   => axilReadSlave,
          axilWriteMaster => axilWriteMaster,
          axilWriteSlave  => axilWriteSlave,
-         drpClk          => stableClk25,
-         drpRst          => stableRst25,
+         drpClk          => axilClk,
+         drpRst          => axilRst,
          drpReq          => open,
          drpRdy          => drpRdy,
          drpEn           => drpEn,

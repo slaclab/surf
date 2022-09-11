@@ -88,7 +88,7 @@ begin
             v.ackCnt := 0;
 
             -- Check for Start of packet indication
-            if (rxDataK = x"F") and (rxData = CXP_SOF_C) then
+            if (rxDataK = x"F") and (rxData = CXP_SOP_C) then
                -- Next State
                v.state := TYPE_S;
             end if;

@@ -36,14 +36,13 @@ entity CoaXPressRx is
       dataRst        : in  sl;
       dataMaster     : out AxiStreamMasterType;
       dataSlave      : in  AxiStreamSlaveType;
-      -- Config Interface (rxClk[0] domain)
+      -- Config Interface (cfgClk domain)
+      cfgClk         : in  sl;
+      cfgRst         : in  sl;
       cfgRxMaster    : out AxiStreamMasterType;
       -- Rx Interface (rxClk domain)
       rxClk          : in  slv(NUM_LANES_G-1 downto 0);
       rxRst          : in  slv(NUM_LANES_G-1 downto 0);
-      rxFifoRst      : in  sl;
-      rxDataDrop     : out sl;
-      rxFifoOverflow : out slv(NUM_LANES_G-1 downto 0) := (others=>'0'); -- TODO
       rxData         : in  slv32Array(NUM_LANES_G-1 downto 0);
       rxDataK        : in  Slv4Array(NUM_LANES_G-1 downto 0);
       rxLinkUp       : in  slv(NUM_LANES_G-1 downto 0));
@@ -55,8 +54,6 @@ architecture mapping of CoaXPressRx is
    signal dataMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
 
 begin
-
-   cfgRxMaster <= cfgMasters(0);
 
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
 
@@ -78,9 +75,29 @@ begin
 
    end generate GEN_LANE;
 
-   ------------
-   -- Data FIFO
-   ------------
+   U_Config : entity surf.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         -- FIFO configurations
+         MEMORY_TYPE_G       => "distributed",
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 4,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 8),
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(dataBytes => 8))
+      port map (
+         -- Slave Port
+         sAxisClk    => rxClk(0),
+         sAxisRst    => rxRst(0),
+         sAxisMaster => cfgMasters(0),
+         -- Master Port
+         mAxisClk    => cfgClk,
+         mAxisRst    => cfgRst,
+         mAxisMaster => cfgRxMaster,
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
+
    U_Data : entity surf.SsiFifo
       generic map (
          -- General Configurations
@@ -98,7 +115,7 @@ begin
          sAxisClk       => rxClk(0),
          sAxisRst       => rxRst(0),
          sAxisMaster    => dataMasters(0),
-         sAxisDropFrame => rxDataDrop,
+         sAxisDropFrame => open,
          -- Master Port
          mAxisClk       => dataClk,
          mAxisRst       => dataRst,

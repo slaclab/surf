@@ -28,16 +28,15 @@ use surf.CoaXPressPkg.all;
 entity CoaXPressGtyUs is
    generic (
       TPD_G              : time                   := 1 ns;
+      CXPOF_G            : boolean                := true;
       CXP_RATE_G         : CxpSpeedType           := CXP_12_C;
       NUM_LANES_G        : positive               := 1;
+      TRIG_WIDTH_G       : positive range 1 to 16 := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
       AXIS_CONFIG_G      : AxiStreamConfigType;
       AXIL_BASE_ADDR_G   : slv(31 downto 0)       := (others => '0');
       AXIL_CLK_FREQ_G    : real                   := 156.25E+6);
    port (
-      -- Stable Clock and Reset
-      stableClk25     : in  sl;  -- GT needs a stable clock to "boot up" (25 MHz)
-      stableRst25     : in  sl;
       -- QPLL Interface
       qpllLock        : in  Slv2Array(NUM_LANES_G-1 downto 0);
       qpllClk         : in  Slv2Array(NUM_LANES_G-1 downto 0);
@@ -51,7 +50,7 @@ entity CoaXPressGtyUs is
       -- Trigger Interface (trigClk domain)
       trigClk         : out sl;
       trigRst         : out sl;
-      trigger         : in  sl;
+      trigger         : in  slv(TRIG_WIDTH_G-1 downto 0);
       -- Data Interface (dataClk domain)
       dataClk         : in  sl;
       dataRst         : in  sl;
@@ -88,13 +87,14 @@ architecture mapping of CoaXPressGtyUs is
 
    signal txClk    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal txRst    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txData   : slv32Array(NUM_LANES_G-1 downto 0) := (others => (others => '0'));
+   signal txData   : slv32Array(NUM_LANES_G-1 downto 0) := (others => CXP_IDLE_C);
+   signal txDataK  : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => CXP_IDLE_K_C);
    signal txLinkUp : slv(NUM_LANES_G-1 downto 0);
 
    signal rxClk     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal rxRst     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal rxData    : slv32Array(NUM_LANES_G-1 downto 0) := (others => (others => '0'));
-   signal rxDataK   : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => (others => '0'));
+   signal rxData    : slv32Array(NUM_LANES_G-1 downto 0) := (others => CXP_IDLE_C);
+   signal rxDataK   : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => CXP_IDLE_K_C);
    signal rxDispErr : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal rxDecErr  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal rxLinkUp  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
@@ -126,6 +126,7 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_LANES_G        => NUM_LANES_G,
+         TRIG_WIDTH_G       => TRIG_WIDTH_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
          AXIS_CONFIG_G      => AXIS_CONFIG_G,
          AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
@@ -143,9 +144,10 @@ begin
          cfgObMaster     => cfgObMaster,
          cfgObSlave      => cfgObSlave,
          -- Tx Interface (txClk domain)
-         txClk           => txClk,
-         txRst           => txRst,
-         txData          => txData,
+         txClk           => txClk(0),
+         txRst           => txRst(0),
+         txData          => txData(0),
+         txDataK         => txDataK(0),
          txTrig          => trigger,
          txLinkUp        => txLinkUp(0),
          -- Rx Interface (rxClk domain)
@@ -168,44 +170,84 @@ begin
    -- Wrapper for Gty IP core
    --------------------------
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-      U_Gty : entity surf.CoaXPressGtyUsIpWrapper
-         generic map (
-            TPD_G      => TPD_G,
-            CXP_RATE_G => CXP_RATE_G)
-         port map (
-            -- Stable Clock and Reset
-            stableClk25     => stableClk25,
-            stableRst25     => stableRst25,
-            -- QPLL Interface
-            qpllLock        => qpllLock(i),
-            qpllclk         => qpllclk(i),
-            qpllrefclk      => qpllrefclk(i),
-            qpllRst         => qpllRst(i),
-            -- GT Ports
-            gtRxP           => gtRxP(i),
-            gtRxN           => gtRxN(i),
-            gtTxP           => gtTxP(i),
-            gtTxN           => gtTxN(i),
-            -- Tx Interface (txClk domain)
-            txClk           => txClk(i),
-            txRst           => txRst(i),
-            txData          => txData(i),
-            txLinkUp        => txLinkUp(i),
-            -- Rx Interface (rxClk domain)
-            rxClk           => rxClk(i),
-            rxRst           => rxRst(i),
-            rxData          => rxData(i),
-            rxDataK         => rxDataK(i),
-            rxDispErr       => rxDispErr(i),
-            rxDecErr        => rxDecErr(i),
-            rxLinkUp        => rxLinkUp(i),
-            -- AXI-Lite Register Interface (axilClk domain)
-            axilClk         => axilClk,
-            axilRst         => axilRst,
-            axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C+i),
-            axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C+i),
-            axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C+i),
-            axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C+i));
+
+      GEN_CXPOF : if (CXPOF_G = true) generate
+         U_CXPOF : entity surf.CoaXPressOverFiberGtyUsIpWrapper
+            generic map (
+               TPD_G      => TPD_G)
+            port map (
+               -- QPLL Interface
+               qpllLock        => qpllLock(i),
+               qpllclk         => qpllclk(i),
+               qpllrefclk      => qpllrefclk(i),
+               qpllRst         => qpllRst(i),
+               -- GT Ports
+               gtRxP           => gtRxP(i),
+               gtRxN           => gtRxN(i),
+               gtTxP           => gtTxP(i),
+               gtTxN           => gtTxN(i),
+               -- Tx Interface (txClk domain)
+               txClk           => txClk(i),
+               txRst           => txRst(i),
+               txData          => txData(i),
+               txDataK         => txDataK(i),
+               txLinkUp        => txLinkUp(i),
+               -- Rx Interface (rxClk domain)
+               rxClk           => rxClk(i),
+               rxRst           => rxRst(i),
+               rxData          => rxData(i),
+               rxDataK         => rxDataK(i),
+               rxDispErr       => rxDispErr(i),
+               rxDecErr        => rxDecErr(i),
+               rxLinkUp        => rxLinkUp(i),
+               -- AXI-Lite Register Interface (axilClk domain)
+               axilClk         => axilClk,
+               axilRst         => axilRst,
+               axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C+i),
+               axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C+i),
+               axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C+i),
+               axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C+i));
+      end generate;
+
+      GEN_CXP : if (CXPOF_G = false) generate
+         U_CXP : entity surf.CoaXPressGtyUsIpWrapper
+            generic map (
+               TPD_G      => TPD_G,
+               CXP_RATE_G => CXP_RATE_G)
+            port map (
+               -- QPLL Interface
+               qpllLock        => qpllLock(i),
+               qpllclk         => qpllclk(i),
+               qpllrefclk      => qpllrefclk(i),
+               qpllRst         => qpllRst(i),
+               -- GT Ports
+               gtRxP           => gtRxP(i),
+               gtRxN           => gtRxN(i),
+               gtTxP           => gtTxP(i),
+               gtTxN           => gtTxN(i),
+               -- Tx Interface (txClk domain)
+               txClk           => txClk(i),
+               txRst           => txRst(i),
+               txData          => txData(i),
+               txDataK         => txDataK(i),
+               txLinkUp        => txLinkUp(i),
+               -- Rx Interface (rxClk domain)
+               rxClk           => rxClk(i),
+               rxRst           => rxRst(i),
+               rxData          => rxData(i),
+               rxDataK         => rxDataK(i),
+               rxDispErr       => rxDispErr(i),
+               rxDecErr        => rxDecErr(i),
+               rxLinkUp        => rxLinkUp(i),
+               -- AXI-Lite Register Interface (axilClk domain)
+               axilClk         => axilClk,
+               axilRst         => axilRst,
+               axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C+i),
+               axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C+i),
+               axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C+i),
+               axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C+i));
+      end generate;
+
    end generate GEN_LANE;
 
 end mapping;

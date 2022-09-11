@@ -13,6 +13,7 @@ import pyrogue as pr
 class CoaXPressAxiL(pr.Device):
     def __init__(   self,
             numLane         = 1,
+            trigWidth       = 1,
             statusCountBits = 12,
             **kwargs):
         super().__init__(**kwargs)
@@ -28,7 +29,7 @@ class CoaXPressAxiL(pr.Device):
         )
 
         self.addRemoteVariables(
-            name         = 'RxFifoOverflowCnt',
+            name         = 'RxDecErrCnt',
             offset       = 0x040,
             bitSize      = statusCountBits,
             mode         = 'RO',
@@ -38,18 +39,8 @@ class CoaXPressAxiL(pr.Device):
         )
 
         self.addRemoteVariables(
-            name         = 'RxDecErrCnt',
-            offset       = 0x080,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            number       = numLane,
-            stride       = 4,
-            pollInterval = 1,
-        )
-
-        self.addRemoteVariables(
             name         = 'RxDispErrCnt',
-            offset       = 0x0C0,
+            offset       = 0x080,
             bitSize      = statusCountBits,
             mode         = 'RO',
             number       = numLane,
@@ -61,7 +52,7 @@ class CoaXPressAxiL(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name         = f'RxClockFreqRaw[{i}]',
-                offset       = (0x100+4*i),
+                offset       = (0x0C0+4*i),
                 bitSize      = 32,
                 mode         = 'RO',
                 hidden       = True,
@@ -77,9 +68,48 @@ class CoaXPressAxiL(pr.Device):
                 disp         = '{:0.3f}',
             ))
 
+        self.addRemoteVariables(
+            name         = 'TxTrigCnt',
+            offset       = 0x400,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            number       = trigWidth,
+            stride       = 4,
+            pollInterval = 1,
+        )
+
+        self.addRemoteVariables(
+            name         = 'TxTrigDropCnt',
+            offset       = 0x440,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            number       = trigWidth,
+            stride       = 4,
+            pollInterval = 1,
+        )
+
+        self.addRemoteVariables(
+            name         = "TrigRate",
+            description  = "Trigger Rate",
+            offset       = 0x480,
+            mode         = 'RO',
+            units        = 'Hz',
+            number       = trigWidth,
+            stride       = 4,
+            pollInterval = 1,
+        )
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxLinkUpCnt',
+            offset       = 0x800,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'RxLinkUp',
-            offset       = 0x700,
+            offset       = 0x804,
             bitSize      = numLane,
             mode         = 'RO',
             pollInterval = 1,
@@ -87,25 +117,15 @@ class CoaXPressAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxLinkUp',
-            offset       = 0x704,
+            offset       = 0x808,
             bitSize      = 1,
             mode         = 'RO',
             pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "TrigRate",
-            description  = "Trigger Rate",
-            offset       = 0x708,
-            units        = 'Hz',
-            disp         = '{:d}',
-            mode         = "RO",
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
             name         = "TxClockFreqRaw",
-            offset       = 0x70C,
+            offset       = 0x80C,
             bitSize      = 32,
             mode         = 'RO',
             hidden       = True,
@@ -119,62 +139,6 @@ class CoaXPressAxiL(pr.Device):
             dependencies = [self.TxClockFreqRaw],
             linkedGet    = lambda: self.TxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'RxDataDropCnt',
-            offset       = 0x710,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'TxLinkUpCnt',
-            offset       = 0x720,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'TxTrigCnt',
-            offset       = 0x724,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'TxTrigDropCnt',
-            offset       = 0x728,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'ConfigTimerSize',
-            offset       = 0xFEC,
-            bitSize      = 24,
-            bitOffset    = 0,
-            mode         = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'ConfigErrResp',
-            offset       = 0xFEC,
-            bitSize      = 2,
-            bitOffset    = 24,
-            mode         = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'TxRate',
-            offset       = 0xFEC,
-            bitSize      = 1,
-            bitOffset    = 26,
-            mode         = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
@@ -195,18 +159,28 @@ class CoaXPressAxiL(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteCommand(
+        self.add(pr.RemoteVariable(
             name         = 'SoftwareTrig',
             offset       = 0xFF4,
-            bitSize      = 1,
-            function     = pr.BaseCommand.touchOne
+            bitSize      = trigWidth,
+            mode         = 'WO',
         ))
 
-        self.add(pr.RemoteCommand(
-            name         = 'RxFifoRst',
+
+        self.add(pr.RemoteVariable(
+            name         = 'ConfigTimerSize',
             offset       = 0xFF8,
-            bitSize      = 1,
-            function     = pr.BaseCommand.touchOne
+            bitSize      = 24,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ConfigErrResp',
+            offset       = 0xFF8,
+            bitSize      = 2,
+            bitOffset    = 24,
+            mode         = 'RW',
         ))
 
         self.add(pr.RemoteCommand(

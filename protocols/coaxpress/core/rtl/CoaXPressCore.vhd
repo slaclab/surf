@@ -27,6 +27,7 @@ entity CoaXPressCore is
    generic (
       TPD_G              : time                   := 1 ns;
       NUM_LANES_G        : positive               := 1;
+      TRIG_WIDTH_G       : positive range 1 to 16 := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
       AXIS_CONFIG_G      : AxiStreamConfigType;
       AXIL_CLK_FREQ_G    : real                   := 156.25E+6);
@@ -44,10 +45,11 @@ entity CoaXPressCore is
       cfgObMaster     : out AxiStreamMasterType;
       cfgObSlave      : in  AxiStreamSlaveType;
       -- Tx Interface (txClk domain)
-      txClk           : in  slv(NUM_LANES_G-1 downto 0);
-      txRst           : in  slv(NUM_LANES_G-1 downto 0);
-      txData          : out slv32Array(NUM_LANES_G-1 downto 0);
-      txTrig          : in  sl;
+      txClk           : in  sl;
+      txRst           : in  sl;
+      txData          : out slv(31 downto 0);
+      txDataK         : out slv(3 downto 0);
+      txTrig          : in  slv(TRIG_WIDTH_G-1 downto 0);
       txLinkUp        : in  sl;
       -- Rx Interface (rxClk domain)
       rxClk           : in  slv(NUM_LANES_G-1 downto 0);
@@ -68,19 +70,15 @@ end entity CoaXPressCore;
 
 architecture mapping of CoaXPressCore is
 
+   signal cfgTxMaster : AxiStreamMasterType;
+   signal cfgTxSlave  : AxiStreamSlaveType;
+   signal cfgRxMaster : AxiStreamMasterType;
+
    signal configTimerSize : slv(23 downto 0);
    signal configErrResp   : slv(1 downto 0);
-   signal cfgTxMaster     : AxiStreamMasterType;
-   signal cfgTxSlave      : AxiStreamSlaveType;
-   signal cfgRxMaster     : AxiStreamMasterType;
 
-   signal swTrig     : sl;
-   signal txRate     : sl;
-   signal txTrigDrop : sl;
-
-   signal rxFifoRst      : sl;
-   signal rxDataDrop     : sl;
-   signal rxFifoOverflow : slv(NUM_LANES_G-1 downto 0);
+   signal swTrig     : slv(TRIG_WIDTH_G-1 downto 0);
+   signal txTrigDrop : slv(TRIG_WIDTH_G-1 downto 0);
 
 begin
 
@@ -89,41 +87,38 @@ begin
          TPD_G         => TPD_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- Config Interface (cfgClk domain)
+         -- Clock and Reset
          cfgClk          => cfgClk,
          cfgRst          => cfgRst,
+         -- Config Interface (cfgClk domain)
          configTimerSize => configTimerSize,
          configErrResp   => configErrResp,
          cfgIbMaster     => cfgIbMaster,
          cfgIbSlave      => cfgIbSlave,
          cfgObMaster     => cfgObMaster,
          cfgObSlave      => cfgObSlave,
-         -- TX Interface (txClk domain)
-         txClk           => txClk(0),
-         txRst           => txRst(0),
+         -- TX Interface
          cfgTxMaster     => cfgTxMaster,
          cfgTxSlave      => cfgTxSlave,
-         -- RX Interface (rxClk[0] domain)
-         rxClk           => rxClk(0),
-         rxRst           => rxRst(0),
+         -- RX Interface
          cfgRxMaster     => cfgRxMaster);
 
    U_Tx : entity surf.CoaXPressTx
       generic map (
-         TPD_G         => TPD_G,
-         NUM_LANES_G   => NUM_LANES_G,
-         AXIS_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G        => TPD_G,
+         TRIG_WIDTH_G => TRIG_WIDTH_G)
       port map (
-         -- Clock and Reset
-         txClk       => txClk,
-         txRst       => txRst,
-         -- Config Interface
+         -- Config Interface (cfgClk domain)
+         cfgClk      => cfgClk,
+         cfgRst      => cfgRst,
          cfgTxMaster => cfgTxMaster,
          cfgTxSlave  => cfgTxSlave,
-         -- Tx Interface
+         -- TX Interface (txClk domain)
+         txClk       => txClk,
+         txRst       => txRst,
          txData      => txData,
+         txDataK     => txDataK,
          swTrig      => swTrig,
-         txRate      => txRate,
          txTrig      => txTrig,
          txTrigDrop  => txTrigDrop);
 
@@ -134,35 +129,34 @@ begin
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Data Interface (dataClk domain)
-         dataClk        => dataClk,
-         dataRst        => dataRst,
-         dataMaster     => dataMaster,
-         dataSlave      => dataSlave,
-         -- Config Interface (rxClk[0] domain)
-         cfgRxMaster    => cfgRxMaster,
+         dataClk     => dataClk,
+         dataRst     => dataRst,
+         dataMaster  => dataMaster,
+         dataSlave   => dataSlave,
+         -- Config Interface (cfgClk domain)
+         cfgClk      => cfgClk,
+         cfgRst      => cfgRst,
+         cfgRxMaster => cfgRxMaster,
          -- Rx Interface (rxClk domain)
-         rxClk          => rxClk,
-         rxRst          => rxRst,
-         rxFifoRst      => rxFifoRst,
-         rxDataDrop     => rxDataDrop,
-         rxFifoOverflow => rxFifoOverflow,
-         rxData         => rxData,
-         rxDataK        => rxDataK,
-         rxLinkUp       => rxLinkUp);
+         rxClk       => rxClk,
+         rxRst       => rxRst,
+         rxData      => rxData,
+         rxDataK     => rxDataK,
+         rxLinkUp    => rxLinkUp);
 
    U_Axil : entity surf.CoaXPressAxiL
       generic map (
          TPD_G              => TPD_G,
          NUM_LANES_G        => NUM_LANES_G,
+         TRIG_WIDTH_G       => TRIG_WIDTH_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
          AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
       port map (
          -- Tx Interface (txClk domain)
-         txClk           => txClk(0),
-         txRst           => txRst(0),
+         txClk           => txClk,
+         txRst           => txRst,
          txTrig          => txTrig,
          swTrig          => swTrig,
-         txRate          => txRate,
          txTrigDrop      => txTrigDrop,
          txLinkUp        => txLinkUp,
          -- Rx Interface (rxClk domain)
@@ -170,9 +164,6 @@ begin
          rxRst           => rxRst,
          rxDispErr       => rxDispErr,
          rxDecErr        => rxDecErr,
-         rxFifoRst       => rxFifoRst,
-         rxDataDrop      => rxDataDrop,
-         rxFifoOverflow  => rxFifoOverflow,
          rxLinkUp        => rxLinkUp,
          -- Config Interface (cfgClk domain)
          cfgClk          => cfgClk,

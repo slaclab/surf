@@ -23,131 +23,78 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.CoaXPressPkg.all;
+use surf.SsiPkg.all;
 
 entity CoaXPressTx is
    generic (
-      TPD_G         : time := 1 ns;
-      NUM_LANES_G   : positive := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType);
+      TPD_G        : time                   := 1 ns;
+      TRIG_WIDTH_G : positive range 1 to 16 := 1);
    port (
-      -- Clock and Reset
-      txClk       : in  slv(NUM_LANES_G-1 downto 0);
-      txRst       : in  slv(NUM_LANES_G-1 downto 0);
-      -- Config Interface
+      -- Config Interface (cfgClk domain)
+      cfgClk      : in  sl;
+      cfgRst      : in  sl;
       cfgTxMaster : in  AxiStreamMasterType;
       cfgTxSlave  : out AxiStreamSlaveType;
-      -- Tx Interface
-      txData      : out slv32Array(NUM_LANES_G-1 downto 0);
-      swTrig      : in  sl;
-      txRate      : in  sl;
-      txTrig      : in  sl;
-      txTrigDrop  : out sl);
+      -- TX Interface (txClk domain)
+      txClk       : in  sl;
+      txRst       : in  sl;
+      txData      : out slv(31 downto 0);
+      txDataK     : out slv(3 downto 0);
+      swTrig      : in  slv(TRIG_WIDTH_G-1 downto 0);
+      txTrig      : in  slv(TRIG_WIDTH_G-1 downto 0);
+      txTrigDrop  : out slv(TRIG_WIDTH_G-1 downto 0));
 end entity CoaXPressTx;
 
 architecture mapping of CoaXPressTx is
 
-   signal txStrobe      : sl;
-   signal txDecodeData  : slv(7 downto 0);
-   signal txDecodeDataK : sl;
+   signal cfgMaster : AxiStreamMasterType;
+   signal cfgSlave  : AxiStreamSlaveType;
 
-   signal txEncodeValid : sl;
-   signal txEncodeData  : slv(9 downto 0);
-   signal txbit         : slv(NUM_LANES_G-1 downto 0);
-
-   signal gearboxReady : sl;
-   signal gearboxbit   : sl;
-
-   signal trigger : sl;
+   signal trigger : slv(TRIG_WIDTH_G-1 downto 0);
 
 begin
 
-   -------------
-   -- FSM Module
-   -------------
-   U_Fsm : entity surf.CoaXPressTxFsm
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Clock and Reset
-         txClk        => txClk(0),
-         txRst        => txRst(0),
-         -- Config Interface
-         cfgMaster    => cfgTxMaster,
-         cfgSlave     => cfgTxSlave,
-         -- Trigger Interface
-         txTrig       => trigger,
-         txTrigDrop   => txTrigDrop,
-         -- TX PHY Interface
-         txRate       => txRate,
-         gearboxReady => gearboxReady,
-         txStrobe     => txStrobe,
-         txData       => txDecodeData,
-         txDataK      => txDecodeDataK);
-
    trigger <= txTrig or swTrig;
 
-   ----------------
-   -- 8B10B Encoder
-   ----------------
-   U_Encode : entity surf.Encoder8b10b
+   U_Fifo : entity surf.AxiStreamFifoV2
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',         -- active HIGH reset
-         FLOW_CTRL_EN_G => true,
-         RST_ASYNC_G    => false,
-         NUM_BYTES_G    => 1)
-      port map (
-         -- Clock and Reset
-         clk        => txClk(0),
-         rst        => txRst(0),
-         -- Decoded Interface
-         validIn    => txStrobe,
-         dataIn     => txDecodeData,
-         dataKIn(0) => txDecodeDataK,
-         -- Encoded Interface
-         validOut   => txEncodeValid,
-         dataOut    => txEncodeData);
-
-   ---------------
-   -- 10:1 Gearbox
-   ---------------
-   U_Serializer : entity surf.Gearbox
-      generic map (
+         -- General Configurations
          TPD_G               => TPD_G,
-         SLAVE_WIDTH_G       => 10,
-         SLAVE_BIT_REVERSE_G => false,
-         MASTER_WIDTH_G      => 1)
+         -- FIFO configurations
+         MEMORY_TYPE_G       => "block",
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 4),
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(dataBytes => 4))
+      port map (
+         -- Slave Port
+         sAxisClk    => cfgClk,
+         sAxisRst    => cfgRst,
+         sAxisMaster => cfgTxMaster,
+         sAxisSlave  => cfgTxSlave,
+         -- Master Port
+         mAxisClk    => txClk,
+         mAxisRst    => txRst,
+         mAxisMaster => cfgMaster,
+         mAxisSlave  => cfgSlave);
+
+   U_Fsm : entity surf.CoaXPressTxFsm
+      generic map (
+         TPD_G        => TPD_G,
+         TRIG_WIDTH_G => TRIG_WIDTH_G)
       port map (
          -- Clock and Reset
-         clk           => txClk(0),
-         rst           => txRst(0),
-         -- Slave Interface
-         slaveValid    => txEncodeValid,
-         slaveData     => txEncodeData,
-         -- Master Interface
-         masterData(0) => gearboxbit,
-         masterReady   => gearboxReady);
-
-   GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-
-      U_SyncFifo : entity surf.SynchronizerFifo
-         generic map (
-            TPD_G        => TPD_G,
-            COMMON_CLK_G => ite(i = 0, true, false),
-            DATA_WIDTH_G => 1)
-         port map (
-            -- Asynchronous Reset
-            rst     => txRst(i),
-            -- Write Ports (wr_clk domain)
-            wr_clk  => txClk(0),
-            din(0)  => gearboxbit,
-            -- Read Ports (rd_clk domain)
-            rd_clk  => txClk(i),
-            dout(0) => txbit(i));
-
-      -- Serial rate = TX clock frequency
-      txData(i) <= (others => txbit(i));
-
-   end generate GEN_LANE;
+         txClk      => txClk,
+         txRst      => txRst,
+         -- Config Interface
+         cfgMaster  => cfgMaster,
+         cfgSlave   => cfgSlave,
+         -- Trigger Interface
+         txTrig     => trigger,
+         txTrigDrop => txTrigDrop,
+         -- TX PHY Interface
+         txData     => txData,
+         txDataK    => txDataK);
 
 end mapping;

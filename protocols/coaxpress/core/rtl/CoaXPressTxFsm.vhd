@@ -22,220 +22,136 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
-use surf.SsiPkg.all;
 use surf.CoaXPressPkg.all;
 use surf.Code8b10bPkg.all;
 
 entity CoaXPressTxFsm is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time                   := 1 ns;
+      TRIG_WIDTH_G : positive range 1 to 16 := 1);
    port (
       -- Clock and Reset
-      txClk        : in  sl;
-      txRst        : in  sl;
+      txClk      : in  sl;
+      txRst      : in  sl;
       -- Config Interface
-      cfgMaster    : in  AxiStreamMasterType;
-      cfgSlave     : out AxiStreamSlaveType;
+      cfgMaster  : in  AxiStreamMasterType;
+      cfgSlave   : out AxiStreamSlaveType;
       -- Trigger Interface
-      txTrig       : in  sl;
-      txTrigDrop   : out sl;
+      txTrig     : in  slv(TRIG_WIDTH_G-1 downto 0);
+      txTrigDrop : out slv(TRIG_WIDTH_G-1 downto 0);
       -- TX PHY Interface
-      txRate       : in  sl;
-      gearboxReady : out sl;
-      txStrobe     : out sl;
-      txData       : out slv(7 downto 0);
-      txDataK      : out sl);
+      txData     : out slv(31 downto 0);
+      txDataK    : out slv(3 downto 0));
 end entity CoaXPressTxFsm;
 
 architecture rtl of CoaXPressTxFsm is
 
-   constant CXP_TRIG_K_C : slv(5 downto 0) := "000111";
-   constant CXP_TX_IDLE_C : Slv8Array(3 downto 0) := (
-      0 => CXP_IDLE_C(7 downto 0),
-      1 => CXP_IDLE_C(15 downto 8),
-      2 => CXP_IDLE_C(23 downto 16),
-      3 => CXP_IDLE_C(31 downto 24));
-
-   constant TX_DLY_C : Slv8Array(9 downto 0) := (
-      0 => toSlv(0*24, 8),
-      1 => toSlv(1*24, 8),
-      2 => toSlv(2*24, 8),
-      3 => toSlv(3*24, 8),
-      4 => toSlv(4*24, 8),
-      5 => toSlv(5*24, 8),
-      6 => toSlv(6*24, 8),
-      7 => toSlv(7*24, 8),
-      8 => toSlv(8*24, 8),
-      9 => toSlv(9*24, 8));
+   constant CXP_TRIG_INIT_C : Slv32Array(2 downto 0) := (0 => CXP_TRIG_C, 1 to 2 => (others => '0'));
+   constant CXP_TRIG_K_C    : Slv4Array(2 downto 0)  := (0 => x"F", 1 to 2 => (others => '0'));
 
    type RegType is record
-      -- Heartbeat
-      gearboxReady : sl;
-      heartbeat    : sl;
-      heartbeatCnt : natural range 0 to 9;
+      forceIdle  : sl;
       -- Trigger
-      txTrig       : sl;
-      txTrigDrop   : sl;
-      txTrigCnt    : natural range 0 to 6;
-      txTrigData   : Slv8Array(5 downto 0);
-      -- IDLE
-      txIdle       : sl;
-      txIdleCnt    : natural range 0 to 4;
+      txTrigDrop : slv(TRIG_WIDTH_G-1 downto 0);
+      txTrigCnt  : natural range 0 to 3;
+      txTrigData : Slv32Array(2 downto 0);
       -- TX PHY
-      txStrobe     : sl;
-      txData       : slv(7 downto 0);
-      txDataK      : sl;
+      txData     : slv(31 downto 0);
+      txDataK    : slv(3 downto 0);
       -- Config
-      cfgSlave     : AxiStreamSlaveType;
+      cfgSlave   : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      -- Heartbeat
-      gearboxReady => '1',
-      heartbeat    => '0',
-      heartbeatCnt => 9,
+      forceIdle  => '1',
       -- Trigger
-      txTrig       => '0',
-      txTrigDrop   => '0',
-      txTrigCnt    => 6,
-      txTrigData   => (0 => K_28_2_C, 1 => K_28_4_C, 2 => K_28_4_C, 3 to 5 => x"00"),
-      -- IDLE
-      txIdle       => '1',
-      txIdleCnt    => 4,
+      txTrigDrop => (others => '0'),
+      txTrigCnt  => 3,
+      txTrigData => CXP_TRIG_INIT_C,
       -- TX PHY
-      txStrobe     => '0',
-      txData       => K_28_5_C,
-      txDataK      => '1',
+      txData     => CXP_IDLE_C,
+      txDataK    => CXP_IDLE_K_C,
       -- Config
-      cfgSlave     => AXI_STREAM_SLAVE_INIT_C);
+      cfgSlave   => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (cfgMaster, r, txRate, txRst, txTrig) is
+   comb : process (cfgMaster, r, txRst, txTrig) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
       -- Reset strobes
-      v.heartbeat  := '0';
-      v.txStrobe   := '0';
-      v.txTrigDrop := '0';
+      v.txTrigDrop := (others => '0');
       v.cfgSlave   := AXI_STREAM_SLAVE_INIT_C;
 
-      --------------------------------
-      -- Generate gearbox ready signal
-      --------------------------------
-      -- txRate=0: 20.83 Mbps (48ns UI)
-      -- txRate=1: 41.60 Mbps (24ns UI)
-      --------------------------------
-      v.gearboxReady := not(r.gearboxReady) or txRate;
-
-      -- Check for heartbeat event
-      if (r.heartbeatCnt = 0) then
-
-         if (txRate = '1') or (r.gearboxReady = '0') then
-            -- Pre-set the counter
-            v.heartbeatCnt := 9;
-            v.gearboxReady := '1';      -- phase locking to heartbeat
-
-            -- Set the flag
-            v.heartbeat := '1';
-         end if;
-
-      -- Throttle the decrement based on txRate
-      elsif (txRate = '1') or (r.gearboxReady = '0') then
-         -- Decrement the counter
-         v.heartbeatCnt := r.heartbeatCnt - 1;
-      end if;
-
-      -- Keep a delayed copy
-      v.txTrig := txTrig;
-
-      -- Check for trigger rising edge
-      if (r.txTrig = '0') and (v.txTrig = '1') then
+      -- Check for trigger
+      if (txTrig /= 0) then
 
          -- Check if not moving trigger message
-         if (r.txTrigCnt = 6) then
+         if (r.txTrigCnt = 3) then
 
             -- Reset the counter
             v.txTrigCnt := 0;
 
-            -- Set the trigger delay
-            for i in 3 to 5 loop
-               v.txTrigData(i) := TX_DLY_C(9-v.heartbeatCnt);
+            -- Set the LinkTriggerN value
+            for i in TRIG_WIDTH_G-1 to 0 loop
+               if (txTrig(i) = '1') then
+                  v.txTrigData(2) := toSlv(i, 8) & toSlv(i, 8) & toSlv(i, 8) & toSlv(i, 8);
+               end if;
             end loop;
+
+            -- Set the flag
+            v.forceIdle := '1';
 
          else
             -- Set the flag
-            v.txTrigDrop := '1';
+            v.txTrigDrop := txTrig;
          end if;
 
       end if;
 
-      -- Check for heartbeat
-      if (r.heartbeat = '1') then
+      -- Check if moving trigger message
+      if (r.txTrigCnt /= 3) then
 
-         -- Update the strobe
-         v.txStrobe := '1';
+         -- Increment the counter
+         v.txTrigCnt := r.txTrigCnt + 1;
 
-         -- Check if moving trigger message
-         if (r.txTrigCnt /= 6) then
+         -- Update the TX data
+         v.txData  := r.txTrigData(r.txTrigCnt);
+         v.txDataK := CXP_TRIG_K_C(r.txTrigCnt);
 
-            -- Increment the counter
-            v.txTrigCnt := r.txTrigCnt + 1;
+      -- Check if moving config message
+      elsif (cfgMaster.tValid = '1') and (r.forceIdle = '0') then
 
-            -- Update the TX data
-            v.txData  := r.txTrigData(r.txTrigCnt);
-            v.txDataK := CXP_TRIG_K_C(r.txTrigCnt);
+         -- Accept the data
+         v.cfgSlave.tReady := '1';
 
-         -- Check if moving idle message
-         elsif (r.txIdleCnt /= 4) then
+         -- Send the configuration message
+         v.txData  := cfgMaster.tData(31 downto 0);
+         v.txDataK := (others => cfgMaster.tUser(0));
 
-            -- Increment the counter
-            v.txIdleCnt := r.txIdleCnt + 1;
+      -- Insert the IDLE
+      else
 
-            -- Update the TX data
-            v.txData  := CXP_TX_IDLE_C(r.txIdleCnt);
-            v.txDataK := CXP_IDLE_K_C(r.txIdleCnt);
+         -- Update the TX data
+         v.txData  := CXP_IDLE_C;
+         v.txDataK := CXP_IDLE_K_C;
 
-         -- Check if moving config message
-         elsif (cfgMaster.tValid = '1') and (r.txIdle = '0') then
-
-            -- Accept the data
-            v.cfgSlave.tReady := '1';
-
-            -- Send the configuration message
-            v.txData  := cfgMaster.tData(7 downto 0);
-            v.txDataK := cfgMaster.tUser(0);
-
-         -- Insert the IDLE
-         else
-
-            -- Reset flag
-            v.txIdle := '0';
-
-            -- Preset the counter
-            v.txIdleCnt := 1;
-
-            -- Update the TX data
-            v.txData  := CXP_TX_IDLE_C(0);
-            v.txDataK := CXP_IDLE_K_C(0);
-
-         end if;
+         -- Reset the flag
+         v.forceIdle := '0';
 
       end if;
 
       -- Outputs
-      cfgSlave     <= v.cfgSlave;
-      gearboxReady <= r.gearboxReady;
-      txStrobe     <= r.txStrobe;
-      txData       <= r.txData;
-      txDataK      <= r.txDataK;
-      txTrigDrop   <= r.txTrigDrop;
+      cfgSlave   <= v.cfgSlave;
+      txData     <= r.txData;
+      txDataK    <= r.txDataK;
+      txTrigDrop <= r.txTrigDrop;
 
       -- Reset
       if (txRst = '1') then

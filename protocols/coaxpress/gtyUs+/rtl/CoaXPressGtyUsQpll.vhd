@@ -31,7 +31,7 @@ entity CoaXPressGtyUsQpll is
    generic (
       TPD_G             : time                  := 1 ns;
       CXP_RATE_G        : CxpSpeedType          := CXP_12_C;
-      QPLL_REFCLK_SEL_G : Slv3Array(1 downto 0) := (0 => "001", 1 => "111");  -- Default: 156.25MHz=gtRefClk, 250MHz=fabric
+      QPLL_REFCLK_SEL_G : slv(2 downto 0)       := "001";
       EN_DRP_G          : boolean               := true);
    port (
       -- Stable Clock and Reset
@@ -39,7 +39,6 @@ entity CoaXPressGtyUsQpll is
       stableRst       : in  sl;
       -- QPLL Clocking
       refClk156       : in  sl;         -- 156.25 MHz
-      refClk250       : in  sl;         -- 250 MHz
       qpllLock        : out Slv2Array(3 downto 0);
       qpllClk         : out Slv2Array(3 downto 0);
       qpllRefclk      : out Slv2Array(3 downto 0);
@@ -75,7 +74,7 @@ architecture mapping of CoaXPressGtyUsQpll is
       QPLL_LPF_G3      : slv(9 downto 0);
       QPLL_REFCLK_DIV  : natural;
    end record QpllConfig;
-   constant QPLL0_C : QpllConfig := (
+   constant QPLL_CONFIG_C : QpllConfig := (
       QPLL_CFG0        => b"0011001100011100",
       QPLL_CFG1        => b"1101000000111000",
       QPLL_CFG1_G3     => b"1101000000111000",
@@ -94,25 +93,6 @@ architecture mapping of CoaXPressGtyUsQpll is
       QPLL_LPF         => b"1000011111",
       QPLL_LPF_G3      => b"0111010101",
       QPLL_REFCLK_DIV  => 1);
-   constant QPLL1_C : QpllConfig := (
-      QPLL_CFG0        => b"0011001100011100",
-      QPLL_CFG1        => b"1101000000111000",
-      QPLL_CFG1_G3     => b"1101000000111000",
-      QPLL_CFG2        => b"0000111111000001",
-      QPLL_CFG2_G3     => b"0000111111000001",
-      QPLL_CFG3        => b"0000000100100000",
-      QPLL_CFG4        => b"0000000000000010",
-      QPLL_CP          => b"0011111111",
-      QPLL_CP_G3       => b"0001111111",
-      QPLL_FBDIV       => 128,
-      QPLL_FBDIV_G3    => 80,
-      QPLL_INIT_CFG0   => b"0000001010110010",
-      QPLL_INIT_CFG1   => b"00000000",
-      QPLL_LOCK_CFG    => b"0010010111101000",
-      QPLL_LOCK_CFG_G3 => b"0010010111101000",
-      QPLL_LPF         => b"1000011101",
-      QPLL_LPF_G3      => b"0111010100",
-      QPLL_REFCLK_DIV  => 3);
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -161,8 +141,7 @@ begin
    pllReset(0) <= gtQPllReset(0)(0) or gtQPllReset(1)(0) or gtQPllReset(2)(0) or gtQPllReset(3)(0) or stableRst;
    pllReset(1) <= gtQPllReset(0)(1) or gtQPllReset(1)(1) or gtQPllReset(2)(1) or gtQPllReset(3)(1) or stableRst;
 
-   pllRefClk(0)  <= refClk156;
-   pllRefClk(1)  <= refClk250;
+   pllRefClk     <= refClk156 & refClk156;
    pllLockDetClk <= stableClk & stableClk;
 
    U_QPLL : entity surf.GtyUltraScaleQuadPll
@@ -172,26 +151,26 @@ begin
          -- AXI-Lite Parameters
          EN_DRP_G           => EN_DRP_G,
          -- QPLL Configuration Parameters
-         QPLL_CFG0_G        => (0 => QPLL0_C.QPLL_CFG0, 1 => QPLL1_C.QPLL_CFG0),
-         QPLL_CFG1_G        => (0 => QPLL0_C.QPLL_CFG1, 1 => QPLL1_C.QPLL_CFG1),
-         QPLL_CFG1_G3_G     => (0 => QPLL0_C.QPLL_CFG1_G3, 1 => QPLL1_C.QPLL_CFG1_G3),
-         QPLL_CFG2_G        => (0 => QPLL0_C.QPLL_CFG2, 1 => QPLL1_C.QPLL_CFG2),
-         QPLL_CFG2_G3_G     => (0 => QPLL0_C.QPLL_CFG2_G3, 1 => QPLL1_C.QPLL_CFG2_G3),
-         QPLL_CFG3_G        => (0 => QPLL0_C.QPLL_CFG3, 1 => QPLL1_C.QPLL_CFG3),
-         QPLL_CFG4_G        => (0 => QPLL0_C.QPLL_CFG4, 1 => QPLL1_C.QPLL_CFG4),
-         QPLL_CP_G          => (0 => QPLL0_C.QPLL_CP, 1 => QPLL1_C.QPLL_CP),
-         QPLL_CP_G3_G       => (0 => QPLL0_C.QPLL_CP_G3, 1 => QPLL1_C.QPLL_CP_G3),
-         QPLL_FBDIV_G       => (0 => QPLL0_C.QPLL_FBDIV, 1 => QPLL1_C.QPLL_FBDIV),
-         QPLL_FBDIV_G3_G    => (0 => QPLL0_C.QPLL_FBDIV_G3, 1 => QPLL1_C.QPLL_FBDIV_G3),
-         QPLL_INIT_CFG0_G   => (0 => QPLL0_C.QPLL_INIT_CFG0, 1 => QPLL1_C.QPLL_INIT_CFG0),
-         QPLL_INIT_CFG1_G   => (0 => QPLL0_C.QPLL_INIT_CFG1, 1 => QPLL1_C.QPLL_INIT_CFG1),
-         QPLL_LOCK_CFG_G    => (0 => QPLL0_C.QPLL_LOCK_CFG, 1 => QPLL1_C.QPLL_LOCK_CFG),
-         QPLL_LOCK_CFG_G3_G => (0 => QPLL0_C.QPLL_LOCK_CFG_G3, 1 => QPLL1_C.QPLL_LOCK_CFG_G3),
-         QPLL_LPF_G         => (0 => QPLL0_C.QPLL_LPF, 1 => QPLL1_C.QPLL_LPF),
-         QPLL_LPF_G3_G      => (0 => QPLL0_C.QPLL_LPF_G3, 1 => QPLL1_C.QPLL_LPF_G3),
-         QPLL_REFCLK_DIV_G  => (0 => QPLL0_C.QPLL_REFCLK_DIV, 1 => QPLL1_C.QPLL_REFCLK_DIV),
+         QPLL_CFG0_G        => (others => QPLL_CONFIG_C.QPLL_CFG0),
+         QPLL_CFG1_G        => (others => QPLL_CONFIG_C.QPLL_CFG1),
+         QPLL_CFG1_G3_G     => (others => QPLL_CONFIG_C.QPLL_CFG1_G3),
+         QPLL_CFG2_G        => (others => QPLL_CONFIG_C.QPLL_CFG2),
+         QPLL_CFG2_G3_G     => (others => QPLL_CONFIG_C.QPLL_CFG2_G3),
+         QPLL_CFG3_G        => (others => QPLL_CONFIG_C.QPLL_CFG3),
+         QPLL_CFG4_G        => (others => QPLL_CONFIG_C.QPLL_CFG4),
+         QPLL_CP_G          => (others => QPLL_CONFIG_C.QPLL_CP),
+         QPLL_CP_G3_G       => (others => QPLL_CONFIG_C.QPLL_CP_G3),
+         QPLL_FBDIV_G       => (others => QPLL_CONFIG_C.QPLL_FBDIV),
+         QPLL_FBDIV_G3_G    => (others => QPLL_CONFIG_C.QPLL_FBDIV_G3),
+         QPLL_INIT_CFG0_G   => (others => QPLL_CONFIG_C.QPLL_INIT_CFG0),
+         QPLL_INIT_CFG1_G   => (others => QPLL_CONFIG_C.QPLL_INIT_CFG1),
+         QPLL_LOCK_CFG_G    => (others => QPLL_CONFIG_C.QPLL_LOCK_CFG),
+         QPLL_LOCK_CFG_G3_G => (others => QPLL_CONFIG_C.QPLL_LOCK_CFG_G3),
+         QPLL_LPF_G         => (others => QPLL_CONFIG_C.QPLL_LPF),
+         QPLL_LPF_G3_G      => (others => QPLL_CONFIG_C.QPLL_LPF_G3),
+         QPLL_REFCLK_DIV_G  => (others => QPLL_CONFIG_C.QPLL_REFCLK_DIV),
          -- Clock Selects
-         QPLL_REFCLK_SEL_G  => QPLL_REFCLK_SEL_G)
+         QPLL_REFCLK_SEL_G  => (others => QPLL_REFCLK_SEL_G))
       port map (
          qPllRefClk      => pllRefClk,
          qPllOutClk      => pllOutClk,
@@ -200,7 +179,8 @@ begin
          qPllLock        => pllLock,
          qPllLockDetClk  => pllLockDetClk,
          qPllRefClkLost  => pllRefClkLost,
-         qPllPowerDown   => "00",       -- Never power down QPLL
+         qPllPowerDown(0) => '0',       -- Never power down QPLL[0]
+         qPllPowerDown(1) => '1',       -- Power down QPLL[1]
          qPllReset       => pllReset,
          -- AXI Lite interface
          axilClk         => axilClk,

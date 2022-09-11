@@ -26,28 +26,25 @@ use surf.CoaXPressPkg.all;
 
 entity CoaXPressAxiL is
    generic (
-      TPD_G              : time                  := 1 ns;
-      NUM_LANES_G        : positive              := 1;
-      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 12;
-      AXIL_CLK_FREQ_G    : real                  := 156.25E+6);
+      TPD_G              : time                   := 1 ns;
+      NUM_LANES_G        : positive               := 1;
+      TRIG_WIDTH_G       : positive range 1 to 16 := 1;
+      STATUS_CNT_WIDTH_G : natural range 1 to 32  := 12;
+      AXIL_CLK_FREQ_G    : real                   := 156.25E+6);
    port (
       -- Tx Interface (txClk domain)
       txClk           : in  sl;
       txRst           : in  sl;
-      txTrig          : in  sl;
-      swTrig          : out sl;
-      txRate          : out sl;
-      txTrigDrop      : in  sl;
+      txTrig          : in  slv(TRIG_WIDTH_G-1 downto 0);
+      swTrig          : out slv(TRIG_WIDTH_G-1 downto 0);
+      txTrigDrop      : in  slv(TRIG_WIDTH_G-1 downto 0);
       txLinkUp        : in  sl;
       -- Rx Interface (rxClk domain)
       rxClk           : in  slv(NUM_LANES_G-1 downto 0);
       rxRst           : in  slv(NUM_LANES_G-1 downto 0);
       rxDispErr       : in  slv(NUM_LANES_G-1 downto 0);
       rxDecErr        : in  slv(NUM_LANES_G-1 downto 0);
-      rxFifoOverflow  : in  slv(NUM_LANES_G-1 downto 0);
       rxLinkUp        : in  slv(NUM_LANES_G-1 downto 0);
-      rxDataDrop      : in  sl;
-      rxFifoRst       : out sl;
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
@@ -65,13 +62,12 @@ end CoaXPressAxiL;
 architecture rtl of CoaXPressAxiL is
 
    constant RX_STATUS_CNT_C : positive := 1;
-   constant TX_STATUS_CNT_C : positive := 3;
+   constant TX_STATUS_CNT_C : positive := 1;
 
    type RegType is record
       configTimerSize : slv(23 downto 0);
       configErrResp   : slv(1 downto 0);
-      txRate          : sl;
-      swTrig          : sl;
+      swTrig          : slv(TRIG_WIDTH_G-1 downto 0);
       rxFifoRst       : sl;
       cntRst          : sl;
       axilWriteSlave  : AxiLiteWriteSlaveType;
@@ -81,8 +77,7 @@ architecture rtl of CoaXPressAxiL is
    constant REG_INIT_C : RegType := (
       configTimerSize => (others => '1'),
       configErrResp   => (others => '1'),
-      txRate          => '0',
-      swTrig          => '0',
+      swTrig          => (others => '0'),
       rxFifoRst       => '0',
       cntRst          => '0',
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -96,8 +91,14 @@ architecture rtl of CoaXPressAxiL is
    signal rxDecErrCnt       : SlVectorArray(NUM_LANES_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
    signal rxDispErrCnt      : SlVectorArray(NUM_LANES_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
+   signal txTrigCnt     : SlVectorArray(TRIG_WIDTH_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+   signal txTrigDropCnt : SlVectorArray(TRIG_WIDTH_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+   signal trigFreq      : SlVectorArray(TRIG_WIDTH_G-1 downto 0, 31 downto 0);
+
    signal rxCntOut : SlVectorArray(RX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
    signal txCntOut : SlVectorArray(TX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+
+   signal txStatusOut : slv(TX_STATUS_CNT_C-1 downto 0);
 
    signal rxDispErrSync      : slv(NUM_LANES_G-1 downto 0);
    signal rxDecErrSync       : slv(NUM_LANES_G-1 downto 0);
@@ -105,16 +106,16 @@ architecture rtl of CoaXPressAxiL is
    signal rxLinkUpSync       : slv(NUM_LANES_G-1 downto 0);
    signal rxLinkUpStatus     : slv(NUM_LANES_G-1 downto 0);
 
-   signal txStatusOut : slv(2 downto 0);
-   signal trigFreq    : slv(31 downto 0);
-   signal txClkFreq   : slv(31 downto 0);
-   signal rxClkFreq   : Slv32Array(NUM_LANES_G-1 downto 0);
+   signal trigger : slv(TRIG_WIDTH_G-1 downto 0);
+
+   signal txClkFreq : slv(31 downto 0);
+   signal rxClkFreq : Slv32Array(NUM_LANES_G-1 downto 0);
 
 begin
 
-   process (axilReadMaster, axilRst, axilWriteMaster, r, rxClkFreq, rxCntOut,
-            rxDecErrCnt, rxDispErrCnt, rxFifoOverflowCnt, rxLinkUpCnt,
-            rxLinkUpStatus, trigFreq, txClkFreq, txCntOut, txStatusOut) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxClkFreq,
+            rxDecErrCnt, rxDispErrCnt, rxLinkUpCnt, rxLinkUpStatus, trigFreq,
+            txClkFreq, txCntOut, txStatusOut, txTrigCnt, txTrigDropCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -122,7 +123,7 @@ begin
       v := r;
 
       -- Reset strobes
-      v.swTrig    := '0';
+      v.swTrig    := (others => '0');
       v.rxFifoRst := '0';
       v.cntRst    := '0';
 
@@ -134,33 +135,28 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       for i in 0 to NUM_LANES_G-1 loop
-         axiSlaveRegisterR(axilEp, x"000"+toSlv(i*4+0*64, 12), 0, muxSlVectorArray(rxLinkUpCnt, i));  -- 0x000:0x03F
-         axiSlaveRegisterR(axilEp, x"040"+toSlv(i*4+1*64, 12), 0, muxSlVectorArray(rxFifoOverflowCnt, i));  -- 0x040:0x07F
-         axiSlaveRegisterR(axilEp, x"080"+toSlv(i*4+2*64, 12), 0, muxSlVectorArray(rxDecErrCnt, i));  -- 0x080:0x0BF
-         axiSlaveRegisterR(axilEp, x"0C0"+toSlv(i*4+3*64, 12), 0, muxSlVectorArray(rxDispErrCnt, i));  -- 0x0C0:0x0FF
-         axiSlaveRegisterR(axilEp, x"100"+toSlv(i*4+4*64, 12), 0, rxClkFreq(i));  -- 0x100:0x13F
+         axiSlaveRegisterR(axilEp, x"000"+toSlv(i*4, 12), 0, muxSlVectorArray(rxLinkUpCnt, i));  -- 0x000:0x03F
+         axiSlaveRegisterR(axilEp, x"040"+toSlv(i*4, 12), 0, muxSlVectorArray(rxDecErrCnt, i));  -- 0x040:0x07F
+         axiSlaveRegisterR(axilEp, x"080"+toSlv(i*4, 12), 0, muxSlVectorArray(rxDispErrCnt, i));  -- 0x080:0x0BF
+         axiSlaveRegisterR(axilEp, x"0C0"+toSlv(i*4, 12), 0, rxClkFreq(i));  -- 0x0C0:0x0FF
       end loop;
 
-      axiSlaveRegisterR(axilEp, x"700", 0, rxLinkUpStatus);
-      axiSlaveRegisterR(axilEp, x"704", 0, txStatusOut);
-      axiSlaveRegisterR(axilEp, x"708", 0, trigFreq);
-      axiSlaveRegisterR(axilEp, x"70C", 0, txClkFreq);
+      for i in 0 to TRIG_WIDTH_G-1 loop
+         axiSlaveRegisterR(axilEp, x"400"+toSlv(i*4, 12), 0, muxSlVectorArray(txTrigCnt, i));  -- 0x400:0x43F
+         axiSlaveRegisterR(axilEp, x"440"+toSlv(i*4, 12), 0, muxSlVectorArray(txTrigDropCnt, i));  -- 0x440:0x47F
+         axiSlaveRegisterR(axilEp, x"480"+toSlv(i*4, 12), 0, muxSlVectorArray(trigFreq, i));  -- 0x480:0x4BF
+      end loop;
 
-      axiSlaveRegisterR(axilEp, x"710", 0, muxSlVectorArray(rxCntOut, 0));
-      -- axiSlaveRegisterR(axilEp, x"714", 0, muxSlVectorArray(rxCntOut, 1));
-
-      axiSlaveRegisterR(axilEp, x"720", 0, muxSlVectorArray(txCntOut, 0));
-      axiSlaveRegisterR(axilEp, x"724", 0, muxSlVectorArray(txCntOut, 1));
-      axiSlaveRegisterR(axilEp, x"728", 0, muxSlVectorArray(txCntOut, 2));
-
-      axiSlaveRegister (axilEp, x"FEC", 0, v.configTimerSize);
-      axiSlaveRegister (axilEp, x"FEC", 24, v.configErrResp);
-      axiSlaveRegister (axilEp, x"FEC", 26, v.txRate);
+      axiSlaveRegisterR(axilEp, x"800", 0, muxSlVectorArray(txCntOut, 0));  -- txLinkUpCnt
+      axiSlaveRegisterR(axilEp, x"804", 0, rxLinkUpStatus);
+      axiSlaveRegisterR(axilEp, x"808", 0, txStatusOut);
+      axiSlaveRegisterR(axilEp, x"80C", 0, txClkFreq);
 
       axiSlaveRegisterR(axilEp, x"FF0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegister (axilEp, X"FF4", 0, v.swTrig);
-      axiSlaveRegister (axilEp, X"FF8", 0, v.rxFifoRst);
+      axiSlaveRegister (axilEp, x"FF8", 0, v.configTimerSize);
+      axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);
       axiSlaveRegister (axilEp, X"FFC", 0, v.cntRst);
 
       -- Close the transaction
@@ -191,49 +187,70 @@ begin
    -- Transmitter Synchronization
    ------------------------------
 
-   U_swTrig : entity surf.SynchronizerOneShot
+   U_swTrig : entity surf.SynchronizerOneShotVector
       generic map (
-         TPD_G => TPD_G)
+         TPD_G   => TPD_G,
+         WIDTH_G => TRIG_WIDTH_G)
       port map (
          clk     => txClk,
          rst     => txRst,
          dataIn  => r.swTrig,
          dataOut => swTrig);
 
-   U_txRate : entity surf.Synchronizer
+   U_txTrigCnt : entity surf.SyncStatusVector
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+         WIDTH_G     => TRIG_WIDTH_G)
       port map (
-         clk     => txClk,
-         dataIn  => r.txRate,
-         dataOut => txRate);
+         statusIn => txTrig,
+         cntRstIn => r.cntRst,
+         cntOut   => txTrigCnt,
+         wrClk    => txClk,
+         wrRst    => txRst,
+         rdClk    => axilClk,
+         rdRst    => axilRst);
+
+   U_txTrigDropCnt : entity surf.SyncStatusVector
+      generic map (
+         TPD_G       => TPD_G,
+         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+         WIDTH_G     => TRIG_WIDTH_G)
+      port map (
+         statusIn => txTrigDrop,
+         cntRstIn => r.cntRst,
+         cntOut   => txTrigDropCnt,
+         wrClk    => txClk,
+         wrRst    => txRst,
+         rdClk    => axilClk,
+         rdRst    => axilRst);
 
    U_txCntOut : entity surf.SyncStatusVector
       generic map (
          TPD_G       => TPD_G,
          CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => 3)
+         WIDTH_G     => TX_STATUS_CNT_C)
       port map (
-         statusIn(0)  => txLinkUp,
-         statusIn(1)  => txTrig,
-         statusIn(2)  => txTrigDrop,
-         statusOut    => txStatusOut,
-         cntRstIn     => r.cntRst,
-         rollOverEnIn => "010",
-         cntOut       => txCntOut,
-         wrClk        => txClk,
-         wrRst        => txRst,
-         rdClk        => axilClk,
-         rdRst        => axilRst);
+         statusIn(0) => txLinkUp,
+         statusOut   => txStatusOut,
+         cntRstIn    => r.cntRst,
+         cntOut      => txCntOut,
+         wrClk       => txClk,
+         wrRst       => txRst,
+         rdClk       => axilClk,
+         rdRst       => axilRst);
 
-   U_trigFreq : entity surf.SyncTrigRate
+   trigger <= txTrig or r.swTrig;
+
+   U_trigFreq : entity surf.SyncTrigRateVector
       generic map (
          TPD_G          => TPD_G,
          ONE_SHOT_G     => true,        -- true=SynchronizerOneShot
-         REF_CLK_FREQ_G => AXIL_CLK_FREQ_G)
+         REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
+         WIDTH_G        => TRIG_WIDTH_G)
       port map (
          -- Trigger Input (locClk domain)
-         trigIn      => txTrig,
+         trigIn      => trigger,
          -- Trigger Rate Output (locClk domain)
          trigRateOut => trigFreq,
          -- Clocks
@@ -256,94 +273,13 @@ begin
    -- Receiver Synchronization
    ---------------------------
 
-   U_rxFifoRst : entity surf.SynchronizerOneShot
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => rxClk(0),
-         rst     => rxRst(0),
-         dataIn  => r.rxFifoRst,
-         dataOut => rxFifoRst);
-
-   U_rxDispErrSync : entity surf.SynchronizerOneShotVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => NUM_LANES_G)
-      port map (
-         clk     => rxClk(0),
-         rst     => rxRst(0),
-         dataIn  => rxDispErr,
-         dataOut => rxDispErrSync);
-
-   U_rxDispErr : entity surf.SyncStatusVector
-      generic map (
-         TPD_G       => TPD_G,
-         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => NUM_LANES_G)
-      port map (
-         statusIn => rxDispErrSync,
-         cntRstIn => r.cntRst,
-         cntOut   => rxDispErrCnt,
-         wrClk    => rxClk(0),
-         wrRst    => rxRst(0),
-         rdClk    => axilClk,
-         rdRst    => axilRst);
-
-   U_rxDecErrSync : entity surf.SynchronizerOneShotVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => NUM_LANES_G)
-      port map (
-         clk     => rxClk(0),
-         rst     => rxRst(0),
-         dataIn  => rxDecErr,
-         dataOut => rxDecErrSync);
-
-   U_rxDecErr : entity surf.SyncStatusVector
-      generic map (
-         TPD_G       => TPD_G,
-         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => NUM_LANES_G)
-      port map (
-         statusIn => rxDecErrSync,
-         cntRstIn => r.cntRst,
-         cntOut   => rxDecErrCnt,
-         wrClk    => rxClk(0),
-         wrRst    => rxRst(0),
-         rdClk    => axilClk,
-         rdRst    => axilRst);
-
-   U_rxFifoOverflowSync : entity surf.SynchronizerOneShotVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => NUM_LANES_G)
-      port map (
-         clk     => rxClk(0),
-         rst     => rxRst(0),
-         dataIn  => rxFifoOverflow,
-         dataOut => rxFifoOverflowSync);
-
-   U_rxFifoOverflow : entity surf.SyncStatusVector
-      generic map (
-         TPD_G       => TPD_G,
-         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => NUM_LANES_G)
-      port map (
-         statusIn => rxFifoOverflowSync,
-         cntRstIn => r.cntRst,
-         cntOut   => rxFifoOverflowCnt,
-         wrClk    => rxClk(0),
-         wrRst    => rxRst(0),
-         rdClk    => axilClk,
-         rdRst    => axilRst);
-
    U_rxLinkUpSync : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => NUM_LANES_G)
       port map (
-         clk     => rxClk(0),
-         rst     => rxRst(0),
+         clk     => axilClk,
+         rst     => axilRst,
          dataIn  => rxLinkUp,
          dataOut => rxLinkUpSync);
 
@@ -357,24 +293,58 @@ begin
          statusOut => rxLinkUpStatus,
          cntRstIn  => r.cntRst,
          cntOut    => rxLinkUpCnt,
-         wrClk     => rxClk(0),
-         wrRst     => rxRst(0),
+         wrClk     => axilClk,
+         wrRst     => axilRst,
          rdClk     => axilClk,
          rdRst     => axilRst);
 
-   U_rxCntOut : entity surf.SyncStatusVector
+   U_rxDecErrSync : entity surf.SynchronizerOneShotVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => NUM_LANES_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => rxDecErr,
+         dataOut => rxDecErrSync);
+
+   U_rxDecErr : entity surf.SyncStatusVector
       generic map (
          TPD_G       => TPD_G,
          CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => RX_STATUS_CNT_C)
+         WIDTH_G     => NUM_LANES_G)
       port map (
-         statusIn(0) => rxDataDrop,
-         cntRstIn    => r.cntRst,
-         cntOut      => rxCntOut,
-         wrClk       => rxClk(0),
-         wrRst       => rxRst(0),
-         rdClk       => axilClk,
-         rdRst       => axilRst);
+         statusIn => rxDecErrSync,
+         cntRstIn => r.cntRst,
+         cntOut   => rxDecErrCnt,
+         wrClk    => axilClk,
+         wrRst    => axilRst,
+         rdClk    => axilClk,
+         rdRst    => axilRst);
+
+   U_rxDispErrSync : entity surf.SynchronizerOneShotVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => NUM_LANES_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => rxDispErr,
+         dataOut => rxDispErrSync);
+
+   U_rxDispErr : entity surf.SyncStatusVector
+      generic map (
+         TPD_G       => TPD_G,
+         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+         WIDTH_G     => NUM_LANES_G)
+      port map (
+         statusIn => rxDispErrSync,
+         cntRstIn => r.cntRst,
+         cntOut   => rxDispErrCnt,
+         wrClk    => axilClk,
+         wrRst    => axilRst,
+         rdClk    => axilClk,
+         rdRst    => axilRst);
 
    GEN_VEC :
    for i in (NUM_LANES_G-1) downto 0 generate

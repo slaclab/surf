@@ -10,6 +10,10 @@ if { $::env(VIVADO_VERSION) >= 2021.2 } {
    loadSource -path "$::DIR_PATH/ip/CoaXPressGtyUsIp12G/CoaXPressGtyUsIp12G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/CoaXPressGtyUsIp12G/CoaXPressGtyUsIp12G.xci"
 
+   loadSource -path "$::DIR_PATH/ip/CoaXPressOverFiberGtyUsIp/CoaXPressOverFiberGtyUsIp.dcp"
+   # loadIpCore -path "$::DIR_PATH/ip/CoaXPressOverFiberGtyUsIp/CoaXPressOverFiberGtyUsIp.xci"
+
+
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2021.2 (or later)\n\n"
 }
