@@ -290,8 +290,8 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         clk      => clk,
-         rst      => rst,
+         clk      => phyClk,
+         rst      => phyRst,
          -- XGMII interface
          xgmiiTxd => xgmiiTxd,
          xgmiiTxc => xgmiiTxc,
@@ -304,8 +304,8 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         clk      => clk,
-         rst      => rst,
+         clk      => phyClk,
+         rst      => phyRst,
          -- XGMII interface
          xgmiiRxd => xgmiiRxd,
          xgmiiRxc => xgmiiRxc,

@@ -95,11 +95,11 @@ begin
             -- Lane[0] = Start[7:0]
             v.xgmiiTxd(0+7 downto 0+0) := CXPOF_START_C;
 
-            -- Lane[1] = SopCtrl[7] - Packet type: “1” => High-speed packet
+            -- Lane[1] = SopCtrl[7] - Packet type: "1" => High-speed packet
             v.xgmiiTxd(8+7) := '1';
 
             -- Lane[1] = SopCtrl[6:1] - Reserved
-            v.xgmiiTxd(8+6 downto 8+4) := "000000";
+            v.xgmiiTxd(8+6 downto 8+1) := "000000";
 
             -- Lane[1] = SopCtrl[0] - Next word type: When "0" => HDP, When "1" => HKP
             v.xgmiiTxd(8+0) := txDataK(0);
@@ -141,8 +141,8 @@ begin
 
                -- Check for end of packet
                if (txData = CXP_TRIG_C) then
-                  -- Save delayed copy of the byte
-                  v.txData := txData(7 downto 0);
+                  -- Save delayed copy
+                  v.txData := txData;
                   -- Next State
                   v.state  := TRIG_IPG_S;
                else
