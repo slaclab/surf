@@ -33,9 +33,10 @@ entity CoaXPressGtyUs is
       NUM_LANES_G        : positive               := 1;
       TRIG_WIDTH_G       : positive range 1 to 16 := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
-      AXIS_CONFIG_G      : AxiStreamConfigType;
-      AXIL_BASE_ADDR_G   : slv(31 downto 0)       := (others => '0');
-      AXIL_CLK_FREQ_G    : real                   := 156.25E+6);
+      AXIL_BASE_ADDR_G   : slv(31 downto 0);
+      AXIL_CLK_FREQ_G    : real; -- axilClk frequency (units of Hz)
+      AXIS_CLK_FREQ_G    : real; -- dataClk frequency (units of Hz)
+      AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
       -- QPLL Interface
       qpllLock        : in  Slv2Array(NUM_LANES_G-1 downto 0);

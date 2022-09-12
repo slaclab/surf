@@ -60,6 +60,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         VALID_THOLD_G       => 0,      -- 0 = store/forward AXIS FIFO
          -- FIFO configurations
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,

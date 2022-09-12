@@ -59,6 +59,7 @@ architecture rtl of CoaXPressConfig is
 
    type RegType is record
       tValid         : slv(7 downto 0);
+      tLast          : slv(7 downto 0);
       tData          : Slv32Array(7 downto 0);
       tDataK         : slv(7 downto 0);
       idx            : natural range 0 to 7;
@@ -71,6 +72,7 @@ architecture rtl of CoaXPressConfig is
 
    constant REG_INIT_C : RegType := (
       tValid         => (others => '0'),
+      tLast          => (others => '0'),
       tData          => (others => (others => '0')),
       tDataK         => (others => '0'),
       idx            => 0,
@@ -86,8 +88,10 @@ architecture rtl of CoaXPressConfig is
    signal axilReadMaster  : AxiLiteReadMasterType;
    signal axilWriteMaster : AxiLiteWriteMasterType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";
+   attribute dont_touch                    : string;
+   attribute dont_touch of r               : signal is "TRUE";
+   attribute dont_touch of axilReadMaster  : signal is "TRUE";
+   attribute dont_touch of axilWriteMaster : signal is "TRUE";
 
 begin
 
@@ -154,6 +158,7 @@ begin
 
                -- Reset bus
                v.tValid := (others => '0');
+               v.tLast  := (others => '0');
                v.tDataK := (others => '0');
 
                -- Check if write transaction
@@ -187,6 +192,7 @@ begin
 
                   -- End of packet indication
                   v.tValid(6) := '1';
+                  v.tLast(6)  := '1';
                   v.tDataK(6) := '1';
                   v.tData(6)  := CXP_EOP_C;
 
@@ -220,6 +226,7 @@ begin
 
                   -- End of packet indication
                   v.tValid(5) := '1';
+                  v.tLast(5)  := '1';
                   v.tDataK(5) := '1';
                   v.tData(5)  := CXP_EOP_C;
 
@@ -273,6 +280,7 @@ begin
 
                -- Send the transaction
                v.cfgTxMaster.tValid             := r.tValid(r.idx);
+               v.cfgTxMaster.tLast              := r.tLast(r.idx);
                v.cfgTxMaster.tData(31 downto 0) := r.tData(r.idx);
                v.cfgTxMaster.tUser(0)           := r.tDataK(r.idx);
 

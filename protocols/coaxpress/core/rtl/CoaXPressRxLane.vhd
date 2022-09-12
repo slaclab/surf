@@ -118,8 +118,10 @@ begin
 
             -- "Acknowledgment code" index
             if (r.ackCnt = 0) then
+
                -- Save the response code
                v.cfgMaster.tData(31 downto 0) := rxData;
+
                -- Check for Success ACK
                if (rxData = x"01_01_01_01") or (rxData = x"04_04_04_04") then
                   -- Always send ZERO for successful ACK
@@ -128,24 +130,19 @@ begin
 
             -- "Data field" index
             elsif (r.ackCnt = 2) then
+
                -- Save the data field
                v.cfgMaster.tData(63 downto 32) := rxData;
+
                -- Forward the response
-               v.cfgMaster.tValid              := '0';
+               v.cfgMaster.tValid := '1';
+
                -- Next State
-               v.state                         := IDLE_S;
+               v.state := IDLE_S;
+
             end if;
       ----------------------------------------------------------------------
       end case;
-
-      -- Check for out of phase k char
-      if (uOr(rxDataK) = '1') and (r.state /= IDLE_S) then
-         -- Reset flags
-         v.cfgMaster.tValid  := '0';
-         v.dataMaster.tValid := '0';
-         -- Next State
-         v.state             := IDLE_S;
-      end if;
 
       -- Outputs
       cfgMaster  <= r.cfgMaster;

@@ -22,6 +22,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 use surf.CoaXPressPkg.all;
 
 entity CoaXPressAxiL is
@@ -30,7 +31,9 @@ entity CoaXPressAxiL is
       NUM_LANES_G        : positive               := 1;
       TRIG_WIDTH_G       : positive range 1 to 16 := 1;
       STATUS_CNT_WIDTH_G : natural range 1 to 32  := 12;
-      AXIL_CLK_FREQ_G    : real                   := 156.25E+6);
+      AXIL_CLK_FREQ_G    : real                   := 156.25E+6;  -- axilClk frequency (units of Hz)
+      AXIS_CLK_FREQ_G    : real                   := 156.25E+6;  -- dataClk frequency (units of Hz)
+      AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
       -- Tx Interface (txClk domain)
       txClk           : in  sl;
@@ -50,6 +53,11 @@ entity CoaXPressAxiL is
       cfgRst          : in  sl;
       configTimerSize : out slv(23 downto 0);
       configErrResp   : out slv(1 downto 0);
+      -- Data Interface (dataClk domain)
+      dataClk         : in  sl;
+      dataRst         : in  sl;
+      dataMaster      : in  AxiStreamMasterType;
+      dataSlave       : in  AxiStreamSlaveType;
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -68,7 +76,6 @@ architecture rtl of CoaXPressAxiL is
       configTimerSize : slv(23 downto 0);
       configErrResp   : slv(1 downto 0);
       swTrig          : slv(TRIG_WIDTH_G-1 downto 0);
-      rxFifoRst       : sl;
       cntRst          : sl;
       axilWriteSlave  : AxiLiteWriteSlaveType;
       axilReadSlave   : AxiLiteReadSlaveType;
@@ -78,8 +85,7 @@ architecture rtl of CoaXPressAxiL is
       configTimerSize => (others => '1'),
       configErrResp   => (others => '1'),
       swTrig          => (others => '0'),
-      rxFifoRst       => '0',
-      cntRst          => '0',
+      cntRst          => '1',
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C);
 
@@ -111,11 +117,24 @@ architecture rtl of CoaXPressAxiL is
    signal txClkFreq : slv(31 downto 0);
    signal rxClkFreq : Slv32Array(NUM_LANES_G-1 downto 0);
 
+   signal frameCnt     : slv(63 downto 0);  -- units of frames
+   signal frameSize    : slv(31 downto 0);  -- units of Byte
+   signal frameSizeMax : slv(31 downto 0);  -- units of Byte
+   signal frameSizeMin : slv(31 downto 0);  -- units of Byte
+   signal frameRate    : slv(31 downto 0);  -- units of Hz
+   signal frameRateMax : slv(31 downto 0);  -- units of Hz
+   signal frameRateMin : slv(31 downto 0);  -- units of Hz
+   signal bandwidth    : slv(63 downto 0);  -- units of Byte/s
+   signal bandwidthMax : slv(63 downto 0);  -- units of Byte/s
+   signal bandwidthMin : slv(63 downto 0);  -- units of Byte/s
+
 begin
 
-   process (axilReadMaster, axilRst, axilWriteMaster, r, rxClkFreq,
-            rxDecErrCnt, rxDispErrCnt, rxLinkUpCnt, rxLinkUpStatus, trigFreq,
-            txClkFreq, txCntOut, txStatusOut, txTrigCnt, txTrigDropCnt) is
+   process (axilReadMaster, axilRst, axilWriteMaster, bandwidth, bandwidthMax,
+            bandwidthMin, frameCnt, frameRate, frameRateMax, frameRateMin,
+            frameSize, frameSizeMax, frameSizeMin, r, rxClkFreq, rxDecErrCnt,
+            rxDispErrCnt, rxLinkUpCnt, rxLinkUpStatus, trigFreq, txClkFreq,
+            txCntOut, txStatusOut, txTrigCnt, txTrigDropCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -123,9 +142,8 @@ begin
       v := r;
 
       -- Reset strobes
-      v.swTrig    := (others => '0');
-      v.rxFifoRst := '0';
-      v.cntRst    := '0';
+      v.swTrig := (others => '0');
+      v.cntRst := '0';
 
       ------------------------
       -- AXI-Lite Transactions
@@ -152,8 +170,21 @@ begin
       axiSlaveRegisterR(axilEp, x"808", 0, txStatusOut);
       axiSlaveRegisterR(axilEp, x"80C", 0, txClkFreq);
 
+      -- Matching with AxiStreamMonChannel Python device register mapping w/ offset=0x900
+      axiSlaveRegisterR(axilEp, x"904", 0, frameCnt);      -- 0x904:0x90B
+      axiSlaveRegisterR(axilEp, x"90C", 0, frameRate);
+      axiSlaveRegisterR(axilEp, x"910", 0, frameRateMax);
+      axiSlaveRegisterR(axilEp, x"914", 0, frameRateMin);
+      axiSlaveRegisterR(axilEp, x"918", 0, bandwidth);     -- 0x918:0x91F
+      axiSlaveRegisterR(axilEp, x"920", 0, bandwidthMax);  -- 0x920:0x927
+      axiSlaveRegisterR(axilEp, x"928", 0, bandwidthMin);  -- 0x928:0x92F
+      axiSlaveRegisterR(axilEp, x"930", 0, frameSize);
+      axiSlaveRegisterR(axilEp, x"934", 0, frameSizeMax);
+      axiSlaveRegisterR(axilEp, x"938", 0, frameSizeMin);
+
       axiSlaveRegisterR(axilEp, x"FF0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"FF0", 16, toSlv(TRIG_WIDTH_G, 8));
       axiSlaveRegister (axilEp, X"FF4", 0, v.swTrig);
       axiSlaveRegister (axilEp, x"FF8", 0, v.configTimerSize);
       axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);
@@ -384,6 +415,39 @@ begin
          clk     => cfgClk,
          dataIn  => r.configErrResp,
          dataOut => configErrResp);
+
+   -------------------------
+   -- Data Stream Monitoring
+   -------------------------
+   U_AxiStreamMon : entity surf.AxiStreamMon
+      generic map(
+         TPD_G           => TPD_G,
+         COMMON_CLK_G    => false,
+         AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G,
+         AXIS_CONFIG_G   => AXIS_CONFIG_G)
+      port map(
+         -- AXIS Stream Interface
+         axisClk      => dataClk,
+         axisRst      => dataRst,
+         axisMaster   => dataMaster,
+         axisSlave    => dataSlave,
+         -- Status Clock and reset
+         statusClk    => axilClk,
+         statusRst    => r.cntRst,
+         -- Status: Total number of frame received since statusRst
+         frameCnt     => frameCnt,
+         -- Status: Frame Size (units of Byte)
+         frameSize    => frameSize,
+         frameSizeMax => frameSizeMax,
+         frameSizeMin => frameSizeMin,
+         -- Status: Frame rate (units of Hz)
+         frameRate    => frameRate,
+         frameRateMax => frameRateMax,
+         frameRateMin => frameRateMin,
+         -- Status: Bandwidth (units of Byte/s)
+         bandwidth    => bandwidth,
+         bandwidthMax => bandwidthMax,
+         bandwidthMin => bandwidthMin);
 
 end rtl;
 

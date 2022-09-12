@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : CoaXPress Protocol: http://jiia.org/wp-content/themes/jiia/pdf/standard_dl/coaxpress/CXP-001-2021.pdf
+--            : CXP Over Fiber Protocol: http://jiia.org/wp-content/themes/jiia/pdf/standard_dl/coaxpress/CXPR-008-2021.pdf
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -27,10 +28,10 @@ package CoaXPressPkg is
    constant CXP_CRC_POLY_C : slv(31 downto 0) := x"04C11DB7";
 
    constant CXP_IDLE_K_C : slv(3 downto 0)  := "0111";
-   constant CXP_IDLE_C   : slv(31 downto 0) := D_21_5_C & K_28_1_C & K_28_1_C & K_28_5_C;
-   constant CXP_SOP_C   : slv(31 downto 0) := K_27_7_C & K_27_7_C & K_27_7_C & K_27_7_C;
-   constant CXP_EOP_C   : slv(31 downto 0) := K_29_7_C & K_29_7_C & K_29_7_C & K_29_7_C;
-   constant CXP_TRIG_C : slv(31 downto 0) := K_28_2_C & K_28_2_C & K_28_2_C & K_28_2_C;
+   constant CXP_IDLE_C   : slv(31 downto 0) := D_21_5_C & K_28_1_C & K_28_1_C & K_28_5_C;  -- 0xB53C3CBC
+   constant CXP_SOP_C    : slv(31 downto 0) := K_27_7_C & K_27_7_C & K_27_7_C & K_27_7_C;  -- 0xFBFBFBFB
+   constant CXP_EOP_C    : slv(31 downto 0) := K_29_7_C & K_29_7_C & K_29_7_C & K_29_7_C;  -- 0xFDFDFDFD
+   constant CXP_TRIG_C   : slv(31 downto 0) := K_28_2_C & K_28_2_C & K_28_2_C & K_28_2_C;  -- 0x5C5C5C5C
 
    type CxpSpeedType is (
       CXP_1_C,                          -- 1.250

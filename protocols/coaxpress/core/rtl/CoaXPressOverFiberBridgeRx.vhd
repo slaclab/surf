@@ -48,19 +48,22 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
 
    type RegType is record
       armed   : sl;
-      rxData  : slv(63 downto 0);
-      rxDataK : slv(7 downto 0);
+      rxData  : Slv32Array(1 downto 0);
+      rxDataK : Slv4Array(1 downto 0);
       state   : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       armed   => '0',
-      rxData  => CXP_IDLE_C & CXP_IDLE_C,
-      rxDataK => CXP_IDLE_K_C & CXP_IDLE_K_C,
+      rxData  => (others => CXP_IDLE_C),
+      rxDataK => (others => CXP_IDLE_K_C),
       state   => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -71,8 +74,10 @@ begin
       v := r;
 
       -- Update shift register
-      v.rxDataK := CXP_IDLE_K_C & r.rxDataK(7 downto 4);
-      v.rxData  := CXP_IDLE_C & r.rxData(63 downto 32);
+      v.rxDataK(1) := CXP_IDLE_K_C;
+      v.rxDataK(0) := r.rxDataK(1);
+      v.rxData(1)  := CXP_IDLE_C;
+      v.rxData(0)  := r.rxData(1);
 
       -- State Machine
       case r.state is
@@ -94,12 +99,12 @@ begin
                      v.armed := '1';
 
                      -- Send SOP
-                     v.rxDataK(3 downto 0) := x"F";
-                     v.rxData(31 downto 0) := CXP_SOP_C;
+                     v.rxDataK(0) := x"F";
+                     v.rxData(0)  := CXP_SOP_C;
 
                      -- Send type
-                     v.rxDataK(7 downto 4)  := x"0";
-                     v.rxData(63 downto 32) := xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24);
+                     v.rxDataK(1) := x"0";
+                     v.rxData(1)  := xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24);
 
                   end if;
 
@@ -118,8 +123,8 @@ begin
          ----------------------------------------------------------------------
          when HKP_S =>
             -- Send HKP
-            v.rxDataK(7 downto 4)  := x"F";
-            v.rxData(63 downto 32) := xgmiiRxd;
+            v.rxDataK(1) := x"F";
+            v.rxData(1)  := xgmiiRxd;
             -- Check for EOP
             if (xgmiiRxd = CXP_EOP_C) then
                -- Reset flag
@@ -139,8 +144,8 @@ begin
             -- Check for data word
             if (xgmiiRxc = "0000") then
                -- Send Type
-               v.rxDataK(7 downto 4)  := x"0";
-               v.rxData(63 downto 32) := xgmiiRxd;
+               v.rxDataK(1) := x"0";
+               v.rxData(1)  := xgmiiRxd;
 
             -- Check for EOP
             elsif (xgmiiRxc = "1100") and (xgmiiRxd(31 downto 8) = x"07_FD_00") then
@@ -155,13 +160,13 @@ begin
                   end if;
 
                   -- Send EOP
-                  v.rxDataK(7 downto 4)  := x"F";
-                  v.rxData(63 downto 32) := xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0);
+                  v.rxDataK(1) := x"F";
+                  v.rxData(1)  := xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0);
 
                else
                   -- Send IDLE
-                  v.rxDataK(7 downto 4)  := CXP_IDLE_K_C;
-                  v.rxData(63 downto 32) := CXP_IDLE_C;
+                  v.rxDataK(1) := CXP_IDLE_K_C;
+                  v.rxData(1)  := CXP_IDLE_C;
                end if;
 
                -- Next State
@@ -176,8 +181,8 @@ begin
       end case;
 
       -- Outputs
-      rxDataK <= r.rxDataK(3 downto 0);
-      rxData  <= r.rxData(31 downto 0);
+      rxDataK <= r.rxDataK(0);
+      rxData  <= r.rxData(0);
 
       -- Reset
       if (rst = '1') then

@@ -8,7 +8,8 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
+import pyrogue  as pr
+import surf.axi as axi
 
 class CoaXPressAxiL(pr.Device):
     def __init__(   self,
@@ -141,6 +142,11 @@ class CoaXPressAxiL(pr.Device):
             disp         = '{:0.3f}',
         ))
 
+        self.add(axi.AxiStreamMonChannel(
+            name   = 'DataSteamMon',
+            offset = 0x900, # 0x900:0x93F
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'NUM_LANES_G',
             offset       = 0xFF0,
@@ -155,6 +161,15 @@ class CoaXPressAxiL(pr.Device):
             offset       = 0xFF0,
             bitSize      = 8,
             bitOffset    = 8,
+            disp         = '{:d}',
+            mode         = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TRIG_WIDTH_G',
+            offset       = 0xFF0,
+            bitSize      = 8,
+            bitOffset    = 16,
             disp         = '{:d}',
             mode         = 'RO',
         ))

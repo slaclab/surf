@@ -29,8 +29,9 @@ entity CoaXPressCore is
       NUM_LANES_G        : positive               := 1;
       TRIG_WIDTH_G       : positive range 1 to 16 := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
-      AXIS_CONFIG_G      : AxiStreamConfigType;
-      AXIL_CLK_FREQ_G    : real                   := 156.25E+6);
+      AXIL_CLK_FREQ_G    : real                   := 156.25E+6;  -- axilClk frequency (units of Hz)
+      AXIS_CLK_FREQ_G    : real                   := 156.25E+6;  -- dataClk frequency (units of Hz)
+      AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
       -- Data Interface (dataClk domain)
       dataClk         : in  sl;
@@ -80,7 +81,13 @@ architecture mapping of CoaXPressCore is
    signal swTrig     : slv(TRIG_WIDTH_G-1 downto 0);
    signal txTrigDrop : slv(TRIG_WIDTH_G-1 downto 0);
 
+   signal dataMasterInt : AxiStreamMasterType;
+   signal dataSlaveInt  : AxiStreamSlaveType;
+
 begin
+
+   dataMaster   <= dataMasterInt;
+   dataSlaveInt <= dataSlave;
 
    U_Config : entity surf.CoaXPressConfig
       generic map (
@@ -131,8 +138,8 @@ begin
          -- Data Interface (dataClk domain)
          dataClk     => dataClk,
          dataRst     => dataRst,
-         dataMaster  => dataMaster,
-         dataSlave   => dataSlave,
+         dataMaster  => dataMasterInt,
+         dataSlave   => dataSlaveInt,
          -- Config Interface (cfgClk domain)
          cfgClk      => cfgClk,
          cfgRst      => cfgRst,
@@ -150,7 +157,9 @@ begin
          NUM_LANES_G        => NUM_LANES_G,
          TRIG_WIDTH_G       => TRIG_WIDTH_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
+         AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
+         AXIS_CLK_FREQ_G    => AXIS_CLK_FREQ_G,
+         AXIS_CONFIG_G      => AXIS_CONFIG_G)
       port map (
          -- Tx Interface (txClk domain)
          txClk           => txClk,
@@ -170,6 +179,11 @@ begin
          cfgRst          => cfgClk,
          configTimerSize => configTimerSize,
          configErrResp   => configErrResp,
+         -- Data Interface (dataClk domain)
+         dataClk         => dataClk,
+         dataRst         => dataRst,
+         dataMaster      => dataMasterInt,
+         dataSlave       => dataSlaveInt,
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,
          axilRst         => axilRst,

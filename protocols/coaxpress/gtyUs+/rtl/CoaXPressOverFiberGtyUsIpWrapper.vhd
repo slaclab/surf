@@ -285,7 +285,7 @@ begin
          stat_tx_local_fault_0       => open,
          user_reg0_0                 => open);
 
-   U_BridgeTx : entity surf.CoaXPressOverFiberBridgeTx
+   U_Bridge : entity surf.CoaXPressOverFiberBridge
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -295,21 +295,11 @@ begin
          -- XGMII interface
          xgmiiTxd => xgmiiTxd,
          xgmiiTxc => xgmiiTxc,
-         -- CXP interface
-         txData   => txData,
-         txDataK  => txDataK);
-
-   U_BridgeRx : entity surf.CoaXPressOverFiberBridgeRx
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Clock and Reset
-         clk      => phyClk,
-         rst      => phyRst,
-         -- XGMII interface
          xgmiiRxd => xgmiiRxd,
          xgmiiRxc => xgmiiRxc,
          -- CXP interface
+         txData   => txData,
+         txDataK  => txDataK,
          rxData   => rxData,
          rxDataK  => rxDataK);
 
