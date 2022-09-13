@@ -40,26 +40,6 @@ class AxiStreamRingBuffer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ExtBufferClear',
-            description  = 'External Buffer Clear Status',
-            offset       = 0x0,
-            bitSize      = 1,
-            bitOffset    = 28,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'ExtBufferEnable',
-            description  = 'External Buffer Enable Status',
-            offset       = 0x0,
-            bitSize      = 1,
-            bitOffset    = 29,
-            mode         = 'RO',
-            pollInterval = 1,
-        ))
-
-        self.add(pr.RemoteVariable(
             name         = 'TrigCnt',
             description  = 'current value of the trigger counter',
             offset       = 0x4,
