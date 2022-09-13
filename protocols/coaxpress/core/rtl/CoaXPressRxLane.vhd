@@ -52,6 +52,9 @@ architecture rtl of CoaXPressRxLane is
       CTRL_ACK_S);
 
    type RegType is record
+      streamID   : slv(7 downto 0);
+      dcnt       : slv(15 downto 0);
+      dsize      : slv(15 downto 0);
       ackCnt     : natural range 0 to 3;
       cfgMaster  : AxiStreamMasterType;
       dataMaster : AxiStreamMasterType;
@@ -59,6 +62,9 @@ architecture rtl of CoaXPressRxLane is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      streamID   => (others => 0'),
+      dcnt       => (others => 0'),
+      dsize      => (others => 0'),
       ackCnt     => 0,
       cfgMaster  => AXI_STREAM_MASTER_INIT_C,
       dataMaster => AXI_STREAM_MASTER_INIT_C,
@@ -66,6 +72,9 @@ architecture rtl of CoaXPressRxLane is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -94,51 +103,132 @@ begin
             end if;
          ----------------------------------------------------------------------
          when TYPE_S =>
-            -- Default Next State
-            v.state := TYPE_S;
+            -- Check for non-k word
+            if (rxDataK = x"0") then
 
-            -- Check for "control acknowledge with no tag"
-            if (rxData = x"03_03_03_03") then
-               -- Next State
-               v.state := CTRL_ACK_S;
+               -- Check for "control acknowledge with no tag"
+               if (rxData = x"03_03_03_03") then
+                  -- Next State
+                  v.state := CTRL_ACK_S;
 
-            -- Check for "control acknowledge with tag"
-            elsif (rxData = x"06_06_06_06") then
-               -- Next State
-               v.state := CTRL_ACK_TAG_S;
+               -- Check for "control acknowledge with tag"
+               elsif (rxData = x"06_06_06_06") then
+                  -- Next State
+                  v.state := CTRL_ACK_TAG_S;
+
+               -- Check for "Stream data packet"
+               elsif (rxData = x"01_01_01_01") then
+                  -- Next State
+                  v.state := STREAM_ID_S;
+
+               -- Else undefined tag, return to IDLE
+               else
+                  -- Next State
+                  v.state := IDLE_S;
+               end if;
+
             end if;
          ----------------------------------------------------------------------
          when CTRL_ACK_TAG_S =>
-            -- Next State
-            v.state := CTRL_ACK_S;
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+               -- Next State
+               v.state := CTRL_ACK_S;
+            end if;
          ----------------------------------------------------------------------
          when CTRL_ACK_S =>
-            -- Increment the counter
-            v.ackCnt := r.ackCnt + 1;
+            -- Check for non-k word
+            if (rxDataK = x"0") then
 
-            -- "Acknowledgment code" index
-            if (r.ackCnt = 0) then
+               -- Increment the counter
+               v.ackCnt := r.ackCnt + 1;
 
-               -- Save the response code
-               v.cfgMaster.tData(31 downto 0) := rxData;
+               -- "Acknowledgment code" index
+               if (r.ackCnt = 0) then
 
-               -- Check for Success ACK
-               if (rxData = x"01_01_01_01") or (rxData = x"04_04_04_04") then
-                  -- Always send ZERO for successful ACK
-                  v.cfgMaster.tData(31 downto 0) := (others => '0');
+                  -- Save the response code
+                  v.cfgMaster.tData(31 downto 0) := rxData;
+
+                  -- Check for Success ACK
+                  if (rxData = x"01_01_01_01") or (rxData = x"04_04_04_04") then
+                     -- Always send ZERO for successful ACK
+                     v.cfgMaster.tData(31 downto 0) := (others => '0');
+                  end if;
+
+               -- "Data field" index
+               elsif (r.ackCnt = 2) then
+
+                  -- Save the data field
+                  v.cfgMaster.tData(63 downto 32) := rxData;
+
+                  -- Forward the response
+                  v.cfgMaster.tValid := '1';
+
+                  -- Next State
+                  v.state := IDLE_S;
+
                end if;
 
-            -- "Data field" index
-            elsif (r.ackCnt = 2) then
-
-               -- Save the data field
-               v.cfgMaster.tData(63 downto 32) := rxData;
-
-               -- Forward the response
-               v.cfgMaster.tValid := '1';
-
+            end if;
+         ----------------------------------------------------------------------
+         when STREAM_ID_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+               -- Save the value
+               v.streamID := rxData(7 downto 0);
                -- Next State
-               v.state := IDLE_S;
+               v.state    := PACKET_TAG_S;
+            end if;
+         ----------------------------------------------------------------------
+         when PACKET_TAG_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+               -- Set the TDEST to the packet tag
+               v.dataMaster.tDest := rxData(7 downto 0);
+               -- Next State
+               v.state            := DSIZE_UPPER_S;
+            end if;
+         ----------------------------------------------------------------------
+         when DSIZE_UPPER_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+               -- Set the TDEST to the packet tag
+               v.dsize(15 downto 8) := rxData(7 downto 0);
+               -- Next State
+               v.state              := DSIZE_LOWER_S;
+            end if;
+         ----------------------------------------------------------------------
+         when DSIZE_LOWER_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+               -- Set the TDEST to the packet tag
+               v.dsize(7 downto 0) := rxData(7 downto 0);
+               -- Next State
+               v.state             := STREAM_DATA_S;
+            end if;
+         ----------------------------------------------------------------------
+         when STREAM_DATA_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+
+               -- Move the data
+               v.dataMaster.tValid             := '1';
+               v.dataMaster.tData(31 downto 0) := rxData;
+
+               -- Check the counter
+               if (r.dcnt = (r.dsize-1)) then
+                  -- Reset the counter
+                  v.dcnt := (others => '0');
+
+                  -- Terminate the frame
+                  v.dataMaster.tLast := '1';
+
+                  -- Next State
+                  v.state := IDLE_S;
+               else
+                  -- Increment counter
+                  v.dcnt := r.dcnt + 1;
+               end if;
 
             end if;
       ----------------------------------------------------------------------

@@ -46,36 +46,41 @@ end entity CoaXPressTxFsm;
 
 architecture rtl of CoaXPressTxFsm is
 
-   constant CXP_TRIG_INIT_C : Slv32Array(2 downto 0) := (0 => CXP_TRIG_C, 1 to 2 => (others => '0'));
-   constant CXP_TRIG_K_C    : Slv4Array(2 downto 0)  := (0 => x"F", 1 to 2 => (others => '0'));
+   constant CXP_TRIG_INIT_C : Slv32Array(2 downto 0) := (0 => CXP_TRIG_C, 1 => (others => '0'), 2 => (others => '0'));
+   constant CXP_TRIG_K_C    : Slv4Array(2 downto 0)  := (0 => x"F", 1 => (others => '0'), 2 => (others => '0'));
 
    type RegType is record
-      forceIdle  : sl;
+      forceIdle   : sl;
       -- Trigger
-      txTrigDrop : slv(TRIG_WIDTH_G-1 downto 0);
-      txTrigCnt  : natural range 0 to 3;
-      txTrigData : Slv32Array(2 downto 0);
+      txTrigDrop  : slv(TRIG_WIDTH_G-1 downto 0);
+      txTrigCnt   : natural range 0 to 3;
+      txTrigData  : Slv32Array(2 downto 0);
+      txTrigDataK : Slv4Array(2 downto 0);
       -- TX PHY
-      txData     : slv(31 downto 0);
-      txDataK    : slv(3 downto 0);
+      txData      : slv(31 downto 0);
+      txDataK     : slv(3 downto 0);
       -- Config
-      cfgSlave   : AxiStreamSlaveType;
+      cfgSlave    : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      forceIdle  => '1',
+      forceIdle   => '1',
       -- Trigger
-      txTrigDrop => (others => '0'),
-      txTrigCnt  => 3,
-      txTrigData => CXP_TRIG_INIT_C,
+      txTrigDrop  => (others => '0'),
+      txTrigCnt   => 3,
+      txTrigData  => CXP_TRIG_INIT_C,
+      txTrigDataK => CXP_TRIG_K_C,
       -- TX PHY
-      txData     => CXP_IDLE_C,
-      txDataK    => CXP_IDLE_K_C,
+      txData      => CXP_IDLE_C,
+      txDataK     => CXP_IDLE_K_C,
       -- Config
-      cfgSlave   => AXI_STREAM_SLAVE_INIT_C);
+      cfgSlave    => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -123,7 +128,7 @@ begin
 
          -- Update the TX data
          v.txData  := r.txTrigData(r.txTrigCnt);
-         v.txDataK := CXP_TRIG_K_C(r.txTrigCnt);
+         v.txDataK := r.txTrigDataK(r.txTrigCnt);
 
       -- Check if moving config message
       elsif (cfgMaster.tValid = '1') and (r.forceIdle = '0') then
