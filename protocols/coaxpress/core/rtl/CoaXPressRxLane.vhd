@@ -49,7 +49,13 @@ architecture rtl of CoaXPressRxLane is
       IDLE_S,
       TYPE_S,
       CTRL_ACK_TAG_S,
-      CTRL_ACK_S);
+      CTRL_ACK_S,
+      STREAM_ID_S,
+      PACKET_TAG_S,
+      DSIZE_UPPER_S,
+      DSIZE_LOWER_S,
+      STREAM_DATA_S,
+      STREAM_CRC_S);
 
    type RegType is record
       streamID   : slv(7 downto 0);
@@ -62,9 +68,9 @@ architecture rtl of CoaXPressRxLane is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      streamID   => (others => 0'),
-      dcnt       => (others => 0'),
-      dsize      => (others => 0'),
+      streamID   => (others => '0'),
+      dcnt       => (others => '0'),
+      dsize      => (others => '0'),
       ackCnt     => 0,
       cfgMaster  => AXI_STREAM_MASTER_INIT_C,
       dataMaster => AXI_STREAM_MASTER_INIT_C,
@@ -224,12 +230,19 @@ begin
                   v.dataMaster.tLast := '1';
 
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state := STREAM_CRC_S;
                else
                   -- Increment counter
                   v.dcnt := r.dcnt + 1;
                end if;
 
+            end if;
+         ----------------------------------------------------------------------
+         when STREAM_CRC_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+               -- Next State
+               v.state := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;

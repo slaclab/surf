@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: CoaXPress TX FSM
+-- Description: CoaXPress TX High Speed FSM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,7 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.CoaXPressPkg.all;
 use surf.Code8b10bPkg.all;
 
-entity CoaXPressTxFsm is
+entity CoaXPressTxHsFsm is
    generic (
       TPD_G        : time                   := 1 ns;
       TRIG_WIDTH_G : positive range 1 to 16 := 1);
@@ -42,9 +42,9 @@ entity CoaXPressTxFsm is
       -- TX PHY Interface
       txData     : out slv(31 downto 0);
       txDataK    : out slv(3 downto 0));
-end entity CoaXPressTxFsm;
+end entity CoaXPressTxHsFsm;
 
-architecture rtl of CoaXPressTxFsm is
+architecture rtl of CoaXPressTxHsFsm is
 
    constant CXP_TRIG_INIT_C : Slv32Array(2 downto 0) := (0 => CXP_TRIG_C, 1 => (others => '0'), 2 => (others => '0'));
    constant CXP_TRIG_K_C    : Slv4Array(2 downto 0)  := (0 => x"F", 1 => (others => '0'), 2 => (others => '0'));

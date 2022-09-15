@@ -48,8 +48,14 @@ entity CoaXPressCore is
       -- Tx Interface (txClk domain)
       txClk           : in  sl;
       txRst           : in  sl;
-      txData          : out slv(31 downto 0);
-      txDataK         : out slv(3 downto 0);
+      txLsValid       : out sl;
+      txLsData        : out slv(7 downto 0);
+      txLsDataK       : out sl;
+      txLsRate        : out sl;
+      txLsLaneEn      : out slv(3 downto 0);
+      txHsEnable      : out sl;
+      txHsData        : out slv(31 downto 0);
+      txHsDataK       : out slv(3 downto 0);
       txTrig          : in  slv(TRIG_WIDTH_G-1 downto 0);
       txLinkUp        : in  sl;
       -- Rx Interface (rxClk domain)
@@ -81,11 +87,14 @@ architecture mapping of CoaXPressCore is
    signal swTrig     : slv(TRIG_WIDTH_G-1 downto 0);
    signal txTrigDrop : slv(TRIG_WIDTH_G-1 downto 0);
 
+   signal txLsRateInt : sl;
+
    signal dataMasterInt : AxiStreamMasterType;
    signal dataSlaveInt  : AxiStreamSlaveType;
 
 begin
 
+   txLsRate     <= txLsRateInt;
    dataMaster   <= dataMasterInt;
    dataSlaveInt <= dataSlave;
 
@@ -123,8 +132,12 @@ begin
          -- TX Interface (txClk domain)
          txClk       => txClk,
          txRst       => txRst,
-         txData      => txData,
-         txDataK     => txDataK,
+         txLsRate    => txLsRateInt,
+         txLsValid   => txLsValid,
+         txLsData    => txLsData,
+         txLsDataK   => txLsDataK,
+         txHsData    => txHsData,
+         txHsDataK   => txHsDataK,
          swTrig      => swTrig,
          txTrig      => txTrig,
          txTrigDrop  => txTrigDrop);
@@ -168,6 +181,9 @@ begin
          swTrig          => swTrig,
          txTrigDrop      => txTrigDrop,
          txLinkUp        => txLinkUp,
+         txLsRate        => txLsRateInt,
+         txLsLaneEn      => txLsLaneEn,
+         txHsEnable      => txHsEnable,
          -- Rx Interface (rxClk domain)
          rxClk           => rxClk,
          rxRst           => rxRst,

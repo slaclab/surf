@@ -42,6 +42,9 @@ entity CoaXPressAxiL is
       swTrig          : out slv(TRIG_WIDTH_G-1 downto 0);
       txTrigDrop      : in  slv(TRIG_WIDTH_G-1 downto 0);
       txLinkUp        : in  sl;
+      txLsRate        : out sl;
+      txLsLaneEn      : out slv(3 downto 0);
+      txHsEnable      : out sl;
       -- Rx Interface (rxClk domain)
       rxClk           : in  slv(NUM_LANES_G-1 downto 0);
       rxRst           : in  slv(NUM_LANES_G-1 downto 0);
@@ -73,6 +76,9 @@ architecture rtl of CoaXPressAxiL is
    constant TX_STATUS_CNT_C : positive := 1;
 
    type RegType is record
+      txLsRate        : sl;
+      txLsLaneEn      : slv(3 downto 0);
+      txHsEnable      : sl;
       configTimerSize : slv(23 downto 0);
       configErrResp   : slv(1 downto 0);
       swTrig          : slv(TRIG_WIDTH_G-1 downto 0);
@@ -82,6 +88,9 @@ architecture rtl of CoaXPressAxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txLsRate        => '0',
+      txLsLaneEn      => x"1",
+      txHsEnable      => '0',
       configTimerSize => (others => '1'),
       configErrResp   => (others => '1'),
       swTrig          => (others => '0'),
@@ -185,9 +194,15 @@ begin
       axiSlaveRegisterR(axilEp, x"FF0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"FF0", 16, toSlv(TRIG_WIDTH_G, 8));
+
       axiSlaveRegister (axilEp, X"FF4", 0, v.swTrig);
+
       axiSlaveRegister (axilEp, x"FF8", 0, v.configTimerSize);
-      axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);
+      axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);  -- BIT25:BIT24
+      axiSlaveRegister (axilEp, x"FF8", 26, v.txLsRate);
+      axiSlaveRegister (axilEp, x"FF8", 27, v.txHsEnable);
+      axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);     -- BIT31:BIT28
+
       axiSlaveRegister (axilEp, X"FFC", 0, v.cntRst);
 
       -- Close the transaction
@@ -299,6 +314,31 @@ begin
          clkIn   => txClk,
          locClk  => axilClk,
          refClk  => axilClk);
+
+   U_txLsRate : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => txClk,
+         dataIn  => r.txLsRate,
+         dataOut => txLsRate);
+
+   U_txLsLaneEn : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 4)
+      port map (
+         clk     => txClk,
+         dataIn  => r.txLsLaneEn,
+         dataOut => txLsLaneEn);
+
+   U_txHsEnable : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => txClk,
+         dataIn  => r.txHsEnable,
+         dataOut => txHsEnable);
 
    ---------------------------
    -- Receiver Synchronization

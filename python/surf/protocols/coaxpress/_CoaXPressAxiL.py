@@ -198,6 +198,30 @@ class CoaXPressAxiL(pr.Device):
             mode         = 'RW',
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'TxLsRate',
+            offset       = 0xFF8,
+            bitSize      = 1,
+            bitOffset    = 26,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxHsEnable',
+            offset       = 0xFF8,
+            bitSize      = 1,
+            bitOffset    = 27,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxLsLaneEnable',
+            offset       = 0xFF8,
+            bitSize      = 4,
+            bitOffset    = 28,
+            mode         = 'RW',
+        ))
+
         self.add(pr.RemoteCommand(
             name         = 'CountReset',
             description  = 'Status counter reset',

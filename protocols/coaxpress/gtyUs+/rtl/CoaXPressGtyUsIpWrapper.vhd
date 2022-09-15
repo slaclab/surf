@@ -40,8 +40,14 @@ entity CoaXPressGtyUsIpWrapper is
       -- Tx Interface (txClk domain)
       txClk           : out sl;
       txRst           : out sl;
-      txData          : in  slv(31 downto 0);
-      txDataK         : in  slv(3 downto 0);
+      txLsValid       : in  sl;
+      txLsData        : in  slv(7 downto 0);
+      txLsDataK       : in  sl;
+      txLsRate        : in  sl;
+      txLsLaneEn      : in  slv(3 downto 0);
+      txHsEnable      : in  sl;
+      txHsData        : in  slv(31 downto 0);
+      txHsDataK       : in  slv(3 downto 0);
       txLinkUp        : out sl;
       -- Rx Interface (rxClk domain)
       rxClk           : out sl;
@@ -154,6 +160,10 @@ architecture mapping of CoaXPressGtyUsIpWrapper is
 
 begin
 
+   assert (false)
+      report "None CXP over fiber configuration not ready for production yet"
+      severity error;
+
    assert (CXP_RATE_G = CXP_12_C)
       report "CXP_RATE_G: Only CXP_12_C is supported at this time"
       severity error;
@@ -190,8 +200,8 @@ begin
    process(txClock)
    begin
       if rising_edge(txClock) then
-         txDataInt <= txData         after TPD_G;
-         txctrl2   <= x"0" & txDataK after TPD_G;
+         txDataInt <= txHsData         after TPD_G;
+         txctrl2   <= x"0" & txHsDataK after TPD_G;
       end if;
    end process;
 

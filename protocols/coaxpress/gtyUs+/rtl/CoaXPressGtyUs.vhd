@@ -34,8 +34,8 @@ entity CoaXPressGtyUs is
       TRIG_WIDTH_G       : positive range 1 to 16 := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
       AXIL_BASE_ADDR_G   : slv(31 downto 0);
-      AXIL_CLK_FREQ_G    : real; -- axilClk frequency (units of Hz)
-      AXIS_CLK_FREQ_G    : real; -- dataClk frequency (units of Hz)
+      AXIL_CLK_FREQ_G    : real;        -- axilClk frequency (units of Hz)
+      AXIS_CLK_FREQ_G    : real;        -- dataClk frequency (units of Hz)
       AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
       -- QPLL Interface
@@ -86,11 +86,17 @@ architecture mapping of CoaXPressGtyUs is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal txClk    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txRst    : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txData   : slv32Array(NUM_LANES_G-1 downto 0) := (others => CXP_IDLE_C);
-   signal txDataK  : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => CXP_IDLE_K_C);
-   signal txLinkUp : slv(NUM_LANES_G-1 downto 0);
+   signal txClk      : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txRst      : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txLsValid  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txLsData   : slv8Array(NUM_LANES_G-1 downto 0)  := (others => CXP_IDLE_C(7 downto 0));
+   signal txLsDataK  : slv(NUM_LANES_G-1 downto 0)        := (others => '1');
+   signal txLsLaneEn : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => x"0");
+   signal txLsRate   : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txHsEnable : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txHsData   : slv32Array(NUM_LANES_G-1 downto 0) := (others => CXP_IDLE_C);
+   signal txHsDataK  : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => CXP_IDLE_K_C);
+   signal txLinkUp   : slv(NUM_LANES_G-1 downto 0);
 
    signal rxClk     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal rxRst     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
@@ -147,8 +153,14 @@ begin
          -- Tx Interface (txClk domain)
          txClk           => txClk(0),
          txRst           => txRst(0),
-         txData          => txData(0),
-         txDataK         => txDataK(0),
+         txLsValid       => txLsValid(0),
+         txLsData        => txLsData(0),
+         txLsDataK       => txLsDataK(0),
+         txLsLaneEn      => txLsLaneEn(0),
+         txLsRate        => txLsRate(0),
+         txHsEnable      => txHsEnable(0),
+         txHsData        => txHsData(0),
+         txHsDataK       => txHsDataK(0),
          txTrig          => trigger,
          txLinkUp        => txLinkUp(0),
          -- Rx Interface (rxClk domain)
@@ -175,7 +187,8 @@ begin
       GEN_CXPOF : if (CXPOF_G = true) generate
          U_CXPOF : entity surf.CoaXPressOverFiberGtyUsIpWrapper
             generic map (
-               TPD_G      => TPD_G)
+               TPD_G   => TPD_G,
+               LANE0_G => (i = 0))
             port map (
                -- QPLL Interface
                qpllLock        => qpllLock(i),
@@ -190,8 +203,14 @@ begin
                -- Tx Interface (txClk domain)
                txClk           => txClk(i),
                txRst           => txRst(i),
-               txData          => txData(i),
-               txDataK         => txDataK(i),
+               txLsValid       => txLsValid(i),
+               txLsData        => txLsData(i),
+               txLsDataK       => txLsDataK(i),
+               txLsRate        => txLsRate(i),
+               txLsLaneEn      => txLsLaneEn(i),
+               txHsEnable      => txHsEnable(i),
+               txHsData        => txHsData(i),
+               txHsDataK       => txHsDataK(i),
                txLinkUp        => txLinkUp(i),
                -- Rx Interface (rxClk domain)
                rxClk           => rxClk(i),
@@ -229,8 +248,14 @@ begin
                -- Tx Interface (txClk domain)
                txClk           => txClk(i),
                txRst           => txRst(i),
-               txData          => txData(i),
-               txDataK         => txDataK(i),
+               txLsValid       => txLsValid(i),
+               txLsData        => txLsData(i),
+               txLsDataK       => txLsDataK(i),
+               txLsRate        => txLsRate(i),
+               txLsLaneEn      => txLsLaneEn(i),
+               txHsEnable      => txHsEnable(i),
+               txHsData        => txHsData(i),
+               txHsDataK       => txHsDataK(i),
                txLinkUp        => txLinkUp(i),
                -- Rx Interface (rxClk domain)
                rxClk           => rxClk(i),
