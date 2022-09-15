@@ -681,12 +681,7 @@ class Ad9681Readout(pr.Device):
         checkEach = checkEach or self.forceCheckEach
 
         if variable is not None:
-            freeze = False #isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
-            if freeze:
-                self.FreezeDebug(1)
             pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
-            if freeze:
-                self.FreezeDebug(0)
 
         else:
             self.FreezeDebug(1)
