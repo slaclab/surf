@@ -20,7 +20,7 @@ import pyrogue as pr
 class Xadc(pr.Device):
     def __init__(self,
                  description = "AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)",
-                 auxChannels = [],
+                 auxChannels = 0,
                  zynq        = False,
                  **kwargs):
         super().__init__(description=description, **kwargs)
@@ -308,7 +308,7 @@ class Xadc(pr.Device):
 
         for ch in auxChannels:
             self.add(pr.RemoteVariable(
-                name         = "AuxRaw[{ch}]",
+                name         = f'AuxRaw[{ch}]',
                 offset       =  0x240 + ch*4,
                 bitSize      =  12,
                 bitOffset    =  4,
@@ -331,7 +331,6 @@ class Xadc(pr.Device):
                 variable=self.AuxRaw[ch],
                 linkedGet=self.convAuxVoltage))
 
-            
         if (zynq):
             addPair(
                 name        = 'VccpInt',
