@@ -439,7 +439,7 @@ class Ad9681ReadoutManual(pr.Device):
             base        = pr.Bool,
             mode        = 'RW',
         ))
-        
+
 
         for i in range(channels):
             self.add(pr.RemoteVariable(
@@ -543,7 +543,7 @@ class Ad9681Readout(pr.Device):
             base         = pr.Bool,
             mode         = 'RW',
             verify       = True,
-            ))
+        ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
@@ -568,7 +568,7 @@ class Ad9681Readout(pr.Device):
                 base        = pr.UInt,
                 mode        = 'RO',
             ))
-            
+
 
         for i in range(2):
             self.add(pr.RemoteVariable(
@@ -622,7 +622,7 @@ class Ad9681Readout(pr.Device):
             base        = pr.Bool,
             mode        = 'RW',
         ))
-        
+
 
         for i in range(channels):
             self.add(pr.RemoteVariable(
@@ -693,4 +693,3 @@ class Ad9681Readout(pr.Device):
             if recurse:
                 for key,value in self.devices.items():
                     value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
-                    
