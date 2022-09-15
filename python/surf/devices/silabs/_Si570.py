@@ -57,7 +57,7 @@ class Si570(pr.Device):
             dependencies = [self.N1_RAW],
             linkedGet = read_n1,
             linkedSet = lambda value, write: self.N1_RAW.set(value-1, write=write)))
-        
+
         # Enum for HS_DIV
         self.add(pr.RemoteVariable(
             name = 'HS_DIV_RAW',
@@ -97,7 +97,7 @@ class Si570(pr.Device):
                     tmp = (tmp & 0x1f) | (old & 0xc0)
                 self.Config[i].set(tmp&0xFF, write=write)
                 tmp = tmp >> 8
-        
+
         self.add(pr.LinkVariable(
             name = 'RFREQ_RAW',
             #value = 0x2EBB04CE0,
@@ -105,7 +105,7 @@ class Si570(pr.Device):
             dependencies = [self.Config[x] for x in range(8,13)],
             linkedGet = rfreq_raw_get,
             linkedSet = rfreq_raw_set))
-        
+
 
         self.add(pr.LinkVariable(
             name = 'RFREQ',
@@ -154,7 +154,7 @@ class Si570(pr.Device):
                 return 0.0
             else:
                 return factory_freq * self.HS_DIV.get(read=read) * self.N1.get(read=read) / rfreq
-            
+
         self.add(pr.LinkVariable(
             name = 'fxtal',
             dependencies = [self.RFREQ, self.HS_DIV, self.N1],
@@ -171,7 +171,7 @@ class Si570(pr.Device):
                     fdco = f1 * hs_div * n1
                     if 4850 < fdco < 5670:
                         return n1, hs_div
-        
+
         def set_freq(value, write):
             if write is False:
                 return
@@ -205,7 +205,7 @@ class Si570(pr.Device):
             fxtal = self.fxtal.get(read=read)
 
             return (fxtal * rfreq)/(hs_div * n1)
-        
+
 
         self.add(pr.LinkVariable(
             name = 'Frequency',
