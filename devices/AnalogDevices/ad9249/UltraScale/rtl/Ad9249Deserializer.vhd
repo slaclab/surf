@@ -32,14 +32,14 @@ use surf.Ad9249Pkg.all;
 
 entity Ad9249Deserializer is
    generic (
-      TPD_G             : time            := 1 ns;
-      SIM_DEVICE_G      : string          := "ULTRASCALE";
-      IODELAY_GROUP_G   : string          := "DEFAULT_GROUP";
-      IDELAY_CASCADE_G  : boolean         := false;
-      IDELAYCTRL_FREQ_G : real            := 300.0;
-      DEFAULT_DELAY_G   : slv(8 downto 0) := (others => '0');
-      ADC_INVERT_CH_G   : sl              := '0';
-      BIT_REV_G         : sl              := '0');
+      TPD_G             : time                 := 1 ns;
+      SIM_DEVICE_G      : string               := "ULTRASCALE";
+      IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
+      IDELAY_CASCADE_G  : boolean              := false;
+      IDELAYCTRL_FREQ_G : real                 := 300.0;
+      DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
+      ADC_INVERT_CH_G   : sl                   := '0';
+      BIT_REV_G         : sl                   := '0');
    port (
       -- Serial Data from ADC
       dClk          : in  sl;                -- Data clock
@@ -192,7 +192,7 @@ begin
          IS_CLK_B_INVERTED => '1',      -- Optional inversion for CLK_B
          IS_CLK_INVERTED   => '0',      -- Optional inversion for CLK
          IS_RST_INVERTED   => '0',      -- Optional inversion for RST
-         SIM_DEVICE        => "ULTRASCALE"  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
+         SIM_DEVICE        => SIM_DEVICE_G  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
          )
       port map (
          FIFO_EMPTY      => open,       -- 1-bit output: FIFO empty flag

@@ -121,7 +121,7 @@ begin
          v.portData.dv    := '1';
          v.portData.fv    := parData(0)(25);
 
-         -- 8-bit, cameraLink spec V2.0, page 16
+         -- 8-bit/10-tap, cameraLink spec V2.0, page 23-25
          if chanConfig.dataMode = CDM_8BIT_C then
             v.portData.lv                  := parData(0)(24) and parData(1)(27) and parData(2)(27);
             v.portData.data(0)             := parData(0)(7 downto 0);
@@ -137,46 +137,58 @@ begin
             v.portData.data(8)             := parData(2)(18 downto 11);
             v.portData.data(9)             := parData(2)(26 downto 19);
 
-         -- 10-bit, cameraLink spec V2.0, page 17
+         -- 10-bit/8-tap, cameraLink spec V2.0, page 26-28
          elsif chanConfig.dataMode = CDM_10BIT_C then
-            v.portData.lv                  := parData(0)(24) and parData(1)(24) and parData(2)(24);
-            v.portData.data(0)(4 downto 0) := parData(0)(4 downto 0);
-            v.portData.data(0)(5)          := parData(0)(6);
-            v.portData.data(0)(6)          := parData(0)(27);
-            v.portData.data(0)(7)          := parData(0)(5);
-            v.portData.data(1)(2 downto 0) := parData(0)(9 downto 7);
-            v.portData.data(1)(5 downto 3) := parData(0)(14 downto 12);
-            v.portData.data(1)(7 downto 6) := parData(0)(11 downto 10);
-            v.portData.data(2)(0)          := parData(0)(15);
-            v.portData.data(2)(5 downto 1) := parData(0)(22 downto 18);
-            v.portData.data(2)(7 downto 6) := parData(0)(17 downto 16);
-            v.portData.data(3)(4 downto 0) := parData(1)(4 downto 0);
-            v.portData.data(3)(5)          := parData(1)(6);
-            v.portData.data(3)(6)          := parData(1)(27);
-            v.portData.data(3)(7)          := parData(1)(5);
-            v.portData.data(4)(2 downto 0) := parData(1)(9 downto 7);
-            v.portData.data(4)(5 downto 3) := parData(1)(14 downto 12);
-            v.portData.data(4)(7 downto 6) := parData(1)(11 downto 10);
-            v.portData.data(5)(0)          := parData(1)(15);
-            v.portData.data(5)(5 downto 1) := parData(1)(22 downto 18);
-            v.portData.data(5)(7 downto 6) := parData(1)(17 downto 16);
-            v.portData.data(6)(4 downto 0) := parData(2)(4 downto 0);
-            v.portData.data(6)(5)          := parData(2)(6);
-            v.portData.data(6)(6)          := parData(2)(27);
-            v.portData.data(6)(7)          := parData(2)(5);
-            v.portData.data(7)(2 downto 0) := parData(2)(9 downto 7);
-            v.portData.data(7)(5 downto 3) := parData(2)(14 downto 12);
-            v.portData.data(7)(7 downto 6) := parData(2)(11 downto 10);
-            v.portData.data(8)(0)          := parData(0)(26);
-            v.portData.data(8)(1)          := parData(0)(23);
-            v.portData.data(8)(3 downto 2) := parData(1)(26 downto 25);
-            v.portData.data(8)(4)          := parData(1)(23);
-            v.portData.data(8)(5)          := parData(2)(15);
-            v.portData.data(8)(7 downto 6) := parData(2)(19 downto 18);
-            v.portData.data(9)(2 downto 0) := parData(2)(22 downto 20);
-            v.portData.data(9)(4 downto 3) := parData(2)(17 downto 16);
-            v.portData.data(9)(6 downto 5) := parData(2)(26 downto 25);
-            v.portData.data(9)(7)          := parData(2)(23);
+            v.portData.lv := parData(0)(24) and parData(1)(24) and parData(2)(24);
+
+            v.portData.data(0)(0)          := parData(0)(26);
+            v.portData.data(0)(1)          := parData(0)(23);
+            v.portData.data(0)(6 downto 2) := parData(0)(4 downto 0);
+            v.portData.data(0)(7)          := parData(0)(6);
+            v.portData.data(1)(0)          := parData(0)(27);
+            v.portData.data(1)(1)          := parData(0)(5);
+
+            v.portData.data(2)(1 downto 0) := parData(1)(26 downto 25);
+            v.portData.data(2)(4 downto 2) := parData(0)(9 downto 7);
+            v.portData.data(2)(7 downto 5) := parData(0)(14 downto 12);
+            v.portData.data(3)(1 downto 0) := parData(0)(11 downto 10);
+
+            v.portData.data(4)(0)          := parData(1)(23);
+            v.portData.data(4)(1)          := parData(2)(15);
+            v.portData.data(4)(2)          := parData(0)(15);
+            v.portData.data(4)(7 downto 3) := parData(0)(22 downto 18);
+            v.portData.data(5)(1 downto 0) := parData(0)(17 downto 16);
+
+            v.portData.data(6)(1 downto 0) := parData(2)(19 downto 18);
+            v.portData.data(6)(6 downto 2) := parData(1)(4 downto 0);
+            v.portData.data(6)(7)          := parData(1)(6);
+            v.portData.data(7)(0)          := parData(1)(27);
+            v.portData.data(7)(1)          := parData(1)(5);
+
+            v.portData.data(8)(1 downto 0) := parData(2)(21 downto 20);
+            v.portData.data(8)(4 downto 2) := parData(1)(9 downto 7);
+            v.portData.data(8)(7 downto 5) := parData(1)(14 downto 12);
+            v.portData.data(9)(1 downto 0) := parData(1)(11 downto 10);
+
+            v.portData.data(10)(0)          := parData(2)(22);
+            v.portData.data(10)(1)          := parData(2)(16);
+            v.portData.data(10)(2)          := parData(1)(15);
+            v.portData.data(10)(7 downto 3) := parData(1)(22 downto 18);
+            v.portData.data(11)(1 downto 0) := parData(1)(17 downto 16);
+
+            v.portData.data(12)(0)          := parData(2)(17);
+            v.portData.data(12)(1)          := parData(2)(25);
+            v.portData.data(12)(6 downto 2) := parData(2)(4 downto 0);
+            v.portData.data(12)(7)          := parData(2)(6);
+            v.portData.data(13)(0)          := parData(2)(27);
+            v.portData.data(13)(1)          := parData(2)(5);
+
+            v.portData.data(14)(0)          := parData(2)(26);
+            v.portData.data(14)(1)          := parData(2)(23);
+            v.portData.data(14)(4 downto 2) := parData(2)(9 downto 7);
+            v.portData.data(14)(7 downto 5) := parData(2)(14 downto 12);
+            v.portData.data(15)(1 downto 0) := parData(2)(11 downto 10);
+
          end if;
 
       -- Base, Medium, Full Modes
@@ -328,7 +340,7 @@ begin
             when CDM_10BIT_C =>
                if chanConfig.linkMode = CLM_DECA_C then
                   v.byteData := r.portData;
-                  v.bytes    := 10;
+                  v.bytes    := 16;
                else
                   v.byteData.data(0)             := r.portData.data(0);  -- T1, DA[07:00]
                   v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0);  -- T1, DA[09:08]
