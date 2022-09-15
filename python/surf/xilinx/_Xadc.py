@@ -308,7 +308,7 @@ class Xadc(pr.Device):
 
         for ch in auxChannels:
             self.add(pr.RemoteVariable(
-                name         = f'AuxRaw[{ch}]',
+                name         = "AuxRaw[{ch}]",
                 offset       =  0x240 + ch*4,
                 bitSize      =  12,
                 bitOffset    =  4,
