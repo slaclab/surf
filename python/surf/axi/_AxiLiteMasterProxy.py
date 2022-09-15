@@ -78,6 +78,8 @@ class _Regs(pr.Device):
         while True:
             #print('Main thread loop start')
             transaction = self._queue.get()
+            if transaction is None:
+                return
             with self._memLock, transaction.lock():
                 #tranId = transaction.id()
                 #print(f'Woke the pollWorker with id: {tranId}')
@@ -135,6 +137,12 @@ class _Regs(pr.Device):
                     #print(dataBa)
                     transaction.setData(dataBa, 0)
                     transaction.done()
+
+
+    def _stop(self):
+        self._queue.put(None)
+        self._pollThread.join()
+
 
 class _ProxySlave(rogue.interfaces.memory.Slave):
 
