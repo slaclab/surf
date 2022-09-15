@@ -156,7 +156,7 @@ architecture rtl of Pgp2bGtx7Fixedlat is
    -- PgpRx Signals
    signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
    signal dataValid     : sl;                              -- no decode or disparity errors
-   signal dataValidTmp  : sl;                              -- no decode or disparity errors      
+   signal dataValidTmp  : sl;                              -- no decode or disparity errors
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
    signal phyRxReady    : sl;                              -- To RxRst
