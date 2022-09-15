@@ -45,6 +45,7 @@ entity Pgp2bGtx7VarLatWrapper is
       DIVCLK_DIVIDE_G       : natural range 1 to 106  := 2;
       CLKFBOUT_MULT_F_G     : real range 1.0 to 64.0  := 31.875;
       CLKOUT0_DIVIDE_F_G    : real range 1.0 to 128.0 := 6.375;
+      FB_BUFG_G             : boolean                 := false;  -- Simulation might have trouble locking with false
       -- CPLL Configurations (Defaults: gtClkP = 125 MHz Configuration)
       -- See page 48 of https://www.xilinx.com/support/documentation/user_guides/ug476_7Series_Transceivers.pdf
       -- fPllClkOut = fPLLClkIn * ( CPLL_FBDIV_G * CPLL_FBDIV_45_G ) / CPLL_REFCLK_DIV_G
@@ -168,7 +169,7 @@ begin
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
          INPUT_BUFG_G       => false,
-         FB_BUFG_G          => true,
+         FB_BUFG_G          => FB_BUFG_G,
          RST_IN_POLARITY_G  => '1',
          NUM_CLOCKS_G       => 1,
          -- MMCM attributes
