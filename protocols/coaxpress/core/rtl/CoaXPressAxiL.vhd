@@ -89,7 +89,7 @@ architecture rtl of CoaXPressAxiL is
 
    constant REG_INIT_C : RegType := (
       txLsRate        => '0',
-      txLsLaneEn      => x"1",
+      txLsLaneEn      => x"F",
       txHsEnable      => '0',
       configTimerSize => (others => '1'),
       configErrResp   => (others => '1'),
