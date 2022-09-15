@@ -92,8 +92,9 @@ class _Regs(pr.Device):
 
                 if transaction.type() == rogue.interfaces.memory.Write:
                     # Convert data bytes to int and write data to proxy register
-                    transaction.getData(self._dataBa, 0)
-                    data = int.from_bytes(self._dataBa, 'little', signed=False)
+                    dataBa = bytearray(4)
+                    transaction.getData(dataBa, 0)
+                    data = int.from_bytes(dataBa, 'little', signed=False)
                     self.Data.set(data, write=True)
                     #print(f'Wrote data {data:x}')
 
