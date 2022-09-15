@@ -169,6 +169,7 @@ package StdRtlPkg is
    -- pragma translate_on
 
    -- Add more slv array sizes here as they become needed
+   type Slv512Array is array (natural range <>) of slv(511 downto 0);
    type Slv256Array is array (natural range <>) of slv(255 downto 0);
    type Slv255Array is array (natural range <>) of slv(254 downto 0);
    type Slv254Array is array (natural range <>) of slv(253 downto 0);
@@ -427,6 +428,7 @@ package StdRtlPkg is
    type Slv1Array is array (natural range <>) of slv(0 downto 0);
 
    -- Add more slv vector array sizes here as they become needed
+   type Slv512VectorArray is array (natural range<>, natural range<>) of slv(511 downto 0);
    type Slv256VectorArray is array (natural range<>, natural range<>) of slv(255 downto 0);
    type Slv255VectorArray is array (natural range<>, natural range<>) of slv(254 downto 0);
    type Slv254VectorArray is array (natural range<>, natural range<>) of slv(253 downto 0);

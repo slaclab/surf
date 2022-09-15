@@ -44,8 +44,8 @@ entity AxiStreamFifoV2 is
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 1;
-      SYNTH_MODE_G    : string                         := "inferred";
-      MEMORY_TYPE_G   : string                         := "block";
+      SYNTH_MODE_G        : string                     := "inferred";
+      MEMORY_TYPE_G       : string                     := "block";
 
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
@@ -159,9 +159,10 @@ architecture rtl of AxiStreamFifoV2 is
    signal fifoValidLast   : sl;
    signal fifoInFrame     : sl;
 
-   signal burstEn   : sl;
-   signal burstLast : sl;
-   signal burstCnt  : natural range 0 to VALID_THOLD_G := 0;
+   signal burstEn    : sl;
+   signal burstLast  : sl;
+   signal burstCnt   : natural range 0 to VALID_THOLD_G := 0;
+   signal firstCycle : sl;
 
    signal sideBand : Slv8Array(1 downto 0);
 
@@ -188,13 +189,13 @@ begin
          READY_EN_G          => SLAVE_READY_EN_G,
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => FIFO_CONFIG_C)
-         port map (
-            axisClk     => sAxisClk,
-            axisRst     => sAxisRst,
-            sAxisMaster => sAxisMaster,
-            sAxisSlave  => sAxisSlave,
-            mAxisMaster => fifoWriteMaster,
-            mAxisSlave  => fifoWriteSlave);
+      port map (
+         axisClk     => sAxisClk,
+         axisRst     => sAxisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         mAxisMaster => fifoWriteMaster,
+         mAxisSlave  => fifoWriteSlave);
 
    -------------------------
    -- FIFO
@@ -323,7 +324,9 @@ begin
                   fifoInFrame <= '0' after TPD_G;
                   burstEn     <= '0' after TPD_G;
                   burstLast   <= '0' after TPD_G;
+                  firstCycle  <= '1' after TPD_G;
                else
+                  firstCycle <= '0' after TPD_G;
                   -- Check if for burst mode
                   if (burstEn = '1') and (burstLast = '0') and (fifoRead = '1') then
                      -- Increment the counter
@@ -335,7 +338,7 @@ begin
                         burstEn     <= '0' after TPD_G;
                      end if;
                   end if;
-                  if (fifoValidLast = '1') or ((fifoRdCount >= VALID_THOLD_G) and (burstEn = '0')) then
+                  if (fifoValidLast = '1') or ((fifoRdCount >= VALID_THOLD_G) and (burstEn = '0') and firstCycle = '0') then
                      -- Set the flags
                      burstEn     <= '1'           after TPD_G;
                      burstLast   <= fifoValidLast after TPD_G;
@@ -360,7 +363,7 @@ begin
       fifoValid     <= fifoValidInt;
    end generate;
 
-   sideBand(0) <= resize(fifoReadUser, 8); -- mTLastTUser
+   sideBand(0) <= resize(fifoReadUser, 8);  -- mTLastTUser
 
    -- Map output Signals
    fifoReadMaster <= toAxiStreamMaster (fifoDout, fifoValid, FIFO_CONFIG_C);
