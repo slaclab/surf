@@ -100,13 +100,13 @@ class _Regs(pr.Device):
 
                     # Kick off the proxy transaction
                     self.Rnw.setDisp('Write', write=True)
-                    #print(f'Started write transaction: {transaction.id()}')
+                    #print(f'Started write transaction: {tranId}')
 
                 elif (transaction.type() == rogue.interfaces.memory.Read) or (transaction.type() == rogue.interfaces.memory.Verify):
 
                     # Kick off the read proxy txn
                     self.Rnw.setDisp('Read', write=True)
-                    #print(f'Started read transaction: {transaction.id()}')
+                    #print(f'Started read transaction: {tranId}')
 
                 else:
                     # Post transactions not allowed
