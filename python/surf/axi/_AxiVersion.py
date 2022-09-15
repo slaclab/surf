@@ -272,16 +272,16 @@ class AxiVersion(pr.Device):
 
     def printStatus(self):
         try:
-            gitHash = self.GitHash.value()
+            gitHash = self.GitHash.get()
             print("Path         = {}".format(self.path))
-            print("FwVersion    = {}".format(hex(self.FpgaVersion.value())))
-            print("UpTime       = {}".format(self.UpTime.value()))
+            print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
+            print("UpTime       = {}".format(self.UpTime.get()))
             if (gitHash != 0):
-                print("GitHash      = {}".format(hex(self.GitHash.value())))
+                print("GitHash      = {}".format(hex(self.GitHash.get())))
             else:
                 print("GitHash      = dirty (uncommitted code)")
-            print("XilinxDnaId  = {}".format(hex(self.DeviceDna.value())))
-            print("FwTarget     = {}".format(self.ImageName.value()))      # Read buildstamp here
+            print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
+            print("FwTarget     = {}".format(self.ImageName.get()))      # Read buildstamp here
             print("BuildEnv     = {}".format(self.BuildEnv.value()))
             print("BuildServer  = {}".format(self.BuildServer.value()))
             print("BuildDate    = {}".format(self.BuildDate.value()))
