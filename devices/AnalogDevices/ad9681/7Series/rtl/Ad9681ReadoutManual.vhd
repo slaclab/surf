@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- ADC Readout Controller
+-- ADC ReadoutManual Controller
 -- Receives ADC Data from an AD9592 chip.
 -- Designed specifically for Xilinx 7 series FPGAs
 -------------------------------------------------------------------------------
@@ -30,10 +30,10 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9681Pkg.all;
 
-entity Ad9681Readout is
+entity Ad9681ReadoutManual is
    generic (
-      TPD_G             : time                      := 1 ns;
-      SIMULATION_G      : boolean                   := false;
+      TPD_G : time := 1 ns;
+
       IODELAY_GROUP_G   : string                    := "DEFAULT_GROUP";
       IDELAYCTRL_FREQ_G : real                      := 200.0;
       DEFAULT_DELAY_G   : integer range 0 to 2**5-1 := 0;
@@ -60,10 +60,10 @@ entity Ad9681Readout is
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(7 downto 0) := (others => axiStreamMasterInit(AD9681_AXIS_CFG_G)));
 
-end Ad9681Readout;
+end Ad9681ReadoutManual;
 
 -- Define architecture
-architecture rtl of Ad9681Readout is
+architecture rtl of Ad9681ReadoutManual is
 
    constant NUM_CHANNELS_C : natural := 8;
 
@@ -77,31 +77,35 @@ architecture rtl of Ad9681Readout is
    type AxilRegType is record
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
-      usrDly       : slv5Array(1 downto 0);
-      enUsrDly     : sl;
+      delay          : slv(4 downto 0);
+      dataDelaySet   : slv8Array(1 downto 0);
+      frameDelaySet  : slv(1 downto 0);
       freezeDebug    : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_C-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_C-1 downto 0);
       lockedCountRst : sl;
       invert         : sl;
       negate         : sl;
-      realign        : sl;
-      minEyeWidth    : slv(7 downto 0);
+      relock         : slv(1 downto 0);
+      curDelayFrame  : slv5Array(1 downto 0);
+      curDelayData   : DelayDataArray(1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      usrDly       => (others => toSlv(DEFAULT_DELAY_G, 5)),
-      enUsrDly     => '0',
+      delay          => toSlv(DEFAULT_DELAY_G, 5),
+      dataDelaySet   => (others => (others => '1')),
+      frameDelaySet  => "11",
       freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
       invert         => toSl(INVERT_G),
       negate         => toSl(NEGATE_G),
-      realign        => '1',
-      minEyeWidth    => X"50");
+      relock         => "00",
+      curDelayFrame  => (others => (others => '0')),
+      curDelayData   => (others => (others => (others => '0'))));
 
    signal lockedSync      : slv(1 downto 0);
    signal lockedFallCount : slv16Array(1 downto 0);
@@ -112,14 +116,24 @@ architecture rtl of Ad9681Readout is
    -------------------------------------------------------------------------------------------------
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
+   type SyncStateType is (RESET_S, SYNCING_S, SYNCED_S);
+
    type AdcRegType is record
-      errorDet : sl;
+      state  : SyncStateType;
+      slip   : sl;
+      count  : slv(5 downto 0);
+      locked : sl;
+      reset  : sl;
    end record;
 
    type AdcRegArray is array (natural range <>) of AdcRegType;
 
    constant ADC_REG_INIT_C : AdcRegType := (
-      errorDet => '0');
+      state  => RESET_S,
+      slip   => '0',
+      count  => (others => '0'),
+      locked => '0',
+      reset  => '1');
 
    signal adcR     : AdcRegArray(1 downto 0) := (others => ADC_REG_INIT_C);
    signal adcRin   : AdcRegArray(1 downto 0);
@@ -139,6 +153,9 @@ architecture rtl of Ad9681Readout is
    signal adcDataPad   : slv8Array(1 downto 0);
    signal adcData      : AdcDataArray(1 downto 0);
 
+   signal curDelayFrame : slv5Array(1 downto 0);
+   signal curDelayData  : DelayDataArray(1 downto 0);
+
    signal fifoWrData    : slv16Array(NUM_CHANNELS_C-1 downto 0);
    signal fifoDataValid : sl;
    signal fifoDataOut   : slv(NUM_CHANNELS_C*16-1 downto 0);
@@ -149,21 +166,9 @@ architecture rtl of Ad9681Readout is
    signal debugDataOut   : slv(NUM_CHANNELS_C*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_C-1 downto 0);
 
-   signal invertSync      : slv(1 downto 0);
-   signal negateSync      : slv(1 downto 0);
-   signal bitSlip         : slv(1 downto 0);
-   signal dlyLoad         : slv(1 downto 0);
-   signal dlyCfg          : Slv9Array(1 downto 0);
-   signal enUsrDlyCfg     : slv(1 downto 0);
-   signal usrDlyCfg       : slv9Array(1 downto 0) := (others => (others => '0'));
-   signal minEyeWidthSync : slv8Array(1 downto 0);
-   signal lockingCntCfg   : slv(23 downto 0)      := ite(SIMULATION_G, X"000008", X"00FFFF");
-   signal locked          : slv(1 downto 0);
-   signal realignSync     : slv(1 downto 0);
-   signal curDelay        : slv5Array(1 downto 0);
-   signal errorDetCount   : slv16Array(1 downto 0);
-   signal errorDet        : slv(1 downto 0);
-
+   signal invertSync : slv(1 downto 0);
+   signal negateSync : slv(1 downto 0);
+   signal relockSync : slv(1 downto 0);
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -171,18 +176,7 @@ begin
    -------------------------------------------------------------------------------------------------
    SYNC_GEN : for i in 1 downto 0 generate
 
-      Synchronizer_locked : entity surf.Synchronizer
-         generic map (
-            TPD_G    => TPD_G,
-            STAGES_G => 2)
-         port map (
-            clk     => axilClk,
-            rst     => axilRst,
-            dataIn  => locked(i),
-            dataOut => lockedSync(i));
-
-
-      SynchronizerOneShotCnt_locked_fall : entity surf.SynchronizerOneShotCnt
+      SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
          generic map (
             TPD_G          => TPD_G,
             IN_POLARITY_G  => '0',
@@ -190,7 +184,7 @@ begin
             CNT_RST_EDGE_G => true,
             CNT_WIDTH_G    => 16)
          port map (
-            dataIn     => locked(i),
+            dataIn     => adcR(i).locked,
             rollOverEn => '0',
             cntRst     => axilR.lockedCountRst,
             dataOut    => open,
@@ -200,27 +194,17 @@ begin
             rdClk      => axilClk,
             rdRst      => axilRst);
 
-      SynchronizerOneShotCnt_2 : entity surf.SynchronizerOneShotCnt
+      Synchronizer_1 : entity surf.Synchronizer
          generic map (
-            TPD_G          => TPD_G,
-            IN_POLARITY_G  => '1',
-            OUT_POLARITY_G => '1',
-            CNT_RST_EDGE_G => false,
-            CNT_WIDTH_G    => 16)
+            TPD_G    => TPD_G,
+            STAGES_G => 2)
          port map (
-            dataIn     => errorDet(i),
-            rollOverEn => '0',
-            cntRst     => axilR.lockedCountRst,
-            dataOut    => open,
-            cntOut     => errorDetCount(i),
-            wrClk      => adcBitClkR(i),
-            wrRst      => '0',
-            rdClk      => axilClk,
-            rdRst      => axilRst);
+            clk     => axilClk,
+            rst     => axilRst,
+            dataIn  => adcR(i).locked,
+            dataOut => lockedSync(i));
 
-
-
-      SynchronizerVector_FRAME : entity surf.SynchronizerVector
+      SynchronizerVec_1 : entity surf.SynchronizerVector
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 2,
@@ -231,21 +215,7 @@ begin
             dataIn  => adcFrame(i),
             dataOut => adcFrameSync(i));
 
-      U_SynchronizerVector_CUR_DELAY : entity surf.SynchronizerVector
-         generic map (
-            TPD_G    => TPD_G,
-            STAGES_G => 2,
-            WIDTH_G  => 5)
-         port map (
-            clk     => axilClk,                -- [in]
-            rst     => axilRst,                -- [in]
-            dataIn  => dlyCfg(i)(8 downto 4),  -- [in]
-            dataOut => curDelay(i));           -- [out]
-
-
-
-      -- AXIL to ADC clock
-      Synchronizer_INVERT : entity surf.Synchronizer
+      Synchronizer_2 : entity surf.Synchronizer
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 2)
@@ -254,7 +224,7 @@ begin
             dataIn  => axilR.invert,
             dataOut => invertSync(i));
 
-      Synchronizer_NEGATE : entity surf.Synchronizer
+      Synchronizer_4 : entity surf.Synchronizer
          generic map (
             TPD_G    => TPD_G,
             STAGES_G => 2)
@@ -264,62 +234,36 @@ begin
             dataOut => negateSync(i));
 
 
-      Synchronizer_REALIGN : entity surf.SynchronizerEdge
+      Synchronizer_3 : entity surf.Synchronizer
          generic map (
             TPD_G    => TPD_G,
-            STAGES_G => 3)
-         port map (
-            clk        => adcBitClkR(i),
-            rst        => adcBitRst(i),
-            dataIn     => axilR.realign,
-            risingEdge => realignSync(i));
-
-      Synchronizer_USR_DELAY_SET : entity surf.Synchronizer
-         generic map (
-            TPD_G    => TPD_G,
-            STAGES_G => 3)
+            STAGES_G => 2)
          port map (
             clk     => adcBitClkR(i),
-            rst     => adcBitRst(i),
-            dataIn  => axilR.enUsrDly,
-            dataOut => enUsrDlyCfg(i));
-
-      U_SynchronizerVector_USR_DELAY : entity surf.SynchronizerVector
-         generic map (
-            TPD_G    => TPD_G,
-            STAGES_G => 2,
-            WIDTH_G  => 5)
-         port map (
-            clk     => adcBitClkR(i),              -- [in]
-            rst     => adcBitRst(i),               -- [in]
-            dataIn  => axilR.usrDly(i),          -- [in]
-            dataOut => usrDlyCfg(i)(8 downto 4));  -- [out]
-
-      U_SynchronizerVector_EYE_WIDTH : entity surf.SynchronizerVector
-         generic map (
-            TPD_G    => TPD_G,
-            STAGES_G => 2,
-            WIDTH_G  => 8)
-         port map (
-            clk     => adcBitClkR(i),        -- [in]
-            rst     => adcBitRst(i),         -- [in]
-            dataIn  => axilR.minEyeWidth,    -- [in]
-            dataOut => minEyeWidthSync(i));  -- [out]
-
+--            rst     => axilRst,
+            dataIn  => axilR.relock(i),
+            dataOut => relockSync(i));
 
 
    end generate SYNC_GEN;
 
+
+
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelay,
-                       debugDataTmp, debugDataValid, errorDetCount, lockedFallCount, lockedSync) is
+   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
+                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       v := axilR;
 
+      v.dataDelaySet  := (others => (others => '0'));
+      v.frameDelaySet := "00";
+
+      v.curDelayFrame := curDelayFrame;
+      v.curDelayData  := curDelayData;
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
@@ -329,22 +273,26 @@ begin
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      -- Overriding gearbox aligner
-      if (axilR.enUsrDly = '0') then
-         v.usrDly := curDelay;
-      end if;
+      -- Up to 8 delay registers
+      -- Write delay values to IDELAY primatives
+      -- All writes go to same r.delay register,
+      -- dataDelaySet(ch) or frameDelaySet enables the primative write
+      for i in 1 downto 0 loop
+         for ch in 0 to NUM_CHANNELS_C-1 loop
+            axiSlaveRegister(axilEp, X"00"+toSlv((ch*8+i*4), 8), 0, v.delay);
+            axiWrDetect(axilEp, X"00"+toSlv((ch*8+i*4), 8), v.dataDelaySet(i)(ch));
 
-      axiSlaveRegister(axilEp, X"00", 0, v.usrDly(0));
-      axiSlaveRegisterR(axilEp, X"00", 0, curDelay(0));
+            axiSlaveRegisterR(axilEp, X"00"+toSlv((ch*8+i*4), 8), 0, axilR.curDelayData(i)(ch));
+         end loop;
 
-      axiSlaveRegister(axilEp, X"04", 0, v.usrDly(1));
-      axiSlaveRegisterR(axilEp, X"04", 0, curDelay(1));
+         axiSlaveRegister(axilEp, X"40"+toSlv(i*4, 8), 0, v.delay);
+         axiWrDetect(axilEp, X"40"+toSlv(i*4, 8), v.frameDelaySet(i));
 
-      axiSlaveRegister(axilEp, X"20", 0, v.enUsrDly);
+         axiSlaveRegisterR(axilEp, X"40"+toSlv(i*4, 8), 0, axilR.curDelayFrame(i));
+      end loop;
 
-      axiSlaveRegister(axilEp, X"70", 0, v.realign);
-      axiSlaveRegisterR(axilEp, X"30", 0, errorDetCount(0));
-      axiSlaveRegisterR(axilEp, X"34", 0, errorDetCount(1));
+
+
 
       -- Debug output to see how many times the shift has needed a relock
       axiSlaveRegisterR(axilEp, X"50", 0, lockedFallCount(0));
@@ -359,6 +307,8 @@ begin
 
       axiSlaveRegister(axilEp, X"60", 0, v.invert);
       axiSlaveRegister(axilEp, X"60", 1, v.negate);
+
+      axiSlaveRegister(axilEp, X"70", 0, v.relock);
 
       -- Debug registers. Output the last 2 words received
       for ch in 0 to NUM_CHANNELS_C-1 loop
@@ -386,6 +336,8 @@ begin
          axilR <= axilRin after TPD_G;
       end if;
    end process axilSeq;
+
+
 
 
    GEN_PARTS : for i in 1 downto 0 generate
@@ -456,16 +408,14 @@ begin
             clkIo    => adcBitClkIo(0),
             clkIoInv => adcBitClkIoInv(0),
             clkR     => adcBitClkR(0),
-            rst      => realignSync(0),
-            slip     => bitSlip(i),
-            sysClk   => adcBitClkR(0),
-            curDelay => open,           --curDelayFrame(i),
-            setDelay => dlyCfg(i)(8 downto 4),
-            setValid => dlyLoad(i),     --axilR.frameDelaySet(i),
+            rst      => adcR(i).reset,  --adcBitRst(i),
+            slip     => adcR(i).slip,
+            sysClk   => axilClk,
+            curDelay => curDelayFrame(i),
+            setDelay => axilR.delay,
+            setValid => axilR.frameDelaySet(i),
             iData    => adcFramePad(i),
             oData    => adcFrame(i));
-
-
 
       --------------------------------
       -- Data Input, 8 channels
@@ -494,61 +444,70 @@ begin
                clkIo    => adcBitClkIo(0),
                clkIoInv => adcBitClkIoInv(0),
                clkR     => adcBitClkR(0),
-               rst      => realignSync(0),
-               slip     => bitSlip(i),
-               sysClk   => adcBitClkR(0),
-               curDelay => open,        --curDelayData(i)(ch),
-               setDelay => dlyCfg(i)(8 downto 4),
-               setValid => dlyLoad(i),  --axilR.dataDelaySet(i)(ch),
+               rst      => adcR(i).reset,  --adcBitRst(i),
+               slip     => adcR(i).slip,
+               sysClk   => axilClk,
+               curDelay => curDelayData(i)(ch),
+               setDelay => axilR.delay,
+               setValid => axilR.dataDelaySet(i)(ch),
                iData    => adcDataPad(i)(ch),
                oData    => adcData(i)(ch));
       end generate;
 
 
-      ----------------------------------------------------------------------------------------------
-      -- Aligner
-      ----------------------------------------------------------------------------------------------
-      U_SelectIoRxGearboxAligner_1 : entity surf.SelectIoRxGearboxAligner
-         generic map (
-            TPD_G           => TPD_G,
-            SIMULATION_G    => SIMULATION_G,
-            CODE_TYPE_G     => "LINE_CODE",
-            DLY_STEP_SIZE_G => 16)
-         port map (
-            clk             => adcBitClkR(0),       -- [in]
-            rst             => adcBitRst(0),        -- [in]
-            lineCodeValid   => '1',                 -- [in]
-            lineCodeErr     => adcR(i).errorDet,    -- [in]
-            lineCodeDispErr => realignSync(0),      -- [in]
-            linkOutOfSync   => '0',                 -- [in]
-            rxHeaderValid   => '0',                 -- [in]
-            rxHeader        => (others => '0'),     -- [in]
-            bitSlip         => bitSlip(i),          -- [out]
-            dlyLoad         => dlyLoad(i),          -- [out]
-            dlyCfg          => dlyCfg(i),           -- [out]
-            enUsrDlyCfg     => enUsrDlyCfg(i),      -- [in]
-            usrDlyCfg       => usrDlyCfg(i),        -- [in]
-            bypFirstBerDet  => '1',                 -- [in]
-            minEyeWidth     => minEyeWidthSync(i),  -- [in]
-            lockingCntCfg   => lockingCntCfg,       -- [in]
-            errorDet        => errorDet(i),         -- [out]
-            locked          => locked(i));          -- [out]
-
 
       -------------------------------------------------------------------------------------------------
       -- ADC Bit Clocked Logic
       -------------------------------------------------------------------------------------------------
-      adcComb : process (adcFrame, adcR) is
+      adcComb : process (adcFrame, adcR, relockSync) is
          variable v : AdcRegType;
       begin
-         v          := adcR(i);
---         v.adcValid   := '0';
+         v := adcR(i);
+
          ----------------------------------------------------------------------------------------------
          -- Slip bits until correct alignment seen
          ----------------------------------------------------------------------------------------------
-         v.errorDet := toSl(adcFrame(i) /= "11110000");
+         v.slip   := '0';
+         v.reset  := '0';
+         v.locked := '0';
 
-         adcRin(i) <= v;
+         v.count := adcR(i).count + 1;
+
+         case adcR(i).state is
+            when RESET_S =>
+               v.reset := '1';
+               if (adcR(i).count = "111111") then
+                  v.state := SYNCING_S;
+               end if;
+
+            when SYNCING_S =>
+               if (adcR(i).count = "111111") then
+                  if (adcFrame(i) = "11110000") then
+                     v.state := SYNCED_S;
+                  else
+                     v.slip := '1';
+                  end if;
+               end if;
+
+            when SYNCED_S =>
+               v.locked := '1';
+               v.count  := (others => '0');
+               if (adcFrame(i) /= "11110000") then
+                  v.state := RESET_S;
+               end if;
+
+            when others => null;
+         end case;
+
+         if (relockSync(i) = '1') then
+            v.state := RESET_S;
+         end if;
+
+         ----------------------------------------------------------------------------------------------
+         -- Look for Frame rising edges and write data to fifos
+         ----------------------------------------------------------------------------------------------
+         adcRin(i)   <= v;
+         adcValid(i) <= adcR(i).locked;
 
       end process adcComb;
 
@@ -563,11 +522,11 @@ begin
 
    end generate;
 
-   GLUE_COMB : process (adcData, invertSync, negateSync, locked) is
+   GLUE_COMB : process (adcData, adcValid, invertSync, negateSync) is
       variable tmp : slv16Array(7 downto 0);
    begin
       for ch in NUM_CHANNELS_C-1 downto 0 loop
-         if (locked = "11") then
+         if (adcValid = "11") then
             tmp(ch) := adcData(1)(ch) & adcData(0)(ch);
             -- Locked, output adc data
             if invertSync(0) = '1' then
@@ -576,9 +535,9 @@ begin
             elsif (negateSync(0) = '1') then
                if (tmp(ch) = X"8000") then
                   -- Negative 1 case
-                  tmp(ch) := X"7FFC";
+                  tmp(Ch) := X"7FFC";
                else
-                  tmp(ch) := (not(tmp(ch)(15 downto 2)) + 1) & "00";
+                  tmp(ch) := (not(tmp(ch)(15 downto 2)) + 1) & "00";                  
                end if;
             end if;
          else
