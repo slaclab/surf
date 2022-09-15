@@ -38,6 +38,7 @@ entity SrpV3AxiLite is
       PIPE_STAGES_G         : natural range 0 to 16   := 1;
       FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
       FIFO_SYNTH_MODE_G     : string                  := "inferred";
+      FIFO_ADDR_WIDTH_G     : integer range 9 to 48   := 9;  -- Need at least 9 to avoid logjams on large txns
       TX_VALID_THOLD_G      : positive range 1 to 511 := 500;  -- >1 = only when frame ready or # entries
       TX_VALID_BURST_MODE_G : boolean                 := true;       -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
@@ -215,14 +216,14 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         VALID_THOLD_G       => 0,      -- = 0 = only when frame ready
+         VALID_THOLD_G       => 0,                  -- = 0 = only when frame ready
          -- FIFO configurations
          SYNTH_MODE_G        => FIFO_SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,     -- 128-bit
-         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
+         INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,  -- 8kB/FIFO = 128-bits x 512 entries
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
@@ -796,8 +797,8 @@ begin
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,     -- 128-bit
-         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
+         INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,  -- 8kB/FIFO = 128-bits x 512 entries
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
