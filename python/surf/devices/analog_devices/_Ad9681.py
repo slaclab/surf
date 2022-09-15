@@ -535,8 +535,8 @@ class Ad9681Readout(pr.Device):
             delayBits = 6
 
         self.add(pr.RemoteVariable(
-            name         = f'EnUsrDelay',
-            description  = f'Enable manual delay value',
+            name         = 'EnUsrDelay',
+            description  = 'Enable manual delay value',
             offset       = 0x20,
             bitSize      = 1,
             bitOffset    = 0,
