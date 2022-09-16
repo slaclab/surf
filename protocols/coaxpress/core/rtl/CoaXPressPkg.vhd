@@ -32,6 +32,7 @@ package CoaXPressPkg is
    constant CXP_SOP_C    : slv(31 downto 0) := K_27_7_C & K_27_7_C & K_27_7_C & K_27_7_C;  -- 0xFBFBFBFB
    constant CXP_EOP_C    : slv(31 downto 0) := K_29_7_C & K_29_7_C & K_29_7_C & K_29_7_C;  -- 0xFDFDFDFD
    constant CXP_TRIG_C   : slv(31 downto 0) := K_28_2_C & K_28_2_C & K_28_2_C & K_28_2_C;  -- 0x5C5C5C5C
+   constant CXP_IO_ACK_C : slv(31 downto 0) := K_28_6_C & K_28_6_C & K_28_6_C & K_28_6_C;  -- 0xDCDCDCDC
 
    type CxpSpeedType is (
       CXP_1_C,                          -- 1.250

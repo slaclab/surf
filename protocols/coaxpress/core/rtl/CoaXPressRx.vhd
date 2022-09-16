@@ -32,24 +32,29 @@ entity CoaXPressRx is
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Data Interface (dataClk domain)
-      dataClk        : in  sl;
-      dataRst        : in  sl;
-      dataMaster     : out AxiStreamMasterType;
-      dataSlave      : in  AxiStreamSlaveType;
+      dataClk     : in  sl;
+      dataRst     : in  sl;
+      dataMaster  : out AxiStreamMasterType;
+      dataSlave   : in  AxiStreamSlaveType;
       -- Config Interface (cfgClk domain)
-      cfgClk         : in  sl;
-      cfgRst         : in  sl;
-      cfgRxMaster    : out AxiStreamMasterType;
+      cfgClk      : in  sl;
+      cfgRst      : in  sl;
+      cfgRxMaster : out AxiStreamMasterType;
+      -- Trigger ACK Interface (txClk domain)
+      txClk       : in  sl;
+      txRst       : in  sl;
+      trigAck     : out sl;
       -- Rx Interface (rxClk domain)
-      rxClk          : in  slv(NUM_LANES_G-1 downto 0);
-      rxRst          : in  slv(NUM_LANES_G-1 downto 0);
-      rxData         : in  slv32Array(NUM_LANES_G-1 downto 0);
-      rxDataK        : in  Slv4Array(NUM_LANES_G-1 downto 0);
-      rxLinkUp       : in  slv(NUM_LANES_G-1 downto 0));
+      rxClk       : in  slv(NUM_LANES_G-1 downto 0);
+      rxRst       : in  slv(NUM_LANES_G-1 downto 0);
+      rxData      : in  slv32Array(NUM_LANES_G-1 downto 0);
+      rxDataK     : in  Slv4Array(NUM_LANES_G-1 downto 0);
+      rxLinkUp    : in  slv(NUM_LANES_G-1 downto 0));
 end entity CoaXPressRx;
 
 architecture mapping of CoaXPressRx is
 
+   signal ioAck       : slv(NUM_LANES_G-1 downto 0);
    signal cfgMasters  : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
    signal dataMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
 
@@ -68,6 +73,8 @@ begin
             cfgMaster  => cfgMasters(i),
             -- Data Interface
             dataMaster => dataMasters(i),
+            -- I/O ACK Strobe
+            ioAck      => ioAck(i),
             -- RX PHY Interface
             rxData     => rxData(i),
             rxDataK    => rxDataK(i),
@@ -121,5 +128,13 @@ begin
          mAxisRst       => dataRst,
          mAxisMaster    => dataMaster,
          mAxisSlave     => dataSlave);
+
+   U_trigAck : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => txClk,
+         dataIn  => ioAck(0),
+         dataOut => trigAck);
 
 end mapping;

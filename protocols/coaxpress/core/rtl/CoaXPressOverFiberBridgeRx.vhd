@@ -43,7 +43,6 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
    type StateType is (
       IDLE_S,
       HKP_S,
-      DELAY_S,
       PAYLOAD_S);
 
    type RegType is record
@@ -106,16 +105,17 @@ begin
                      v.rxDataK(1) := x"0";
                      v.rxData(1)  := xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24);
 
+                  -- Check for I/O ACK
+                  elsif (xgmiiRxd(23 downto 16) = CXP_IO_ACK_C(7 downto 0)) then
+
+                     -- Send I/O ACK inductor
+                     v.rxDataK(1) := x"F";
+                     v.rxData(1)  := CXP_IO_ACK_C;
+
                   end if;
 
-                  -- Check for I/O ACK
-                  if (xgmiiRxd(7 downto 0) = x"DC") and (r.armed = '1') then
-                     -- Next State
-                     v.state := DELAY_S;
-                  else
-                     -- Next State
-                     v.state := PAYLOAD_S;
-                  end if;
+                  -- Next State
+                  v.state := PAYLOAD_S;
 
                end if;
 
@@ -135,10 +135,6 @@ begin
                -- Next State
                v.state := PAYLOAD_S;
             end if;
-         ----------------------------------------------------------------------
-         when DELAY_S =>
-            -- Next State
-            v.state := PAYLOAD_S;
          ----------------------------------------------------------------------
          when PAYLOAD_S =>
             -- Check for data word

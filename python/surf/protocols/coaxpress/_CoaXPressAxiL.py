@@ -142,6 +142,14 @@ class CoaXPressAxiL(pr.Device):
             disp         = '{:0.3f}',
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'TrigAckCnt',
+            offset       = 0x810,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
         self.add(axi.AxiStreamMonChannel(
             name   = 'DataSteamMon',
             offset = 0x900, # 0x900:0x93F
@@ -193,8 +201,16 @@ class CoaXPressAxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'ConfigErrResp',
             offset       = 0xFF8,
-            bitSize      = 2,
+            bitSize      = 1,
             bitOffset    = 24,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ConfigPktTag',
+            offset       = 0xFF8,
+            bitSize      = 1,
+            bitOffset    = 25,
             mode         = 'RW',
         ))
 

@@ -41,6 +41,7 @@ entity CoaXPressAxiL is
       txTrig          : in  slv(TRIG_WIDTH_G-1 downto 0);
       swTrig          : out slv(TRIG_WIDTH_G-1 downto 0);
       txTrigDrop      : in  slv(TRIG_WIDTH_G-1 downto 0);
+      trigAck         : in  sl;
       txLinkUp        : in  sl;
       txLsRate        : out sl;
       txLsLaneEn      : out slv(3 downto 0);
@@ -55,7 +56,8 @@ entity CoaXPressAxiL is
       cfgClk          : in  sl;
       cfgRst          : in  sl;
       configTimerSize : out slv(23 downto 0);
-      configErrResp   : out slv(1 downto 0);
+      configErrResp   : out sl;
+      configPktTag    : out sl;
       -- Data Interface (dataClk domain)
       dataClk         : in  sl;
       dataRst         : in  sl;
@@ -73,14 +75,15 @@ end CoaXPressAxiL;
 architecture rtl of CoaXPressAxiL is
 
    constant RX_STATUS_CNT_C : positive := 1;
-   constant TX_STATUS_CNT_C : positive := 1;
+   constant TX_STATUS_CNT_C : positive := 2;
 
    type RegType is record
       txLsRate        : sl;
       txLsLaneEn      : slv(3 downto 0);
       txHsEnable      : sl;
       configTimerSize : slv(23 downto 0);
-      configErrResp   : slv(1 downto 0);
+      configErrResp   : sl;
+      configPktTag    : sl;
       swTrig          : slv(TRIG_WIDTH_G-1 downto 0);
       cntRst          : sl;
       axilWriteSlave  : AxiLiteWriteSlaveType;
@@ -89,10 +92,11 @@ architecture rtl of CoaXPressAxiL is
 
    constant REG_INIT_C : RegType := (
       txLsRate        => '0',
-      txLsLaneEn      => x"F",
+      txLsLaneEn      => x"1",
       txHsEnable      => '0',
       configTimerSize => (others => '1'),
-      configErrResp   => (others => '1'),
+      configErrResp   => '1',
+      configPktTag    => '0',
       swTrig          => (others => '0'),
       cntRst          => '1',
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -178,6 +182,7 @@ begin
       axiSlaveRegisterR(axilEp, x"804", 0, rxLinkUpStatus);
       axiSlaveRegisterR(axilEp, x"808", 0, txStatusOut);
       axiSlaveRegisterR(axilEp, x"80C", 0, txClkFreq);
+      axiSlaveRegisterR(axilEp, x"810", 0, muxSlVectorArray(txCntOut, 1));  -- trigAckCnt
 
       -- Matching with AxiStreamMonChannel Python device register mapping w/ offset=0x900
       axiSlaveRegisterR(axilEp, x"904", 0, frameCnt);      -- 0x904:0x90B
@@ -198,7 +203,8 @@ begin
       axiSlaveRegister (axilEp, X"FF4", 0, v.swTrig);
 
       axiSlaveRegister (axilEp, x"FF8", 0, v.configTimerSize);
-      axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);  -- BIT25:BIT24
+      axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);
+      axiSlaveRegister (axilEp, x"FF8", 25, v.configPktTag);
       axiSlaveRegister (axilEp, x"FF8", 26, v.txLsRate);
       axiSlaveRegister (axilEp, x"FF8", 27, v.txHsEnable);
       axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);     -- BIT31:BIT28
@@ -278,6 +284,7 @@ begin
          WIDTH_G     => TX_STATUS_CNT_C)
       port map (
          statusIn(0) => txLinkUp,
+         statusIn(1) => trigAck,
          statusOut   => txStatusOut,
          cntRstIn    => r.cntRst,
          cntOut      => txCntOut,
@@ -447,14 +454,21 @@ begin
          dataIn  => r.configTimerSize,
          dataOut => configTimerSize);
 
-   U_configErrResp : entity surf.SynchronizerVector
+   U_configErrResp : entity surf.Synchronizer
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 2)
+         TPD_G   => TPD_G)
       port map (
          clk     => cfgClk,
          dataIn  => r.configErrResp,
          dataOut => configErrResp);
+
+   U_configPktTag : entity surf.Synchronizer
+      generic map (
+         TPD_G   => TPD_G)
+      port map (
+         clk     => cfgClk,
+         dataIn  => r.configPktTag,
+         dataOut => configPktTag);
 
    -------------------------
    -- Data Stream Monitoring

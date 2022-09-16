@@ -37,6 +37,8 @@ entity CoaXPressRxLane is
       cfgMaster  : out AxiStreamMasterType;
       -- Data Interface
       dataMaster : out AxiStreamMasterType;
+      -- I/O ACK Strobe
+      ioAck      : out sl;
       -- RX PHY Interface
       rxData     : in  slv(31 downto 0);
       rxDataK    : in  slv(3 downto 0);
@@ -55,25 +57,30 @@ architecture rtl of CoaXPressRxLane is
       DSIZE_UPPER_S,
       DSIZE_LOWER_S,
       STREAM_DATA_S,
-      STREAM_CRC_S);
+      STREAM_CRC_S,
+      IO_ACK_S);
 
    type RegType is record
+      ioAck      : sl;
       streamID   : slv(7 downto 0);
       dcnt       : slv(15 downto 0);
       dsize      : slv(15 downto 0);
       ackCnt     : natural range 0 to 3;
       cfgMaster  : AxiStreamMasterType;
       dataMaster : AxiStreamMasterType;
+      saved      : StateType;
       state      : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      ioAck      => '0',
       streamID   => (others => '0'),
       dcnt       => (others => '0'),
       dsize      => (others => '0'),
       ackCnt     => 0,
       cfgMaster  => AXI_STREAM_MASTER_INIT_C,
       dataMaster => AXI_STREAM_MASTER_INIT_C,
+      saved      => IDLE_S,
       state      => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -91,6 +98,7 @@ begin
       v := r;
 
       -- Reset strobes
+      v.ioAck             := '0';
       v.cfgMaster.tValid  := '0';
       v.dataMaster.tValid := '0';
       v.dataMaster.tLast  := '0';
@@ -244,12 +252,30 @@ begin
                -- Next State
                v.state := IDLE_S;
             end if;
+         ----------------------------------------------------------------------
+         when IO_ACK_S =>
+            -- Check for Trigger packet received OK
+            if (rxDataK = x"0") and (rxData = x"01_01_01_01") then
+               -- Set the flag
+               v.ioAck := '1';
+            end if;
+            -- Next State
+            v.state := r.saved;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check for I/O
+      if (rxDataK = x"F") and (rxData = CXP_IO_ACK_C) then
+         -- Save current state
+         v.saved := r.state;
+         -- Next State
+         v.state := IO_ACK_S;
+      end if;
 
       -- Outputs
       cfgMaster  <= r.cfgMaster;
       dataMaster <= r.dataMaster;
+      ioAck      <= r.ioAck;
 
       -- Reset
       if (rxRst = '1') or (rxLinkUp = '0') then

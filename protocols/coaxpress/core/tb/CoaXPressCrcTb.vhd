@@ -23,35 +23,15 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.CrcPkg.all;
-use surf.Code8b10bPkg.all;
+use surf.SsiPkg.all;
 
 entity CoaXPressCrcTb is
 end entity CoaXPressCrcTb;
 
 architecture tb of CoaXPressCrcTb is
 
-   constant TX_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => (8/8),           -- 8-bit data interface
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 1,
-      TUSER_MODE_C  => TUSER_NORMAL_C);
-
-   constant CRC_POLY_C : slv(31 downto 0)  := x"04C11DB7";
-   signal inputWord    : slv(191 downto 0) := x"FDFDFDFD_00000000_00000000_04000000_02020202_FBFBFBFB";
-   signal inputUser    : slv(191 downto 0) := x"FFFFFFFF_00000000_00000000_04000000_02020202_FFFFFFFF";
-
-   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal txSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-
+   signal cfgIbMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal cfgTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal cfgTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-
-   signal outputCrc : slv(31 downto 0);
-   signal dataEnc   : slv(9 downto 0);
-   signal cnt       : slv(7 downto 0) := x"00";
 
    signal clk : sl := '0';
    signal rst : sl := '0';
@@ -67,102 +47,39 @@ begin
          clkP => clk,
          rst  => rst);
 
-   U_Encode : entity surf.Encoder8b10b
+   -- Generate SRPv3 read message
+   cfgIbMaster.tValid                <= '1';
+   cfgIbMaster.tLast                 <= '1';
+   cfgIbMaster.tUser(1)              <= '1';
+   cfgIbMaster.tData(31 downto 0)    <= x"0000_0003";  -- Word[0] = HEADER
+   cfgIbMaster.tData(63 downto 32)   <= x"0000_0000";  -- Word[1] = TID[31:0]
+   cfgIbMaster.tData(95 downto 64)   <= x"0000_0000";  -- Word[2] = Addr[31:0]
+   cfgIbMaster.tData(127 downto 96)  <= x"0000_0000";  -- Word[3] = Addr[63:32]
+   cfgIbMaster.tData(159 downto 128) <= x"0000_0003";  -- Word[4] = ReqSize[31:0]
+
+   U_DUT : entity surf.CoaXPressConfig
       generic map (
-         RST_POLARITY_G => '1',         -- active HIGH reset
-         FLOW_CTRL_EN_G => false,
-         RST_ASYNC_G    => false,
-         NUM_BYTES_G    => 1)
+         AXIS_CONFIG_G => ssiAxiStreamConfig(dataBytes => 160/8))
       port map (
          -- Clock and Reset
-         clk        => clk,
-         rst        => rst,
-         -- Decoded Interface
-         dataIn     => K_28_5_C,
-         dataKIn(0) => '1',
-         -- Encoded Interface
-         dataOut    => dataEnc);
+         cfgClk          => clk,
+         cfgRst          => rst,
+         -- Config Interface (cfgClk domain)
+         configTimerSize => x"0000_FF",
+         configErrResp   => '1',
+         configPktTag    => '0',
+         cfgIbMaster     => cfgIbMaster,
+         cfgIbSlave      => open,
+         cfgObMaster     => open,
+         cfgObSlave      => AXI_STREAM_SLAVE_FORCE_C,
+         -- TX Interface
+         cfgTxMaster     => cfgTxMaster,
+         cfgTxSlave      => AXI_STREAM_SLAVE_FORCE_C,
+         -- RX Interface
+         cfgRxMaster     => AXI_STREAM_MASTER_INIT_C);
 
-   process(inputWord)
-      variable crc     : slv(31 downto 0);
-      variable retVar  : slv(31 downto 0);
-      variable byteXor : slv(7 downto 0);
-   begin
-      -- Init
-      crc     := x"FFFFFFFF";
-      byteXor := (others => '0');
-
-      for i in 8 to 15 loop
-         byteXor := crc(31 downto 24) xor bitReverse(inputWord(8*i+7 downto 8*i));
-         crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CRC_POLY_C);
-      end loop;
-
-      for i in 0 to 3 loop
-         retVar(8*i+7 downto 8*i) := bitReverse(crc(8*i+7 downto 8*i));
-      end loop;
-
-      -- To aid understanding, a complete control command packet
-      -- without tag (a read of address 0) is shown here, with the resulting CRC shown in red:
-      -- K27.7 K27.7 K27.7 K27.7
-      -- 0x02 0x02 0x02 0x02
-      -- 0x00 0x00 0x00 0x04
-      -- 0x00 0x00 0x00 0x00
-      -- 0x56 0x86 0x5D 0x6F <----- CRC-32
-      -- K29.7 K29.7 K29.7 K29.7.
-      outputCrc <= endianSwap(retVar);
-
-   end process;
-
-   TX_FIFO : entity surf.AxiStreamFifoV2
-      generic map (
-         -- General Configurations
-         TPD_G               => 1 ns,
-         -- FIFO configurations
-         MEMORY_TYPE_G       => "block",
-         GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 9,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => TX_CONFIG_C,
-         MASTER_AXI_CONFIG_G => TX_CONFIG_C)
-      port map (
-         -- Slave Port
-         sAxisClk    => clk,
-         sAxisRst    => rst,
-         sAxisMaster => txMaster,
-         sAxisSlave  => txSlave,
-         -- Master Port
-         mAxisClk    => clk,
-         mAxisRst    => rst,
-         mAxisMaster => cfgTxMaster,
-         mAxisSlave  => cfgTxSlave);
-
-   process(clk)
-   begin
-      if rising_edge(clk) then
-         cnt <= cnt + 1 after 1 ns;
-         if rst = '1' then
-            txMaster.tStrb <= (others => '0') after 1 ns;
-         else
-            if cnt = 0 then
-               txMaster.tValid              <= '1'                  after 1 ns;
-               txMaster.tLast               <= '0'                  after 1 ns;
-               txMaster.tData(191 downto 0) <= inputWord            after 1 ns;
-               txMaster.tUser(191 downto 0) <= inputUser            after 1 ns;
-               txMaster.tKeep(23 downto 0)  <= (others => '1')      after 1 ns;
-               txMaster.tStrb(23 downto 0)  <= x"FF_00_00_00_00_FF" after 1 ns;
-            elsif cnt < 24 then
-               txMaster.tValid <= '1'                                                             after 1 ns;
-               txMaster.tData  <= x"00" & txMaster.tData(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 8) after 1 ns;
-               txMaster.tUser  <= x"00" & txMaster.tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 8) after 1 ns;
-               txMaster.tStrb  <= x"00" & txMaster.tStrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8) after 1 ns;
-               if cnt = 23 then
-                  txMaster.tLast <= '1' after 1 ns;
-               end if;
-            else
-               txMaster.tValid <= '0' after 1 ns;
-            end if;
-         end if;
-      end if;
-   end process;
+   -- To aid understanding, a complete control command packet without tag (a read of address 0) is shown
+   -- here, with the resulting CRC shown in red: K27.7 K27.7 K27.7 K27.7 0x02 0x02 0x02 0x02 0x00 0x00
+   -- 0x00 0x04 0x00 0x00 0x00 0x00 0x56 0x86 0x5D 0x6F K29.7 K29.7 K29.7 K29.7.
 
 end architecture tb;

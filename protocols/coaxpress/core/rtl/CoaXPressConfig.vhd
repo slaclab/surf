@@ -37,7 +37,8 @@ entity CoaXPressConfig is
       cfgRst          : in  sl;
       -- Config Interface
       configTimerSize : in  slv(23 downto 0);
-      configErrResp   : in  slv(1 downto 0);
+      configErrResp   : in  sl;
+      configPktTag    : in  sl;
       cfgIbMaster     : in  AxiStreamMasterType;
       cfgIbSlave      : out AxiStreamSlaveType;
       cfgObMaster     : out AxiStreamMasterType;
@@ -58,6 +59,8 @@ architecture rtl of CoaXPressConfig is
       RESP_S);
 
    type RegType is record
+      configPktTag   : sl;
+      tag            : slv(7 downto 0);
       tValid         : slv(7 downto 0);
       tLast          : slv(7 downto 0);
       tData          : Slv32Array(7 downto 0);
@@ -71,6 +74,8 @@ architecture rtl of CoaXPressConfig is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      configPktTag   => '0',
+      tag            => (others => '0'),
       tValid         => (others => '0'),
       tLast          => (others => '0'),
       tData          => (others => (others => '0')),
@@ -121,22 +126,61 @@ begin
          mAxilWriteSlave  => r.axilWriteSlave);
 
    comb : process (axilReadMaster, axilWriteMaster, cfgRst, cfgRxMaster,
-                   cfgTxSlave, configErrResp, configTimerSize, r) is
+                   cfgTxSlave, configErrResp, configPktTag, configTimerSize, r) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable axilResp   : slv(1 downto 0);
-      variable crc        : slv(31 downto 0);
-      variable retVar     : slv(31 downto 0);
-      variable byteXor    : slv(7 downto 0);
+      variable tagOffset  : natural;
+
+      procedure calcCrc (
+         highIndex  : in    natural) is
+         variable crc        : slv(31 downto 0);
+         variable retVar     : slv(31 downto 0);
+         variable byteXor    : slv(7 downto 0);
+      begin
+         -- Init
+         crc      := x"FFFFFFFF";
+         retVar   := x"FFFFFFFF";
+         byteXor  := (others => '0');
+
+         -- Loop through the bytes
+         for i in 2 to highIndex loop
+            for j in 0 to 3 loop
+               byteXor := crc(31 downto 24) xor bitReverse(r.tData(i)(8*j+7 downto 8*j));
+               crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CXP_CRC_POLY_C);
+            end loop;
+         end loop;
+
+         -- bit reverse the CRC bytes
+         for i in 0 to 3 loop
+            retVar(8*i+7 downto 8*i) := bitReverse(crc(8*i+7 downto 8*i));
+         end loop;
+
+         -- Set the CRC-32 word
+         v.tData(highIndex+1) := endianSwap(retVar);
+
+      end procedure calcCrc;
+
    begin
       -- Latch the current value
       v := r;
 
       -- Init Local Variables
       axilResp := AXI_RESP_OK_C;
-      crc      := x"FFFFFFFF";
-      retVar   := x"FFFFFFFF";
-      byteXor  := (others => '0');
+
+      -- Check for tag configuration TXN
+      if (r.configPktTag = '1') then
+         tagOffset := 1;
+      else
+         tagOffset := 0;
+      end if;
+
+      -- Check for change in tag mode
+      v.configPktTag := configPktTag;
+      if (r.configPktTag /= v.configPktTag) then
+         -- Reset counter
+         v.tag := (others => '0');
+      end if;
 
       -- Flow Control
       if (cfgTxSlave.tReady = '1') then
@@ -153,122 +197,100 @@ begin
             -- Reset Counters
             v.timer := configTimerSize;
 
-            -- Check if ready to move data
-            if (v.cfgTxMaster.tValid = '0') then
+            -- Reset bus
+            v.tValid := (others => '0');
+            v.tLast  := (others => '0');
+            v.tDataK := (others => '0');
 
-               -- Reset bus
-               v.tValid := (others => '0');
-               v.tLast  := (others => '0');
-               v.tDataK := (others => '0');
+            -- Start of packet indication
+            v.tValid(0) := '1';
+            v.tDataK(0) := '1';
+            v.tData(0)  := CXP_SOP_C;
 
-               -- Check if write transaction
-               if (axilStatus.writeEnable = '1') then
+            -- Control command indication: with or with tag
+            v.tValid(1) := '1';
+            if (r.configPktTag = '1') then
+               -- Type=0x05 = Indicates control command with tag
+               v.tData(1) := x"05_05_05_05";
+               -- 4x Tag
+               v.tData(2) := r.tag & r.tag & r.tag & r.tag;
+               -- Increment the counter
+               v.tag      := r.tag + 1;
+            else
+               -- Type=0x02 = Indicates control command with no tag
+               v.tData(1) := x"02_02_02_02";
+            end if;
 
-                  -- Start of packet indication
-                  v.tValid(0) := '1';
-                  v.tDataK(0) := '1';
-                  v.tData(0)  := CXP_SOP_C;
+            -- Check if write transaction
+            if (axilStatus.writeEnable = '1') then
 
-                  -- Control command indication - without tag
-                  v.tValid(1) := '1';
-                  v.tData(1)  := x"02_02_02_02";
+               -- Word[0].Char[P3:P1] = Size (always 4 byte access)
+               -- Word[0].Char[P0] = Cmd (0x01 = Memory Write)
+               v.tValid(2+tagOffset) := '1';
+               v.tData(2+tagOffset)  := x"04_00_00_01";
 
-                  -- Word[0].Char[P3:P1] = Size (always 4 byte access)
-                  -- Word[0].Char[P0] = Cmd (0x01 = Memory Write)
-                  v.tValid(2) := '1';
-                  v.tData(2)  := x"04_00_00_01";
+               -- Word[1] = Addr
+               v.tValid(3+tagOffset) := '1';
+               v.tData(3+tagOffset)  := endianSwap(axilWriteMaster.awaddr);
 
-                  -- Word[1] = Addr
-                  v.tValid(3) := '1';
-                  v.tData(3)  := endianSwap(axilWriteMaster.awaddr);
+               -- Word[2] = Write Data
+               v.tValid(4+tagOffset) := '1';
+               v.tData(4+tagOffset)  := endianSwap(axilWriteMaster.wdata);
 
-                  -- Word[2] = Write Data
-                  v.tValid(4) := '1';
-                  v.tData(4)  := endianSwap(axilWriteMaster.wdata);
+               -- Word[3] = CRC-32 (placeholder)
+               v.tValid(5+tagOffset) := '1';
+               v.tData(5+tagOffset)  := x"00_00_00_00";
 
-                  -- Word[3] = CRC-32 (placeholder)
-                  v.tValid(5) := '1';
-                  v.tData(5)  := x"00_00_00_00";
+               -- End of packet indication
+               v.tValid(6+tagOffset) := '1';
+               v.tLast(6+tagOffset)  := '1';
+               v.tDataK(6+tagOffset) := '1';
+               v.tData(6+tagOffset)  := CXP_EOP_C;
 
-                  -- End of packet indication
-                  v.tValid(6) := '1';
-                  v.tLast(6)  := '1';
-                  v.tDataK(6) := '1';
-                  v.tData(6)  := CXP_EOP_C;
+               -- Next State
+               v.state := CRC_S;
 
-                  -- Next State
-                  v.state := CRC_S;
+            -- Check if read transaction
+            elsif (axilStatus.readEnable = '1') then
 
-               -- Check if read transaction
-               elsif (axilStatus.readEnable = '1') then
+               -- Word[0].Char[P3:P1] = Size (always 4 byte access)
+               -- Word[0].Char[P0] = Cmd (0x00 = Memory Read)
+               v.tValid(2+tagOffset) := '1';
+               v.tData(2+tagOffset)  := x"04_00_00_00";
 
-                  -- Start of packet indication
-                  v.tValid(0) := '1';
-                  v.tDataK(0) := '1';
-                  v.tData(0)  := CXP_SOP_C;
+               -- Word[1] = Addr
+               v.tValid(3+tagOffset) := '1';
+               v.tData(3+tagOffset)  := endianSwap(axilReadMaster.araddr);
 
-                  -- Control command indication - without tag
-                  v.tValid(1) := '1';
-                  v.tData(1)  := x"02_02_02_02";
+               -- Word[2] = CRC-32 (placeholder)
+               v.tValid(4+tagOffset) := '1';
+               v.tData(4+tagOffset)  := x"00_00_00_00";
 
-                  -- Word[0].Char[P3:P1] = Size (always 4 byte access)
-                  -- Word[0].Char[P0] = Cmd (0x00 = Memory Read)
-                  v.tValid(2) := '1';
-                  v.tData(2)  := x"04_00_00_00";
+               -- End of packet indication
+               v.tValid(5+tagOffset) := '1';
+               v.tLast(5+tagOffset)  := '1';
+               v.tDataK(5+tagOffset) := '1';
+               v.tData(5+tagOffset)  := CXP_EOP_C;
 
-                  -- Word[1] = Addr
-                  v.tValid(3) := '1';
-                  v.tData(3)  := endianSwap(axilReadMaster.araddr);
-
-                  -- Word[2] = CRC-32 (placeholder)
-                  v.tValid(4) := '1';
-                  v.tData(4)  := x"00_00_00_00";
-
-                  -- End of packet indication
-                  v.tValid(5) := '1';
-                  v.tLast(5)  := '1';
-                  v.tDataK(5) := '1';
-                  v.tData(5)  := CXP_EOP_C;
-
-                  -- Next State
-                  v.state := CRC_S;
-
-               end if;
+               -- Next State
+               v.state := CRC_S;
 
             end if;
          ----------------------------------------------------------------------
          when CRC_S =>
-            -- Check if write transaction
-            if (axilStatus.writeEnable = '1') then
-               for i in 2 to 4 loop
-                  for j in 0 to 3 loop
-                     byteXor := crc(31 downto 24) xor bitReverse(r.tData(i)(8*j+7 downto 8*j));
-                     crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CXP_CRC_POLY_C);
-                  end loop;
-               end loop;
-            -- Else read transaction
+            -- Calculate and set the CRC word
+            if (r.configPktTag = '1') then
+               if (axilStatus.writeEnable = '1') then
+                  calcCrc(5);
+               else
+                  calcCrc(4);
+               end if;
             else
-               for i in 2 to 3 loop
-                  for j in 0 to 3 loop
-                     byteXor := crc(31 downto 24) xor bitReverse(r.tData(i)(8*j+7 downto 8*j));
-                     crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CXP_CRC_POLY_C);
-                  end loop;
-               end loop;
-            end if;
-
-            -- bit reverse the CRC bytes
-            for i in 0 to 3 loop
-               retVar(8*i+7 downto 8*i) := bitReverse(crc(8*i+7 downto 8*i));
-            end loop;
-
-            -- Check if write transaction
-            if (axilStatus.writeEnable = '1') then
-               -- Word[3] = CRC-32
-               v.tData(5) := endianSwap(retVar);
-            -- Else read transaction
-            else
-               -- Word[2] = CRC-32
-               v.tData(4) := endianSwap(retVar);
+               if (axilStatus.writeEnable = '1') then
+                  calcCrc(4);
+               else
+                  calcCrc(3);
+               end if;
             end if;
 
             -- Next State
@@ -308,8 +330,11 @@ begin
             if (r.timer = 0) or (cfgRxMaster.tValid = '1') then
 
                -- Check for bus responds error
-               if (cfgRxMaster.tData(31 downto 0) /= 0) or (r.timer = 0) then
-                  axilResp := configErrResp;
+               if (r.timer = 0) then
+                  axilResp(0) := configErrResp;
+               end if;
+               if (cfgRxMaster.tData(31 downto 0) /= 0) then
+                  axilResp(1) := configErrResp;
                end if;
 
                -- Copy the read data bus

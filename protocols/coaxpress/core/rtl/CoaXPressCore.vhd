@@ -82,11 +82,13 @@ architecture mapping of CoaXPressCore is
    signal cfgRxMaster : AxiStreamMasterType;
 
    signal configTimerSize : slv(23 downto 0);
-   signal configErrResp   : slv(1 downto 0);
+   signal configErrResp   : sl;
+   signal configPktTag    : sl;
 
    signal swTrig     : slv(TRIG_WIDTH_G-1 downto 0);
    signal txTrigDrop : slv(TRIG_WIDTH_G-1 downto 0);
 
+   signal trigAck     : sl;
    signal txLsRateInt : sl;
 
    signal dataMasterInt : AxiStreamMasterType;
@@ -109,6 +111,7 @@ begin
          -- Config Interface (cfgClk domain)
          configTimerSize => configTimerSize,
          configErrResp   => configErrResp,
+         configPktTag    => configPktTag,
          cfgIbMaster     => cfgIbMaster,
          cfgIbSlave      => cfgIbSlave,
          cfgObMaster     => cfgObMaster,
@@ -157,6 +160,10 @@ begin
          cfgClk      => cfgClk,
          cfgRst      => cfgRst,
          cfgRxMaster => cfgRxMaster,
+         -- Trigger ACK Interface (txClk domain)
+         txClk       => txClk,
+         txRst       => txRst,
+         trigAck     => trigAck,
          -- Rx Interface (rxClk domain)
          rxClk       => rxClk,
          rxRst       => rxRst,
@@ -180,6 +187,7 @@ begin
          txTrig          => txTrig,
          swTrig          => swTrig,
          txTrigDrop      => txTrigDrop,
+         trigAck         => trigAck,
          txLinkUp        => txLinkUp,
          txLsRate        => txLsRateInt,
          txLsLaneEn      => txLsLaneEn,
@@ -195,6 +203,7 @@ begin
          cfgRst          => cfgClk,
          configTimerSize => configTimerSize,
          configErrResp   => configErrResp,
+         configPktTag    => configPktTag,
          -- Data Interface (dataClk domain)
          dataClk         => dataClk,
          dataRst         => dataRst,

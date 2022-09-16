@@ -297,12 +297,21 @@ class Bootstrap(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'ConnectionConfig',
+            description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
+            offset       = 0x00004014,
+            mode         = 'WO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'NumberOfConnections',
             description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
             offset       = 0x00004014,
             bitSize      = 16,
             bitOffset    = 16,
-            mode         = 'RW',
+            mode         = 'RO',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -311,7 +320,8 @@ class Bootstrap(pr.Device):
             offset       = 0x00004014,
             bitSize      = 16,
             bitOffset    = 0,
-            mode         = 'RW',
+            mode         = 'RO',
+            overlapEn    = True,
             enum         = {
                 0x00: 'undefined',
                 0x28: 'CXP_1',
