@@ -66,6 +66,8 @@ architecture rtl of CoaXPressConfig is
       tData          : Slv32Array(7 downto 0);
       tDataK         : slv(7 downto 0);
       idx            : natural range 0 to 7;
+      tagOffset      : natural range 0 to 7;
+      byteIdx        : natural range 0 to 3;
       timer          : slv(23 downto 0);
       cfgTxMaster    : AxiStreamMasterType;
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -81,6 +83,8 @@ architecture rtl of CoaXPressConfig is
       tData          => (others => (others => '0')),
       tDataK         => (others => '0'),
       idx            => 0,
+      tagOffset      => 0,
+      byteIdx        => 0,
       timer          => (others => '0'),
       cfgTxMaster    => AXI_STREAM_MASTER_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -130,18 +134,17 @@ begin
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable axilResp   : slv(1 downto 0);
-      variable tagOffset  : natural;
 
       procedure calcCrc (
-         highIndex  : in    natural) is
-         variable crc        : slv(31 downto 0);
-         variable retVar     : slv(31 downto 0);
-         variable byteXor    : slv(7 downto 0);
+         highIndex : in natural) is
+         variable crc     : slv(31 downto 0);
+         variable retVar  : slv(31 downto 0);
+         variable byteXor : slv(7 downto 0);
       begin
          -- Init
-         crc      := x"FFFFFFFF";
-         retVar   := x"FFFFFFFF";
-         byteXor  := (others => '0');
+         crc     := x"FFFFFFFF";
+         retVar  := x"FFFFFFFF";
+         byteXor := (others => '0');
 
          -- Loop through the bytes
          for i in 2 to highIndex loop
@@ -170,9 +173,9 @@ begin
 
       -- Check for tag configuration TXN
       if (r.configPktTag = '1') then
-         tagOffset := 1;
+         v.tagOffset := 1;
       else
-         tagOffset := 0;
+         v.tagOffset := 0;
       end if;
 
       -- Check for change in tag mode
@@ -208,17 +211,26 @@ begin
             v.tData(0)  := CXP_SOP_C;
 
             -- Control command indication: with or with tag
-            v.tValid(1) := '1';
             if (r.configPktTag = '1') then
+
                -- Type=0x05 = Indicates control command with tag
-               v.tData(1) := x"05_05_05_05";
+               v.tValid(1) := '1';
+               v.tData(1)  := x"05_05_05_05";
+
                -- 4x Tag
-               v.tData(2) := r.tag & r.tag & r.tag & r.tag;
-               -- Increment the counter
-               v.tag      := r.tag + 1;
+               v.tValid(2) := '1';
+               v.tData(2)  := r.tag & r.tag & r.tag & r.tag;
+
+               -- Check if any transaction
+               if (axilStatus.writeEnable = '1') or (axilStatus.readEnable = '1') then
+                  -- Increment the counter
+                  v.tag := r.tag + 1;
+               end if;
+
             else
                -- Type=0x02 = Indicates control command with no tag
-               v.tData(1) := x"02_02_02_02";
+               v.tValid(1) := '1';
+               v.tData(1)  := x"02_02_02_02";
             end if;
 
             -- Check if write transaction
@@ -226,26 +238,26 @@ begin
 
                -- Word[0].Char[P3:P1] = Size (always 4 byte access)
                -- Word[0].Char[P0] = Cmd (0x01 = Memory Write)
-               v.tValid(2+tagOffset) := '1';
-               v.tData(2+tagOffset)  := x"04_00_00_01";
+               v.tValid(2+r.tagOffset) := '1';
+               v.tData(2+r.tagOffset)  := x"04_00_00_01";
 
                -- Word[1] = Addr
-               v.tValid(3+tagOffset) := '1';
-               v.tData(3+tagOffset)  := endianSwap(axilWriteMaster.awaddr);
+               v.tValid(3+r.tagOffset) := '1';
+               v.tData(3+r.tagOffset)  := endianSwap(axilWriteMaster.awaddr);
 
                -- Word[2] = Write Data
-               v.tValid(4+tagOffset) := '1';
-               v.tData(4+tagOffset)  := endianSwap(axilWriteMaster.wdata);
+               v.tValid(4+r.tagOffset) := '1';
+               v.tData(4+r.tagOffset)  := endianSwap(axilWriteMaster.wdata);
 
                -- Word[3] = CRC-32 (placeholder)
-               v.tValid(5+tagOffset) := '1';
-               v.tData(5+tagOffset)  := x"00_00_00_00";
+               v.tValid(5+r.tagOffset) := '1';
+               v.tData(5+r.tagOffset)  := x"00_00_00_00";
 
                -- End of packet indication
-               v.tValid(6+tagOffset) := '1';
-               v.tLast(6+tagOffset)  := '1';
-               v.tDataK(6+tagOffset) := '1';
-               v.tData(6+tagOffset)  := CXP_EOP_C;
+               v.tValid(6+r.tagOffset) := '1';
+               v.tLast(6+r.tagOffset)  := '1';
+               v.tDataK(6+r.tagOffset) := '1';
+               v.tData(6+r.tagOffset)  := CXP_EOP_C;
 
                -- Next State
                v.state := CRC_S;
@@ -255,22 +267,22 @@ begin
 
                -- Word[0].Char[P3:P1] = Size (always 4 byte access)
                -- Word[0].Char[P0] = Cmd (0x00 = Memory Read)
-               v.tValid(2+tagOffset) := '1';
-               v.tData(2+tagOffset)  := x"04_00_00_00";
+               v.tValid(2+r.tagOffset) := '1';
+               v.tData(2+r.tagOffset)  := x"04_00_00_00";
 
                -- Word[1] = Addr
-               v.tValid(3+tagOffset) := '1';
-               v.tData(3+tagOffset)  := endianSwap(axilReadMaster.araddr);
+               v.tValid(3+r.tagOffset) := '1';
+               v.tData(3+r.tagOffset)  := endianSwap(axilReadMaster.araddr);
 
                -- Word[2] = CRC-32 (placeholder)
-               v.tValid(4+tagOffset) := '1';
-               v.tData(4+tagOffset)  := x"00_00_00_00";
+               v.tValid(4+r.tagOffset) := '1';
+               v.tData(4+r.tagOffset)  := x"00_00_00_00";
 
                -- End of packet indication
-               v.tValid(5+tagOffset) := '1';
-               v.tLast(5+tagOffset)  := '1';
-               v.tDataK(5+tagOffset) := '1';
-               v.tData(5+tagOffset)  := CXP_EOP_C;
+               v.tValid(5+r.tagOffset) := '1';
+               v.tLast(5+r.tagOffset)  := '1';
+               v.tDataK(5+r.tagOffset) := '1';
+               v.tData(5+r.tagOffset)  := CXP_EOP_C;
 
                -- Next State
                v.state := CRC_S;
@@ -301,20 +313,36 @@ begin
             if (v.cfgTxMaster.tValid = '0') then
 
                -- Send the transaction
-               v.cfgTxMaster.tValid             := r.tValid(r.idx);
-               v.cfgTxMaster.tLast              := r.tLast(r.idx);
-               v.cfgTxMaster.tData(31 downto 0) := r.tData(r.idx);
-               v.cfgTxMaster.tUser(0)           := r.tDataK(r.idx);
+               v.cfgTxMaster.tValid            := r.tValid(r.idx);
+               v.cfgTxMaster.tLast             := r.tLast(r.idx);
+               v.cfgTxMaster.tData(7 downto 0) := r.tData(r.idx)(8*r.byteIdx+7 downto 8*r.byteIdx);
+               v.cfgTxMaster.tUser(0)          := r.tDataK(r.idx);
 
                -- Check counter
-               if (r.idx = 7) then
+               if (r.byteIdx = 3) then
+
                   -- Reset counter
-                  v.idx   := 0;
-                  -- Next State
-                  v.state := RESP_S;
+                  v.byteIdx := 0;
+
+                  -- Check counter
+                  if (r.idx = 7) then
+                     -- Reset counter
+                     v.idx   := 0;
+                     -- Next State
+                     v.state := RESP_S;
+                  else
+                     -- Increment counter
+                     v.idx := r.idx + 1;
+                  end if;
+
                else
+
                   -- Increment counter
-                  v.idx := r.idx + 1;
+                  v.byteIdx := r.byteIdx + 1;
+
+                  -- Reset flag
+                  v.cfgTxMaster.tLast := '0';
+
                end if;
 
             end if;

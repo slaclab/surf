@@ -93,7 +93,7 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 4),
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 1),  -- 8-bit interface
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(dataBytes => 4))  -- 32-bit interface
       port map (
          -- Slave Port
@@ -135,7 +135,7 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 4),
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 1),  -- 8-bit interface
          MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(dataBytes => 1))  -- 8-bit interface
       port map (
          -- Slave Port

@@ -32,6 +32,7 @@ architecture tb of CoaXPressCrcTb is
 
    signal cfgIbMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal cfgTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal cfgTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
    signal clk : sl := '0';
    signal rst : sl := '0';
@@ -65,7 +66,7 @@ begin
          cfgClk          => clk,
          cfgRst          => rst,
          -- Config Interface (cfgClk domain)
-         configTimerSize => x"0000_FF",
+         configTimerSize => x"000_FFF",
          configErrResp   => '1',
          configPktTag    => '0',
          cfgIbMaster     => cfgIbMaster,
@@ -74,9 +75,29 @@ begin
          cfgObSlave      => AXI_STREAM_SLAVE_FORCE_C,
          -- TX Interface
          cfgTxMaster     => cfgTxMaster,
-         cfgTxSlave      => AXI_STREAM_SLAVE_FORCE_C,
+         cfgTxSlave      => cfgTxSlave,
          -- RX Interface
          cfgRxMaster     => AXI_STREAM_MASTER_INIT_C);
+
+   U_Tx : entity surf.CoaXPressTx
+      port map (
+         -- Config Interface (cfgClk domain)
+         cfgClk      => clk,
+         cfgRst      => rst,
+         cfgTxMaster => cfgTxMaster,
+         cfgTxSlave  => cfgTxSlave,
+         -- TX Interface (txClk domain)
+         txClk       => clk,
+         txRst       => rst,
+         txLsRate    => '0',
+         txLsValid   => open,
+         txLsData    => open,
+         txLsDataK   => open,
+         txHsData    => open,
+         txHsDataK   => open,
+         swTrig      => (others => '0'),
+         txTrig      => (others => '0'),
+         txTrigDrop  => open);
 
    -- To aid understanding, a complete control command packet without tag (a read of address 0) is shown
    -- here, with the resulting CRC shown in red: K27.7 K27.7 K27.7 K27.7 0x02 0x02 0x02 0x02 0x00 0x00
