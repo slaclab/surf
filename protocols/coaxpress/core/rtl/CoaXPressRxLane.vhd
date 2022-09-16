@@ -110,6 +110,9 @@ begin
             -- Reset counters
             v.ackCnt := 0;
 
+            -- Reset data bus
+            v.cfgMaster.tData := (others => '1');
+
             -- Check for Start of packet indication
             if (rxDataK = x"F") and (rxData = CXP_SOP_C) then
                -- Next State
@@ -183,6 +186,11 @@ begin
 
                end if;
 
+            else
+               -- Forward the response
+               v.cfgMaster.tValid := '1';
+               -- Next State
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when STREAM_ID_S =>
