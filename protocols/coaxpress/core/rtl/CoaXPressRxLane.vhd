@@ -31,18 +31,20 @@ entity CoaXPressRxLane is
       TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
-      rxClk      : in  sl;
-      rxRst      : in  sl;
+      rxClk          : in  sl;
+      rxRst          : in  sl;
       -- Config Interface
-      cfgMaster  : out AxiStreamMasterType;
+      cfgMaster      : out AxiStreamMasterType;
       -- Data Interface
-      dataMaster : out AxiStreamMasterType;
+      dataMaster     : out AxiStreamMasterType;
+      -- Heartbeat Interface
+      heatbeatMaster : out AxiStreamMasterType;
       -- I/O ACK Strobe
-      ioAck      : out sl;
+      ioAck          : out sl;
       -- RX PHY Interface
-      rxData     : in  slv(31 downto 0);
-      rxDataK    : in  slv(3 downto 0);
-      rxLinkUp   : in  sl);
+      rxData         : in  slv(31 downto 0);
+      rxDataK        : in  slv(3 downto 0);
+      rxLinkUp       : in  sl);
 end entity CoaXPressRxLane;
 
 architecture rtl of CoaXPressRxLane is
@@ -52,6 +54,7 @@ architecture rtl of CoaXPressRxLane is
       TYPE_S,
       CTRL_ACK_TAG_S,
       CTRL_ACK_S,
+      HEARTBEAT_S,
       STREAM_ID_S,
       PACKET_TAG_S,
       DSIZE_UPPER_S,
@@ -61,27 +64,29 @@ architecture rtl of CoaXPressRxLane is
       IO_ACK_S);
 
    type RegType is record
-      ioAck      : sl;
-      streamID   : slv(7 downto 0);
-      dcnt       : slv(15 downto 0);
-      dsize      : slv(15 downto 0);
-      ackCnt     : natural range 0 to 3;
-      cfgMaster  : AxiStreamMasterType;
-      dataMaster : AxiStreamMasterType;
-      saved      : StateType;
-      state      : StateType;
+      ioAck          : sl;
+      streamID       : slv(7 downto 0);
+      dcnt           : slv(15 downto 0);
+      dsize          : slv(15 downto 0);
+      ackCnt         : natural range 0 to 15;
+      cfgMaster      : AxiStreamMasterType;
+      dataMaster     : AxiStreamMasterType;
+      heatbeatMaster : AxiStreamMasterType;
+      saved          : StateType;
+      state          : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ioAck      => '0',
-      streamID   => (others => '0'),
-      dcnt       => (others => '0'),
-      dsize      => (others => '0'),
-      ackCnt     => 0,
-      cfgMaster  => AXI_STREAM_MASTER_INIT_C,
-      dataMaster => AXI_STREAM_MASTER_INIT_C,
-      saved      => IDLE_S,
-      state      => IDLE_S);
+      ioAck          => '0',
+      streamID       => (others => '0'),
+      dcnt           => (others => '0'),
+      dsize          => (others => '0'),
+      ackCnt         => 0,
+      cfgMaster      => AXI_STREAM_MASTER_INIT_C,
+      dataMaster     => AXI_STREAM_MASTER_INIT_C,
+      heatbeatMaster => AXI_STREAM_MASTER_INIT_C,
+      saved          => IDLE_S,
+      state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -98,10 +103,11 @@ begin
       v := r;
 
       -- Reset strobes
-      v.ioAck             := '0';
-      v.cfgMaster.tValid  := '0';
-      v.dataMaster.tValid := '0';
-      v.dataMaster.tLast  := '0';
+      v.ioAck                 := '0';
+      v.cfgMaster.tValid      := '0';
+      v.dataMaster.tValid     := '0';
+      v.dataMaster.tLast      := '0';
+      v.heatbeatMaster.tValid := '0';
 
       -- State Machine
       case r.state is
@@ -132,6 +138,11 @@ begin
                elsif (rxData = x"06_06_06_06") then
                   -- Next State
                   v.state := CTRL_ACK_TAG_S;
+
+               -- Check for "Heartbeat Payload"
+               elsif (rxData = x"09_09_09_09") then
+                  -- Next State
+                  v.state := HEARTBEAT_S;
 
                -- Check for "Stream data packet"
                elsif (rxData = x"01_01_01_01") then
@@ -189,6 +200,33 @@ begin
             else
                -- Forward the response
                v.cfgMaster.tValid := '1';
+               -- Next State
+               v.state            := IDLE_S;
+            end if;
+         ----------------------------------------------------------------------
+         when HEARTBEAT_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+
+               -- Increment the counter
+               v.ackCnt := r.ackCnt + 1;
+
+               -- Save the response code
+               v.heatbeatMaster.tData(8*r.ackCnt+7 downto 8*r.ackCnt) := rxData(7 downto 0);
+
+               -- "Acknowledgment code" index
+               if (r.ackCnt = 11) then
+
+                  -- Forward the response
+                  v.heatbeatMaster.tValid := '1';
+                  v.heatbeatMaster.tLast  := '1';
+
+                  -- Next State
+                  v.state := IDLE_S;
+
+               end if;
+
+            else
                -- Next State
                v.state := IDLE_S;
             end if;

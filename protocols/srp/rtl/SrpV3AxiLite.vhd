@@ -42,6 +42,7 @@ entity SrpV3AxiLite is
       TX_VALID_BURST_MODE_G : boolean                 := true;       -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
+      ENABLE_TIMER_G        : boolean                 := true;
       AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz
       AXI_STREAM_CONFIG_G   : AxiStreamConfigType);
    port (
@@ -635,7 +636,7 @@ begin
                end if;
             end if;
             -- Check if timer enabled
-            if r.timeoutSize /= 0 then
+            if (r.timeoutSize /= 0) and ENABLE_TIMER_G then
                -- Check 100 ms timer
                if r.timer = TIMEOUT_C then
                   -- Increment counter
@@ -735,7 +736,7 @@ begin
                end if;
             end if;
             -- Check if timer enabled
-            if r.timeoutSize /= 0 then
+            if (r.timeoutSize /= 0) and ENABLE_TIMER_G then
                -- Check 100 ms timer
                if r.timer = TIMEOUT_C then
                   -- Increment counter

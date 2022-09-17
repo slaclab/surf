@@ -38,6 +38,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8300,
             bitSize      = 8*32,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -47,6 +48,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8320,
             bitSize      = 8*32,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -524,6 +526,7 @@ class PhantomS991(pr.Device):
             description  = '',
             offset       = 0x8148,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -531,6 +534,7 @@ class PhantomS991(pr.Device):
             description  = '',
             offset       = 0x8154,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -538,6 +542,7 @@ class PhantomS991(pr.Device):
             description  = '',
             offset       = 0x8164,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -545,6 +550,7 @@ class PhantomS991(pr.Device):
             description  = '',
             offset       = 0x8140,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -552,6 +558,7 @@ class PhantomS991(pr.Device):
             description  = '',
             offset       = 0x8144,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -559,4 +566,5 @@ class PhantomS991(pr.Device):
             description  = '',
             offset       = 0x8130,
             mode         = 'RW',
+            hidden       = True,
         ))
