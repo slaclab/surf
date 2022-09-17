@@ -36,7 +36,7 @@ entity CoaXPressConfig is
       cfgClk          : in  sl;
       cfgRst          : in  sl;
       -- Config Interface
-      configTimerSize : in  slv(23 downto 0);
+      configTimerSize : in  slv(31 downto 0);
       configErrResp   : in  sl;
       configPktTag    : in  sl;
       cfgIbMaster     : in  AxiStreamMasterType;
@@ -68,7 +68,7 @@ architecture rtl of CoaXPressConfig is
       idx            : natural range 0 to 7;
       tagOffset      : natural range 0 to 7;
       byteIdx        : natural range 0 to 3;
-      timer          : slv(23 downto 0);
+      timer          : slv(31 downto 0);
       cfgTxMaster    : AxiStreamMasterType;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -109,6 +109,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
          GEN_SYNC_FIFO_G     => true,
+         ENABLE_TIMER_G      => false, -- Bypass and use local timer instead
          AXI_STREAM_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Streaming Slave (Rx) Interface (sAxisClk domain)

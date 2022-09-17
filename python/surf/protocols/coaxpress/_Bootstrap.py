@@ -9,10 +9,12 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time
 
 class Bootstrap(pr.Device):
-    def __init__(self, GenDc=False, **kwargs):
+    def __init__(self, GenDc=False, CoaXPressAxiL=None, **kwargs):
         super().__init__(**kwargs)
+        self.CoaXPressAxiL = CoaXPressAxiL
 
         self.add(pr.RemoteVariable(
             name         = 'Standard',
@@ -28,6 +30,7 @@ class Bootstrap(pr.Device):
             bitSize      = 16,
             bitOffset    = 16,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -37,6 +40,13 @@ class Bootstrap(pr.Device):
             bitSize      = 16,
             bitOffset    = 0,
             mode         = 'RO',
+            hidden       = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'CoaXPressVersion',
+            linkedGet    = lambda: f'v{self.MajorVersion.value()}.{self.MinorVersion.value()}',
+            dependencies = [self.MajorVersion,self.MinorVersion],
         ))
 
         self.add(pr.RemoteVariable(
@@ -60,6 +70,7 @@ class Bootstrap(pr.Device):
             bitSize      = 8,
             bitOffset    = 16,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -69,6 +80,7 @@ class Bootstrap(pr.Device):
             bitSize      = 8,
             bitOffset    = 8,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -78,6 +90,13 @@ class Bootstrap(pr.Device):
             bitSize      = 8,
             bitOffset    = 0,
             mode         = 'RO',
+            hidden       = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'XMLVersion',
+            linkedGet    = lambda: f'v{self.XMLMajorVersion.value()}.{self.XMLMinorVersion.value()}.{self.XMLSubMinorVersion.value()}',
+            dependencies = [self.XMLMajorVersion,self.XMLMinorVersion,self.XMLSubMinorVersion],
         ))
 
         self.add(pr.RemoteVariable(
@@ -87,6 +106,7 @@ class Bootstrap(pr.Device):
             bitSize      = 8,
             bitOffset    = 16,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -96,6 +116,7 @@ class Bootstrap(pr.Device):
             bitSize      = 8,
             bitOffset    = 8,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -105,6 +126,13 @@ class Bootstrap(pr.Device):
             bitSize      = 8,
             bitOffset    = 0,
             mode         = 'RO',
+            hidden       = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'SchemaVersion',
+            linkedGet    = lambda: f'v{self.SchemaMajorVersion.value()}.{self.SchemaMinorVersion.value()}.{self.SchemaSubMinorVersion.value()}',
+            dependencies = [self.SchemaMajorVersion,self.SchemaMinorVersion,self.SchemaSubMinorVersion],
         ))
 
         self.add(pr.RemoteVariable(
@@ -346,6 +374,7 @@ class Bootstrap(pr.Device):
             description  = 'Writing the value 0x00000001 to this register shall enable test packets transmission from Device to Host. The value 0x00000000 shall allow normal operation. When the value is changed from 0x00000001 to 0x00000000 the Device shall complete the packet of 1024 test words currently being transmitted.',
             offset       = 0x0000401C,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -353,13 +382,15 @@ class Bootstrap(pr.Device):
             description  = 'This register shall select the required test count [TestErrorCountSelector] register',
             offset       = 0x00004020,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'TestErrorCount',
             description  = 'This register shall provide the current connection error count for the connection referred to by register TestErrorCountSelector.',
             offset       = 0x00004024,
-            mode         = 'RW',
+            mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -367,7 +398,8 @@ class Bootstrap(pr.Device):
             description  = 'This register shall provide the current transmitted connection test packet count for the connection referred to by register TestErrorCountSelector.',
             offset       = 0x00004028,
             bitSize      = 8*8,
-            mode         = 'RW',
+            mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -375,7 +407,8 @@ class Bootstrap(pr.Device):
             description  = 'This register shall provide the current received connection test packet count for the connection referred to by register TestErrorCountSelector.',
             offset       = 0x00004030,
             bitSize      = 8*8,
-            mode         = 'RW',
+            mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -500,6 +533,7 @@ class Bootstrap(pr.Device):
             bitSize      = 16,
             bitOffset    = 16,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -509,4 +543,32 @@ class Bootstrap(pr.Device):
             bitSize      = 16,
             bitOffset    = 0,
             mode         = 'RO',
+            hidden       = True,
         ))
+
+        self.add(pr.LinkVariable(
+            name         = 'VersionUsed',
+            linkedGet    = lambda: f'v{self.MajorVersionUsed.value()}.{self.MinorVersionUsed.value()}',
+            dependencies = [self.MajorVersionUsed,self.MinorVersionUsed],
+        ))
+
+        @self.command(description='Initialize the device discovery',)
+        def DeviceDiscovery():
+            # Config without tags
+            self.CoaXPressAxiL.ConfigPktTag.set(0)
+
+            # Disable High speed upconnection
+            self.CoaXPressAxiL.TxHsEnable.set(0)
+
+            # Switch to 20.83 Mb/s mode
+            self.CoaXPressAxiL.TxLsRate.set(0)
+
+            # Execute a connection reset
+            self.ConnectionReset()
+
+            # Host shall wait 200ms to allow for the Device to complete connection configuration
+            time.sleep(0.2)
+
+            # Updates all the local device register values
+            self.readBlocks(recurse=True)
+            self.checkBlocks(recurse=True)

@@ -35,6 +35,9 @@ entity CoaXPressTx is
       cfgRst      : in  sl;
       cfgTxMaster : in  AxiStreamMasterType;
       cfgTxSlave  : out AxiStreamSlaveType;
+      -- Event ACK Interface (cfgClk domain)
+      eventAck    : in  sl;
+      eventTag    : in  slv(7 downto 0);
       -- TX Interface (txClk domain)
       txClk       : in  sl;
       txRst       : in  sl;
@@ -50,6 +53,12 @@ entity CoaXPressTx is
 end entity CoaXPressTx;
 
 architecture mapping of CoaXPressTx is
+
+   signal eventAckMaster : AxiStreamMasterType;
+   signal eventAckSlave  : AxiStreamSlaveType;
+
+   signal muxMaster : AxiStreamMasterType;
+   signal muxSlave  : AxiStreamSlaveType;
 
    signal txMasters : AxiStreamMasterArray(1 downto 0);
    signal txSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -68,6 +77,38 @@ begin
    lsTrig     <= uOr(trigger);
    txTrigDrop <= txHsTrigDrop or txLsTrigDrop;
 
+   U_EventAckMsg : entity surf.CoaXPressEventAckMsg
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         -- Clock and Reset
+         clk            => cfgClk,
+         rst            => cfgRst,
+         -- Event ACK Interface
+         eventAck       => eventAck,
+         eventTag       => eventTag,
+         -- AXI Stream Interface
+         eventAckMaster => eventAckMaster,
+         eventAckSlave  => eventAckSlave);
+
+   U_Mux : entity surf.AxiStreamMux
+      generic map (
+         TPD_G         => TPD_G,
+         NUM_SLAVES_G  => 2,
+         PIPE_STAGES_G => 1)
+      port map (
+         -- Clock and reset
+         axisClk         => cfgClk,
+         axisRst         => cfgRst,
+         -- Slaves
+         sAxisMasters(0) => cfgTxMaster,
+         sAxisMasters(1) => eventAckMaster,
+         sAxisSlaves(0)  => cfgTxSlave,
+         sAxisSlaves(1)  => eventAckSlave,
+         -- Master
+         mAxisMaster     => muxMaster,
+         mAxisSlave      => muxSlave);
+
    U_Repeater : entity surf.AxiStreamRepeater
       generic map (
          TPD_G         => TPD_G,
@@ -77,8 +118,8 @@ begin
          axisClk      => cfgClk,
          axisRst      => cfgRst,
          -- Slave
-         sAxisMaster  => cfgTxMaster,
-         sAxisSlave   => cfgTxSlave,
+         sAxisMaster  => muxMaster,
+         sAxisSlave   => muxSlave,
          -- Masters
          mAxisMasters => txMasters,
          mAxisSlaves  => txSlaves);

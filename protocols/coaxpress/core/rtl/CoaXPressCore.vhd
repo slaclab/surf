@@ -81,12 +81,15 @@ architecture mapping of CoaXPressCore is
    signal cfgTxSlave  : AxiStreamSlaveType;
    signal cfgRxMaster : AxiStreamMasterType;
 
-   signal configTimerSize : slv(23 downto 0);
+   signal configTimerSize : slv(31 downto 0);
    signal configErrResp   : sl;
    signal configPktTag    : sl;
 
    signal swTrig     : slv(TRIG_WIDTH_G-1 downto 0);
    signal txTrigDrop : slv(TRIG_WIDTH_G-1 downto 0);
+
+   signal eventAck : sl;
+   signal eventTag : slv(7 downto 0);
 
    signal trigAck     : sl;
    signal txLsRateInt : sl;
@@ -132,6 +135,9 @@ begin
          cfgRst      => cfgRst,
          cfgTxMaster => cfgTxMaster,
          cfgTxSlave  => cfgTxSlave,
+         -- Event ACK Interface (cfgClk domain)
+         eventAck    => eventAck,
+         eventTag    => eventTag,
          -- TX Interface (txClk domain)
          txClk       => txClk,
          txRst       => txRst,
@@ -160,6 +166,9 @@ begin
          cfgClk      => cfgClk,
          cfgRst      => cfgRst,
          cfgRxMaster => cfgRxMaster,
+         -- Event ACK Interface (cfgClk domain)
+         eventAck    => eventAck,
+         eventTag    => eventTag,
          -- Trigger ACK Interface (txClk domain)
          txClk       => txClk,
          txRst       => txRst,

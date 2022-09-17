@@ -55,7 +55,7 @@ entity CoaXPressAxiL is
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
-      configTimerSize : out slv(23 downto 0);
+      configTimerSize : out slv(31 downto 0);
       configErrResp   : out sl;
       configPktTag    : out sl;
       -- Data Interface (dataClk domain)
@@ -81,7 +81,7 @@ architecture rtl of CoaXPressAxiL is
       txLsRate        : sl;
       txLsLaneEn      : slv(3 downto 0);
       txHsEnable      : sl;
-      configTimerSize : slv(23 downto 0);
+      configTimerSize : slv(31 downto 0);
       configErrResp   : sl;
       configPktTag    : sl;
       swTrig          : slv(TRIG_WIDTH_G-1 downto 0);
@@ -92,9 +92,9 @@ architecture rtl of CoaXPressAxiL is
 
    constant REG_INIT_C : RegType := (
       txLsRate        => '0',
-      txLsLaneEn      => x"1",
+      txLsLaneEn      => x"F",
       txHsEnable      => '0',
-      configTimerSize => (others => '1'),
+      configTimerSize => x"0F_FF_FF_FF",
       configErrResp   => '1',
       configPktTag    => '0',
       swTrig          => (others => '0'),
@@ -196,13 +196,14 @@ begin
       axiSlaveRegisterR(axilEp, x"934", 0, frameSizeMax);
       axiSlaveRegisterR(axilEp, x"938", 0, frameSizeMin);
 
-      axiSlaveRegisterR(axilEp, x"FF0", 0, toSlv(NUM_LANES_G, 8));
-      axiSlaveRegisterR(axilEp, x"FF0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
-      axiSlaveRegisterR(axilEp, x"FF0", 16, toSlv(TRIG_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"FE0", 0, toSlv(NUM_LANES_G, 8));
+      axiSlaveRegisterR(axilEp, x"FE0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"FE0", 16, toSlv(TRIG_WIDTH_G, 8));
 
-      axiSlaveRegister (axilEp, X"FF4", 0, v.swTrig);
+      axiSlaveRegister (axilEp, X"FF0", 0, v.swTrig);
 
-      axiSlaveRegister (axilEp, x"FF8", 0, v.configTimerSize);
+      axiSlaveRegister (axilEp, x"FF4", 0, v.configTimerSize);
+
       axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);
       axiSlaveRegister (axilEp, x"FF8", 25, v.configPktTag);
       axiSlaveRegister (axilEp, x"FF8", 26, v.txLsRate);
@@ -448,7 +449,7 @@ begin
    U_configTimerSize : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
-         WIDTH_G => 24)
+         WIDTH_G => 32)
       port map (
          clk     => cfgClk,
          dataIn  => r.configTimerSize,

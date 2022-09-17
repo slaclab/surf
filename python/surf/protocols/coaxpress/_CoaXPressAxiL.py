@@ -157,7 +157,7 @@ class CoaXPressAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'NUM_LANES_G',
-            offset       = 0xFF0,
+            offset       = 0xFE0,
             bitSize      = 8,
             bitOffset    = 0,
             disp         = '{:d}',
@@ -166,7 +166,7 @@ class CoaXPressAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'STATUS_CNT_WIDTH_G',
-            offset       = 0xFF0,
+            offset       = 0xFE0,
             bitSize      = 8,
             bitOffset    = 8,
             disp         = '{:d}',
@@ -175,7 +175,7 @@ class CoaXPressAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TRIG_WIDTH_G',
-            offset       = 0xFF0,
+            offset       = 0xFE0,
             bitSize      = 8,
             bitOffset    = 16,
             disp         = '{:d}',
@@ -184,17 +184,14 @@ class CoaXPressAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'SoftwareTrig',
-            offset       = 0xFF4,
+            offset       = 0xFF0,
             bitSize      = trigWidth,
             mode         = 'WO',
         ))
 
-
         self.add(pr.RemoteVariable(
             name         = 'ConfigTimerSize',
-            offset       = 0xFF8,
-            bitSize      = 24,
-            bitOffset    = 0,
+            offset       = 0xFF4,
             mode         = 'RW',
         ))
 

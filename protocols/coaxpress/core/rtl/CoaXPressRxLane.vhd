@@ -39,8 +39,10 @@ entity CoaXPressRxLane is
       dataMaster     : out AxiStreamMasterType;
       -- Heartbeat Interface
       heatbeatMaster : out AxiStreamMasterType;
-      -- I/O ACK Strobe
+      -- ACK Interface
       ioAck          : out sl;
+      eventAck       : out sl;
+      eventTag       : out slv(7 downto 0);
       -- RX PHY Interface
       rxData         : in  slv(31 downto 0);
       rxDataK        : in  slv(3 downto 0);
@@ -55,6 +57,7 @@ architecture rtl of CoaXPressRxLane is
       CTRL_ACK_TAG_S,
       CTRL_ACK_S,
       HEARTBEAT_S,
+      EVENT_ACK_S,
       STREAM_ID_S,
       PACKET_TAG_S,
       DSIZE_UPPER_S,
@@ -65,6 +68,8 @@ architecture rtl of CoaXPressRxLane is
 
    type RegType is record
       ioAck          : sl;
+      eventAck       : sl;
+      eventTag       : slv(7 downto 0);
       streamID       : slv(7 downto 0);
       dcnt           : slv(15 downto 0);
       dsize          : slv(15 downto 0);
@@ -78,6 +83,8 @@ architecture rtl of CoaXPressRxLane is
 
    constant REG_INIT_C : RegType := (
       ioAck          => '0',
+      eventAck       => '0',
+      eventTag       => (others => '0'),
       streamID       => (others => '0'),
       dcnt           => (others => '0'),
       dsize          => (others => '0'),
@@ -104,6 +111,7 @@ begin
 
       -- Reset strobes
       v.ioAck                 := '0';
+      v.eventAck              := '0';
       v.cfgMaster.tValid      := '0';
       v.dataMaster.tValid     := '0';
       v.dataMaster.tLast      := '0';
@@ -129,8 +137,13 @@ begin
             -- Check for non-k word
             if (rxDataK = x"0") then
 
+               -- Check for "Stream data packet"
+               if (rxData = x"01_01_01_01") then
+                  -- Next State
+                  v.state := STREAM_ID_S;
+
                -- Check for "control acknowledge with no tag"
-               if (rxData = x"03_03_03_03") then
+               elsif (rxData = x"03_03_03_03") then
                   -- Next State
                   v.state := CTRL_ACK_S;
 
@@ -139,15 +152,15 @@ begin
                   -- Next State
                   v.state := CTRL_ACK_TAG_S;
 
+               -- Check for "control acknowledge with tag"
+               elsif (rxData = x"07_07_07_07") then
+                  -- Next State
+                  v.state := EVENT_ACK_S;
+
                -- Check for "Heartbeat Payload"
                elsif (rxData = x"09_09_09_09") then
                   -- Next State
                   v.state := HEARTBEAT_S;
-
-               -- Check for "Stream data packet"
-               elsif (rxData = x"01_01_01_01") then
-                  -- Next State
-                  v.state := STREAM_ID_S;
 
                -- Else undefined tag, return to IDLE
                else
@@ -202,6 +215,30 @@ begin
                v.cfgMaster.tValid := '1';
                -- Next State
                v.state            := IDLE_S;
+            end if;
+         ----------------------------------------------------------------------
+         when EVENT_ACK_S =>
+            -- Check for non-k word
+            if (rxDataK = x"0") then
+
+               -- Increment the counter
+               v.ackCnt := r.ackCnt + 1;
+
+               -- "Acknowledgment code" index
+               if (r.ackCnt = 4) then
+
+                  -- Generate the ACK message w/ package tag
+                  v.eventAck := '1';
+                  v.eventTag := rxData(7 downto 0);
+
+                  -- Next State
+                  v.state := IDLE_S;
+
+               end if;
+
+            else
+               -- Next State
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when HEARTBEAT_S =>
@@ -322,6 +359,8 @@ begin
       cfgMaster  <= r.cfgMaster;
       dataMaster <= r.dataMaster;
       ioAck      <= r.ioAck;
+      eventAck   <= r.eventAck;
+      eventTag   <= r.eventTag;
 
       -- Reset
       if (rxRst = '1') or (rxLinkUp = '0') then

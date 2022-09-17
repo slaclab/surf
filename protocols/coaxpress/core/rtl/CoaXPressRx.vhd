@@ -40,6 +40,9 @@ entity CoaXPressRx is
       cfgClk      : in  sl;
       cfgRst      : in  sl;
       cfgRxMaster : out AxiStreamMasterType;
+      -- Event ACK Interface (cfgClk domain)
+      eventAck    : out sl;
+      eventTag    : out slv(7 downto 0);
       -- Trigger ACK Interface (txClk domain)
       txClk       : in  sl;
       txRst       : in  sl;
@@ -55,6 +58,8 @@ end entity CoaXPressRx;
 architecture mapping of CoaXPressRx is
 
    signal ioAck       : slv(NUM_LANES_G-1 downto 0);
+   signal eventAckVec : slv(NUM_LANES_G-1 downto 0);
+   signal eventTagVec : Slv8Array(NUM_LANES_G-1 downto 0);
    signal cfgMasters  : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
    signal dataMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
 
@@ -73,8 +78,10 @@ begin
             cfgMaster  => cfgMasters(i),
             -- Data Interface
             dataMaster => dataMasters(i),
-            -- I/O ACK Strobe
+            -- ACK Interface
             ioAck      => ioAck(i),
+            eventAck   => eventAckVec(i),
+            eventTag   => eventTagVec(i),
             -- RX PHY Interface
             rxData     => rxData(i),
             rxDataK    => rxDataK(i),
@@ -136,5 +143,21 @@ begin
          clk     => txClk,
          dataIn  => ioAck(0),
          dataOut => trigAck);
+
+   U_eventAck : entity surf.SynchronizerFifo
+      generic map (
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 8)
+      port map (
+         -- Asynchronous Reset
+         rst    => rxRst(0),
+         -- Write Ports (wr_clk domain)
+         wr_clk => rxClk(0),
+         wr_en  => eventAckVec(0),
+         din    => eventTagVec(0),
+         -- Read Ports (rd_clk domain)
+         rd_clk => cfgClk,
+         valid  => eventAck,
+         dout   => eventTag);
 
 end mapping;

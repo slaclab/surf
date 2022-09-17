@@ -483,7 +483,7 @@ class PhantomS991(pr.Device):
             name         = 'UserInputStatusReg',
             description  = 'Displays state of user input GPIO line.',
             offset       = 0x8204,
-            mode         = 'RW',
+            mode         = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
