@@ -245,3 +245,8 @@ class CoaXPressAxiL(pr.Device):
 
     def countReset(self):
         self.CountReset()
+
+    def _stop(self):
+        self.TxHsEnable.set(0)
+        self.TxLsRate.set(0)
+        super()._stop()
