@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import surf.protocols.coaxpress as cxp
 import time
 
 class Bootstrap(pr.Device):
@@ -137,59 +138,53 @@ class Bootstrap(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceVendorName',
             description  = 'This register shall provide the name of the manufacturer of the Device as a string.',
-            base         = pr.String,
             offset       = 0x00002000,
-            bitSize      = 8*32,
-            mode         = 'RO',
-        ))
+            number       = 8,
+        )
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceModelName',
             description  = 'This register shall provide the model name of the Device as a string.',
-            base         = pr.String,
             offset       = 0x00002020,
-            bitSize      = 8*32,
-            mode         = 'RO',
-        ))
+            number       = 8,
+        )
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceManufacturerInfo',
             description  = 'This register shall provide extended manufacturer-specific information about the Device as a string.',
-            base         = pr.String,
             offset       = 0x00002040,
-            bitSize      = 8*48,
-            mode         = 'RO',
-        ))
+            number       = 12,
+        )
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceVersion',
             description  = 'This register shall provide the version of the Device as a string.',
-            base         = pr.String,
             offset       = 0x00002070,
-            bitSize      = 8*32,
-            mode         = 'RO',
-        ))
+            number       = 8,
+        )
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceSerialNumber',
             description  = 'This register shall provide the serial number for the Device as a NULL-terminated string.',
-            base         = pr.String,
             offset       = 0x000020B0,
-            bitSize      = 8*16,
-            mode         = 'RO',
-        ))
+            number       = 4,
+        )
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceUserID',
             description  = 'This register shall provide a user-programmable identifier for the Device as a string. The Device shall provide persistent storage for this register so the value is maintained when power is switched off.',
-            base         = pr.String,
             offset       = 0x000020C0,
-            bitSize      = 8*16,
-            mode         = 'RW',
-        ))
+            number       = 4,
+        )
 
         # These registers shall only be supported if GenDC is supported, as indicated by CapabilityRegister bit GenDcSupported.
         if GenDc:

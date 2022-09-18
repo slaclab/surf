@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import surf.protocols.coaxpress as cxp
 
 class PhantomS991(pr.Device):
     def __init__(self, **kwargs):
@@ -31,25 +32,21 @@ class PhantomS991(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceIPAddress',
             description  = 'Category for Device information and control.',
-            base         = pr.String,
             offset       = 0x8300,
-            bitSize      = 8*32,
-            mode         = 'RO',
-            hidden       = True,
-        ))
+            number       = 8,
+        )
 
-        self.add(pr.RemoteVariable(
+        cxp.addStringVariables(
+            dev          = self,
             name         = 'DeviceNetmask',
             description  = 'Category for Device information and control.',
-            base         = pr.String,
             offset       = 0x8320,
-            bitSize      = 8*32,
-            mode         = 'RO',
-            hidden       = True,
-        ))
+            number       = 8,
+        )
 
         self.add(pr.RemoteVariable(
             name         = 'pDeviceTemperatureSelectorReg',
@@ -68,6 +65,7 @@ class PhantomS991(pr.Device):
             bitOffset    = 16,
             mode         = 'RO',
             units        = 'degC',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -76,6 +74,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8010,
             mode         = 'RO',
             units        = 'pixels',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -84,6 +83,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8000,
             mode         = 'RW',
             units        = 'pixels',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -92,6 +92,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8014,
             mode         = 'RO',
             units        = 'pixels',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -100,6 +101,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8004,
             mode         = 'RW',
             units        = 'pixels',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -173,6 +175,8 @@ class PhantomS991(pr.Device):
             offset       = 0x80C0,
             mode         = 'RW',
             units        = 'Hz',
+            disp         = '{:d}',
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -181,6 +185,8 @@ class PhantomS991(pr.Device):
             offset       = 0x80C4,
             mode         = 'RO',
             units        = 'Hz',
+            disp         = '{:d}',
+            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -189,6 +195,7 @@ class PhantomS991(pr.Device):
             offset       = 0x80C8,
             mode         = 'RW',
             units        = 'microseconds',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -197,6 +204,7 @@ class PhantomS991(pr.Device):
             offset       = 0x80CC,
             mode         = 'RO',
             units        = 'microseconds',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
