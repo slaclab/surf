@@ -24,29 +24,17 @@ class Bootstrap(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MajorVersion',
+            name         = 'Revision',
             description  = 'This register shall provide the version of the CoaXPress standard implemented by this Device.',
             offset       = 0x00000004,
-            bitSize      = 16,
-            bitOffset    = 16,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'MinorVersion',
-            description  = 'This register shall provide the version of the CoaXPress standard implemented by this Device.',
-            offset       = 0x00000004,
-            bitSize      = 16,
-            bitOffset    = 0,
             mode         = 'RO',
             hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
-            name         = 'CoaXPressVersion',
-            linkedGet    = lambda: f'v{self.MajorVersion.value()}.{self.MinorVersion.value()}',
-            dependencies = [self.MajorVersion,self.MinorVersion],
+            name         = 'DeviceRevisionUsed',
+            linkedGet    = lambda: f'v{(self.Revision.value()>>16)&0xFFFF}.{self.Revision.value()&0xFFFF}',
+            dependencies = [self.Revision],
         ))
 
         self.add(pr.RemoteVariable(
@@ -527,6 +515,14 @@ class Bootstrap(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'VersionUsedCmd',
+            description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
+            offset       = 0x00004048,
+            mode         = 'WO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'MajorVersionUsed',
             description  = 'This register shall provide the version of the CoaXPress standard used to communicate between the Device and Host. The register is set during Discovery (see section 12.1.4).',
             offset       = 0x00004048,
@@ -534,6 +530,7 @@ class Bootstrap(pr.Device):
             bitOffset    = 16,
             mode         = 'RO',
             hidden       = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -544,6 +541,7 @@ class Bootstrap(pr.Device):
             bitOffset    = 0,
             mode         = 'RO',
             hidden       = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.LinkVariable(
