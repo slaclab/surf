@@ -519,6 +519,7 @@ class Bootstrap(pr.Device):
             description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
             offset       = 0x00004048,
             mode         = 'WO',
+            hidden       = True,
             overlapEn    = True,
         ))
 
@@ -565,6 +566,27 @@ class Bootstrap(pr.Device):
             self.ConnectionReset()
 
             # Host shall wait 200ms to allow for the Device to complete connection configuration
+            time.sleep(0.2)
+
+            # Updates all the local device register values
+            self.readBlocks(recurse=True)
+            self.checkBlocks(recurse=True)
+
+            # Match the device revision to host revision
+            self.VersionUsedCmd.set(self.Revision.value())
+
+            # The Host shall read the ConnectionConfigDefault register to find the required bit rate
+            # and number of connections operating at this bit rate
+            self.ConnectionConfig.set(self.ConnectionConfigDefault.value())
+
+            # If the new high speed connection bit rate requires a change in low speed connection bit rate,
+            # it shall also change the low speed upconnection speed to the value defined in Table 6.
+            if (self.ConnectionConfigDefault.value() & 0xFF) >= 0x50:
+                # Switch to 41.66 Mb/s mode
+                self.CoaXPressAxiL.TxLsRate.set(1)
+
+            # After it is sending a stable low speed upconnection at the defined rate the Host
+            # shall wait 200ms to allow the Device to complete connection re-configuration.
             time.sleep(0.2)
 
             # Updates all the local device register values
