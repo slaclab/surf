@@ -137,7 +137,7 @@ class PhantomS991(pr.Device):
             name         = 'ImageSourceGrabReg',
             description  = 'Grab Gain and Offset from camera.',
             offset       = 0x8124,
-            mode         = 'RW',
+            mode         = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
@@ -176,7 +176,7 @@ class PhantomS991(pr.Device):
             mode         = 'RW',
             units        = 'Hz',
             disp         = '{:d}',
-            pollInterval = 1,
+            # pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -186,7 +186,7 @@ class PhantomS991(pr.Device):
             mode         = 'RO',
             units        = 'Hz',
             disp         = '{:d}',
-            pollInterval = 1,
+            # pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(

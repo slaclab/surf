@@ -298,6 +298,7 @@ class Bootstrap(pr.Device):
             description  = 'This register shall provide the maximum control packet size the Host can read from the Device, or write to the Device. The size is defined in bytes, and shall be a multiple of 4 bytes. The defined size is that of the entire packet, not just the payload.',
             offset       = 0x0000400C,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -305,6 +306,7 @@ class Bootstrap(pr.Device):
             description  = 'This register shall hold the maximum stream packet size the Host can accept. The size is defined in bytes, and shall be a multiple of 4 bytes. The Device can use any packet size it wants to up to this size. The defined size is that of the entire packet, not just the payload.',
             offset       = 0x00004010,
             mode         = 'RW',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -587,3 +589,10 @@ class Bootstrap(pr.Device):
             # Updates all the local device register values
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
+
+            self.StreamPacketSizeMax.set(4096)
+
+    def _stop(self):
+        self.CoaXPressAxiL.TxHsEnable.set(0)
+        self.CoaXPressAxiL.TxLsRate.set(0)
+        super()._stop()
