@@ -27,7 +27,7 @@ use surf.SsiPkg.all;
 
 entity CoaXPressTx is
    generic (
-      TPD_G        : time                   := 1 ns);
+      TPD_G : time := 1 ns);
    port (
       -- Config Interface (cfgClk domain)
       cfgClk       : in  sl;
@@ -37,13 +37,16 @@ entity CoaXPressTx is
       -- Event ACK Interface (cfgClk domain)
       eventAck     : in  sl;
       eventTag     : in  slv(7 downto 0);
-      -- TX Interface (txClk domain)
+      -- TX PHY Interface (txClk domain)
       txClk        : in  sl;
       txRst        : in  sl;
       txLsRate     : in  sl;
       txLsValid    : out sl;
       txLsData     : out slv(7 downto 0);
       txLsDataK    : out sl;
+      -- Trigger Interface (txClk domain)
+      txTrigInv    : in  sl;
+      txPulseWidth : in  slv(31 downto 0);
       swTrig       : in  sl;
       txTrig       : in  sl;
       txTrigDrop   : out sl);
@@ -126,19 +129,21 @@ begin
          TPD_G => TPD_G)
       port map (
          -- Clock and Reset
-         txClk      => txClk,
-         txRst      => txRst,
+         txClk        => txClk,
+         txRst        => txRst,
          -- Config Interface
-         cfgMaster  => cfgMaster,
-         cfgSlave   => cfgSlave,
+         cfgMaster    => cfgMaster,
+         cfgSlave     => cfgSlave,
          -- Trigger Interface
-         txTrig     => trigger,
-         txTrigDrop => txTrigDrop,
+         txTrigInv    => txTrigInv,
+         txPulseWidth => txPulseWidth,
+         txTrig       => trigger,
+         txTrigDrop   => txTrigDrop,
          -- TX PHY Interface
-         txRate     => txLsRate,
-         txStrobe   => txLsValid,
-         txData     => txLsData,
-         txDataK    => txLsDataK);
+         txRate       => txLsRate,
+         txStrobe     => txLsValid,
+         txData       => txLsData,
+         txDataK      => txLsDataK);
 
    trigger <= txTrig or swTrig;
 

@@ -217,7 +217,7 @@ class PhantomS991(pr.Device):
             base         = pr.UIntBE,
             mode         = 'RW',
             minimum      = 5,
-            units        = 'microseconds',
+            units        = '\u03BCs',
             disp         = '{:d}',
         ))
 
@@ -227,7 +227,7 @@ class PhantomS991(pr.Device):
             offset       = 0x80CC,
             base         = pr.UIntBE,
             mode         = 'RO',
-            units        = 'microseconds',
+            units        = '\u03BCs',
             disp         = '{:d}',
         ))
 

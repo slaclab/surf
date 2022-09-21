@@ -169,15 +169,44 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'SoftwareTrig',
-            offset       = 0xFF0,
-            bitSize      = 1,
+            name         = "TrigPulseWidthRaw",
+            description  = "Sets the CXP trigger pulse width",
+            offset       = 0xFEC,
+            bitSize      = 32,
+            mode         = "RW",
+            units        = '1/312.5MHz',
+            hidden       = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'TrigPulseWidth',
+            description  = 'Sets the CXP trigger pulse width (in units of microseconds)',
             mode         = 'RW',
+            units        = '\u03BCs',
+            disp         = '{:0.3f}',
+            dependencies = [self.TrigPulseWidthRaw],
+            linkedGet    = lambda: (float(self.TrigPulseWidthRaw.value()+1) * 0.0032),
+            linkedSet    = lambda value, write: self.TrigPulseWidthRaw.set(int(value/0.0032)-1),
+        ))
+
+        self.add(pr.RemoteCommand(
+            name     = 'SoftwareTrig',
+            offset   = 0xFF0,
+            bitSize  = 1,
+            function = lambda cmd: cmd.post(1),
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'ConfigTimerSize',
             offset       = 0xFF4,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxTrigInv',
+            offset       = 0xFF8,
+            bitSize      = 1,
+            bitOffset    = 24,
             mode         = 'RW',
         ))
 

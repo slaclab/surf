@@ -81,14 +81,16 @@ architecture mapping of CoaXPressCore is
    signal configErrResp   : sl;
    signal configPktTag    : sl;
 
-   signal swTrig     : sl;
-   signal txTrigDrop : sl;
+   signal txTrigInv    : sl;
+   signal txPulseWidth : slv(31 downto 0);
+   signal swTrig       : sl;
+   signal txTrigDrop   : sl;
 
    signal eventAck : sl;
    signal eventTag : slv(7 downto 0);
 
-   signal trigAck      : sl;
-   signal txLsRateInt  : sl;
+   signal trigAck     : sl;
+   signal txLsRateInt : sl;
 
    signal dataMasterInt : AxiStreamMasterType;
    signal dataSlaveInt  : AxiStreamSlaveType;
@@ -123,7 +125,7 @@ begin
 
    U_Tx : entity surf.CoaXPressTx
       generic map (
-         TPD_G        => TPD_G)
+         TPD_G => TPD_G)
       port map (
          -- Config Interface (cfgClk domain)
          cfgClk       => cfgClk,
@@ -133,13 +135,16 @@ begin
          -- Event ACK Interface (cfgClk domain)
          eventAck     => eventAck,
          eventTag     => eventTag,
-         -- TX Interface (txClk domain)
+         -- TX PHY Interface (txClk domain)
          txClk        => txClk,
          txRst        => txRst,
          txLsRate     => txLsRateInt,
          txLsValid    => txLsValid,
          txLsData     => txLsData,
          txLsDataK    => txLsDataK,
+         -- Trigger Interface (txClk domain)
+         txTrigInv    => txTrigInv,
+         txPulseWidth => txPulseWidth,
          swTrig       => swTrig,
          txTrig       => txTrig,
          txTrigDrop   => txTrigDrop);
@@ -185,6 +190,8 @@ begin
          -- Tx Interface (txClk domain)
          txClk           => txClk,
          txRst           => txRst,
+         txTrigInv       => txTrigInv,
+         txPulseWidth    => txPulseWidth,
          txTrig          => txTrig,
          swTrig          => swTrig,
          txTrigDrop      => txTrigDrop,

@@ -37,6 +37,8 @@ entity CoaXPressAxiL is
       -- Tx Interface (txClk domain)
       txClk           : in  sl;
       txRst           : in  sl;
+      txTrigInv       : out sl;
+      txPulseWidth    : out slv(31 downto 0);
       txTrig          : in  sl;
       swTrig          : out sl;
       txTrigDrop      : in  sl;
@@ -75,6 +77,8 @@ architecture rtl of CoaXPressAxiL is
    constant TX_STATUS_CNT_C : positive := 4;
 
    type RegType is record
+      txTrigInv       : sl;
+      txPulseWidth    : slv(31 downto 0);
       txLsRate        : sl;
       txLsLaneEn      : slv(3 downto 0);
       configTimerSize : slv(31 downto 0);
@@ -87,6 +91,8 @@ architecture rtl of CoaXPressAxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txTrigInv       => '0',
+      txPulseWidth    => toSlv(31250-1, 32),  -- 100 us
       txLsRate        => '0',
       txLsLaneEn      => x"F",
       configTimerSize => x"0F_FF_FF_FF",
@@ -144,6 +150,7 @@ begin
 
       -- Reset strobes
       v.cntRst := '0';
+      v.swTrig := '0';
 
       ------------------------
       -- AXI-Lite Transactions
@@ -184,14 +191,16 @@ begin
       axiSlaveRegisterR(axilEp, x"FE0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FE0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
 
+      axiSlaveRegister (axilEp, X"FEC", 0, v.txPulseWidth);
       axiSlaveRegister (axilEp, X"FF0", 0, v.swTrig);
 
       axiSlaveRegister (axilEp, x"FF4", 0, v.configTimerSize);
 
+      axiSlaveRegister (axilEp, x"FF8", 24, v.txTrigInv);
       axiSlaveRegister (axilEp, x"FF8", 25, v.configErrResp);
       axiSlaveRegister (axilEp, x"FF8", 26, v.configPktTag);
       axiSlaveRegister (axilEp, x"FF8", 27, v.txLsRate);
-      axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);    -- BIT31:BIT28
+      axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);  -- BIT31:BIT28
 
       axiSlaveRegister (axilEp, X"FFC", 0, v.cntRst);
 
@@ -222,19 +231,30 @@ begin
    ------------------------------
    -- Transmitter Synchronization
    ------------------------------
-   U_swTrig : entity surf.SynchronizerFifo
+   U_txPulseWidth : entity surf.SynchronizerVector
       generic map (
-         TPD_G        => TPD_G,
-         DATA_WIDTH_G => 1)
+         TPD_G   => TPD_G,
+         WIDTH_G => 32)
       port map (
-         -- Asynchronous Reset
-         rst     => txRst,
-         -- Write Ports (wr_clk domain)
-         wr_clk  => axilClk,
-         din(0)  => r.swTrig,
-         -- Read Ports (rd_clk domain)
-         rd_clk  => txClk,
-         dout(0) => swTrig);
+         clk     => txClk,
+         dataIn  => r.txPulseWidth,
+         dataOut => txPulseWidth);
+
+   U_txTrigInv : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => txClk,
+         dataIn  => r.txTrigInv,
+         dataOut => txTrigInv);
+
+   U_swTrig : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => txClk,
+         dataIn  => r.swTrig,
+         dataOut => swTrig);
 
    U_txCntOut : entity surf.SyncStatusVector
       generic map (
@@ -394,7 +414,6 @@ begin
    --------------------------------
    -- Configuration Synchronization
    --------------------------------
-
    U_configTimerSize : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,

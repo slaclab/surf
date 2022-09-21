@@ -31,19 +31,21 @@ entity CoaXPressTxLsFsm is
       TPD_G : time := 1 ns);
    port (
       -- Clock and Reset
-      txClk      : in  sl;              -- 312.5 MHz clock
-      txRst      : in  sl;
+      txClk        : in  sl;            -- 312.5 MHz clock
+      txRst        : in  sl;
       -- Config Interface
-      cfgMaster  : in  AxiStreamMasterType;
-      cfgSlave   : out AxiStreamSlaveType;
+      cfgMaster    : in  AxiStreamMasterType;
+      cfgSlave     : out AxiStreamSlaveType;
       -- Trigger Interface
-      txTrig     : in  sl;
-      txTrigDrop : out sl;
+      txTrig       : in  sl;
+      txTrigInv    : in  sl;
+      txPulseWidth : in  slv(31 downto 0);
+      txTrigDrop   : out sl;
       -- TX PHY Interface
-      txRate     : in  sl;
-      txStrobe   : out sl;
-      txData     : out slv(7 downto 0);
-      txDataK    : out sl);
+      txRate       : in  sl;
+      txStrobe     : out sl;
+      txData       : out slv(7 downto 0);
+      txDataK      : out sl);
 end entity CoaXPressTxLsFsm;
 
 architecture rtl of CoaXPressTxLsFsm is
@@ -63,42 +65,46 @@ architecture rtl of CoaXPressTxLsFsm is
 
    type RegType is record
       -- Heartbeat
-      heartbeat    : sl;
-      heartbeatCnt : slv(7 downto 0);
+      heartbeat      : sl;
+      heartbeatCnt   : slv(7 downto 0);
       -- Trigger
-      txTrig       : sl;
-      txTrigDrop   : sl;
-      txTrigCnt    : natural range 0 to 6;
-      txTrigData   : Slv8Array(5 downto 0);
+      txTrig         : sl;
+      txTrigDrop     : sl;
+      txTrigCnt      : natural range 0 to 6;
+      txTrigData     : Slv8Array(5 downto 0);
+      txPulseWidth   : slv(31 downto 0);
+      txTrigWidthCnt : slv(31 downto 0);
       -- IDLE
-      txIdle       : sl;
-      txIdleCnt    : natural range 0 to 4;
+      txIdle         : sl;
+      txIdleCnt      : natural range 0 to 4;
       -- TX PHY
-      txStrobe     : sl;
-      txData       : slv(7 downto 0);
-      txDataK      : sl;
+      txStrobe       : sl;
+      txData         : slv(7 downto 0);
+      txDataK        : sl;
       -- Config
-      cfgSlave     : AxiStreamSlaveType;
+      cfgSlave       : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       -- Heartbeat
-      heartbeat    => '0',
-      heartbeatCnt => (others => '0'),
+      heartbeat      => '0',
+      heartbeatCnt   => (others => '0'),
       -- Trigger
-      txTrig       => '0',
-      txTrigDrop   => '0',
-      txTrigCnt    => 6,
-      txTrigData   => (0 => K_28_2_C, 1 => K_28_4_C, 2 => K_28_4_C, 3 => x"00", 4 => x"00", 5 => x"00"),
+      txTrig         => '0',
+      txTrigDrop     => '0',
+      txTrigCnt      => 6,
+      txTrigData     => (0 => K_28_2_C, 1 => K_28_4_C, 2 => K_28_4_C, 3 => x"00", 4 => x"00", 5 => x"00"),
+      txPulseWidth   => (others => '0'),
+      txTrigWidthCnt => (others => '0'),
       -- IDLE
-      txIdle       => '1',
-      txIdleCnt    => 4,
+      txIdle         => '1',
+      txIdleCnt      => 4,
       -- TX PHY
-      txStrobe     => '0',
-      txData       => K_28_5_C,
-      txDataK      => '1',
+      txStrobe       => '0',
+      txData         => K_28_5_C,
+      txDataK        => '1',
       -- Config
-      cfgSlave     => AXI_STREAM_SLAVE_INIT_C);
+      cfgSlave       => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -115,7 +121,8 @@ architecture rtl of CoaXPressTxLsFsm is
 
 begin
 
-   comb : process (cfgMaster, r, txRate, txRst, txTrig) is
+   comb : process (cfgMaster, r, txPulseWidth, txRate, txRst, txTrig,
+                   txTrigInv) is
       variable v   : RegType;
       variable idx : natural;
    begin
@@ -158,11 +165,23 @@ begin
          idx := 2*conv_integer(v.heartbeatCnt);
       end if;
 
+      -- Decrement the counter
+      if (r.txTrigWidthCnt /= 0) then
+         v.txTrigWidthCnt := r.txTrigWidthCnt - 1;
+      end if;
+
+      -- Check for change in txPulseWidth while making trigger pulse
+      v.txPulseWidth := txPulseWidth;
+      if (r.txPulseWidth /= v.txPulseWidth) and (v.txTrigWidthCnt /= 0) then
+         -- Force the pulse to terminate in next 8 cycles (>6 byte message)
+         v.txTrigWidthCnt := toSlv(8, 32);
+      end if;
+
       -- Keep a delayed copy
       v.txTrig := txTrig;
 
-      -- Check for trigger edge
-      if (r.txTrig /= v.txTrig) then
+      -- Check for rising edge or counter timeout
+      if ((r.txTrig = '0') and (v.txTrig = '1')) or (r.txTrigWidthCnt = 1) then
 
          -- Check if not moving trigger message
          if (r.txTrigCnt = 6) then
@@ -172,17 +191,39 @@ begin
 
             -- Check for rising edge
             if (r.txTrig = '0') and (v.txTrig = '1') then
-               -- Trigger packet indication - LinkTrigger0
-               v.txTrigData(0) := K_28_2_C;
-               v.txTrigData(1) := K_28_4_C;
-               v.txTrigData(2) := K_28_4_C;
 
-            -- Else falling edge
+               -- Check if inverted trigger
+               if (txTrigInv = '0') then
+                  -- Trigger packet indication - LinkTrigger0
+                  v.txTrigData(0) := K_28_2_C;
+                  v.txTrigData(1) := K_28_4_C;
+                  v.txTrigData(2) := K_28_4_C;
+               else
+                  -- Trigger packet indication - LinkTrigger1
+                  v.txTrigData(0) := K_28_4_C;
+                  v.txTrigData(1) := K_28_2_C;
+                  v.txTrigData(2) := K_28_2_C;
+               end if;
+
+               -- Start the timer
+               v.txTrigWidthCnt := r.txPulseWidth;
+
+            -- Else counter timeout
             else
-               -- Trigger packet indication - LinkTrigger1
-               v.txTrigData(0) := K_28_4_C;
-               v.txTrigData(1) := K_28_2_C;
-               v.txTrigData(2) := K_28_2_C;
+
+               -- Check if inverted trigger
+               if (txTrigInv = '0') then
+                  -- Trigger packet indication - LinkTrigger1
+                  v.txTrigData(0) := K_28_4_C;
+                  v.txTrigData(1) := K_28_2_C;
+                  v.txTrigData(2) := K_28_2_C;
+               else
+                  -- Trigger packet indication - LinkTrigger0
+                  v.txTrigData(0) := K_28_2_C;
+                  v.txTrigData(1) := K_28_4_C;
+                  v.txTrigData(2) := K_28_4_C;
+               end if;
+
             end if;
 
             -- Set the trigger delay
