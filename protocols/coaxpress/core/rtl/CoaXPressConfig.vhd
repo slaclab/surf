@@ -109,7 +109,7 @@ begin
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
          GEN_SYNC_FIFO_G     => true,
-         ENABLE_TIMER_G      => false, -- Bypass and use local timer instead
+         ENABLE_TIMER_G      => false,  -- Bypass and use local timer instead
          AXI_STREAM_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Streaming Slave (Rx) Interface (sAxisClk domain)
@@ -248,7 +248,7 @@ begin
 
                -- Word[2] = Write Data
                v.tValid(4+r.tagOffset) := '1';
-               v.tData(4+r.tagOffset)  := endianSwap(axilWriteMaster.wdata);
+               v.tData(4+r.tagOffset)  := axilWriteMaster.wdata;  -- endian swapped in software
 
                -- Word[3] = CRC-32 (placeholder)
                v.tValid(5+r.tagOffset) := '1';
@@ -367,7 +367,7 @@ begin
                end if;
 
                -- Copy the read data bus
-               v.axilReadSlave.rdata := endianSwap(cfgRxMaster.tData(63 downto 32));
+               v.axilReadSlave.rdata := cfgRxMaster.tData(63 downto 32);  -- endian swapped in software
 
                -- Check if write transaction
                if (axilStatus.writeEnable = '1') then

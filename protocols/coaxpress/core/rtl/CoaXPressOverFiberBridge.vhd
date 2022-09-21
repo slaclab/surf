@@ -44,9 +44,6 @@ entity CoaXPressOverFiberBridge is
       txLsDataK  : in  sl;
       txLsLaneEn : in  slv(3 downto 0);
       txLsRate   : in  sl;
-      txHsEnable : in  sl;
-      txHsData   : in  slv(31 downto 0);
-      txHsDataK  : in  slv(3 downto 0);
       -- CXP RX interface (rxClk312 domain)
       rxClk312   : in  sl;
       rxRst312   : in  sl;
@@ -114,10 +111,7 @@ begin
             txLsData   => txLsData,
             txLsDataK  => txLsDataK,
             txLsRate   => txLsRate,
-            txLsLaneEn => txLsLaneEn,
-            txHsEnable => txHsEnable,
-            txHsData   => txHsData,
-            txHsDataK  => txHsDataK);
+            txLsLaneEn => txLsLaneEn);
 
       U_32bTo64b : entity surf.AsyncGearbox
          generic map (

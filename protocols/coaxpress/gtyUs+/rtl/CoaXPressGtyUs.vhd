@@ -31,7 +31,6 @@ entity CoaXPressGtyUs is
       CXPOF_G            : boolean                := true;
       CXP_RATE_G         : CxpSpeedType           := CXP_12_C;
       NUM_LANES_G        : positive               := 1;
-      TRIG_WIDTH_G       : positive range 1 to 16 := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
       AXIL_BASE_ADDR_G   : slv(31 downto 0);
       AXIL_CLK_FREQ_G    : real;        -- axilClk frequency (units of Hz)
@@ -51,7 +50,7 @@ entity CoaXPressGtyUs is
       -- Trigger Interface (trigClk domain)
       trigClk         : out sl;
       trigRst         : out sl;
-      trigger         : in  slv(TRIG_WIDTH_G-1 downto 0);
+      trigger         : in  sl;
       -- Data Interface (dataClk domain)
       dataClk         : in  sl;
       dataRst         : in  sl;
@@ -93,9 +92,6 @@ architecture mapping of CoaXPressGtyUs is
    signal txLsDataK  : slv(NUM_LANES_G-1 downto 0)        := (others => '1');
    signal txLsLaneEn : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => x"0");
    signal txLsRate   : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txHsEnable : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txHsData   : slv32Array(NUM_LANES_G-1 downto 0) := (others => CXP_IDLE_C);
-   signal txHsDataK  : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => CXP_IDLE_K_C);
    signal txLinkUp   : slv(NUM_LANES_G-1 downto 0);
 
    signal rxClk     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
@@ -133,7 +129,6 @@ begin
       generic map (
          TPD_G              => TPD_G,
          NUM_LANES_G        => NUM_LANES_G,
-         TRIG_WIDTH_G       => TRIG_WIDTH_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
          AXIS_CONFIG_G      => AXIS_CONFIG_G,
          AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
@@ -158,9 +153,6 @@ begin
          txLsDataK       => txLsDataK(0),
          txLsLaneEn      => txLsLaneEn(0),
          txLsRate        => txLsRate(0),
-         txHsEnable      => txHsEnable(0),
-         txHsData        => txHsData(0),
-         txHsDataK       => txHsDataK(0),
          txTrig          => trigger,
          txLinkUp        => txLinkUp(0),
          -- Rx Interface (rxClk domain)
@@ -208,9 +200,6 @@ begin
                txLsDataK       => txLsDataK(i),
                txLsRate        => txLsRate(i),
                txLsLaneEn      => txLsLaneEn(i),
-               txHsEnable      => txHsEnable(i),
-               txHsData        => txHsData(i),
-               txHsDataK       => txHsDataK(i),
                txLinkUp        => txLinkUp(i),
                -- Rx Interface (rxClk domain)
                rxClk           => rxClk(i),
@@ -253,9 +242,6 @@ begin
                txLsDataK       => txLsDataK(i),
                txLsRate        => txLsRate(i),
                txLsLaneEn      => txLsLaneEn(i),
-               txHsEnable      => txHsEnable(i),
-               txHsData        => txHsData(i),
-               txHsDataK       => txHsDataK(i),
                txLinkUp        => txLinkUp(i),
                -- Rx Interface (rxClk domain)
                rxClk           => rxClk(i),

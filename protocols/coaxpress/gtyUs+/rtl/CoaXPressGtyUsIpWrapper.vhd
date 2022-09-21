@@ -45,9 +45,6 @@ entity CoaXPressGtyUsIpWrapper is
       txLsDataK       : in  sl;
       txLsRate        : in  sl;
       txLsLaneEn      : in  slv(3 downto 0);
-      txHsEnable      : in  sl;
-      txHsData        : in  slv(31 downto 0);
-      txHsDataK       : in  slv(3 downto 0);
       txLinkUp        : out sl;
       -- Rx Interface (rxClk domain)
       rxClk           : out sl;
@@ -196,14 +193,14 @@ begin
          asyncRst => txReset,
          syncRst  => txLinkUp);
 
-   -- Register to help with timing
-   process(txClock)
-   begin
-      if rising_edge(txClock) then
-         txDataInt <= txHsData         after TPD_G;
-         txctrl2   <= x"0" & txHsDataK after TPD_G;
-      end if;
-   end process;
+   -- -- Register to help with timing
+   -- process(txClock)
+   -- begin
+      -- if rising_edge(txClock) then
+         -- txDataInt <= txHsData         after TPD_G;
+         -- txctrl2   <= x"0" & txHsDataK after TPD_G;
+      -- end if;
+   -- end process;
 
    -- The TX user clocking helper block should be held in reset until the clock source of that block is known to be
    -- stable. The following assignment is an example of how that stability can be determined, based on the selected TX

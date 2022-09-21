@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.protocols.coaxpress as cxp
 import time
 
 class Bootstrap(pr.Device):
@@ -21,6 +20,7 @@ class Bootstrap(pr.Device):
             name         = 'Standard',
             description  = 'This register shall provide a magic number indicating the Device implements the CoaXPress standard. The magic number shall be 0xC0A79AE5.',
             offset       = 0x00000000,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -28,6 +28,7 @@ class Bootstrap(pr.Device):
             name         = 'Revision',
             description  = 'This register shall provide the version of the CoaXPress standard implemented by this Device.',
             offset       = 0x00000004,
+            base         = pr.UIntBE,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -42,6 +43,7 @@ class Bootstrap(pr.Device):
             name         = 'XmlManifestSize',
             description  = 'This register shall provide the number of XML manifests available. At least one manifest shall be available.',
             offset       = 0x00000008,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -49,6 +51,7 @@ class Bootstrap(pr.Device):
             name         = 'XmlManifestSelector',
             description  = 'This register shall select the required XML manifest registers. It shall hold a number between 0 and XmlManifestSize – 1. A connection reset sets the value 0x00000000.',
             offset       = 0x0000000C,
+            base         = pr.UIntBE,
             mode         = 'RW',
         ))
 
@@ -56,8 +59,10 @@ class Bootstrap(pr.Device):
             name         = 'XMLMajorVersion',
             description  = 'The major version number of the XML file with respect to XmlManifestSelector',
             offset       = 0x00000010,
+            base         = pr.UIntBE,
             bitSize      = 8,
-            bitOffset    = 16,
+            # bitOffset    = 16,
+            bitOffset    = 8,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -66,8 +71,10 @@ class Bootstrap(pr.Device):
             name         = 'XMLMinorVersion',
             description  = 'The minor version number of the XML file with respect to XmlManifestSelector',
             offset       = 0x00000010,
+            base         = pr.UIntBE,
             bitSize      = 8,
-            bitOffset    = 8,
+            # bitOffset    = 8,
+            bitOffset    = 16,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -76,8 +83,10 @@ class Bootstrap(pr.Device):
             name         = 'XMLSubMinorVersion',
             description  = 'The sub-minor version number of the XML file with respect to XmlManifestSelector',
             offset       = 0x00000010,
+            base         = pr.UIntBE,
             bitSize      = 8,
-            bitOffset    = 0,
+            # bitOffset    = 0,
+            bitOffset    = 24,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -92,8 +101,10 @@ class Bootstrap(pr.Device):
             name         = 'SchemaMajorVersion',
             description  = 'The major version number of the schema used by the XML file with respect to XmlManifestSelector',
             offset       = 0x00000014,
+            base         = pr.UIntBE,
             bitSize      = 8,
-            bitOffset    = 16,
+            # bitOffset    = 16,
+            bitOffset    = 8,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -102,8 +113,10 @@ class Bootstrap(pr.Device):
             name         = 'SchemaMinorVersion',
             description  = 'The minor version number of the schema used by the XML file with respect to XmlManifestSelector',
             offset       = 0x00000014,
+            base         = pr.UIntBE,
             bitSize      = 8,
-            bitOffset    = 8,
+            # bitOffset    = 8,
+            bitOffset    = 16,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -112,8 +125,10 @@ class Bootstrap(pr.Device):
             name         = 'SchemaSubMinorVersion',
             description  = 'The sub-minor version number of the schema used by the XML file with respect to XmlManifestSelector',
             offset       = 0x00000014,
+            base         = pr.UIntBE,
             bitSize      = 8,
-            bitOffset    = 0,
+            # bitOffset    = 0,
+            bitOffset    = 24,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -128,6 +143,7 @@ class Bootstrap(pr.Device):
             name         = 'XmlUrlAddress',
             description  = 'This register shall provide the address of the start of the URL string referenced by register XmlManifestSelector.',
             offset       = 0x00000018,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -135,56 +151,63 @@ class Bootstrap(pr.Device):
             name         = 'Iidc2Address',
             description  = 'For Devices that support the IIDC2 protocol (section 2.2 ref 4), this register shall provide the address of the start of the IIDC2 register space.',
             offset       = 0x0000001C,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceVendorName',
             description  = 'This register shall provide the name of the manufacturer of the Device as a string.',
             offset       = 0x00002000,
-            number       = 8,
-        )
+            base         = pr.String,
+            bitSize      = 8*32,
+            mode         = 'RO',
+        ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceModelName',
             description  = 'This register shall provide the model name of the Device as a string.',
             offset       = 0x00002020,
-            number       = 8,
-        )
+            base         = pr.String,
+            bitSize      = 8*32,
+            mode         = 'RO',
+        ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceManufacturerInfo',
             description  = 'This register shall provide extended manufacturer-specific information about the Device as a string.',
             offset       = 0x00002040,
-            number       = 12,
-        )
+            base         = pr.String,
+            bitSize      = 8*48,
+            mode         = 'RO',
+        ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceVersion',
             description  = 'This register shall provide the version of the Device as a string.',
             offset       = 0x00002070,
-            number       = 8,
-        )
+            base         = pr.String,
+            bitSize      = 8*32,
+            mode         = 'RO',
+        ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceSerialNumber',
             description  = 'This register shall provide the serial number for the Device as a NULL-terminated string.',
             offset       = 0x000020B0,
-            number       = 4,
-        )
+            base         = pr.String,
+            bitSize      = 8*16,
+            mode         = 'RO',
+        ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceUserID',
             description  = 'This register shall provide a user-programmable identifier for the Device as a string. The Device shall provide persistent storage for this register so the value is maintained when power is switched off.',
             offset       = 0x000020C0,
-            number       = 4,
-        )
+            base         = pr.String,
+            bitSize      = 8*16,
+            mode         = 'RW',
+        ))
 
         # These registers shall only be supported if GenDC is supported, as indicated by CapabilityRegister bit GenDcSupported.
         if GenDc:
@@ -192,6 +215,7 @@ class Bootstrap(pr.Device):
                 name         = 'GenDcPrefetchDescriptorAddress',
                 description  = 'This register shall provide the address of the start of the GenDC prefetch descriptor, as defined by the GenDC specification.',
                 offset       = 0x000020D0,
+                base         = pr.UIntBE,
                 mode         = 'RO',
             ))
 
@@ -199,6 +223,7 @@ class Bootstrap(pr.Device):
                 name         = 'GenDcPrefetchDescriptorSize',
                 description  = 'This register shall provide the size in bytes of the GenDC prefetch descriptor.',
                 offset       = 0x000020D4,
+                base         = pr.UIntBE,
                 mode         = 'RO',
             ))
 
@@ -206,6 +231,7 @@ class Bootstrap(pr.Device):
                 name         = 'GenDcFlowTableAddress',
                 description  = 'This register shall provide the address of the start of the GenDC flow table, as defined by the GenDC specification.',
                 offset       = 0x000020D8,
+                base         = pr.UIntBE,
                 mode         = 'RO',
             ))
 
@@ -213,6 +239,7 @@ class Bootstrap(pr.Device):
                 name         = 'GenDcFlowTableSize',
                 description  = 'This register shall provide the size in bytes of the GenDC flow table.',
                 offset       = 0x000020DC,
+                base         = pr.UIntBE,
                 mode         = 'RO',
             ))
 
@@ -220,6 +247,7 @@ class Bootstrap(pr.Device):
                 name         = 'GenDcContainerSize',
                 description  = 'This register shall provide the size in bytes of the complete GenDC Container.',
                 offset       = 0x000020E0,
+                base         = pr.UIntBE,
                 mode         = 'RO',
             ))
 
@@ -227,6 +255,7 @@ class Bootstrap(pr.Device):
             name         = 'WidthAddress',
             description  = '',
             offset       = 0x00003000,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -234,6 +263,7 @@ class Bootstrap(pr.Device):
             name         = 'HeightAddress',
             description  = '',
             offset       = 0x00003004,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -241,6 +271,7 @@ class Bootstrap(pr.Device):
             name         = 'AcquisitionModeAddress',
             description  = '',
             offset       = 0x00003008,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -248,6 +279,7 @@ class Bootstrap(pr.Device):
             name         = 'AcquistionStartAddress',
             description  = '',
             offset       = 0x0000300C,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -255,6 +287,7 @@ class Bootstrap(pr.Device):
             name         = 'AcquistionStopAddress',
             description  = '',
             offset       = 0x00003010,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -262,6 +295,7 @@ class Bootstrap(pr.Device):
             name         = 'PixelFormatAddress',
             description  = '',
             offset       = 0x00003014,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -269,6 +303,7 @@ class Bootstrap(pr.Device):
             name         = 'DeviceTapGeometryAddress',
             description  = '',
             offset       = 0x00003018,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -276,6 +311,7 @@ class Bootstrap(pr.Device):
             name         = 'ConnectionReset',
             description  = 'Writing the value 0x00000001 to this register shall provide Device connection reset. The Device shall also execute a connection reset after power-up.',
             offset       = 0x00004000,
+            base         = pr.UIntBE,
             function     = lambda cmd: cmd.post(1),
         ))
 
@@ -283,6 +319,7 @@ class Bootstrap(pr.Device):
             name         = 'DeviceConnectionID',
             description  = 'This register shall provide the ID of the Device connection via which this register is read',
             offset       = 0x00004004,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -290,6 +327,7 @@ class Bootstrap(pr.Device):
             name         = 'MasterHostConnectionID',
             description  = 'This register shall hold the Host Connection ID of the Host connection connected to the Device Master connection. The value 0x00000000 is reserved to indicate an unknown Host ID.',
             offset       = 0x00004008,
+            base         = pr.UIntBE,
             mode         = 'RW',
         ))
 
@@ -297,6 +335,7 @@ class Bootstrap(pr.Device):
             name         = 'ControlPacketSizeMax',
             description  = 'This register shall provide the maximum control packet size the Host can read from the Device, or write to the Device. The size is defined in bytes, and shall be a multiple of 4 bytes. The defined size is that of the entire packet, not just the payload.',
             offset       = 0x0000400C,
+            base         = pr.UIntBE,
             mode         = 'RO',
             disp         = '{:d}',
         ))
@@ -305,6 +344,7 @@ class Bootstrap(pr.Device):
             name         = 'StreamPacketSizeMax',
             description  = 'This register shall hold the maximum stream packet size the Host can accept. The size is defined in bytes, and shall be a multiple of 4 bytes. The Device can use any packet size it wants to up to this size. The defined size is that of the entire packet, not just the payload.',
             offset       = 0x00004010,
+            base         = pr.UIntBE,
             mode         = 'RW',
             disp         = '{:d}',
         ))
@@ -313,6 +353,7 @@ class Bootstrap(pr.Device):
             name         = 'ConnectionConfig',
             description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
             offset       = 0x00004014,
+            base         = pr.UIntBE,
             mode         = 'WO',
             overlapEn    = True,
         ))
@@ -321,8 +362,10 @@ class Bootstrap(pr.Device):
             name         = 'NumberOfConnections',
             description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
             offset       = 0x00004014,
+            base         = pr.UIntBE,
             bitSize      = 16,
-            bitOffset    = 16,
+            # bitOffset    = 16,
+            bitOffset    = 0,
             mode         = 'RO',
             overlapEn    = True,
         ))
@@ -331,8 +374,10 @@ class Bootstrap(pr.Device):
             name         = 'ConnectionSpeed',
             description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
             offset       = 0x00004014,
+            base         = pr.UIntBE,
             bitSize      = 16,
-            bitOffset    = 0,
+            # bitOffset    = 0,
+            bitOffset    = 16,
             mode         = 'RO',
             overlapEn    = True,
             enum         = {
@@ -351,6 +396,7 @@ class Bootstrap(pr.Device):
             name         = 'ConnectionConfigDefault',
             description  = 'This register shall provide the value of the ConnectionConfig register that allows the Device to operate in its recommended mode.',
             offset       = 0x00004018,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -358,6 +404,7 @@ class Bootstrap(pr.Device):
             name         = 'TestMode',
             description  = 'Writing the value 0x00000001 to this register shall enable test packets transmission from Device to Host. The value 0x00000000 shall allow normal operation. When the value is changed from 0x00000001 to 0x00000000 the Device shall complete the packet of 1024 test words currently being transmitted.',
             offset       = 0x0000401C,
+            base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
         ))
@@ -366,6 +413,7 @@ class Bootstrap(pr.Device):
             name         = 'TestErrorCountSelector',
             description  = 'This register shall select the required test count [TestErrorCountSelector] register',
             offset       = 0x00004020,
+            base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
         ))
@@ -374,6 +422,7 @@ class Bootstrap(pr.Device):
             name         = 'TestErrorCount',
             description  = 'This register shall provide the current connection error count for the connection referred to by register TestErrorCountSelector.',
             offset       = 0x00004024,
+            base         = pr.UIntBE,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -382,6 +431,7 @@ class Bootstrap(pr.Device):
             name         = 'TestPacketCountTx',
             description  = 'This register shall provide the current transmitted connection test packet count for the connection referred to by register TestErrorCountSelector.',
             offset       = 0x00004028,
+            base         = pr.UIntBE,
             bitSize      = 8*8,
             mode         = 'RO',
             hidden       = True,
@@ -391,6 +441,7 @@ class Bootstrap(pr.Device):
             name         = 'TestPacketCountRx',
             description  = 'This register shall provide the current received connection test packet count for the connection referred to by register TestErrorCountSelector.',
             offset       = 0x00004030,
+            base         = pr.UIntBE,
             bitSize      = 8*8,
             mode         = 'RO',
             hidden       = True,
@@ -400,6 +451,7 @@ class Bootstrap(pr.Device):
             name         = 'ElectricalComplianceTest',
             description  = 'If implemented, this shall be a non-volatile register to support formal compliance testing of the Device. It shall not be used at any other time. Writing the value 0x00000000 shall allow normal operation.',
             offset       = 0x00004038,
+            base         = pr.UIntBE,
             mode         = 'RW',
         ))
 
@@ -407,8 +459,10 @@ class Bootstrap(pr.Device):
             name         = 'GenDcSupported',
             description  = 'Shall be 1 if the Device supports GenDC streaming (see section 10.5), otherwise shall be 0',
             offset       = 0x0000403C,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 3,
+            # bitOffset    = 3,
+            bitOffset    = 3+24,
             mode         = 'RO',
         ))
 
@@ -416,8 +470,10 @@ class Bootstrap(pr.Device):
             name         = 'ExtraLsTriggerSupported',
             description  = 'Shall be 1 if the Device supports additional LinkTrigger modes on the low speed upconnection (see Table 16), otherwise shall be 0',
             offset       = 0x0000403C,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 2,
+            # bitOffset    = 2,
+            bitOffset    = 2+24,
             mode         = 'RO',
         ))
 
@@ -425,8 +481,10 @@ class Bootstrap(pr.Device):
             name         = 'LinkSharingSupported',
             description  = 'Shall be 1 if the Device supports link sharing (see section 11), otherwise shall be 0',
             offset       = 0x0000403C,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 1,
+            # bitOffset    = 1,
+            bitOffset    = 1+24,
             mode         = 'RO',
         ))
 
@@ -434,8 +492,10 @@ class Bootstrap(pr.Device):
             name         = 'HsUpConnectionSupported',
             description  = 'Shall be 1 if the Device supports a high speed upconnection, otherwise shall be 0',
             offset       = 0x0000403C,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 0,
+            # bitOffset    = 0,
+            bitOffset    = 0+24,
             mode         = 'RO',
         ))
 
@@ -443,8 +503,10 @@ class Bootstrap(pr.Device):
             name         = 'GenDcEnable',
             description  = 'Shall be 1 to enable GenDC streaming (see section 10.5), otherwise shall be 0. When this register is set to 1, all image streaming shall use GenDC.',
             offset       = 0x00004040,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 3,
+            # bitOffset    = 3,
+            bitOffset    = 3+24,
             mode         = 'RW',
         ))
 
@@ -452,8 +514,10 @@ class Bootstrap(pr.Device):
             name         = 'ExtraLsTriggerEnable',
             description  = 'Shall be 1 to enable additional LinkTrigger modes on the low speed upconnection (see Table 16), otherwise shall be 0',
             offset       = 0x00004040,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 2,
+            # bitOffset    = 2,
+            bitOffset    = 2+24,
             mode         = 'RW',
         ))
 
@@ -461,8 +525,10 @@ class Bootstrap(pr.Device):
             name         = 'LinkSharingEnable',
             description  = 'Shall be 1 to enable link sharing (see section 11), otherwise shall be 0',
             offset       = 0x00004040,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 1,
+            # bitOffset    = 1,
+            bitOffset    = 1+24,
             mode         = 'RW',
         ))
 
@@ -470,8 +536,10 @@ class Bootstrap(pr.Device):
             name         = 'HsUpConnectionEnable',
             description  = 'Shall be 1 to enable to high speed upconnection (via the discovery process defined in section 12.1.5), otherwise shall be 0',
             offset       = 0x00004040,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 0,
+            # bitOffset    = 0,
+            bitOffset    = 0+24,
             mode         = 'RW',
         ))
 
@@ -479,8 +547,10 @@ class Bootstrap(pr.Device):
             name         = 'Version2p1Supported',
             description  = 'Shall be 1 if the Device supports CXP v2.1',
             offset       = 0x00004044,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 3,
+            # bitOffset    = 3,
+            bitOffset    = 3+24,
             mode         = 'RO',
         ))
 
@@ -488,8 +558,10 @@ class Bootstrap(pr.Device):
             name         = 'Version2p0Supported',
             description  = 'Shall be 1 if the Device supports CXP v2.0',
             offset       = 0x00004044,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 2,
+            # bitOffset    = 2,
+            bitOffset    = 2+24,
             mode         = 'RO',
         ))
 
@@ -497,8 +569,10 @@ class Bootstrap(pr.Device):
             name         = 'Version1p1Supported',
             description  = 'Shall be 1 if the Device supports CXP v1.1. Note that v1.1 support is mandatory to allow backwards compatibility – see section 12.1.4.',
             offset       = 0x00004044,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 1,
+            # bitOffset    = 1,
+            bitOffset    = 1+24,
             mode         = 'RO',
         ))
 
@@ -506,8 +580,10 @@ class Bootstrap(pr.Device):
             name         = 'Version1p0Supported',
             description  = 'Shall be 1 if the Device supports CXP v1.0',
             offset       = 0x00004044,
+            base         = pr.UIntBE,
             bitSize      = 1,
-            bitOffset    = 0,
+            # bitOffset    = 0,
+            bitOffset    = 0+24,
             mode         = 'RO',
         ))
 
@@ -515,6 +591,7 @@ class Bootstrap(pr.Device):
             name         = 'VersionUsedCmd',
             description  = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
             offset       = 0x00004048,
+            base         = pr.UIntBE,
             mode         = 'WO',
             hidden       = True,
             overlapEn    = True,
@@ -524,8 +601,10 @@ class Bootstrap(pr.Device):
             name         = 'MajorVersionUsed',
             description  = 'This register shall provide the version of the CoaXPress standard used to communicate between the Device and Host. The register is set during Discovery (see section 12.1.4).',
             offset       = 0x00004048,
+            base         = pr.UIntBE,
             bitSize      = 16,
-            bitOffset    = 16,
+            # bitOffset    = 16,
+            bitOffset    = 0,
             mode         = 'RO',
             hidden       = True,
             overlapEn    = True,
@@ -535,8 +614,10 @@ class Bootstrap(pr.Device):
             name         = 'MinorVersionUsed',
             description  = 'This register shall provide the version of the CoaXPress standard used to communicate between the Device and Host. The register is set during Discovery (see section 12.1.4).',
             offset       = 0x00004048,
+            base         = pr.UIntBE,
             bitSize      = 16,
-            bitOffset    = 0,
+            # bitOffset    = 0,
+            bitOffset    = 16,
             mode         = 'RO',
             hidden       = True,
             overlapEn    = True,
@@ -550,14 +631,10 @@ class Bootstrap(pr.Device):
 
         @self.command(description='Initialize the device discovery',)
         def DeviceDiscovery():
-            # Config without tags
-            self.CoaXPressAxiL.ConfigPktTag.set(0)
-
-            # Disable High speed upconnection
-            self.CoaXPressAxiL.TxHsEnable.set(0)
-
-            # Switch to 20.83 Mb/s mode
+            # Switch to 20.83 Mb/s mode without tags
             self.CoaXPressAxiL.TxLsRate.set(0)
+            self.CoaXPressAxiL.ConfigPktTag.set(0)
+            time.sleep(0.2)
 
             # Execute a connection reset
             self.ConnectionReset()
@@ -590,9 +667,6 @@ class Bootstrap(pr.Device):
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
 
-            self.StreamPacketSizeMax.set(4096)
-
     def _stop(self):
-        self.CoaXPressAxiL.TxHsEnable.set(0)
         self.CoaXPressAxiL.TxLsRate.set(0)
         super()._stop()

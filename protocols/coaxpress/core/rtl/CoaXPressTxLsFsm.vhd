@@ -14,22 +14,6 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
--- Title      : CoaXPress Protocol: http://jiia.org/wp-content/themes/jiia/pdf/standard_dl/coaxpress/CXP-001-2021.pdf
--------------------------------------------------------------------------------
--- Company    : SLAC National Accelerator Laboratory
--------------------------------------------------------------------------------
--- Description: CoaXPress TX FSM
--------------------------------------------------------------------------------
--- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the
--- top-level directory of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of 'SLAC Firmware Standard Library', including this file,
--- may be copied, modified, propagated, or distributed except according to
--- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -64,13 +48,6 @@ end entity CoaXPressTxLsFsm;
 
 architecture rtl of CoaXPressTxLsFsm is
 
-   constant CXP_TRIG_K_C : slv(5 downto 0) := "000111";
-   constant CXP_TX_IDLE_C : Slv8Array(3 downto 0) := (
-      0 => CXP_IDLE_C(7 downto 0),
-      1 => CXP_IDLE_C(15 downto 8),
-      2 => CXP_IDLE_C(23 downto 16),
-      3 => CXP_IDLE_C(31 downto 24));
-
    function genTxDly return Slv8Array is
       variable retVar : Slv8Array(149 downto 0);
       variable i      : natural;
@@ -81,7 +58,8 @@ architecture rtl of CoaXPressTxLsFsm is
       return retVar;
    end function;
 
-   constant TX_DLY_C : Slv8Array(149 downto 0) := genTxDly;
+   constant CXP_TRIG_K_C : slv(5 downto 0)         := "000111";
+   constant TX_DLY_C     : Slv8Array(149 downto 0) := genTxDly;
 
    type RegType is record
       -- Heartbeat
@@ -183,14 +161,29 @@ begin
       -- Keep a delayed copy
       v.txTrig := txTrig;
 
-      -- Check for trigger rising edge
-      if (r.txTrig = '0') and (v.txTrig = '1') then
+      -- Check for trigger edge
+      if (r.txTrig /= v.txTrig) then
 
          -- Check if not moving trigger message
          if (r.txTrigCnt = 6) then
 
             -- Reset the counter
             v.txTrigCnt := 0;
+
+            -- Check for rising edge
+            if (r.txTrig = '0') and (v.txTrig = '1') then
+               -- Trigger packet indication - LinkTrigger0
+               v.txTrigData(0) := K_28_2_C;
+               v.txTrigData(1) := K_28_4_C;
+               v.txTrigData(2) := K_28_4_C;
+
+            -- Else falling edge
+            else
+               -- Trigger packet indication - LinkTrigger1
+               v.txTrigData(0) := K_28_4_C;
+               v.txTrigData(1) := K_28_2_C;
+               v.txTrigData(2) := K_28_2_C;
+            end if;
 
             -- Set the trigger delay
             for i in 3 to 5 loop

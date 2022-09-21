@@ -14,7 +14,6 @@ import surf.axi as axi
 class CoaXPressAxiL(pr.Device):
     def __init__(   self,
             numLane         = 1,
-            trigWidth       = 1,
             statusCountBits = 12,
             **kwargs):
         super().__init__(**kwargs)
@@ -69,42 +68,13 @@ class CoaXPressAxiL(pr.Device):
                 disp         = '{:0.3f}',
             ))
 
-        self.addRemoteVariables(
-            name         = 'TxTrigCnt',
-            offset       = 0x400,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            number       = trigWidth,
-            stride       = 4,
-            pollInterval = 1,
-        )
-
-        self.addRemoteVariables(
-            name         = 'TxTrigDropCnt',
-            offset       = 0x440,
-            bitSize      = statusCountBits,
-            mode         = 'RO',
-            number       = trigWidth,
-            stride       = 4,
-            pollInterval = 1,
-        )
-
-        self.addRemoteVariables(
-            name         = "TrigRate",
-            description  = "Trigger Rate",
-            offset       = 0x480,
-            mode         = 'RO',
-            units        = 'Hz',
-            number       = trigWidth,
-            stride       = 4,
-            pollInterval = 1,
-        )
 
         self.add(pr.RemoteVariable(
-            name         = 'TxLinkUpCnt',
+            name         = "TrigRate",
+            description  = "Trigger Rate",
             offset       = 0x800,
-            bitSize      = statusCountBits,
             mode         = 'RO',
+            units        = 'Hz',
             pollInterval = 1,
         ))
 
@@ -142,9 +112,34 @@ class CoaXPressAxiL(pr.Device):
             disp         = '{:0.3f}',
         ))
 
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxLinkUpCnt',
+            offset       = 0x810,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'TrigAckCnt',
-            offset       = 0x810,
+            offset       = 0x814,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxTrigCnt',
+            offset       = 0x818,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxTrigDropCnt',
+            offset       = 0x81C,
             bitSize      = statusCountBits,
             mode         = 'RO',
             pollInterval = 1,
@@ -174,19 +169,10 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TRIG_WIDTH_G',
-            offset       = 0xFE0,
-            bitSize      = 8,
-            bitOffset    = 16,
-            disp         = '{:d}',
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
             name         = 'SoftwareTrig',
             offset       = 0xFF0,
-            bitSize      = trigWidth,
-            mode         = 'WO',
+            bitSize      = 1,
+            mode         = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
@@ -199,7 +185,7 @@ class CoaXPressAxiL(pr.Device):
             name         = 'ConfigErrResp',
             offset       = 0xFF8,
             bitSize      = 1,
-            bitOffset    = 24,
+            bitOffset    = 25,
             mode         = 'RW',
         ))
 
@@ -207,20 +193,12 @@ class CoaXPressAxiL(pr.Device):
             name         = 'ConfigPktTag',
             offset       = 0xFF8,
             bitSize      = 1,
-            bitOffset    = 25,
-            mode         = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'TxLsRate',
-            offset       = 0xFF8,
-            bitSize      = 1,
             bitOffset    = 26,
             mode         = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxHsEnable',
+            name         = 'TxLsRate',
             offset       = 0xFF8,
             bitSize      = 1,
             bitOffset    = 27,

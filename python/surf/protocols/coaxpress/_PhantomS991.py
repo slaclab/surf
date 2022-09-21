@@ -22,6 +22,7 @@ class PhantomS991(pr.Device):
             name         = 'DevicePhfwVersionReg',
             description  = 'Version of the firmware in the device.',
             offset       = 0x8174,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -29,29 +30,35 @@ class PhantomS991(pr.Device):
             name         = 'DeviceSerialNumberReg',
             description  = 'Serial Number of device.',
             offset       = 0x8158,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceIPAddress',
             description  = 'Category for Device information and control.',
             offset       = 0x8300,
-            number       = 8,
-        )
+            base         = pr.String,
+            bitSize      = 8*32,
+            mode         = 'RO',
+            # hidden       = True,
+        ))
 
-        cxp.addStringVariables(
-            dev          = self,
+        self.add(pr.RemoteVariable(
             name         = 'DeviceNetmask',
             description  = 'Category for Device information and control.',
             offset       = 0x8320,
-            number       = 8,
-        )
+            base         = pr.String,
+            bitSize      = 8*32,
+            mode         = 'RO',
+            # hidden       = True,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'pDeviceTemperatureSelectorReg',
             description  = 'Selects the location within the device, where the temperature will be measured.',
             offset       = 0x8168,
+            base         = pr.UIntBE,
             bitSize      = 16,
             bitOffset    = 0,
             mode         = 'RW',
@@ -61,6 +68,7 @@ class PhantomS991(pr.Device):
             name         = 'pDeviceTemperatureReg',
             description  = 'Device temperature in degrees Celsius (C).',
             offset       = 0x8168,
+            base         = pr.IntBE,
             bitSize      = 16,
             bitOffset    = 16,
             mode         = 'RO',
@@ -72,6 +80,7 @@ class PhantomS991(pr.Device):
             name         = 'WidthMaxReg',
             description  = 'Maximum width (in pixels) of the image. The dimension is calculated after horizontal binning, decimation or any other function changing the horizontal dimension of the image.',
             offset       = 0x8010,
+            base         = pr.UIntBE,
             mode         = 'RO',
             units        = 'pixels',
             disp         = '{:d}',
@@ -81,6 +90,7 @@ class PhantomS991(pr.Device):
             name         = 'WidthReg',
             description  = 'This feature represents the actual image width expelled by the camera (in pixels).',
             offset       = 0x8000,
+            base         = pr.UIntBE,
             mode         = 'RW',
             units        = 'pixels',
             disp         = '{:d}',
@@ -90,6 +100,7 @@ class PhantomS991(pr.Device):
             name         = 'HeightMaxReg',
             description  = 'Maximum height (in pixels) of the image. This dimension is calculated after vertical binning, decimation or any other function changing the vertical dimension of the image.',
             offset       = 0x8014,
+            base         = pr.UIntBE,
             mode         = 'RO',
             units        = 'pixels',
             disp         = '{:d}',
@@ -99,6 +110,7 @@ class PhantomS991(pr.Device):
             name         = 'HeightReg',
             description  = 'This feature represents the actual image height expelled by the camera (in pixels).',
             offset       = 0x8004,
+            base         = pr.UIntBE,
             mode         = 'RW',
             units        = 'pixels',
             disp         = '{:d}',
@@ -108,6 +120,7 @@ class PhantomS991(pr.Device):
             name         = 'PixelFormatReg',
             description  = 'This feature indicates the format of the pixel to use during the acquisition.',
             offset       = 0x8008,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0x00000000: 'Undefined',
@@ -123,13 +136,14 @@ class PhantomS991(pr.Device):
             name         = 'ImageSourceReg',
             description  = 'This feature controls the image source.',
             offset       = 0x8120,
+            base         = pr.UIntBE,
             mode         = 'RW',
-            enum        = {
-                0: 'imgsrc0',
-                1: 'imgsrc1',
-                2: 'imgsrc2',
-                3: 'imgsrc3',
-                4: 'imgsrc4',
+            enum         = {
+                0: 'LiveImage',
+                1: 'OffsetTableRolling',
+                2: 'GainTableAtRolling',
+                3: 'OffsetTableGlobal',
+                4: 'GainTableAtGlobal',
             },
         ))
 
@@ -137,6 +151,7 @@ class PhantomS991(pr.Device):
             name         = 'ImageSourceGrabReg',
             description  = 'Grab Gain and Offset from camera.',
             offset       = 0x8124,
+            base         = pr.UIntBE,
             mode         = 'WO',
         ))
 
@@ -144,6 +159,7 @@ class PhantomS991(pr.Device):
             name         = 'AcquisitionModeReg',
             description  = 'This feature controls the acquisition mode of the device.',
             offset       = 0x8018,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'undefined',
@@ -151,29 +167,33 @@ class PhantomS991(pr.Device):
             },
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'AcquisitionStartReg',
+        self.add(pr.RemoteCommand(
+            name         = 'AcquisitionStart',
             description  = 'This feature starts the Acquisition of the device.',
             offset       = 0x801C,
+            base         = pr.UIntBE,
             bitSize      = 8,
             bitOffset    = 24,
-            mode         = 'RW',
+            function     = lambda cmd: cmd.post(1),
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'AcquisitionStopReg',
+        self.add(pr.RemoteCommand(
+            name         = 'AcquisitionStop',
             description  = 'This feature stops the Acquisition of the device at the end of the current Frame.',
             offset       = 0x8020,
+            base         = pr.UIntBE,
             bitSize      = 8,
             bitOffset    = 24,
-            mode         = 'RW',
+            function     = lambda cmd: cmd.post(0),
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'pFrameRateReg',
             description  = 'Frame rate in Hz.',
             offset       = 0x80C0,
+            base         = pr.UIntBE,
             mode         = 'RW',
+            minimum      = 30,
             units        = 'Hz',
             disp         = '{:d}',
             # pollInterval = 1,
@@ -183,6 +203,7 @@ class PhantomS991(pr.Device):
             name         = 'pFrameRateRegMax',
             description  = 'Frame rate in Hz.',
             offset       = 0x80C4,
+            base         = pr.UIntBE,
             mode         = 'RO',
             units        = 'Hz',
             disp         = '{:d}',
@@ -193,7 +214,9 @@ class PhantomS991(pr.Device):
             name         = 'ExposureTimeReg',
             description  = 'Sets the Exposure time (in microseconds). This controls the duration where the photosensitive cells are exposed to light.',
             offset       = 0x80C8,
+            base         = pr.UIntBE,
             mode         = 'RW',
+            minimum      = 5,
             units        = 'microseconds',
             disp         = '{:d}',
         ))
@@ -202,6 +225,7 @@ class PhantomS991(pr.Device):
             name         = 'pExposureTimeRegMax',
             description  = 'Sets the Exposure time (in microseconds). This controls the duration where the photosensitive cells are exposed to light.',
             offset       = 0x80CC,
+            base         = pr.UIntBE,
             mode         = 'RO',
             units        = 'microseconds',
             disp         = '{:d}',
@@ -211,6 +235,7 @@ class PhantomS991(pr.Device):
             name         = 'SensorShutterModeReg',
             description  = 'Select Global or Rolling shutter mode.',
             offset       = 0x817C,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Rolling',
@@ -222,13 +247,16 @@ class PhantomS991(pr.Device):
             name         = 'FeaturesReg',
             description  = '',
             offset       = 0x80EC,
+            base         = pr.UIntBE,
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'TriggerModeReg',
             description  = 'Select camera sync mode.',
             offset       = 0x8128,
+            base         = pr.UIntBE,
             bitSize      = 8,
             bitOffset    = 24,
             mode         = 'RW',
@@ -242,6 +270,7 @@ class PhantomS991(pr.Device):
             name         = 'TriggerSelectorReg',
             description  = 'Selects the type of trigger to configure.',
             offset       = 0x8128,
+            base         = pr.UIntBE,
             bitSize      = 8,
             bitOffset    = 16,
             mode         = 'RW',
@@ -255,6 +284,7 @@ class PhantomS991(pr.Device):
             name         = 'TriggerSourceReg',
             description  = 'Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On.',
             offset       = 0x8128,
+            base         = pr.UIntBE,
             bitSize      = 8,
             bitOffset    = 8,
             mode         = 'RW',
@@ -270,6 +300,7 @@ class PhantomS991(pr.Device):
             name         = 'CTRLReg_fan',
             description  = 'Turn camera fan on/off.',
             offset       = 0x8180,
+            base         = pr.UIntBE,
             bitSize      = 8,
             bitOffset    = 16,
             mode         = 'RW',
@@ -283,6 +314,7 @@ class PhantomS991(pr.Device):
             name         = 'CTRLReg_led',
             description  = 'Turn CXP LEDs on/off.',
             offset       = 0x8180,
+            base         = pr.UIntBE,
             bitSize      = 8,
             bitOffset    = 8,
             mode         = 'RW',
@@ -296,13 +328,16 @@ class PhantomS991(pr.Device):
             name         = 'TimeStampSetReg',
             description  = 'Set camera time by entering current time in seconds since January 1st, 1970.',
             offset       = 0x8188,
+            base         = pr.UIntBE,
             mode         = 'WO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'LensApertureReg',
             description  = 'Lens Aperture.',
             offset       = 0x81A0,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'undefined',
@@ -338,6 +373,7 @@ class PhantomS991(pr.Device):
             name         = 'LensApertureMinReg',
             description  = '',
             offset       = 0x81A4,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -345,21 +381,23 @@ class PhantomS991(pr.Device):
             name         = 'LensApertureMaxReg',
             description  = '',
             offset       = 0x81A8,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
-
 
         self.add(pr.RemoteVariable(
             name         = 'LensFocusReg',
             description  = 'Set Lens Focus',
             offset       = 0x81AC,
-            mode         = 'RW',
+            base         = pr.UIntBE,
+            mode         = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'LensFocusStepReg',
             description  = 'Set Lens Focus Step',
             offset       = 0x81B0,
+            base         = pr.UIntBE,
             mode         = 'RW',
         ))
 
@@ -367,6 +405,7 @@ class PhantomS991(pr.Device):
             name         = 'LensShutterReg',
             description  = 'Camera Shutter Open/Close',
             offset       = 0x81B4,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Open',
@@ -378,6 +417,7 @@ class PhantomS991(pr.Device):
             name         = 'GainSelectorReg',
             description  = 'Selects which Gain is controlled by the various Gain features',
             offset       = 0x80E4,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'undefined',
@@ -392,6 +432,7 @@ class PhantomS991(pr.Device):
             name         = 'GainReg',
             description  = 'Controls the selected gain as an absolute physical value. This is an amplification factor applied to the video signal.',
             offset       = 0x80E8,
+            base         = pr.UIntBE,
             mode         = 'RW',
         ))
 
@@ -399,6 +440,7 @@ class PhantomS991(pr.Device):
             name         = 'BlackLevelSelectorReg',
             description  = 'Selects which Black Level is controlled by the various Black Level features.',
             offset       = 0x80F8,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'All',
@@ -412,6 +454,7 @@ class PhantomS991(pr.Device):
             name         = 'BlackLevelReg',
             description  = 'Controls the analog black level as an absolute physical value. This represents a DC offset applied to the video signal.',
             offset       = 0x80FC,
+            base         = pr.UIntBE,
             mode         = 'RW',
         ))
 
@@ -419,6 +462,7 @@ class PhantomS991(pr.Device):
             name         = 'BalanceWhiteAutoReg',
             description  = 'Controls the mode for automatic white balancing between the color channels.',
             offset       = 0x80DC,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Off',
@@ -430,6 +474,7 @@ class PhantomS991(pr.Device):
             name         = 'BalanceWhiteMarkerReg',
             description  = 'Auto White Balance Marker.',
             offset       = 0x80E0,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Off',
@@ -437,17 +482,19 @@ class PhantomS991(pr.Device):
             },
         ))
 
-        self.add(pr.RemoteVariable(
+        self.add(pr.RemoteCommand(
             name         = 'GainBlackLevelResetReg',
             description  = 'Set camera gain and black level to default.',
             offset       = 0x8208,
-            mode         = 'RW',
+            base         = pr.UIntBE,
+            function     = lambda cmd: cmd.post(1),
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'OutputRawImageReg',
             description  = 'Grab raw images',
             offset       = 0x820C,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Off',
@@ -460,6 +507,7 @@ class PhantomS991(pr.Device):
                 name         = f'DigitalIOReg[{i}]',
                 description  = 'Selects the physical line (or pin) of the external device connector or the virtual line of the Transport Layer to configure.',
                 offset       = 0x8198,
+                base         = pr.UIntBE,
                 bitSize      = 8,
                 bitOffset    = 24-(i*8),
                 mode         = 'RW',
@@ -480,6 +528,7 @@ class PhantomS991(pr.Device):
             name         = 'UserOutputSetReg',
             description  = 'Set user output high/low.',
             offset       = 0x8200,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Low',
@@ -491,6 +540,7 @@ class PhantomS991(pr.Device):
             name         = 'UserInputStatusReg',
             description  = 'Displays state of user input GPIO line.',
             offset       = 0x8204,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
@@ -498,6 +548,7 @@ class PhantomS991(pr.Device):
             name         = 'LinkNumberReg',
             description  = 'Bootstrap register Banks.',
             offset       = 0x8184,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Banks_A',
@@ -507,22 +558,26 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'ConnectedBankIDReg',
-            description  = 'Image1StreamID.',
+            description  = 'Connected Bank ID',
             offset       = 0x80D8,
+            base         = pr.UIntBE,
             mode         = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'EventRefreshReg',
-            description  = 'EventRefresh',
+            description  = 'Refresh rate (ms) of CXP events. 0 = Events Off',
             offset       = 0x827C,
+            base         = pr.UIntBE,
             mode         = 'RW',
+            units        = 'ms',
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'DeviceTapGeometryReg',
             description  = 'This device tap geometry feature describes the geometrical properties characterizing the taps of a camera as presented at the output of the device.',
             offset       = 0x800C,
+            base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
                 0: 'Geometry_1X_1Y',
@@ -533,6 +588,7 @@ class PhantomS991(pr.Device):
             name         = 'UserSerialTxReg',
             description  = '',
             offset       = 0x8148,
+            base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
         ))
@@ -541,6 +597,7 @@ class PhantomS991(pr.Device):
             name         = 'UserSerialRxReg',
             description  = '',
             offset       = 0x8154,
+            base         = pr.UIntBE,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -549,6 +606,7 @@ class PhantomS991(pr.Device):
             name         = 'UserSerialBaudRateReg',
             description  = '',
             offset       = 0x8164,
+            base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
         ))
@@ -557,6 +615,7 @@ class PhantomS991(pr.Device):
             name         = 'FactorySerialTxReg',
             description  = '',
             offset       = 0x8140,
+            base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
         ))
@@ -565,6 +624,7 @@ class PhantomS991(pr.Device):
             name         = 'FactorySerialRxReg',
             description  = '',
             offset       = 0x8144,
+            base         = pr.UIntBE,
             mode         = 'RO',
             hidden       = True,
         ))
@@ -573,6 +633,7 @@ class PhantomS991(pr.Device):
             name         = 'FactorySerialUpdateReg',
             description  = '',
             offset       = 0x8130,
+            base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
         ))

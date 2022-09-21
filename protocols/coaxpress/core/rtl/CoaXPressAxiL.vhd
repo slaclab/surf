@@ -27,25 +27,23 @@ use surf.CoaXPressPkg.all;
 
 entity CoaXPressAxiL is
    generic (
-      TPD_G              : time                   := 1 ns;
-      NUM_LANES_G        : positive               := 1;
-      TRIG_WIDTH_G       : positive range 1 to 16 := 1;
-      STATUS_CNT_WIDTH_G : natural range 1 to 32  := 12;
-      AXIL_CLK_FREQ_G    : real                   := 156.25E+6;  -- axilClk frequency (units of Hz)
-      AXIS_CLK_FREQ_G    : real                   := 156.25E+6;  -- dataClk frequency (units of Hz)
+      TPD_G              : time                  := 1 ns;
+      NUM_LANES_G        : positive              := 1;
+      STATUS_CNT_WIDTH_G : natural range 1 to 32 := 12;
+      AXIL_CLK_FREQ_G    : real                  := 156.25E+6;  -- axilClk frequency (units of Hz)
+      AXIS_CLK_FREQ_G    : real                  := 156.25E+6;  -- dataClk frequency (units of Hz)
       AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
       -- Tx Interface (txClk domain)
       txClk           : in  sl;
       txRst           : in  sl;
-      txTrig          : in  slv(TRIG_WIDTH_G-1 downto 0);
-      swTrig          : out slv(TRIG_WIDTH_G-1 downto 0);
-      txTrigDrop      : in  slv(TRIG_WIDTH_G-1 downto 0);
+      txTrig          : in  sl;
+      swTrig          : out sl;
+      txTrigDrop      : in  sl;
       trigAck         : in  sl;
       txLinkUp        : in  sl;
       txLsRate        : out sl;
       txLsLaneEn      : out slv(3 downto 0);
-      txHsEnable      : out sl;
       -- Rx Interface (rxClk domain)
       rxClk           : in  slv(NUM_LANES_G-1 downto 0);
       rxRst           : in  slv(NUM_LANES_G-1 downto 0);
@@ -74,17 +72,15 @@ end CoaXPressAxiL;
 
 architecture rtl of CoaXPressAxiL is
 
-   constant RX_STATUS_CNT_C : positive := 1;
-   constant TX_STATUS_CNT_C : positive := 2;
+   constant TX_STATUS_CNT_C : positive := 4;
 
    type RegType is record
       txLsRate        : sl;
       txLsLaneEn      : slv(3 downto 0);
-      txHsEnable      : sl;
       configTimerSize : slv(31 downto 0);
       configErrResp   : sl;
       configPktTag    : sl;
-      swTrig          : slv(TRIG_WIDTH_G-1 downto 0);
+      swTrig          : sl;
       cntRst          : sl;
       axilWriteSlave  : AxiLiteWriteSlaveType;
       axilReadSlave   : AxiLiteReadSlaveType;
@@ -93,11 +89,10 @@ architecture rtl of CoaXPressAxiL is
    constant REG_INIT_C : RegType := (
       txLsRate        => '0',
       txLsLaneEn      => x"F",
-      txHsEnable      => '0',
       configTimerSize => x"0F_FF_FF_FF",
       configErrResp   => '1',
       configPktTag    => '0',
-      swTrig          => (others => '0'),
+      swTrig          => '0',
       cntRst          => '1',
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C);
@@ -110,23 +105,16 @@ architecture rtl of CoaXPressAxiL is
    signal rxDecErrCnt       : SlVectorArray(NUM_LANES_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
    signal rxDispErrCnt      : SlVectorArray(NUM_LANES_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal txTrigCnt     : SlVectorArray(TRIG_WIDTH_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
-   signal txTrigDropCnt : SlVectorArray(TRIG_WIDTH_G-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
-   signal trigFreq      : SlVectorArray(TRIG_WIDTH_G-1 downto 0, 31 downto 0);
-
-   signal rxCntOut : SlVectorArray(RX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
-   signal txCntOut : SlVectorArray(TX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
-
-   signal txStatusOut : slv(TX_STATUS_CNT_C-1 downto 0);
-
    signal rxDispErrSync      : slv(NUM_LANES_G-1 downto 0);
    signal rxDecErrSync       : slv(NUM_LANES_G-1 downto 0);
    signal rxFifoOverflowSync : slv(NUM_LANES_G-1 downto 0);
    signal rxLinkUpSync       : slv(NUM_LANES_G-1 downto 0);
    signal rxLinkUpStatus     : slv(NUM_LANES_G-1 downto 0);
 
-   signal trigger : slv(TRIG_WIDTH_G-1 downto 0);
+   signal txCntOut    : SlVectorArray(TX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+   signal txStatusOut : slv(TX_STATUS_CNT_C-1 downto 0);
 
+   signal trigFreq  : slv(31 downto 0);
    signal txClkFreq : slv(31 downto 0);
    signal rxClkFreq : Slv32Array(NUM_LANES_G-1 downto 0);
 
@@ -147,7 +135,7 @@ begin
             bandwidthMin, frameCnt, frameRate, frameRateMax, frameRateMin,
             frameSize, frameSizeMax, frameSizeMin, r, rxClkFreq, rxDecErrCnt,
             rxDispErrCnt, rxLinkUpCnt, rxLinkUpStatus, trigFreq, txClkFreq,
-            txCntOut, txStatusOut, txTrigCnt, txTrigDropCnt) is
+            txCntOut, txStatusOut) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -155,7 +143,6 @@ begin
       v := r;
 
       -- Reset strobes
-      v.swTrig := (others => '0');
       v.cntRst := '0';
 
       ------------------------
@@ -172,17 +159,15 @@ begin
          axiSlaveRegisterR(axilEp, x"0C0"+toSlv(i*4, 12), 0, rxClkFreq(i));  -- 0x0C0:0x0FF
       end loop;
 
-      for i in 0 to TRIG_WIDTH_G-1 loop
-         axiSlaveRegisterR(axilEp, x"400"+toSlv(i*4, 12), 0, muxSlVectorArray(txTrigCnt, i));  -- 0x400:0x43F
-         axiSlaveRegisterR(axilEp, x"440"+toSlv(i*4, 12), 0, muxSlVectorArray(txTrigDropCnt, i));  -- 0x440:0x47F
-         axiSlaveRegisterR(axilEp, x"480"+toSlv(i*4, 12), 0, muxSlVectorArray(trigFreq, i));  -- 0x480:0x4BF
-      end loop;
-
-      axiSlaveRegisterR(axilEp, x"800", 0, muxSlVectorArray(txCntOut, 0));  -- txLinkUpCnt
+      axiSlaveRegisterR(axilEp, x"800", 0, trigFreq);
       axiSlaveRegisterR(axilEp, x"804", 0, rxLinkUpStatus);
       axiSlaveRegisterR(axilEp, x"808", 0, txStatusOut);
       axiSlaveRegisterR(axilEp, x"80C", 0, txClkFreq);
-      axiSlaveRegisterR(axilEp, x"810", 0, muxSlVectorArray(txCntOut, 1));  -- trigAckCnt
+
+      axiSlaveRegisterR(axilEp, x"810", 0, muxSlVectorArray(txCntOut, 0));  -- txLinkUpCnt
+      axiSlaveRegisterR(axilEp, x"814", 0, muxSlVectorArray(txCntOut, 1));  -- trigAckCnt
+      axiSlaveRegisterR(axilEp, x"818", 0, muxSlVectorArray(txCntOut, 2));  -- txTrigCnt
+      axiSlaveRegisterR(axilEp, x"81C", 0, muxSlVectorArray(txCntOut, 3));  -- txTrigDropCnt
 
       -- Matching with AxiStreamMonChannel Python device register mapping w/ offset=0x900
       axiSlaveRegisterR(axilEp, x"904", 0, frameCnt);      -- 0x904:0x90B
@@ -198,17 +183,15 @@ begin
 
       axiSlaveRegisterR(axilEp, x"FE0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FE0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
-      axiSlaveRegisterR(axilEp, x"FE0", 16, toSlv(TRIG_WIDTH_G, 8));
 
       axiSlaveRegister (axilEp, X"FF0", 0, v.swTrig);
 
       axiSlaveRegister (axilEp, x"FF4", 0, v.configTimerSize);
 
-      axiSlaveRegister (axilEp, x"FF8", 24, v.configErrResp);
-      axiSlaveRegister (axilEp, x"FF8", 25, v.configPktTag);
-      axiSlaveRegister (axilEp, x"FF8", 26, v.txLsRate);
-      axiSlaveRegister (axilEp, x"FF8", 27, v.txHsEnable);
-      axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);     -- BIT31:BIT28
+      axiSlaveRegister (axilEp, x"FF8", 25, v.configErrResp);
+      axiSlaveRegister (axilEp, x"FF8", 26, v.configPktTag);
+      axiSlaveRegister (axilEp, x"FF8", 27, v.txLsRate);
+      axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);    -- BIT31:BIT28
 
       axiSlaveRegister (axilEp, X"FFC", 0, v.cntRst);
 
@@ -239,44 +222,19 @@ begin
    ------------------------------
    -- Transmitter Synchronization
    ------------------------------
-
-   U_swTrig : entity surf.SynchronizerOneShotVector
+   U_swTrig : entity surf.SynchronizerFifo
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => TRIG_WIDTH_G)
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 1)
       port map (
-         clk     => txClk,
+         -- Asynchronous Reset
          rst     => txRst,
-         dataIn  => r.swTrig,
-         dataOut => swTrig);
-
-   U_txTrigCnt : entity surf.SyncStatusVector
-      generic map (
-         TPD_G       => TPD_G,
-         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => TRIG_WIDTH_G)
-      port map (
-         statusIn => txTrig,
-         cntRstIn => r.cntRst,
-         cntOut   => txTrigCnt,
-         wrClk    => txClk,
-         wrRst    => txRst,
-         rdClk    => axilClk,
-         rdRst    => axilRst);
-
-   U_txTrigDropCnt : entity surf.SyncStatusVector
-      generic map (
-         TPD_G       => TPD_G,
-         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         WIDTH_G     => TRIG_WIDTH_G)
-      port map (
-         statusIn => txTrigDrop,
-         cntRstIn => r.cntRst,
-         cntOut   => txTrigDropCnt,
-         wrClk    => txClk,
-         wrRst    => txRst,
-         rdClk    => axilClk,
-         rdRst    => axilRst);
+         -- Write Ports (wr_clk domain)
+         wr_clk  => axilClk,
+         din(0)  => r.swTrig,
+         -- Read Ports (rd_clk domain)
+         rd_clk  => txClk,
+         dout(0) => swTrig);
 
    U_txCntOut : entity surf.SyncStatusVector
       generic map (
@@ -286,6 +244,8 @@ begin
       port map (
          statusIn(0) => txLinkUp,
          statusIn(1) => trigAck,
+         statusIn(2) => txTrig,
+         statusIn(3) => txTrigDrop,
          statusOut   => txStatusOut,
          cntRstIn    => r.cntRst,
          cntOut      => txCntOut,
@@ -294,17 +254,14 @@ begin
          rdClk       => axilClk,
          rdRst       => axilRst);
 
-   trigger <= txTrig or r.swTrig;
-
-   U_trigFreq : entity surf.SyncTrigRateVector
+   U_trigFreq : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
          ONE_SHOT_G     => true,        -- true=SynchronizerOneShot
-         REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
-         WIDTH_G        => TRIG_WIDTH_G)
+         REF_CLK_FREQ_G => AXIL_CLK_FREQ_G)
       port map (
          -- Trigger Input (locClk domain)
-         trigIn      => trigger,
+         trigIn      => txTrig,
          -- Trigger Rate Output (locClk domain)
          trigRateOut => trigFreq,
          -- Clocks
@@ -339,14 +296,6 @@ begin
          clk     => txClk,
          dataIn  => r.txLsLaneEn,
          dataOut => txLsLaneEn);
-
-   U_txHsEnable : entity surf.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => txClk,
-         dataIn  => r.txHsEnable,
-         dataOut => txHsEnable);
 
    ---------------------------
    -- Receiver Synchronization
@@ -457,7 +406,7 @@ begin
 
    U_configErrResp : entity surf.Synchronizer
       generic map (
-         TPD_G   => TPD_G)
+         TPD_G => TPD_G)
       port map (
          clk     => cfgClk,
          dataIn  => r.configErrResp,
@@ -465,7 +414,7 @@ begin
 
    U_configPktTag : entity surf.Synchronizer
       generic map (
-         TPD_G   => TPD_G)
+         TPD_G => TPD_G)
       port map (
          clk     => cfgClk,
          dataIn  => r.configPktTag,

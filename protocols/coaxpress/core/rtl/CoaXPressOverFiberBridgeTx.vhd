@@ -38,10 +38,7 @@ entity CoaXPressOverFiberBridgeTx is
       txLsData   : in  slv(7 downto 0);
       txLsDataK  : in  sl;
       txLsRate   : in  sl;
-      txLsLaneEn : in  slv(3 downto 0);
-      txHsEnable : in  sl;
-      txHsData   : in  slv(31 downto 0);
-      txHsDataK  : in  slv(3 downto 0));
+      txLsLaneEn : in  slv(3 downto 0));
 end entity CoaXPressOverFiberBridgeTx;
 
 architecture rtl of CoaXPressOverFiberBridgeTx is
@@ -49,39 +46,30 @@ architecture rtl of CoaXPressOverFiberBridgeTx is
    type StateType is (
       IDLE_S,
       LS_SOP_S,
-      HS_SOP_S,
-      LS_PAYLOAD_S,
-      HS_PAYLOAD_S,
-      HS_TRIG_IPG_S,
-      HS_TRIG_SOP_S,
-      HS_TRIG_WORD_S);
+      LS_PAYLOAD_S);
 
    type RegType is record
-      update     : sl;
-      cnt        : natural range 0 to 3;
-      txLsLaneEn : slv(3 downto 0);
-      txLsRate   : sl;
-      txHsEnable : sl;
-      txLsData   : slv(7 downto 0);
-      txLsDataK  : sl;
-      txHsData   : slv(31 downto 0);
-      xgmiiTxd   : slv(31 downto 0);
-      xgmiiTxc   : slv(3 downto 0);
-      state      : StateType;
+      update    : sl;
+      cnt       : natural range 0 to 3;
+      idle      : natural range 0 to 3;
+      txLsRate  : sl;
+      txLsData  : slv(7 downto 0);
+      txLsDataK : sl;
+      xgmiiTxd  : slv(31 downto 0);
+      xgmiiTxc  : slv(3 downto 0);
+      state     : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      update     => '1',
-      cnt        => 0,
-      txLsLaneEn => (others => '0'),
-      txLsRate   => '0',
-      txHsEnable => '0',
-      txLsData   => (others => '0'),
-      txLsDataK  => '0',
-      txHsData   => (others => '0'),
-      xgmiiTxd   => CXPOF_IDLE_WORD_C,
-      xgmiiTxc   => x"F",
-      state      => IDLE_S);
+      update    => '1',
+      cnt       => 0,
+      idle      => 0,
+      txLsRate  => '0',
+      txLsData  => (others => '0'),
+      txLsDataK => '0',
+      xgmiiTxd  => CXPOF_IDLE_WORD_C,
+      xgmiiTxc  => x"F",
+      state     => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -91,8 +79,8 @@ architecture rtl of CoaXPressOverFiberBridgeTx is
 
 begin
 
-   comb : process (r, rst, txHsData, txHsDataK, txHsEnable, txLsData,
-                   txLsDataK, txLsLaneEn, txLsRate, txLsValid) is
+   comb : process (r, rst, txLsData, txLsDataK, txLsLaneEn, txLsRate,
+                   txLsValid) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -104,18 +92,6 @@ begin
          v.update := '1';
       end if;
 
-      -- Check for change in low speed rate
-      v.txLsLaneEn := txLsLaneEn;
-      if (r.txLsLaneEn /= v.txLsLaneEn) then
-         v.update := '1';
-      end if;
-
-      -- Check for change in high speed enable
-      v.txHsEnable := txHsEnable;
-      if (r.txHsEnable /= v.txHsEnable) then
-         v.update := '1';
-      end if;
-
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
@@ -124,29 +100,13 @@ begin
             v.xgmiiTxc := x"F";
             v.xgmiiTxd := CXPOF_IDLE_WORD_C;
 
-            -- Check for low speed packet
-            if (r.update = '1') or (r.txHsEnable = '0') then
-
-               -- Check for new low speed byte
-               if (txLsValid = '1') then
-                  -- Save copy of data
-                  v.txLsData  := txLsData;
-                  v.txLsDataK := txLsDataK;
-                  -- Next State
-                  v.state     := LS_SOP_S;
-               end if;
-
-            -- Check high speed packet
-            else
-
-               -- Check for Start of packet indication
-               if (txHsDataK = x"F") and ((txHsData = CXP_SOP_C) or (txHsData = CXP_TRIG_C)) then
-                  -- Save delayed copy
-                  v.txHsData := txHsData;
-                  -- Next State
-                  v.state    := HS_SOP_S;
-               end if;
-
+            -- Check for new low speed byte
+            if (txLsValid = '1') then
+               -- Save copy of data
+               v.txLsData  := txLsData;
+               v.txLsDataK := txLsDataK;
+               -- Next State
+               v.state     := LS_SOP_S;
             end if;
          ----------------------------------------------------------------------
          when LS_SOP_S =>
@@ -175,7 +135,7 @@ begin
             v.xgmiiTxd(8+1) := r.txLsRate;
 
             -- Lane[1] = SopCtrl[0] - High-speed upconnection state
-            v.xgmiiTxd(8+0) := r.txHsEnable;
+            v.xgmiiTxd(8+0) := '0';
 
             -- Lane[2] = SopData0[7:0] - reserved
             v.xgmiiTxd(16+7 downto 16+0) := x"00";
@@ -185,31 +145,6 @@ begin
 
             -- Next State
             v.state := LS_PAYLOAD_S;
-         ----------------------------------------------------------------------
-         when HS_SOP_S =>
-            -- Set the char marker
-            v.xgmiiTxc := "0001";
-
-            -- Lane[0] = Start[7:0]
-            v.xgmiiTxd(0+7 downto 0+0) := CXPOF_START_C;
-
-            -- Lane[1] = SopCtrl[7] - Packet type: "1" => High-speed packet
-            v.xgmiiTxd(8+7) := '1';
-
-            -- Lane[1] = SopCtrl[6:1] - Reserved
-            v.xgmiiTxd(8+6 downto 8+1) := "000000";
-
-            -- Lane[1] = SopCtrl[0] - Next word type: When "0" => HDP, When "1" => HKP
-            v.xgmiiTxd(8+0) := txHsDataK(0);
-
-            -- Lane[2] = SopData0[7:0] - Embedded K-code (replaces a CoaXPress K-code replicated four times)
-            v.xgmiiTxd(16+7 downto 16+0) := r.txHsData(7 downto 0);  -- use delayed copy
-
-            -- Lane[3] = SopData1[7:0]- Embedded Data (replaces a CoaXPress byte replicated four times)
-            v.xgmiiTxd(24+7 downto 24+0) := txHsData(7 downto 0);
-
-            -- Next State
-            v.state := HS_PAYLOAD_S;
          ----------------------------------------------------------------------
          when LS_PAYLOAD_S =>
             -- Increment the counter
@@ -226,7 +161,7 @@ begin
                for i in 0 to 1 loop
 
                   -- Check if LS Stream is enabled
-                  if (r.txLsLaneEn(2*r.cnt+i) = '1') then
+                  if (txLsLaneEn(2*r.cnt+i) = '1') then
 
                      -- LS CTRL
                      if (r.txLsDataK = '0') then
@@ -237,6 +172,19 @@ begin
 
                      -- LS Char
                      v.xgmiiTxd(16*i+15 downto 16*i+8) := r.txLsData;
+
+                  -- Else send IDLE
+                  else
+
+                     -- LS CTRL
+                     if (CXP_IDLE_K_C(r.idle) = '0') then
+                        v.xgmiiTxd(16*i+7 downto 16*i) := x"01";  -- data
+                     else
+                        v.xgmiiTxd(16*i+7 downto 16*i) := x"02";  -- k-code
+                     end if;
+
+                     -- LS Char
+                     v.xgmiiTxd(16*i+15 downto 16*i+8) := CXP_TX_IDLE_C(r.idle);
 
                   end if;
 
@@ -261,74 +209,19 @@ begin
                -- Lane[3] = Terminate
                v.xgmiiTxd(31 downto 24) := CXPOF_IDLE_C;
 
+               -- Check non-enabled IDLE index
+               if (r.idle = 3) then
+                  -- Reset the counter
+                  v.idle := 0;
+               else
+                  -- Increment the counter
+                  v.idle := r.idle + 1;
+               end if;
+
                -- Next State
                v.state := IDLE_S;
 
             end if;
-         ----------------------------------------------------------------------
-         when HS_PAYLOAD_S =>
-            -- Check if moving payload data
-            if (txHsDataK = x"0") then
-               -- Move the data
-               v.xgmiiTxd := txHsData;
-               v.xgmiiTxc := x"0";
-            else
-               -- Set the char marker
-               v.xgmiiTxc := "1100";
-
-               -- Lane[0] = EopData0[7:0]
-               if (txHsData = CXP_EOP_C) then
-                  v.xgmiiTxd(0+7 downto 0+0) := txHsData(7 downto 0);
-               else
-                  v.xgmiiTxd(0+7 downto 0+0) := x"00";
-               end if;
-
-               -- Lane[1] = Reserved
-               v.xgmiiTxd(8+7 downto 8+0) := x"00";
-
-               -- Lane[2] = Terminate
-               v.xgmiiTxd(16+7 downto 16+0) := CXPOF_TERM_C;
-
-               -- Lane[3] = Terminate
-               v.xgmiiTxd(24+7 downto 24+0) := CXPOF_IDLE_C;
-
-               -- Check for end of packet
-               if (txHsData = CXP_TRIG_C) then
-                  -- Save delayed copy
-                  v.txHsData := txHsData;
-                  -- Next State
-                  v.state    := HS_TRIG_IPG_S;
-               else
-                  -- Next State
-                  v.state := IDLE_S;
-               end if;
-
-            end if;
-         ----------------------------------------------------------------------
-         when HS_TRIG_IPG_S =>
-            -- Send the start word
-            v.xgmiiTxc := x"F";
-            v.xgmiiTxd := CXPOF_IDLE_WORD_C;
-            -- Save the delay word
-            v.txHsData := txHsData;
-            -- Next State
-            v.state    := HS_TRIG_SOP_S;
-         ----------------------------------------------------------------------
-         when HS_TRIG_SOP_S =>
-            -- Send the SOP
-            v.xgmiiTxc := "0001";
-            v.xgmiiTxd := r.txHsData(7 downto 0) & CXP_TRIG_C(7 downto 0) & x"80" & CXPOF_START_C;
-            -- Save the TrgN word
-            v.txHsData := txHsData;
-            -- Next State
-            v.state    := HS_TRIG_WORD_S;
-         ----------------------------------------------------------------------
-         when HS_TRIG_WORD_S =>
-            -- Send the TrgN word
-            v.xgmiiTxc := "0000";
-            v.xgmiiTxd := r.txHsData;
-            -- Next State
-            v.state    := HS_PAYLOAD_S;
       ----------------------------------------------------------------------
       end case;
 

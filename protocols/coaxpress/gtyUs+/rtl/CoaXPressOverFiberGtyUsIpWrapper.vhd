@@ -45,9 +45,6 @@ entity CoaXPressOverFiberGtyUsIpWrapper is
       txLsDataK       : in  sl;
       txLsRate        : in  sl;
       txLsLaneEn      : in  slv(3 downto 0);
-      txHsEnable      : in  sl;
-      txHsData        : in  slv(31 downto 0);
-      txHsDataK       : in  slv(3 downto 0);
       txLinkUp        : out sl;
       -- Rx Interface (rxClk domain)
       rxClk           : out sl;
@@ -184,6 +181,16 @@ begin
          asyncRst => txReset,
          syncRst  => txLinkUp);
 
+   -- U_txLinkUp : entity surf.PwrUpRst
+      -- generic map (
+         -- TPD_G          => TPD_G,
+         -- IN_POLARITY_G  => '1',
+         -- OUT_POLARITY_G => '0')
+      -- port map (
+         -- clk    => phyClk312,
+         -- arst   => txReset,
+         -- rstOut => txLinkUp);
+
    rxClk   <= phyClk312;
    rxReset <= phyRst312 or not(rxPhyReady);
 
@@ -197,6 +204,16 @@ begin
          clk      => phyClk312,
          asyncRst => rxReset,
          syncRst  => rxRst);
+
+   -- U_rxLinkUp : entity surf.PwrUpRst
+      -- generic map (
+         -- TPD_G          => TPD_G,
+         -- IN_POLARITY_G  => '1',
+         -- OUT_POLARITY_G => '0')
+      -- port map (
+         -- clk    => phyClk312,
+         -- arst   => rxReset,
+         -- rstOut => rxLinkUp);
 
    U_rxLinkUp : entity surf.RstSync
       generic map (
@@ -331,9 +348,6 @@ begin
          txLsDataK  => txLsDataK,
          txLsRate   => txLsRate,
          txLsLaneEn => txLsLaneEn,
-         txHsEnable => txHsEnable,
-         txHsData   => txHsData,
-         txHsDataK  => txHsDataK,
          -- CXP RX interface (rxClk312 domain)
          rxClk312   => phyClk312,
          rxRst312   => phyRst312,

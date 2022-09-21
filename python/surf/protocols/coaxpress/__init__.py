@@ -11,24 +11,3 @@ from surf.protocols.coaxpress._CoaXPressAxiL import *
 from surf.protocols.coaxpress._Bootstrap     import *
 
 from surf.protocols.coaxpress._PhantomS991   import *
-
-def addStringVariables(dev, name, description, offset, number):
-
-    for i in range(number):
-        for j in range(4):
-            dev.add(pr.RemoteVariable(
-                name         = f'{name}Byte[{i*4+j}]',
-                description  = description,
-                base         = pr.String,
-                offset       = offset+(i*4),
-                bitSize      = 8,
-                bitOffset    = (3-j)*8,
-                mode         = 'RO',
-                hidden       = True,
-            ))
-
-    dev.add(pr.LinkVariable(
-        name         = name,
-        linkedGet    = lambda var: ''.join([var.dependencies[x].value() for x in range(4*number)]),
-        dependencies = [dev.variables[f'{name}Byte[{x}]'] for x in range(4*number)],
-    ))

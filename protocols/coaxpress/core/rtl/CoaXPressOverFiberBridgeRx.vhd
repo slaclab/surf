@@ -46,14 +46,12 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
       PAYLOAD_S);
 
    type RegType is record
-      armed   : sl;
       rxData  : Slv32Array(1 downto 0);
       rxDataK : Slv4Array(1 downto 0);
       state   : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      armed   => '0',
       rxData  => (others => CXP_IDLE_C),
       rxDataK => (others => CXP_IDLE_K_C),
       state   => IDLE_S);
@@ -94,9 +92,6 @@ begin
                   -- Check for SOP
                   if (xgmiiRxd(23 downto 16) = CXP_SOP_C(7 downto 0)) then
 
-                     -- Set flag
-                     v.armed := '1';
-
                      -- Send SOP
                      v.rxDataK(0) := x"F";
                      v.rxData(0)  := CXP_SOP_C;
@@ -127,8 +122,6 @@ begin
             v.rxData(1)  := xgmiiRxd;
             -- Check for EOP
             if (xgmiiRxd = CXP_EOP_C) then
-               -- Reset flag
-               v.armed := '0';
                -- Next State
                v.state := IDLE_S;
             else
@@ -148,13 +141,6 @@ begin
 
                -- Check for non-zero value
                if (xgmiiRxd(7 downto 0) /= 0) then
-
-                  -- Check for EOP
-                  if (xgmiiRxd(7 downto 0) = CXP_EOP_C(7 downto 0)) then
-                     -- Reset flag
-                     v.armed := '0';
-                  end if;
-
                   -- Send EOP
                   v.rxDataK(1) := x"F";
                   v.rxData(1)  := xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0);
