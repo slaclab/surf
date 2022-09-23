@@ -94,7 +94,7 @@ architecture rtl of CoaXPressAxiL is
       txTrigInv       => '0',
       txPulseWidth    => toSlv(31250-1, 32),  -- 100 us
       txLsRate        => '0',
-      txLsLaneEn      => x"F",
+      txLsLaneEn      => x"1",
       configTimerSize => x"0F_FF_FF_FF",
       configErrResp   => '1',
       configPktTag    => '0',
