@@ -2,10 +2,10 @@
 -- Title      : AD9681 Simulation Module
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
+-- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of SLAC Firmware Standard Library. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
