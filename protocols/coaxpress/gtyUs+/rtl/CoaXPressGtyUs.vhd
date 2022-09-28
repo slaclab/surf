@@ -56,6 +56,8 @@ entity CoaXPressGtyUs is
       dataRst         : in  sl;
       dataMaster      : out AxiStreamMasterType;
       dataSlave       : in  AxiStreamSlaveType;
+      dataHdrMaster   : out AxiStreamMasterType;
+      dataHdrSlave    : in  AxiStreamSlaveType;
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
@@ -85,13 +87,13 @@ architecture mapping of CoaXPressGtyUs is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal txClk      : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txRst      : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txLsValid  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
-   signal txLsData   : slv8Array(NUM_LANES_G-1 downto 0)  := (others => CXP_IDLE_C(7 downto 0));
-   signal txLsDataK  : slv(NUM_LANES_G-1 downto 0)        := (others => '1');
-   signal txLsLaneEn : Slv4Array(NUM_LANES_G-1 downto 0)  := (others => x"0");
-   signal txLsRate   : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
+   signal txClk      : slv(NUM_LANES_G-1 downto 0)       := (others => '0');
+   signal txRst      : slv(NUM_LANES_G-1 downto 0)       := (others => '0');
+   signal txLsValid  : slv(NUM_LANES_G-1 downto 0)       := (others => '0');
+   signal txLsData   : slv8Array(NUM_LANES_G-1 downto 0) := (others => CXP_IDLE_C(7 downto 0));
+   signal txLsDataK  : slv(NUM_LANES_G-1 downto 0)       := (others => '1');
+   signal txLsLaneEn : Slv4Array(NUM_LANES_G-1 downto 0) := (others => x"0");
+   signal txLsRate   : slv(NUM_LANES_G-1 downto 0)       := (others => '0');
    signal txLinkUp   : slv(NUM_LANES_G-1 downto 0);
 
    signal rxClk     : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
@@ -138,6 +140,8 @@ begin
          dataRst         => dataRst,
          dataMaster      => dataMaster,
          dataSlave       => dataSlave,
+         dataHdrMaster   => dataHdrMaster,
+         dataHdrSlave    => dataHdrSlave,
          -- Config Interface (cfgClk domain)
          cfgClk          => cfgClk,
          cfgRst          => cfgRst,

@@ -52,6 +52,9 @@ entity CoaXPressAxiL is
       rxDispErr       : in  slv(NUM_LANES_G-1 downto 0);
       rxDecErr        : in  slv(NUM_LANES_G-1 downto 0);
       rxLinkUp        : in  slv(NUM_LANES_G-1 downto 0);
+      rxFsmRst        : out sl;         -- (rxClk(0) domain only)
+      rxNumberOfLane  : out slv(2 downto 0);  -- (rxClk(0) domain only)
+      rxOverflow      : in  sl;
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
@@ -75,8 +78,10 @@ end CoaXPressAxiL;
 architecture rtl of CoaXPressAxiL is
 
    constant TX_STATUS_CNT_C : positive := 4;
+   constant RX_STATUS_CNT_C : positive := 1;
 
    type RegType is record
+      rxNumberOfLane  : slv(2 downto 0);
       txTrigInv       : sl;
       txPulseWidth    : slv(31 downto 0);
       txLsRate        : sl;
@@ -85,12 +90,14 @@ architecture rtl of CoaXPressAxiL is
       configErrResp   : sl;
       configPktTag    : sl;
       swTrig          : sl;
+      rxFsmRst        : sl;
       cntRst          : sl;
       axilWriteSlave  : AxiLiteWriteSlaveType;
       axilReadSlave   : AxiLiteReadSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      rxNumberOfLane  => "000",               -- zero inclusive
       txTrigInv       => '0',
       txPulseWidth    => toSlv(31250-1, 32),  -- 100 us
       txLsRate        => '0',
@@ -99,6 +106,7 @@ architecture rtl of CoaXPressAxiL is
       configErrResp   => '1',
       configPktTag    => '0',
       swTrig          => '0',
+      rxFsmRst        => '0',
       cntRst          => '1',
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C);
@@ -116,9 +124,13 @@ architecture rtl of CoaXPressAxiL is
    signal rxFifoOverflowSync : slv(NUM_LANES_G-1 downto 0);
    signal rxLinkUpSync       : slv(NUM_LANES_G-1 downto 0);
    signal rxLinkUpStatus     : slv(NUM_LANES_G-1 downto 0);
+   signal rxOverflowSync     : sl;
 
    signal txCntOut    : SlVectorArray(TX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
    signal txStatusOut : slv(TX_STATUS_CNT_C-1 downto 0);
+
+   signal rxCntOut    : SlVectorArray(RX_STATUS_CNT_C-1 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
+   signal rxStatusOut : slv(RX_STATUS_CNT_C-1 downto 0);
 
    signal trigFreq  : slv(31 downto 0);
    signal txClkFreq : slv(31 downto 0);
@@ -139,9 +151,9 @@ begin
 
    process (axilReadMaster, axilRst, axilWriteMaster, bandwidth, bandwidthMax,
             bandwidthMin, frameCnt, frameRate, frameRateMax, frameRateMin,
-            frameSize, frameSizeMax, frameSizeMin, r, rxClkFreq, rxDecErrCnt,
-            rxDispErrCnt, rxLinkUpCnt, rxLinkUpStatus, trigFreq, txClkFreq,
-            txCntOut, txStatusOut) is
+            frameSize, frameSizeMax, frameSizeMin, r, rxClkFreq, rxCntOut,
+            rxDecErrCnt, rxDispErrCnt, rxLinkUpCnt, rxLinkUpStatus,
+            rxStatusOut, trigFreq, txClkFreq, txCntOut, txStatusOut) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -149,8 +161,9 @@ begin
       v := r;
 
       -- Reset strobes
-      v.cntRst := '0';
-      v.swTrig := '0';
+      v.cntRst   := '0';
+      v.swTrig   := '0';
+      v.rxFsmRst := '0';
 
       ------------------------
       -- AXI-Lite Transactions
@@ -176,6 +189,9 @@ begin
       axiSlaveRegisterR(axilEp, x"818", 0, muxSlVectorArray(txCntOut, 2));  -- txTrigCnt
       axiSlaveRegisterR(axilEp, x"81C", 0, muxSlVectorArray(txCntOut, 3));  -- txTrigDropCnt
 
+      axiSlaveRegisterR(axilEp, x"820", 0, muxSlVectorArray(rxCntOut, 0));  -- rxOverflowCnt
+      axiSlaveRegisterR(axilEp, x"824", 0, rxStatusOut);
+
       -- Matching with AxiStreamMonChannel Python device register mapping w/ offset=0x900
       axiSlaveRegisterR(axilEp, x"904", 0, frameCnt);      -- 0x904:0x90B
       axiSlaveRegisterR(axilEp, x"90C", 0, frameRate);
@@ -191,16 +207,18 @@ begin
       axiSlaveRegisterR(axilEp, x"FE0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FE0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
 
+      axiSlaveRegister (axilEp, X"FE8", 0, v.rxFsmRst);
       axiSlaveRegister (axilEp, X"FEC", 0, v.txPulseWidth);
       axiSlaveRegister (axilEp, X"FF0", 0, v.swTrig);
 
       axiSlaveRegister (axilEp, x"FF4", 0, v.configTimerSize);
 
+      axiSlaveRegister (axilEp, x"FF8", 0, v.rxNumberOfLane);  -- BIT3:BIT0
       axiSlaveRegister (axilEp, x"FF8", 24, v.txTrigInv);
       axiSlaveRegister (axilEp, x"FF8", 25, v.configErrResp);
       axiSlaveRegister (axilEp, x"FF8", 26, v.configPktTag);
       axiSlaveRegister (axilEp, x"FF8", 27, v.txLsRate);
-      axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);  -- BIT31:BIT28
+      axiSlaveRegister (axilEp, x"FF8", 28, v.txLsLaneEn);     -- BIT31:BIT28
 
       axiSlaveRegister (axilEp, X"FFC", 0, v.cntRst);
 
@@ -410,6 +428,47 @@ begin
             refClk  => axilClk);
 
    end generate GEN_VEC;
+
+   U_rxNumberOfLane : entity surf.SynchronizerVector
+      generic map (
+         TPD_G   => TPD_G,
+         WIDTH_G => 3)
+      port map (
+         clk     => rxClk(0),
+         dataIn  => r.rxNumberOfLane,
+         dataOut => rxNumberOfLane);
+
+   U_rxFsmRst : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => rxClk(0),
+         dataIn  => r.rxFsmRst,
+         dataOut => rxFsmRst);
+
+   U_rxOverflow : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         rst     => axilRst,
+         dataIn  => rxOverflow,
+         dataOut => rxOverflowSync);
+
+   U_rxCntOut : entity surf.SyncStatusVector
+      generic map (
+         TPD_G       => TPD_G,
+         CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+         WIDTH_G     => RX_STATUS_CNT_C)
+      port map (
+         statusIn(0) => rxOverflowSync,
+         statusOut   => rxStatusOut,
+         cntRstIn    => r.cntRst,
+         cntOut      => rxCntOut,
+         wrClk       => rxClk(0),
+         wrRst       => rxRst(0),
+         rdClk       => axilClk,
+         rdRst       => axilRst);
 
    --------------------------------
    -- Configuration Synchronization

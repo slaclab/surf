@@ -145,6 +145,14 @@ class CoaXPressAxiL(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'RxOverflowCnt',
+            offset       = 0x820,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
         self.add(axi.AxiStreamMonChannel(
             name   = 'DataSteamMon',
             offset = 0x900, # 0x900:0x93F
@@ -199,6 +207,15 @@ class CoaXPressAxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'ConfigTimerSize',
             offset       = 0xFF4,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxNumberOfLane',
+            description  = 'Number of active RX lanes (zero inclusive)',
+            offset       = 0xFF8,
+            bitSize      = 3,
+            bitOffset    = 0,
             mode         = 'RW',
         ))
 

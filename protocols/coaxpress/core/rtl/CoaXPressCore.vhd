@@ -26,7 +26,7 @@ use surf.CoaXPressPkg.all;
 entity CoaXPressCore is
    generic (
       TPD_G              : time                   := 1 ns;
-      NUM_LANES_G        : positive               := 1;
+      NUM_LANES_G        : positive range 1 to 8  := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
       AXIL_CLK_FREQ_G    : real                   := 156.25E+6;  -- axilClk frequency (units of Hz)
       AXIS_CLK_FREQ_G    : real                   := 156.25E+6;  -- dataClk frequency (units of Hz)
@@ -37,6 +37,8 @@ entity CoaXPressCore is
       dataRst         : in  sl;
       dataMaster      : out AxiStreamMasterType;
       dataSlave       : in  AxiStreamSlaveType;
+      dataHdrMaster   : out AxiStreamMasterType;
+      dataHdrSlave    : in  AxiStreamSlaveType;
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
@@ -94,6 +96,10 @@ architecture mapping of CoaXPressCore is
 
    signal dataMasterInt : AxiStreamMasterType;
    signal dataSlaveInt  : AxiStreamSlaveType;
+
+   signal rxOverflow     : sl;
+   signal rxFsmRst       : sl;
+   signal rxNumberOfLane : slv(2 downto 0);
 
 begin
 
@@ -156,27 +162,32 @@ begin
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Data Interface (dataClk domain)
-         dataClk     => dataClk,
-         dataRst     => dataRst,
-         dataMaster  => dataMasterInt,
-         dataSlave   => dataSlaveInt,
+         dataClk        => dataClk,
+         dataRst        => dataRst,
+         dataMaster     => dataMasterInt,
+         dataSlave      => dataSlaveInt,
+         dataHdrMaster  => dataHdrMaster,
+         dataHdrSlave   => dataHdrSlave,
          -- Config Interface (cfgClk domain)
-         cfgClk      => cfgClk,
-         cfgRst      => cfgRst,
-         cfgRxMaster => cfgRxMaster,
+         cfgClk         => cfgClk,
+         cfgRst         => cfgRst,
+         cfgRxMaster    => cfgRxMaster,
          -- Event ACK Interface (cfgClk domain)
-         eventAck    => eventAck,
-         eventTag    => eventTag,
+         eventAck       => eventAck,
+         eventTag       => eventTag,
          -- Trigger ACK Interface (txClk domain)
-         txClk       => txClk,
-         txRst       => txRst,
-         trigAck     => trigAck,
+         txClk          => txClk,
+         txRst          => txRst,
+         trigAck        => trigAck,
          -- Rx Interface (rxClk domain)
-         rxClk       => rxClk,
-         rxRst       => rxRst,
-         rxData      => rxData,
-         rxDataK     => rxDataK,
-         rxLinkUp    => rxLinkUp);
+         rxClk          => rxClk,
+         rxRst          => rxRst,
+         rxData         => rxData,
+         rxDataK        => rxDataK,
+         rxLinkUp       => rxLinkUp,
+         rxOverflow     => rxOverflow,
+         rxFsmRst       => rxFsmRst,
+         rxNumberOfLane => rxNumberOfLane);
 
    U_Axil : entity surf.CoaXPressAxiL
       generic map (
@@ -205,6 +216,9 @@ begin
          rxDispErr       => rxDispErr,
          rxDecErr        => rxDecErr,
          rxLinkUp        => rxLinkUp,
+         rxFsmRst        => rxFsmRst,
+         rxNumberOfLane  => rxNumberOfLane,
+         rxOverflow      => rxOverflow,
          -- Config Interface (cfgClk domain)
          cfgClk          => cfgClk,
          cfgRst          => cfgClk,

@@ -54,6 +54,7 @@ end entity CoaXPressRxLane;
 architecture rtl of CoaXPressRxLane is
 
    type StateType is (
+      IO_ACK_S,
       IDLE_S,
       TYPE_S,
       CTRL_ACK_TAG_S,
@@ -64,11 +65,9 @@ architecture rtl of CoaXPressRxLane is
       PACKET_TAG_S,
       DSIZE_UPPER_S,
       DSIZE_LOWER_S,
-      STREAM_DATA_S,
-      IO_ACK_S);
+      STREAM_DATA_S);
 
    type RegType is record
-      markerDet      : sl;
       -- ACK Interface
       ioAck          : sl;
       eventAck       : sl;
@@ -83,14 +82,11 @@ architecture rtl of CoaXPressRxLane is
       cfgMaster      : AxiStreamMasterType;
       dataMaster     : AxiStreamMasterType;
       heatbeatMaster : AxiStreamMasterType;
-      imageHdrMaster : AxiStreamMasterType;
       -- State Types
       saved          : StateType;
       state          : StateType;
    end record RegType;
-
    constant REG_INIT_C : RegType := (
-      markerDet      => '0',
       -- ACK Interface
       ioAck          => '0',
       eventAck       => '0',
@@ -105,7 +101,6 @@ architecture rtl of CoaXPressRxLane is
       cfgMaster      => AXI_STREAM_MASTER_INIT_C,
       dataMaster     => AXI_STREAM_MASTER_INIT_C,
       heatbeatMaster => AXI_STREAM_MASTER_INIT_C,
-      imageHdrMaster => AXI_STREAM_MASTER_INIT_C,
       -- State Types
       saved          => IDLE_S,
       state          => IDLE_S);
@@ -131,14 +126,6 @@ begin
       v.dataMaster.tValid     := '0';
       v.dataMaster.tLast      := '0';
       v.heatbeatMaster.tValid := '0';
-      v.imageHdrMaster.tValid := '0';
-
-      -- Check for maker
-      if (rxDataK = x"F") and (rxData = CXP_MARKER_C) then
-         v.markerDet := '1';
-      else
-         v.markerDet := '0';
-      end if;
 
       -- Check for I/O
       if (rxDataK = x"F") and (rxData = CXP_IO_ACK_C) then
@@ -153,9 +140,19 @@ begin
          -- State Machine
          case r.state is
             ----------------------------------------------------------------------
+            when IO_ACK_S =>
+               -- Check for Trigger packet received OK
+               if (rxDataK = x"0") and (rxData = x"01_01_01_01") then
+                  -- Set the flag
+                  v.ioAck := '1';
+               end if;
+               -- Next State
+               v.state := r.saved;
+            ----------------------------------------------------------------------
             when IDLE_S =>
                -- Reset counters
                v.ackCnt := 0;
+               v.dcnt   := (others => '0');
 
                -- Reset data bus
                v.cfgMaster.tData := (others => '1');
@@ -339,42 +336,27 @@ begin
                   -- Set the TDEST to the packet tag
                   v.dsize(7 downto 0) := rxData(7 downto 0);
                   -- Next State
-                  v.state             := STREAM_DATA_S;
+                  v.state := STREAM_DATA_S;
                end if;
             ----------------------------------------------------------------------
             when STREAM_DATA_S =>
-               -- Check for non-k word
-               if (rxDataK = x"0") then
+               -- Move the data
+               v.dataMaster.tValid             := '1';
+               v.dataMaster.tData(31 downto 0) := rxData;
+               v.dataMaster.tUser(3 downto 0)  := rxDataK;
 
-                  -- Move the data
-                  v.dataMaster.tValid             := '1';
-                  v.dataMaster.tData(31 downto 0) := rxData;
+               -- Check the counter
+               if (r.dcnt = (r.dsize-1)) then
+                  -- Terminate the frame
+                  v.dataMaster.tLast := '1';
 
-                  -- Check the counter
-                  if (r.dcnt = (r.dsize-1)) then
-                     -- Reset the counter
-                     v.dcnt := (others => '0');
+                  -- Next State
+                  v.state := IDLE_S;
 
-                     -- Terminate the frame
-                     v.dataMaster.tLast := '1';
-
-                     -- Next State
-                     v.state := IDLE_S;
-                  else
-                     -- Increment counter
-                     v.dcnt := r.dcnt + 1;
-                  end if;
-
+               else
+                  -- Increment counter
+                  v.dcnt := r.dcnt + 1;
                end if;
-            ----------------------------------------------------------------------
-            when IO_ACK_S =>
-               -- Check for Trigger packet received OK
-               if (rxDataK = x"0") and (rxData = x"01_01_01_01") then
-                  -- Set the flag
-                  v.ioAck := '1';
-               end if;
-               -- Next State
-               v.state := r.saved;
          ----------------------------------------------------------------------
          end case;
 
@@ -384,7 +366,6 @@ begin
       cfgMaster      <= r.cfgMaster;
       dataMaster     <= r.dataMaster;
       heatbeatMaster <= r.heatbeatMaster;
-      imageHdrMaster <= r.imageHdrMaster;
       ioAck          <= r.ioAck;
       eventAck       <= r.eventAck;
       eventTag       <= r.eventTag;
