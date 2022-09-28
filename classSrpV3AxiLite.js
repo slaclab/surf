@@ -6,6 +6,7 @@ var classSrpV3AxiLite =
     [ "PIPE_STAGES_G", "classSrpV3AxiLite.html#a716ea08f0c8926dadc51439113a0fd3b", null ],
     [ "FIFO_PAUSE_THRESH_G", "classSrpV3AxiLite.html#abf936752880c1454fdb79e815e27351f", null ],
     [ "FIFO_SYNTH_MODE_G", "classSrpV3AxiLite.html#ac36a5525a370fcc9d3d54ff4e3dd237b", null ],
+    [ "FIFO_ADDR_WIDTH_G", "classSrpV3AxiLite.html#a163b9066e47f1f76ad9871963b6f2193", null ],
     [ "TX_VALID_THOLD_G", "classSrpV3AxiLite.html#a35ca116d04f49e76971c483b1dfed03d", null ],
     [ "TX_VALID_BURST_MODE_G", "classSrpV3AxiLite.html#ad6d6836eaa3b2b066799bb45d57a98cf", null ],
     [ "SLAVE_READY_EN_G", "classSrpV3AxiLite.html#a732db2237e0f6e1568cf997454ee9f4a", null ],

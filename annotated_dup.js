@@ -11,6 +11,7 @@ var annotated_dup =
     [ "Ad9681Config", "classAd9681Config.html", "classAd9681Config" ],
     [ "Ad9681Deserializer", "classAd9681Deserializer.html", "classAd9681Deserializer" ],
     [ "Ad9681Readout", "classAd9681Readout.html", "classAd9681Readout" ],
+    [ "Ad9681ReadoutManual", "classAd9681ReadoutManual.html", "classAd9681ReadoutManual" ],
     [ "Ad9681Serializer", "classAd9681Serializer.html", "classAd9681Serializer" ],
     [ "adc32rf45", "classadc32rf45.html", "classadc32rf45" ],
     [ "add3", "classadd3.html", "classadd3" ],

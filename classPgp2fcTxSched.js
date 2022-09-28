@@ -1,6 +1,6 @@
 var classPgp2fcTxSched =
 [
-    [ "Pgp2fcTxSched", "classPgp2fcTxSched_1_1Pgp2fcTxSched.html", "classPgp2fcTxSched_1_1Pgp2fcTxSched" ],
+    [ "Pgp2fcTxSched.Pgp2fcTxSched", "classPgp2fcTxSched_1_1Pgp2fcTxSched.html", "classPgp2fcTxSched_1_1Pgp2fcTxSched" ],
     [ "TPD_G", "classPgp2fcTxSched.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "VC_INTERLEAVE_G", "classPgp2fcTxSched.html#a63a0339de2a778f384dcecb0828d5192", null ],
     [ "NUM_VC_EN_G", "classPgp2fcTxSched.html#aed090fad82d2a3759c2950c184ed867b", null ],

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['clk_5ffrequency_5fg_1754',['CLK_FREQUENCY_G',['../classAxiRssiCore.html#a1eb89039484c56375f44bd0c9d51e4f8',1,'AxiRssiCore']]]
+  ['clk_5ffrequency_5fg_1756',['CLK_FREQUENCY_G',['../classAxiRssiCore.html#a1eb89039484c56375f44bd0c9d51e4f8',1,'AxiRssiCore']]]
 ];

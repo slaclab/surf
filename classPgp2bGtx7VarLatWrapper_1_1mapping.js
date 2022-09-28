@@ -1,7 +1,7 @@
 var classPgp2bGtx7VarLatWrapper_1_1mapping =
 [
     [ "refClk", "classPgp2bGtx7VarLatWrapper_1_1mapping.html#ada10e816e4564f23c14da77f78a24027", null ],
-    [ "refClkDiv2", "classPgp2bGtx7VarLatWrapper_1_1mapping.html#a20f5c2caba95002ad9e1df32afb792aa", null ],
+    [ "refClkDiv2", "classPgp2bGtx7VarLatWrapper_1_1mapping.html#ad79aad57e72290924316b9ef9f0e4959", null ],
     [ "stableClock", "classPgp2bGtx7VarLatWrapper_1_1mapping.html#a3592dd4026a509751a0f2f6883d64690", null ],
     [ "extRstSync", "classPgp2bGtx7VarLatWrapper_1_1mapping.html#ae00593cd4b19100cf87f76357e002217", null ],
     [ "pgpClock", "classPgp2bGtx7VarLatWrapper_1_1mapping.html#afbd3bc54b66b58f3555e07bcf7429e50", null ],

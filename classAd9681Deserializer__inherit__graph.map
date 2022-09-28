@@ -1,4 +1,5 @@
 <map id="Ad9681Deserializer" name="Ad9681Deserializer">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,155,32"/>
-<area shape="rect" id="node2" href="$classAd9681Readout.html" title=" " alt="" coords="17,80,143,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="80,5,229,32"/>
+<area shape="rect" id="node2" href="$classAd9681Readout.html" title=" " alt="" coords="5,80,131,107"/>
+<area shape="rect" id="node3" href="$classAd9681ReadoutManual.html" title=" " alt="" coords="155,80,328,107"/>
 </map>
