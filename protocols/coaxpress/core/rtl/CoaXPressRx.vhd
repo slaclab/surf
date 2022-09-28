@@ -36,8 +36,8 @@ entity CoaXPressRx is
       dataRst        : in  sl;
       dataMaster     : out AxiStreamMasterType;
       dataSlave      : in  AxiStreamSlaveType;
-      dataHdrMaster  : out AxiStreamMasterType;
-      dataHdrSlave   : in  AxiStreamSlaveType;
+      imageHdrMaster : out AxiStreamMasterType;
+      imageHdrSlave  : in  AxiStreamSlaveType;
       -- Config Interface (cfgClk domain)
       cfgClk         : in  sl;
       cfgRst         : in  sl;
@@ -73,7 +73,7 @@ architecture mapping of CoaXPressRx is
 
    constant WIDE_AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => NARROW_AXIS_CONFIG_C.TSTRB_EN_C,
-      TDATA_BYTES_C => 4*NUM_LANES_G, -- NUM_LANES_G x 32-bits
+      TDATA_BYTES_C => 4*NUM_LANES_G,   -- NUM_LANES_G x 32-bits
       TDEST_BITS_C  => NARROW_AXIS_CONFIG_C.TDEST_BITS_C,
       TID_BITS_C    => NARROW_AXIS_CONFIG_C.TID_BITS_C,
       TKEEP_MODE_C  => NARROW_AXIS_CONFIG_C.TKEEP_MODE_C,
@@ -90,20 +90,20 @@ architecture mapping of CoaXPressRx is
 
    signal rxMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
    signal rxSlaves  : AxiStreamSlaveArray(NUM_LANES_G-1 downto 0);
-   signal rxCtrl    : AxiStreamCtrlType;
 
+   signal rxMaster : AxiStreamMasterType;
+   signal rxSlave  : AxiStreamSlaveType;
+   signal rxCtrl   : AxiStreamCtrlType;
+
+   signal fsmMaster : AxiStreamMasterType;
    signal hdrMaster : AxiStreamMasterType;
-   signal hdrSlave  : AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
+   signal hdrCtrl   : AxiStreamCtrlType;
 
    signal overflowData : slv(NUM_LANES_G-1 downto 0);
 
-   -- attribute dont_touch              : string;
-   -- attribute dont_touch of rxMasters : signal is "TRUE";
-   -- attribute dont_touch of rxSlaves  : signal is "TRUE";
-
 begin
 
-   rxOverflow <= uOr(overflowData) or rxCtrl.overflow;
+   rxOverflow <= uOr(overflowData) or rxCtrl.overflow or hdrCtrl.overflow;
 
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
 
@@ -157,50 +157,82 @@ begin
 
    U_Mux : entity surf.CoaXPressRxLaneMux
       generic map (
-         TPD_G              => TPD_G,
-         NUM_LANES_G        => NUM_LANES_G,
-         DATA_AXIS_CONFIG_C => AXIS_CONFIG_G)
+         TPD_G       => TPD_G,
+         NUM_LANES_G => NUM_LANES_G)
       port map (
          -- Clock and Reset
+         rxClk     => rxClk(0),
+         rxRst     => rxRst(0),
+         -- Config Interface
+         rxFsmRst  => rxFsmRst,
+         numOfLane => rxNumberOfLane,
+         -- Inbound Streams Interface
+         rxMasters => rxMasters,
+         rxSlaves  => rxSlaves,
+         -- Outbound Stream Interface
+         rxMaster  => rxMaster,
+         rxSlave   => rxSlave);
+
+   U_Fsm : entity surf.CoaXPressRxHsFsm
+      generic map (
+         TPD_G       => TPD_G,
+         NUM_LANES_G => NUM_LANES_G)
+      port map (
+         -- Clock and Resets
          rxClk      => rxClk(0),
          rxRst      => rxRst(0),
-         -- Config Interface (rxClk domain)
          rxFsmRst   => rxFsmRst,
-         numOfLane  => rxNumberOfLane,
-         -- Image header Interface (rxClk domain)
-         hdrMaster  => open,
-         -- Data Interface (rxClk domain)
-         rxMasters  => rxMasters,
-         rxSlaves   => rxSlaves,
-         rxCtrl     => rxCtrl,
-         -- Camera data (dataClk domain)
-         dataClk    => dataClk,
-         dataRst    => dataRst,
-         dataMaster => dataMaster,
-         dataSlave  => dataSlave);
+         -- Inbound Stream Interface
+         rxMaster   => rxMaster,
+         rxSlave    => rxSlave,
+         -- Outbound Image header Interface
+         hdrMaster  => hdrMaster,
+         -- Outbound Camera Data Interface
+         dataMaster => fsmMaster);
 
    U_Hdr : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
          -- FIFO configurations
          MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => WIDE_AXIS_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => (224/8), tDestBits => 0),
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => rxClk(0),
          sAxisRst    => rxRst(0),
          sAxisMaster => hdrMaster,
-         sAxisSlave  => hdrSlave,
+         sAxisCtrl   => hdrCtrl,
          -- Master Port
          mAxisClk    => dataClk,
          mAxisRst    => dataRst,
-         mAxisMaster => dataHdrMaster,
-         mAxisSlave  => dataHdrSlave);
+         mAxisMaster => imageHdrMaster,
+         mAxisSlave  => imageHdrSlave);
+
+   U_DataFifo : entity surf.AxiStreamFifoV2
+      generic map (
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => (4*NUM_LANES_G), tDestBits => 0),
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
+      port map (
+         -- INbound Interface
+         sAxisClk    => rxClk(0),
+         sAxisRst    => rxRst(0),
+         sAxisMaster => fsmMaster,
+         sAxisCtrl   => rxCtrl,
+         -- Outbound Interface
+         mAxisClk    => dataClk,
+         mAxisRst    => dataRst,
+         mAxisMaster => dataMaster,
+         mAxisSlave  => dataSlave);
 
    U_Config : entity surf.AxiStreamFifoV2
       generic map (
@@ -212,8 +244,8 @@ begin
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 8),
-         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(dataBytes => 8))
+         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => 8, tDestBits => 0),
+         MASTER_AXI_CONFIG_G => ssiAxiStreamConfig(dataBytes => 8, tDestBits => 0))
       port map (
          -- Slave Port
          sAxisClk    => rxClk(0),

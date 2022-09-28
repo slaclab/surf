@@ -176,6 +176,13 @@ class CoaXPressAxiL(pr.Device):
             mode         = 'RO',
         ))
 
+        self.add(pr.RemoteCommand(
+            name     = 'RxFsmRst',
+            offset   = 0xFE8,
+            bitSize  = 1,
+            function = lambda cmd: cmd.post(1),
+        ))
+
         self.add(pr.RemoteVariable(
             name         = "TrigPulseWidthRaw",
             description  = "Sets the CXP trigger pulse width",

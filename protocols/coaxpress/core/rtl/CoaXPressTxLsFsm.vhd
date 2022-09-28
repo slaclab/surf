@@ -116,8 +116,8 @@ architecture rtl of CoaXPressTxLsFsm is
    attribute syn_keep                : string;
    attribute syn_keep of TX_DLY_C    : constant is "TRUE";
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 

@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.protocols.coaxpress as cxp
 
 class PhantomS991(pr.Device):
     def __init__(self, **kwargs):

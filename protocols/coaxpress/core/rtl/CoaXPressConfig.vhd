@@ -97,10 +97,10 @@ architecture rtl of CoaXPressConfig is
    signal axilReadMaster  : AxiLiteReadMasterType;
    signal axilWriteMaster : AxiLiteWriteMasterType;
 
-   attribute dont_touch                    : string;
-   attribute dont_touch of r               : signal is "TRUE";
-   attribute dont_touch of axilReadMaster  : signal is "TRUE";
-   attribute dont_touch of axilWriteMaster : signal is "TRUE";
+   -- attribute dont_touch                    : string;
+   -- attribute dont_touch of r               : signal is "TRUE";
+   -- attribute dont_touch of axilReadMaster  : signal is "TRUE";
+   -- attribute dont_touch of axilWriteMaster : signal is "TRUE";
 
 begin
 

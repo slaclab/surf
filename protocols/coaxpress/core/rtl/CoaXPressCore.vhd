@@ -37,8 +37,8 @@ entity CoaXPressCore is
       dataRst         : in  sl;
       dataMaster      : out AxiStreamMasterType;
       dataSlave       : in  AxiStreamSlaveType;
-      dataHdrMaster   : out AxiStreamMasterType;
-      dataHdrSlave    : in  AxiStreamSlaveType;
+      imageHdrMaster  : out AxiStreamMasterType;
+      imageHdrSlave   : in  AxiStreamSlaveType;
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
@@ -166,8 +166,8 @@ begin
          dataRst        => dataRst,
          dataMaster     => dataMasterInt,
          dataSlave      => dataSlaveInt,
-         dataHdrMaster  => dataHdrMaster,
-         dataHdrSlave   => dataHdrSlave,
+         imageHdrMaster => imageHdrMaster,
+         imageHdrSlave  => imageHdrSlave,
          -- Config Interface (cfgClk domain)
          cfgClk         => cfgClk,
          cfgRst         => cfgRst,

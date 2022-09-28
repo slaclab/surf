@@ -108,8 +108,8 @@ architecture rtl of CoaXPressRxLane is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -336,7 +336,7 @@ begin
                   -- Set the TDEST to the packet tag
                   v.dsize(7 downto 0) := rxData(7 downto 0);
                   -- Next State
-                  v.state := STREAM_DATA_S;
+                  v.state             := STREAM_DATA_S;
                end if;
             ----------------------------------------------------------------------
             when STREAM_DATA_S =>
