@@ -45,6 +45,8 @@ end AxiStreamBytePacker;
 
 architecture rtl of AxiStreamBytePacker is
 
+   constant SLV_TUSER_BITS_C : natural := ite(SLAVE_CONFIG_G.TUSER_BITS_C/=0,SLAVE_CONFIG_G.TUSER_BITS_C,1);
+
    constant MAX_IN_BYTE_C  : integer := SLAVE_CONFIG_G.TDATA_BYTES_C-1;
    constant MAX_OUT_BYTE_C : integer := MASTER_CONFIG_G.TDATA_BYTES_C-1;
 
@@ -77,7 +79,7 @@ begin
       variable v     : RegType;
       variable valid : sl;
       variable last  : sl;
-      variable user  : slv(SLAVE_CONFIG_G.TUSER_BITS_C-1 downto 0);
+      variable user  : slv(SLV_TUSER_BITS_C-1 downto 0);
       variable data  : slv(7 downto 0);
    begin
       v := r;
