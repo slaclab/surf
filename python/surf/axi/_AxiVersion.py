@@ -105,7 +105,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             function     = lambda cmd: cmd.post(1),
-            hidden       = False,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -127,6 +127,7 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'UserReset',
             description  = 'Optional User Reset',
+            hidden       = True,
             offset       = 0x10C,
             bitSize      = 1,
             bitOffset    = 0x00,
