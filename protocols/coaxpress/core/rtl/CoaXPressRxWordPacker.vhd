@@ -40,8 +40,9 @@ end CoaXPressRxWordPacker;
 architecture rtl of CoaXPressRxWordPacker is
 
    type RegType is record
-      wordCount : integer range 0 to NUM_LANES_G-1;
-      inTop     : integer range 0 to NUM_LANES_G-1;
+      wordCount : natural range 0 to NUM_LANES_G-1;
+      firstWord : natural range 0 to NUM_LANES_G-1;
+      lastWord  : natural range 0 to NUM_LANES_G-1;
       inMaster  : AxiStreamMasterType;
       curMaster : AxiStreamMasterType;
       nxtMaster : AxiStreamMasterType;
@@ -50,7 +51,8 @@ architecture rtl of CoaXPressRxWordPacker is
 
    constant REG_INIT_C : RegType := (
       wordCount => 0,
-      inTop     => 0,
+      firstWord => 0,
+      lastWord  => 0,
       inMaster  => AXI_STREAM_MASTER_INIT_C,
       curMaster => AXI_STREAM_MASTER_INIT_C,
       nxtMaster => AXI_STREAM_MASTER_INIT_C,
@@ -69,15 +71,22 @@ begin
    begin
       v := r;
 
-      -- Register input and compute size
+      -- Register input
       v.inMaster := sAxisMaster;
-      v.inTop    := 0;
+
+      -- Find location of last word
       for i in 0 to NUM_LANES_G-1 loop
          if (sAxisMaster.tKeep(4*i) = '1') then
-            v.inTop := v.inTop + 1;
+            v.lastWord := i;
          end if;
       end loop;
-      v.inTop := v.inTop - 1;           -- minus 1 for zero inclusive
+
+      -- Find location of first word
+      for i in NUM_LANES_G-1 downto 0 loop
+         if (sAxisMaster.tKeep(4*i) = '1') then
+            v.firstWord := i;
+         end if;
+      end loop;
 
       -- Pending output from current
       if r.curMaster.tValid = '1' then
@@ -94,10 +103,10 @@ begin
 
          -- Process each input word
          for i in 0 to NUM_LANES_G-1 loop
-            if i <= r.inTop then
+            if (i >= r.firstWord) and (i <= r.lastWord) then
 
                -- Extract values for each iteration
-               last  := r.inMaster.tLast and toSl(i = r.inTop);
+               last  := r.inMaster.tLast and toSl(i = r.lastWord);
                valid := toSl(v.wordCount = NUM_LANES_G-1) or last;
                data  := r.inMaster.tData(i*32+31 downto i*32);
 

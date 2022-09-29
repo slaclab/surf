@@ -108,16 +108,14 @@ architecture rtl of CoaXPressRxHsFsm is
 begin
 
    comb : process (r, rxFsmRst, rxMaster, rxRst) is
-      variable v      : RegType;
-      variable tData  : slv(31 downto 0);
-      variable wrdIdx : natural;
+      variable v     : RegType;
+      variable tData : slv(31 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Init Variable
-      wrdIdx := 0;
-      tData  := rxMaster.tData(32*r.wrd+31 downto 32*r.wrd);
+      tData := rxMaster.tData(32*r.wrd+31 downto 32*r.wrd);
 
       -- Init header stream
       v.hdrMaster.tValid           := '0';  -- Reset strobe
@@ -194,19 +192,14 @@ begin
 
                -- Write the data
                v.dataMasters(0).tValid := '1';
+               v.dataMasters(0).tData  := rxMaster.tData;
+               v.dataMasters(0).tKeep  := rxMaster.tKeep;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
 
-                  -- Map the tData/tKeep values
-                  v.dataMasters(0).tData(32*wrdIdx+31 downto 32*wrdIdx) := rxMaster.tData(32*i+31 downto 32*i);
-                  v.dataMasters(0).tKeep(4*wrdIdx+3 downto 4*wrdIdx)    := rxMaster.tKeep(4*i+3 downto 4*i);
-
                   -- Compare word index to loop index and not hit "end of line"
                   if (i >= r.wrd) and (v.endOfLine = '0') then
-
-                     -- Increment the word index counter
-                     wrdIdx := wrdIdx + 1;
 
                      -- Check for roll over
                      if (i = NUM_LANES_G-1) then
@@ -219,21 +212,26 @@ begin
 
                      -- Check for actual data write
                      if (rxMaster.tKeep(4*i) = '1') then
+
                         -- Increment the counter
                         v.dCnt := v.dCnt + 1;
+
+                        -- Check for max count
+                        if (v.dCnt = r.hdr.dsizeL) then
+
+                           -- Set the "end of line" flag
+                           v.endOfLine := '1';
+
+                           -- Next State
+                           v.state := IDLE_S;
+
+                        end if;
+
                      end if;
 
-                  end if;
-
-                  -- Check for max count
-                  if (v.dCnt = r.hdr.dsizeL) then
-
-                     -- Set the "end of line" flag
-                     v.endOfLine := '1';
-
-                     -- Next State
-                     v.state := IDLE_S;
-
+                  -- Mask off the tKeep bits
+                  else
+                     v.dataMasters(0).tKeep(4*i+3 downto 4*i) := x"0";
                   end if;
 
                end loop;
