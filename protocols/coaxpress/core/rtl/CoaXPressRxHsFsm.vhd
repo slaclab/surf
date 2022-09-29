@@ -27,8 +27,9 @@ use surf.CoaXPressPkg.all;
 
 entity CoaXPressRxHsFsm is
    generic (
-      TPD_G       : time     := 1 ns;
-      NUM_LANES_G : positive := 1);
+      TPD_G              : time                   := 1 ns;
+      RX_FSM_CNT_WIDTH_C : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
+      NUM_LANES_G        : positive               := 1);
    port (
       -- Clock and Resets
       rxClk      : in  sl;
@@ -49,6 +50,7 @@ architecture rtl of CoaXPressRxHsFsm is
       IDLE_S,
       TYPE_S,
       HDR_S,
+      STEP_S,
       LINE_S);
 
    type ImageHdrType is record
@@ -77,8 +79,8 @@ architecture rtl of CoaXPressRxHsFsm is
 
    type RegType is record
       endOfLine   : sl;
-      yCnt        : slv(23 downto 0);
-      dCnt        : slv(23 downto 0);
+      yCnt        : slv(RX_FSM_CNT_WIDTH_C-1 downto 0);
+      dCnt        : slv(RX_FSM_CNT_WIDTH_C-1 downto 0);
       hdrCnt      : natural range 0 to 25;
       hdr         : ImageHdrType;
       wrd         : natural range 0 to NUM_LANES_G-1;
@@ -123,8 +125,12 @@ begin
       v.hdrMaster.tUser(SSI_SOF_C) := '1';  -- single word write
 
       -- Init data stream
-      v.dataMasters(0).tValid := '0';              -- Reset strobe
-      v.dataMasters(0).tKeep  := (others => '0');  -- Reset bus
+      v.dataMasters(0).tValid := '0';                -- Reset strobe
+      v.dataMasters(0).tData  := rxMaster.tData;
+      -- Check if state is not STEP_S
+      if (r.state /= STEP_S) then
+         v.dataMasters(0).tKeep := (others => '0');  -- Reset bus
+      end if;
 
       -- Flow Control
       v.rxSlave.tReady := '0';
@@ -186,52 +192,52 @@ begin
                   v.hdrCnt := r.hdrCnt + 1;
                end if;
             ----------------------------------------------------------------------
+            when STEP_S =>
+               -- Map the TKEEP word
+               v.dataMasters(0).tKeep(4*r.wrd+3 downto 4*r.wrd) := x"F";
+
+               -- Increment the counter
+               v.dCnt := r.dCnt + 1;
+            ----------------------------------------------------------------------
             when LINE_S =>
                -- Accept the data
                v.rxSlave.tReady := '1';
 
                -- Write the data
                v.dataMasters(0).tValid := '1';
-               v.dataMasters(0).tData  := rxMaster.tData;
-               v.dataMasters(0).tKeep  := rxMaster.tKeep;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
 
-                  -- Compare word index to loop index and not hit "end of line"
-                  if (i >= r.wrd) and (v.endOfLine = '0') then
+                  -- Check for not "end of line" and valid data
+                  if (v.endOfLine = '0') and (rxMaster.tKeep(4*i) = '1') then
 
-                     -- Check for roll over
-                     if (i = NUM_LANES_G-1) then
-                        -- Reset the counter
-                        v.wrd := 0;
-                     else
-                        -- Increment the counter
-                        v.wrd := i+1;
-                     end if;
+                     -- Update the TKEEP mask
+                     v.dataMasters(0).tKeep(4*i+3 downto 4*i) := x"F";
 
-                     -- Check for actual data write
-                     if (rxMaster.tKeep(4*i) = '1') then
+                     -- Increment the counter
+                     v.dCnt := v.dCnt + 1;
 
-                        -- Increment the counter
-                        v.dCnt := v.dCnt + 1;
+                     -- Check for max count
+                     if (v.dCnt = r.hdr.dsizeL(RX_FSM_CNT_WIDTH_C-1 downto 0)) then
 
-                        -- Check for max count
-                        if (v.dCnt = r.hdr.dsizeL) then
+                        -- Set the "end of line" flag
+                        v.endOfLine := '1';
 
-                           -- Set the "end of line" flag
-                           v.endOfLine := '1';
-
-                           -- Next State
-                           v.state := IDLE_S;
-
+                        -- Check for roll over
+                        if (i = NUM_LANES_G-1) then
+                           -- Reset the counter
+                           v.wrd := 0;
+                        else
+                           -- Increment the counter
+                           v.wrd := i+1;
                         end if;
 
+                        -- Next State
+                        v.state := IDLE_S;
+
                      end if;
 
-                  -- Mask off the tKeep bits
-                  else
-                     v.dataMasters(0).tKeep(4*i+3 downto 4*i) := x"0";
                   end if;
 
                end loop;
@@ -265,6 +271,23 @@ begin
 
             end if;
 
+            -- Check if next state is LINE_S but not aligned
+            if (v.state = LINE_S) and (v.wrd /= 0) then
+               -- Switch to stepping state
+               v.state := STEP_S;
+
+            end if;
+
+            -- Check for STEP_S state
+            if (r.state = STEP_S) and (v.rxSlave.tReady = '1') then
+               -- Move the data
+               v.dataMasters(0).tValid := '1';
+
+               -- Switch to bursting state
+               v.state := LINE_S;
+
+            end if;
+
          end if;
 
       end if;
@@ -282,7 +305,7 @@ begin
          v.yCnt := v.yCnt + 1;
 
          -- Check for max count
-         if (r.yCnt = (r.hdr.ySize-1)) then
+         if (v.yCnt = r.hdr.ySize(RX_FSM_CNT_WIDTH_C-1 downto 0)) then
             -- Terminate the frame
             v.dataMasters(1).tLast := '1';
          end if;

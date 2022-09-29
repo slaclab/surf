@@ -176,6 +176,15 @@ class CoaXPressAxiL(pr.Device):
             mode         = 'RO',
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'RX_FSM_CNT_WIDTH_C',
+            offset       = 0xFE0,
+            bitSize      = 8,
+            bitOffset    = 16,
+            disp         = '{:d}',
+            mode         = 'RO',
+        ))
+
         self.add(pr.RemoteCommand(
             name     = 'RxFsmRst',
             offset   = 0xFE8,

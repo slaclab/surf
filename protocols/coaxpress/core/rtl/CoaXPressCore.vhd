@@ -28,6 +28,7 @@ entity CoaXPressCore is
       TPD_G              : time                   := 1 ns;
       NUM_LANES_G        : positive range 1 to 8  := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
+      RX_FSM_CNT_WIDTH_C : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
       AXIL_CLK_FREQ_G    : real                   := 156.25E+6;  -- axilClk frequency (units of Hz)
       AXIS_CLK_FREQ_G    : real                   := 156.25E+6;  -- dataClk frequency (units of Hz)
       AXIS_CONFIG_G      : AxiStreamConfigType);
@@ -157,9 +158,10 @@ begin
 
    U_Rx : entity surf.CoaXPressRx
       generic map (
-         TPD_G         => TPD_G,
-         NUM_LANES_G   => NUM_LANES_G,
-         AXIS_CONFIG_G => AXIS_CONFIG_G)
+         TPD_G              => TPD_G,
+         NUM_LANES_G        => NUM_LANES_G,
+         RX_FSM_CNT_WIDTH_C => RX_FSM_CNT_WIDTH_C,
+         AXIS_CONFIG_G      => AXIS_CONFIG_G)
       port map (
          -- Data Interface (dataClk domain)
          dataClk        => dataClk,
@@ -194,6 +196,7 @@ begin
          TPD_G              => TPD_G,
          NUM_LANES_G        => NUM_LANES_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+         RX_FSM_CNT_WIDTH_C => RX_FSM_CNT_WIDTH_C,
          AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G,
          AXIS_CLK_FREQ_G    => AXIS_CLK_FREQ_G,
          AXIS_CONFIG_G      => AXIS_CONFIG_G)

@@ -27,9 +27,10 @@ use surf.CoaXPressPkg.all;
 
 entity CoaXPressRx is
    generic (
-      TPD_G         : time     := 1 ns;
-      NUM_LANES_G   : positive := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType);
+      TPD_G              : time                   := 1 ns;
+      NUM_LANES_G        : positive               := 1;
+      RX_FSM_CNT_WIDTH_C : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
+      AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
       -- Data Interface (dataClk domain)
       dataClk        : in  sl;
@@ -56,7 +57,7 @@ entity CoaXPressRx is
       rxDataK        : in  Slv4Array(NUM_LANES_G-1 downto 0);
       rxLinkUp       : in  slv(NUM_LANES_G-1 downto 0);
       rxOverflow     : out sl;
-      rxFsmRst       : in  sl;                -- (rxClk(0) domain only)
+      rxFsmRst       : in  sl;          -- (rxClk(0) domain only)
       rxNumberOfLane : in  slv(2 downto 0));  -- (rxClk(0) domain only)
 end entity CoaXPressRx;
 
@@ -178,8 +179,9 @@ begin
 
    U_Fsm : entity surf.CoaXPressRxHsFsm
       generic map (
-         TPD_G       => TPD_G,
-         NUM_LANES_G => NUM_LANES_G)
+         TPD_G              => TPD_G,
+         RX_FSM_CNT_WIDTH_C => RX_FSM_CNT_WIDTH_C,
+         NUM_LANES_G        => NUM_LANES_G)
       port map (
          -- Clock and Resets
          rxClk      => rxClk(0),
