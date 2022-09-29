@@ -45,8 +45,6 @@ end entity CoaXPressRxHsFsm;
 
 architecture rtl of CoaXPressRxHsFsm is
 
-   constant RX_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 4*NUM_LANES_G, tDestBits => 0);
-
    type StateType is (
       IDLE_S,
       TYPE_S,
@@ -78,28 +76,28 @@ architecture rtl of CoaXPressRxHsFsm is
       flags     => (others => '0'));
 
    type RegType is record
-      sof        : sl;
-      yCnt       : slv(23 downto 0);
-      dCnt       : slv(23 downto 0);
-      hdrCnt     : natural range 0 to 25;
-      hdr        : ImageHdrType;
-      wrd        : natural range 0 to NUM_LANES_G-1;
-      hdrMaster  : AxiStreamMasterType;
-      rxSlave    : AxiStreamSlaveType;
-      dataMaster : AxiStreamMasterType;
-      state      : StateType;
+      endOfLine   : sl;
+      yCnt        : slv(23 downto 0);
+      dCnt        : slv(23 downto 0);
+      hdrCnt      : natural range 0 to 25;
+      hdr         : ImageHdrType;
+      wrd         : natural range 0 to NUM_LANES_G-1;
+      hdrMaster   : AxiStreamMasterType;
+      rxSlave     : AxiStreamSlaveType;
+      dataMasters : AxiStreamMasterArray(1 downto 0);
+      state       : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      sof        => '1',
-      yCnt       => (others => '0'),
-      dCnt       => (others => '0'),
-      hdrCnt     => 0,
-      hdr        => IMAGE_HDR_INIT_C,
-      wrd        => 0,
-      hdrMaster  => AXI_STREAM_MASTER_INIT_C,
-      rxSlave    => AXI_STREAM_SLAVE_FORCE_C,
-      dataMaster => AXI_STREAM_MASTER_INIT_C,
-      state      => IDLE_S);
+      endOfLine   => '0',
+      yCnt        => (others => '0'),
+      dCnt        => (others => '0'),
+      hdrCnt      => 0,
+      hdr         => IMAGE_HDR_INIT_C,
+      wrd         => 0,
+      hdrMaster   => AXI_STREAM_MASTER_INIT_C,
+      rxSlave     => AXI_STREAM_SLAVE_FORCE_C,
+      dataMasters => (others => AXI_STREAM_MASTER_INIT_C),
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -110,18 +108,16 @@ architecture rtl of CoaXPressRxHsFsm is
 begin
 
    comb : process (r, rxFsmRst, rxMaster, rxRst) is
-      variable v         : RegType;
-      variable tData     : slv(31 downto 0);
-      variable wrdIdx    : natural;
-      variable endOfLine : sl;
+      variable v      : RegType;
+      variable tData  : slv(31 downto 0);
+      variable wrdIdx : natural;
    begin
       -- Latch the current value
       v := r;
 
       -- Init Variable
-      wrdIdx    := 0;
-      endOfLine := '0';
-      tData     := rxMaster.tData(32*r.wrd+31 downto 32*r.wrd);
+      wrdIdx := 0;
+      tData  := rxMaster.tData(32*r.wrd+31 downto 32*r.wrd);
 
       -- Init header stream
       v.hdrMaster.tValid           := '0';  -- Reset strobe
@@ -129,10 +125,8 @@ begin
       v.hdrMaster.tUser(SSI_SOF_C) := '1';  -- single word write
 
       -- Init data stream
-      v.dataMaster.tValid := '0';              -- Reset strobe
-      v.dataMaster.tLast  := '0';              -- Reset strobe
-      v.dataMaster.tUser  := (others => '0');  -- Reset bus
-      v.dataMaster.tKeep  := (others => '0');  -- Reset bus
+      v.dataMasters(0).tValid := '0';              -- Reset strobe
+      v.dataMasters(0).tKeep  := (others => '0');  -- Reset bus
 
       -- Flow Control
       v.rxSlave.tReady := '0';
@@ -144,6 +138,9 @@ begin
          case r.state is
             ----------------------------------------------------------------------
             when IDLE_S =>
+               -- Reset counter
+               v.dCnt := (others => '0');
+
                -- Check for the marker
                if (tData = CXP_MARKER_C) then
                   -- Next State
@@ -157,12 +154,8 @@ begin
                   -- Preset counter
                   v.hdrCnt := 3;
 
-                  -- Reset counters
+                  -- Reset counter
                   v.yCnt := (others => '0');
-                  v.dCnt := (others => '0');
-
-                  -- Set the flag
-                  v.sof := '1';
 
                   -- Next State
                   v.state := HDR_S;
@@ -200,23 +193,17 @@ begin
                v.rxSlave.tReady := '1';
 
                -- Write the data
-               v.dataMaster.tValid := '1';
-
-               -- Set the SOF bit
-               v.dataMaster.tUser(SSI_SOF_C) := r.sof;
-
-               -- Reset the flag
-               v.sof := '0';
+               v.dataMasters(0).tValid := '1';
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
 
                   -- Map the tData/tKeep values
-                  v.dataMaster.tData(32*wrdIdx+31 downto 32*wrdIdx) := rxMaster.tData(32*i+31 downto 32*i);
-                  v.dataMaster.tKeep(4*wrdIdx+3 downto 4*wrdIdx)    := rxMaster.tKeep(4*i+3 downto 4*i);
+                  v.dataMasters(0).tData(32*wrdIdx+31 downto 32*wrdIdx) := rxMaster.tData(32*i+31 downto 32*i);
+                  v.dataMasters(0).tKeep(4*wrdIdx+3 downto 4*wrdIdx)    := rxMaster.tKeep(4*i+3 downto 4*i);
 
                   -- Compare word index to loop index and not hit "end of line"
-                  if (i >= r.wrd) and (endOfLine = '0') then
+                  if (i >= r.wrd) and (v.endOfLine = '0') then
 
                      -- Increment the word index counter
                      wrdIdx := wrdIdx + 1;
@@ -241,30 +228,14 @@ begin
                   -- Check for max count
                   if (v.dCnt = r.hdr.dsizeL) then
 
-                     -- Reset counter
-                     v.dCnt := (others => '0');
-
                      -- Set the "end of line" flag
-                     endOfLine := '1';
-
-                     -- Increment counter
-                     v.yCnt := v.yCnt + 1;
-
-                     -- Check for max count
-                     if (v.yCnt = r.hdr.ySize) then
-
-                        -- Reset counter
-                        v.yCnt := (others => '0');
-
-                        -- Terminate the frame
-                        v.dataMaster.tLast := '1';
-
-                     end if;
+                     v.endOfLine := '1';
 
                      -- Next State
                      v.state := IDLE_S;
 
                   end if;
+
                end loop;
          ----------------------------------------------------------------------
          end case;
@@ -296,6 +267,26 @@ begin
 
             end if;
 
+         end if;
+
+      end if;
+
+      -- Shift the pipeline and convert tKEEP to count (helps with making timing in byte packer)
+      v.dataMasters(1) := r.dataMasters(0);
+
+      -- Check for end of line in the previous cycle
+      if (r.endOfLine = '1') then
+
+         -- Reset flag
+         v.endOfLine := '0';
+
+         -- Increment counter
+         v.yCnt := v.yCnt + 1;
+
+         -- Check for max count
+         if (r.yCnt = (r.hdr.ySize-1)) then
+            -- Terminate the frame
+            v.dataMasters(1).tLast := '1';
          end if;
 
       end if;
@@ -390,15 +381,14 @@ begin
       end if;
    end process seq;
 
-   U_Pack : entity surf.AxiStreamBytePacker
+   U_Pack : entity surf.CoaXPressRxWordPacker
       generic map (
-         TPD_G           => TPD_G,
-         SLAVE_CONFIG_G  => RX_AXIS_CONFIG_C,
-         MASTER_CONFIG_G => RX_AXIS_CONFIG_C)
+         TPD_G       => TPD_G,
+         NUM_LANES_G => NUM_LANES_G)
       port map (
-         axiClk      => rxClk,
-         axiRst      => rxRst,
-         sAxisMaster => r.dataMaster,
+         rxClk       => rxClk,
+         rxRst       => rxFsmRst,
+         sAxisMaster => r.dataMasters(1),
          mAxisMaster => dataMaster);
 
 end rtl;

@@ -99,6 +99,9 @@ architecture mapping of CoaXPressRx is
    signal hdrMaster : AxiStreamMasterType;
    signal hdrCtrl   : AxiStreamCtrlType;
 
+   signal dataIntMaster : AxiStreamMasterType;
+   signal dataIntSlave  : AxiStreamSlaveType;
+
    signal overflowData : slv(NUM_LANES_G-1 downto 0);
 
 begin
@@ -229,6 +232,29 @@ begin
          sAxisMaster => fsmMaster,
          sAxisCtrl   => rxCtrl,
          -- Outbound Interface
+         mAxisClk    => dataClk,
+         mAxisRst    => dataRst,
+         mAxisMaster => dataIntMaster,
+         mAxisSlave  => dataIntSlave);
+
+   U_DataSof : entity surf.SsiInsertSof
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         -- FIFO configurations
+         COMMON_CLK_G        => true,
+         SLAVE_FIFO_G        => false,
+         MASTER_FIFO_G       => false,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
+      port map (
+         -- Slave Port
+         sAxisClk    => dataClk,
+         sAxisRst    => dataRst,
+         sAxisMaster => dataIntMaster,
+         sAxisSlave  => dataIntSlave,
+         -- Master Port
          mAxisClk    => dataClk,
          mAxisRst    => dataRst,
          mAxisMaster => dataMaster,
