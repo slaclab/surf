@@ -136,7 +136,6 @@ begin
             -- General Configurations
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,
-            VALID_THOLD_G       => 0,
             -- FIFO configurations
             GEN_SYNC_FIFO_G     => (i /= 0),
             FIFO_ADDR_WIDTH_G   => 10,
@@ -151,7 +150,7 @@ begin
             sAxisCtrl   => dataCtrls(i),
             -- Master Port
             mAxisClk    => rxClk(0),
-            mAxisRst    => rxRst(0),
+            mAxisRst    => rxFsmRst,
             mAxisMaster => rxMasters(i),
             mAxisSlave  => rxSlaves(i));
 
