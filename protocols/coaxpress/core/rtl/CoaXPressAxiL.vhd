@@ -56,7 +56,7 @@ entity CoaXPressAxiL is
       rxFsmRst        : out sl;         -- (rxClk(0) domain only)
       rxNumberOfLane  : out slv(2 downto 0);  -- (rxClk(0) domain only)
       rxOverflow      : in  sl;
-      rxFsmError      : in  sl;-- (rxClk(0) domain only)
+      rxFsmError      : in  sl;         -- (rxClk(0) domain only)
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
@@ -83,7 +83,8 @@ architecture rtl of CoaXPressAxiL is
    constant RX_STATUS_CNT_C : positive := 2;
 
    type RegType is record
-      rxNumberOfLane  : slv(2 downto 0);
+      rxNumberOfLane  : slv(3 downto 0);
+      rxLaneMinusOne  : slv(3 downto 0);
       txTrigInv       : sl;
       txPulseWidth    : slv(31 downto 0);
       txLsRate        : sl;
@@ -99,7 +100,8 @@ architecture rtl of CoaXPressAxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      rxNumberOfLane  => "000",               -- zero inclusive
+      rxNumberOfLane  => toSlv(NUM_LANES_G, 4),
+      rxLaneMinusOne  => toSlv(NUM_LANES_G-1, 4),
       txTrigInv       => '0',
       txPulseWidth    => toSlv(31250-1, 32),  -- 100 us
       txLsRate        => '0',
@@ -229,6 +231,12 @@ begin
 
       -- Close the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      -- Prevent out of range values
+      if (v.rxNumberOfLane = 0) or (v.rxNumberOfLane > NUM_LANES_G) then
+         v.rxNumberOfLane := r.rxNumberOfLane;
+      end if;
+      v.rxLaneMinusOne := r.rxNumberOfLane - 1;
 
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
@@ -440,8 +448,8 @@ begin
          WIDTH_G => 3)
       port map (
          clk     => rxClk(0),
-         dataIn  => r.rxNumberOfLane,
-         dataOut => rxNumberOfLane);
+         dataIn  => r.rxLaneMinusOne(2 downto 0),
+         dataOut => rxNumberOfLane);  -- Output use minus 1 value because zero inclusive internally
 
    U_rxFsmRst : entity surf.SynchronizerOneShot
       generic map (

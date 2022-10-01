@@ -78,6 +78,7 @@ class CoaXPressAxiL(pr.Device):
             offset       = 0x800,
             mode         = 'RO',
             units        = 'Hz',
+            disp         = '{:d}',
             pollInterval = 1,
         ))
 
@@ -116,7 +117,6 @@ class CoaXPressAxiL(pr.Device):
             hidden       = True,
         ))
 
-
         self.add(pr.RemoteVariable(
             name         = 'TxLinkUpCnt',
             offset       = 0x810,
@@ -131,6 +131,7 @@ class CoaXPressAxiL(pr.Device):
             bitSize      = statusCountBits,
             mode         = 'RO',
             pollInterval = 1,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -168,6 +169,7 @@ class CoaXPressAxiL(pr.Device):
         self.add(axi.AxiStreamMonChannel(
             name   = 'DataSteamMon',
             offset = 0x900, # 0x900:0x93F
+            expand = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -205,6 +207,7 @@ class CoaXPressAxiL(pr.Device):
             offset   = 0xFE8,
             bitSize  = 1,
             function = lambda cmd: cmd.post(1),
+            hidden   = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -239,15 +242,17 @@ class CoaXPressAxiL(pr.Device):
             name         = 'ConfigTimerSize',
             offset       = 0xFF4,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'RxNumberOfLane',
-            description  = 'Number of active RX lanes (zero inclusive)',
+            description  = 'Number of active RX lanes',
             offset       = 0xFF8,
-            bitSize      = 3,
+            bitSize      = 4,
             bitOffset    = 0,
             mode         = 'RW',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -264,6 +269,7 @@ class CoaXPressAxiL(pr.Device):
             bitSize      = 1,
             bitOffset    = 25,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -272,6 +278,7 @@ class CoaXPressAxiL(pr.Device):
             bitSize      = 1,
             bitOffset    = 26,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -280,6 +287,7 @@ class CoaXPressAxiL(pr.Device):
             bitSize      = 1,
             bitOffset    = 27,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -288,6 +296,7 @@ class CoaXPressAxiL(pr.Device):
             bitSize      = 4,
             bitOffset    = 28,
             mode         = 'RW',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteCommand(

@@ -631,10 +631,10 @@ class Bootstrap(pr.Device):
 
         @self.command(description='Initialize the device discovery',)
         def DeviceDiscovery():
-            # Switch to 20.83 Mb/s mode without tags
+            # Switch to 20.83 Mb/s mode without tags and give device 1 second to downgrade speed
             self.CoaXPressAxiL.TxLsRate.set(0)
             self.CoaXPressAxiL.ConfigPktTag.set(0)
-            time.sleep(0.2)
+            time.sleep(1.0)
 
             # Execute a connection reset
             self.ConnectionReset()
@@ -666,6 +666,12 @@ class Bootstrap(pr.Device):
             # Updates all the local device register values
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
+
+            # Reset the RX lane index pointer and flush the elastic buffers
+            self.CoaXPressAxiL.RxFsmRst()
+
+            # Setup for 4KB packets
+            self.StreamPacketSizeMax.set(4096)
 
     def _stop(self):
         self.CoaXPressAxiL.TxLsRate.set(0)
