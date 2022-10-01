@@ -68,6 +68,7 @@ architecture rtl of CoaXPressRxLane is
       STREAM_DATA_S);
 
    type RegType is record
+      errDet  : sl;
       -- ACK Interface
       ioAck          : sl;
       eventAck       : sl;
@@ -78,6 +79,7 @@ architecture rtl of CoaXPressRxLane is
       packetTag      : slv(7 downto 0);
       dsize          : slv(15 downto 0);
       dcnt           : slv(15 downto 0);
+      dbgCnt         : slv(31 downto 0);
       -- AXIS Interfaces
       cfgMaster      : AxiStreamMasterType;
       dataMaster     : AxiStreamMasterType;
@@ -87,6 +89,7 @@ architecture rtl of CoaXPressRxLane is
       state          : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      errDet         => '0',
       -- ACK Interface
       ioAck          => '0',
       eventAck       => '0',
@@ -97,6 +100,7 @@ architecture rtl of CoaXPressRxLane is
       packetTag      => (others => '0'),
       dsize          => (others => '0'),
       dcnt           => (others => '0'),
+      dbgCnt         => (others => '0'),
       -- AXIS Interfaces
       cfgMaster      => AXI_STREAM_MASTER_INIT_C,
       dataMaster     => AXI_STREAM_MASTER_INIT_C,
@@ -108,8 +112,8 @@ architecture rtl of CoaXPressRxLane is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -120,6 +124,7 @@ begin
       v := r;
 
       -- Reset strobes
+      v.errDet                := '0';
       v.ioAck                 := '0';
       v.eventAck              := '0';
       v.cfgMaster.tValid      := '0';
@@ -194,10 +199,14 @@ begin
 
                   -- Else undefined tag, return to IDLE
                   else
+                     -- Set the flag
+                     v.errDet := '1';
                      -- Next State
                      v.state := IDLE_S;
                   end if;
                else
+                  -- Set the flag
+                  v.errDet := '1';
                   -- Next State
                   v.state := IDLE_S;
                end if;
@@ -208,6 +217,8 @@ begin
                   -- Next State
                   v.state := CTRL_ACK_S;
                else
+                  -- Set the flag
+                  v.errDet := '1';
                   -- Next State
                   v.state := IDLE_S;
                end if;
@@ -272,6 +283,8 @@ begin
                   end if;
 
                else
+                  -- Set the flag
+                  v.errDet := '1';
                   -- Next State
                   v.state := IDLE_S;
                end if;
@@ -299,44 +312,78 @@ begin
                   end if;
 
                else
+                  -- Set the flag
+                  v.errDet := '1';
                   -- Next State
                   v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when STREAM_ID_S =>
                -- Check for non-k word
-               if (rxDataK = x"0") then
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Save the value
                   v.streamID := rxData(7 downto 0);
                   -- Next State
                   v.state    := PACKET_TAG_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when PACKET_TAG_S =>
                -- Check for non-k word
-               if (rxDataK = x"0") then
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Save the value
                   v.packetTag := rxData(7 downto 0);
                   -- Next State
                   v.state     := DSIZE_UPPER_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when DSIZE_UPPER_S =>
                -- Check for non-k word
-               if (rxDataK = x"0") then
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Set the TDEST to the packet tag
                   v.dsize(15 downto 8) := rxData(7 downto 0);
                   -- Next State
                   v.state              := DSIZE_LOWER_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when DSIZE_LOWER_S =>
                -- Check for non-k word
-               if (rxDataK = x"0") then
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Set the TDEST to the packet tag
                   v.dsize(7 downto 0) := rxData(7 downto 0);
                   -- Next State
                   v.state             := STREAM_DATA_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when STREAM_DATA_S =>
@@ -344,6 +391,9 @@ begin
                v.dataMaster.tValid             := '1';
                v.dataMaster.tData(31 downto 0) := rxData;
                v.dataMaster.tUser(3 downto 0)  := rxDataK;
+
+               -- Increment counter
+               v.dbgCnt := r.dbgCnt + 1;
 
                -- Check the counter
                if (r.dcnt = (r.dsize-1)) then

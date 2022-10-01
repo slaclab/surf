@@ -31,10 +31,12 @@ entity CoaXPressRxHsFsm is
       RX_FSM_CNT_WIDTH_C : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
       NUM_LANES_G        : positive               := 1);
    port (
-      -- Clock and Resets
+      -- Clock and Reset
       rxClk      : in  sl;
       rxRst      : in  sl;
+      -- Config/Status Interface
       rxFsmRst   : in  sl;
+      rxFsmError : out sl;
       -- Inbound Stream Interface
       rxMaster   : in  AxiStreamMasterType;
       rxSlave    : out AxiStreamSlaveType;
@@ -77,12 +79,25 @@ architecture rtl of CoaXPressRxHsFsm is
       tapG      => (others => '0'),
       flags     => (others => '0'));
 
+   type DebugType is record
+      errDet : sl;
+      maker  : slv(NUM_LANES_G-1 downto 0);
+      wrd    : natural range 0 to NUM_LANES_G;
+      cnt    : slv(31 downto 0);
+   end record DebugType;
+   constant DEBUG_INIT_C : DebugType := (
+      errDet => '0',
+      maker  => (others => '0'),
+      wrd    => 0,
+      cnt    => (others => '0'));
+
    type RegType is record
       endOfLine   : sl;
       yCnt        : slv(RX_FSM_CNT_WIDTH_C-1 downto 0);
       dCnt        : slv(RX_FSM_CNT_WIDTH_C-1 downto 0);
       hdrCnt      : natural range 0 to 25;
       hdr         : ImageHdrType;
+      dbg         : DebugType;
       wrd         : natural range 0 to NUM_LANES_G-1;
       hdrMaster   : AxiStreamMasterType;
       rxSlave     : AxiStreamSlaveType;
@@ -95,6 +110,7 @@ architecture rtl of CoaXPressRxHsFsm is
       dCnt        => (others => '0'),
       hdrCnt      => 0,
       hdr         => IMAGE_HDR_INIT_C,
+      dbg         => DEBUG_INIT_C,
       wrd         => 0,
       hdrMaster   => AXI_STREAM_MASTER_INIT_C,
       rxSlave     => AXI_STREAM_SLAVE_FORCE_C,
@@ -118,6 +134,18 @@ begin
 
       -- Init Variable
       tData := rxMaster.tData(32*r.wrd+31 downto 32*r.wrd);
+
+      -- Reset strobes
+      v.dbg.errDet := '0';
+      v.dbg.maker  := (others => '0');
+
+      -- Loop the number of 32-bit words
+      for i in 0 to NUM_LANES_G-1 loop
+         -- Check for maker pattern
+         if (rxMaster.tData(32*i+31 downto 32*i) = CXP_MARKER_C) then
+            v.dbg.maker(i) := '1';
+         end if;
+      end loop;
 
       -- Init header stream
       v.hdrMaster.tValid           := '0';  -- Reset strobe
@@ -149,6 +177,10 @@ begin
                if (tData = CXP_MARKER_C) then
                   -- Next State
                   v.state := TYPE_S;
+
+               else
+                  -- Set the flag
+                  v.dbg.errDet := '1';
                end if;
             ----------------------------------------------------------------------
             when TYPE_S =>
@@ -158,8 +190,14 @@ begin
                   -- Preset counter
                   v.hdrCnt := 3;
 
-                  -- Reset counter
+                  -- Reset counters
                   v.yCnt := (others => '0');
+
+                  -- Check for out of sync header
+                  if (r.yCnt /= r.hdr.ySize(RX_FSM_CNT_WIDTH_C-1 downto 0)) then
+                     -- Set the flag
+                     v.dbg.errDet := '1';
+                  end if;
 
                   -- Next State
                   v.state := HDR_S;
@@ -170,13 +208,29 @@ begin
                   v.state := LINE_S;
 
                else
+                  -- Set the flag
+                  v.dbg.errDet := '1';
+
                   -- Next State
                   v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when HDR_S =>
+               if (tData(7 downto 0) /= tData(15 downto 8))
+                  or (tData(7 downto 0) /= tData(23 downto 16))
+                  or (tData(7 downto 0) /= tData(31 downto 24)) then
+
+                  -- Reset counter
+                  v.hdrCnt := 0;
+
+                  -- Set the flag
+                  v.dbg.errDet := '1';
+
+                  -- Next State
+                  v.state := IDLE_S;
+
                -- Check for roll over
-               if (r.hdrCnt = 25) then
+               elsif (r.hdrCnt = 25) then
 
                   -- Reset counter
                   v.hdrCnt := 0;
@@ -224,15 +278,6 @@ begin
                         -- Set the "end of line" flag
                         v.endOfLine := '1';
 
-                        -- Check for roll over
-                        if (i = NUM_LANES_G-1) then
-                           -- Reset the counter
-                           v.wrd := 0;
-                        else
-                           -- Increment the counter
-                           v.wrd := i+1;
-                        end if;
-
                         -- Next State
                         v.state := IDLE_S;
 
@@ -259,7 +304,7 @@ begin
                -- Increment the counter
                v.wrd := r.wrd + 1;
 
-               -- Check if no data available
+               -- Check if no more data available
                if (rxMaster.tKeep(4*v.wrd) = '0') then
                   -- Reset the counter
                   v.wrd := 0;
@@ -310,6 +355,21 @@ begin
             v.dataMasters(1).tLast := '1';
          end if;
 
+      end if;
+
+      -- Debugging: tracking the number of words
+      v.dbg.wrd := 0;
+      for i in 0 to NUM_LANES_G-1 loop
+         if (r.dataMasters(1).tValid = '1') and (r.dataMasters(1).tKeep(4*i) = '1') then
+            v.dbg.wrd := v.dbg.wrd + 1;
+         end if;
+      end loop;
+      if (r.state = HDR_S) then
+         -- Reset counter
+         v.dbg.cnt := (others => '0');
+      else
+         -- Increment counter
+         v.dbg.cnt := r.dbg.cnt + r.dbg.wrd;
       end if;
 
       -- Update header based on counter
@@ -382,8 +442,9 @@ begin
       v.hdrMaster.tData(223 downto 208) := r.hdr.tapG(15 downto 0);
 
       -- Outputs
-      rxSlave   <= v.rxSlave;
-      hdrMaster <= r.hdrMaster;
+      rxSlave    <= v.rxSlave;
+      hdrMaster  <= r.hdrMaster;
+      rxFsmError <= r.dbg.errDet;
 
       -- Reset
       if (rxRst = '1') or (rxFsmRst = '1') then

@@ -56,6 +56,7 @@ entity CoaXPressAxiL is
       rxFsmRst        : out sl;         -- (rxClk(0) domain only)
       rxNumberOfLane  : out slv(2 downto 0);  -- (rxClk(0) domain only)
       rxOverflow      : in  sl;
+      rxFsmError      : in  sl;-- (rxClk(0) domain only)
       -- Config Interface (cfgClk domain)
       cfgClk          : in  sl;
       cfgRst          : in  sl;
@@ -79,7 +80,7 @@ end CoaXPressAxiL;
 architecture rtl of CoaXPressAxiL is
 
    constant TX_STATUS_CNT_C : positive := 4;
-   constant RX_STATUS_CNT_C : positive := 1;
+   constant RX_STATUS_CNT_C : positive := 2;
 
    type RegType is record
       rxNumberOfLane  : slv(2 downto 0);
@@ -137,6 +138,7 @@ architecture rtl of CoaXPressAxiL is
    signal txClkFreq : slv(31 downto 0);
    signal rxClkFreq : Slv32Array(NUM_LANES_G-1 downto 0);
 
+   signal dataReset    : sl;
    signal frameCnt     : slv(63 downto 0);  -- units of frames
    signal frameSize    : slv(31 downto 0);  -- units of Byte
    signal frameSizeMax : slv(31 downto 0);  -- units of Byte
@@ -191,7 +193,8 @@ begin
       axiSlaveRegisterR(axilEp, x"81C", 0, muxSlVectorArray(txCntOut, 3));  -- txTrigDropCnt
 
       axiSlaveRegisterR(axilEp, x"820", 0, muxSlVectorArray(rxCntOut, 0));  -- rxOverflowCnt
-      axiSlaveRegisterR(axilEp, x"824", 0, rxStatusOut);
+      axiSlaveRegisterR(axilEp, x"824", 0, muxSlVectorArray(rxCntOut, 1));  -- rxFsmErrorCnt
+      axiSlaveRegisterR(axilEp, x"828", 0, rxStatusOut);
 
       -- Matching with AxiStreamMonChannel Python device register mapping w/ offset=0x900
       axiSlaveRegisterR(axilEp, x"904", 0, frameCnt);      -- 0x904:0x90B
@@ -464,6 +467,7 @@ begin
          WIDTH_G     => RX_STATUS_CNT_C)
       port map (
          statusIn(0) => rxOverflowSync,
+         statusIn(1) => rxFsmError,
          statusOut   => rxStatusOut,
          cntRstIn    => r.cntRst,
          cntOut      => rxCntOut,
@@ -512,7 +516,7 @@ begin
       port map(
          -- AXIS Stream Interface
          axisClk      => dataClk,
-         axisRst      => dataRst,
+         axisRst      => dataReset,
          axisMaster   => dataMaster,
          axisSlave    => dataSlave,
          -- Status Clock and reset
@@ -532,6 +536,14 @@ begin
          bandwidth    => bandwidth,
          bandwidthMax => bandwidthMax,
          bandwidthMin => bandwidthMin);
+
+   U_dataReset : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => dataClk,
+         dataIn  => r.cntRst,
+         dataOut => dataReset);
 
 end rtl;
 

@@ -71,18 +71,12 @@ begin
       v := r;
 
       -- Flow Control
+      for i in 0 to NUM_LANES_G-1 loop
+         v.rxSlaves(i).tReady := '0';
+      end loop;
       if (pipeSlave.tReady = '1') then
          v.pipeMaster.tValid := '0';
       end if;
-      for i in 0 to NUM_LANES_G-1 loop
-         if (i <= numOfLane) then
-            -- Reset strobe to enabled lanes
-            v.rxSlaves(i).tReady := '0';
-         else
-            -- Blow off disabled lanes
-            v.rxSlaves(i).tReady := '1';
-         end if;
-      end loop;
 
       -- Check for valid data
       if (rxMasters(r.lane).tValid = '1') and (v.pipeMaster.tValid = '0') then

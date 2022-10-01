@@ -99,6 +99,7 @@ architecture mapping of CoaXPressCore is
    signal dataSlaveInt  : AxiStreamSlaveType;
 
    signal rxOverflow     : sl;
+   signal rxFsmError     : sl;
    signal rxFsmRst       : sl;
    signal rxNumberOfLane : slv(2 downto 0);
 
@@ -188,6 +189,7 @@ begin
          rxDataK        => rxDataK,
          rxLinkUp       => rxLinkUp,
          rxOverflow     => rxOverflow,
+         rxFsmError     => rxFsmError,
          rxFsmRst       => rxFsmRst,
          rxNumberOfLane => rxNumberOfLane);
 
@@ -222,6 +224,7 @@ begin
          rxFsmRst        => rxFsmRst,
          rxNumberOfLane  => rxNumberOfLane,
          rxOverflow      => rxOverflow,
+         rxFsmError      => rxFsmError,
          -- Config Interface (cfgClk domain)
          cfgClk          => cfgClk,
          cfgRst          => cfgClk,

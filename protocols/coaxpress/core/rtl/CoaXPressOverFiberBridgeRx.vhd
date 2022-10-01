@@ -46,12 +46,14 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
       PAYLOAD_S);
 
    type RegType is record
+      errDet  : sl;
       rxData  : Slv32Array(1 downto 0);
       rxDataK : Slv4Array(1 downto 0);
       state   : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      errDet  => '0',
       rxData  => (others => CXP_IDLE_C),
       rxDataK => (others => CXP_IDLE_K_C),
       state   => IDLE_S);
@@ -59,8 +61,8 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";
+   attribute dont_touch      : string;
+   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -69,6 +71,9 @@ begin
    begin
       -- Latch the current value
       v := r;
+
+      -- Reset strobe
+      v.errDet := '0';
 
       -- Update shift register
       v.rxDataK(1) := CXP_IDLE_K_C;
@@ -88,6 +93,12 @@ begin
                   -- Next State
                   v.state := HKP_S;
                else
+
+                  -- Check if data is being overwritten
+                  if (v.rxDataK(0) /= CXP_IDLE_K_C) or (v.rxData(0) /= CXP_IDLE_C) then
+                     -- Set the flag
+                     v.errDet := '1';
+                  end if;
 
                   -- Check for SOP
                   if (xgmiiRxd(23 downto 16) = CXP_SOP_C(7 downto 0)) then
@@ -114,6 +125,9 @@ begin
 
                end if;
 
+            elsif (xgmiiRxc /= x"F") or (xgmiiRxd /= x"07_07_07_07") then
+               -- Set the flag
+               v.errDet := '1';
             end if;
          ----------------------------------------------------------------------
          when HKP_S =>
@@ -156,8 +170,10 @@ begin
 
             -- Undefined state
             else
+               -- Set the flag
+               v.errDet := '1';
                -- Next State
-               v.state := IDLE_S;
+               v.state  := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;

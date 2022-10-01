@@ -36,6 +36,7 @@ class CoaXPressAxiL(pr.Device):
             number       = numLane,
             stride       = 4,
             pollInterval = 1,
+            hidden       = True,
         )
 
         self.addRemoteVariables(
@@ -46,6 +47,7 @@ class CoaXPressAxiL(pr.Device):
             number       = numLane,
             stride       = 4,
             pollInterval = 1,
+            hidden       = True,
         )
 
         for i in range(numLane):
@@ -66,6 +68,7 @@ class CoaXPressAxiL(pr.Device):
                 dependencies = [self.RxClockFreqRaw[i]],
                 linkedGet    = lambda: self.RxClockFreqRaw[i].value() * 1.0e-6,
                 disp         = '{:0.3f}',
+                hidden       = True,
             ))
 
 
@@ -110,6 +113,7 @@ class CoaXPressAxiL(pr.Device):
             dependencies = [self.TxClockFreqRaw],
             linkedGet    = lambda: self.TxClockFreqRaw.value() * 1.0e-6,
             disp         = '{:0.3f}',
+            hidden       = True,
         ))
 
 
@@ -153,6 +157,14 @@ class CoaXPressAxiL(pr.Device):
             pollInterval = 1,
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'RxFsmErrorCnt',
+            offset       = 0x824,
+            bitSize      = statusCountBits,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
         self.add(axi.AxiStreamMonChannel(
             name   = 'DataSteamMon',
             offset = 0x900, # 0x900:0x93F
@@ -165,6 +177,7 @@ class CoaXPressAxiL(pr.Device):
             bitOffset    = 0,
             disp         = '{:d}',
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -174,6 +187,7 @@ class CoaXPressAxiL(pr.Device):
             bitOffset    = 8,
             disp         = '{:d}',
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -183,6 +197,7 @@ class CoaXPressAxiL(pr.Device):
             bitOffset    = 16,
             disp         = '{:d}',
             mode         = 'RO',
+            hidden       = True,
         ))
 
         self.add(pr.RemoteCommand(

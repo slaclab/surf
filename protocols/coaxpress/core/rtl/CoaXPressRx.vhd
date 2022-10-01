@@ -57,6 +57,7 @@ entity CoaXPressRx is
       rxDataK        : in  Slv4Array(NUM_LANES_G-1 downto 0);
       rxLinkUp       : in  slv(NUM_LANES_G-1 downto 0);
       rxOverflow     : out sl;
+      rxFsmError     : out sl;
       rxFsmRst       : in  sl;          -- (rxClk(0) domain only)
       rxNumberOfLane : in  slv(2 downto 0));  -- (rxClk(0) domain only)
 end entity CoaXPressRx;
@@ -137,7 +138,7 @@ begin
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,
             -- FIFO configurations
-            GEN_SYNC_FIFO_G     => (i /= 0),
+            GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 10,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => NARROW_AXIS_CONFIG_C,
@@ -182,10 +183,12 @@ begin
          RX_FSM_CNT_WIDTH_C => RX_FSM_CNT_WIDTH_C,
          NUM_LANES_G        => NUM_LANES_G)
       port map (
-         -- Clock and Resets
+         -- Clock and Reset
          rxClk      => rxClk(0),
          rxRst      => rxRst(0),
+         -- Config/Status Interface
          rxFsmRst   => rxFsmRst,
+         rxFsmError => rxFsmError,
          -- Inbound Stream Interface
          rxMaster   => rxMaster,
          rxSlave    => rxSlave,
