@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : CoaXPress Protocol: http://jiia.org/wp-content/themes/jiia/pdf/standard_dl/coaxpress/CXP-001-2021.pdf
+-- Title      : CXP Over Fiber Protocol: http://jiia.org/wp-content/themes/jiia/pdf/standard_dl/coaxpress/CXPR-008-2021.pdf
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: CoaXPress Gty Ultrascale Core Module
+-- Description: CoaXPress Gth Ultrascale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,7 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.CoaXPressPkg.all;
 
-entity CoaxpressOverFiberGtyUs is
+entity CoaxpressOverFiberGthUs is
    generic (
       TPD_G              : time                   := 1 ns;
       NUM_LANES_G        : positive               := 1;
@@ -71,9 +71,9 @@ entity CoaxpressOverFiberGtyUs is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end CoaxpressOverFiberGtyUs;
+end CoaxpressOverFiberGthUs;
 
-architecture mapping of CoaxpressOverFiberGtyUs is
+architecture mapping of CoaxpressOverFiberGthUs is
 
    constant MON_AXIL_INDEX_C   : integer := 0;
    constant DRP_AXIL_INDEX_C   : integer := 1;
@@ -176,11 +176,11 @@ begin
          axilWriteSlave  => axilWriteSlaves(MON_AXIL_INDEX_C));
 
    --------------------------
-   -- Wrapper for Gty IP core
+   -- Wrapper for Gth IP core
    --------------------------
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
 
-         U_CXPoF : entity surf.CoaXPressOverFiberGtyUsIpWrapper
+         U_CXPoF : entity surf.CoaXPressOverFiberGthUsIpWrapper
             generic map (
                TPD_G   => TPD_G,
                LANE0_G => (i = 0))
