@@ -293,17 +293,18 @@ begin
          CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
          WIDTH_G     => TX_STATUS_CNT_C)
       port map (
-         statusIn(0) => txLinkUp,
-         statusIn(1) => trigAck,
-         statusIn(2) => txTrig,
-         statusIn(3) => txTrigDrop,
-         statusOut   => txStatusOut,
-         cntRstIn    => r.cntRst,
-         cntOut      => txCntOut,
-         wrClk       => txClk,
-         wrRst       => txRst,
-         rdClk       => axilClk,
-         rdRst       => axilRst);
+         statusIn(0)  => txLinkUp,
+         statusIn(1)  => trigAck,
+         statusIn(2)  => txTrig,
+         statusIn(3)  => txTrigDrop,
+         rollOverEnIn => "0110",
+         statusOut    => txStatusOut,
+         cntRstIn     => r.cntRst,
+         cntOut       => txCntOut,
+         wrClk        => txClk,
+         wrRst        => txRst,
+         rdClk        => axilClk,
+         rdRst        => axilRst);
 
    U_trigFreq : entity surf.SyncTrigRate
       generic map (
