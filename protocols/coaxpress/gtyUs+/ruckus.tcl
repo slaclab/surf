@@ -7,9 +7,6 @@ if { $::env(VIVADO_VERSION) >= 2021.2 } {
    # Load Source Code
    loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
-   loadSource -path "$::DIR_PATH/ip/CoaXPressGtyUsIp12G/CoaXPressGtyUsIp12G.dcp"
-   # loadIpCore -path "$::DIR_PATH/ip/CoaXPressGtyUsIp12G/CoaXPressGtyUsIp12G.xci"
-
    loadSource -path "$::DIR_PATH/ip/CoaXPressOverFiberGtyUsIp/CoaXPressOverFiberGtyUsIp.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/CoaXPressOverFiberGtyUsIp/CoaXPressOverFiberGtyUsIp.xci"
 
