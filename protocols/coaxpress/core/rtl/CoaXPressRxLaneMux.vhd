@@ -59,8 +59,8 @@ architecture rtl of CoaXPressRxLaneMux is
 
    signal pipeSlave : AxiStreamSlaveType;
 
-   attribute dont_touch      : string;
-   attribute dont_touch of r : signal is "TRUE";
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
