@@ -537,7 +537,7 @@ begin
                   -- Negative 1 case
                   tmp(Ch) := X"7FFC";
                else
-                  tmp(ch) := (not(tmp(ch)(15 downto 2)) + 1) & "00";                  
+                  tmp(ch) := (not(tmp(ch)(15 downto 2)) + 1) & "00";
                end if;
             end if;
          else
