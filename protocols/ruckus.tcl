@@ -22,6 +22,7 @@ loadRuckusTcl "$::DIR_PATH/uart"
 # Check for non-zero Vivado version (in-case non-Vivado project)
 if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/clink"
+   loadRuckusTcl "$::DIR_PATH/coaxpress"
    loadRuckusTcl "$::DIR_PATH/glink"
    loadRuckusTcl "$::DIR_PATH/htsp"
    loadRuckusTcl "$::DIR_PATH/pgp"

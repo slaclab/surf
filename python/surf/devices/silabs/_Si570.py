@@ -64,7 +64,7 @@ class Si570(pr.Device):
         # Enum for HS_DIV
         self.add(pr.RemoteVariable(
             name = 'HS_DIV',
-            description = 'Sets value for high speed divider that takes the DCO output fOSC as its clock input',            
+            description = 'Sets value for high speed divider that takes the DCO output fOSC as its clock input',
             overlapEn = True,
             offset = 7 * ADDR_SIZE,
             bitSize = 3,
@@ -116,7 +116,7 @@ class Si570(pr.Device):
 
         self.add(pr.LinkVariable(
             name = 'RFREQ',
-            description = 'Frequency control input to DCO, formatted from fixed point',            
+            description = 'Frequency control input to DCO, formatted from fixed point',
             dependencies = [self.RFREQ_RAW],
             linkedGet = lambda read: self.RFREQ_RAW.get(read=read) / 2**28,
             linkedSet = lambda value, write: self.RFREQ_RAW.set(int(value*2**28), write=write)))
@@ -124,8 +124,8 @@ class Si570(pr.Device):
         self.add(pr.RemoteCommand(
             name = 'RST_REG',
             description = """
-            Reset of all internal logic. Output tristated during reset. 
-            Automatically returns to 0 after reset completion. 
+            Reset of all internal logic. Output tristated during reset.
+            Automatically returns to 0 after reset completion.
             Interrupts I2C state machine. Not recommended to use""",
             offset = 135 * ADDR_SIZE,
             bitOffset = 7,
@@ -135,7 +135,7 @@ class Si570(pr.Device):
 
         self.add(pr.RemoteCommand(
             name = 'NewFreq',
-            description = 'Alerts the DSPLL that a new frequency configuration has been applied',            
+            description = 'Alerts the DSPLL that a new frequency configuration has been applied',
             offset = 135 * ADDR_SIZE,
             bitOffset = 6,
             bitSize = 1,
