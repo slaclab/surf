@@ -205,8 +205,6 @@ class Si570(pr.Device):
                 fdco = value * hs_div * n1
                 rfreq = fdco / self.fxtal.get(read=True)
 
-                #print(f'Si570 setting new params, {n1=}, {hs_div=}, {rfreq=}, {fdco=}')
-
                 # Freeze
                 self.FreezeDCO.set(1, write=True)
 
