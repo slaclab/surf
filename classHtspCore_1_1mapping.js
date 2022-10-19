@@ -1,6 +1,6 @@
 var classHtspCore_1_1mapping =
 [
-    [ "PROCESS_140", "classHtspCore_1_1mapping.html#a5ab2a47038273a4fb08882f96871a3e4", null ],
+    [ "PROCESS_142", "classHtspCore_1_1mapping.html#a920e5b20f287f072522685772f2ef5ea", null ],
     [ "locRxLinkReady", "classHtspCore_1_1mapping.html#af732331854c1d22082f84c052551e885", null ],
     [ "remRxFifoCtrl", "classHtspCore_1_1mapping.html#ae21a096ecb8e2da71acdf08923a24a85", null ],
     [ "remRxLinkReady", "classHtspCore_1_1mapping.html#a5cc711a055da64281b790dea6de334ba", null ],

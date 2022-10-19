@@ -2,6 +2,7 @@ var classAxiStreamBytePacker_1_1rtl =
 [
     [ "comb", "classAxiStreamBytePacker_1_1rtl.html#a34e6f7767f15270ccb4979aaa68de0b7", null ],
     [ "seq", "classAxiStreamBytePacker_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8", null ],
+    [ "SLV_TUSER_BITS_C", "classAxiStreamBytePacker_1_1rtl.html#a9659dd83aca4c9f22c86a9d1df2f4680", null ],
     [ "MAX_IN_BYTE_C", "classAxiStreamBytePacker_1_1rtl.html#a7cbe813cab5b86ffb34944c1b7b042d5", null ],
     [ "MAX_OUT_BYTE_C", "classAxiStreamBytePacker_1_1rtl.html#a36e23b41d2f6f5914ef1b615b7267a08", null ],
     [ "RegType", "classAxiStreamBytePacker_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],

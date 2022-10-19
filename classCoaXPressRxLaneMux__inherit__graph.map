@@ -1,0 +1,8 @@
+<map id="CoaXPressRxLaneMux" name="CoaXPressRxLaneMux">
+<area shape="rect" id="node1" title=" " alt="" coords="127,80,293,107"/>
+<area shape="rect" id="node3" href="$classCoaXPressRx.html" title=" " alt="" coords="156,155,264,181"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="139,5,281,32"/>
+<area shape="rect" id="node4" href="$classCoaXPressCore.html" title=" " alt="" coords="149,229,271,256"/>
+<area shape="rect" id="node5" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,304,199,331"/>
+<area shape="rect" id="node6" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,304,416,331"/>
+</map>

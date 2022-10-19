@@ -1,6 +1,6 @@
 var classMmcmEmulation =
 [
-    [ "MmcmEmulation", "classMmcmEmulation_1_1MmcmEmulation.html", "classMmcmEmulation_1_1MmcmEmulation" ],
+    [ "MmcmEmulation.MmcmEmulation", "classMmcmEmulation_1_1MmcmEmulation.html", "classMmcmEmulation_1_1MmcmEmulation" ],
     [ "CLKIN_PERIOD_G", "classMmcmEmulation.html#a8e5add9d445bcb9f9ae5cf39b8d3d61d", null ],
     [ "DIVCLK_DIVIDE_G", "classMmcmEmulation.html#a6947943565855fec6607ec20327226b2", null ],
     [ "CLKFBOUT_MULT_F_G", "classMmcmEmulation.html#a986ab8f29e3edd87072e8e2b449e8a8b", null ],

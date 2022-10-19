@@ -1,6 +1,6 @@
 var classPgp2bRx =
 [
-    [ "Pgp2bRx.Pgp2bRx", "classPgp2bRx_1_1Pgp2bRx.html", "classPgp2bRx_1_1Pgp2bRx" ],
+    [ "Pgp2bRx", "classPgp2bRx_1_1Pgp2bRx.html", "classPgp2bRx_1_1Pgp2bRx" ],
     [ "TPD_G", "classPgp2bRx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "RX_LANE_CNT_G", "classPgp2bRx.html#a8b2264a48aeef02287f6b3c79f72d8c6", null ],
     [ "PAYLOAD_CNT_TOP_G", "classPgp2bRx.html#ae2d7374e1bcbdc557cfc4be90215c5fb", null ],

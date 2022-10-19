@@ -1,7 +1,8 @@
 <map id="SsiInsertSof" name="SsiInsertSof">
 <area shape="rect" id="node1" title=" " alt="" coords="1153,208,1252,235"/>
-<area shape="rect" id="node20" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="1332,183,1481,209"/>
-<area shape="rect" id="node21" href="$classMicroblazeBasicCoreWrapper.html" title=" " alt="" coords="1300,233,1513,260"/>
+<area shape="rect" id="node20" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="1332,157,1481,184"/>
+<area shape="rect" id="node21" href="$classCoaXPressRx.html" title=" " alt="" coords="1353,208,1461,235"/>
+<area shape="rect" id="node25" href="$classMicroblazeBasicCoreWrapper.html" title=" " alt="" coords="1300,259,1513,285"/>
 <area shape="rect" id="node2" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="956,208,1105,235"/>
 <area shape="rect" id="node3" href="$classAxiStreamGearbox.html" title=" " alt="" coords="745,132,908,159"/>
 <area shape="rect" id="node4" href="$classAxiStreamResize.html" title=" " alt="" coords="564,81,697,108"/>
@@ -20,4 +21,7 @@
 <area shape="rect" id="node16" href="$classFifoWrFsm.html" title=" " alt="" coords="197,259,289,285"/>
 <area shape="rect" id="node17" href="$classFifoRdFsm.html" title=" " alt="" coords="197,157,288,184"/>
 <area shape="rect" id="node18" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,208,319,235"/>
+<area shape="rect" id="node22" href="$classCoaXPressCore.html" title=" " alt="" coords="1561,208,1683,235"/>
+<area shape="rect" id="node23" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="1731,183,1924,209"/>
+<area shape="rect" id="node24" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="1731,233,1924,260"/>
 </map>

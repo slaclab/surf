@@ -540,6 +540,75 @@ var hierarchy =
       [ "ClinkFraming", "classClinkFraming.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "ClinkUart", "classClinkUart.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "CoaXPressConfig", "classCoaXPressConfig.html", [
+        [ "SrpV3AxiLite", "classSrpV3AxiLite.html", [
+          [ "SsiFrameLimiter", "classSsiFrameLimiter.html", [
+            [ "AxiStreamGearbox", "classAxiStreamGearbox.html", null ],
+            [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
+          ] ],
+          [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+          [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
+        ] ]
+      ] ],
+      [ "CoaXPressTx", "classCoaXPressTx.html", [
+        [ "CoaXPressEventAckMsg", "classCoaXPressEventAckMsg.html", null ],
+        [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+        [ "CoaXPressTxLsFsm", "classCoaXPressTxLsFsm.html", null ]
+      ] ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "CoaXPressCore", "classCoaXPressCore.html", [
+        [ "CoaXPressConfig", "classCoaXPressConfig.html", null ],
+        [ "CoaXPressTx", "classCoaXPressTx.html", null ],
+        [ "CoaXPressRx", "classCoaXPressRx.html", [
+          [ "CoaXPressRxLane", "classCoaXPressRxLane.html", null ],
+          [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+          [ "CoaXPressRxLaneMux", "classCoaXPressRxLaneMux.html", [
+            [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+          ] ],
+          [ "CoaXPressRxHsFsm", "classCoaXPressRxHsFsm.html", [
+            [ "CoaXPressRxWordPacker", "classCoaXPressRxWordPacker.html", null ]
+          ] ],
+          [ "SsiInsertSof", "classSsiInsertSof.html", null ],
+          [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+          [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
+        ] ],
+        [ "CoaXPressAxiL", "classCoaXPressAxiL.html", [
+          [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+          [ "Synchronizer", "classSynchronizer.html", null ],
+          [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+          [ "SyncStatusVector", "classSyncStatusVector.html", null ],
+          [ "SyncTrigRate", "classSyncTrigRate.html", null ],
+          [ "SyncClockFreq", "classSyncClockFreq.html", null ],
+          [ "SynchronizerOneShotVector", "classSynchronizerOneShotVector.html", [
+            [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
+          ] ],
+          [ "AxiStreamMon", "classAxiStreamMon.html", null ]
+        ] ]
+      ] ],
+      [ "CoaXPressOverFiberGthUsIpWrapper", "classCoaXPressOverFiberGthUsIpWrapper.html", [
+        [ "RstSync", "classRstSync.html", null ],
+        [ "ClockManagerUltraScale", "classClockManagerUltraScale.html", null ],
+        [ "CoaXPressOverFiberBridge", "classCoaXPressOverFiberBridge.html", [
+          [ "AsyncGearbox", "classAsyncGearbox.html", null ],
+          [ "CoaXPressOverFiberBridgeRx", "classCoaXPressOverFiberBridgeRx.html", null ],
+          [ "CoaXPressOverFiberBridgeTx", "classCoaXPressOverFiberBridgeTx.html", null ]
+        ] ]
+      ] ],
+      [ "GthUltraScaleQuadPll", "classGthUltraScaleQuadPll.html", [
+        [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
+      ] ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "CoaXPressCore", "classCoaXPressCore.html", null ],
+      [ "CoaXPressOverFiberGtyUsIpWrapper", "classCoaXPressOverFiberGtyUsIpWrapper.html", [
+        [ "RstSync", "classRstSync.html", null ],
+        [ "ClockManagerUltraScale", "classClockManagerUltraScale.html", null ],
+        [ "CoaXPressOverFiberBridge", "classCoaXPressOverFiberBridge.html", null ]
+      ] ],
+      [ "GtyUltraScaleQuadPll", "classGtyUltraScaleQuadPll.html", [
+        [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
+      ] ],
       [ "Encoder12b14b", "classEncoder12b14b.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "Decoder12b14b", "classDecoder12b14b.html", null ],
@@ -1117,9 +1186,7 @@ var hierarchy =
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3GthUsQpll", "classPgp3GthUsQpll.html", [
         [ "PwrUpRst", "classPwrUpRst.html", null ],
-        [ "GthUltraScaleQuadPll", "classGthUltraScaleQuadPll.html", [
-          [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
-        ] ]
+        [ "GthUltraScaleQuadPll", "classGthUltraScaleQuadPll.html", null ]
       ] ],
       [ "Pgp3GthUs", "classPgp3GthUs.html", [
         [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
@@ -1202,9 +1269,7 @@ var hierarchy =
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3GtyUsQpll", "classPgp3GtyUsQpll.html", [
         [ "PwrUpRst", "classPwrUpRst.html", null ],
-        [ "GtyUltraScaleQuadPll", "classGtyUltraScaleQuadPll.html", [
-          [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
-        ] ]
+        [ "GtyUltraScaleQuadPll", "classGtyUltraScaleQuadPll.html", null ]
       ] ],
       [ "Pgp3GtyUs", "classPgp3GtyUs.html", [
         [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
@@ -1365,14 +1430,7 @@ var hierarchy =
       [ "RogueTcpMemory", "classRogueTcpMemory.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
-      [ "SrpV3AxiLite", "classSrpV3AxiLite.html", [
-        [ "SsiFrameLimiter", "classSsiFrameLimiter.html", [
-          [ "AxiStreamGearbox", "classAxiStreamGearbox.html", null ],
-          [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
-        ] ],
-        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
-        [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
-      ] ],
+      [ "SrpV3AxiLite", "classSrpV3AxiLite.html", null ],
       [ "RssiCoreWrapper", "classRssiCoreWrapper.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
@@ -1615,7 +1673,6 @@ var hierarchy =
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
-      [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
       [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
       [ "SyncTrigRate", "classSyncTrigRate.html", null ],
       [ "TenGigEthGth7Clk", "classTenGigEthGth7Clk.html", [

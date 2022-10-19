@@ -11,6 +11,7 @@ var classSrpV3AxiLite =
     [ "TX_VALID_BURST_MODE_G", "classSrpV3AxiLite.html#ad6d6836eaa3b2b066799bb45d57a98cf", null ],
     [ "SLAVE_READY_EN_G", "classSrpV3AxiLite.html#a732db2237e0f6e1568cf997454ee9f4a", null ],
     [ "GEN_SYNC_FIFO_G", "classSrpV3AxiLite.html#a74265af003d7cd4b0443ced520ac6722", null ],
+    [ "ENABLE_TIMER_G", "classSrpV3AxiLite.html#ad612611522f2422a59c126f7c15da867", null ],
     [ "AXIL_CLK_FREQ_G", "classSrpV3AxiLite.html#a073ff796d69f24757efa7131691bd12f", null ],
     [ "AXI_STREAM_CONFIG_G", "classSrpV3AxiLite.html#a8a4c64dc0ccb38b5c8275a90f4ccb2b9", null ],
     [ "sAxisClk", "classSrpV3AxiLite.html#aa685d94966e12ee1feec1c91fef4c4d0", null ],
