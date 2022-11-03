@@ -14,7 +14,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue.interfaces.stream
 import surf.protocols.clink as clink
 
 class UartJaiCm140Tx(clink.ClinkSerialTx):
@@ -80,7 +79,7 @@ class UartJaiCm140(pr.Device):
             description  = 'Camera Status Request',
             mode         = 'WO',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'ST?') if value!='' else ''
+            localSet     = lambda value: self._tx.sendString('ST?') if value!='' else ''
         ))
 
         self.add(pr.LocalVariable(
@@ -88,7 +87,7 @@ class UartJaiCm140(pr.Device):
             description  = 'Online Help Request',
             mode         = 'WO',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'HP?') if value!='' else ''
+            localSet     = lambda value: self._tx.sendString('HP?') if value!='' else ''
         ))
 
         self.add(pr.LocalVariable(
@@ -96,7 +95,7 @@ class UartJaiCm140(pr.Device):
             description  = 'Firmware Version',
             mode         = 'WO',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'VN?') if value!='' else ''
+            localSet     = lambda value: self._tx.sendString('VN?') if value!='' else ''
         ))
 
         self.add(pr.LocalVariable(
@@ -104,7 +103,7 @@ class UartJaiCm140(pr.Device):
             description  = 'Camera ID Request',
             mode         = 'WO',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'ID?') if value!='' else ''
+            localSet     = lambda value: self._tx.sendString('ID?') if value!='' else ''
         ))
 
         self.add(pr.LocalVariable(
@@ -112,7 +111,7 @@ class UartJaiCm140(pr.Device):
             description  = 'Model Name Request',
             mode         = 'WO',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'MD?') if value!='' else ''
+            localSet     = lambda value: self._tx.sendString('MD?') if value!='' else ''
         ))
 
         #######################################################################
