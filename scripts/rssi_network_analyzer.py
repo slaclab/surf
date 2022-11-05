@@ -70,6 +70,7 @@ class RssiLink(object):
 
         self._lastFrames = []
         self._postDump = 0
+        self._count = [0] * 2
 
     def rxPacket(self, *, packet, log=None, printAll=False):
 
@@ -97,6 +98,8 @@ class RssiLink(object):
 
         if not frame.good:
             return
+
+        self._count[idx] += 1
 
         # Keep a ring buffer of the last 20 frames incase an error is found
         if len(self._lastFrames) == 20:
@@ -181,7 +184,7 @@ class RssiLink(object):
             self._lastAck[idx] = frame.ackNum
 
     def __str__(self):
-        return f"Server = {self.server}, Port = {self.port}"
+        return f"Server = {self.server}, Port = {self.port}, Server Count = {self._count[1]}, Client Count = {self._count[0]}"
 
 
 def analyzeRssiDump(pcapFile, links):
@@ -196,6 +199,10 @@ def analyzeRssiDump(pcapFile, links):
         for c in pyshark.FileCapture(sys.argv[1]):
             for link in links:
                 link.rxPacket(packet=c, log=f, printAll=False)
+
+    print("Link Counts:")
+    for link in links:
+        print(f"   {link}")
 
 
 if __name__ == "__main__":
