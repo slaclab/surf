@@ -436,7 +436,6 @@ begin
          if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
             v.inFrame       := '1';
             v.master.tValid := '1';
-            v.byteCnt       := r.byteCnt + r.bytes;
          end if;
 
          -- Backpressure
@@ -456,18 +455,14 @@ begin
                v.status.frameCount := r.status.frameCount + 1;
             end if;
 
+            -- Check for no data at end of frame
+            if (v.master.tValid = '0') then
+               v.master.tKeep := (others => '0');
+            end if;
+
             v.master.tValid := '1';
             v.master.tLast  := '1';
 
-            -- Check for no data at end of frame
-            if (r.byteData.lv = '0') then
-               v.master.tKeep     := (others => '0');
-               v.status.frameSize := r.byteCnt;
-            else
-               v.status.frameSize := v.byteCnt;
-            end if;
-
-            v.byteCnt := (others => '0');
             v.inFrame := '0';
             v.dump    := '0';
          end if;
@@ -497,10 +492,11 @@ begin
       if (r.master.tValid = '1') or (r.pipeline(0).tLast = '1') then
 
          -- Check for empty tLast
-         if (r.master.tValid = '1') and (r.master.tLast = '1') and (r.master.tKeep = 0) then
+         if (r.master.tValid = '1') and (r.master.tKeep = 0) then
 
             -- Clear the first stage pipeline
             v.pipeline(0).tValid := '0';
+            v.pipeline(0).tLast  := '0';
 
             -- Only pop register first stage to the output
             v.pipeline(1) := r.pipeline(0);
@@ -519,6 +515,21 @@ begin
 
          end if;
 
+      end if;
+
+      -- Check for outbound data
+      if (r.pipeline(1).tValid = '1') then
+
+         -- Increment the counter
+         v.byteCnt := r.byteCnt + r.bytes;
+
+         -- Check for last byte
+         if (r.pipeline(1).tLast = '1') then
+            -- Latch the value
+            v.status.frameSize := v.byteCnt;
+            -- Reset the counter
+            v.byteCnt          := (others => '0');
+         end if;
       end if;
 
       -- Outputs
