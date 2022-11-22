@@ -176,13 +176,14 @@ begin
    -- Depacketize the RX data frames
    U_AxiStreamDepacketizer2_1 : entity surf.AxiStreamDepacketizer2
       generic map (
-         TPD_G               => TPD_G,
-         MEMORY_TYPE_G       => "distributed",
-         CRC_MODE_G          => "DATA",
-         CRC_POLY_G          => PGP4_CRC_POLY_C,
-         SEQ_CNT_SIZE_G      => 12,
-         TDEST_BITS_G        => 4,
-         INPUT_PIPE_STAGES_G => 1)
+         TPD_G                => TPD_G,
+         MEMORY_TYPE_G        => "distributed",
+         CRC_MODE_G           => "DATA",
+         CRC_POLY_G           => PGP4_CRC_POLY_C,
+         SEQ_CNT_SIZE_G       => 0, -- ZERO: Pgp4TxLite does NOT support SOC/EOC
+         TDEST_BITS_G         => ite(NUM_VC_G=1,0,bitSize(NUM_VC_G)),
+         INPUT_PIPE_STAGES_G  => 0,
+         OUTPUT_PIPE_STAGES_G => 0)
       port map (
          axisClk     => pgpRxClk,                -- [in]
          axisRst     => pgpRxRst,                -- [in]
