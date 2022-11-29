@@ -15,10 +15,11 @@ import sys
 
 class RssiFrame(object):
 
-    def __init__(self, *, payload, server):
-        pdata = bytearray.fromhex(payload.replace(':',' '))
+    def __init__(self, *, packet, server):
+        pdata = bytearray.fromhex(packet.udp.payload.replace(':',' '))
 
         self.server = server
+        self.time = packet.sniff_timestamp
         self.syn = (pdata[0] & 0x80) != 0
         self.ack = (pdata[0] & 0x40) != 0
         self.rst = (pdata[0] & 0x10) != 0
@@ -27,6 +28,33 @@ class RssiFrame(object):
         self.eack = (pdata[0] & 0x20) != 0
         self.seqNum = pdata[2]
         self.ackNum = pdata[3]
+        self.src = packet.ip.src
+        self.dst = packet.ip.dst
+        self.srcPort = int(packet.udp.srcport)
+        self.dstPort = int(packet.udp.dstport)
+
+        self.packVer = None
+        self.frame = None
+        self.pack = None
+        self.tdest = None
+        self.tid = None
+        self.user = None
+        self.id = None
+        self.addr = None
+        self.opcode = None
+
+        if len(pdata) > 24:
+            self.packVer  = pdata[8] & 0xF
+            self.frame = int.from_bytes(pdata[8:10],byteorder='little') >> 4
+            self.pack = int.from_bytes(pdata[10:13],byteorder='little')
+            self.tdest = pdata[13]
+            self.tid   = pdata[14]
+            self.user  = pdata[15]
+
+            self.id   = int.from_bytes(pdata[16:20],byteorder='little')
+            self.addr = (int.from_bytes(pdata[20:24],byteorder='little') & 0x3FFFFFFF) << 2
+            self.opcode = (pdata[23] >> 2) & 0x3
+
         self.good = True
 
         if pdata[1] != 8:
@@ -34,28 +62,51 @@ class RssiFrame(object):
             self.good = False
 
         else:
-            csum = sum([int.from_bytes(bytearray(pdata[i:i+2]), byteorder='big') for i in range(0,6,2)])
+            csum = sum([int.from_bytes(pdata[i:i+2], byteorder='big') for i in range(0,6,2)])
             csum = int((csum % 0x10000) + (csum / 0x10000)) ^ 0xFFFF
 
-            esum = int.from_bytes(bytearray(pdata[6:8]), byteorder='big')
+            esum = int.from_bytes(pdata[6:8], byteorder='big')
 
             if esum != csum:
                 print(f"Got bad checksum. Exp={esum:#}, Got={csum:#}")
                 self.good = False
 
-        self.length = len(pdata) - 8
+        # subtract udp header + ssi header
+        self.length = int(packet.udp.length) - 16
+
+        #print(packet.udp.payload)
+        #if self.srcPort == 8193 or self.dstPort == 8193:
+            #print(self)
+
 
     def __str__(self):
-        ret = f"Server = {self.server}, "
+        ret = f"Time = {self.time}, "
+        ret += f"Src={self.src}:{self.srcPort}, "
+        ret += f"Dst={self.dst}:{self.dstPort}, "
+        ret += f"Server = {self.server}, "
         ret += f"Syn = {self.syn}, "
         ret += f"Ack = {self.ack}, "
         ret += f"Rst = {self.rst}, "
-        ret += f"Nul = {self.rst}, "
+        ret += f"Nul = {self.nul}, "
         ret += f"Bsy = {self.bsy}, "
         ret += f"EAck = {self.eack}, "
         ret += f"Length = {self.length}, "
         ret += f"SeqNum = {self.seqNum}, "
-        ret += f"AckNum = {self.ackNum} "
+        ret += f"AckNum = {self.ackNum}, "
+
+
+        if self.srcPort == 8193 or self.dstPort == 8193:
+            #ret += f"PackVer = {self.packVer}, "
+            #ret += f"Frame = {self.frame}, "
+            ret += f"Packet = {self.pack}, "
+            ret += f"TDest = {self.tdest}, "
+            #ret += f"TId = {self.tid}, "
+
+            if self.pack == 0:
+                ret += f"ID = {self.id:#x}, "
+                ret += f"Addr = {self.addr:#x}, "
+                ret += f"Op = {self.opcode}"
+
         return ret
 
 
@@ -94,15 +145,15 @@ class RssiLink(object):
         else:
             return
 
-        frame = RssiFrame(payload=packet.udp.payload, server=idx)
+        frame = RssiFrame(packet=packet, server=idx)
 
         if not frame.good:
             return
 
         self._count[idx] += 1
 
-        # Keep a ring buffer of the last 20 frames incase an error is found
-        if len(self._lastFrames) == 20:
+        # Keep a ring buffer of the last 200 frames incase an error is found
+        if len(self._lastFrames) == 200:
             self._lastFrames = self._lastFrames[1:]
         self._lastFrames.append(frame)
 
@@ -187,7 +238,7 @@ class RssiLink(object):
         return f"Server = {self.server}, Port = {self.port}, Server Count = {self._count[1]}, Client Count = {self._count[0]}"
 
 
-def analyzeRssiDump(pcapFile, links):
+def analyzeRssiDump(pcapFile, links, printAll):
 
     print(f"Opening {pcapFile}")
     print(f"Logging to {pcapFile}.txt")
@@ -198,7 +249,7 @@ def analyzeRssiDump(pcapFile, links):
     with open(pcapFile + '.txt', 'w') as f:
         for c in pyshark.FileCapture(sys.argv[1]):
             for link in links:
-                link.rxPacket(packet=c, log=f, printAll=False)
+                link.rxPacket(packet=c, log=f, printAll=printAll)
 
     print("Link Counts:")
     for link in links:
@@ -218,7 +269,19 @@ if __name__ == "__main__":
              RssiLink(server='10.0.1.104', port=8193),
              RssiLink(server='10.0.1.104', port=8194),
              RssiLink(server='10.0.1.105', port=8193),
-             RssiLink(server='10.0.1.105', port=8194)]
+             RssiLink(server='10.0.1.105', port=8194),
+             RssiLink(server='10.0.1.106', port=8193),
+             RssiLink(server='10.0.1.106', port=8194),
+             RssiLink(server='10.1.1.102', port=8193),
+             RssiLink(server='10.1.1.102', port=8194),
+             RssiLink(server='10.1.1.103', port=8193),
+             RssiLink(server='10.1.1.103', port=8194),
+             RssiLink(server='10.1.1.104', port=8193),
+             RssiLink(server='10.1.1.104', port=8194),
+             RssiLink(server='10.1.1.105', port=8193),
+             RssiLink(server='10.1.1.105', port=8194),
+             RssiLink(server='10.1.1.106', port=8193),
+             RssiLink(server='10.1.1.106', port=8194)]
 
-    analyzeRssiDump(sys.argv[1], links)
+    analyzeRssiDump(sys.argv[1], links, False)
 
