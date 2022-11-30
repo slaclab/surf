@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -38,6 +37,7 @@ entity AxiStreamDmaRingWrite is
       DATA_AXIS_CONFIG_G   : AxiStreamConfigType;
       STATUS_AXIS_CONFIG_G : AxiStreamConfigType;
       AXI_WRITE_CONFIG_G   : AxiConfigType;
+      END_ADDR_GT_G        : boolean                  := false;  -- Use greater than test for endAddr
       BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
       BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
    port (
@@ -568,7 +568,8 @@ begin
                -- Increment address of last burst in buffer.
                -- Wrap back to start when it hits the end of the buffer.
                v.nextAddr := r.nextAddr + dmaAck.size;  --(BURST_SIZE_BYTES_G); --
-               if (v.nextAddr = r.endAddr) then
+               if ((v.nextAddr > r.endAddr and END_ADDR_GT_G) or
+                   (v.nextAddr = r.endAddr and not END_ADDR_GT_G)) then
                   v.status(FULL_C) := '1';
                   if (r.mode(DONE_WHEN_FULL_C) = '1') then
                      v.status(DONE_C) := '1';
