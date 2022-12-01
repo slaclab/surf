@@ -43,7 +43,7 @@ class RssiFrame(object):
         self.addr = None
         self.opcode = None
 
-        if len(pdata) > 24:
+        if len(pdata) > 28:
             self.packVer  = pdata[8] & 0xF
             self.frame = int.from_bytes(pdata[8:10],byteorder='little') >> 4
             self.pack = int.from_bytes(pdata[10:13],byteorder='little')
@@ -51,9 +51,9 @@ class RssiFrame(object):
             self.tid   = pdata[14]
             self.user  = pdata[15]
 
-            self.id   = int.from_bytes(pdata[16:20],byteorder='little')
-            self.addr = (int.from_bytes(pdata[20:24],byteorder='little') & 0x3FFFFFFF) << 2
-            self.opcode = (pdata[23] >> 2) & 0x3
+            self.opcode = pdata[17] & 0x3
+            self.id   = int.from_bytes(pdata[20:24],byteorder='little')
+            self.addr = int.from_bytes(pdata[24:28],byteorder='little')
 
         self.good = True
 
@@ -94,15 +94,14 @@ class RssiFrame(object):
         ret += f"SeqNum = {self.seqNum}, "
         ret += f"AckNum = {self.ackNum}, "
 
-
-        if self.srcPort == 8193 or self.dstPort == 8193:
-            #ret += f"PackVer = {self.packVer}, "
+        if (self.srcPort == 8193 or self.dstPort == 8193) and self.tdest is not None:
+            ret += f"PackVer = {self.packVer}, "
             #ret += f"Frame = {self.frame}, "
             ret += f"Packet = {self.pack}, "
-            ret += f"TDest = {self.tdest}, "
+            ret += f"TDest = {self.tdest:#x}, "
             #ret += f"TId = {self.tid}, "
 
-            if self.pack == 0:
+            if self.pack == 0 and self.tdest == 0:
                 ret += f"ID = {self.id:#x}, "
                 ret += f"Addr = {self.addr:#x}, "
                 ret += f"Op = {self.opcode}"
