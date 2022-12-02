@@ -165,7 +165,9 @@ architecture rtl of SrpV3AxiLite is
    signal rxTLastTUser : slv(7 downto 0);
    signal txSlave      : AxiStreamSlaveType;
    signal rst          : sl;
+   signal sRstTmp      : sl;
    signal sRst         : sl;
+   signal rxRstTmp     : sl;
    signal rxRst        : sl;
 
    -- attribute dont_touch                 : string;
@@ -185,7 +187,24 @@ architecture rtl of SrpV3AxiLite is
 begin
 
    sAxisCtrl <= sCtrl;
-   sRst      <= rst or sAxisRst;
+   sRstTmp   <= rst or sAxisRst;
+
+   Sync_Rst_1 : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => sAxisClk,
+         asyncRst => sRstTmp,
+         syncRst  => sRst);
+
+   Sync_Rst_2 : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => axilClk,
+         asyncRst => rxRstTmp,
+         syncRst  => rxRst);
+
 
    U_Limiter : entity surf.SsiFrameLimiter
       generic map (
@@ -773,7 +792,7 @@ begin
       -- Registered Outputs
       mAxilWriteMaster <= r.mAxilWriteMaster;
       mAxilReadMaster  <= r.mAxilReadMaster;
-      rxRst            <= r.rxRst or axilRst;
+      rxRstTmp         <= r.rxRst or axilRst;
 
    end process comb;
 
