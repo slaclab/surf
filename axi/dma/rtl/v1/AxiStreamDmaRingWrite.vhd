@@ -37,7 +37,7 @@ entity AxiStreamDmaRingWrite is
       DATA_AXIS_CONFIG_G   : AxiStreamConfigType;
       STATUS_AXIS_CONFIG_G : AxiStreamConfigType;
       AXI_WRITE_CONFIG_G   : AxiConfigType;
-      END_ADDR_GT_G        : boolean                  := false;  -- Use greater than test for endAddr
+      FORCE_WRAP_ALIGN_G   : boolean                  := false;  -- Force dma to end at endAddr
       BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
       BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
    port (
@@ -458,6 +458,7 @@ begin
                    startRamDout, statusRamDout, trigRamDout) is
       variable v            : RegType;
       variable axilEndpoint : AxiLiteEndpointType;
+      variable endRamSize   : integer;
    begin
       v := r;
 
@@ -546,6 +547,12 @@ begin
             -- Writes always start on a BURST_SIZE_BYTES_G boundary, so can drive low dmaReq.address
             -- bits to zero for optimization.
             v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := nextRamDout;
+            endRamSize := conv_integer(endRamDout - nextRamDout);
+            if FORCE_WRAP_ALIGN_G and endRamSize < BURST_SIZE_BYTES_G then
+              v.dmaReq.maxSize := toSlv(endRamSize, 32);
+            else
+              v.dmaReq.maxSize := toSlv(BURST_SIZE_BYTES_G, 32);
+            end if;
             if not ENABLE_UNALIGN_G then
               v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0)                  := (others => '0');
               v.dmaReq.drop                                                := v.status(DONE_C);
@@ -567,15 +574,11 @@ begin
 
                -- Increment address of last burst in buffer.
                -- Wrap back to start when it hits the end of the buffer.
-               v.nextAddr := r.nextAddr + dmaAck.size; --(BURST_SIZE_BYTES_G); --
-               if ((v.nextAddr > r.endAddr and END_ADDR_GT_G) or
-                   (v.nextAddr = r.endAddr and not END_ADDR_GT_G)) then
+               v.nextAddr := r.nextAddr + dmaAck.size;  --(BURST_SIZE_BYTES_G); --
+               if (v.nextAddr = r.endAddr) then
                   v.status(FULL_C) := '1';
                   if (r.mode(DONE_WHEN_FULL_C) = '1') then
                      v.status(DONE_C) := '1';
-                  end if;
-                  if END_ADDR_GT_G then
-                     v.trigAddr := v.nextAddr;
                   end if;
                   v.nextAddr := r.startAddr;
                end if;
@@ -584,9 +587,7 @@ begin
                v.trigger                                   := '0';
                v.softTrigger(conv_integer(r.activeBuffer)) := '0';
                if ((r.trigger = '1' or r.softTrigger(conv_integer(r.activeBuffer)) = '1') and r.status(TRIGGERED_C) = '0') then
-                  if not END_ADDR_GT_G then
-                    v.trigAddr            := r.nextAddr;
-                  end if;
+                  v.trigAddr            := r.nextAddr;
                   v.status(TRIGGERED_C) := '1';
                end if;
 
