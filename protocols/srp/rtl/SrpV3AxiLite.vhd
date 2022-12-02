@@ -201,7 +201,7 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk      => MAxisClk,
+         clk      => mAxisClk,
          asyncRst => rxRstTmp,
          syncRst  => rxRst);
 
