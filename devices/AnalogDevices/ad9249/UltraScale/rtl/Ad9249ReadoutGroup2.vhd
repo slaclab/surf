@@ -438,8 +438,8 @@ begin
             dRst          => adcBitRst,
             dClkDiv4      => adcBitClkDiv4,
             dRstDiv4      => adcBitRstDiv4,
-            sDataP        => adcSerial.fClkP,
-            sDataN        => adcSerial.fClkN,
+            sDataP        => adcSerial.chP(ch),
+            sDataN        => adcSerial.chN(ch),
             loadDelay     => dlyLoad,
             delay         => dlyCfg,
             bitSlip       => bitSlip,
@@ -487,7 +487,7 @@ begin
    begin
       v := adcR;
 
-      v.errorDet := toSl(adcFrame /= "11110000");
+      v.errorDet := toSl(adcFrame /= "11111110000000");
 
       adcRin <= v;
 
