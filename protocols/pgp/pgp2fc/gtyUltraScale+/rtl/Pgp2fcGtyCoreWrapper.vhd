@@ -86,13 +86,13 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          gtwiz_reset_rx_done_out            : out std_logic_vector (0 to 0);
          gtwiz_userdata_tx_in               : in  std_logic_vector (15 downto 0);
          gtwiz_userdata_rx_out              : out std_logic_vector (15 downto 0);
-         cpllrefclksel_in                   : in  std_logic_vector (2 downto 0);
+--         cpllrefclksel_in                   : in  std_logic_vector (2 downto 0);
          drpaddr_in                         : in  std_logic_vector (9 downto 0);
          drpclk_in                          : in  std_logic_vector (0 to 0);
          drpdi_in                           : in  std_logic_vector (15 downto 0);
          drpen_in                           : in  std_logic_vector (0 to 0);
          drpwe_in                           : in  std_logic_vector (0 to 0);
-         gtgrefclk_in                       : in  std_logic_vector (0 to 0);
+--         gtgrefclk_in                       : in  std_logic_vector (0 to 0);
          gtrefclk0_in                       : in  std_logic_vector (0 to 0);
          gtyrxn_in                          : in  std_logic_vector (0 to 0);
          gtyrxp_in                          : in  std_logic_vector (0 to 0);
@@ -168,8 +168,8 @@ begin
          gtwiz_reset_rx_done_out(0)            => rxResetDone,
          gtwiz_userdata_tx_in                  => txData,
          gtwiz_userdata_rx_out                 => rxData,
-         cpllrefclksel_in                      => "001",
-         gtgrefclk_in(0)                       => '0',
+--         cpllrefclksel_in                      => "001",
+--         gtgrefclk_in(0)                       => '0',
          drpclk_in(0)                          => stableClk,
          drpaddr_in                            => drpAddr,
          drpdi_in                              => drpDi,
@@ -214,7 +214,7 @@ begin
          rxpmaresetdone_out                    => open,
          txoutclk_out(0)                       => txOutClk,
          txpmaresetdone_out                    => open);
-
+   
    txctrl2 <= "000000" & txDataK;
 
    U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
