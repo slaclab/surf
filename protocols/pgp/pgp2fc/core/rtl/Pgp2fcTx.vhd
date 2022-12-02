@@ -319,8 +319,8 @@ begin
             );
 
       intValid(i)           <= intTxMasters(i).tValid;
-      intTxEofe(i)          <= axiStreamGetUserBit(SSI_PGP2FC_CONFIG_C, intTxMasters(i), SSI_EOFE_C);
-      intTxSof(i)           <= axiStreamGetUserBit(SSI_PGP2FC_CONFIG_C, intTxMasters(i), SSI_SOF_C, 0);
+      intTxEofe(i)          <= axiStreamGetUserBit(PGP2FC_AXIS_CONFIG_C, intTxMasters(i), SSI_EOFE_C);
+      intTxSof(i)           <= axiStreamGetUserBit(PGP2FC_AXIS_CONFIG_C, intTxMasters(i), SSI_SOF_C, 0);
       intTxSlaves(i).tReady <= rawReady(i);
 
    end generate;

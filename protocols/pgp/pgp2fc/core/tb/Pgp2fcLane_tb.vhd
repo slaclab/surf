@@ -227,7 +227,7 @@ begin
                FIFO_FIXED_THRESH_G => true,
                FIFO_PAUSE_THRESH_G => 255,
                SLAVE_AXI_CONFIG_G  => RCEG3_AXIS_DMA_CONFIG_G,
-               MASTER_AXI_CONFIG_G => SSI_PGP2FC_CONFIG_C)
+               MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C)
             port map (
                sAxisClk        => locClk,
                sAxisRst        => locClkRst,
@@ -323,8 +323,8 @@ begin
             FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 511,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => SSI_PGP2FC_CONFIG_C,
-            MASTER_AXI_CONFIG_G => SSI_PGP2FC_CONFIG_C
+            SLAVE_AXI_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C
          ) port map (
             -- Slave Port
             sAxisClk    => locClk,
@@ -349,7 +349,7 @@ begin
             PRBS_TAPS_G                => (0 => 16),
             FIFO_ADDR_WIDTH_G          => 9,
             FIFO_PAUSE_THRESH_G        => 256,    -- Almost full at 1/2 capacity
-            SLAVE_AXI_STREAM_CONFIG_G  => SSI_PGP2FC_CONFIG_C,
+            SLAVE_AXI_STREAM_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
             SLAVE_AXI_PIPE_STAGES_G    => 0
          ) port map (
             sAxisClk        => slowClk,
