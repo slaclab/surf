@@ -94,7 +94,7 @@ begin
             SSI_EN_G      => true,
             CHAN_MASK_G   => "00000000",
             TDEST_MASK_G  => toSlv(i, 8),
-            AXIS_CONFIG_G => SSI_PGP2FC_CONFIG_C)
+            AXIS_CONFIG_G => PGP2FC_AXIS_CONFIG_C)
          port map (
             axisClk     => pgpClk,              -- [in]
             axisRst     => pgpClkRst,           -- [in]

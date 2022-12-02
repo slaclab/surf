@@ -210,8 +210,8 @@ begin
 
             intMaster.tLast := intRxEof;
 
-            axiStreamSetUserBit(SSI_PGP2FC_CONFIG_C, intMaster, SSI_EOFE_C, intRxEofe);
-            axiStreamSetUserBit(SSI_PGP2FC_CONFIG_C, intMaster, SSI_SOF_C, intRxSof, 0);
+            axiStreamSetUserBit(PGP2FC_AXIS_CONFIG_C, intMaster, SSI_EOFE_C, intRxEofe);
+            axiStreamSetUserBit(PGP2FC_AXIS_CONFIG_C, intMaster, SSI_SOF_C, intRxSof, 0);
 
             pgpRxOut.frameRx    <= uOr(intRxVcValid) and intRxEof and (not intRxEofe) after TPD_G;
             pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G;
