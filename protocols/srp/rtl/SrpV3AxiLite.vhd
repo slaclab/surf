@@ -189,7 +189,7 @@ begin
    sAxisCtrl <= sCtrl;
    sRstTmp   <= rst or sAxisRst;
 
-   Sync_Rst : entity surf.RstSync
+   Sync_Rst_1 : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -197,11 +197,11 @@ begin
          asyncRst => sRstTmp,
          syncRst  => sRst);
 
-   Sync_Rst : entity surf.RstSync
+   Sync_Rst_2 : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk      => mAxisClk,
+         clk      => axilClk,
          asyncRst => rxRstTmp,
          syncRst  => rxRst);
 
