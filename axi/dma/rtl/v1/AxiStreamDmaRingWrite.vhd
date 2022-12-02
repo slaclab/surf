@@ -567,12 +567,15 @@ begin
 
                -- Increment address of last burst in buffer.
                -- Wrap back to start when it hits the end of the buffer.
-               v.nextAddr := r.nextAddr + dmaAck.size;  --(BURST_SIZE_BYTES_G); --
+               v.nextAddr := r.nextAddr + dmaAck.size; --(BURST_SIZE_BYTES_G); --
                if ((v.nextAddr > r.endAddr and END_ADDR_GT_G) or
                    (v.nextAddr = r.endAddr and not END_ADDR_GT_G)) then
                   v.status(FULL_C) := '1';
                   if (r.mode(DONE_WHEN_FULL_C) = '1') then
                      v.status(DONE_C) := '1';
+                  end if;
+                  if END_ADDR_GT_G then
+                     v.trigAddr := v.nextAddr;
                   end if;
                   v.nextAddr := r.startAddr;
                end if;
@@ -581,7 +584,9 @@ begin
                v.trigger                                   := '0';
                v.softTrigger(conv_integer(r.activeBuffer)) := '0';
                if ((r.trigger = '1' or r.softTrigger(conv_integer(r.activeBuffer)) = '1') and r.status(TRIGGERED_C) = '0') then
-                  v.trigAddr            := r.nextAddr;
+                  if not END_ADDR_GT_G then
+                    v.trigAddr            := r.nextAddr;
+                  end if;
                   v.status(TRIGGERED_C) := '1';
                end if;
 
