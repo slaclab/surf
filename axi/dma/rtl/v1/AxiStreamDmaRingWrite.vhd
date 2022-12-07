@@ -169,7 +169,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       state            : StateType;
       dmaReq           : AxiWriteDmaReqType;
       trigger          : sl;
-      softTrigger      : slv(BUFFERS_G-1 downto 0);
+      softTrigger      : slv(2**RAM_ADDR_WIDTH_C-1 downto 0);
       eofe             : sl;
       bufferEnabled    : slv(BUFFERS_G-1 downto 0);
       bufferEmpty      : slv(BUFFERS_G-1 downto 0);
