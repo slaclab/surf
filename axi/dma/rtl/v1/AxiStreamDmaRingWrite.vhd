@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -38,6 +37,7 @@ entity AxiStreamDmaRingWrite is
       DATA_AXIS_CONFIG_G   : AxiStreamConfigType;
       STATUS_AXIS_CONFIG_G : AxiStreamConfigType;
       AXI_WRITE_CONFIG_G   : AxiConfigType;
+      FORCE_WRAP_ALIGN_G   : boolean                  := false;  -- Force dma to end at endAddr
       BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
       BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
    port (
@@ -169,7 +169,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       state            : StateType;
       dmaReq           : AxiWriteDmaReqType;
       trigger          : sl;
-      softTrigger      : slv(BUFFERS_G-1 downto 0);
+      softTrigger      : slv(2**RAM_ADDR_WIDTH_C-1 downto 0);
       eofe             : sl;
       bufferEnabled    : slv(BUFFERS_G-1 downto 0);
       bufferEmpty      : slv(BUFFERS_G-1 downto 0);
@@ -458,6 +458,7 @@ begin
                    startRamDout, statusRamDout, trigRamDout) is
       variable v            : RegType;
       variable axilEndpoint : AxiLiteEndpointType;
+      variable endRamSize   : integer;
    begin
       v := r;
 
@@ -546,6 +547,12 @@ begin
             -- Writes always start on a BURST_SIZE_BYTES_G boundary, so can drive low dmaReq.address
             -- bits to zero for optimization.
             v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := nextRamDout;
+            endRamSize := conv_integer(endRamDout - nextRamDout);
+            if FORCE_WRAP_ALIGN_G and endRamSize < BURST_SIZE_BYTES_G then
+              v.dmaReq.maxSize := toSlv(endRamSize, 32);
+            else
+              v.dmaReq.maxSize := toSlv(BURST_SIZE_BYTES_G, 32);
+            end if;
             if not ENABLE_UNALIGN_G then
               v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0)                  := (others => '0');
               v.dmaReq.drop                                                := v.status(DONE_C);
