@@ -193,14 +193,14 @@ class AxiMicronP30(pr.Device):
             # Get the status register
             status = self._readFromFlash(address,0x70)
             # Check for erasing failure
-            if( (status&0x20) != 0 ):
+            if ( (status&0x20) != 0 ):
                 # Unlock the Block
                 self._writeToFlash(address,0x60,0xD0)
                 # Reset the status register
                 self._writeToFlash(address,0x50,0x50)
                 # Send the erase command
                 self._writeToFlash(address,0x20,0xD0)
-            elif( (status&0x80) != 0 ):
+            elif ( (status&0x80) != 0 ):
                 break
         # Lock the Block
         self._writeToFlash(address,0x60,0x01)

@@ -196,7 +196,7 @@ class AxiMicronMt28ew(pr.Device):
         self._writeToFlash(address,0x30)
         while True:
             status = self._readFromFlash(address)
-            if( (status&0x80) != 0 ):
+            if ( (status&0x80) != 0 ):
                 break
 
     def writeProm(self):

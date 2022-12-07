@@ -291,7 +291,7 @@ class AxiMicronN25Q(pr.Device):
 
         # Check for leftover data
         if ( (wordCnt != 0) or (byteCnt != 0) ):
-            while(wordCnt != 64):
+            while (wordCnt != 64):
                 # Pack the bytes into a 32-bit word
                 if ( byteCnt==0 ):
                     wrd = (0xFF) << (8*(3-byteCnt))
@@ -373,7 +373,7 @@ class AxiMicronN25Q(pr.Device):
             self.setCmd(self.READ_MASK|self.READ_3BYTE_CMD|0x103)
 
     def setPromStatusReg(self, value):
-        if(self._addrMode):
+        if (self._addrMode):
             self.setAddrReg((value&0xFF)<<24)
             self.setCmd(self.WRITE_MASK|self.STATUS_REG_WR_CMD|0x1)
         else:
