@@ -1,5 +1,6 @@
 var NAVTREEINDEX143 =
 {
+"classSugoiSubordinateCore.html#a9e2dfa47c19ba260368554e07f3e89f2":[1,0,688,4],
 "classSugoiSubordinateCore.html#ac4860d1e38b433d4d699788bbd2e6996":[1,0,688,9],
 "classSugoiSubordinateCore.html#aca227e106607a8081642fb7957cd0885":[1,0,688,11],
 "classSugoiSubordinateCore.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,688,17],
@@ -248,6 +249,5 @@ var NAVTREEINDEX143 =
 "classSyncMinMax.html#a7cc7a3a23618b55e00c4903c44447c15":[1,0,703,7],
 "classSyncMinMax.html#a7e67d034bc813bcbf8bb54894fd3f4ca":[1,0,703,6],
 "classSyncMinMax.html#a96317749b8cf71c314da7bbe5eda9e38":[1,0,703,14],
-"classSyncMinMax.html#aba9daf4b05eec06ecc1a40b94b8afbfc":[1,0,703,8],
-"classSyncMinMax.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,703,19]
+"classSyncMinMax.html#aba9daf4b05eec06ecc1a40b94b8afbfc":[1,0,703,8]
 };

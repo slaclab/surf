@@ -1,5 +1,6 @@
 var NAVTREEINDEX67 =
 {
+"classGtp7RxFixedLatPhaseAligner_1_1rtl.html#a336c6d561ab6eb2bccb3c84c8f28f2af":[1,0,337,0,1],
 "classGtp7RxFixedLatPhaseAligner_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9":[1,0,337,0,4],
 "classGtp7RxFixedLatPhaseAligner_1_1rtl.html#a40a7f80d36c25e97394fb045610f91e8":[1,0,337,0,2],
 "classGtp7RxFixedLatPhaseAligner_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe":[1,0,337,0,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX67 =
 "classGtp7TxRst.html#a8cb397c6d496f9b081d34b2633e8cc73":[1,0,341,3],
 "classGtp7TxRst.html#a8d20580dd3684a0ad9e2153d64acc741":[1,0,341,10],
 "classGtp7TxRst.html#a8e67491ad4943218a5d5d88712a7a908":[1,0,341,7],
-"classGtp7TxRst.html#a8f50521a354ef755cb27d79f95bc57fb":[1,0,341,17],
-"classGtp7TxRst.html#a98b19827fa3369ab1f72043d0cdfbf4d":[1,0,341,20]
+"classGtp7TxRst.html#a8f50521a354ef755cb27d79f95bc57fb":[1,0,341,17]
 };

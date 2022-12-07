@@ -10,6 +10,7 @@ var classAxiStreamDmaRingWrite =
     [ "DATA_AXIS_CONFIG_G", "classAxiStreamDmaRingWrite.html#acc665534f6b05e1ca2519171a044e3fd", null ],
     [ "STATUS_AXIS_CONFIG_G", "classAxiStreamDmaRingWrite.html#aa1e1e8b9e774150bb84c3e6733a88c73", null ],
     [ "AXI_WRITE_CONFIG_G", "classAxiStreamDmaRingWrite.html#a28ffef8ec0cdfa4215babfccc6550168", null ],
+    [ "FORCE_WRAP_ALIGN_G", "classAxiStreamDmaRingWrite.html#a4d99bc16a80b218babc016ded4071b7d", null ],
     [ "BYP_SHIFT_G", "classAxiStreamDmaRingWrite.html#a61bda8a1c05151c1a18edc980411157b", null ],
     [ "BYP_CACHE_G", "classAxiStreamDmaRingWrite.html#ae5a31d262647b8449663cf068cafd485", null ],
     [ "axilClk", "classAxiStreamDmaRingWrite.html#a8e1fd4ab848b98a0c700b34cf7c90b36", null ],

@@ -31,7 +31,7 @@ var classAxiStreamDmaRingWrite_1_1rtl =
     [ "state", "classAxiStreamDmaRingWrite_1_1rtl.html#a4d1aa26dcfa648e02cbb0964cddbdbfe", null ],
     [ "dmaReq", "classAxiStreamDmaRingWrite_1_1rtl.html#ab630923c6bc4078ccfc49aedc43c5152", null ],
     [ "trigger", "classAxiStreamDmaRingWrite_1_1rtl.html#aecf56b9fcef2313b28549c230b6cef4f", null ],
-    [ "softTrigger", "classAxiStreamDmaRingWrite_1_1rtl.html#a9405ed673991f9ac98a74e79dcfedc4f", null ],
+    [ "softTrigger", "classAxiStreamDmaRingWrite_1_1rtl.html#a72e3331c5d812ca0c5dcd27a541df544", null ],
     [ "eofe", "classAxiStreamDmaRingWrite_1_1rtl.html#a47d1d338513a67387133309ddff6cb0f", null ],
     [ "bufferEnabled", "classAxiStreamDmaRingWrite_1_1rtl.html#a46757e07cbdc1352466d608c5a3053c8", null ],
     [ "bufferEmpty", "classAxiStreamDmaRingWrite_1_1rtl.html#a9c4f2fa7d921a30e9b268503d31c51a2", null ],

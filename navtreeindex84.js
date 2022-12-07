@@ -1,5 +1,6 @@
 var NAVTREEINDEX84 =
 {
+"classMasterAxiIpIntegrator.html":[1,0,429],
 "classMasterAxiIpIntegrator.html#a016805155bc3a4d6e006ca80b452d5ba":[1,0,429,23],
 "classMasterAxiIpIntegrator.html#a044fa401da50338cb22eb47d7de83916":[1,0,429,15],
 "classMasterAxiIpIntegrator.html#a054e3df989d533ccfdbb65a0ddc8fbed":[1,0,429,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX84 =
 "classMasterAxiStreamIpIntegrator_1_1mapping.html#add9f37b893b69825f87bf1b2f2c81f86":[1,0,431,0,6],
 "classMasterAxiStreamIpIntegrator_1_1mapping.html#aebfa153a20b52acba2dd237cdd347b59":[1,0,431,0,0],
 "classMasterAxiStreamTerminateIpIntegrator.html":[1,0,432],
-"classMasterAxiStreamTerminateIpIntegrator.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,432,21],
-"classMasterAxiStreamTerminateIpIntegrator.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,432,23]
+"classMasterAxiStreamTerminateIpIntegrator.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,432,21]
 };

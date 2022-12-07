@@ -1,5 +1,6 @@
 var NAVTREEINDEX75 =
 {
+"classI2cRegMasterMux.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,375,15],
 "classI2cRegMasterMux.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,375,12],
 "classI2cRegMasterMux.html#ae6d63006c2e8e19d411be0791cc2511a":[1,0,375,5],
 "classI2cRegMasterMux.html#ae8d3d8ed9be83e7e5a3c0daac8897627":[1,0,375,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX75 =
 "classIirSimple.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,382,1],
 "classIirSimple.html#a6e8ab76bd04e0c6908368ba33032574d":[1,0,382,17],
 "classIirSimple.html#a7833a1277cc0bd77c89503a97e4c4023":[1,0,382,8],
-"classIirSimple.html#a786202484c38d94223779f0149e41a73":[1,0,382,2],
-"classIirSimple.html#a824691d871b9db6a0485012e2e32bd88":[1,0,382,21]
+"classIirSimple.html#a786202484c38d94223779f0149e41a73":[1,0,382,2]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX109 =
 {
+"classPgp3Tx.html#ab176fc7d1412e0b6d8cc5ada71b84f10":[1,0,512,21],
 "classPgp3Tx.html#ab1cabc54eefa072e0339d65ade06ce19":[1,0,512,11],
 "classPgp3Tx.html#ac72682a8a1eea5f4b280a3da9d686371":[1,0,512,15],
 "classPgp3Tx.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,512,29],
@@ -248,6 +249,5 @@ var NAVTREEINDEX109 =
 "classPgp4Core.html#ae4fe0dc41159e6764592b37329006cec":[1,0,515,7],
 "classPgp4Core.html#aee28df1db493733b76edaf17b8f33a62":[1,0,515,60],
 "classPgp4Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,515,57],
-"classPgp4Core.html#af4ff1beb2e1997539524556e04ecf9bf":[1,0,515,20],
-"classPgp4Core.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,515,59]
+"classPgp4Core.html#af4ff1beb2e1997539524556e04ecf9bf":[1,0,515,20]
 };
