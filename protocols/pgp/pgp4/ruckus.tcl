@@ -3,7 +3,6 @@ source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
 
 # Load the Core
 loadRuckusTcl "$::DIR_PATH/core"
-loadRuckusTcl "$::DIR_PATH/asic"
 
 # Get the family type
 set family [getFpgaArch]
