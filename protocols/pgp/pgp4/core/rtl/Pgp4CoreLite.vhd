@@ -132,11 +132,12 @@ begin
    end generate GEN_TX;
 
    GEN_RX : if (PGP_RX_ENABLE_G) generate
-      U_Pgp4Rx_1 : entity surf.Pgp4RxLite
+      U_Pgp4Rx_1 : entity surf.Pgp4Rx
          generic map (
             TPD_G             => TPD_G,
             NUM_VC_G          => NUM_VC_G,
             SKIP_EN_G         => SKIP_EN_G,
+            LITE_EN_G         => true, -- TRUE = Pgp4RxLite
             ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
          port map (
             pgpRxClk       => pgpRxClk,        -- [in]

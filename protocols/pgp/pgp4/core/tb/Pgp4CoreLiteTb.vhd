@@ -59,11 +59,12 @@ architecture testbed of Pgp4CoreLiteTb is
    signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   signal passed   : sl := '0';
-   signal failed   : sl := '0';
-   signal updated  : sl := '0';
-   signal errorDet : sl := '0';
-   signal cnt      : slv(31 downto 0);
+   signal passed     : sl := '0';
+   signal failed     : sl := '0';
+   signal frameRxErr : sl := '0';
+   signal updated    : sl := '0';
+   signal errorDet   : sl := '0';
+   signal cnt        : slv(31 downto 0);
 
    signal pgpClk : sl := '0';
    signal pgpRst : sl := '1';
@@ -182,6 +183,14 @@ begin
          updatedResults => updated,
          errorDet       => errorDet);
 
+   U_frameRxErr : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_C)
+      port map (
+         clk     => locClk,
+         dataIn  => pgpRxOut.frameRxErr,
+         dataOut => frameRxErr);
+
    process(locClk)
    begin
       if rising_edge(locClk) then
@@ -189,6 +198,8 @@ begin
             cnt    <= (others => '0') after TPD_C;
             passed <= '0'             after TPD_C;
             failed <= '0'             after TPD_C;
+         elsif frameRxErr = '1' then
+            failed <= '1' after TPD_C;
          elsif updated = '1' then
             -- Check for packet error
             if errorDet = '1' then
