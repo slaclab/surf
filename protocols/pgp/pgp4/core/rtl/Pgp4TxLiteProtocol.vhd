@@ -302,6 +302,7 @@ begin
 
             -- Override any data acceptance.
             v.pgpTxSlave.tReady := '0';
+            v.crcDataValid      := '0';
 
             -- Accept the op-code
             v.opCodeReady := '1';
@@ -323,8 +324,11 @@ begin
             -- Reset the counter
             v.skpCount := (others => '0');
 
+            -- Override any data acceptance.
+            v.pgpTxSlave.tReady := '0';
+            v.crcDataValid      := '0';
+
             -- Update the TX data bus
-            v.pgpTxSlave.tReady                  := '0';  -- Override any data acceptance.
             v.protTxData(PGP4_SKIP_DATA_FIELD_C) := pgpTxIn.locData;
             v.protTxData(PGP4_BTF_FIELD_C)       := PGP4_SKP_C;
             v.protTxHeader                       := PGP4_K_HEADER_C;
@@ -365,6 +369,7 @@ begin
                if (r.pauseEvent(i) = '1') and (r.pauseEventSent(i) = '0') then
                   v.pauseEventSent(i) := '1';
                   v.pgpTxSlave.tReady := '0';
+                  v.crcDataValid      := '0';
                   v.protTxData        := idleWord;
                   v.protTxHeader      := PGP4_K_HEADER_C;
                   resetEventMetaData  := true;
@@ -374,6 +379,7 @@ begin
                if (r.overflowEvent(i) = '1') and (r.overflowEventSent(i) = '0') then
                   v.overflowEventSent(i) := '1';
                   v.pgpTxSlave.tReady    := '0';
+                  v.crcDataValid         := '0';
                   v.protTxData           := idleWord;
                   v.protTxHeader         := PGP4_K_HEADER_C;
                   resetEventMetaData     := true;
