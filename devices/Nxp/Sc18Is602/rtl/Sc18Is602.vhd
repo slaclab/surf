@@ -30,8 +30,8 @@ entity Sc18Is602 is
       I2C_SCL_FREQ_G    : real                      := 100.0E+3;  -- units of Hz
       I2C_MIN_PULSE_G   : real                      := 100.0E-9;  -- units of seconds
       SDO_MUX_SEL_MAP_G : Slv2Array(3 downto 0)     := (0      => "00", 1 => "01", 2 => "10", 3 => "11");
-      ADDRESS_SIZE_G    : PositiveArray(3 downto 0) := (others => 7);  -- SPI Address bits per channel
-      DATA_SIZE_G       : PositiveArray(3 downto 0) := (others => 16);  -- SPI Data bits per channel
+      ADDRESS_SIZE_G    : IntegerArray(3 downto 0)  := (others => 7);  -- SPI Address bits per channel
+      DATA_SIZE_G       : IntegerArray(3 downto 0)  := (others => 16);  -- SPI Data bits per channel
       AXIL_CLK_FREQ_G   : real                      := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
