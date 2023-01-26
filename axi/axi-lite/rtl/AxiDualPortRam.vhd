@@ -131,68 +131,6 @@ begin
       (SYNTH_MODE_G = "inferred" and MEMORY_TYPE_G = "distributed" and (READ_LATENCY_G <= 1))
       report "RAM memory configuration not supported" severity failure;
 
-   GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity surf.TrueDualPortRamXpm
-         generic map (
-            TPD_G               => TPD_G,
-            COMMON_CLK_G        => COMMON_CLK_G,
-            MEMORY_TYPE_G       => MEMORY_TYPE_G,
-            MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
-            MEMORY_INIT_PARAM_G => MEMORY_INIT_PARAM_G,
-            WRITE_MODE_G        => ite(MEMORY_TYPE_G = "distributed", "read_first", "no_change"),
-            READ_LATENCY_G      => READ_LATENCY_G,
-            DATA_WIDTH_G        => DATA_WIDTH_G,
-            BYTE_WR_EN_G        => true,
-            BYTE_WIDTH_G        => 8,
-            ADDR_WIDTH_G        => ADDR_WIDTH_G)
-         port map (
-            -- Port A
-            clka  => axiClk,
-            ena   => '1',
-            wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
-            rsta  => '0',
-            addra => r.axiAddr,
-            dina  => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),
-            douta => axiDout(DATA_WIDTH_G-1 downto 0),
-            -- Port B
-            clkb  => clk,
-            enb   => en,
-            web   => weByteMask,
-            rstb  => '0',
-            addrb => addr,
-            dinb  => din,
-            doutb => doutInt);
-   end generate;
-
-   GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity surf.TrueDualPortRamAlteraMf
-         generic map (
-            TPD_G          => TPD_G,
-            COMMON_CLK_G   => COMMON_CLK_G,
-            MEMORY_TYPE_G  => MEMORY_TYPE_G,
-            READ_LATENCY_G => READ_LATENCY_G,
-            DATA_WIDTH_G   => DATA_WIDTH_G,
-            BYTE_WR_EN_G   => true,
-            BYTE_WIDTH_G   => 8,
-            ADDR_WIDTH_G   => ADDR_WIDTH_G)
-         port map (
-            -- Port A
-            clka  => axiClk,
-            ena   => '1',
-            wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
-            rsta  => '0',
-            addra => r.axiAddr,
-            dina  => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),
-            douta => axiDout(DATA_WIDTH_G-1 downto 0),
-            -- Port B
-            clkb  => clk,
-            enb   => en,
-            web   => weByteMask,
-            rstb  => '0',
-            addrb => addr,
-            dinb  => din,
-            doutb => doutInt);
-   end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
 
