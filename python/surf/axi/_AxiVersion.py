@@ -191,7 +191,6 @@ class AxiVersion(pr.Device):
             mode         = 'RO',
             dependencies = [self.GitHash],
             linkedGet    = lambda read: f'{(self.GitHash.value() >> 132):07x}' if self.GitHash.get(read=read) != 0 else 'dirty (uncommitted code)',
-
         ))
 
         self.add(pr.RemoteVariable(
