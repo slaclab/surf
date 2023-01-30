@@ -103,7 +103,6 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
-          - macos-10.15
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -121,36 +120,14 @@ jobs:
           OS_NAME: ${{ matrix.os }}
         run: |
           cd ${HOME}
-          if [ $OS_NAME == "macos-10.15" ]
-          then
-            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-          else
-            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-          fi
+          wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
           bash miniconda.sh -b -p ${HOME}/miniconda
           export PATH="${HOME}/miniconda/bin:$PATH"
           source ${HOME}/miniconda/etc/profile.d/conda.sh
           conda config --set always_yes yes
           conda install conda-build anaconda-client conda-verify
-          if [ $OS_NAME == "macos-10.15" ]
-          then
-            conda install libiconv libarchive -c conda-forge
-          fi
           conda update -q conda conda-build
           conda update --all
-
-      - name: Setup MacOS
-        if: matrix.os == 'macos-10.15'
-        run: |
-          cd ${HOME}
-          wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz
-          tar xzf MacOSX10.15.sdk.tar.xz
-          sudo mkdir -p /opt/
-          sudo mv MacOSX10.15.sdk /opt/
-          CONDA_BUILD_SYSROOT=/opt/MacOSX10.15.sdk
-          CONDA_BUILD=1
-          echo "CONDA_BUILD_SYSROOT=$CONDA_BUILD_SYSROOT" >> $GITHUB_ENV
-          echo "CONDA_BUILD=$CONDA_BUILD" >> $GITHUB_ENV
 
       - name: Get Image Information
         id: get_image_info
@@ -165,12 +142,7 @@ jobs:
           else
               echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_TAG
           fi
-          if [ ${OS_NAME} == "macos-10.15" ]
-          then
-              echo ::set-output name=os::osx-64
-          else
-              echo ::set-output name=os::linux-64
-          fi
+          echo ::set-output name=os::linux-64
 
       - name: Build And Upload
         run: |
