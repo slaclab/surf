@@ -158,6 +158,7 @@ begin
                      v.axilReadSlave.rdata(15 downto 0) := resize(r.timerSize, 16);
                      v.axilReadSlave.rdata(16)          := r.allCol;
                      v.axilReadSlave.rdata(17)          := r.allRow;
+                     v.axilReadSlave.rdata(18)          := r.globalRstL;
                      axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                   when others =>
                      axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -175,9 +176,10 @@ begin
                         v.state := WRITE_CMD_S;
                      end if;
                   when x"C" =>
-                     v.timerSize := axilWriteMaster.wdata(TIMER_WIDTH_G-1 downto 0);
-                     v.allCol    := axilWriteMaster.wdata(16);
-                     v.allRow    := axilWriteMaster.wdata(17);
+                     v.timerSize  := axilWriteMaster.wdata(TIMER_WIDTH_G-1 downto 0);
+                     v.allCol     := axilWriteMaster.wdata(16);
+                     v.allRow     := axilWriteMaster.wdata(17);
+                     v.globalRstL := axilWriteMaster.wdata(18);
                      axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
                   when others =>
                      axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_DECERR_C);

@@ -138,3 +138,11 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             bitOffset = 17,
             mode      = 'RW',
         ))
+
+        self.add(pr.RemoteVariable(
+            name      = 'GlobalRstL',
+            offset    = 0xC,
+            bitSize   = 1,
+            bitOffset = 18,
+            mode      = 'RW',
+        ))
