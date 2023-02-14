@@ -83,7 +83,6 @@ class Si5326(pr.Device):
                         offset = int(addr)<<2,
                         data   = int(data,16),
                     )
-                    
 
             # Update local RemoteVariables and verify conflagration
             self.readBlocks(recurse=True)
