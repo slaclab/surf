@@ -6,6 +6,7 @@ repo = Repo()
 
 # Get version before adding version file
 ver = repo.git.describe('--tags')
+ver = ver.replace('-', '+', 1) # https://github.com/pypa/setuptools/issues/3772
 
 # append version constant to package init
 with open('python/surf/__init__.py','a') as vf:
