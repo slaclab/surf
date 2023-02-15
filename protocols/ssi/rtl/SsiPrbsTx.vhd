@@ -225,6 +225,7 @@ begin
                v.oneShot                                 := '0';
                v.trigger                                 := '0';
                -- Latch the generator seed
+               v.randomData                              := (others => '0');
                v.randomData(EVENT_CNT_SIZE_C-1 downto 0) := r.eventCnt;
                -- Set the busy flag
                v.busy                                    := '1';
