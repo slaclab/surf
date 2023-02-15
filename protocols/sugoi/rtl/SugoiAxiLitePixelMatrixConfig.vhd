@@ -39,7 +39,7 @@ entity SugoiAxiLitePixelMatrixConfig is
       allCol          : out   sl;
       allRow          : out   sl;
       dataBus         : inout slv(DATA_WIDTH_G-1 downto 0);
-      pixTri          : out   sl;  -- Selects between read (0) or write operation (1)
+      readWrite       : out   sl;  -- Selects between read (0) or write operation (1)
       globalRstL      : out   sl;       -- Global reset, active low
       cckReg          : out   sl;
       cckPix          : out   sl;
@@ -67,7 +67,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       allCol         : sl;
       allRow         : sl;
       dataOut        : slv(DATA_WIDTH_G-1 downto 0);
-      pixTri         : sl;
+      readWrite      : sl;
       configTri      : sl;
       globalRstL     : sl;
       cckReg         : sl;
@@ -88,7 +88,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       allCol         => '0',
       allRow         => '0',
       dataOut        => (others => '0'),
-      pixTri         => '0',
+      readWrite      => '0',
       configTri      => '1',
       globalRstL     => '1',
       cckReg         => '0',
@@ -241,55 +241,55 @@ begin
             case (r.cnt) is
                when 0 =>
                   -- Disable pixel driver
-                  v.pixTri    := '1';
+                  v.readWrite := '1';
                   v.configTri := '1';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 1 =>
                   -- Enable config driver
-                  v.pixTri    := '1';
+                  v.readWrite := '1';
                   v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 2 =>
                   -- CCK REG HIGH
-                  v.pixTri    := '1';
+                  v.readWrite := '1';
                   v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '1';
                when 3 =>
                   -- CCK REG LOW
-                  v.pixTri    := '1';
+                  v.readWrite := '1';
                   v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 4 =>
                   -- CCK PIX HIGH
-                  v.pixTri    := '1';
+                  v.readWrite := '1';
                   v.configTri := '0';
                   v.cckPix    := '1';
                   v.cckReg    := '0';
                when 5 =>
                   -- CCK PIX LOW
-                  v.pixTri    := '1';
+                  v.readWrite := '1';
                   v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 6 =>
                   -- Disable config driver
-                  v.pixTri    := '1';
+                  v.readWrite := '1';
                   v.configTri := '1';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 7 =>
                   -- Enable pixel driver
-                  v.pixTri    := '0';
+                  v.readWrite := '0';
                   v.configTri := '1';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when others =>
                   -- Default
-                  v.pixTri    := '0';
+                  v.readWrite := '0';
                   v.configTri := '1';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
@@ -349,7 +349,7 @@ begin
       rowAddr        <= r.rowAddr;
       allCol         <= r.allCol;
       allRow         <= r.allRow;
-      pixTri         <= r.pixTri;
+      readWrite      <= r.readWrite;
       globalRstL     <= r.globalRstL;
       cckReg         <= r.cckReg;
       cckPix         <= r.cckPix;

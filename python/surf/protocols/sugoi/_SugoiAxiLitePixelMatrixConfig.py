@@ -12,17 +12,17 @@ import pyrogue as pr
 
 class SugoiAxiLitePixelMatrixConfig(pr.Device):
     def __init__(self,
-            colWidth   = None,
-            rowWidth   = None,
-            dataWidth  = None,
-            timerWidth = None,
+            colWidth   = 7,
+            rowWidth   = 8,
+            dataWidth  = 9,
+            timerWidth = 16,
             **kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
             name      = 'Version',
             offset    = 0x0,
-            bitSize   = 0,
+            bitSize   = 4,
             bitOffset = 0,
             mode      = 'RO',
         ))
@@ -132,7 +132,7 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'AllCol',
+            name      = 'AllRow',
             offset    = 0xC,
             bitSize   = 1,
             bitOffset = 17,
@@ -146,3 +146,7 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             bitOffset = 18,
             mode      = 'RW',
         ))
+
+        @self.command()
+        def ReadPixel():
+            self.RdData.get()
