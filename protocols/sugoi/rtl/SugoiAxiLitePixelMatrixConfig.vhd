@@ -39,7 +39,7 @@ entity SugoiAxiLitePixelMatrixConfig is
       allCol          : out   sl;
       allRow          : out   sl;
       dataBus         : inout slv(DATA_WIDTH_G-1 downto 0);
-      readWrite       : out   sl;  -- Selects between read (0) or write operation (1)
+      readWrite       : out   sl;       -- Selects between read (0) or write operation (1)
       globalRstL      : out   sl;       -- Global reset, active low
       cckReg          : out   sl;
       cckPix          : out   sl;

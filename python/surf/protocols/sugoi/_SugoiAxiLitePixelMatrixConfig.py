@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import time
 
 class SugoiAxiLitePixelMatrixConfig(pr.Device):
     def __init__(self,
@@ -150,3 +151,40 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         @self.command()
         def ReadPixel():
             self.RdData.get()
+
+        @self.command()
+        def SetWrite():
+            self.GlobalRstL.set(0x1)
+            self.TimerSize.set(0x3)
+            self.ColAddr.set(0x1)
+            self.RowAddr.set(0x1)
+            self.WrData.set(0xA)
+            time.sleep(0.5)
+            self.WrCmd.set(0x1)
+            time.sleep(0.5)
+            self.WrCmd.set(0x0)
+
+        @self.command()
+        def SetWrite2():
+            self.GlobalRstL.set(0x1)
+            self.TimerSize.set(0x3)
+            self.ColAddr.set(0x2)
+            self.RowAddr.set(0x2)
+            self.WrData.set(0xB)
+            time.sleep(0.5)
+            self.WrCmd.set(0x1)
+            time.sleep(0.5)
+            self.WrCmd.set(0x0)
+
+        @self.command()
+        def SetWriteAll():
+            self.GlobalRstL.set(0x1)
+            self.TimerSize.set(0x3)
+            self.AllCol.set(0x1)
+            self.AllRow.set(0x1)
+            self.WrData.set(0xC)
+            time.sleep(0.5)
+            self.WrCmd.set(0x1)
+            time.sleep(0.5)
+            self.WrCmd.set(0x0)
+
