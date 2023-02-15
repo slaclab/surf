@@ -5,8 +5,14 @@ from git import Repo
 repo = Repo()
 
 # Get version before adding version file
-ver = repo.git.describe('--tags')
-ver = ver.replace('-', '+', 1) # https://github.com/pypa/setuptools/issues/3772
+rawVer = repo.git.describe('--tags')
+
+fields = rawVer.split('-')
+
+if len(fields) == 1:
+    pyVer = fields[0]
+else:
+    pyVer = fields[0] + '.dev' + fields[1]
 
 # append version constant to package init
 with open('python/surf/__init__.py','a') as vf:
@@ -14,7 +20,7 @@ with open('python/surf/__init__.py','a') as vf:
 
 setup (
    name='surf',
-   version=ver,
+   version=pyVer,
    packages=['surf',
              'surf/axi',
              'surf/devices',
