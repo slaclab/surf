@@ -46,7 +46,7 @@ if (edges && edges.length) {
         </defs>
 
 <script type="text/javascript">
-var viewWidth = 1545;
+var viewWidth = 1585;
 var viewHeight = 332;
 var sectionId = 'dynsection-0';
 </script>
@@ -54,7 +54,7 @@ var sectionId = 'dynsection-0';
 <svg id="graph" class="graph">
 <g id="viewport">
 <title>Pgp4AxiL</title>
-<polygon fill="white" stroke="transparent" points="-4,4 -4,-328 1541,-328 1541,4 -4,4"/>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-328 1581,-328 1581,4 -4,4"/>
 <!-- Node1 -->
 <g id="node1" class="node">
 <title>Node1</title>
@@ -68,16 +68,31 @@ var sectionId = 'dynsection-0';
 <g id="node21" class="node">
 <title>Node21</title>
 <g id="a_node21"><a xlink:href="classPgp4Core.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1219,-195.5 1219,-214.5 1282,-214.5 1282,-195.5 1219,-195.5"/>
-<text text-anchor="middle" x="1250.5" y="-202.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Core</text>
+<polygon fill="white" stroke="black" points="1228,-214.5 1228,-233.5 1291,-233.5 1291,-214.5 1228,-214.5"/>
+<text text-anchor="middle" x="1259.5" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Core</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node21 -->
 <g id="edge24" class="edge">
 <title>Node1&#45;&gt;Node21</title>
-<path fill="none" stroke="midnightblue" d="M1193.21,-205C1201.78,-205 1210.7,-205 1218.85,-205"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1193,-201.5 1183,-205 1193,-208.5 1193,-201.5"/>
+<path fill="none" stroke="midnightblue" d="M1193.09,-212.22C1204.63,-214.3 1217.03,-216.53 1227.9,-218.49"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1193.69,-208.77 1183.23,-210.44 1192.45,-215.66 1193.69,-208.77"/>
+</g>
+<!-- Node30 -->
+<g id="node30" class="node">
+<title>Node30</title>
+<g id="a_node30"><a xlink:href="classPgp4CoreLite.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1219,-157.5 1219,-176.5 1300,-176.5 1300,-157.5 1219,-157.5"/>
+<text text-anchor="middle" x="1259.5" y="-164.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4CoreLite</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node30 -->
+<g id="edge33" class="edge">
+<title>Node1&#45;&gt;Node30</title>
+<path fill="none" stroke="midnightblue" d="M1189.42,-191.88C1203.37,-186.86 1219.02,-181.22 1231.89,-176.59"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1187.84,-188.73 1179.62,-195.41 1190.22,-195.32 1187.84,-188.73"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">
@@ -392,121 +407,136 @@ var sectionId = 'dynsection-0';
 <g id="node22" class="node">
 <title>Node22</title>
 <g id="a_node22"><a xlink:href="classPgp4GthUs.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1318,-252.5 1318,-271.5 1389,-271.5 1389,-252.5 1318,-252.5"/>
-<text text-anchor="middle" x="1353.5" y="-259.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GthUs</text>
+<polygon fill="white" stroke="black" points="1347,-252.5 1347,-271.5 1418,-271.5 1418,-252.5 1347,-252.5"/>
+<text text-anchor="middle" x="1382.5" y="-259.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GthUs</text>
 </a>
 </g>
 </g>
 <!-- Node21&#45;&gt;Node22 -->
 <g id="edge25" class="edge">
 <title>Node21&#45;&gt;Node22</title>
-<path fill="none" stroke="midnightblue" d="M1276.98,-219.69C1289.34,-226.78 1304.42,-235.38 1318,-243 1323.49,-246.08 1329.49,-249.4 1334.92,-252.39"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1278.54,-216.55 1268.13,-214.6 1275.06,-222.62 1278.54,-216.55"/>
+<path fill="none" stroke="midnightblue" d="M1300.88,-236.68C1317.23,-241.81 1335.79,-247.64 1350.98,-252.41"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1301.62,-233.25 1291.03,-233.59 1299.53,-239.92 1301.62,-233.25"/>
 </g>
 <!-- Node24 -->
 <g id="node24" class="node">
 <title>Node24</title>
 <g id="a_node24"><a xlink:href="classPgp4Gtp7.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1321.5,-214.5 1321.5,-233.5 1385.5,-233.5 1385.5,-214.5 1321.5,-214.5"/>
-<text text-anchor="middle" x="1353.5" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtp7</text>
+<polygon fill="white" stroke="black" points="1350.5,-214.5 1350.5,-233.5 1414.5,-233.5 1414.5,-214.5 1350.5,-214.5"/>
+<text text-anchor="middle" x="1382.5" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtp7</text>
 </a>
 </g>
 </g>
 <!-- Node21&#45;&gt;Node24 -->
 <g id="edge27" class="edge">
 <title>Node21&#45;&gt;Node24</title>
-<path fill="none" stroke="midnightblue" d="M1292,-212.62C1301.77,-214.46 1312.06,-216.39 1321.33,-218.14"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1292.55,-209.16 1282.08,-210.75 1291.26,-216.04 1292.55,-209.16"/>
+<path fill="none" stroke="midnightblue" d="M1301.18,-224C1317.15,-224 1335.2,-224 1350.13,-224"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1301.03,-220.5 1291.03,-224 1301.03,-227.5 1301.03,-220.5"/>
 </g>
 <!-- Node26 -->
 <g id="node26" class="node">
 <title>Node26</title>
 <g id="a_node26"><a xlink:href="classPgp4Gtx7.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1321.5,-176.5 1321.5,-195.5 1385.5,-195.5 1385.5,-176.5 1321.5,-176.5"/>
-<text text-anchor="middle" x="1353.5" y="-183.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtx7</text>
+<polygon fill="white" stroke="black" points="1350.5,-176.5 1350.5,-195.5 1414.5,-195.5 1414.5,-176.5 1350.5,-176.5"/>
+<text text-anchor="middle" x="1382.5" y="-183.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtx7</text>
 </a>
 </g>
 </g>
 <!-- Node21&#45;&gt;Node26 -->
 <g id="edge29" class="edge">
 <title>Node21&#45;&gt;Node26</title>
-<path fill="none" stroke="midnightblue" d="M1292,-197.38C1301.77,-195.54 1312.06,-193.61 1321.33,-191.86"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1291.26,-193.96 1282.08,-199.25 1292.55,-200.84 1291.26,-193.96"/>
+<path fill="none" stroke="midnightblue" d="M1300.88,-211.32C1317.23,-206.19 1335.79,-200.36 1350.98,-195.59"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1299.53,-208.08 1291.03,-214.41 1301.62,-214.75 1299.53,-208.08"/>
 </g>
 <!-- Node28 -->
 <g id="node28" class="node">
 <title>Node28</title>
 <g id="a_node28"><a xlink:href="classPgp4GtyUs.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1318,-138.5 1318,-157.5 1389,-157.5 1389,-138.5 1318,-138.5"/>
-<text text-anchor="middle" x="1353.5" y="-145.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GtyUs</text>
+<polygon fill="white" stroke="black" points="1347,-290.5 1347,-309.5 1418,-309.5 1418,-290.5 1347,-290.5"/>
+<text text-anchor="middle" x="1382.5" y="-297.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GtyUs</text>
 </a>
 </g>
 </g>
 <!-- Node21&#45;&gt;Node28 -->
 <g id="edge31" class="edge">
 <title>Node21&#45;&gt;Node28</title>
-<path fill="none" stroke="midnightblue" d="M1276.98,-190.31C1289.34,-183.22 1304.42,-174.62 1318,-167 1323.49,-163.92 1329.49,-160.6 1334.92,-157.61"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1275.06,-187.38 1268.13,-195.4 1278.54,-193.45 1275.06,-187.38"/>
+<path fill="none" stroke="midnightblue" d="M1279.5,-240.48C1294.23,-252.71 1315.52,-269.24 1336,-281 1342.09,-284.49 1348.94,-287.7 1355.45,-290.44"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1281.54,-237.62 1271.64,-233.84 1277.02,-242.97 1281.54,-237.62"/>
 </g>
 <!-- Node23 -->
 <g id="node23" class="node">
 <title>Node23</title>
 <g id="a_node23"><a xlink:href="classPgp4GthUsWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1425,-252.5 1425,-271.5 1537,-271.5 1537,-252.5 1425,-252.5"/>
-<text text-anchor="middle" x="1481" y="-259.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GthUsWrapper</text>
+<polygon fill="white" stroke="black" points="1465,-252.5 1465,-271.5 1577,-271.5 1577,-252.5 1465,-252.5"/>
+<text text-anchor="middle" x="1521" y="-259.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GthUsWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node22&#45;&gt;Node23 -->
 <g id="edge26" class="edge">
 <title>Node22&#45;&gt;Node23</title>
-<path fill="none" stroke="midnightblue" d="M1399.29,-262C1407.54,-262 1416.24,-262 1424.75,-262"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1399.13,-258.5 1389.13,-262 1399.13,-265.5 1399.13,-258.5"/>
+<path fill="none" stroke="midnightblue" d="M1428.61,-262C1440.2,-262 1452.8,-262 1464.84,-262"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1428.3,-258.5 1418.3,-262 1428.3,-265.5 1428.3,-258.5"/>
 </g>
 <!-- Node25 -->
 <g id="node25" class="node">
 <title>Node25</title>
 <g id="a_node25"><a xlink:href="classPgp4Gtp7Wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1428.5,-214.5 1428.5,-233.5 1533.5,-233.5 1533.5,-214.5 1428.5,-214.5"/>
-<text text-anchor="middle" x="1481" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtp7Wrapper</text>
+<polygon fill="white" stroke="black" points="1468.5,-214.5 1468.5,-233.5 1573.5,-233.5 1573.5,-214.5 1468.5,-214.5"/>
+<text text-anchor="middle" x="1521" y="-221.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtp7Wrapper</text>
 </a>
 </g>
 </g>
 <!-- Node24&#45;&gt;Node25 -->
 <g id="edge28" class="edge">
 <title>Node24&#45;&gt;Node25</title>
-<path fill="none" stroke="midnightblue" d="M1395.62,-224C1406.07,-224 1417.43,-224 1428.33,-224"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1395.52,-220.5 1385.52,-224 1395.52,-227.5 1395.52,-220.5"/>
+<path fill="none" stroke="midnightblue" d="M1424.88,-224C1438.54,-224 1453.9,-224 1468.23,-224"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1424.82,-220.5 1414.82,-224 1424.82,-227.5 1424.82,-220.5"/>
 </g>
 <!-- Node27 -->
 <g id="node27" class="node">
 <title>Node27</title>
 <g id="a_node27"><a xlink:href="classPgp4Gtx7Wrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1428.5,-176.5 1428.5,-195.5 1533.5,-195.5 1533.5,-176.5 1428.5,-176.5"/>
-<text text-anchor="middle" x="1481" y="-183.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtx7Wrapper</text>
+<polygon fill="white" stroke="black" points="1468.5,-176.5 1468.5,-195.5 1573.5,-195.5 1573.5,-176.5 1468.5,-176.5"/>
+<text text-anchor="middle" x="1521" y="-183.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4Gtx7Wrapper</text>
 </a>
 </g>
 </g>
 <!-- Node26&#45;&gt;Node27 -->
 <g id="edge30" class="edge">
 <title>Node26&#45;&gt;Node27</title>
-<path fill="none" stroke="midnightblue" d="M1395.62,-186C1406.07,-186 1417.43,-186 1428.33,-186"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1395.52,-182.5 1385.52,-186 1395.52,-189.5 1395.52,-182.5"/>
+<path fill="none" stroke="midnightblue" d="M1424.88,-186C1438.54,-186 1453.9,-186 1468.23,-186"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1424.82,-182.5 1414.82,-186 1424.82,-189.5 1424.82,-182.5"/>
 </g>
 <!-- Node29 -->
 <g id="node29" class="node">
 <title>Node29</title>
 <g id="a_node29"><a xlink:href="classPgp4GtyUsWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="1425,-138.5 1425,-157.5 1537,-157.5 1537,-138.5 1425,-138.5"/>
-<text text-anchor="middle" x="1481" y="-145.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GtyUsWrapper</text>
+<polygon fill="white" stroke="black" points="1465,-290.5 1465,-309.5 1577,-309.5 1577,-290.5 1465,-290.5"/>
+<text text-anchor="middle" x="1521" y="-297.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4GtyUsWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node28&#45;&gt;Node29 -->
 <g id="edge32" class="edge">
 <title>Node28&#45;&gt;Node29</title>
-<path fill="none" stroke="midnightblue" d="M1399.29,-148C1407.54,-148 1416.24,-148 1424.75,-148"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="1399.13,-144.5 1389.13,-148 1399.13,-151.5 1399.13,-144.5"/>
+<path fill="none" stroke="midnightblue" d="M1428.61,-300C1440.2,-300 1452.8,-300 1464.84,-300"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1428.3,-296.5 1418.3,-300 1428.3,-303.5 1428.3,-296.5"/>
+</g>
+<!-- Node31 -->
+<g id="node31" class="node">
+<title>Node31</title>
+<g id="a_node31"><a xlink:href="classPgp4CoreLiteTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="1336,-138.5 1336,-157.5 1429,-157.5 1429,-138.5 1336,-138.5"/>
+<text text-anchor="middle" x="1382.5" y="-145.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4CoreLiteTb</text>
+</a>
+</g>
+</g>
+<!-- Node30&#45;&gt;Node31 -->
+<g id="edge34" class="edge">
+<title>Node30&#45;&gt;Node31</title>
+<path fill="none" stroke="midnightblue" d="M1310,-159.23C1318.57,-157.88 1327.45,-156.49 1335.91,-155.16"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="1309.46,-155.77 1300.12,-160.78 1310.54,-162.68 1309.46,-155.77"/>
 </g>
 </g>
 </svg>

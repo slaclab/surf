@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"classAxiStreamDmaV2Fifo.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,120,34],
+"classAxiStreamDmaV2Fifo.html#a1158b81e0f7e37b65d3b1897e40a40fd":[1,0,120,41],
 "classAxiStreamDmaV2Fifo.html#a2265afb78be50b98531f22e9da258a54":[1,0,120,40],
 "classAxiStreamDmaV2Fifo.html#a22f8db74a5a4c77e7e2767279ca36e7f":[1,0,120,29],
 "classAxiStreamDmaV2Fifo.html#a2429d17ce4f9328a982076af9f733ab3":[1,0,120,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "classAxiStreamDmaV2Write_1_1rtl.html#ade437699544bcca4192a644bd87985cc":[1,0,122,0,3],
 "classAxiStreamDmaV2Write_1_1rtl.html#ade4de2a008a5f96235206eb18081481c":[1,0,122,0,24],
 "classAxiStreamDmaV2Write_1_1rtl.html#af029ccf23ec2c1340a5869f7c7872c89":[1,0,122,0,15],
-"classAxiStreamDmaV2_1_1structure.html":[1,0,118,0],
-"classAxiStreamDmaV2_1_1structure.html#a01107ea068eda641f9073c07d04ffcb7":[1,0,118,0,16],
-"classAxiStreamDmaV2_1_1structure.html#a0370f7916d5ab60c4e87f9b1cba32717":[1,0,118,0,5]
+"classAxiStreamDmaV2_1_1structure.html":[1,0,118,0]
 };

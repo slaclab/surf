@@ -1,5 +1,6 @@
 <map id="PgpRxVcFifo" name="PgpRxVcFifo">
 <area shape="rect" id="node1" title=" " alt="" coords="1135,183,1237,209"/>
+<area shape="rect" id="node21" href="$classPgp4CoreLiteTb.html" title=" " alt="" coords="1285,183,1409,209"/>
 <area shape="rect" id="node2" href="$classRstPipeline.html" title=" " alt="" coords="965,157,1078,184"/>
 <area shape="rect" id="node3" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="956,208,1087,235"/>
 <area shape="rect" id="node4" href="$classAxiStreamGearbox.html" title=" " alt="" coords="745,132,908,159"/>

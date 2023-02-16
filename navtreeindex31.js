@@ -1,5 +1,7 @@
 var NAVTREEINDEX31 =
 {
+"classAxiVersionLegacy.html#a67a837684e4f18c2d236ac1d053b419b":[1,0,158,1],
+"classAxiVersionLegacy.html#a6ff6d0dd29c82d329f8f2caa9e4b1811":[1,0,158,2],
 "classAxiVersionLegacy.html#a7d8781c632c75ab0fdde6e592fd13d60":[1,0,158,15],
 "classAxiVersionLegacy.html#a7f216e989818fb53a2278576aa3d1df2":[1,0,158,13],
 "classAxiVersionLegacy.html#a909c0c589d69b6d43dccb4d34d3ea88f":[1,0,158,24],
@@ -247,7 +249,5 @@ var NAVTREEINDEX31 =
 "classAxiWritePathMux.html#aedeb4a5606b32a03df6b15487637e806":[1,0,162,5],
 "classAxiWritePathMux.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,162,14],
 "classAxiWritePathMux.html#afcbdd60c38800c4a6da93aa3c3fe0aff":[1,0,162,7],
-"classAxiWritePathMux_1_1structure.html":[1,0,162,0],
-"classAxiWritePathMux_1_1structure.html#a0498304adc5e9a77df9df664a54ee3d3":[1,0,162,0,17],
-"classAxiWritePathMux_1_1structure.html#a2ac331734bdecfcd8ed2504c9b5148d6":[1,0,162,0,9]
+"classAxiWritePathMux_1_1structure.html":[1,0,162,0]
 };

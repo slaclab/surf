@@ -1,5 +1,7 @@
 var NAVTREEINDEX65 =
 {
+"classGthe4ChannelDummy_1_1mapping.html#af89c4616b4d79f28bff8f4c90b926b40":[1,0,330,0,0],
+"classGtp16FixedLatCore.html":[1,0,332],
 "classGtp16FixedLatCore.html#a025bc3ec9754f4801fca3e4966ab7fc5":[1,0,332,3],
 "classGtp16FixedLatCore.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,332,38],
 "classGtp16FixedLatCore.html#a1238eb472db6ef9a737329a76a80d5b9":[1,0,332,9],
@@ -93,13 +95,13 @@ var NAVTREEINDEX65 =
 "classGtp7AutoPhaseAligner_1_1RTL.html":[1,0,333,0],
 "classGtp7AutoPhaseAligner_1_1RTL.html#a2b96e3119da5d56f30b1c4cb658a5ca9":[1,0,333,0,4],
 "classGtp7AutoPhaseAligner_1_1RTL.html#a2e1ab253c46aa3e3417091b0b29f547d":[1,0,333,0,7],
+"classGtp7AutoPhaseAligner_1_1RTL.html#a3029faa5d2cc0d34b89c020432b94c9e":[1,0,333,0,0],
 "classGtp7AutoPhaseAligner_1_1RTL.html#a50628191803a2e4e6798c4d4be77d504":[1,0,333,0,6],
 "classGtp7AutoPhaseAligner_1_1RTL.html#a902a7c3c44a55da79b02c5ee83513152":[1,0,333,0,2],
 "classGtp7AutoPhaseAligner_1_1RTL.html#aa08c8a0796f4fc389be0de0d3b34e0db":[1,0,333,0,8],
-"classGtp7AutoPhaseAligner_1_1RTL.html#aa4670ad6de796f5ed45565ebc0efa4c1":[1,0,333,0,1],
-"classGtp7AutoPhaseAligner_1_1RTL.html#ab3a015ee94d1936d6f4bca23bffab3fd":[1,0,333,0,0],
 "classGtp7AutoPhaseAligner_1_1RTL.html#ac3393d167615aacda31ce6e978684a9b":[1,0,333,0,5],
 "classGtp7AutoPhaseAligner_1_1RTL.html#ad52a24759196b6b51d10d53cada9e334":[1,0,333,0,9],
+"classGtp7AutoPhaseAligner_1_1RTL.html#aeb92f8776ea8f724f9937d38ab510c90":[1,0,333,0,1],
 "classGtp7AutoPhaseAligner_1_1RTL.html#af22cdf33c019b1083a1632cb57366139":[1,0,333,0,3],
 "classGtp7AutoPhaseAligner_1_1RTL.html#af6e590325e522e80bfc85b29b020282e":[1,0,333,0,10],
 "classGtp7Core.html":[1,0,334],
@@ -247,7 +249,5 @@ var NAVTREEINDEX65 =
 "classGtp7Core.html#ae5544dd0c1dbc16d260ebd8f416db3fc":[1,0,334,108],
 "classGtp7Core.html#ae70f36083550b729486154c183963d85":[1,0,334,110],
 "classGtp7Core.html#ae74956fd38ccf64ef1c99bd219a5fd51":[1,0,334,75],
-"classGtp7Core.html#aea032576c0087a6292b97cab649d14c4":[1,0,334,132],
-"classGtp7Core.html#af1b5cd51413362869eb0f2388bdb389e":[1,0,334,40],
-"classGtp7Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,334,156]
+"classGtp7Core.html#aea032576c0087a6292b97cab649d14c4":[1,0,334,132]
 };

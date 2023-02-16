@@ -1285,6 +1285,42 @@ var hierarchy =
       [ "Pgp3Tx", "classPgp3Tx.html", null ],
       [ "Pgp3Rx", "classPgp3Rx.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "Pgp4CoreLite", "classPgp4CoreLite.html", [
+        [ "Pgp4TxLite", "classPgp4TxLite.html", [
+          [ "Synchronizer", "classSynchronizer.html", null ],
+          [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+          [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+          [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+          [ "Pgp4TxLiteProtocol", "classPgp4TxLiteProtocol.html", [
+            [ "Crc32Parallel", "classCrc32Parallel.html", null ]
+          ] ],
+          [ "Scrambler", "classScrambler.html", null ]
+        ] ],
+        [ "Pgp4Rx", "classPgp4Rx.html", [
+          [ "Pgp3RxGearboxAligner", "classPgp3RxGearboxAligner.html", null ],
+          [ "Scrambler", "classScrambler.html", null ],
+          [ "Pgp4RxEb", "classPgp4RxEb.html", [
+            [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
+            [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
+          ] ],
+          [ "Pgp4RxProtocol", "classPgp4RxProtocol.html", [
+            [ "SynchronizerEdge", "classSynchronizerEdge.html", null ]
+          ] ],
+          [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", null ],
+          [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
+        ] ],
+        [ "Pgp4AxiL", "classPgp4AxiL.html", [
+          [ "SyncClockFreq", "classSyncClockFreq.html", null ],
+          [ "SyncStatusVector", "classSyncStatusVector.html", null ]
+        ] ]
+      ] ],
+      [ "PgpRxVcFifo", "classPgpRxVcFifo.html", [
+        [ "RstPipeline", "classRstPipeline.html", null ],
+        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
+      ] ],
+      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3GthUsQpll", "classPgp3GthUsQpll.html", null ],
       [ "Pgp4GthUs", "classPgp4GthUs.html", [
@@ -1299,23 +1335,8 @@ var hierarchy =
             [ "Pgp4TxProtocol", "classPgp4TxProtocol.html", null ],
             [ "Scrambler", "classScrambler.html", null ]
           ] ],
-          [ "Pgp4Rx", "classPgp4Rx.html", [
-            [ "Pgp3RxGearboxAligner", "classPgp3RxGearboxAligner.html", null ],
-            [ "Scrambler", "classScrambler.html", null ],
-            [ "Pgp4RxEb", "classPgp4RxEb.html", [
-              [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
-              [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
-            ] ],
-            [ "Pgp4RxProtocol", "classPgp4RxProtocol.html", [
-              [ "SynchronizerEdge", "classSynchronizerEdge.html", null ]
-            ] ],
-            [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", null ],
-            [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
-          ] ],
-          [ "Pgp4AxiL", "classPgp4AxiL.html", [
-            [ "SyncClockFreq", "classSyncClockFreq.html", null ],
-            [ "SyncStatusVector", "classSyncStatusVector.html", null ]
-          ] ]
+          [ "Pgp4Rx", "classPgp4Rx.html", null ],
+          [ "Pgp4AxiL", "classPgp4AxiL.html", null ]
         ] ],
         [ "Pgp3GthUsIpWrapper", "classPgp3GthUsIpWrapper.html", null ]
       ] ],
@@ -1355,16 +1376,7 @@ var hierarchy =
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
-      [ "Pgp4TxLite", "classPgp4TxLite.html", [
-        [ "Synchronizer", "classSynchronizer.html", null ],
-        [ "SynchronizerVector", "classSynchronizerVector.html", null ],
-        [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
-        [ "AxiStreamMux", "classAxiStreamMux.html", null ],
-        [ "Pgp4TxLiteProtocol", "classPgp4TxLiteProtocol.html", [
-          [ "Crc32Parallel", "classCrc32Parallel.html", null ]
-        ] ],
-        [ "Scrambler", "classScrambler.html", null ]
-      ] ],
+      [ "Pgp4TxLite", "classPgp4TxLite.html", null ],
       [ "Pgp4Rx", "classPgp4Rx.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "Pgp4TxLite", "classPgp4TxLite.html", null ],
@@ -1377,8 +1389,6 @@ var hierarchy =
       [ "Decoder8b10b", "classDecoder8b10b.html", null ],
       [ "Pgp2bLane", "classPgp2bLane.html", null ],
       [ "Encoder8b10b", "classEncoder8b10b.html", null ],
-      [ "RstPipeline", "classRstPipeline.html", null ],
-      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "Synchronizer", "classSynchronizer.html", null ],
       [ "RstPipeline", "classRstPipeline.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
