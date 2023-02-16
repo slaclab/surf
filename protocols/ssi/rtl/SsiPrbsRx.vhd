@@ -355,6 +355,7 @@ begin
                      v.eventCnt := rxAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0) + 1;
 
                      -- Latch the SEED for the randomization
+                     v.randomData                              := (others => '0');
                      v.randomData(EVENT_CNT_SIZE_C-1 downto 0) := rxAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0);
 
                      -- Set the busy flag
