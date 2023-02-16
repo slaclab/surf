@@ -178,6 +178,8 @@ begin
       axiSlaveRegisterR(axilEp, X"14", 0, r.randomData(minimum(PRBS_SEED_SIZE_G-1, 31) downto 0));
       axiSlaveRegisterR(axilEp, X"1C", 0, r.trigDly);
 
+      axiSlaveRegisterR(axilEp, X"20", 0, toSlv(PRBS_SEED_SIZE_G, 32));
+
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       ----------------------------------------------------------------------------------------------

@@ -84,6 +84,14 @@ class SsiPrbsTx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name   = 'WordSize',
+            offset = 0x20,
+            mode   = 'RO',
+            disp   = '{:d}',
+            hidden = False))
+
+
+        self.add(pr.RemoteVariable(
             name         = "tDest",
             description  = "",
             offset       =  0x08,
