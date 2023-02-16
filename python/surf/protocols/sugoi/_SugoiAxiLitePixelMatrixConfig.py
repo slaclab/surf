@@ -187,4 +187,3 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             self.WrCmd.set(0x1)
             time.sleep(0.5)
             self.WrCmd.set(0x0)
-
