@@ -66,6 +66,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       rowAddr        : slv(ROW_WIDTH_G-1 downto 0);
       allCol         : sl;
       allRow         : sl;
+      dataIn         : slv(DATA_WIDTH_G-1 downto 0);
       dataOut        : slv(DATA_WIDTH_G-1 downto 0);
       readWrite      : sl;
       configTri      : sl;
@@ -87,6 +88,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       rowAddr        => (others => '0'),
       allCol         => '0',
       allRow         => '0',
+      dataIn         => (others => '0'),
       dataOut        => (others => '0'),
       readWrite      => '0',
       configTri      => '1',
@@ -148,11 +150,12 @@ begin
                      v.axilReadSlave.rdata(31 downto 24) := toSlv(TIMER_WIDTH_G, 8);
                      axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                   when x"4" =>
-                     v.state := READ_CMD_S;
+                     v.axilReadSlave.rdata(10 downto 0)  := resize(r.dataIn, 11);
+                     v.axilReadSlave.rdata(20 downto 10) := resize(r.dataOut, 11);
+                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                   when x"8" =>
                      v.axilReadSlave.rdata(9 downto 0)   := resize(r.colReg, 10);
                      v.axilReadSlave.rdata(19 downto 10) := resize(r.rowReg, 10);
-                     v.axilReadSlave.rdata(30 downto 20) := resize(r.dataOut, 11);
                      axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                   when x"C" =>
                      v.axilReadSlave.rdata(15 downto 0) := resize(r.timerSize, 16);
@@ -167,14 +170,18 @@ begin
             elsif (axilStatus.writeEnable = '1') then
                -- Decode address and assign write data
                case (axilWriteMaster.awaddr(3 downto 0)) is
-                  when x"8" =>
-                     v.colReg  := axilWriteMaster.wdata((COL_WIDTH_G-1)+0 downto 0);
-                     v.rowReg  := axilWriteMaster.wdata((ROW_WIDTH_G-1)+10 downto 10);
-                     v.dataOut := axilWriteMaster.wdata((DATA_WIDTH_G-1)+20 downto 20);
+                  when x"4" =>
+                     v.dataOut := axilWriteMaster.wdata((DATA_WIDTH_G-1)+10 downto 10);
                      axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
                      if (axilWriteMaster.wdata(31) = '1') then
                         v.state := WRITE_CMD_S;
+                     else
+                        v.state := READ_CMD_S;
                      end if;
+                  when x"8" =>
+                     v.colReg  := axilWriteMaster.wdata((COL_WIDTH_G-1)+0 downto 0);
+                     v.rowReg  := axilWriteMaster.wdata((ROW_WIDTH_G-1)+10 downto 10);
+                     axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);   
                   when x"C" =>
                      v.timerSize  := axilWriteMaster.wdata(TIMER_WIDTH_G-1 downto 0);
                      v.allCol     := axilWriteMaster.wdata(16);
@@ -221,10 +228,7 @@ begin
                if (r.cnt = 3) then
 
                   -- Assign read data
-                  v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := dataIn;
-
-                  -- Send AXI-Lite Response
-                  axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
+                  v.dataIn := dataIn;
 
                   -- Next state
                   v.state := IDLE_S;

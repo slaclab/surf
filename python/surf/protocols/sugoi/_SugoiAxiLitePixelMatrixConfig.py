@@ -10,6 +10,9 @@
 
 import pyrogue as pr
 import time
+import fnmatch
+import click
+import numpy as np
 
 class SugoiAxiLitePixelMatrixConfig(pr.Device):
     def __init__(self,
@@ -17,6 +20,8 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             rowWidth   = 8,
             dataWidth  = 9,
             timerWidth = 16,
+            numCol     = 48,
+            numRow     = 48,
             **kwargs):
         super().__init__(**kwargs)
 
@@ -85,6 +90,23 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name      = 'WrData',
+            offset    = 0x4,
+            bitSize   = dataWidth,
+            bitOffset = 10,
+            mode      = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name      = 'RdWrCmd',
+            offset    = 0x4,
+            bitSize   = 1,
+            bitOffset = 31,
+            mode      = 'WO',
+            hidden    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name      = 'ColAddr',
             offset    = 0x8,
             bitSize   = colWidth,
@@ -98,22 +120,6 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             bitSize   = rowWidth,
             bitOffset = 10,
             mode      = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'WrData',
-            offset    = 0x8,
-            bitSize   = dataWidth,
-            bitOffset = 20,
-            mode      = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'WrCmd',
-            offset    = 0x8,
-            bitSize   = 1,
-            bitOffset = 31,
-            mode      = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
@@ -149,41 +155,54 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         ))
 
         @self.command()
-        def ReadPixel():
-            self.RdData.get()
+        def SetupWrite():
+            self.GlobalRstL.set(0x1)
+            self.TimerSize.set(0x2)
+            self.RdWrCmd.set(0x1)
 
         @self.command()
-        def SetWrite():
-            self.GlobalRstL.set(0x1)
-            self.TimerSize.set(0x3)
-            self.ColAddr.set(0x1)
-            self.RowAddr.set(0x1)
-            self.WrData.set(0xA)
-            time.sleep(0.5)
-            self.WrCmd.set(0x1)
-            time.sleep(0.5)
-            self.WrCmd.set(0x0)
-
-        @self.command()
-        def SetWrite2():
-            self.GlobalRstL.set(0x1)
-            self.TimerSize.set(0x3)
-            self.ColAddr.set(0x2)
-            self.RowAddr.set(0x2)
-            self.WrData.set(0xB)
-            time.sleep(0.5)
-            self.WrCmd.set(0x1)
-            time.sleep(0.5)
-            self.WrCmd.set(0x0)
-
-        @self.command()
-        def SetWriteAll():
-            self.GlobalRstL.set(0x1)
-            self.TimerSize.set(0x3)
+        def SetAllColAllRow():
             self.AllCol.set(0x1)
             self.AllRow.set(0x1)
-            self.WrData.set(0xC)
-            time.sleep(0.5)
-            self.WrCmd.set(0x1)
-            time.sleep(0.5)
-            self.WrCmd.set(0x0)
+
+        @self.command()
+        def ReadPixel():
+            self.RdWrCmd.set(0x0)
+
+        self.add(pr.LocalVariable(
+            name         = 'CsvFilePath',
+            description  = 'Used if command argument is empty',
+            mode         = 'RW',
+            value        = '',
+        ))
+
+        @self.command(value='',description="Load the .CSV",)
+        def LoadCsvPixelBitmap(arg):
+            # Check if non-empty argument
+            if (arg != ""):
+                path = arg
+            else:
+                # Use the variable path instead
+                path = self.CsvFilePath.get()
+
+            # Check for .csv file
+            if fnmatch.fnmatch(path, '*.csv'):
+                click.secho( f'{self.path}.LoadCsvPixelBitmap(): {path}', fg='green')
+            else:
+                click.secho( f'{self.path}.LoadCsvPixelBitmap(): {path} is not .csv', fg='red')
+                return
+
+            self.RdWrCmd.set(0x1)
+
+            if (self.enable.get()):
+                matrixCfg = np.genfromtxt(path, delimiter=',')
+                if matrixCfg.shape == (numCol, numRow):
+                    for x in range (0, numCol):
+                        for y in range (0, numRow):
+                            self.ColAddr.set(x)
+                            self.RowAddr.set(y)
+                            self.WrData.set(int(matrixCfg[x][y]))
+                else:
+                    click.secho( f'.CSV file must be {numCol} X {numRow} pixels')       
+            else:
+                click.secho( "Warning: ASIC enable is set to False!") 
