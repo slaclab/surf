@@ -218,7 +218,7 @@ begin
                   axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
 
                   -- Next state
-                  v.state := READ_CMD_S;
+                  v.state := WRITE_CMD_S;
                end if;
 
             end if;
