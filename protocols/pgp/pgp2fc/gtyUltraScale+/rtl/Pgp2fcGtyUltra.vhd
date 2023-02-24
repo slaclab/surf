@@ -31,7 +31,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp2fcGtyUltra is
    generic (
       TPD_G             : time                 := 1 ns;
-      SIMULATION_G      : boolean              := true;
+      SIMULATION_G      : boolean              := false;
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -114,8 +114,8 @@ begin
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
          TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => true,
-         DURATION_G    => 156250000)    -- 1 sec pulse
+         SIM_SPEEDUP_G => SIMULATION_G,
+         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
       port map (
          arst   => pgpTxIn.resetGt,     -- [in]
          clk    => stableClk,           -- [in]
@@ -136,8 +136,8 @@ begin
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
          TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => true,
-         DURATION_G    => 156250000)    -- 1 sec pulse
+         SIM_SPEEDUP_G => SIMULATION_G,
+         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
       port map (
          arst   => pgpRxIn.resetRx,     -- [in]
          clk    => stableClk,           -- [in]
@@ -148,8 +148,8 @@ begin
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
          TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => true,
-         DURATION_G    => 156250000)    -- 1 sec pulse
+         SIM_SPEEDUP_G => SIMULATION_G,
+         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
       port map (
          arst   => pgpTxIn.resetTx,     -- [in]
          clk    => stableClk,           -- [in]
