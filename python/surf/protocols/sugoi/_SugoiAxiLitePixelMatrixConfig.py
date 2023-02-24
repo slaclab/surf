@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import time
 import fnmatch
 import click
 import numpy as np
@@ -20,11 +19,13 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             rowWidth   = 8,
             dataWidth  = 9,
             timerWidth = 16,
+            numCol     = 48,
+            numRow     = 48,
             **kwargs):
         super().__init__(**kwargs)
-        self.numCol = 2**colWidth,
-        self.numRow = 2**rowWidth,
-        self.numPix = self.numCol*self.numRow,
+        self.numCol = numCol,
+        self.numRow = numRow,
+        self.numPix = (2**colWidth)*(2**rowWidth),
 
         self.add(pr.RemoteVariable(
             name      = 'Version',
@@ -132,11 +133,6 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         ))
 
         @self.command()
-        def SetupWrite():
-            self.GlobalRstL.set(0x1)
-            self.TimerSize.set(0x2)
-
-        @self.command()
         def SetAllColAllRow():
             self.AllCol.set(0x1)
             self.AllRow.set(0x1)
@@ -174,6 +170,6 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
                 if matrixCfg.shape == (self.numCol, self.numRow):
                     self.PixData.set(matrixCfg)
                 else:
-                    click.secho( f'.CSV file must be {numCol} X {numRow} pixels')
+                    click.secho( f'.CSV file must be {self.numCol} X {self.numRow} pixels')
             else:
                 click.secho( "Warning: ASIC enable is set to False!")
