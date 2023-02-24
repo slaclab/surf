@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import time
 import fnmatch
 import click
 import numpy as np
@@ -24,6 +23,9 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             numRow     = 48,
             **kwargs):
         super().__init__(**kwargs)
+        self.numCol = numCol,
+        self.numRow = numRow,
+        self.numPix = (2**colWidth)*(2**rowWidth),
 
         self.add(pr.RemoteVariable(
             name      = 'Version',
@@ -82,47 +84,6 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'RdData',
-            offset    = 0x4,
-            bitSize   = dataWidth,
-            bitOffset = 0,
-            mode      = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'WrData',
-            offset    = 0x4,
-            bitSize   = dataWidth,
-            bitOffset = 10,
-            mode      = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'RdWrCmd',
-            offset    = 0x4,
-            bitSize   = 1,
-            bitOffset = 31,
-            mode      = 'WO',
-            hidden    = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'ColAddr',
-            offset    = 0x8,
-            bitSize   = colWidth,
-            bitOffset = 0,
-            mode      = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'RowAddr',
-            offset    = 0x8,
-            bitSize   = rowWidth,
-            bitOffset = 10,
-            mode      = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
             name      = 'TimerSize',
             offset    = 0xC,
             bitSize   = timerWidth,
@@ -154,11 +115,22 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             mode      = 'RW',
         ))
 
-        @self.command()
-        def SetupWrite():
-            self.GlobalRstL.set(0x1)
-            self.TimerSize.set(0x2)
-            self.RdWrCmd.set(0x1)
+        self.add(pr.RemoteVariable(
+            name         = 'PixData',
+            offset       = (self.numPix<<2),
+            bitSize      = 32 * self.numPix,
+            bitOffset    = 0,
+            numValues    = self.numPix,
+            valueBits    = 32,
+            valueStride  = 32,
+            updateNotify = True,
+            bulkOpEn     = False, # FALSE for large variables
+            overlapEn    = False,
+            verify       = False, # Set to True to add verification step but slow down the readout
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
         @self.command()
         def SetAllColAllRow():
@@ -166,8 +138,9 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             self.AllRow.set(0x1)
 
         @self.command()
-        def ReadPixel():
-            self.RdWrCmd.set(0x0)
+        def ResetAllColAllRow():
+            self.AllCol.set(0x0)
+            self.AllRow.set(0x0)
 
         self.add(pr.LocalVariable(
             name         = 'CsvFilePath',
@@ -192,17 +165,11 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
                 click.secho( f'{self.path}.LoadCsvPixelBitmap(): {path} is not .csv', fg='red')
                 return
 
-            self.RdWrCmd.set(0x1)
-
             if (self.enable.get()):
-                matrixCfg = np.genfromtxt(path, delimiter=',')
-                if matrixCfg.shape == (numCol, numRow):
-                    for x in range (0, numCol):
-                        for y in range (0, numRow):
-                            self.ColAddr.set(x)
-                            self.RowAddr.set(y)
-                            self.WrData.set(int(matrixCfg[x][y]))
+                matrixCfg = np.genfromtxt(path, dtype=np.int32, delimiter=',')
+                if matrixCfg.shape == (self.numCol, self.numRow):
+                    self.PixData.set(matrixCfg)
                 else:
-                    click.secho( f'.CSV file must be {numCol} X {numRow} pixels')       
+                    click.secho( f'.CSV file must be {self.numCol} X {self.numRow} pixels')
             else:
-                click.secho( "Warning: ASIC enable is set to False!") 
+                click.secho( "Warning: ASIC enable is set to False!")

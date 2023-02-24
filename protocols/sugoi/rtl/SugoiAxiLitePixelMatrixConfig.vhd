@@ -39,11 +39,12 @@ entity SugoiAxiLitePixelMatrixConfig is
       allCol          : out   sl;
       allRow          : out   sl;
       dataBus         : inout slv(DATA_WIDTH_G-1 downto 0);
-      readWrite       : out   sl;       -- Selects between read (0) or write operation (1)
+      readWrite       : out   sl;  -- Selects between read (0) or write operation (1)
       globalRstL      : out   sl;       -- Global reset, active low
       cckReg          : out   sl;
       cckPix          : out   sl;
-      -- AXI-Lite Slave Interface
+      -- AXI-Lite Slave Interface:
+      -- Configure AXI-Lite XBAR for "3+COL_WIDTH_G+ROW_WIDTH_G' address bits
       axilClk         : in    sl;
       axilRst         : in    sl;
       axilReadMaster  : in    AxiLiteReadMasterType;
@@ -53,6 +54,16 @@ entity SugoiAxiLitePixelMatrixConfig is
 end entity SugoiAxiLitePixelMatrixConfig;
 
 architecture rtl of SugoiAxiLitePixelMatrixConfig is
+
+   constant COL_DEC_ADDR_LOW_C  : integer := 2;  -- 32-bit (4-byte) word alignment
+   constant COL_DEC_ADDR_HIGH_C : integer := (COL_WIDTH_G+COL_DEC_ADDR_LOW_C)-1;
+   subtype COL_ADDR_RANGE_C is integer range COL_DEC_ADDR_HIGH_C downto COL_DEC_ADDR_LOW_C;
+
+   constant ROW_DEC_ADDR_LOW_C  : integer := COL_DEC_ADDR_HIGH_C+1;
+   constant ROW_DEC_ADDR_HIGH_C : integer := (ROW_WIDTH_G+ROW_DEC_ADDR_LOW_C)-1;
+   subtype ROW_ADDR_RANGE_C is integer range ROW_DEC_ADDR_HIGH_C downto ROW_DEC_ADDR_LOW_C;
+
+   constant ADDR_PARTITION_C : integer := 2+COL_WIDTH_G+ROW_WIDTH_G;
 
    type StateType is (
       IDLE_S,
@@ -66,7 +77,6 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       rowAddr        : slv(ROW_WIDTH_G-1 downto 0);
       allCol         : sl;
       allRow         : sl;
-      dataIn         : slv(DATA_WIDTH_G-1 downto 0);
       dataOut        : slv(DATA_WIDTH_G-1 downto 0);
       readWrite      : sl;
       configTri      : sl;
@@ -88,7 +98,6 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       rowAddr        => (others => '0'),
       allCol         => '0',
       allRow         => '0',
-      dataIn         => (others => '0'),
       dataOut        => (others => '0'),
       readWrite      => '0',
       configTri      => '1',
@@ -137,60 +146,81 @@ begin
             -- Set the timer
             v.timer := r.timerSize;
 
+            -- Check for write TXN
             if (axilStatus.readEnable = '1') then
-               -- Decode address and assign read data
-               case (axilReadMaster.araddr(3 downto 0)) is
-                  when x"0" =>
-                     v.axilReadSlave.rdata(3 downto 0)   := x"1";
-                     v.axilReadSlave.rdata(4)            := ite(COL_GRAY_CODE_G, '1', '0');
-                     v.axilReadSlave.rdata(5)            := ite(ROW_GRAY_CODE_G, '1', '0');
-                     v.axilReadSlave.rdata(11 downto 8)  := toSlv(COL_WIDTH_G, 4);
-                     v.axilReadSlave.rdata(15 downto 12) := toSlv(ROW_WIDTH_G, 4);
-                     v.axilReadSlave.rdata(19 downto 16) := toSlv(DATA_WIDTH_G, 4);
-                     v.axilReadSlave.rdata(31 downto 24) := toSlv(TIMER_WIDTH_G, 8);
-                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
-                  when x"4" =>
-                     v.axilReadSlave.rdata(10 downto 0)  := resize(r.dataIn, 11);
-                     v.axilReadSlave.rdata(20 downto 10) := resize(r.dataOut, 11);
-                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
-                  when x"8" =>
-                     v.axilReadSlave.rdata(9 downto 0)   := resize(r.colReg, 10);
-                     v.axilReadSlave.rdata(19 downto 10) := resize(r.rowReg, 10);
-                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
-                  when x"C" =>
-                     v.axilReadSlave.rdata(15 downto 0) := resize(r.timerSize, 16);
-                     v.axilReadSlave.rdata(16)          := r.allCol;
-                     v.axilReadSlave.rdata(17)          := r.allRow;
-                     v.axilReadSlave.rdata(18)          := r.globalRstL;
-                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
-                  when others =>
-                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_DECERR_C);
-               end case;
 
-            elsif (axilStatus.writeEnable = '1') then
-               -- Decode address and assign write data
-               case (axilWriteMaster.awaddr(3 downto 0)) is
-                  when x"4" =>
-                     v.dataOut := axilWriteMaster.wdata((DATA_WIDTH_G-1)+10 downto 10);
-                     axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
-                     if (axilWriteMaster.wdata(31) = '1') then
-                        v.state := WRITE_CMD_S;
-                     else
-                        v.state := READ_CMD_S;
-                     end if;
-                  when x"8" =>
-                     v.colReg  := axilWriteMaster.wdata((COL_WIDTH_G-1)+0 downto 0);
-                     v.rowReg  := axilWriteMaster.wdata((ROW_WIDTH_G-1)+10 downto 10);
-                     axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);   
-                  when x"C" =>
-                     v.timerSize  := axilWriteMaster.wdata(TIMER_WIDTH_G-1 downto 0);
-                     v.allCol     := axilWriteMaster.wdata(16);
-                     v.allRow     := axilWriteMaster.wdata(17);
-                     v.globalRstL := axilWriteMaster.wdata(18);
-                     axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
-                  when others =>
-                     axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_DECERR_C);
-               end case;
+               -- Local registers
+               if (axilReadMaster.araddr(ADDR_PARTITION_C) = '0') then
+
+                  -- Decode address and assign read data
+                  case (axilReadMaster.araddr(3 downto 0)) is
+                     when x"0" =>
+                        v.axilReadSlave.rdata(3 downto 0)   := x"1";
+                        v.axilReadSlave.rdata(4)            := ite(COL_GRAY_CODE_G, '1', '0');
+                        v.axilReadSlave.rdata(5)            := ite(ROW_GRAY_CODE_G, '1', '0');
+                        v.axilReadSlave.rdata(11 downto 8)  := toSlv(COL_WIDTH_G, 4);
+                        v.axilReadSlave.rdata(15 downto 12) := toSlv(ROW_WIDTH_G, 4);
+                        v.axilReadSlave.rdata(19 downto 16) := toSlv(DATA_WIDTH_G, 4);
+                        v.axilReadSlave.rdata(31 downto 24) := toSlv(TIMER_WIDTH_G, 8);
+                        axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
+                     when x"C" =>
+                        v.axilReadSlave.rdata(15 downto 0) := resize(r.timerSize, 16);
+                        v.axilReadSlave.rdata(16)          := r.allCol;
+                        v.axilReadSlave.rdata(17)          := r.allRow;
+                        v.axilReadSlave.rdata(18)          := r.globalRstL;
+                        axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
+                     when others =>
+                        axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_DECERR_C);
+                  end case;
+
+               -- External pixel register access
+               else
+
+                  -- Decode the col/row address
+                  v.colReg := axilReadMaster.araddr(COL_ADDR_RANGE_C);
+                  v.rowReg := axilReadMaster.araddr(ROW_ADDR_RANGE_C);
+
+                  -- Next state
+                  v.state := READ_CMD_S;
+               end if;
+
+            end if;
+
+            -- Check for read TXN
+            if (axilStatus.writeEnable = '1') then
+
+               -- Local registers
+               if (axilWriteMaster.awaddr(ADDR_PARTITION_C) = '0') then
+
+                  -- Decode address and assign write data
+                  case (axilWriteMaster.awaddr(3 downto 0)) is
+                     when x"C" =>
+                        v.timerSize  := axilWriteMaster.wdata(TIMER_WIDTH_G-1 downto 0);
+                        v.allCol     := axilWriteMaster.wdata(16);
+                        v.allRow     := axilWriteMaster.wdata(17);
+                        v.globalRstL := axilWriteMaster.wdata(18);
+                        axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
+                     when others =>
+                        axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_DECERR_C);
+                  end case;
+
+               -- External pixel register access
+               else
+
+                  -- Decode the col/row address
+                  v.colReg := axilWriteMaster.awaddr(COL_ADDR_RANGE_C);
+                  v.rowReg := axilWriteMaster.awaddr(ROW_ADDR_RANGE_C);
+
+                  -- Decode the data field
+                  v.dataOut := axilWriteMaster.wdata(DATA_WIDTH_G-1 downto 0);
+
+                  -- Ack the write TXN
+                  axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_OK_C);
+
+                  -- Next state
+                  v.state := WRITE_CMD_S;
+               end if;
+
             end if;
          ----------------------------------------------------------------------
          when READ_CMD_S =>
@@ -228,7 +258,10 @@ begin
                if (r.cnt = 3) then
 
                   -- Assign read data
-                  v.dataIn := dataIn;
+                  v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := dataIn;
+
+                  -- Ack the read TXN
+                  axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
 
                   -- Next state
                   v.state := IDLE_S;
