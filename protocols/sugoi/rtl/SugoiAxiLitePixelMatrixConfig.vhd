@@ -27,9 +27,9 @@ entity SugoiAxiLitePixelMatrixConfig is
    generic (
       TPD_G           : time                   := 1 ns;
       COL_GRAY_CODE_G : boolean                := true;
-      COL_WIDTH_G     : positive range 1 to 10 := 7;
+      COL_WIDTH_G     : positive range 1 to 10 := 6;
       ROW_GRAY_CODE_G : boolean                := true;
-      ROW_WIDTH_G     : positive range 1 to 10 := 8;
+      ROW_WIDTH_G     : positive range 1 to 10 := 6;
       DATA_WIDTH_G    : positive range 1 to 11 := 9;
       TIMER_WIDTH_G   : positive range 1 to 16 := 12);
    port (

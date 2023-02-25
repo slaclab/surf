@@ -15,17 +15,17 @@ import numpy as np
 
 class SugoiAxiLitePixelMatrixConfig(pr.Device):
     def __init__(self,
-            colWidth   = 7,
-            rowWidth   = 8,
+            colWidth   = 6,
+            rowWidth   = 6,
             dataWidth  = 9,
             timerWidth = 16,
             numCol     = 48,
             numRow     = 48,
             **kwargs):
         super().__init__(**kwargs)
-        self.numCol = numCol,
-        self.numRow = numRow,
-        self.numPix = (2**colWidth)*(2**rowWidth),
+        self.numCol = numCol
+        self.numRow = numRow
+        self.numPix = (2**colWidth)*(2**rowWidth)
 
         self.add(pr.RemoteVariable(
             name      = 'Version',
@@ -168,7 +168,7 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             if (self.enable.get()):
                 matrixCfg = np.genfromtxt(path, dtype=np.int32, delimiter=',')
                 if matrixCfg.shape == (self.numCol, self.numRow):
-                    self.PixData.set(matrixCfg)
+                    self.PixData.set(np.reshape(np.array(matrixCfg,np.uint32),(1,self.numCol* self.numRow))[0])
                 else:
                     click.secho( f'.CSV file must be {self.numCol} X {self.numRow} pixels')
             else:
