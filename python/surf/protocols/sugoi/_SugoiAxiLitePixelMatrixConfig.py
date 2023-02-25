@@ -25,7 +25,7 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         super().__init__(**kwargs)
         self.numCol = numCol
         self.numRow = numRow
-        self.numPix = (2**colWidth)*(2**rowWidth)
+        self.numPixMax = (2**colWidth)*(2**rowWidth)
 
         self.add(pr.RemoteVariable(
             name      = 'Version',
@@ -115,27 +115,38 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             mode      = 'RW',
         ))
 
+        for i in range(self.numRow):
+            self.add(pr.RemoteVariable(
+                name         = f'_PixData[{i}]',
+                offset       = (self.numPixMax<<2) +(i*(2**colWidth)<<2),
+                bitSize      = 32 * self.numCol,
+                bitOffset    = 0,
+                numValues    = self.numCol,
+                valueBits    = 32,
+                valueStride  = 32,
+                updateNotify = True,
+                bulkOpEn     = False, # FALSE for large variables
+                overlapEn    = False,
+                verify       = False, # Set to True to add verification step but slow down the readout
+                hidden       = True,
+                base         = pr.UInt,
+                mode         = "RW",
+            ))
+
         self.add(pr.RemoteVariable(
-            name         = 'PixData',
-            offset       = (self.numPix<<2),
-            bitSize      = 32 * self.numPix,
-            bitOffset    = 0,
-            numValues    = self.numPix,
-            valueBits    = 32,
-            valueStride  = 32,
-            updateNotify = True,
-            bulkOpEn     = False, # FALSE for large variables
-            overlapEn    = False,
-            verify       = False, # Set to True to add verification step but slow down the readout
-            hidden       = True,
-            base         = pr.UInt,
-            mode         = "RW",
+            name      = 'AllMatrixValue',
+            offset    = (self.numPixMax<<2) + ((self.numPixMax-1)<<2) ,
+            bitSize   = 32,
+            bitOffset = 0,
+            hidden    = True,
+            mode      = 'WO',
         ))
 
-        @self.command()
-        def SetAllColAllRow():
+        @self.command(value='',description="Programming bits for each pixel of the matrix",)
+        def SetAllColAllRow(arg):
             self.AllCol.set(0x1)
             self.AllRow.set(0x1)
+            self.AllMatrixValue.set(int(arg))
 
         @self.command()
         def ResetAllColAllRow():
@@ -168,7 +179,8 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             if (self.enable.get()):
                 matrixCfg = np.genfromtxt(path, dtype=np.int32, delimiter=',')
                 if matrixCfg.shape == (self.numCol, self.numRow):
-                    self.PixData.set(np.reshape(np.array(matrixCfg,np.uint32),(1,self.numCol* self.numRow))[0])
+                    for i in range (self.numRow):
+                        self._PixData[i].set(np.array(matrixCfg[i],np.uint32))
                 else:
                     click.secho( f'.CSV file must be {self.numCol} X {self.numRow} pixels')
             else:
