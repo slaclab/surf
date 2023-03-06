@@ -77,15 +77,17 @@ begin
          MASTER_WIDTH_G => 10)
       port map (
          -- Clock and Reset
-         clk          => clk,
-         rst          => '0',           -- Never reset on global reset command
+         clk            => clk,
+         rst            => '0',         -- Never reset on global reset command
          -- Slip Interface
-         slip         => rxSlip,
+         slip           => rxSlip,
          -- Slave Interface
-         slaveData(0) => rx,
+         slaveData(0)   => rx,
+         slaveBitOrder  => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
          -- Master Interface
-         masterValid  => rxEncodeValid,
-         masterData   => rxEncodeData);
+         masterBitOrder => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
+         masterValid    => rxEncodeValid,
+         masterData     => rxEncodeData);
 
    ----------------
    -- 8B10B Decoder
@@ -176,12 +178,14 @@ begin
          MASTER_WIDTH_G => 1)
       port map (
          -- Clock and Reset
-         clk           => clk,
-         rst           => '0',          -- Never reset on global reset command
+         clk            => clk,
+         rst            => '0',         -- Never reset on global reset command
          -- Slave Interface
-         slaveValid    => txEncodeValid,
-         slaveData     => txEncodeData,
+         slaveValid     => txEncodeValid,
+         slaveData      => txEncodeData,
+         slaveBitOrder  => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
          -- Master Interface
-         masterData(0) => tx);
+         masterBitOrder => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
+         masterData(0)  => tx);
 
 end mapping;
