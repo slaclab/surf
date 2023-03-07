@@ -783,7 +783,7 @@ package body AxiLitePkg is
          if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
              std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
             if (constVal /= "X") then
-               reg(REG_HIGH_BIT_C downto reg'low) := constVal;
+               reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal,(REG_HIGH_BIT_C-reg'low)+1);
             else
                reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C);
             end if;

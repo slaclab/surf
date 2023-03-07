@@ -251,6 +251,7 @@ begin
             dina   => dina,
             -- Port B
             clkb   => rd_clk,
+            rstb   => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
             addrb  => addrb,
             doutb  => doutb,
             enb    => enb,
