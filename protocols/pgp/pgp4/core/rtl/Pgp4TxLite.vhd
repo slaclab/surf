@@ -163,6 +163,7 @@ begin
             axisRst      => pgpTxRst,       -- [in]
             disableSel   => disableSel,     -- [in]
             rearbitrate  => '0',            -- [in]
+            ileaveRearb  => (others=>'0'),  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
             sAxisMasters => pgpTxMasters,   -- [in]
             sAxisSlaves  => pgpTxSlaves,    -- [out]
             mAxisMaster  => muxedTxMaster,  -- [out]
