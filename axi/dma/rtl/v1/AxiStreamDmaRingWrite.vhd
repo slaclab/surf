@@ -107,6 +107,20 @@ architecture rtl of AxiStreamDmaRingWrite is
       return ret;
    end function statusRamInit;
 
+   function statusRamClear
+      return slv is
+      variable ret : slv(31 downto 0) := (others => '0');
+   begin
+      ret(EMPTY_C)      := '1';
+      ret(FULL_C)       := '0';
+      ret(DONE_C)       := '0';
+      ret(TRIGGERED_C)  := '0';
+      ret(ERROR_C)      := '0';
+      ret(BURST_SIZE_C) := BURST_SIZE_SLV_C;
+      ret(FST_C)        := (others => '0');
+      return ret;
+   end function statusRamClear;
+
    constant STATUS_RAM_INIT_C : slv(31 downto 0) := statusRamInit;
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray := (
@@ -158,8 +172,9 @@ architecture rtl of AxiStreamDmaRingWrite is
       wrRamAddr        : slv(RAM_ADDR_WIDTH_C-1 downto 0);
       rdRamAddr        : slv(RAM_ADDR_WIDTH_C-1 downto 0);
       activeBuffer     : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-      initBufferEn     : sl;
       ramWe            : sl;
+      statusClearEn    : sl;
+      statusClearAddr  : slv(RAM_ADDR_WIDTH_C-1 downto 0);
       nextAddr         : slv(RAM_DATA_WIDTH_C-1 downto 0);
       startAddr        : slv(RAM_DATA_WIDTH_C-1 downto 0);
       endAddr          : slv(RAM_DATA_WIDTH_C-1 downto 0);
@@ -177,6 +192,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       bufferDone       : slv(BUFFERS_G-1 downto 0);
       bufferTriggered  : slv(BUFFERS_G-1 downto 0);
       bufferError      : slv(BUFFERS_G-1 downto 0);
+      bufferClear      : slv(BUFFERS_G-1 downto 0);
       axisStatusMaster : AxiStreamMasterType;
    end record RegType;
 
@@ -184,8 +200,9 @@ architecture rtl of AxiStreamDmaRingWrite is
       wrRamAddr        => (others => '0'),
       rdRamAddr        => (others => '0'),
       activeBuffer     => (others => '0'),
-      initBufferEn     => '0',
       ramWe            => '0',
+      statusClearEn    => '0',
+      statusClearAddr  => (others => '0'),
       nextAddr         => (others => '0'),
       startAddr        => (others => '0'),
       endAddr          => (others => '0'),
@@ -208,7 +225,8 @@ architecture rtl of AxiStreamDmaRingWrite is
       bufferDone       => (others => '1'),
       bufferTriggered  => (others => '0'),
       bufferError      => (others => '0'),
-      axisStatusMaster => axiStreamMasterInit(INT_STATUS_AXIS_CONFIG_C));
+      bufferClear      => (others => '0'),
+      axisStatusMaster => axiStreamMasterInit(INT_STATUS_AXIS_CONFIG_C) );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -226,7 +244,12 @@ architecture rtl of AxiStreamDmaRingWrite is
    signal modeWrAddr   : slv(RAM_ADDR_WIDTH_C-1 downto 0);
    signal modeWrData   : slv(31 downto 0);
 
+   signal statusWe     : sl;
+   signal statusAddr   : slv(RAM_ADDR_WIDTH_C-1 downto 0);
+   signal statusDin    : slv(31 downto 0);
+   
 begin
+
    -- Assert that stream config has enough tdest bits for the number of buffers being tracked
    -- Assert that BURST_SIZE_BYTES_G is a power of 2
 
@@ -398,11 +421,16 @@ begin
          axiWriteSlave  => locAxilWriteSlaves(STATUS_AXIL_C),
          clk            => axiClk,
          rst            => axiRst,
-         we             => r.ramWe,
-         addr           => r.wrRamAddr,
-         din            => r.status,
+         we             => statusWe,   -- r.ramWe,
+         addr           => statusAddr, -- r.wrRamAddr,
+         din            => statusDin,  -- r.status,
          dout           => statusRamDout);
 
+   --  Priority is to write the status from the state machine
+   statusWe   <= r.statusClearEn or r.ramWe;
+   statusAddr <= r.statusClearAddr when (r.statusClearEn = '1' and r.ramWe = '0') else r.wrRamAddr;
+   statusDin  <= statusRamClear    when (r.statusClearEn = '1' and r.ramWe = '0') else r.status;
+  
    -- DMA Write block
    U_AxiStreamDmaWrite_1 : entity surf.AxiStreamDmaWrite
       generic map (
@@ -464,7 +492,7 @@ begin
 
       -- These registers default to zero
       v.ramWe                   := '0';
-      v.initBufferEn            := '0';
+      v.statusClearEn           := '0';
       v.axisStatusMaster.tValid := '0';
 
       -- If last txn of frame, check for trigger condition and EOFE and latch them in registers.
@@ -482,65 +510,60 @@ begin
          v.softTrigger := r.softTrigger or decode(modeWrAddr);
       end if;
 
-      -- Override state machine if a buffer clear is being requested
-      -- This could occur through the ports (bufferClearEn+bufferClear)
-      -- Or through the mode registers
+      --
+      --  Handle clear requests
+      --    Update the status ram promptly
+      --    Queue the pointer updates until the WAIT_FOR_TVALID
+      --
       if (bufferClearEn = '1') then
-         v.initBufferEn := '1';
-         v.rdRamAddr    := bufferClear;
-         v.state        := ASSERT_ADDR_S;
+         v.statusClearEn    := '1';
+         v.statusClearAddr  := bufferClear;
+         v.bufferClear(conv_integer(bufferClear)) := '1';
       elsif(modeWrValid = '1' and modeWrData(INIT_C) = '1' and modeWrStrobe(INIT_C/8) = '1') then
-         v.initBufferEn := '1';
-         v.rdRamAddr    := modeWrAddr;
-         v.state        := ASSERT_ADDR_S;
+         v.statusClearEn    := '1';
+         v.statusClearAddr  := modeWrAddr;
+         v.bufferClear(conv_integer(modeWrAddr)) := '1';
       end if;
 
-      -- Set status and pointers back to init state and write the values to the local ram registers
-      if (r.initBufferEn = '1') then
-         v.status(DONE_C)      := '0';
-         v.status(FULL_C)      := '0';
-         v.status(EMPTY_C)     := '1';
-         v.status(TRIGGERED_C) := '0';
-         v.status(ERROR_C)     := '0';
-         v.status(FST_C)       := (others => '0');
-         v.wrRamAddr           := r.rdRamAddr;
-         v.nextAddr            := startRamDout;
-         v.trigAddr            := (others => '1');
-         v.ramWe               := '1';
+      -- ramWe takes precedence over statusClearEn
+      if (r.statusClearEn = '1' and r.ramWe = '1') then
+         v.statusClearEn := '1';
       end if;
-
+        
 
       case (r.state) is
          when WAIT_TVALID_S =>
             -- Only final burst before readout can be short, so no need to worry about next
             -- burst wrapping awkwardly. Whole thing will be reset after readout.
-            -- Don't do anything if in the middle of a buffer address clear
-            if (axisDataMaster.tvalid = '1' and v.initBufferEn = '0' and dmaAck.done = '0') then
+            if (axisDataMaster.tvalid = '1' and dmaAck.done = '0') then
                v.activeBuffer := axisDataMaster.tdest(RAM_ADDR_WIDTH_C-1 downto 0);
                v.state        := ASSERT_ADDR_S;
-            elsif (v.initBufferEn = '1') then
-               -- Stay in this state if bufferes need to be cleared
-               v.state := WAIT_TVALID_S;
             end if;
 
          when ASSERT_ADDR_S =>
-            -- State holds here as long buffers are being initialized
-            if (v.initBufferEn = '0' and r.initBufferEn = '0') then
-               v.rdRamAddr := r.activeBuffer;
-               v.wrRamAddr := r.activeBuffer;
+            v.rdRamAddr := r.activeBuffer;
+            v.wrRamAddr := r.activeBuffer;
+            --  Cannot proceed to the next state if statusRamDout doesn't
+            --  reflect the active buffer
+            if r.statusClearEn = '0' then
                v.state     := LATCH_POINTERS_S;
             end if;
-
+            
          when LATCH_POINTERS_S =>
             -- Latch pointers
-            -- Might go back to ASSERT_ADDR_S if bufferClearEn is high
-            -- But everything this state asserts is still valid
             v.startAddr := startRamDout;   -- Address of start of buffer
             v.endAddr   := endRamDout;     -- Address of end of buffer
             v.nextAddr  := nextRamDout;    -- Address of next frame in buffer
             v.trigAddr  := trigRamDout;    -- Start address of frame where trigger was seen
             v.mode      := modeRamDout;    -- Number of frames since trigger seen
             v.status    := statusRamDout;  -- Number of frames to log after trigger seen
+
+            if r.bufferClear(conv_integer(r.activeBuffer)) = '1' then
+               v.bufferClear(conv_integer(r.activeBuffer)) := '0';
+               v.trigAddr   := (others=>'1');
+               v.nextAddr   := startRamDout;
+               v.ramWe      := '1';
+            end if;
 
             -- Assert a new request.
             -- Direct that frame be dropped if buffer is done with trigger sequence
@@ -565,8 +588,7 @@ begin
 
          when WAIT_DMA_DONE_S =>
             -- Wait until DMA transaction is done.
-            -- Must also check that buffer not being cleared so as not to step on the addresses
-            if (dmaAck.done = '1' and v.initBufferEn = '0') then
+            if (dmaAck.done = '1') then
 
                v.dmaReq.request  := '0';  -- Deassert dma request
                v.status(EMPTY_C) := '0';  -- Update empty status
@@ -630,12 +652,17 @@ begin
          v.bufferDone(conv_integer(r.wrRamAddr))      := r.status(DONE_C);
          v.bufferTriggered(conv_integer(r.wrRamAddr)) := r.status(TRIGGERED_C);
          v.bufferError(conv_integer(r.wrRamAddr))     := r.status(ERROR_C);
+      elsif (r.statusClearEn = '1') then
+         v.bufferEmpty(conv_integer(r.statusClearAddr))     := statusRamClear(EMPTY_C);
+         v.bufferFull(conv_integer(r.statusClearAddr))      := statusRamClear(FULL_C);
+         v.bufferDone(conv_integer(r.statusClearAddr))      := statusRamClear(DONE_C);
+         v.bufferTriggered(conv_integer(r.statusClearAddr)) := statusRamClear(TRIGGERED_C);
+         v.bufferError(conv_integer(r.statusClearAddr))     := statusRamClear(ERROR_C);
       end if;
 
       if(modeWrValid = '1' and modeWrStrobe(ENABLED_C/8) = '1') then
          v.bufferEnabled(conv_integer(modeWrAddr)) := modeWrData(ENABLED_C);
       end if;
-
 
       ----------------------------------------------------------------------------------------------
       -- Reset and output assignment
