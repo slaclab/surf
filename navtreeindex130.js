@@ -1,5 +1,11 @@
 var NAVTREEINDEX130 =
 {
+"classSimpleDualPortRamAlteraMf.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,619,26],
+"classSimpleDualPortRamAlteraMf_1_1rtl.html":[1,0,619,0],
+"classSimpleDualPortRamXpm.html":[1,0,620],
+"classSimpleDualPortRamXpm.html#a0073970f1392f10032ffbb4c4164e1a9":[1,0,620,21],
+"classSimpleDualPortRamXpm.html#a04b2b321f81f02681a52c6c7d92ff12e":[1,0,620,9],
+"classSimpleDualPortRamXpm.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,620,24],
 "classSimpleDualPortRamXpm.html#a0de49fbe6e07a265532ec49da1f5c4bb":[1,0,620,14],
 "classSimpleDualPortRamXpm.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,620,26],
 "classSimpleDualPortRamXpm.html#a15744a2b5a69e47974a097e472b24220":[1,0,620,20],
@@ -243,11 +249,5 @@ var NAVTREEINDEX130 =
 "classSlaveAxiIpIntegrator.html#a459abcd98567ad24261377eed899593a":[1,0,625,28],
 "classSlaveAxiIpIntegrator.html#a473cc8c3c0202f98c48e31f659ac0b68":[1,0,625,45],
 "classSlaveAxiIpIntegrator.html#a5850bf8f42acdf01938057507dc703b7":[1,0,625,60],
-"classSlaveAxiIpIntegrator.html#a58f260d3ebaa69be91bb65ff9211823b":[1,0,625,41],
-"classSlaveAxiIpIntegrator.html#a598da929e807d58939b47499e8bc9fa8":[1,0,625,70],
-"classSlaveAxiIpIntegrator.html#a5ebc826227f46ce6a7c1373977339cfb":[1,0,625,64],
-"classSlaveAxiIpIntegrator.html#a5f47bf7df9dcff0d7f5593c7a10c74f3":[1,0,625,24],
-"classSlaveAxiIpIntegrator.html#a60bd882e2de781af9a7c6c3d494225d5":[1,0,625,37],
-"classSlaveAxiIpIntegrator.html#a64aabbda43ca8468d0abade183bb009c":[1,0,625,46],
-"classSlaveAxiIpIntegrator.html#a67ba85504b4c51fb0eb00d18fd70ad92":[1,0,625,57]
+"classSlaveAxiIpIntegrator.html#a58f260d3ebaa69be91bb65ff9211823b":[1,0,625,41]
 };
