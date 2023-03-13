@@ -477,7 +477,7 @@ class _Regs(pr.Device):
                 resp = (self.SR.get(read=True) & 0x2)
 
                 # Clear status register by writing 1 to the write to clear bits
-                self.SR.set(0xFF)
+                self.SR.set(0x7F)
 
                 #print(f'Resp: {resp}')
                 if resp != 0:
@@ -485,7 +485,7 @@ class _Regs(pr.Device):
                     transaction.error(f'AXIL tranaction failed with RESP: {resp}')
 
                 # Finish the transaction
-                elif self.Rnw.valueDisp() == 'Write':
+                elif transaction.type() == rogue.interfaces.memory.Write:
                     transaction.done()
 
                 else:
@@ -529,7 +529,7 @@ class SpiPs(pr.Device):
             offset     = 0x0000,
             hidden     = hidden,
             pollPeriod = pollPeriod,
-            expand     = True,
+            expand     = False,
         ))
         self.proxy = _ProxySlave(self.Regs)
 
