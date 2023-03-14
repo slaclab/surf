@@ -10,6 +10,7 @@
 from surf.xilinx._AxiPciePhy          import *
 from surf.xilinx._AxiSysMonUltraScale import *
 from surf.xilinx._ClockManager        import *
+from surf.xilinx._GpioPs              import *
 from surf.xilinx._Gthe3Channel        import *
 from surf.xilinx._Gtxe2Channel        import *
 from surf.xilinx._Gtpe2Channel        import *
