@@ -48,19 +48,6 @@ class _Regs(pr.Device):
         ####################################################################
 
         self.add(pr.RemoteVariable(
-            name        = 'Modefail_gen_en',
-            description = 'ModeFail Generation Enable: Change only when controller is not actively transmitting or receiving data.',
-            offset      = 0x00,
-            bitOffset   = 17,
-            bitSize     = 1,
-            mode        = 'RW',
-            enum        = {
-                0: "disable",
-                1: "enable",
-            },
-        ))
-
-        self.add(pr.RemoteVariable(
             name        = 'Man_start_en',
             description = 'Manual Start Enable: Change only when controller is not actively transmitting or receiving data.',
             offset      = 0x00,
@@ -126,6 +113,15 @@ class _Regs(pr.Device):
                 0: "use SPI REFERENCE CLOCK",
                 1: "not supported",
             },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Reserved',
+            description = 'Reserved, read as zero, write with 00',
+            offset      = 0x00,
+            bitOffset   = 6,
+            bitSize     = 2,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
@@ -345,8 +341,10 @@ class _Regs(pr.Device):
         ####################################################################
         @self.command()
         def ResetHw():
-            # Refresh CR register
-            self.Modefail_gen_en.get()
+            print (f'{self.path}.ResetHw()')
+
+            # Refresh CR register by polling CS
+            self.CS.get()
 
             # Disable all Interrupts
             self.IDR.set(0x7F)
@@ -360,47 +358,70 @@ class _Regs(pr.Device):
             self.TXWR.set(1)
             self.RXWR.set(1)
 
-            # Clear RXFIFO and check if Rx FIFO Not Empty (Rx FIFO Not Empty = 0x10)
-            while ( (self.SR.get(read=True) & 0x10) != 0 ):
-                self.RXD.get(read=True)
-
             # Read all RXFIFO entries
-            for i in range(128):
-                self.RXD.get(read=True)
-
-            # Clear status register by writing 1 to the write to clear bits
-            self.SR.set(0x7F)
-            self.SR.get()
+            self.ClearRxFifo()
 
             # Configure for master manual mode with auto CS
             self.Man_start_en.set(0)
             self.MODE_SEL.set(1)
             self.Manual_CS.set(0)
             self.CS.set(0)
-            self.Modefail_gen_en.set(1)
 
             # Enable device
             self.ER.set(1)
 
+            # Transmit all TXFIFO entries
+            self.ClearTxFifo()
+
+            # Read all RXFIFO entries
+            self.ClearRxFifo()
+
+            # Clear status register by writing 1 to the write to clear bits
+            self.SR.set(0x7F)
+
     ####################################################################
 
-    def Transfer(self, devIdx, txBuffer, byteSize):
+    def ClearTxFifo(self):
+        # print (f'{self.path}.ClearTxFifo()')
+
+        # Clear TXFIFO and check if TX_FIFO_not_full (TX_FIFO_not_full = 0x04)
+        while ( (self.SR.get(read=True) & 0x04) != 0x04 ):
+            self.SR.set(0x7F)
+
+    def ClearRxFifo(self):
+        # print (f'{self.path}.ClearRxFifo()')
+
+        # Clear RXFIFO and check if RX_FIFO_not_empty (RX_FIFO_not_empty = 0x10)
+        while ( (self.SR.get(read=True) & 0x10) != 0 ):
+            self.RXD.get(read=True)
+            self.SR.set(0x7F)
+        for i in range(128):
+            self.RXD.get(read=True)
+
+    ####################################################################
+
+    def Transfer(self, csValue, txBuffer, byteSize):
+
         # Set the RX watermark
         if self.RXWR.value() != byteSize:
-            self.RXWR.set(byteSize, verify=False)
+            self.RXWR.set(byteSize)
 
         # Set CS
-        if self.CS.value() != devIdx:
-            self.CS.set(devIdx, verify=False)
+        if self.CS.value() != csValue:
+            self.CS.set(csValue)
 
         # Load the TX FIFO
-        self.Man_start_en.set(1, verify=False)
+        self.Man_start_en.set(1)
         for i in range(byteSize):
-            self.TXD.set(txBuffer[i], verify=False)
+            self.TXD.set(txBuffer[i])
 
         # Start the transfer
         self.Manual_CS.set(1) # Force manual due to observed CS glitch in waveforms when AUTO CS
-        self.Man_start_en.set(0, verify=False)
+        self.Man_start_en.set(0)
+
+        # Create the RX buffer and clear the "Rx FIFO Not Empty" flag
+        rxBuffer = [None for x in range(byteSize)]
+        # self.SR.set(0x10)
 
         # Wait for the buffer to fill out: Rx FIFO Not Empty = 0x10
         while ( (self.SR.get(read=True) & 0x10) == 0 ):
@@ -408,7 +429,6 @@ class _Regs(pr.Device):
 
         # Read the RX FIFO
         self.Manual_CS.set(0) # release manual due to observed CS glitch in waveforms when AUTO CS
-        rxBuffer = [None for x in range(byteSize)]
         for i in range(byteSize):
             rxBuffer[i] = self.RXD.get(read=True)
 
@@ -439,7 +459,7 @@ class _Regs(pr.Device):
                 addrBytes = (virtualAddress >> 44) & 0x7
                 dataBytes = (virtualAddress >> 40) & 0x7
                 byteSize  = addrBytes + dataBytes
-                txBuffer  = [0xFF for x in range(byteSize)]
+                txBuffer  = [0x00 for x in range(byteSize)]
 
                 # Fill the address bytes
                 for i in range(addrBytes):
@@ -471,7 +491,7 @@ class _Regs(pr.Device):
                     return
 
                 # Kick off the proxy transaction
-                rxBuffer = self.Transfer(devIdx, txBuffer, byteSize)
+                rxBuffer = self.Transfer((0xF ^ 0x1 <<devIdx), txBuffer, byteSize)
 
                 # Check the error flag
                 resp = (self.SR.get(read=True) & 0x2)

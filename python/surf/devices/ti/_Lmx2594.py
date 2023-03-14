@@ -34,7 +34,7 @@ class Lmx2594(pr.Device):
             mode         = "RW",
         ))
 
-        def MyLinkVariable(self, name, description, offset, bitSize, mode, bitOffset=0, pollInterval=0, value=None, hidden=False):
+        def MyLinkVariable(name, description, offset, bitSize, mode, bitOffset=0, pollInterval=0, value=None, hidden=False):
 
             self.add(pr.LinkVariable(
                 name         = name,
