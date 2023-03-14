@@ -360,8 +360,8 @@ class _Regs(pr.Device):
             self.TXWR.set(1)
             self.RXWR.set(1)
 
-            # Clear RXFIFO and check if Rx FIFO Not Empty
-            while( (self.SR.get(read=True) & 0x10) != 0): # Rx FIFO Not Empty = 0x10
+            # Clear RXFIFO and check if Rx FIFO Not Empty (Rx FIFO Not Empty = 0x10)
+            while( (self.SR.get(read=True) & 0x10) != 0):
                 self.RXD.get(read=True)
 
             # Read all RXFIFO entries
@@ -402,8 +402,8 @@ class _Regs(pr.Device):
         self.Manual_CS.set(1) # Force manual due to observed CS glitch in waveforms when AUTO CS
         self.Man_start_en.set(0, verify=False)
 
-        # Wait for the buffer to fill out
-        while( (self.SR.get(read=True) & 0x10) == 0): # Rx FIFO Not Empty = 0x10
+        # Wait for the buffer to fill out: Rx FIFO Not Empty = 0x10
+        while( (self.SR.get(read=True) & 0x10) == 0):
             time.sleep(self._pollPeriod)
 
         # Read the RX FIFO
