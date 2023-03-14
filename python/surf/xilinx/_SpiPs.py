@@ -361,7 +361,7 @@ class _Regs(pr.Device):
             self.RXWR.set(1)
 
             # Clear RXFIFO and check if Rx FIFO Not Empty (Rx FIFO Not Empty = 0x10)
-            while( (self.SR.get(read=True) & 0x10) != 0 ):
+            while ( (self.SR.get(read=True) & 0x10) != 0 ):
                 self.RXD.get(read=True)
 
             # Read all RXFIFO entries
@@ -403,7 +403,7 @@ class _Regs(pr.Device):
         self.Man_start_en.set(0, verify=False)
 
         # Wait for the buffer to fill out: Rx FIFO Not Empty = 0x10
-        while( (self.SR.get(read=True) & 0x10) == 0 ):
+        while ( (self.SR.get(read=True) & 0x10) == 0 ):
             time.sleep(self._pollPeriod)
 
         # Read the RX FIFO
