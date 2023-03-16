@@ -247,7 +247,7 @@ architecture rtl of AxiStreamDmaRingWrite is
    signal statusWe     : sl;
    signal statusAddr   : slv(RAM_ADDR_WIDTH_C-1 downto 0);
    signal statusDin    : slv(31 downto 0);
-   
+
 begin
 
    -- Assert that stream config has enough tdest bits for the number of buffers being tracked
@@ -430,7 +430,7 @@ begin
    statusWe   <= r.statusClearEn or r.ramWe;
    statusAddr <= r.statusClearAddr when (r.statusClearEn = '1' and r.ramWe = '0') else r.wrRamAddr;
    statusDin  <= statusRamClear    when (r.statusClearEn = '1' and r.ramWe = '0') else r.status;
-  
+
    -- DMA Write block
    U_AxiStreamDmaWrite_1 : entity surf.AxiStreamDmaWrite
       generic map (
@@ -529,7 +529,7 @@ begin
       if (r.statusClearEn = '1' and r.ramWe = '1') then
          v.statusClearEn := '1';
       end if;
-        
+
 
       case (r.state) is
          when WAIT_TVALID_S =>
@@ -548,7 +548,7 @@ begin
             if r.statusClearEn = '0' then
                v.state     := LATCH_POINTERS_S;
             end if;
-            
+
          when LATCH_POINTERS_S =>
             -- Latch pointers
             v.startAddr := startRamDout;   -- Address of start of buffer
