@@ -336,7 +336,7 @@ class _Regs(pr.Device):
             byteSize = 3
             txBuffer  = [x&0xFF for x in range(byteSize)]
             txBuffer[0] |= 0x80
-            self.Transfer(0,txBuffer,byteSize)
+            self.transfer(0,txBuffer,byteSize)
 
         ####################################################################
         @self.command()
@@ -400,7 +400,7 @@ class _Regs(pr.Device):
 
     ####################################################################
 
-    def Transfer(self, csValue, txBuffer, byteSize):
+    def transfer(self, csValue, txBuffer, byteSize):
 
         # Set the RX watermark
         if self.RXWR.value() != byteSize:
@@ -491,7 +491,7 @@ class _Regs(pr.Device):
                     return
 
                 # Kick off the proxy transaction
-                rxBuffer = self.Transfer((0xF ^ 0x1 <<devIdx), txBuffer, byteSize)
+                rxBuffer = self.transfer((0xF ^ 0x1 <<devIdx), txBuffer, byteSize)
 
                 # Check the error flag
                 resp = (self.SR.get(read=True) & 0x2)
