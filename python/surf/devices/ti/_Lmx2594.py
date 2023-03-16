@@ -34,7 +34,7 @@ class Lmx2594(pr.Device):
             mode         = "RW",
         ))
 
-        def MyLinkVariable(name, description, offset, bitSize, mode, bitOffset=0, pollInterval=0, value=None, hidden=False):
+        def addLinkVariable(name, description, offset, bitSize, mode, bitOffset=0, pollInterval=0, value=None, hidden=False):
 
             self.add(pr.LinkVariable(
                 name         = name,
@@ -53,7 +53,7 @@ class Lmx2594(pr.Device):
         # Link Variables
         ##############################
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'RAMP_EN',
             description = 'frequency ramping mode',
             offset      = (0 << 2),
@@ -62,7 +62,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'VCO_PHASE_SYNC',
             description = 'phase SYNC mode',
             offset      = (0 << 2),
@@ -71,7 +71,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'OUT_MUTE',
             description = 'Mute the outputs when the VCO is calibrating',
             offset      = (0 << 2),
@@ -80,7 +80,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'FCAL_EN',
             description = 'Enable the VCO frequency calibration',
             offset      = (0 << 2),
@@ -89,7 +89,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'MUXOUT_LD_SEL',
             description = 'Selects the state of the function of the MUXout pin',
             offset      = (0 << 2),
@@ -98,7 +98,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'RESET',
             description = 'Resets and holds all state machines and registers to default value',
             offset      = (0 << 2),
@@ -107,7 +107,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'POWERDOWN',
             description = 'Powers down entire device',
             offset      = (0 << 2),
@@ -116,7 +116,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'OUTB_PD',
             description = 'Powers down output B',
             offset      = (44 << 2),
@@ -125,7 +125,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'OUTA_PD',
             description = 'Powers down output A',
             offset      = (44 << 2),
@@ -134,7 +134,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'SYSREF_DIV_PRE',
             description = 'Pre-divider for SYSREF',
             offset      = (71 << 2),
@@ -143,7 +143,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'SYSREF_PULSE',
             description = 'Enable pulser mode in master mode',
             offset      = (71 << 2),
@@ -152,7 +152,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'SYSREF_EN',
             description = 'Enable SYSREF',
             offset      = (71 << 2),
@@ -161,7 +161,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'SYSREF_REPEAT',
             description = 'Enable repeater mode',
             offset      = (71 << 2),
@@ -170,7 +170,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'SYSREF_DIV',
             description = 'Divider for the SYSREF',
             offset      = (72 << 2),
@@ -179,7 +179,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'SYSREF_PULSE_CNT',
             description = 'Number of pulses in pulse mode in master mode',
             offset      = (74 << 2),
@@ -188,7 +188,7 @@ class Lmx2594(pr.Device):
             mode        = 'RW',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'rb_LD_VTUNE',
             description = 'Readback of Vtune lock detect',
             offset      = (110 << 2),
@@ -197,7 +197,7 @@ class Lmx2594(pr.Device):
             mode        = 'RO',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'rb_VCO_SEL',
             description = 'Reads back the actual VCO that the calibration has selected.',
             offset      = (110 << 2),
@@ -206,7 +206,7 @@ class Lmx2594(pr.Device):
             mode        = 'RO',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'rb_VCO_CAPCTRL',
             description = 'Reads back the actual CAPCTRL capcode value the VCO calibration has chosen.',
             offset      = (111 << 2),
@@ -215,7 +215,7 @@ class Lmx2594(pr.Device):
             mode        = 'RO',
         )
 
-        MyLinkVariable(
+        addLinkVariable(
             name        = 'rb_VCO_DACISET',
             description = 'Reads back the actual amplitude (DACISET) value that the VCO calibration has chosen.',
             offset      = (112 << 2),
