@@ -17,7 +17,10 @@ import pyrogue as pr
 import surf.xilinx
 
 class RfDataConverter(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(
+            self,
+            gen3 = True, # True if using RFSoC GEN3 Hardware
+            **kwargs):
         super().__init__(**kwargs)
 
         ##############################
@@ -102,6 +105,7 @@ class RfDataConverter(pr.Device):
         for i in range(4):
             self.add(surf.xilinx.RfTile(
                 name    = f'dacTile[{i}]',
+                gen3    = gen3,
                 offset  = 0x04000 + 0x4000*i,
                 expand  = False,
             ))
@@ -109,6 +113,7 @@ class RfDataConverter(pr.Device):
         for i in range(4):
             self.add(surf.xilinx.RfTile(
                 name    = f'adcTile[{i}]',
+                gen3    = gen3,
                 offset  = 0x14000 + 0x4000*i,
                 expand  = False,
             ))
