@@ -93,7 +93,7 @@ class RfTile(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = "RO",
-            # hidden       = True,
+            hidden       = True,
         ))
 
         if gen3:
