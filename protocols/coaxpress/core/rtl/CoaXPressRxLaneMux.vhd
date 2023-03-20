@@ -45,11 +45,13 @@ end entity CoaXPressRxLaneMux;
 architecture rtl of CoaXPressRxLaneMux is
 
    type RegType is record
+      numOfLane  : slv(2 downto 0);
       lane       : natural range 0 to NUM_LANES_G-1;
       rxSlaves   : AxiStreamSlaveArray(NUM_LANES_G-1 downto 0);
       pipeMaster : AxiStreamMasterType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      numOfLane  => (others => '0'),
       lane       => 0,
       rxSlaves   => (others => AXI_STREAM_SLAVE_FORCE_C),
       pipeMaster => AXI_STREAM_MASTER_INIT_C);
@@ -78,6 +80,13 @@ begin
          v.pipeMaster.tValid := '0';
       end if;
 
+      -- Check for limit of configuration
+      if (numOfLane < NUM_LANES_G) then
+         v.numOfLane := numOfLane;
+      else
+         v.numOfLane := toSlv(NUM_LANES_G-1, 3);
+      end if;
+
       -- Check for valid data
       if (rxMasters(r.lane).tValid = '1') and (v.pipeMaster.tValid = '0') then
 
@@ -87,11 +96,11 @@ begin
          -- Move the outbound data
          v.pipeMaster := rxMasters(r.lane);
 
-         -- Check for tLast
-         if (rxMasters(r.lane).tLast = '1') then
+         -- Check for tLast and more than 1 lane
+         if (rxMasters(r.lane).tLast = '1') and (NUM_LANES_G > 1) then
 
             -- Check for roll over
-            if (r.lane = numOfLane) then
+            if (r.lane = r.numOfLane) then
                -- Reset counter
                v.lane := 0;
             else
