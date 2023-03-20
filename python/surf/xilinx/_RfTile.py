@@ -92,8 +92,8 @@ class RfTile(pr.Device):
             offset       =  0x0038,
             bitSize      =  8,
             bitOffset    =  0,
-            mode         = "RW",
-            hidden       = True,
+            mode         = "RO",
+            # hidden       = True,
         ))
 
         if gen3:
@@ -148,7 +148,7 @@ class RfTile(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "clockPresent",
-            description  = "tile common status register",
+            description  = "Clock present: Asserted when the reference clock for the tile is present.",
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  0,
@@ -158,7 +158,7 @@ class RfTile(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "supplyStable",
-            description  = "tile common status register",
+            description  = "Supplies up: Asserted when the external supplies to the tile are stable.",
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  1,
@@ -168,7 +168,7 @@ class RfTile(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "poweredUp",
-            description  = "tile common status register",
+            description  = "Power-up state: Asserted when the tile is in operation.",
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  2,
@@ -178,7 +178,7 @@ class RfTile(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "pllLocked",
-            description  = "tile common status register",
+            description  = "PLL locked: Asserted when the tile PLL has achieved lock.",
             offset       =  0x0228,
             bitSize      =  1,
             bitOffset    =  3,
@@ -188,7 +188,7 @@ class RfTile(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "fifoDisable",
-            description  = "tile disable register",
+            description  = "Disable the interface FIFO for converter",
             offset       =  0x0230,
             bitSize      =  1,
             bitOffset    =  0,
