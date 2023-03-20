@@ -232,12 +232,13 @@ class Lmx2594(pr.Device):
             ##################################################################
 
             # 1. Apply power to device.
+            reg = self.DataBlock.get(index=0, read=True)
 
             # 2. Program RESET = 1 to reset registers.
-            self.RESET.set(1)
+            self.DataBlock.set(value=(reg|0x2), index=0, write=True)
 
             # 3. Program RESET = 0 to remove reset.
-            self.RESET.set(0)
+            self.DataBlock.set(value=(reg&0xFFFD), index=0, write=True)
 
             # 4. Program registers as shown in the register map in REVERSE order from highest to lowest.
             with open(arg, 'r') as ifd:
@@ -245,14 +246,14 @@ class Lmx2594(pr.Device):
                 for i, line in enumerate(ifd):
                     s = str.split(line)
                     addr = int(s[0][1:], 0)
-                    if len(s) == 3:
-                        data = int("0x" + s[2][-2:], 0)
-                    else:
-                        data = int("0x" + s[1][-2:], 0)
-                    self.DataBlock.set(value=data,index=addr)
+                    data = int("0x" + s[1][-4:], 0)
+                    # print( f'addr={addr}, data={hex(data)}' )
+                    self.DataBlock.set(value=data, index=addr, write=True)
+
+            self.DataBlock.set(value=data, index=addr, write=True)
 
             # 5. Wait 10 ms.
-            time.sleep(0.01)
+            time.sleep(0.1)
 
             # 6. Program register R0 one additional time with FCAL_EN = 1 to ensure that the VCO calibration runs from a stable state.
-            self.DataBlock.set(value=(data|0x8),index=addr) # Note: Last value in HEX file is R0
+            self.DataBlock.set(value=(data|0x8), index=0, write=True)
