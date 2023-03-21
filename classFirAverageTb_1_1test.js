@@ -4,7 +4,7 @@ var classFirAverageTb_1_1test =
     [ "rand_n", "classFirAverageTb_1_1test.html#a4a1dd66bf793ce17c5f25b5e3f74ca7c", null ],
     [ "comb", "classFirAverageTb_1_1test.html#a95e7d5cfeb79f878045f62de485797f9", null ],
     [ "seq", "classFirAverageTb_1_1test.html#ae8896e195ae00ae797895c15b647ba41", null ],
-    [ "PROCESS_107", "classFirAverageTb_1_1test.html#acda02bba5d3544174711fa0c651c9c17", null ],
+    [ "PROCESS_108", "classFirAverageTb_1_1test.html#ac5a277a6f8ab6c24fc75ff5d8a4168a9", null ],
     [ "TPD_C", "classFirAverageTb_1_1test.html#ab737ad1f7df370a5aae2ca6d77958188", null ],
     [ "CLK_PERIOD_C", "classFirAverageTb_1_1test.html#a61828db4fa40728b47c3767e8c07cb97", null ],
     [ "ERROR_TOL_C", "classFirAverageTb_1_1test.html#a333e18ef5125eec6ccda1961161e81cd", null ],

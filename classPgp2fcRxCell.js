@@ -1,6 +1,6 @@
 var classPgp2fcRxCell =
 [
-    [ "Pgp2fcRxCell", "classPgp2fcRxCell_1_1Pgp2fcRxCell.html", "classPgp2fcRxCell_1_1Pgp2fcRxCell" ],
+    [ "Pgp2fcRxCell.Pgp2fcRxCell", "classPgp2fcRxCell_1_1Pgp2fcRxCell.html", "classPgp2fcRxCell_1_1Pgp2fcRxCell" ],
     [ "TPD_G", "classPgp2fcRxCell.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "EN_SHORT_CELLS_G", "classPgp2fcRxCell.html#a7156b6391a46baf9a6d8685010ce7312", null ],
     [ "PAYLOAD_CNT_TOP_G", "classPgp2fcRxCell.html#ae2d7374e1bcbdc557cfc4be90215c5fb", null ],

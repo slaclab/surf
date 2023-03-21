@@ -1,7 +1,7 @@
 var classCoaXPressAxiL_1_1rtl =
 [
-    [ "PROCESS_134", "classCoaXPressAxiL_1_1rtl.html#ac96253195ed67f02917f875f88232caf", null ],
-    [ "PROCESS_135", "classCoaXPressAxiL_1_1rtl.html#a5d86de839ad1ff7d81058283bb8622a3", null ],
+    [ "PROCESS_135", "classCoaXPressAxiL_1_1rtl.html#a672746e214267789f9a52c670b31c69a", null ],
+    [ "PROCESS_136", "classCoaXPressAxiL_1_1rtl.html#af378088e559f7b9ada1e18728782fa76", null ],
     [ "TX_STATUS_CNT_C", "classCoaXPressAxiL_1_1rtl.html#a05b2088801734f9e127721d4ecc81ac7", null ],
     [ "RX_STATUS_CNT_C", "classCoaXPressAxiL_1_1rtl.html#a7ea05c0c53b168b800fa4fe3f95ac82c", null ],
     [ "RegType", "classCoaXPressAxiL_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],

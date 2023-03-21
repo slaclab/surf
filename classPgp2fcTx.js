@@ -1,6 +1,6 @@
 var classPgp2fcTx =
 [
-    [ "Pgp2fcTx", "classPgp2fcTx_1_1Pgp2fcTx.html", "classPgp2fcTx_1_1Pgp2fcTx" ],
+    [ "Pgp2fcTx.Pgp2fcTx", "classPgp2fcTx_1_1Pgp2fcTx.html", "classPgp2fcTx_1_1Pgp2fcTx" ],
     [ "TPD_G", "classPgp2fcTx.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "FC_WORDS_G", "classPgp2fcTx.html#aff0d9e7c62ce7668903559e03f0f2d13", null ],
     [ "VC_INTERLEAVE_G", "classPgp2fcTx.html#a63a0339de2a778f384dcecb0828d5192", null ],

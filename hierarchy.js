@@ -446,6 +446,7 @@ var hierarchy =
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],

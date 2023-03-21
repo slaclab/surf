@@ -1,6 +1,6 @@
 var classRogueTcpMemory =
 [
-    [ "RogueTcpMemory.RogueTcpMemory", "classRogueTcpMemory_1_1RogueTcpMemory.html", "classRogueTcpMemory_1_1RogueTcpMemory" ],
+    [ "RogueTcpMemory", "classRogueTcpMemory_1_1RogueTcpMemory.html", "classRogueTcpMemory_1_1RogueTcpMemory" ],
     [ "clock", "classRogueTcpMemory.html#adfc2d5e995e9c6876b2e55bf6a5c4071", null ],
     [ "reset", "classRogueTcpMemory.html#aad8dc6359d9e23dabcbf342fadf2fa06", null ],
     [ "portNum", "classRogueTcpMemory.html#af08a109672b119b87964de7b3cfda694", null ],
