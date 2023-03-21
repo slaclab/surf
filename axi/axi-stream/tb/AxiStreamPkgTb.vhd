@@ -28,28 +28,23 @@ architecture testbed of AxiStreamPkgTb is
    constant CLK_PERIOD_C : time := 4 ns;
    constant TPD_C        : time := CLK_PERIOD_C/4;
 
-   constant AXIS_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16,              -- 128-bit data interface
-      TDEST_BITS_C  => 8,
-      TID_BITS_C    => 3,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
-   constant TKEEP_INIT_C : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0) := toSlv((2**AXIS_CONFIG_C.TDATA_BYTES_C)-1, AXI_STREAM_MAX_TKEEP_WIDTH_C);
-
    type RegType is record
-      passed   : sl;
-      failed   : sl;
-      txMaster : AxiStreamMasterType;
-      cnt      : slv(7 downto 0);
+      passed        : sl;
+      passedDly     : sl;
+      failed        : sl;
+      failedDly     : sl;
+      tKeepResult   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      tKeepExpected : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      cnt           : slv(7 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      passed   => '0',
-      failed   => '0',
-      txMaster => axiStreamMasterInit(AXIS_CONFIG_C),
-      cnt      => (others => '0'));
+      passed        => '0',
+      passedDly     => '0',
+      failed        => '0',
+      failedDly     => '0',
+      tKeepResult   => (others => '0'),
+      tKeepExpected => (others => '0'),
+      cnt           => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -81,16 +76,45 @@ begin
       -- Check if simulation not completed
       if (r.passed = '0') and (r.failed = '0') then
 
-         -- Increment the counter
-         v.cnt := r.cnt + 1;
-
          case r.cnt is
             ----------------------------------------------------------------------
             when x"00" =>
-               -- Verify genTKeep() function
-               if (r.txMaster.tKeep = TKEEP_INIT_C) then
-                  v.cnt := r.cnt + 1;
-               else
+               -- genTKeep(bytes=0) case
+               v.tKeepResult   := genTKeep(0);
+               v.tKeepExpected := resize(x"0", AXI_STREAM_MAX_TKEEP_WIDTH_C);
+               if v.tKeepResult /= v.tKeepExpected then
+                  v.failed := '1';
+               end if;
+            ----------------------------------------------------------------------
+            when x"01" =>
+               -- genTKeep(bytes=1) case
+               v.tKeepResult   := genTKeep(1);
+               v.tKeepExpected := resize(x"1", AXI_STREAM_MAX_TKEEP_WIDTH_C);
+               if v.tKeepResult /= v.tKeepExpected then
+                  v.failed := '1';
+               end if;
+            ----------------------------------------------------------------------
+            when x"02" =>
+               -- genTKeep(bytes=31) case
+               v.tKeepResult   := genTKeep(31);
+               v.tKeepExpected := resize(x"7FFF_FFFF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
+               if v.tKeepResult /= v.tKeepExpected then
+                  v.failed := '1';
+               end if;
+            ----------------------------------------------------------------------
+            when x"03" =>
+               -- genTKeep(bytes=32) case
+               v.tKeepResult   := genTKeep(32);
+               v.tKeepExpected := resize(x"FFFF_FFFF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
+               if v.tKeepResult /= v.tKeepExpected then
+                  v.failed := '1';
+               end if;
+            ----------------------------------------------------------------------
+            when x"04" =>
+               -- genTKeep(bytes=64) case
+               v.tKeepResult   := genTKeep(64);
+               v.tKeepExpected := resize(x"FFFF_FFFF_FFFF_FFFF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
+               if v.tKeepResult /= v.tKeepExpected then
                   v.failed := '1';
                end if;
             ----------------------------------------------------------------------
@@ -98,11 +122,22 @@ begin
                v.passed := '1';
          ----------------------------------------------------------------------
          end case;
+
+         -- Check if didn't fail
+         if (v.failed = '0') then
+            -- Increment the counter
+            v.cnt := r.cnt + 1;
+         end if;
+
       end if;
 
+      -- Delay by 1 cycle to make it easier to read in simulation waveform
+      v.passedDly := r.passed;
+      v.failedDly := r.failed;
+
       -- Outputs
-      failed <= r.failed;
-      passed <= r.passed;
+      passed <= r.passedDly;
+      failed <= r.failedDly;
 
       -- Reset
       if (rst = '1') then
