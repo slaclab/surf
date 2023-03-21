@@ -569,8 +569,8 @@ begin
             -- Direct that frame be dropped if buffer is done with trigger sequence
             -- Writes always start on a BURST_SIZE_BYTES_G boundary, so can drive low dmaReq.address
             -- bits to zero for optimization.
-            v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := nextRamDout;
-            endRamSize := conv_integer(endRamDout - nextRamDout);
+            v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := v.nextAddr;
+            endRamSize := conv_integer(endRamDout - v.nextAddr);
             if FORCE_WRAP_ALIGN_G and endRamSize < BURST_SIZE_BYTES_G then
               v.dmaReq.maxSize := toSlv(endRamSize, 32);
             else

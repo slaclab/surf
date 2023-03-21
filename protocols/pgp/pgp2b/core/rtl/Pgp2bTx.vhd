@@ -239,7 +239,8 @@ begin
    U_Pgp2bTxCell: entity surf.Pgp2bTxCell
       generic map (
          TPD_G             => TPD_G,
-         TX_LANE_CNT_G     => TX_LANE_CNT_G
+         TX_LANE_CNT_G     => TX_LANE_CNT_G,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G
       ) port map (
          pgpTxClkEn        => pgpTxClkEn,
          pgpTxClk          => pgpTxClk,
