@@ -14,6 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import surf.xilinx
 
 class RfTile(pr.Device):
     def __init__(

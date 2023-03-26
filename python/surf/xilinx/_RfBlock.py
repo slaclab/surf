@@ -35,7 +35,7 @@ class RfTile(pr.Device):
                 bitSize      =  2,
                 bitOffset    =  0,
                 mode         = "RO",
-                enum         = {0: "FullBw", 1: "NA", 2: "HalfBwImr", 3: "FullBwByPass"}
+                enum         = {0: "FullBw", 1: "NA", 2: "HalfBwImr", 3: "FullBwByPass"},
                 overlapEn    = True,
             ))
 
@@ -46,11 +46,11 @@ class RfTile(pr.Device):
                 bitSize      =  1,
                 bitOffset    =  0,
                 mode         = "RO",
-                enum         = {0: "Real", 1: "IQ"}
+                enum         = {0: "Real", 1: "IQ"},
                 overlapEn    = True,
             ))
 
-       if isAdc is True:
+        if isAdc is True:
 
             self.add(pr.RemoteVariable(
                 name         = "adcDecimationConfig",
@@ -59,7 +59,7 @@ class RfTile(pr.Device):
                 bitSize      =  2,
                 bitOffset    =  0,
                 mode         = "RO",
-                enum         = {0: "I Data", 1: "Q DATA", 2: "IQ Data", 3: "4GSPS"}
+                enum         = {0: "I Data", 1: "Q DATA", 2: "IQ Data", 3: "4GSPS"},
                 overlapEn    = True,
             ))
 
@@ -70,7 +70,7 @@ class RfTile(pr.Device):
                 bitSize      =  2,
                 bitOffset    =  0,
                 mode         = "RO",
-                enum         = {0: "NA", 1: "Even", 2: "Odd", 3: "4Phase"}
+                enum         = {0: "NA", 1: "Even", 2: "Odd", 3: "4Phase"},
                 overlapEn    = True,
             ))
 
@@ -135,66 +135,66 @@ class RfTile(pr.Device):
             overlapEn    = True,
         ))
 
-// Set Direction
-//
-//      CoarseMixFreq = MixerSettingsPtr->CoarseMixFreq;
-//      NCOFreq = MixerSettingsPtr->Freq;
-//
-//      if ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0))) {
-//        do {
-//            if (NCOFreq < -(SamplingRate / 2.0)) {
-//                NCOFreq += SamplingRate;
-//            }
-//            if (NCOFreq > (SamplingRate / 2.0)) {
-//                NCOFreq -= SamplingRate;
-//            }
-//        } while ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0)));
-//
-//        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (NCOFreq != 0)) {
-//            NCOFreq *= -1;
-//        }
-//      }
-//
-//      /* NCO Frequency */
-//      Freq = ((NCOFreq * XRFDC_NCO_FREQ_MULTIPLIER) / SamplingRate);
-//      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET, (u16)Freq);
-//      ReadReg = (Freq >> XRFDC_NCO_FQWD_MID_SHIFT) & XRFDC_NCO_FQWD_MID_MASK;
-//      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET, (u16)ReadReg);
-//      ReadReg = (Freq >> XRFDC_NCO_FQWD_UPP_SHIFT) & XRFDC_NCO_FQWD_UPP_MASK;
-//      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET, (u16)ReadReg);
-
-// Get Direction
-
-//    /* NCO Frequency */
-//    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET);
-//    Freq = ReadReg << XRFDC_NCO_FQWD_UPP_SHIFT;
-//    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET);
-//    Freq |= ReadReg << XRFDC_NCO_FQWD_MID_SHIFT;
-//    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET);
-//    Freq |= ReadReg;
-//    Freq &= XRFDC_NCO_FQWD_MASK;
-//    Freq = (Freq << 16) >> 16;
-//    MixerSettingsPtr->Freq = ((Freq * SamplingRate) / XRFDC_NCO_FREQ_MULTIPLIER);
-//
-//    /* Update NCO, CoarseMix freq based on calibration mode */
-//    NCOFreq = MixerConfigPtr->Freq;
-//
-//    if ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0))) {
-//
-//        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (MixerSettingsPtr->Freq != 0)) {
-//            MixerSettingsPtr->Freq *= -1;
-//        }
-//
-//        do {
-//            if (NCOFreq < -(SamplingRate / 2.0)) {
-//                NCOFreq += SamplingRate;
-//                MixerSettingsPtr->Freq -= SamplingRate;
-//            }
-//            if (NCOFreq > (SamplingRate / 2.0)) {
-//                NCOFreq -= SamplingRate;
-//                MixerSettingsPtr->Freq += SamplingRate;
-//            }
-//        } while ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0)));
-//    }
+## Set Direction
+##
+##      CoarseMixFreq = MixerSettingsPtr->CoarseMixFreq;
+##      NCOFreq = MixerSettingsPtr->Freq;
+##
+##      if ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0))) {
+##        do {
+##            if (NCOFreq < -(SamplingRate / 2.0)) {
+##                NCOFreq += SamplingRate;
+##            }
+##            if (NCOFreq > (SamplingRate / 2.0)) {
+##                NCOFreq -= SamplingRate;
+##            }
+##        } while ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0)));
+##
+##        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (NCOFreq != 0)) {
+##            NCOFreq *= -1;
+##        }
+##      }
+##
+##      /* NCO Frequency */
+##      Freq = ((NCOFreq * XRFDC_NCO_FREQ_MULTIPLIER) / SamplingRate);
+##      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET, (u16)Freq);
+##      ReadReg = (Freq >> XRFDC_NCO_FQWD_MID_SHIFT) & XRFDC_NCO_FQWD_MID_MASK;
+##      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET, (u16)ReadReg);
+##      ReadReg = (Freq >> XRFDC_NCO_FQWD_UPP_SHIFT) & XRFDC_NCO_FQWD_UPP_MASK;
+##      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET, (u16)ReadReg);
+##
+## Get Direction
+##
+##    /* NCO Frequency */
+##    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET);
+##    Freq = ReadReg << XRFDC_NCO_FQWD_UPP_SHIFT;
+##    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET);
+##    Freq |= ReadReg << XRFDC_NCO_FQWD_MID_SHIFT;
+##    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET);
+##    Freq |= ReadReg;
+##    Freq &= XRFDC_NCO_FQWD_MASK;
+##    Freq = (Freq << 16) >> 16;
+##    MixerSettingsPtr->Freq = ((Freq * SamplingRate) / XRFDC_NCO_FREQ_MULTIPLIER);
+##
+##    /* Update NCO, CoarseMix freq based on calibration mode */
+##    NCOFreq = MixerConfigPtr->Freq;
+##
+##    if ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0))) {
+##
+##        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (MixerSettingsPtr->Freq != 0)) {
+##            MixerSettingsPtr->Freq *= -1;
+##        }
+##
+##        do {
+##            if (NCOFreq < -(SamplingRate / 2.0)) {
+##                NCOFreq += SamplingRate;
+##                MixerSettingsPtr->Freq -= SamplingRate;
+##            }
+##            if (NCOFreq > (SamplingRate / 2.0)) {
+##                NCOFreq -= SamplingRate;
+##                MixerSettingsPtr->Freq += SamplingRate;
+##            }
+##        } while ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0)));
+##    }
 
 
