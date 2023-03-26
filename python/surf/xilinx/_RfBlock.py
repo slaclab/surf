@@ -135,34 +135,50 @@ class RfTile(pr.Device):
             overlapEn    = True,
         ))
 
-## Set Direction
+        self.add(pr.LocalVariable(
+            name         = "ncoFrequency",
+            description  = "NCO Frequency",
+            setFunction  = self._ncoFreqSet,
+            getFunction  = self._ncoFreqGet
+        ))
+
+
+    def _ncoFreqSet(self, value):
+        pass
+
+##  Set Direction
 ##
-##      CoarseMixFreq = MixerSettingsPtr->CoarseMixFreq;
-##      NCOFreq = MixerSettingsPtr->Freq;
+##       CoarseMixFreq = MixerSettingsPtr->CoarseMixFreq;
+##       NCOFreq = MixerSettingsPtr->Freq;
 ##
-##      if ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0))) {
-##        do {
-##            if (NCOFreq < -(SamplingRate / 2.0)) {
-##                NCOFreq += SamplingRate;
-##            }
-##            if (NCOFreq > (SamplingRate / 2.0)) {
-##                NCOFreq -= SamplingRate;
-##            }
-##        } while ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0)));
+##       if ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0))) {
+##         do {
+##             if (NCOFreq < -(SamplingRate / 2.0)) {
+##                 NCOFreq += SamplingRate;
+##             }
+##             if (NCOFreq > (SamplingRate / 2.0)) {
+##                 NCOFreq -= SamplingRate;
+##             }
+##         } while ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0)));
 ##
-##        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (NCOFreq != 0)) {
-##            NCOFreq *= -1;
-##        }
-##      }
+##         if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (NCOFreq != 0)) {
+##             NCOFreq *= -1;
+##         }
+##       }
 ##
-##      /* NCO Frequency */
-##      Freq = ((NCOFreq * XRFDC_NCO_FREQ_MULTIPLIER) / SamplingRate);
-##      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET, (u16)Freq);
-##      ReadReg = (Freq >> XRFDC_NCO_FQWD_MID_SHIFT) & XRFDC_NCO_FQWD_MID_MASK;
-##      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET, (u16)ReadReg);
-##      ReadReg = (Freq >> XRFDC_NCO_FQWD_UPP_SHIFT) & XRFDC_NCO_FQWD_UPP_MASK;
-##      XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET, (u16)ReadReg);
-##
+##       /* NCO Frequency */
+##       Freq = ((NCOFreq * XRFDC_NCO_FREQ_MULTIPLIER) / SamplingRate);
+##       XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET, (u16)Freq);
+##       ReadReg = (Freq >> XRFDC_NCO_FQWD_MID_SHIFT) & XRFDC_NCO_FQWD_MID_MASK;
+##       XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET, (u16)ReadReg);
+##       ReadReg = (Freq >> XRFDC_NCO_FQWD_UPP_SHIFT) & XRFDC_NCO_FQWD_UPP_MASK;
+##       XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET, (u16)ReadReg);
+
+
+    def _ncoFreqGet(self):
+        return 0.0
+
+
 ## Get Direction
 ##
 ##    /* NCO Frequency */
