@@ -135,82 +135,95 @@ class RfTile(pr.Device):
             overlapEn    = True,
         ))
 
-        self.add(pr.LocalVariable(
+        self.add(pr.LinkVariable(
             name         = "ncoFrequency",
             description  = "NCO Frequency",
-            setFunction  = self._ncoFreqSet,
-            getFunction  = self._ncoFreqGet
+            linkedSet    = self._ncoFreqSet,
+            linkedGet    = self._ncoFreqGet
         ))
 
 
-    def _ncoFreqSet(self, value):
-        pass
+    def _ncoFreqSet(self, value, write, verify, check):
 
-##  Set Direction
-##
-##       CoarseMixFreq = MixerSettingsPtr->CoarseMixFreq;
-##       NCOFreq = MixerSettingsPtr->Freq;
-##
-##       if ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0))) {
-##         do {
-##             if (NCOFreq < -(SamplingRate / 2.0)) {
-##                 NCOFreq += SamplingRate;
-##             }
-##             if (NCOFreq > (SamplingRate / 2.0)) {
-##                 NCOFreq -= SamplingRate;
-##             }
-##         } while ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0)));
-##
-##         if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (NCOFreq != 0)) {
-##             NCOFreq *= -1;
-##         }
-##       }
-##
-##       /* NCO Frequency */
-##       Freq = ((NCOFreq * XRFDC_NCO_FREQ_MULTIPLIER) / SamplingRate);
-##       XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET, (u16)Freq);
-##       ReadReg = (Freq >> XRFDC_NCO_FQWD_MID_SHIFT) & XRFDC_NCO_FQWD_MID_MASK;
-##       XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET, (u16)ReadReg);
-##       ReadReg = (Freq >> XRFDC_NCO_FQWD_UPP_SHIFT) & XRFDC_NCO_FQWD_UPP_MASK;
-##       XRFdc_WriteReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET, (u16)ReadReg);
+        samplingRate = 0.0  # Need to get
+        nyquistZone = 1 # Need to get
+
+        ncoFreq = value
+
+        #  Set Direction
+        regFreq = ncoFreq
+        #
+        #       NCOFreq = MixerSettingsPtr->Freq;
+        #
+        #       if ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0))) {
+        #         do {
+        #             if (NCOFreq < -(SamplingRate / 2.0)) {
+        #                 NCOFreq += SamplingRate;
+        #             }
+        #             if (NCOFreq > (SamplingRate / 2.0)) {
+        #                 NCOFreq -= SamplingRate;
+        #             }
+        #         } while ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0)));
+        #
+        #         if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (NCOFreq != 0)) {
+        #             NCOFreq *= -1;
+        #         }
+        #       }
+
+        # Freq = ((NCOFreq * XRFDC_NCO_FREQ_MULTIPLIER) / SamplingRate);
+        # define XRFDC_NCO_FREQ_MULTIPLIER (0x1LLU << 48U) /* 2^48 */
+
+        low = regFreq & 0xFFFF
+        mid = (regFreq >> 16) & 0xFFFF
+        up  = (regFreq >> 32) & 0xFFFF
+
+        # Set The Values get the register values
+        low = self.ncoFqwdLow.set(value=low, write=write, verify=verify, check=check)
+        mid = self.ncoFqwdMid.set(value=mid, write=write, verify=verify, check=check)
+        up  = self.ncoFqwdUp.set(vallue=up, write=write, verify=verify, check=check)
 
 
-    def _ncoFreqGet(self):
-        return 0.0
+    def _ncoFreqGet(self, read, check):
 
+        samplingRate = 0.0  # Need to get
+        nyquistZone = 1 # Need to get
 
-## Get Direction
-##
-##    /* NCO Frequency */
-##    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_UPP_OFFSET);
-##    Freq = ReadReg << XRFDC_NCO_FQWD_UPP_SHIFT;
-##    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_MID_OFFSET);
-##    Freq |= ReadReg << XRFDC_NCO_FQWD_MID_SHIFT;
-##    ReadReg = XRFdc_ReadReg16(InstancePtr, BaseAddr, XRFDC_ADC_NCO_FQWD_LOW_OFFSET);
-##    Freq |= ReadReg;
-##    Freq &= XRFDC_NCO_FQWD_MASK;
-##    Freq = (Freq << 16) >> 16;
-##    MixerSettingsPtr->Freq = ((Freq * SamplingRate) / XRFDC_NCO_FREQ_MULTIPLIER);
-##
-##    /* Update NCO, CoarseMix freq based on calibration mode */
-##    NCOFreq = MixerConfigPtr->Freq;
-##
-##    if ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0))) {
-##
-##        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (MixerSettingsPtr->Freq != 0)) {
-##            MixerSettingsPtr->Freq *= -1;
-##        }
-##
-##        do {
-##            if (NCOFreq < -(SamplingRate / 2.0)) {
-##                NCOFreq += SamplingRate;
-##                MixerSettingsPtr->Freq -= SamplingRate;
-##            }
-##            if (NCOFreq > (SamplingRate / 2.0)) {
-##                NCOFreq -= SamplingRate;
-##                MixerSettingsPtr->Freq += SamplingRate;
-##            }
-##        } while ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0)));
-##    }
+        # First get the register values
+        low = self.ncoFqwdLow.get(read=read, check=check)
+        mid = self.ncoFqwdMid.get(read=read, check=check)
+        up  = self.ncoFqwdUp.get(read=read, check=check)
+
+        regFreq = low
+        regFreq |= mid << 16
+        regFreq |= up  << 32
+
+        # Get Direction
+        ncoFreq = regFreq
+
+        #    Freq = (Freq << 16) >> 16;
+        #    MixerSettingsPtr->Freq = ((Freq * SamplingRate) / XRFDC_NCO_FREQ_MULTIPLIER);
+        # define XRFDC_NCO_FREQ_MULTIPLIER (0x1LLU << 48U) /* 2^48 */
+        #
+        #    /* Update NCO, CoarseMix freq based on calibration mode */
+        #    NCOFreq = MixerConfigPtr->Freq;
+        #
+        #    if ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0))) {
+        #
+        #        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (MixerSettingsPtr->Freq != 0)) {
+        #            MixerSettingsPtr->Freq *= -1;
+        #        }
+        #
+        #        do {
+        #            if (NCOFreq < -(SamplingRate / 2.0)) {
+        #                NCOFreq += SamplingRate;
+        #                MixerSettingsPtr->Freq -= SamplingRate;
+        #            }
+        #            if (NCOFreq > (SamplingRate / 2.0)) {
+        #                NCOFreq -= SamplingRate;
+        #                MixerSettingsPtr->Freq += SamplingRate;
+        #            }
+        #        } while ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0)));
+        #    }
+        return ncoFreq
 
 
