@@ -135,6 +135,19 @@ class RfTile(pr.Device):
             overlapEn    = True,
         ))
 
+        self.add(pr.LocalVariable(
+            name         = "samplingRate",
+            description  = "Sampling Rate",
+            value        = 0.0,
+        ))
+
+        self.add(pr.LocalVariable(
+            name         = "nyquistZone",
+            description  = "NyQuist Zone",
+            value        = 0,
+            enum         = {0: 'NotSet', 1: 'Even', 2: 'Odd'},
+        ))
+
         self.add(pr.LinkVariable(
             name         = "ncoFrequency",
             description  = "NCO Frequency",
@@ -144,49 +157,44 @@ class RfTile(pr.Device):
 
 
     def _ncoFreqSet(self, value, write, verify, check):
+        samplingRate = self.samplingRate.value()
+        nyquistZone = self.nyquistZone.value()
 
-        samplingRate = 0.0  # Need to get
-        nyquistZone = 1 # Need to get
+        if nyquistZone == 0:
+            return
 
         ncoFreq = value
 
-        #  Set Direction
-        regFreq = ncoFreq
-        #
-        #       NCOFreq = MixerSettingsPtr->Freq;
-        #
-        #       if ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0))) {
-        #         do {
-        #             if (NCOFreq < -(SamplingRate / 2.0)) {
-        #                 NCOFreq += SamplingRate;
-        #             }
-        #             if (NCOFreq > (SamplingRate / 2.0)) {
-        #                 NCOFreq -= SamplingRate;
-        #             }
-        #         } while ((NCOFreq < -(SamplingRate / 2.0)) || (NCOFreq > (SamplingRate / 2.0)));
-        #
-        #         if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (NCOFreq != 0)) {
-        #             NCOFreq *= -1;
-        #         }
-        #       }
+        if (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+            while (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
 
-        # Freq = ((NCOFreq * XRFDC_NCO_FREQ_MULTIPLIER) / SamplingRate);
-        # define XRFDC_NCO_FREQ_MULTIPLIER (0x1LLU << 48U) /* 2^48 */
+                if ncoFreq < -(samplingRate / 2.0):
+                    ncoFreq += samplingRate
+
+                if ncoFreq > (samplingRate / 2.0):
+                    ncoFreq -= samplingRate
+
+            if (nyquistZone == 1) and (ncoFreq != 0):
+                ncoFreq = ncoFreq * -1.0
+
+        regFreq = int((ncoFreq * 2**48) / samplingRate)
 
         low = regFreq & 0xFFFF
         mid = (regFreq >> 16) & 0xFFFF
         up  = (regFreq >> 32) & 0xFFFF
 
         # Set The Values get the register values
-        low = self.ncoFqwdLow.set(value=low, write=write, verify=verify, check=check)
-        mid = self.ncoFqwdMid.set(value=mid, write=write, verify=verify, check=check)
-        up  = self.ncoFqwdUp.set(vallue=up, write=write, verify=verify, check=check)
+        self.ncoFqwdLow.set(value=low, write=write, verify=verify, check=check)
+        self.ncoFqwdMid.set(value=mid, write=write, verify=verify, check=check)
+        self.ncoFqwdUp.set(vallue=up, write=write, verify=verify, check=check)
 
 
     def _ncoFreqGet(self, read, check):
+        samplingRate = self.samplingRate.value()
+        nyquistZone = self.nyquistZone.value()
 
-        samplingRate = 0.0  # Need to get
-        nyquistZone = 1 # Need to get
+        if nyquistZone == 0:
+            return 0.0
 
         # First get the register values
         low = self.ncoFqwdLow.get(read=read, check=check)
@@ -198,32 +206,22 @@ class RfTile(pr.Device):
         regFreq |= up  << 32
 
         # Get Direction
-        ncoFreq = regFreq
+        retFreq = (regFreq * samplingRate) / (2**48)
+        ncoFreq = retFreq
 
-        #    Freq = (Freq << 16) >> 16;
-        #    MixerSettingsPtr->Freq = ((Freq * SamplingRate) / XRFDC_NCO_FREQ_MULTIPLIER);
-        # define XRFDC_NCO_FREQ_MULTIPLIER (0x1LLU << 48U) /* 2^48 */
-        #
-        #    /* Update NCO, CoarseMix freq based on calibration mode */
-        #    NCOFreq = MixerConfigPtr->Freq;
-        #
-        #    if ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0))) {
-        #
-        #        if ((NyquistZone == XRFDC_EVEN_NYQUIST_ZONE) && (MixerSettingsPtr->Freq != 0)) {
-        #            MixerSettingsPtr->Freq *= -1;
-        #        }
-        #
-        #        do {
-        #            if (NCOFreq < -(SamplingRate / 2.0)) {
-        #                NCOFreq += SamplingRate;
-        #                MixerSettingsPtr->Freq -= SamplingRate;
-        #            }
-        #            if (NCOFreq > (SamplingRate / 2.0)) {
-        #                NCOFreq -= SamplingRate;
-        #                MixerSettingsPtr->Freq += SamplingRate;
-        #            }
-        #        } while ((NCOFreq > (SamplingRate / 2.0)) || (NCOFreq < -(SamplingRate / 2.0)));
-        #    }
-        return ncoFreq
+        if (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
 
+            if (nyquistZone == 1) and (retFreq != 0):
+                retFreq = retFreq * -1.0
 
+            while (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+
+                if ncoFreq < -(samplingRate / 2.0):
+                    ncoFreq += samplingRate
+                    retFreq -= samplingRate
+
+                if ncoFreq > (samplingRate / 2.0):
+                    ncoFreq -= samplingRate
+                    retFreq += samplingRate
+
+        return retFreq
