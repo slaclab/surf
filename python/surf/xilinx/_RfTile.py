@@ -19,6 +19,7 @@ class RfTile(pr.Device):
     def __init__(
             self,
             gen3        = True, # True if using RFSoC GEN3 Hardware
+            isAdc       = False, # True if this is an ADC tile
             description = "RFSoC data converter tile registers",
             **kwargs):
         super().__init__(description=description, **kwargs)
@@ -210,3 +211,15 @@ class RfTile(pr.Device):
             hidden       = True,
             overlapEn    = True,
         ))
+
+        if gen3:
+            prefix = 'adc' if isAdc else 'dac'
+
+            for i in range(4):
+                self.add(surf.xilinx.RfBlock(
+                    name    = f'{prefix}Block[{i}]',
+                    isAdc   = isAdc,
+                    offset  = 0x2000 + 0x400*i,
+                    expand  = False,
+                ))
+

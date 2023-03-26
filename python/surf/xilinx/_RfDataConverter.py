@@ -110,6 +110,7 @@ class RfDataConverter(pr.Device):
         for i in range(4):
             self.add(surf.xilinx.RfTile(
                 name    = f'dacTile[{i}]',
+                isAdc   = False,
                 offset  = 0x04000 + 0x4000*i,
                 expand  = False,
             ))
@@ -117,6 +118,7 @@ class RfDataConverter(pr.Device):
         for i in range(4):
             self.add(surf.xilinx.RfTile(
                 name    = f'adcTile[{i}]',
+                isAdc   = True,
                 offset  = 0x14000 + 0x4000*i,
                 expand  = False,
             ))
