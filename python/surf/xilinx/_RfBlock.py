@@ -15,7 +15,7 @@
 
 import pyrogue as pr
 
-class RfTile(pr.Device):
+class RfBlock(pr.Device):
     def __init__(
             self,
             isAdc       = False, # True if this is an ADC tile
@@ -138,90 +138,94 @@ class RfTile(pr.Device):
         self.add(pr.LocalVariable(
             name         = "samplingRate",
             description  = "Sampling Rate",
-            value        = 0.0,
+            value        = 2457.6 if isAdc else 5898.24
         ))
 
         self.add(pr.LocalVariable(
             name         = "nyquistZone",
             description  = "NyQuist Zone",
-            value        = 0,
-            enum         = {0: 'NotSet', 1: 'Even', 2: 'Odd'},
+            value        = 0
         ))
 
         self.add(pr.LinkVariable(
             name         = "ncoFrequency",
             description  = "NCO Frequency",
             linkedSet    = self._ncoFreqSet,
-            linkedGet    = self._ncoFreqGet
+            linkedGet    = self._ncoFreqGet,
+            dependencies = [self.samplingRate, self.nyquistZone, self.ncoFqwdUp, self.ncoFqwdMid, self.ncoFqwdLow]
         ))
 
 
     def _ncoFreqSet(self, value, write, verify, check):
         samplingRate = self.samplingRate.value()
-        nyquistZone = self.nyquistZone.value()
+        #nyquistZone = self.nyquistZone.value()
 
-        if nyquistZone == 0:
+        if samplingRate == 0:
             return
 
         ncoFreq = value
 
-        if (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
-            while (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+        # TODO: Re-do the logic below using the nyquist zone to set the correct NCO frequency, taking a value larger than the same rate
 
-                if ncoFreq < -(samplingRate / 2.0):
-                    ncoFreq += samplingRate
-
-                if ncoFreq > (samplingRate / 2.0):
-                    ncoFreq -= samplingRate
-
-            if (nyquistZone == 1) and (ncoFreq != 0):
-                ncoFreq = ncoFreq * -1.0
+#        if (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+#            while (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+#
+#                if ncoFreq < -(samplingRate / 2.0):
+#                    ncoFreq += samplingRate
+#
+#                if ncoFreq > (samplingRate / 2.0):
+#                    ncoFreq -= samplingRate
+#
+#            if (nyquistZone == 1) and (ncoFreq != 0):
+#                ncoFreq = ncoFreq * -1.0
 
         regFreq = int((ncoFreq * 2**48) / samplingRate)
 
-        low = regFreq & 0xFFFF
-        mid = (regFreq >> 16) & 0xFFFF
-        up  = (regFreq >> 32) & 0xFFFF
+        ba = regFreq.to_bytes(6, byteorder='little', signed=True)
 
         # Set The Values get the register values
-        self.ncoFqwdLow.set(value=low, write=write, verify=verify, check=check)
-        self.ncoFqwdMid.set(value=mid, write=write, verify=verify, check=check)
-        self.ncoFqwdUp.set(vallue=up, write=write, verify=verify, check=check)
+        self.ncoFqwdLow.set(value=int.from_bytes(ba[0:2], byteorder='little', signed=False), write=write, verify=verify, check=check)
+        self.ncoFqwdMid.set(value=int.from_bytes(ba[2:4], byteorder='little', signed=False), write=write, verify=verify, check=check)
+        self.ncoFqwdUp.set(vallue=int.from_bytes(ba[4:6], byteorder='little', signed=False), write=write, verify=verify, check=check)
 
 
     def _ncoFreqGet(self, read, check):
         samplingRate = self.samplingRate.value()
-        nyquistZone = self.nyquistZone.value()
+        #nyquistZone = self.nyquistZone.value()
 
-        if nyquistZone == 0:
+        if samplingRate == 0:
             return 0.0
 
         # First get the register values
-        low = self.ncoFqwdLow.get(read=read, check=check)
-        mid = self.ncoFqwdMid.get(read=read, check=check)
-        up  = self.ncoFqwdUp.get(read=read, check=check)
+        ba = bytearray(6)
+        ba[0:2] = self.ncoFqwdLow.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
+        ba[2:4] = self.ncoFqwdMid.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
+        ba[4:6] = self.ncoFqwdUp.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
 
-        regFreq = low
-        regFreq |= mid << 16
-        regFreq |= up  << 32
+        regFreq = int.from_bytes(ba,  byteorder='little', signed=True)
 
         # Get Direction
         retFreq = (regFreq * samplingRate) / (2**48)
-        ncoFreq = retFreq
 
-        if (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+        # TODO: Re-do the logic below using the nyquist zone to get the correct NCO frequency, returning a value larger than the same rate
 
-            if (nyquistZone == 1) and (retFreq != 0):
-                retFreq = retFreq * -1.0
-
-            while (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
-
-                if ncoFreq < -(samplingRate / 2.0):
-                    ncoFreq += samplingRate
-                    retFreq -= samplingRate
-
-                if ncoFreq > (samplingRate / 2.0):
-                    ncoFreq -= samplingRate
-                    retFreq += samplingRate
+#        ncoFreq = retFreq
+#
+#        print(f"{self.name}, regFreq = {regFreq} {regFreq:#x}, retFreq = {retFreq}")
+#
+#        if (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+#
+#            if (nyquistZone == 1) and (retFreq != 0):
+#                retFreq = retFreq * -1.0
+#
+#            while (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
+#
+#                if ncoFreq < -(samplingRate / 2.0):
+#                    ncoFreq += samplingRate
+#                    retFreq -= samplingRate
+#
+#                if ncoFreq > (samplingRate / 2.0):
+#                    ncoFreq -= samplingRate
+#                    retFreq += samplingRate
 
         return retFreq
