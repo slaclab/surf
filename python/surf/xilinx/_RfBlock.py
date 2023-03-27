@@ -18,10 +18,13 @@ import pyrogue as pr
 class RfBlock(pr.Device):
     def __init__(
             self,
+            RestartSM   = None,  # Pointer to the RestartSM remote variable
             isAdc       = False, # True if this is an ADC tile
             description = 'RFSoC data converter block registers',
             **kwargs):
         super().__init__(description=description, **kwargs)
+
+        self.RestartSM = RestartSM
 
         ##############################
         # Variables
@@ -196,6 +199,8 @@ class RfBlock(pr.Device):
         self.ncoFqwdMid.set(value=int.from_bytes(ba[2:4], byteorder='little', signed=False), write=write, verify=verify, check=check)
         self.ncoFqwdUp.set (value=int.from_bytes(ba[4:6], byteorder='little', signed=False), write=write, verify=verify, check=check)
 
+        # Reset the tile after changing the NCO value
+        self.RestartSM.post(0x1)
 
     def _ncoFreqGet(self, read, check):
         samplingRate = self.samplingRate.value()

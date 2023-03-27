@@ -218,8 +218,9 @@ class RfTile(pr.Device):
 
             for i in range(4):
                 self.add(xil.RfBlock(
-                    name    = f'{prefix}Block[{i}]',
-                    isAdc   = isAdc,
-                    offset  = 0x2000 + 0x400*i,
-                    expand  = False,
+                    name      = f'{prefix}Block[{i}]',
+                    isAdc     = isAdc,
+                    RestartSM = self.RestartSM,
+                    offset    = 0x2000 + 0x400*i,
+                    expand    = False,
                 ))
