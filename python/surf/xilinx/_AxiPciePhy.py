@@ -241,68 +241,47 @@ class AxiPciePhy(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LinkRateGen2',
-            description  = '0b = 2.5 GT/s (if bit[12] = 0), or 8.0GT/s (if bit[12] = 1), 1b = 5.0 GT/s',
-            offset       =  0x144,
-            bitSize      =  1,
+            name         = 'LnkStaSpeed',
+            offset       =  0x70 + 0x12,
+            bitSize      =  4,
             bitOffset    =  0,
             mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LinkRateGen3',
-            description  = 'Reports the current link rate. 0b = see bit[0]. 1b = 8.0 GT/s',
-            offset       =  0x144,
-            bitSize      =  1,
-            bitOffset    =  12,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LinkWidth16',
-            description  = 'Reports the current link width. 0b = See bit[2:1]. 1b = x16.',
-            offset       =  0x144,
-            bitSize      =  1,
-            bitOffset    =  13,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LinkWidth',
-            description  = 'Reports the current link width. 00b = x1, 01b = x2, 10b = x4, 11b = x8.',
-            offset       =  0x144,
-            bitSize      =  2,
-            bitOffset    =  1,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.LinkVariable(
-            name         = 'LnkCapSpeed',
-            description  = 'LnkCapSpeed',
-            mode         = 'RO',
-            linkedGet    = lambda: '8.0' if self.Gen3Capable.value() else ( '5.0' if self.Gen2Capable.value() else '2.5'),
-            dependencies = [self.Gen3Capable,self.Gen2Capable],
             units        = 'GT/s',
+            enum = {
+                0: 'UNDEFINED',
+                1: '2.5',
+                2: '5',
+                3: '8',
+                4: '16',
+                5: '32',
+                6: '64',
+            }
         ))
 
-        self.add(pr.LinkVariable(
-            name         = 'LnkStaSpeed',
-            description  = 'LnkStaSpeed',
-            mode         = 'RO',
-            linkedGet    = lambda: '8.0' if self.LinkRateGen3.value() else ( '5.0' if self.LinkRateGen2.value() else '2.5'),
-            dependencies = [self.LinkRateGen3,self.LinkRateGen2],
-            units        = 'GT/s',
-        ))
-
-        self.add(pr.LinkVariable(
+        self.add(pr.RemoteVariable(
             name         = 'LnkStaWidth',
-            description  = 'LnkStaWidth',
+            offset       =  0x70 + 0x12,
+            bitSize      =  4,
+            bitOffset    =  4,
             mode         = 'RO',
-            linkedGet    = lambda: 16 if self.LinkWidth16.value() else 2**self.LinkWidth.value(),
-            dependencies = [self.LinkWidth16,self.LinkWidth],
-            units        = '# of lanes',
+            units        = 'lanes',
+            disp         = '{:d}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'LnkCapSpeed',
+            offset       =  0x70 + 0x30,
+            bitSize      =  4,
+            bitOffset    =  0,
+            mode         = 'RO',
+            units        = 'GT/s',
+            enum = {
+                0: 'UNDEFINED',
+                1: '2.5',
+                2: '5',
+                3: '8',
+                4: '16',
+                5: '32',
+                6: '64',
+            }
         ))
