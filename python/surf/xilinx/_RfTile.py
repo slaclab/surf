@@ -14,11 +14,13 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import surf.xilinx as xil
 
 class RfTile(pr.Device):
     def __init__(
             self,
             gen3        = True, # True if using RFSoC GEN3 Hardware
+            isAdc       = False, # True if this is an ADC tile
             description = "RFSoC data converter tile registers",
             **kwargs):
         super().__init__(description=description, **kwargs)
@@ -51,6 +53,7 @@ class RfTile(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             mode         = "WO",
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -62,6 +65,7 @@ class RfTile(pr.Device):
             mode         = "RW",
             enum         = powerOnSequenceSteps,
             hidden       = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -73,6 +77,7 @@ class RfTile(pr.Device):
             mode         = "RW",
             enum         = powerOnSequenceSteps,
             hidden       = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -84,6 +89,7 @@ class RfTile(pr.Device):
             mode         = "RO",
             pollInterval = 1,
             enum         = powerOnSequenceSteps,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -94,6 +100,7 @@ class RfTile(pr.Device):
             bitOffset    =  0,
             mode         = "RO",
             hidden       = True,
+            overlapEn    = True,
         ))
 
         if gen3:
@@ -105,6 +112,7 @@ class RfTile(pr.Device):
                 bitOffset    =  0,
                 mode         = "RO",
                 pollInterval = 1,
+                overlapEn    = True,
             ))
 
         self.add(pr.RemoteVariable(
@@ -115,6 +123,7 @@ class RfTile(pr.Device):
             bitOffset    =  0,
             mode         = "RW",
             hidden       = True,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -125,6 +134,7 @@ class RfTile(pr.Device):
             bitOffset    =  0,
             mode         = "RW",
             hidden       = True,
+            overlapEn    = True,
         ))
 
         for i in range(4):
@@ -135,6 +145,7 @@ class RfTile(pr.Device):
                 bitSize      =  32,
                 mode         = "RW",
                 hidden       = True,
+                overlapEn    = True,
             ))
 
             self.add(pr.RemoteVariable(
@@ -144,6 +155,7 @@ class RfTile(pr.Device):
                 bitSize      =  32,
                 mode         = "RW",
                 hidden       = True,
+                overlapEn    = True,
             ))
 
         self.add(pr.RemoteVariable(
@@ -154,6 +166,7 @@ class RfTile(pr.Device):
             bitOffset    =  0,
             mode         = "RO",
             pollInterval = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -164,6 +177,7 @@ class RfTile(pr.Device):
             bitOffset    =  1,
             mode         = "RO",
             pollInterval = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -174,6 +188,7 @@ class RfTile(pr.Device):
             bitOffset    =  2,
             mode         = "RO",
             pollInterval = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -184,6 +199,7 @@ class RfTile(pr.Device):
             bitOffset    =  3,
             mode         = "RO",
             pollInterval = 1,
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -194,4 +210,16 @@ class RfTile(pr.Device):
             bitOffset    =  0,
             mode         = "RW",
             hidden       = True,
+            overlapEn    = True,
         ))
+
+        if gen3:
+            prefix = 'adc' if isAdc else 'dac'
+
+            for i in range(4):
+                self.add(xil.RfBlock(
+                    name    = f'{prefix}Block[{i}]',
+                    isAdc   = isAdc,
+                    offset  = 0x2000 + 0x400*i,
+                    expand  = False,
+                ))
