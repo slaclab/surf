@@ -19,7 +19,7 @@ class RfBlock(pr.Device):
     def __init__(
             self,
             isAdc       = False, # True if this is an ADC tile
-            description = "RFSoC data converter block registers",
+            description = 'RFSoC data converter block registers',
             **kwargs):
         super().__init__(description=description, **kwargs)
 
@@ -29,130 +29,138 @@ class RfBlock(pr.Device):
 
         if isAdc is False:
             self.add(pr.RemoteVariable(
-                name         = "dataPathMode",
-                description  = "DAC DataPath Mode",
+                name         = 'dataPathMode',
+                description  = 'DAC DataPath Mode',
                 offset       =  0x0034,
                 bitSize      =  2,
                 bitOffset    =  0,
-                mode         = "RO",
-                enum         = {0: "FullBw", 1: "NA", 2: "HalfBwImr", 3: "FullBwByPass"},
+                mode         = 'RO',
+                enum         = {0: 'FullBw', 1: 'NA', 2: 'HalfBwImr', 3: 'FullBwByPass'},
                 overlapEn    = True,
             ))
 
             self.add(pr.RemoteVariable(
-                name         = "dataInterpData",
-                description  = "DAC Interpolation Data. 0 = Real, 1 = IQ",
+                name         = 'dataInterpData',
+                description  = 'DAC Interpolation Data. 0 = Real, 1 = IQ',
                 offset       =  0x0044,
                 bitSize      =  1,
                 bitOffset    =  0,
-                mode         = "RO",
-                enum         = {0: "Real", 1: "IQ"},
+                mode         = 'RO',
+                enum         = {0: 'Real', 1: 'IQ'},
                 overlapEn    = True,
             ))
 
         if isAdc is True:
 
             self.add(pr.RemoteVariable(
-                name         = "adcDecimationConfig",
-                description  = "ADC Decimation Configuration",
+                name         = 'adcDecimationConfig',
+                description  = 'ADC Decimation Configuration',
                 offset       =  0x0040,
                 bitSize      =  2,
                 bitOffset    =  0,
-                mode         = "RO",
-                enum         = {0: "I Data", 1: "Q DATA", 2: "IQ Data", 3: "4GSPS"},
+                mode         = 'RO',
+                enum         = {0: 'I Data', 1: 'Q DATA', 2: 'IQ Data', 3: '4GSPS'},
                 overlapEn    = True,
             ))
 
             self.add(pr.RemoteVariable(
-                name         = "ncoPhaseMode",
-                description  = "NCO Phase Mode",
+                name         = 'ncoPhaseMode',
+                description  = 'NCO Phase Mode',
                 offset       =  0x00A8,
                 bitSize      =  2,
                 bitOffset    =  0,
-                mode         = "RO",
-                enum         = {0: "NA", 1: "Even", 2: "Odd", 3: "4Phase"},
+                mode         = 'RO',
+                enum         = {0: 'NA', 1: 'Even', 2: 'Odd', 3: '4Phase'},
                 overlapEn    = True,
             ))
 
 
         self.add(pr.RemoteVariable(
-            name         = "ncoFqwdUp",
-            description  = "NCO Frequency Upper",
+            name         = 'ncoFqwdUp',
+            description  = 'NCO Frequency Upper',
             offset       =  0x0094,
             bitSize      =  16,
             bitOffset    =  0,
-            mode         = "RW",
+            mode         = 'RW',
             overlapEn    = True,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ncoFqwdMid",
-            description  = "NCO Frequency Middle",
+            name         = 'ncoFqwdMid',
+            description  = 'NCO Frequency Middle',
             offset       =  0x0098,
             bitSize      =  16,
             bitOffset    =  0,
-            mode         = "RW",
+            mode         = 'RW',
             overlapEn    = True,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ncoFqwdLow",
-            description  = "NCO Frequency Lower",
+            name         = 'ncoFqwdLow',
+            description  = 'NCO Frequency Lower',
             offset       =  0x009C,
             bitSize      =  16,
             bitOffset    =  0,
-            mode         = "RW",
+            mode         = 'RW',
             overlapEn    = True,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ncoPhaseUp",
-            description  = "NCO Phase Upper",
+            name         = 'ncoPhaseUp',
+            description  = 'NCO Phase Upper',
             offset       =  0x00A0,
             bitSize      =  16,
             bitOffset    =  0,
-            mode         = "RO",
+            mode         = 'RO',
             overlapEn    = True,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ncoPhaseLow",
-            description  = "NCO Phase Lower",
+            name         = 'ncoPhaseLow',
+            description  = 'NCO Phase Lower',
             offset       =  0x00A4,
             bitSize      =  16,
             bitOffset    =  0,
-            mode         = "RO",
+            mode         = 'RO',
             overlapEn    = True,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "mixerMode",
-            description  = "Mixer Mode",
+            name         = 'mixerMode',
+            description  = 'Mixer Mode',
             offset       =  0x0088,
             bitSize      =  1,
             bitOffset    =  5,
-            mode         = "RO",
+            mode         = 'RO',
             overlapEn    = True,
+            hidden       = True,
         ))
 
         self.add(pr.LocalVariable(
-            name         = "samplingRate",
-            description  = "Sampling Rate",
-            value        = 2457.6 if isAdc else 5898.24
+            name         = 'samplingRate',
+            description  = 'Sampling Rate',
+            value        = 0.0,
+            units        = 'MHz',
         ))
 
         self.add(pr.LocalVariable(
-            name         = "nyquistZone",
-            description  = "NyQuist Zone",
-            value        = 0
+            name         = 'nyquistZone',
+            description  = 'NyQuist Zone',
+            value        = 0,
         ))
 
         self.add(pr.LinkVariable(
-            name         = "ncoFrequency",
-            description  = "NCO Frequency",
+            name         = 'ncoFrequency',
+            description  = 'NCO Frequency',
             linkedSet    = self._ncoFreqSet,
             linkedGet    = self._ncoFreqGet,
-            dependencies = [self.samplingRate, self.nyquistZone, self.ncoFqwdUp, self.ncoFqwdMid, self.ncoFqwdLow]
+            dependencies = [self.samplingRate, self.nyquistZone, self.ncoFqwdUp, self.ncoFqwdMid, self.ncoFqwdLow],
+            units        = 'MHz',
         ))
 
 
@@ -186,7 +194,7 @@ class RfBlock(pr.Device):
         # Set The Values get the register values
         self.ncoFqwdLow.set(value=int.from_bytes(ba[0:2], byteorder='little', signed=False), write=write, verify=verify, check=check)
         self.ncoFqwdMid.set(value=int.from_bytes(ba[2:4], byteorder='little', signed=False), write=write, verify=verify, check=check)
-        self.ncoFqwdUp.set(vallue=int.from_bytes(ba[4:6], byteorder='little', signed=False), write=write, verify=verify, check=check)
+        self.ncoFqwdUp.set (value=int.from_bytes(ba[4:6], byteorder='little', signed=False), write=write, verify=verify, check=check)
 
 
     def _ncoFreqGet(self, read, check):
@@ -200,7 +208,7 @@ class RfBlock(pr.Device):
         ba = bytearray(6)
         ba[0:2] = self.ncoFqwdLow.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
         ba[2:4] = self.ncoFqwdMid.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
-        ba[4:6] = self.ncoFqwdUp.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
+        ba[4:6] = self.ncoFqwdUp.get (read=read, check=check).to_bytes(2, byteorder='little', signed=False)
 
         regFreq = int.from_bytes(ba,  byteorder='little', signed=True)
 
@@ -211,7 +219,7 @@ class RfBlock(pr.Device):
 
 #        ncoFreq = retFreq
 #
-#        print(f"{self.name}, regFreq = {regFreq} {regFreq:#x}, retFreq = {retFreq}")
+#        print(f'{self.name}, regFreq = {regFreq} {regFreq:#x}, retFreq = {retFreq}')
 #
 #        if (ncoFreq < -(samplingRate / 2.0)) or (ncoFreq > (samplingRate / 2.0)):
 #
