@@ -14,7 +14,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.xilinx
+import surf.xilinx as xil
 
 class RfTile(pr.Device):
     def __init__(
@@ -217,7 +217,7 @@ class RfTile(pr.Device):
             prefix = 'adc' if isAdc else 'dac'
 
             for i in range(4):
-                self.add(surf.xilinx.RfBlock(
+                self.add(xil.RfBlock(
                     name    = f'{prefix}Block[{i}]',
                     isAdc   = isAdc,
                     offset  = 0x2000 + 0x400*i,
