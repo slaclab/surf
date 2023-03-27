@@ -33,7 +33,7 @@ class RfDataConverter(pr.Device):
             bitSize      =  8,
             bitOffset    =  24,
             mode         = "RO",
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -43,7 +43,7 @@ class RfDataConverter(pr.Device):
             bitSize      =  8,
             bitOffset    =  16,
             mode         = "RO",
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -53,7 +53,7 @@ class RfDataConverter(pr.Device):
             bitSize      =  8,
             bitOffset    =  8,
             mode         = "RO",
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -63,7 +63,7 @@ class RfDataConverter(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             mode         = "WO",
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -74,7 +74,7 @@ class RfDataConverter(pr.Device):
             bitOffset    =  0,
             mode         = "RO",
             hidden       = True,
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -85,7 +85,7 @@ class RfDataConverter(pr.Device):
             bitOffset    =  31,
             mode         = "RO",
             hidden       = True,
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -96,7 +96,7 @@ class RfDataConverter(pr.Device):
             bitOffset    =  0,
             mode         = "RW",
             hidden       = True,
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -107,7 +107,7 @@ class RfDataConverter(pr.Device):
             bitOffset    =  31,
             mode         = "RW",
             hidden       = True,
-            overlapEn    = True,
+            #overlapEn    = True,
         ))
 
         for i in range(4):
@@ -128,20 +128,20 @@ class RfDataConverter(pr.Device):
                 expand  = False,
             ))
 
-        self.add(pr.RemoteVariable(
-            name         = "RawData",
-            description  = "",
-            offset       = 0,
-            bitSize      = 32 * 0x10000,
-            bitOffset    = 0,
-            numValues    = 0x10000,
-            valueBits    = 32,
-            valueStride  = 32,
-            updateNotify = True,
-            bulkOpEn     = False, # FALSE for large variables
-            overlapEn    = True,
-            verify       = False,
-            hidden       = True,
-            base         = pr.UInt,
-            mode         = "RW",
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = "RawData",
+            # description  = "",
+            # offset       = 0,
+            # bitSize      = 32 * 0x10000,
+            # bitOffset    = 0,
+            # numValues    = 0x10000,
+            # valueBits    = 32,
+            # valueStride  = 32,
+            # updateNotify = True,
+            # bulkOpEn     = False, # FALSE for large variables
+            # #overlapEn    = True,
+            # verify       = False,
+            # hidden       = True,
+            # base         = pr.UInt,
+            # mode         = "RW",
+        # ))
