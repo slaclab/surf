@@ -39,7 +39,6 @@ class RfBlock(pr.Device):
                 bitOffset    =  0,
                 mode         = 'RO',
                 enum         = {0: 'FullBw', 1: 'NA', 2: 'HalfBwImr', 3: 'FullBwByPass'},
-                #overlapEn    = True,
             ))
 
             self.add(pr.RemoteVariable(
@@ -50,7 +49,6 @@ class RfBlock(pr.Device):
                 bitOffset    =  0,
                 mode         = 'RO',
                 enum         = {0: 'Real', 1: 'IQ'},
-                #overlapEn    = True,
             ))
 
         if isAdc is True:
@@ -63,7 +61,6 @@ class RfBlock(pr.Device):
                 bitOffset    =  0,
                 mode         = 'RO',
                 enum         = {0: 'I Data', 1: 'Q DATA', 2: 'IQ Data', 3: '4GSPS'},
-                #overlapEn    = True,
             ))
 
             self.add(pr.RemoteVariable(
@@ -74,7 +71,6 @@ class RfBlock(pr.Device):
                 bitOffset    =  0,
                 mode         = 'RO',
                 enum         = {0: 'NA', 1: 'Even', 2: 'Odd', 3: '4Phase'},
-                #overlapEn    = True,
             ))
 
 
@@ -85,8 +81,6 @@ class RfBlock(pr.Device):
             bitSize      =  16,
             bitOffset    =  0,
             mode         = 'RW',
-            #overlapEn    = True,
-            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -96,8 +90,6 @@ class RfBlock(pr.Device):
             bitSize      =  16,
             bitOffset    =  0,
             mode         = 'RW',
-            #overlapEn    = True,
-            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -107,8 +99,6 @@ class RfBlock(pr.Device):
             bitSize      =  16,
             bitOffset    =  0,
             mode         = 'RW',
-            #overlapEn    = True,
-            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -118,8 +108,6 @@ class RfBlock(pr.Device):
             bitSize      =  16,
             bitOffset    =  0,
             mode         = 'RO',
-            #overlapEn    = True,
-            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -129,8 +117,6 @@ class RfBlock(pr.Device):
             bitSize      =  16,
             bitOffset    =  0,
             mode         = 'RO',
-            #overlapEn    = True,
-            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -140,8 +126,6 @@ class RfBlock(pr.Device):
             bitSize      =  1,
             bitOffset    =  5,
             mode         = 'RO',
-            #overlapEn    = True,
-            hidden       = True,
         ))
 
         self.add(pr.LocalVariable(
@@ -200,7 +184,7 @@ class RfBlock(pr.Device):
         self.ncoFqwdUp.set (value=int.from_bytes(ba[4:6], byteorder='little', signed=False), write=write, verify=verify, check=check)
 
         # Reset the tile after changing the NCO value
-        self.RestartSM.post(0x1)
+        self.RestartSM.set(value=0x1, write=write, verify=False, check=False)
 
     def _ncoFreqGet(self, read, check):
         samplingRate = self.samplingRate.value()
