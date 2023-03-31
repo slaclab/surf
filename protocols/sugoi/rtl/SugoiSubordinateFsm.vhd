@@ -26,8 +26,10 @@ use surf.SugoiPkg.all;
 
 entity SugoiSubordinateFsm is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := true);
    port (
+      simRst          : in  sl := '0';  -- Simulation reset only
       -- Clock and Reset
       clk             : in  sl;
       rst             : out sl;
@@ -119,7 +121,7 @@ architecture rtl of SugoiSubordinateFsm is
 begin
 
    comb : process (axilReadSlave, axilWriteSlave, r, rxData, rxDataK, rxError,
-                   rxValid) is
+                   rxValid, simRst) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -548,6 +550,9 @@ begin
       -- Check for active error condition + enough time for data pipeline to be stable
       if (rxValid = '1') and (rxError = '1') and (r.stableCnt(r.stableCnt'high) = '0') then
          v := REG_INIT_C;
+
+      elsif (RST_ASYNC_G = false and simRst = '1') then
+         v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
@@ -555,9 +560,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, simRst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and simRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
