@@ -358,19 +358,6 @@ package AxiLitePkg is
       variable axiWriteSlave : in    AxiLiteWriteSlaveType;
       variable axiReadSlave  : in    AxiLiteReadSlaveType);
 
-   procedure axiSlaveRegisterLegacy (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      offset      : in    integer;
-      reg         : inout slv;
-      constVal    : in    slv);
-
-   procedure axiSlaveRegisterLegacy (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      offset      : in    integer;
-      reg         : inout slv);
-
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
