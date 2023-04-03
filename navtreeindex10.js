@@ -1,5 +1,6 @@
 var NAVTREEINDEX10 =
 {
+"classAxiLiteIpBusBridgeTb.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,51,7],
 "classAxiLiteIpBusBridgeTb_1_1testbed.html":[1,0,51,0],
 "classAxiLiteIpBusBridgeTb_1_1testbed.html#a043b227afdea23d77e35a384c34f009d":[1,0,51,0,14],
 "classAxiLiteIpBusBridgeTb_1_1testbed.html#a05a671c66aefea124cc08b76ea6d30bb":[1,0,51,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX10 =
 "classAxiLiteRegs_1_1rtl.html#a780753908d5cb818070376214233be49":[1,0,57,0,8],
 "classAxiLiteRegs_1_1rtl.html#a8493ee2596c10f1ce9d564a724a00424":[1,0,57,0,5],
 "classAxiLiteRegs_1_1rtl.html#a9bd79d300a4c87d6d81d897441f36271":[1,0,57,0,1],
-"classAxiLiteRegs_1_1rtl.html#ab8e6a06ee1269c26f2236bf98d211319":[1,0,57,0,7],
-"classAxiLiteRegs_1_1rtl.html#ac7f31353f68d974d51f31b6c70448d0e":[1,0,57,0,0]
+"classAxiLiteRegs_1_1rtl.html#ab8e6a06ee1269c26f2236bf98d211319":[1,0,57,0,7]
 };

@@ -2,6 +2,7 @@ var classAxiVersion =
 [
     [ "rtl", "classAxiVersion_1_1rtl.html", "classAxiVersion_1_1rtl" ],
     [ "TPD_G", "classAxiVersion.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RST_ASYNC_G", "classAxiVersion.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "BUILD_INFO_G", "classAxiVersion.html#a6ff6d0dd29c82d329f8f2caa9e4b1811", null ],
     [ "SIM_DNA_VALUE_G", "classAxiVersion.html#ac2dbe99775169275cd15d81675fd2346", null ],
     [ "DEVICE_ID_G", "classAxiVersion.html#ad2c3f833f7594f2395b85400a541511c", null ],

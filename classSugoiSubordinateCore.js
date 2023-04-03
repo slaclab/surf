@@ -2,6 +2,8 @@ var classSugoiSubordinateCore =
 [
     [ "SugoiSubordinateCore.mapping", "classSugoiSubordinateCore_1_1mapping.html", "classSugoiSubordinateCore_1_1mapping" ],
     [ "TPD_G", "classSugoiSubordinateCore.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RST_ASYNC_G", "classSugoiSubordinateCore.html#ad489a8923e293a168027842ed3795a30", null ],
+    [ "simRst", "classSugoiSubordinateCore.html#a27fb0e74de355f9600f53d6d5bffae99", null ],
     [ "clk", "classSugoiSubordinateCore.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSugoiSubordinateCore.html#a51f2b2db8332c5a9847651b994476904", null ],
     [ "rstL", "classSugoiSubordinateCore.html#a9e2dfa47c19ba260368554e07f3e89f2", null ],

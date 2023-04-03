@@ -2,6 +2,7 @@ var classGearbox =
 [
     [ "rtl", "classGearbox_1_1rtl.html", "classGearbox_1_1rtl" ],
     [ "TPD_G", "classGearbox.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RST_ASYNC_G", "classGearbox.html#a123a3d9a6e9648e763d21c0281ee7ecd", null ],
     [ "SLAVE_BIT_REVERSE_G", "classGearbox.html#a42109a93eada830d976d4f8edd90b0ba", null ],
     [ "SLAVE_WIDTH_G", "classGearbox.html#a63515746fbc6df0a926a405d85aaa3f7", null ],
     [ "MASTER_BIT_REVERSE_G", "classGearbox.html#ac07b6873b01fb29dd06f9b8d5e99389e", null ],

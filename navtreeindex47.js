@@ -1,5 +1,7 @@
 var NAVTREEINDEX47 =
 {
+"classEthMacPauseTb.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,252,1],
+"classEthMacPauseTb.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,252,4],
 "classEthMacPauseTb.html#a598da929e807d58939b47499e8bc9fa8":[1,0,252,3],
 "classEthMacPauseTb.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,252,7],
 "classEthMacPauseTb.html#a8b54e22b2a07048034b61d5e4ba396e3":[1,0,252,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX47 =
 "classEthMacRxFifo.html#adae7469cf2f4621b8b4bef2992501a06":[1,0,257,16],
 "classEthMacRxFifo.html#adf5aafc981fce427b9cf8ca378a17602":[1,0,257,4],
 "classEthMacRxFifo.html#ae3a6e57c390a58ad21bbfea51ba2b2d0":[1,0,257,25],
-"classEthMacRxFifo.html#ae4085330164226fe47b756539dec6ba3":[1,0,257,17],
-"classEthMacRxFifo.html#aed23a22e8e86c4d646b3f8e97c12d79b":[1,0,257,33],
-"classEthMacRxFifo.html#aef32e54b7d5adf8fbd8826df7c902f10":[1,0,257,34]
+"classEthMacRxFifo.html#ae4085330164226fe47b756539dec6ba3":[1,0,257,17]
 };

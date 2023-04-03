@@ -1,7 +1,7 @@
 var classGearbox_1_1rtl =
 [
     [ "comb", "classGearbox_1_1rtl.html#abd05971d09d6a18e45b2df8237c6ea59", null ],
-    [ "sync", "classGearbox_1_1rtl.html#a6dc554f24ff3c674022897440bab1477", null ],
+    [ "seq", "classGearbox_1_1rtl.html#a379489c8f4b30170bee2b86c285c12f7", null ],
     [ "MAX_C", "classGearbox_1_1rtl.html#a3bf2ac825b6bffa4e959c696c49b108e", null ],
     [ "MIN_C", "classGearbox_1_1rtl.html#a2b81bdd334dfe2903a3dc94a521f3078", null ],
     [ "SHIFT_WIDTH_C", "classGearbox_1_1rtl.html#a8abaa6939be41127c9a84e6b15154795", null ],

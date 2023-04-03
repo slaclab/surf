@@ -1,7 +1,7 @@
 var classSugoiSubordinateFsm_1_1rtl =
 [
-    [ "comb", "classSugoiSubordinateFsm_1_1rtl.html#a24455d48ed421d76d4c5375b3158f1a1", null ],
-    [ "seq", "classSugoiSubordinateFsm_1_1rtl.html#ae8896e195ae00ae797895c15b647ba41", null ],
+    [ "comb", "classSugoiSubordinateFsm_1_1rtl.html#a648df271fc7ba4f9f97dcaaf907e63ba", null ],
+    [ "seq", "classSugoiSubordinateFsm_1_1rtl.html#a87f99f4146c403c6156e7f4f480151b3", null ],
     [ "StateType", "classSugoiSubordinateFsm_1_1rtl.html#a0de8c2774c6b5aaefd1d21b477762037", null ],
     [ "RegType", "classSugoiSubordinateFsm_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "linkup", "classSugoiSubordinateFsm_1_1rtl.html#a37e8fdc1398a59063af953f58df53619", null ],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX46 =
 {
+"classDualPortRam.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,244,28],
+"classDualPortRam.html#a0de49fbe6e07a265532ec49da1f5c4bb":[1,0,244,14],
 "classDualPortRam.html#a0ed4cde484ee5ed08f4bcfed67335ba7":[1,0,244,26],
 "classDualPortRam.html#a0f2247a6a3e8840e30be089433d9a486":[1,0,244,4],
 "classDualPortRam.html#a15744a2b5a69e47974a097e472b24220":[1,0,244,27],
@@ -247,7 +249,5 @@ var NAVTREEINDEX46 =
 "classEthMacFlowCtrl_1_1rtl.html#ab84259641c752ded33149271ac657ab0":[1,0,251,0,0],
 "classEthMacFlowCtrl_1_1rtl.html#abc436b3a546a87e38d5027311a513379":[1,0,251,0,1],
 "classEthMacFlowCtrl_1_1rtl.html#ade4de2a008a5f96235206eb18081481c":[1,0,251,0,6],
-"classEthMacPauseTb.html":[1,0,252],
-"classEthMacPauseTb.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,252,1],
-"classEthMacPauseTb.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,252,4]
+"classEthMacPauseTb.html":[1,0,252]
 };

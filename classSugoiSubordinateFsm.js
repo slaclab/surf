@@ -2,6 +2,8 @@ var classSugoiSubordinateFsm =
 [
     [ "SugoiSubordinateFsm.rtl", "classSugoiSubordinateFsm_1_1rtl.html", "classSugoiSubordinateFsm_1_1rtl" ],
     [ "TPD_G", "classSugoiSubordinateFsm.html#a67a837684e4f18c2d236ac1d053b419b", null ],
+    [ "RST_ASYNC_G", "classSugoiSubordinateFsm.html#ad489a8923e293a168027842ed3795a30", null ],
+    [ "simRst", "classSugoiSubordinateFsm.html#a27fb0e74de355f9600f53d6d5bffae99", null ],
     [ "clk", "classSugoiSubordinateFsm.html#a8562dfa3c7970041e8fb901d9c0e4ecf", null ],
     [ "rst", "classSugoiSubordinateFsm.html#a51f2b2db8332c5a9847651b994476904", null ],
     [ "rstL", "classSugoiSubordinateFsm.html#a9e2dfa47c19ba260368554e07f3e89f2", null ],

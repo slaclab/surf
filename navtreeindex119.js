@@ -1,5 +1,8 @@
 var NAVTREEINDEX119 =
 {
+"classRogueTcpStream.html":[1,0,558],
+"classRogueTcpStream.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,558,21],
+"classRogueTcpStream.html#a0cb0b9903aed8be667f5d21a3ccbe63c":[1,0,558,15],
 "classRogueTcpStream.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,558,23],
 "classRogueTcpStream.html#a20c10837dfa72f24ec907bc5baa8dd78":[1,0,558,16],
 "classRogueTcpStream.html#a2e93037975779c78cea6247ab5ee364b":[1,0,558,7],
@@ -246,8 +249,5 @@ var NAVTREEINDEX119 =
 "classRssiCore.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,563,49],
 "classRssiCore.html#a15c6953c6c6c48e0e7e35af3cb2df597":[1,0,563,27],
 "classRssiCore.html#a17c7aa8ccf4c765b9cc344106ae5aba9":[1,0,563,38],
-"classRssiCore.html#a19221acbd9f175c7c36e185a3f6ac55b":[1,0,563,15],
-"classRssiCore.html#a22f8db74a5a4c77e7e2767279ca36e7f":[1,0,563,41],
-"classRssiCore.html#a2429d17ce4f9328a982076af9f733ab3":[1,0,563,12],
-"classRssiCore.html#a26b3539d28e70bf3ad6319e4280a3c66":[1,0,563,26]
+"classRssiCore.html#a19221acbd9f175c7c36e185a3f6ac55b":[1,0,563,15]
 };
