@@ -25,8 +25,10 @@ use surf.AxiLitePkg.all;
 
 entity SugoiSubordinateCore is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := true);
    port (
+      simRst          : in  sl := '0';        -- Simulation reset only
       -- Clock and Reset
       clk             : in  sl;
       rst             : out sl;               -- Active HIGH global reset
@@ -73,12 +75,13 @@ begin
    U_Deserializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 1,
          MASTER_WIDTH_G => 10)
       port map (
          -- Clock and Reset
          clk            => clk,
-         rst            => '0',         -- Never reset on global reset command
+         rst            => simRst,      -- Simulation reset only
          -- Slip Interface
          slip           => rxSlip,
          -- Slave Interface
@@ -96,13 +99,12 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- active HIGH reset
-         -- FLOW_CTRL_EN_G => true, -- placeholder incase FLOW_CTRL_EN_G is added in the future
-         RST_ASYNC_G    => false,
+         RST_ASYNC_G    => RST_ASYNC_G,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk         => clk,
-         rst         => '0',            -- Never reset on global reset command
+         rst         => simRst,         -- Simulation reset only
          -- Encoded Interface
          validIn     => rxEncodeValid,
          dataIn      => rxEncodeData,
@@ -120,8 +122,10 @@ begin
    -------------
    U_Fsm : entity surf.SugoiSubordinateFsm
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
+         simRst          => simRst,
          -- Clock and Reset
          clk             => clk,
          rst             => rst,
@@ -154,12 +158,12 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- active HIGH reset
          FLOW_CTRL_EN_G => true,
-         RST_ASYNC_G    => false,
+         RST_ASYNC_G    => RST_ASYNC_G,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk        => clk,
-         rst        => '0',             -- Never reset on global reset command
+         rst        => simRst,          -- Simulation reset only
          -- Decoded Interface
          validIn    => txDecodeValid,
          dataIn     => txDecodeData,
@@ -174,12 +178,13 @@ begin
    U_Serializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 10,
          MASTER_WIDTH_G => 1)
       port map (
          -- Clock and Reset
          clk            => clk,
-         rst            => '0',         -- Never reset on global reset command
+         rst            => simRst,      -- Simulation reset only
          -- Slave Interface
          slaveValid     => txEncodeValid,
          slaveData      => txEncodeData,

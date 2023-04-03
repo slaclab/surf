@@ -27,6 +27,7 @@ entity AxiLiteCrossbar is
 
    generic (
       TPD_G              : time                             := 1 ns;
+      RST_ASYNC_G        : boolean                          := false;
       NUM_SLAVE_SLOTS_G  : natural range 1 to 16            := 4;
       NUM_MASTER_SLOTS_G : natural range 1 to 64            := 4;
       DEC_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
@@ -437,7 +438,7 @@ begin
 
       end loop;
 
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -450,9 +451,11 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiClkRst) is
    begin
-      if (rising_edge(axiClk)) then
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
