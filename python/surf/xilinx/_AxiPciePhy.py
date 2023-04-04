@@ -261,7 +261,7 @@ class AxiPciePhy(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'LnkStaWidth',
             offset       =  0x70 + 0x12,
-            bitSize      =  4,
+            bitSize      =  8,
             bitOffset    =  4,
             mode         = 'RO',
             units        = 'lanes',
