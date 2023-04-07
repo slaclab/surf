@@ -5,12 +5,12 @@
 -- Supports reading of general purpose FIFOs from the AxiLite bus.
 -- One address location per FIFO.
 -- Address map depends on the POP and LOOP FIFO counts.
--- RANGE_LSB_G sets the address bit which seperates the
+-- RANGE_LSB_G sets the address bit which separates the
 -- POP FIFO address space from the loop FIFO address space.
 -- RANGE_LSB_G must be large enough for the number of POP and LOOP FIFOs
 -- enabled. I.E. if POP_FIFO_COUNT_C is 8, RANGE_FIFO_G must be > 5.
--- POP Fifos exist at 0x0, 0x4, 0x8, 0xC ...
--- LOOP Fifos exist at 2^(RANGE_LSB_C) + 0x0, + 0x4, etc.
+-- POP FIFOs exist at 0x0, 0x4, 0x8, 0xC ...
+-- LOOP FIFOs exist at 2^(RANGE_LSB_C) + 0x0, + 0x4, etc.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -23,9 +23,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
-
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -34,6 +33,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteFifoPop is
    generic (
       TPD_G              : time                       := 1 ns;
+      RST_ASYNC_G        : boolean                    := true;
       POP_FIFO_COUNT_G   : positive                   := 1;
       POP_SYNC_FIFO_G    : boolean                    := false;
       POP_MEMORY_TYPE_G  : string                     := "block";
@@ -45,10 +45,8 @@ entity AxiLiteFifoPop is
       LOOP_ADDR_WIDTH_G  : integer range 4 to 48      := 4;
       RANGE_LSB_G        : integer range 0 to 31      := 8;
       VALID_POSITION_G   : integer range 0 to 31      := 0;
-      VALID_POLARITY_G   : sl                         := '0'
-   );
+      VALID_POLARITY_G   : sl                         := '0');
    port (
-
       -- AXI Interface (axiClk)
       axiClk             : in  sl;
       axiClkRst          : in  sl;
@@ -61,7 +59,6 @@ entity AxiLiteFifoPop is
       loopFifoValid      : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
       loopFifoAEmpty     : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
       loopFifoAFull      : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
-
       -- POP FIFO Write Interface (popFifoClk)
       popFifoClk         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
       popFifoRst         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
@@ -69,8 +66,7 @@ entity AxiLiteFifoPop is
       popFifoDin         : in  Slv32Array(POP_FIFO_COUNT_G-1 downto 0);
       popFifoFull        : out slv(POP_FIFO_COUNT_G-1 downto 0);
       popFifoAFull       : out slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoPFull       : out slv(POP_FIFO_COUNT_G-1 downto 0)
-   );
+      popFifoPFull       : out slv(POP_FIFO_COUNT_G-1 downto 0));
 end AxiLiteFifoPop;
 
 architecture structure of AxiLiteFifoPop is
@@ -129,7 +125,7 @@ begin
             CASCADE_SIZE_G     => 1,
             LAST_STAGE_ASYNC_G => true,
             RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => true,
+            RST_ASYNC_G        => RST_ASYNC_G,
             GEN_SYNC_FIFO_G    => POP_SYNC_FIFO_G,
             MEMORY_TYPE_G      => POP_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
@@ -182,7 +178,7 @@ begin
                CASCADE_SIZE_G     => 1,
                LAST_STAGE_ASYNC_G => true,
                RST_POLARITY_G     => '1',
-               RST_ASYNC_G        => true,
+               RST_ASYNC_G        => RST_ASYNC_G,
                GEN_SYNC_FIFO_G    => true,
                MEMORY_TYPE_G      => LOOP_MEMORY_TYPE_G,
                FWFT_EN_G          => true,
@@ -237,15 +233,6 @@ begin
    -- AXI Lite
    -----------------------------------------
 
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
    process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid, iloopFifoDout, iloopFifoValid ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
@@ -303,7 +290,7 @@ begin
       end if;
 
       -- Reset
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -320,5 +307,13 @@ begin
 
    end process;
 
-end architecture structure;
+   seq : process (axiClk, axiClkRst) is
+   begin
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
+end architecture structure;

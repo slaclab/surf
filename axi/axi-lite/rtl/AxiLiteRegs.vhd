@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteRegs is
    generic (
       TPD_G            : time                  := 1 ns;
+      RST_ASYNC_G      : boolean               := false;
       NUM_WRITE_REG_G  : integer range 1 to 32 := 1;
       INI_WRITE_REG_G  : Slv32Array            := (0 => x"0000_0000");
       NUM_READ_REG_G   : integer range 1 to 32 := 1);
@@ -102,7 +103,7 @@ begin
       axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -116,9 +117,11 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiClkRst) is
    begin
-      if (rising_edge(axiClk)) then
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
