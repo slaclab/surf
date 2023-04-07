@@ -26,7 +26,7 @@ use surf.SugoiPkg.all;
 
 entity SugoiSubordinateFsm is
    generic (
-      TPD_G       : time    := 1 ns;
+      TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean := true);
    port (
@@ -121,8 +121,8 @@ architecture rtl of SugoiSubordinateFsm is
 
 begin
 
-   comb : process (axilReadSlave, axilWriteSlave, r, rxData, rxDataK, rxError,
-                   rxValid, pwrUpRst) is
+   comb : process (axilReadSlave, axilWriteSlave, pwrUpRst, r, rxData, rxDataK,
+                   rxError, rxValid) is
       variable v : RegType;
       variable i : natural;
    begin
