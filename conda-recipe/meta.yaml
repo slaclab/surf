@@ -16,8 +16,6 @@ requirements:
 
    host:
      - python
-     - rogue
-     - numpy
 
    run:
      - python
