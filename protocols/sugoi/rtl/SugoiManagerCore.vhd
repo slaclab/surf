@@ -161,7 +161,6 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
          DLY_STEP_SIZE_G => ite(SIMULATION_G or (DEVICE_FAMILY_G = "7SERIES"), 16, 1),
          CODE_TYPE_G     => "LINE_CODE")
       port map (
@@ -222,7 +221,6 @@ begin
          RST_POLARITY_G => '1',         -- active HIGH reset
          RST_ASYNC_G    => RST_ASYNC_G,
          -- FLOW_CTRL_EN_G => true, -- placeholder incase FLOW_CTRL_EN_G is added in the future
-         RST_ASYNC_G    => false,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
@@ -292,7 +290,6 @@ begin
          RST_POLARITY_G => '1',         -- active HIGH reset
          RST_ASYNC_G    => RST_ASYNC_G,
          FLOW_CTRL_EN_G => true,
-         RST_ASYNC_G    => false,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
