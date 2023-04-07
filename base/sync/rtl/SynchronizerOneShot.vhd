@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -94,9 +93,8 @@ begin
       dataOut <= edgeDet;
    end generate;
 
-
    U_PulseStretcher : if (PULSE_WIDTH_G > 1) generate
-      -- Strech the pulse using a simple synchronously reset register chain
+      -- Stretch the pulse using a simple synchronously reset register chain
       -- Using PULSE_WIDTH_G > 1 will incur 1 extra cycle of OUT_DELAY_G
 
       comb : process (edgeDet, r, rst) is
@@ -131,12 +129,10 @@ begin
 
       seq : process (clk, rst) is
       begin
-         if (rising_edge(clk)) then
-            r <= rin after TPD_G;
-         end if;
-
          if (RST_ASYNC_G and rst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(clk) then
+            r <= rin after TPD_G;
          end if;
       end process seq;
 

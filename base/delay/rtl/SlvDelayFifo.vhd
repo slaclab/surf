@@ -30,6 +30,7 @@ use surf.StdRtlPkg.all;
 entity SlvDelayFifo is
    generic (
       TPD_G              : time     := 1 ns;
+      RST_ASYNC_G        : boolean := false;
       DATA_WIDTH_G       : positive := 1;
       DELAY_BITS_G       : positive := 64;
       FIFO_ADDR_WIDTH_G  : positive := 7;
@@ -91,6 +92,7 @@ begin
    U_DelayFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => FIFO_MEMORY_TYPE_G,
          FWFT_EN_G       => true,
@@ -157,7 +159,7 @@ begin
       outputValid <= r.outputValid;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -166,9 +168,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

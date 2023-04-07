@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -48,12 +47,14 @@ architecture rtl of SynchronizerEdge is
       fallingEdge : sl;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      '0',
-      (not OUT_POLARITY_G),
-      (not OUT_POLARITY_G),
-      (not OUT_POLARITY_G));
-   signal r        : RegType := REG_INIT_C;
-   signal rin      : RegType;
+      syncDataDly => '0',
+      dataOut     => (not OUT_POLARITY_G),
+      risingEdge  => (not OUT_POLARITY_G),
+      fallingEdge => (not OUT_POLARITY_G));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    signal syncData : sl;
 
 begin

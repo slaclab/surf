@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simple IIR filter using bitshifts
+-- Description: Simple IIR filter using bit shifts
 --              y(n) = alpha*x(n) + (1 - alpha)*y(n-1)
 --                 where alpha = 2**(-IIR_SHIFT_G)
 --              optionally supports time multiplexed channels with the

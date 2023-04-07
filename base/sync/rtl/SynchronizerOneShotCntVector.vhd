@@ -127,7 +127,6 @@ begin
 
    end generate;
 
-
    GEN_VEC :
    for i in (WIDTH_G-1) downto 0 generate
 
@@ -231,7 +230,7 @@ begin
          wrEn <= r.tValid and tReady;
 
          -- Synchronous Reset
-         if (wrRst = '1') then
+         if (RST_ASYNC_G = false and wrRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -240,9 +239,11 @@ begin
 
       end process comb;
 
-      seq : process (wrClk) is
+      seq : process (wrClk, wrRst) is
       begin
-         if (rising_edge(wrClk)) then
+         if (RST_ASYNC_G and wrRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(wrClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;
@@ -250,6 +251,7 @@ begin
       U_FIFO : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             MEMORY_TYPE_G => "distributed",
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => FIFO_WIDTH_C,
@@ -269,10 +271,12 @@ begin
 
       tReady <= not(almostFull);
 
-      process(rdClk)
+      process(rdClk, rdRst)
       begin
-         if rising_edge(rdClk) then
-            if (rdRst = '1') then
+         if (RST_ASYNC_G and rdRst = '1') then
+            cntRdDomain <= (others => (others => '0')) after TPD_G;
+         elsif rising_edge(rdClk) then
+            if (RST_ASYNC_G = false and rdRst = '1') then
                cntRdDomain <= (others => (others => '0')) after TPD_G;
             elsif (rdValid = '1') then
                cntRdDomain(conv_integer(rdData(FIFO_WIDTH_C-1 downto CNT_WIDTH_G))) <= rdData(CNT_WIDTH_G-1 downto 0) after TPD_G;
