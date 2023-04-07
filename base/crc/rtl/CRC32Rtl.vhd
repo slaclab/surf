@@ -106,7 +106,7 @@ begin
    begin
       if (RST_ASYNC_G and CRCRESET = '1') then
          crc <= CRCINIT after TPD_G;
-      if rising_edge(CRCCLK) then
+      elsif rising_edge(CRCCLK) then
          if (RST_ASYNC_G = false and CRCRESET = '1') then
             crc <= CRCINIT after TPD_G;
          elsif (CRCDATAVALID_d = '1') and (CRCCLKEN = '1') then
