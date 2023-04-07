@@ -125,6 +125,10 @@ jobs:
           export PATH="${HOME}/miniconda/bin:$PATH"
           source ${HOME}/miniconda/etc/profile.d/conda.sh
           conda config --set always_yes yes
+          conda config --set channel_priority strict
+          conda update -n base -c conda-forge conda
+          conda install -n base conda-libmamba-solver
+          conda config --set solver libmamba
           conda install conda-build anaconda-client conda-verify
           conda update -q conda conda-build
           conda update --all
