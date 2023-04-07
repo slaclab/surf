@@ -27,6 +27,7 @@ entity SugoiManagerCore is
    generic (
       TPD_G           : time    := 1 ns;
       SIMULATION_G    : boolean := false;
+      RST_ASYNC_G     : boolean := false;
       DIFF_PAIR_G     : boolean := true;
       COMMON_CLK_G    : boolean := false;  -- Set true if timingClk & axilClk are same signal
       NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the Subordinate
@@ -113,6 +114,7 @@ begin
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G           => TPD_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          COMMON_CLK_G    => COMMON_CLK_G,
          NUM_ADDR_BITS_G => (NUM_ADDR_BITS_G+4))  -- +4 for daisy chain device address support and for control/space address space
       port map (
@@ -159,6 +161,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          DLY_STEP_SIZE_G => ite(SIMULATION_G or (DEVICE_FAMILY_G = "7SERIES"), 16, 1),
          CODE_TYPE_G     => "LINE_CODE")
       port map (
@@ -195,6 +198,7 @@ begin
    U_Deserializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 1,
          MASTER_WIDTH_G => 10)
       port map (
@@ -216,6 +220,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- active HIGH reset
+         RST_ASYNC_G    => RST_ASYNC_G,
          -- FLOW_CTRL_EN_G => true, -- placeholder incase FLOW_CTRL_EN_G is added in the future
          RST_ASYNC_G    => false,
          NUM_BYTES_G    => 1)
@@ -240,6 +245,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          TX_POLARITY_G   => TX_POLARITY_G,
          RX_POLARITY_G   => RX_POLARITY_G,
          NUM_ADDR_BITS_G => NUM_ADDR_BITS_G)
@@ -284,6 +290,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- active HIGH reset
+         RST_ASYNC_G    => RST_ASYNC_G,
          FLOW_CTRL_EN_G => true,
          RST_ASYNC_G    => false,
          NUM_BYTES_G    => 1)
@@ -305,6 +312,7 @@ begin
    U_Serializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 10,
          MASTER_WIDTH_G => 1)
       port map (

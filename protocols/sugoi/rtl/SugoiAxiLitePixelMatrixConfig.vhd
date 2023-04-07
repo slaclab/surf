@@ -26,6 +26,7 @@ use surf.AxiLitePkg.all;
 entity SugoiAxiLitePixelMatrixConfig is
    generic (
       TPD_G           : time                   := 1 ns;
+      RST_ASYNC_G     : boolean                := false;
       COL_GRAY_CODE_G : boolean                := true;
       COL_WIDTH_G     : positive range 1 to 10 := 6;
       ROW_GRAY_CODE_G : boolean                := true;
@@ -372,7 +373,7 @@ begin
       --------
       -- Reset
       --------
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -396,6 +397,15 @@ begin
    seq : process (axilClk) is
    begin
       if (rising_edge(axilClk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
+   seq : process (axilClk, axilRst) is
+   begin
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

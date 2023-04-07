@@ -25,17 +25,18 @@ use surf.AxiLitePkg.all;
 
 entity SugoiSubordinateCore is
    generic (
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := true);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean := true);
    port (
-      simRst          : in  sl := '0';        -- Simulation reset only
+      pwrUpRst        : in  sl := not(RST_POLARITY_G);
       -- Clock and Reset
       clk             : in  sl;
-      rst             : out sl;               -- Active HIGH global reset
-      rstL            : out sl;               -- Active LOW global reset
+      rst             : out sl;         -- Active HIGH global reset
+      rstL            : out sl;         -- Active LOW global reset
       -- SUGOI Serial Ports
-      rx              : in  sl;               -- serial rate = clk frequency
-      tx              : out sl;               -- serial rate = clk frequency
+      rx              : in  sl;         -- serial rate = clk frequency
+      tx              : out sl;         -- serial rate = clk frequency
       -- Link Status
       linkup          : out sl;
       -- Trigger/Timing Command Bus
@@ -75,13 +76,14 @@ begin
    U_Deserializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 1,
          MASTER_WIDTH_G => 10)
       port map (
          -- Clock and Reset
          clk            => clk,
-         rst            => simRst,      -- Simulation reset only
+         rst            => pwrUpRst,
          -- Slip Interface
          slip           => rxSlip,
          -- Slave Interface
@@ -98,13 +100,13 @@ begin
    U_Decode : entity surf.Decoder8b10b
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',         -- active HIGH reset
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk         => clk,
-         rst         => simRst,         -- Simulation reset only
+         rst         => pwrUpRst,
          -- Encoded Interface
          validIn     => rxEncodeValid,
          dataIn      => rxEncodeData,
@@ -122,10 +124,11 @@ begin
    -------------
    U_Fsm : entity surf.SugoiSubordinateFsm
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
-         simRst          => simRst,
+         pwrUpRst        => pwrUpRst,
          -- Clock and Reset
          clk             => clk,
          rst             => rst,
@@ -156,14 +159,14 @@ begin
    U_Encode : entity surf.Encoder8b10b
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',         -- active HIGH reset
-         FLOW_CTRL_EN_G => true,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
+         FLOW_CTRL_EN_G => true,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk        => clk,
-         rst        => simRst,          -- Simulation reset only
+         rst        => pwrUpRst,
          -- Decoded Interface
          validIn    => txDecodeValid,
          dataIn     => txDecodeData,
@@ -178,13 +181,14 @@ begin
    U_Serializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 10,
          MASTER_WIDTH_G => 1)
       port map (
          -- Clock and Reset
          clk            => clk,
-         rst            => simRst,      -- Simulation reset only
+         rst            => pwrUpRst,
          -- Slave Interface
          slaveValid     => txEncodeValid,
          slaveData      => txEncodeData,
