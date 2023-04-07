@@ -156,7 +156,7 @@ begin
       rin <= v;
 
       masterValid <= r.masterValid;
-      if (masterBitOrder = RST_POLARITY_G) then
+      if (masterBitOrder = '1') then
          masterData <= bitReverse(r.shiftReg(MASTER_WIDTH_G-1 downto 0));
       else
          masterData <= r.shiftReg(MASTER_WIDTH_G-1 downto 0);
