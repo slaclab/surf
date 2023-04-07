@@ -10,12 +10,11 @@ build:
    noarch: python
 
 requirements:
-   build:
-     - git
-     - gitpython
 
    host:
      - python
+     - git
+     - gitpython
 
    run:
      - python
