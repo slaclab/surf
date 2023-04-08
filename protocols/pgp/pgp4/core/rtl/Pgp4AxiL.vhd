@@ -27,6 +27,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4AxiL is
    generic (
       TPD_G              : time                  := 1 ns;
+      RST_ASYNC_G        : boolean               := false;
       COMMON_TX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpTxClk are the same clock
       COMMON_RX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpRxClk are the same clock
       WRITE_EN_G         : boolean               := true;  -- Set to false when on remote end of a link
@@ -264,7 +265,7 @@ begin
       txPostCursor   <= r.txPostCursor;
 
       -- Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -273,12 +274,14 @@ begin
 
    end process;
 
-   process (axilClk) is
+   seqAxil : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G) and (axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
-   end process;
+   end process seqAxil;
 
    ----------------------------------------------------------------------------------------------
    -- RX SYNC
@@ -286,6 +289,7 @@ begin
    U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          COMMON_CLK_G   => true,        -- locClk = refClk
          CNT_WIDTH_G    => 32)
@@ -298,6 +302,7 @@ begin
    U_RxSyncVec : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          BYPASS_SYNC_G => COMMON_RX_CLK_G,
          WIDTH_G       => 1)
       port map (
@@ -308,6 +313,7 @@ begin
    U_remLinkData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_RX_CLK_G,
          DATA_WIDTH_G => 48)
       port map (
@@ -319,6 +325,7 @@ begin
    U_RxOpCode : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_RX_CLK_G,
          DATA_WIDTH_G => 48)
       port map (
@@ -332,6 +339,7 @@ begin
    U_remRxPause : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_RX_CLK_G,
          CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
          WIDTH_G      => NUM_VC_G)
@@ -349,6 +357,7 @@ begin
    U_remRxOverflow : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_RX_CLK_G,
          CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
          WIDTH_G      => NUM_VC_G)
@@ -366,6 +375,7 @@ begin
    U_rxStatusCnt : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_RX_CLK_G,
          CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
          WIDTH_G      => RX_STATUS_CNT_SIZE_C)
@@ -384,6 +394,7 @@ begin
    U_rxErrorCnt : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_RX_CLK_G,
          CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
          WIDTH_G      => RX_ERROR_CNT_SIZE_C)
@@ -419,6 +430,7 @@ begin
    U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          COMMON_CLK_G   => true,        -- locClk = refClk
          CNT_WIDTH_G    => 32)
@@ -431,6 +443,7 @@ begin
    U_SKP_SYNC : entity surf.SynchronizerVector  -- Using Synchronizer (instead of Fifo) to save on LUTs and because rarely changed and Pgp4TxProtocol.vhd includes a register changed detection logic
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          BYPASS_SYNC_G => COMMON_TX_CLK_G,
          WIDTH_G       => 32)
       port map (
@@ -441,6 +454,7 @@ begin
    U_TxSyncVec : entity surf.SynchronizerVector
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          BYPASS_SYNC_G => COMMON_TX_CLK_G,
          WIDTH_G       => 3)
       port map (
@@ -455,6 +469,7 @@ begin
    U_locData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_TX_CLK_G,
          DATA_WIDTH_G => 48)
       port map (
@@ -466,6 +481,7 @@ begin
    U_TxOpCode : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_TX_CLK_G,
          DATA_WIDTH_G => 48)
       port map (
@@ -479,6 +495,7 @@ begin
    U_locPause : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_TX_CLK_G,
          CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
          WIDTH_G      => NUM_VC_G)
@@ -496,6 +513,7 @@ begin
    U_locOverflow : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_TX_CLK_G,
          CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
          WIDTH_G      => NUM_VC_G)
@@ -513,6 +531,7 @@ begin
    U_txStatusCnt : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_TX_CLK_G,
          CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
          WIDTH_G      => TX_STATUS_CNT_SIZE_C)
@@ -531,6 +550,7 @@ begin
    U_txErrorCnt : entity surf.SyncStatusVector
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_TX_CLK_G,
          CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
          WIDTH_G      => TX_ERROR_CNT_SIZE_C)

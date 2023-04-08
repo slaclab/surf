@@ -28,6 +28,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4TxLite is
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_ASYNC_G    : boolean               := false;
       NUM_VC_G       : integer range 1 to 16 := 1;
       SKIP_EN_G      : boolean               := false;
       FLOW_CTRL_EN_G : boolean               := false);
@@ -78,10 +79,11 @@ architecture rtl of Pgp4TxLite is
 begin
 
    FLOW_CTRL_SYNC : if (FLOW_CTRL_EN_G) generate
-      -- Synchronize remote link and fifo status to tx clock
+      -- Synchronize remote link and FIFO status to tx clock
       U_Synchronizer_REM : entity surf.Synchronizer
          generic map (
-            TPD_G => TPD_G)
+            TPD_G       => TPD_G,
+            RST_ASYNC_G => RST_ASYNC_G)
          port map (
             clk     => pgpTxClk,                              -- [in]
             rst     => pgpTxRst,                              -- [in]
@@ -90,8 +92,9 @@ begin
       REM_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
          U_SynchronizerVector_1 : entity surf.SynchronizerVector
             generic map (
-               TPD_G   => TPD_G,
-               WIDTH_G => 2)
+               TPD_G       => TPD_G,
+               RST_ASYNC_G => RST_ASYNC_G,
+               WIDTH_G     => 2)
             port map (
                clk        => pgpTxClk,                        -- [in]
                rst        => pgpTxRst,                        -- [in]
@@ -104,7 +107,8 @@ begin
       -- Synchronize local rx status
       U_Synchronizer_LOC : entity surf.Synchronizer
          generic map (
-            TPD_G => TPD_G)
+            TPD_G       => TPD_G,
+            RST_ASYNC_G => RST_ASYNC_G)
          port map (
             clk     => pgpTxClk,                           -- [in]
             rst     => pgpTxRst,                           -- [in]
@@ -113,7 +117,8 @@ begin
       LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
          U_Synchronizer_pause : entity surf.Synchronizer
             generic map (
-               TPD_G => TPD_G)
+               TPD_G       => TPD_G,
+               RST_ASYNC_G => RST_ASYNC_G)
             port map (
                clk     => pgpTxClk,                        -- [in]
                rst     => pgpTxRst,                        -- [in]
@@ -121,7 +126,8 @@ begin
                dataOut => syncLocRxFifoCtrl(i).pause);     -- [out]
          U_Synchronizer_overflow : entity surf.SynchronizerOneShot
             generic map (
-               TPD_G => TPD_G)
+               TPD_G       => TPD_G,
+               RST_ASYNC_G => RST_ASYNC_G)
             port map (
                clk     => pgpTxClk,                        -- [in]
                rst     => pgpTxRst,                        -- [in]
@@ -152,6 +158,7 @@ begin
       U_AxiStreamMux_1 : entity surf.AxiStreamMux
          generic map (
             TPD_G                => TPD_G,
+            RST_ASYNC_G          => RST_ASYNC_G,
             NUM_SLAVES_G         => NUM_VC_G,
             MODE_G               => "INDEXED",
             PIPE_STAGES_G        => 0,
@@ -182,6 +189,7 @@ begin
    U_Protocol : entity surf.Pgp4TxLiteProtocol
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          NUM_VC_G       => NUM_VC_G,
          SKIP_EN_G      => SKIP_EN_G,
          FLOW_CTRL_EN_G => FLOW_CTRL_EN_G,
@@ -208,6 +216,7 @@ begin
    U_Scrambler_1 : entity surf.Scrambler
       generic map (
          TPD_G            => TPD_G,
+         RST_ASYNC_G      => RST_ASYNC_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
          SIDEBAND_WIDTH_G => 3,
