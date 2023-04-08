@@ -29,6 +29,7 @@ entity SsiIncrementingTx is
    generic (
       -- General Configurations
       TPD_G                      : time                       := 1 ns;
+      RST_ASYNC_G                : boolean                    := false;
       -- FIFO configurations
       MEMORY_TYPE_G              : string                     := "block";
       GEN_SYNC_FIFO_G            : boolean                    := false;

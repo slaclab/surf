@@ -394,13 +394,6 @@ begin
 
    end process comb;
 
-   seq : process (axilClk) is
-   begin
-      if (rising_edge(axilClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
-
    seq : process (axilClk, axilRst) is
    begin
       if (RST_ASYNC_G and axilRst = '1') then
