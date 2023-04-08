@@ -350,9 +350,9 @@ begin
    axilseq : process (axilClk, axilRst) is
    begin
       if (RST_ASYNC_G and axilRst = '1') then
-         r <= REG_INIT_C after TPD_G;
+         axilR <= AXIL_REG_INIT_C after TPD_G;
       elsif rising_edge(axilClk) then
-         r <= rin after TPD_G;
+         axilR <= axilRin after TPD_G;
       end if;
    end process axilseq;
 
