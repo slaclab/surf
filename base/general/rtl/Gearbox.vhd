@@ -93,7 +93,7 @@ begin
 
       -- Slip input by incrementing the writeIndex
       v.slip := slip;
-      if (slip = '1') and (r.slip = '0') and (rst = '0') then
+      if (slip = '1') and (r.slip = '0') and (rst = not(RST_POLARITY_G)) then
          if (r.writeIndex /= 0) then
             v.writeIndex := r.writeIndex - 1;
          else
@@ -149,7 +149,7 @@ begin
 
       slaveReady <= v.slaveReady;
 
-      if (RST_ASYNC_G = false and rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 

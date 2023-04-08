@@ -40,10 +40,12 @@ use surf.CrcPkg.all;
 entity Crc32Parallel is
    generic (
       TPD_G            : time             := 1 ns;
+      RST_ASYNC_G      : boolean          := false;
       BYTE_WIDTH_G     : positive         := 4;
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF");
    port (
+      crcPwrOnRst  : in  sl := '0';
       crcOut       : out slv(31 downto 0);  -- CRC output
       crcRem       : out slv(31 downto 0);  -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
@@ -184,10 +186,16 @@ begin
 
    end process;
 
-   seq : process (crcClk) is
+   seq : process (crcClk, crcPwrOnRst) is
    begin
-      if (rising_edge(crcClk)) then
-         r <= rin after TPD_G;
+      if (RST_ASYNC_G and crcPwrOnRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif  (rising_edge(crcClk)) then
+         if (RST_ASYNC_G = false and crcPwrOnRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         else
+            r <= rin after TPD_G;
+         end if;
       end if;
    end process seq;
 

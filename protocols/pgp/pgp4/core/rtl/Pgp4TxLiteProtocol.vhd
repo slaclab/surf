@@ -127,11 +127,12 @@ begin
    U_Crc32 : entity surf.Crc32Parallel
       generic map (
          TPD_G            => TPD_G,
-         -- RST_ASYNC_G      => RST_ASYNC_G,
+         RST_ASYNC_G      => RST_ASYNC_G,
          INPUT_REGISTER_G => false,
          BYTE_WIDTH_G     => 8,
          CRC_INIT_G       => X"FFFFFFFF")
       port map (
+         crcPwrOnRst  => pgpTxRst,
          crcOut       => crcOut,
          crcRem       => open,
          crcClk       => pgpTxClk,
