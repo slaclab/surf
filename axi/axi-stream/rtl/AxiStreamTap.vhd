@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Block to extract and re-isnert a destination from an interleaved stream.
+-- Block to extract and re-insert a destination from an interleaved stream.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamTap is
    generic (
       TPD_G                : time                   := 1 ns;
+      RST_ASYNC_G          : boolean                := false;
       TAP_DEST_G           : natural range 0 to 255 := 0;
       PIPE_STAGES_G        : natural range 0 to 16  := 0;
       ILEAVE_ON_NOTVALID_G : boolean                := false;
@@ -59,6 +60,7 @@ begin
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          NUM_MASTERS_G  => 2,
          MODE_G         => "ROUTED",
@@ -76,6 +78,7 @@ begin
    U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
+         RST_ASYNC_G          => RST_ASYNC_G,
          PIPE_STAGES_G        => PIPE_STAGES_G,
          NUM_SLAVES_G         => 2,
          MODE_G               => "PASSTHROUGH",

@@ -20,16 +20,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
 entity AxiStreamFifo is
    generic (
-
       -- General Configurations
       TPD_G               : time                       := 1 ns;
+      RST_ASYNC_G         : boolean                    := false;
       INT_PIPE_STAGES_G   : natural range 0 to 16      := 0;  -- Internal FIFO setting
       PIPE_STAGES_G       : natural range 0 to 16      := 1;
       SLAVE_READY_EN_G    : boolean                    := true;
@@ -396,17 +395,18 @@ begin
 
    end process wrComb;
 
-   wrSeq : process (sAxisClk) is
+   wrSeq : process (sAxisClk, sAxisRst) is
    begin
-      if (rising_edge(sAxisClk)) then
-         if sAxisRst = '1' or WR_LOGIC_EN_C = false then
+      if (RST_ASYNC_G) and (sAxisRst = '1' or WR_LOGIC_EN_C = false) then
+         wrR <= WR_REG_INIT_C after TPD_G;
+      elsif (rising_edge(sAxisClk)) then
+         if (RST_ASYNC_G = false) and (sAxisRst = '1' or WR_LOGIC_EN_C = false) then
             wrR <= WR_REG_INIT_C after TPD_G;
          else
             wrR <= wrRin after TPD_G;
          end if;
       end if;
    end process wrSeq;
-
 
    -------------------------
    -- FIFO
@@ -436,7 +436,7 @@ begin
          LAST_STAGE_ASYNC_G => true,
          PIPE_STAGES_G      => INT_PIPE_STAGES_G,
          RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => false,
+         RST_ASYNC_G        => RST_ASYNC_G,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          MEMORY_TYPE_G      => MEMORY_TYPE_G,
          FWFT_EN_G          => true,
@@ -480,7 +480,7 @@ begin
             LAST_STAGE_ASYNC_G => true,
             PIPE_STAGES_G      => INT_PIPE_STAGES_G,
             RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => false,
+            RST_ASYNC_G        => RST_ASYNC_G,
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G      => "distributed",
             FWFT_EN_G          => true,
@@ -514,10 +514,12 @@ begin
             empty         => open
             );
 
-      process (mAxisClk) is
+      process (mAxisClk, mAxisRst, fifoReadLast) is
       begin
-         if (rising_edge(mAxisClk)) then
-            if mAxisRst = '1' or fifoReadLast = '1' then
+         if (RST_ASYNC_G) and (mAxisRst = '1' or fifoReadLast = '1') then
+               fifoInFrame <= '0' after TPD_G;
+         elsif (rising_edge(mAxisClk)) then
+            if (RST_ASYNC_G = false) and (mAxisRst = '1' or fifoReadLast = '1') then
                fifoInFrame <= '0' after TPD_G;
             elsif fifoValidLast = '1' or (VALID_THOLD_G /= 0 and fifoRdCount >= VALID_THOLD_G) then
                fifoInFrame <= '1' after TPD_G;
@@ -608,10 +610,12 @@ begin
    end process rdComb;
 
    -- If fifo is asynchronous, must use async reset on rd side.
-   rdSeq : process (mAxisClk) is
+   rdSeq : process (mAxisClk, mAxisRst) is
    begin
-      if (rising_edge(mAxisClk)) then
-         if mAxisRst = '1' or RD_LOGIC_EN_C = false then
+      if (RST_ASYNC_G) and (mAxisRst = '1' or RD_LOGIC_EN_C = false) then
+         rdR <= RD_REG_INIT_C after TPD_G;
+      elsif (rising_edge(mAxisClk)) then
+         if (RST_ASYNC_G = false) and (mAxisRst = '1' or RD_LOGIC_EN_C = false) then
             rdR <= RD_REG_INIT_C after TPD_G;
          else
             rdR <= rdRin after TPD_G;
@@ -624,6 +628,7 @@ begin
    Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '0')         -- invert
       port map (
          clk     => sAxisClk,
@@ -639,8 +644,8 @@ begin
    U_Pipe : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G
-         )
+         RST_ASYNC_G   => RST_ASYNC_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          -- Clock and Reset
          axisClk     => mAxisClk,
@@ -653,5 +658,3 @@ begin
          mAxisSlave  => mAxisSlave);
 
 end rtl;
-
-
