@@ -1,5 +1,6 @@
 
-from distutils.core import setup
+from setuptools import setup
+
 from git import Repo
 
 repo = Repo()

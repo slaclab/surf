@@ -14,7 +14,8 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.xilinx
+import surf.xilinx as xil
+import time
 
 class RfDataConverter(pr.Device):
     def __init__(
@@ -103,7 +104,7 @@ class RfDataConverter(pr.Device):
         ))
 
         for i in range(4):
-            self.add(surf.xilinx.RfTile(
+            self.add(xil.RfTile(
                 name    = f'dacTile[{i}]',
                 isAdc   = False,
                 gen3    = gen3,
@@ -112,10 +113,32 @@ class RfDataConverter(pr.Device):
             ))
 
         for i in range(4):
-            self.add(surf.xilinx.RfTile(
+            self.add(xil.RfTile(
                 name    = f'adcTile[{i}]',
                 isAdc   = True,
                 gen3    = gen3,
                 offset  = 0x14000 + 0x4000*i,
                 expand  = False,
             ))
+
+    def Init(self, dynamicNco=False):
+
+        # Useful pointers
+        rfTile = self.find(typ=xil.RfTile)
+
+        # Reset the RF Data Converter
+        for tile in rfTile:
+            tile.RestartStateStart.set(0)
+            tile.RestartStateEnd.set(15)
+            tile.RestartSM.set(0x1)
+        self.Reset.set(0x1)
+        for tile in rfTile:
+            tile.RestartSM.set(0x1)
+            while tile.RestartStateEnd.get() != 15:
+                time.sleep(0.1)
+
+        # Check for dynamic NCO
+        if dynamicNco:
+            # Change the RestartStateStart for dynamic NCO changes
+            for tile in rfTile:
+                tile.RestartStateStart.setDisp('Clock_Configuration[0]')
