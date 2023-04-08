@@ -27,10 +27,10 @@ use surf.SugoiPkg.all;
 entity SugoiSubordinateFsm is
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
+      RST_POLARITY_G : sl      := '0';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean := true);
    port (
-      pwrUpRst        : in  sl := not(RST_POLARITY_G);
+      pwrOnRstL       : in  sl := not(RST_POLARITY_G);
       -- Clock and Reset
       clk             : in  sl;
       rst             : out sl;
@@ -121,8 +121,8 @@ architecture rtl of SugoiSubordinateFsm is
 
 begin
 
-   comb : process (axilReadSlave, axilWriteSlave, pwrUpRst, r, rxData, rxDataK,
-                   rxError, rxValid) is
+   comb : process (axilReadSlave, axilWriteSlave, pwrOnRstL, r, rxData,
+                   rxDataK, rxError, rxValid) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -552,7 +552,7 @@ begin
       if (rxValid = '1') and (rxError = '1') and (r.stableCnt(r.stableCnt'high) = '0') then
          v := REG_INIT_C;
 
-      elsif (RST_ASYNC_G = false and pwrUpRst = RST_POLARITY_G) then
+      elsif (RST_ASYNC_G = false and pwrOnRstL = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -561,9 +561,9 @@ begin
 
    end process comb;
 
-   seq : process (clk, pwrUpRst) is
+   seq : process (clk, pwrOnRstL) is
    begin
-      if (RST_ASYNC_G and pwrUpRst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and pwrOnRstL = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;
