@@ -189,13 +189,12 @@ var searchData=
   ['axitoaxilite_227',['AxiToAxiLite',['../classAxiToAxiLite.html',1,'']]],
   ['axiversion_228',['AxiVersion',['../classAxiVersion.html',1,'']]],
   ['axiversionipintegrator_229',['AxiVersionIpIntegrator',['../classAxiVersionIpIntegrator.html',1,'']]],
-  ['axiversionlegacy_230',['AxiVersionLegacy',['../classAxiVersionLegacy.html',1,'']]],
-  ['axiversiontb_231',['AxiVersionTb',['../classAxiVersionTb.html',1,'']]],
-  ['axiwriteemulate_232',['AxiWriteEmulate',['../classAxiWriteEmulate.html',1,'']]],
-  ['axiwritepathfifo_233',['AxiWritePathFifo',['../classAxiWritePathFifo.html',1,'']]],
-  ['axiwritepathmux_234',['AxiWritePathMux',['../classAxiWritePathMux.html',1,'']]],
-  ['axixadcminimumcore_235',['AxiXadcMinimumCore',['../classAxiXadcMinimumCore.html',1,'']]],
-  ['axixcf128core_236',['AxiXcf128Core',['../classAxiXcf128Core.html',1,'']]],
-  ['axixcf128pkg_237',['AxiXcf128Pkg',['../classAxiXcf128Pkg.html',1,'']]],
-  ['axixcf128reg_238',['AxiXcf128Reg',['../classAxiXcf128Reg.html',1,'']]]
+  ['axiversiontb_230',['AxiVersionTb',['../classAxiVersionTb.html',1,'']]],
+  ['axiwriteemulate_231',['AxiWriteEmulate',['../classAxiWriteEmulate.html',1,'']]],
+  ['axiwritepathfifo_232',['AxiWritePathFifo',['../classAxiWritePathFifo.html',1,'']]],
+  ['axiwritepathmux_233',['AxiWritePathMux',['../classAxiWritePathMux.html',1,'']]],
+  ['axixadcminimumcore_234',['AxiXadcMinimumCore',['../classAxiXadcMinimumCore.html',1,'']]],
+  ['axixcf128core_235',['AxiXcf128Core',['../classAxiXcf128Core.html',1,'']]],
+  ['axixcf128pkg_236',['AxiXcf128Pkg',['../classAxiXcf128Pkg.html',1,'']]],
+  ['axixcf128reg_237',['AxiXcf128Reg',['../classAxiXcf128Reg.html',1,'']]]
 ];

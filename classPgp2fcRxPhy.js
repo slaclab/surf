@@ -1,6 +1,6 @@
 var classPgp2fcRxPhy =
 [
-    [ "Pgp2fcRxPhy", "classPgp2fcRxPhy_1_1Pgp2fcRxPhy.html", "classPgp2fcRxPhy_1_1Pgp2fcRxPhy" ],
+    [ "Pgp2fcRxPhy.Pgp2fcRxPhy", "classPgp2fcRxPhy_1_1Pgp2fcRxPhy.html", "classPgp2fcRxPhy_1_1Pgp2fcRxPhy" ],
     [ "TPD_G", "classPgp2fcRxPhy.html#a67a837684e4f18c2d236ac1d053b419b", null ],
     [ "FC_WORDS_G", "classPgp2fcRxPhy.html#aff0d9e7c62ce7668903559e03f0f2d13", null ],
     [ "pgpRxClkEn", "classPgp2fcRxPhy.html#a39ceeacb0af9d5a8be2960fecb6600bb", null ],

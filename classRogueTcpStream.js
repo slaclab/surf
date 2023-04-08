@@ -1,6 +1,6 @@
 var classRogueTcpStream =
 [
-    [ "RogueTcpStream", "classRogueTcpStream_1_1RogueTcpStream.html", "classRogueTcpStream_1_1RogueTcpStream" ],
+    [ "RogueTcpStream.RogueTcpStream", "classRogueTcpStream_1_1RogueTcpStream.html", "classRogueTcpStream_1_1RogueTcpStream" ],
     [ "clock", "classRogueTcpStream.html#adfc2d5e995e9c6876b2e55bf6a5c4071", null ],
     [ "reset", "classRogueTcpStream.html#aad8dc6359d9e23dabcbf342fadf2fa06", null ],
     [ "portNum", "classRogueTcpStream.html#af08a109672b119b87964de7b3cfda694", null ],

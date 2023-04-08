@@ -470,9 +470,6 @@ var hierarchy =
       [ "AxiSy56040Reg", "classAxiSy56040Reg.html", null ],
       [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
       [ "AxiVersion", "classAxiVersion.html", null ],
-      [ "DeviceDna", "classDeviceDna.html", null ],
-      [ "DS2411Core", "classDS2411Core.html", null ],
-      [ "Iprog", "classIprog.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiVersion", "classAxiVersion.html", null ],
       [ "AxiWritePathFifo", "classAxiWritePathFifo.html", [
@@ -1613,7 +1610,6 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
-      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "SemWrapper", "classSemWrapper.html", [

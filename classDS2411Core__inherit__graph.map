@@ -1,12 +1,11 @@
 <map id="DS2411Core" name="DS2411Core">
-<area shape="rect" id="node1" title=" " alt="" coords="164,132,267,159"/>
-<area shape="rect" id="node3" href="$classAxiVersion.html" title=" " alt="" coords="338,107,429,133"/>
-<area shape="rect" id="node10" href="$classAxiVersionLegacy.html" title=" " alt="" coords="315,157,452,184"/>
-<area shape="rect" id="node2" href="$classIoBufWrapper.html" title=" " alt="" coords="5,132,116,159"/>
-<area shape="rect" id="node4" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="520,5,681,32"/>
-<area shape="rect" id="node5" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="517,56,684,83"/>
-<area shape="rect" id="node6" href="$classAxiVersionTb.html" title=" " alt="" coords="547,107,654,133"/>
-<area shape="rect" id="node7" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="540,157,661,184"/>
-<area shape="rect" id="node8" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="500,208,701,235"/>
-<area shape="rect" id="node9" href="$classSugoiTopTb.html" title=" " alt="" coords="749,208,845,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="164,107,267,133"/>
+<area shape="rect" id="node3" href="$classAxiVersion.html" title=" " alt="" coords="315,107,405,133"/>
+<area shape="rect" id="node2" href="$classIoBufWrapper.html" title=" " alt="" coords="5,107,116,133"/>
+<area shape="rect" id="node4" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="473,5,635,32"/>
+<area shape="rect" id="node5" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="471,56,637,83"/>
+<area shape="rect" id="node6" href="$classAxiVersionTb.html" title=" " alt="" coords="501,107,607,133"/>
+<area shape="rect" id="node7" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="493,157,615,184"/>
+<area shape="rect" id="node8" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="453,208,655,235"/>
+<area shape="rect" id="node9" href="$classSugoiTopTb.html" title=" " alt="" coords="703,208,799,235"/>
 </map>
