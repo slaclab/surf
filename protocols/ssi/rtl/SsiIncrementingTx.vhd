@@ -20,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -57,8 +56,6 @@ entity SsiIncrementingTx is
       busy         : out sl;
       tDest        : in  slv(7 downto 0) := X"00";
       tId          : in  slv(7 downto 0) := X"00");
-
-
 end SsiIncrementingTx;
 
 architecture rtl of SsiIncrementingTx is
@@ -211,7 +208,7 @@ begin
       end case;
 
       -- Reset
-      if (locRst = '1') then
+      if (RST_ASYNC_G = false and locRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -224,9 +221,11 @@ begin
 
    end process comb;
 
-   seq : process (locClk) is
+   seq : process (locClk, locRst) is
    begin
-      if rising_edge(locClk) then
+      if (RST_ASYNC_G) and (locRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(locClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -235,6 +234,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          -- FIFO configurations
          MEMORY_TYPE_G       => MEMORY_TYPE_G,

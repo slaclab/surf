@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -30,6 +29,7 @@ entity SsiPrbsRateGen is
    generic (
       -- General Configurations
       TPD_G                   : time                       := 1 ns;
+      RST_ASYNC_G             : boolean                    := false;
       -- PRBS TX FIFO Configurations
       VALID_THOLD_G           : integer range 0 to (2**24) := 1;
       VALID_BURST_MODE_G      : boolean                    := false;
@@ -115,6 +115,7 @@ begin
    U_PrbsTx : entity surf.SsiPrbsTx
       generic map (
          TPD_G                      => TPD_G,
+         RST_ASYNC_G                => RST_ASYNC_G,
          AXI_EN_G                   => '0',
          VALID_THOLD_G              => VALID_THOLD_G,
          VALID_BURST_MODE_G         => VALID_BURST_MODE_G,
@@ -140,6 +141,7 @@ begin
    U_Monitor : entity surf.AxiStreamMon
       generic map (
          TPD_G           => TPD_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          COMMON_CLK_G    => true,
          AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G,
          AXIS_CONFIG_G   => AXIS_CONFIG_G)
@@ -224,7 +226,7 @@ begin
       end if;
 
       -- Reset
-      if (localRst = '1') then
+      if (RST_ASYNC_G = false and localRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -237,9 +239,11 @@ begin
 
    end process comb;
 
-   seq : process (localClk) is
+   seq : process (localClk, localRst) is
    begin
-      if (rising_edge(localClk)) then
+      if (RST_ASYNC_G) and (localRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(localClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
