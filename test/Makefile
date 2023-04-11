@@ -11,7 +11,7 @@
 # the site module.
 # Do not fail on DeprecationWarning caused by attrs dropping 3.6 support
 #-----------------------------------------------------------------------------
-export PYTHONWARNINGS = error,ignore::DeprecationWarning:site,always::FutureWarning:cocotb.scheduler,ignore::DeprecationWarning:attr
+# export PYTHONWARNINGS = error,ignore::DeprecationWarning:site,always::FutureWarning:cocotb.scheduler,ignore::DeprecationWarning:attr
 
 ifndef MODULES
 export MODULES = $(abspath $(PWD)/../../)
