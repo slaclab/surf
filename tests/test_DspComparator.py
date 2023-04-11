@@ -27,7 +27,7 @@ def dut_init(dut):
     dut.ibValid.value = 0
     dut.ain.value     = 0
     dut.bin.value     = 0
-    dut.obReady.value = 1
+    dut.obReady.value = 0
 
     # Start clock (200 MHz) in a separate thread
     cocotb.start_soon(Clock(dut.clk, 5.0, units='ns').start())
@@ -48,6 +48,9 @@ def load_value(dut, ain, bin):
     dut.ain.value = ain
     dut.bin.value = bin
 
+    # De-assert ready flag
+    dut.obReady.value = 0
+
     # Assert valid flag
     dut.ibValid.value = 1
 
@@ -56,6 +59,13 @@ def load_value(dut, ain, bin):
 
     # De-assert valid flag
     dut.ibValid.value = 0
+
+    # Wait for the result
+    while ( dut.obValid.value != 1 ):
+        yield RisingEdge(dut.clk)
+
+    # Assert ready flag
+    dut.obReady.value = 1
 
     # Wait 1 clock cycle
     yield RisingEdge(dut.clk)
@@ -109,8 +119,8 @@ tests_module = 'DspComparator'
 
 @pytest.mark.parametrize(
     "parameters", [
-        {'WIDTH_G': '4', 'PIPE_STAGES_G': '0'},
-        {'WIDTH_G': '8', 'PIPE_STAGES_G': '0'}
+        {'WIDTH_G': '4', 'PIPE_STAGES_G': '0'},  # Test without pipeline
+        {'WIDTH_G': '8', 'PIPE_STAGES_G': '1'},  # Test with pipeline
     ])
 def test_DspComparator(parameters):
 
