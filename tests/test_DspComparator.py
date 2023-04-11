@@ -8,10 +8,17 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# dut_tb
 import sys
 import cocotb
 from cocotb.clock    import Clock
 from cocotb.triggers import RisingEdge
+
+# test_DspComparator
+from cocotb_test.simulator import run
+import pytest
+import glob
+import os
 
 @cocotb.coroutine
 def dut_init(dut):
@@ -23,7 +30,7 @@ def dut_init(dut):
     dut.bin.value     = 0
     dut.obReady.value = 1
 
-    # Initialize the clock (200 MHz)
+    # Start clock (200 MHz) in a separate thread
     cocotb.start_soon(Clock(dut.clk, 5.0, units='ns').start())
 
     # Wait 1 clock cycle
@@ -55,7 +62,7 @@ def load_value(dut, ain, bin):
     yield RisingEdge(dut.clk)
 
 @cocotb.test()
-def test_DspComparator(dut):
+def dut_tb(dut):
 
     # Initialize the DUT
     yield dut_init(dut)
@@ -72,7 +79,7 @@ def test_DspComparator(dut):
             yield load_value(dut, ain, bin)
 
             # Check (a = b) result
-            if ((ain==bin) and (dut.eq.value != 1)) or (not (ain==bin) and (dut.eq.value != 1)):
+            if ((ain==bin) and (dut.eq.value != 1)) or (not (ain==bin) and (dut.eq.value == 1)):
                 sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.eq={dut.eq.value}' )
 
             # Check (a >  b) result
@@ -92,3 +99,47 @@ def test_DspComparator(dut):
                 sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.gtEq={dut.lsEq.value}')
 
     dut._log.info("DUT: Passed")
+
+
+
+
+tests_dir = os.path.dirname(__file__)
+tests_module = 'DspComparator'
+
+@pytest.mark.parametrize(
+    "parameters", [
+        {'WIDTH_G': '4'},
+        {'WIDTH_G': '8'}
+    ])
+def test_DspComparator(parameters):
+
+    # https://github.com/themperek/cocotb-test#arguments-for-simulatorrun
+    # https://github.com/themperek/cocotb-test/blob/master/cocotb_test/simulator.py
+    run(
+        # top level HDL
+        toplevel = f'surf.{tests_module}'.lower(),
+
+        # name of the file that contains @cocotb.test() -- this file
+        # https://docs.cocotb.org/en/stable/building.html?#envvar-MODULE
+        module = f'test_{tests_module}',
+
+        # https://docs.cocotb.org/en/stable/building.html?#var-TOPLEVEL_LANG
+        toplevel_lang = 'vhdl',
+
+        # VHDL source files to include.
+        # Can be specified as a list or as a dict of lists with the library name as key,
+        # if the simulator supports named libraries.
+        vhdl_sources = {'surf' : glob.glob(f'{tests_dir}/../build/SRC_VHDL/surf/*'),},
+
+        # A dictionary of top-level parameters/generics.
+        parameters = parameters,
+
+        # The directory used to compile the tests. (default: sim_build)
+        sim_build = f'{tests_dir}/sim_build/{tests_module}.' + ",".join((f"{key}={value}" for key, value in parameters.items())),
+
+        # A dictionary of extra environment variables set in simulator process.
+        extra_env=parameters,
+
+        # Select a simulator
+        simulator="ghdl",
+    )

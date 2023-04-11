@@ -14,12 +14,12 @@
 # export PYTHONWARNINGS = error,ignore::DeprecationWarning:site,always::FutureWarning:cocotb.scheduler,ignore::DeprecationWarning:attr
 
 ifndef MODULES
-export MODULES = $(abspath $(PWD)/../../)
+export MODULES = $(abspath $(PWD)/../)
 endif
 
 # GHDL/ruckus source loading
 export RUCKUS_DIR = $(MODULES)/ruckus
-export PROJ_DIR   = $(abspath $(PWD)/../)
+export PROJ_DIR   = $(abspath $(PWD))
 export OUT_DIR    = $(PROJ_DIR)/build
 
 # Path to GHDL proc.tcl
@@ -31,17 +31,10 @@ export VIVADO_VERSION = -1.0
 # Override the submodule check because ruckus external of this repo
 export OVERRIDE_SUBMODULE_LOCKS = 1
 
-# Get list of all test cases
-REGRESSIONS :=  $(shell ls test_cases/)
-
-.PHONY: $(REGRESSIONS)
-
-all: $(REGRESSIONS)
-
-$(REGRESSIONS): src
-	@cd test_cases/$@ && $(MAKE)
+all: src
 
 # Test of the variables
+.PHONY : test
 test:
 	@echo PWD: $(PWD)
 	@echo MODULES: $(MODULES)
@@ -52,13 +45,8 @@ test:
 	@echo VIVADO_VERSION: $(VIVADO_VERSION)
 
 # Find all the source code and load it into GHDL
+.PHONY : src
 src:
 	@rm -rf $(OUT_DIR)
 	@mkdir  $(OUT_DIR)
 	@$(RUCKUS_DIR)/ghdl/import.tcl > /dev/null 2>&1
-
-clean:
-	$(foreach TEST, $(REGRESSIONS), $(MAKE) -C test_cases/$(TEST) clean;)
-
-regression:
-	$(foreach TEST, $(REGRESSIONS), $(MAKE) -C test_cases/$(TEST) regression;)

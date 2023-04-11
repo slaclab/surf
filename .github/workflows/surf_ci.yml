@@ -41,19 +41,26 @@ jobs:
           sudo apt-get install make python3 python3-pip tclsh
           sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
           python -m pip install --upgrade pip
-          pip install flake8 cocotb cocotbext-axi
+          pip install flake8 cocotb cocotbext-axi cocotb-test
           git clone https://github.com/slaclab/ruckus.git
           pip install -r ruckus/scripts/pip_requirements.txt
 
       - name: Python Syntax and Linter Checking
         run: |
-          python -m compileall -f python/ scripts/ test/
-          flake8 --count python/ scripts/ test/
+          python -m compileall -f python/ scripts/ tests/
+          flake8 --count python/ scripts/ tests/
 
       - name: VHDL Regression Testing
         run: |
           ./ghdl-build.sh > /dev/null 2>&1
-          cd test; make MODULES=$PWD/../
+          make MODULES=$PWD
+          python -m pytest --cov tests/
+
+      # Code Coverage
+      - name: Code Coverage
+        run: |
+          codecov
+          coverage report -m
 
       - name: Generate Documentation
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'

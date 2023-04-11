@@ -1,9 +1,0 @@
-# EMACS temp files
-*~
-
-# Compiled source files
-*.xml
-*.vcd
-
-# CocoTb + GHDL outputs
-sim_build/
