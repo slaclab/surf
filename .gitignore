@@ -12,4 +12,6 @@
 *.vho
 xvcSrv
 doxygen/
-ghdl/
+ghdl-build/
+ruckus/
+build/
