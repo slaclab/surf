@@ -71,7 +71,7 @@ def test_DspComparator(dut):
             yield load_value(dut, ain, bin)
 
             # Check (a = b) result
-            if ((ain==bin) and (dut.eq.value != 1)) or (not (ain==bin) and (dut.eq.value == 1)):
+            if ((ain==bin) and (dut.eq.value != 1)) or (not (ain==bin) and (dut.eq.value != 1)):
                 dut._log.error( f'ain={ain},bin={bin} but got dut.eq={dut.eq.value}')
                 assert False
 
