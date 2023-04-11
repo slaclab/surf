@@ -80,28 +80,30 @@ def dut_tb(dut):
 
             # Check (a = b) result
             if ((ain==bin) and (dut.eq.value != 1)) or (not (ain==bin) and (dut.eq.value == 1)):
-                sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.eq={dut.eq.value}' )
+                dut._log.error( f'ain={ain},bin={bin} but got dut.eq={dut.eq.value}')
+                assert False
 
             # Check (a >  b) result
             if ((ain>bin) and (dut.gt.value != 1)) or (not (ain>bin) and (dut.gt.value == 1)):
-                sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.gt={dut.gt.value}')
+                dut._log.error( f'ain={ain},bin={bin} but got dut.gt={dut.gt.value}')
+                assert False
 
             # Check (a >=  b) result
             if ((ain>=bin) and (dut.gtEq.value != 1)) or (not (ain>=bin) and (dut.gtEq.value == 1)):
-                sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.gtEq={dut.gtEq.value}')
+                dut._log.error( f'ain={ain},bin={bin} but got dut.gtEq={dut.gtEq.value}')
+                assert False
 
             # Check (a <  b) result
             if ((ain<bin) and (dut.ls.value != 1)) or (not (ain<bin) and (dut.ls.value == 1)):
-                sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.ls={dut.ls.value}')
+                dut._log.error( f'ain={ain},bin={bin} but got dut.ls={dut.ls.value}')
+                assert False
 
             # Check (a <=  b) result
             if ((ain<=bin) and (dut.lsEq.value != 1)) or (not (ain<=bin) and (dut.lsEq.value == 1)):
-                sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.gtEq={dut.lsEq.value}')
+                dut._log.error( f'ain={ain},bin={bin} but got dut.gtEq={dut.lsEq.value}')
+                assert False
 
     dut._log.info("DUT: Passed")
-
-
-
 
 tests_dir = os.path.dirname(__file__)
 tests_module = 'DspComparator'
