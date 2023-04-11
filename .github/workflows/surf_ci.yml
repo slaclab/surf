@@ -52,7 +52,7 @@ jobs:
 
       - name: VHDL Regression Testing
         run: |
-          ./ghdl-build.sh > /dev/null 2>&1
+          ./ghdl-build.sh
           cd test; make MODULES=../$PWD
 
       - name: Generate Documentation

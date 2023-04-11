@@ -55,7 +55,7 @@ test:
 src:
 	@rm -rf $(OUT_DIR)
 	@mkdir  $(OUT_DIR)
-	@$(RUCKUS_DIR)/ghdl/import.tcl > /dev/null 2>&1
+	@$(RUCKUS_DIR)/ghdl/import.tcl
 
 clean:
 	$(foreach TEST, $(REGRESSIONS), $(MAKE) -C test_cases/$(TEST) clean;)
