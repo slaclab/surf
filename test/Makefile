@@ -39,7 +39,7 @@ REGRESSIONS :=  $(shell ls test_cases/)
 all: $(REGRESSIONS)
 
 $(REGRESSIONS): src
-	cd test_cases/$@ && $(MAKE)
+	@cd test_cases/$@ && $(MAKE)
 
 # Test of the variables
 test:

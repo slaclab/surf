@@ -8,6 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+import sys
 import cocotb
 from cocotb.clock    import Clock
 from cocotb.triggers import RisingEdge
@@ -72,8 +73,7 @@ def test_DspComparator(dut):
 
             # Check (a = b) result
             if ((ain==bin) and (dut.eq.value != 1)) or (not (ain==bin) and (dut.eq.value != 1)):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.eq={dut.eq.value}')
-                assert False
+                sys.exit( f'ERROR: ain={ain},bin={bin} but got dut.eq={dut.eq.value}' )
 
             # Check (a >  b) result
             if ((ain>bin) and (dut.gt.value != 1)) or (not (ain>bin) and (dut.gt.value == 1)):
