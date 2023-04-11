@@ -11,7 +11,6 @@
 import cocotb
 from cocotb.clock    import Clock
 from cocotb.triggers import RisingEdge
-from cocotb.result   import TestFailure
 
 @cocotb.coroutine
 def dut_init(dut):
