@@ -113,8 +113,8 @@ def dut_tb(dut):
                 assert False
 
             # Check (ain = aout) and (bin = bout) result
-            if (ain!=dut.aout.value) or (bin==dut.bout.value):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.aout={dut.aout.value}, dut.bout={dut.bout.value}')
+            if (ain!=dut.aout.value.integer) or (bin!=dut.bout.value.integer):
+                dut._log.error( f'ain={ain},bin={bin} but got dut.aout={dut.aout.value.integer}, dut.bout={dut.bout.value}')
                 assert False
 
     dut._log.info("DUT: Passed")
