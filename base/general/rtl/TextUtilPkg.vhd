@@ -42,7 +42,7 @@ package TextUtilPkg is
 
    -- converts an integer into a single character
    -- (can also be used for hex conversion and other bases)
-   function chr(int : integer) return character;
+   function chr(intValue : integer) return character;
 
    -- Converts a character into an integer
    function int(c : character) return integer;
@@ -198,10 +198,10 @@ package body TextUtilPkg is
    -- values are mapped to the characters A-Z
    -- (this is usefull for systems with base > 10)
    -- (adapted from Steve Vogwell's posting in comp.lang.vhdl)
-   function chr(int : integer) return character is
+   function chr(intValue : integer) return character is
       variable c : character;
    begin
-      case int is
+      case intValue is
          when 0      => c := '0';
          when 1      => c := '1';
          when 2      => c := '2';
