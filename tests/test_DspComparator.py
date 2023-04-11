@@ -9,7 +9,6 @@
 ##############################################################################
 
 # dut_tb
-import sys
 import cocotb
 from cocotb.clock    import Clock
 from cocotb.triggers import RisingEdge
@@ -110,8 +109,8 @@ tests_module = 'DspComparator'
 
 @pytest.mark.parametrize(
     "parameters", [
-        {'WIDTH_G': '4'},
-        {'WIDTH_G': '8'}
+        {'WIDTH_G': '4', 'PIPE_STAGES_G': '0'},
+        {'WIDTH_G': '8', 'PIPE_STAGES_G': '0'}
     ])
 def test_DspComparator(parameters):
 
