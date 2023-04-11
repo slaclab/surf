@@ -80,7 +80,6 @@ begin
    comb : process (axiClkRst, axiReadMaster, axiWriteMaster, r, readRegister) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
-      variable i      : natural;
    begin
       -- Latch the current value
       v := r;
