@@ -26,9 +26,8 @@ export VIVADO_VERSION = -1.0
 # Override the submodule check because ruckus external of this repo
 export OVERRIDE_SUBMODULE_LOCKS = 1
 
-GHDL=ghdl
-GHDLFLAGS= --workdir=$(OUT_DIR) --work=surf --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
-GHDLRUNFLAGS=
+# GHDL build flags
+GHDLFLAGS = --workdir=$(OUT_DIR) --work=surf --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
 
 all: syntax
 
