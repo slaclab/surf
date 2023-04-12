@@ -14,6 +14,7 @@ endif
 
 # GHDL/ruckus source loading
 export RUCKUS_DIR = $(MODULES)/ruckus
+export TOP_DIR    = $(abspath $(PWD))
 export PROJ_DIR   = $(abspath $(PWD))
 export OUT_DIR    = $(PROJ_DIR)/build
 
@@ -27,7 +28,10 @@ export VIVADO_VERSION = -1.0
 export OVERRIDE_SUBMODULE_LOCKS = 1
 
 # GHDL build flags
-GHDLFLAGS = --workdir=$(OUT_DIR) --work=surf --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
+GHDLFLAGS = --workdir=$(OUT_DIR) --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
+
+# Include the shared ruckus Makefile header
+include $(RUCKUS_DIR)/system_shared.mk
 
 all: syntax
 
@@ -45,8 +49,6 @@ test:
 # Find all the source code and load it into GHDL
 .PHONY : src
 src:
-	@rm -rf $(OUT_DIR)
-	@mkdir  $(OUT_DIR)
 	@$(RUCKUS_DIR)/ghdl/import.tcl > /dev/null 2>&1
 
 # Find all the source code and load it into GHDL
@@ -55,5 +57,5 @@ syntax: src
 	@echo "============================================================================="
 	@echo VHDL Syntax Checking:
 	@echo "============================================================================="
-	@ghdl -i $(GHDLFLAGS) $(PROJ_DIR)/build/SRC_VHDL/surf/*
-
+	@ghdl -i $(GHDLFLAGS) --work=surf   $(PROJ_DIR)/build/SRC_VHDL/surf/*
+	@ghdl -i $(GHDLFLAGS) --work=ruckus $(PROJ_DIR)/build/SRC_VHDL/ruckus/*
