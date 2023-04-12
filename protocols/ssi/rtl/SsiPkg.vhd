@@ -57,7 +57,14 @@ package SsiPkg is
       return AxiStreamConfigType;
 
    -- A default SSI config is useful to have
-   constant SSI_CONFIG_INIT_C : AxiStreamConfigType := ssiAxiStreamConfig(16);
+   constant SSI_CONFIG_INIT_C : AxiStreamConfigType := (
+      TSTRB_EN_C         => SSI_TSTRB_EN_C,
+      TDATA_BYTES_C      => 16,
+      TDEST_BITS_C       => SSI_TDEST_BITS_C,
+      TID_BITS_C         => SSI_TID_BITS_C,
+      TKEEP_MODE_C       => TKEEP_COMP_C,
+      TUSER_BITS_C       => SSI_TUSER_BITS_C,
+      TUSER_MODE_C       => TUSER_FIRST_LAST_C);
 
    -------------------------------------------------------------------------------------------------
    -- SSI Records and AXI-Stream conversion functions

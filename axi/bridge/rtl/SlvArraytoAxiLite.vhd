@@ -105,7 +105,6 @@ begin
 
    comb : process (ack, axilRst, inSlv, r) is
       variable v : RegType;
-      variable i : natural;
    begin
       -- Latch the current value
       v := r;
