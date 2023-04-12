@@ -81,7 +81,10 @@ def test_AxiLiteRegs(parameters):
         # VHDL source files to include.
         # Can be specified as a list or as a dict of lists with the library name as key,
         # if the simulator supports named libraries.
-        vhdl_sources = {'surf' : glob.glob(f'{tests_dir}/../build/SRC_VHDL/surf/*'),},
+        vhdl_sources = {
+            'surf'   : glob.glob(f'{tests_dir}/../build/SRC_VHDL/surf/*'),
+            'ruckus' : glob.glob(f'{tests_dir}/../build/SRC_VHDL/ruckus/*'),
+        },
 
         # A dictionary of top-level parameters/generics.
         parameters = parameters,
