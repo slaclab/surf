@@ -56,7 +56,7 @@ src:
 .PHONY : syntax
 syntax: src
 	@echo "============================================================================="
-	@echo Syntax Checking:
+	@echo VHDL Syntax Checking:
 	@echo "============================================================================="
 	@ghdl -i $(GHDLFLAGS) --std=08 $(FILES)
 	# @ghdl -s $(GHDLFLAGS) --std=08 $(FILES)
