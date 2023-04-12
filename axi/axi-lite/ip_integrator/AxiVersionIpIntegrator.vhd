@@ -124,7 +124,6 @@ begin
          axilWriteSlave  => axilWriteSlave);
 
    process(userValues)
-      variable i      : natural;
       variable retVar : Slv32Array(0 to 63);
    begin
       for i in 0 to 63 loop
