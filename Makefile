@@ -7,11 +7,6 @@
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
-# Do not fail on DeprecationWarning caused by virtualenv, which might come from
-# the site module.
-# Do not fail on DeprecationWarning caused by attrs dropping 3.6 support
-#-----------------------------------------------------------------------------
-# export PYTHONWARNINGS = error,ignore::DeprecationWarning:site,always::FutureWarning:cocotb.scheduler,ignore::DeprecationWarning:attr
 
 ifndef MODULES
 export MODULES = $(abspath $(PWD)/../)
@@ -30,6 +25,12 @@ export VIVADO_VERSION = -1.0
 
 # Override the submodule check because ruckus external of this repo
 export OVERRIDE_SUBMODULE_LOCKS = 1
+
+GHDL=ghdl
+GHDLFLAGS= --workdir=$(OUT_DIR) --work=surf --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
+GHDLRUNFLAGS=
+
+FILES = $(shell find $(PROJ_DIR)/build/SRC_VHDL -name *.vhd)
 
 all: src
 
@@ -50,3 +51,8 @@ src:
 	@rm -rf $(OUT_DIR)
 	@mkdir  $(OUT_DIR)
 	@$(RUCKUS_DIR)/ghdl/import.tcl > /dev/null 2>&1
+	@echo "============================================================================="
+	@echo Syntax Checking:
+	@echo "============================================================================="
+	@ghdl -i $(GHDLFLAGS) --std=08 $(FILES)
+	@ghdl -s $(GHDLFLAGS) --std=08 $(FILES)
