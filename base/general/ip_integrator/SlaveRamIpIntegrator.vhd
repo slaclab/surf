@@ -47,7 +47,7 @@ architecture mapping of SlaveRamIpIntegrator is
    attribute X_INTERFACE_INFO      : string;
    attribute X_INTERFACE_PARAMETER : string;
 
-   attribute X_INTERFACE_INFO of s_ram_clk  : signal is "xilinx.com:interface:bram:1.0 " & INTERFACENAME & " CLK";
+   attribute X_INTERFACE_INFO of S_RAM_CLK  : signal is "xilinx.com:interface:bram:1.0 " & INTERFACENAME & " CLK";
    attribute X_INTERFACE_INFO of S_RAM_EN   : signal is "xilinx.com:interface:bram:1.0 " & INTERFACENAME & " EN";
    attribute X_INTERFACE_INFO of S_RAM_WE   : signal is "xilinx.com:interface:bram:1.0 " & INTERFACENAME & " WE";
    attribute X_INTERFACE_INFO of S_RAM_RST  : signal is "xilinx.com:interface:bram:1.0 " & INTERFACENAME & " RST";
