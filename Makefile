@@ -30,8 +30,6 @@ GHDL=ghdl
 GHDLFLAGS= --workdir=$(OUT_DIR) --work=surf --ieee=synopsys -fexplicit -frelaxed-rules  --warn-no-library
 GHDLRUNFLAGS=
 
-FILES = $(shell find $(PROJ_DIR)/build/SRC_VHDL -name *.vhd)
-
 all: syntax
 
 # Test of the variables
@@ -58,5 +56,5 @@ syntax: src
 	@echo "============================================================================="
 	@echo VHDL Syntax Checking:
 	@echo "============================================================================="
-	@ghdl -i $(GHDLFLAGS) --std=08 $(FILES)
-	# @ghdl -s $(GHDLFLAGS) --std=08 $(FILES)
+	@ghdl -i $(GHDLFLAGS) $(PROJ_DIR)/build/SRC_VHDL/surf/*
+
