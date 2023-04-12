@@ -32,7 +32,7 @@ GHDLRUNFLAGS=
 
 FILES = $(shell find $(PROJ_DIR)/build/SRC_VHDL -name *.vhd)
 
-all: src
+all: syntax
 
 # Test of the variables
 .PHONY : test
@@ -51,6 +51,10 @@ src:
 	@rm -rf $(OUT_DIR)
 	@mkdir  $(OUT_DIR)
 	@$(RUCKUS_DIR)/ghdl/import.tcl > /dev/null 2>&1
+
+# Find all the source code and load it into GHDL
+.PHONY : syntax
+syntax: src
 	@echo "============================================================================="
 	@echo Syntax Checking:
 	@echo "============================================================================="
