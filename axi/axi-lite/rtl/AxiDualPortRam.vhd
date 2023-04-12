@@ -39,7 +39,7 @@ entity AxiDualPortRam is
       INIT_G              : slv                        := "0");
    port (
       -- Axi Port
-      axiClk         : in  sl;
+      axiClk         : in  sl
       axiRst         : in  sl;
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;

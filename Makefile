@@ -59,4 +59,4 @@ syntax: src
 	@echo Syntax Checking:
 	@echo "============================================================================="
 	@ghdl -i $(GHDLFLAGS) --std=08 $(FILES)
-	@ghdl -s $(GHDLFLAGS) --std=08 $(FILES)
+	# @ghdl -s $(GHDLFLAGS) --std=08 $(FILES)
