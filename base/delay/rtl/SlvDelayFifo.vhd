@@ -30,7 +30,7 @@ use surf.StdRtlPkg.all;
 entity SlvDelayFifo is
    generic (
       TPD_G              : time     := 1 ns;
-      RST_ASYNC_G        : boolean := false;
+      RST_ASYNC_G        : boolean  := false;
       DATA_WIDTH_G       : positive := 1;
       DELAY_BITS_G       : positive := 64;
       FIFO_ADDR_WIDTH_G  : positive := 7;

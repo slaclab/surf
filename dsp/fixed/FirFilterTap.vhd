@@ -22,7 +22,7 @@ use surf.StdRtlPkg.all;
 entity FirFilterTap is
    generic (
       TPD_G         : time      := 1 ns;
-      DATA_WIDTH_G   : positive := 12;
+      DATA_WIDTH_G  : positive  := 12;
       COEFF_WIDTH_G : positive  := 12;
       CASC_WIDTH_G  : positive  := 25);
    port (

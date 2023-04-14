@@ -304,7 +304,7 @@ begin
       end if;
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and dataRst = '1') or (bufferClearSync = '1') then
+      if (RST_ASYNC_G = false) and (dataRst = '1' or bufferClearSync = '1') then
          v := DATA_REG_INIT_C;
       end if;
 
@@ -313,9 +313,9 @@ begin
 
    end process;
 
-   dataSeq : process (dataClk, dataRst) is
+   dataSeq : process (dataClk, dataRst, bufferClearSync) is
    begin
-      if (RST_ASYNC_G) and (dataRst = '1') then
+      if (RST_ASYNC_G) and (dataRst = '1' or bufferClearSync = '1') then
          dataR <= DATA_REG_INIT_C after TPD_G;
       elsif rising_edge(dataClk) then
          dataR <= dataRin after TPD_G;

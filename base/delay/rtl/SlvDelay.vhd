@@ -109,7 +109,7 @@ begin
       end process seq;
 
       OUT_REG : if (REG_OUTPUT_G) generate
-         REG : process (clk) is
+         REG : process (clk, rst) is
          begin
             if (RST_ASYNC_G and rst = RST_POLARITY_G) then
                dout <= INIT_C;

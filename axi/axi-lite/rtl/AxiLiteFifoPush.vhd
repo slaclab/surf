@@ -26,7 +26,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteFifoPush is
    generic (
       TPD_G              : time                  := 1 ns;
-      RST_ASYNC_G        : boolean               := true;
+      RST_ASYNC_G        : boolean               := false;
       PUSH_FIFO_COUNT_G  : positive              := 1;
       PUSH_SYNC_FIFO_G   : boolean               := false;
       PUSH_MEMORY_TYPE_G : string                := "distributed";

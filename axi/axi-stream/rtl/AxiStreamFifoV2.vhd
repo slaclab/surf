@@ -299,7 +299,7 @@ begin
 
       U_PreFillMode : if ((VALID_BURST_MODE_G = false) or (VALID_THOLD_G = 0)) generate
 
-         process (mAxisClk, mAxisRst, fifoReadLast) is
+         process (mAxisClk, mAxisRst, fifoReadLast, fifoValidInt) is
          begin
             if (RST_ASYNC_G) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
                fifoInFrame <= '0' after TPD_G;

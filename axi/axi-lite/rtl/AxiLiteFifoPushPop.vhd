@@ -26,7 +26,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteFifoPushPop is
    generic (
       TPD_G              : time                       := 1 ns;
-      RST_ASYNC_G        : boolean                    := true;
+      RST_ASYNC_G        : boolean                    := false;
       POP_FIFO_COUNT_G   : positive                   := 1;
       POP_SYNC_FIFO_G    : boolean                    := false;
       POP_MEMORY_TYPE_G  : string                     := "block";

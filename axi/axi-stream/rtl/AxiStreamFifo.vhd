@@ -413,12 +413,14 @@ begin
    -------------------------
 
    -- Pause generation
-   process (fifoPFullVec, sAxisClk) is
+   process (fifoPFullVec, sAxisClk, sAxisRst, fifoWrCount, fifoPauseThresh) is
    begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
+      elsif (RST_ASYNC_G) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
+         sAxisCtrl.pause <= '1' after TPD_G;
       elsif (rising_edge(sAxisClk)) then
-         if sAxisRst = '1' or fifoWrCount >= fifoPauseThresh then
+         if (RST_ASYNC_G = false) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
             sAxisCtrl.pause <= '1' after TPD_G;
          else
             sAxisCtrl.pause <= '0' after TPD_G;

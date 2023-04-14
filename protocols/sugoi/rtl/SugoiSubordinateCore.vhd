@@ -27,7 +27,7 @@ entity SugoiSubordinateCore is
    generic (
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '0';  -- '1' for active high rst, '0' for active low
-      RST_ASYNC_G    : boolean := true);
+      RST_ASYNC_G    : boolean := false);
    port (
       pwrOnRstL       : in  sl := not(RST_POLARITY_G);
       -- Clock and Reset

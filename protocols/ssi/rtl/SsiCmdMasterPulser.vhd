@@ -49,7 +49,7 @@ begin
 
    syncPulse <= pulse;
 
-   process(locClk)
+   process(locClk, locRst)
    begin
       if (RST_ASYNC_G and locRst = '1') then
          pulse <= not(OUT_POLARITY_G) after TPD_G;

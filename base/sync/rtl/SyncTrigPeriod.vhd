@@ -126,7 +126,7 @@ begin
       periodMin <= r.periodMin;
 
       -- Reset
-      if (RST_ASYNC_G = false and locRst = '1') or (resetStat = '1') then
+      if (RST_ASYNC_G = false) and (locRst = '1' or resetStat = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -135,9 +135,9 @@ begin
 
    end process comb;
 
-   seq : process (locClk, locRst) is
+   seq : process (locClk, locRst, resetStat) is
    begin
-      if (RST_ASYNC_G and locRst = '1') then
+      if (RST_ASYNC_G) and (locRst = '1' or resetStat = '1') then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(locClk) then
          r <= rin after TPD_G;

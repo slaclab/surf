@@ -117,7 +117,7 @@ begin
             v.counter := r.counter + 1;
          end if;
 
-         if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
             v := REG_INIT_C;
          end if;
 

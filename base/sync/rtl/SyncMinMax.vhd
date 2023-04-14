@@ -164,7 +164,7 @@ begin
       dataMaxFeadback <= v.dataMax;
 
       -- Reset
-      if (RST_ASYNC_G = false and wrRst = '1') or (resetStat = '1') then
+      if (RST_ASYNC_G = false) and (wrRst = '1' or resetStat = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -173,9 +173,9 @@ begin
 
    end process;
 
-   seq : process (wrClk, wrRst) is
+   seq : process (wrClk, wrRst, resetStat) is
    begin
-      if (RST_ASYNC_G and wrRst = '1') then
+      if (RST_ASYNC_G) and (wrRst = '1' or resetStat = '1') then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(wrClk) then
          r <= rin after TPD_G;

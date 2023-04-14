@@ -162,7 +162,7 @@ begin
 
    comb : process (axilReadMaster, axilWriteMaster, bandwidth, bandwidthMax,
                    bandwidthMin, busy, frameRate, frameRateMax, frameRateMin,
-                   mAxisRst, r) is
+                   localRst, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -210,7 +210,7 @@ begin
 
          elsif r.genCount = r.genPeriod then
             v.genCount := (others => '0');
-            v.trig := '1';
+            v.trig     := '1';
 
             if busy = '1' then
                v.trig      := '0';

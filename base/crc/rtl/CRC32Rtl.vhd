@@ -102,7 +102,7 @@ begin
       end if;
    end process;
 
-   CRCP : process (CRCCLK)
+   CRCP : process (CRCCLK, CRCRESET)
    begin
       if (RST_ASYNC_G and CRCRESET = '1') then
          crc <= CRCINIT after TPD_G;
