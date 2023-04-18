@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generalized DSP inferred Squarer with pre-adder
---              configured as subtracter (based on UG901)
+--              configured as subtractor (based on UG901)
 -- Equation: p = (a - b)^2
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
