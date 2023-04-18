@@ -321,15 +321,15 @@ begin
 
       U_BurstMode : if ((VALID_BURST_MODE_G = true) and (VALID_THOLD_G /= 0)) generate
 
-         process (mAxisClk, mAxisRst, fifoReadLast) is
+         process (mAxisClk, mAxisRst) is
          begin
-            if (RST_ASYNC_G) and (mAxisRst = '1' or fifoReadLast = '1') then
+            if (RST_ASYNC_G and mAxisRst = '1') then
                fifoInFrame <= '0' after TPD_G;
                burstEn     <= '0' after TPD_G;
                burstLast   <= '0' after TPD_G;
                firstCycle  <= '1' after TPD_G;
             elsif (rising_edge(mAxisClk)) then
-               if (RST_ASYNC_G = false) and (mAxisRst = '1' or fifoReadLast = '1') then
+               if (RST_ASYNC_G = false and mAxisRst = '1') or fifoReadLast = '1') then
                   -- Reset the flags
                   fifoInFrame <= '0' after TPD_G;
                   burstEn     <= '0' after TPD_G;
