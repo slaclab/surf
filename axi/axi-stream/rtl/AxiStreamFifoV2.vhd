@@ -240,7 +240,7 @@ begin
          LAST_STAGE_ASYNC_G => true,
          PIPE_STAGES_G      => INT_PIPE_STAGES_G,
          RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => RST_ASYNC_G,
+         RST_ASYNC_G        => false, -- Synchronous reset might be required here
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          FWFT_EN_G          => true,
          SYNTH_MODE_G       => SYNTH_MODE_G,
@@ -277,7 +277,7 @@ begin
             LAST_STAGE_ASYNC_G => true,
             PIPE_STAGES_G      => INT_PIPE_STAGES_G,
             RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => RST_ASYNC_G,
+            RST_ASYNC_G        => false, -- Synchronous reset might be required here
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G      => "distributed",
             FWFT_EN_G          => true,
