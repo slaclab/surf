@@ -230,11 +230,12 @@ begin
          U_Crc32 : entity surf.Crc32Parallel
             generic map (
                TPD_G            => TPD_G,
-               -- RST_ASYNC_G      => RST_ASYNC_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -249,12 +250,13 @@ begin
          U_Crc32 : entity surf.Crc32
             generic map (
                TPD_G            => TPD_G,
-               -- RST_ASYNC_G      => RST_ASYNC_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF",
                CRC_POLY_G       => CRC_POLY_G)
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
