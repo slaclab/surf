@@ -17,23 +17,24 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SlvDelay is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G    : boolean  := false;
+      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       SRL_EN_G       : boolean  := false;  -- Allow an SRL to be inferred. Disables reset.
-      DELAY_G        : natural  := 1;  --number of clock cycle delays. MAX delay stages when using delay input
-      REG_OUTPUT_G   : boolean  := false;  -- For use with Dynamic SRLs, adds extra delay register on output
+      DELAY_G        : natural  := 1;  --number of clock cycle delays. MAX delay stages when using
+                                        --delay input
+      REG_OUTPUT_G : boolean := false;  -- For use with Dynamic SRLs, adds extra delay register on output
       WIDTH_G        : positive := 1;
       INIT_G         : slv      := "0");
    port (
       clk   : in  sl;
       rst   : in  sl                            := not RST_POLARITY_G;  -- Optional reset
-      en    : in  sl                            := '1';  -- Optional clock enable
+      en    : in  sl                            := '1';                 -- Optional clock enable
       delay : in  slv(log2(DELAY_G)-1 downto 0) := toSlv(DELAY_G-1, log2(DELAY_G));
       din   : in  slv(WIDTH_G-1 downto 0);
       dout  : out slv(WIDTH_G-1 downto 0));
@@ -55,7 +56,7 @@ architecture rtl of SlvDelay is
    signal rin : RegType;
 
    signal iDelay : natural;
-   signal iDout  : slv(WIDTH_G-1 downto 0);
+   signal iDout : slv(WIDTH_G-1 downto 0);
 
    constant SRL_C               : string := ite(SRL_EN_G, "YES", "NO");
    attribute shreg_extract      : string;
@@ -108,13 +109,11 @@ begin
          end if;
       end process seq;
 
-      OUT_REG : if (REG_OUTPUT_G) generate
-         REG : process (clk, rst) is
+      OUT_REG: if (REG_OUTPUT_G) generate
+         REG: process (clk) is
          begin
-            if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-               dout <= INIT_C;
-            elsif (rising_edge(clk)) then
-               if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+            if (rising_edge(clk)) then
+               if (rst = '1') then
                   dout <= INIT_C;
                else
                   dout <= iDout;
@@ -123,7 +122,7 @@ begin
          end process REG;
       end generate OUT_REG;
 
-      NO_OUT_REG : if (not REG_OUTPUT_G) generate
+      NO_OUT_REG: if (not REG_OUTPUT_G) generate
          dout <= iDout;
       end generate NO_OUT_REG;
 
