@@ -87,7 +87,7 @@ begin
             CASCADE_SIZE_G     => 1,
             LAST_STAGE_ASYNC_G => true,
             RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => RST_ASYNC_G,
+            RST_ASYNC_G        => true,
             GEN_SYNC_FIFO_G    => PUSH_SYNC_FIFO_G,
             MEMORY_TYPE_G      => PUSH_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
