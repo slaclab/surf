@@ -329,7 +329,7 @@ begin
                burstLast   <= '0' after TPD_G;
                firstCycle  <= '1' after TPD_G;
             elsif (rising_edge(mAxisClk)) then
-               if (RST_ASYNC_G = false and mAxisRst = '1') or fifoReadLast = '1') then
+               if (RST_ASYNC_G = false and mAxisRst = '1') or (fifoReadLast = '1') then
                   -- Reset the flags
                   fifoInFrame <= '0' after TPD_G;
                   burstEn     <= '0' after TPD_G;
