@@ -233,7 +233,7 @@ begin
    -- AXI Lite
    -----------------------------------------
 
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid, iloopFifoDout, iloopFifoValid ) is
+   comb : process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid, iloopFifoDout, iloopFifoValid ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -305,7 +305,7 @@ begin
       iloopFifoWrite <= r.loopFifoWrite;
       iloopFifoRead  <= r.loopFifoRead;
 
-   end process;
+   end process comb;
 
    seq : process (axiClk, axiClkRst) is
    begin
