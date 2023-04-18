@@ -51,6 +51,7 @@ entity AxiLiteCrossbarI2cMux is
       mAxilReadMasters  : out AxiLiteReadMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
       mAxilReadSlaves   : in  AxiLiteReadSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0);
       -- I2C MUX Ports
+      i2cRst            : out sl;
       i2cRstL           : out sl;
       i2ci              : in  i2c_in_type;
       i2co              : out i2c_out_type);
@@ -355,6 +356,7 @@ begin
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
       i2cRstL        <= r.i2cRstL;
+      i2cRst         <= not(r.i2cRstL);
 
    end process comb;
 
