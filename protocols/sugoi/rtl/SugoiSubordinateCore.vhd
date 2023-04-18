@@ -26,10 +26,10 @@ use surf.AxiLitePkg.all;
 entity SugoiSubordinateCore is
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '0';  -- '1' for active high rst, '0' for active low
+      RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean := false);
    port (
-      pwrOnRstL       : in  sl := not(RST_POLARITY_G);
+      pwrOnRst        : in  sl := not(RST_POLARITY_G);
       -- Clock and Reset
       clk             : in  sl;
       rst             : out sl;         -- Active HIGH global reset
@@ -83,7 +83,7 @@ begin
       port map (
          -- Clock and Reset
          clk            => clk,
-         rst            => pwrOnRstL,
+         rst            => pwrOnRst,
          -- Slip Interface
          slip           => rxSlip,
          -- Slave Interface
@@ -106,7 +106,7 @@ begin
       port map (
          -- Clock and Reset
          clk         => clk,
-         rst         => pwrOnRstL,
+         rst         => pwrOnRst,
          -- Encoded Interface
          validIn     => rxEncodeValid,
          dataIn      => rxEncodeData,
@@ -128,7 +128,7 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G)
       port map (
-         pwrOnRstL       => pwrOnRstL,
+         pwrOnRst        => pwrOnRst,
          -- Clock and Reset
          clk             => clk,
          rst             => rst,
@@ -166,7 +166,7 @@ begin
       port map (
          -- Clock and Reset
          clk        => clk,
-         rst        => pwrOnRstL,
+         rst        => pwrOnRst,
          -- Decoded Interface
          validIn    => txDecodeValid,
          dataIn     => txDecodeData,
@@ -188,7 +188,7 @@ begin
       port map (
          -- Clock and Reset
          clk            => clk,
-         rst            => pwrOnRstL,
+         rst            => pwrOnRst,
          -- Slave Interface
          slaveValid     => txEncodeValid,
          slaveData      => txEncodeData,
