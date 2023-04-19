@@ -221,7 +221,7 @@ package AxiPkg is
       constant LEN_BITS_C   : in natural range 0 to 8    := 4)
       return AxiConfigType;
 
-   constant AXI_CONFIG_INIT_C : AxiConfigType := (
+   constant AXI_CONFIG_INIT_C : AxiConfigType := axiConfig(
       ADDR_WIDTH_C => 32,
       DATA_BYTES_C => 4,
       ID_BITS_C    => 12,
@@ -246,7 +246,7 @@ package AxiPkg is
    -- Calculate number of txns in a burst based on number of bytes and bus configuration
    -- Returned value is number of txns-1, so can be assigned to AWLEN/ARLEN
    function getAxiLen (
-      axiCfg     : AxiConfigType;
+      axiConfig  : AxiConfigType;
       burstBytes : integer range 1 to 4096 := 4096)
       return slv;
 
@@ -255,7 +255,7 @@ package AxiPkg is
    -- Address is used to set a transaction size aligned to 4k boundaries
    -- Returned value is number of txns-1, so can be assigned to AWLEN/ARLEN
    function getAxiLen (
-      axiCfg     : AxiConfigType;
+      axiConfig  : AxiConfigType;
       burstBytes : integer range 1 to 4096 := 4096;
       totalBytes : slv;
       address    : slv)
@@ -274,7 +274,7 @@ package AxiPkg is
       req   => 0);
    procedure getAxiLenProc (
       -- Input
-      axiCfg     : in AxiConfigType;
+      axiConfig  : in AxiConfigType;
       burstBytes : in integer range 1 to 4096 := 4096;
       totalBytes : in slv;
       address    : in slv;
@@ -284,7 +284,7 @@ package AxiPkg is
 
    -- Calculate the byte count for a read request
    function getAxiReadBytes (
-      axiCfg    : AxiConfigType;
+      axiConfig : AxiConfigType;
       axiRead   : AxiReadMasterType)
       return slv;
 
@@ -346,7 +346,7 @@ package body AxiPkg is
    end function ite;
 
    function getAxiLen (
-      axiCfg     : AxiConfigType;
+      axiConfig  : AxiConfigType;
       burstBytes : integer range 1 to 4096 := 4096)
       return slv is
    begin
@@ -355,7 +355,7 @@ package body AxiPkg is
       -- Convert to SLV and truncate to size of A*LEN port for this AXI bus
       -- This limits number of txns appropriately based on size of len port
       -- Then resize to 8 bits because our records define A*LEN as 8 bits always.
-      return resize(toSlv(wordCount(burstBytes, axiCfg.DATA_BYTES_C)-1, axiCfg.LEN_BITS_C), 8);
+      return resize(toSlv(wordCount(burstBytes, axiConfig.DATA_BYTES_C)-1, axiConfig.LEN_BITS_C), 8);
    end function getAxiLen;
 
    -- Calculate number of txns in a burst based upon burst size, total remaining bytes,
@@ -363,7 +363,7 @@ package body AxiPkg is
    -- Address is used to set a transaction size aligned to 4k boundaries
    -- Returned value is number of txns-1, so can be assigned to AWLEN/ARLEN
    function getAxiLen (
-      axiCfg     : AxiConfigType;
+      axiConfig  : AxiConfigType;
       burstBytes : integer range 1 to 4096 := 4096;
       totalBytes : slv;
       address    : slv)
@@ -386,7 +386,7 @@ package body AxiPkg is
       min := minimum(req, max);
 
       -- Return the AXI Length value
-      return getAxiLen(axiCfg, min);
+      return getAxiLen(axiConfig, min);
 
    end function getAxiLen;
 
@@ -396,7 +396,7 @@ package body AxiPkg is
    -- with meeting timing by breaking apart this long combinatorial chain
    procedure getAxiLenProc (
       -- Input
-      axiCfg     : in AxiConfigType;
+      axiConfig  : in AxiConfigType;
       burstBytes : in integer range 1 to 4096 := 4096;
       totalBytes : in slv;
       address    : in slv;
@@ -432,30 +432,30 @@ package body AxiPkg is
       min := minimum(r.req, r.max);
 
       -- Return the AXI Length value
-      v.value := getAxiLen(axiCfg, min);
+      v.value := getAxiLen(axiConfig, min);
 
    end procedure;
 
    -- Calculate the byte count for a read request
    function getAxiReadBytes (
-      axiCfg    : AxiConfigType;
+      axiConfig : AxiConfigType;
       axiRead   : AxiReadMasterType)
       return slv is
-      constant addrLsb : natural := bitSize(axiCfg.DATA_BYTES_C-1);
-      variable tempSlv : slv(axiCfg.LEN_BITS_C+addrLsb downto 0);
+      constant addrLsb : natural := bitSize(AxiConfig.DATA_BYTES_C-1);
+      variable tempSlv : slv(AxiConfig.LEN_BITS_C+addrLsb downto 0);
    begin
       tempSlv := (others => '0');
 
-      if (axiCfg.DATA_BYTES_C>1) then
+      if (AxiConfig.DATA_BYTES_C>1) then
 
-         tempSlv(axiCfg.LEN_BITS_C+addrLsb downto addrLsb)
-            := axiRead.arlen(axiCfg.LEN_BITS_C-1 downto 0) + toSlv(1, axiCfg.LEN_BITS_C+1);
+         tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb)
+            := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
 
          tempSlv := tempSlv - axiRead.araddr(addrLsb-1 downto 0);
 
       else
 
-         tempSlv(axiCfg.LEN_BITS_C downto 0) := axiRead.arlen(axiCfg.LEN_BITS_C-1 downto 0) + toSlv(1, axiCfg.LEN_BITS_C+1);
+         tempSlv(AxiConfig.LEN_BITS_C downto 0) := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);
 
       end if;
 

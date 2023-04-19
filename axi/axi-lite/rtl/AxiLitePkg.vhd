@@ -96,31 +96,14 @@ package AxiLitePkg is
       rvalid  => '0'
       );
 
-   constant AXI_LITE_READ_SLAVE_EMPTY_OK_C : AxiLiteReadSlaveType := (
-      arready => '1',
-      rdata   => (others => '0'),
-      rresp   => AXI_RESP_OK_C,
-      rvalid  => '1'
-      );
-
-   constant AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C : AxiLiteReadSlaveType := (
-      arready => '1',
-      rdata   => (others => '0'),
-      rresp   => AXI_RESP_SLVERR_C,
-      rvalid  => '1'
-      );
-
-   constant AXI_LITE_READ_SLAVE_EMPTY_DECERR_C : AxiLiteReadSlaveType := (
-      arready => '1',
-      rdata   => (others => '0'),
-      rresp   => AXI_RESP_DECERR_C,
-      rvalid  => '1'
-      );
-
    function axiLiteReadSlaveEmptyInit (
       rresp : slv(1 downto 0)  := AXI_RESP_OK_C;
       rdata : slv(31 downto 0) := (others => '0'))
       return AxiLiteReadSlaveType;
+
+   constant AXI_LITE_READ_SLAVE_EMPTY_OK_C     : AxiLiteReadSlaveType := axiLiteReadSlaveEmptyInit(rresp => AXI_RESP_OK_C);
+   constant AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C : AxiLiteReadSlaveType := axiLiteReadSlaveEmptyInit(rresp => AXI_RESP_SLVERR_C);
+   constant AXI_LITE_READ_SLAVE_EMPTY_DECERR_C : AxiLiteReadSlaveType := axiLiteReadSlaveEmptyInit(rresp => AXI_RESP_DECERR_C);
 
    -- Array
    type AxiLiteReadSlaveArray is array (natural range<>) of AxiLiteReadSlaveType;
@@ -183,30 +166,14 @@ package AxiLitePkg is
       bvalid  => '0'
       );
 
-   constant AXI_LITE_WRITE_SLAVE_EMPTY_OK_C : AxiLiteWriteSlaveType := (
-      awready => '1',
-      wready  => '1',
-      bresp   => AXI_RESP_OK_C,
-      bvalid  => '1'
-      );
-
-   constant AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C : AxiLiteWriteSlaveType := (
-      awready => '1',
-      wready  => '1',
-      bresp   => AXI_RESP_SLVERR_C,
-      bvalid  => '1'
-      );
-
-   constant AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C : AxiLiteWriteSlaveType := (
-      awready => '1',
-      wready  => '1',
-      bresp   => AXI_RESP_DECERR_C,
-      bvalid  => '1'
-      );
-
    function axiLiteWriteSlaveEmptyInit (
       bresp : slv(1 downto 0) := AXI_RESP_OK_C)
       return AxiLiteWriteSlaveType;
+
+   constant AXI_LITE_WRITE_SLAVE_EMPTY_OK_C     : AxiLiteWriteSlaveType := axiLiteWriteSlaveEmptyInit(bresp => AXI_RESP_OK_C);
+   constant AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C : AxiLiteWriteSlaveType := axiLiteWriteSlaveEmptyInit(bresp => AXI_RESP_SLVERR_C);
+   constant AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C : AxiLiteWriteSlaveType := axiLiteWriteSlaveEmptyInit(bresp => AXI_RESP_DECERR_C);
+
 
    -- Array
    type AxiLiteWriteSlaveArray is array (natural range<>) of AxiLiteWriteSlaveType;
