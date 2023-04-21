@@ -19,38 +19,51 @@ on: [push]
 
 jobs:
 
+# ----------------------------------------------------------------------------
+
   test_and_document:
     name: Test And Generate Documentation
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
 
       # This step checks out a copy of your repository.
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.11
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz ghdl
+          sudo apt-get install make python3 python3-pip tclsh
+          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
           python -m pip install --upgrade pip
-          pip install flake8
+          pip install -r pip_requirements.txt
+          git clone https://github.com/slaclab/ruckus.git
+          pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: VHDL Syntax Check
+      - name: Python Syntax and Linter Checking
         run: |
-          make
-          rm -rf ghdl-build
+          python -m compileall -f python/ scripts/ tests/
+          flake8 --count python/ scripts/ tests/
 
-      - name: Python Syntax Check
+      - name: VHDL Regression Testing
         run: |
-          python -m compileall -f python/
-          flake8 --count python/
+          ./ghdl-build.sh > /dev/null 2>&1
+          make MODULES=$PWD
+          python -m pytest --cov -v tests/
+
+#      # Code Coverage
+#      - name: Code Coverage
+#        run: |
+#          codecov
+#          coverage report -m
 
       - name: Generate Documentation
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'
         run: |
           doxygen Doxyfile
 
@@ -60,6 +73,8 @@ jobs:
         with:
           github_token: ${{ secrets.GH_TOKEN }}
           publish_dir: doxygen/html
+
+# ----------------------------------------------------------------------------
 
   gen_release:
     name: Generate Release
@@ -94,6 +109,8 @@ jobs:
           GH_REPO_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           python ruckus/scripts/releaseGen.py
+
+# ----------------------------------------------------------------------------
 
   conda_build:
     name: Anaconda Build
@@ -154,3 +171,4 @@ jobs:
           conda build --debug conda-recipe --output-folder bld-dir -c tidair-tag -c tidair-packages -c conda-forge
           anaconda -t ${{ steps.get_image_info.outputs.token }} upload --force bld-dir/noarch/*.tar.bz2
 
+# ----------------------------------------------------------------------------

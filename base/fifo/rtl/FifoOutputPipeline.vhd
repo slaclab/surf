@@ -75,7 +75,6 @@ begin
 
       comb : process (mRdEn, r, rst, sData, sValid) is
          variable v : RegType;
-         variable i : natural;
       begin
          -- Latch the current value
          v := r;

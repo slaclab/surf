@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL_COMBO)
 
 # Check if Microblaze source code path defined
 if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {

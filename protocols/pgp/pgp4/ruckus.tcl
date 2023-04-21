@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL_COMBO)
 
 # Load the Core
 loadRuckusTcl "$::DIR_PATH/core"
