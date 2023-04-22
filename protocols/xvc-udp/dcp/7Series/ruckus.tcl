@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source $::env(RUCKUS_PROC_TCL_COMBO)
+source $::env(RUCKUS_PROC_TCL)
 
 # Load submodules' code and constraints
 loadRuckusTcl $::env(MODULES)/surf

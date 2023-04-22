@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source $::env(RUCKUS_PROC_TCL_COMBO)
+source $::env(RUCKUS_PROC_TCL)
 
 # Check for submodule tagging
 if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMODULE_LOCKS) == 0 } {

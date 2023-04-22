@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source $::env(RUCKUS_PROC_TCL_COMBO)
+source $::env(RUCKUS_PROC_TCL)
 
 # Load the source code
 loadSource -lib surf -dir "$::DIR_PATH/core"
