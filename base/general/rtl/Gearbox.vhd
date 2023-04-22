@@ -62,6 +62,7 @@ architecture rtl of Gearbox is
       masterValid : sl;
       shiftReg    : slv(SHIFT_WIDTH_C-1 downto 0);
       writeIndex  : natural range 0 to SHIFT_WIDTH_C-1;
+      slipArmed   : sl;
       slaveReady  : sl;
       slip        : sl;
    end record;
@@ -70,6 +71,7 @@ architecture rtl of Gearbox is
       masterValid => '0',
       shiftReg    => (others => '0'),
       writeIndex  => 0,
+      slipArmed   => '0',
       slaveReady  => '0',
       slip        => '0');
 
@@ -92,8 +94,9 @@ begin
       end if;
 
       -- Slip input by incrementing the writeIndex
-      v.slip := slip;
-      if (slip = '1') and (r.slip = '0') and (rst = not(RST_POLARITY_G)) then
+      v.slip      := slip;
+      v.slipArmed := '1';
+      if (slip = '1') and (r.slip = '0') and (r.slipArmed = '1') then
          if (r.writeIndex /= 0) then
             v.writeIndex := r.writeIndex - 1;
          else
