@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_PROC_TCL_COMBO)
+source $::env(RUCKUS_PROC_TCL)
 
 # Check for non-zero Vivado version (in-case non-Vivado project)
 if {  $::env(VIVADO_VERSION) > 0.0} {

@@ -19,7 +19,7 @@ export PROJ_DIR   = $(abspath $(PWD))
 export OUT_DIR    = $(PROJ_DIR)/build
 
 # Path to GHDL proc.tcl
-export RUCKUS_PROC_TCL_COMBO = $(RUCKUS_DIR)/ghdl/proc.tcl
+export RUCKUS_PROC_TCL = $(RUCKUS_DIR)/ghdl/proc.tcl
 
 # Bypassing Xilinx Specific code
 export VIVADO_VERSION = -1.0
@@ -48,7 +48,7 @@ test:
 	@echo RUCKUS_DIR: $(RUCKUS_DIR)
 	@echo PROJ_DIR: $(PROJ_DIR)
 	@echo OUT_DIR: $(OUT_DIR)
-	@echo RUCKUS_PROC_TCL_COMBO: $(RUCKUS_PROC_TCL_COMBO)
+	@echo RUCKUS_PROC_TCL: $(RUCKUS_PROC_TCL)
 	@echo VIVADO_VERSION: $(VIVADO_VERSION)
 
 # Find all the source code and load it into GHDL
