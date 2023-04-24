@@ -31,8 +31,9 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4RxProtocol is
    generic (
-      TPD_G    : time                  := 1 ns;
-      NUM_VC_G : integer range 1 to 16 := 4);
+      TPD_G       : time                  := 1 ns;
+      RST_ASYNC_G : boolean               := false;
+      NUM_VC_G    : integer range 1 to 16 := 4);
    port (
       -- User Transmit interface
       pgpRxClk       : in  sl;
@@ -89,7 +90,8 @@ begin
 
    U_phyRxActiveSync : entity surf.SynchronizerEdge
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          clk         => pgpRxClk,
          rst         => pgpRxRst,
@@ -276,7 +278,7 @@ begin
       locRxLinkReady <= r.pgpRxOut.linkReady;
 
       -- Reset
-      if (pgpRxRst = '1') then
+      if (RST_ASYNC_G = false and pgpRxRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -285,9 +287,11 @@ begin
 
    end process comb;
 
-   seq : process (pgpRxClk) is
+   seq : process (pgpRxClk, pgpRxRst) is
    begin
-      if (rising_edge(pgpRxClk)) then
+      if (RST_ASYNC_G) and (pgpRxRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(pgpRxClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

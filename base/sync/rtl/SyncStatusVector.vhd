@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -181,12 +180,11 @@ begin
 
    seq : process (rdClk, rdRst) is
    begin
-      if rising_edge(rdClk) then
-         r <= rin after TPD_G;
-      end if;
       -- Async Reset
       if (RST_ASYNC_G and rdRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(rdClk) then
+         r <= rin after TPD_G;
       end if;
    end process seq;
 

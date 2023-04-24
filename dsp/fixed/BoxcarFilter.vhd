@@ -17,13 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity BoxcarFilter is
    generic (
       TPD_G        : time     := 1 ns;
+      RST_ASYNC_G  : boolean  := false;
       SIGNED_G     : boolean  := false;  -- Treat data as unsigned by default
       DOB_REG_G    : boolean  := false;  -- Extra reg on doutb (folded into BRAM)
       DATA_WIDTH_G : positive := 16;
@@ -50,6 +50,7 @@ begin
    U_Integrator : entity surf.BoxcarIntegrator
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          SIGNED_G     => SIGNED_G,
          DOB_REG_G    => DOB_REG_G,
          DATA_WIDTH_G => DATA_WIDTH_G,

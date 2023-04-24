@@ -19,16 +19,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
 entity AxiStreamResize is
    generic (
-
       -- General Configurations
       TPD_G             : time     := 1 ns;
+      RST_ASYNC_G       : boolean  := false;
       READY_EN_G        : boolean  := true;
       PIPE_STAGES_G     : natural  := 0;
       SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
@@ -265,10 +264,12 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
-         if axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C) then
+      if (RST_ASYNC_G) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+         r <= REG_INIT_C after TPD_G;
+      elsif (rising_edge(axisClk)) then
+         if (RST_ASYNC_G = false) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -280,6 +281,7 @@ begin
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
          TPD_G             => TPD_G,
+         RST_ASYNC_G       => RST_ASYNC_G,
          SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
          PIPE_STAGES_G     => PIPE_STAGES_G)
       port map (

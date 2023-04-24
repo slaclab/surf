@@ -20,16 +20,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
 entity AxiStreamFifoV2 is
    generic (
-
       -- General Configurations
       TPD_G             : time                  := 1 ns;
+      RST_ASYNC_G       : boolean               := false;
       INT_PIPE_STAGES_G : natural range 0 to 16 := 0;  -- Internal FIFO setting
       PIPE_STAGES_G     : natural range 0 to 16 := 1;
       SLAVE_READY_EN_G  : boolean               := true;
@@ -186,6 +185,7 @@ begin
    U_SlaveResize : entity surf.AxiStreamGearbox
       generic map (
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          READY_EN_G          => SLAVE_READY_EN_G,
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => FIFO_CONFIG_C)
@@ -202,12 +202,14 @@ begin
    -------------------------
 
    -- Pause generation
-   process (fifoPFullVec, sAxisClk) is
+   process (fifoPFullVec, sAxisClk, sAxisRst, fifoWrCount, fifoPauseThresh) is
    begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
+      elsif (RST_ASYNC_G) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
+         sAxisCtrl.pause <= '1' after TPD_G;
       elsif (rising_edge(sAxisClk)) then
-         if sAxisRst = '1' or fifoWrCount >= fifoPauseThresh then
+         if (RST_ASYNC_G = false) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
             sAxisCtrl.pause <= '1' after TPD_G;
          else
             sAxisCtrl.pause <= '0' after TPD_G;
@@ -238,7 +240,7 @@ begin
          LAST_STAGE_ASYNC_G => true,
          PIPE_STAGES_G      => INT_PIPE_STAGES_G,
          RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => false,
+         RST_ASYNC_G        => false, -- Synchronous reset might be required here
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          FWFT_EN_G          => true,
          SYNTH_MODE_G       => SYNTH_MODE_G,
@@ -275,7 +277,7 @@ begin
             LAST_STAGE_ASYNC_G => true,
             PIPE_STAGES_G      => INT_PIPE_STAGES_G,
             RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => false,
+            RST_ASYNC_G        => false, -- Synchronous reset might be required here
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G      => "distributed",
             FWFT_EN_G          => true,
@@ -297,12 +299,15 @@ begin
 
       U_PreFillMode : if ((VALID_BURST_MODE_G = false) or (VALID_THOLD_G = 0)) generate
 
-         process (mAxisClk) is
+         process (mAxisClk, mAxisRst, fifoReadLast, fifoValidInt) is
          begin
-            if (rising_edge(mAxisClk)) then
+            if (RST_ASYNC_G) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
+               fifoInFrame <= '0' after TPD_G;
+
+            elsif (rising_edge(mAxisClk)) then
 
                -- Stop output if fifo valid goes away, wait until another block is ready
-               if mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0' then
+               if (RST_ASYNC_G = false) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
                   fifoInFrame <= '0' after TPD_G;
 
                -- Start output when a block or end of frame is available
@@ -316,10 +321,15 @@ begin
 
       U_BurstMode : if ((VALID_BURST_MODE_G = true) and (VALID_THOLD_G /= 0)) generate
 
-         process (mAxisClk) is
+         process (mAxisClk, mAxisRst) is
          begin
-            if (rising_edge(mAxisClk)) then
-               if (mAxisRst = '1') or (fifoReadLast = '1') then
+            if (RST_ASYNC_G and mAxisRst = '1') then
+               fifoInFrame <= '0' after TPD_G;
+               burstEn     <= '0' after TPD_G;
+               burstLast   <= '0' after TPD_G;
+               firstCycle  <= '1' after TPD_G;
+            elsif (rising_edge(mAxisClk)) then
+               if (RST_ASYNC_G = false and mAxisRst = '1') or (fifoReadLast = '1') then
                   -- Reset the flags
                   fifoInFrame <= '0' after TPD_G;
                   burstEn     <= '0' after TPD_G;
@@ -377,6 +387,7 @@ begin
    U_MasterResize : entity surf.AxiStreamGearbox
       generic map (
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          READY_EN_G          => true,
          SIDE_BAND_WIDTH_G   => 8,
          SLAVE_AXI_CONFIG_G  => FIFO_CONFIG_C,
@@ -399,6 +410,7 @@ begin
    Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '0')         -- invert
       port map (
          clk     => sAxisClk,
@@ -413,6 +425,7 @@ begin
    U_Pipe : entity surf.AxiStreamPipeline
       generic map (
          TPD_G             => TPD_G,
+         RST_ASYNC_G       => RST_ASYNC_G,
          SIDE_BAND_WIDTH_G => 8,
          PIPE_STAGES_G     => PIPE_STAGES_G)
       port map (

@@ -29,15 +29,16 @@ use surf.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamDepacketizer2 is
    generic (
-      TPD_G                : time                   := 1 ns;
-      MEMORY_TYPE_G        : string                 := "distributed";
-      REG_EN_G             : boolean                := false;
-      CRC_MODE_G           : string                 := "DATA";  -- or "NONE" or "FULL"
-      CRC_POLY_G           : slv(31 downto 0)       := x"04C11DB7";
-      SEQ_CNT_SIZE_G       : natural range 0 to 16  := 16;
-      TDEST_BITS_G         : natural                := 8;
-      INPUT_PIPE_STAGES_G  : natural                := 0;
-      OUTPUT_PIPE_STAGES_G : natural                := 1);
+      TPD_G                : time                  := 1 ns;
+      RST_ASYNC_G          : boolean               := false;
+      MEMORY_TYPE_G        : string                := "distributed";
+      REG_EN_G             : boolean               := false;
+      CRC_MODE_G           : string                := "DATA";  -- or "NONE" or "FULL"
+      CRC_POLY_G           : slv(31 downto 0)      := x"04C11DB7";
+      SEQ_CNT_SIZE_G       : natural range 0 to 16 := 16;
+      TDEST_BITS_G         : natural               := 8;
+      INPUT_PIPE_STAGES_G  : natural               := 0;
+      OUTPUT_PIPE_STAGES_G : natural               := 1);
    port (
       -- Clock and Reset
       axisClk     : in  sl;
@@ -159,6 +160,7 @@ begin
    U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -185,6 +187,7 @@ begin
       U_DualPortRam_1 : entity surf.DualPortRam
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             MEMORY_TYPE_G => MEMORY_TYPE_G,
             REG_EN_G      => REG_EN_G,
             DOA_REG_G     => REG_EN_G,
@@ -202,10 +205,16 @@ begin
    end generate GEN_SEQ;
 
    NO_SEQ : if (SEQ_CNT_SIZE_G = 0) generate
-      process (axisClk) is
+      process (axisClk, axisRst) is
       begin
-         if rising_edge(axisClk) then
-            ramDout <= ramDin after TPD_G;
+         if (RST_ASYNC_G and axisRst = '1') then
+            ramDout <= (others => '0') after TPD_G;
+         elsif (rising_edge(axisClk)) then
+            if (RST_ASYNC_G = false and axisRst = '1') then
+               ramDout <= (others => '0') after TPD_G;
+            else
+               ramDout <= ramDin after TPD_G;
+            end if;
          end if;
       end process;
    end generate NO_SEQ;
@@ -219,10 +228,12 @@ begin
          U_Crc32 : entity surf.Crc32Parallel
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => 8,
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -237,11 +248,13 @@ begin
          U_Crc32 : entity surf.Crc32
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => 8,
                CRC_INIT_G       => X"FFFFFFFF",
                CRC_POLY_G       => CRC_POLY_G)
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -432,7 +445,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';                   -- Clear any frame error
+                     v.sentEofe     := '0';  -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -634,10 +647,12 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
-         if (axisRst = '1') then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif (rising_edge(axisClk)) then
+         if (RST_ASYNC_G = false and axisRst = '1') then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -651,6 +666,7 @@ begin
    U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

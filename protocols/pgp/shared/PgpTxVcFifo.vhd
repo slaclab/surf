@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 entity PgpTxVcFifo is
    generic (
       TPD_G              : time     := 1 ns;
+      RST_ASYNC_G        : boolean  := false;
       INT_PIPE_STAGES_G  : natural  := 0;
       PIPE_STAGES_G      : natural  := 1;
       VALID_THOLD_G      : positive := 1;
@@ -70,6 +71,7 @@ begin
    U_FlushSync : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '0')
       port map (
          clk     => axisClk,
@@ -97,6 +99,7 @@ begin
    U_AxiStreamPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => 1)
       port map (
          axisClk     => axisClk,
@@ -109,6 +112,7 @@ begin
    U_Flush : entity surf.AxiStreamFlush
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          AXIS_CONFIG_G => APP_AXI_CONFIG_G,
          SSI_EN_G      => true)
       port map (
@@ -124,6 +128,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => false,

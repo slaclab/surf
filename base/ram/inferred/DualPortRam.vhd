@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -24,6 +23,7 @@ entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G          : time                       := 1 ns;
+      RST_ASYNC_G    : boolean                    := false;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       MEMORY_TYPE_G  : string                     := "block";
       REG_EN_G       : boolean                    := true;   -- This generic only with BRAM
@@ -65,6 +65,7 @@ begin
       TrueDualPortRam_Inst : entity surf.TrueDualPortRam
          generic map (
             TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => RST_POLARITY_G,
             DOA_REG_G      => DOA_REG_G,
             DOB_REG_G      => DOB_REG_G,
@@ -100,6 +101,7 @@ begin
       LutRam_Inst : entity surf.LutRam
          generic map (
             TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => RST_POLARITY_G,
             REG_EN_G       => REG_EN_G,
             MODE_G         => MODE_G,

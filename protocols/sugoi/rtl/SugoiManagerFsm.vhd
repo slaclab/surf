@@ -28,6 +28,7 @@ entity SugoiManagerFsm is
    generic (
       TPD_G           : time    := 1 ns;
       SIMULATION_G    : boolean := false;
+      RST_ASYNC_G     : boolean := false;
       NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the Subordinate
       TX_POLARITY_G   : sl      := '0';
       RX_POLARITY_G   : sl      := '0');
@@ -613,7 +614,7 @@ begin
       lockingCntCfg  <= r.lockingCntCfg;
 
       -- Synchronous Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -622,9 +623,12 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      -- Asynchronous Reset
+      if (RST_ASYNC_G and rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

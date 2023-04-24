@@ -32,6 +32,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4TxLiteProtocol is
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_ASYNC_G    : boolean               := false;
       NUM_VC_G       : integer range 1 to 16 := 1;
       SKIP_EN_G      : boolean               := false;
       FLOW_CTRL_EN_G : boolean               := false;
@@ -126,10 +127,12 @@ begin
    U_Crc32 : entity surf.Crc32Parallel
       generic map (
          TPD_G            => TPD_G,
+         RST_ASYNC_G      => RST_ASYNC_G,
          INPUT_REGISTER_G => false,
          BYTE_WIDTH_G     => 8,
          CRC_INIT_G       => X"FFFFFFFF")
       port map (
+         crcPwrOnRst  => pgpTxRst,
          crcOut       => crcOut,
          crcRem       => open,
          crcClk       => pgpTxClk,
@@ -450,7 +453,7 @@ begin
       end loop;
 
       -- Reset
-      if (pgpTxRst = '1') then
+      if (RST_ASYNC_G = false and pgpTxRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -459,9 +462,11 @@ begin
 
    end process comb;
 
-   seq : process (pgpTxClk) is
+   seq : process (pgpTxClk, pgpTxRst) is
    begin
-      if (rising_edge(pgpTxClk)) then
+      if (RST_ASYNC_G) and (pgpTxRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(pgpTxClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

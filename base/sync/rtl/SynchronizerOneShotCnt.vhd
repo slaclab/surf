@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -30,7 +29,7 @@ entity SynchronizerOneShotCnt is
       IN_POLARITY_G   : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataIn port)
       OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataOut port)
       USE_DSP_G       : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
-      SYNTH_CNT_G     : sl       := '1';  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
+      SYNTH_CNT_G     : sl       := '1';  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean  := true;  -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive := 16);
    port (
@@ -45,7 +44,6 @@ entity SynchronizerOneShotCnt is
       cntRst     : in  sl := not RST_POLARITY_G;      -- Optional counter reset
       dataOut    : out sl;              -- synced one-shot pulse
       cntOut     : out slv(CNT_WIDTH_G-1 downto 0));  -- synced counter
-
 end SynchronizerOneShotCnt;
 
 architecture rtl of SynchronizerOneShotCnt is
@@ -61,8 +59,8 @@ architecture rtl of SynchronizerOneShotCnt is
       dataInDly => not(IN_POLARITY_G),
       cntOut    => (others => '0'));
 
-   signal r              : RegType := REG_INIT_C;
-   signal rin            : RegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    signal syncRst        : sl;
    signal cntRstSync     : sl;
@@ -197,19 +195,19 @@ begin
 
       seq : process (dataIn, wrClk, wrRst) is
       begin
-         if rising_edge(wrClk) then
-            r <= rin after TPD_G;
-         end if;
          -- Async Reset
          if (RST_ASYNC_G and wrRst = RST_POLARITY_G) then
             r           <= REG_INIT_C after TPD_G;
             r.dataInDly <= dataIn     after TPD_G;  -- prevent accidental edge detection
+         elsif rising_edge(wrClk) then
+            r <= rin after TPD_G;
          end if;
       end process seq;
 
       SyncFifo_Inst : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             COMMON_CLK_G  => COMMON_CLK_G,
             DATA_WIDTH_G  => CNT_WIDTH_G)
          port map (
