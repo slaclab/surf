@@ -21,22 +21,20 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity AxiStreamPacketizer is
-
    generic (
       TPD_G                : time            := 1 ns;
+      RST_ASYNC_G          : boolean         := false;
       MAX_PACKET_BYTES_G   : integer         := 1440;  -- Must be a multiple of 8
       MIN_TKEEP_G          : slv(7 downto 0) := x"01";
       OUTPUT_SSI_G         : boolean         := true;  -- SSI compliant output (SOF on tuser)
       INPUT_PIPE_STAGES_G  : integer         := 0;
       OUTPUT_PIPE_STAGES_G : integer         := 0);
-
    port (
       -- AXI-Lite Interface for local registers
       axisClk : in sl;
@@ -50,7 +48,6 @@ entity AxiStreamPacketizer is
 
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
-
 end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
@@ -111,6 +108,7 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisSlave  : AxiStreamSlaveType;
 
    signal maxWords : WordCounterType;
+
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
@@ -131,6 +129,7 @@ begin
    U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -304,7 +303,7 @@ begin
       inputAxisSlave <= v.inputAxisSlave;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -316,9 +315,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -329,6 +330,7 @@ begin
    U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

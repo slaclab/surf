@@ -178,7 +178,7 @@ begin
       -- Reset
       if (rst = '1') then
          v          := REG_INIT_C;
-         -- Allow sidebind to use SRL
+         -- Allow sideband to use SRL
          v.sideband := r.sideband;
       end if;
 
@@ -204,8 +204,6 @@ begin
       -- Use the previous cascade out values
       cascin(i+1) <= cascout(i);
    end generate;
-
-
 
    GEN_TAP : for i in NUM_TAPS_G-1 downto 0 generate
       U_Tap : entity surf.FirFilterTap

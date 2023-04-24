@@ -36,7 +36,6 @@ entity sfixedDelay is
       dout     : out sfixed);
 end entity sfixedDelay;
 
-
 architecture rtl of sfixedDelay is
 
    constant SLV_LEN_C : integer := din'length + 1 + USER_WIDTH_G;

@@ -16,7 +16,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -24,9 +23,9 @@ use surf.AxiLitePkg.all;
 use surf.Pgp4Pkg.all;
 
 entity Pgp4Core is
-
    generic (
       TPD_G                       : time                  := 1 ns;
+      RST_ASYNC_G                 : boolean               := false;
       NUM_VC_G                    : integer range 1 to 16 := 4;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
@@ -113,6 +112,7 @@ begin
       U_Pgp4Tx_1 : entity surf.Pgp4Tx
          generic map (
             TPD_G                    => TPD_G,
+            RST_ASYNC_G              => RST_ASYNC_G,
             NUM_VC_G                 => NUM_VC_G,
             CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
             MUX_MODE_G               => TX_MUX_MODE_G,
@@ -143,6 +143,7 @@ begin
       U_Pgp4Rx_1 : entity surf.Pgp4Rx
          generic map (
             TPD_G             => TPD_G,
+            RST_ASYNC_G       => RST_ASYNC_G,
             NUM_VC_G          => NUM_VC_G,
             ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
          port map (
@@ -170,6 +171,7 @@ begin
       U_Pgp4AxiL : entity surf.Pgp4AxiL
          generic map (
             TPD_G              => TPD_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
             WRITE_EN_G         => WRITE_EN_G,

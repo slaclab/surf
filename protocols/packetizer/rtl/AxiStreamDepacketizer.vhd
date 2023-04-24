@@ -22,19 +22,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity AxiStreamDepacketizer is
-
    generic (
       TPD_G                : time    := 1 ns;
+      RST_ASYNC_G          : boolean := false;
       INPUT_PIPE_STAGES_G  : integer := 0;
       OUTPUT_PIPE_STAGES_G : integer := 0);
-
    port (
       -- AXI-Lite Interface for local registers
       axisClk : in sl;
@@ -47,7 +45,6 @@ entity AxiStreamDepacketizer is
 
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
-
 end entity AxiStreamDepacketizer;
 
 architecture rtl of AxiStreamDepacketizer is
@@ -60,7 +57,6 @@ architecture rtl of AxiStreamDepacketizer is
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
 
    constant VERSION_C : slv(3 downto 0) := "0000";
 
@@ -110,6 +106,7 @@ begin
    U_AxiStreamPipeline_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,          -- [in]
@@ -125,6 +122,7 @@ begin
    U_AxiStreamPipeline_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,           -- [in]
@@ -312,7 +310,7 @@ begin
       inputAxisSlave <= v.inputAxisSlave;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -324,9 +322,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

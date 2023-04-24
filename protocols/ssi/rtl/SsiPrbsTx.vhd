@@ -20,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -31,6 +30,7 @@ entity SsiPrbsTx is
    generic (
       -- General Configurations
       TPD_G                      : time                    := 1 ns;
+      RST_ASYNC_G                : boolean                 := false;
       AXI_EN_G                   : sl                      := '1';
       AXI_DEFAULT_PKT_LEN_G      : slv(31 downto 0)        := x"00000FFF";
       AXI_DEFAULT_TRIG_DLY_G     : slv(31 downto 0)        := x"00000000";
@@ -85,7 +85,6 @@ architecture rtl of SsiPrbsTx is
       TKEEP_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TKEEP_MODE_C,
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TUSER_MODE_C);
-
 
    type StateType is (
       IDLE_S,
@@ -322,7 +321,7 @@ begin
       end case;
 
       -- Reset
-      if (locRst = '1') then
+      if (RST_ASYNC_G = false and locRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -336,9 +335,11 @@ begin
 
    end process comb;
 
-   seq : process (locClk) is
+   seq : process (locClk, locRst) is
    begin
-      if rising_edge(locClk) then
+      if (RST_ASYNC_G) and (locRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(locClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -347,6 +348,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,

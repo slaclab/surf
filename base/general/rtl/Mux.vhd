@@ -25,6 +25,7 @@ entity Mux is
    generic(
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean  := false;
       REG_DIN_G      : boolean  := true;
       REG_SEL_G      : boolean  := true;
       REG_DOUT_G     : boolean  := true;
@@ -88,7 +89,7 @@ begin
       end if;
 
       -- Reset
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -97,9 +98,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

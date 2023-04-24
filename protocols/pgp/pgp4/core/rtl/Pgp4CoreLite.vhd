@@ -25,6 +25,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4CoreLite is
    generic (
       TPD_G                : time                  := 1 ns;
+      RST_ASYNC_G          : boolean               := false;
       NUM_VC_G             : integer range 1 to 16 := 4;
       PGP_RX_ENABLE_G      : boolean               := true;
       PGP_TX_ENABLE_G      : boolean               := true;
@@ -108,6 +109,7 @@ begin
       U_Pgp4Tx_1 : entity surf.Pgp4TxLite
          generic map (
             TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             NUM_VC_G       => NUM_VC_G,
             SKIP_EN_G      => SKIP_EN_G,
             FLOW_CTRL_EN_G => FLOW_CTRL_EN_G)
@@ -135,6 +137,7 @@ begin
       U_Pgp4Rx_1 : entity surf.Pgp4Rx
          generic map (
             TPD_G             => TPD_G,
+            RST_ASYNC_G       => RST_ASYNC_G,
             NUM_VC_G          => NUM_VC_G,
             SKIP_EN_G         => SKIP_EN_G,
             LITE_EN_G         => true, -- TRUE = Pgp4RxLite
@@ -164,6 +167,7 @@ begin
       U_Pgp4AxiL : entity surf.Pgp4AxiL
          generic map (
             TPD_G              => TPD_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
             WRITE_EN_G         => WRITE_EN_G,

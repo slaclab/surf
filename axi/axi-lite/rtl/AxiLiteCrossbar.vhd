@@ -24,7 +24,6 @@ use surf.ArbiterPkg.all;
 use surf.TextUtilPkg.all;
 
 entity AxiLiteCrossbar is
-
    generic (
       TPD_G              : time                             := 1 ns;
       RST_ASYNC_G        : boolean                          := false;
@@ -175,7 +174,7 @@ begin
          case (r.slave(s).wrState) is
             when S_WAIT_AXI_TXN_S =>
 
-               -- Incomming write
+               -- Incoming write
                if (sAxiWriteMasters(s).awvalid = '1' and sAxiWriteMasters(s).wvalid = '1') then
 
                   for m in MASTERS_CONFIG_G'range loop
@@ -248,7 +247,7 @@ begin
          case (r.slave(s).rdState) is
             when S_WAIT_AXI_TXN_S =>
 
-               -- Incomming read
+               -- Incoming read
                if (sAxiReadMasters(s).arvalid = '1') then
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
@@ -340,7 +339,7 @@ begin
                end if;
 
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
-               -- busses to this master's outputs.
+               -- buses to this master's outputs.
                if (r.master(m).wrValid = '1') then
                   v.master(m).wrAcks    := r.master(m).wrAcks;
                   v.mAxiWriteMasters(m) := sAxiWriteMasters(conv_integer(r.master(m).wrAckNum));
@@ -397,7 +396,7 @@ begin
                end if;
 
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
-               -- busses to this master's outputs.
+               -- buses to this master's outputs.
                if (r.master(m).rdValid = '1') then
                   v.master(m).rdAcks   := r.master(m).rdAcks;
                   v.mAxiReadMasters(m) := sAxiReadMasters(conv_integer(r.master(m).rdAckNum));
