@@ -1,8 +1,8 @@
 var classPgp2bRx_1_1Pgp2bRx =
 [
     [ "wrap", "classPgp2bRx_1_1Pgp2bRx.html#aef956abfe811675be6b859ab8aa8eddf", null ],
-    [ "PROCESS_168", "classPgp2bRx_1_1Pgp2bRx.html#a7f78b09a65443abb13cfe75d44a98d04", null ],
-    [ "PROCESS_169", "classPgp2bRx_1_1Pgp2bRx.html#af14be2ad76607e8350d53a4b403e8f50", null ],
+    [ "PROCESS_225", "classPgp2bRx_1_1Pgp2bRx.html#a9e575ad3f5cb8588d87ea069f450a401", null ],
+    [ "PROCESS_226", "classPgp2bRx_1_1Pgp2bRx.html#a21ba9257a9602b55ec4ae6a1a13b8091", null ],
     [ "cellRxPause", "classPgp2bRx_1_1Pgp2bRx.html#a3444281276a7e7e3f856294594488af1", null ],
     [ "cellRxSOC", "classPgp2bRx_1_1Pgp2bRx.html#a9c29cb7341263c6243bd12280966c723", null ],
     [ "cellRxSOF", "classPgp2bRx_1_1Pgp2bRx.html#a9eb83bbde49445fe4c709e0751ddeadc", null ],
@@ -19,7 +19,7 @@ var classPgp2bRx_1_1Pgp2bRx =
     [ "crcRxRst", "classPgp2bRx_1_1Pgp2bRx.html#aa0db8d6b98c178661a58353615413ca5", null ],
     [ "crcRxInAdjust", "classPgp2bRx_1_1Pgp2bRx.html#a25191678e0d521fad3d9782a90e46e67", null ],
     [ "crcRxWidthAdjust", "classPgp2bRx_1_1Pgp2bRx.html#a310da3a944ad754be0f4c6c4dfb0a77c", null ],
-    [ "intPhyRxPolarity", "classPgp2bRx_1_1Pgp2bRx.html#ab76dacd1130af34a0ee7c7be4bef5b41", null ],
+    [ "intPhyRxPolarity", "classPgp2bRx_1_1Pgp2bRx.html#a2c898a7e6747d196786811663e8de5dc", null ],
     [ "intPhyRxData", "classPgp2bRx_1_1Pgp2bRx.html#afc8485b71593c1622ca8dbc772018070", null ],
     [ "intPhyRxDataK", "classPgp2bRx_1_1Pgp2bRx.html#a11e8d368ec724f2444cb76a8c4f89e80", null ],
     [ "intPhyRxDispErr", "classPgp2bRx_1_1Pgp2bRx.html#a00e442b64eafcdf720ec3025b082714c", null ],
@@ -32,6 +32,7 @@ var classPgp2bRx_1_1Pgp2bRx =
     [ "pause", "classPgp2bRx_1_1Pgp2bRx.html#a896322ef07f29d71a33670d1d6d64a4c", null ],
     [ "overflow", "classPgp2bRx_1_1Pgp2bRx.html#ae52e468af32dcc97ba200c8dc35e2bb2", null ],
     [ "KEEP_HIERARCHY", "classPgp2bRx_1_1Pgp2bRx.html#a068564424adf39fd0048aab4cbbdfdb6", null ],
+    [ "KEEP_HIERARCHY", "classPgp2bRx_1_1Pgp2bRx.html#a109181e94c6f6421ad87ee77c31fc75d", null ],
     [ "u_pgp2brxphy", "classPgp2bRx_1_1Pgp2bRx.html#a5407549ea546c7c7f70f2d000a6be700", null ],
     [ "u_pgp2brxcell", "classPgp2bRx_1_1Pgp2bRx.html#a7c5a44663126fed777e2c4342b620384", null ],
     [ "rx_crc", "classPgp2bRx_1_1Pgp2bRx.html#ab31f9e2f9c9b9422dad0b94b1f768d6a", null ]

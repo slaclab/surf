@@ -1,7 +1,7 @@
 var classi2cRamSlave_1_1rtl =
 [
     [ "ram_proc", "classi2cRamSlave_1_1rtl.html#ac47b18a45757e051b0bd57c697b9419c", null ],
-    [ "RamType", "classi2cRamSlave_1_1rtl.html#a3fde59d3540f03fbb08b5d63dd38c466", null ],
+    [ "RamType", "classi2cRamSlave_1_1rtl.html#a7755d95124eb576a23e23c09619f4f70", null ],
     [ "i2ci", "classi2cRamSlave_1_1rtl.html#a190757d21483cc277190854a135e18a9", null ],
     [ "i2co", "classi2cRamSlave_1_1rtl.html#a70c16c1460cae343b08eaaabafac965e", null ],
     [ "ram", "classi2cRamSlave_1_1rtl.html#a261393f3f48a08fbde4b720346063463", null ],

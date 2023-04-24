@@ -1,7 +1,7 @@
 <map id="Gtp7RxRst" name="Gtp7RxRst">
 <area shape="rect" id="node1" title=" " alt="" coords="201,155,292,181"/>
 <area shape="rect" id="node4" href="$classGtp7Core.html" title=" " alt="" coords="205,229,288,256"/>
-<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title=" " alt="" coords="169,80,325,107"/>
+<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title=" " alt="" coords="177,80,316,107"/>
 <area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="193,5,300,32"/>
 <area shape="rect" id="node5" href="$classGLinkGtp7FixedLat.html" title=" " alt="" coords="5,304,149,331"/>
 <area shape="rect" id="node6" href="$classPgp2bGtp7FixedLat.html" title=" " alt="" coords="173,304,320,331"/>

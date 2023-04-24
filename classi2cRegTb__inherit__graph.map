@@ -1,11 +1,11 @@
 <map id="i2cRegTb" name="i2cRegTb">
-<area shape="rect" id="node1" title=" " alt="" coords="127,304,209,331"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,229,88,256"/>
-<area shape="rect" id="node3" href="$classI2cRegMaster.html" title=" " alt="" coords="113,229,223,256"/>
-<area shape="rect" id="node4" href="$classI2cMaster.html" title=" " alt="" coords="125,155,211,181"/>
-<area shape="rect" id="node5" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="86,80,245,107"/>
-<area shape="rect" id="node6" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="92,5,239,32"/>
-<area shape="rect" id="node7" href="$classi2cRamSlave.html" title=" " alt="" coords="252,229,359,256"/>
-<area shape="rect" id="node8" href="$classI2cRegSlave.html" title=" " alt="" coords="255,155,358,181"/>
-<area shape="rect" id="node9" href="$classI2cSlave.html" title=" " alt="" coords="269,80,347,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="108,304,191,331"/>
+<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,229,69,256"/>
+<area shape="rect" id="node3" href="$classI2cRegMaster.html" title=" " alt="" coords="94,229,205,256"/>
+<area shape="rect" id="node4" href="$classI2cMaster.html" title=" " alt="" coords="105,155,191,181"/>
+<area shape="rect" id="node5" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="66,80,225,107"/>
+<area shape="rect" id="node6" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="72,5,219,32"/>
+<area shape="rect" id="node7" href="$classi2cRamSlave.html" title=" " alt="" coords="233,229,340,256"/>
+<area shape="rect" id="node8" href="$classI2cRegSlave.html" title=" " alt="" coords="235,155,338,181"/>
+<area shape="rect" id="node9" href="$classI2cSlave.html" title=" " alt="" coords="249,80,327,107"/>
 </map>

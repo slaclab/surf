@@ -1,6 +1,6 @@
 var classSspLowSpeedDecoder10b12bWrapper_1_1mapping =
 [
-    [ "DATA_WIDTH_C", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a61d26ab3ae5c02bf955ed4f7b0f766e6", null ],
+    [ "DATA_WIDTH_C", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a43d636596160b8d473adf4a5ec604c2e", null ],
     [ "dlyConfig", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a50788b729fbe248b49ed55bad60edad3", null ],
     [ "enUsrDlyCfg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#af610c47796cb403aba59a531b6f75ab7", null ],
     [ "usrDlyCfg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#ae7aed50144ea7845b164a742191981e6", null ],
@@ -16,6 +16,8 @@ var classSspLowSpeedDecoder10b12bWrapper_1_1mapping =
     [ "eyeWidth", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a42c2468c80a9896b1f61780b3b66152c", null ],
     [ "locked", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a057bf068b2a27bfd360237f6f2edea72", null ],
     [ "idleCode", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a2ae6c45966e1738d51352d724ead11cc", null ],
+    [ "u_lane", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#abd8ce21ea1b24611f31cc2ee1089f665", null ],
+    [ "u_reg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a27ba7c4741bfe27240437e4200581ee0", null ],
     [ "u_lane", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#abd8ce21ea1b24611f31cc2ee1089f665", null ],
     [ "u_reg", "classSspLowSpeedDecoder10b12bWrapper_1_1mapping.html#a27ba7c4741bfe27240437e4200581ee0", null ]
 ];

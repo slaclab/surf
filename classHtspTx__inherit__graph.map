@@ -1,10 +1,9 @@
 <map id="HtspTx" name="HtspTx">
-<area shape="rect" id="node1" title=" " alt="" coords="133,155,201,181"/>
-<area shape="rect" id="node5" href="$classHtspCore.html" title=" " alt="" coords="125,229,208,256"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,80,165,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamMux.html" title=" " alt="" coords="190,80,309,107"/>
-<area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title=" " alt="" coords="178,5,321,32"/>
-<area shape="rect" id="node6" href="$classHtspCaui4Gty.html" title=" " alt="" coords="47,304,159,331"/>
-<area shape="rect" id="node8" href="$classHtspCoreTb.html" title=" " alt="" coords="183,304,281,331"/>
-<area shape="rect" id="node7" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="39,379,167,405"/>
+<area shape="rect" id="node1" title=" " alt="" coords="85,155,153,181"/>
+<area shape="rect" id="node4" href="$classHtspCore.html" title=" " alt="" coords="77,229,160,256"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="47,5,190,32"/>
+<area shape="rect" id="node3" href="$classAxiStreamMux.html" title=" " alt="" coords="109,80,227,107"/>
+<area shape="rect" id="node5" href="$classHtspCoreTb.html" title=" " alt="" coords="5,304,104,331"/>
+<area shape="rect" id="node6" href="$classHtspCaui4Gty.html" title=" " alt="" coords="128,304,240,331"/>
+<area shape="rect" id="node7" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="120,379,248,405"/>
 </map>

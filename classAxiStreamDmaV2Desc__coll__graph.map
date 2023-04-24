@@ -1,18 +1,17 @@
 <map id="AxiStreamDmaV2Desc" name="AxiStreamDmaV2Desc">
-<area shape="rect" id="node1" title=" " alt="" coords="715,360,885,387"/>
-<area shape="rect" id="node2" href="$classFifo.html" title=" " alt="" coords="563,259,627,285"/>
-<area shape="rect" id="node3" href="$classFifoXpm.html" title=" " alt="" coords="387,259,463,285"/>
-<area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,309,314,336"/>
-<area shape="rect" id="node5" href="$classFifoAlteraMf.html" title=" " alt="" coords="373,309,476,336"/>
-<area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="382,157,467,184"/>
-<area shape="rect" id="node14" href="$classFifoSync.html" title=" " alt="" coords="386,208,463,235"/>
-<area shape="rect" id="node15" href="$classDspComparator.html" title=" " alt="" coords="524,360,667,387"/>
-<area shape="rect" id="node16" href="$classDspAddSub.html" title=" " alt="" coords="547,411,643,437"/>
-<area shape="rect" id="node7" href="$classRstSync.html" title=" " alt="" coords="197,56,289,83"/>
-<area shape="rect" id="node8" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
-<area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="160,107,325,133"/>
-<area shape="rect" id="node10" href="$classSynchronizer.html" title=" " alt="" coords="181,5,305,32"/>
-<area shape="rect" id="node11" href="$classFifoWrFsm.html" title=" " alt="" coords="197,259,289,285"/>
-<area shape="rect" id="node12" href="$classFifoRdFsm.html" title=" " alt="" coords="197,157,288,184"/>
-<area shape="rect" id="node13" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,208,319,235"/>
+<area shape="rect" id="node1" title=" " alt="" coords="117,304,287,331"/>
+<area shape="rect" id="node2" href="$classFifo.html" title=" " alt="" coords="284,229,331,256"/>
+<area shape="rect" id="node3" href="$classFifoXpm.html" title=" " alt="" coords="156,155,232,181"/>
+<area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title=" " alt="" coords="47,80,189,107"/>
+<area shape="rect" id="node5" href="$classFifoAlteraMf.html" title=" " alt="" coords="256,155,359,181"/>
+<area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="498,155,583,181"/>
+<area shape="rect" id="node13" href="$classFifoSync.html" title=" " alt="" coords="383,155,461,181"/>
+<area shape="rect" id="node14" href="$classDspComparator.html" title=" " alt="" coords="5,229,129,256"/>
+<area shape="rect" id="node15" href="$classDspAddSub.html" title=" " alt="" coords="154,229,250,256"/>
+<area shape="rect" id="node7" href="$classRstSync.html" title=" " alt="" coords="673,80,747,107"/>
+<area shape="rect" id="node8" href="$classSynchronizer.html" title=" " alt="" coords="619,5,726,32"/>
+<area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="771,80,918,107"/>
+<area shape="rect" id="node10" href="$classFifoWrFsm.html" title=" " alt="" coords="391,80,483,107"/>
+<area shape="rect" id="node11" href="$classFifoRdFsm.html" title=" " alt="" coords="507,80,598,107"/>
+<area shape="rect" id="node12" href="$classSimpleDualPortRam.html" title=" " alt="" coords="213,80,367,107"/>
 </map>

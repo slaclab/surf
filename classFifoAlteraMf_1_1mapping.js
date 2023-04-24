@@ -1,7 +1,7 @@
 var classFifoAlteraMf_1_1mapping =
 [
-    [ "PROCESS_38", "classFifoAlteraMf_1_1mapping.html#a8aeca5ae837ccda3febc232fe229e62c", null ],
-    [ "FWFT_EN_C", "classFifoAlteraMf_1_1mapping.html#a728dafae9b82865500c3107abbc529ec", null ],
+    [ "PROCESS_29", "classFifoAlteraMf_1_1mapping.html#ac6ec964b6c40058ab29a590116c0c439", null ],
+    [ "FWFT_EN_C", "classFifoAlteraMf_1_1mapping.html#a3975e620c19b109981783faac4ae869b", null ],
     [ "reset", "classFifoAlteraMf_1_1mapping.html#a4df3ffad31bfe581c7f158cd036ceb13", null ],
     [ "sRdEn", "classFifoAlteraMf_1_1mapping.html#a8d4d067ff6c0ad15008a66886efb536e", null ],
     [ "sValid", "classFifoAlteraMf_1_1mapping.html#a0dc34c1051e00a299dc871f773de8f31", null ],

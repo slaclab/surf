@@ -1,12 +1,12 @@
 <map id="SelectioDeserLaneUltraScale" name="SelectioDeserLaneUltraScale">
-<area shape="rect" id="node1" title=" " alt="" coords="34,155,245,181"/>
-<area shape="rect" id="node4" href="$classSaltRxDeser.html" title=" " alt="" coords="5,229,108,256"/>
-<area shape="rect" id="node8" href="$classSelectioDeserUltraScale.html" title=" " alt="" coords="134,229,313,256"/>
-<area shape="rect" id="node2" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="73,80,206,107"/>
-<area shape="rect" id="node3" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="70,5,209,32"/>
-<area shape="rect" id="node5" href="$classSaltRxLvds.html" title=" " alt="" coords="7,304,101,331"/>
-<area shape="rect" id="node6" href="$classSaltCore.html" title=" " alt="" coords="15,379,93,405"/>
-<area shape="rect" id="node7" href="$classSaltCoreTb.html" title=" " alt="" coords="7,453,101,480"/>
-<area shape="rect" id="node9" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="126,304,321,331"/>
-<area shape="rect" id="node10" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="345,304,621,331"/>
+<area shape="rect" id="node1" title=" " alt="" coords="53,155,263,181"/>
+<area shape="rect" id="node4" href="$classSaltRxDeser.html" title=" " alt="" coords="24,229,127,256"/>
+<area shape="rect" id="node8" href="$classSelectioDeserUltraScale.html" title=" " alt="" coords="173,229,351,256"/>
+<area shape="rect" id="node2" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="91,80,225,107"/>
+<area shape="rect" id="node3" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="89,5,227,32"/>
+<area shape="rect" id="node5" href="$classSaltRxLvds.html" title=" " alt="" coords="5,304,100,331"/>
+<area shape="rect" id="node6" href="$classSaltCore.html" title=" " alt="" coords="14,379,91,405"/>
+<area shape="rect" id="node7" href="$classSaltCoreTb.html" title=" " alt="" coords="6,453,99,480"/>
+<area shape="rect" id="node9" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="124,304,400,331"/>
+<area shape="rect" id="node10" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="425,304,619,331"/>
 </map>

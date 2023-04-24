@@ -1,6 +1,6 @@
 <map id="AxiI2cRegMaster" name="AxiI2cRegMaster">
-<area shape="rect" id="node1" title=" " alt="" coords="286,379,418,405"/>
-<area shape="rect" id="node11" href="$classSff8472.html" title=" " alt="" coords="317,453,387,480"/>
+<area shape="rect" id="node1" title=" " alt="" coords="281,379,413,405"/>
+<area shape="rect" id="node11" href="$classSff8472.html" title=" " alt="" coords="311,453,382,480"/>
 <area shape="rect" id="node2" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="185,304,348,331"/>
 <area shape="rect" id="node3" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="5,229,155,256"/>
 <area shape="rect" id="node4" href="$classAxiLiteMaster.html" title=" " alt="" coords="24,155,136,181"/>
@@ -9,5 +9,5 @@
 <area shape="rect" id="node7" href="$classI2cMaster.html" title=" " alt="" coords="390,155,477,181"/>
 <area shape="rect" id="node8" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="354,80,513,107"/>
 <area shape="rect" id="node9" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="360,5,507,32"/>
-<area shape="rect" id="node10" href="$classIoBufWrapper.html" title=" " alt="" coords="373,304,502,331"/>
+<area shape="rect" id="node10" href="$classIoBufWrapper.html" title=" " alt="" coords="373,304,483,331"/>
 </map>

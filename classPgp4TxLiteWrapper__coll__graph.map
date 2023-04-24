@@ -1,15 +1,14 @@
 <map id="Pgp4TxLiteWrapper" name="Pgp4TxLiteWrapper">
-<area shape="rect" id="node1" title=" " alt="" coords="703,132,852,159"/>
-<area shape="rect" id="node2" href="$classPgp4TxLite.html" title=" " alt="" coords="560,132,655,159"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="369,5,493,32"/>
-<area shape="rect" id="node4" href="$classSynchronizerVector.html" title=" " alt="" coords="358,56,505,83"/>
-<area shape="rect" id="node5" href="$classSynchronizerOneShot.html" title=" " alt="" coords="351,107,512,133"/>
-<area shape="rect" id="node6" href="$classRstSync.html" title=" " alt="" coords="194,56,269,83"/>
-<area shape="rect" id="node7" href="$classSynchronizer.html" title=" " alt="" coords="5,81,112,108"/>
-<area shape="rect" id="node8" href="$classSynchronizerEdge.html" title=" " alt="" coords="162,107,301,133"/>
-<area shape="rect" id="node9" href="$classAxiStreamMux.html" title=" " alt="" coords="372,157,491,184"/>
-<area shape="rect" id="node10" href="$classAxiStreamPipeline.html" title=" " alt="" coords="160,157,303,184"/>
-<area shape="rect" id="node11" href="$classPgp4TxLiteProtocol.html" title=" " alt="" coords="358,208,505,235"/>
-<area shape="rect" id="node12" href="$classCrc32Parallel.html" title=" " alt="" coords="178,208,285,235"/>
-<area shape="rect" id="node13" href="$classScrambler.html" title=" " alt="" coords="387,259,475,285"/>
+<area shape="rect" id="node1" title=" " alt="" coords="703,124,852,150"/>
+<area shape="rect" id="node2" href="$classPgp4TxLite.html" title=" " alt="" coords="560,124,655,150"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,48,112,74"/>
+<area shape="rect" id="node6" href="$classRstSync.html" title=" " alt="" coords="194,48,269,74"/>
+<area shape="rect" id="node7" href="$classSynchronizerEdge.html" title=" " alt="" coords="162,98,301,125"/>
+<area shape="rect" id="node4" href="$classSynchronizerVector.html" title=" " alt="" coords="358,98,505,125"/>
+<area shape="rect" id="node5" href="$classSynchronizerOneShot.html" title=" " alt="" coords="351,48,512,74"/>
+<area shape="rect" id="node8" href="$classAxiStreamMux.html" title=" " alt="" coords="372,149,491,176"/>
+<area shape="rect" id="node9" href="$classAxiStreamPipeline.html" title=" " alt="" coords="160,149,303,176"/>
+<area shape="rect" id="node10" href="$classPgp4TxLiteProtocol.html" title=" " alt="" coords="358,200,505,226"/>
+<area shape="rect" id="node11" href="$classCrc32Parallel.html" title=" " alt="" coords="178,200,285,226"/>
+<area shape="rect" id="node12" href="$classScrambler.html" title=" " alt="" coords="387,250,475,277"/>
 </map>

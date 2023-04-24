@@ -1,17 +1,13 @@
 <map id="Gth7Core" name="Gth7Core">
-<area shape="rect" id="node1" title=" " alt="" coords="604,171,687,197"/>
-<area shape="rect" id="node2" href="$classGth7RxRst.html" title=" " alt="" coords="406,247,497,273"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="167,196,291,223"/>
-<area shape="rect" id="node4" href="$classSynchronizerEdge.html" title=" " alt="" coords="160,247,299,273"/>
-<area shape="rect" id="node12" href="$classGth7TxRst.html" title=" " alt="" coords="406,297,497,324"/>
-<area shape="rect" id="node14" href="$classGth7TxManualPhaseAligner.html" title=" " alt="" coords="350,196,553,223"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="5,171,112,197"/>
-<area shape="rect" id="node6" href="$classRstSync.html" title=" " alt="" coords="183,44,275,71"/>
-<area shape="rect" id="node11" href="$classRstSync.html" title=" " alt="" coords="192,348,267,375"/>
-<area shape="rect" id="node15" href="$classGth7RxRstSeq.html" title=" " alt="" coords="394,44,509,71"/>
-<area shape="rect" id="node7" href="$classGth7RecClkMonitor.html" title=" " alt="" coords="377,95,525,121"/>
-<area shape="rect" id="node8" href="$classGth7AutoPhaseAligner.html" title=" " alt="" coords="358,145,545,172"/>
-<area shape="rect" id="node9" href="$classSynchronizer.html" title=" " alt="" coords="167,145,291,172"/>
-<area shape="rect" id="node10" href="$classGth7RxFixedLatPhaseAligner.html" title=" " alt="" coords="347,348,556,375"/>
-<area shape="rect" id="node13" href="$classSynchronizer.html" title=" " alt="" coords="167,297,291,324"/>
+<area shape="rect" id="node1" title=" " alt="" coords="633,183,716,209"/>
+<area shape="rect" id="node2" href="$classGth7RxRst.html" title=" " alt="" coords="435,5,526,32"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,157,112,184"/>
+<area shape="rect" id="node4" href="$classSynchronizerEdge.html" title=" " alt="" coords="175,107,313,133"/>
+<area shape="rect" id="node5" href="$classRstSync.html" title=" " alt="" coords="207,208,281,235"/>
+<area shape="rect" id="node7" href="$classGth7AutoPhaseAligner.html" title=" " alt="" coords="160,309,328,336"/>
+<area shape="rect" id="node9" href="$classGth7TxRst.html" title=" " alt="" coords="435,56,526,83"/>
+<area shape="rect" id="node10" href="$classGth7TxManualPhaseAligner.html" title=" " alt="" coords="379,107,582,133"/>
+<area shape="rect" id="node11" href="$classGth7RxRstSeq.html" title=" " alt="" coords="423,259,538,285"/>
+<area shape="rect" id="node8" href="$classGth7RxFixedLatPhaseAligner.html" title=" " alt="" coords="376,208,585,235"/>
+<area shape="rect" id="node6" href="$classGth7RecClkMonitor.html" title=" " alt="" coords="407,360,555,387"/>
 </map>

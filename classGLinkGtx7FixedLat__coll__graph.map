@@ -1,26 +1,22 @@
 <map id="GLinkGtx7FixedLat" name="GLinkGtx7FixedLat">
-<area shape="rect" id="node1" title=" " alt="" coords="827,385,971,412"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="181,309,305,336"/>
-<area shape="rect" id="node4" href="$classFifoAsync.html" title=" " alt="" coords="435,157,521,184"/>
-<area shape="rect" id="node19" href="$classGtx7AutoPhaseAligner.html" title=" " alt="" coords="385,309,571,336"/>
-<area shape="rect" id="node24" href="$classGtx7TxManualPhaseAligner.html" title=" " alt="" coords="377,360,579,387"/>
-<area shape="rect" id="node3" href="$classSynchronizerFifo.html" title=" " alt="" coords="631,183,779,209"/>
-<area shape="rect" id="node5" href="$classRstSync.html" title=" " alt="" coords="197,259,289,285"/>
-<area shape="rect" id="node14" href="$classGLinkGtx7Core.html" title=" " alt="" coords="645,385,765,412"/>
-<area shape="rect" id="node6" href="$classSynchronizer.html" title=" " alt="" coords="5,461,112,488"/>
-<area shape="rect" id="node13" href="$classGLinkDecoder.html" title=" " alt="" coords="648,436,761,463"/>
-<area shape="rect" id="node17" href="$classSynchronizerEdge.html" title=" " alt="" coords="173,411,312,437"/>
-<area shape="rect" id="node21" href="$classRstSync.html" title=" " alt="" coords="205,512,280,539"/>
-<area shape="rect" id="node7" href="$classSynchronizerVector.html" title=" " alt="" coords="160,208,325,235"/>
-<area shape="rect" id="node8" href="$classFifoWrFsm.html" title=" " alt="" coords="197,5,289,32"/>
-<area shape="rect" id="node9" href="$classFifoRdFsm.html" title=" " alt="" coords="197,56,288,83"/>
-<area shape="rect" id="node10" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,107,319,133"/>
-<area shape="rect" id="node11" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,157,314,184"/>
-<area shape="rect" id="node12" href="$classGLinkEncoder.html" title=" " alt="" coords="649,487,760,513"/>
-<area shape="rect" id="node15" href="$classGLinkGtx7RxRst.html" title=" " alt="" coords="414,411,542,437"/>
-<area shape="rect" id="node16" href="$classSynchronizer.html" title=" " alt="" coords="181,360,305,387"/>
-<area shape="rect" id="node22" href="$classGtx7TxRst.html" title=" " alt="" coords="433,461,523,488"/>
-<area shape="rect" id="node18" href="$classGtx7RecClkMonitor.html" title=" " alt="" coords="404,563,552,589"/>
-<area shape="rect" id="node20" href="$classGtx7RxFixedLatPhaseAligner.html" title=" " alt="" coords="373,512,583,539"/>
-<area shape="rect" id="node23" href="$classSynchronizer.html" title=" " alt="" coords="181,461,305,488"/>
+<area shape="rect" id="node1" title=" " alt="" coords="797,537,941,564"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="5,461,112,488"/>
+<area shape="rect" id="node4" href="$classFifoAsync.html" title=" " alt="" coords="423,183,509,209"/>
+<area shape="rect" id="node5" href="$classRstSync.html" title=" " alt="" coords="199,309,274,336"/>
+<area shape="rect" id="node12" href="$classGLinkDecoder.html" title=" " alt="" coords="627,664,741,691"/>
+<area shape="rect" id="node14" href="$classGLinkGtx7RxRst.html" title=" " alt="" coords="402,512,530,539"/>
+<area shape="rect" id="node15" href="$classSynchronizerEdge.html" title=" " alt="" coords="167,411,306,437"/>
+<area shape="rect" id="node17" href="$classGtx7AutoPhaseAligner.html" title=" " alt="" coords="382,563,550,589"/>
+<area shape="rect" id="node19" href="$classGtx7TxRst.html" title=" " alt="" coords="421,411,511,437"/>
+<area shape="rect" id="node20" href="$classGtx7TxManualPhaseAligner.html" title=" " alt="" coords="365,461,567,488"/>
+<area shape="rect" id="node3" href="$classSynchronizerFifo.html" title=" " alt="" coords="619,284,749,311"/>
+<area shape="rect" id="node13" href="$classGLinkGtx7Core.html" title=" " alt="" coords="624,436,744,463"/>
+<area shape="rect" id="node18" href="$classGtx7RxFixedLatPhaseAligner.html" title=" " alt="" coords="361,309,571,336"/>
+<area shape="rect" id="node6" href="$classSynchronizerVector.html" title=" " alt="" coords="163,208,310,235"/>
+<area shape="rect" id="node7" href="$classFifoWrFsm.html" title=" " alt="" coords="191,259,283,285"/>
+<area shape="rect" id="node8" href="$classFifoRdFsm.html" title=" " alt="" coords="191,5,282,32"/>
+<area shape="rect" id="node9" href="$classSimpleDualPortRam.html" title=" " alt="" coords="160,107,313,133"/>
+<area shape="rect" id="node10" href="$classFifoOutputPipeline.html" title=" " alt="" coords="165,157,308,184"/>
+<area shape="rect" id="node11" href="$classGLinkEncoder.html" title=" " alt="" coords="629,537,739,564"/>
+<area shape="rect" id="node16" href="$classGtx7RecClkMonitor.html" title=" " alt="" coords="392,259,540,285"/>
 </map>

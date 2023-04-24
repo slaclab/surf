@@ -2,9 +2,9 @@ var classPgp3Gtp7Qpll_1_1mapping =
 [
     [ "GenQpllFbDiv", "classPgp3Gtp7Qpll_1_1mapping.html#a2ccafceaf4f3e6e0cfdfc2aaf96cae9e", null ],
     [ "GenQpllRefDiv", "classPgp3Gtp7Qpll_1_1mapping.html#a8695e6ada7f39a9c00a413408dfd0bb2", null ],
-    [ "FBDIV_IN_C", "classPgp3Gtp7Qpll_1_1mapping.html#a20c19364bb3192f082a340cfe5837a98", null ],
-    [ "FBDIV_45_IN_C", "classPgp3Gtp7Qpll_1_1mapping.html#a81544af85fb449b56731556df480cfe4", null ],
-    [ "REFCLK_DIV_IN_C", "classPgp3Gtp7Qpll_1_1mapping.html#a15911af77ac5f045ee96319908c19dbc", null ],
+    [ "FBDIV_IN_C", "classPgp3Gtp7Qpll_1_1mapping.html#a5ac1b26d6c9d0ac2638fdf3a6e4372fd", null ],
+    [ "FBDIV_45_IN_C", "classPgp3Gtp7Qpll_1_1mapping.html#a250276bd8089c561ff72e9cc4fbcad35", null ],
+    [ "REFCLK_DIV_IN_C", "classPgp3Gtp7Qpll_1_1mapping.html#a3eea3350c0eb598c60367b0cb78f0db2", null ],
     [ "qPllRefClk", "classPgp3Gtp7Qpll_1_1mapping.html#a8576f7a52a218e533b28a6df103c49d4", null ],
     [ "qPllLockDetClk", "classPgp3Gtp7Qpll_1_1mapping.html#a0ee7653e94a4b063b969cebdc84593ea", null ],
     [ "pllOutClk", "classPgp3Gtp7Qpll_1_1mapping.html#a9d0bf0862c3e2a53b252198695ff4767", null ],

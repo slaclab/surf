@@ -1,11 +1,11 @@
 var classPgpParallelSimModel_1_1mapping =
 [
-    [ "SPEED_OF_LIGHT_C", "classPgpParallelSimModel_1_1mapping.html#a3b39e45456056554a75f4390207eaf9d", null ],
-    [ "SPEED_OF_FIBER_C", "classPgpParallelSimModel_1_1mapping.html#a853f27b5ae79c3e4fd609687a43c16c1", null ],
-    [ "CLK_PER_METER_C", "classPgpParallelSimModel_1_1mapping.html#ae1cceba629c47043c8f7cc3df41a6e02", null ],
-    [ "CABLE_DELAY_FLOAT_C", "classPgpParallelSimModel_1_1mapping.html#a7ba79a355e036ea7b4d667397a31c20b", null ],
-    [ "CABLE_DELAY_C", "classPgpParallelSimModel_1_1mapping.html#ae85635b8809d8ad8e2f246e504257dfa", null ],
-    [ "WIDTH_C", "classPgpParallelSimModel_1_1mapping.html#a5ff4d0a825364562815b159a765acf3c", null ],
+    [ "SPEED_OF_LIGHT_C", "classPgpParallelSimModel_1_1mapping.html#a934fbc5d2110d4f415c4ecf96f9132fe", null ],
+    [ "SPEED_OF_FIBER_C", "classPgpParallelSimModel_1_1mapping.html#a6390eb0608ca4527a6e66ec76f05ea59", null ],
+    [ "CLK_PER_METER_C", "classPgpParallelSimModel_1_1mapping.html#a94e97541f1a5764d767538afee708b4d", null ],
+    [ "CABLE_DELAY_FLOAT_C", "classPgpParallelSimModel_1_1mapping.html#aa531c838a662aa2bbdfbf3ac5ec43ede", null ],
+    [ "CABLE_DELAY_C", "classPgpParallelSimModel_1_1mapping.html#a8ea90127aa198d2d18e0c2118d70ff01", null ],
+    [ "WIDTH_C", "classPgpParallelSimModel_1_1mapping.html#a199b5b700b2abd15e008b5a1a291fc59", null ],
     [ "phyTxReady", "classPgpParallelSimModel_1_1mapping.html#ab6205b43ab496ef88426336cebc081e1", null ],
     [ "phyRxReady", "classPgpParallelSimModel_1_1mapping.html#a5324ae938427f111ccb79219c13235be", null ],
     [ "pgpInDly", "classPgpParallelSimModel_1_1mapping.html#a0621dc4ed04e60e81d14a8c86f7ca2c1", null ],

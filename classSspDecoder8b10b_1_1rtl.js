@@ -10,5 +10,7 @@ var classSspDecoder8b10b_1_1rtl =
     [ "framedDataK", "classSspDecoder8b10b_1_1rtl.html#a0fd81c74dea123786b43fa4e846bde35", null ],
     [ "idle", "classSspDecoder8b10b_1_1rtl.html#ae445fe1e5d1be2d4db8c9fac0a499870", null ],
     [ "decoder8b10b_1", "classSspDecoder8b10b_1_1rtl.html#af1ee45140131f8a08fd580ba43fef110", null ],
+    [ "sspdeframer_1", "classSspDecoder8b10b_1_1rtl.html#a0983821dc674af0ec1a3a419b9536717", null ],
+    [ "decoder8b10b_1", "classSspDecoder8b10b_1_1rtl.html#af1ee45140131f8a08fd580ba43fef110", null ],
     [ "sspdeframer_1", "classSspDecoder8b10b_1_1rtl.html#a0983821dc674af0ec1a3a419b9536717", null ]
 ];

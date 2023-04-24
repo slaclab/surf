@@ -1,7 +1,7 @@
 var classCoaXPressRx_1_1mapping =
 [
-    [ "NARROW_AXIS_CONFIG_C", "classCoaXPressRx_1_1mapping.html#a0c65ac90a187cc194a74c1d5b2f7085f", null ],
-    [ "WIDE_AXIS_CONFIG_C", "classCoaXPressRx_1_1mapping.html#a11049acb62749fc313d8089fe8c7dbb9", null ],
+    [ "NARROW_AXIS_CONFIG_C", "classCoaXPressRx_1_1mapping.html#adfe49ef642e431638d1762b1d5a0556e", null ],
+    [ "WIDE_AXIS_CONFIG_C", "classCoaXPressRx_1_1mapping.html#a8eab295b981d780ed33638d94b68b735", null ],
     [ "ioAck", "classCoaXPressRx_1_1mapping.html#ad673f7d33831a8e7b0885dbfe7840cd8", null ],
     [ "eventAckVec", "classCoaXPressRx_1_1mapping.html#ae3fe2951197ffa9f4188eb15254290ff", null ],
     [ "eventTagVec", "classCoaXPressRx_1_1mapping.html#a1adfdd4add3ac041779afe13f37e7dcf", null ],

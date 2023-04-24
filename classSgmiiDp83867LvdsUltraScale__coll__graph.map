@@ -1,11 +1,11 @@
 <map id="SgmiiDp83867LvdsUltraScale" name="SgmiiDp83867LvdsUltraScale">
-<area shape="rect" id="node1" title=" " alt="" coords="102,304,317,331"/>
-<area shape="rect" id="node2" href="$classPwrUpRst.html" title=" " alt="" coords="7,229,110,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="93,304,307,331"/>
+<area shape="rect" id="node2" href="$classPwrUpRst.html" title=" " alt="" coords="16,229,101,256"/>
 <area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="21,155,96,181"/>
 <area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,80,112,107"/>
-<area shape="rect" id="node5" href="$classSgmiiDp83867Mdio.html" title=" " alt="" coords="135,229,284,256"/>
-<area shape="rect" id="node6" href="$classMdioLinkIrqHandler.html" title=" " alt="" coords="135,155,284,181"/>
-<area shape="rect" id="node7" href="$classMdioSeqCore.html" title=" " alt="" coords="155,80,263,107"/>
-<area shape="rect" id="node8" href="$classMdioCore.html" title=" " alt="" coords="167,5,251,32"/>
-<area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="308,229,455,256"/>
+<area shape="rect" id="node5" href="$classSgmiiDp83867Mdio.html" title=" " alt="" coords="125,229,275,256"/>
+<area shape="rect" id="node6" href="$classMdioLinkIrqHandler.html" title=" " alt="" coords="125,155,275,181"/>
+<area shape="rect" id="node7" href="$classMdioSeqCore.html" title=" " alt="" coords="146,80,254,107"/>
+<area shape="rect" id="node8" href="$classMdioCore.html" title=" " alt="" coords="158,5,242,32"/>
+<area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="299,229,445,256"/>
 </map>

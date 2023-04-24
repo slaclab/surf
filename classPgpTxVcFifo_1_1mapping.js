@@ -13,5 +13,11 @@ var classPgpTxVcFifo_1_1mapping =
     [ "u_pgprst", "classPgpTxVcFifo_1_1mapping.html#aea470211864cf44fd2a5ba4a0d1023e6", null ],
     [ "u_axistreampipeline", "classPgpTxVcFifo_1_1mapping.html#a96bad6ca3ea924fc57d8a6bc768e4d4d", null ],
     [ "u_flush", "classPgpTxVcFifo_1_1mapping.html#abd42129fa43ea885c81f6a3771c78c15", null ],
+    [ "u_fifo", "classPgpTxVcFifo_1_1mapping.html#ae73b6dbad70cfa71621ba63334c4eaca", null ],
+    [ "u_flushsync", "classPgpTxVcFifo_1_1mapping.html#a1d3269f44c39e3ed716db4b92fa6aa7d", null ],
+    [ "u_axisrst", "classPgpTxVcFifo_1_1mapping.html#a9e0fecdf6cc6d5080861c39068d0d29b", null ],
+    [ "u_pgprst", "classPgpTxVcFifo_1_1mapping.html#aea470211864cf44fd2a5ba4a0d1023e6", null ],
+    [ "u_axistreampipeline", "classPgpTxVcFifo_1_1mapping.html#a96bad6ca3ea924fc57d8a6bc768e4d4d", null ],
+    [ "u_flush", "classPgpTxVcFifo_1_1mapping.html#abd42129fa43ea885c81f6a3771c78c15", null ],
     [ "u_fifo", "classPgpTxVcFifo_1_1mapping.html#ae73b6dbad70cfa71621ba63334c4eaca", null ]
 ];

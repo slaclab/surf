@@ -59,8 +59,8 @@ var sectionId = 'dynsection-0';
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="146,-133.5 146,-152.5 265,-152.5 265,-133.5 146,-133.5"/>
-<text text-anchor="middle" x="205.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">i2c_master_byte_ctrl</text>
+<polygon fill="#bfbfbf" stroke="black" points="146,-190.5 146,-209.5 265,-209.5 265,-190.5 146,-190.5"/>
+<text text-anchor="middle" x="205.5" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">i2c_master_byte_ctrl</text>
 </a>
 </g>
 </g>
@@ -68,46 +68,46 @@ var sectionId = 'dynsection-0';
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:href="classI2cMaster.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="301,-133.5 301,-152.5 366,-152.5 366,-133.5 301,-133.5"/>
-<text text-anchor="middle" x="333.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">I2cMaster</text>
+<polygon fill="white" stroke="black" points="301,-190.5 301,-209.5 366,-209.5 366,-190.5 301,-190.5"/>
+<text text-anchor="middle" x="333.5" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">I2cMaster</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node3 -->
 <g id="edge2" class="edge">
 <title>Node1&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M275.21,-143C284.16,-143 292.96,-143 300.87,-143"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="275.07,-139.5 265.07,-143 275.07,-146.5 275.07,-139.5"/>
+<path fill="none" stroke="midnightblue" d="M275.21,-200C284.16,-200 292.96,-200 300.87,-200"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="275.07,-196.5 265.07,-200 275.07,-203.5 275.07,-196.5"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="classi2c__master__bit__ctrl.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="0,-133.5 0,-152.5 110,-152.5 110,-133.5 0,-133.5"/>
-<text text-anchor="middle" x="55" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">i2c_master_bit_ctrl</text>
+<polygon fill="white" stroke="black" points="0,-190.5 0,-209.5 110,-209.5 110,-190.5 0,-190.5"/>
+<text text-anchor="middle" x="55" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">i2c_master_bit_ctrl</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
 <title>Node2&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M120.04,-143C128.67,-143 137.48,-143 146,-143"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="120.03,-139.5 110.03,-143 120.03,-146.5 120.03,-139.5"/>
+<path fill="none" stroke="midnightblue" d="M120.04,-200C128.67,-200 137.48,-200 146,-200"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="120.03,-196.5 110.03,-200 120.03,-203.5 120.03,-196.5"/>
 </g>
 <!-- Node4 -->
 <g id="node4" class="node">
 <title>Node4</title>
 <g id="a_node4"><a xlink:href="classI2cRegMaster.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="402,-133.5 402,-152.5 485,-152.5 485,-133.5 402,-133.5"/>
-<text text-anchor="middle" x="443.5" y="-140.5" font-family="Helvetica,sans-Serif" font-size="10.00">I2cRegMaster</text>
+<polygon fill="white" stroke="black" points="402,-190.5 402,-209.5 485,-209.5 485,-190.5 402,-190.5"/>
+<text text-anchor="middle" x="443.5" y="-197.5" font-family="Helvetica,sans-Serif" font-size="10.00">I2cRegMaster</text>
 </a>
 </g>
 </g>
 <!-- Node3&#45;&gt;Node4 -->
 <g id="edge3" class="edge">
 <title>Node3&#45;&gt;Node4</title>
-<path fill="none" stroke="midnightblue" d="M376.08,-143C384.55,-143 393.44,-143 401.87,-143"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="376.03,-139.5 366.03,-143 376.03,-146.5 376.03,-139.5"/>
+<path fill="none" stroke="midnightblue" d="M376.08,-200C384.55,-200 393.44,-200 401.87,-200"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="376.03,-196.5 366.03,-200 376.03,-203.5 376.03,-196.5"/>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">
@@ -121,8 +121,14 @@ var sectionId = 'dynsection-0';
 <!-- Node4&#45;&gt;Node5 -->
 <g id="edge4" class="edge">
 <title>Node4&#45;&gt;Node5</title>
-<path fill="none" stroke="midnightblue" d="M452.15,-161.96C463.41,-187.44 486.86,-232.36 521,-257 526.4,-260.9 532.58,-264 538.95,-266.46"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="455.32,-160.48 448.2,-152.64 448.88,-163.22 455.32,-160.48"/>
+<path fill="none" stroke="midnightblue" d="M471.19,-215.67C485.2,-226.17 503.14,-239.25 521,-248 538.29,-256.47 559.94,-261.67 574.22,-266.48"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="473.11,-212.74 463.01,-209.53 468.91,-218.33 473.11,-212.74"/>
+</g>
+<!-- Node4&#45;&gt;Node5 -->
+<g id="edge16" class="edge">
+<title>Node4&#45;&gt;Node5</title>
+<path fill="none" stroke="midnightblue" d="M456.35,-217.49C470.65,-232.85 495.9,-253.71 521,-266 525.99,-268.44 531.34,-270.61 536.77,-272.48"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="458.77,-214.93 449.61,-209.61 453.45,-219.48 458.77,-214.93"/>
 </g>
 <!-- Node7 -->
 <g id="node7" class="node">
@@ -136,8 +142,14 @@ var sectionId = 'dynsection-0';
 <!-- Node4&#45;&gt;Node7 -->
 <g id="edge6" class="edge">
 <title>Node4&#45;&gt;Node7</title>
-<path fill="none" stroke="midnightblue" d="M457.98,-160.95C471.91,-178.27 495.22,-204.02 521,-219 527.62,-222.84 535.05,-225.94 542.51,-228.43"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="460.49,-158.48 451.58,-152.75 454.98,-162.79 460.49,-158.48"/>
+<path fill="none" stroke="midnightblue" d="M495.11,-206.8C521.41,-212.99 551.95,-221.59 571,-228.46"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="495.8,-203.36 485.28,-204.55 494.25,-210.19 495.8,-203.36"/>
+</g>
+<!-- Node4&#45;&gt;Node7 -->
+<g id="edge17" class="edge">
+<title>Node4&#45;&gt;Node7</title>
+<path fill="none" stroke="midnightblue" d="M472.98,-212.96C489.03,-218.22 509.71,-224.03 529.19,-228.86"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="473.75,-209.52 463.16,-209.59 471.49,-216.14 473.75,-209.52"/>
 </g>
 <!-- Node10 -->
 <g id="node10" class="node">
@@ -151,83 +163,89 @@ var sectionId = 'dynsection-0';
 <!-- Node4&#45;&gt;Node10 -->
 <g id="edge9" class="edge">
 <title>Node4&#45;&gt;Node10</title>
-<path fill="none" stroke="midnightblue" d="M470.32,-157.37C484.89,-165.08 503.62,-174.34 521,-181 530.22,-184.53 540.37,-187.71 549.96,-190.41"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="471.86,-154.22 461.4,-152.56 468.54,-160.38 471.86,-154.22"/>
+<path fill="none" stroke="midnightblue" d="M495.41,-193.52C505.38,-193.26 515.95,-193.19 526.26,-193.3"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="495.15,-190.03 485.28,-193.86 495.39,-197.03 495.15,-190.03"/>
+</g>
+<!-- Node4&#45;&gt;Node10 -->
+<g id="edge18" class="edge">
+<title>Node4&#45;&gt;Node10</title>
+<path fill="none" stroke="midnightblue" d="M495.41,-206.48C505.38,-206.74 515.95,-206.81 526.26,-206.7"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="495.39,-202.97 485.28,-206.14 495.15,-209.97 495.39,-202.97"/>
 </g>
 <!-- Node11 -->
 <g id="node11" class="node">
 <title>Node11</title>
-<g id="a_node11"><a xlink:href="classAxiLitePMbusMasterCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="521,-152.5 521,-171.5 660,-171.5 660,-152.5 521,-152.5"/>
-<text text-anchor="middle" x="590.5" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLitePMbusMasterCore</text>
+<g id="a_node11"><a xlink:href="classLeapXcvrCore.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="548.5,-152.5 548.5,-171.5 632.5,-171.5 632.5,-152.5 548.5,-152.5"/>
+<text text-anchor="middle" x="590.5" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">LeapXcvrCore</text>
 </a>
 </g>
 </g>
 <!-- Node4&#45;&gt;Node11 -->
 <g id="edge10" class="edge">
 <title>Node4&#45;&gt;Node11</title>
-<path fill="none" stroke="midnightblue" d="M495.41,-149.67C503.61,-150.75 512.22,-151.87 520.76,-152.99"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="495.65,-146.17 485.28,-148.34 494.74,-153.11 495.65,-146.17"/>
+<path fill="none" stroke="midnightblue" d="M490.99,-187.82C511.12,-182.54 534.34,-176.46 553.17,-171.52"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="489.88,-184.49 481.09,-190.41 491.65,-191.26 489.88,-184.49"/>
 </g>
 <!-- Node13 -->
 <g id="node13" class="node">
 <title>Node13</title>
-<g id="a_node13"><a xlink:href="classi2cRegTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="559.5,-114.5 559.5,-133.5 621.5,-133.5 621.5,-114.5 559.5,-114.5"/>
-<text text-anchor="middle" x="590.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">i2cRegTb</text>
+<g id="a_node13"><a xlink:href="classSc18Is602Core.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="546,-114.5 546,-133.5 635,-133.5 635,-114.5 546,-114.5"/>
+<text text-anchor="middle" x="590.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">Sc18Is602Core</text>
 </a>
 </g>
 </g>
 <!-- Node4&#45;&gt;Node13 -->
 <g id="edge12" class="edge">
 <title>Node4&#45;&gt;Node13</title>
-<path fill="none" stroke="midnightblue" d="M495.46,-136.32C516.73,-133.54 540.72,-130.39 559.14,-127.98"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="494.74,-132.89 485.28,-137.66 495.65,-139.83 494.74,-132.89"/>
+<path fill="none" stroke="midnightblue" d="M462.87,-183.22C477.62,-170.55 499.37,-153.6 521,-143 528.76,-139.2 537.4,-136.06 545.85,-133.5"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="460.25,-180.87 455.05,-190.1 464.87,-186.12 460.25,-180.87"/>
 </g>
-<!-- Node14 -->
-<g id="node14" class="node">
-<title>Node14</title>
-<g id="a_node14"><a xlink:href="classLeapXcvrCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="548.5,-76.5 548.5,-95.5 632.5,-95.5 632.5,-76.5 548.5,-76.5"/>
-<text text-anchor="middle" x="590.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">LeapXcvrCore</text>
+<!-- Node15 -->
+<g id="node15" class="node">
+<title>Node15</title>
+<g id="a_node15"><a xlink:href="classSi5394I2cCore.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="547.5,-76.5 547.5,-95.5 633.5,-95.5 633.5,-76.5 547.5,-76.5"/>
+<text text-anchor="middle" x="590.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">Si5394I2cCore</text>
 </a>
 </g>
 </g>
-<!-- Node4&#45;&gt;Node14 -->
-<g id="edge13" class="edge">
-<title>Node4&#45;&gt;Node14</title>
-<path fill="none" stroke="midnightblue" d="M470.32,-128.63C484.89,-120.92 503.62,-111.66 521,-105 530.22,-101.47 540.37,-98.29 549.96,-95.59"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="468.54,-125.62 461.4,-133.44 471.86,-131.78 468.54,-125.62"/>
+<!-- Node4&#45;&gt;Node15 -->
+<g id="edge14" class="edge">
+<title>Node4&#45;&gt;Node15</title>
+<path fill="none" stroke="midnightblue" d="M454.62,-181.39C467.31,-159.81 491.08,-124.68 521,-105 528.84,-99.85 538.06,-96.08 547.15,-93.33"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="451.48,-179.83 449.58,-190.25 457.57,-183.29 451.48,-179.83"/>
 </g>
-<!-- Node16 -->
-<g id="node16" class="node">
-<title>Node16</title>
-<g id="a_node16"><a xlink:href="classSc18Is602Core.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="546,-38.5 546,-57.5 635,-57.5 635,-38.5 546,-38.5"/>
-<text text-anchor="middle" x="590.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">Sc18Is602Core</text>
+<!-- Node17 -->
+<g id="node17" class="node">
+<title>Node17</title>
+<g id="a_node17"><a xlink:href="classi2cRegTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="559.5,-38.5 559.5,-57.5 621.5,-57.5 621.5,-38.5 559.5,-38.5"/>
+<text text-anchor="middle" x="590.5" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">i2cRegTb</text>
 </a>
 </g>
 </g>
-<!-- Node4&#45;&gt;Node16 -->
-<g id="edge15" class="edge">
-<title>Node4&#45;&gt;Node16</title>
-<path fill="none" stroke="midnightblue" d="M457.98,-125.05C471.91,-107.73 495.22,-81.98 521,-67 528.58,-62.6 537.22,-59.18 545.75,-56.53"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="454.98,-123.21 451.58,-133.25 460.49,-127.52 454.98,-123.21"/>
+<!-- Node4&#45;&gt;Node17 -->
+<g id="edge19" class="edge">
+<title>Node4&#45;&gt;Node17</title>
+<path fill="none" stroke="midnightblue" d="M450.41,-180.43C460.24,-151.27 482.74,-96.68 521,-67 531.92,-58.53 546.4,-53.83 559.23,-51.23"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="446.98,-179.66 447.26,-190.25 453.65,-181.8 446.98,-179.66"/>
 </g>
 <!-- Node18 -->
 <g id="node18" class="node">
 <title>Node18</title>
-<g id="a_node18"><a xlink:href="classSi5394I2cCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="547.5,-0.5 547.5,-19.5 633.5,-19.5 633.5,-0.5 547.5,-0.5"/>
-<text text-anchor="middle" x="590.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Si5394I2cCore</text>
+<g id="a_node18"><a xlink:href="classAxiLitePMbusMasterCore.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="521,-0.5 521,-19.5 660,-19.5 660,-0.5 521,-0.5"/>
+<text text-anchor="middle" x="590.5" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLitePMbusMasterCore</text>
 </a>
 </g>
 </g>
 <!-- Node4&#45;&gt;Node18 -->
-<g id="edge17" class="edge">
+<g id="edge20" class="edge">
 <title>Node4&#45;&gt;Node18</title>
-<path fill="none" stroke="midnightblue" d="M452.15,-124.04C463.41,-98.56 486.86,-53.64 521,-29 528.71,-23.44 537.97,-19.5 547.17,-16.72"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="448.88,-122.78 448.2,-133.36 455.32,-125.52 448.88,-122.78"/>
+<path fill="none" stroke="midnightblue" d="M447.75,-180.02C454.62,-144.28 474.06,-69.38 521,-29 525.49,-25.14 530.71,-22.05 536.22,-19.6"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="444.25,-179.69 445.94,-190.15 451.14,-180.93 444.25,-179.69"/>
 </g>
 <!-- Node6 -->
 <g id="node6" class="node">
@@ -277,62 +295,62 @@ var sectionId = 'dynsection-0';
 <!-- Node12 -->
 <g id="node12" class="node">
 <title>Node12</title>
-<g id="a_node12"><a xlink:href="classAxiLitePMbusMaster.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="696,-152.5 696,-171.5 812,-171.5 812,-152.5 696,-152.5"/>
-<text text-anchor="middle" x="754" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLitePMbusMaster</text>
+<g id="a_node12"><a xlink:href="classLeapXcvr.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="723,-152.5 723,-171.5 785,-171.5 785,-152.5 723,-152.5"/>
+<text text-anchor="middle" x="754" y="-159.5" font-family="Helvetica,sans-Serif" font-size="10.00">LeapXcvr</text>
 </a>
 </g>
 </g>
 <!-- Node11&#45;&gt;Node12 -->
 <g id="edge11" class="edge">
 <title>Node11&#45;&gt;Node12</title>
-<path fill="none" stroke="midnightblue" d="M670.5,-162C679.08,-162 687.69,-162 695.94,-162"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="670.46,-158.5 660.46,-162 670.46,-165.5 670.46,-158.5"/>
+<path fill="none" stroke="midnightblue" d="M642.88,-162C669.23,-162 700.42,-162 722.87,-162"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="642.67,-158.5 632.67,-162 642.67,-165.5 642.67,-158.5"/>
 </g>
-<!-- Node15 -->
-<g id="node15" class="node">
-<title>Node15</title>
-<g id="a_node15"><a xlink:href="classLeapXcvr.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="723,-76.5 723,-95.5 785,-95.5 785,-76.5 723,-76.5"/>
-<text text-anchor="middle" x="754" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">LeapXcvr</text>
+<!-- Node14 -->
+<g id="node14" class="node">
+<title>Node14</title>
+<g id="a_node14"><a xlink:href="classSc18Is602.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="721,-114.5 721,-133.5 787,-133.5 787,-114.5 721,-114.5"/>
+<text text-anchor="middle" x="754" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">Sc18Is602</text>
 </a>
 </g>
 </g>
-<!-- Node14&#45;&gt;Node15 -->
-<g id="edge14" class="edge">
-<title>Node14&#45;&gt;Node15</title>
-<path fill="none" stroke="midnightblue" d="M642.88,-86C669.23,-86 700.42,-86 722.87,-86"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="642.67,-82.5 632.67,-86 642.67,-89.5 642.67,-82.5"/>
+<!-- Node13&#45;&gt;Node14 -->
+<g id="edge13" class="edge">
+<title>Node13&#45;&gt;Node14</title>
+<path fill="none" stroke="midnightblue" d="M645.29,-124C670.31,-124 699.22,-124 720.79,-124"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="645.2,-120.5 635.2,-124 645.2,-127.5 645.2,-120.5"/>
 </g>
-<!-- Node17 -->
-<g id="node17" class="node">
-<title>Node17</title>
-<g id="a_node17"><a xlink:href="classSc18Is602.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="721,-38.5 721,-57.5 787,-57.5 787,-38.5 721,-38.5"/>
-<text text-anchor="middle" x="754" y="-45.5" font-family="Helvetica,sans-Serif" font-size="10.00">Sc18Is602</text>
+<!-- Node16 -->
+<g id="node16" class="node">
+<title>Node16</title>
+<g id="a_node16"><a xlink:href="classSi5394I2c.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="722,-76.5 722,-95.5 786,-95.5 786,-76.5 722,-76.5"/>
+<text text-anchor="middle" x="754" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">Si5394I2c</text>
 </a>
 </g>
 </g>
-<!-- Node16&#45;&gt;Node17 -->
-<g id="edge16" class="edge">
-<title>Node16&#45;&gt;Node17</title>
-<path fill="none" stroke="midnightblue" d="M645.29,-48C670.31,-48 699.22,-48 720.79,-48"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="645.2,-44.5 635.2,-48 645.2,-51.5 645.2,-44.5"/>
+<!-- Node15&#45;&gt;Node16 -->
+<g id="edge15" class="edge">
+<title>Node15&#45;&gt;Node16</title>
+<path fill="none" stroke="midnightblue" d="M643.53,-86C669.38,-86 699.73,-86 721.91,-86"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="643.51,-82.5 633.51,-86 643.51,-89.5 643.51,-82.5"/>
 </g>
 <!-- Node19 -->
 <g id="node19" class="node">
 <title>Node19</title>
-<g id="a_node19"><a xlink:href="classSi5394I2c.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="722,-0.5 722,-19.5 786,-19.5 786,-0.5 722,-0.5"/>
-<text text-anchor="middle" x="754" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">Si5394I2c</text>
+<g id="a_node19"><a xlink:href="classAxiLitePMbusMaster.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="696,-0.5 696,-19.5 812,-19.5 812,-0.5 696,-0.5"/>
+<text text-anchor="middle" x="754" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLitePMbusMaster</text>
 </a>
 </g>
 </g>
 <!-- Node18&#45;&gt;Node19 -->
-<g id="edge18" class="edge">
+<g id="edge21" class="edge">
 <title>Node18&#45;&gt;Node19</title>
-<path fill="none" stroke="midnightblue" d="M643.53,-10C669.38,-10 699.73,-10 721.91,-10"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="643.51,-6.5 633.51,-10 643.51,-13.5 643.51,-6.5"/>
+<path fill="none" stroke="midnightblue" d="M670.5,-10C679.08,-10 687.69,-10 695.94,-10"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="670.46,-6.5 660.46,-10 670.46,-13.5 670.46,-6.5"/>
 </g>
 </g>
 </svg>

@@ -1,7 +1,7 @@
 <map id="UdpDebugBridge" name="UdpDebugBridge">
 <area shape="rect" id="node1" title=" " alt="" coords="88,304,220,331"/>
 <area shape="rect" id="node7" href="$classUdpDebugBridgeWrapper.html" title=" " alt="" coords="61,379,247,405"/>
-<area shape="rect" id="node2" href="$classAxisJtagDebugBridge.html" title=" " alt="" coords="65,229,243,256"/>
+<area shape="rect" id="node2" href="$classAxisJtagDebugBridge.html" title=" " alt="" coords="75,229,233,256"/>
 <area shape="rect" id="node3" href="$classAxisToJtag.html" title=" " alt="" coords="109,155,199,181"/>
 <area shape="rect" id="node4" href="$classAxiStreamSelector.html" title=" " alt="" coords="5,80,148,107"/>
 <area shape="rect" id="node5" href="$classAxisToJtagCore.html" title=" " alt="" coords="172,80,291,107"/>

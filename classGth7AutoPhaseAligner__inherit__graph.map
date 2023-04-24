@@ -1,7 +1,7 @@
 <map id="Gth7AutoPhaseAligner" name="Gth7AutoPhaseAligner">
 <area shape="rect" id="node1" title=" " alt="" coords="119,80,287,107"/>
 <area shape="rect" id="node3" href="$classGth7Core.html" title=" " alt="" coords="161,155,244,181"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="141,5,265,32"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="149,5,256,32"/>
 <area shape="rect" id="node4" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="44,229,188,256"/>
 <area shape="rect" id="node6" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="216,229,373,256"/>
 <area shape="rect" id="node5" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="5,304,208,331"/>

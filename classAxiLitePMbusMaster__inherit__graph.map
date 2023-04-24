@@ -1,9 +1,9 @@
 <map id="AxiLitePMbusMaster" name="AxiLitePMbusMaster">
-<area shape="rect" id="node1" title=" " alt="" coords="111,379,266,405"/>
+<area shape="rect" id="node1" title=" " alt="" coords="106,379,261,405"/>
 <area shape="rect" id="node2" href="$classAxiLitePMbusMasterCore.html" title=" " alt="" coords="5,304,191,331"/>
 <area shape="rect" id="node3" href="$classI2cRegMaster.html" title=" " alt="" coords="43,229,153,256"/>
 <area shape="rect" id="node4" href="$classI2cMaster.html" title=" " alt="" coords="55,155,141,181"/>
 <area shape="rect" id="node5" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="19,80,177,107"/>
 <area shape="rect" id="node6" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="25,5,171,32"/>
-<area shape="rect" id="node7" href="$classIoBufWrapper.html" title=" " alt="" coords="215,304,344,331"/>
+<area shape="rect" id="node7" href="$classIoBufWrapper.html" title=" " alt="" coords="215,304,325,331"/>
 </map>

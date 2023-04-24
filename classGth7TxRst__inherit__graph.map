@@ -1,12 +1,11 @@
 <map id="Gth7TxRst" name="Gth7TxRst">
 <area shape="rect" id="node1" title=" " alt="" coords="157,155,248,181"/>
-<area shape="rect" id="node5" href="$classGth7Core.html" title=" " alt="" coords="161,229,244,256"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="63,80,187,107"/>
-<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="212,80,351,107"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="228,5,335,32"/>
-<area shape="rect" id="node6" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="44,304,188,331"/>
-<area shape="rect" id="node8" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="216,304,373,331"/>
-<area shape="rect" id="node7" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="5,379,208,405"/>
-<area shape="rect" id="node9" href="$classPgp2bGth7VarLat.html" title=" " alt="" coords="233,379,367,405"/>
-<area shape="rect" id="node10" href="$classPgp2bGth7VarLatWrapper.html" title=" " alt="" coords="205,453,395,480"/>
+<area shape="rect" id="node4" href="$classGth7Core.html" title=" " alt="" coords="161,229,244,256"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="149,5,256,32"/>
+<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="187,80,325,107"/>
+<area shape="rect" id="node5" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="44,304,188,331"/>
+<area shape="rect" id="node7" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="216,304,373,331"/>
+<area shape="rect" id="node6" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="5,379,208,405"/>
+<area shape="rect" id="node8" href="$classPgp2bGth7VarLat.html" title=" " alt="" coords="233,379,367,405"/>
+<area shape="rect" id="node9" href="$classPgp2bGth7VarLatWrapper.html" title=" " alt="" coords="205,453,395,480"/>
 </map>

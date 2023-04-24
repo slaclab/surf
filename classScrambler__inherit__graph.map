@@ -1,12 +1,12 @@
 <map id="Scrambler" name="Scrambler">
-<area shape="rect" id="node1" title=" " alt="" coords="5,208,93,235"/>
-<area shape="rect" id="node2" href="$classPgp3Rx.html" title=" " alt="" coords="153,145,224,172"/>
-<area shape="rect" id="node14" href="$classPgp3Tx.html" title=" " alt="" coords="153,95,224,121"/>
-<area shape="rect" id="node15" href="$classPgp4Rx.html" title=" " alt="" coords="153,259,224,285"/>
-<area shape="rect" id="node29" href="$classPgp4Tx.html" title=" " alt="" coords="153,208,224,235"/>
-<area shape="rect" id="node30" href="$classPgp4TxLite.html" title=" " alt="" coords="141,335,236,361"/>
-<area shape="rect" id="node3" href="$classPgp3Core.html" title=" " alt="" coords="317,120,401,147"/>
-<area shape="rect" id="node13" href="$classPgp3Tb.html" title=" " alt="" coords="323,69,394,96"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,233,93,260"/>
+<area shape="rect" id="node2" href="$classPgp3Rx.html" title=" " alt="" coords="153,183,224,209"/>
+<area shape="rect" id="node14" href="$classPgp3Tx.html" title=" " alt="" coords="153,132,224,159"/>
+<area shape="rect" id="node15" href="$classPgp4Rx.html" title=" " alt="" coords="153,284,224,311"/>
+<area shape="rect" id="node29" href="$classPgp4Tx.html" title=" " alt="" coords="153,233,224,260"/>
+<area shape="rect" id="node30" href="$classPgp4TxLite.html" title=" " alt="" coords="141,360,236,387"/>
+<area shape="rect" id="node3" href="$classPgp3Core.html" title=" " alt="" coords="317,157,401,184"/>
+<area shape="rect" id="node13" href="$classPgp3Tb.html" title=" " alt="" coords="323,107,394,133"/>
 <area shape="rect" id="node4" href="$classPgp3GthUs.html" title=" " alt="" coords="496,157,591,184"/>
 <area shape="rect" id="node6" href="$classPgp3Gtp7.html" title=" " alt="" coords="501,5,586,32"/>
 <area shape="rect" id="node9" href="$classPgp3Gtx7.html" title=" " alt="" coords="501,56,586,83"/>

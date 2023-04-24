@@ -1,6 +1,6 @@
 <map id="PgpParallelSimModel" name="PgpParallelSimModel">
 <area shape="rect" id="node1" title=" " alt="" coords="548,233,707,260"/>
-<area shape="rect" id="node2" href="$classSlvDelay.html" title=" " alt="" coords="393,157,491,184"/>
+<area shape="rect" id="node2" href="$classSlvDelay.html" title=" " alt="" coords="402,157,482,184"/>
 <area shape="rect" id="node3" href="$classDecoder8b10b.html" title=" " alt="" coords="384,208,500,235"/>
 <area shape="rect" id="node4" href="$classPgp2bLane.html" title=" " alt="" coords="395,259,489,285"/>
 <area shape="rect" id="node5" href="$classPgp2bTx.html" title=" " alt="" coords="229,183,307,209"/>

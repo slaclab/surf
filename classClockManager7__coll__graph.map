@@ -1,16 +1,15 @@
 <map id="ClockManager7" name="ClockManager7">
-<area shape="rect" id="node1" title=" " alt="" coords="877,259,1000,285"/>
-<area shape="rect" id="node2" href="$classAxiLiteToDrp.html" title=" " alt="" coords="702,233,806,260"/>
-<area shape="rect" id="node3" href="$classAxiLiteAsync.html" title=" " alt="" coords="524,233,631,260"/>
-<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="197,309,289,336"/>
-<area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="373,183,476,209"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="5,309,112,336"/>
-<area shape="rect" id="node7" href="$classSynchronizerVector.html" title=" " alt="" coords="160,5,325,32"/>
-<area shape="rect" id="node8" href="$classSynchronizer.html" title=" " alt="" coords="181,56,305,83"/>
-<area shape="rect" id="node9" href="$classFifoWrFsm.html" title=" " alt="" coords="197,107,289,133"/>
-<area shape="rect" id="node10" href="$classFifoRdFsm.html" title=" " alt="" coords="197,157,288,184"/>
-<area shape="rect" id="node11" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,208,319,235"/>
-<area shape="rect" id="node12" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,259,314,285"/>
-<area shape="rect" id="node13" href="$classMmcmEmulation.html" title=" " alt="" coords="679,284,829,311"/>
-<area shape="rect" id="node14" href="$classClkRst.html" title=" " alt="" coords="545,284,609,311"/>
+<area shape="rect" id="node1" title=" " alt="" coords="831,81,953,108"/>
+<area shape="rect" id="node2" href="$classAxiLiteToDrp.html" title=" " alt="" coords="664,56,768,83"/>
+<area shape="rect" id="node3" href="$classAxiLiteAsync.html" title=" " alt="" coords="495,56,601,83"/>
+<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="199,5,274,32"/>
+<area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="361,132,447,159"/>
+<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="5,31,112,57"/>
+<area shape="rect" id="node7" href="$classSynchronizerVector.html" title=" " alt="" coords="163,107,310,133"/>
+<area shape="rect" id="node8" href="$classFifoWrFsm.html" title=" " alt="" coords="191,157,283,184"/>
+<area shape="rect" id="node9" href="$classFifoRdFsm.html" title=" " alt="" coords="191,208,282,235"/>
+<area shape="rect" id="node10" href="$classSimpleDualPortRam.html" title=" " alt="" coords="160,259,313,285"/>
+<area shape="rect" id="node11" href="$classFifoOutputPipeline.html" title=" " alt="" coords="165,309,308,336"/>
+<area shape="rect" id="node12" href="$classMmcmEmulation.html" title=" " alt="" coords="649,107,783,133"/>
+<area shape="rect" id="node13" href="$classClkRst.html" title=" " alt="" coords="516,107,580,133"/>
 </map>

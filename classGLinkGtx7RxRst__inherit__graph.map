@@ -1,9 +1,8 @@
 <map id="GLinkGtx7RxRst" name="GLinkGtx7RxRst">
-<area shape="rect" id="node1" title=" " alt="" coords="81,155,209,181"/>
-<area shape="rect" id="node5" href="$classGLinkGtx7Core.html" title=" " alt="" coords="85,229,205,256"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="5,80,129,107"/>
-<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="154,80,293,107"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="170,5,277,32"/>
-<area shape="rect" id="node6" href="$classGLinkGtx7FixedLat.html" title=" " alt="" coords="73,304,217,331"/>
-<area shape="rect" id="node7" href="$classGLinkGtx7FixedLatTb.html" title=" " alt="" coords="65,379,225,405"/>
+<area shape="rect" id="node1" title=" " alt="" coords="21,155,149,181"/>
+<area shape="rect" id="node4" href="$classGLinkGtx7Core.html" title=" " alt="" coords="25,229,145,256"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="32,5,139,32"/>
+<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="69,80,208,107"/>
+<area shape="rect" id="node5" href="$classGLinkGtx7FixedLat.html" title=" " alt="" coords="13,304,157,331"/>
+<area shape="rect" id="node6" href="$classGLinkGtx7FixedLatTb.html" title=" " alt="" coords="5,379,165,405"/>
 </map>

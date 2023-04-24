@@ -13,8 +13,8 @@
 <g id="node1" class="node">
 <title>Node1</title>
 <g id="a_node1"><a xlink:title=" ">
-<polygon fill="#bfbfbf" stroke="black" points="210.5,-0.5 210.5,-19.5 309.5,-19.5 309.5,-0.5 210.5,-0.5"/>
-<text text-anchor="middle" x="260" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiI2cRegMaster</text>
+<polygon fill="#bfbfbf" stroke="black" points="206.5,-0.5 206.5,-19.5 305.5,-19.5 305.5,-0.5 206.5,-0.5"/>
+<text text-anchor="middle" x="256" y="-7.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiI2cRegMaster</text>
 </a>
 </g>
 </g>
@@ -30,8 +30,8 @@
 <!-- Node2&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
 <title>Node2&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M213.99,-49.82C225.46,-40.15 239.91,-27.95 249.53,-19.83"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="211.67,-47.2 206.28,-56.32 216.18,-52.55 211.67,-47.2"/>
+<path fill="none" stroke="midnightblue" d="M213.18,-49.54C223.88,-39.91 237.26,-27.87 246.18,-19.83"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="210.73,-47.03 205.64,-56.32 215.41,-52.24 210.73,-47.03"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">
@@ -142,16 +142,16 @@
 <g id="node10" class="node">
 <title>Node10</title>
 <g id="a_node10"><a xlink:href="classIoBufWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="275.5,-56.5 275.5,-75.5 372.5,-75.5 372.5,-56.5 275.5,-56.5"/>
-<text text-anchor="middle" x="324" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">IoBufWrapper(2)</text>
+<polygon fill="white" stroke="black" points="275.5,-56.5 275.5,-75.5 358.5,-75.5 358.5,-56.5 275.5,-56.5"/>
+<text text-anchor="middle" x="317" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">IoBufWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node10&#45;&gt;Node1 -->
 <g id="edge9" class="edge">
 <title>Node10&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M306.01,-49.82C294.54,-40.15 280.09,-27.95 270.47,-19.83"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="303.82,-52.55 313.72,-56.32 308.33,-47.2 303.82,-52.55"/>
+<path fill="none" stroke="midnightblue" d="M299.53,-49.54C288.66,-39.91 275.06,-27.87 265.98,-19.83"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="297.39,-52.32 307.2,-56.32 302.03,-47.07 297.39,-52.32"/>
 </g>
 </g>
 </svg>

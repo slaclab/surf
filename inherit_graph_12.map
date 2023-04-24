@@ -1,4 +1,14 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classAxiSy56040Reg.html" title=" " alt="" coords="5,5,129,32"/>
-<area shape="rect" id="node2" href="$classAxiSy56040Core.html" title=" " alt="" coords="177,5,307,32"/>
+<area shape="rect" id="node1" href="$classAxiStreamSelector.html" title=" " alt="" coords="176,17,319,44"/>
+<area shape="rect" id="node2" href="$classAxisToJtag.html" title=" " alt="" coords="401,56,491,83"/>
+<area shape="rect" id="node8" href="$classAxiStreamSelectorTb.html" title=" " alt="" coords="367,5,525,32"/>
+<area shape="rect" id="node3" href="$classAxisJtagDebugBridge.html" title=" " alt="" coords="573,31,732,57"/>
+<area shape="rect" id="node7" href="$classAxisToJtagTb.html" title=" " alt="" coords="600,81,705,108"/>
+<area shape="rect" id="node4" href="$classAxisToJtagStubTb.html" title=" " alt="" coords="780,5,915,32"/>
+<area shape="rect" id="node5" href="$classUdpDebugBridge.html" title=" " alt="" coords="781,56,913,83"/>
+<area shape="rect" id="node6" href="$classUdpDebugBridgeWrapper.html" title=" " alt="" coords="963,56,1149,83"/>
+<area shape="rect" id="node9" href="$classJtagSerDesCore.html" title=" " alt="" coords="5,107,128,133"/>
+<area shape="rect" id="node10" href="$classAxisToJtagCore.html" title=" " alt="" coords="188,81,307,108"/>
+<area shape="rect" id="node12" href="$classJtagSerDesCoreTb.html" title=" " alt="" coords="178,132,317,159"/>
+<area shape="rect" id="node11" href="$classAxisToJtagCoreTb.html" title=" " alt="" coords="379,107,513,133"/>
 </map>

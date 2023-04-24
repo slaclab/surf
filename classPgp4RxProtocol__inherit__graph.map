@@ -1,12 +1,12 @@
 <map id="Pgp4RxProtocol" name="Pgp4RxProtocol">
-<area shape="rect" id="node1" title=" " alt="" coords="577,155,701,181"/>
-<area shape="rect" id="node4" href="$classPgp4Rx.html" title=" " alt="" coords="603,229,674,256"/>
-<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title=" " alt="" coords="569,80,708,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="585,5,692,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="457,155,581,181"/>
+<area shape="rect" id="node4" href="$classPgp4Rx.html" title=" " alt="" coords="483,229,554,256"/>
+<area shape="rect" id="node2" href="$classSynchronizerEdge.html" title=" " alt="" coords="449,80,588,107"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="465,5,572,32"/>
 <area shape="rect" id="node5" href="$classPgp4Core.html" title=" " alt="" coords="357,304,441,331"/>
-<area shape="rect" id="node14" href="$classPgp4CoreLite.html" title=" " alt="" coords="529,304,637,331"/>
-<area shape="rect" id="node16" href="$classPgp4Tb.html" title=" " alt="" coords="661,304,731,331"/>
-<area shape="rect" id="node17" href="$classPgp4TxLiteTb.html" title=" " alt="" coords="755,304,866,331"/>
+<area shape="rect" id="node14" href="$classPgp4CoreLite.html" title=" " alt="" coords="465,304,573,331"/>
+<area shape="rect" id="node16" href="$classPgp4Tb.html" title=" " alt="" coords="597,304,667,331"/>
+<area shape="rect" id="node17" href="$classPgp4TxLiteTb.html" title=" " alt="" coords="691,304,802,331"/>
 <area shape="rect" id="node6" href="$classPgp4GthUs.html" title=" " alt="" coords="74,379,169,405"/>
 <area shape="rect" id="node8" href="$classPgp4Gtp7.html" title=" " alt="" coords="220,379,305,405"/>
 <area shape="rect" id="node10" href="$classPgp4Gtx7.html" title=" " alt="" coords="356,379,441,405"/>

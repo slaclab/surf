@@ -1,12 +1,12 @@
 <map id="UartTx" name="UartTx">
-<area shape="rect" id="node1" title=" " alt="" coords="273,5,339,32"/>
-<area shape="rect" id="node2" href="$classClinkUart.html" title=" " alt="" coords="193,80,275,107"/>
-<area shape="rect" id="node7" href="$classUartWrapper.html" title=" " alt="" coords="444,80,549,107"/>
-<area shape="rect" id="node3" href="$classClinkCtrl.html" title=" " alt="" coords="5,155,84,181"/>
-<area shape="rect" id="node5" href="$classClinkFramerTb.html" title=" " alt="" coords="109,155,226,181"/>
-<area shape="rect" id="node6" href="$classClinkUartTb.html" title=" " alt="" coords="250,155,349,181"/>
-<area shape="rect" id="node4" href="$classClinkTop.html" title=" " alt="" coords="6,229,83,256"/>
-<area shape="rect" id="node8" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="373,155,513,181"/>
-<area shape="rect" id="node9" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="419,229,575,256"/>
-<area shape="rect" id="node10" href="$classUartSem.html" title=" " alt="" coords="589,155,668,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="205,5,271,32"/>
+<area shape="rect" id="node2" href="$classUartWrapper.html" title=" " alt="" coords="185,80,291,107"/>
+<area shape="rect" id="node6" href="$classClinkUart.html" title=" " alt="" coords="345,80,427,107"/>
+<area shape="rect" id="node3" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="5,155,145,181"/>
+<area shape="rect" id="node4" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="52,229,208,256"/>
+<area shape="rect" id="node5" href="$classUartSem.html" title=" " alt="" coords="221,155,300,181"/>
+<area shape="rect" id="node7" href="$classClinkCtrl.html" title=" " alt="" coords="324,155,403,181"/>
+<area shape="rect" id="node9" href="$classClinkFramerTb.html" title=" " alt="" coords="427,155,545,181"/>
+<area shape="rect" id="node10" href="$classClinkUartTb.html" title=" " alt="" coords="569,155,667,181"/>
+<area shape="rect" id="node8" href="$classClinkTop.html" title=" " alt="" coords="325,229,402,256"/>
 </map>

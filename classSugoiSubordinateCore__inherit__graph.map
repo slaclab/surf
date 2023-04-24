@@ -1,9 +1,9 @@
 <map id="SugoiSubordinateCore" name="SugoiSubordinateCore">
-<area shape="rect" id="node1" title=" " alt="" coords="180,80,347,107"/>
-<area shape="rect" id="node6" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="163,155,364,181"/>
-<area shape="rect" id="node2" href="$classGearbox.html" title=" " alt="" coords="5,5,100,32"/>
-<area shape="rect" id="node3" href="$classDecoder8b10b.html" title=" " alt="" coords="124,5,240,32"/>
-<area shape="rect" id="node4" href="$classSugoiSubordinateFsm.html" title=" " alt="" coords="264,5,428,32"/>
-<area shape="rect" id="node5" href="$classEncoder8b10b.html" title=" " alt="" coords="453,5,567,32"/>
-<area shape="rect" id="node7" href="$classSugoiTopTb.html" title=" " alt="" coords="215,229,311,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="163,80,330,107"/>
+<area shape="rect" id="node6" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="146,155,347,181"/>
+<area shape="rect" id="node2" href="$classGearbox.html" title=" " alt="" coords="5,5,83,32"/>
+<area shape="rect" id="node3" href="$classDecoder8b10b.html" title=" " alt="" coords="107,5,223,32"/>
+<area shape="rect" id="node4" href="$classSugoiSubordinateFsm.html" title=" " alt="" coords="247,5,411,32"/>
+<area shape="rect" id="node5" href="$classEncoder8b10b.html" title=" " alt="" coords="436,5,551,32"/>
+<area shape="rect" id="node7" href="$classSugoiTopTb.html" title=" " alt="" coords="199,229,295,256"/>
 </map>

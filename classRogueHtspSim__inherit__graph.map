@@ -1,16 +1,16 @@
 <map id="RogueHtspSim" name="RogueHtspSim">
-<area shape="rect" id="node1" title=" " alt="" coords="365,229,483,256"/>
-<area shape="rect" id="node13" href="$classHtspCaui4Gty.html" title=" " alt="" coords="368,304,480,331"/>
-<area shape="rect" id="node2" href="$classPwrUpRst.html" title=" " alt="" coords="159,155,244,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="353,229,471,256"/>
+<area shape="rect" id="node13" href="$classHtspCaui4Gty.html" title=" " alt="" coords="356,304,468,331"/>
+<area shape="rect" id="node2" href="$classPwrUpRst.html" title=" " alt="" coords="151,155,236,181"/>
 <area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="21,80,96,107"/>
 <area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,32"/>
-<area shape="rect" id="node5" href="$classRogueTcpStreamWrap.html" title=" " alt="" coords="341,155,507,181"/>
+<area shape="rect" id="node5" href="$classRogueTcpStreamWrap.html" title=" " alt="" coords="329,155,495,181"/>
 <area shape="rect" id="node6" href="$classAxiStreamDeMux.html" title=" " alt="" coords="120,80,256,107"/>
-<area shape="rect" id="node7" href="$classAxiStreamPipeline.html" title=" " alt="" coords="285,5,427,32"/>
-<area shape="rect" id="node8" href="$classAxiStreamResize.html" title=" " alt="" coords="281,80,431,107"/>
-<area shape="rect" id="node10" href="$classAxiStreamMux.html" title=" " alt="" coords="455,80,574,107"/>
-<area shape="rect" id="node9" href="$classRogueTcpStream.html" title=" " alt="" coords="597,80,728,107"/>
-<area shape="rect" id="node11" href="$classRogueSideBandWrap.html" title=" " alt="" coords="667,155,826,181"/>
-<area shape="rect" id="node12" href="$classRogueSideBand.html" title=" " alt="" coords="753,80,877,107"/>
-<area shape="rect" id="node14" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="360,379,488,405"/>
+<area shape="rect" id="node7" href="$classAxiStreamPipeline.html" title=" " alt="" coords="275,5,418,32"/>
+<area shape="rect" id="node8" href="$classAxiStreamResize.html" title=" " alt="" coords="280,80,413,107"/>
+<area shape="rect" id="node10" href="$classAxiStreamMux.html" title=" " alt="" coords="438,80,557,107"/>
+<area shape="rect" id="node9" href="$classRogueTcpStream.html" title=" " alt="" coords="580,80,711,107"/>
+<area shape="rect" id="node11" href="$classRogueSideBandWrap.html" title=" " alt="" coords="651,155,810,181"/>
+<area shape="rect" id="node12" href="$classRogueSideBand.html" title=" " alt="" coords="735,80,859,107"/>
+<area shape="rect" id="node14" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="348,379,476,405"/>
 </map>

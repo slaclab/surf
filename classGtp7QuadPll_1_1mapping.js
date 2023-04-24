@@ -8,12 +8,12 @@ var classGtp7QuadPll_1_1mapping =
     [ "gtWestRefClk1", "classGtp7QuadPll_1_1mapping.html#a8b92f32d41d4235388dbbeac3be0c8c2", null ],
     [ "gtGRefClk0", "classGtp7QuadPll_1_1mapping.html#a2352ca97fddf1a50d454145df286c1e8", null ],
     [ "gtGRefClk1", "classGtp7QuadPll_1_1mapping.html#a6783da0e9e1b6c418e76f15f357d6861", null ],
-    [ "drpEn", "classGtp7QuadPll_1_1mapping.html#ac954cdfb38167edb6f81eedcba6738be", null ],
-    [ "drpWe", "classGtp7QuadPll_1_1mapping.html#a6467be1f1f6fa8e475af1418accdd1b3", null ],
-    [ "drpRdy", "classGtp7QuadPll_1_1mapping.html#a049e44bbf215e36cea1560a83ca89184", null ],
-    [ "drpAddr", "classGtp7QuadPll_1_1mapping.html#a0743ac1047a7294a49f942dd56d7e835", null ],
-    [ "drpDi", "classGtp7QuadPll_1_1mapping.html#a0150690dedafdf5cb68bf73b2a17c38f", null ],
-    [ "drpDo", "classGtp7QuadPll_1_1mapping.html#adb6c399bd7353e4be39adbe07cb80161", null ],
+    [ "drpEn", "classGtp7QuadPll_1_1mapping.html#a84968a4130f21c5deece87a9db6da1fd", null ],
+    [ "drpWe", "classGtp7QuadPll_1_1mapping.html#a28aa3bbb59d79e2cc1a927c0c0ac3bc5", null ],
+    [ "drpRdy", "classGtp7QuadPll_1_1mapping.html#a733bd3395a67dec5fddd2f3b28847ecb", null ],
+    [ "drpAddr", "classGtp7QuadPll_1_1mapping.html#a96f8c3e19001d0c85fd48c1ce28296e1", null ],
+    [ "drpDi", "classGtp7QuadPll_1_1mapping.html#ab19345e7146c3784d58e415939d1eeb4", null ],
+    [ "drpDo", "classGtp7QuadPll_1_1mapping.html#a6a8356f2cc36126bca691ff4158f500d", null ],
     [ "gtpe2_common_0_i", "classGtp7QuadPll_1_1mapping.html#ae85c9568f4eab115d9e448116d2536fe", null ],
     [ "u_axilitetodrp", "classGtp7QuadPll_1_1mapping.html#acd904b950d70252271db56607e382010", null ]
 ];

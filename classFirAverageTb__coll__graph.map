@@ -1,12 +1,12 @@
 <map id="FirAverageTb" name="FirAverageTb">
-<area shape="rect" id="node1" title=" " alt="" coords="60,379,167,405"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="31,304,95,331"/>
-<area shape="rect" id="node3" href="$classFirAverage.html" title=" " alt="" coords="119,304,209,331"/>
+<area shape="rect" id="node1" title=" " alt="" coords="59,379,165,405"/>
+<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="29,304,93,331"/>
+<area shape="rect" id="node3" href="$classFirAverage.html" title=" " alt="" coords="117,304,208,331"/>
 <area shape="rect" id="node4" href="$classSlvFixedDelay.html" title=" " alt="" coords="59,155,173,181"/>
-<area shape="rect" id="node8" href="$classsfixedDelay.html" title=" " alt="" coords="106,229,222,256"/>
+<area shape="rect" id="node8" href="$classsfixedDelay.html" title=" " alt="" coords="113,229,212,256"/>
 <area shape="rect" id="node5" href="$classSrl16Delay.html" title=" " alt="" coords="5,80,99,107"/>
 <area shape="rect" id="node6" href="$classLutFixedDelay.html" title=" " alt="" coords="123,80,237,107"/>
 <area shape="rect" id="node7" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="91,5,269,32"/>
-<area shape="rect" id="node9" href="$classadd3.html" title=" " alt="" coords="246,229,301,256"/>
-<area shape="rect" id="node10" href="$classcsa3.html" title=" " alt="" coords="247,155,299,181"/>
+<area shape="rect" id="node9" href="$classadd3.html" title=" " alt="" coords="237,229,291,256"/>
+<area shape="rect" id="node10" href="$classcsa3.html" title=" " alt="" coords="238,155,290,181"/>
 </map>

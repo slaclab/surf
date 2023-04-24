@@ -1,7 +1,7 @@
 <map id="CfixedAccumulator" name="CfixedAccumulator">
 <area shape="rect" id="node1" title=" " alt="" coords="44,304,188,331"/>
 <area shape="rect" id="node2" href="$classSfixedAccumulator.html" title=" " alt="" coords="45,229,187,256"/>
-<area shape="rect" id="node3" href="$classSlvFixedDelay.html" title=" " alt="" coords="50,155,182,181"/>
+<area shape="rect" id="node3" href="$classSlvFixedDelay.html" title=" " alt="" coords="59,155,173,181"/>
 <area shape="rect" id="node4" href="$classSrl16Delay.html" title=" " alt="" coords="5,80,99,107"/>
 <area shape="rect" id="node5" href="$classLutFixedDelay.html" title=" " alt="" coords="123,80,237,107"/>
 <area shape="rect" id="node6" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="91,5,269,32"/>

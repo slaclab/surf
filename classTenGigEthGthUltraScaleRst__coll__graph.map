@@ -1,7 +1,6 @@
 <map id="TenGigEthGthUltraScaleRst" name="TenGigEthGthUltraScaleRst">
-<area shape="rect" id="node1" title=" " alt="" coords="105,155,304,181"/>
-<area shape="rect" id="node2" href="$classRstPipeline.html" title=" " alt="" coords="5,80,119,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="143,80,267,107"/>
-<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="291,80,366,107"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="275,5,382,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="39,155,237,181"/>
+<area shape="rect" id="node2" href="$classRstPipeline.html" title=" " alt="" coords="5,80,100,107"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="122,5,229,32"/>
+<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="175,80,250,107"/>
 </map>

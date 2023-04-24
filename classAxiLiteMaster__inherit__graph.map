@@ -1,18 +1,18 @@
 <map id="AxiLiteMaster" name="AxiLiteMaster">
-<area shape="rect" id="node1" title=" " alt="" coords="5,185,117,212"/>
-<area shape="rect" id="node2" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="411,8,581,34"/>
-<area shape="rect" id="node3" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="189,58,339,85"/>
-<area shape="rect" id="node8" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="181,109,347,136"/>
-<area shape="rect" id="node9" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="173,160,355,186"/>
-<area shape="rect" id="node10" href="$classIpBusToAxiLite.html" title=" " alt="" coords="205,210,323,237"/>
-<area shape="rect" id="node12" href="$classPgp2fcAlignmentController.html" title=" " alt="" coords="165,261,363,288"/>
-<area shape="rect" id="node13" href="$classSlvArraytoAxiLite.html" title=" " alt="" coords="197,312,331,338"/>
-<area shape="rect" id="node14" href="$classUartAxiLiteMasterFsm.html" title=" " alt="" coords="180,362,348,389"/>
-<area shape="rect" id="node4" href="$classAxiI2cEeprom.html" title=" " alt="" coords="440,58,552,85"/>
-<area shape="rect" id="node5" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="415,109,577,136"/>
-<area shape="rect" id="node6" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="641,109,773,136"/>
-<area shape="rect" id="node7" href="$classSff8472.html" title=" " alt="" coords="833,109,904,136"/>
-<area shape="rect" id="node11" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="415,210,577,237"/>
-<area shape="rect" id="node15" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="426,362,566,389"/>
-<area shape="rect" id="node16" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="629,362,785,389"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,253,117,280"/>
+<area shape="rect" id="node2" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="189,52,339,79"/>
+<area shape="rect" id="node7" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="411,109,581,136"/>
+<area shape="rect" id="node8" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="181,177,347,204"/>
+<area shape="rect" id="node9" href="$classIpBusToAxiLite.html" title=" " alt="" coords="205,228,323,255"/>
+<area shape="rect" id="node11" href="$classSlvArraytoAxiLite.html" title=" " alt="" coords="197,279,331,305"/>
+<area shape="rect" id="node12" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="173,329,355,356"/>
+<area shape="rect" id="node13" href="$classUartAxiLiteMasterFsm.html" title=" " alt="" coords="180,380,348,407"/>
+<area shape="rect" id="node16" href="$classPgp2fcAlignmentController.html" title=" " alt="" coords="165,431,363,457"/>
+<area shape="rect" id="node3" href="$classAxiI2cEeprom.html" title=" " alt="" coords="440,5,552,32"/>
+<area shape="rect" id="node4" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="415,56,577,83"/>
+<area shape="rect" id="node5" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="641,56,773,83"/>
+<area shape="rect" id="node6" href="$classSff8472.html" title=" " alt="" coords="833,56,904,83"/>
+<area shape="rect" id="node10" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="415,228,577,255"/>
+<area shape="rect" id="node14" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="426,380,566,407"/>
+<area shape="rect" id="node15" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="629,380,785,407"/>
 </map>

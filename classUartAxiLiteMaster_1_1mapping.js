@@ -7,5 +7,7 @@ var classUartAxiLiteMaster_1_1mapping =
     [ "uartTxValid", "classUartAxiLiteMaster_1_1mapping.html#af4a984fca0ffd838b86807737f77cd57", null ],
     [ "uartTxReady", "classUartAxiLiteMaster_1_1mapping.html#af701348cb1ebfaa4a33ec42215537b2a", null ],
     [ "u_uartwrapper_1", "classUartAxiLiteMaster_1_1mapping.html#a5abea731d27ba8e8a040704132e78656", null ],
+    [ "u_fsm", "classUartAxiLiteMaster_1_1mapping.html#aff66981276b1762b0b50284269184321", null ],
+    [ "u_uartwrapper_1", "classUartAxiLiteMaster_1_1mapping.html#a5abea731d27ba8e8a040704132e78656", null ],
     [ "u_fsm", "classUartAxiLiteMaster_1_1mapping.html#aff66981276b1762b0b50284269184321", null ]
 ];

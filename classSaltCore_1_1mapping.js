@@ -1,11 +1,11 @@
 var classSaltCore_1_1mapping =
 [
-    [ "txEn", "classSaltCore_1_1mapping.html#a258822859cfd1ca8469035d105bc244e", null ],
-    [ "txData", "classSaltCore_1_1mapping.html#ab4c73d4c432ae02b2304b2aca5a644c4", null ],
-    [ "rxEn", "classSaltCore_1_1mapping.html#a192709740d2858f90b908f624bd11264", null ],
-    [ "rxErr", "classSaltCore_1_1mapping.html#a00a3cd34c88413274c7844e77de3099a", null ],
-    [ "rxData", "classSaltCore_1_1mapping.html#a4a31d665a8403407f8696b05b8b849ea", null ],
-    [ "rxLinkUp", "classSaltCore_1_1mapping.html#ad6e1f389d294bdf3afe8c4878b035bd0", null ],
+    [ "txEn", "classSaltCore_1_1mapping.html#a79b164320be3b69494187d259c9b3342", null ],
+    [ "txData", "classSaltCore_1_1mapping.html#a9e3cf136e72bc1b1fa99bb7b4ee3b036", null ],
+    [ "rxEn", "classSaltCore_1_1mapping.html#a638599c1f4781af230e026757fb6f1ad", null ],
+    [ "rxErr", "classSaltCore_1_1mapping.html#a81ad475c10df290af9f153199f30ecae", null ],
+    [ "rxData", "classSaltCore_1_1mapping.html#a5e2cae3a1e0a82d8b296b7dc1bcf348a", null ],
+    [ "rxLinkUp", "classSaltCore_1_1mapping.html#a30cb3296feadca3d08c7c23f68849085", null ],
     [ "u_salttxlvds", "classSaltCore_1_1mapping.html#a6ce4e0e7f5cd417eaff79df32a5f81be", null ],
     [ "u_salttx", "classSaltCore_1_1mapping.html#ae8c85406718a20c0bf39fcda00e4573c", null ],
     [ "u_saltrxlvds", "classSaltCore_1_1mapping.html#a81f6514f2575534fee75b4c748405388", null ],

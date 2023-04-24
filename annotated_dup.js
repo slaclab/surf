@@ -125,7 +125,6 @@ var annotated_dup =
     [ "AxiStreamDmaV2Write", "classAxiStreamDmaV2Write.html", "classAxiStreamDmaV2Write" ],
     [ "AxiStreamDmaV2WriteMux", "classAxiStreamDmaV2WriteMux.html", "classAxiStreamDmaV2WriteMux" ],
     [ "AxiStreamDmaWrite", "classAxiStreamDmaWrite.html", "classAxiStreamDmaWrite" ],
-    [ "AxiStreamFifo", "classAxiStreamFifo.html", "classAxiStreamFifo" ],
     [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", "classAxiStreamFifoV2" ],
     [ "AxiStreamFlush", "classAxiStreamFlush.html", "classAxiStreamFlush" ],
     [ "AxiStreamFlushTb", "classAxiStreamFlushTb.html", "classAxiStreamFlushTb" ],

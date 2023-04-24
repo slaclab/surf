@@ -1,15 +1,16 @@
 <map id="LutFixedDelay" name="LutFixedDelay">
-<area shape="rect" id="node1" title=" " alt="" coords="221,80,336,107"/>
-<area shape="rect" id="node3" href="$classSlvFixedDelay.html" title=" " alt="" coords="221,155,336,181"/>
-<area shape="rect" id="node2" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="190,5,367,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="247,80,361,107"/>
+<area shape="rect" id="node3" href="$classSlvFixedDelay.html" title=" " alt="" coords="247,155,361,181"/>
+<area shape="rect" id="node2" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="215,5,393,32"/>
 <area shape="rect" id="node4" href="$classcfixedDelay.html" title=" " alt="" coords="5,229,104,256"/>
 <area shape="rect" id="node5" href="$classSinCosTaylor.html" title=" " alt="" coords="89,304,194,331"/>
-<area shape="rect" id="node7" href="$classFirAverage.html" title=" " alt="" coords="291,229,381,256"/>
-<area shape="rect" id="node9" href="$classIirSimple.html" title=" " alt="" coords="405,229,485,256"/>
-<area shape="rect" id="node11" href="$classSfixedAccumulator.html" title=" " alt="" coords="514,229,657,256"/>
-<area shape="rect" id="node13" href="$classSinCosLut.html" title=" " alt="" coords="179,229,266,256"/>
+<area shape="rect" id="node7" href="$classFirAverage.html" title=" " alt="" coords="264,304,355,331"/>
+<area shape="rect" id="node9" href="$classIirSimple.html" title=" " alt="" coords="400,304,480,331"/>
+<area shape="rect" id="node11" href="$classSfixedAccumulator.html" title=" " alt="" coords="515,229,658,256"/>
+<area shape="rect" id="node13" href="$classsfixedDelay.html" title=" " alt="" coords="341,229,440,256"/>
+<area shape="rect" id="node14" href="$classSinCosLut.html" title=" " alt="" coords="179,229,266,256"/>
 <area shape="rect" id="node6" href="$classSinCosLutTb.html" title=" " alt="" coords="90,379,193,405"/>
-<area shape="rect" id="node8" href="$classFirAverageTb.html" title=" " alt="" coords="267,304,373,331"/>
-<area shape="rect" id="node10" href="$classIirSimpleTb.html" title=" " alt="" coords="397,304,493,331"/>
-<area shape="rect" id="node12" href="$classCfixedAccumulator.html" title=" " alt="" coords="517,304,661,331"/>
+<area shape="rect" id="node8" href="$classFirAverageTb.html" title=" " alt="" coords="256,379,363,405"/>
+<area shape="rect" id="node10" href="$classIirSimpleTb.html" title=" " alt="" coords="392,379,488,405"/>
+<area shape="rect" id="node12" href="$classCfixedAccumulator.html" title=" " alt="" coords="515,304,659,331"/>
 </map>

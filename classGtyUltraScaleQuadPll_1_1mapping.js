@@ -7,12 +7,12 @@ var classGtyUltraScaleQuadPll_1_1mapping =
     [ "gtSouthRefClk0", "classGtyUltraScaleQuadPll_1_1mapping.html#a4d8dd0142d705631dee218763174c0fe", null ],
     [ "gtSouthRefClk1", "classGtyUltraScaleQuadPll_1_1mapping.html#aec4847029eb0a6e0dda741c77142d385", null ],
     [ "gtGRefClk", "classGtyUltraScaleQuadPll_1_1mapping.html#a5fbc460e535f0d092d823cdf06c923c9", null ],
-    [ "drpEn", "classGtyUltraScaleQuadPll_1_1mapping.html#ac954cdfb38167edb6f81eedcba6738be", null ],
-    [ "drpWe", "classGtyUltraScaleQuadPll_1_1mapping.html#a6467be1f1f6fa8e475af1418accdd1b3", null ],
-    [ "drpRdy", "classGtyUltraScaleQuadPll_1_1mapping.html#a049e44bbf215e36cea1560a83ca89184", null ],
-    [ "drpAddr", "classGtyUltraScaleQuadPll_1_1mapping.html#ac874cda23ab2a58ae8f7201b8f3966c0", null ],
-    [ "drpDi", "classGtyUltraScaleQuadPll_1_1mapping.html#a0150690dedafdf5cb68bf73b2a17c38f", null ],
-    [ "drpDo", "classGtyUltraScaleQuadPll_1_1mapping.html#adb6c399bd7353e4be39adbe07cb80161", null ],
+    [ "drpEn", "classGtyUltraScaleQuadPll_1_1mapping.html#a84968a4130f21c5deece87a9db6da1fd", null ],
+    [ "drpWe", "classGtyUltraScaleQuadPll_1_1mapping.html#a28aa3bbb59d79e2cc1a927c0c0ac3bc5", null ],
+    [ "drpRdy", "classGtyUltraScaleQuadPll_1_1mapping.html#a733bd3395a67dec5fddd2f3b28847ecb", null ],
+    [ "drpAddr", "classGtyUltraScaleQuadPll_1_1mapping.html#aeaf594eb08dd929d2a8dda6288fd40dd", null ],
+    [ "drpDi", "classGtyUltraScaleQuadPll_1_1mapping.html#ab19345e7146c3784d58e415939d1eeb4", null ],
+    [ "drpDo", "classGtyUltraScaleQuadPll_1_1mapping.html#a6a8356f2cc36126bca691ff4158f500d", null ],
     [ "gtye4_common_inst", "classGtyUltraScaleQuadPll_1_1mapping.html#a3bdd527209cd7bf1373f3affac25163f", null ],
     [ "u_axilitetodrp", "classGtyUltraScaleQuadPll_1_1mapping.html#acd904b950d70252271db56607e382010", null ]
 ];

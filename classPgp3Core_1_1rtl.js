@@ -9,5 +9,8 @@ var classPgp3Core_1_1rtl =
     [ "pgpRxOutInt", "classPgp3Core_1_1rtl.html#a85b78c8be94c02c673049ab0ad4d4e31", null ],
     [ "u_pgp3tx_1", "classPgp3Core_1_1rtl.html#adc26e1ee3324332c0ca3a58b3dab9385", null ],
     [ "u_pgp3rx_1", "classPgp3Core_1_1rtl.html#a1ad306a278a24936af552b973dacd974", null ],
+    [ "u_pgp3axi_1", "classPgp3Core_1_1rtl.html#a61ef72217b9dfb5f6c56d4ff3298083e", null ],
+    [ "u_pgp3tx_1", "classPgp3Core_1_1rtl.html#adc26e1ee3324332c0ca3a58b3dab9385", null ],
+    [ "u_pgp3rx_1", "classPgp3Core_1_1rtl.html#a1ad306a278a24936af552b973dacd974", null ],
     [ "u_pgp3axi_1", "classPgp3Core_1_1rtl.html#a61ef72217b9dfb5f6c56d4ff3298083e", null ]
 ];

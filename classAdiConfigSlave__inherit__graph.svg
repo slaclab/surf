@@ -52,8 +52,8 @@
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="classSynchronizerEdge.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="26,-168.5 26,-187.5 143,-187.5 143,-168.5 26,-168.5"/>
-<text text-anchor="middle" x="84.5" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">SynchronizerEdge(3)</text>
+<polygon fill="white" stroke="black" points="32.5,-168.5 32.5,-187.5 136.5,-187.5 136.5,-168.5 32.5,-168.5"/>
+<text text-anchor="middle" x="84.5" y="-175.5" font-family="Helvetica,sans-Serif" font-size="10.00">SynchronizerEdge</text>
 </a>
 </g>
 </g>

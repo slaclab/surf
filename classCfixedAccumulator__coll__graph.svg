@@ -37,8 +37,8 @@
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:href="classSlvFixedDelay.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="33.5,-112.5 33.5,-131.5 132.5,-131.5 132.5,-112.5 33.5,-112.5"/>
-<text text-anchor="middle" x="83" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">SlvFixedDelay(2)</text>
+<polygon fill="white" stroke="black" points="40,-112.5 40,-131.5 126,-131.5 126,-112.5 40,-112.5"/>
+<text text-anchor="middle" x="83" y="-119.5" font-family="Helvetica,sans-Serif" font-size="10.00">SlvFixedDelay</text>
 </a>
 </g>
 </g>

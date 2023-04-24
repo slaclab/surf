@@ -1,5 +1,5 @@
 <map id="HeartbeatTb" name="HeartbeatTb">
-<area shape="rect" id="node1" title=" " alt="" coords="54,80,157,107"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,5,88,32"/>
-<area shape="rect" id="node3" href="$classHeartbeat.html" title=" " alt="" coords="113,5,218,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="35,80,138,107"/>
+<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,5,69,32"/>
+<area shape="rect" id="node3" href="$classHeartbeat.html" title=" " alt="" coords="94,5,181,32"/>
 </map>

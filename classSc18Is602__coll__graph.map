@@ -1,9 +1,9 @@
 <map id="Sc18Is602" name="Sc18Is602">
-<area shape="rect" id="node1" title=" " alt="" coords="114,379,202,405"/>
+<area shape="rect" id="node1" title=" " alt="" coords="110,379,198,405"/>
 <area shape="rect" id="node2" href="$classSc18Is602Core.html" title=" " alt="" coords="25,304,144,331"/>
 <area shape="rect" id="node3" href="$classI2cRegMaster.html" title=" " alt="" coords="29,229,140,256"/>
 <area shape="rect" id="node4" href="$classI2cMaster.html" title=" " alt="" coords="41,155,128,181"/>
 <area shape="rect" id="node5" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="5,80,164,107"/>
 <area shape="rect" id="node6" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="11,5,158,32"/>
-<area shape="rect" id="node7" href="$classIoBufWrapper.html" title=" " alt="" coords="168,304,297,331"/>
+<area shape="rect" id="node7" href="$classIoBufWrapper.html" title=" " alt="" coords="168,304,279,331"/>
 </map>

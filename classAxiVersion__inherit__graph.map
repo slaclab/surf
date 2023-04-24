@@ -1,10 +1,10 @@
 <map id="AxiVersion" name="AxiVersion">
 <area shape="rect" id="node1" title=" " alt="" coords="885,144,976,171"/>
-<area shape="rect" id="node16" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="1044,43,1205,70"/>
-<area shape="rect" id="node17" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="1041,94,1208,120"/>
-<area shape="rect" id="node18" href="$classAxiVersionTb.html" title=" " alt="" coords="1071,144,1178,171"/>
-<area shape="rect" id="node19" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="1064,195,1185,222"/>
-<area shape="rect" id="node20" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="1024,246,1225,272"/>
+<area shape="rect" id="node16" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="1041,68,1208,95"/>
+<area shape="rect" id="node17" href="$classAxiVersionTb.html" title=" " alt="" coords="1071,119,1178,146"/>
+<area shape="rect" id="node18" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="1044,170,1205,196"/>
+<area shape="rect" id="node19" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="1064,220,1185,247"/>
+<area shape="rect" id="node20" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="1024,271,1225,298"/>
 <area shape="rect" id="node2" href="$classDeviceDna.html" title=" " alt="" coords="579,94,672,120"/>
 <area shape="rect" id="node3" href="$classDeviceDna7Series.html" title=" " alt="" coords="365,94,506,120"/>
 <area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="196,195,271,222"/>
@@ -19,5 +19,5 @@
 <area shape="rect" id="node8" href="$classDS2411Core.html" title=" " alt="" coords="735,144,837,171"/>
 <area shape="rect" id="node9" href="$classIoBufWrapper.html" title=" " alt="" coords="570,144,681,171"/>
 <area shape="rect" id="node10" href="$classIprog.html" title=" " alt="" coords="759,195,813,222"/>
-<area shape="rect" id="node21" href="$classSugoiTopTb.html" title=" " alt="" coords="1273,246,1369,272"/>
+<area shape="rect" id="node21" href="$classSugoiTopTb.html" title=" " alt="" coords="1273,271,1369,298"/>
 </map>

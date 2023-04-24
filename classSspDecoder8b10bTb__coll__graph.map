@@ -1,23 +1,22 @@
 <map id="SspDecoder8b10bTb" name="SspDecoder8b10bTb">
-<area shape="rect" id="node1" title=" " alt="" coords="875,107,1029,133"/>
-<area shape="rect" id="node2" href="$classSspEncoder8b10b.html" title=" " alt="" coords="689,56,826,83"/>
-<area shape="rect" id="node3" href="$classSspFramer.html" title=" " alt="" coords="537,56,627,83"/>
-<area shape="rect" id="node4" href="$classEncoder8b10b.html" title=" " alt="" coords="525,5,639,32"/>
-<area shape="rect" id="node5" href="$classFifoCascade.html" title=" " alt="" coords="707,107,808,133"/>
-<area shape="rect" id="node6" href="$classFifo.html" title=" " alt="" coords="550,107,614,133"/>
-<area shape="rect" id="node7" href="$classFifoXpm.html" title=" " alt="" coords="387,24,463,51"/>
-<area shape="rect" id="node8" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,17,314,44"/>
-<area shape="rect" id="node9" href="$classFifoAlteraMf.html" title=" " alt="" coords="373,81,476,108"/>
-<area shape="rect" id="node10" href="$classFifoAsync.html" title=" " alt="" coords="382,157,467,184"/>
-<area shape="rect" id="node18" href="$classFifoSync.html" title=" " alt="" coords="386,220,463,247"/>
-<area shape="rect" id="node11" href="$classRstSync.html" title=" " alt="" coords="197,68,289,95"/>
-<area shape="rect" id="node12" href="$classSynchronizer.html" title=" " alt="" coords="5,68,112,95"/>
-<area shape="rect" id="node13" href="$classSynchronizerVector.html" title=" " alt="" coords="160,119,325,145"/>
-<area shape="rect" id="node14" href="$classSynchronizer.html" title=" " alt="" coords="181,169,305,196"/>
-<area shape="rect" id="node15" href="$classFifoWrFsm.html" title=" " alt="" coords="197,220,289,247"/>
-<area shape="rect" id="node16" href="$classFifoRdFsm.html" title=" " alt="" coords="197,271,288,297"/>
-<area shape="rect" id="node17" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,321,319,348"/>
-<area shape="rect" id="node19" href="$classSspDecoder8b10b.html" title=" " alt="" coords="688,157,827,184"/>
-<area shape="rect" id="node20" href="$classDecoder8b10b.html" title=" " alt="" coords="524,208,640,235"/>
-<area shape="rect" id="node21" href="$classSspDeframer.html" title=" " alt="" coords="529,157,635,184"/>
+<area shape="rect" id="node1" title=" " alt="" coords="863,107,1017,133"/>
+<area shape="rect" id="node2" href="$classSspEncoder8b10b.html" title=" " alt="" coords="677,56,814,83"/>
+<area shape="rect" id="node3" href="$classSspFramer.html" title=" " alt="" coords="525,56,615,83"/>
+<area shape="rect" id="node4" href="$classEncoder8b10b.html" title=" " alt="" coords="513,5,627,32"/>
+<area shape="rect" id="node5" href="$classFifoCascade.html" title=" " alt="" coords="695,107,796,133"/>
+<area shape="rect" id="node6" href="$classFifo.html" title=" " alt="" coords="547,107,593,133"/>
+<area shape="rect" id="node7" href="$classFifoXpm.html" title=" " alt="" coords="375,24,451,51"/>
+<area shape="rect" id="node8" href="$classFifoOutputPipeline.html" title=" " alt="" coords="165,17,308,44"/>
+<area shape="rect" id="node9" href="$classFifoAlteraMf.html" title=" " alt="" coords="361,81,464,108"/>
+<area shape="rect" id="node10" href="$classFifoAsync.html" title=" " alt="" coords="370,157,455,184"/>
+<area shape="rect" id="node17" href="$classFifoSync.html" title=" " alt="" coords="374,220,451,247"/>
+<area shape="rect" id="node11" href="$classRstSync.html" title=" " alt="" coords="199,119,274,145"/>
+<area shape="rect" id="node12" href="$classSynchronizer.html" title=" " alt="" coords="5,93,112,120"/>
+<area shape="rect" id="node13" href="$classSynchronizerVector.html" title=" " alt="" coords="163,169,310,196"/>
+<area shape="rect" id="node14" href="$classFifoWrFsm.html" title=" " alt="" coords="191,220,283,247"/>
+<area shape="rect" id="node15" href="$classFifoRdFsm.html" title=" " alt="" coords="191,271,282,297"/>
+<area shape="rect" id="node16" href="$classSimpleDualPortRam.html" title=" " alt="" coords="160,321,313,348"/>
+<area shape="rect" id="node18" href="$classSspDecoder8b10b.html" title=" " alt="" coords="676,157,815,184"/>
+<area shape="rect" id="node19" href="$classDecoder8b10b.html" title=" " alt="" coords="512,208,628,235"/>
+<area shape="rect" id="node20" href="$classSspDeframer.html" title=" " alt="" coords="517,157,623,184"/>
 </map>

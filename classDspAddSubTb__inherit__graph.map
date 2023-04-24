@@ -1,6 +1,6 @@
 <map id="DspAddSubTb" name="DspAddSubTb">
-<area shape="rect" id="node1" title=" " alt="" coords="37,155,149,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="33,155,145,181"/>
 <area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,80,69,107"/>
-<area shape="rect" id="node3" href="$classDspAddSub.html" title=" " alt="" coords="93,80,208,107"/>
-<area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title=" " alt="" coords="79,5,222,32"/>
+<area shape="rect" id="node3" href="$classDspAddSub.html" title=" " alt="" coords="93,80,189,107"/>
+<area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title=" " alt="" coords="70,5,213,32"/>
 </map>

@@ -1,27 +1,25 @@
 <map id="Pgp3Rx" name="Pgp3Rx">
-<area shape="rect" id="node1" title=" " alt="" coords="995,151,1065,177"/>
-<area shape="rect" id="node2" href="$classPgp3RxGearboxAligner.html" title=" " alt="" coords="769,24,941,51"/>
-<area shape="rect" id="node3" href="$classScrambler.html" title=" " alt="" coords="811,75,899,101"/>
-<area shape="rect" id="node4" href="$classPgp3RxEb.html" title=" " alt="" coords="812,176,899,203"/>
-<area shape="rect" id="node5" href="$classSynchronizerFifo.html" title=" " alt="" coords="571,176,701,203"/>
-<area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="398,183,483,209"/>
-<area shape="rect" id="node7" href="$classRstSync.html" title=" " alt="" coords="197,56,289,83"/>
-<area shape="rect" id="node8" href="$classSynchronizer.html" title=" " alt="" coords="5,31,112,57"/>
-<area shape="rect" id="node16" href="$classSynchronizerEdge.html" title=" " alt="" coords="173,5,312,32"/>
-<area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="160,107,325,133"/>
-<area shape="rect" id="node10" href="$classSynchronizer.html" title=" " alt="" coords="181,157,305,184"/>
-<area shape="rect" id="node11" href="$classFifoWrFsm.html" title=" " alt="" coords="197,208,289,235"/>
-<area shape="rect" id="node12" href="$classFifoRdFsm.html" title=" " alt="" coords="197,259,288,285"/>
-<area shape="rect" id="node13" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,309,319,336"/>
-<area shape="rect" id="node14" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,360,314,387"/>
-<area shape="rect" id="node15" href="$classPgp3RxProtocol.html" title=" " alt="" coords="379,120,503,147"/>
-<area shape="rect" id="node17" href="$classAxiStreamDepacketizer2.html" title=" " alt="" coords="764,277,947,304"/>
-<area shape="rect" id="node18" href="$classAxiStreamPipeline.html" title=" " alt="" coords="556,227,716,253"/>
-<area shape="rect" id="node19" href="$classDualPortRam.html" title=" " alt="" coords="582,277,690,304"/>
-<area shape="rect" id="node20" href="$classTrueDualPortRam.html" title=" " alt="" coords="373,259,508,285"/>
-<area shape="rect" id="node21" href="$classLutRam.html" title=" " alt="" coords="405,309,477,336"/>
-<area shape="rect" id="node22" href="$classCrc32Parallel.html" title=" " alt="" coords="583,328,689,355"/>
-<area shape="rect" id="node23" href="$classCrc32.html" title=" " alt="" coords="607,379,665,405"/>
-<area shape="rect" id="node24" href="$classAxiStreamDeMux.html" title=" " alt="" coords="787,379,923,405"/>
-<area shape="rect" id="node25" href="$classAxiStreamPipeline.html" title=" " alt="" coords="565,429,707,456"/>
+<area shape="rect" id="node1" title=" " alt="" coords="965,193,1036,219"/>
+<area shape="rect" id="node2" href="$classPgp3RxGearboxAligner.html" title=" " alt="" coords="740,66,912,93"/>
+<area shape="rect" id="node3" href="$classScrambler.html" title=" " alt="" coords="782,117,870,143"/>
+<area shape="rect" id="node4" href="$classPgp3RxEb.html" title=" " alt="" coords="783,167,869,194"/>
+<area shape="rect" id="node5" href="$classSynchronizerFifo.html" title=" " alt="" coords="550,167,681,194"/>
+<area shape="rect" id="node6" href="$classFifoAsync.html" title=" " alt="" coords="386,162,471,189"/>
+<area shape="rect" id="node7" href="$classRstSync.html" title=" " alt="" coords="199,35,274,62"/>
+<area shape="rect" id="node8" href="$classSynchronizer.html" title=" " alt="" coords="5,35,112,62"/>
+<area shape="rect" id="node15" href="$classSynchronizerEdge.html" title=" " alt="" coords="167,339,306,366"/>
+<area shape="rect" id="node9" href="$classSynchronizerVector.html" title=" " alt="" coords="163,86,310,113"/>
+<area shape="rect" id="node10" href="$classFifoWrFsm.html" title=" " alt="" coords="191,137,283,163"/>
+<area shape="rect" id="node11" href="$classFifoRdFsm.html" title=" " alt="" coords="191,187,282,214"/>
+<area shape="rect" id="node12" href="$classSimpleDualPortRam.html" title=" " alt="" coords="160,238,313,265"/>
+<area shape="rect" id="node13" href="$classFifoOutputPipeline.html" title=" " alt="" coords="165,289,308,315"/>
+<area shape="rect" id="node14" href="$classPgp3RxProtocol.html" title=" " alt="" coords="367,225,491,251"/>
+<area shape="rect" id="node16" href="$classAxiStreamDepacketizer2.html" title=" " alt="" coords="735,319,917,346"/>
+<area shape="rect" id="node17" href="$classAxiStreamPipeline.html" title=" " alt="" coords="544,269,687,295"/>
+<area shape="rect" id="node23" href="$classAxiStreamDeMux.html" title=" " alt="" coords="758,269,894,295"/>
+<area shape="rect" id="node18" href="$classDualPortRam.html" title=" " alt="" coords="561,319,669,346"/>
+<area shape="rect" id="node19" href="$classTrueDualPortRam.html" title=" " alt="" coords="361,301,496,327"/>
+<area shape="rect" id="node20" href="$classLutRam.html" title=" " alt="" coords="393,351,465,378"/>
+<area shape="rect" id="node21" href="$classCrc32Parallel.html" title=" " alt="" coords="562,370,669,397"/>
+<area shape="rect" id="node22" href="$classCrc32.html" title=" " alt="" coords="586,421,645,447"/>
 </map>

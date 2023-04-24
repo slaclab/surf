@@ -21,7 +21,7 @@ var classTenGigEthGtx7_1_1mapping =
     [ "drpDi", "classTenGigEthGtx7_1_1mapping.html#ab09a6d70fc11763e764c5c91dffe8f96", null ],
     [ "drpRdy", "classTenGigEthGtx7_1_1mapping.html#ae6a608813a1d05b9600eb8d541ba0297", null ],
     [ "drpDo", "classTenGigEthGtx7_1_1mapping.html#adcb4885cd6dff25e73bab67851c78619", null ],
-    [ "configurationVector", "classTenGigEthGtx7_1_1mapping.html#a5804c190554b7be86165d18dfa1460fc", null ],
+    [ "configurationVector", "classTenGigEthGtx7_1_1mapping.html#aa14ec1bb4476a42a7863b4c916875035", null ],
     [ "config", "classTenGigEthGtx7_1_1mapping.html#a8d14b18d0cd74ed645b84400a5295530", null ],
     [ "status", "classTenGigEthGtx7_1_1mapping.html#a42173ca2f65f8c5ca8aac1021db5afb1", null ],
     [ "macRxAxisMaster", "classTenGigEthGtx7_1_1mapping.html#a82d75f2a37111903ea6cf9c0bf5463c0", null ],

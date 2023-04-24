@@ -1,10 +1,10 @@
 var classRogueTcpStreamWrap_1_1RogueTcpStreamWrap =
 [
     [ "channelMap", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#ac98a96733b9d3f4b86204b24c0c77b8a", null ],
-    [ "INT_CONFIG_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#aa6763fd4b308e07635196eb23d9a328b", null ],
-    [ "CHAN_COUNT_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a76af02d5b0a0d907e5020b734e144576", null ],
-    [ "CHAN_MASK_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a862b188aa2f2f5f7ad3d804af604937e", null ],
-    [ "CHAN_MAP_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a88c2a7694a24fd8c6ab134622fe83a71", null ],
+    [ "INT_CONFIG_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a966fb4022e848e0b64eaba40f448130e", null ],
+    [ "CHAN_COUNT_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a3c6d1aa609874fefb6e1423919fa1c3f", null ],
+    [ "CHAN_MASK_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#ad0594d3c003a670ab8cc3afc32b29a92", null ],
+    [ "CHAN_MAP_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a94c1192cf07f977069b2a4834c504fe5", null ],
     [ "dmMasters", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a4c005b46479e3ea2f8da4188fa2fa634", null ],
     [ "dmSlaves", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a1b74d47d08e50b82b4599e64fba0c0a5", null ],
     [ "ibMasters", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#ac97ec09b6702c1b2d4448e67a199f726", null ],

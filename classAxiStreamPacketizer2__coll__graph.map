@@ -1,9 +1,9 @@
 <map id="AxiStreamPacketizer2" name="AxiStreamPacketizer2">
-<area shape="rect" id="node1" title=" " alt="" coords="227,155,391,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,80,165,107"/>
-<area shape="rect" id="node3" href="$classDualPortRam.html" title=" " alt="" coords="190,80,298,107"/>
-<area shape="rect" id="node4" href="$classTrueDualPortRam.html" title=" " alt="" coords="113,5,247,32"/>
-<area shape="rect" id="node5" href="$classLutRam.html" title=" " alt="" coords="272,5,344,32"/>
-<area shape="rect" id="node6" href="$classCrc32Parallel.html" title=" " alt="" coords="323,80,429,107"/>
-<area shape="rect" id="node7" href="$classCrc32.html" title=" " alt="" coords="453,80,512,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="209,155,373,181"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,80,148,107"/>
+<area shape="rect" id="node3" href="$classDualPortRam.html" title=" " alt="" coords="172,80,280,107"/>
+<area shape="rect" id="node4" href="$classTrueDualPortRam.html" title=" " alt="" coords="95,5,229,32"/>
+<area shape="rect" id="node5" href="$classLutRam.html" title=" " alt="" coords="254,5,326,32"/>
+<area shape="rect" id="node6" href="$classCrc32Parallel.html" title=" " alt="" coords="305,80,411,107"/>
+<area shape="rect" id="node7" href="$classCrc32.html" title=" " alt="" coords="435,80,494,107"/>
 </map>

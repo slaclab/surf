@@ -1,13 +1,13 @@
 <map id="AxiLiteCrossbar" name="AxiLiteCrossbar">
-<area shape="rect" id="node1" title=" " alt="" coords="5,715,129,741"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,639,129,665"/>
 <area shape="rect" id="node2" href="$classAxiLiteAsyncTb.html" title=" " alt="" coords="217,5,340,32"/>
-<area shape="rect" id="node3" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="193,56,364,83"/>
-<area shape="rect" id="node4" href="$classAxiStreamDma.html" title=" " alt="" coords="218,107,339,133"/>
-<area shape="rect" id="node5" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="186,157,371,184"/>
-<area shape="rect" id="node6" href="$classClinkTop.html" title=" " alt="" coords="240,208,317,235"/>
-<area shape="rect" id="node7" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="182,259,375,285"/>
-<area shape="rect" id="node8" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="182,309,375,336"/>
-<area shape="rect" id="node9" href="$classGigEthGtx7.html" title=" " alt="" coords="231,360,327,387"/>
+<area shape="rect" id="node3" href="$classAxiStreamDma.html" title=" " alt="" coords="218,56,339,83"/>
+<area shape="rect" id="node4" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="186,107,371,133"/>
+<area shape="rect" id="node5" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="193,157,364,184"/>
+<area shape="rect" id="node6" href="$classGigEthGtx7.html" title=" " alt="" coords="231,208,327,235"/>
+<area shape="rect" id="node8" href="$classClinkTop.html" title=" " alt="" coords="240,259,317,285"/>
+<area shape="rect" id="node9" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="182,309,375,336"/>
+<area shape="rect" id="node10" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="182,360,375,387"/>
 <area shape="rect" id="node11" href="$classHtspAxiL.html" title=" " alt="" coords="239,411,319,437"/>
 <area shape="rect" id="node16" href="$classPgp2bGtp7FixedLatWrapper.html" title=" " alt="" coords="177,461,380,488"/>
 <area shape="rect" id="node17" href="$classPgp3GthUs.html" title=" " alt="" coords="231,512,326,539"/>
@@ -29,11 +29,11 @@
 <area shape="rect" id="node34" href="$classRssiCoreTb.html" title=" " alt="" coords="231,1323,326,1349"/>
 <area shape="rect" id="node35" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="218,1373,339,1400"/>
 <area shape="rect" id="node36" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="178,1424,379,1451"/>
-<area shape="rect" id="node10" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="428,360,579,387"/>
+<area shape="rect" id="node7" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="428,208,579,235"/>
 <area shape="rect" id="node12" href="$classHtspCore.html" title=" " alt="" coords="462,411,545,437"/>
-<area shape="rect" id="node13" href="$classHtspCaui4Gty.html" title=" " alt="" coords="627,385,739,412"/>
-<area shape="rect" id="node15" href="$classHtspCoreTb.html" title=" " alt="" coords="633,436,732,463"/>
-<area shape="rect" id="node14" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="787,385,915,412"/>
+<area shape="rect" id="node13" href="$classHtspCoreTb.html" title=" " alt="" coords="633,385,732,412"/>
+<area shape="rect" id="node14" href="$classHtspCaui4Gty.html" title=" " alt="" coords="627,436,739,463"/>
+<area shape="rect" id="node15" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="787,436,915,463"/>
 <area shape="rect" id="node21" href="$classPgp3Gtp7Tb.html" title=" " alt="" coords="632,639,733,665"/>
 <area shape="rect" id="node37" href="$classSugoiTopTb.html" title=" " alt="" coords="455,1424,551,1451"/>
 </map>

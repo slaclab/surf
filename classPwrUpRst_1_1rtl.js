@@ -1,11 +1,13 @@
 var classPwrUpRst_1_1rtl =
 [
-    [ "PROCESS_44", "classPwrUpRst_1_1rtl.html#a699cde12d6ee30f48a28869def48f528", null ],
-    [ "CNT_SIZE_C", "classPwrUpRst_1_1rtl.html#a1597fb4dee7a22fb79bc72d90e97a0c7", null ],
-    [ "rstSync", "classPwrUpRst_1_1rtl.html#a09c333b6484af346bd2a1a8bf79d9503", null ],
-    [ "rst", "classPwrUpRst_1_1rtl.html#a06ad1c2b56463f4ab4bf5bd2711b75fe", null ],
-    [ "cnt", "classPwrUpRst_1_1rtl.html#aa03e96719dbe12164e251d65426965e9", null ],
-    [ "use_dsp", "classPwrUpRst_1_1rtl.html#a7b6aa911f6ca7c7d45cc714960b45f30", null ],
-    [ "use_dsp", "classPwrUpRst_1_1rtl.html#a4d37b7fbd05b6de2e1199fd7b5e13e16", null ],
+    [ "PROCESS_35", "classPwrUpRst_1_1rtl.html#a34224b73ac0d527da3458e93de03fb53", null ],
+    [ "PROCESS_115", "classPwrUpRst_1_1rtl.html#a7cc87320b271dce8191c4d42a2e70786", null ],
+    [ "CNT_SIZE_C", "classPwrUpRst_1_1rtl.html#a9324c1dc1c6cae6907b846178082e17b", null ],
+    [ "rstSync", "classPwrUpRst_1_1rtl.html#ae8cbcd67c1b8bc1d7242910b066f0190", null ],
+    [ "rst", "classPwrUpRst_1_1rtl.html#a8795ff24e64ab2f948af260ba41f35bf", null ],
+    [ "cnt", "classPwrUpRst_1_1rtl.html#a64977efebf3d416f63632753ec65d396", null ],
+    [ "use_dsp", "classPwrUpRst_1_1rtl.html#a98184ec445d3ef9f26bcaac687fba14d", null ],
+    [ "use_dsp", "classPwrUpRst_1_1rtl.html#a37102861e124b3d978dc4769e3bfeed8", null ],
+    [ "rstsync_inst", "classPwrUpRst_1_1rtl.html#af4a835156ce113254b33c7b2dae76a6b", null ],
     [ "rstsync_inst", "classPwrUpRst_1_1rtl.html#af4a835156ce113254b33c7b2dae76a6b", null ]
 ];

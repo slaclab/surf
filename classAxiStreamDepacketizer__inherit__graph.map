@@ -1,7 +1,7 @@
 <map id="AxiStreamDepacketizer" name="AxiStreamDepacketizer">
 <area shape="rect" id="node1" title=" " alt="" coords="123,80,298,107"/>
 <area shape="rect" id="node3" href="$classRssiCoreWrapper.html" title=" " alt="" coords="143,155,278,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="131,5,291,32"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="139,5,282,32"/>
 <area shape="rect" id="node4" href="$classRawEthFramerTb.html" title=" " alt="" coords="5,229,139,256"/>
 <area shape="rect" id="node5" href="$classRssiCoreTb.html" title=" " alt="" coords="163,229,258,256"/>
 <area shape="rect" id="node6" href="$classRssiInterleaveTb.html" title=" " alt="" coords="283,229,413,256"/>

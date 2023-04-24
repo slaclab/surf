@@ -1,16 +1,12 @@
 <map id="Gtp7Core" name="Gtp7Core">
-<area shape="rect" id="node1" title=" " alt="" coords="621,157,704,184"/>
-<area shape="rect" id="node2" href="$classGtp7RxRst.html" title=" " alt="" coords="423,5,514,32"/>
-<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="160,5,316,32"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,107,112,133"/>
-<area shape="rect" id="node5" href="$classRstSync.html" title=" " alt="" coords="192,56,284,83"/>
-<area shape="rect" id="node9" href="$classRstSync.html" title=" " alt="" coords="201,157,275,184"/>
-<area shape="rect" id="node13" href="$classSynchronizerEdge.html" title=" " alt="" coords="169,208,307,235"/>
-<area shape="rect" id="node14" href="$classGtp7RxRstSeq.html" title=" " alt="" coords="411,107,526,133"/>
-<area shape="rect" id="node6" href="$classGtp7AutoPhaseAligner.html" title=" " alt="" coords="375,259,562,285"/>
-<area shape="rect" id="node7" href="$classSynchronizer.html" title=" " alt="" coords="176,259,300,285"/>
-<area shape="rect" id="node12" href="$classGtp7TxManualPhaseAligner.html" title=" " alt="" coords="367,208,570,235"/>
-<area shape="rect" id="node8" href="$classGtp7RxFixedLatPhaseAligner.html" title=" " alt="" coords="364,157,573,184"/>
-<area shape="rect" id="node10" href="$classGtp7TxRst.html" title=" " alt="" coords="423,309,514,336"/>
-<area shape="rect" id="node11" href="$classSynchronizer.html" title=" " alt="" coords="172,309,304,336"/>
+<area shape="rect" id="node1" title=" " alt="" coords="633,157,716,184"/>
+<area shape="rect" id="node2" href="$classGtp7RxRst.html" title=" " alt="" coords="435,5,526,32"/>
+<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="175,56,313,83"/>
+<area shape="rect" id="node9" href="$classGtp7TxManualPhaseAligner.html" title=" " alt="" coords="379,56,582,83"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,183,112,209"/>
+<area shape="rect" id="node5" href="$classRstSync.html" title=" " alt="" coords="207,157,281,184"/>
+<area shape="rect" id="node6" href="$classGtp7AutoPhaseAligner.html" title=" " alt="" coords="160,259,328,285"/>
+<area shape="rect" id="node8" href="$classGtp7TxRst.html" title=" " alt="" coords="199,309,289,336"/>
+<area shape="rect" id="node10" href="$classGtp7RxRstSeq.html" title=" " alt="" coords="423,208,538,235"/>
+<area shape="rect" id="node7" href="$classGtp7RxFixedLatPhaseAligner.html" title=" " alt="" coords="376,157,585,184"/>
 </map>

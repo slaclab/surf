@@ -1,8 +1,8 @@
 <map id="RawEthFramer" name="RawEthFramer">
-<area shape="rect" id="node1" title=" " alt="" coords="101,155,219,181"/>
-<area shape="rect" id="node5" href="$classRawEthFramerTb.html" title=" " alt="" coords="5,229,139,256"/>
-<area shape="rect" id="node6" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="163,229,335,256"/>
-<area shape="rect" id="node2" href="$classRawEthFramerTx.html" title=" " alt="" coords="15,80,148,107"/>
-<area shape="rect" id="node3" href="$classLutRam.html" title=" " alt="" coords="45,5,117,32"/>
-<area shape="rect" id="node4" href="$classRawEthFramerRx.html" title=" " alt="" coords="173,80,307,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="121,155,238,181"/>
+<area shape="rect" id="node5" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="5,229,177,256"/>
+<area shape="rect" id="node6" href="$classRawEthFramerTb.html" title=" " alt="" coords="202,229,335,256"/>
+<area shape="rect" id="node2" href="$classRawEthFramerTx.html" title=" " alt="" coords="34,80,167,107"/>
+<area shape="rect" id="node3" href="$classLutRam.html" title=" " alt="" coords="65,5,137,32"/>
+<area shape="rect" id="node4" href="$classRawEthFramerRx.html" title=" " alt="" coords="192,80,327,107"/>
 </map>

@@ -1,7 +1,7 @@
 <map id="RssiParamSync" name="RssiParamSync">
-<area shape="rect" id="node1" title=" " alt="" coords="145,80,267,107"/>
-<area shape="rect" id="node3" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="139,155,273,181"/>
-<area shape="rect" id="node2" href="$classSynchronizerVector.html" title=" " alt="" coords="119,5,293,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="89,80,211,107"/>
+<area shape="rect" id="node3" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="83,155,217,181"/>
+<area shape="rect" id="node2" href="$classSynchronizerVector.html" title=" " alt="" coords="77,5,223,32"/>
 <area shape="rect" id="node4" href="$classAxiRssiCore.html" title=" " alt="" coords="100,229,200,256"/>
 <area shape="rect" id="node7" href="$classRssiCore.html" title=" " alt="" coords="252,229,331,256"/>
 <area shape="rect" id="node5" href="$classAxiRssiCoreWrapper.html" title=" " alt="" coords="45,304,199,331"/>

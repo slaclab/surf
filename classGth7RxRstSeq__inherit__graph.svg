@@ -45,29 +45,29 @@
 <!-- Node2&#45;&gt;Node1 -->
 <g id="edge1" class="edge">
 <title>Node2&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M141.48,-326.61C137.65,-313.64 133.93,-295.82 136,-280 137.68,-267.17 141.95,-252.8 144.91,-243.83"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="138.18,-327.78 144.6,-336.21 144.84,-325.62 138.18,-327.78"/>
+<path fill="none" stroke="midnightblue" d="M143.02,-326.18C140.17,-313.23 137.45,-295.61 139,-280 140.27,-267.16 143.54,-252.55 145.77,-243.55"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="139.69,-327.3 145.45,-336.19 146.49,-325.65 139.69,-327.3"/>
 </g>
 <!-- Node3 -->
 <g id="node3" class="node">
 <title>Node3</title>
 <g id="a_node3"><a xlink:href="classRstSync.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="145.5,-280.5 145.5,-299.5 214.5,-299.5 214.5,-280.5 145.5,-280.5"/>
-<text text-anchor="middle" x="180" y="-287.5" font-family="Helvetica,sans-Serif" font-size="10.00">RstSync(2)</text>
+<polygon fill="white" stroke="black" points="148,-280.5 148,-299.5 204,-299.5 204,-280.5 148,-280.5"/>
+<text text-anchor="middle" x="176" y="-287.5" font-family="Helvetica,sans-Serif" font-size="10.00">RstSync</text>
 </a>
 </g>
 </g>
 <!-- Node2&#45;&gt;Node3 -->
 <g id="edge3" class="edge">
 <title>Node2&#45;&gt;Node3</title>
-<path fill="none" stroke="midnightblue" d="M158.5,-327.27C163.97,-318.05 170.42,-307.17 174.81,-299.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="155.37,-325.7 153.28,-336.08 161.39,-329.26 155.37,-325.7"/>
+<path fill="none" stroke="midnightblue" d="M157.34,-326.98C162.09,-317.82 167.66,-307.09 171.46,-299.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="154.12,-325.59 152.62,-336.08 160.33,-328.82 154.12,-325.59"/>
 </g>
 <!-- Node3&#45;&gt;Node1 -->
 <g id="edge2" class="edge">
 <title>Node3&#45;&gt;Node1</title>
-<path fill="none" stroke="midnightblue" d="M169.5,-271.27C164.03,-262.05 157.58,-251.17 153.19,-243.75"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="166.61,-273.26 174.72,-280.08 172.63,-269.7 166.61,-273.26"/>
+<path fill="none" stroke="midnightblue" d="M166.66,-270.98C161.91,-261.82 156.34,-251.09 152.54,-243.75"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="163.67,-272.82 171.38,-280.08 169.88,-269.59 163.67,-272.82"/>
 </g>
 <!-- Node5 -->
 <g id="node5" class="node">

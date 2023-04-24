@@ -1,11 +1,10 @@
 <map id="UdpEngineRx" name="UdpEngineRx">
 <area shape="rect" id="node1" title=" " alt="" coords="166,155,275,181"/>
-<area shape="rect" id="node5" href="$classUdpEngine.html" title=" " alt="" coords="175,229,267,256"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="50,80,210,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamDeMux.html" title=" " alt="" coords="234,80,389,107"/>
-<area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title=" " alt="" coords="240,5,383,32"/>
-<area shape="rect" id="node6" href="$classUdpEngineWrapper.html" title=" " alt="" coords="147,304,294,331"/>
-<area shape="rect" id="node7" href="$classEthMacPauseTb.html" title=" " alt="" coords="5,379,129,405"/>
-<area shape="rect" id="node8" href="$classRawEthFramerTb.html" title=" " alt="" coords="154,379,287,405"/>
-<area shape="rect" id="node9" href="$classUdpEngineTb.html" title=" " alt="" coords="312,379,420,405"/>
+<area shape="rect" id="node4" href="$classUdpEngine.html" title=" " alt="" coords="175,229,267,256"/>
+<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="149,5,292,32"/>
+<area shape="rect" id="node3" href="$classAxiStreamDeMux.html" title=" " alt="" coords="206,80,342,107"/>
+<area shape="rect" id="node5" href="$classUdpEngineWrapper.html" title=" " alt="" coords="147,304,294,331"/>
+<area shape="rect" id="node6" href="$classEthMacPauseTb.html" title=" " alt="" coords="5,379,129,405"/>
+<area shape="rect" id="node7" href="$classRawEthFramerTb.html" title=" " alt="" coords="154,379,287,405"/>
+<area shape="rect" id="node8" href="$classUdpEngineTb.html" title=" " alt="" coords="312,379,420,405"/>
 </map>

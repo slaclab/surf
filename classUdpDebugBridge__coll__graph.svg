@@ -22,8 +22,8 @@
 <g id="node2" class="node">
 <title>Node2</title>
 <g id="a_node2"><a xlink:href="classAxisJtagDebugBridge.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="45,-56.5 45,-75.5 178,-75.5 178,-56.5 45,-56.5"/>
-<text text-anchor="middle" x="111.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxisJtagDebugBridge(2)</text>
+<polygon fill="white" stroke="black" points="52,-56.5 52,-75.5 171,-75.5 171,-56.5 52,-56.5"/>
+<text text-anchor="middle" x="111.5" y="-63.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxisJtagDebugBridge</text>
 </a>
 </g>
 </g>

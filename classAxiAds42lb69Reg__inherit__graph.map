@@ -1,14 +1,13 @@
 <map id="AxiAds42lb69Reg" name="AxiAds42lb69Reg">
-<area shape="rect" id="node1" title=" " alt="" coords="685,157,821,184"/>
-<area shape="rect" id="node12" href="$classAxiAds42lb69Core.html" title=" " alt="" coords="869,157,1011,184"/>
-<area shape="rect" id="node2" href="$classSynchronizerFifo.html" title=" " alt="" coords="507,157,637,184"/>
-<area shape="rect" id="node3" href="$classFifoAsync.html" title=" " alt="" coords="373,157,459,184"/>
-<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="197,5,289,32"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,32"/>
-<area shape="rect" id="node6" href="$classSynchronizerVector.html" title=" " alt="" coords="160,56,325,83"/>
-<area shape="rect" id="node7" href="$classSynchronizer.html" title=" " alt="" coords="181,107,305,133"/>
-<area shape="rect" id="node8" href="$classFifoWrFsm.html" title=" " alt="" coords="197,157,289,184"/>
-<area shape="rect" id="node9" href="$classFifoRdFsm.html" title=" " alt="" coords="197,208,288,235"/>
-<area shape="rect" id="node10" href="$classSimpleDualPortRam.html" title=" " alt="" coords="166,259,319,285"/>
-<area shape="rect" id="node11" href="$classFifoOutputPipeline.html" title=" " alt="" coords="171,309,314,336"/>
+<area shape="rect" id="node1" title=" " alt="" coords="673,142,809,169"/>
+<area shape="rect" id="node11" href="$classAxiAds42lb69Core.html" title=" " alt="" coords="857,142,999,169"/>
+<area shape="rect" id="node2" href="$classSynchronizerFifo.html" title=" " alt="" coords="495,142,625,169"/>
+<area shape="rect" id="node3" href="$classFifoAsync.html" title=" " alt="" coords="361,142,447,169"/>
+<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="199,41,274,67"/>
+<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="5,15,112,42"/>
+<area shape="rect" id="node6" href="$classSynchronizerVector.html" title=" " alt="" coords="163,91,310,118"/>
+<area shape="rect" id="node7" href="$classFifoWrFsm.html" title=" " alt="" coords="191,142,283,169"/>
+<area shape="rect" id="node8" href="$classFifoRdFsm.html" title=" " alt="" coords="191,193,282,219"/>
+<area shape="rect" id="node9" href="$classSimpleDualPortRam.html" title=" " alt="" coords="160,243,313,270"/>
+<area shape="rect" id="node10" href="$classFifoOutputPipeline.html" title=" " alt="" coords="165,294,308,321"/>
 </map>

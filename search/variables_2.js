@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jumbo_5fg_1807',['JUMBO_G',['../classAxiRssiCoreWrapper.html#acfe997cf69b0f2b8061d7c020cfb34c4',1,'AxiRssiCoreWrapper']]]
+  ['jumbo_5fg_1867',['JUMBO_G',['../classAxiRssiCoreWrapper.html#adb19b45145b6c8ad58f4cb7264bf1636',1,'AxiRssiCoreWrapper']]]
 ];
