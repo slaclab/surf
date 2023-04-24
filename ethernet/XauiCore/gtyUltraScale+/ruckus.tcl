@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_PROC_TCL_COMBO)
+source $::env(RUCKUS_PROC_TCL)
 
 # Load Source Code
 if { $::env(VIVADO_VERSION) >= 2017.4 } {
