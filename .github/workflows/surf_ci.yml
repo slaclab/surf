@@ -55,6 +55,7 @@ jobs:
           ./ghdl-build.sh > /dev/null 2>&1
           make MODULES=$PWD
           python -m pytest --cov -v tests/
+          rm -rf ghdl-build
 
 #      # Code Coverage
 #      - name: Code Coverage
