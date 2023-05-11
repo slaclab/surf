@@ -132,10 +132,13 @@ class RfDataConverter(pr.Device):
             tile.RestartStateEnd.set(15)
             tile.RestartSM.set(0x1)
         self.Reset.set(0x1)
+        time.sleep(0.2)
         for tile in rfTile:
             tile.RestartSM.set(0x1)
             while tile.RestartStateEnd.get() != 15:
                 time.sleep(0.1)
+        self.Reset.set(0x1)
+        time.sleep(0.2)
 
         # Check for dynamic NCO
         if dynamicNco:
