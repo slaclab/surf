@@ -1066,7 +1066,8 @@ class Adc32Rf45(pr.Device):
                 channel.DUAL_BAND_EN.set(0x0,write=True)
                 channel.REAL_OUT_EN.set(0x0,write=True)
                 channel.DDC0_NCO1_LSB.set(0x00,write=True)
-                channel.DDC0_NCO1_MSB.set(0x4e,write=True)
+                # Changed hardcode from 0x4e to 0x32. Need to expose this as an arg into the device class or LocalVariable
+                channel.DDC0_NCO1_MSB.set(0x32,write=True)
                 channel.DDC0_NCO2_LSB.set(0x00,write=True)
                 channel.DDC0_NCO2_MSB.set(0x00,write=True)
                 channel.DDC0_NCO3_LSB.set(0x00,write=True)
