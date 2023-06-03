@@ -22,9 +22,6 @@ use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 use surf.Pgp4Pkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity PgpXvcWrapper is
    generic (
       TPD_G            : time    := 1 ns;
