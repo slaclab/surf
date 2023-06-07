@@ -27,6 +27,7 @@ entity DmaXvcWrapper is
    generic (
       TPD_G                    : time                  := 1 ns;
       COMMON_CLOCK_G           : boolean               := false;
+      AXIS_CLK_FREQ_G          : real                  := 156.25e6;
       FIFO_INT_PIPE_STAGES_G   : natural range 0 to 16 := 0;  -- Internal FIFO setting
       FIFO_PIPE_STAGES_G       : natural range 0 to 16 := 1;
       OB_FIFO_SLAVE_READY_EN_G : boolean               := true;
@@ -65,7 +66,8 @@ begin
    -----------------------------------------------------------------
    U_XVC : entity surf.UdpDebugBridgeWrapper
       generic map (
-         TPD_G => TPD_G)
+         TPD_G           => TPD_G,
+         AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G)
       port map (
          -- Clock and Reset
          clk            => xvcClk,
