@@ -42,11 +42,11 @@ entity DmaXvcWrapper is
       -- Clock and Reset (pgpClk domain)
       axisClk      : in  sl;
       axisRst      : in  sl;
-      -- IB FIFO
+      -- OB FIFO
       obFifoMaster : in  AxiStreamMasterType;
       obFifoSlave  : out AxiStreamSlaveType;
       obFifoCtrl   : out AxiStreamCtrlType;
-      -- OB FIFO
+      -- IB FIFO
       ibFifoSlave  : in  AxiStreamSlaveType;
       ibFifoMaster : out AxiStreamMasterType);
 end DmaXvcWrapper;
