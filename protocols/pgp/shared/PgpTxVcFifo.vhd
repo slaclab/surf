@@ -33,6 +33,7 @@ entity PgpTxVcFifo is
       MEMORY_TYPE_G      : string   := "block";
       GEN_SYNC_FIFO_G    : boolean  := false;
       FIFO_ADDR_WIDTH_G  : positive := 9;
+      CASCADE_SIZE_G     : positive := 1;
       APP_AXI_CONFIG_G   : AxiStreamConfigType;
       PHY_AXI_CONFIG_G   : AxiStreamConfigType);
    port (
@@ -140,6 +141,8 @@ begin
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => (2**FIFO_ADDR_WIDTH_G)-4,
+         CASCADE_PAUSE_SEL_G => CASCADE_SIZE_G-1,
+         CASCADE_SIZE_G      => CASCADE_SIZE_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => APP_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => PHY_AXI_CONFIG_G)
