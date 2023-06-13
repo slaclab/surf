@@ -18,116 +18,99 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
-use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
-use surf.Pgp4Pkg.all;
 
 entity PgpXvcWrapper is
    generic (
       TPD_G            : time    := 1 ns;
       SIMULATION_G     : boolean := false;
+      AXIS_CLK_FREQ_G  : real    := 156.25e6;
       PHY_AXI_CONFIG_G : AxiStreamConfigType);
    port (
-      -- Clock and Reset (axisClk domain)
-      axilClk     : in sl;
-      axilRst     : in sl;
+      -- Clock and Reset (xvcClk domain)
+      xvcClk      : in  sl;
+      xvcRst      : in  sl;
       -- Clock and Reset (pgpClk domain)
-      pgpClk      : in sl;
-      pgpRst      : in sl;
+      pgpClk      : in  sl;
+      pgpRst      : in  sl;
       -- PGP Interface (pgpClk domain)
-      rxlinkReady : in sl;
-      txlinkReady : in sl;
-      -- TX FIFO
+      rxlinkReady : in  sl;
+      txlinkReady : in  sl;
+      -- TX FIFO  (pgpClk domain)
       pgpTxSlave  : in  AxiStreamSlaveType;
-      pgpTxMaster : out AxiStreamMasterType;
-      -- RX FIFO
+      pgpTxMaster : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      -- RX FIFO  (pgpClk domain)
       pgpRxMaster : in  AxiStreamMasterType;
-      pgpRxCtrl   : out AxiStreamCtrlType;
-      pgpRxSlave  : out AxiStreamSlaveType);
+      pgpRxCtrl   : out AxiStreamCtrlType   := AXI_STREAM_CTRL_UNUSED_C);
 end PgpXvcWrapper;
 
 architecture rtl of PgpXvcWrapper is
 
-   signal ibXvcMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal ibXvcSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal obXvcMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal obXvcSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-
-   signal txFifoMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-
-   signal rxFifoSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal rxFifoCtrl   : AxiStreamCtrlType   := AXI_STREAM_CTRL_UNUSED_C;
+   signal ibXvcMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal ibXvcSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal obXvcMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal obXvcSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
 begin
 
------------------------------------------------------------------
--- Xilinx Virtual Cable (XVC)
--- https://www.xilinx.com/products/intellectual-property/xvc.html
------------------------------------------------------------------
-U_XVC : entity surf.UdpDebugBridgeWrapper
-   generic map (
-      TPD_G => TPD_G)
-   port map (
-      -- Clock and Reset
-      clk            => axilClk,
-      rst            => axilRst,
-      -- UDP XVC Interface
-      obServerMaster => ibXvcMaster,
-      obServerSlave  => ibXvcSlave,
-      ibServerMaster => obXvcMaster,
-      ibServerSlave  => obXvcSlave);
+   GEN_REAL : if (SIMULATION_G = false) generate
 
-U_VC_RX : entity surf.PgpRxVcFifo
-   generic map (
-      TPD_G            => TPD_G,
-      ROGUE_SIM_EN_G   => SIMULATION_G,
-      PHY_AXI_CONFIG_G => PHY_AXI_CONFIG_G,
-      APP_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
-   port map (
-      -- PGP Interface (pgpClk domain)
-      pgpClk      => pgpClk,
-      pgpRst      => pgpRst,
-      rxlinkReady => rxlinkReady,
-      pgpRxMaster => pgpRxMaster,
-      pgpRxCtrl   => rxFifoCtrl,
-      pgpRxSlave  => rxFifoSlave,
-      -- AXIS Interface (axisClk domain)
-      axisClk     => axilClk,
-      axisRst     => axilRst,
-      axisMaster  => ibXvcMaster,
-      axisSlave   => ibXvcSlave);
+      -----------------------------------------------------------------
+      -- Xilinx Virtual Cable (XVC)
+      -- https://www.xilinx.com/products/intellectual-property/xvc.html
+      -----------------------------------------------------------------
+      U_XVC : entity surf.UdpDebugBridgeWrapper
+         generic map (
+            TPD_G           => TPD_G,
+            AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G)
+         port map (
+            -- Clock and Reset
+            clk            => xvcClk,
+            rst            => xvcRst,
+            -- UDP XVC Interface
+            obServerMaster => ibXvcMaster,
+            obServerSlave  => ibXvcSlave,
+            ibServerMaster => obXvcMaster,
+            ibServerSlave  => obXvcSlave);
 
-U_VC_TX : entity surf.PgpTxVcFifo
-   generic map (
-      TPD_G            => TPD_G,
-      APP_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C,
-      PHY_AXI_CONFIG_G => PHY_AXI_CONFIG_G)
-   port map (
-      -- AXIS Interface (axisClk domain)
-      axisClk     => axilClk,
-      axisRst     => axilRst,
-      axisMaster  => obXvcMaster,
-      axisSlave   => obXvcSlave,
-      -- PGP Interface (pgpClk domain)
-      pgpClk      => pgpClk,
-      pgpRst      => pgpRst,
-      rxlinkReady => rxlinkReady,
-      txlinkReady => txlinkReady,
-      pgpTxMaster => txFifoMaster,
-      pgpTxSlave  => pgpTxSlave);
+      U_VC_RX : entity surf.PgpRxVcFifo
+         generic map (
+            TPD_G            => TPD_G,
+            PHY_AXI_CONFIG_G => PHY_AXI_CONFIG_G,
+            APP_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         port map (
+            -- PGP Interface (pgpClk domain)
+            pgpClk      => pgpClk,
+            pgpRst      => pgpRst,
+            rxlinkReady => rxlinkReady,
+            pgpRxMaster => pgpRxMaster,
+            pgpRxCtrl   => pgpRxCtrl,
+            pgpRxSlave  => pgpRxSlave,
+            -- AXIS Interface (axisClk domain)
+            axisClk     => xvcClk,
+            axisRst     => xvcRst,
+            axisMaster  => ibXvcMaster,
+            axisSlave   => ibXvcSlave);
 
-GEN_REAL : if (SIMULATION_G = false) generate
-   -- tie with FIFOs
-   pgpTxMaster <= txFifoMaster;
-   pgpRxCtrl   <= rxFifoCtrl;
-   pgpRxSlave  <= rxFifoSlave;
-end generate GEN_REAL;
+      U_VC_TX : entity surf.PgpTxVcFifo
+         generic map (
+            TPD_G            => TPD_G,
+            APP_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C,
+            PHY_AXI_CONFIG_G => PHY_AXI_CONFIG_G)
+         port map (
+            -- AXIS Interface (axisClk domain)
+            axisClk     => xvcClk,
+            axisRst     => xvcRst,
+            axisMaster  => obXvcMaster,
+            axisSlave   => obXvcSlave,
+            -- PGP Interface (pgpClk domain)
+            pgpClk      => pgpClk,
+            pgpRst      => pgpRst,
+            rxlinkReady => rxlinkReady,
+            txlinkReady => txlinkReady,
+            pgpTxMaster => pgpTxMaster,
+            pgpTxSlave  => pgpTxSlave);
 
-GEN_SIM : if (SIMULATION_G = true) generate
-   -- bypass
-   pgpTxMaster <= AXI_STREAM_MASTER_INIT_C;
-   pgpRxCtrl   <= AXI_STREAM_CTRL_UNUSED_C;
-   pgpRxSlave  <= AXI_STREAM_SLAVE_FORCE_C;
-end generate GEN_SIM;
+   end generate GEN_REAL;
 
 end rtl;
