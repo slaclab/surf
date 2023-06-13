@@ -40,9 +40,9 @@ entity UdpDebugBridge is
 end entity UdpDebugBridge;
 
 architecture UdpDebugBridgeImpl of UdpDebugBridge is
-   
+
    constant XVC_TCLK_DIV2_C   : positive := positive( ieee.math_real.round( AXIS_CLK_FREQ_G/XVC_TCLK_FREQ_C/2.0 ) );
-   
+
 begin
 
    U_AxisJtagDebugBridge : entity surf.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
