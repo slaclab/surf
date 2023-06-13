@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 
 class Lmx2615(pr.Device):
     def __init__(self, **kwargs):
