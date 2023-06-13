@@ -46,9 +46,9 @@ end PgpXvcWrapper;
 
 architecture rtl of PgpXvcWrapper is
 
-   signal ibXvcMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal ibXvcMaster : AxiStreamMasterType := axiStreamMasterInit(EMAC_AXIS_CONFIG_C);
    signal ibXvcSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal obXvcMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal obXvcMaster : AxiStreamMasterType := axiStreamMasterInit(EMAC_AXIS_CONFIG_C);
    signal obXvcSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
 begin

@@ -39,14 +39,14 @@ entity DmaXvcWrapper is
       -- Clock and Reset (xvcClk domain)
       xvcClk       : in  sl;
       xvcRst       : in  sl;
-      -- Clock and Reset (pgpClk domain)
+      -- Clock and Reset (axisClk domain)
       axisClk      : in  sl;
       axisRst      : in  sl;
-      -- OB FIFO
+      -- OB FIFO (axisClk domain)
       obFifoMaster : in  AxiStreamMasterType;
       obFifoSlave  : out AxiStreamSlaveType;
       obFifoCtrl   : out AxiStreamCtrlType;
-      -- IB FIFO
+      -- IB FIFO (axisClk domain)
       ibFifoSlave  : in  AxiStreamSlaveType;
       ibFifoMaster : out AxiStreamMasterType);
 end DmaXvcWrapper;
@@ -132,6 +132,5 @@ begin
          mAxisRst    => axisRst,
          mAxisMaster => ibFifoMaster,
          mAxisSlave  => ibFifoSlave);
-
 
 end rtl;
