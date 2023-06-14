@@ -17,7 +17,7 @@ import surf.devices.ti
 import rogue
 
 class Adc32Rf45(pr.Device):
-    def __init__( self, verify=True, **kwargs):
+    def __init__( self, verify=True, DDC0_NC01_MSB=0x4e, **kwargs):
 
         self._useVars = rogue.Version.greaterThanEqual('5.4.0')
 
@@ -45,6 +45,8 @@ class Adc32Rf45(pr.Device):
         chA             = (0x0 << 14)
         chB             = (0x8 << 14)
         rawInterface    = (0x1 << 18)                         # 0x40000
+
+
 
         #####################
         # Add Device Channels
@@ -1066,8 +1068,7 @@ class Adc32Rf45(pr.Device):
                 channel.DUAL_BAND_EN.set(0x0,write=True)
                 channel.REAL_OUT_EN.set(0x0,write=True)
                 channel.DDC0_NCO1_LSB.set(0x00,write=True)
-                # Changed hardcode from 0x4e to 0x32. Need to expose this as an arg into the device class or LocalVariable
-                channel.DDC0_NCO1_MSB.set(0x32,write=True)
+                channel.DDC0_NCO1_MSB.set(DDC0_NC01_MSB, write=True)
                 channel.DDC0_NCO2_LSB.set(0x00,write=True)
                 channel.DDC0_NCO2_MSB.set(0x00,write=True)
                 channel.DDC0_NCO3_LSB.set(0x00,write=True)
