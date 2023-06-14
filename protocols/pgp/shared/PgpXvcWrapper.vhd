@@ -37,8 +37,8 @@ entity PgpXvcWrapper is
       rxlinkReady : in  sl;
       txlinkReady : in  sl;
       -- TX FIFO  (pgpClk domain)
-      pgpTxSlave  : in  AxiStreamSlaveType;
       pgpTxMaster : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      pgpTxSlave  : in  AxiStreamSlaveType;
       -- RX FIFO  (pgpClk domain)
       pgpRxMaster : in  AxiStreamMasterType;
       pgpRxCtrl   : out AxiStreamCtrlType   := AXI_STREAM_CTRL_UNUSED_C);
@@ -85,7 +85,6 @@ begin
             rxlinkReady => rxlinkReady,
             pgpRxMaster => pgpRxMaster,
             pgpRxCtrl   => pgpRxCtrl,
-            pgpRxSlave  => pgpRxSlave,
             -- AXIS Interface (axisClk domain)
             axisClk     => xvcClk,
             axisRst     => xvcRst,
