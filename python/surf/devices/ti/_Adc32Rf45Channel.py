@@ -599,7 +599,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             verify       = verify,
-            value        = 04e, # 748.8 Mhz
+            value        = 0x4e, # 748.8 Mhz
             overlapEn    = True,
         ))
 
