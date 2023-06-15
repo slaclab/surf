@@ -17,7 +17,7 @@ import surf.devices.ti
 import rogue
 
 class Adc32Rf45(pr.Device):
-    def __init__( self, verify=True, DDC0_NC01_MSB=0x4e, **kwargs):
+    def __init__( self, verify=True, **kwargs):
 
         self._useVars = rogue.Version.greaterThanEqual('5.4.0')
 
@@ -1067,12 +1067,14 @@ class Adc32Rf45(pr.Device):
                 channel.DECIM_FACTOR.set(0x0,write=True)
                 channel.DUAL_BAND_EN.set(0x0,write=True)
                 channel.REAL_OUT_EN.set(0x0,write=True)
-                channel.DDC0_NCO1_LSB.set(0x00,write=True)
-                channel.DDC0_NCO1_MSB.set(DDC0_NC01_MSB, write=True)
-                channel.DDC0_NCO2_LSB.set(0x00,write=True)
-                channel.DDC0_NCO2_MSB.set(0x00,write=True)
-                channel.DDC0_NCO3_LSB.set(0x00,write=True)
-                channel.DDC0_NCO3_MSB.set(0x00,write=True)
+                # Write the value that has been loaded via yaml,
+                # or write the default value defined in _AdcRf45Channel.py
+                channel.DDC0_NCO1_LSB.write()
+                channel.DDC0_NCO1_MSB.write()
+                channel.DDC0_NCO2_LSB.write()
+                channel.DDC0_NCO2_MSB.write()
+                channel.DDC0_NCO3_LSB.write()
+                channel.DDC0_NCO3_MSB.write()
                 channel.NCO_SEL_PIN.set(0x00,write=True)
                 channel.NCO_SEL.set(0x00,write=True)
                 channel.LMFC_RESET_MODE.set(0x00,write=True)
