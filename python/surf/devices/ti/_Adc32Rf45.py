@@ -46,6 +46,8 @@ class Adc32Rf45(pr.Device):
         chB             = (0x8 << 14)
         rawInterface    = (0x1 << 18)                         # 0x40000
 
+
+
         #####################
         # Add Device Channels
         #####################
@@ -1065,12 +1067,14 @@ class Adc32Rf45(pr.Device):
                 channel.DECIM_FACTOR.set(0x0,write=True)
                 channel.DUAL_BAND_EN.set(0x0,write=True)
                 channel.REAL_OUT_EN.set(0x0,write=True)
-                channel.DDC0_NCO1_LSB.set(0x00,write=True)
-                channel.DDC0_NCO1_MSB.set(0x4e,write=True)
-                channel.DDC0_NCO2_LSB.set(0x00,write=True)
-                channel.DDC0_NCO2_MSB.set(0x00,write=True)
-                channel.DDC0_NCO3_LSB.set(0x00,write=True)
-                channel.DDC0_NCO3_MSB.set(0x00,write=True)
+                # Write the value that has been loaded via yaml,
+                # or write the default value defined in _AdcRf45Channel.py
+                channel.DDC0_NCO1_LSB.write()
+                channel.DDC0_NCO1_MSB.write()
+                channel.DDC0_NCO2_LSB.write()
+                channel.DDC0_NCO2_MSB.write()
+                channel.DDC0_NCO3_LSB.write()
+                channel.DDC0_NCO3_MSB.write()
                 channel.NCO_SEL_PIN.set(0x00,write=True)
                 channel.NCO_SEL.set(0x00,write=True)
                 channel.LMFC_RESET_MODE.set(0x00,write=True)
