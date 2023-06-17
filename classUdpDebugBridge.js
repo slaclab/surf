@@ -24,6 +24,7 @@ var classUdpDebugBridge =
     [ "\\sAxisTdo[tReady]\\", "classUdpDebugBridge.html#a94a61c330f8893fcca1583c542b94135", null ],
     [ "IEEE", "classUdpDebugBridge.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
     [ "STD_LOGIC_1164", "classUdpDebugBridge.html#aa4b2b25246a821511120e3149b003563", null ],
+    [ "AXIS_CLK_FREQ_G", "classUdpDebugBridge.html#a71424f8b4d94bd836def17b8e7f88555", null ],
     [ "mAxisReq", "classUdpDebugBridge.html#a8974c6a7a44d53c0489dfb836f82d2a4", null ],
     [ "sAxisReq", "classUdpDebugBridge.html#aed77ca377a7a961b12aed868a48bb709", null ],
     [ "mAxisTdo", "classUdpDebugBridge.html#a19dbf6d7b042f262e36dc2c5e57a4a47", null ],

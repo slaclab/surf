@@ -1,11 +1,13 @@
 <map id="AxisToJtag" name="AxisToJtag">
 <area shape="rect" id="node1" title=" " alt="" coords="184,155,273,181"/>
 <area shape="rect" id="node5" href="$classAxisJtagDebugBridge.html" title=" " alt="" coords="72,229,231,256"/>
-<area shape="rect" id="node9" href="$classAxisToJtagTb.html" title=" " alt="" coords="255,229,360,256"/>
+<area shape="rect" id="node11" href="$classAxisToJtagTb.html" title=" " alt="" coords="255,229,360,256"/>
 <area shape="rect" id="node2" href="$classAxiStreamSelector.html" title=" " alt="" coords="80,80,223,107"/>
 <area shape="rect" id="node3" href="$classAxisToJtagCore.html" title=" " alt="" coords="247,80,365,107"/>
 <area shape="rect" id="node4" href="$classJtagSerDesCore.html" title=" " alt="" coords="245,5,367,32"/>
 <area shape="rect" id="node6" href="$classAxisToJtagStubTb.html" title=" " alt="" coords="5,304,140,331"/>
 <area shape="rect" id="node7" href="$classUdpDebugBridge.html" title=" " alt="" coords="164,304,296,331"/>
 <area shape="rect" id="node8" href="$classUdpDebugBridgeWrapper.html" title=" " alt="" coords="137,379,323,405"/>
+<area shape="rect" id="node9" href="$classPgpXvcWrapper.html" title=" " alt="" coords="91,453,217,480"/>
+<area shape="rect" id="node10" href="$classDmaXvcWrapper.html" title=" " alt="" coords="241,453,373,480"/>
 </map>

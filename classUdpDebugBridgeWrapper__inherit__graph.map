@@ -1,5 +1,7 @@
 <map id="UdpDebugBridgeWrapper" name="UdpDebugBridgeWrapper">
 <area shape="rect" id="node1" title=" " alt="" coords="61,379,247,405"/>
+<area shape="rect" id="node8" href="$classPgpXvcWrapper.html" title=" " alt="" coords="15,453,141,480"/>
+<area shape="rect" id="node9" href="$classDmaXvcWrapper.html" title=" " alt="" coords="165,453,297,480"/>
 <area shape="rect" id="node2" href="$classUdpDebugBridge.html" title=" " alt="" coords="88,304,220,331"/>
 <area shape="rect" id="node3" href="$classAxisJtagDebugBridge.html" title=" " alt="" coords="75,229,233,256"/>
 <area shape="rect" id="node4" href="$classAxisToJtag.html" title=" " alt="" coords="109,155,199,181"/>

@@ -2,6 +2,7 @@ var classUdpDebugBridgeWrapper =
 [
     [ "UdpDebugBridgeWrapper.rtl", "classUdpDebugBridgeWrapper_1_1rtl.html", "classUdpDebugBridgeWrapper_1_1rtl" ],
     [ "TPD_G", "classUdpDebugBridgeWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "AXIS_CLK_FREQ_G", "classUdpDebugBridgeWrapper.html#a71424f8b4d94bd836def17b8e7f88555", null ],
     [ "clk", "classUdpDebugBridgeWrapper.html#adeb222493482dfe91c36a7a02710329c", null ],
     [ "rst", "classUdpDebugBridgeWrapper.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
     [ "obServerMaster", "classUdpDebugBridgeWrapper.html#aca8ca31a545d5dc34cb61e5f5b0ff194", null ],

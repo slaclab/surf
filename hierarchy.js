@@ -625,6 +625,12 @@ var hierarchy =
         ] ]
       ] ],
       [ "AxiStreamDmaRead", "classAxiStreamDmaRead.html", null ],
+      [ "UdpDebugBridgeWrapper", "classUdpDebugBridgeWrapper.html", [
+        [ "UdpDebugBridge", "classUdpDebugBridge.html", [
+          [ "AxisJtagDebugBridge", "classAxisJtagDebugBridge.html", null ]
+        ] ]
+      ] ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "DspAddSub", "classDspAddSub.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
@@ -1380,11 +1386,15 @@ var hierarchy =
       [ "Decoder8b10b", "classDecoder8b10b.html", null ],
       [ "Pgp2bLane", "classPgp2bLane.html", null ],
       [ "Encoder8b10b", "classEncoder8b10b.html", null ],
-      [ "Synchronizer", "classSynchronizer.html", null ],
-      [ "RstPipeline", "classRstPipeline.html", null ],
-      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-      [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
-      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "UdpDebugBridgeWrapper", "classUdpDebugBridgeWrapper.html", null ],
+      [ "PgpRxVcFifo", "classPgpRxVcFifo.html", null ],
+      [ "PgpTxVcFifo", "classPgpTxVcFifo.html", [
+        [ "Synchronizer", "classSynchronizer.html", null ],
+        [ "RstPipeline", "classRstPipeline.html", null ],
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+        [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
+        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
+      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "UdpEngineWrapper", "classUdpEngineWrapper.html", null ],
       [ "RawEthFramer", "classRawEthFramer.html", [
@@ -1740,9 +1750,6 @@ var hierarchy =
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "SemWrapper", "classSemWrapper.html", null ],
       [ "UartWrapper", "classUartWrapper.html", null ],
-      [ "UdpDebugBridge", "classUdpDebugBridge.html", [
-        [ "AxisJtagDebugBridge", "classAxisJtagDebugBridge.html", null ]
-      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "UdpEngineWrapper", "classUdpEngineWrapper.html", null ],

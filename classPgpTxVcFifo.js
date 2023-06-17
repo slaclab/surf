@@ -11,6 +11,7 @@ var classPgpTxVcFifo =
     [ "MEMORY_TYPE_G", "classPgpTxVcFifo.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],
     [ "GEN_SYNC_FIFO_G", "classPgpTxVcFifo.html#a82faab35c71e3fb9ecc35a9f657fc397", null ],
     [ "FIFO_ADDR_WIDTH_G", "classPgpTxVcFifo.html#a534657cb5434d44f06dd4491fe2da0a8", null ],
+    [ "CASCADE_SIZE_G", "classPgpTxVcFifo.html#acf11e278f37ef2c799e4c5a67a58ac57", null ],
     [ "APP_AXI_CONFIG_G", "classPgpTxVcFifo.html#ab1d9cfbae90e1e0616c677f91288c299", null ],
     [ "PHY_AXI_CONFIG_G", "classPgpTxVcFifo.html#ab47025fef75c0220d0fcc22db3434e5c", null ],
     [ "axisClk", "classPgpTxVcFifo.html#a349f7bd21af748e087092a89a5fdc1a9", null ],
