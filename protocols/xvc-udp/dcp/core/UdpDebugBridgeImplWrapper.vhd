@@ -25,6 +25,8 @@ use surf.AxiStreamPkg.all;
 use surf.UdpDebugBridgePkg.all;
 
 entity UdpDebugBridge is
+   generic (
+      AXIS_CLK_FREQ_G : real := 156.25e6);
    port (
       axisClk          : in sl;
       axisRst          : in sl;
@@ -38,11 +40,14 @@ entity UdpDebugBridge is
 end entity UdpDebugBridge;
 
 architecture UdpDebugBridgeImpl of UdpDebugBridge is
+
+   constant XVC_TCLK_DIV2_C   : positive := positive( ieee.math_real.round( AXIS_CLK_FREQ_G/XVC_TCLK_FREQ_C/2.0 ) );
+
 begin
 
    U_AxisJtagDebugBridge : entity surf.AxisJtagDebugBridge(AxisJtagDebugBridgeImpl)
       generic map (
-         AXIS_FREQ_G         => XVC_ACLK_FREQ_C,
+         AXIS_FREQ_G         => AXIS_CLK_FREQ_G,
          CLK_DIV2_G          => XVC_TCLK_DIV2_C,
          AXIS_WIDTH_G        => XVC_AXIS_WIDTH_C,
          MEM_DEPTH_G         => XVC_MEM_DEPTH_C,

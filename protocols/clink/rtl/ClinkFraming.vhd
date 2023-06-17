@@ -339,8 +339,39 @@ begin
             -- 10 bits, base, medium, full & deca, cameraLink spec V2.0 pages 19-28
             when CDM_10BIT_C =>
                if chanConfig.linkMode = CLM_DECA_C then
-                  v.byteData := r.portData;
-                  v.bytes    := 16;
+
+                  v.byteData.data(0)(7 downto 0) := r.portData.data(0)(7 downto 0);  -- T0.BIT[07:00]
+                  v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0);  -- T0.BIT[09:08]
+
+                  v.byteData.data(1)(7 downto 2) := r.portData.data(2)(5 downto 0);  -- T1.BIT[05:00]
+                  v.byteData.data(2)(1 downto 0) := r.portData.data(2)(7 downto 6);  -- T1.BIT[07:06]
+                  v.byteData.data(2)(3 downto 2) := r.portData.data(3)(1 downto 0);  -- T1.BIT[09:08]
+
+                  v.byteData.data(2)(7 downto 4) := r.portData.data(4)(3 downto 0);  -- T2.BIT[03:00]
+                  v.byteData.data(3)(3 downto 0) := r.portData.data(4)(7 downto 4);  -- T2.BIT[07:04]
+                  v.byteData.data(3)(5 downto 4) := r.portData.data(5)(1 downto 0);  -- T2.BIT[09:08]
+
+                  v.byteData.data(3)(7 downto 6) := r.portData.data(6)(1 downto 0);  -- T3.BIT[01:00]
+                  v.byteData.data(4)(5 downto 0) := r.portData.data(6)(7 downto 2);  -- T3.BIT[07:02]
+                  v.byteData.data(4)(7 downto 6) := r.portData.data(7)(1 downto 0);  -- T3.BIT[09:08]
+
+                  v.byteData.data(5)(7 downto 0) := r.portData.data(8)(7 downto 0);  -- T4.BIT[07:00]
+                  v.byteData.data(6)(1 downto 0) := r.portData.data(9)(1 downto 0);  -- T4.BIT[09:08]
+
+                  v.byteData.data(6)(7 downto 2) := r.portData.data(10)(5 downto 0);  -- T5.BIT[05:00]
+                  v.byteData.data(7)(1 downto 0) := r.portData.data(10)(7 downto 6);  -- T5.BIT[07:06]
+                  v.byteData.data(7)(3 downto 2) := r.portData.data(11)(1 downto 0);  -- T5.BIT[09:08]
+
+                  v.byteData.data(7)(7 downto 4) := r.portData.data(12)(3 downto 0);  -- T6.BIT[03:00]
+                  v.byteData.data(8)(3 downto 0) := r.portData.data(12)(7 downto 4);  -- T6.BIT[07:04]
+                  v.byteData.data(8)(5 downto 4) := r.portData.data(13)(1 downto 0);  -- T6.BIT[09:08]
+
+                  v.byteData.data(8)(7 downto 6) := r.portData.data(14)(1 downto 0);  -- T7.BIT[01:00]
+                  v.byteData.data(9)(5 downto 0) := r.portData.data(14)(7 downto 2);  -- T7.BIT[07:02]
+                  v.byteData.data(9)(7 downto 6) := r.portData.data(15)(1 downto 0);  -- T7.BIT[09:08]
+
+                  v.bytes := 10;        -- No ZERO padding for DECA mode
+
                else
                   v.byteData.data(0)             := r.portData.data(0);  -- T1, DA[07:00]
                   v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0);  -- T1, DA[09:08]
