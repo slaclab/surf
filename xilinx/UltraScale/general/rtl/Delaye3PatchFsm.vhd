@@ -49,6 +49,7 @@ architecture rtl of Delaye3PatchFsm is
 
    type StateType is (
       IDLE_S,
+      CHECK_CNT_S,
       LOAD_S,
       WAIT_S);
 
@@ -84,15 +85,17 @@ begin
          v.Load := '0';
 
          -- Check for load request
-         if (LOAD = '1') then
-            -- Update the target delay value
-            v.dlyTarget := CNTVALUEIN;
-         end if;
-
          -- Main state machine
          case r.state is
             ----------------------------------------------------------------------
             when IDLE_S =>
+               if (LOAD = '1') then
+                  -- Update the target delay value on load request
+                  v.dlyTarget := CNTVALUEIN;
+                  v.state     := CHECK_CNT_S;
+               end if;
+               
+            when CHECK_CNT_S =>
                -- Check if load target different from current output
                if (v.dlyTarget /= CNTVALUEOUT) then
                   -- Check if we should increment the value
@@ -104,6 +107,10 @@ begin
                   end if;
                   -- Next state
                   v.state := LOAD_S;
+                  
+               else
+                  v.state := IDLE_S;
+                  
                end if;
             ----------------------------------------------------------------------
             when LOAD_S =>
@@ -121,7 +128,7 @@ begin
                   -- Reset the counter
                   v.waitCnt := (others => '0');
                   -- Next state
-                  v.state   := IDLE_S;
+                  v.state   := CHECK_CNT_S;
                end if;
          ----------------------------------------------------------------------
          end case;
