@@ -94,12 +94,12 @@ begin
                   v.dlyTarget := CNTVALUEIN;
                   v.state     := CHECK_CNT_S;
                end if;
-               
+            ----------------------------------------------------------------------
             when CHECK_CNT_S =>
                -- Check if load target different from current output
-               if (v.dlyTarget /= CNTVALUEOUT) then
+               if (r.dlyTarget /= CNTVALUEOUT) then
                   -- Check if we should increment the value
-                  if (v.dlyTarget > CNTVALUEOUT) then
+                  if (r.dlyTarget > CNTVALUEOUT) then
                      v.dlyValue := CNTVALUEOUT + 1;
                   -- Else decrement the value
                   else
@@ -107,10 +107,8 @@ begin
                   end if;
                   -- Next state
                   v.state := LOAD_S;
-                  
                else
                   v.state := IDLE_S;
-                  
                end if;
             ----------------------------------------------------------------------
             when LOAD_S =>
