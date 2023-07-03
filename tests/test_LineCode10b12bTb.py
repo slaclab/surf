@@ -70,7 +70,7 @@ def check_result(dut, dataIn, dataKIn):
 
     # Check (codeErr = 0) or (dispErr = 0) result
     if (dut.codeErr.value != 0) or (dut.dispErr.value != 0):
-        dut._log.error( f'ERROR: codeErr={hex(dut.codeErr.value)},dispErr={hex(dut.dispErr.value)}')
+        dut._log.error( f'ERROR - dataIn={hex(dataIn)},dataKIn={hex(dataKIn)}: codeErr={hex(dut.codeErr.value)},dispErr={hex(dut.dispErr.value)}')
         assert False
 
 @cocotb.test()
@@ -168,4 +168,7 @@ def test_LineCode10b12bTb(parameters):
         # use of synopsys package "std_logic_arith" needs the -fsynopsys option
         # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
         vhdl_compile_args = ['-fsynopsys', '-fexplicit'],
+
+        # Dump waveform to file ($ gtkwave sim_build/LineCode12b14bTb./LineCode12b14bTb.vcd)
+        sim_args =[f'--vcd={tests_module}.vcd'],
     )

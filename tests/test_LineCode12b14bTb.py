@@ -79,13 +79,9 @@ def dut_tb(dut):
     # Initialize the DUT
     yield dut_init(dut)
 
-    # Read the parameters back from the DUT to set up our model
-    width = dut.NUM_BYTES_G.value.integer
-    dut._log.info( f'Found NUM_BYTES_G={width}' )
-
     # Sweep through all possible combinations of data codes
     dataKIn = 0
-    for dataIn in range(2**(8*width)):
+    for dataIn in range(2**12):
 
         # Load the values
         yield load_value(dut, dataIn, dataKIn)
@@ -96,18 +92,32 @@ def dut_tb(dut):
     # Sweep through the defined Control Code Constants
     dataKIn = 1
     controlCodes = [
-        0x1C, # K28.0, 0x1C
-        0x3C, # K28.1, 0x3C (Comma)
-        0x5C, # K28.2, 0x5C
-        0x7C, # K28.3, 0x7C
-        0x9C, # K28.4, 0x9C
-        0xBC, # K28.5, 0xBC (Comma)
-        0xDC, # K28.6, 0xDC
-        0xFC, # K28.7, 0xFC (Comma)
-        0xF7, # K23.7, 0xF7
-        0xFB, # K27.7, 0xFB
-        0xFD, # K29.7, 0xFD
-        0xFE, # K30.7, 0xFE
+        # -------------------------------------------------------------------------------------------------
+        # -- Constants for K codes
+        # -- These are intended for public use
+        # -------------------------------------------------------------------------------------------------
+        0x078, # constant K_120_0_C  : slv(11 downto 0) := "000001111000";
+        0x0F8, # constant K_120_1_C  : slv(11 downto 0) := "000011111000";
+        0x178, # constant K_120_2_C  : slv(11 downto 0) := "000101111000";
+        0x1F8, # constant K_120_3_C  : slv(11 downto 0) := "000111111000";
+        0x278, # constant K_120_4_C  : slv(11 downto 0) := "001001111000";
+        0x3F8, # constant K_120_7_C  : slv(11 downto 0) := "001111111000";
+        0x478, # constant K_120_8_C  : slv(11 downto 0) := "010001111000";
+        0x5F8, # constant K_120_11_C : slv(11 downto 0) := "010111111000";
+        # --   constant K_120_15_C : slv(11 downto 0) := "011111111000";
+        0x878, # constant K_120_16_C : slv(11 downto 0) := "100001111000";
+        0x9F8, # constant K_120_19_C : slv(11 downto 0) := "100111111000";
+        0xBF8, # constant K_120_23_C : slv(11 downto 0) := "101111111000";
+        0xC78, # constant K_120_24_C : slv(11 downto 0) := "110001111000";
+        0xDF8, # constant K_120_27_C : slv(11 downto 0) := "110111111000";
+        0xEF8, # constant K_120_29_C : slv(11 downto 0) := "111011111000";
+        0xF78, # constant K_120_30_C : slv(11 downto 0) := "111101111000";
+        0xFF8, # constant K_120_31_C : slv(11 downto 0) := "111111111000";
+        # --    constant K_55_15_C  : slv(11 downto 0) := "011110110111";
+        # --    constant K_57_15_C  : slv(11 downto 0) := "011110111001";
+        # --    constant K_87_15_C  : slv(11 downto 0) := "011111010111";
+        # --    constant K_93_15_C  : slv(11 downto 0) := "011111011101";
+        # --    constant K_117_15_C : slv(11 downto 0) := "011111110101";
     ]
     for dataIn in controlCodes:
 
@@ -120,14 +130,13 @@ def dut_tb(dut):
     dut._log.info("DUT: Passed")
 
 tests_dir = os.path.dirname(__file__)
-tests_module = 'LineCode8b10bTb'
+tests_module = 'LineCode12b14bTb'
 
 @pytest.mark.parametrize(
     "parameters", [
-        {'NUM_BYTES_G': '1'},  # Test 1 byte interface
-        {'NUM_BYTES_G': '2'},  # Test 2 byte interface
+        None
     ])
-def test_LineCode8b10bTb(parameters):
+def test_LineCode12b14bTb(parameters):
 
     # https://github.com/themperek/cocotb-test#arguments-for-simulatorrun
     # https://github.com/themperek/cocotb-test/blob/master/cocotb_test/simulator.py
@@ -154,7 +163,7 @@ def test_LineCode8b10bTb(parameters):
         parameters = parameters,
 
         # The directory used to compile the tests. (default: sim_build)
-        sim_build = f'{tests_dir}/sim_build/{tests_module}.' + ",".join((f"{key}={value}" for key, value in parameters.items())),
+        sim_build = f'{tests_dir}/sim_build/{tests_module}.',
 
         # A dictionary of extra environment variables set in simulator process.
         extra_env=parameters,
@@ -162,6 +171,10 @@ def test_LineCode8b10bTb(parameters):
         # Select a simulator
         simulator="ghdl",
 
-        # Dump waveform to file ($ gtkwave sim_build/LineCode8b10bTb.NUM_BYTES_G\=1/LineCode8b10bTb.vcd)
+        # use of synopsys package "std_logic_arith" needs the -fsynopsys option
+        # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
+        vhdl_compile_args = ['-fsynopsys', '-fexplicit'],
+
+        # Dump waveform to file ($ gtkwave sim_build/LineCode12b14bTb./LineCode12b14bTb.vcd)
         sim_args =[f'--vcd={tests_module}.vcd'],
     )
