@@ -96,13 +96,13 @@ entity AxiStreamFifoV2IpIntegrator is
       M_AXIS_ACLK     : in  std_logic                                          := '0';
       M_AXIS_ARESETN  : in  std_logic                                          := '0';
       M_AXIS_TVALID   : out std_logic;
-      M_AXIS_TDATA    : out std_logic_vector((8*S_TDATA_NUM_BYTES)-1 downto 0);
-      M_AXIS_TSTRB    : out std_logic_vector(S_TDATA_NUM_BYTES-1 downto 0);
-      M_AXIS_TKEEP    : out std_logic_vector(S_TDATA_NUM_BYTES-1 downto 0);
+      M_AXIS_TDATA    : out std_logic_vector((8*M_TDATA_NUM_BYTES)-1 downto 0);
+      M_AXIS_TSTRB    : out std_logic_vector(M_TDATA_NUM_BYTES-1 downto 0);
+      M_AXIS_TKEEP    : out std_logic_vector(M_TDATA_NUM_BYTES-1 downto 0);
       M_AXIS_TLAST    : out std_logic;
-      M_AXIS_TDEST    : out std_logic_vector(S_TDEST_WIDTH-1 downto 0);
-      M_AXIS_TID      : out std_logic_vector(S_TID_WIDTH-1 downto 0);
-      M_AXIS_TUSER    : out std_logic_vector(S_TUSER_WIDTH-1 downto 0);
+      M_AXIS_TDEST    : out std_logic_vector(M_TDEST_WIDTH-1 downto 0);
+      M_AXIS_TID      : out std_logic_vector(M_TID_WIDTH-1 downto 0);
+      M_AXIS_TUSER    : out std_logic_vector(M_TUSER_WIDTH-1 downto 0);
       M_AXIS_TREADY   : in  std_logic                                          := '1';
       -- Misc. Interfaces
       fifoPauseThresh : in  std_logic_vector(FIFO_ADDR_WIDTH-1 downto 0)       := (others => '1');
