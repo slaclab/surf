@@ -20,7 +20,9 @@ import time
 class RfDataConverter(pr.Device):
     def __init__(
             self,
-            gen3 = True, # True if using RFSoC GEN3 Hardware
+            gen3      = True, # True if using RFSoC GEN3 Hardware
+            enAdcTile = [True,True,True,True],
+            enDacTile = [True,True,True,True],
             **kwargs):
         super().__init__(**kwargs)
 
@@ -104,22 +106,24 @@ class RfDataConverter(pr.Device):
         ))
 
         for i in range(4):
-            self.add(xil.RfTile(
-                name    = f'dacTile[{i}]',
-                isAdc   = False,
-                gen3    = gen3,
-                offset  = 0x04000 + 0x4000*i,
-                expand  = False,
-            ))
+            if enDacTile[i]:
+                self.add(xil.RfTile(
+                    name    = f'dacTile[{i}]',
+                    isAdc   = False,
+                    gen3    = gen3,
+                    offset  = 0x04000 + 0x4000*i,
+                    expand  = False,
+                ))
 
         for i in range(4):
-            self.add(xil.RfTile(
-                name    = f'adcTile[{i}]',
-                isAdc   = True,
-                gen3    = gen3,
-                offset  = 0x14000 + 0x4000*i,
-                expand  = False,
-            ))
+            if enAdcTile[i]:
+                self.add(xil.RfTile(
+                    name    = f'adcTile[{i}]',
+                    isAdc   = True,
+                    gen3    = gen3,
+                    offset  = 0x14000 + 0x4000*i,
+                    expand  = False,
+                ))
 
     def Init(self, dynamicNco=False):
 
