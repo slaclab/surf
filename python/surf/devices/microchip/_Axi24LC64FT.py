@@ -38,5 +38,3 @@ class Axi24LC64FT(pr.Device):
                 bitSize     = 32 * nelms,
                 # mode      = "RO",
             ))
-
-

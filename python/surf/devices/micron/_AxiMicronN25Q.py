@@ -14,7 +14,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue   as pr
-import rogue
 import surf.misc
 import click
 import time

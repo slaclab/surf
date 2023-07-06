@@ -14,7 +14,6 @@
 import pyrogue as pr
 import time
 import surf.devices.ti
-import rogue
 
 class Adc32Rf45(pr.Device):
     def __init__( self, verify=True, **kwargs):

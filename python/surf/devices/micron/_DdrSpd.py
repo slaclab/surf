@@ -35,4 +35,3 @@ class DdrSpd(pr.Device):
                 bitSize     = 32 * nelms,
                 # mode      = "RO",
             ))
-

@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue
 
 class Lmx2615(pr.Device):
     def __init__(self, **kwargs):
@@ -758,4 +757,3 @@ class Lmx2615(pr.Device):
                     self.DataBlock.set(value=data, index=addr, write=True)
 
             self.MUXOUT_LD_SEL.set(0x0)
-

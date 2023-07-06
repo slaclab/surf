@@ -13,7 +13,6 @@ import surf.devices.silabs as silabs
 import csv
 import click
 import fnmatch
-import rogue
 
 class Si5345Lite(pr.Device):
     def __init__(self,
