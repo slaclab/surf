@@ -13,7 +13,6 @@ import surf.devices.silabs as silabs
 import csv
 import click
 import fnmatch
-import rogue
 import time
 
 class Si5394Lite(pr.Device):
