@@ -23,15 +23,7 @@ class Si5394Lite(pr.Device):
             liteVersion   = True,
             **kwargs):
 
-        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
-        # self._useVars = False
-
-        if self._useVars:
-            size = 0
-        else:
-            size = 0x10000  # 64KB
-
-        super().__init__(size=size, **kwargs)
+        super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
             name         = "CsvFilePath",
@@ -129,8 +121,5 @@ class Si5394Lite(pr.Device):
         ))
 
     def _setValue(self,offset,data):
-        if self._useVars:
-            # Note: index is byte index (not word index)
-            self._pages[offset // 0x400].DataBlock.set(value=data,index=(offset%0x400)>>2)
-        else:
-            self._rawWrite(offset,data)  # Deprecated
+        # Note: index is byte index (not word index)
+        self._pages[offset // 0x400].DataBlock.set(value=data,index=(offset%0x400)>>2)
