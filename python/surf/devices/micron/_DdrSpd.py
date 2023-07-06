@@ -24,16 +24,15 @@ class DdrSpd(pr.Device):
             **kwargs):
         super().__init__(description=description, hidden=hidden, **kwargs)
 
-        ##############################
-        # Variables
-        ##############################
         if (instantiate):
-            pr.MemoryDevice(
+            self.add(pr.RemoteVariable(
                 name        = "Mem",
                 description = "Memory Array",
                 size        = (4*nelms),
-                # nelms     = nelms,
+                numValues   = nelms,
+                valueBits   = 32,
+                valueStride = 32,
+                bitSize     = 32 * nelms,
                 # mode      = "RO",
-                wordBitSize = 8,
-                # bitSize   = 8,
-            )
+            ))
+
