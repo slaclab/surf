@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -39,7 +38,7 @@ entity AxiLiteRamSyncStatusVector is
       COMMON_CLK_G    : boolean                := false;  -- True if wrClk and rdClk are the same clock
       IN_POLARITY_G   : slv                    := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G  : sl                     := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
-      SYNTH_CNT_G     : slv                    := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
+      SYNTH_CNT_G     : slv                    := "1";  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean                := true;  -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive range 1 to 32 := 32;   -- Counters' width
       WIDTH_G         : positive);      -- Status vector width
@@ -93,6 +92,7 @@ begin
    U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SYNTH_MODE_G   => SYNTH_MODE_G,
          MEMORY_TYPE_G  => MEMORY_TYPE_G,
          READ_LATENCY_G => READ_LATENCY_G,
@@ -119,6 +119,7 @@ begin
    U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => CNT_WIDTH_G,
@@ -157,7 +158,7 @@ begin
       end if;
 
       -- Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -166,11 +167,13 @@ begin
 
    end process;
 
-   process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
-   end process;
+   end process seq;
 
 end mapping;

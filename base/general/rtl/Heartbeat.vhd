@@ -17,16 +17,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity Heartbeat is
    generic (
-      TPD_G        : time   := 1 ns;
-      USE_DSP_G    : string := "no";
-      PERIOD_IN_G  : real   := 6.4E-9;   --units of seconds
-      PERIOD_OUT_G : real   := 1.0E-0);  --units of seconds
+      TPD_G        : time    := 1 ns;
+      RST_ASYNC_G  : boolean := false;
+      USE_DSP_G    : string  := "no";
+      PERIOD_IN_G  : real    := 6.4E-9;   --units of seconds
+      PERIOD_OUT_G : real    := 1.0E-0);  --units of seconds
    port (
       clk : in  sl;
       rst : in  sl := '0';
@@ -71,7 +71,7 @@ begin
          end if;
       end if;
 
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -80,9 +80,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

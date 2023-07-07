@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -27,10 +26,11 @@ use surf.AxiLitePkg.all;
 entity AxiLiteAsync is
    generic (
       TPD_G            : time                  := 1 ns;
+      RST_ASYNC_G      : boolean               := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
-      COMMON_CLK_G    : boolean               := false;
-      NUM_ADDR_BITS_G : natural               := 32;
-      PIPE_STAGES_G   : integer range 0 to 16 := 0);
+      COMMON_CLK_G     : boolean               := false;
+      NUM_ADDR_BITS_G  : natural               := 32;
+      PIPE_STAGES_G    : integer range 0 to 16 := 0);
    port (
       -- Slave Port
       sAxiClk         : in  sl;
@@ -120,8 +120,6 @@ begin
          asyncRst => mAxiClkRst,
          syncRst  => m2sRst);
 
-
-
    ------------------------------------
    -- Read: Slave to Master
    ------------------------------------
@@ -130,6 +128,7 @@ begin
    U_ReadSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
          MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
@@ -184,7 +183,6 @@ begin
    mAxiReadMaster.arvalid <= readSlaveToMastValid;
    readSlaveToMastRead    <= mAxiReadSlave.arready;
 
-
    ------------------------------------
    -- Read: Master To Slave
    ------------------------------------
@@ -193,6 +191,7 @@ begin
    U_ReadMastToSlaveFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
          MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
@@ -242,7 +241,6 @@ begin
    sAxiReadSlave.rvalid <= ite(m2sRst = '0', readMastToSlaveValid, '1');
    readMastToSlaveRead  <= sAxiReadMaster.rready;
 
-
    ------------------------------------
    -- Write Addr : Slave To Master
    ------------------------------------
@@ -251,6 +249,7 @@ begin
    U_WriteAddrSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
          MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
@@ -305,7 +304,6 @@ begin
    mAxiWriteMaster.awvalid  <= writeAddrSlaveToMastValid;
    writeAddrSlaveToMastRead <= mAxiWriteSlave.awready;
 
-
    ------------------------------------
    -- Write Data : Slave to Master
    ------------------------------------
@@ -314,6 +312,7 @@ begin
    U_WriteDataSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
          MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
@@ -363,7 +362,6 @@ begin
    mAxiWriteMaster.wvalid   <= writeDataSlaveToMastValid;
    writeDataSlaveToMastRead <= mAxiWriteSlave.wready;
 
-
    ------------------------------------
    -- Write: Status Master To Slave
    ------------------------------------
@@ -372,6 +370,7 @@ begin
    U_WriteMastToSlaveFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
          MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,

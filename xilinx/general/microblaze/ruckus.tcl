@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 # Check if Microblaze source code path defined
 if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
@@ -19,7 +19,8 @@ if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
       loadSource -lib surf -path "$::DIR_PATH/generate/MicroblazeBasicCoreWrapper.vhd"
 
       # Load the .bd file
-      if  { $::env(VIVADO_VERSION) == 2022.2 } {
+      if { $::env(VIVADO_VERSION) == 2023.1 ||
+           $::env(VIVADO_VERSION) == 2022.2 } {
          puts "\nVivado v$::env(VIVADO_VERSION) not supported for general/microblaze\n"
          exit -1
       } elseif  { $::env(VIVADO_VERSION) >= 2021.1 } {

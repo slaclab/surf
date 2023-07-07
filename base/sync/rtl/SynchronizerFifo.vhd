@@ -17,13 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SynchronizerFifo is
    generic (
       TPD_G         : time                       := 1 ns;
+      RST_ASYNC_G   : boolean                    := false;
       COMMON_CLK_G  : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
       MEMORY_TYPE_G : string                     := "distributed";
       SYNC_STAGES_G : integer range 3 to (2**24) := 3;
@@ -59,6 +59,7 @@ begin
       FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             MEMORY_TYPE_G => MEMORY_TYPE_G,
             FWFT_EN_G     => true,
             SYNC_STAGES_G => SYNC_STAGES_G,

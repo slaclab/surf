@@ -1,44 +1,49 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 # Load the Core
 loadRuckusTcl "$::DIR_PATH/core"
 
-# Get the family type
-set family [getFpgaArch]
+# Check for non-zero Vivado version (in-case non-Vivado project)
+if {  $::env(VIVADO_VERSION) > 0.0} {
 
-if { ${family} eq {artix7} } {
-   loadRuckusTcl "$::DIR_PATH/gtp7"
-}
+   # Get the family type
+   set family [getFpgaArch]
 
-if { ${family} eq {kintex7} } {
-   loadRuckusTcl "$::DIR_PATH/gtx7"
-}
-
-if { ${family} eq {zynq} } {
-   if { [ regexp "XC7Z(015|012).*" [string toupper "$::env(PRJ_PART)"] ] } {
+   if { ${family} eq {artix7} } {
       loadRuckusTcl "$::DIR_PATH/gtp7"
-   } else {
+   }
+
+   if { ${family} eq {kintex7} } {
       loadRuckusTcl "$::DIR_PATH/gtx7"
    }
-}
 
-# if { ${family} eq {virtex7} } {
-   # loadRuckusTcl "$::DIR_PATH/gth7"
-# }
+   if { ${family} eq {zynq} } {
+      if { [ regexp "XC7Z(015|012).*" [string toupper "$::env(PRJ_PART)"] ] } {
+         loadRuckusTcl "$::DIR_PATH/gtp7"
+      } else {
+         loadRuckusTcl "$::DIR_PATH/gtx7"
+      }
+   }
 
-if { ${family} eq {kintexu} } {
-   loadRuckusTcl "$::DIR_PATH/gthUs"
-}
+   # if { ${family} eq {virtex7} } {
+      # loadRuckusTcl "$::DIR_PATH/gth7"
+   # }
 
-if { ${family} eq {kintexuplus} ||
-     ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} } {
-   loadRuckusTcl "$::DIR_PATH/gthUs+"
-   loadRuckusTcl "$::DIR_PATH/gtyUs+"
-}
+   if { ${family} eq {kintexu} } {
+      loadRuckusTcl "$::DIR_PATH/gthUs"
+   }
 
-if { ${family} eq {virtexuplus} ||
-     ${family} eq {virtexuplusHBM} } {
-   loadRuckusTcl "$::DIR_PATH/gtyUs+"
+   if { ${family} eq {kintexuplus} ||
+        ${family} eq {zynquplus} ||
+        ${family} eq {zynquplusRFSOC} } {
+      loadRuckusTcl "$::DIR_PATH/gthUs+"
+      loadRuckusTcl "$::DIR_PATH/gtyUs+"
+   }
+
+   if { ${family} eq {virtexuplus} ||
+        ${family} eq {virtexuplusHBM} } {
+      loadRuckusTcl "$::DIR_PATH/gtyUs+"
+   }
+
 }

@@ -10,6 +10,7 @@
 from surf.xilinx._AxiPciePhy          import *
 from surf.xilinx._AxiSysMonUltraScale import *
 from surf.xilinx._ClockManager        import *
+from surf.xilinx._GpioPs              import *
 from surf.xilinx._Gtye4Channel        import *
 from surf.xilinx._Gtye4Common         import *
 from surf.xilinx._Gthe3Channel        import *
@@ -17,7 +18,9 @@ from surf.xilinx._Gtxe2Channel        import *
 from surf.xilinx._Gtpe2Channel        import *
 from surf.xilinx._Gtpe2Common         import *
 from surf.xilinx._RfTile              import *
+from surf.xilinx._RfBlock             import *
 from surf.xilinx._RfDataConverter     import *
+from surf.xilinx._SpiPs               import *
 from surf.xilinx._TmrInject           import *
 from surf.xilinx._TmrManager          import *
 from surf.xilinx._TmrSem              import *

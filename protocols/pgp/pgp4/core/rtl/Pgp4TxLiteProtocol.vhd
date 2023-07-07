@@ -32,6 +32,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4TxLiteProtocol is
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_ASYNC_G    : boolean               := false;
       NUM_VC_G       : integer range 1 to 16 := 1;
       SKIP_EN_G      : boolean               := false;
       FLOW_CTRL_EN_G : boolean               := false;
@@ -126,10 +127,12 @@ begin
    U_Crc32 : entity surf.Crc32Parallel
       generic map (
          TPD_G            => TPD_G,
+         RST_ASYNC_G      => RST_ASYNC_G,
          INPUT_REGISTER_G => false,
          BYTE_WIDTH_G     => 8,
          CRC_INIT_G       => X"FFFFFFFF")
       port map (
+         crcPwrOnRst  => pgpTxRst,
          crcOut       => crcOut,
          crcRem       => open,
          crcClk       => pgpTxClk,
@@ -302,6 +305,7 @@ begin
 
             -- Override any data acceptance.
             v.pgpTxSlave.tReady := '0';
+            v.crcDataValid      := '0';
 
             -- Accept the op-code
             v.opCodeReady := '1';
@@ -323,8 +327,11 @@ begin
             -- Reset the counter
             v.skpCount := (others => '0');
 
+            -- Override any data acceptance.
+            v.pgpTxSlave.tReady := '0';
+            v.crcDataValid      := '0';
+
             -- Update the TX data bus
-            v.pgpTxSlave.tReady                  := '0';  -- Override any data acceptance.
             v.protTxData(PGP4_SKIP_DATA_FIELD_C) := pgpTxIn.locData;
             v.protTxData(PGP4_BTF_FIELD_C)       := PGP4_SKP_C;
             v.protTxHeader                       := PGP4_K_HEADER_C;
@@ -365,6 +372,7 @@ begin
                if (r.pauseEvent(i) = '1') and (r.pauseEventSent(i) = '0') then
                   v.pauseEventSent(i) := '1';
                   v.pgpTxSlave.tReady := '0';
+                  v.crcDataValid      := '0';
                   v.protTxData        := idleWord;
                   v.protTxHeader      := PGP4_K_HEADER_C;
                   resetEventMetaData  := true;
@@ -374,6 +382,7 @@ begin
                if (r.overflowEvent(i) = '1') and (r.overflowEventSent(i) = '0') then
                   v.overflowEventSent(i) := '1';
                   v.pgpTxSlave.tReady    := '0';
+                  v.crcDataValid         := '0';
                   v.protTxData           := idleWord;
                   v.protTxHeader         := PGP4_K_HEADER_C;
                   resetEventMetaData     := true;
@@ -444,7 +453,7 @@ begin
       end loop;
 
       -- Reset
-      if (pgpTxRst = '1') then
+      if (RST_ASYNC_G = false and pgpTxRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -453,9 +462,11 @@ begin
 
    end process comb;
 
-   seq : process (pgpTxClk) is
+   seq : process (pgpTxClk, pgpTxRst) is
    begin
-      if (rising_edge(pgpTxClk)) then
+      if (RST_ASYNC_G) and (pgpTxRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(pgpTxClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

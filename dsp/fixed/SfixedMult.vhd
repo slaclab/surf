@@ -4,7 +4,7 @@
 -- Description: signed fixed point multiplier using VHDL2008 fixed_pkg and
 --              unconstrained input/output ports.  Can infer 27x18 mult
 --              (1 DSP48) with latency >= 3 or 35x27 mult (2 DSP48) with
---              lantecy >= 4
+--              latency >= 4
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

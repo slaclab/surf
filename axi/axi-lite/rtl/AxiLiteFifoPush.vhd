@@ -16,9 +16,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
-
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -27,13 +26,12 @@ use surf.AxiLitePkg.all;
 entity AxiLiteFifoPush is
    generic (
       TPD_G              : time                  := 1 ns;
+      RST_ASYNC_G        : boolean               := false;
       PUSH_FIFO_COUNT_G  : positive              := 1;
       PUSH_SYNC_FIFO_G   : boolean               := false;
       PUSH_MEMORY_TYPE_G : string                := "distributed";
-      PUSH_ADDR_WIDTH_G  : integer range 4 to 48 := 4
-   );
+      PUSH_ADDR_WIDTH_G  : integer range 4 to 48 := 4);
    port (
-
       -- AXI Interface (axiClk)
       axiClk             : in  sl;
       axiClkRst          : in  sl;
@@ -42,14 +40,12 @@ entity AxiLiteFifoPush is
       axiWriteMaster     : in  AxiLiteWriteMasterType;
       axiWriteSlave      : out AxiLiteWriteSlaveType;
       pushFifoAFull      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
-
       -- Push FIFO Read Interface (pushFifoClk)
       pushFifoClk        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoRst        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoValid      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoDout       : out Slv36Array(PUSH_FIFO_COUNT_G-1 downto 0);
-      pushFifoRead       : in  slv(PUSH_FIFO_COUNT_G-1 downto 0)
-   );
+      pushFifoRead       : in  slv(PUSH_FIFO_COUNT_G-1 downto 0));
 end AxiLiteFifoPush;
 
 architecture structure of AxiLiteFifoPush is
@@ -74,14 +70,12 @@ architecture structure of AxiLiteFifoPush is
       pushFifoWrite     => (others => '0'),
       pushFifoDin       => (others => '0'),
       axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C
-   );
+      axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
-
 
    -----------------------------------------
    -- FIFOs
@@ -139,16 +133,7 @@ begin
    -- AXI Lite
    -----------------------------------------
 
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipushFifoFull, ipushFifoAFull ) is
+   comb : process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipushFifoFull, ipushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -181,7 +166,7 @@ begin
       end if;
 
       -- Reset
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -194,7 +179,15 @@ begin
       ipushFifoDin   <= r.pushFifoDin;
       ipushFifoWrite <= r.pushFifoWrite;
 
-   end process;
+   end process comb;
+
+   seq : process (axiClk, axiClkRst) is
+   begin
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end architecture structure;
-

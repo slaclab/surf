@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 entity AsyncGearbox is
    generic (
       TPD_G                : time     := 1 ns;
+      RST_ASYNC_G          : boolean  := false;
       SLAVE_WIDTH_G        : positive;
       SLAVE_BIT_REVERSE_G  : boolean  := false;
       MASTER_WIDTH_G       : positive;
@@ -116,6 +117,7 @@ begin
       U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
             MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
@@ -140,6 +142,7 @@ begin
       U_Input : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
             PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
          port map (
@@ -159,6 +162,7 @@ begin
    U_Gearbox_1 : entity surf.Gearbox
       generic map (
          TPD_G                => TPD_G,
+         RST_ASYNC_G          => RST_ASYNC_G,
          SLAVE_WIDTH_G        => SLAVE_WIDTH_G,
          SLAVE_BIT_REVERSE_G  => SLAVE_BIT_REVERSE_G,
          MASTER_WIDTH_G       => MASTER_WIDTH_G,
@@ -180,6 +184,7 @@ begin
       U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             FWFT_EN_G     => true,
             DATA_WIDTH_G  => MASTER_WIDTH_G,
             MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
@@ -203,6 +208,7 @@ begin
       U_Output : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             DATA_WIDTH_G  => MASTER_WIDTH_G,
             PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
          port map (

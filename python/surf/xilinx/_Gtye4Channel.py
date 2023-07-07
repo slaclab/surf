@@ -18,7 +18,7 @@ class Gtye4Channel(pr.Device):
     def _start(self):
         super()._start()
         print(f'{self.path} - {len(self.variables)=}')
-    
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -636,7 +636,7 @@ class Gtye4Channel(pr.Device):
             mode = 'RW',
             name = 'ALIGN_COMMA_WORD',
             enum = {
-                0 : '-',                
+                0 : '-',
                 1 : '1',
                 2 : '2',
                 4 : '4'})
@@ -1182,7 +1182,7 @@ class Gtye4Channel(pr.Device):
             mode = 'RW',
             name = 'TX_PROGDIV_CFG',
             enum = {
-                0 : '-',                
+                0 : '-',
                 32768 : '0',
                 57440 : '10',
                 57455 : '100',
@@ -1976,7 +1976,7 @@ class Gtye4Channel(pr.Device):
             mode = 'RW',
             name = 'TX_DATA_WIDTH',
             enum = {
-                0 : '-',                
+                0 : '-',
                 2 : '16',
                 3 : '20',
                 4 : '32',
@@ -2914,7 +2914,7 @@ class Gtye4Channel(pr.Device):
             mode = 'RW',
             name = 'RX_PROGDIV_CFG',
             enum = {
-                0 : '-',                
+                0 : '-',
                 32768 : '0',
                 57440 : '10',
                 57455 : '100',

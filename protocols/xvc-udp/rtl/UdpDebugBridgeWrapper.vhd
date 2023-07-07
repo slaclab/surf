@@ -26,7 +26,8 @@ use surf.EthMacPkg.all;
 
 entity UdpDebugBridgeWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G           : time := 1 ns;
+      AXIS_CLK_FREQ_G : real := 156.25e6);
    port (
       -- Clock and Reset
       clk            : in  sl;
@@ -41,6 +42,8 @@ end UdpDebugBridgeWrapper;
 architecture rtl of UdpDebugBridgeWrapper is
 
    component UdpDebugBridge is
+      generic (
+         AXIS_CLK_FREQ_G : real);
       port (
          axisClk            : in  std_logic;
          axisRst            : in  std_logic;
@@ -112,6 +115,8 @@ begin
    end process P_SOF_SPLICE;
 
    U_XvcServer : component UdpDebugBridge
+      generic map (
+         AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G)
       port map (
          axisClk => clk,
          axisRst => rst,

@@ -9,6 +9,8 @@
 ##############################################################################
 from surf.devices.silabs._Si5324      import *
 
+from surf.devices.silabs._Si5326      import *
+
 from surf.devices.silabs._Si5345Pages import *
 from surf.devices.silabs._Si5345Lite  import *
 from surf.devices.silabs._Si5345      import *

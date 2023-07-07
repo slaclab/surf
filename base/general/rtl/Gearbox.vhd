@@ -25,6 +25,8 @@ use surf.StdRtlPkg.all;
 entity Gearbox is
    generic (
       TPD_G                : time    := 1 ns;
+      RST_POLARITY_G       : sl      := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G          : boolean := false;
       SLAVE_BIT_REVERSE_G  : boolean := false;
       SLAVE_WIDTH_G        : positive;
       MASTER_BIT_REVERSE_G : boolean := false;
@@ -60,6 +62,7 @@ architecture rtl of Gearbox is
       masterValid : sl;
       shiftReg    : slv(SHIFT_WIDTH_C-1 downto 0);
       writeIndex  : natural range 0 to SHIFT_WIDTH_C-1;
+      slipArmed   : sl;
       slaveReady  : sl;
       slip        : sl;
    end record;
@@ -68,6 +71,7 @@ architecture rtl of Gearbox is
       masterValid => '0',
       shiftReg    => (others => '0'),
       writeIndex  => 0,
+      slipArmed   => '0',
       slaveReady  => '0',
       slip        => '0');
 
@@ -90,8 +94,9 @@ begin
       end if;
 
       -- Slip input by incrementing the writeIndex
-      v.slip := slip;
-      if (slip = '1') and (r.slip = '0') and (rst = '0') then
+      v.slip      := slip;
+      v.slipArmed := '1';
+      if (slip = '1') and (r.slip = '0') and (r.slipArmed = '1') then
          if (r.writeIndex /= 0) then
             v.writeIndex := r.writeIndex - 1;
          else
@@ -147,7 +152,7 @@ begin
 
       slaveReady <= v.slaveReady;
 
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -162,11 +167,13 @@ begin
 
    end process comb;
 
-   sync : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
-   end process sync;
+   end process seq;
 
 end rtl;
