@@ -127,6 +127,64 @@ def dut_tb(dut):
         # Check the results for errors
         check_result(dut, dataIn, dataKIn)
 
+    testPattern = [
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x078,1],
+       [0x5F8,1],
+       [0xEAD,0],
+       [0x0BD,0],
+       [0xEAD,0],
+       [0x1BD,0],
+       [0xEAD,0],
+       [0x2BD,0],
+       [0xEAD,0],
+       [0x3BD,0],
+       [0xEAD,0],
+       [0x4BD,0],
+       [0xEAD,0],
+       [0x5BD,0],
+       [0xEAD,0],
+       [0x6BD,0],
+       [0xEAD,0],
+       [0x7BD,0],
+       [0xEAD,0],
+       [0x8BD,0],
+       [0xEAD,0],
+       [0x9BD,0],
+       [0xEAD,0],
+       [0xABD,0],
+       [0xEAD,0],
+       [0xBBD,0],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+    ]
+    for dataIn,dataKIn in testPattern:
+
+        # Load the values
+        yield load_value(dut, dataIn, dataKIn)
+
+        # Check the results for errors
+        check_result(dut, dataIn, dataKIn)
+
     dut._log.info("DUT: Passed")
 
 tests_dir = os.path.dirname(__file__)
