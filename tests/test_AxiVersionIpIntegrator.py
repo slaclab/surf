@@ -123,12 +123,12 @@ def test_AxiVersionIpIntegrator(parameters):
         # A dictionary of extra environment variables set in simulator process.
         extra_env=parameters,
 
+        # Select a simulator
+        simulator="ghdl",
+
         # use of synopsys package "std_logic_arith" needs the -fsynopsys option
         # -frelaxed-rules option to allow IP integrator attributes
         vhdl_compile_args = ['-fsynopsys','-frelaxed-rules'],
-
-        # Select a simulator
-        simulator="ghdl",
 
         # Dump waveform to file ($ gtkwave sim_build/AxiVersionIpIntegrator/AxiVersionIpIntegrator.vcd)
         sim_args =[f'--vcd={tests_module}.vcd'],

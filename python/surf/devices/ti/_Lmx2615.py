@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue
 
 class Lmx2615(pr.Device):
     def __init__(self, **kwargs):
@@ -18,34 +17,25 @@ class Lmx2615(pr.Device):
         # Address = 0x00 (R0)
         # Write only because MUXOUT_LD_SEL's default is not readback SPI mode
         #####################################################################
+        super().__init__(**kwargs)
 
-        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
-
-        if self._useVars:
-            size = 0
-        else:
-            size = (1 <<12)
-
-        super().__init__(size = size, **kwargs)
-
-        if self._useVars:
-            self.add(pr.RemoteVariable(
-                name         = "DataBlock",
-                description  = "",
-                offset       = 0,
-                bitSize      = 32 * 1024,
-                bitOffset    = 0,
-                numValues    = 1024,
-                valueBits    = 32,
-                valueStride  = 32,
-                updateNotify = True,
-                bulkOpEn     = False, # FALSE for large variables
-                overlapEn    = True,
-                verify       = False, # FALSE due to a mix of RO/WO/RW variables
-                hidden       = True,
-                base         = pr.UInt,
-                mode         = "RW",
-            ))
+        self.add(pr.RemoteVariable(
+            name         = "DataBlock",
+            description  = "",
+            offset       = 0,
+            bitSize      = 32 * 1024,
+            bitOffset    = 0,
+            numValues    = 1024,
+            valueBits    = 32,
+            valueStride  = 32,
+            updateNotify = True,
+            bulkOpEn     = False, # FALSE for large variables
+            overlapEn    = True,
+            verify       = False, # FALSE due to a mix of RO/WO/RW variables
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'VCO_PHASE_SYNC',
@@ -764,13 +754,6 @@ class Lmx2615(pr.Device):
                     else:
                         data = int("0x" + s[1][-4:], 0)
                     print(f'writing {addr:#04x}: {data:#06x}')
-                    if self._useVars:
-                        self.DataBlock.set(value=data, index=addr, write=True)
-                    else:
-                        self._rawWrite( 4 * addr, data)
+                    self.DataBlock.set(value=data, index=addr, write=True)
 
             self.MUXOUT_LD_SEL.set(0x0)
-
-            if not self._useVars:
-                self.readBlocks(recurse=True)
-                self.checkBlocks(recurse=True)
