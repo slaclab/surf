@@ -72,7 +72,7 @@ architecture rtl of AxiStreamGearbox is
    constant MAX_C : positive := maximum(MST_BYTES_C, SLV_BYTES_C);
    constant MIN_C : positive := minimum(MST_BYTES_C, SLV_BYTES_C);
 
-   constant SHIFT_WIDTH_C : positive := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C;
+   constant SHIFT_WIDTH_C : positive := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C + 1;
 
    type RegType is record
       writeIndex : natural range 0 to SHIFT_WIDTH_C-1;
@@ -265,7 +265,7 @@ begin
             end if;
 
             -- Increment writeIndex
-            v.writeIndex := v.writeIndex + SLV_BYTES_C;
+            v.writeIndex := v.writeIndex + getTKeep(resize(sAxisMaster.tKeep(1*SLV_BYTES_C-1 downto 0), AXI_STREAM_MAX_TKEEP_WIDTH_C), SLAVE_AXI_CONFIG_G);
 
             -- Assert tValid
             if (v.writeIndex >= MST_BYTES_C) or (sAxisMaster.tLast = '1') then
