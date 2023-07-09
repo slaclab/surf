@@ -72,7 +72,7 @@ architecture rtl of AxiStreamGearbox is
    constant MAX_C : positive := maximum(MST_BYTES_C, SLV_BYTES_C);
    constant MIN_C : positive := minimum(MST_BYTES_C, SLV_BYTES_C);
 
-   constant SHIFT_WIDTH_C : positive := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C + 1;
+   constant SHIFT_WIDTH_C : positive := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C;
 
    type RegType is record
       writeIndex : natural range 0 to SHIFT_WIDTH_C-1;
@@ -212,8 +212,10 @@ begin
 
                   -- Set the flags
                   v.tValid   := '1';
-                  v.tLast    := r.tLastDly;
-                  v.tLastDly := '0';
+                  if (v.writeIndex <= MST_BYTES_C) then
+                     v.tLast    := r.tLastDly;
+                     v.tLastDly := '0';
+                  end if;
 
                end if;
 
