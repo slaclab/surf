@@ -162,6 +162,8 @@ def test_LineCode8b10bTb(parameters):
         # Select a simulator
         simulator="ghdl",
 
-        # Dump waveform to file ($ gtkwave sim_build/LineCode8b10bTb.NUM_BYTES_G\=1/LineCode8b10bTb.vcd)
-        sim_args =[f'--vcd={tests_module}.vcd'],
+        ########################################################################
+        # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
+        ########################################################################
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )
