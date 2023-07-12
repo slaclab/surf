@@ -291,9 +291,9 @@ class Adc32Rf45(pr.Device):
             verify       = verify,
         ))
 
-       # ##########
-       # # ADC PAGE
-       # ##########
+        # ##########
+        # # ADC PAGE
+        # ##########
         self.add(pr.RemoteVariable(
             name         = "SLOW_SP_EN1",
             description  = "0 = ADC sampling rates are faster than 2.5 GSPS, 1 = ADC sampling rates are slower than 2.5 GSPS",
