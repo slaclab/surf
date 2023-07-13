@@ -87,6 +87,10 @@ class TB:
 
 async def run_test(dut, payload_lengths=None, payload_data=None, idle_inserter=None, backpressure_inserter=None):
 
+    # Debug messages in case it fails
+    dut._log.info( f'Found M_TDATA_NUM_BYTES={dut.M_TDATA_NUM_BYTES.value.integer}' )
+    dut._log.info( f'Found S_TDATA_NUM_BYTES={dut.S_TDATA_NUM_BYTES.value.integer}' )
+
     tb = TB(dut)
 
     id_count = 2**len(tb.source.bus.tid)
@@ -144,8 +148,8 @@ tests_module = 'AxiStreamFifoV2IpIntegrator'
 ##############################################################################
 
 paramSweep = []
-for sTdataByte in ['2','6']:
-    for mTdataByte in ['2','6']:
+for sTdataByte in ['2','5','6']:
+    for mTdataByte in ['2','5','6']:
         tmpDict = {
           "M_TDATA_NUM_BYTES": mTdataByte,
           "S_TDATA_NUM_BYTES": sTdataByte,
@@ -195,6 +199,8 @@ def test_AxiStreamFifoV2IpIntegrator(parameters):
         # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
         vhdl_compile_args = ['-fsynopsys','-frelaxed-rules', '-fexplicit'],
 
-        # Dump waveform to file ($ gtkwave sim_build/AxiStreamFifoV2IpIntegrator/AxiStreamFifoV2IpIntegrator.vcd)
-        sim_args =[f'--vcd={tests_module}.vcd'],
+        ########################################################################
+        # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
+        ########################################################################
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )
