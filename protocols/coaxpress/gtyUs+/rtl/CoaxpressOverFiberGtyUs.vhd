@@ -34,7 +34,8 @@ entity CoaxpressOverFiberGtyUs is
       AXIL_BASE_ADDR_G   : slv(31 downto 0);
       AXIL_CLK_FREQ_G    : real;        -- axilClk frequency (units of Hz)
       AXIS_CLK_FREQ_G    : real;        -- dataClk frequency (units of Hz)
-      AXIS_CONFIG_G      : AxiStreamConfigType);
+      DATA_AXIS_CONFIG_G : AxiStreamConfigType;
+      CFG_AXIS_CONFIG_G  : AxiStreamConfigType);
    port (
       -- QPLL Interface
       qpllLock        : in  Slv2Array(NUM_LANES_G-1 downto 0);
@@ -132,7 +133,9 @@ begin
          NUM_LANES_G        => NUM_LANES_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
          RX_FSM_CNT_WIDTH_C => RX_FSM_CNT_WIDTH_C,
-         AXIS_CONFIG_G      => AXIS_CONFIG_G,
+         DATA_AXIS_CONFIG_G => DATA_AXIS_CONFIG_G,
+         CFG_AXIS_CONFIG_G  => CFG_AXIS_CONFIG_G,
+         AXIS_CLK_FREQ_G    => AXIS_CLK_FREQ_G,
          AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
       port map (
          -- Data Interface (dataClk domain)
@@ -180,45 +183,45 @@ begin
    --------------------------
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
 
-         U_CXPoF : entity surf.CoaXPressOverFiberGtyUsIpWrapper
-            generic map (
-               TPD_G   => TPD_G,
-               LANE0_G => (i = 0))
-            port map (
-               -- QPLL Interface
-               qpllLock        => qpllLock(i),
-               qpllclk         => qpllclk(i),
-               qpllrefclk      => qpllrefclk(i),
-               qpllRst         => qpllRst(i),
-               -- GT Ports
-               gtRxP           => gtRxP(i),
-               gtRxN           => gtRxN(i),
-               gtTxP           => gtTxP(i),
-               gtTxN           => gtTxN(i),
-               -- Tx Interface (txClk domain)
-               txClk           => txClk(i),
-               txRst           => txRst(i),
-               txLsValid       => txLsValid(i),
-               txLsData        => txLsData(i),
-               txLsDataK       => txLsDataK(i),
-               txLsRate        => txLsRate(i),
-               txLsLaneEn      => txLsLaneEn(i),
-               txLinkUp        => txLinkUp(i),
-               -- Rx Interface (rxClk domain)
-               rxClk           => rxClk(i),
-               rxRst           => rxRst(i),
-               rxData          => rxData(i),
-               rxDataK         => rxDataK(i),
-               rxDispErr       => rxDispErr(i),
-               rxDecErr        => rxDecErr(i),
-               rxLinkUp        => rxLinkUp(i),
-               -- AXI-Lite Register Interface (axilClk domain)
-               axilClk         => axilClk,
-               axilRst         => axilRst,
-               axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C+i),
-               axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C+i),
-               axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C+i),
-               axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C+i));
+      U_CXPoF : entity surf.CoaXPressOverFiberGtyUsIpWrapper
+         generic map (
+            TPD_G   => TPD_G,
+            LANE0_G => (i = 0))
+         port map (
+            -- QPLL Interface
+            qpllLock        => qpllLock(i),
+            qpllclk         => qpllclk(i),
+            qpllrefclk      => qpllrefclk(i),
+            qpllRst         => qpllRst(i),
+            -- GT Ports
+            gtRxP           => gtRxP(i),
+            gtRxN           => gtRxN(i),
+            gtTxP           => gtTxP(i),
+            gtTxN           => gtTxN(i),
+            -- Tx Interface (txClk domain)
+            txClk           => txClk(i),
+            txRst           => txRst(i),
+            txLsValid       => txLsValid(i),
+            txLsData        => txLsData(i),
+            txLsDataK       => txLsDataK(i),
+            txLsRate        => txLsRate(i),
+            txLsLaneEn      => txLsLaneEn(i),
+            txLinkUp        => txLinkUp(i),
+            -- Rx Interface (rxClk domain)
+            rxClk           => rxClk(i),
+            rxRst           => rxRst(i),
+            rxData          => rxData(i),
+            rxDataK         => rxDataK(i),
+            rxDispErr       => rxDispErr(i),
+            rxDecErr        => rxDecErr(i),
+            rxLinkUp        => rxLinkUp(i),
+            -- AXI-Lite Register Interface (axilClk domain)
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C+i),
+            axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C+i),
+            axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C+i),
+            axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C+i));
 
    end generate GEN_LANE;
 

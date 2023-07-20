@@ -20,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
@@ -29,6 +28,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamShift is
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_ASYNC_G    : boolean               := false;
       AXIS_CONFIG_G  : AxiStreamConfigType;
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
       ADD_VALID_EN_G : boolean               := false;
@@ -265,7 +265,7 @@ begin
          sAxisSlave <= v.slave;
 
          -- Reset
-         if (axisRst = '1') then
+         if (RST_ASYNC_G = false and axisRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -280,6 +280,7 @@ begin
       U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             PIPE_STAGES_G => PIPE_STAGES_G)
          port map (
             axisClk     => axisClk,
@@ -289,9 +290,11 @@ begin
             mAxisMaster => mAxisMaster,
             mAxisSlave  => mAxisSlave);
 
-      seq : process (axisClk) is
+      seq : process (axisClk, axisRst) is
       begin
-         if (rising_edge(axisClk)) then
+         if (RST_ASYNC_G) and (axisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(axisClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;

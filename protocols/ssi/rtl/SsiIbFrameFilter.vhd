@@ -30,8 +30,9 @@ use surf.SsiPkg.all;
 
 entity SsiIbFrameFilter is
    generic (
-      TPD_G            : time                := 1 ns;
-      SLAVE_READY_EN_G : boolean             := true;
+      TPD_G            : time    := 1 ns;
+      RST_ASYNC_G      : boolean := false;
+      SLAVE_READY_EN_G : boolean := true;
       AXIS_CONFIG_G    : AxiStreamConfigType);
    port (
       -- Slave Interface (User Application Interface)
@@ -291,7 +292,7 @@ begin
       mAxisMaster <= r.master;
 
       -- Synchronous Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -300,9 +301,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if rising_edge(axisClk) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

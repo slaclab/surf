@@ -27,6 +27,7 @@ entity AxiStreamGearbox is
    generic (
       -- General Configurations
       TPD_G               : time     := 1 ns;
+      RST_ASYNC_G         : boolean  := false;
       READY_EN_G          : boolean  := true;
       PIPE_STAGES_G       : natural  := 0;
       SIDE_BAND_WIDTH_G   : positive := 1;  -- General purpose sideband
@@ -130,6 +131,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             READY_EN_G          => READY_EN_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SIDE_BAND_WIDTH_G   => SIDE_BAND_WIDTH_G,
@@ -210,8 +212,10 @@ begin
 
                   -- Set the flags
                   v.tValid   := '1';
-                  v.tLast    := r.tLastDly;
-                  v.tLastDly := '0';
+                  if (v.writeIndex <= MST_BYTES_C) then
+                     v.tLast    := r.tLastDly;
+                     v.tLastDly := '0';
+                  end if;
 
                end if;
 
@@ -263,7 +267,7 @@ begin
             end if;
 
             -- Increment writeIndex
-            v.writeIndex := v.writeIndex + SLV_BYTES_C;
+            v.writeIndex := v.writeIndex + getTKeep(resize(sAxisMaster.tKeep(1*SLV_BYTES_C-1 downto 0), AXI_STREAM_MAX_TKEEP_WIDTH_C), SLAVE_AXI_CONFIG_G);
 
             -- Assert tValid
             if (v.writeIndex >= MST_BYTES_C) or (sAxisMaster.tLast = '1') then
@@ -328,7 +332,7 @@ begin
          end if;
 
          -- Synchronous Reset
-         if axisRst = '1' then
+         if (RST_ASYNC_G = false and axisRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -337,9 +341,11 @@ begin
 
       end process comb;
 
-      seq : process (axisClk) is
+      seq : process (axisClk, axisRst) is
       begin
-         if rising_edge(axisClk) then
+         if (RST_ASYNC_G) and (axisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(axisClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;
@@ -350,6 +356,7 @@ begin
       U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
             TPD_G             => TPD_G,
+            RST_ASYNC_G       => RST_ASYNC_G,
             SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
             PIPE_STAGES_G     => PIPE_STAGES_G)
          port map (

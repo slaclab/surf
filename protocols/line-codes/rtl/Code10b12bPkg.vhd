@@ -34,7 +34,7 @@ package Code10b12bPkg is
    constant K_28_19_C : slv(9 downto 0) := b"10011_11100";  -- 0x27C -> 0x4FC, 0xB03
 
    -- These symbols are not commas but can be used for control sequences
-   -- Technically any K.28.x character is a valid k-char but these are preffered
+   -- Technically any K.28.x character is a valid k-char but these are preferred
    constant K_28_5_C  : slv(9 downto 0) := b"00101_11100";  -- 0x0BC -> 0x683, 0x97C
    constant K_28_6_C  : slv(9 downto 0) := b"00110_11100";  -- 0x0DC -> 0x643, 0x9BC
    constant K_28_9_C  : slv(9 downto 0) := b"01001_11100";  -- 0x13C -> 0x583, 0xA7C

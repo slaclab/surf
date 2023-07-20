@@ -24,6 +24,7 @@ entity SimpleDualPortRam is
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean                    := false;
       MEMORY_TYPE_G  : string                     := "block";
       DOB_REG_G      : boolean                    := false;  -- Extra reg on doutb (folded into BRAM)
       BYTE_WR_EN_G   : boolean                    := false;
@@ -102,10 +103,12 @@ begin
    end process;
 
    -- Port B
-   process(clkb)
+   process(clkb, rstb)
    begin
-      if rising_edge(clkb) then
-         if rstb = RST_POLARITY_G then
+      if (RST_ASYNC_G and rstb = RST_POLARITY_G) then
+         doutbInt <= INIT_C after TPD_G;
+      elsif rising_edge(clkb) then
+         if (RST_ASYNC_G = false and rstb = RST_POLARITY_G) then
             doutbInt <= INIT_C after TPD_G;
          elsif enb = '1' then
             doutBInt <= mem(conv_integer(addrb)) after TPD_G;

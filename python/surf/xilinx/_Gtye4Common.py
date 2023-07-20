@@ -229,43 +229,43 @@ class Gtye4Common(pr.Device):
             bitSize=16,
             mode='RW',
             name='QPLL0_CFG4'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0048 << 2,
             bitSize = 16,
             mode = 'RW',
             name='UB_CFG0'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x004C << 2,
             bitSize = 16,
             mode = 'RW',
             name='UB_CFG1'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0050 << 2,
             bitSize = 16,
             mode = 'RW',
             name='UB_CFG2'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0054 << 2,
             bitSize = 16,
             mode = 'RW',
             name='UB_CFG3'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x0058 << 2,
             bitSize = 16,
             mode = 'RW',
             name='UB_CFG4'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x005C << 2,
             bitSize = 16,
             mode = 'RW',
             name='UB_CFG5'))
-        
+
         self.add(pr.RemoteVariable(
             offset=0x005F << 2,
             bitSize = 16,

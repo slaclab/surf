@@ -43,7 +43,6 @@ entity SlvDelayRam is
       dout     : out slv(WIDTH_G - 1 downto 0));
 end entity SlvDelayRam;
 
-
 architecture rtl of SlvDelayRam is
 
    constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
@@ -84,7 +83,6 @@ architecture rtl of SlvDelayRam is
    attribute syn_keep of mem     : signal is "TRUE";
 
 begin
-
 
    comb : process (en, maxCount, doutInt, rst, r) is
       variable v : RegType;
@@ -138,6 +136,5 @@ begin
          end if;
       end if;
    end process;
-
 
 end rtl;

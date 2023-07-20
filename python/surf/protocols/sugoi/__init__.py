@@ -8,3 +8,4 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.protocols.sugoi._SugoiAxiL import *
+from surf.protocols.sugoi._SugoiAxiLitePixelMatrixConfig import *

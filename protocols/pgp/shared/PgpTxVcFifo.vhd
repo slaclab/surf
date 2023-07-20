@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 entity PgpTxVcFifo is
    generic (
       TPD_G              : time     := 1 ns;
+      RST_ASYNC_G        : boolean  := false;
       INT_PIPE_STAGES_G  : natural  := 0;
       PIPE_STAGES_G      : natural  := 1;
       VALID_THOLD_G      : positive := 1;
@@ -32,6 +33,7 @@ entity PgpTxVcFifo is
       MEMORY_TYPE_G      : string   := "block";
       GEN_SYNC_FIFO_G    : boolean  := false;
       FIFO_ADDR_WIDTH_G  : positive := 9;
+      CASCADE_SIZE_G     : positive := 1;
       APP_AXI_CONFIG_G   : AxiStreamConfigType;
       PHY_AXI_CONFIG_G   : AxiStreamConfigType);
    port (
@@ -70,6 +72,7 @@ begin
    U_FlushSync : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '0')
       port map (
          clk     => axisClk,
@@ -97,6 +100,7 @@ begin
    U_AxiStreamPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => 1)
       port map (
          axisClk     => axisClk,
@@ -109,6 +113,7 @@ begin
    U_Flush : entity surf.AxiStreamFlush
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          AXIS_CONFIG_G => APP_AXI_CONFIG_G,
          SSI_EN_G      => true)
       port map (
@@ -124,6 +129,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => false,
@@ -135,6 +141,8 @@ begin
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => (2**FIFO_ADDR_WIDTH_G)-4,
+         CASCADE_PAUSE_SEL_G => CASCADE_SIZE_G-1,
+         CASCADE_SIZE_G      => CASCADE_SIZE_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => APP_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => PHY_AXI_CONFIG_G)

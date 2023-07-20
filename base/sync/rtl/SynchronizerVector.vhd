@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -114,11 +113,10 @@ begin
       ASYNC_RST : if (RST_ASYNC_G) generate
          seq : process (clk, rst) is
          begin
-            if (rising_edge(clk)) then
-               crossDomainSyncReg <= rin after TPD_G;
-            end if;
             if (rst = RST_POLARITY_G) then
                crossDomainSyncReg <= INIT_C after TPD_G;
+            elsif (rising_edge(clk)) then
+               crossDomainSyncReg <= rin after TPD_G;
             end if;
          end process seq;
       end generate ASYNC_RST;
@@ -136,7 +134,6 @@ begin
          end process seq;
       end generate SYNC_RST;
 
-
    end generate;
 
    BYPASS : if (BYPASS_SYNC_G = true) generate
@@ -144,6 +141,5 @@ begin
       dataOut <= dataIn when(OUT_POLARITY_G = '1') else not(dataIn);
 
    end generate;
-
 
 end architecture rtl;

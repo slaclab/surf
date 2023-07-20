@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.SsiCmdMasterPkg.all;
@@ -26,6 +25,7 @@ use surf.SsiCmdMasterPkg.all;
 entity SsiCmdMasterPulser is
    generic (
       TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      RST_ASYNC_G    : boolean  := false;
       OUT_POLARITY_G : sl       := '1';
       PULSE_WIDTH_G  : positive := 1);
    port (
@@ -49,10 +49,13 @@ begin
 
    syncPulse <= pulse;
 
-   process(locClk)
+   process(locClk, locRst)
    begin
-      if rising_edge(locClk) then
-         if locRst = '1' then
+      if (RST_ASYNC_G and locRst = '1') then
+         pulse <= not(OUT_POLARITY_G) after TPD_G;
+         cnt   <= 1                   after TPD_G;
+      elsif rising_edge(locClk) then
+         if (RST_ASYNC_G = false and locRst = '1') then
             pulse <= not(OUT_POLARITY_G) after TPD_G;
             cnt   <= 1                   after TPD_G;
          else

@@ -18,13 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity PwrUpRst is
    generic (
       TPD_G          : time                           := 1 ns;
+      RST_ASYNC_G    : boolean                        := false;
       SIM_SPEEDUP_G  : boolean                        := false;
       IN_POLARITY_G  : sl                             := '1';
       OUT_POLARITY_G : sl                             := '1';
@@ -59,10 +59,13 @@ begin
          asyncRst => arst,
          syncRst  => rstSync);
 
-   process (clk)
+   process (clk, rstSync)
    begin
-      if rising_edge(clk) then
-         if rstSync = OUT_POLARITY_G then
+      if (RST_ASYNC_G and rstSync = OUT_POLARITY_G) then
+         rst <= OUT_POLARITY_G after TPD_G;
+         cnt <= 0              after TPD_G;
+      elsif rising_edge(clk) then
+         if (RST_ASYNC_G = false and rstSync = OUT_POLARITY_G) then
             rst <= OUT_POLARITY_G after TPD_G;
             cnt <= 0              after TPD_G;
          else

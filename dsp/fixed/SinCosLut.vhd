@@ -21,7 +21,6 @@ use ieee.math_real.all;
 use ieee.fixed_pkg.all;
 use ieee.fixed_float_types.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.ComplexFixedPkg.all;

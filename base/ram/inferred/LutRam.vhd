@@ -25,6 +25,7 @@ entity LutRam is
    generic (
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean  := false;
       REG_EN_G       : boolean  := true;
       MODE_G         : string   := "no-change";
       BYTE_WR_EN_G   : boolean  := false;
@@ -164,13 +165,15 @@ begin
             end if;
          end process;
 
-         process(clka)
+         process(clka, rsta)
          begin
-            if rising_edge(clka) then
+            if (RST_ASYNC_G and rsta = RST_POLARITY_G) then
+               douta <= INIT_C after TPD_G;
+            elsif rising_edge(clka) then
                if (en_a = '1' and weaByteInt = 0) then
                   douta <= mem(conv_integer(addra)) after TPD_G;
                end if;
-               if rsta = RST_POLARITY_G then
+               if (RST_ASYNC_G = false and rsta = RST_POLARITY_G) then
                   douta <= INIT_C after TPD_G;
                end if;
             end if;
@@ -179,9 +182,11 @@ begin
       end generate;
 
       READ_FIRST_MODE : if MODE_G = "read-first" generate
-         process(clka)
+         process(clka, rsta)
          begin
-            if rising_edge(clka) then
+            if (RST_ASYNC_G and rsta = RST_POLARITY_G) then
+               douta <= INIT_C after TPD_G;
+            elsif rising_edge(clka) then
                if en_a = '1' then
                   douta <= mem(conv_integer(addra)) after TPD_G;
                   for i in 0 to NUM_BYTES_C-1 loop
@@ -191,7 +196,7 @@ begin
                      end if;
                   end loop;
                end if;
-               if rsta = RST_POLARITY_G then
+               if (RST_ASYNC_G = false and rsta = RST_POLARITY_G) then
                   douta <= INIT_C after TPD_G;
                end if;
             end if;
@@ -199,9 +204,11 @@ begin
       end generate;
 
       WRITE_FIRST_MODE : if MODE_G = "write-first" generate
-         process(clka)
+         process(clka, rsta)
          begin
-            if rising_edge(clka) then
+            if (RST_ASYNC_G and rsta = RST_POLARITY_G) then
+               douta <= INIT_C after TPD_G;
+            elsif rising_edge(clka) then
                if en_a = '1' then
                   for i in NUM_BYTES_C-1 downto 0 loop
                      if (weaByteInt(i) = '1') then
@@ -212,7 +219,7 @@ begin
                   douta <= mem(conv_integer(addra)) after TPD_G;
                end if;
 
-               if rsta = RST_POLARITY_G then
+               if (RST_ASYNC_G = false and rsta = RST_POLARITY_G) then
                   douta <= INIT_C after TPD_G;
                end if;
             end if;
@@ -223,10 +230,12 @@ begin
 
    -- Port B
    PORT_B_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 2) generate
-      process(clkb)
+      process(clkb, rstb)
       begin
-         if rising_edge(clkb) then
-            if rstb = RST_POLARITY_G then
+         if (RST_ASYNC_G and rstb = RST_POLARITY_G) then
+            doutb <= INIT_C after TPD_G;
+         elsif rising_edge(clkb) then
+            if (RST_ASYNC_G = false and rstb = RST_POLARITY_G) then
                doutb <= INIT_C after TPD_G;
             elsif en_b = '1' then
                doutb <= mem(conv_integer(addrb)) after TPD_G;
@@ -241,10 +250,12 @@ begin
 
    -- Port C
    PORT_C_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 3) generate
-      process(clkc)
+      process(clkc, rstc)
       begin
-         if rising_edge(clkc) then
-            if rstc = RST_POLARITY_G then
+         if (RST_ASYNC_G and rstc = RST_POLARITY_G) then
+            doutc <= INIT_C after TPD_G;
+         elsif rising_edge(clkc) then
+            if (RST_ASYNC_G = false and rstc = RST_POLARITY_G) then
                doutc <= INIT_C after TPD_G;
             elsif en_c = '1' then
                doutc <= mem(conv_integer(addrc)) after TPD_G;
@@ -259,10 +270,12 @@ begin
 
    -- Port D
    PORT_D_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 4) generate
-      process(clkd)
+      process(clkd, rstd)
       begin
-         if rising_edge(clkd) then
-            if rstd = RST_POLARITY_G then
+         if (RST_ASYNC_G and rstd = RST_POLARITY_G) then
+            doutd <= INIT_C after TPD_G;
+         elsif rising_edge(clkd) then
+            if (RST_ASYNC_G = false and rstd = RST_POLARITY_G) then
                doutd <= INIT_C after TPD_G;
             elsif en_d = '1' then
                doutd <= mem(conv_integer(addrd)) after TPD_G;
@@ -277,10 +290,12 @@ begin
 
    -- Port E
    PORT_E_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 5) generate
-      process(clke)
+      process(clke, rste)
       begin
-         if rising_edge(clke) then
-            if rste = RST_POLARITY_G then
+         if (RST_ASYNC_G and rste = RST_POLARITY_G) then
+            doute <= INIT_C after TPD_G;
+         elsif rising_edge(clke) then
+            if (RST_ASYNC_G = false and rste = RST_POLARITY_G) then
                doute <= INIT_C after TPD_G;
             elsif en_e = '1' then
                doute <= mem(conv_integer(addre)) after TPD_G;
@@ -295,10 +310,12 @@ begin
 
    -- Port F
    PORT_F_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 6) generate
-      process(clkf)
+      process(clkf, rstf)
       begin
-         if rising_edge(clkf) then
-            if rstf = RST_POLARITY_G then
+         if (RST_ASYNC_G and rstf = RST_POLARITY_G) then
+            doutf <= INIT_C after TPD_G;
+         elsif rising_edge(clkf) then
+            if (RST_ASYNC_G = false and rstf = RST_POLARITY_G) then
                doutf <= INIT_C after TPD_G;
             elsif en_f = '1' then
                doutf <= mem(conv_integer(addrf)) after TPD_G;
@@ -313,10 +330,12 @@ begin
 
    -- Port G
    PORT_G_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 7) generate
-      process(clkg)
+      process(clkg, rstg)
       begin
-         if rising_edge(clkg) then
-            if rstg = RST_POLARITY_G then
+         if (RST_ASYNC_G and rstg = RST_POLARITY_G) then
+            doutg <= INIT_C after TPD_G;
+         elsif rising_edge(clkg) then
+            if (RST_ASYNC_G = false and rstg = RST_POLARITY_G) then
                doutg <= INIT_C after TPD_G;
             elsif en_g = '1' then
                doutg <= mem(conv_integer(addrg)) after TPD_G;
@@ -331,10 +350,12 @@ begin
 
    -- Port H
    PORT_H_REG : if (REG_EN_G = true) and (NUM_PORTS_G >= 8) generate
-      process(clkh)
+      process(clkh, rsth)
       begin
-         if rising_edge(clkh) then
-            if rsth = RST_POLARITY_G then
+         if (RST_ASYNC_G and rsth = RST_POLARITY_G) then
+            douth <= INIT_C after TPD_G;
+         elsif rising_edge(clkh) then
+            if (RST_ASYNC_G = false and rsth = RST_POLARITY_G) then
                douth <= INIT_C after TPD_G;
             elsif en_h = '1' then
                douth <= mem(conv_integer(addrh)) after TPD_G;

@@ -24,7 +24,8 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4TxLiteWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false);
    port (
       -- Clock and Reset
       clk        : in  sl;
@@ -69,6 +70,7 @@ begin
    U_Pgp4TxLite : entity surf.Pgp4TxLite
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          NUM_VC_G       => 1,           -- Only 1 VC per PGPv4 link
          SKIP_EN_G      => false,  -- No skips (assumes clock source synchronous system)
          FLOW_CTRL_EN_G => false)  -- no pause flow control from PGPv4.RX side

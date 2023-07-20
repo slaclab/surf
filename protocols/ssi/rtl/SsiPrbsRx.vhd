@@ -20,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -31,6 +30,7 @@ entity SsiPrbsRx is
    generic (
       -- General Configurations
       TPD_G                     : time                     := 1 ns;
+      RST_ASYNC_G               : boolean                  := false;
       STATUS_CNT_WIDTH_G        : natural range 1 to 32    := 32;
       -- FIFO configurations
       SLAVE_READY_EN_G          : boolean                  := true;
@@ -90,8 +90,6 @@ architecture rtl of SsiPrbsRx is
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
-
-
 
    type StateType is (
       IDLE_S,
@@ -218,6 +216,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => SLAVE_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
@@ -250,6 +249,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PRBS_SSI_CONFIG_C,
@@ -267,7 +267,8 @@ begin
 
    U_bypCheck : entity surf.Synchronizer
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          clk     => sAxisClk,
          dataIn  => rAxiLite.bypCheck,
@@ -355,6 +356,7 @@ begin
                      v.eventCnt := rxAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0) + 1;
 
                      -- Latch the SEED for the randomization
+                     v.randomData                              := (others => '0');
                      v.randomData(EVENT_CNT_SIZE_C-1 downto 0) := rxAxisMaster.tData(EVENT_CNT_SIZE_C-1 downto 0);
 
                      -- Set the busy flag
@@ -504,7 +506,7 @@ begin
       errorDet        <= r.errorDet;
 
       -- Reset
-      if (sAxisRst = '1') then
+      if (RST_ASYNC_G = false and sAxisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -513,9 +515,11 @@ begin
 
    end process comb;
 
-   seq : process (sAxisClk) is
+   seq : process (sAxisClk, sAxisRst) is
    begin
-      if rising_edge(sAxisClk) then
+      if (RST_ASYNC_G) and (sAxisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(sAxisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -523,6 +527,7 @@ begin
    SyncFifo_Inst : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          DATA_WIDTH_G => 96)
       port map (
          wr_en              => r.updatedResults,
@@ -538,6 +543,7 @@ begin
    SyncStatusVec_Inst : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => false,
          COMMON_CLK_G   => false,
@@ -640,7 +646,7 @@ begin
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
-      if axiRst = '1' then
+      if (RST_ASYNC_G = false and axiRst = '1') then
          v := LOC_REG_INIT_C;
       end if;
 
@@ -653,9 +659,11 @@ begin
 
    end process combAxiLite;
 
-   seqAxiLite : process (axiClk) is
+   seqAxiLite : process (axiClk, axiRst) is
    begin
-      if rising_edge(axiClk) then
+      if (RST_ASYNC_G) and (axiRst = '1') then
+         rAxiLite <= LOC_REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
          rAxiLite <= rinAxiLite after TPD_G;
       end if;
    end process seqAxiLite;

@@ -339,8 +339,39 @@ begin
             -- 10 bits, base, medium, full & deca, cameraLink spec V2.0 pages 19-28
             when CDM_10BIT_C =>
                if chanConfig.linkMode = CLM_DECA_C then
-                  v.byteData := r.portData;
-                  v.bytes    := 16;
+
+                  v.byteData.data(0)(7 downto 0) := r.portData.data(0)(7 downto 0);  -- T0.BIT[07:00]
+                  v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0);  -- T0.BIT[09:08]
+
+                  v.byteData.data(1)(7 downto 2) := r.portData.data(2)(5 downto 0);  -- T1.BIT[05:00]
+                  v.byteData.data(2)(1 downto 0) := r.portData.data(2)(7 downto 6);  -- T1.BIT[07:06]
+                  v.byteData.data(2)(3 downto 2) := r.portData.data(3)(1 downto 0);  -- T1.BIT[09:08]
+
+                  v.byteData.data(2)(7 downto 4) := r.portData.data(4)(3 downto 0);  -- T2.BIT[03:00]
+                  v.byteData.data(3)(3 downto 0) := r.portData.data(4)(7 downto 4);  -- T2.BIT[07:04]
+                  v.byteData.data(3)(5 downto 4) := r.portData.data(5)(1 downto 0);  -- T2.BIT[09:08]
+
+                  v.byteData.data(3)(7 downto 6) := r.portData.data(6)(1 downto 0);  -- T3.BIT[01:00]
+                  v.byteData.data(4)(5 downto 0) := r.portData.data(6)(7 downto 2);  -- T3.BIT[07:02]
+                  v.byteData.data(4)(7 downto 6) := r.portData.data(7)(1 downto 0);  -- T3.BIT[09:08]
+
+                  v.byteData.data(5)(7 downto 0) := r.portData.data(8)(7 downto 0);  -- T4.BIT[07:00]
+                  v.byteData.data(6)(1 downto 0) := r.portData.data(9)(1 downto 0);  -- T4.BIT[09:08]
+
+                  v.byteData.data(6)(7 downto 2) := r.portData.data(10)(5 downto 0);  -- T5.BIT[05:00]
+                  v.byteData.data(7)(1 downto 0) := r.portData.data(10)(7 downto 6);  -- T5.BIT[07:06]
+                  v.byteData.data(7)(3 downto 2) := r.portData.data(11)(1 downto 0);  -- T5.BIT[09:08]
+
+                  v.byteData.data(7)(7 downto 4) := r.portData.data(12)(3 downto 0);  -- T6.BIT[03:00]
+                  v.byteData.data(8)(3 downto 0) := r.portData.data(12)(7 downto 4);  -- T6.BIT[07:04]
+                  v.byteData.data(8)(5 downto 4) := r.portData.data(13)(1 downto 0);  -- T6.BIT[09:08]
+
+                  v.byteData.data(8)(7 downto 6) := r.portData.data(14)(1 downto 0);  -- T7.BIT[01:00]
+                  v.byteData.data(9)(5 downto 0) := r.portData.data(14)(7 downto 2);  -- T7.BIT[07:02]
+                  v.byteData.data(9)(7 downto 6) := r.portData.data(15)(1 downto 0);  -- T7.BIT[09:08]
+
+                  v.bytes := 10;        -- No ZERO padding for DECA mode
+
                else
                   v.byteData.data(0)             := r.portData.data(0);  -- T1, DA[07:00]
                   v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0);  -- T1, DA[09:08]
@@ -436,7 +467,6 @@ begin
          if r.dump = '0' and r.byteData.dv = '1' and r.byteData.lv = '1' then
             v.inFrame       := '1';
             v.master.tValid := '1';
-            v.byteCnt       := r.byteCnt + r.bytes;
          end if;
 
          -- Backpressure
@@ -456,18 +486,14 @@ begin
                v.status.frameCount := r.status.frameCount + 1;
             end if;
 
+            -- Check for no data at end of frame
+            if (v.master.tValid = '0') then
+               v.master.tKeep := (others => '0');
+            end if;
+
             v.master.tValid := '1';
             v.master.tLast  := '1';
 
-            -- Check for no data at end of frame
-            if (r.byteData.lv = '0') then
-               v.master.tKeep     := (others => '0');
-               v.status.frameSize := r.byteCnt;
-            else
-               v.status.frameSize := v.byteCnt;
-            end if;
-
-            v.byteCnt := (others => '0');
             v.inFrame := '0';
             v.dump    := '0';
          end if;
@@ -497,10 +523,11 @@ begin
       if (r.master.tValid = '1') or (r.pipeline(0).tLast = '1') then
 
          -- Check for empty tLast
-         if (r.master.tValid = '1') and (r.master.tLast = '1') and (r.master.tKeep = 0) then
+         if (r.master.tValid = '1') and (r.master.tKeep = 0) then
 
             -- Clear the first stage pipeline
             v.pipeline(0).tValid := '0';
+            v.pipeline(0).tLast  := '0';
 
             -- Only pop register first stage to the output
             v.pipeline(1) := r.pipeline(0);
@@ -519,6 +546,21 @@ begin
 
          end if;
 
+      end if;
+
+      -- Check for outbound data
+      if (r.pipeline(1).tValid = '1') then
+
+         -- Increment the counter
+         v.byteCnt := r.byteCnt + r.bytes;
+
+         -- Check for last byte
+         if (r.pipeline(1).tLast = '1') then
+            -- Latch the value
+            v.status.frameSize := v.byteCnt;
+            -- Reset the counter
+            v.byteCnt          := (others => '0');
+         end if;
       end if;
 
       -- Outputs
