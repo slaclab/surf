@@ -25,50 +25,47 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2fcPkg.all;
+use surf.SsiPkg.all;
 
 entity RoguePgp2fcSim is
    generic (
-      TPD_G         : time                        := 1 ns;
-      PORT_NUM_G    : natural range 1024 to 49151 := 9000;
-      NUM_VC_G      : integer range 1 to 16       := 4;
-      EN_SIDEBAND_G : boolean                     := true);
+      TPD_G      : time                        := 1 ns;
+      FC_WORDS_G : integer range 1 to 8        := 1;
+      PORT_NUM_G : natural range 1024 to 49151 := 9000;
+      NUM_VC_G   : integer range 1 to 16       := 4);
    port (
       -- PGP Clock and Reset
-      pgpClk          : in  sl;
-      pgpClkRst       : in  sl;
+      pgpClk       : in  sl;
+      pgpClkRst    : in  sl;
       -- Non VC Rx Signals
-      pgpRxIn         : in  Pgp2fcRxInType;
-      pgpRxOut        : out Pgp2fcRxOutType;
+      pgpRxIn      : in  Pgp2fcRxInType;
+      pgpRxOut     : out Pgp2fcRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn         : in  Pgp2fcTxInType;
-      pgpTxOut        : out Pgp2fcTxOutType;
-      -- Fast control TX interface
-      pgpTxFcValid     : in  sl                               := '0';
-      pgpTxFcWord      : in  slv(7 downto 0)    := (others => '0');
-      -- Fast control RX interface
-      pgpRxFcValid     : out sl;
-      pgpRxFcWord      : out slv(7 downto 0);
+      pgpTxIn      : in  Pgp2fcTxInType;
+      pgpTxOut     : out Pgp2fcTxOutType;
       -- Frame Transmit Interface
-      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Frame Receive Interface
-      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxSlaves     : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
-      -- AXI-Lite Register Interface (axilClk domain)
-      axilClk         : in  sl                     := '0';  -- Stable Clock
-      axilRst         : in  sl                     := '0';
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
+      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpRxSlaves  : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0));
 end entity RoguePgp2fcSim;
 
 architecture sim of RoguePgp2fcSim is
+
+   constant FC_AXIS_CFG_C : AxiStreamConfigType := ssiAxiStreamConfig(2*FC_WORDS_G, TKEEP_COMP_C);
+
 
    signal txOut : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
    signal rxOut : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
 
    signal pgpTxMastersLoc : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+
+   signal txFcAxisMaster : AxiStreamMasterType : ssiMasterInit(FC_AXIS_CFG_C);
+   signal txFcAxisSlave  : AxiStreamSlaveType;
+   signal rxFcAxisMaster : AxiStreamMasterType := ssiMasterInit(FC_AXIS_CFG_C);
+   signal rxFcAxisSlave  : AxiStreamSlaveType;
+
 
 begin
 
@@ -104,21 +101,46 @@ begin
             mAxisSlave  => pgpRxSlaves(i));     -- [in]
    end generate GEN_VEC;
 
-   GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
-      U_RogueSideBandWrap_1 : entity surf.RogueSideBandWrap
-         generic map (
-            TPD_G      => TPD_G,
-            PORT_NUM_G => PORT_NUM_G + 8)
-         port map (
-            sysClk     => pgpClk,              -- [in]
-            sysRst     => pgpClkRst,           -- [in]
-            txOpCode   => pgpTxFcWord,      -- [in]
-            txOpCodeEn => pgpTxFcValid,    -- [in]
-            txRemData  => pgpTxIn.locData,     -- [in]
-            rxOpCode   => pgpRxFcWord,        -- [out]
-            rxOpCodeEn => pgpRxFcValid,      -- [out]
-            rxRemData  => rxOut.remLinkData);  -- [out]
-   end generate GEN_SIDEBAND;
+   U_RogueSideBandWrap_1 : entity surf.RogueSideBandWrap
+      generic map (
+         TPD_G      => TPD_G,
+         PORT_NUM_G => PORT_NUM_G + 8)
+      port map (
+         sysClk     => pgpClk,              -- [in]
+         sysRst     => pgpClkRst,           -- [in]
+         txOpCode   => X"00",               -- [in]
+         txOpCodeEn => '0',                 -- [in]
+         txRemData  => pgpTxIn.locData,     -- [in]
+         rxOpCode   => open,                -- [out]
+         rxOpCodeEn => open,                -- [out]
+         rxRemData  => rxOut.remLinkData);  -- [out]
+
+
+   -- Send a single txn frame for FC word
+   txFcAxisMaster.tValid                     <= pgpTxIn.fcValid;
+   txFcAxisMaster.tData(FC_WORDS_G downto 0) <= pgpTxIn.fcWord(FC_WORDS_G*16-1 downto 0);
+   txFcAxisMaster.tLast                      <= pgpTxIn.fcValid;
+   txFcAxisMaster.tUser(1)                   <= pgpTxIn.fcValid;
+
+   U_PGP_FC : entity surf.RogueTcpStreamWrap
+      generic map (
+         TPD_G         => TPD_G,
+         PORT_NUM_G    => (PORT_NUM_G + 10),
+         SSI_EN_G      => true,
+         CHAN_MASK_G   => "00000000",
+         TDEST_MASK_G  => "00000000",
+         AXIS_CONFIG_G => FC_AXIS_CONFIG_C)
+      port map (
+         axisClk     => pgpClk,          -- [in]
+         axisRst     => pgpClkRst,       -- [in]
+         sAxisMaster => txFcAxisMaster,  -- [in]
+         sAxisSlave  => txFcAxisSlave,   -- [out]
+         mAxisMaster => rxFcAxisMaster,  -- [out]
+         mAxisSlave  => rxFcAxisSlave);  -- [in]
+
+   -- Receive single txn frame for FC word
+   rxOut.fcValid                          <= rxFcAxisMaster.tValid;
+   rxOut.fcWord(FC_WORDS_G*16-1 downto 0) <= rxFcAxisMaster.tData(FC_WORDS_G*16-1 downto 0);
 
    txOut.phyTxReady <= '1';
    txOut.linkReady  <= '1';
