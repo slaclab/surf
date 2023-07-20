@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: IP Integrator Wrapper for surf.AxiStreamFifoV2
+-- Description: surf.AxiStreamDemux/surf.AxiStreamMux cocoTB testbed
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
