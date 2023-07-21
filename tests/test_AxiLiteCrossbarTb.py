@@ -8,12 +8,6 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# dut_tb
-import itertools
-import logging
-import os
-import random
-
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
@@ -26,6 +20,9 @@ from cocotb_test.simulator import run
 import pytest
 import glob
 import os
+import itertools
+import logging
+import random
 
 class TB:
     def __init__(self, dut):
@@ -87,6 +84,7 @@ async def run_test_bytes(dut, data_in=None, idle_inserter=None, backpressure_ins
                 test_data = bytearray([x % 256 for x in range(length)])
                 await tb.axil_master.write(addr, test_data)
                 data = await tb.axil_master.read(addr, length)
+                assert data.data == test_data
 
     await RisingEdge(dut.S_AXI_ACLK)
     await RisingEdge(dut.S_AXI_ACLK)
