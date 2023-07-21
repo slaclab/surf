@@ -319,7 +319,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         REFRESH_RATE_G    => 1000.0,
+         REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
          CLK_UPPER_LIMIT_G => 158.0E+6,
          CNT_WIDTH_G       => 32)
@@ -434,7 +434,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         REFRESH_RATE_G    => 1000.0,
+         REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
          CLK_UPPER_LIMIT_G => 158.0E+6,
          CNT_WIDTH_G       => 32)
