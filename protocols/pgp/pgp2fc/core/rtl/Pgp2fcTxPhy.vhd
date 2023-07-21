@@ -47,7 +47,7 @@ entity Pgp2fcTxPhy is
       -- Fast control interface
       fcValid : in  sl;  -- Latch fcWord and send it out, will cause pgpBusy to assert
       fcWord  : in  slv(16*FC_WORDS_G-1 downto 0);  -- Control word to send
-      fcSent  : out sl;                 -- Asserted when a fast control word is sent out
+      fcSent  : out sl := '0';          -- Asserted when a fast control word is sent out
 
       -- Sideband data
       pgpLocLinkReady : in sl;               -- Far end side has link
@@ -74,12 +74,12 @@ end Pgp2fcTxPhy;
 architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
 
    -- Local Signals
-   signal intTxLinkReady : sl;
+   signal intTxLinkReady : sl               := '0';
    signal nxtTxLinkReady : sl;
    signal nxtTxData      : slv(15 downto 0);
    signal nxtTxDataK     : slv(1 downto 0);
-   signal intTxData      : slv(15 downto 0);
-   signal intTxDataK     : slv(1 downto 0);
+   signal intTxData      : slv(15 downto 0) := (others => '0');
+   signal intTxDataK     : slv(1 downto 0)  := (others => '0');
    signal ltsAData       : slv(15 downto 0);
    signal ltsADataK      : slv(1 downto 0);
    signal ltsBData       : slv(15 downto 0);
@@ -89,8 +89,8 @@ architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
    signal fcData         : slv(15 downto 0);
    signal fcDataK        : slv(1 downto 0);
 
-   signal fcWordLatch : slv(16*FC_WORDS_G-1 downto 0);
-   signal fcWordCount : integer range 0 to FC_WORDS_G;
+   signal fcWordLatch : slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
+   signal fcWordCount : integer range 0 to FC_WORDS_G := 0;
 
    signal crcRst    : sl;
    signal crcEn     : sl;
@@ -106,7 +106,7 @@ architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
       ST_CELL_C,
       ST_EMPTY_C);
 
-   signal curState  : fsm_states;
+   signal curState  : fsm_states := ST_LOCK_C;
    signal nxtState  : fsm_states;
    signal pendState : fsm_states;       -- Next state if FC wasn't triggered
    signal holdState : fsm_states;
