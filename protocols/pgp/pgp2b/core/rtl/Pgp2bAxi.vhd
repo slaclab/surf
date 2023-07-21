@@ -5,87 +5,6 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP interface.
---
--- Address map (offset from base):
---    0x00 = Read/Write
---       Bits 0 = Count Reset
---    0x04 = Read/Write
---       Bits 0 = Reset Rx
---    0x08 = Read/Write
---       Bits 0 = Flush
---    0x0C = Read/Write
---       Bits 1:0 = Loop Back
---    0x10 = Read/Write
---       Bits 7:0 = Sideband data to transmit
---       Bits 8   = Sideband data enable
---    0x14 = Read/Write
---       Bits 0 = Auto Status Send Enable (PPI)
---    0x18 = Read/Write
---       Bits 0 = Disable Flow Control
---    0x20 = Read Only
---       Bits 0     = Rx Phy Ready
---       Bits 1     = Tx Phy Ready
---       Bits 2     = Local Link Ready
---       Bits 3     = Remote Link Ready
---       Bits 4     = Transmit Ready
---       Bits 9:8   = Receive Link Polarity
---       Bits 15:12 = Remote Pause Status
---       Bits 19:16 = Local Pause Status
---       Bits 23:20 = Remote Overflow Status
---       Bits 27:24 = Local Overflow Status
---    0x24 = Read Only
---       Bits 7:0 = Remote Link Data
---    0x28 = Read Only
---       Bits ?:0 = Cell Error Count
---    0x2C = Read Only
---       Bits ?:0 = Link Down Count
---    0x30 = Read Only
---       Bits ?:0 = Link Error Count
---    0x34 = Read Only
---       Bits ?:0 = Remote Overflow VC 0 Count
---    0x38 = Read Only
---       Bits ?:0 = Remote Overflow VC 1 Count
---    0x3C = Read Only
---       Bits ?:0 = Remote Overflow VC 2 Count
---    0x40 = Read Only
---       Bits ?:0 = Remote Overflow VC 3 Count
---    0x44 = Read Only
---       Bits ?:0 = Receive Frame Error Count
---    0x48 = Read Only
---       Bits ?:0 = Receive Frame Count
---    0x4C = Read Only
---       Bits ?:0 = Local Overflow VC 0 Count
---    0x50 = Read Only
---       Bits ?:0 = Local Overflow VC 1 Count
---    0x54 = Read Only
---       Bits ?:0 = Local Overflow VC 2 Count
---    0x58 = Read Only
---       Bits ?:0 = Local Overflow VC 3 Count
---    0x5C = Read Only
---       Bits ?:0 = Transmit Frame Error Count
---    0x60 = Read Only
---       Bits ?:0 = Transmit Frame Count
---    0x64 = Read Only
---       Bits 31:0 = Receive Clock Frequency
---    0x68 = Read Only
---       Bits 31:0 = Transmit Clock Frequency
---    0x70 = Read Only
---       Bits 7:0 = Last OpCode Transmitted
---    0x74 = Read Only
---       Bits 7:0 = Last OpCode Received
---    0x78 = Read Only
---       Bits ?:0 = OpCode Transmit count
---    0x7C = Read Only
---       Bits ?:0 = OpCode Received count
---
--- Status vector:
---       Bits 31:24 = Rx Link Down Count
---       Bits 23:16 = Rx Frame Error Count
---       Bits 15:8  = Rx Cell Error Count
---       Bits  7:6  = Zeros
---       Bits    5  = Remote Link Ready
---       Bits    4  = Local Link Ready
---       Bits  3:0  = Remote Overflow Status
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -400,7 +319,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         REFRESH_RATE_G    => 100.0,
+         REFRESH_RATE_G    => 1000.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
          CLK_UPPER_LIMIT_G => 158.0E+6,
          CNT_WIDTH_G       => 32)
@@ -515,7 +434,7 @@ begin
       generic map (
          TPD_G             => TPD_G,
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         REFRESH_RATE_G    => 100.0,
+         REFRESH_RATE_G    => 1000.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
          CLK_UPPER_LIMIT_G => 158.0E+6,
          CNT_WIDTH_G       => 32)
