@@ -1,7 +1,7 @@
 var classGLinkGtx7RxRst_1_1RTL =
 [
-    [ "PROCESS_195", "classGLinkGtx7RxRst_1_1RTL.html#ad5653aae4e75a4e81b856cf3416988c6", null ],
-    [ "PROCESS_196", "classGLinkGtx7RxRst_1_1RTL.html#a78afbf6b309d539af6e3253b339c99a6", null ],
+    [ "PROCESS_237", "classGLinkGtx7RxRst_1_1RTL.html#aebcd0f24fdef6b01b6836f3ca8fbc19d", null ],
+    [ "PROCESS_238", "classGLinkGtx7RxRst_1_1RTL.html#a0170bc60aa2037f2af308c89772b35a0", null ],
     [ "retries_recclk_monitor", "classGLinkGtx7RxRst_1_1RTL.html#a1ea7ec76f6b4573f0b4e174d01412c37", null ],
     [ "timeouts", "classGLinkGtx7RxRst_1_1RTL.html#ac1cd5d563a13a7a8d207346a543d3c57", null ],
     [ "mmcm_lock_wait", "classGLinkGtx7RxRst_1_1RTL.html#ab566d1bfdc871e933bca90d8a071cca1", null ],

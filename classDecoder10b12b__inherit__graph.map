@@ -1,11 +1,12 @@
 <map id="Decoder10b12b" name="Decoder10b12b">
-<area shape="rect" id="node1" title=" " alt="" coords="5,103,129,130"/>
-<area shape="rect" id="node2" href="$classSspDecoder10b12b.html" title=" " alt="" coords="177,103,324,130"/>
-<area shape="rect" id="node3" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="372,78,568,105"/>
-<area shape="rect" id="node9" href="$classSsp10b12bTb.html" title=" " alt="" coords="415,129,525,155"/>
-<area shape="rect" id="node4" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="639,5,853,47"/>
-<area shape="rect" id="node5" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="639,71,853,112"/>
-<area shape="rect" id="node6" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="616,137,876,163"/>
-<area shape="rect" id="node7" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="924,111,1200,138"/>
-<area shape="rect" id="node8" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="965,162,1159,189"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,129,57"/>
+<area shape="rect" id="node2" href="$classLineCode10b12bTb.html" title=" " alt="" coords="177,5,324,32"/>
+<area shape="rect" id="node3" href="$classSspDecoder10b12b.html" title=" " alt="" coords="177,56,324,83"/>
+<area shape="rect" id="node4" href="$classSsp10b12bTb.html" title=" " alt="" coords="415,56,525,83"/>
+<area shape="rect" id="node5" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="372,107,568,133"/>
+<area shape="rect" id="node6" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="639,34,853,75"/>
+<area shape="rect" id="node7" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="639,99,853,141"/>
+<area shape="rect" id="node8" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="616,165,876,192"/>
+<area shape="rect" id="node9" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="924,140,1200,167"/>
+<area shape="rect" id="node10" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="965,191,1159,217"/>
 </map>

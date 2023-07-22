@@ -1,12 +1,12 @@
 <map id="FifoSync" name="FifoSync">
-<area shape="rect" id="node1" title=" " alt="" coords="207,567,284,593"/>
+<area shape="rect" id="node1" title=" " alt="" coords="207,617,284,644"/>
 <area shape="rect" id="node6" href="$classAxiStreamDmaWrite.html" title=" " alt="" coords="489,192,645,219"/>
-<area shape="rect" id="node16" href="$classFifo.html" title=" " alt="" coords="357,597,404,624"/>
-<area shape="rect" id="node46" href="$classJesdRxLane.html" title=" " alt="" coords="332,1180,429,1207"/>
-<area shape="rect" id="node2" href="$classFifoWrFsm.html" title=" " alt="" coords="36,491,128,517"/>
-<area shape="rect" id="node3" href="$classFifoRdFsm.html" title=" " alt="" coords="37,541,127,568"/>
-<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="5,592,159,619"/>
-<area shape="rect" id="node5" href="$classFifoOutputPipeline.html" title=" " alt="" coords="11,643,153,669"/>
+<area shape="rect" id="node16" href="$classFifo.html" title=" " alt="" coords="357,648,404,675"/>
+<area shape="rect" id="node46" href="$classJesdRxLane.html" title=" " alt="" coords="332,1205,429,1232"/>
+<area shape="rect" id="node2" href="$classFifoWrFsm.html" title=" " alt="" coords="36,541,128,568"/>
+<area shape="rect" id="node3" href="$classFifoRdFsm.html" title=" " alt="" coords="37,592,127,619"/>
+<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="5,643,159,669"/>
+<area shape="rect" id="node5" href="$classFifoOutputPipeline.html" title=" " alt="" coords="11,693,153,720"/>
 <area shape="rect" id="node7" href="$classAxiStreamDma.html" title=" " alt="" coords="940,207,1061,233"/>
 <area shape="rect" id="node8" href="$classAxiStreamDmaFifo.html" title=" " alt="" coords="710,344,855,371"/>
 <area shape="rect" id="node9" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="908,415,1093,441"/>
@@ -45,7 +45,7 @@
 <area shape="rect" id="node32" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="705,699,860,725"/>
 <area shape="rect" id="node34" href="$classFifoFwftTb.html" title=" " alt="" coords="737,1003,828,1029"/>
 <area shape="rect" id="node36" href="$classFwftCntTb.html" title=" " alt="" coords="739,1053,827,1080"/>
-<area shape="rect" id="node47" href="$classJesd204bRx.html" title=" " alt="" coords="518,1256,617,1283"/>
-<area shape="rect" id="node48" href="$classDescrambleTb.html" title=" " alt="" coords="509,1155,625,1181"/>
+<area shape="rect" id="node47" href="$classDescrambleTb.html" title=" " alt="" coords="509,1256,625,1283"/>
+<area shape="rect" id="node48" href="$classJesd204bRx.html" title=" " alt="" coords="518,1155,617,1181"/>
 <area shape="rect" id="node49" href="$classScramblerTb.html" title=" " alt="" coords="515,1205,619,1232"/>
 </map>

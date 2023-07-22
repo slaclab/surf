@@ -1,5 +1,6 @@
 <map id="Encoder10b12b" name="Encoder10b12b">
-<area shape="rect" id="node1" title=" " alt="" coords="17,5,139,32"/>
-<area shape="rect" id="node2" href="$classSspEncoder10b12b.html" title=" " alt="" coords="5,80,151,107"/>
-<area shape="rect" id="node3" href="$classSsp10b12bTb.html" title=" " alt="" coords="23,155,133,181"/>
+<area shape="rect" id="node1" title=" " alt="" coords="103,5,225,32"/>
+<area shape="rect" id="node2" href="$classLineCode10b12bTb.html" title=" " alt="" coords="5,80,152,107"/>
+<area shape="rect" id="node3" href="$classSspEncoder10b12b.html" title=" " alt="" coords="177,80,322,107"/>
+<area shape="rect" id="node4" href="$classSsp10b12bTb.html" title=" " alt="" coords="195,155,304,181"/>
 </map>

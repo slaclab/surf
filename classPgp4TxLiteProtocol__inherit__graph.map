@@ -1,9 +1,9 @@
 <map id="Pgp4TxLiteProtocol" name="Pgp4TxLiteProtocol">
-<area shape="rect" id="node1" title=" " alt="" coords="147,80,294,107"/>
-<area shape="rect" id="node3" href="$classPgp4TxLite.html" title=" " alt="" coords="173,155,268,181"/>
-<area shape="rect" id="node2" href="$classCrc32Parallel.html" title=" " alt="" coords="167,5,274,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="127,80,274,107"/>
+<area shape="rect" id="node3" href="$classPgp4TxLite.html" title=" " alt="" coords="153,155,248,181"/>
+<area shape="rect" id="node2" href="$classCrc32Parallel.html" title=" " alt="" coords="147,5,254,32"/>
 <area shape="rect" id="node4" href="$classPgp4CoreLite.html" title=" " alt="" coords="13,229,121,256"/>
-<area shape="rect" id="node6" href="$classPgp4TxLiteWrapper.html" title=" " alt="" coords="146,229,295,256"/>
-<area shape="rect" id="node7" href="$classPgp4TxLiteTb.html" title=" " alt="" coords="320,229,431,256"/>
+<area shape="rect" id="node6" href="$classPgp4TxLiteTb.html" title=" " alt="" coords="145,229,256,256"/>
+<area shape="rect" id="node7" href="$classPgp4TxLiteWrapper.html" title=" " alt="" coords="281,229,430,256"/>
 <area shape="rect" id="node5" href="$classPgp4CoreLiteTb.html" title=" " alt="" coords="5,304,129,331"/>
 </map>

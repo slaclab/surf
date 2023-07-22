@@ -16,11 +16,11 @@ var classAxiStreamDmaV2WriteMux_1_1rtl =
     [ "REG_INIT_C", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a56774baef1adc68954104985e3747d56", null ],
     [ "r", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiStreamDmaV2WriteMux_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "pause~1645", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a993ae1226a1142d12548e60c1abbb98e", null ],
-    [ "armed~1646", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a11c9d42d83e1060d98cd5a5515fe5c5a", null ],
-    [ "descSlave~1647", "classAxiStreamDmaV2WriteMux_1_1rtl.html#aa1d156e379422fada4ac86c4d5002f4c", null ],
-    [ "dataSlave~1648", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a8117b93166fe0bd5af91cf9fd94ac1c8", null ],
-    [ "descriptor~1649", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a166a446542e48fabf13f57703a3e6169", null ],
-    [ "master~1650", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a29123a7bb00265a4abf705c9dc121fda", null ],
-    [ "state~1651", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a228940607bced62fe21d4edb59833b7a", null ]
+    [ "pause~1655", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a5cb8679b9608ae9797b3d6d52587c03f", null ],
+    [ "armed~1656", "classAxiStreamDmaV2WriteMux_1_1rtl.html#ab0c9baafd50a94bff554695b31b4dbf4", null ],
+    [ "descSlave~1657", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a5c2d013b7764f660aeb5a36c7f40cc1c", null ],
+    [ "dataSlave~1658", "classAxiStreamDmaV2WriteMux_1_1rtl.html#acf095e3802264b2c6b968c8877062800", null ],
+    [ "descriptor~1659", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a5a24e23c2eb94c4e0d18c67534d42a2f", null ],
+    [ "master~1660", "classAxiStreamDmaV2WriteMux_1_1rtl.html#a5e764aed5292c48bd5fba952db6602ac", null ],
+    [ "state~1661", "classAxiStreamDmaV2WriteMux_1_1rtl.html#ad558fe4751a050895b35fb8a51c1a713", null ]
 ];

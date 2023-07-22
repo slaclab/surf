@@ -151,6 +151,9 @@ var hierarchy =
       [ "AxiLiteMasterProxy", "classAxiLiteMasterProxy.html", null ],
       [ "I2cRegMaster", "classI2cRegMaster.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "FifoCascade", "classFifoCascade.html", [
         [ "Fifo", "classFifo.html", [
           [ "FifoXpm", "classFifoXpm.html", [
@@ -383,6 +386,14 @@ var hierarchy =
       [ "AxiStreamBytePackerTbTx", "classAxiStreamBytePackerTbTx.html", null ],
       [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
       [ "AxiStreamBytePackerTbRx", "classAxiStreamBytePackerTbRx.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
+        [ "RstSync", "classRstSync.html", null ]
+      ] ],
+      [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
+      [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", [
+        [ "RstSync", "classRstSync.html", null ]
+      ] ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "AxiLiteFifoPushPop", "classAxiLiteFifoPushPop.html", [
         [ "FifoCascade", "classFifoCascade.html", null ]
@@ -423,6 +434,9 @@ var hierarchy =
       [ "AxiStreamDmaV2Read", "classAxiStreamDmaV2Read.html", null ],
       [ "Fifo", "classFifo.html", null ],
       [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
@@ -1011,6 +1025,12 @@ var hierarchy =
         [ "I2cRegMaster", "classI2cRegMaster.html", null ]
       ] ],
       [ "IoBufWrapper", "classIoBufWrapper.html", null ],
+      [ "Encoder10b12b", "classEncoder10b12b.html", null ],
+      [ "Decoder10b12b", "classDecoder10b12b.html", null ],
+      [ "Encoder12b14b", "classEncoder12b14b.html", null ],
+      [ "Decoder12b14b", "classDecoder12b14b.html", null ],
+      [ "Encoder8b10b", "classEncoder8b10b.html", null ],
+      [ "Decoder8b10b", "classDecoder8b10b.html", null ],
       [ "AxiSpiMaster", "classAxiSpiMaster.html", [
         [ "DualPortRam", "classDualPortRam.html", null ],
         [ "SpiMaster", "classSpiMaster.html", null ]
@@ -1018,9 +1038,7 @@ var hierarchy =
       [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "RstSync", "classRstSync.html", null ],
       [ "RstSync", "classRstSync.html", null ],
-      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", [
-        [ "RstSync", "classRstSync.html", null ]
-      ] ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
       [ "Max5443DacCntrl", "classMax5443DacCntrl.html", null ],
       [ "SsiInsertSof", "classSsiInsertSof.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
@@ -1284,6 +1302,7 @@ var hierarchy =
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "Pgp3Tx", "classPgp3Tx.html", null ],
       [ "Pgp3Rx", "classPgp3Rx.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "Pgp4CoreLite", "classPgp4CoreLite.html", [
@@ -1372,6 +1391,7 @@ var hierarchy =
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "Pgp4Tx", "classPgp4Tx.html", null ],
       [ "Pgp4Rx", "classPgp4Rx.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "Pgp4TxLite", "classPgp4TxLite.html", null ],
@@ -1569,9 +1589,7 @@ var hierarchy =
         [ "sfixedMult", "classsfixedMult.html", null ]
       ] ],
       [ "RstSync", "classRstSync.html", null ],
-      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
-        [ "RstSync", "classRstSync.html", null ]
-      ] ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
       [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
       [ "AxiLiteMaster", "classAxiLiteMaster.html", null ],
       [ "Fifo", "classFifo.html", null ],

@@ -24,12 +24,12 @@ var classAxiI2cEepromCore_1_1rtl =
     [ "r", "classAxiI2cEepromCore_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiI2cEepromCore_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "regOut", "classAxiI2cEepromCore_1_1rtl.html#a7282e4683ffca25e36f201a4dd04ce95", null ],
-    [ "timer~4570", "classAxiI2cEepromCore_1_1rtl.html#aad30e736e6b807ccf9dfd97b2e188fa2", null ],
-    [ "RnW~4571", "classAxiI2cEepromCore_1_1rtl.html#a67f222d5527e56da355fde9742b4cef5", null ],
-    [ "axilReadSlave~4572", "classAxiI2cEepromCore_1_1rtl.html#a2ad280e4c7249ab7f80004b2e78beaa6", null ],
-    [ "axilWriteSlave~4573", "classAxiI2cEepromCore_1_1rtl.html#afac38461eb2b8efb9fa5d5044f15bcf1", null ],
-    [ "regIn~4574", "classAxiI2cEepromCore_1_1rtl.html#a6fe2ce185d608bc29f9e8565935e2f49", null ],
-    [ "state~4575", "classAxiI2cEepromCore_1_1rtl.html#ac92bf3f909e10ccacb23acd8ae509bdf", null ],
+    [ "timer~4675", "classAxiI2cEepromCore_1_1rtl.html#ad03ec72689ce1168f832e31cb817872e", null ],
+    [ "RnW~4676", "classAxiI2cEepromCore_1_1rtl.html#ac667c4b9ec12e2c6c7a6c8715516bf6b", null ],
+    [ "axilReadSlave~4677", "classAxiI2cEepromCore_1_1rtl.html#a2460649ad8f0046b183723ed1f4a75df", null ],
+    [ "axilWriteSlave~4678", "classAxiI2cEepromCore_1_1rtl.html#aeda0848f6ab4211e40a4a77dbfe23273", null ],
+    [ "regIn~4679", "classAxiI2cEepromCore_1_1rtl.html#a6da12b73c5ae0fc768889f618050c853", null ],
+    [ "state~4680", "classAxiI2cEepromCore_1_1rtl.html#a06e8f381a5aa7083b95fcc0afd5290f5", null ],
     [ "u_i2cregmaster", "classAxiI2cEepromCore_1_1rtl.html#ab186933ce54352e3eceeb7f93138f3d7", null ],
     [ "u_i2cregmaster", "classAxiI2cEepromCore_1_1rtl.html#ab186933ce54352e3eceeb7f93138f3d7", null ]
 ];

@@ -1,6 +1,8 @@
 <map id="MasterAxiStreamIpIntegrator" name="MasterAxiStreamIpIntegrator">
-<area shape="rect" id="node1" title=" " alt="" coords="5,155,216,181"/>
-<area shape="rect" id="node4" href="$classMasterAxiStreamTerminateIpIntegrator.html" title=" " alt="" coords="11,229,211,271"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="73,80,148,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="57,5,164,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="283,64,493,91"/>
+<area shape="rect" id="node4" href="$classAxiStreamFifoV2IpIntegrator.html" title=" " alt="" coords="541,5,748,32"/>
+<area shape="rect" id="node5" href="$classMasterAxiStreamTerminateIpIntegrator.html" title=" " alt="" coords="545,57,745,98"/>
+<area shape="rect" id="node6" href="$classAxiStreamDemuxMuxTb.html" title=" " alt="" coords="554,123,735,149"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="160,64,235,91"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,64,112,91"/>
 </map>

@@ -1,6 +1,7 @@
 var classRogueTcpStreamWrap_1_1RogueTcpStreamWrap =
 [
     [ "channelMap", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#ac98a96733b9d3f4b86204b24c0c77b8a", null ],
+    [ "channelMap", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#ac98a96733b9d3f4b86204b24c0c77b8a", null ],
     [ "INT_CONFIG_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a966fb4022e848e0b64eaba40f448130e", null ],
     [ "CHAN_COUNT_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a3c6d1aa609874fefb6e1423919fa1c3f", null ],
     [ "CHAN_MASK_C", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#ad0594d3c003a670ab8cc3afc32b29a92", null ],
@@ -14,6 +15,11 @@ var classRogueTcpStreamWrap_1_1RogueTcpStreamWrap =
     [ "mxMasters", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#acf2ac9b8443243a338b7fda742c73c96", null ],
     [ "mxSlaves", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a1d646a617f6c9850db78ed1fd513e1e6", null ],
     [ "portMap", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#acb1d3fb4e9aba0f57fc6f18e6b8cfddf", null ],
+    [ "u_demux", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af9491aefceb9df3efb7c1597419a3e52", null ],
+    [ "u_ib_resize", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af07892f11da4973b33848de547c32361", null ],
+    [ "u_roguetcpstream", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a27dee7d4e58c77b0f31d6827628e595f", null ],
+    [ "u_ob_resize", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a4a0ca86b1352dd173cfd8b1424440b47", null ],
+    [ "u_mux", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a29a5692e7db01e6c2586940c38a52da3", null ],
     [ "u_demux", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af9491aefceb9df3efb7c1597419a3e52", null ],
     [ "u_ib_resize", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af07892f11da4973b33848de547c32361", null ],
     [ "u_roguetcpstream", "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a27dee7d4e58c77b0f31d6827628e595f", null ],

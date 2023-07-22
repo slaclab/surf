@@ -17,10 +17,10 @@ var classGearbox_1_1rtl =
     [ "REG_INIT_C", "classGearbox_1_1rtl.html#a5aa276f1b3d01d0a01f6a89da696a8c0", null ],
     [ "r", "classGearbox_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classGearbox_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "masterValid~1992", "classGearbox_1_1rtl.html#ab9e65dfab43fe58bf3d3c8ede8d51d0c", null ],
-    [ "shiftReg~1993", "classGearbox_1_1rtl.html#ad31f2eb0da67bf2b53619a12dc7eead5", null ],
-    [ "writeIndex~1994", "classGearbox_1_1rtl.html#a5831e92481d583efd13d9ceeef85ef0e", null ],
-    [ "slipArmed~1995", "classGearbox_1_1rtl.html#ae857a47150069d5d9056564657f7e66d", null ],
-    [ "slaveReady~1996", "classGearbox_1_1rtl.html#aae477a8827edf760b6e8bd15d419cdb4", null ],
-    [ "slip~1997", "classGearbox_1_1rtl.html#a558926128aa4b415f470ee11df0d3d7a", null ]
+    [ "masterValid~2058", "classGearbox_1_1rtl.html#a16acedbe9565b75c8e11cdc6a401cdad", null ],
+    [ "shiftReg~2059", "classGearbox_1_1rtl.html#af2b4f105757f80e98959fc57ddb76c17", null ],
+    [ "writeIndex~2060", "classGearbox_1_1rtl.html#a009cdf7581447ab374f090c7dafeb46b", null ],
+    [ "slipArmed~2061", "classGearbox_1_1rtl.html#a60d41f9d29909afdcb9fd4028beb3d54", null ],
+    [ "slaveReady~2062", "classGearbox_1_1rtl.html#a5798929c0aa226ace163355ce260f546", null ],
+    [ "slip~2063", "classGearbox_1_1rtl.html#a6af9acf7802f020d4e5ccd3205b9c491", null ]
 ];

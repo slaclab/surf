@@ -1,0 +1,22 @@
+<map id="AxiStreamFifoV2IpIntegrator" name="AxiStreamFifoV2IpIntegrator">
+<area shape="rect" id="node1" title=" " alt="" coords="143,453,350,480"/>
+<area shape="rect" id="node2" href="$classSlaveAxiStreamIpIntegrator.html" title=" " alt="" coords="5,379,208,405"/>
+<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="89,80,164,107"/>
+<area shape="rect" id="node14" href="$classFifoAsync.html" title=" " alt="" coords="539,155,624,181"/>
+<area shape="rect" id="node20" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="141,229,352,256"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="319,5,425,32"/>
+<area shape="rect" id="node5" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="533,379,664,405"/>
+<area shape="rect" id="node6" href="$classAxiStreamGearbox.html" title=" " alt="" coords="415,304,561,331"/>
+<area shape="rect" id="node7" href="$classAxiStreamResize.html" title=" " alt="" coords="376,229,509,256"/>
+<area shape="rect" id="node8" href="$classAxiStreamPipeline.html" title=" " alt="" coords="371,155,514,181"/>
+<area shape="rect" id="node9" href="$classFifoCascade.html" title=" " alt="" coords="636,304,737,331"/>
+<area shape="rect" id="node10" href="$classFifo.html" title=" " alt="" coords="663,229,710,256"/>
+<area shape="rect" id="node11" href="$classFifoXpm.html" title=" " alt="" coords="750,155,826,181"/>
+<area shape="rect" id="node12" href="$classFifoOutputPipeline.html" title=" " alt="" coords="819,80,962,107"/>
+<area shape="rect" id="node13" href="$classFifoAlteraMf.html" title=" " alt="" coords="850,155,953,181"/>
+<area shape="rect" id="node19" href="$classFifoSync.html" title=" " alt="" coords="648,155,725,181"/>
+<area shape="rect" id="node15" href="$classSynchronizerVector.html" title=" " alt="" coords="188,80,335,107"/>
+<area shape="rect" id="node16" href="$classFifoWrFsm.html" title=" " alt="" coords="587,80,679,107"/>
+<area shape="rect" id="node17" href="$classFifoRdFsm.html" title=" " alt="" coords="704,80,795,107"/>
+<area shape="rect" id="node18" href="$classSimpleDualPortRam.html" title=" " alt="" coords="410,80,563,107"/>
+</map>

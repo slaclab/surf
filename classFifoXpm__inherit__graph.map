@@ -1,14 +1,14 @@
 <map id="FifoXpm" name="FifoXpm">
-<area shape="rect" id="node1" title=" " alt="" coords="196,512,272,539"/>
-<area shape="rect" id="node3" href="$classFifo.html" title=" " alt="" coords="320,512,367,539"/>
-<area shape="rect" id="node2" href="$classFifoOutputPipeline.html" title=" " alt="" coords="5,512,148,539"/>
+<area shape="rect" id="node1" title=" " alt="" coords="196,487,272,513"/>
+<area shape="rect" id="node3" href="$classFifo.html" title=" " alt="" coords="320,487,367,513"/>
+<area shape="rect" id="node2" href="$classFifoOutputPipeline.html" title=" " alt="" coords="5,487,148,513"/>
 <area shape="rect" id="node4" href="$classAxiStreamScatterGather.html" title=" " alt="" coords="415,56,595,83"/>
 <area shape="rect" id="node5" href="$classAxiStreamDmaV2Desc.html" title=" " alt="" coords="419,107,590,133"/>
 <area shape="rect" id="node7" href="$classAxiStreamDmaV2Fifo.html" title=" " alt="" coords="423,157,586,184"/>
 <area shape="rect" id="node8" href="$classSlvDelayFifo.html" title=" " alt="" coords="453,208,557,235"/>
 <area shape="rect" id="node9" href="$classFifoCascade.html" title=" " alt="" coords="454,309,555,336"/>
-<area shape="rect" id="node23" href="$classEthMacTxCsum.html" title=" " alt="" coords="877,157,999,184"/>
-<area shape="rect" id="node25" href="$classEthMacTxExportXgmii.html" title=" " alt="" coords="855,613,1021,640"/>
+<area shape="rect" id="node23" href="$classEthMacTxCsum.html" title=" " alt="" coords="887,107,1010,133"/>
+<area shape="rect" id="node25" href="$classEthMacTxExportXgmii.html" title=" " alt="" coords="865,563,1032,589"/>
 <area shape="rect" id="node32" href="$classFifoTbSubModule.html" title=" " alt="" coords="437,411,572,437"/>
 <area shape="rect" id="node34" href="$classFwftCntTbSubModule.html" title=" " alt="" coords="425,461,585,488"/>
 <area shape="rect" id="node36" href="$classiq16bTo32b.html" title=" " alt="" coords="457,512,553,539"/>
@@ -30,21 +30,21 @@
 <area shape="rect" id="node29" href="$classAxiStreamDmaFifo.html" title=" " alt="" coords="647,157,793,184"/>
 <area shape="rect" id="node30" href="$classFifoMux.html" title=" " alt="" coords="683,208,757,235"/>
 <area shape="rect" id="node31" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="643,411,797,437"/>
-<area shape="rect" id="node13" href="$classAxiStreamDma.html" title=" " alt="" coords="877,107,999,133"/>
-<area shape="rect" id="node15" href="$classAxiStreamRingBuffer.html" title=" " alt="" coords="859,360,1017,387"/>
-<area shape="rect" id="node16" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="863,411,1013,437"/>
-<area shape="rect" id="node17" href="$classfifo__tb.html" title=" " alt="" coords="907,461,969,488"/>
-<area shape="rect" id="node18" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="847,512,1029,539"/>
-<area shape="rect" id="node19" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="845,563,1031,589"/>
-<area shape="rect" id="node20" href="$classAxiLiteSrpV0.html" title=" " alt="" coords="885,208,991,235"/>
-<area shape="rect" id="node21" href="$classPgpRxVcFifo.html" title=" " alt="" coords="887,259,989,285"/>
-<area shape="rect" id="node22" href="$classPgpTxVcFifo.html" title=" " alt="" coords="887,309,989,336"/>
-<area shape="rect" id="node24" href="$classEthMacTx.html" title=" " alt="" coords="1255,385,1341,412"/>
-<area shape="rect" id="node26" href="$classEthMacTxExport.html" title=" " alt="" coords="1079,411,1207,437"/>
+<area shape="rect" id="node13" href="$classAxiStreamDma.html" title=" " alt="" coords="888,56,1009,83"/>
+<area shape="rect" id="node15" href="$classAxiStreamFifoV2IpIntegrator.html" title=" " alt="" coords="845,309,1052,336"/>
+<area shape="rect" id="node16" href="$classAxiStreamRingBuffer.html" title=" " alt="" coords="869,360,1028,387"/>
+<area shape="rect" id="node17" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="874,411,1023,437"/>
+<area shape="rect" id="node18" href="$classfifo__tb.html" title=" " alt="" coords="917,461,980,488"/>
+<area shape="rect" id="node19" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="857,512,1040,539"/>
+<area shape="rect" id="node20" href="$classAxiStreamDmaRingWrite.html" title=" " alt="" coords="856,157,1041,184"/>
+<area shape="rect" id="node21" href="$classAxiLiteSrpV0.html" title=" " alt="" coords="896,208,1001,235"/>
+<area shape="rect" id="node22" href="$classPgp3Tb.html" title=" " alt="" coords="913,259,984,285"/>
+<area shape="rect" id="node24" href="$classEthMacTx.html" title=" " alt="" coords="1276,335,1363,361"/>
+<area shape="rect" id="node26" href="$classEthMacTxExport.html" title=" " alt="" coords="1100,360,1228,387"/>
 <area shape="rect" id="node33" href="$classFifoFwftTb.html" title=" " alt="" coords="675,613,765,640"/>
 <area shape="rect" id="node35" href="$classFwftCntTb.html" title=" " alt="" coords="676,664,764,691"/>
 <area shape="rect" id="node43" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="650,715,790,741"/>
-<area shape="rect" id="node44" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="860,740,1016,767"/>
+<area shape="rect" id="node44" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="871,740,1027,767"/>
 <area shape="rect" id="node45" href="$classUartSem.html" title=" " alt="" coords="681,816,759,843"/>
 <area shape="rect" id="node47" href="$classEthMacRxImport.html" title=" " alt="" coords="655,867,785,893"/>
 <area shape="rect" id="node49" href="$classClinkTop.html" title=" " alt="" coords="681,917,759,944"/>

@@ -1,7 +1,7 @@
 var classHtspCaui4GtyTb_1_1testbed =
 [
-    [ "PROCESS_204", "classHtspCaui4GtyTb_1_1testbed.html#a72af72282357b2c7fd5cee81771607ca", null ],
-    [ "PROCESS_205", "classHtspCaui4GtyTb_1_1testbed.html#a85328f7773210885c2e4aded5800bbfc", null ],
+    [ "PROCESS_246", "classHtspCaui4GtyTb_1_1testbed.html#a97b0167c14af3969372cee1149444efb", null ],
+    [ "PROCESS_247", "classHtspCaui4GtyTb_1_1testbed.html#af1a74248556d6db16f9f3500f7ef0bdc", null ],
     [ "TPD_G", "classHtspCaui4GtyTb_1_1testbed.html#abe364ece0309394fc3e4d4e866a3aade", null ],
     [ "PRBS_SEED_SIZE_C", "classHtspCaui4GtyTb_1_1testbed.html#a9388e78115173a2f58d151ecbbc0a7d9", null ],
     [ "NUM_VC_C", "classHtspCaui4GtyTb_1_1testbed.html#a0b1b4e54922332bab07fce76361f6054", null ],

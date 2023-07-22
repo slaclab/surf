@@ -1,15 +1,15 @@
 <map id="FifoOutputPipeline" name="FifoOutputPipeline">
 <area shape="rect" id="node1" title=" " alt="" coords="5,1219,148,1245"/>
-<area shape="rect" id="node2" href="$classFifoAlteraMf.html" title=" " alt="" coords="217,655,319,681"/>
-<area shape="rect" id="node21" href="$classFifoAsync.html" title=" " alt="" coords="225,851,311,877"/>
+<area shape="rect" id="node2" href="$classFifoAlteraMf.html" title=" " alt="" coords="217,652,319,679"/>
+<area shape="rect" id="node21" href="$classFifoAsync.html" title=" " alt="" coords="225,867,311,893"/>
 <area shape="rect" id="node23" href="$classAsyncGearbox.html" title=" " alt="" coords="442,664,558,691"/>
 <area shape="rect" id="node37" href="$classFifoSync.html" title=" " alt="" coords="229,1219,307,1245"/>
-<area shape="rect" id="node40" href="$classFifoXpm.html" title=" " alt="" coords="230,477,306,504"/>
+<area shape="rect" id="node40" href="$classFifoXpm.html" title=" " alt="" coords="230,449,306,476"/>
 <area shape="rect" id="node41" href="$classDspAddSub.html" title=" " alt="" coords="220,1295,316,1321"/>
 <area shape="rect" id="node43" href="$classDspComparator.html" title=" " alt="" coords="206,1421,330,1448"/>
 <area shape="rect" id="node48" href="$classDspPreSubMult.html" title=" " alt="" coords="207,1472,329,1499"/>
 <area shape="rect" id="node49" href="$classDspSquareDiffMult.html" title=" " alt="" coords="196,1523,340,1549"/>
-<area shape="rect" id="node3" href="$classFifo.html" title=" " alt="" coords="477,461,523,488"/>
+<area shape="rect" id="node3" href="$classFifo.html" title=" " alt="" coords="477,429,523,456"/>
 <area shape="rect" id="node4" href="$classAxiStreamScatterGather.html" title=" " alt="" coords="668,5,848,32"/>
 <area shape="rect" id="node5" href="$classAxiStreamDmaV2Desc.html" title=" " alt="" coords="673,1371,843,1397"/>
 <area shape="rect" id="node6" href="$classAxiStreamDmaV2Fifo.html" title=" " alt="" coords="677,968,839,995"/>

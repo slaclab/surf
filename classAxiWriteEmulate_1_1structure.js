@@ -16,11 +16,11 @@ var classAxiWriteEmulate_1_1structure =
     [ "rin", "classAxiWriteEmulate_1_1structure.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "intWriteMaster", "classAxiWriteEmulate_1_1structure.html#a37ccc22863eb3474269d786f60490fcc", null ],
     [ "intWriteSlave", "classAxiWriteEmulate_1_1structure.html#a5df214d01975527a70b406e9471bf14b", null ],
-    [ "latency~1874", "classAxiWriteEmulate_1_1structure.html#a15f713677857d53e8cf570896b646e32", null ],
-    [ "cnt~1875", "classAxiWriteEmulate_1_1structure.html#adbcd1948874057d71866ee147dd888b5", null ],
-    [ "state~1876", "classAxiWriteEmulate_1_1structure.html#adffb9868bebd0d3ed6fde8e4267688af", null ],
-    [ "iMaster~1877", "classAxiWriteEmulate_1_1structure.html#a379cb9890abeac1c8c2a757520074b5c", null ],
-    [ "iSlave~1878", "classAxiWriteEmulate_1_1structure.html#aeda52d7169e726eb942f68589ae72863", null ],
+    [ "latency~1905", "classAxiWriteEmulate_1_1structure.html#aafd9420c5f02b0c695a1e376d9d10c80", null ],
+    [ "cnt~1906", "classAxiWriteEmulate_1_1structure.html#af872adadc580f29a3ca97ae8b48ff4eb", null ],
+    [ "state~1907", "classAxiWriteEmulate_1_1structure.html#a0dd557db84b7d0c802574affbfb2b8a3", null ],
+    [ "iMaster~1908", "classAxiWriteEmulate_1_1structure.html#a0eb86c05a6b460832e4dc317bf03be56", null ],
+    [ "iSlave~1909", "classAxiWriteEmulate_1_1structure.html#a14ccb7319a00a105a8172d1b3b087c1f", null ],
     [ "u_axiwritepathfifo", "classAxiWriteEmulate_1_1structure.html#a60491684ebd3100a2f3bada220bf688c", null ],
     [ "u_axiwritepathfifo", "classAxiWriteEmulate_1_1structure.html#a60491684ebd3100a2f3bada220bf688c", null ]
 ];

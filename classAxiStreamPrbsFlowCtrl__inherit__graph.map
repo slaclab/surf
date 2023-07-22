@@ -1,7 +1,7 @@
 <map id="AxiStreamPrbsFlowCtrl" name="AxiStreamPrbsFlowCtrl">
 <area shape="rect" id="node1" title=" " alt="" coords="69,155,241,181"/>
-<area shape="rect" id="node5" href="$classEthMacPauseTb.html" title=" " alt="" coords="31,229,155,256"/>
-<area shape="rect" id="node6" href="$classSsiFifoTb.html" title=" " alt="" coords="179,229,260,256"/>
+<area shape="rect" id="node5" href="$classSsiFifoTb.html" title=" " alt="" coords="115,229,196,256"/>
+<area shape="rect" id="node6" href="$classEthMacPauseTb.html" title=" " alt="" coords="220,229,344,256"/>
 <area shape="rect" id="node2" href="$classDspComparator.html" title=" " alt="" coords="15,80,139,107"/>
 <area shape="rect" id="node3" href="$classFifoOutputPipeline.html" title=" " alt="" coords="5,5,148,32"/>
 <area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title=" " alt="" coords="163,80,305,107"/>

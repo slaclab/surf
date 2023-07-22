@@ -1,0 +1,10 @@
+<map id="AxiStreamDemuxMuxTb" name="AxiStreamDemuxMuxTb">
+<area shape="rect" id="node1" title=" " alt="" coords="345,229,527,256"/>
+<area shape="rect" id="node2" href="$classSlaveAxiStreamIpIntegrator.html" title=" " alt="" coords="5,155,208,181"/>
+<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="185,80,260,107"/>
+<area shape="rect" id="node8" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="232,155,443,181"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="169,5,276,32"/>
+<area shape="rect" id="node5" href="$classAxiStreamDeMux.html" title=" " alt="" coords="467,155,603,181"/>
+<area shape="rect" id="node6" href="$classAxiStreamPipeline.html" title=" " alt="" coords="539,80,682,107"/>
+<area shape="rect" id="node7" href="$classAxiStreamMux.html" title=" " alt="" coords="627,155,746,181"/>
+</map>

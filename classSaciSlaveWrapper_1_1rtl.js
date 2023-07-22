@@ -10,5 +10,7 @@ var classSaciSlaveWrapper_1_1rtl =
     [ "rdData", "classSaciSlaveWrapper_1_1rtl.html#a7a8169f967ae7fe024df850bada850ef", null ],
     [ "saciRspInt", "classSaciSlaveWrapper_1_1rtl.html#ab0cc20219bc99707efba197149c766b0", null ],
     [ "sacislave_i", "classSaciSlaveWrapper_1_1rtl.html#aa3972072c974d3a2b96bbef0a88bf225", null ],
+    [ "sacislaveram_1", "classSaciSlaveWrapper_1_1rtl.html#a2034d2667ab1d4af9c67dace17a5128d", null ],
+    [ "sacislave_i", "classSaciSlaveWrapper_1_1rtl.html#aa3972072c974d3a2b96bbef0a88bf225", null ],
     [ "sacislaveram_1", "classSaciSlaveWrapper_1_1rtl.html#a2034d2667ab1d4af9c67dace17a5128d", null ]
 ];

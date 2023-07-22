@@ -1,9 +1,9 @@
 <map id="FifoWrFsm" name="FifoWrFsm">
-<area shape="rect" id="node1" title=" " alt="" coords="5,1115,97,1141"/>
-<area shape="rect" id="node2" href="$classFifoAsync.html" title=" " alt="" coords="145,1748,231,1775"/>
-<area shape="rect" id="node47" href="$classFifoSync.html" title=" " alt="" coords="149,461,227,488"/>
-<area shape="rect" id="node3" href="$classAxiLiteAsync.html" title=" " alt="" coords="337,1272,444,1299"/>
-<area shape="rect" id="node23" href="$classFifo.html" title=" " alt="" coords="367,487,414,513"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,1120,97,1147"/>
+<area shape="rect" id="node2" href="$classFifoAsync.html" title=" " alt="" coords="145,1779,231,1805"/>
+<area shape="rect" id="node47" href="$classFifoSync.html" title=" " alt="" coords="149,436,227,463"/>
+<area shape="rect" id="node3" href="$classAxiLiteAsync.html" title=" " alt="" coords="337,1247,444,1273"/>
+<area shape="rect" id="node23" href="$classFifo.html" title=" " alt="" coords="367,461,414,488"/>
 <area shape="rect" id="node39" href="$classAsyncGearbox.html" title=" " alt="" coords="333,1841,449,1868"/>
 <area shape="rect" id="node40" href="$classGearboxTb.html" title=" " alt="" coords="344,1892,437,1919"/>
 <area shape="rect" id="node41" href="$classSynchronizerFifo.html" title=" " alt="" coords="325,1716,456,1743"/>
@@ -46,6 +46,6 @@
 <area shape="rect" id="node36" href="$classUartWrapper.html" title=" " alt="" coords="593,5,699,32"/>
 <area shape="rect" id="node37" href="$classEthMacRxImportXgmii.html" title=" " alt="" coords="562,56,730,83"/>
 <area shape="rect" id="node38" href="$classEthMacTxCsum.html" title=" " alt="" coords="585,107,707,133"/>
-<area shape="rect" id="node48" href="$classAxiStreamDmaWrite.html" title=" " alt="" coords="313,385,469,412"/>
-<area shape="rect" id="node49" href="$classJesdRxLane.html" title=" " alt="" coords="342,436,439,463"/>
+<area shape="rect" id="node48" href="$classAxiStreamDmaWrite.html" title=" " alt="" coords="313,360,469,387"/>
+<area shape="rect" id="node49" href="$classJesdRxLane.html" title=" " alt="" coords="342,411,439,437"/>
 </map>

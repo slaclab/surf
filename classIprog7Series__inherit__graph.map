@@ -1,12 +1,12 @@
 <map id="Iprog7Series" name="Iprog7Series">
-<area shape="rect" id="node1" title=" " alt="" coords="536,81,639,108"/>
-<area shape="rect" id="node7" href="$classIprog.html" title=" " alt="" coords="687,81,741,108"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="384,56,459,83"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,81,112,108"/>
-<area shape="rect" id="node6" href="$classSynchronizerEdge.html" title=" " alt="" coords="164,107,303,133"/>
-<area shape="rect" id="node4" href="$classIprog7SeriesCore.html" title=" " alt="" coords="355,107,488,133"/>
-<area shape="rect" id="node5" href="$classSynchronizerVector.html" title=" " alt="" coords="160,157,307,184"/>
-<area shape="rect" id="node8" href="$classAxiVersion.html" title=" " alt="" coords="789,81,880,108"/>
+<area shape="rect" id="node1" title=" " alt="" coords="536,56,639,83"/>
+<area shape="rect" id="node7" href="$classIprog.html" title=" " alt="" coords="687,56,741,83"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="384,31,459,57"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
+<area shape="rect" id="node6" href="$classSynchronizerEdge.html" title=" " alt="" coords="164,81,303,108"/>
+<area shape="rect" id="node4" href="$classIprog7SeriesCore.html" title=" " alt="" coords="355,81,488,108"/>
+<area shape="rect" id="node5" href="$classSynchronizerVector.html" title=" " alt="" coords="160,132,307,159"/>
+<area shape="rect" id="node8" href="$classAxiVersion.html" title=" " alt="" coords="789,56,880,83"/>
 <area shape="rect" id="node9" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="945,5,1112,32"/>
 <area shape="rect" id="node10" href="$classAxiVersionTb.html" title=" " alt="" coords="975,56,1082,83"/>
 <area shape="rect" id="node11" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="948,107,1109,133"/>

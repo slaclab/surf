@@ -1,8 +1,8 @@
 var classHtspCoreTb_1_1testbed =
 [
     [ "PHY_AXIS", "classHtspCoreTb_1_1testbed.html#a0647bc4401de203db4e526e8aaa206b4", null ],
-    [ "PROCESS_201", "classHtspCoreTb_1_1testbed.html#a57227db83cde6170b5179112f8d02f59", null ],
-    [ "PROCESS_202", "classHtspCoreTb_1_1testbed.html#a6c48fb5e6e1898ce31494ec469536858", null ],
+    [ "PROCESS_243", "classHtspCoreTb_1_1testbed.html#a24cd237153f5082f6f9bc0279cf0967c", null ],
+    [ "PROCESS_244", "classHtspCoreTb_1_1testbed.html#a6ba50ce984a66037f626da56e317ec3a", null ],
     [ "test", "classHtspCoreTb_1_1testbed.html#a05a671c66aefea124cc08b76ea6d30bb", null ],
     [ "TPD_G", "classHtspCoreTb_1_1testbed.html#abe364ece0309394fc3e4d4e866a3aade", null ],
     [ "PRBS_SEED_SIZE_C", "classHtspCoreTb_1_1testbed.html#a9388e78115173a2f58d151ecbbc0a7d9", null ],

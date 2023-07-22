@@ -1,7 +1,7 @@
 var classTenGigEthGthUltraScaleRst_1_1rtl =
 [
-    [ "PROCESS_185", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a1d55c5c8f20b3e3ac28c98e6fdcd8337", null ],
-    [ "PROCESS_186", "classTenGigEthGthUltraScaleRst_1_1rtl.html#ae6be180ac8a3666236c567140576cb31", null ],
+    [ "PROCESS_227", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a499dfcba148506e356a4144320a7f819", null ],
+    [ "PROCESS_228", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a7b9f13e1963f472a613045c3374823f0", null ],
     [ "coreReset", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a81742563a1b93517f7dab4b708e3daa6", null ],
     [ "phyReset", "classTenGigEthGthUltraScaleRst_1_1rtl.html#a2eb6961f05f7a2088ed707e7a8f300e6", null ],
     [ "txClockGt", "classTenGigEthGthUltraScaleRst_1_1rtl.html#adc4ea02727075700671942aeef7615e5", null ],

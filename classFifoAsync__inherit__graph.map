@@ -1,7 +1,7 @@
 <map id="FifoAsync" name="FifoAsync">
 <area shape="rect" id="node1" title=" " alt="" coords="361,1627,447,1653"/>
-<area shape="rect" id="node9" href="$classAxiLiteAsync.html" title=" " alt="" coords="553,1069,660,1096"/>
-<area shape="rect" id="node29" href="$classFifo.html" title=" " alt="" coords="583,309,630,336"/>
+<area shape="rect" id="node9" href="$classAxiLiteAsync.html" title=" " alt="" coords="553,1095,660,1121"/>
+<area shape="rect" id="node29" href="$classFifo.html" title=" " alt="" coords="583,335,630,361"/>
 <area shape="rect" id="node42" href="$classAsyncGearbox.html" title=" " alt="" coords="549,1689,665,1716"/>
 <area shape="rect" id="node43" href="$classGearboxTb.html" title=" " alt="" coords="560,1740,653,1767"/>
 <area shape="rect" id="node44" href="$classSynchronizerFifo.html" title=" " alt="" coords="541,1564,672,1591"/>

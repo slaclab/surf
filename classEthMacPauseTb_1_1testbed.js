@@ -2,7 +2,7 @@ var classEthMacPauseTb_1_1testbed =
 [
     [ "error_checking", "classEthMacPauseTb_1_1testbed.html#a48654f68ce35976277fc775081636225", null ],
     [ "results", "classEthMacPauseTb_1_1testbed.html#a40b37bace47198611e6a8ff8379f48ab", null ],
-    [ "PROCESS_177", "classEthMacPauseTb_1_1testbed.html#a3753ae69afb0deeaac2a8cf9768e3a0b", null ],
+    [ "PROCESS_219", "classEthMacPauseTb_1_1testbed.html#a4b7f256bdfb0504fb22bf684b0e87bef", null ],
     [ "CLK_PERIOD_C", "classEthMacPauseTb_1_1testbed.html#a452fb3eade6ad1e541382ddebbf3ce66", null ],
     [ "TPD_C", "classEthMacPauseTb_1_1testbed.html#a517825867c9260973c310b87c3326c32", null ],
     [ "TX_PACKET_LENGTH_C", "classEthMacPauseTb_1_1testbed.html#ac8cb00cebe78755673cbb3373d87245e", null ],
