@@ -24,16 +24,16 @@ def dut_init(dut):
 
     # Initialize the inputs
     dut.rst.value     = 1
-    dut.ibValid.value = 0
-    dut.ain.value     = 0
-    dut.bin.value     = 0
-    dut.obReady.value = 0
+    dut.validIn.value = 0
+    dut.dataIn.value  = 0
+    dut.dataKIn.value = 0
 
     # Start clock (200 MHz) in a separate thread
     cocotb.start_soon(Clock(dut.clk, 5.0, units='ns').start())
 
-    # Wait 1 clock cycle
-    yield RisingEdge(dut.clk)
+    # Wait 5 clock cycle
+    for i in range(5):
+        yield RisingEdge(dut.clk)
 
     # De-assert the reset
     dut.rst.value = 0
@@ -42,33 +42,36 @@ def dut_init(dut):
     yield RisingEdge(dut.clk)
 
 @cocotb.coroutine
-def load_value(dut, ain, bin):
+def load_value(dut, dataIn, dataKIn):
 
     # Load the values
-    dut.ain.value = ain
-    dut.bin.value = bin
-
-    # De-assert ready flag
-    dut.obReady.value = 0
+    dut.dataIn.value  = dataIn
+    dut.dataKIn.value = dataKIn
 
     # Assert valid flag
-    dut.ibValid.value = 1
+    dut.validIn.value = 1
 
     # Wait 1 clock cycle
     yield RisingEdge(dut.clk)
 
     # De-assert valid flag
-    dut.ibValid.value = 0
+    dut.validIn.value = 0
 
     # Wait for the result
-    while ( dut.obValid.value != 1 ):
+    while ( dut.validOut.value != 1 ):
         yield RisingEdge(dut.clk)
 
-    # Assert ready flag
-    dut.obReady.value = 1
 
-    # Wait 1 clock cycle
-    yield RisingEdge(dut.clk)
+def check_result(dut, dataIn, dataKIn):
+    # Check (dataIn = dataOut) or (dataKIn = dataKOut) result
+    if (dataIn != dut.dataOut.value) or (dataKIn != dut.dataKOut.value):
+        dut._log.error( f'dataIn={hex(dataIn)},dataKIn={hex(dataKIn)} but got dataOut={hex(dut.dataOut.value)},dataKOut={hex(dut.dataKOut.value)}')
+        assert False
+
+    # Check (codeErr = 0) or (dispErr = 0) result
+    if (dut.codeErr.value != 0) or (dut.dispErr.value != 0):
+        dut._log.error( f'ERROR - dataIn={hex(dataIn)},dataKIn={hex(dataKIn)}: codeErr={hex(dut.codeErr.value)},dispErr={hex(dut.dispErr.value)}')
+        assert False
 
 @cocotb.test()
 def dut_tb(dut):
@@ -76,58 +79,58 @@ def dut_tb(dut):
     # Initialize the DUT
     yield dut_init(dut)
 
-    # Read the parameters back from the DUT to set up our model
-    width = dut.WIDTH_G.value.integer
-    dut._log.info( f'Found WIDTH_G={width}' )
+    # Sweep through all possible combinations of data codes
+    dataKIn = 0
+    for dataIn in range(2**10):
 
-    # Sweep through all possible combinations
-    for ain in range(width):
-        for bin in range(width):
+        # Load the values
+        yield load_value(dut, dataIn, dataKIn)
 
-            # Load the values
-            yield load_value(dut, ain, bin)
+        # Check the results for errors
+        check_result(dut, dataIn, dataKIn)
 
-            # Check (a = b) result
-            if ((ain==bin) and (dut.eq.value != 1)) or (not (ain==bin) and (dut.eq.value == 1)):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.eq={dut.eq.value}')
-                assert False
+    # Sweep through the defined Control Code Constants
+    dataKIn = 1
+    controlCodes = [
+        # These symbols are commas, sequences that can be used for word alignment
+        0x07C, # 0x07C -> 0x8FC, 0x703
+        0x17C, # 0x17C -> 0x2FC, 0xD03
+        0x27C, # 0x27C -> 0x4FC, 0xB03
+        # These symbols are not commas but can be used for control sequences
+        # Technically any K.28.x character is a valid k-char but these are preferred
+        0x0BC, # 0x0BC -> 0x683, 0x97C
+        0x0DC, # 0x0DC -> 0x643, 0x9BC
+        0x13C, # 0x13C -> 0x583, 0xA7C
+        0x15C, # 0x15C -> 0xABC, 0x543
+        0x19C, # 0x19C -> 0x4C3, 0xB3C
+        0x1BC, # 0x1BC -> 0x37C, 0xC83
+        0x1DC, # 0x1DC -> 0x3BC, 0xC43
+        0x23C, # 0x23C -> 0x383, 0xC7C
+        0x25C, # 0x25C -> 0x343, 0xCBC
+        0x29C, # 0x29C -> 0x2C3, 0xD3C
+        0x2BC, # 0x2BC -> 0x57C, 0xA83
+        0x2DC, # 0x2DC -> 0x5BC, 0xA43
+        0x33C, # 0x33C -> 0x67C, 0x983
+        0x35C, # 0x35C -> 0x6BC, 0x943
+    ]
+    for dataIn in controlCodes:
 
-            # Check (a >  b) result
-            if ((ain>bin) and (dut.gt.value != 1)) or (not (ain>bin) and (dut.gt.value == 1)):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.gt={dut.gt.value}')
-                assert False
+        # Load the values
+        yield load_value(dut, dataIn, dataKIn)
 
-            # Check (a >=  b) result
-            if ((ain>=bin) and (dut.gtEq.value != 1)) or (not (ain>=bin) and (dut.gtEq.value == 1)):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.gtEq={dut.gtEq.value}')
-                assert False
-
-            # Check (a <  b) result
-            if ((ain<bin) and (dut.ls.value != 1)) or (not (ain<bin) and (dut.ls.value == 1)):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.ls={dut.ls.value}')
-                assert False
-
-            # Check (a <=  b) result
-            if ((ain<=bin) and (dut.lsEq.value != 1)) or (not (ain<=bin) and (dut.lsEq.value == 1)):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.gtEq={dut.lsEq.value}')
-                assert False
-
-            # Check (ain = aout) and (bin = bout) result
-            if (ain!=dut.aout.value.integer) or (bin!=dut.bout.value.integer):
-                dut._log.error( f'ain={ain},bin={bin} but got dut.aout={dut.aout.value.integer}, dut.bout={dut.bout.value}')
-                assert False
+        # Check the results for errors
+        check_result(dut, dataIn, dataKIn)
 
     dut._log.info("DUT: Passed")
 
 tests_dir = os.path.dirname(__file__)
-tests_module = 'DspComparator'
+tests_module = 'LineCode10b12bTb'
 
 @pytest.mark.parametrize(
     "parameters", [
-        {'WIDTH_G': '4', 'PIPE_STAGES_G': '0'},  # Test without pipeline
-        {'WIDTH_G': '8', 'PIPE_STAGES_G': '1'},  # Test with pipeline
+        None
     ])
-def test_DspComparator(parameters):
+def test_LineCode10b12bTb(parameters):
 
     # https://github.com/themperek/cocotb-test#arguments-for-simulatorrun
     # https://github.com/themperek/cocotb-test/blob/master/cocotb_test/simulator.py
@@ -154,13 +157,17 @@ def test_DspComparator(parameters):
         parameters = parameters,
 
         # The directory used to compile the tests. (default: sim_build)
-        sim_build = f'{tests_dir}/sim_build/{tests_module}.' + ",".join((f"{key}={value}" for key, value in parameters.items())),
+        sim_build = f'{tests_dir}/sim_build/{tests_module}',
 
         # A dictionary of extra environment variables set in simulator process.
         extra_env=parameters,
 
         # Select a simulator
         simulator="ghdl",
+
+        # use of synopsys package "std_logic_arith" needs the -fsynopsys option
+        # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
+        vhdl_compile_args = ['-fsynopsys', '-fexplicit'],
 
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)

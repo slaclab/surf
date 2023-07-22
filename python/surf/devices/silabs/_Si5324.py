@@ -9,40 +9,30 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue
 import click
 import fnmatch
 
 class Si5324(pr.Device):
     def __init__(self,**kwargs):
+        super().__init__(**kwargs)
 
-        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
-
-        if self._useVars:
-            size = 0
-        else:
-            size = (0x100 << 2)  # 1KB
-
-        super().__init__(size=size, **kwargs)
-
-        if self._useVars:
-            self.add(pr.RemoteVariable(
-                name         = "DataBlock",
-                description  = "",
-                offset       = 0,
-                bitSize      = 32 * 0x100,
-                bitOffset    = 0,
-                numValues    = 0x100,
-                valueBits    = 32,
-                valueStride  = 32,
-                updateNotify = True,
-                bulkOpEn     = True,
-                overlapEn    = True,
-                verify       = True,
-                hidden       = True,
-                base         = pr.UInt,
-                mode         = "RW",
-            ))
+        self.add(pr.RemoteVariable(
+            name         = "DataBlock",
+            description  = "",
+            offset       = 0,
+            bitSize      = 32 * 0x100,
+            bitOffset    = 0,
+            numValues    = 0x100,
+            valueBits    = 32,
+            valueStride  = 32,
+            updateNotify = True,
+            bulkOpEn     = True,
+            overlapEn    = True,
+            verify       = True,
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+        ))
 
         self.add(pr.LocalVariable(
             name         = "TxtFilePath",
@@ -1147,8 +1137,5 @@ class Si5324(pr.Device):
         ))
 
     def _setValue(self,offset,data):
-        if self._useVars:
-            # Note: index is byte index (not word index)
-            self.DataBlock.set(value=data,index=(offset%0x400)>>2)
-        else:
-            self._rawWrite(offset,data)  # Deprecated
+        # Note: index is byte index (not word index)
+        self.DataBlock.set(value=data,index=(offset%0x400)>>2)

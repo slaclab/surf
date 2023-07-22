@@ -196,14 +196,13 @@ class RfTile(pr.Device):
             hidden       = True,
         ))
 
-        if gen3:
-            prefix = 'adc' if isAdc else 'dac'
+        prefix = 'adc' if isAdc else 'dac'
 
-            for i in range(4):
-                self.add(xil.RfBlock(
-                    name      = f'{prefix}Block[{i}]',
-                    isAdc     = isAdc,
-                    RestartSM = self.RestartSM,
-                    offset    = 0x2000 + 0x400*i,
-                    expand    = False,
-                ))
+        for i in range(4):
+            self.add(xil.RfBlock(
+                name      = f'{prefix}Block[{i}]',
+                isAdc     = isAdc,
+                RestartSM = self.RestartSM,
+                offset    = 0x2000 + 0x400*i,
+                expand    = False,
+            ))
