@@ -61,7 +61,7 @@ architecture sim of RoguePgp2fcSim is
 
    signal pgpTxMastersLoc : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
 
-   signal txFcAxisMaster : AxiStreamMasterType : ssiMasterInit(FC_AXIS_CFG_C);
+   signal txFcAxisMaster : AxiStreamMasterType := ssiMasterInit(FC_AXIS_CFG_C);
    signal txFcAxisSlave  : AxiStreamSlaveType;
    signal rxFcAxisMaster : AxiStreamMasterType := ssiMasterInit(FC_AXIS_CFG_C);
    signal rxFcAxisSlave  : AxiStreamSlaveType;
