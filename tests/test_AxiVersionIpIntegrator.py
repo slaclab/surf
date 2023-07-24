@@ -130,6 +130,8 @@ def test_AxiVersionIpIntegrator(parameters):
         # -frelaxed-rules option to allow IP integrator attributes
         vhdl_compile_args = ['-fsynopsys','-frelaxed-rules'],
 
-        # Dump waveform to file ($ gtkwave sim_build/AxiVersionIpIntegrator/AxiVersionIpIntegrator.vcd)
-        sim_args =[f'--vcd={tests_module}.vcd'],
+        ########################################################################
+        # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
+        ########################################################################
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )

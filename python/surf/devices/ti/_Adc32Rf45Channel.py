@@ -15,23 +15,37 @@ import pyrogue as pr
 import time
 
 class Adc32Rf45Channel(pr.Device):
-    def __init__( self, verify=True, **kwargs):
+    def __init__( self, verify=True, offset=0, **kwargs):
 
-        super().__init__(**kwargs)
+        super().__init__(offset=offset, **kwargs)
 
         #######################
         # Paging base addresses
         #######################
-        offsetCorrector = (0x1 << 14)
-        digitalGain     = (0x2 << 14)
-        mainDigital     = (0x3 << 14)
-        jesdDigital     = (0x4 << 14)
-        decFilter       = (0x5 << 14)
-        pwrDet          = (0x6 << 14)
+        offsetCorrector = offset + (0x1 << 14)  # 0x04000
+        digitalGain     = offset + (0x2 << 14)  # 0x08000
+        mainDigital     = offset + (0x3 << 14)  # 0x0C000
+        jesdDigital     = offset + (0x4 << 14)  # 0x10000
+        decFilter       = offset + (0x5 << 14)  # 0x14000
+        pwrDet          = offset + (0x6 << 14)  # 0x18000
 
         ##################
         # Offset Corr Page
         ##################
+        self.add(pr.RemoteVariable(name='OffsetCorrector',
+                                   offset       = offsetCorrector, # 0x04000 - 0x041FF
+                                   base         = pr.UInt,
+                                   bitSize      = 32*0x80, # 512 Bytes
+                                   bitOffset    = 0,
+                                   numValues    = 0x80,
+                                   valueBits    = 32,
+                                   valueStride  = 32,
+                                   updateNotify = False,
+                                   bulkOpEn     = False,
+                                   overlapEn    = True,
+                                   hidden       = True,
+                                   verify       = False))
+
         self.add(pr.RemoteVariable(
             name         = "SEL_EXT_EST",
             description  = "This bit selects the external estimate for the offset correction block",
@@ -114,6 +128,19 @@ class Adc32Rf45Channel(pr.Device):
         ###################
         # Main Digital Page
         ###################
+        self.add(pr.RemoteVariable(name='MainDigital',
+                                   offset       = mainDigital, # 0x0C000 - 0x0C1FF
+                                   base         = pr.UInt,
+                                   bitSize      = 32*0x80, # 512 Bytes
+                                   bitOffset    = 0,
+                                   numValues    = 0x80,
+                                   valueBits    = 32,
+                                   valueStride  = 32,
+                                   updateNotify = False,
+                                   bulkOpEn     = False,
+                                   overlapEn    = True,
+                                   hidden       = True,
+                                   verify       = False))
 
         self.add(pr.RemoteVariable(
             name         = "NQ_ZONE_EN",
@@ -142,6 +169,20 @@ class Adc32Rf45Channel(pr.Device):
         ###################
         # JESD DIGITAL PAGE
         ###################
+        self.add(pr.RemoteVariable(name='JesdDigital',
+                                   offset       = jesdDigital, # 0x10000 - 0x101FF
+                                   base         = pr.UInt,
+                                   bitSize      = 32*0x80, # 512 Bytes
+                                   bitOffset    = 0,
+                                   numValues    = 0x80,
+                                   valueBits    = 32,
+                                   valueStride  = 32,
+                                   updateNotify = False,
+                                   bulkOpEn     = False,
+                                   overlapEn    = True,
+                                   hidden       = True,
+                                   verify       = False))
+
         self.add(pr.RemoteVariable(
             name         = "CTRL_K",
             description  = "0 = Default is five frames per multiframe, 1 = Frames per multiframe can be set in register 06h",
