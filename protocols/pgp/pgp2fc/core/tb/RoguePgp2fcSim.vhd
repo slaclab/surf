@@ -53,7 +53,8 @@ end entity RoguePgp2fcSim;
 
 architecture sim of RoguePgp2fcSim is
 
-   constant FC_AXIS_CFG_C : AxiStreamConfigType := ssiAxiStreamConfig(2*FC_WORDS_G, TKEEP_COMP_C);
+   constant FC_AXIS_CFG_C   : AxiStreamConfigType := ssiAxiStreamConfig(2*FC_WORDS_G, TKEEP_COMP_C);
+   constant BYTE_AXIS_CFG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
 
 
    signal txOut : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
@@ -61,10 +62,16 @@ architecture sim of RoguePgp2fcSim is
 
    signal pgpTxMastersLoc : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
 
-   signal txFcAxisMaster : AxiStreamMasterType := ssiMasterInit(FC_AXIS_CFG_C);
+   signal txFcAxisMaster : AxiStreamMasterType := axiStreamMasterInit(FC_AXIS_CFG_C);
    signal txFcAxisSlave  : AxiStreamSlaveType;
-   signal rxFcAxisMaster : AxiStreamMasterType := ssiMasterInit(FC_AXIS_CFG_C);
+   signal rxFcAxisMaster : AxiStreamMasterType := axiStreamMasterInit(FC_AXIS_CFG_C);
    signal rxFcAxisSlave  : AxiStreamSlaveType;
+
+   signal txByteAxisMaster : AxiStreamMasterType := axiStreamMasterInit(BYTE_AXIS_CFG_C);
+   signal txByteAxisSlave  : AxiStreamSlaveType;
+   signal rxByteAxisMaster : AxiStreamMasterType := axiStreamMasterInit(BYTE_AXIS_CFG_C);
+   signal rxByteAxisSlave  : AxiStreamSlaveType;
+
 
 
 begin
@@ -117,10 +124,29 @@ begin
 
 
    -- Send a single txn frame for FC word
-   txFcAxisMaster.tValid                     <= pgpTxIn.fcValid;
-   txFcAxisMaster.tData(FC_WORDS_G downto 0) <= pgpTxIn.fcWord(FC_WORDS_G*16-1 downto 0);
-   txFcAxisMaster.tLast                      <= pgpTxIn.fcValid;
-   txFcAxisMaster.tUser(1)                   <= pgpTxIn.fcValid;
+   txFcAxisMaster.tValid                          <= pgpTxIn.fcValid;
+   txFcAxisMaster.tData(FC_WORDS_G*16-1 downto 0) <= pgpTxIn.fcWord(FC_WORDS_G*16-1 downto 0);
+   txFcAxisMaster.tLast                           <= pgpTxIn.fcValid;
+   txFcAxisMaster.tUser(1)                        <= pgpTxIn.fcValid;
+
+   U_TX_Resize : entity surf.AxiStreamResize
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => FC_AXIS_CFG_C,
+         MASTER_AXI_CONFIG_G => BYTE_AXIS_CFG_C)
+      port map (
+         -- Clock and Reset
+         axisClk     => pgpClk,
+         axisRst     => pgpClkRst,
+         -- Slave Port
+         sAxisMaster => txFcAxisMaster,
+         sAxisSlave  => txFcAxisSlave,
+         -- Master Port
+         mAxisMaster => txByteAxisMaster,
+         mAxisSlave  => txByteAxisSlave);
+
 
    U_PGP_FC : entity surf.RogueTcpStreamWrap
       generic map (
@@ -129,14 +155,33 @@ begin
          SSI_EN_G      => true,
          CHAN_MASK_G   => "00000000",
          TDEST_MASK_G  => "00000000",
-         AXIS_CONFIG_G => FC_AXIS_CONFIG_C)
+         AXIS_CONFIG_G => BYTE_AXIS_CFG_C)
       port map (
          axisClk     => pgpClk,          -- [in]
          axisRst     => pgpClkRst,       -- [in]
-         sAxisMaster => txFcAxisMaster,  -- [in]
-         sAxisSlave  => txFcAxisSlave,   -- [out]
-         mAxisMaster => rxFcAxisMaster,  -- [out]
-         mAxisSlave  => rxFcAxisSlave);  -- [in]
+         sAxisMaster => txByteAxisMaster,  -- [in]
+         sAxisSlave  => txByteAxisSlave,   -- [out]
+         mAxisMaster => rxByteAxisMaster,  -- [out]
+         mAxisSlave  => rxByteAxisSlave);  -- [in]
+
+   U_RX_Resize : entity surf.AxiStreamResize
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => BYTE_AXIS_CFG_C,
+         MASTER_AXI_CONFIG_G => FC_AXIS_CFG_C)
+      port map (
+         -- Clock and Reset
+         axisClk     => pgpClk,
+         axisRst     => pgpClkRst,
+         -- Slave Port
+         sAxisMaster => rxByteAxisMaster,
+         sAxisSlave  => rxByteAxisSlave,
+         -- Master Port
+         mAxisMaster => rxFcAxisMaster,
+         mAxisSlave  => rxFcAxisSlave);
+
 
    -- Receive single txn frame for FC word
    rxOut.fcValid                          <= rxFcAxisMaster.tValid;
