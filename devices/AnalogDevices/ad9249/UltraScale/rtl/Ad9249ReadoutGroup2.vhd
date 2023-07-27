@@ -74,8 +74,8 @@ architecture rtl of Ad9249ReadoutGroup2 is
       delay          : slv(8 downto 0);
       delaySet       : sl;
       freezeDebug    : sl;
-      readoutDebug0  : slv16Array(NUM_CHANNELS_G-1 downto 0);
-      readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
+      readoutDebug0  : slv16Array(7 downto 0);
+      readoutDebug1  : slv16Array(7 downto 0);
       lockedCountRst : sl;
       invert         : sl;
       realign        : sl;
@@ -136,7 +136,7 @@ architecture rtl of Ad9249ReadoutGroup2 is
 
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
-   signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+   signal debugDataTmp   : slv16Array(7 downto 0);
 
    signal invertSync      : sl;
    signal bitSlip         : sl;
@@ -322,7 +322,7 @@ begin
       axiSlaveRegister(axilEp, X"60", 0, v.invert);
 
       -- Debug registers. Output the last 2 words received
-      for ch in 0 to NUM_CHANNELS_G-1 loop
+      for ch in 0 to 7 loop
          axiSlaveRegisterR(axilEp, X"80"+toSlv((ch*4), 8), 0, axilR.readoutDebug0(ch));
          axiSlaveRegisterR(axilEp, X"80"+toSlv((ch*4), 8), 16, axilR.readoutDebug1(ch));
       end loop;
