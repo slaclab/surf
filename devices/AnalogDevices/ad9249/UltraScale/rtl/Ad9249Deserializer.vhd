@@ -207,13 +207,12 @@ begin
          RST             => dRstDiv4    -- 1-bit input: Asynchronous Reset
          );
 
-
-
    U_Gearbox : entity surf.Gearbox
       generic map (
-         TPD_G          => TPD_G,
-         SLAVE_WIDTH_G  => 8,
-         MASTER_WIDTH_G => 14
+         TPD_G                => TPD_G,
+         SLAVE_WIDTH_G        => 8,
+         MASTER_WIDTH_G       => 14,
+         MASTER_BIT_REVERSE_G => true
          )
       port map (
          clk         => dClkDiv4,
@@ -224,11 +223,8 @@ begin
          slaveData   => masterData,
          -- Master Interface
          masterValid => adcValid,
-         masterData  => iAdcData,
-         masterReady => '1'
-         );
-
-   adcData <= iAdcData when BIT_REV_G = '0' else bitReverse(iAdcData(6 downto 0)) & bitReverse(iAdcData(13 downto 7));
+         masterData  => adcData,
+         masterReady => '1');
 
 end rtl;
 

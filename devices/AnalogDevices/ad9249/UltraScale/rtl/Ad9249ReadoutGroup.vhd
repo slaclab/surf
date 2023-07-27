@@ -388,8 +388,7 @@ begin
          IDELAY_CASCADE_G  => F_DELAY_CASCADE_G,
          IDELAYCTRL_FREQ_G => 350.0,
          DEFAULT_DELAY_G   => (others => '0'),
-         ADC_INVERT_CH_G   => '1',
-         BIT_REV_G         => '0')
+         ADC_INVERT_CH_G   => '1')
       port map (
          dClk          => adcBitClk,      -- Data clock
          dRst          => adcBitRst,
@@ -437,8 +436,7 @@ begin
             IDELAY_CASCADE_G  => D_DELAY_CASCADE_G,
             IDELAYCTRL_FREQ_G => 350.0,
             DEFAULT_DELAY_G   => (others => '0'),
-            ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
-            BIT_REV_G         => '1')
+            ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i))
          port map (
             dClk          => adcBitClk,      -- Data clock
             dRst          => adcBitRst,
