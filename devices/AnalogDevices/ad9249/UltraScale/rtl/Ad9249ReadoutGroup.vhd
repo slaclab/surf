@@ -35,6 +35,7 @@ entity Ad9249ReadoutGroup is
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
+      SIM_DEVICE_G      : string               := "ULTRASCALE";
       D_DELAY_CASCADE_G : boolean              := false;
       F_DELAY_CASCADE_G : boolean              := false;
       IDELAYCTRL_FREQ_G : real                 := 200.0;
@@ -174,11 +175,6 @@ architecture rtl of Ad9249ReadoutGroup is
 
    signal invertSync    : sl;
 
-   attribute KEEP_HIERARCHY                     : string;
-   attribute KEEP_HIERARCHY of AdcClk_I_Ibufds  : label is "TRUE";
-   attribute dont_touch                         : string;
-   attribute dont_touch of adcDclk              : signal is "TRUE";
-
 begin
    -------------------------------------------------------------------------------------------------
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
@@ -315,23 +311,21 @@ begin
       end if;
    end process axilSeq;
 
-
-   AdcClk_I_Ibufds : IBUFDS
-   generic map (
-      DQS_BIAS => "FALSE"
-   )
-   port map (
-      I  => adcSerial.dClkP,
-      IB => adcSerial.dClkN,
-      O  => adcDclk
-   );
-
    -------------------------------------------------------------------------------------------------
    -- Create Clocks
    -------------------------------------------------------------------------------------------------
 
    G_MMCM : if USE_MMCME_G = true generate
 
+      AdcClk_I_Ibufds : IBUFDS
+      generic map (
+         DQS_BIAS => "FALSE"
+      )
+      port map (
+         I  => adcSerial.dClkP,
+         IB => adcSerial.dClkN,
+         O  => adcDclk
+      );
 
       ------------------------------------------
       -- Generate clocks from ADC incoming clock
@@ -384,6 +378,7 @@ begin
    U_FRAME_DESERIALIZER : entity surf.Ad9249Deserializer
       generic map (
          TPD_G             => TPD_G,
+         SIM_DEVICE_G      => SIM_DEVICE_G,
          IODELAY_GROUP_G   => "DEFAULT_GROUP",
          IDELAY_CASCADE_G  => F_DELAY_CASCADE_G,
          IDELAYCTRL_FREQ_G => 350.0,
@@ -432,6 +427,7 @@ begin
       U_DATA_DESERIALIZER : entity surf.Ad9249Deserializer
          generic map (
             TPD_G             => TPD_G,
+            SIM_DEVICE_G      => SIM_DEVICE_G,
             IODELAY_GROUP_G   => "DEFAULT_GROUP",
             IDELAY_CASCADE_G  => D_DELAY_CASCADE_G,
             IDELAYCTRL_FREQ_G => 350.0,

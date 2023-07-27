@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: sfixed accumultaor, supports interleaved channels
+-- Description: Complex fixed accumulator, supports interleaved channels
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -66,7 +66,7 @@ begin
          userOut       => userOut,
          dout          => dout.re);
 
-   U_IMAG_ACCUM : entity surf.Accumulator
+   U_IMAG_ACCUM : entity surf.SfixedAccumulator
       generic map (
          TPD_G         => TPD_G,
          XIL_DEVICE_G  => XIL_DEVICE_G,

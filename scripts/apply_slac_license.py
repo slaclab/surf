@@ -8,7 +8,9 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-import os,sys,shutil
+import os
+import sys
+import shutil
 
 # Read in a file into a string
 def readFile(src):

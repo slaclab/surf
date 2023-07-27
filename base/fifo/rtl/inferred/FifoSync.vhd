@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -162,6 +161,7 @@ begin
             dina   => dina,
             -- Port B
             clkb   => clk,
+            rstb   => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
             addrb  => addrb,
             doutb  => doutb,
             enb    => enb,

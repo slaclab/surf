@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 entity AxiStreamFrameRateLimiter is
    generic (
       TPD_G              : time     := 1 ns;
+      RST_ASYNC_G        : boolean  := false;
       PIPE_STAGES_G      : natural  := 0;
       COMMON_CLK_G       : boolean  := false;  -- True if axisClk and axilClk are the same clock
       BACKPRESSURE_G     : boolean  := false;  -- Set the default for the back pressure register
@@ -99,6 +100,7 @@ begin
    U_AxiLiteRegs : entity surf.AxiLiteRegs
       generic map (
          TPD_G           => TPD_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          NUM_WRITE_REG_G => 2,
          INI_WRITE_REG_G => INI_WRITE_REG_C,
          NUM_READ_REG_G  => 3)
@@ -234,7 +236,7 @@ begin
       sAxisSlave <= v.sAxisSlave;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -243,9 +245,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if rising_edge(axisClk) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -254,6 +258,7 @@ begin
    U_AxiStreamPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

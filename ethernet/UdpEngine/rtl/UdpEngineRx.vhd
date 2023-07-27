@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -31,6 +30,8 @@ entity UdpEngineRx is
       TPD_G          : time          := 1 ns;
       -- UDP General Generic
       DHCP_G         : boolean       := false;
+      IGMP_G         : boolean       := false;
+      IGMP_GRP_SIZE  : positive      := 1;
       -- UDP Server Generics
       SERVER_EN_G    : boolean       := true;
       SERVER_SIZE_G  : positive      := 1;
@@ -43,6 +44,7 @@ entity UdpEngineRx is
       -- Local Configurations
       localIp          : in  slv(31 downto 0);  --  big-Endian configuration
       broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration
+      igmpIp           : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
       -- Interface to IPV4 Engine
       ibUdpMaster      : in  AxiStreamMasterType;
       ibUdpSlave       : out AxiStreamSlaveType;
@@ -144,10 +146,11 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (broadcastIp, clientSlave, dhcpSlave, localIp, r, rst,
-                   rxMaster, serverSlave) is
-      variable v : RegType;
-      variable i : natural;
+   comb : process (broadcastIp, clientSlave, dhcpSlave, igmpIp, localIp, r,
+                   rst, rxMaster, serverSlave) is
+      variable v            : RegType;
+      variable i            : natural;
+      variable multiCastDet : boolean;
    begin
       -- Latch the current value
       v := r;
@@ -172,6 +175,16 @@ begin
          v.dhcpMaster.tLast  := '0';
          v.dhcpMaster.tUser  := (others => '0');
          v.dhcpMaster.tKeep  := (others => '1');
+      end if;
+
+      -- Check for IGMP multi-cast
+      multiCastDet := false;
+      if IGMP_G then
+         for i in IGMP_GRP_SIZE-1 downto 0 loop
+            if r.tData(127 downto 96) = igmpIp(i) then
+               multiCastDet := true;
+            end if;
+         end loop;
       end if;
 
       -- State Machine
@@ -215,7 +228,7 @@ begin
                -- tData[1][127:96] = UDP Datagram
                ------------------------------------------------
                -- Check the local IP address or broadcast IP
-               if (r.tData(127 downto 96) = localIp) or (r.tData(127 downto 96) = broadcastIp) then
+               if (r.tData(127 downto 96) = localIp) or (r.tData(127 downto 96) = broadcastIp) or multiCastDet then
                   -- Check if server engine(s) is enabled
                   if (SERVER_EN_G = true) then
                      for i in (SERVER_SIZE_G-1) downto 0 loop
@@ -370,7 +383,7 @@ begin
                               v.clientMaster.tKeep(15 downto 0) := rxMaster.tKeep(11 downto 0) & x"F";
                               v.clientMaster.tLast              := '1';
                               -- Next state
-                              v.state              := IDLE_S;
+                              v.state                           := IDLE_S;
                            end if;
                         end if;
                      end if;

@@ -1,17 +1,19 @@
 -------------------------------------------------------------------------------
--- Title      :
+-- Title      : AD9681 Simulation Module
 -------------------------------------------------------------------------------
--- File       : Ad9681.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-14
--- Last update: 2021-04-09
 -- Platform   :
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description:
 -------------------------------------------------------------------------------
--- Copyright (c) 2014 SLAC National Accelerator Laboratory
+-- This file is part of SLAC Firmware Standard Library. It is subject to
+-- the license terms in the LICENSE.txt file found in the top-level directory
+-- of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of SLAC Firmware Standard Library, including this file, may be
+-- copied, modified, propagated, or distributed except according to the terms
+-- contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -134,7 +136,10 @@ architecture behavioral of Ad9681 is
 
    type ChannelConfigArray is array (natural range <>) of ChannelConfigType;
 
+   type DelayArray is array (15 downto 0) of RealArray(7 downto 0);
+
    type ConfigRegType is record
+      vinDelay        : DelayArray;
       sample          : Slv16Array(7 downto 0);  -- slv(13 downto 0);
       rdData          : slv(31 downto 0);
       lsbFirst        : sl;
@@ -148,6 +153,7 @@ architecture behavioral of Ad9681 is
    end record ConfigRegType;
 
    constant CONFIG_REG_INIT_C : ConfigRegType := (
+      vinDelay        => (others => (others => 0.0)),
       sample          => (others => "0000000000000000"),
       rdData          => X"00000000",
       lsbFirst        => '0',
@@ -321,6 +327,13 @@ begin
       variable zero          : slv(13 downto 0) := (others => '0');
    begin
       v := r;
+
+      for i in 7 downto 0 loop
+         v.vinDelay(0)(i) := vin(i);
+         for j in 15 downto 1 loop
+            v.vinDelay(j)(i) := r.vinDelay(j-1)(i);
+         end loop;
+      end loop;
 
       ----------------------------------------------------------------------------------------------
       -- Configuration Registers
@@ -528,7 +541,12 @@ begin
          if (r.channel(i).powerDown = '0') then
             case (r.channel(i).outputTestMode) is
                when "0000" =>           -- normal
-                  v.sample(i) := adcConversion(vin(i), -1.0, 1.0, 14, toBoolean(r.global.binFormat)) & "00";
+                  v.sample(i) := adcConversion(r.vinDelay(15)(i), -1.0, 1.0, 14, toBoolean(r.global.binFormat)) & "00";
+
+                  -- Emulate chip behavior at -1
+                  if (r.vinDelay(15)(i) >= 1.0 or r.vinDelay(15)(i) <= -1.0) then
+                     v.sample(i) := X"8000";
+                  end if;
                when "0001" =>           -- midscale short
                   v.sample(i) := "1000000000000000";
                when "0010" =>           -- +FS short

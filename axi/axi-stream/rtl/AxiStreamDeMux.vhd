@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamDeMux is
    generic (
       TPD_G          : time                   := 1 ns;
+      RST_ASYNC_G    : boolean                := false;
       NUM_MASTERS_G  : integer range 1 to 256 := 12;
       MODE_G         : string                 := "INDEXED";  -- Or "ROUTED" Or "DYNAMIC"
       TDEST_ROUTES_G : slv8Array              := (0 => "--------");  -- Only used in ROUTED mode
@@ -138,7 +139,7 @@ begin
       sAxisSlave <= v.slave;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -156,6 +157,7 @@ begin
       U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             PIPE_STAGES_G => PIPE_STAGES_G)
          port map (
             axisClk     => axisClk,
@@ -167,12 +169,13 @@ begin
 
    end generate GEN_VEC;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
 end structure;
-

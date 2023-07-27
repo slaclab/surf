@@ -29,9 +29,10 @@ use surf.SsiPkg.all;
 
 entity SsiObFrameFilter is
    generic (
-      TPD_G         : time                := 1 ns;
-      VALID_THOLD_G : natural             := 1;
-      PIPE_STAGES_G : natural             := 1;
+      TPD_G         : time    := 1 ns;
+      RST_ASYNC_G   : boolean := false;
+      VALID_THOLD_G : natural := 1;
+      PIPE_STAGES_G : natural := 1;
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port (AXIS FIFO Read Interface)
@@ -220,7 +221,7 @@ begin
       mAxisDropFrame <= r.frameDropped;
 
       -- Synchronous Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -229,9 +230,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if rising_edge(axisClk) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -239,6 +242,7 @@ begin
    U_Pipe : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          -- Clock and Reset

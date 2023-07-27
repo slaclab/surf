@@ -251,6 +251,21 @@ class ClinkChannel(pr.Device):
                     expand = False,
                 ))
 
+            # Check for JAI CM-140MCL-UV camera
+            elif (camType=='JaiCm140'):
+
+                # Override defaults
+                self.BaudRate._default = 9600
+                self.SerThrottle._default = 30000
+
+                # Add the device
+                self.add(surf.protocols.clink.UartJaiCm140(
+                    name        = 'UartJaiCm140',
+                    serial      = serial,
+                    expand      = False,
+                ))
+
+
             # Check for Imperx C1921 camera
             elif (camType=='ImperxC1921'):
 

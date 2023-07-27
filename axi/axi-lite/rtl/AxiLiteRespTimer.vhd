@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Writing to this module sets a timer for a deleyed write response
+-- Description: Writing to this module sets a timer for a delayed write response
 --              Read transaction are not supported and will respond with error
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -18,14 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity AxiLiteRespTimer is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false);
    port (
       -- Slave AXI-Lite Interface
       axilClk         : in  sl;
@@ -114,7 +114,7 @@ begin
       end case;
 
       -- Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -127,9 +127,11 @@ begin
 
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

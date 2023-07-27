@@ -25,7 +25,8 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4RxEb is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false);
    port (
       phyRxClk    : in sl;
       phyRxRst    : in sl;
@@ -111,7 +112,7 @@ begin
       end if;
 
       -- Reset
-      if (phyRxRst = '1') then
+      if (RST_ASYNC_G = false and phyRxRst = '1') then
          -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
       end if;
@@ -121,9 +122,11 @@ begin
 
    end process comb;
 
-   seq : process (phyRxClk) is
+   seq : process (phyRxClk, phyRxRst) is
    begin
-      if (rising_edge(phyRxClk)) then
+      if (RST_ASYNC_G) and (phyRxRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(phyRxClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -131,6 +134,7 @@ begin
    U_remLinkData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          DATA_WIDTH_G => 48)
       port map (
          rst    => phyRxRst,
@@ -143,6 +147,7 @@ begin
    U_FifoAsync_1 : entity surf.FifoAsync
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          MEMORY_TYPE_G => "block",
          FWFT_EN_G     => true,
          PIPE_STAGES_G => 0,
@@ -167,7 +172,8 @@ begin
 
    U_overflow : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          clk      => pgpRxClk,
          dataIn   => overflowInt,
@@ -175,7 +181,8 @@ begin
 
    U_linkError : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          clk      => pgpRxClk,
          dataIn   => r.linkError,

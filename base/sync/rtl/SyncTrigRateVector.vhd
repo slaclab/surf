@@ -15,13 +15,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SyncTrigRateVector is
    generic (
       TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      RST_ASYNC_G    : boolean  := false;
       COMMON_CLK_G   : boolean  := false;     -- true if locClk & refClk are the same clock
       ONE_SHOT_G     : boolean  := false;
       IN_POLARITY_G  : slv      := "1";   -- 0 for active LOW, 1 for active HIGH
@@ -77,6 +77,7 @@ begin
       SyncTrigRate_Inst : entity surf.SyncTrigRate
          generic map (
             TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             COMMON_CLK_G   => COMMON_CLK_G,
             ONE_SHOT_G     => ONE_SHOT_G,
             IN_POLARITY_G  => IN_POLARITY_C(i),

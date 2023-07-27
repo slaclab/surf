@@ -16,6 +16,7 @@ class UdpEngine(pr.Device):
             self,
             numSrv = 0,
             numClt = 0,
+            numIgmp = 0,
             **kwargs):
         super().__init__(**kwargs)
 
@@ -99,6 +100,30 @@ class UdpEngine(pr.Device):
                 mode         = 'RO',
                 linkedGet    = udp.getIpValue,
                 dependencies = [self.variables[f'ServerRemoteIpRaw[{i}]']],
+            ))
+
+        ######################
+        # IGMP Group Addresses
+        ######################
+
+        for i in range(numIgmp):
+
+            self.add(pr.RemoteVariable(
+                name         = f'IgmpIpRaw[{i}]',
+                description  = 'IgmpIp (big-Endian configuration)',
+                offset       = (0xFD0+4*i),
+                bitSize      = 32,
+                mode         = 'RW',
+                hidden       = True,
+            ))
+
+            self.add(pr.LinkVariable(
+                name         = f'IgmpIp[{i}]',
+                description  = 'IgmpIp (human readable)',
+                mode         = 'RW',
+                linkedGet    = udp.getIpValue,
+                linkedSet    = udp.setIpValue,
+                dependencies = [self.variables[f'IgmpIpRaw[{i}]']],
             ))
 
         ##############

@@ -78,6 +78,8 @@ class _Regs(pr.Device):
         while True:
             #print('Main thread loop start')
             transaction = self._queue.get()
+            if transaction is None:
+                return
             with self._memLock, transaction.lock():
                 #tranId = transaction.id()
                 #print(f'Woke the pollWorker with id: {tranId}')
@@ -90,8 +92,9 @@ class _Regs(pr.Device):
 
                 if transaction.type() == rogue.interfaces.memory.Write:
                     # Convert data bytes to int and write data to proxy register
-                    transaction.getData(self._dataBa, 0)
-                    data = int.from_bytes(self._dataBa, 'little', signed=False)
+                    dataBa = bytearray(4)
+                    transaction.getData(dataBa, 0)
+                    data = int.from_bytes(dataBa, 'little', signed=False)
                     self.Data.set(data, write=True)
                     #print(f'Wrote data {data:x}')
 
@@ -134,6 +137,12 @@ class _Regs(pr.Device):
                     #print(dataBa)
                     transaction.setData(dataBa, 0)
                     transaction.done()
+
+
+    def _stop(self):
+        self._queue.put(None)
+        self._pollThread.join()
+
 
 class _ProxySlave(rogue.interfaces.memory.Slave):
 

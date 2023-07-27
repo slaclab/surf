@@ -14,7 +14,7 @@
 import pyrogue as pr
 
 class SsiPrbsTx(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, clock_freq=125e6, **kwargs):
         super().__init__(**kwargs)
 
         ##############################
@@ -82,6 +82,14 @@ class SsiPrbsTx(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
+
+        self.add(pr.RemoteVariable(
+            name   = 'WordSize',
+            offset = 0x20,
+            mode   = 'RO',
+            disp   = '{:d}',
+            hidden = False))
+
 
         self.add(pr.RemoteVariable(
             name         = "tDest",
@@ -152,3 +160,22 @@ class SsiPrbsTx(pr.Device):
             bitSize      =  32,
             mode         = "RW",
         ))
+
+        def get_conv(read):
+            return clock_freq / (self.TrigDly.get(read=read)+1)
+
+        def set_conv(value, write):
+            if value <= 0:
+                self.TrigDly.set(0xFFFFFFFF, write=write)
+            else:
+                v = int(clock_freq / value)-1
+                if v > 0xFFFFFFFF:
+                    v = 0xFFFFFFFF
+                self.TrigDly.set(v, write=write)
+
+        self.add(pr.LinkVariable(
+            name = 'TrigRate',
+            dependencies = [self.TrigDly],
+            mode = 'RW',
+            linkedGet = get_conv,
+            linkedSet = set_conv))

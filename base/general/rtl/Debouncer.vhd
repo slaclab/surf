@@ -20,7 +20,6 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity Debouncer is
-
    generic (
       TPD_G             : time     := 1 ns;
       RST_POLARITY_G    : sl       := '1';         -- '1' for active high rst, '0' for active low
@@ -30,7 +29,6 @@ entity Debouncer is
       CLK_FREQ_G        : real     := 156.250E+6;  -- units of Hz
       DEBOUNCE_PERIOD_G : real     := 1.0E-3;      -- units of seconds
       SYNCHRONIZE_G     : boolean  := true);       -- Run input through 2 FFs before filtering
-
    port (
       clk : in  sl;
       rst : in  sl := not RST_POLARITY_G;
@@ -51,14 +49,15 @@ architecture rtl of Debouncer is
       o           : sl;
    end record RegType;
 
-   constant REG_RESET_C : RegType :=
-      (filter     => 0,
-       iSyncedDly => not INPUT_POLARITY_G,
-       o          => not OUTPUT_POLARITY_G);
+   constant REG_RESET_C : RegType := (
+      filter     => 0,
+      iSyncedDly => not INPUT_POLARITY_G,
+      o          => not OUTPUT_POLARITY_G);
 
    signal r       : RegType := REG_RESET_C;
    signal rin     : RegType;
-   signal iSynced : sl      := INPUT_POLARITY_G;
+
+   signal iSynced : sl := INPUT_POLARITY_G;
 
 begin
 

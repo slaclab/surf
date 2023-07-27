@@ -51,6 +51,8 @@ entity AxiLiteCrossbarI2cMux is
       mAxilReadMasters  : out AxiLiteReadMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
       mAxilReadSlaves   : in  AxiLiteReadSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0);
       -- I2C MUX Ports
+      i2cRst            : out sl;
+      i2cRstL           : out sl;
       i2ci              : in  i2c_in_type;
       i2co              : out i2c_out_type);
 end AxiLiteCrossbarI2cMux;
@@ -87,10 +89,13 @@ architecture mapping of AxiLiteCrossbarI2cMux is
 
    type StateType is (
       IDLE_S,
+      RST_S,
       MUX_S,
       XBAR_S);
 
    type RegType is record
+      cnt            : natural range 0 to FILTER_C;
+      i2cRstL        : sl;
       rnw            : sl;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
@@ -100,6 +105,8 @@ architecture mapping of AxiLiteCrossbarI2cMux is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      cnt            => 0,
+      i2cRstL        => '1',
       rnw            => '0',
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -204,31 +211,52 @@ begin
                -- Check for a write TXN
                if (axilStatus.writeEnable = '1') then
 
-                  -- Set the flag
-                  v.rnw := '0';
+                  -- Set the flags
+                  v.i2cRstL := '0';
+                  v.rnw     := '0';
 
                   -- Setup the I2C MUX
-                  v.i2cRegMasterIn.regReq                := '1';
                   v.i2cRegMasterIn.regWrData(7 downto 0) := MUX_DECODE_MAP_G(wrIdx);
 
                   -- Next state
-                  v.state := MUX_S;
+                  v.state := RST_S;
 
                -- Check for a read TXN
                elsif (axilStatus.readEnable = '1') then
 
                   -- Set the flag
-                  v.rnw := '1';
+                  v.i2cRstL := '0';
+                  v.rnw     := '1';
 
                   -- Setup the I2C MUX
-                  v.i2cRegMasterIn.regReq                := '1';
                   v.i2cRegMasterIn.regWrData(7 downto 0) := MUX_DECODE_MAP_G(rdIdx);
 
                   -- Next state
-                  v.state := MUX_S;
+                  v.state := RST_S;
 
                end if;
 
+            end if;
+         ----------------------------------------------------------------------
+         when RST_S =>
+            -- Check the counter
+            if (r.cnt = FILTER_C) then
+
+               -- Reset the counter
+               v.cnt := 0;
+
+               -- Reset the flag
+               v.i2cRstL := '1';
+
+               -- Start the I2C transaction
+               v.i2cRegMasterIn.regReq := '1';
+
+               -- Next state
+               v.state := MUX_S;
+
+            else
+               -- Increment the counter
+               v.cnt := r.cnt + 1;
             end if;
          ----------------------------------------------------------------------
          when MUX_S =>
@@ -327,6 +355,8 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      i2cRstL        <= r.i2cRstL;
+      i2cRst         <= not(r.i2cRstL);
 
    end process comb;
 

@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.ArbiterPkg.all;
@@ -48,10 +47,12 @@ architecture rtl of Arbiter is
       ack          : slv(REQ_SIZE_G-1 downto 0);
    end record RegType;
 
-   constant REG_RESET_C : RegType :=
-      (lastSelected => (others => '0'), valid => '0', ack => (others => '0'));
+   constant REG_INIT_C : RegType := (
+      lastSelected => (others => '0'),
+      valid        => '0',
+      ack          => (others => '0'));
 
-   signal r   : RegType := REG_RESET_C;
+   signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
@@ -66,7 +67,7 @@ begin
       end if;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-         v := REG_RESET_C;
+         v := REG_INIT_C;
       end if;
 
       rin      <= v;
@@ -78,11 +79,10 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
-         r <= rin after TPD_G;
-      end if;
       if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-         r <= REG_RESET_C after TPD_G;
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
+         r <= rin after TPD_G;
       end if;
    end process seq;
 

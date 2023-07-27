@@ -13,7 +13,6 @@ import surf.devices.silabs as silabs
 import csv
 import click
 import fnmatch
-import rogue
 import time
 
 class Si5394Lite(pr.Device):
@@ -23,15 +22,7 @@ class Si5394Lite(pr.Device):
             liteVersion   = True,
             **kwargs):
 
-        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
-        # self._useVars = False
-
-        if self._useVars:
-            size = 0
-        else:
-            size = 0x10000  # 64KB
-
-        super().__init__(size=size, **kwargs)
+        super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
             name         = "CsvFilePath",
@@ -102,18 +93,18 @@ class Si5394Lite(pr.Device):
         ##############################
         self._pages = {
             0:  silabs.Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False),
-            1:  silabs.Si5345PageBase(name='Page1',offset=(0x100<<2),expand=False,hidden=not(advanceUser)),
-            2:  silabs.Si5345PageBase(name='Page2',offset=(0x200<<2),expand=False,hidden=not(advanceUser)),
-            3:  silabs.Si5345PageBase(name='Page3',offset=(0x300<<2),expand=False,hidden=not(advanceUser)),
-            4:  silabs.Si5345PageBase(name='Page4',offset=(0x400<<2),expand=False,hidden=not(advanceUser)),
-            5:  silabs.Si5345PageBase(name='Page5',offset=(0x500<<2),expand=False,hidden=not(advanceUser)),
-            6:  silabs.Si5345PageBase(name='Page6',offset=(0x600<<2),expand=False,hidden=not(advanceUser)),
-            7:  silabs.Si5345PageBase(name='Page7',offset=(0x700<<2),expand=False,hidden=not(advanceUser)),
-            8:  silabs.Si5345PageBase(name='Page8',offset=(0x800<<2),expand=False,hidden=not(advanceUser)),
-            9:  silabs.Si5345PageBase(name='Page9',offset=(0x900<<2),expand=False,hidden=not(advanceUser)),
-            10: silabs.Si5345PageBase(name='PageA',offset=(0xA00<<2),expand=False,hidden=not(advanceUser)),
-            11: silabs.Si5345PageBase(name='PageB',offset=(0xB00<<2),expand=False,hidden=not(advanceUser)),
-            12: silabs.Si5345PageBase(name='PageC',offset=(0xC00<<2),expand=False,hidden=not(advanceUser)),
+            1:  silabs.Si5345PageBase(name='Page1',offset=(0x100<<2),expand=False,hidden=not (advanceUser)),
+            2:  silabs.Si5345PageBase(name='Page2',offset=(0x200<<2),expand=False,hidden=not (advanceUser)),
+            3:  silabs.Si5345PageBase(name='Page3',offset=(0x300<<2),expand=False,hidden=not (advanceUser)),
+            4:  silabs.Si5345PageBase(name='Page4',offset=(0x400<<2),expand=False,hidden=not (advanceUser)),
+            5:  silabs.Si5345PageBase(name='Page5',offset=(0x500<<2),expand=False,hidden=not (advanceUser)),
+            6:  silabs.Si5345PageBase(name='Page6',offset=(0x600<<2),expand=False,hidden=not (advanceUser)),
+            7:  silabs.Si5345PageBase(name='Page7',offset=(0x700<<2),expand=False,hidden=not (advanceUser)),
+            8:  silabs.Si5345PageBase(name='Page8',offset=(0x800<<2),expand=False,hidden=not (advanceUser)),
+            9:  silabs.Si5345PageBase(name='Page9',offset=(0x900<<2),expand=False,hidden=not (advanceUser)),
+            10: silabs.Si5345PageBase(name='PageA',offset=(0xA00<<2),expand=False,hidden=not (advanceUser)),
+            11: silabs.Si5345PageBase(name='PageB',offset=(0xB00<<2),expand=False,hidden=not (advanceUser)),
+            12: silabs.Si5345PageBase(name='PageC',offset=(0xC00<<2),expand=False,hidden=not (advanceUser)),
         }
 
         # Add Pages
@@ -129,8 +120,5 @@ class Si5394Lite(pr.Device):
         ))
 
     def _setValue(self,offset,data):
-        if self._useVars:
-            # Note: index is byte index (not word index)
-            self._pages[offset // 0x400].DataBlock.set(value=data,index=(offset%0x400)>>2)
-        else:
-            self._rawWrite(offset,data)  # Deprecated
+        # Note: index is byte index (not word index)
+        self._pages[offset // 0x400].DataBlock.set(value=data,index=(offset%0x400)>>2)

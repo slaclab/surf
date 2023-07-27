@@ -26,6 +26,7 @@ use surf.SsiPkg.all;
 entity AxiStreamRingBuffer is
    generic (
       TPD_G               : time     := 1 ns;
+      RST_ASYNC_G         : boolean  := false;
       SYNTH_MODE_G        : string   := "inferred";
       MEMORY_TYPE_G       : string   := "block";
       DATA_BYTES_G        : positive := 16;
@@ -43,8 +44,7 @@ entity AxiStreamRingBuffer is
       dataRst         : in  sl := '0';
       dataValid       : in  sl := '1';
       dataValue       : in  slv(8*DATA_BYTES_G-1 downto 0);
-      bufferEnable    : in  sl := '0';
-      bufferClear     : in  sl := '0';
+      extTrig         : in  sl := '0';
       -- AXI-Lite interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -73,6 +73,8 @@ architecture rtl of AxiStreamRingBuffer is
    -- Stream clock domain signals
    ------------------------------
    type DataRegType is record
+      extTrig      : sl;
+      bufferEnable : sl;
       enable       : sl;
       cleared      : sl;
       armed        : sl;
@@ -85,6 +87,8 @@ architecture rtl of AxiStreamRingBuffer is
    end record;
 
    constant DATA_REG_INIT_C : DataRegType := (
+      extTrig      => '0',
+      bufferEnable => '0',
       enable       => '0',
       cleared      => '1',              -- Only set HIGH after reset
       armed        => '0',
@@ -153,11 +157,9 @@ architecture rtl of AxiStreamRingBuffer is
    signal firstAddr    : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    signal bufferLength : slv(RAM_ADDR_WIDTH_G-1 downto 0);
 
-   signal extBufferEnable : sl;
-   signal extBufferClear  : sl;
-   signal readReq         : sl;
-   signal cleared         : sl;
-   signal armed           : sl;
+   signal readReq : sl;
+   signal cleared : sl;
+   signal armed   : sl;
 
    signal txSlave : AxiStreamSlaveType;
 
@@ -212,6 +214,7 @@ begin
       U_Ram : entity surf.SimpleDualPortRam
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             MEMORY_TYPE_G => MEMORY_TYPE_G,
             DOB_REG_G     => true,
             DATA_WIDTH_G  => 8*DATA_BYTES_G,
@@ -232,23 +235,32 @@ begin
    --------------------------------------------------
    -- Synchronize AXI registers to data clock dataClk
    --------------------------------------------------
-   U_SyncVec_dataClk : entity surf.SynchronizerVector
+   U_bufferEnable : entity surf.Synchronizer
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 2)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
-         clk        => dataClk,
-         rst        => dataRst,
-         dataIn(0)  => axilR.bufferEnable,
-         dataIn(1)  => axilR.bufferClear,
-         dataOut(0) => bufferEnableSync,
-         dataOut(1) => bufferClearSync);
+         clk     => dataClk,
+         rst     => dataRst,
+         dataIn  => axilR.bufferEnable,
+         dataOut => bufferEnableSync);
+
+   U_bufferClear : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
+         PULSE_WIDTH_G => 10)
+      port map (
+         clk     => dataClk,
+         rst     => dataRst,
+         dataIn  => axilR.bufferClear,
+         dataOut => bufferClearSync);
 
    --------------------------
    -- Main AXI-Stream process
    --------------------------
-   dataComb : process (bufferClear, bufferClearSync, bufferEnable,
-                       bufferEnableSync, dataR, dataRst, dataValid, dataValue) is
+   dataComb : process (bufferClearSync, bufferEnableSync, dataR, dataRst,
+                       dataValid, dataValue, extTrig) is
       variable v : DataRegType;
    begin
       -- Latch the current value
@@ -259,9 +271,15 @@ begin
       v.readReq := '0';
       v.cleared := '0';
 
+      -- Check for external trigger
+      if (extTrig = '1') and (dataR.extTrig = '0') then
+         v.extTrig      := '1';
+         v.bufferEnable := '1';
+      end if;
+
       -- Default assignment
       v.ramWrData := dataValue;
-      v.enable    := bufferEnableSync or bufferEnable;
+      v.enable    := bufferEnableSync or dataR.bufferEnable;
 
       -- Increment the addresses on each valid if logging enabled
       if (dataValid = '1') and (dataR.enable = '1') then
@@ -272,8 +290,9 @@ begin
          v.nextAddr := dataR.nextAddr + 1;
          -- Check if the write pointer = read pointer
          if (v.nextAddr = dataR.firstAddr) then
-            v.firstAddr := dataR.firstAddr + 1;
-            v.armed     := '1';
+            v.firstAddr    := dataR.firstAddr + 1;
+            v.armed        := '1';
+            v.bufferEnable := '0';
          end if;
          -- Calculate the length of the buffer
          v.bufferLength := dataR.nextAddr - dataR.firstAddr;
@@ -285,7 +304,7 @@ begin
       end if;
 
       -- Synchronous Reset
-      if (dataRst = '1') or (bufferClearSync = '1') or (bufferClear = '1') then
+      if (RST_ASYNC_G = false and dataRst = '1') or (bufferClearSync = '1') then
          v := DATA_REG_INIT_C;
       end if;
 
@@ -294,9 +313,11 @@ begin
 
    end process;
 
-   dataSeq : process (dataClk) is
+   dataSeq : process (dataClk, dataRst) is
    begin
-      if rising_edge(dataClk) then
+      if (RST_ASYNC_G) and (dataRst = '1') then
+         dataR <= DATA_REG_INIT_C after TPD_G;
+      elsif rising_edge(dataClk) then
          dataR <= dataRin after TPD_G;
       end if;
    end process;
@@ -307,6 +328,7 @@ begin
    U_Sync_ReadReq : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          DATA_WIDTH_G => 2*RAM_ADDR_WIDTH_G)
       port map (
          rst    => axilRst,
@@ -327,31 +349,31 @@ begin
 
    U_SyncVec_axilClk : entity surf.SynchronizerVector
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 4)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         WIDTH_G     => 2)
       port map (
          clk        => axilClk,
          rst        => axilRst,
-         dataIn(0)  => bufferEnable,
-         dataIn(1)  => bufferClear,
-         dataIn(2)  => dataR.cleared,
-         dataIn(3)  => dataR.armed,
-         dataOut(0) => extBufferEnable,
-         dataOut(1) => extbufferClear,
-         dataOut(2) => cleared,
-         dataOut(3) => armed);
+         dataIn(0)  => dataR.cleared,
+         dataIn(1)  => dataR.armed,
+         dataOut(0) => cleared,
+         dataOut(1) => armed);
 
    ------------------------
    -- Main AXI-Lite process
    ------------------------
    axiComb : process (armed, axilR, axilReadMaster, axilRst, axilWriteMaster,
-                      bufferLength, cleared, extBufferClear, extBufferEnable,
-                      firstAddr, ramRdData, readReq, txSlave) is
+                      bufferLength, cleared, firstAddr, ramRdData, readReq,
+                      txSlave) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       -- Latch the current value
       v := axilR;
+
+      -- Reset strobe
+      v.bufferClear := '0';
 
       ------------------------
       -- AXI-Lite Transactions
@@ -362,10 +384,7 @@ begin
 
       axiSlaveRegisterR(axilEp, x"0", 0, bufferLength);
       axiSlaveRegisterR(axilEp, x"0", 20, toSlv(RAM_ADDR_WIDTH_G, 8));
-      axiSlaveRegisterR(axilEp, x"0", 28, extBufferClear);
-      axiSlaveRegisterR(axilEp, x"0", 29, extBufferEnable);
       axiSlaveRegisterR(axilEp, x"4", 0, axilR.trigCnt);
-
       axiSlaveRegister (axilEp, x"8", 0, v.trigCnt);
       axiSlaveRegister (axilEp, x"C", 0, v.continuous);
 
@@ -380,10 +399,10 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for trigger request
-            if (axilR.trigCnt /= 0) or (axilR.continuous = '1') then
+            if ((axilR.trigCnt /= 0) or (axilR.continuous = '1')) and (axilR.dataState = IDLE_S) then
                -- Set the flags
-               v.bufferClear  := '1';
                v.bufferEnable := '1';
+               v.bufferClear  := '1';
                -- Check if we need to decrement the counter
                if (axilR.trigCnt /= 0) then
                   -- Decrement the counter
@@ -392,16 +411,14 @@ begin
                -- Next state
                v.trigState := CLEAR_S;
             else
-               -- Reset the flags
-               v.bufferClear  := '0';
+               -- Reset the flag
                v.bufferEnable := '0';
             end if;
          ----------------------------------------------------------------------
          when CLEAR_S =>
             -- Check if cleared
             if (cleared = '1') then
-               -- Set the flags
-               v.bufferClear  := '0';
+               -- Set the flag
                v.bufferEnable := '1';
                -- Next state
                v.trigState    := ARMED_S;
@@ -410,16 +427,14 @@ begin
          when ARMED_S =>
             -- Check if armed
             if (armed = '1') then
-               -- Set the flags
-               v.bufferClear  := '0';
+               -- Set the flag
                v.bufferEnable := '0';
                -- Next state
                v.trigState    := WAIT_S;
             end if;
          ----------------------------------------------------------------------
          when WAIT_S =>
-            -- Set the flags
-            v.bufferClear  := '0';
+            -- Set the flag
             v.bufferEnable := '0';
       ----------------------------------------------------------------------
       end case;
@@ -474,6 +489,9 @@ begin
                   -- Set the EOF bit
                   v.txMaster.tLast := '1';
 
+                  -- Set the clear flag
+                  v.bufferClear := '1';
+
                   -- Next states
                   v.dataState := IDLE_S;
                   v.trigState := IDLE_S;
@@ -500,7 +518,7 @@ begin
       axilWriteSlave <= axilR.axilWriteSlave;
 
       -- Synchronous Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := AXIL_REG_INIT_C;
       end if;
 
@@ -509,9 +527,11 @@ begin
 
    end process;
 
-   axiSeq : process (axilClk) is
+   axiSeq : process (axilClk, axilRst) is
    begin
-      if rising_edge(axilClk) then
+      if (RST_ASYNC_G) and (axilRst = '1') then
+         axilR <= AXIL_REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          axilR <= axilRin after TPD_G;
       end if;
    end process;
@@ -520,6 +540,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,

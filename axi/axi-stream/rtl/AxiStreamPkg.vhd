@@ -248,14 +248,22 @@ package body AxiStreamPkg is
       return slv is
 
       variable pos : integer;
+      variable lsb : integer;
       variable ret : slv(maximum(axisConfig.TUSER_BITS_C-1, 0) downto 0);
    begin
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
+      lsb := axisConfig.TUSER_BITS_C*pos;
 
-      ret := ite(axisConfig.TUSER_BITS_C > 0,
-                 axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos))),
-                 "0");
+      if axisConfig.TUSER_BITS_C > 0 then
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+            if lsb = i then
+               ret := axisMaster.tUser(ret'HIGH+i downto ret'LOW+i);
+            end if;
+         end loop;
+      else
+         ret := (others => '0');
+      end if;
 
       -- Handle TUSER_BITS_C=0 case
       if (axisConfig.TUSER_BITS_C = 0 or axisConfig.TUSER_MODE_C = TUSER_NONE_C) then
@@ -287,13 +295,20 @@ package body AxiStreamPkg is
       bytePos    : in    integer := -1) is
 
       variable pos : integer;
+      variable lsb : integer;
    begin
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
+      lsb := axisConfig.TUSER_BITS_C*pos;
 
       if (axisConfig.TUSER_BITS_C > 0 and axisConfig.TUSER_MODE_C /= TUSER_NONE_C) then
-         axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto
-                          ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
+
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+            if lsb = i then
+               axisMaster.tUser(fieldValue'HIGH+i downto fieldValue'LOW+i) := fieldValue;
+            end if;
+         end loop;
+
       else
          axisMaster.tUser := (others => '0');
       end if;
@@ -350,10 +365,11 @@ package body AxiStreamPkg is
       variable retVar : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
    begin
       retVar := (others => '0');
-      if bytes /= 0 then
-         -- Assumes TKEEP_MODE_C /= TKEEP_COUNT_C
-         retVar(bytes-1 downto 0) := (others => '1');
-      end if;
+      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         if (bytes > i) then
+            retVar(i) := '1';
+         end if;
+      end loop;
       return retVar;
    end function genTKeep;
 
