@@ -127,6 +127,64 @@ def dut_tb(dut):
         # Check the results for errors
         check_result(dut, dataIn, dataKIn)
 
+    testPattern = [
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x078,1],
+       [0x5F8,1],
+       [0xEAD,0],
+       [0x0BD,0],
+       [0xEAD,0],
+       [0x1BD,0],
+       [0xEAD,0],
+       [0x2BD,0],
+       [0xEAD,0],
+       [0x3BD,0],
+       [0xEAD,0],
+       [0x4BD,0],
+       [0xEAD,0],
+       [0x5BD,0],
+       [0xEAD,0],
+       [0x6BD,0],
+       [0xEAD,0],
+       [0x7BD,0],
+       [0xEAD,0],
+       [0x8BD,0],
+       [0xEAD,0],
+       [0x9BD,0],
+       [0xEAD,0],
+       [0xABD,0],
+       [0xEAD,0],
+       [0xBBD,0],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+       [0x5F8,1],
+    ]
+    for dataIn,dataKIn in testPattern:
+
+        # Load the values
+        yield load_value(dut, dataIn, dataKIn)
+
+        # Check the results for errors
+        check_result(dut, dataIn, dataKIn)
+
     dut._log.info("DUT: Passed")
 
 tests_dir = os.path.dirname(__file__)
@@ -163,7 +221,7 @@ def test_LineCode12b14bTb(parameters):
         parameters = parameters,
 
         # The directory used to compile the tests. (default: sim_build)
-        sim_build = f'{tests_dir}/sim_build/{tests_module}.',
+        sim_build = f'{tests_dir}/sim_build/{tests_module}',
 
         # A dictionary of extra environment variables set in simulator process.
         extra_env=parameters,
@@ -175,6 +233,8 @@ def test_LineCode12b14bTb(parameters):
         # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
         vhdl_compile_args = ['-fsynopsys', '-fexplicit'],
 
-        # Dump waveform to file ($ gtkwave sim_build/LineCode12b14bTb./LineCode12b14bTb.vcd)
-        sim_args =[f'--vcd={tests_module}.vcd'],
+        ########################################################################
+        # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
+        ########################################################################
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )
