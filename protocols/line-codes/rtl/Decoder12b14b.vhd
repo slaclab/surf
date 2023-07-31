@@ -38,7 +38,7 @@ entity Decoder12b14b is
       validOut  : out sl;
       dataOut   : out slv(11 downto 0);
       dataKOut  : out sl;
-      dispOut   : out slv(1 downto 0);
+      dispOut   : out BlockDisparityType;
       codeError : out sl;
       dispError : out sl);
 
@@ -48,7 +48,7 @@ architecture rtl of Decoder12b14b is
 
    type RegType is record
       validOut  : sl;
-      dispOut   : slv(1 downto 0);
+      dispOut   : BlockDisparityType;
       dataOut   : slv(11 downto 0);
       dataKOut  : sl;
       codeError : sl;
@@ -57,7 +57,7 @@ architecture rtl of Decoder12b14b is
 
    constant REG_INIT_C : RegType := (
       validOut  => '0',
-      dispOut   => "00",
+      dispOut   => 0,
       dataOut   => (others => '0'),
       dataKOut  => '0',
       codeError => '0',
@@ -70,14 +70,14 @@ begin
 
    comb : process (dataIn, dispIn, r, rst, validIn) is
       variable v         : RegType;
-      variable dispInTmp : slv(1 downto 0);
+      variable dispInTmp : BlockDisparityType;
    begin
       v := r;
 
       if (DEBUG_DISP_G = false) then
          dispInTmp := r.dispOut;
       else
-         dispInTmp := dispIn;
+         dispInTmp := toBlockDisparityType(dispIn);
       end if;
 
       v.validOut := validIn;

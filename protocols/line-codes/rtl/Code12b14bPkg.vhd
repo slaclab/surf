@@ -266,10 +266,10 @@ package Code12b14bPkg is
    procedure decode12b14b (
       constant CODES_C : in    EncodeTableType;
       dataIn           : in    slv(13 downto 0);
-      dispIn           : in    slv(1 downto 0);
+      dispIn           : in    BlockDisparityType;
       dataOut          : inout slv(11 downto 0);
       dataKOut         : inout sl;
-      dispOut          : inout slv(1 downto 0);
+      dispOut          : inout BlockDisparityType;
       codeError        : out   sl;
       dispError        : inout sl);
 
@@ -292,10 +292,10 @@ package body Code12b14bPkg is
 
    -- Determine the disparity of a vector
    function getDisparity (vec : slv) return BlockDisparityType is
-      variable ones      : integer;
-      variable zeros     : integer;
-      variable difference: integer;
-      variable disparity : BlockDisparityType;
+      variable ones       : integer;
+      variable zeros      : integer;
+      variable difference : integer;
+      variable disparity  : BlockDisparityType;
    begin
       zeros := 0;
       ones  := 0;
@@ -305,14 +305,14 @@ package body Code12b14bPkg is
          end if;
       end loop;
 
-      ones      := vec'length-zeros;
-      difference:= ones-zeros;
+      ones       := vec'length-zeros;
+      difference := ones-zeros;
       if (difference > 4) then
-        disparity := 4;
+         disparity := 4;
       elsif (difference < -4) then
-        disparity := -4;
+         disparity := -4;
       else
-        disparity :=  difference;
+         disparity := difference;
       end if;
 
       return disparity;
@@ -363,7 +363,7 @@ package body Code12b14bPkg is
       variable dispInt : BlockDisparityType;
    begin
       compliment := '0';
-      dispInt := toBlockDisparityType(prevDisp);
+      dispInt    := toBlockDisparityType(prevDisp);
 
       case prevDisp is
          when "10" =>                   -- -2
@@ -450,8 +450,8 @@ package body Code12b14bPkg is
       variable data6       : slv(5 downto 0);
       variable blockDisp56 : BlockDisparityType;
 
-      variable debug   : boolean := false;
-      variable tmpDisp : integer range -8 to 8;
+      variable debug      : boolean := false;
+      variable tmpDisp    : integer range -8 to 8;
       variable compliment : sl;
    begin
 
@@ -475,15 +475,6 @@ package body Code12b14bPkg is
          blockDisp78 := tmp78.altDisp;
          data8       := tmp78.alt8b;
       end if;
-
---       tmpDisp     := blockDispIn + tmp78.outDisp;
-
---       if ((dispIn = "10" and tmpDisp = 4) or tmpDisp > 4 or tmpDisp <= -4) then
---          blockDisp78 := tmp78.altDisp;
---          data8       := tmp78.alt8b;
---       end if;
-
---       tmpDisp := blockDispIn + blockDisp78;
 
       -- Now repeat for the 5b6b
       tmp56       := CODES_C.data56(conv_integer(dataIn5));
@@ -536,10 +527,10 @@ package body Code12b14bPkg is
    procedure decode12b14b (
       constant CODES_C : in    EncodeTableType;
       dataIn           : in    slv(13 downto 0);
-      dispIn           : in    slv(1 downto 0);
+      dispIn           : in    BlockDisparityType;
       dataOut          : inout slv(11 downto 0);
       dataKOut         : inout sl;
-      dispOut          : inout slv(1 downto 0);
+      dispOut          : inout BlockDisparityType;
       codeError        : out   sl;
       dispError        : inout sl)
    is
@@ -573,9 +564,9 @@ package body Code12b14bPkg is
       end if;
 
       -- Check the running disparity
-      runDisp := inputDisp + toBlockDisparityType(dispIn);
-      if (runDisp > 4 or runDisp < -4) then
-         runDisp   := minimum(4, maximum(-4, runDisp));
+      -- Could get +2,+4 or -2,-4 disparity sequence, so +/-6 is the disparity limit over 2 words
+      runDisp := inputDisp + dispIn;
+      if (runDisp > 6 or runDisp < -6) then
 --          print("Run Disp Error");
 --          print("dataIn: " & str(dataIn) & " " & hstr(dataIn));
 --          print("dispIn: " & str(toBlockDisparityType(dispIn)));
@@ -586,7 +577,7 @@ package body Code12b14bPkg is
 
       -- This probably isn't correct
       -- Need to figure out what to do when running disparity is out of range
-      dispOut := toSlv(runDisp);
+      dispOut := minimum(4, maximum(-4, inputDisp));
 --       if (dispError = '1') then
 --          dispOut := toSlv(0);
 --       end if;
@@ -595,9 +586,6 @@ package body Code12b14bPkg is
 
       dataIn8 := dataIn(7 downto 0);
       dataIn6 := dataIn(13 downto 8);
-
---       dataOut7 := dataIn8(6 downto 0);
---       dataOut5 := dataIn6(4 downto 0);
 
       dataOut(6 downto 0)  := dataIn(6 downto 0);
       dataOut(11 downto 7) := dataIn(12 downto 8);
