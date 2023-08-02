@@ -113,9 +113,8 @@ begin
 
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G,
-         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
+         TPD_G      => TPD_G,
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim, 1s in-silicon
       port map (
          arst   => pgpTxIn.resetGt,     -- [in]
          clk    => stableClk,           -- [in]
@@ -126,7 +125,7 @@ begin
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 156250)       -- 1 ms pulse
+         PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim, 1s in-silicon
       port map (
          clk     => stableClk,          -- [in]
          dataIn  => phyRxInit,          -- [in]
@@ -135,9 +134,8 @@ begin
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G,
-         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
+         TPD_G      => TPD_G,
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim, 1s in-silicon
       port map (
          arst   => pgpRxIn.resetRx,     -- [in]
          clk    => stableClk,           -- [in]
@@ -147,9 +145,8 @@ begin
 
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G,
-         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
+         TPD_G      => TPD_G,
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim, 1s in-silicon
       port map (
          arst   => pgpTxIn.resetTx,     -- [in]
          clk    => stableClk,           -- [in]
