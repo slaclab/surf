@@ -95,6 +95,7 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
             hidden       = True,
+            groups       = 'NoConfig'
         ))
 
         self.add(pr.RemoteCommand(
@@ -117,6 +118,7 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
             hidden       = True,
+            groups       = 'NoConfig'            
         ))
 
         @self.command(hidden=True)
@@ -133,6 +135,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             mode         = 'RW',
+            groups       = 'NoConfig'            
         ))
 
         @self.command(description  = 'Toggle UserReset')
