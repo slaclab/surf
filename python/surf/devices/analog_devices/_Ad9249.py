@@ -450,6 +450,7 @@ class Ad9249ReadoutGroup2(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
             verify       = False,
+            groups       = 'NoConfig',
         ))
         
         self.add(pr.RemoteCommand(
