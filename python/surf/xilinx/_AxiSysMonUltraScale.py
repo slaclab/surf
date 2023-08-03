@@ -82,6 +82,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "WO",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
@@ -92,6 +93,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "WO",
             hidden       =  True,
+            groups       = "NoConfig",            
         ))
 
         self.add(pr.RemoteVariable(
@@ -102,6 +104,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",            
         ))
 
         self.add(pr.RemoteVariable(
@@ -122,6 +125,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",            
         ))
 
         ###############################################
@@ -375,6 +379,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",            
         ))
 
         self.add(pr.RemoteVariable(
@@ -385,6 +390,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",            
         ))
 
         self.addRemoteVariables(
@@ -397,6 +403,7 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  8,
             stride       =  4,
             hidden       =  True,
+            groups       = "NoConfig",            
         )
 
 #        self.addRemoteVariables(
@@ -436,6 +443,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitSize      =  12,
             bitOffset    =  0x4,
             mode         = "RW",
+            groups       = "NoConfig",            
         ))
 
         self.add(pr.LinkVariable(
@@ -455,6 +463,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitSize      =  12,
             bitOffset    =  0x4,
             mode         = "RW",
+            groups       = "NoConfig",            
         ))
 
         self.add(pr.LinkVariable(
@@ -475,6 +484,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",            
         ))
 
         self.addRemoteVariables(
@@ -487,6 +497,7 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  8,
             stride       =  4,
             hidden       =  True,
+            groups       = "NoConfig",            
         )
 
         self.addRemoteVariables(
@@ -566,8 +577,9 @@ class AxiSysMonUltraScale(pr.Device):
         return round(var.dependencies[0].value() * 244e-6,3)
 
     def simpleView(self):
-        # Hide all the variable
-        self.hideVariables(hidden=True)
-        # Then unhide the most interesting ones
-        vars = self.simpleViewList
-        self.hideVariables(hidden=False, variables=vars)
+        if self.simpleViewList is not None:
+            # Hide all the variable
+            self.hideVariables(hidden=True)
+            # Then unhide the most interesting ones
+            vars = self.simpleViewList
+            self.hideVariables(hidden=False, variables=vars)
