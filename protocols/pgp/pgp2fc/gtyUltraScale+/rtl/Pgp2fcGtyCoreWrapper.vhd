@@ -34,7 +34,7 @@ entity Pgp2fcGtyCoreWrapper is
    generic (
       TPD_G               : time    := 1 ns;
       SEL_FABRIC_REFCLK_G : boolean := false;
-      USE_ALIGN_CHECK_G   : boolean := false;
+      USE_ALIGN_CHECK_G   : boolean := true;
       AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0');
       ADDR_BITS_G         : positive         := 22;
       GTY_DRP_OFFSET_G    : slv(31 downto 0) := x"00400000");
