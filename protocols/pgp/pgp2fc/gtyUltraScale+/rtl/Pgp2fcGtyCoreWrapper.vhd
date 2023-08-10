@@ -30,14 +30,11 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity Pgp2fcGtyCoreWrapper is
-
    generic (
       TPD_G               : time    := 1 ns;
       SEL_FABRIC_REFCLK_G : boolean := false;
       USE_ALIGN_CHECK_G   : boolean := true;
-      AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0');
-      ADDR_BITS_G         : positive         := 22;
-      GTY_DRP_OFFSET_G    : slv(31 downto 0) := x"00400000");
+      AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0'));
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
@@ -169,12 +166,12 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
       0               => (
-         baseAddr     => (AXI_BASE_ADDR_G+x"00000000"),
-         addrBits     => ADDR_BITS_G,
+         baseAddr     => (AXI_BASE_ADDR_G),
+         addrBits     => 12,
          connectivity => x"FFFF"),
       1               => (
-         baseAddr     => (AXI_BASE_ADDR_G+GTY_DRP_OFFSET_G),
-         addrBits     => ADDR_BITS_G,
+         baseAddr     => (AXI_BASE_ADDR_G+x"1000"),
+         addrBits     => 12,
          connectivity => x"FFFF"));
 
    signal axilWriteMasters  : AxiLiteWriteMasterArray(1 downto 0);
