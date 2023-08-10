@@ -451,13 +451,13 @@ begin
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtUserRefClk,
+      port map (clk      => txOutClkGtBuf, -- was gtUserRefClk
                 asyncRst => txReset,
                 syncRst  => buffBypassTxReset);
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtUserRefClk,
+      port map (clk      => rxOutClkGtBuf, -- was gtUserRefClk
                 asyncRst => rstSyncRxIn,
                 syncRst  => buffBypassRxReset);
 
