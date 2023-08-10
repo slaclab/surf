@@ -229,8 +229,6 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
    signal rxSyncDone        : sl := '0';
    signal rxOutClkGt        : sl := '0';
    signal txOutClkGt        : sl := '0';
-   signal rxOutClkGtBuf     : sl := '0';
-   signal txOutClkGtBuf     : sl := '0';
    signal txResetGt         : sl := '0';
    signal txDatapathResetGt : sl := '0';
    signal rxResetGt         : sl := '0';
@@ -331,33 +329,6 @@ begin
          txpmaresetdone_out(0)                 => txPmaResetDone,
          txresetdone_out(0)                    => txResetDone); -- was txResetDone. why?
 
-      -- In the timing repo, txOutClkGtBuf is actually gtUserRefClk
-      -- (see commented-out section below BUFG_GT)
-      -- Trying with the GT-generated clock for now
-      -- here, div-by-1; in the timing repo, div-by-2 and commented-out
-      TIMING_TXCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => txOutClkGt,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- was Divide-by-2
-            O       => txOutClkGtBuf);
-
-      --txoutclkb <= gtUserRefClk;
-
-      -- In the timing repo, rxOutClkGtBuf is rxOutClkGt. retained here
-      TIMING_RECCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => rxOutClkGt,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",           -- Divide-by-1
-            O       => rxOutClkGtBuf);
-
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
@@ -387,8 +358,8 @@ begin
          DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
          -- Clock Monitoring
-         txClk            => txOutClkGtBuf,
-         rxClk            => rxOutClkGtBuf,
+         txClk            => txOutClkGt,
+         rxClk            => rxOutClkGt,
          -- GTH Status/Control Interface
          resetIn          => rxReset,
          resetDone        => buffBypassRxDone,
@@ -446,18 +417,18 @@ begin
    txResetGt         <= buffBypassTxReset;
    txDatapathResetGt <= buffBypassTxReset;
 
-   txOutClk          <= txOutClkGtBuf;
-   rxOutClk          <= rxOutClkGtBuf;
+   txOutClk          <= txOutClkGt;
+   rxOutClk          <= rxOutClkGt;
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => txOutClkGtBuf, -- was gtUserRefClk
+      port map (clk      => txOutClkGt, -- was gtUserRefClk
                 asyncRst => txReset,
                 syncRst  => buffBypassTxReset);
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => rxOutClkGtBuf, -- was gtUserRefClk
+      port map (clk      => rxOutClkGt, -- was gtUserRefClk
                 asyncRst => rstSyncRxIn,
                 syncRst  => buffBypassRxReset);
 
