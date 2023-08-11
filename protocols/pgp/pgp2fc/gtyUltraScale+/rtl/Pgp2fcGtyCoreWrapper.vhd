@@ -228,11 +228,14 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
    signal rxPhyAlignDone    : sl := '0';
    signal rxSyncDone        : sl := '0';
    signal txResetGt         : sl := '0';
-   signal txDatapathResetGt : sl := '0';
    signal rxResetGt         : sl := '0';
    signal rxResetAlignCheck : sl := '0';
    signal rstSyncRxIn       : sl := '0';
    signal rxStatusLocked    : sl := '0';
+   signal rxOutClkGt        : sl := '0';
+   signal txOutClkGt        : sl := '0';
+   signal rxOutClkB         : sl := '0';
+   signal txOutClkB         : sl := '0';
 
 begin
 
@@ -258,14 +261,14 @@ begin
          gtwiz_buffbypass_rx_start_user_in(0)  => buffBypassRxStart,
          gtwiz_buffbypass_rx_done_out(0)       => buffBypassRxDone,
          gtwiz_buffbypass_rx_error_out(0)      => buffBypassRxError,
-         gtwiz_userclk_tx_reset_in(0)          => txResetGt,
+         gtwiz_userclk_tx_reset_in(0)          => buffBypassTxReset,
          gtwiz_reset_tx_pll_and_datapath_in(0) => '0',
-         gtwiz_reset_tx_datapath_in(0)         => txDatapathResetGt,
+         gtwiz_reset_tx_datapath_in(0)         => txReset,
          gtwiz_reset_rx_pll_and_datapath_in(0) => '0',
          gtwiz_reset_rx_datapath_in(0)         => rxResetGt,
          gtwiz_reset_rx_cdr_stable_out         => open,
-         gtwiz_reset_tx_done_out               => open,   -- was txResetDone. why?
-         gtwiz_reset_rx_done_out               => open,   -- was rxResetDone. why?
+         gtwiz_reset_tx_done_out               => open,
+         gtwiz_reset_rx_done_out               => open,
          gtwiz_userdata_tx_in                  => txData,
          gtwiz_userdata_rx_out                 => rxData,
          cpllrefclksel_in                      => cPllRefClkSel,
@@ -319,13 +322,26 @@ begin
          rxctrl3_out(7 downto 2)               => dummy0_6,
          rxdlysresetdone_out(0)                => rxDlysResetDone,
          rxphaligndone_out(0)                  => rxPhyAlignDone,
-         rxoutclk_out(0)                       => rxOutClk,
-         txoutclk_out(0)                       => txOutClk,
+         rxoutclk_out(0)                       => rxOutClkGt,
+         txoutclk_out(0)                       => txOutClkGt, -- unused
          rxpmaresetdone_out(0)                 => rxPmaResetDone,
          rxresetdone_out(0)                    => rxResetDone,
          rxsyncdone_out(0)                     => rxSyncDone,
          txpmaresetdone_out(0)                 => txPmaResetDone,
-         txresetdone_out(0)                    => txResetDone); -- was txResetDone. why?
+         txresetdone_out(0)                    => txResetDone);
+
+      TIMING_RECCLK_BUFG_GT : BUFG_GT
+         port map (
+            I       => rxOutClkGt,
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",
+            O       => rxOutClkB);
+
+      -- if one does not use the userRefClk for the txOutClk, placement errors occur
+      txOutClkB <= gtUserRefClk;
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
@@ -412,18 +428,18 @@ begin
    rstSyncRxIn       <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
    rxResetGt         <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
 
-   txResetGt         <= buffBypassTxReset;
-   txDatapathResetGt <= buffBypassTxReset;
+   txOutClk          <= txOutClkB;
+   rxOutClk          <= rxOutClkB;
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => txUsrClk,
+      port map (clk      => gtUserRefClk,
                 asyncRst => txReset,
                 syncRst  => buffBypassTxReset);
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => rxUsrClk,
+      port map (clk      => gtUserRefClk,
                 asyncRst => rstSyncRxIn,
                 syncRst  => buffBypassRxReset);
 
