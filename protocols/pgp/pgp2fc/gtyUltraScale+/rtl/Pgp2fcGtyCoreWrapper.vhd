@@ -227,8 +227,6 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
    signal rxDlysResetDone   : sl := '0';
    signal rxPhyAlignDone    : sl := '0';
    signal rxSyncDone        : sl := '0';
-   signal rxOutClkGt        : sl := '0';
-   signal txOutClkGt        : sl := '0';
    signal txResetGt         : sl := '0';
    signal txDatapathResetGt : sl := '0';
    signal rxResetGt         : sl := '0';
@@ -321,8 +319,8 @@ begin
          rxctrl3_out(7 downto 2)               => dummy0_6,
          rxdlysresetdone_out(0)                => rxDlysResetDone,
          rxphaligndone_out(0)                  => rxPhyAlignDone,
-         rxoutclk_out(0)                       => rxOutClkGt,
-         txoutclk_out(0)                       => txOutClkGt,
+         rxoutclk_out(0)                       => rxOutClk,
+         txoutclk_out(0)                       => txOutClk,
          rxpmaresetdone_out(0)                 => rxPmaResetDone,
          rxresetdone_out(0)                    => rxResetDone,
          rxsyncdone_out(0)                     => rxSyncDone,
@@ -358,8 +356,8 @@ begin
          DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
          -- Clock Monitoring
-         txClk            => txOutClkGt,
-         rxClk            => rxOutClkGt,
+         txClk            => txUsrClk,
+         rxClk            => rxUsrClk,
          -- GTH Status/Control Interface
          resetIn          => rxReset,
          resetDone        => buffBypassRxDone,
@@ -417,18 +415,15 @@ begin
    txResetGt         <= buffBypassTxReset;
    txDatapathResetGt <= buffBypassTxReset;
 
-   txOutClk          <= txOutClkGt;
-   rxOutClk          <= rxOutClkGt;
-
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => txOutClkGt, -- was gtUserRefClk
+      port map (clk      => txUsrClk,
                 asyncRst => txReset,
                 syncRst  => buffBypassTxReset);
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => rxOutClkGt, -- was gtUserRefClk
+      port map (clk      => rxUsrClk,
                 asyncRst => rstSyncRxIn,
                 syncRst  => buffBypassRxReset);
 
