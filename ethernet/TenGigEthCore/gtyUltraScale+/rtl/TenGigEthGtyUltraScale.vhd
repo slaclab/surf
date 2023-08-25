@@ -76,7 +76,7 @@ end TenGigEthGtyUltraScale;
 
 architecture mapping of TenGigEthGtyUltraScale is
 
-  component TenGigEthGtyUltraScale156p25MHzCore
+  component TenGigEthGtyUltraScale156p25MHzCore_new
     port (
       gt_txp_out_0                        : out std_logic_vector(0 downto 0);
       gt_txn_out_0                        : out std_logic_vector(0 downto 0);
@@ -280,7 +280,7 @@ begin
   -----------------
   -- 10GBASE-R core
   -----------------
-  U_TenGigEthGtyUltraScaleCore : TenGigEthGtyUltraScale156p25MHzCore
+  U_TenGigEthGtyUltraScaleCore : TenGigEthGtyUltraScale156p25MHzCore_new
     port map (
       -- Clocks
       dclk                                => coreClk,
