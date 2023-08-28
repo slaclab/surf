@@ -236,16 +236,17 @@ class AxiSysMonUltraScale(pr.Device):
             description  = "Gain Offset",
         )
 
-        addPair(
-            name         = 'VauxpVauxn',
-            offset       = 0x440,
-            bitSize      = 12,
-            bitOffset    = 4,
-            units        = "V",
-            function     = self.convAuxVoltage,
-            pollInterval = 5,
-            description  = "VAUXP_VAUXN's ADC values",
-        )
+        for i in range(16):
+            addPair(
+                name         = f'VauxpVauxn[{i}]',
+                offset       = 0x440+(4*i),
+                bitSize      = 12,
+                bitOffset    = 4,
+                units        = "V",
+                function     = self.convAuxVoltage,
+                pollInterval = 5,
+                description  = "VAUXP_VAUXN's ADC values",
+            )
 
         addPair(
             name         = 'MaxTemperature',
