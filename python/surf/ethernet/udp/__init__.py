@@ -21,7 +21,7 @@ def getPortValue(var):
 
 def setPortValue(var, value, write):
     newValue = int.from_bytes(value.to_bytes(2, byteorder='little'), byteorder='big', signed=False)
-    var.dependencies[0].set(newValue,write)
+    var.dependencies[0].set(newValue, write=True)
 
 def getIpValue(var):
     x = var.dependencies[0].value()
@@ -30,7 +30,7 @@ def getIpValue(var):
 def setIpValue(var, value, write):
     x = int(ipaddress.IPv4Address(value))
     newValue = int.from_bytes(x.to_bytes(4, byteorder='little'), byteorder='big', signed=False)
-    var.dependencies[0].set(newValue,write)
+    var.dependencies[0].set(newValue, write=True)
 
 def getMacValue(var):
     x = var.dependencies[0].value()
@@ -41,4 +41,4 @@ def setMacValue(var, value, write):
     if( len(x) == 6):
         x = [int(i,16) for i in x]
         newValue = ( '0x%02x%02x%02x%02x%02x%02x' % (x[5],x[4],x[3],x[2],x[1],x[0]) )
-        var.dependencies[0].set(int(newValue,16),write)
+        var.dependencies[0].set(int(newValue,16), write=True)
