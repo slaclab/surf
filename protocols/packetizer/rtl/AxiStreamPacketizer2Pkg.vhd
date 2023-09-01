@@ -60,8 +60,8 @@ package AxiStreamPacketizer2Pkg is
    constant PACKETIZER2_AXIS_CFG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 8,
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
