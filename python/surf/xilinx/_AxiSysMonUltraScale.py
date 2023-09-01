@@ -15,7 +15,7 @@ class AxiSysMonUltraScale(pr.Device):
             self,
             description    = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
             XIL_DEVICE_G   = "ULTRASCALE",
-            simpleViewList = ["Temperature", "VccInt", "VccAux", "VccBram"],
+            simpleViewList = None,
             pollInterval   = 5,
             **kwargs):
         super().__init__(description=description, **kwargs)
@@ -568,8 +568,9 @@ class AxiSysMonUltraScale(pr.Device):
         return round(var.dependencies[0].value() * 244e-6,3)
 
     def simpleView(self):
-        # Hide all the variable
-        self.hideVariables(hidden=True)
-        # Then unhide the most interesting ones
-        vars = self.simpleViewList
-        self.hideVariables(hidden=False, variables=vars)
+        if self.simpleViewList is not None:
+            # Hide all the variable
+            self.hideVariables(hidden=True)
+            # Then unhide the most interesting ones
+            vars = self.simpleViewList
+            self.hideVariables(hidden=False, variables=vars)
