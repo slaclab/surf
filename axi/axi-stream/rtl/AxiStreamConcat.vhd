@@ -4,6 +4,15 @@
 -- Description: Firmware module that AxiStreamConcat multiple AXI stream frames
 --              together.  It will ignore TKEEP and the format of the frame.
 -------------------------------------------------------------------------------
+-- Note: This module is similiar to "AxiStreamBatcher.vhd" but does NOT
+--       have the following features
+--          1) No super header
+--          2) No tail footer
+--          3) Only supports TKEEP_FIXED_C
+--       Because of these limitations, it is important to encode the user
+--       metadata into payload.  Use AxiStreamBatcher instead if you need
+--       a generalized batcher
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -58,7 +67,7 @@ architecture rtl of AxiStreamConcat is
    type StateType is (
       IDLE_S,
       SUB_FRAME_S,
-      TAIL_S,
+      EOF_CHECK_S,
       GAP_S);
 
    type RegType is record
@@ -102,7 +111,7 @@ architecture rtl of AxiStreamConcat is
       chunkCnt                   => 1,
       rxSlave                    => AXI_STREAM_SLAVE_INIT_C,
       txMaster                   => AXI_STREAM_MASTER_INIT_C,
-      state                      => HEADER_S);
+      state                      => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -133,7 +142,7 @@ begin
                    superFrameByteThreshold, txSlave) is
       variable v : RegType;
 
-      procedure doTail is
+      procedure doEofCheck is
       begin
          -- Check for end of super-frame condition
          if (v.superFrameByteThresholdDet = '1') or (v.maxSubFramesDet = '1') or (v.forceTerm = '1') then
@@ -155,7 +164,7 @@ begin
             -- Next state
             v.state := GAP_S;
          end if;
-      end procedure doTail;
+      end procedure doEofCheck;
 
    begin
       -- Latch the current value
@@ -250,7 +259,7 @@ begin
                   v.tUserLast(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(AXIS_CONFIG_G, rxMaster);
                   v.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0)     := rxMaster.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0);
                   -- Next state
-                  v.state                                            := TAIL_S;
+                  v.state                                            := EOF_CHECK_S;
                else
                   -- Increment the sub-frame byte counter
                   v.subByteCnt := r.subByteCnt + AXIS_WORD_SIZE_C;
@@ -259,11 +268,11 @@ begin
                v.superByteCnt := r.superByteCnt + AXIS_WORD_SIZE_C;
             end if;
          ----------------------------------------------------------------------
-         when TAIL_S =>
+         when EOF_CHECK_S =>
             -- Reset the counter
             v.subByteCnt   := (others => '0');
-            -- Process the tail
-            doTail;
+            -- Check for EOF (TLAST)
+            doEofCheck;
             -- Preset chunk counter
             v.chunkCnt     := 1;
             -- Increment the super-frame byte counter
@@ -300,7 +309,7 @@ begin
 
       -- Check for force termination
       if (r.forceTerm = '1') and (r.state /= IDLE_S) then
-         doTail;
+         doEofCheck;
       end if;
 
       -- Always the same outbound AXIS stream width
