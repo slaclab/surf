@@ -111,6 +111,7 @@ var annotated_dup =
     [ "AxiStreamBytePackerTbRx", "classAxiStreamBytePackerTbRx.html", "classAxiStreamBytePackerTbRx" ],
     [ "AxiStreamBytePackerTbTx", "classAxiStreamBytePackerTbTx.html", "classAxiStreamBytePackerTbTx" ],
     [ "AxiStreamCombiner", "classAxiStreamCombiner.html", "classAxiStreamCombiner" ],
+    [ "AxiStreamConcat", "classAxiStreamConcat.html", "classAxiStreamConcat" ],
     [ "AxiStreamDeMux", "classAxiStreamDeMux.html", "classAxiStreamDeMux" ],
     [ "AxiStreamDemuxMuxTb", "classAxiStreamDemuxMuxTb.html", "classAxiStreamDemuxMuxTb" ],
     [ "AxiStreamDepacketizer", "classAxiStreamDepacketizer.html", "classAxiStreamDepacketizer" ],

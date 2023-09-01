@@ -386,6 +386,7 @@ var hierarchy =
       [ "AxiStreamBytePackerTbTx", "classAxiStreamBytePackerTbTx.html", null ],
       [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
       [ "AxiStreamBytePackerTbRx", "classAxiStreamBytePackerTbRx.html", null ],
+      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
         [ "RstSync", "classRstSync.html", null ]
       ] ],

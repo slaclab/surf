@@ -10,6 +10,8 @@ var classAxiStreamPacketizer2 =
     [ "MAX_PACKET_BYTES_G", "classAxiStreamPacketizer2.html#aaa6c9878e08622bf8dc8a958258f587f", null ],
     [ "SEQ_CNT_SIZE_G", "classAxiStreamPacketizer2.html#a173dfd1551cc7f5728e170d0754d0776", null ],
     [ "TDEST_BITS_G", "classAxiStreamPacketizer2.html#a86a3be79fef4df8014a69eaebd8a14bd", null ],
+    [ "OUTPUT_TDEST_G", "classAxiStreamPacketizer2.html#abf7608dbccbe7340bf4975f9bcc10fd6", null ],
+    [ "OUTPUT_TID_G", "classAxiStreamPacketizer2.html#ad80128eb59f279d11111bf7b14879154", null ],
     [ "INPUT_PIPE_STAGES_G", "classAxiStreamPacketizer2.html#adb5bdc96161a55fe2baf5662d3747ce2", null ],
     [ "OUTPUT_PIPE_STAGES_G", "classAxiStreamPacketizer2.html#a06d5d76738fb61114cc38a5b51b385ea", null ],
     [ "axisClk", "classAxiStreamPacketizer2.html#a349f7bd21af748e087092a89a5fdc1a9", null ],

@@ -7,13 +7,13 @@ var classHeartbeat_1_1rtl =
     [ "CNT_MAX_C", "classHeartbeat_1_1rtl.html#af47ea45982967bf8c6d35069fcfe7cbe", null ],
     [ "CNT_SIZE_C", "classHeartbeat_1_1rtl.html#ad7ec9ff960e8d30710cb14a320877b89", null ],
     [ "RegType", "classHeartbeat_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
-    [ "cnt~864", "classHeartbeat_1_1rtl.html#a50a8299d49fb8ccf358d4c5f6b1359c4", null ],
-    [ "o~865", "classHeartbeat_1_1rtl.html#a467c883891bcf7055d42670193cf68de", null ],
+    [ "cnt~883", "classHeartbeat_1_1rtl.html#afbf808ca137ea0959ed489bc11ae4a6d", null ],
+    [ "o~884", "classHeartbeat_1_1rtl.html#afc069e5ea6195a4c8863d485b564284b", null ],
     [ "REG_INIT_C", "classHeartbeat_1_1rtl.html#a0a62fe4e6bbecdc68ce99c0c4f3ec46c", null ],
     [ "r", "classHeartbeat_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classHeartbeat_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "use_dsp", "classHeartbeat_1_1rtl.html#a98184ec445d3ef9f26bcaac687fba14d", null ],
     [ "use_dsp", "classHeartbeat_1_1rtl.html#a37102861e124b3d978dc4769e3bfeed8", null ],
-    [ "cnt~2078", "classHeartbeat_1_1rtl.html#a60de4d578244501c829119b5ed86d882", null ],
-    [ "o~2079", "classHeartbeat_1_1rtl.html#a386bba1760a72eda86a1bbb8e81947ae", null ]
+    [ "cnt~2116", "classHeartbeat_1_1rtl.html#aff1d1bd90852557133b00f7c98238f21", null ],
+    [ "o~2117", "classHeartbeat_1_1rtl.html#a8673bef635d7eefa78ab3e3d1d976ef8", null ]
 ];

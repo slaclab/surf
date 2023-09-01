@@ -14,7 +14,7 @@ var classAxiLiteRegs_1_1rtl =
     [ "REG_INIT_C", "classAxiLiteRegs_1_1rtl.html#a192bf70d873be778470eb489dc9237da", null ],
     [ "r", "classAxiLiteRegs_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiLiteRegs_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "writeRegister~1096", "classAxiLiteRegs_1_1rtl.html#a79a973de53ca4ce4ee8035bc67e5a44b", null ],
-    [ "axiReadSlave~1097", "classAxiLiteRegs_1_1rtl.html#a90aa203714d4a9f2f1dfc152e784bfb1", null ],
-    [ "axiWriteSlave~1098", "classAxiLiteRegs_1_1rtl.html#a255ab1d65f7b7c27b756e9392d000d90", null ]
+    [ "writeRegister~1115", "classAxiLiteRegs_1_1rtl.html#ac2480cf72d1e48bd50a16cbca2271dd2", null ],
+    [ "axiReadSlave~1116", "classAxiLiteRegs_1_1rtl.html#a3292d8b03c42e8ac5754fadcffbbde93", null ],
+    [ "axiWriteSlave~1117", "classAxiLiteRegs_1_1rtl.html#a083a844515a6a39b3650c2fcc2e5ca0a", null ]
 ];
