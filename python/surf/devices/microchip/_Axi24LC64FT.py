@@ -31,10 +31,10 @@ class Axi24LC64FT(pr.Device):
             self.add(pr.RemoteVariable(
                 name        = "Mem",
                 description = "Memory Array",
-                size        = (4*nelms),
+                offset      = 0x0000,
                 numValues   = nelms,
                 valueBits   = 32,
                 valueStride = 32,
                 bitSize     = 32 * nelms,
-                # mode      = "RO",
+                bulkOpEn    = False, # FALSE for large variables,
             ))
