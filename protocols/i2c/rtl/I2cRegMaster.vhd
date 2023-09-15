@@ -174,7 +174,7 @@ begin
                if (slv(r.byteCount) = regIn.regAddrSize) then
                   -- Done sending addr
                   v.byteCount := (others => '0');
-                  if (regIn.regOp = '1') then
+                  if (regIn.regOp = '1' or (regIn.regOp = '0' and regIn.wrDataOnRd = '1')) then
                      v.state := WRITE_S;
                   else
                      v.state := READ_TXN_S;
@@ -193,7 +193,13 @@ begin
                v.byteCount           := r.byteCount + 1;
                v.i2cMasterIn.wrValid := '0';
                if (slv(r.byteCount) = regIn.regDataSize) then  -- could use rxnReq = 0
-                  v.state := REG_ACK_S;
+                  if (regIn.regOp = '1') then
+                     v.state := REG_ACK_S;
+                  else
+                     -- Handle wrDataOnRead case
+                     v.state := READ_TXN_S;
+                  end if;
+
                end if;
             end if;
 
