@@ -461,7 +461,7 @@ begin
          TPD_G           => TPD_G,
          SIMULATION_G    => SIMULATION_G,
          CODE_TYPE_G     => "LINE_CODE",
-         DLY_STEP_SIZE_G => 1)
+         DLY_STEP_SIZE_G => ite(SIMULATION_G, 16, 1))
       port map (
          clk             => adcBitClkDiv4,    -- [in]
          rst             => adcBitRstDiv4,    -- [in]
