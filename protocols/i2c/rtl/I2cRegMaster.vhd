@@ -166,7 +166,7 @@ begin
             v.i2cMasterIn.wrData  := regIn.regAddr(addrIndexVar+7 downto addrIndexVar);
             v.i2cMasterIn.wrValid := '1';
             -- Must drop txnReq as last byte is sent if reading
-            v.i2cMasterIn.txnReq  := not toSl(slv(r.byteCount) = regIn.regAddrSize and regIn.regOp = '0');
+            v.i2cMasterIn.txnReq  := not toSl(slv(r.byteCount) = regIn.regAddrSize and regIn.regOp = '0' and regIn.wrDataOnRd = '0');
 
             if (i2cMasterOut.wrAck = '1') then
                v.byteCount           := r.byteCount + 1;
@@ -197,7 +197,7 @@ begin
                      v.state := REG_ACK_S;
                   else
                      -- Handle wrDataOnRead case
-                     v.state := READ_TXN_S;
+                     v.state     := READ_TXN_S;
                   end if;
 
                end if;
@@ -209,6 +209,7 @@ begin
             v.i2cMasterIn.txnReq := '1';
             v.i2cMasterIn.op     := '0';
             v.i2cMasterIn.stop   := '1';  -- i2c stop after all bytes are read
+            v.byteCount := (others => '0');                        
             v.state              := READ_S;
 
          when READ_S =>
