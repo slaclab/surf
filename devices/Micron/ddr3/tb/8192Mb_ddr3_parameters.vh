@@ -1,24 +1,24 @@
 /****************************************************************************************
 *
-*   Disclaimer   This software code and all associated documentation, comments or other 
-*  of Warranty:  information (collectively "Software") is provided "AS IS" without 
-*                warranty of any kind. MICRON TECHNOLOGY, INC. ("MTI") EXPRESSLY 
-*                DISCLAIMS ALL WARRANTIES EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
-*                TO, NONINFRINGEMENT OF THIRD PARTY RIGHTS, AND ANY IMPLIED WARRANTIES 
-*                OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE. MTI DOES NOT 
-*                WARRANT THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS, OR THAT THE 
-*                OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR-FREE. 
-*                FURTHERMORE, MTI DOES NOT MAKE ANY REPRESENTATIONS REGARDING THE USE OR 
-*                THE RESULTS OF THE USE OF THE SOFTWARE IN TERMS OF ITS CORRECTNESS, 
-*                ACCURACY, RELIABILITY, OR OTHERWISE. THE ENTIRE RISK ARISING OUT OF USE 
-*                OR PERFORMANCE OF THE SOFTWARE REMAINS WITH YOU. IN NO EVENT SHALL MTI, 
-*                ITS AFFILIATED COMPANIES OR THEIR SUPPLIERS BE LIABLE FOR ANY DIRECT, 
-*                INDIRECT, CONSEQUENTIAL, INCIDENTAL, OR SPECIAL DAMAGES (INCLUDING, 
-*                WITHOUT LIMITATION, DAMAGES FOR LOSS OF PROFITS, BUSINESS INTERRUPTION, 
-*                OR LOSS OF INFORMATION) ARISING OUT OF YOUR USE OF OR INABILITY TO USE 
-*                THE SOFTWARE, EVEN IF MTI HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
-*                DAMAGES. Because some jurisdictions prohibit the exclusion or 
-*                limitation of liability for consequential or incidental damages, the 
+*   Disclaimer   This software code and all associated documentation, comments or other
+*  of Warranty:  information (collectively "Software") is provided "AS IS" without
+*                warranty of any kind. MICRON TECHNOLOGY, INC. ("MTI") EXPRESSLY
+*                DISCLAIMS ALL WARRANTIES EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+*                TO, NONINFRINGEMENT OF THIRD PARTY RIGHTS, AND ANY IMPLIED WARRANTIES
+*                OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE. MTI DOES NOT
+*                WARRANT THAT THE SOFTWARE WILL MEET YOUR REQUIREMENTS, OR THAT THE
+*                OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR-FREE.
+*                FURTHERMORE, MTI DOES NOT MAKE ANY REPRESENTATIONS REGARDING THE USE OR
+*                THE RESULTS OF THE USE OF THE SOFTWARE IN TERMS OF ITS CORRECTNESS,
+*                ACCURACY, RELIABILITY, OR OTHERWISE. THE ENTIRE RISK ARISING OUT OF USE
+*                OR PERFORMANCE OF THE SOFTWARE REMAINS WITH YOU. IN NO EVENT SHALL MTI,
+*                ITS AFFILIATED COMPANIES OR THEIR SUPPLIERS BE LIABLE FOR ANY DIRECT,
+*                INDIRECT, CONSEQUENTIAL, INCIDENTAL, OR SPECIAL DAMAGES (INCLUDING,
+*                WITHOUT LIMITATION, DAMAGES FOR LOSS OF PROFITS, BUSINESS INTERRUPTION,
+*                OR LOSS OF INFORMATION) ARISING OUT OF YOUR USE OF OR INABILITY TO USE
+*                THE SOFTWARE, EVEN IF MTI HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+*                DAMAGES. Because some jurisdictions prohibit the exclusion or
+*                limitation of liability for consequential or incidental damages, the
 *                above limitation may not apply to you.
 *
 *                Copyright 2003 Micron Technology, Inc. All rights reserved.
@@ -54,7 +54,7 @@
     parameter TQSH             =    0.40; // tQSH       tCK   DQS Output High Pulse Width
     parameter TQSL             =    0.40; // tQSL       tCK   DQS Output Low Pulse Width
     parameter TDIPW            =     280; // tDIPW      ps    DQ and DM input Pulse Width
-    parameter TIPW             =     470; // tIPW       ps    Control and Address input Pulse Width  
+    parameter TIPW             =     470; // tIPW       ps    Control and Address input Pulse Width
     parameter TIS              =      35; // tIS        ps    Input Setup Time
     parameter TIH              =      75; // tIH        ps    Input Hold Time
     parameter TRAS_MIN         =   33000; // tRAS       ps    Minimum Active to Precharge command time
@@ -94,7 +94,7 @@
     parameter TQSH             =    0.40; // tQSH       tCK   DQS Output High Pulse Width
     parameter TQSL             =    0.40; // tQSL       tCK   DQS Output Low Pulse Width
     parameter TDIPW            =     320; // tDIPW      ps    DQ and DM input Pulse Width
-    parameter TIPW             =     535; // tIPW       ps    Control and Address input Pulse Width  
+    parameter TIPW             =     535; // tIPW       ps    Control and Address input Pulse Width
     parameter TIS              =      50; // tIS        ps    Input Setup Time
     parameter TIH              =     100; // tIH        ps    Input Hold Time
     parameter TRAS_MIN         =   34000; // tRAS       ps    Minimum Active to Precharge command time
@@ -134,7 +134,7 @@
     parameter TQSH             =    0.40; // tQSH       tCK   DQS Output High Pulse Width
     parameter TQSL             =    0.40; // tQSL       tCK   DQS Output Low Pulse Width
     parameter TDIPW            =     360; // tDIPW      ps    DQ and DM input Pulse Width
-    parameter TIPW             =     560; // tIPW       ps    Control and Address input Pulse Width  
+    parameter TIPW             =     560; // tIPW       ps    Control and Address input Pulse Width
     parameter TIS              =     170; // tIS        ps    Input Setup Time
     parameter TIH              =     120; // tIH        ps    Input Hold Time
     parameter TRAS_MIN         =   35000; // tRAS       ps    Minimum Active to Precharge command time
@@ -174,7 +174,7 @@
     parameter TQSH             =    0.40; // tQSH       tCK   DQS Output High Pulse Width
     parameter TQSL             =    0.40; // tQSL       tCK   DQS Output Low Pulse Width
     parameter TDIPW            =     400; // tDIPW      ps    DQ and DM input Pulse Width
-    parameter TIPW             =     620; // tIPW       ps    Control and Address input Pulse Width  
+    parameter TIPW             =     620; // tIPW       ps    Control and Address input Pulse Width
     parameter TIS              =     190; // tIS        ps    Input Setup Time
     parameter TIH              =     140; // tIH        ps    Input Hold Time
     parameter TRAS_MIN         =   36000; // tRAS       ps    Minimum Active to Precharge command time
@@ -215,7 +215,7 @@
     parameter TQSH             =    0.38; // tQSH       tCK   DQS Output High Pulse Width
     parameter TQSL             =    0.38; // tQSL       tCK   DQS Output Low Pulse Width
     parameter TDIPW            =     490; // tDIPW      ps    DQ and DM input Pulse Width
-    parameter TIPW             =     780; // tIPW       ps    Control and Address input Pulse Width  
+    parameter TIPW             =     780; // tIPW       ps    Control and Address input Pulse Width
     parameter TIS              =     275; // tIS        ps    Input Setup Time
     parameter TIH              =     200; // tIH        ps    Input Hold Time
     parameter TRAS_MIN         =   37500; // tRAS       ps    Minimum Active to Precharge command time
@@ -306,7 +306,7 @@
     parameter TCL_ABS_MIN      =    0.43; // tCL        tCK   Maximum Clock Low-Level Pulse Width
     parameter TCKE_TCK         =       3; // tCKE       tCK   CKE minimum high or low pulse width
     parameter TAA_MAX          =   20000; // TAA        ps    Internal READ command to first data
-    
+
     // Data OUT
     parameter TQH              =    0.38; // tQH        ps    DQ output hold time from DQS, DQS#
     // Data Strobe OUT

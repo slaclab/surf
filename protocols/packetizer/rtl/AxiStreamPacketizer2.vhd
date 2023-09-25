@@ -37,6 +37,8 @@ entity AxiStreamPacketizer2 is
       MAX_PACKET_BYTES_G   : positive               := 256*8;   -- Must be a multiple of 8
       SEQ_CNT_SIZE_G       : positive range 4 to 16 := 16;
       TDEST_BITS_G         : natural                := 8;
+      OUTPUT_TDEST_G       : slv(7 downto 0)        := (others => '0');
+      OUTPUT_TID_G         : slv(7 downto 0)        := (others => '0');
       INPUT_PIPE_STAGES_G  : natural                := 0;
       OUTPUT_PIPE_STAGES_G : natural                := 0);
    port (
@@ -384,8 +386,8 @@ begin
                -- Send data through
                v.outputAxisMaster       := inputAxisMaster;
                v.outputAxisMaster.tUser := (others => '0');
-               v.outputAxisMaster.tDest := (others => '0');
-               v.outputAxisMaster.tId   := (others => '0');
+               v.outputAxisMaster.tDest := OUTPUT_TDEST_G;
+               v.outputAxisMaster.tId   := OUTPUT_TID_G;
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;

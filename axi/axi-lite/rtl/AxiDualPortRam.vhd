@@ -361,11 +361,11 @@ begin
                if (AXI_WR_EN_G) then
                   v.axiAddr        := axiWriteMaster.awaddr(AXI_RAM_ADDR_HIGH_C downto AXI_RAM_ADDR_LOW_C);
                   if (DATA_WIDTH_G <= 32) then
-                     decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_RAM_ADDR_LOW_C-1 downto 0));
+                     v.axiWrStrobe := axiWriteMaster.wstrb;
                   else
                      decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_DEC_ADDR_RANGE_C));
+                     v.axiWrStrobe((decAddrInt+1)*4-1 downto decAddrInt*4) := axiWriteMaster.wstrb;
                   end if;
-                  v.axiWrStrobe((decAddrInt+1)*4-1 downto decAddrInt*4) := axiWriteMaster.wstrb;
                end if;
                axiSlaveWriteResponse(v.axiWriteSlave, ite(AXI_WR_EN_G, AXI_RESP_OK_C, AXI_RESP_SLVERR_C));
             -- Check for read transaction

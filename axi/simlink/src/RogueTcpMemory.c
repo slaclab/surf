@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +34,7 @@ void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData) {
    data->zmqCtx   = NULL;
    data->zmqPull  = NULL;
    data->zmqPush  = NULL;
- 
+
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
    data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
@@ -61,9 +61,9 @@ void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData ) {
    zmq_msg_t msg[6];
 
    if ( (zmq_msg_init_size(&(msg[0]),4) < 0) ||  // ID
-        (zmq_msg_init_size(&(msg[1]),8) < 0) ||  // Addr   
-        (zmq_msg_init_size(&(msg[2]),4) < 0) ||  // Size 
-        (zmq_msg_init_size(&(msg[3]),4) < 0) ||  // type 
+        (zmq_msg_init_size(&(msg[1]),8) < 0) ||  // Addr
+        (zmq_msg_init_size(&(msg[2]),4) < 0) ||  // Size
+        (zmq_msg_init_size(&(msg[3]),4) < 0) ||  // type
         (zmq_msg_init_size(&(msg[5]),4) < 0) ) { // result
       vhpi_assert("RogueTcpMemory: Failed to init message header",vhpiFatal);
       return;
@@ -82,7 +82,7 @@ void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData ) {
 
    // Copy data
    memcpy(zmq_msg_data(&(msg[4])),data->data,data->size);
-    
+
    // Send data
    for (x=0; x < 6; x++) {
       if ( zmq_sendmsg(data->zmqPush,&(msg[x]),(x==5)?0:ZMQ_SNDMORE) < 0 )
@@ -162,7 +162,7 @@ int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData ) {
 }
 
 // Init function
-void RogueTcpMemoryInit(vhpiHandleT compInst) { 
+void RogueTcpMemoryInit(vhpiHandleT compInst) {
 
    // Create new port data structure
    portDataT             *portData  = (portDataT *)             malloc(sizeof(portDataT));
@@ -172,9 +172,9 @@ void RogueTcpMemoryInit(vhpiHandleT compInst) {
    portData->portCount = PORT_COUNT;
 
    // Set port directions
-   portData->portDir[s_clock]      = vhpiIn; 
-   portData->portDir[s_reset]      = vhpiIn; 
-   portData->portDir[s_port]       = vhpiIn; 
+   portData->portDir[s_clock]      = vhpiIn;
+   portData->portDir[s_reset]      = vhpiIn;
+   portData->portDir[s_port]       = vhpiIn;
 
    portData->portDir[s_araddr]     = vhpiOut;
    portData->portDir[s_arprot]     = vhpiOut;
@@ -200,9 +200,9 @@ void RogueTcpMemoryInit(vhpiHandleT compInst) {
    portData->portDir[s_bvalid]     = vhpiIn;
 
    // Set port widths
-   portData->portWidth[s_clock]    = 1; 
-   portData->portWidth[s_reset]    = 1; 
-   portData->portWidth[s_port]     = 16; 
+   portData->portWidth[s_clock]    = 1;
+   portData->portWidth[s_reset]    = 1;
+   portData->portWidth[s_port]     = 16;
 
    portData->portWidth[s_araddr]   = 32;
    portData->portWidth[s_arprot]   = 3;
@@ -262,7 +262,7 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
             setInt(s_rready,1);
             setInt(s_awvalid,0);
             setInt(s_bready,1);
-         } 
+         }
 
          // Data movement
          else {

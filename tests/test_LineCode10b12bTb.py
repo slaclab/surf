@@ -157,7 +157,7 @@ def test_LineCode10b12bTb(parameters):
         parameters = parameters,
 
         # The directory used to compile the tests. (default: sim_build)
-        sim_build = f'{tests_dir}/sim_build/{tests_module}.',
+        sim_build = f'{tests_dir}/sim_build/{tests_module}',
 
         # A dictionary of extra environment variables set in simulator process.
         extra_env=parameters,
