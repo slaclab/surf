@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -66,12 +66,12 @@ typedef struct {
    uint8_t    arprot;
    uint8_t    arvalid;
    uint8_t    rready;
-   
+
    uint8_t    arready;
    uint32_t   rdata;
    uint8_t    rresp;
    uint8_t    rvalid;
-   
+
    uint32_t   awaddr;
    uint8_t    awprot;
    uint8_t    awvalid;
@@ -79,7 +79,7 @@ typedef struct {
    uint8_t    wstrb;
    uint8_t    wvalid;
    uint8_t    bready;
-   
+
    uint8_t    awready;
    uint8_t    wready;
    uint8_t    bresp;
@@ -100,7 +100,7 @@ typedef struct {
    void *     zmqCtx;
    void *     zmqPull;
    void *     zmqPush;
-  
+
 } RogueTcpMemoryData;
 
 // Init function

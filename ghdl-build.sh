@@ -9,7 +9,7 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-# Note: The manually installing of ghdl v3.0.0 until supported in Github Action's Ubuntu LTS 
+# Note: The manually installing of ghdl v3.0.0 until supported in Github Action's Ubuntu LTS
 
 echo 'Installing GHDL ...'
 sudo apt update
