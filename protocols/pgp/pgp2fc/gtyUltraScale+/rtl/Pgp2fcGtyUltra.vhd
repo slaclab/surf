@@ -38,6 +38,7 @@ entity Pgp2fcGtyUltra is
       FC_WORDS_G        : integer range 1 to 8 := 1;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
+      AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G       : boolean              := true;
       RX_ENABLE_G       : boolean              := true;
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
@@ -48,6 +49,8 @@ entity Pgp2fcGtyUltra is
       stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
       stableRst        : in  sl;
       gtRefClk         : in  sl;
+      gtFabricRefClk   : in  sl;
+      gtUserRefClk     : in  sl;
       -- Gt Serial IO
       pgpGtTxP         : out sl;
       pgpGtTxN         : out sl;
@@ -113,9 +116,8 @@ begin
 
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G,
-         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
+         TPD_G      => TPD_G,
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetGt,     -- [in]
          clk    => stableClk,           -- [in]
@@ -126,7 +128,7 @@ begin
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 156250)       -- 1 ms pulse
+         PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
       port map (
          clk     => stableClk,          -- [in]
          dataIn  => phyRxInit,          -- [in]
@@ -135,9 +137,8 @@ begin
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G,
-         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
+         TPD_G      => TPD_G,
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpRxIn.resetRx,     -- [in]
          clk    => stableClk,           -- [in]
@@ -147,9 +148,8 @@ begin
 
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         SIM_SPEEDUP_G => SIMULATION_G,
-         DURATION_G    => 156250000)    -- 1 sec pulse if not in simulation
+         TPD_G      => TPD_G,
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetTx,     -- [in]
          clk    => stableClk,           -- [in]
@@ -188,11 +188,14 @@ begin
    --------------------------
    PgpGtyCoreWrapper_1 : entity surf.Pgp2fcGtyCoreWrapper
       generic map (
-         TPD_G => TPD_G)
+         TPD_G           => TPD_G,
+         AXI_BASE_ADDR_G => AXI_BASE_ADDR_G)
       port map (
          stableClk       => stableClk,
          stableRst       => gtHardReset,
          gtRefClk        => gtRefClk,
+         gtFabricRefClk  => gtFabricRefClk,
+         gtUserRefClk    => gtUserRefClk,
          gtRxP           => pgpGtRxP,
          gtRxN           => pgpGtRxN,
          gtTxP           => pgpGtTxP,
