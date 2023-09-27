@@ -37,7 +37,8 @@ entity Idelaye3Wrapper is
       IS_RST_INVERTED  : bit     := '0';  -- Optional inversion for RST
       REFCLK_FREQUENCY : real    := 300.0;  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
       SIM_DEVICE       : string  := "ULTRASCALE";  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS)
-      UPDATE_MODE      : string  := "ASYNC");  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+      UPDATE_MODE      : string  := "ASYNC";
+      IODELAY_GROUP_G  : string  := "DLYGRP_C");  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
    port (
       BUSY        : out sl;             -- 1-bit output: Patch module is busy
       CASC_OUT    : out sl;  -- 1-bit output: Cascade delay output to ODELAY input cascade
@@ -61,6 +62,9 @@ architecture rtl of Idelaye3Wrapper is
    signal currentCntValue : slv(8 downto 0);
    signal patchCntValue   : slv(8 downto 0);
    signal patchLoad       : sl;
+
+   attribute IODELAY_GROUP            : string;
+   attribute IODELAY_GROUP of U_IDELAYE3 : label is IODELAY_GROUP_G;
 
 begin
 

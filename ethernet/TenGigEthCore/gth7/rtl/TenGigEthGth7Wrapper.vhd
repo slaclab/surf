@@ -28,6 +28,7 @@ entity TenGigEthGth7Wrapper is
    generic (
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      JUMBO_G           : boolean                          := true;
       PAUSE_EN_G        : boolean                          := true;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G    : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
@@ -126,6 +127,7 @@ begin
       TenGigEthGth7_Inst : entity surf.TenGigEthGth7
          generic map (
             TPD_G           => TPD_G,
+            JUMBO_G         => JUMBO_G,
             PAUSE_EN_G      => PAUSE_EN_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G    => EN_AXI_REG_G,

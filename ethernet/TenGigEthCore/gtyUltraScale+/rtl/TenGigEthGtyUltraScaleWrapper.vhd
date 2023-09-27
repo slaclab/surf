@@ -29,6 +29,7 @@ entity TenGigEthGtyUltraScaleWrapper is
    generic (
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      JUMBO_G           : boolean                          := true;
       PAUSE_EN_G        : boolean                          := true;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
@@ -140,6 +141,7 @@ begin
       TenGigEthGtyUltraScale_Inst : entity surf.TenGigEthGtyUltraScale
          generic map (
             TPD_G         => TPD_G,
+            JUMBO_G       => JUMBO_G,
             PAUSE_EN_G    => PAUSE_EN_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G  => EN_AXI_REG_G,

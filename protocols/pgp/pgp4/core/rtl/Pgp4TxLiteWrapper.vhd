@@ -83,6 +83,11 @@ begin
          pgpTxActive     => '1',
          pgpTxMasters(0) => pgpTxMaster,
          pgpTxSlaves(0)  => pgpTxSlave,
+         -- Status of receive and remote FIFOs (Asynchronous)
+         locRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
+         locRxLinkReady  => '1',
+         remRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
+         remRxLinkReady  => '1',       
          -- PHY interface
          phyTxActive     => '1',
          phyTxReady      => phyTxReady,
