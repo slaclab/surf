@@ -134,7 +134,7 @@ begin
          -- Outputs
          patchLoad     <= r.Load;
          patchCntValue <= r.dlyValue;
-         if (v.dlyTarget /= CNTVALUEOUT) or (r.state /= IDLE_S) then
+         if (r.state /= IDLE_S) then
             busy <= '1';
          else
             busy <= '0';
