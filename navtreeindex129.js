@@ -1,8 +1,5 @@
 var NAVTREEINDEX129 =
 {
-"classRoguePgp2bSim_1_1sim.html#aa4a0c26cc5df553a7e0832cdf5efd0ae":[1,0,558,0,5],
-"classRoguePgp2bSim_1_1sim.html#af6e981f62ab16405f1c6739a848427fe":[1,0,558,0,1],
-"classRoguePgp3Sim.html":[1,0,559],
 "classRoguePgp3Sim.html#a03aea455036acba003cd7b8fe8092c73":[1,0,559,9],
 "classRoguePgp3Sim.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,559,26],
 "classRoguePgp3Sim.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,559,28],
@@ -38,8 +35,8 @@ var NAVTREEINDEX129 =
 "classRoguePgp3Sim.html#af75ee502a44bb675f5d53b932fd1c5a6":[1,0,559,3],
 "classRoguePgp3Sim.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,559,32],
 "classRoguePgp3Sim_1_1sim.html":[1,0,559,0],
-"classRoguePgp3Sim_1_1sim.html#a43c85f60045fec26ee620f5fe61b92dc":[1,0,559,0,4],
 "classRoguePgp3Sim_1_1sim.html#a43c85f60045fec26ee620f5fe61b92dc":[1,0,559,0,7],
+"classRoguePgp3Sim_1_1sim.html#a43c85f60045fec26ee620f5fe61b92dc":[1,0,559,0,4],
 "classRoguePgp3Sim_1_1sim.html#a4d55089158887a132df23f9a1be3468d":[1,0,559,0,8],
 "classRoguePgp3Sim_1_1sim.html#a4d55089158887a132df23f9a1be3468d":[1,0,559,0,5],
 "classRoguePgp3Sim_1_1sim.html#a86abc9355610056ebd67608f3bec9724":[1,0,559,0,0],
@@ -92,8 +89,8 @@ var NAVTREEINDEX129 =
 "classRoguePgp4Sim_1_1sim.html#a4d55089158887a132df23f9a1be3468d":[1,0,560,0,8],
 "classRoguePgp4Sim_1_1sim.html#a5ad177fc6a74aeb52d48ccc8f4ea3420":[1,0,560,0,2],
 "classRoguePgp4Sim_1_1sim.html#a86abc9355610056ebd67608f3bec9724":[1,0,560,0,0],
-"classRoguePgp4Sim_1_1sim.html#aa4a0c26cc5df553a7e0832cdf5efd0ae":[1,0,560,0,6],
 "classRoguePgp4Sim_1_1sim.html#aa4a0c26cc5df553a7e0832cdf5efd0ae":[1,0,560,0,9],
+"classRoguePgp4Sim_1_1sim.html#aa4a0c26cc5df553a7e0832cdf5efd0ae":[1,0,560,0,6],
 "classRoguePgp4Sim_1_1sim.html#af54c245a7cee34408ae5ef5e67f100f1":[1,0,560,0,1],
 "classRoguePgp4Sim_1_1sim.html#afc4f6b60455e4e26edf00af1918ad466":[1,0,560,0,3],
 "classRogueSideBand.html":[1,0,561],
@@ -177,8 +174,8 @@ var NAVTREEINDEX129 =
 "classRogueTcpMemoryWrap.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,564,15],
 "classRogueTcpMemoryWrap.html#afb9447c132931ea91c6d31f9b8cd5fc9":[1,0,564,4],
 "classRogueTcpMemoryWrap_1_1RogueTcpMemoryWrap.html":[1,0,564,0],
-"classRogueTcpMemoryWrap_1_1RogueTcpMemoryWrap.html#a61819a6250e760f6d0db86eb3859f939":[1,0,564,0,1],
 "classRogueTcpMemoryWrap_1_1RogueTcpMemoryWrap.html#a61819a6250e760f6d0db86eb3859f939":[1,0,564,0,0],
+"classRogueTcpMemoryWrap_1_1RogueTcpMemoryWrap.html#a61819a6250e760f6d0db86eb3859f939":[1,0,564,0,1],
 "classRogueTcpMemory_1_1RogueTcpMemory.html":[1,0,563,0],
 "classRogueTcpMemory_1_1RogueTcpMemory.html#a5761e678842a253bae6a315e2459efd7":[1,0,563,0,0],
 "classRogueTcpStream.html":[1,0,565],
@@ -232,8 +229,8 @@ var NAVTREEINDEX129 =
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a1d646a617f6c9850db78ed1fd513e1e6":[1,0,566,0,13],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a27dee7d4e58c77b0f31d6827628e595f":[1,0,566,0,17],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a27dee7d4e58c77b0f31d6827628e595f":[1,0,566,0,22],
-"classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a29a5692e7db01e6c2586940c38a52da3":[1,0,566,0,24],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a29a5692e7db01e6c2586940c38a52da3":[1,0,566,0,19],
+"classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a29a5692e7db01e6c2586940c38a52da3":[1,0,566,0,24],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a3c6d1aa609874fefb6e1423919fa1c3f":[1,0,566,0,3],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a4a0ca86b1352dd173cfd8b1424440b47":[1,0,566,0,18],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#a4a0ca86b1352dd173cfd8b1424440b47":[1,0,566,0,23],
@@ -249,5 +246,8 @@ var NAVTREEINDEX129 =
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#acb1d3fb4e9aba0f57fc6f18e6b8cfddf":[1,0,566,0,14],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#acf2ac9b8443243a338b7fda742c73c96":[1,0,566,0,12],
 "classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#ad0594d3c003a670ab8cc3afc32b29a92":[1,0,566,0,4],
-"classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af07892f11da4973b33848de547c32361":[1,0,566,0,21]
+"classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af07892f11da4973b33848de547c32361":[1,0,566,0,16],
+"classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af07892f11da4973b33848de547c32361":[1,0,566,0,21],
+"classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af9491aefceb9df3efb7c1597419a3e52":[1,0,566,0,15],
+"classRogueTcpStreamWrap_1_1RogueTcpStreamWrap.html#af9491aefceb9df3efb7c1597419a3e52":[1,0,566,0,20]
 };

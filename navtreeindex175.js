@@ -1,8 +1,5 @@
 var NAVTREEINDEX175 =
 {
-"classiq16bTo32b.html#ae614eb31b6eb730932f2d599281c356d":[1,0,402,3],
-"classiq16bTo32b.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,402,21],
-"classiq16bTo32b.html#af5f976c0de563f9c8b71697ded90a15b":[1,0,402,4],
 "classiq16bTo32b.html#afcd34963a3c7ab959bb3d4ee93d06de1":[1,0,402,2],
 "classiq16bTo32b_1_1rtl.html":[1,0,402,0],
 "classiq16bTo32b_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9":[1,0,402,0,10],
@@ -19,11 +16,11 @@ var NAVTREEINDEX175 =
 "classiq16bTo32b_1_1rtl.html#ad2e686f85319aacbc0d8054f4a7cb3eb":[1,0,402,0,12],
 "classiq16bTo32b_1_1rtl.html#ada41a36515fbc2a4cc200abad6956cc3":[1,0,402,0,5],
 "classiq16bTo32b_1_1rtl.html#ade4de2a008a5f96235206eb18081481c":[1,0,402,0,11],
-"classiq16bTo32b_1_1rtl.html#ae73b6dbad70cfa71621ba63334c4eaca":[1,0,402,0,17],
 "classiq16bTo32b_1_1rtl.html#ae73b6dbad70cfa71621ba63334c4eaca":[1,0,402,0,18],
+"classiq16bTo32b_1_1rtl.html#ae73b6dbad70cfa71621ba63334c4eaca":[1,0,402,0,17],
 "classiq16bTo32b_1_1rtl.html#af1fdbcd8c0008236230b87fceba56bf7":[1,0,402,0,14],
-"classiq16bTo32b_1_1rtl.html#af75f26b754f78aad596f187c6b427816":[1,0,402,0,1],
 "classiq16bTo32b_1_1rtl.html#af75f26b754f78aad596f187c6b427816":[1,0,402,0,3],
+"classiq16bTo32b_1_1rtl.html#af75f26b754f78aad596f187c6b427816":[1,0,402,0,1],
 "classiq32bTo16b.html":[1,0,403],
 "classiq32bTo16b.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,403,16],
 "classiq32bTo16b.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,403,19],
@@ -249,5 +246,8 @@ var NAVTREEINDEX175 =
 "classsfixedPreAddMultAdd.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,617,22],
 "classsfixedPreAddMultAdd.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,617,19],
 "classsfixedPreAddMultAdd.html#ada022076ae7eb976bc682f1e223aa322":[1,0,617,17],
-"classsfixedPreAddMultAdd.html#adeb222493482dfe91c36a7a02710329c":[1,0,617,6]
+"classsfixedPreAddMultAdd.html#adeb222493482dfe91c36a7a02710329c":[1,0,617,6],
+"classsfixedPreAddMultAdd.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,617,23],
+"classsfixedPreAddMultAdd.html#af3ff8bbdc9f1f462e301db034632f019":[1,0,617,13],
+"classsfixedPreAddMultAdd.html#af9584f1690350e05da78430d66b5730c":[1,0,617,10]
 };

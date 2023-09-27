@@ -12,7 +12,6 @@ var classIdelaye3Wrapper =
     [ "REFCLK_FREQUENCY", "classIdelaye3Wrapper.html#a98b178977470d08740b2881639d1ddc9", null ],
     [ "SIM_DEVICE", "classIdelaye3Wrapper.html#a388e524ffef34dbdc96859ee3596c7ef", null ],
     [ "UPDATE_MODE", "classIdelaye3Wrapper.html#aa842ad137d4d7f9391d391426bb7f35c", null ],
-    [ "IODELAY_GROUP_G", "classIdelaye3Wrapper.html#a3586b103f0af62892f294c524b114745", null ],
     [ "BUSY", "classIdelaye3Wrapper.html#a797736e541dccd8ae154b745656260b6", null ],
     [ "CASC_OUT", "classIdelaye3Wrapper.html#a5ee892c4f8880a431d9918500f9374f2", null ],
     [ "CNTVALUEOUT", "classIdelaye3Wrapper.html#a9ec24ea17ddda2205309fa5bff327268", null ],
