@@ -29,6 +29,7 @@ entity AxiStreamRingBuffer is
       RST_ASYNC_G         : boolean  := false;
       SYNTH_MODE_G        : string   := "inferred";
       MEMORY_TYPE_G       : string   := "block";
+      COMMON_CLK_G        : boolean  := false; -- true if dataClk=axilClk
       DATA_BYTES_G        : positive := 16;
       RAM_ADDR_WIDTH_G    : positive := 9;
       -- AXI Stream Configurations
@@ -172,6 +173,7 @@ begin
       U_Ram : entity surf.SimpleDualPortRamXpm
          generic map (
             TPD_G          => TPD_G,
+            COMMON_CLK_G   => COMMON_CLK_G,
             MEMORY_TYPE_G  => MEMORY_TYPE_G,
             READ_LATENCY_G => 2,
             DATA_WIDTH_G   => 8*DATA_BYTES_G,
@@ -193,6 +195,7 @@ begin
       U_Ram : entity surf.SimpleDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
+            COMMON_CLK_G   => COMMON_CLK_G,
             MEMORY_TYPE_G  => MEMORY_TYPE_G,
             READ_LATENCY_G => 2,
             DATA_WIDTH_G   => 8*DATA_BYTES_G,
