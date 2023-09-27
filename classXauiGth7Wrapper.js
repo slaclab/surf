@@ -2,6 +2,7 @@ var classXauiGth7Wrapper =
 [
     [ "XauiGth7Wrapper.mapping", "classXauiGth7Wrapper_1_1mapping.html", "classXauiGth7Wrapper_1_1mapping" ],
     [ "TPD_G", "classXauiGth7Wrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "JUMBO_G", "classXauiGth7Wrapper.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classXauiGth7Wrapper.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
     [ "USE_GTREFCLK_G", "classXauiGth7Wrapper.html#a9fc3d37e9ce4e5689fc503a6fab2685a", null ],
     [ "REFCLK_DIV2_G", "classXauiGth7Wrapper.html#acb44004aee1148d89f75f9fd89e12f7f", null ],

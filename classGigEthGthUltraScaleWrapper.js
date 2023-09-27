@@ -3,6 +3,7 @@ var classGigEthGthUltraScaleWrapper =
     [ "mapping", "classGigEthGthUltraScaleWrapper_1_1mapping.html", "classGigEthGthUltraScaleWrapper_1_1mapping" ],
     [ "TPD_G", "classGigEthGthUltraScaleWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "NUM_LANE_G", "classGigEthGthUltraScaleWrapper.html#a24c981bba12b9b2a049e9ca0afa05c1a", null ],
+    [ "JUMBO_G", "classGigEthGthUltraScaleWrapper.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classGigEthGthUltraScaleWrapper.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
     [ "EXT_PLL_G", "classGigEthGthUltraScaleWrapper.html#ae745c16f112157bc43c9ed6b14bc3134", null ],
     [ "USE_GTREFCLK_G", "classGigEthGthUltraScaleWrapper.html#a9fc3d37e9ce4e5689fc503a6fab2685a", null ],
@@ -59,6 +60,5 @@ var classGigEthGthUltraScaleWrapper =
     [ "PIPE_STAGES_G", "classGigEthGthUltraScaleWrapper.html#ac99fcdad56f9c1f5292d5b1acda42a7a", null ],
     [ "FIFO_ADDR_WIDTH_G", "classGigEthGthUltraScaleWrapper.html#a6e95a16e00842462cf0ab419ce93cb1d", null ],
     [ "SYNTH_MODE_G", "classGigEthGthUltraScaleWrapper.html#a56bbb1932ad282ee9deb69abf211b77b", null ],
-    [ "MEMORY_TYPE_G", "classGigEthGthUltraScaleWrapper.html#a2064247817b25d68d6b195d2d2974fc0", null ],
-    [ "JUMBO_G", "classGigEthGthUltraScaleWrapper.html#a7089a8327825fe115543f2a0670f06af", null ]
+    [ "MEMORY_TYPE_G", "classGigEthGthUltraScaleWrapper.html#a2064247817b25d68d6b195d2d2974fc0", null ]
 ];

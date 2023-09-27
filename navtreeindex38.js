@@ -1,5 +1,6 @@
 var NAVTREEINDEX38 =
 {
+"classAxiWritePathFifo.html#a90ffe15be383e60588665aac3fe5585c":[1,0,164,18],
 "classAxiWritePathFifo.html#aa7ada04e68289095c328b820549cc526":[1,0,164,17],
 "classAxiWritePathFifo.html#abd8e5f4a2882f695c7d142a500182ba5":[1,0,164,26],
 "classAxiWritePathFifo.html#ac3df270edd40553ae68cfa933d51cef4":[1,0,164,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX38 =
 "classAxisToJtag.html#a12d7dddcddfc23849fee2af28711f04f":[1,0,98,5],
 "classAxisToJtag.html#a2edc34402b573437d5f25fa90ba4013e":[1,0,98,19],
 "classAxisToJtag.html#a349f7bd21af748e087092a89a5fdc1a9":[1,0,98,7],
-"classAxisToJtag.html#a39ed4899a1e5ccc7b4c9300059dc63eb":[1,0,98,11],
-"classAxisToJtag.html#a59467ecbd6f1ac4678f88367afa9f2bd":[1,0,98,1]
+"classAxisToJtag.html#a39ed4899a1e5ccc7b4c9300059dc63eb":[1,0,98,11]
 };

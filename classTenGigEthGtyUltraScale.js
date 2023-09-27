@@ -2,6 +2,7 @@ var classTenGigEthGtyUltraScale =
 [
     [ "TenGigEthGtyUltraScale.mapping", "classTenGigEthGtyUltraScale_1_1mapping.html", "classTenGigEthGtyUltraScale_1_1mapping" ],
     [ "TPD_G", "classTenGigEthGtyUltraScale.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "JUMBO_G", "classTenGigEthGtyUltraScale.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classTenGigEthGtyUltraScale.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
     [ "EN_AXI_REG_G", "classTenGigEthGtyUltraScale.html#a468e183b4552fb08d7a893a3f4a855cd", null ],
     [ "AXIS_CONFIG_G", "classTenGigEthGtyUltraScale.html#a3726296c17c0feab8786da0c296296c5", null ],

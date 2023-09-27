@@ -5,6 +5,7 @@ var classAxiStreamRingBuffer =
     [ "RST_ASYNC_G", "classAxiStreamRingBuffer.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "SYNTH_MODE_G", "classAxiStreamRingBuffer.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
     [ "MEMORY_TYPE_G", "classAxiStreamRingBuffer.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],
+    [ "COMMON_CLK_G", "classAxiStreamRingBuffer.html#a059e39587aed6e8045b14097e92edc3f", null ],
     [ "DATA_BYTES_G", "classAxiStreamRingBuffer.html#a569cdbeddab70e29ac3c75890563f85d", null ],
     [ "RAM_ADDR_WIDTH_G", "classAxiStreamRingBuffer.html#ab201d2f9b1805946ee879d6b8c1a4748", null ],
     [ "INT_PIPE_STAGES_G", "classAxiStreamRingBuffer.html#ae0a17a0197aea617d3addf76de481b00", null ],

@@ -3,6 +3,7 @@ var classTenGigEthGthUltraScaleWrapper =
     [ "TenGigEthGthUltraScaleWrapper.mapping", "classTenGigEthGthUltraScaleWrapper_1_1mapping.html", "classTenGigEthGthUltraScaleWrapper_1_1mapping" ],
     [ "TPD_G", "classTenGigEthGthUltraScaleWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "NUM_LANE_G", "classTenGigEthGthUltraScaleWrapper.html#a24c981bba12b9b2a049e9ca0afa05c1a", null ],
+    [ "JUMBO_G", "classTenGigEthGthUltraScaleWrapper.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classTenGigEthGthUltraScaleWrapper.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
     [ "EXT_REF_G", "classTenGigEthGthUltraScaleWrapper.html#a25cb6c65f9b581c7fc921ac2f412c12b", null ],
     [ "QPLL_REFCLK_SEL_G", "classTenGigEthGthUltraScaleWrapper.html#aa3adb937d2ef86c71c139a85394b7d46", null ],

@@ -1,5 +1,6 @@
 var NAVTREEINDEX47 =
 {
+"classCoaXPressOverFiberGtyUsIpWrapper.html#ae752a6be3b3686b06bb414d607589810":[1,0,211,2],
 "classCoaXPressOverFiberGtyUsIpWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,211,35],
 "classCoaXPressOverFiberGtyUsIpWrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782":[1,0,211,36],
 "classCoaXPressOverFiberGtyUsIpWrapper.html#afb9447c132931ea91c6d31f9b8cd5fc9":[1,0,211,27],
@@ -248,6 +249,5 @@ var NAVTREEINDEX47 =
 "classCoaXPressRx_1_1mapping.html#a9f9423690e671d9e0b440c5da8f28628":[1,0,213,0,10],
 "classCoaXPressRx_1_1mapping.html#aad6da0fd1ce589d9a569c74c6a6c9b5f":[1,0,213,0,14],
 "classCoaXPressRx_1_1mapping.html#ab88b27eda4077ee376e00b23c6476828":[1,0,213,0,24],
-"classCoaXPressRx_1_1mapping.html#abd8ce21ea1b24611f31cc2ee1089f665":[1,0,213,0,19],
-"classCoaXPressRx_1_1mapping.html#ac3caa4f186d42d6a6f04cba17558208b":[1,0,213,0,6]
+"classCoaXPressRx_1_1mapping.html#abd8ce21ea1b24611f31cc2ee1089f665":[1,0,213,0,19]
 };

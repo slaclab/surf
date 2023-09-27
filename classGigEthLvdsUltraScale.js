@@ -2,6 +2,7 @@ var classGigEthLvdsUltraScale =
 [
     [ "mapping", "classGigEthLvdsUltraScale_1_1mapping.html", "classGigEthLvdsUltraScale_1_1mapping" ],
     [ "TPD_G", "classGigEthLvdsUltraScale.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "JUMBO_G", "classGigEthLvdsUltraScale.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classGigEthLvdsUltraScale.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
     [ "EN_AXIL_REG_G", "classGigEthLvdsUltraScale.html#af06eb37aa317765fb105406134641bd8", null ],
     [ "AXIS_CONFIG_G", "classGigEthLvdsUltraScale.html#a3726296c17c0feab8786da0c296296c5", null ],

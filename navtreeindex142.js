@@ -1,5 +1,16 @@
 var NAVTREEINDEX142 =
 {
+"classSi5394I2cCore_1_1rtl.html#a6fd859dd8af8a5884dc8646e59450ac6":[1,0,625,0,26],
+"classSi5394I2cCore_1_1rtl.html#a7282e4683ffca25e36f201a4dd04ce95":[1,0,625,0,27],
+"classSi5394I2cCore_1_1rtl.html#a72bbc70fc4a5d3542ed50c4c98efa103":[1,0,625,0,1],
+"classSi5394I2cCore_1_1rtl.html#a914d0bd3d7b8e6e051c396c617a09e85":[1,0,625,0,12],
+"classSi5394I2cCore_1_1rtl.html#a94ff7e03c0a4361e3a96d3272ed1e0c7":[1,0,625,0,20],
+"classSi5394I2cCore_1_1rtl.html#a9d253f12e2c447e54c676f5fcd370e9c":[1,0,625,0,22],
+"classSi5394I2cCore_1_1rtl.html#ab186933ce54352e3eceeb7f93138f3d7":[1,0,625,0,29],
+"classSi5394I2cCore_1_1rtl.html#ab2936b62ebe50a7664cde58336dcb670":[1,0,625,0,0],
+"classSi5394I2cCore_1_1rtl.html#ac1b17de8b79d60454359cae605e6e9cc":[1,0,625,0,5],
+"classSi5394I2cCore_1_1rtl.html#ac2adae4b485d31481b418b813d89620a":[1,0,625,0,21],
+"classSi5394I2cCore_1_1rtl.html#ac3aca9f65b0abb9ac57246d017264fd0":[1,0,625,0,23],
 "classSi5394I2cCore_1_1rtl.html#ad2854f9f39539420f47ef4408bda8a66":[1,0,625,0,10],
 "classSi5394I2cCore_1_1rtl.html#ad427531e6c3d4c4e723e54af5f60fed5":[1,0,625,0,6],
 "classSi5394I2cCore_1_1rtl.html#ad91b923e97a1ec81cc104f437322a456":[1,0,625,0,8],
@@ -238,16 +249,5 @@ var NAVTREEINDEX142 =
 "classSinCosTaylor.html#acb415f2e3abd505b8338da5b5bf9e2fb":[1,0,631,20],
 "classSinCosTaylor.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,631,18],
 "classSinCosTaylor.html#ad212deec02d3a320256bf0ed7481eb84":[1,0,631,14],
-"classSinCosTaylor.html#adeb222493482dfe91c36a7a02710329c":[1,0,631,9],
-"classSinCosTaylor.html#ae50983f250d092f3dc06e91e3b7ffc41":[1,0,631,25],
-"classSinCosTaylor.html#ae80f1b1d047ca72efc0600e7adb4a9dd":[1,0,631,13],
-"classSinCosTaylor.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,631,24],
-"classSinCosTaylor.html#afd50f5245570245e4eea32137a3918fe":[1,0,631,16],
-"classSinCosTaylor_1_1rtl.html":[1,0,631,0],
-"classSinCosTaylor_1_1rtl.html#a3198aedabd8fd60eeafc0cf5a02ff21e":[1,0,631,0,6],
-"classSinCosTaylor_1_1rtl.html#a4297920a31d1ff4f2e2c37486f286fea":[1,0,631,0,1],
-"classSinCosTaylor_1_1rtl.html#a44189bb731d9c55eb8a3a4a9bc16a067":[1,0,631,0,7],
-"classSinCosTaylor_1_1rtl.html#a5774a20e1a855900a97724849698d4ce":[1,0,631,0,19],
-"classSinCosTaylor_1_1rtl.html#a605cb6a3912f6647421414398d484ac9":[1,0,631,0,13],
-"classSinCosTaylor_1_1rtl.html#a6442cdbe2fe451bc50ebaed35409a2d5":[1,0,631,0,4]
+"classSinCosTaylor.html#adeb222493482dfe91c36a7a02710329c":[1,0,631,9]
 };
