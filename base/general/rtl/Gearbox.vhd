@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 entity Gearbox is
    generic (
       TPD_G                : time    := 1 ns;
-      RST_POLARITY_G       : sl      := '1';  -- '1' for active high rst, '0' for active low
+      RST_POLARITY_G       : boolean := true;  -- true for active high rst, false for active low
       RST_ASYNC_G          : boolean := false;
       SLAVE_BIT_REVERSE_G  : boolean := false;
       SLAVE_WIDTH_G        : positive;
@@ -52,8 +52,9 @@ end entity Gearbox;
 
 architecture rtl of Gearbox is
 
-   constant MAX_C : positive := maximum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
-   constant MIN_C : positive := minimum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
+   constant MAX_C :           positive := maximum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
+   constant MIN_C :           positive := minimum(MASTER_WIDTH_G, SLAVE_WIDTH_G);
+   constant RST_POLARITY_C :  sl       := ite(RST_POLARITY_G,'1','0');
 
    -- Don't need the +1 if slip is not used.
    constant SHIFT_WIDTH_C : positive := wordCount(MAX_C, MIN_C) * MIN_C + MIN_C + 1;
@@ -152,7 +153,7 @@ begin
 
       slaveReady <= v.slaveReady;
 
-      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_C) then
          v := REG_INIT_C;
       end if;
 
@@ -169,7 +170,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_C) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;
