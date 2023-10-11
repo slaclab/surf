@@ -31,10 +31,12 @@ entity Pgp2fcGtyCoreWrapper is
       TPD_G               : time    := 1 ns;
       SEL_FABRIC_REFCLK_G : boolean := false;
       USE_ALIGN_CHECK_G   : boolean := true;
+      AXI_CLK_FREQ_G      : real             := 125.0e6;
       AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0'));
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
+
       -- GTY FPGA IO
       gtRefClk       : in  sl;
       gtFabricRefClk : in  sl;
@@ -364,13 +366,15 @@ begin
 
    U_AlignCheck : entity surf.GtRxAlignCheck
       generic map (
-         TPD_G      => TPD_G,
-         GT_TYPE_G  => "GTYE4",
-         DRP_ADDR_G => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
+         TPD_G          => TPD_G,
+         GT_TYPE_G      => "GTYE4",
+         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G,
+         DRP_ADDR_G     => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (
          -- Clock Monitoring
          txClk            => txUsrClk,
          rxClk            => rxUsrClk,
+         refClk           => gtUserRefClk,
          -- GTH Status/Control Interface
          resetIn          => rxReset,
          resetDone        => buffBypassRxDone,
