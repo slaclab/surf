@@ -38,6 +38,7 @@ entity Pgp2fcGtyUltra is
       FC_WORDS_G        : integer range 1 to 8 := 1;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
+      AXI_CLK_FREQ_G    : real                 := 125.0e6;
       AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G       : boolean              := true;
       RX_ENABLE_G       : boolean              := true;
@@ -189,6 +190,7 @@ begin
    PgpGtyCoreWrapper_1 : entity surf.Pgp2fcGtyCoreWrapper
       generic map (
          TPD_G           => TPD_G,
+         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,
          AXI_BASE_ADDR_G => AXI_BASE_ADDR_G)
       port map (
          stableClk       => stableClk,
