@@ -212,8 +212,9 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when RESET_S =>
-            -- Set the flag
-            v.rst := '1';
+            -- Set the flags
+            v.rst    := '1';
+            v.locked := '0';
             -- Check the counter
             if (r.rstcnt = r.rstlen) then
                -- Wait for the reset transition
@@ -225,7 +226,7 @@ begin
                end if;
             else
                -- Increment the counter
-               v.rstcnt := r.rstcnt+1;
+               v.rstcnt := r.rstcnt + 1;
             end if;
          ----------------------------------------------------------------------
          when READ_S =>
@@ -249,7 +250,7 @@ begin
                -- Get the index pointer
                i             := conv_integer(ack.rdData(6 downto 0));
                -- Increment the counter
-               v.sample(i)   := r.sample(i)+1;
+               v.sample(i)   := r.sample(i) + 1;
                -- Save the last byte alignment check
                v.last        := ack.rdData(15 downto 0);
                -- Check the byte alignment
@@ -266,7 +267,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when LOCKED_S =>
-            -- Set the flag
+            -- Set the flag (can now be reset only by an external resetIn/resetErr)
             v.locked := '1';
       ----------------------------------------------------------------------
       end case;
@@ -293,10 +294,7 @@ begin
          v.retryCnt := (others => '0');
       elsif (v.rst = '1' and r.rst = '0' and resetIn = '0' and resetErr = '0') then
          -- Edge-triggered
-         if (allBits(r.retryCnt, '1') = false) then
-            -- Prevent rollover
-            v.retryCnt := r.retryCnt + 1;
-         end if;
+         v.retryCnt := r.retryCnt + 1;
       end if;
 
       -- Reset
@@ -334,5 +332,8 @@ begin
          axilWriteSlave  => mAxilWriteSlave,
          axilReadMaster  => mAxilReadMaster,
          axilReadSlave   => mAxilReadSlave);
+
+end rtl;
+
 
 end rtl;
