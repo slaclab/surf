@@ -334,6 +334,3 @@ begin
          axilReadSlave   => mAxilReadSlave);
 
 end rtl;
-
-
-end rtl;
