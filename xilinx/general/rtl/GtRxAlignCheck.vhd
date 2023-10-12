@@ -169,7 +169,7 @@ begin
          refClk  => axilClk);
 
    comb : process (ack, axilRst, r, resetDone, resetErr, resetIn, rxClkFreq,
-           sAxilReadMaster, sAxilWriteMaster, txClkFreq) is
+           sAxilReadMaster, sAxilWriteMaster, txClkFreq, refClkFreq) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
       variable i      : natural;
