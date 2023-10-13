@@ -88,7 +88,7 @@ begin
          locRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
          locRxLinkReady  => '1',
          remRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
-         remRxLinkReady  => '1',       
+         remRxLinkReady  => '1',
          -- PHY interface
          phyTxActive     => rstL,
          phyTxReady      => phyTxReady,
