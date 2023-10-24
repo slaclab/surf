@@ -34,19 +34,19 @@ class Ltc4151(pr.Device):
             base         = pr.UInt,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = False,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'SenseLsb',
             description  = 'Sense LSB Data',
             offset       = (0x1 << 2),
-            bitSize      = 4,
-            bitOffset    = 4,
+            bitSize      = 8,
+            bitOffset    = 0,
             base         = pr.UInt,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = False,
         ))
 
         self.add(pr.LinkVariable(
@@ -56,7 +56,7 @@ class Ltc4151(pr.Device):
             units        = 'A',
             disp         = '{:1.3f}',
             dependencies = [self.SenseMsb,self.SenseLsb],
-            linkedGet    = lambda: (int(self.SenseMsb.value()<<4)|int(self.SenseLsb.value()&0xF))*20.0E-6/self.senseRes
+            linkedGet    = lambda: (int(self.SenseMsb.value()<<4)|int(self.SenseLsb.value()>>4))*20.0E-6/self.senseRes
         ))
 
         self.add(pr.RemoteVariable(
@@ -68,19 +68,19 @@ class Ltc4151(pr.Device):
             base         = pr.UInt,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = False,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'VinLsb',
             description  = 'Vin LSB Data',
             offset       = (0x3 << 2),
-            bitSize      = 4,
-            bitOffset    = 4,
+            bitSize      = 8,
+            bitOffset    = 0,
             base         = pr.UInt,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = False,
         ))
 
         self.add(pr.LinkVariable(
@@ -90,7 +90,7 @@ class Ltc4151(pr.Device):
             units        = 'V',
             disp         = '{:1.3f}',
             dependencies = [self.VinMsb,self.VinLsb],
-            linkedGet    = lambda: (int(self.VinMsb.value()<<4)|int(self.VinLsb.value()&0xF))*25.0E-3
+            linkedGet    = lambda: (int(self.VinMsb.value()<<4)|int(self.VinLsb.value()>>4))*25.0E-3
         ))
 
         self.add(pr.LinkVariable(
@@ -112,19 +112,19 @@ class Ltc4151(pr.Device):
             base         = pr.UInt,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = False,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'AdinLsb',
             description  = 'Adin LSB Data',
             offset       = (0x5 << 2),
-            bitSize      = 4,
-            bitOffset    = 4,
+            bitSize      = 8,
+            bitOffset    = 0,
             base         = pr.UInt,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = False,
         ))
 
         self.add(pr.LinkVariable(
@@ -134,7 +134,7 @@ class Ltc4151(pr.Device):
             units        = 'V',
             disp         = '{:1.3f}',
             dependencies = [self.AdinMsb,self.AdinLsb],
-            linkedGet    = lambda: (int(self.AdinMsb.value()<<4)|int(self.AdinLsb.value()&0xF))*500.0E-6
+            linkedGet    = lambda: (int(self.AdinMsb.value()<<4)|int(self.AdinLsb.value()>>4))*500.0E-6
         ))
 
         self.add(pr.RemoteVariable(
@@ -145,5 +145,5 @@ class Ltc4151(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
-            hidden       = True,
+            hidden       = False,
         ))
