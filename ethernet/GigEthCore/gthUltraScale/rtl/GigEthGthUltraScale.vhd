@@ -26,6 +26,7 @@ use surf.GigEthPkg.all;
 entity GigEthGthUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
+      JUMBO_G         : boolean             := true;
       PAUSE_EN_G      : boolean             := true;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
@@ -182,6 +183,7 @@ begin
    U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
+         JUMBO_G         => JUMBO_G,
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_C,
          PHY_TYPE_G      => "GMII",

@@ -22,11 +22,16 @@ class Xadc(pr.Device):
                  description = "AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)",
                  auxChannels = 0,
                  zynq        = False,
+                 simpleViewList = ["Temperature", "VccInt", "VccAux", "VccBram"],
+                 pollInterval = 5,
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
         if isinstance(auxChannels, int):
             auxChannels = list(range(auxChannels))
+
+        self.simpleViewList = simpleViewList
+        self.simpleViewList.append('enable')
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
@@ -331,6 +336,8 @@ class Xadc(pr.Device):
                 variable=self.AuxRaw[ch],
                 linkedGet=self.convAuxVoltage))
 
+            self.simpleViewList.append(f'Aux[{ch}]')
+
         if (zynq):
             addPair(
                 name        = 'VccpInt',
@@ -610,5 +617,5 @@ class Xadc(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["enable", "Temperature", "VccInt", "VccAux", "VccBram"]
+        vars = self.simpleViewList
         self.hideVariables(hidden=False, variables=vars)
