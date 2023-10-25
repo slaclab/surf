@@ -61,7 +61,7 @@ class Xadc(pr.Device):
             bitOffset    = 4,
             units        = "degC",
             function     = self.convTemp,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = """
                 The result of the on-chip temperature sensor measurement is
                 stored in this location. The data is MSB justified in the
@@ -121,7 +121,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description = """
                 The result of the on-chip VccInt supply monitor measurement
                 is stored at this location. The data is MSB justified in the
@@ -169,7 +169,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description = """
                 The result of the on-chip VccAux supply monitor measurement
                 is stored at this location. The data is MSB justified in the
@@ -219,7 +219,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description = """
                 The result of the on-chip VccBram supply monitor measurement
                 is stored at this location. The data is MSB justified in the
