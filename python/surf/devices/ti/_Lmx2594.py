@@ -257,3 +257,8 @@ class Lmx2594(pr.Device):
 
             # 6. Program register R0 one additional time with FCAL_EN = 1 to ensure that the VCO calibration runs from a stable state.
             self.DataBlock.set(value=(data|0x8), index=0, write=True)
+
+            # Turn off the SYNC after the stable state
+            self.DataBlock.set(value=0x0000, index=0x22, write=True)
+            self.DataBlock.set(value=0x0780, index=0x24, write=True)
+
