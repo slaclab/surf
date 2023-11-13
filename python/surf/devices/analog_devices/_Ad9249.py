@@ -442,8 +442,8 @@ class Ad9249ReadoutGroup2(pr.Device):
 
 
         self.add(pr.RemoteVariable(
-            name         = f'Delay',
-            description  = f'IDELAY value',
+            name         = 'Delay',
+            description  = 'IDELAY value',
             offset       = 0x00,
             bitSize      = delayBits,
             bitOffset    = 0,
@@ -452,7 +452,7 @@ class Ad9249ReadoutGroup2(pr.Device):
             verify       = False,
             groups       = 'NoConfig',
         ))
-        
+
         self.add(pr.RemoteCommand(
             name='Relock',
             hidden=False,
@@ -461,9 +461,9 @@ class Ad9249ReadoutGroup2(pr.Device):
             bitOffset=0,
             base=pr.UInt,
             function=pr.RemoteCommand.toggle))
-        
+
         self.add(pr.RemoteVariable(
-            name        = f'ErrorDetCount',
+            name        = 'ErrorDetCount',
             description = 'Number of times that frame lock has been lost since reset',
             offset      = 0x30,
             disp = '{:d}',
@@ -474,7 +474,7 @@ class Ad9249ReadoutGroup2(pr.Device):
             ))
 
         self.add(pr.RemoteVariable(
-            name        = f'LostLockCount',
+            name        = 'LostLockCount',
             description = 'Number of times that frame lock has been lost since reset',
             offset      = 0x50,
             bitSize     = 16,
@@ -484,7 +484,7 @@ class Ad9249ReadoutGroup2(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = f'Locked',
+            name        = 'Locked',
             description = 'Readout has locked on to the frame boundary',
             offset      = 0x50,
             bitSize     = 1,
@@ -494,7 +494,7 @@ class Ad9249ReadoutGroup2(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = f'AdcFrameSync',
+            name        = 'AdcFrameSync',
             description = 'Last deserialized FCO value for debug',
             offset      = 0x58,
             bitSize     = 14,
