@@ -11,6 +11,6 @@ var classUartBrg_1_1rtl =
     [ "REG_INIT_C", "classUartBrg_1_1rtl.html#aa90859697ede7db8e6d1fb7d4fc0d690", null ],
     [ "r", "classUartBrg_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classUartBrg_1_1rtl.html#a2797b7827b0e93e4fa25db62d31bcfa3", null ],
-    [ "count~6340", "classUartBrg_1_1rtl.html#a0a373b8f7721842622af470e4fbfeaca", null ],
-    [ "baudClkEn~6341", "classUartBrg_1_1rtl.html#a66f5e386483acd5340b3cdd8a33cddf8", null ]
+    [ "count~6343", "classUartBrg_1_1rtl.html#aab4d51777a3bbc203a1710a5d2d07184", null ],
+    [ "baudClkEn~6344", "classUartBrg_1_1rtl.html#a09009631eb4aa6a7f4b69dce0098226a", null ]
 ];

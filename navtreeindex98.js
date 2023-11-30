@@ -1,5 +1,11 @@
 var NAVTREEINDEX98 =
 {
+"classPgp2bGth7VarLat.html":[1,0,456],
+"classPgp2bGth7VarLat.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,456,71],
+"classPgp2bGth7VarLat.html#a0a95a06721cfdfe8587d3231bbb63ea1":[1,0,456,4],
+"classPgp2bGth7VarLat.html#a0b5f67ad2467ecf41e6782b046c64a43":[1,0,456,30],
+"classPgp2bGth7VarLat.html#a126a58807db432d73054fd5d7ef8aa8d":[1,0,456,36],
+"classPgp2bGth7VarLat.html#a13f62656d0009f976ba3373127963357":[1,0,456,44],
 "classPgp2bGth7VarLat.html#a14c7af2a80cb6615ca4a28678c2208e9":[1,0,456,64],
 "classPgp2bGth7VarLat.html#a16d657b1a630ab458265d73f9667dbcb":[1,0,456,28],
 "classPgp2bGth7VarLat.html#a16f4a3d2d53b6a0a06208c4849d56ecc":[1,0,456,5],
@@ -194,8 +200,8 @@ var NAVTREEINDEX98 =
 "classPgp2bGthUltra_1_1mapping.html#aca1cc5678f0d213ee2e715b95505a3dc":[1,0,458,0,3],
 "classPgp2bGthUltra_1_1mapping.html#acf87e4966a588f240955f56ade7d7035":[1,0,458,0,12],
 "classPgp2bGthUltra_1_1mapping.html#acf87e4966a588f240955f56ade7d7035":[1,0,458,0,18],
-"classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,458,0,15],
 "classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,458,0,21],
+"classPgp2bGthUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,458,0,15],
 "classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,458,0,13],
 "classPgp2bGthUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,458,0,19],
 "classPgp2bGthUltra_1_1mapping.html#aefb8e2a34bd297929a1d2085847c4db6":[1,0,458,0,20],
@@ -243,11 +249,5 @@ var NAVTREEINDEX98 =
 "classPgp2bGtp7FixedLat.html#a76f290a48e16f22382b0ae7c9d76c933":[1,0,459,51],
 "classPgp2bGtp7FixedLat.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,459,78],
 "classPgp2bGtp7FixedLat.html#a78554bc6d7e733f03c398be30b649509":[1,0,459,72],
-"classPgp2bGtp7FixedLat.html#a82adf9a253fcf57dc326b3bb80f65095":[1,0,459,64],
-"classPgp2bGtp7FixedLat.html#a84b72fbeedb473191235d5c53ed76ff7":[1,0,459,25],
-"classPgp2bGtp7FixedLat.html#a87de15dd42171011fdd0335ca4158b14":[1,0,459,57],
-"classPgp2bGtp7FixedLat.html#a8a802381888e5f15cf3ab7846d4b3a6f":[1,0,459,32],
-"classPgp2bGtp7FixedLat.html#a8afe78c4b6f277d0c34d5ef1503057c3":[1,0,459,10],
-"classPgp2bGtp7FixedLat.html#a8c2ac97c24bad7f1d91fbb6cc571a934":[1,0,459,53],
-"classPgp2bGtp7FixedLat.html#a907cd7bbb6b4ccd995d9606182cc8c79":[1,0,459,59]
+"classPgp2bGtp7FixedLat.html#a82adf9a253fcf57dc326b3bb80f65095":[1,0,459,64]
 };

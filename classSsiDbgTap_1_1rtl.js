@@ -14,7 +14,7 @@ var classSsiDbgTap_1_1rtl =
     [ "rin", "classSsiDbgTap_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "dont_touch", "classSsiDbgTap_1_1rtl.html#a6f06ff83904200dbbdc42a2f9c75df3a", null ],
     [ "dont_touch", "classSsiDbgTap_1_1rtl.html#a0634a9696f46f7b953aecea32b95ef99", null ],
-    [ "cnt~6109", "classSsiDbgTap_1_1rtl.html#af038f863159b81fd11332d24abe19391", null ],
-    [ "copy~6110", "classSsiDbgTap_1_1rtl.html#a254a48505e75c11aaff681a6ebb0e7cf", null ],
-    [ "state~6111", "classSsiDbgTap_1_1rtl.html#a4c7a6c00426872d80c375fcc3ba6b52a", null ]
+    [ "cnt~6112", "classSsiDbgTap_1_1rtl.html#aa3e8e4932590795b0af620fa5a3e6a7b", null ],
+    [ "copy~6113", "classSsiDbgTap_1_1rtl.html#a8a51148327e98cf9ba514875edbaea8d", null ],
+    [ "state~6114", "classSsiDbgTap_1_1rtl.html#af682d637cc499b00bf4ddaa238ae9ae8", null ]
 ];
