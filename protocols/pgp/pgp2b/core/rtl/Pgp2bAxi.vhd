@@ -55,6 +55,11 @@ entity Pgp2bAxi is
       statusWord : out slv(63 downto 0);
       statusSend : out sl;
 
+      -- Debug Interface (axilClk domain)
+      txDiffCtrl      : out slv(4 downto 0);
+      txPreCursor     : out slv(4 downto 0);
+      txPostCursor    : out slv(4 downto 0);
+
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -90,6 +95,9 @@ architecture structure of Pgp2bAxi is
    signal syncFlowCntlDis : sl;
 
    type RegType is record
+      txDiffCtrl     : slv(4 downto 0);
+      txPreCursor    : slv(4 downto 0);
+      txPostCursor   : slv(4 downto 0);
       flush          : sl;
       resetTx        : sl;
       resetRx        : sl;
@@ -105,6 +113,9 @@ architecture structure of Pgp2bAxi is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txDiffCtrl     => "11111",
+      txPreCursor    => "00111",
+      txPostCursor   => "01111",
       flush          => '0',
       resetTx        => '0',
       resetRx        => '0',
@@ -566,6 +577,12 @@ begin
                v.autoStatus := axilWriteMaster.wdata(0);
             when X"18" =>
                v.flowCntlDis := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
+            when X"1C" =>
+               if WRITE_EN_G then
+                  v.txDiffCtrl   := axilWriteMaster.wdata(4 downto 0);
+                  v.txPreCursor  := axilWriteMaster.wdata(9 downto 5);
+                  v.txPostCursor := axilWriteMaster.wdata(14 downto 10);
+               end if;
             when others => null;
          end case;
 
@@ -595,6 +612,10 @@ begin
                v.axilReadSlave.rdata(0) := r.autoStatus;
             when X"18" =>
                v.axilReadSlave.rdata(0) := r.flowCntlDis;
+            when X"1C" =>
+               v.axilReadSlave.rdata(4 downto 0)   := r.txDiffCtrl;
+               v.axilReadSlave.rdata(9 downto 5)   := r.txPreCursor;
+               v.axilReadSlave.rdata(14 downto 10) := r.txPostCursor;
             when X"20" =>
                v.axilReadSlave.rdata(0)            := rxStatusSync.phyRxReady;
                v.axilReadSlave.rdata(1)            := txStatusSync.phyTxReady;
@@ -671,6 +692,9 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      txDiffCtrl     <= r.txDiffCtrl;
+      txPreCursor    <= r.txPreCursor;
+      txPostCursor   <= r.txPostCursor;
 
    end process;
 
