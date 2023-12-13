@@ -14,6 +14,7 @@ if { ${family} eq {artix7}  ||
 if { ${family} eq {kintexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
+     ${family} eq {virtexu} ||
      ${family} eq {virtexuplusHBM} ||
      ${family} eq {zynquplus} ||
      ${family} eq {zynquplusRFSOC} } {
