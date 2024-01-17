@@ -5,11 +5,11 @@
 -------------------------------------------------------------------------------
 -- Description: PGPv2b GTY Ultrascale Core Module
 -------------------------------------------------------------------------------
--- This file is part of 'Example Project Firmware'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of 'Example Project Firmware', including this file,
+-- No part of 'SLAC Firmware Standard Library', including this file,
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -52,6 +52,7 @@ entity Pgp2fcGtyUltra is
       gtRefClk         : in  sl;
       gtFabricRefClk   : in  sl;
       gtUserRefClk     : in  sl;
+      rxRecClk         : out sl;
       -- Gt Serial IO
       pgpGtTxP         : out sl;
       pgpGtTxN         : out sl;
@@ -212,6 +213,7 @@ begin
          rxDecErr        => phyRxLaneIn.decErr,
          rxPolarity      => RX_POLARITY_G,
          rxOutClk        => pgpRxOutClk,
+         rxRecClk        => rxRecClk,
          txReset         => gtTxUserReset,
          txUsrClk        => pgpTxClk,
          txUsrClkActive  => pgpTxMmcmLocked,
