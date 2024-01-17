@@ -5,11 +5,11 @@
 -------------------------------------------------------------------------------
 -- Description: PGPv2b GTY Ultrascale IP Core Wrapper
 -------------------------------------------------------------------------------
--- This file is part of 'Example Project Firmware'.
+-- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of 'Example Project Firmware', including this file,
+-- No part of 'SLAC Firmware Standard Library', including this file,
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ entity Pgp2fcGtyCoreWrapper is
       rxDecErr       : out slv(1 downto 0);
       rxPolarity     : in  sl;
       rxOutClk       : out sl;
+      rxRecClk       : out sl; -- raw recovered clock
 
       -- Tx Ports
       txReset        : in  sl;
@@ -154,6 +155,7 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          rxctrl3_out                        : out std_logic_vector (7 downto 0);
          rxdlysresetdone_out                : out std_logic_vector (0 downto 0);
          rxoutclk_out                       : out std_logic_vector (0 downto 0);
+         rxrecclkout_out                    : out std_logic_vector (0 downto 0);
          rxphaligndone_out                  : out std_logic_vector (0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector (0 downto 0);
          rxresetdone_out                    : out std_logic_vector (0 downto 0);
@@ -322,6 +324,7 @@ begin
          rxdlysresetdone_out(0)                => rxDlysResetDone,
          rxphaligndone_out(0)                  => rxPhyAlignDone,
          rxoutclk_out(0)                       => rxOutClkGt,
+         rxrecclkout_out(0)                    => rxRecClk,
          txoutclk_out(0)                       => txOutClkGt, -- unused
          rxpmaresetdone_out(0)                 => rxPmaResetDone,
          rxresetdone_out(0)                    => rxResetDone,
@@ -419,7 +422,7 @@ begin
          drpAddr         => drpAddr,             -- [out]
          drpDi           => drpDi,               -- [out]
          drpDo           => drpDo);              -- [in]
-   
+
    txctrl2           <= "000000" & txDataK;
    txUsrActive       <= txUsrClkActive and txPmaResetDone;
    rxUsrActive       <= rxUsrClkActive and rxPmaResetDone;
