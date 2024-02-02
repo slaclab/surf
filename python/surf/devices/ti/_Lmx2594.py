@@ -227,18 +227,19 @@ class Lmx2594(pr.Device):
         @self.command(description='Load the CodeLoader .HEX file',value='',)
         def LoadCodeLoaderHexFile(arg):
 
+            self.DataBlock.set(value=0x2410,index=0, write=True) # MUXOUT_LD_SEL=readback
+
             ##################################################################
             # For the most reliable programming, TI recommends this procedure:
             ##################################################################
 
             # 1. Apply power to device.
-            reg = self.DataBlock.get(index=0, read=True)
 
             # 2. Program RESET = 1 to reset registers.
-            self.DataBlock.set(value=(reg|0x2), index=0, write=True)
+            self.DataBlock.set(value=0x2412, index=0, write=True)
 
             # 3. Program RESET = 0 to remove reset.
-            self.DataBlock.set(value=(reg&0xFFFD), index=0, write=True)
+            self.DataBlock.set(value=0x2410, index=0, write=True)
 
             # 4. Program registers as shown in the register map in REVERSE order from highest to lowest.
             with open(arg, 'r') as ifd:
@@ -250,10 +251,9 @@ class Lmx2594(pr.Device):
                     # print( f'addr={addr}, data={hex(data)}' )
                     self.DataBlock.set(value=data, index=addr, write=True)
 
-            self.DataBlock.set(value=data, index=addr, write=True)
-
             # 5. Wait 10 ms.
             time.sleep(0.1)
 
             # 6. Program register R0 one additional time with FCAL_EN = 1 to ensure that the VCO calibration runs from a stable state.
-            self.DataBlock.set(value=(data|0x8), index=0, write=True)
+            self.DataBlock.set(value=data&0xFFFB, index=addr, write=True)
+            time.sleep(0.1)
