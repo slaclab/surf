@@ -56,6 +56,7 @@ architecture mapping of Pgp4TxLiteWrapper is
 
    signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal pgpTxSlave  : AxiStreamSlaveType;
+   signal rstL        : sl;
 
 begin
 
@@ -87,13 +88,15 @@ begin
          locRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
          locRxLinkReady  => '1',
          remRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
-         remRxLinkReady  => '1',       
+         remRxLinkReady  => '1',
          -- PHY interface
-         phyTxActive     => '1',
+         phyTxActive     => rstL,
          phyTxReady      => phyTxReady,
          phyTxValid      => phyTxValid,
          phyTxStart      => open,
          phyTxData       => phyTxData(63 downto 0),
          phyTxHeader     => phyTxData(65 downto 64));
+
+   rstL <= not(rst);
 
 end architecture mapping;
