@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -35,20 +35,20 @@ typedef struct {
 
    uint32_t  currClk;
    uint16_t  port;
-  
+
    uint8_t   rxRemData;
    uint8_t   rxOpCode;
    uint8_t   rxOpCodeEn;
 
    uint8_t   txRemData;
-   uint8_t   txRemDataChanged;  
+   uint8_t   txRemDataChanged;
    uint8_t   txOpCode;
    uint8_t   txOpCodeEn;
 
    void *    zmqCtx;
    void *    zmqPull;
-   void *    zmqPush;  
-  
+   void *    zmqPush;
+
 } RogueSideBandData;
 
 // Init function

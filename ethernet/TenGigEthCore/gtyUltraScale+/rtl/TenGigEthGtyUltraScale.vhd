@@ -25,6 +25,7 @@ use surf.EthMacPkg.all;
 entity TenGigEthGtyUltraScale is
    generic (
       TPD_G         : time                := 1 ns;
+      JUMBO_G       : boolean             := true;
       PAUSE_EN_G    : boolean             := true;
       -- AXI-Lite Configurations
       EN_AXI_REG_G  : boolean             := false;
@@ -234,6 +235,7 @@ begin
    U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G             => TPD_G,
+         JUMBO_G           => JUMBO_G,
          PAUSE_EN_G        => PAUSE_EN_G,
          FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
          SYNTH_MODE_G      => "xpm",
