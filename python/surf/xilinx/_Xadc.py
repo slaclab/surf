@@ -30,7 +30,7 @@ class Xadc(pr.Device):
         if isinstance(auxChannels, int):
             auxChannels = list(range(auxChannels))
 
-        self.simpleViewList = simpleViewList
+        self.simpleViewList = simpleViewList[:]
         self.simpleViewList.append('enable')
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
