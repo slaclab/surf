@@ -20,7 +20,7 @@ class AxiSysMonUltraScale(pr.Device):
             **kwargs):
         super().__init__(description=description, **kwargs)
 
-        self.simpleViewList = simpleViewList
+        self.simpleViewList = simpleViewList[:]
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
