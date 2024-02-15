@@ -82,10 +82,10 @@ entity Pgp4Gtp7Wrapper is
       pgpClk            : out slv(NUM_LANES_G-1 downto 0);
       pgpClkRst         : out slv(NUM_LANES_G-1 downto 0);
       -- Non VC Rx Signals
-      pgpRxIn           : in  Pgp4RxInArray(NUM_LANES_G-1 downto 0);
+      pgpRxIn           : in  Pgp4RxInArray(NUM_LANES_G-1 downto 0) := (others => PGP4_RX_IN_INIT_C);
       pgpRxOut          : out Pgp4RxOutArray(NUM_LANES_G-1 downto 0);
       -- Non VC Tx Signals
-      pgpTxIn           : in  Pgp4TxInArray(NUM_LANES_G-1 downto 0);
+      pgpTxIn           : in  Pgp4TxInArray(NUM_LANES_G-1 downto 0) := (others => PGP4_TX_IN_INIT_C);
       pgpTxOut          : out Pgp4TxOutArray(NUM_LANES_G-1 downto 0);
       -- Frame Transmit Interface
       pgpTxMasters      : in  AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
