@@ -1,10 +1,11 @@
 <map id="Pgp3RxGearboxAligner" name="Pgp3RxGearboxAligner">
-<area shape="rect" id="node1" title=" " alt="" coords="5,321,177,348"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,360,177,387"/>
 <area shape="rect" id="node2" href="$classPgp3Rx.html" title=" " alt="" coords="263,195,334,221"/>
-<area shape="rect" id="node14" href="$classPgp4Rx.html" title=" " alt="" coords="263,321,334,348"/>
-<area shape="rect" id="node28" href="$classPgp2bGtp7FixedLat.html" title=" " alt="" coords="225,423,372,449"/>
-<area shape="rect" id="node30" href="$classPgp2bGtx7Fixedlat.html" title=" " alt="" coords="227,499,371,525"/>
-<area shape="rect" id="node3" href="$classPgp3Core.html" title=" " alt="" coords="479,132,563,159"/>
+<area shape="rect" id="node14" href="$classPgp4Rx.html" title=" " alt="" coords="263,360,334,387"/>
+<area shape="rect" id="node28" href="$classPgp2bGtp7FixedLat.html" title=" " alt="" coords="225,436,372,463"/>
+<area shape="rect" id="node30" href="$classPgp2bGtx7Fixedlat.html" title=" " alt="" coords="227,487,371,513"/>
+<area shape="rect" id="node34" href="$classPgp2fcGtp7.html" title=" " alt="" coords="250,537,347,564"/>
+<area shape="rect" id="node3" href="$classPgp3Core.html" title=" " alt="" coords="479,119,563,145"/>
 <area shape="rect" id="node13" href="$classPgp3Tb.html" title=" " alt="" coords="486,195,557,221"/>
 <area shape="rect" id="node4" href="$classPgp3GthUs.html" title=" " alt="" coords="733,5,827,32"/>
 <area shape="rect" id="node6" href="$classPgp3Gtp7.html" title=" " alt="" coords="737,56,823,83"/>
@@ -32,4 +33,5 @@
 <area shape="rect" id="node31" href="$classPgp2bGtx7FixedLatWrapper.html" title=" " alt="" coords="420,512,623,539"/>
 <area shape="rect" id="node32" href="$classPgp2bGtx7FixedLatTb.html" title=" " alt="" coords="699,487,861,513"/>
 <area shape="rect" id="node33" href="$classPgp2bGtx7FixedLatWrapperTb.html" title=" " alt="" coords="671,537,889,564"/>
+<area shape="rect" id="node35" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="445,563,597,589"/>
 </map>

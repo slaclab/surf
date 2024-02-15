@@ -1,6 +1,7 @@
 <map id="Ad9249Deserializer" name="Ad9249Deserializer">
 <area shape="rect" id="node1" title=" " alt="" coords="157,155,307,181"/>
-<area shape="rect" id="node6" href="$classAd9249ReadoutGroup.html" title=" " alt="" coords="150,229,314,256"/>
+<area shape="rect" id="node6" href="$classAd9249ReadoutGroup.html" title=" " alt="" coords="54,229,218,256"/>
+<area shape="rect" id="node7" href="$classAd9249ReadoutGroup2.html" title=" " alt="" coords="242,229,414,256"/>
 <area shape="rect" id="node2" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="5,80,139,107"/>
 <area shape="rect" id="node3" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="83,5,221,32"/>
 <area shape="rect" id="node4" href="$classOdelaye3Wrapper.html" title=" " alt="" coords="163,80,301,107"/>

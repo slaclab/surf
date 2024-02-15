@@ -1,12 +1,14 @@
 <map id="Gtp7TxManualPhaseAligner" name="Gtp7TxManualPhaseAligner">
-<area shape="rect" id="node1" title=" " alt="" coords="145,155,348,181"/>
-<area shape="rect" id="node4" href="$classGtp7Core.html" title=" " alt="" coords="205,229,288,256"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="193,5,300,32"/>
-<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="231,80,369,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="233,155,436,181"/>
+<area shape="rect" id="node4" href="$classGtp7Core.html" title=" " alt="" coords="293,229,376,256"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="281,5,388,32"/>
+<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="319,80,457,107"/>
 <area shape="rect" id="node5" href="$classGLinkGtp7FixedLat.html" title=" " alt="" coords="5,304,149,331"/>
 <area shape="rect" id="node6" href="$classPgp2bGtp7FixedLat.html" title=" " alt="" coords="173,304,320,331"/>
-<area shape="rect" id="node8" href="$classPgp2bGtp7MultiLane.html" title=" " alt="" coords="352,304,509,331"/>
-<area shape="rect" id="node7" href="$classPgp2bGtp7FixedLatWrapper.html" title=" " alt="" coords="140,379,343,405"/>
-<area shape="rect" id="node9" href="$classPgp2bGtp7VarLat.html" title=" " alt="" coords="367,379,502,405"/>
-<area shape="rect" id="node10" href="$classPgp2bGtp7VarLatWrapper.html" title=" " alt="" coords="340,453,529,480"/>
+<area shape="rect" id="node8" href="$classPgp2bGtp7MultiLane.html" title=" " alt="" coords="344,304,501,331"/>
+<area shape="rect" id="node11" href="$classPgp2fcGtp7.html" title=" " alt="" coords="534,304,631,331"/>
+<area shape="rect" id="node7" href="$classPgp2bGtp7FixedLatWrapper.html" title=" " alt="" coords="128,379,331,405"/>
+<area shape="rect" id="node9" href="$classPgp2bGtp7VarLat.html" title=" " alt="" coords="355,379,490,405"/>
+<area shape="rect" id="node10" href="$classPgp2bGtp7VarLatWrapper.html" title=" " alt="" coords="328,453,517,480"/>
+<area shape="rect" id="node12" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="515,379,667,405"/>
 </map>

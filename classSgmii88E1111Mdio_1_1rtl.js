@@ -18,9 +18,9 @@ var classSgmii88E1111Mdio_1_1rtl =
     [ "rin", "classSgmii88E1111Mdio_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "hdlrDone", "classSgmii88E1111Mdio_1_1rtl.html#ae70fd4c1d06766634f74aee83737b123", null ],
     [ "args", "classSgmii88E1111Mdio_1_1rtl.html#a6b44021a377889cee2e0727afb3433be", null ],
-    [ "s10_100~3587", "classSgmii88E1111Mdio_1_1rtl.html#a8550fef8caf58565998e13982f56f89a", null ],
-    [ "s100~3588", "classSgmii88E1111Mdio_1_1rtl.html#a67783f1168e54a2c2cb5f97d313d7d4c", null ],
-    [ "linkIsUp~3589", "classSgmii88E1111Mdio_1_1rtl.html#ab19fab8ed30abe3f8ed9f1a00b0f07df", null ],
+    [ "s10_100~3599", "classSgmii88E1111Mdio_1_1rtl.html#ac2e082edd547a053960a11483e105a27", null ],
+    [ "s100~3600", "classSgmii88E1111Mdio_1_1rtl.html#a9f2344ba590f705b41ccc5ce5ae6642c", null ],
+    [ "linkIsUp~3601", "classSgmii88E1111Mdio_1_1rtl.html#a0baca6582abd35f2255ac3e349aa1c57", null ],
     [ "u_mdiolinkirqhandler", "classSgmii88E1111Mdio_1_1rtl.html#a9b362bada2ac708d2ca005205b561ae2", null ],
     [ "u_mdiolinkirqhandler", "classSgmii88E1111Mdio_1_1rtl.html#a9b362bada2ac708d2ca005205b561ae2", null ]
 ];
