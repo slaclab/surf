@@ -258,33 +258,33 @@ class Pgp2fcAxi(pr.Device):
             pollInterval = 1
         ))
 
-        self.add(pr.RemoteVariable(
-            name        = "ProtocolErrorCount",
-            offset      = 0xB0,
-            disp        = '{:d}',
-            bitSize     = errorCountBits,
-            bitOffset   = 0,
-            mode        = "RO",
-            base        = pr.UInt,
-            pollInterval = 1
-        ))
+#         self.add(pr.RemoteVariable(
+#             name        = "ProtocolErrorCount",
+#             offset      = 0xB0,
+#             disp        = '{:d}',
+#             bitSize     = errorCountBits,
+#             bitOffset   = 0,
+#             mode        = "RO",
+#             base        = pr.UInt,
+#             pollInterval = 1
+#         ))
 
-        self.add(pr.RemoteCommand(
-            name        = 'AlignReset',
-            offset      = 0xA0,
-            bitSize     = 1,
-            bitOffset   = 0,
-            function    = pr.BaseCommand.toggle,
-        ))
+#         self.add(pr.RemoteCommand(
+#             name        = 'AlignReset',
+#             offset      = 0xA0,
+#             bitSize     = 1,
+#             bitOffset   = 0,
+#             function    = pr.BaseCommand.toggle,
+#         ))
 
-        self.add(pr.RemoteVariable(
-            name        = "AlignOverride",
-            offset      = 0xA0,
-            bitSize     = 1,
-            bitOffset   = 1,
-            mode        = "RW",
-            base        = pr.Bool,
-        ))
+#         self.add(pr.RemoteVariable(
+#             name        = "AlignOverride",
+#             offset      = 0xA0,
+#             bitSize     = 1,
+#             bitOffset   = 1,
+#             mode        = "RW",
+#             base        = pr.Bool,
+#         ))
 
         # self.add(pr.RemoteVariable(
         #     name        = "AlignSlide",
@@ -295,49 +295,49 @@ class Pgp2fcAxi(pr.Device):
         #     base        = pr.Bool,
         # ))
 
-        self.add(pr.RemoteCommand(
-            name        = 'AlignSlide',
-            offset      = 0xA4,
-            bitSize     = 1,
-            bitOffset   = 0,
-            function    = pr.BaseCommand.touchZero,
-        ))
+#         self.add(pr.RemoteCommand(
+#             name        = 'AlignSlide',
+#             offset      = 0xA4,
+#             bitSize     = 1,
+#             bitOffset   = 0,
+#             function    = pr.BaseCommand.touchZero,
+#         ))
 
-        self.add(pr.RemoteVariable(
-            name        = "Aligned",
-            offset      = 0xA8,
-            bitSize     = 1,
-            bitOffset   = 0,
-            mode        = "RO",
-            base        = pr.Bool,
-        ))
+#         self.add(pr.RemoteVariable(
+#             name        = "Aligned",
+#             offset      = 0xA8,
+#             bitSize     = 1,
+#             bitOffset   = 0,
+#             mode        = "RO",
+#             base        = pr.Bool,
+#         ))
 
-        self.add(pr.RemoteVariable(
-            name        = "AlignSlideDone",
-            offset      = 0xA8,
-            bitSize     = 1,
-            bitOffset   = 1,
-            mode        = "RO",
-            base        = pr.Bool,
-        ))
+#         self.add(pr.RemoteVariable(
+#             name        = "AlignSlideDone",
+#             offset      = 0xA8,
+#             bitSize     = 1,
+#             bitOffset   = 1,
+#             mode        = "RO",
+#             base        = pr.Bool,
+#         ))
 
-        self.add(pr.RemoteVariable(
-            name        = "AlignPhase",
-            offset      = 0xA8,
-            bitSize     = 1,
-            bitOffset   = 2,
-            mode        = "RO",
-            base        = pr.UInt,
-        ))
+#         self.add(pr.RemoteVariable(
+#             name        = "AlignPhase",
+#             offset      = 0xA8,
+#             bitSize     = 1,
+#             bitOffset   = 2,
+#             mode        = "RO",
+#             base        = pr.UInt,
+#         ))
 
-        self.add(pr.RemoteVariable(
-            name        = "AlignPhaseDone",
-            offset      = 0xA8,
-            bitSize     = 1,
-            bitOffset   = 3,
-            mode        = "RO",
-            base        = pr.Bool,
-        ))
+#         self.add(pr.RemoteVariable(
+#             name        = "AlignPhaseDone",
+#             offset      = 0xA8,
+#             bitSize     = 1,
+#             bitOffset   = 3,
+#             mode        = "RO",
+#             base        = pr.Bool,
+#         ))
 
         # self.add(pr.RemoteVariable(
         #     name        = "AlignPhaseReq",
@@ -348,13 +348,13 @@ class Pgp2fcAxi(pr.Device):
         #     base        = pr.Bool,
         # ))
 
-        self.add(pr.RemoteCommand(
-            name        = 'AlignPhaseReq',
-            offset      = 0xAC,
-            bitSize     = 1,
-            bitOffset   = 0,
-            function    = pr.BaseCommand.touchZero,
-        ))
+#         self.add(pr.RemoteCommand(
+#             name        = 'AlignPhaseReq',
+#             offset      = 0xAC,
+#             bitSize     = 1,
+#             bitOffset   = 0,
+#             function    = pr.BaseCommand.touchZero,
+#         ))
 
         self.add(pr.RemoteCommand(
             name        = 'CountReset',

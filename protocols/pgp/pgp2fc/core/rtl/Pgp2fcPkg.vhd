@@ -28,7 +28,7 @@ package Pgp2fcPkg is
    -----------------------------------------------------
    -- Constants
    -----------------------------------------------------
-   constant SSI_PGP2FC_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
+   constant PGP2FC_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
 
    -- 8B10B Characters
    constant K_FCD_C  : slv(7 downto 0) := "10111100";  -- K28.5, 0xBC
@@ -47,51 +47,56 @@ package Pgp2fcPkg is
    -- ID Constant
    constant PGP2FC_ID_C : slv(3 downto 0) := "0111";
 
+   constant MAX_FC_WORDS_C : integer := 8;
+   constant MAX_FC_BITS_C  : integer := MAX_FC_WORDS_C * 16;
+
    -----------------------------------------------------
    -- PGP RX non-data types
    -----------------------------------------------------
 
-   type Pgp2fcRxCtrlInType is record
+   type Pgp2fcRxInType is record
       flush    : sl;                    -- Flush the link
       resetRx  : sl;                    -- Reset RX transceiver path
       loopback : slv(2 downto 0);       -- Transceiver loopback
-   end record Pgp2fcRxCtrlInType;
+   end record Pgp2fcRxInType;
 
-   type Pgp2fcRxCtrlInArray is array (natural range <>) of Pgp2fcRxCtrlInType;
+   type Pgp2fcRxInArray is array (natural range <>) of Pgp2fcRxInType;
 
-   constant PGP2FC_RX_CTRL_IN_INIT_C : Pgp2fcRxCtrlInType := (
+   constant PGP2FC_RX_IN_INIT_C : Pgp2fcRxInType := (
       flush    => '0',
       resetRx  => '0',
       loopback => "000");
 
-   type Pgp2fcRxStatusOutType is record
-      phyRxReady   : sl;                -- RX Phy is ready
-      linkReady    : sl;                -- Local side has link
-      fcRecv       : sl;                -- Fast Control word received
-      fcRecvErr    : sl;                -- Fast Control word received with error
-      frameRx      : sl;                -- A good frame was received
-      frameRxErr   : sl;                -- An errored frame was received
-      cellError    : sl;                -- A cell error has occured
-      linkDown     : sl;                -- A link down event has occured
-      linkError    : sl;                -- A link error has occured
-      remLinkReady : sl;                -- Far end side has link
-      remLinkData  : slv(7 downto 0);   -- Far end side User Data
-      remOverflow  : slv(3 downto 0);   -- Far end overflow status
-      remPause     : slv(3 downto 0);   -- Far end pause status
-   end record Pgp2fcRxStatusOutType;
+   type Pgp2fcRxOutType is record
+      phyRxReady   : sl;                             -- RX Phy is ready
+      linkReady    : sl;                             -- Local side has link
+      frameRx      : sl;                             -- A good frame was received
+      frameRxErr   : sl;                             -- An errored frame was received
+      cellError    : sl;                             -- A cell error has occured
+      linkDown     : sl;                             -- A link down event has occured
+      linkError    : sl;                             -- A link error has occured
+      fcValid      : sl;                             -- Fast Control word received
+      fcError      : sl;                             -- Fast Control word received with error
+      fcWord       : slv(MAX_FC_BITS_C-1 downto 0);  -- Fast control word
+      remLinkReady : sl;                             -- Far end side has link
+      remLinkData  : slv(7 downto 0);                -- Far end side User Data
+      remOverflow  : slv(3 downto 0);                -- Far end overflow status
+      remPause     : slv(3 downto 0);                -- Far end pause status
+   end record Pgp2fcRxOutType;
 
-   type Pgp2fcRxStatusOutArray is array (natural range <>) of Pgp2fcRxStatusOutType;
+   type Pgp2fcRxOutArray is array (natural range <>) of Pgp2fcRxOutType;
 
-   constant PGP2FC_RX_STATUS_OUT_INIT_C : Pgp2fcRxStatusOutType := (
+   constant PGP2FC_RX_OUT_INIT_C : Pgp2fcRxOutType := (
       phyRxReady   => '0',
       linkReady    => '0',
-      fcRecv       => '0',
-      fcRecvErr    => '0',
       frameRx      => '0',
       frameRxErr   => '0',
       cellError    => '0',
       linkDown     => '0',
       linkError    => '0',
+      fcValid      => '0',
+      fcError      => '0',
+      fcWord       => (others => '0'),
       remLinkReady => '0',
       remLinkData  => (others => '0'),
       remOverflow  => (others => '0'),
@@ -101,31 +106,37 @@ package Pgp2fcPkg is
    -- PGP2FC TX non-data types
    -----------------------------------------------------
 
-   type Pgp2fcTxCtrlInType is record
-      flush       : sl;                 -- Flush the link
-      locData     : slv(7 downto 0);    -- Near end side User Data
-      flowCntlDis : sl;                 -- Ignore flow control
-      resetTx     : sl;                 -- Reset tx phy
+   type Pgp2fcTxInType is record
+      flush       : sl;                             -- Flush the link
+      fcValid     : sl;                             -- Fast Control word send
+      fcWord      : slv(MAX_FC_BITS_C-1 downto 0);  -- Fast Control word
+      locData     : slv(7 downto 0);                -- Near end side User Data
+      flowCntlDis : sl;                             -- Ignore flow control
+      resetTx     : sl;                             -- Reset tx phy
       resetGt     : sl;
-   end record Pgp2fcTxCtrlInType;
+   end record Pgp2fcTxInType;
 
-   type Pgp2fcTxCtrlInArray is array (natural range <>) of Pgp2fcTxCtrlInType;
+   type Pgp2fcTxInArray is array (natural range <>) of Pgp2fcTxInType;
 
-   constant PGP2FC_TX_CTRL_IN_INIT_C : Pgp2fcTxCtrlInType := (
+   constant PGP2FC_TX_IN_INIT_C : Pgp2fcTxInType := (
       flush       => '0',
+      fcValid     => '0',
+      fcWord      => (others => '0'),
       locData     => (others => '0'),
       flowCntlDis => '0',
       resetTx     => '0',
       resetGt     => '0');
 
-   constant PGP2FC_TX_CTRL_IN_HALF_DUPLEX_C : Pgp2fcTxCtrlInType := (
+   constant PGP2FC_TX_IN_HALF_DUPLEX_C : Pgp2fcTxInType := (
       flush       => '0',
+      fcValid     => '0',
+      fcWord      => (others => '0'),
       locData     => (others => '0'),
       flowCntlDis => '1',
       resetTx     => '0',
       resetGt     => '0');
 
-   type Pgp2fcTxStatusOutType is record
+   type Pgp2fcTxOutType is record
       locOverflow : slv(3 downto 0);    -- Local overflow status
       locPause    : slv(3 downto 0);    -- Local pause status
       phyTxReady  : sl;                 -- TX Phy is ready
@@ -133,11 +144,11 @@ package Pgp2fcPkg is
       fcSent      : sl;                 -- Fast Control word sent
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
-   end record Pgp2fcTxStatusOutType;
+   end record Pgp2fcTxOutType;
 
-   type Pgp2fcTxStatusOutArray is array (natural range <>) of Pgp2fcTxStatusOutType;
+   type Pgp2fcTxOutArray is array (natural range <>) of Pgp2fcTxOutType;
 
-   constant PGP2FC_TX_STATUS_OUT_INIT_C : Pgp2fcTxStatusOutType := (
+   constant PGP2FC_TX_OUT_INIT_C : Pgp2fcTxOutType := (
       locOverflow => (others => '0'),
       locPause    => (others => '0'),
       phyTxReady  => '0',
