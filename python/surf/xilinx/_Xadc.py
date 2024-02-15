@@ -30,8 +30,9 @@ class Xadc(pr.Device):
         if isinstance(auxChannels, int):
             auxChannels = list(range(auxChannels))
 
-        self.simpleViewList = simpleViewList[:]
-        self.simpleViewList.append('enable')
+        if simpleViewList is not None:
+            self.simpleViewList = simpleViewList[:]
+            self.simpleViewList.append('enable')
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
@@ -572,8 +573,8 @@ class Xadc(pr.Device):
         )
 
         # Default to simple view
-        self.simpleView()
-
+        if simpleViewList is not None:
+            self.simpleView()
 
     @staticmethod
     def convTemp(dev, var):
