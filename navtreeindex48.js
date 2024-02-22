@@ -1,5 +1,6 @@
 var NAVTREEINDEX48 =
 {
+"classCoaXPressRxLane.html#aac4fe96bb0ae5ed1f5de1ec32e58d013":[1,0,216,4],
 "classCoaXPressRxLane.html#ac9120a063b2e23bec2a84fd19d37fa90":[1,0,216,7],
 "classCoaXPressRxLane.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,216,18],
 "classCoaXPressRxLane.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,216,15],
@@ -248,6 +249,5 @@ var NAVTREEINDEX48 =
 "classCoaxpressOverFiberGthUs.html#abc0f4d9ec253374c8562fe1d6e6541cb":[1,0,208,30],
 "classCoaxpressOverFiberGthUs.html#ac9120a063b2e23bec2a84fd19d37fa90":[1,0,208,25],
 "classCoaxpressOverFiberGthUs.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,208,43],
-"classCoaxpressOverFiberGthUs.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,208,40],
-"classCoaxpressOverFiberGthUs.html#ad01b4556b9e2b8ea5ed7692ad05e65e6":[1,0,208,16]
+"classCoaxpressOverFiberGthUs.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,208,40]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX145 =
 {
+"classSimpleDualPortRamXpm.html#a3d301a13733d1d4ba2f381139f040901":[1,0,635,4],
 "classSimpleDualPortRamXpm.html#a59467ecbd6f1ac4678f88367afa9f2bd":[1,0,635,2],
 "classSimpleDualPortRamXpm.html#a598da929e807d58939b47499e8bc9fa8":[1,0,635,27],
 "classSimpleDualPortRamXpm.html#a5af2dad24987be5aa215d59e09960f30":[1,0,635,13],
@@ -248,6 +249,5 @@ var NAVTREEINDEX145 =
 "classSlaveAxiIpIntegrator.html#a52d19abf9ac7287604c5abe4dcaae3a6":[1,0,640,7],
 "classSlaveAxiIpIntegrator.html#a5886db1a297626da7a16f50f33120201":[1,0,640,27],
 "classSlaveAxiIpIntegrator.html#a598da929e807d58939b47499e8bc9fa8":[1,0,640,70],
-"classSlaveAxiIpIntegrator.html#a5acae196c14a5138c58a4bc2f1ff8338":[1,0,640,3],
-"classSlaveAxiIpIntegrator.html#a614dff6f248a64780d19e9221b61ef39":[1,0,640,54]
+"classSlaveAxiIpIntegrator.html#a5acae196c14a5138c58a4bc2f1ff8338":[1,0,640,3]
 };

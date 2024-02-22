@@ -1,5 +1,6 @@
 var NAVTREEINDEX46 =
 {
+"classCoaXPressConfig.html#a5cf570c5527dfb7d94a6144d6613dde6":[1,0,201,25],
 "classCoaXPressConfig.html#a5d1ce29a571bdc7f97d8933360da66f6":[1,0,201,12],
 "classCoaXPressConfig.html#a717a8d0c99b019537e29271e474fc573":[1,0,201,14],
 "classCoaXPressConfig.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,201,21],
@@ -248,6 +249,5 @@ var NAVTREEINDEX46 =
 "classCoaXPressOverFiberBridgeTx_1_1rtl.html#aa24b5d58b482035e13ef235dab6befa1":[1,0,207,0,12],
 "classCoaXPressOverFiberBridgeTx_1_1rtl.html#abb76f801956ed6a383810be90d1785e3":[1,0,207,0,13],
 "classCoaXPressOverFiberBridgeTx_1_1rtl.html#ad44d6648911713b2a488004d04cb510b":[1,0,207,0,10],
-"classCoaXPressOverFiberBridgeTx_1_1rtl.html#ad881408e4bfec476e10e2b61c5eb76ba":[1,0,207,0,11],
-"classCoaXPressOverFiberBridgeTx_1_1rtl.html#addf0f5f54dfb1a7c90f1fb636e0f74e2":[1,0,207,0,14]
+"classCoaXPressOverFiberBridgeTx_1_1rtl.html#ad881408e4bfec476e10e2b61c5eb76ba":[1,0,207,0,11]
 };

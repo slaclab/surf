@@ -1,5 +1,6 @@
 var NAVTREEINDEX68 =
 {
+"classGigEthGtx7Wrapper.html#a26a891dfb046b194267cfcbbf159a879":[1,0,311,18],
 "classGigEthGtx7Wrapper.html#a412e210808040e5858f4555b187d557e":[1,0,311,37],
 "classGigEthGtx7Wrapper.html#a43e5253287ec308f70b963e56de69cd9":[1,0,311,38],
 "classGigEthGtx7Wrapper.html#a468e183b4552fb08d7a893a3f4a855cd":[1,0,311,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX68 =
 "classGigEthLvdsUltraScale.html#a3939d5941a3408455473e04d23afd164":[1,0,314,13],
 "classGigEthLvdsUltraScale.html#a437fdbb6b007105dcc4718a8723a59ef":[1,0,314,12],
 "classGigEthLvdsUltraScale.html#a59467ecbd6f1ac4678f88367afa9f2bd":[1,0,314,1],
-"classGigEthLvdsUltraScale.html#a5fc8bb52f5ab001c5dd3c310728ac1d4":[1,0,314,16],
-"classGigEthLvdsUltraScale.html#a6d6a179ce704f6509363cbfd676d2ed2":[1,0,314,26]
+"classGigEthLvdsUltraScale.html#a5fc8bb52f5ab001c5dd3c310728ac1d4":[1,0,314,16]
 };

@@ -1,11 +1,11 @@
 var classAxiMicronMt28ewReg_1_1rtl =
 [
-    [ "comb", "classAxiMicronMt28ewReg_1_1rtl.html#a42e42c984fb324e664fc5bb0cb1d23ab", null ],
+    [ "comb", "classAxiMicronMt28ewReg_1_1rtl.html#af84622b2de2043c82a7e620179551300", null ],
     [ "seq", "classAxiMicronMt28ewReg_1_1rtl.html#a5e4948776eaa6ed7ab637ef213d19dd8", null ],
-    [ "HALF_CYCLE_PERIOD_C", "classAxiMicronMt28ewReg_1_1rtl.html#a6fc6134eb2bfe8aaadb56c87b9828fb6", null ],
+    [ "HALF_CYCLE_PERIOD_C", "classAxiMicronMt28ewReg_1_1rtl.html#a487cb1d5c30f46e5cf8644e3717e119e", null ],
     [ "HALF_CYCLE_FREQ_C", "classAxiMicronMt28ewReg_1_1rtl.html#af25f44a82dd569d2cab063e76e77eb60", null ],
     [ "MAX_CNT_C", "classAxiMicronMt28ewReg_1_1rtl.html#aabc3d1732392b014ce2c0bff8ce3c56f", null ],
-    [ "stateType", "classAxiMicronMt28ewReg_1_1rtl.html#a44cc2ec16aad44cda01da58773769a3f", null ],
+    [ "stateType", "classAxiMicronMt28ewReg_1_1rtl.html#ac2439d783896de2fc45ae3757ae39bd0", null ],
     [ "RegType", "classAxiMicronMt28ewReg_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
     [ "tristate~3624", "classAxiMicronMt28ewReg_1_1rtl.html#a5ff8c38f2ca9a23fe9347a8eff62ee1d", null ],
     [ "ceL~3625", "classAxiMicronMt28ewReg_1_1rtl.html#a83352bfe928fc14f68d1c356e00c5b00", null ],
@@ -35,5 +35,6 @@ var classAxiMicronMt28ewReg_1_1rtl =
     [ "r", "classAxiMicronMt28ewReg_1_1rtl.html#addf0f5f54dfb1a7c90f1fb636e0f74e2", null ],
     [ "rin", "classAxiMicronMt28ewReg_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "ramDout", "classAxiMicronMt28ewReg_1_1rtl.html#af4e1d635d38a2fed306f6d428d93bc4f", null ],
+    [ "flashDo", "classAxiMicronMt28ewReg_1_1rtl.html#a525cc8df3bd1f983b836842fd7b24dc4", null ],
     [ "u_ram", "classAxiMicronMt28ewReg_1_1rtl.html#af775eb600febaabef2e5c67257c103b2", null ]
 ];

@@ -1,5 +1,6 @@
 var NAVTREEINDEX43 =
 {
+"classClinkFraming.html#a0f5ecc6613f63d07f7963a97b1b26095":[1,0,188,18],
 "classClinkFraming.html#a1f95d991da7ad21c45106bbf3a79c355":[1,0,188,11],
 "classClinkFraming.html#a20d2c163a7d574e311a7447922c15188":[1,0,188,9],
 "classClinkFraming.html#a2106e5227371675511e345dc63cbe3ef":[1,0,188,24],
@@ -248,6 +249,5 @@ var NAVTREEINDEX43 =
 "classClinkUartThrottle.html#a51d01c9412fd1fed6c43770b0d3b34c2":[1,0,193,4],
 "classClinkUartThrottle.html#a59467ecbd6f1ac4678f88367afa9f2bd":[1,0,193,1],
 "classClinkUartThrottle.html#a598da929e807d58939b47499e8bc9fa8":[1,0,193,12],
-"classClinkUartThrottle.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,193,15],
-"classClinkUartThrottle.html#a8b54e22b2a07048034b61d5e4ba396e3":[1,0,193,16]
+"classClinkUartThrottle.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,193,15]
 };

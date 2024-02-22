@@ -1,5 +1,6 @@
 var NAVTREEINDEX82 =
 {
+"classHtspCoreTb_1_1testbed.html#ab0c66888f0926cc343dd2e55ed44e745":[1,0,372,0,12],
 "classHtspCoreTb_1_1testbed.html#abd2b34762a822a4d42ae4eb1230d8fdd":[1,0,372,0,28],
 "classHtspCoreTb_1_1testbed.html#abd47e661cb0ed37777ec67785cea19b0":[1,0,372,0,41],
 "classHtspCoreTb_1_1testbed.html#abde461c0f59db880bc998fda036678e3":[1,0,372,0,20],
@@ -248,6 +249,5 @@ var NAVTREEINDEX82 =
 "classI2cRegMasterAxiBridge.html#a3345a70e845069bf678d5aa1733529b6":[1,0,380,19],
 "classI2cRegMasterAxiBridge.html#a4a2f476a4fc068ebeebed7cecdfb9823":[1,0,380,3],
 "classI2cRegMasterAxiBridge.html#a59467ecbd6f1ac4678f88367afa9f2bd":[1,0,380,1],
-"classI2cRegMasterAxiBridge.html#a598da929e807d58939b47499e8bc9fa8":[1,0,380,15],
-"classI2cRegMasterAxiBridge.html#a5a0a1d44f5be50fd974bf6f143a2cb60":[1,0,380,8]
+"classI2cRegMasterAxiBridge.html#a598da929e807d58939b47499e8bc9fa8":[1,0,380,15]
 };

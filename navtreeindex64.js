@@ -1,5 +1,6 @@
 var NAVTREEINDEX64 =
 {
+"classGLinkGtx7Core.html#a830bf9f8abe3f9a26f63a107bf4cf5cd":[1,0,320,118],
 "classGLinkGtx7Core.html#a8781f974ebb82774cf6bb892c68f0473":[1,0,320,22],
 "classGLinkGtx7Core.html#a887e5cb5ac3bb35ad6a9b8db0806cafc":[1,0,320,15],
 "classGLinkGtx7Core.html#a8a54162a3505d2411dda20a7e47833f3":[1,0,320,109],
@@ -248,6 +249,5 @@ var NAVTREEINDEX64 =
 "classGLinkGtx7FixedLatTb_1_1testbed.html#a88b1c333f10fc23f7aa010fd785bc01f":[1,0,322,0,11],
 "classGLinkGtx7FixedLatTb_1_1testbed.html#a9672df34f520f46ea8070526e9a787ba":[1,0,322,0,0],
 "classGLinkGtx7FixedLatTb_1_1testbed.html#aa27dcbc5a4984e1c9de58c72be3ba509":[1,0,322,0,9],
-"classGLinkGtx7FixedLatTb_1_1testbed.html#aa41d2a7c799ac6e42eafad7a5805ae19":[1,0,322,0,21],
-"classGLinkGtx7FixedLatTb_1_1testbed.html#aaed56356e1dacc5154d717f181c659f0":[1,0,322,0,13]
+"classGLinkGtx7FixedLatTb_1_1testbed.html#aa41d2a7c799ac6e42eafad7a5805ae19":[1,0,322,0,21]
 };

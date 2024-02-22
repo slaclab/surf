@@ -5,6 +5,8 @@ var classSugoiManagerCore =
     [ "SIMULATION_G", "classSugoiManagerCore.html#a6ebe009af632144d5bad445bf5a6a699", null ],
     [ "RST_ASYNC_G", "classSugoiManagerCore.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "DIFF_PAIR_G", "classSugoiManagerCore.html#a5cd9e782e983a3ef1a3f5d1479fb22c5", null ],
+    [ "GEN_TX_DRIVER_G", "classSugoiManagerCore.html#a6487f2a545a37e341522b33f348fc739", null ],
+    [ "GEN_CLK_DRIVER_G", "classSugoiManagerCore.html#a7d771ec5498a3f4005e6c752758e8c05", null ],
     [ "COMMON_CLK_G", "classSugoiManagerCore.html#a059e39587aed6e8045b14097e92edc3f", null ],
     [ "NUM_ADDR_BITS_G", "classSugoiManagerCore.html#a30bd8cd206868ca9d4e0795da237216f", null ],
     [ "TX_POLARITY_G", "classSugoiManagerCore.html#aa73774d36346643c8d538d1d30db1cf6", null ],

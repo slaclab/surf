@@ -1,5 +1,6 @@
 var NAVTREEINDEX76 =
 {
+"classGtp7TxRst.html#ad69af23f55daff7f01833518072ccc3b":[1,0,346,20],
 "classGtp7TxRst.html#ae00f3f04545af57582ff10609eee23e2":[1,0,346,30],
 "classGtp7TxRst.html#ae4f03c286607f3181e16b9aa12d0c6d4":[1,0,346,28],
 "classGtp7TxRst.html#ae587a5c85f011609f389bb9dfa412e67":[1,0,346,19],
@@ -248,6 +249,5 @@ var NAVTREEINDEX76 =
 "classGtx7AutoPhaseAligner_1_1RTL.html":[1,0,352,0],
 "classGtx7AutoPhaseAligner_1_1RTL.html#a068564424adf39fd0048aab4cbbdfdb6":[1,0,352,0,9],
 "classGtx7AutoPhaseAligner_1_1RTL.html#a16357abf990a007025b20c0479ed9415":[1,0,352,0,6],
-"classGtx7AutoPhaseAligner_1_1RTL.html#a611fdfc8342b2d63c7781bf46a32564d":[1,0,352,0,4],
-"classGtx7AutoPhaseAligner_1_1RTL.html#a902a7c3c44a55da79b02c5ee83513152":[1,0,352,0,2]
+"classGtx7AutoPhaseAligner_1_1RTL.html#a611fdfc8342b2d63c7781bf46a32564d":[1,0,352,0,4]
 };
