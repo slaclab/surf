@@ -25,17 +25,19 @@ use surf.AxiLitePkg.all;
 
 entity SugoiManagerCore is
    generic (
-      TPD_G           : time    := 1 ns;
-      SIMULATION_G    : boolean := false;
-      RST_ASYNC_G     : boolean := false;
-      DIFF_PAIR_G     : boolean := true;
-      COMMON_CLK_G    : boolean := false;  -- Set true if timingClk & axilClk are same signal
-      NUM_ADDR_BITS_G : positive;  -- Number of AXI-Lite address bits in the Subordinate
-      TX_POLARITY_G   : sl      := '0';
-      RX_POLARITY_G   : sl      := '0';
-      DEVICE_FAMILY_G : string;  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
-      IODELAY_GROUP_G : string  := "DESER_GROUP";  -- Only used if DEVICE_FAMILY_G="7SERIES"
-      REF_FREQ_G      : real    := 300.0);  -- Only used if DEVICE_FAMILY_G="7SERIES"
+      TPD_G            : time    := 1 ns;
+      SIMULATION_G     : boolean := false;
+      RST_ASYNC_G      : boolean := false;
+      DIFF_PAIR_G      : boolean := true;
+      GEN_TX_DRIVER_G  : boolean := true;
+      GEN_CLK_DRIVER_G : boolean := true;
+      COMMON_CLK_G     : boolean := false;  -- Set true if timingClk & axilClk are same signal
+      NUM_ADDR_BITS_G  : positive;  -- Number of AXI-Lite address bits in the Subordinate
+      TX_POLARITY_G    : sl      := '0';
+      RX_POLARITY_G    : sl      := '0';
+      DEVICE_FAMILY_G  : string;  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
+      IODELAY_GROUP_G  : string  := "DESER_GROUP";  -- Only used if DEVICE_FAMILY_G="7SERIES"
+      REF_FREQ_G       : real    := 300.0);  -- Only used if DEVICE_FAMILY_G="7SERIES"
    port (
       -- SUGOI Serial Ports
       sugoiRxP        : in  sl;  -- DIFF_PAIR_G=false then CMOS,   DIFF_PAIR_G=true then LVDS
@@ -48,7 +50,7 @@ entity SugoiManagerCore is
       timingClk       : in  sl;
       timingRst       : in  sl;
       sugoiGlobalRst  : in  sl;
-      sugoiOpCode     : in  slv(7 downto 0);       -- 1-bit per Control code
+      sugoiOpCode     : in  slv(7 downto 0);        -- 1-bit per Control code
       sugoiStrobe     : out sl;         -- 1 strobe every 10 cycles
       sugoiLinkup     : out sl;
       -- AXI-Lite Master Interface (axilClk domain)
@@ -325,43 +327,61 @@ begin
    --------------------------------------
    -- TX I/O Register + half cycle deskew
    --------------------------------------
-   U_sugoiTx : entity surf.OutputBufferReg
-      generic map (
-         TPD_G       => TPD_G,
-         DIFF_PAIR_G => DIFF_PAIR_G)
-      port map (
-         I   => tx,
-         C   => timingClk,
-         SR  => disableTx,
-         inv => polarityTx,
-         dly => '1',                    -- deskew the data by half clock cycle
-         O   => sugoiTxP,
-         OB  => sugoiTxN);
+   GEN_TX_DRIVER : if (GEN_TX_DRIVER_G = true) generate
+
+      U_sugoiTx : entity surf.OutputBufferReg
+         generic map (
+            TPD_G       => TPD_G,
+            DIFF_PAIR_G => DIFF_PAIR_G)
+         port map (
+            I   => tx,
+            C   => timingClk,
+            SR  => disableTx,
+            inv => polarityTx,
+            dly => '1',                 -- deskew the data by half clock cycle
+            O   => sugoiTxP,
+            OB  => sugoiTxN);
+
+   end generate;
+   BYPASS_TX_DRIVER : if (GEN_TX_DRIVER_G = false) generate
+      sugoiTxP <= (tx xor polarityTx)    when (disableTx = '0') else '0';
+      sugoiTxN <= not(tx xor polarityTx) when (disableTx = '0') else '1';
+   end generate;
 
    -------------------
    -- CLK I/O Register
    -------------------
-   GEN_LVDS : if (DIFF_PAIR_G = true) generate
-      U_sugoiClk : entity surf.ClkOutBufDiff
-         generic map (
-            TPD_G        => TPD_G,
-            XIL_DEVICE_G => DEVICE_FAMILY_G)
-         port map (
-            clkIn   => timingClk,
-            rstIn   => disableClk,
-            clkOutP => sugoiClkP,
-            clkOutN => sugoiClkN);
+   GEN_CLK_DRIVER : if (GEN_CLK_DRIVER_G = true) generate
+
+      GEN_LVDS : if (DIFF_PAIR_G = true) generate
+         U_sugoiClk : entity surf.ClkOutBufDiff
+            generic map (
+               TPD_G        => TPD_G,
+               XIL_DEVICE_G => DEVICE_FAMILY_G)
+            port map (
+               clkIn   => timingClk,
+               rstIn   => disableClk,
+               clkOutP => sugoiClkP,
+               clkOutN => sugoiClkN);
+      end generate;
+
+      GEN_CMOS : if (DIFF_PAIR_G = false) generate
+         U_sugoiClk : entity surf.ClkOutBufSingle
+            generic map (
+               TPD_G        => TPD_G,
+               XIL_DEVICE_G => DEVICE_FAMILY_G)
+            port map (
+               clkIn  => timingClk,
+               rstIn  => disableClk,
+               clkOut => sugoiClkP);
+         sugoiClkN <= '0';
+      end generate;
+
    end generate;
-   GEN_CMOS : if (DIFF_PAIR_G = false) generate
-      U_sugoiClk : entity surf.ClkOutBufSingle
-         generic map (
-            TPD_G        => TPD_G,
-            XIL_DEVICE_G => DEVICE_FAMILY_G)
-         port map (
-            clkIn  => timingClk,
-            rstIn  => disableClk,
-            clkOut => sugoiClkP);
-      sugoiClkN <= '0';
+
+   BYPASS_CLK_DRIVER : if (GEN_CLK_DRIVER_G = false) generate
+      sugoiClkP <= timingClk      when (disableClk = '0') else '0';
+      sugoiClkN <= not(timingClk) when (disableClk = '0') else '1';
    end generate;
 
 end mapping;
