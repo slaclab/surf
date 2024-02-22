@@ -137,11 +137,11 @@ class AxiMicronMt28ew(pr.Device):
         # Open the MCS file
         self._mcs.open(arg)
 
-        # # Erase the PROM
-        # self.eraseProm()
+        # Erase the PROM
+        self.eraseProm()
 
-        # # Write to the PROM
-        # self.bufferedWriteBootProm()
+        # Write to the PROM
+        self.bufferedWriteProm()
 
         # Verify the PROM
         self.bufferedVerifyProm()
@@ -202,7 +202,7 @@ class AxiMicronMt28ew(pr.Device):
         self._writeToFlash(address,0x30)
         self.waitForFlashReady()
 
-    def bufferedWriteBootProm(self):
+    def bufferedWriteProm(self):
         # Reset the PROM
         self._resetCmd()
         # Create a burst data array
@@ -316,7 +316,6 @@ class AxiMicronMt28ew(pr.Device):
 
                         # Get the data
                         dataArray = self.BurstData.get()
-                        print(dataArray)
 
                 else:
                     # Get the data for MCS file
