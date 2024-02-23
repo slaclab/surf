@@ -118,30 +118,30 @@ for root,dirs,files in os.walk(path):
         src = "%s/%s" % (root,f)
         ret = None
 
-    # Skip .svn sub-directories
-    if f.find(".svn") > 0:
-        logFile.write("Ignored:  %s\n" % (src))
+        # Skip .svn sub-directories
+        if f.find(".svn") > 0:
+            logFile.write("Ignored:  %s\n" % (src))
 
-    # VHDL
-    elif f.endswith(".vhd"):
-        updateFile(src,module,"--",logFile,False)
+        # VHDL
+        elif f.endswith(".vhd"):
+            updateFile(src,module,"--",logFile,False)
 
-    # C files
-    elif f.endswith(".h") or f.endswith(".hh") or f.endswith(".c") or f.endswith(".cc") or f.endswith(".cpp"):
-        updateFile(src,module,"//",logFile,False)
+        # C files
+        elif f.endswith(".h") or f.endswith(".hh") or f.endswith(".c") or f.endswith(".cc") or f.endswith(".cpp"):
+            updateFile(src,module,"//",logFile,False)
 
-    # Verilog, Verilog, or System Verilog
-    elif f.endswith(".v") or f.endswith(".vh") or f.endswith(".sv"):
-        updateFile(src,module,"//",logFile,False)
+        # Verilog, Verilog, or System Verilog
+        elif f.endswith(".v") or f.endswith(".vh") or f.endswith(".sv"):
+            updateFile(src,module,"//",logFile,False)
 
-    # TCL / XDC
-    elif f.endswith(".tcl") or f.endswith(".xdc"):
-        updateFile(src,module,"##",logFile,False)
+        # TCL / XDC
+        elif f.endswith(".tcl") or f.endswith(".xdc"):
+            updateFile(src,module,"##",logFile,False)
 
-    # Python
-    elif f.endswith(".py"):
-        updateFile(src,module,"##",logFile,True)
+        # Python
+        elif f.endswith(".py"):
+            updateFile(src,module,"##",logFile,True)
 
-    # Unknown
-    else:
-        logFile.write("Unknown:  %s\n" % (src))
+        # Unknown
+        else:
+            logFile.write("Unknown:  %s\n" % (src))
