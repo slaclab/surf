@@ -100,17 +100,27 @@ def updateFile(path,module,comment,log,script):
 
 # Check args
 if len(sys.argv) < 3:
-    print ("Usage: apply_slac_license.py root_dir module_name")
+    print ("Usage: apply_slac_license.py root_dir module_name [optional path_to_license]")
     exit()
 
 module = sys.argv[2]
 path   = sys.argv[1]
+# Path to license is an optional argument
+license_path = ""
+if len(sys.argv) == 4:
+    license_path = sys.argv[3]
 
 logFile = open (path + "/apply_license_log.txt","w")
 
 # Copy license file
-baseDir = os.path.realpath(__file__).split('surf')[0]
-shutil.copy(baseDir+"surf/LICENSE.txt",path + "/LICENSE.txt")
+if license_path != "":
+    # Use user defined directory
+    baseDir = os.path.realpath(license_path)
+    shutil.copy(baseDir + "/LICENSE.txt", path + "/LICENSE.txt")
+else:
+    # Use surf default directory
+    baseDir = os.path.realpath(__file__).split('surf')[0]
+    shutil.copy(baseDir + "surf/LICENSE.txt", path + "/LICENSE.txt")
 
 # Walk directories recursively
 for root,dirs,files in os.walk(path):
