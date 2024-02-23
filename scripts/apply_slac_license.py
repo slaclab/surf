@@ -100,7 +100,7 @@ def updateFile(path,module,comment,log,script):
 
 # Check args
 if len(sys.argv) < 3:
-    print ("Usage: apply_license.py root_dir module_name")
+    print ("Usage: apply_slac_license.py root_dir module_name")
     exit()
 
 module = sys.argv[2]
