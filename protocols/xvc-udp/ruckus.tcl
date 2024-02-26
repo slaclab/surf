@@ -21,6 +21,7 @@ if { [isVersal] == true } {
    }
 
    if { ${family} eq {kintexu} ||
+        ${family} eq {virtexu} ||
         ${family} eq {kintexuplus} ||
         ${family} eq {virtexuplus} ||
         ${family} eq {virtexuplusHBM} ||

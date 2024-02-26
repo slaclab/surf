@@ -18,6 +18,7 @@ if {  ${family} == "artix7" ||
 }
 
 if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||
