@@ -7,7 +7,8 @@ loadRuckusTcl "$::DIR_PATH/core"
 # Get the family type
 set family [getFpgaArch]
 
-if { ${family} eq {kintexu} } {
+if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} } {
    loadRuckusTcl "$::DIR_PATH/gthUs"
 }
 

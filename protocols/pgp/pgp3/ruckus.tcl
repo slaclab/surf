@@ -30,7 +30,8 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
       # loadRuckusTcl "$::DIR_PATH/gth7"
    # }
 
-   if { ${family} eq {kintexu} } {
+   if { ${family} eq {kintexu} ||
+        ${family} eq {virtexu} } {
       loadRuckusTcl "$::DIR_PATH/gthUs"
    }
 
