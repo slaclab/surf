@@ -152,6 +152,7 @@ var annotated_dup =
     [ "AxiStreamResize", "classAxiStreamResize.html", "classAxiStreamResize" ],
     [ "AxiStreamResizeTb", "classAxiStreamResizeTb.html", "classAxiStreamResizeTb" ],
     [ "AxiStreamRingBuffer", "classAxiStreamRingBuffer.html", "classAxiStreamRingBuffer" ],
+    [ "AxiStreamRingBufferTb", "classAxiStreamRingBufferTb.html", "classAxiStreamRingBufferTb" ],
     [ "AxiStreamScatterGather", "classAxiStreamScatterGather.html", "classAxiStreamScatterGather" ],
     [ "AxiStreamSelector", "classAxiStreamSelector.html", "classAxiStreamSelector" ],
     [ "AxiStreamSelectorTb", "classAxiStreamSelectorTb.html", "classAxiStreamSelectorTb" ],
