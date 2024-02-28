@@ -154,7 +154,7 @@ begin
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Outputs
-      axisReset         <= axisRst or r.softRst;
+      axisReset         <= axisRst or r.softRst or r.blowOff;
       sAxisSlave.tReady <= sAxisSlaveTmp.tReady or r.blowOff;
 
       -- Reset
