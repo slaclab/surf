@@ -151,7 +151,6 @@ class UdpEngine(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'SoftMacRaw',
             description  = 'software configurable MAC used when softMac connected to localMac in firmware (big-Endian configuration)',
-            description  = 'MacAddress (big-Endian configuration)',
             offset       = 0xFE8,
             bitSize      = 48,
             mode         = 'RW',
