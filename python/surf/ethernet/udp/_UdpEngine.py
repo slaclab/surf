@@ -160,7 +160,7 @@ class UdpEngine(pr.Device):
         self.add(pr.LinkVariable(
             name         = 'SoftMac',
             description  = 'MacAddress (human readable)',
-            mode         = 'RO',
+            mode         = 'RW',
             linkedGet    = udp.getMacValue,
             linkedSet    = udp.setMacValue,
             dependencies = [self.variables['SoftMacRaw']],
