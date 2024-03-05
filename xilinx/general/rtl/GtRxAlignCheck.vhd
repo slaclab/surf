@@ -118,12 +118,6 @@ architecture rtl of GtRxAlignCheck is
    signal rxClkFreq  : slv(31 downto 0);
    signal refClkFreq : slv(31 downto 0);
 
-  -- attribute dont_touch              : string;
-  -- attribute dont_touch of r         : signal is "TRUE";
-  -- attribute dont_touch of ack       : signal is "TRUE";
-  -- attribute dont_touch of txClkFreq : signal is "TRUE";
-  -- attribute dont_touch of rxClkFreq : signal is "TRUE";
-
 begin
 
    U_refClkFreq : entity surf.SyncClockFreq
@@ -179,6 +173,7 @@ begin
 
       -- Reset the flags
       v.rst         := '0';
+      v.locked      := '0';
       -- Reset the strobes
       v.rstRetryCnt := '0';
 
@@ -212,9 +207,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when RESET_S =>
-            -- Set the flags
+            -- Set the flag
             v.rst    := '1';
-            v.locked := '0';
             -- Check the counter
             if (r.rstcnt = r.rstlen) then
                -- Wait for the reset transition
@@ -230,8 +224,6 @@ begin
             end if;
          ----------------------------------------------------------------------
          when READ_S =>
-            -- Reset the flag
-            v.locked := '0';
             -- Wait for the reset transition and check state of master AXI-Lite
             if (resetDone = '1') and (ack.done = '0') then
                -- Start the master AXI-Lite transaction
@@ -267,7 +259,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when LOCKED_S =>
-            -- Set the flag (can now be reset only by an external resetIn/resetErr)
+            -- Set the flag
             v.locked := '1';
       ----------------------------------------------------------------------
       end case;
@@ -278,7 +270,7 @@ begin
       end if;
 
       -- Check for user reset
-      if (resetIn = '1') or (resetErr = '1') then
+      if (resetIn = '1') or (resetErr = '1' and resetDone = '1') then
          -- Setup flags for reset state
          v.rst         := '1';
          v.req.request := '0';
