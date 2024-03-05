@@ -20,7 +20,9 @@ class AxiSysMonUltraScale(pr.Device):
             **kwargs):
         super().__init__(description=description, **kwargs)
 
-        self.simpleViewList = simpleViewList
+        if simpleViewList is not None:
+            self.simpleViewList = simpleViewList[:]
+            self.simpleViewList.append('enable')
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
@@ -539,8 +541,8 @@ class AxiSysMonUltraScale(pr.Device):
         )
 
         # Default to simple view
-        self.simpleView()
-
+        if simpleViewList is not None:
+            self.simpleView()
 
     @staticmethod
     def convTempSYSMONE1(dev, var):
@@ -579,9 +581,8 @@ class AxiSysMonUltraScale(pr.Device):
         return round(var.dependencies[0].value() * 244e-6,3)
 
     def simpleView(self):
-        if self.simpleViewList is not None:
-            # Hide all the variable
-            self.hideVariables(hidden=True)
-            # Then unhide the most interesting ones
-            vars = self.simpleViewList
-            self.hideVariables(hidden=False, variables=vars)
+        # Hide all the variable
+        self.hideVariables(hidden=True)
+        # Then unhide the most interesting ones
+        vars = self.simpleViewList
+        self.hideVariables(hidden=False, variables=vars)

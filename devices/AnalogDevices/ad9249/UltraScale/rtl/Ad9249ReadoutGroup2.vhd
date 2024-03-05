@@ -410,7 +410,8 @@ begin
          SIM_DEVICE_G      => SIM_DEVICE_G,
          DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
          IDELAYCTRL_FREQ_G => 350.0,    -- Check this
-         ADC_INVERT_CH_G   => '0')
+         ADC_INVERT_CH_G   => '0',
+         BIT_REV_G         => '1')
       port map (
          dClk          => adcBitClk,
          dRst          => adcBitRst,
@@ -435,8 +436,9 @@ begin
             TPD_G             => TPD_G,
             SIM_DEVICE_G      => SIM_DEVICE_G,
             DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
-            IDELAYCTRL_FREQ_G => 350.0,                -- Check this
-            ADC_INVERT_CH_G   => ADC_INVERT_CH_G(ch))  -- Should maybe be '1'
+            IDELAYCTRL_FREQ_G => 350.0,  -- Check this
+            ADC_INVERT_CH_G   => ADC_INVERT_CH_G(ch),
+            BIT_REV_G         => '1')    -- Should maybe be '1'
          port map (
             dClk          => adcBitClk,
             dRst          => adcBitRst,
@@ -568,7 +570,7 @@ begin
       port map (
          rst    => adcBitRstDiv4,
          wr_clk => adcBitClkDiv4,
-         wr_en  => adcFrameValid,                 --Always write data
+         wr_en  => adcFrameValid,       --Always write data
          din    => fifoDataIn,
          rd_clk => axilClk,
          rd_en  => debugDataValid,

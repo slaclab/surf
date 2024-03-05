@@ -20,7 +20,8 @@ if { ${family} eq {artix7}  ||
    loadRuckusTcl "$::DIR_PATH/7Series"
 }
 
-if { ${family} eq {kintexu} } {
+if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale"
 }
 

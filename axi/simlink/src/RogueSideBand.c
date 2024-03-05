@@ -41,13 +41,13 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
 
    vhpi_printf("RogueSideBand: Listening on ports %i & %i\n",data->port, data->port+1);
 
-   sprintf(buffer,"tcp://*:%i",data->port+1);
+   sprintf(buffer,"tcp://127.0.0.1:%i",data->port+1);
    if ( zmq_bind(data->zmqPull,buffer) ) {
       vhpi_assert("RogueSideBand: Failed to bind sideband port",vhpiFatal);
       return;
    }
 
-   sprintf(buffer,"tcp://*:%i",data->port);
+   sprintf(buffer,"tcp://127.0.0.1:%i",data->port);
    if ( zmq_bind(data->zmqPush,buffer) ) {
       vhpi_assert("RogueSideBand: Failed to bind push port",vhpiFatal);
       return;

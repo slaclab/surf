@@ -38,7 +38,8 @@ entity Ad9249Deserializer is
       IDELAY_CASCADE_G  : boolean         := false;
       IDELAYCTRL_FREQ_G : real            := 300.0;
       DEFAULT_DELAY_G   : slv(8 downto 0) := (others => '0');
-      ADC_INVERT_CH_G   : sl              := '0');
+      ADC_INVERT_CH_G   : sl              := '0';
+      BIT_REV_G         : sl              := '0');
    port (
       -- Serial Data from ADC
       dClk          : in  sl;                -- Data clock
@@ -211,7 +212,7 @@ begin
          TPD_G                => TPD_G,
          SLAVE_WIDTH_G        => 8,
          MASTER_WIDTH_G       => 14,
-         MASTER_BIT_REVERSE_G => true
+         MASTER_BIT_REVERSE_G => toBoolean(BIT_REV_G)
          )
       port map (
          clk         => dClkDiv4,
