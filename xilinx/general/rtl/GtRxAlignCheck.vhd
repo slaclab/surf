@@ -193,10 +193,10 @@ begin
       axiSlaveRegister (axilEp, x"104", 0,  v.last);
       axiSlaveRegisterR(axilEp, x"108", 0,  txClkFreq);
       axiSlaveRegisterR(axilEp, x"10C", 0,  rxClkFreq);
-      axiSlaveRegisterR(axilEp, x"110", 0,  v.locked);
+      axiSlaveRegisterR(axilEp, x"110", 0,  r.locked);
       axiSlaveRegister (axilEp, x"114", 0,  v.override);
       axiSlaveRegister (axilEp, x"118", 0,  v.rstRetryCnt);
-      axiSlaveRegisterR(axilEp, x"11C", 0,  v.retryCnt);
+      axiSlaveRegisterR(axilEp, x"11C", 0,  r.retryCnt);
       axiSlaveRegisterR(axilEp, x"120", 0,  refClkFreq);
 
 
