@@ -34,6 +34,8 @@ entity Pgp2fcGtyCoreWrapper is
       AXI_CLK_FREQ_G      : real             := 125.0e6;
       AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0'));
    port (
+      -- Could use gtUserRefClk instead of stableClk
+      -- Then change stableRst to extRst
       stableClk      : in  sl;
       stableRst      : in  sl;
 
@@ -332,7 +334,7 @@ begin
          txpmaresetdone_out(0)                 => txPmaResetDone,
          txresetdone_out(0)                    => txResetDone);
 
-      TIMING_RECCLK_BUFG_GT : BUFG_GT
+      RXOUTCLK_BUFG_GT : BUFG_GT
          port map (
             I       => rxOutClkGt,
             CE      => '1',
@@ -342,8 +344,19 @@ begin
             DIV     => "000",
             O       => rxOutClkB);
 
+   -- Cant seem to use txoutclk to drive txusrclk without placement errors
       -- if one does not use the userRefClk for the txOutClk, placement errors occur
-      txOutClkB <= gtUserRefClk;
+      TXOUTCLK_BUFG_GT : BUFG_GT
+         port map (
+            I       => txOutClkGt,
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",
+            O       => txOutClkB);
+
+--      txOutClkB <= gtUserRefClk;
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
