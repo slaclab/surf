@@ -30,24 +30,24 @@ use UNISIM.VCOMPONENTS.all;
 
 entity Pgp2fcGtyUltra is
    generic (
-      TPD_G             : time                 := 1 ns;
-      SIMULATION_G      : boolean              := false;
-      ----------------------------------------------------------------------------------------------
+      TPD_G               : time                 := 1 ns;
+      SIMULATION_G        : boolean              := false;
+      -- GT Settings
+      SEL_FABRIC_REFCLK_G : boolean              := false;
       -- PGP Settings
-      ----------------------------------------------------------------------------------------------
-      FC_WORDS_G        : integer range 1 to 8 := 1;
-      TX_POLARITY_G     : sl                   := '0';
-      RX_POLARITY_G     : sl                   := '0';
-      AXI_CLK_FREQ_G    : real                 := 125.0e6;
-      AXI_BASE_ADDR_G   : slv(31 downto 0)     := (others => '0');
-      TX_ENABLE_G       : boolean              := true;
-      RX_ENABLE_G       : boolean              := true;
-      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
-      VC_INTERLEAVE_G   : integer              := 0;  -- Interleave Frames
-      NUM_VC_EN_G       : integer range 1 to 4 := 4);
+      FC_WORDS_G          : integer range 1 to 8 := 1;
+      TX_POLARITY_G       : sl                   := '0';
+      RX_POLARITY_G       : sl                   := '0';
+      AXI_CLK_FREQ_G      : real                 := 125.0e6;
+      AXI_BASE_ADDR_G     : slv(31 downto 0)     := (others => '0');
+      TX_ENABLE_G         : boolean              := true;
+      RX_ENABLE_G         : boolean              := true;
+      PAYLOAD_CNT_TOP_G   : integer              := 7;  -- Top bit for payload counter
+      VC_INTERLEAVE_G     : integer              := 0;  -- Interleave Frames
+      NUM_VC_EN_G         : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;                        -- GT needs a stable clock to "boot up"
       stableRst        : in  sl;
       gtRefClk         : in  sl;
       gtFabricRefClk   : in  sl;
@@ -61,13 +61,13 @@ entity Pgp2fcGtyUltra is
       -- Tx Clocking
       pgpTxReset       : in  sl;
       pgpTxResetDone   : out sl;
-      pgpTxOutClk      : out sl;                      -- recovered clock
+      pgpTxOutClk      : out sl;                        -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
       pgpRxResetDone   : out sl;
-      pgpRxOutClk      : out sl;                      -- recovered clock
+      pgpRxOutClk      : out sl;                        -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmLocked  : in  sl;
       -- Non VC Rx Signals
@@ -119,43 +119,43 @@ begin
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetGt,     -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => resetGtSync);        -- [out]
+         arst   => pgpTxIn.resetGt,                          -- [in]
+         clk    => stableClk,                                -- [in]
+         rstOut => resetGtSync);                             -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
 
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
-         PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
+         PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
       port map (
-         clk     => stableClk,          -- [in]
-         dataIn  => phyRxInit,          -- [in]
-         dataOut => phyRxInitSync);     -- [out]
+         clk     => stableClk,                                  -- [in]
+         dataIn  => phyRxInit,                                  -- [in]
+         dataOut => phyRxInitSync);                             -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpRxIn.resetRx,     -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => resetRxSync);        -- [out]
+         arst   => pgpRxIn.resetRx,                          -- [in]
+         clk    => stableClk,                                -- [in]
+         rstOut => resetRxSync);                             -- [out]
 
    gtRxUserReset <= phyRxInitSync or resetRxSync;
 
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 12500, 125000000)) -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetTx,     -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => gtTxUserReset);      -- [out]
+         arst   => pgpTxIn.resetTx,                          -- [in]
+         clk    => stableClk,                                -- [in]
+         rstOut => gtTxUserReset);                           -- [out]
 
    U_Pgp2fcLane : entity surf.Pgp2fcLane
       generic map (
@@ -190,9 +190,10 @@ begin
    --------------------------
    PgpGtyCoreWrapper_1 : entity surf.Pgp2fcGtyCoreWrapper
       generic map (
-         TPD_G           => TPD_G,
-         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G,
-         AXI_BASE_ADDR_G => AXI_BASE_ADDR_G)
+         TPD_G               => TPD_G,
+         SEL_FABRIC_REFCLK_G => SEL_FABRIC_REFCLK_G,
+         AXI_CLK_FREQ_G      => AXI_CLK_FREQ_G,
+         AXI_BASE_ADDR_G     => AXI_BASE_ADDR_G)
       port map (
          stableClk       => stableClk,
          stableRst       => gtHardReset,
