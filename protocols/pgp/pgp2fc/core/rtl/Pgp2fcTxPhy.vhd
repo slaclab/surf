@@ -321,7 +321,7 @@ begin
       end if;
    end process;
 
-   crcRst <= '1' when fcWordCount = FC_WORDS_G else '0';
+   crcRst <= '1' when fcWordCount = FC_WORDS_G or pgpTxClkRst = '1' else '0';
    crcEn  <= '1' when curState = ST_FC_C       else '0';
 
    U_Crc7 : entity surf.CRC7Rtl
