@@ -51,6 +51,8 @@ entity UdpEngineWrapper is
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
       localIp          : in  slv(31 downto 0);  --  big-Endian configuration
+      softMac          : out slv(47 downto 0);  --  big-Endian configuration
+      softIp           : out slv(31 downto 0);  --  big-Endian configuration
       -- Remote Configurations
       clientRemotePort : in  Slv16Array(CLIENT_SIZE_G-1 downto 0)           := (others => x"0000");
       clientRemoteIp   : in  Slv32Array(CLIENT_SIZE_G-1 downto 0)           := (others => x"00000000");
@@ -82,6 +84,8 @@ end UdpEngineWrapper;
 architecture rtl of UdpEngineWrapper is
 
    type RegType is record
+      softMac          : slv(47 downto 0);
+      softIp           : slv(31 downto 0);
       broadcastIp      : slv(31 downto 0);
       igmpIp           : Slv32Array(IGMP_GRP_SIZE-1 downto 0);
       clientRemotePort : Slv16Array(CLIENT_SIZE_G-1 downto 0);
@@ -91,6 +95,8 @@ architecture rtl of UdpEngineWrapper is
    end record;
 
    constant REG_INIT_C : RegType := (
+      softMac          => (others => '0'),
+      softIp           => (others => '0'),
       broadcastIp      => (others => '0'),
       igmpIp           => IGMP_INIT_G,
       clientRemotePort => (others => (others => '0')),
@@ -240,12 +246,20 @@ begin
       for i in IGMP_GRP_SIZE-1 downto 0 loop
          axiSlaveRegister(regCon, toSlv((4*i)+4048, 12), 0, v.igmpIp(i));  --  big-Endian configuration
       end loop;
+      axiSlaveRegister (regCon, x"FE4", 0, v.softIp);
+      axiSlaveRegister (regCon, x"FE8", 0, v.softMac);
       axiSlaveRegister (regCon, x"FF0", 0, v.broadcastIp);
       axiSlaveRegisterR(regCon, x"FF4", 0, dhcpIp);
       axiSlaveRegisterR(regCon, x"FF8", 0, localMac);
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      -- Outputs
+      axilWriteSlave <= r.axilWriteSlave;
+      axilReadSlave  <= r.axilReadSlave;
+      softIp         <= r.softIp;
+      softMac        <= r.softMac;
 
       -- Synchronous Reset
       if (rst = '1') then
@@ -260,10 +274,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      axilWriteSlave <= r.axilWriteSlave;
-      axilReadSlave  <= r.axilReadSlave;
 
    end process comb;
 

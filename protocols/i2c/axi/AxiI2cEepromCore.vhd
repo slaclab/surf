@@ -36,13 +36,13 @@ use surf.I2cPkg.all;
 
 entity AxiI2cEepromCore is
    generic (
-      TPD_G            : time            := 1 ns;
-      ADDR_WIDTH_G     : positive        := 16;
-      POLL_TIMEOUT_G   : positive        := 16;
-      I2C_ADDR_G       : slv(6 downto 0) := "1010000";
-      I2C_SCL_FREQ_G   : real            := 100.0E+3;   -- units of Hz
-      I2C_MIN_PULSE_G  : real            := 100.0E-9;   -- units of seconds
-      AXI_CLK_FREQ_G   : real            := 156.25E+6);  -- units of Hz
+      TPD_G           : time            := 1 ns;
+      ADDR_WIDTH_G    : positive        := 16;
+      POLL_TIMEOUT_G  : positive        := 16;
+      I2C_ADDR_G      : slv(6 downto 0) := "1010000";
+      I2C_SCL_FREQ_G  : real            := 100.0E+3;    -- units of Hz
+      I2C_MIN_PULSE_G : real            := 100.0E-9;    -- units of seconds
+      AXI_CLK_FREQ_G  : real            := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
       i2ci            : in  i2c_in_type;
@@ -82,7 +82,8 @@ architecture rtl of AxiI2cEepromCore is
       regReq      => '0',
       busReq      => '0',
       endianness  => '1',               -- Big endian
-      repeatStart => '0');
+      repeatStart => '0',
+      wrDataOnRd  => '0');
 
    type StateType is (
       IDLE_S,
