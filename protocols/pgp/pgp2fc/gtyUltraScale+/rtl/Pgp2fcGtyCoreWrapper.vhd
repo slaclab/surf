@@ -346,15 +346,15 @@ begin
 
    -- Cant seem to use txoutclk to drive txusrclk without placement errors
       -- if one does not use the userRefClk for the txOutClk, placement errors occur
-      TXOUTCLK_BUFG_GT : BUFG_GT
-         port map (
-            I       => txOutClkGt,
-            CE      => '1',
-            CEMASK  => '1',
-            CLR     => '0',
-            CLRMASK => '1',
-            DIV     => "000",
-            O       => txOutClkB);
+--       TXOUTCLK_BUFG_GT : BUFG_GT
+--          port map (
+--             I       => txOutClkGt,
+--             CE      => '1',
+--             CEMASK  => '1',
+--             CLR     => '0',
+--             CLRMASK => '1',
+--             DIV     => "000",
+--             O       => txOutClkB);
 
 --      txOutClkB <= gtUserRefClk;
 
