@@ -47,6 +47,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  16,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -55,6 +56,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  16,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -63,6 +65,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -71,6 +74,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  8,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -79,6 +83,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -87,6 +92,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  24,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -95,6 +101,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -103,6 +110,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  8,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -111,6 +119,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -119,6 +128,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  24,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         for i in range(6):
@@ -128,6 +138,7 @@ class AxiPciePhy(pr.Device):
                 bitSize      =  32,
                 bitOffset    =  0,
                 mode         = 'RO',
+                hidden       = (i!=0),
             ))
 
         self.add(pr.RemoteVariable(
@@ -136,6 +147,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -160,6 +172,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -168,6 +181,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -176,6 +190,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -184,6 +199,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  8,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -192,6 +208,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -200,6 +217,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  24,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.addRemoteVariables(
