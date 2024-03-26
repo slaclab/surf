@@ -456,7 +456,7 @@ begin
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtUserRefClk,
+      port map (clk      => rxUsrClk,
                 asyncRst => rstSyncRxIn,
                 syncRst  => buffBypassRxReset);
 
