@@ -356,7 +356,7 @@ begin
 --             DIV     => "000",
 --             O       => txOutClkB);
 
---      txOutClkB <= gtUserRefClk;
+      txOutClkB <= gtUserRefClk;
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
@@ -442,8 +442,9 @@ begin
 
    cPllRefClkSel     <= ite(SEL_FABRIC_REFCLK_G, "111", "001");
 
-   rstSyncRxIn       <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
-   rxResetGt         <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
+   rstSyncRxIn       <= rxResetAlignCheck or rxReset;
+   rxResetGt         <= rxResetAlignCheck or rxReset;
+
 
    txOutClk          <= txOutClkB;
    rxOutClk          <= rxOutClkB;
