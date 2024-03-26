@@ -356,7 +356,7 @@ begin
 --             DIV     => "000",
 --             O       => txOutClkB);
 
---      txOutClkB <= gtUserRefClk;
+      txOutClkB <= gtUserRefClk;
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
