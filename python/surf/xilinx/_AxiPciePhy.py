@@ -274,13 +274,13 @@ class AxiPciePhy(pr.Device):
             offset = self.DevSpecRegion[(self.CapabilitiesPointer.value()-0x40) + 1].get()
 
             # Capabilities Express Endpoint offset
-            linkStatus = self.DevSpecRegion[(offset-0x40) + 0x12].get()
-            linkCap    = self.DevSpecRegion[(offset-0x40) + 0x0C].get()
+            linkStatus = self.DevSpecRegion[(offset-0x40) + 0x12].get() | (self.DevSpecRegion[(offset-0x40) + 0x13].get() << 8)
+            linkCap    = self.DevSpecRegion[(offset-0x40) + 0x0C].get() | (self.DevSpecRegion[(offset-0x40) + 0x0D].get() << 8)
 
             # Set the link speed and width status
             self.LnkStaSpeed.set( (linkStatus>>0) & 0xF )
-            self.LnkStaWidth.set( (linkStatus>>4) & 0xF )
+            self.LnkStaWidth.set( (linkStatus>>4) & 0xFF )
 
             # Set the link speed and width status
             self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
-            self.LnkCapWidth.set( (linkCap>>4) & 0xF )
+            self.LnkCapWidth.set( (linkCap>>4) & 0xFF )
