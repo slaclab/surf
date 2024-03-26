@@ -116,7 +116,8 @@ architecture rtl of AxiLitePMbusMasterCore is
       regReq      => '0',
       busReq      => '0',
       endianness  => '0',               -- Little endian
-      repeatStart => '1');
+      repeatStart => '1',
+      wrDataOnRd  => '0');
 
    type StateType is (
       IDLE_S,
@@ -236,9 +237,9 @@ begin
 
                      -- Read back I2C configuration
                      if axilWriteMaster.awaddr(7 downto 0) = x"00" then
-                        v.regIn.i2cAddr     := axilWriteMaster.wData(9 downto 0);
-                        v.regIn.tenbit      := axilWriteMaster.wData(10);
-                        v.ignoreResp        := axilWriteMaster.wData(11);
+                        v.regIn.i2cAddr := axilWriteMaster.wData(9 downto 0);
+                        v.regIn.tenbit  := axilWriteMaster.wData(10);
+                        v.ignoreResp    := axilWriteMaster.wData(11);
                      end if;
 
                      -- Send AXI-Lite response
