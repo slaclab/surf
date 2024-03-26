@@ -202,86 +202,85 @@ class AxiPciePhy(pr.Device):
             mode         = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'Gen2Capable',
-            description  = 'If set, underlying integrated block supports PCIe Gen2 speed.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  0,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'Gen3Capable',
-            description  = 'If set, underlying integrated block supports PCIe Gen3 speed.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  3,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'RootPortPresent',
-            description  = 'Indicates the underlying integrated block is a Root Port when this bit is set. If set, Root Port registers are present in this interface.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  1,
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'UpConfigCapable',
-            description  = 'Indicates the underlying integrated block is upconfig capable when this bit is set.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  2,
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LnkStaSpeed',
-            offset       =  0x70 + 0x12,
-            bitSize      =  4,
-            bitOffset    =  0,
-            mode         = 'RO',
-            units        = 'GT/s',
-            enum = {
-                0: 'UNDEFINED',
-                1: '2.5',
-                2: '5',
-                3: '8',
-                4: '16',
-                5: '32',
-                6: '64',
-            }
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LnkStaWidth',
-            offset       =  0x70 + 0x12,
+        self.addRemoteVariables(
+            name         = "DevSpecRegion",
+            description  = "The memory range from offset 0x40 to 0xFF in the PCI configuration header is referred to as the 'Device Specific Region'. This area is reserved for use by the device vendor and can contain any vendor-specific configuration or control registers.",
+            offset       =  0x40,
             bitSize      =  8,
-            bitOffset    =  4,
+            bitOffset    =  0,
+            base         = pr.UInt,
+            mode         = "RO",
+            number       =  192,
+            stride       =  1,
+            hidden       =  True,
+        )
+
+        self.add(pr.LinkVariable(
+            name         = 'LinkStatus',
             mode         = 'RO',
-            units        = 'lanes',
-            disp         = '{:d}',
+            linkedGet    = self.updateLinkStatus,
+            dependencies = [self.CapabilitiesPointer],
+            hidden       =  True,
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'LnkCapSpeed',
-            offset       =  0x70 + 0x30,
-            bitSize      =  4,
-            bitOffset    =  0,
-            mode         = 'RO',
-            units        = 'GT/s',
-            enum = {
-                0: 'UNDEFINED',
-                1: '2.5',
-                2: '5',
-                3: '8',
-                4: '16',
-                5: '32',
-                6: '64',
-            }
+        speedEnum = {
+            0: 'UNDEFINED',
+            1: '2.5',
+            2: '5',
+            3: '8',
+            4: '16',
+            5: '32',
+            6: '64',
+            7: '128',
+        }
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkStaSpeed',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'GT/s',
+            enum   = speedEnum
         ))
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkStaWidth',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'lanes',
+            disp   = '{:d}',
+        ))
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkCapSpeed',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'GT/s',
+            enum   = speedEnum
+        ))
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkCapWidth',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'lanes',
+            disp   = '{:d}',
+        ))
+
+    def updateLinkStatus(self):
+        # Check if value points to the Device Specific Region
+        if (self.CapabilitiesPointer.value() >= 0x40):
+
+            # Go to the Capabilities Pointer offset and get the Capabilities Express Endpoint offset
+            offset = self.DevSpecRegion[self.CapabilitiesPointer.value()-0x40+1].get()
+
+            # Capabilities Express Endpoint offset
+            linkStatus = self.DevSpecRegion[offset-0x40+ 0x12].get()
+            linkCap    = self.DevSpecRegion[offset-0x40+ 0x0C].get()
+
+            # Set the link speed and width status
+            self.LnkStaSpeed.set( (linkStatus>>0) & 0xF )
+            self.LnkStaWidth.set( (linkStatus>>4) & 0xF )
+
+            # Set the link speed and width status
+            self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
+            self.LnkCapWidth.set( (linkCap>>4) & 0xF )
