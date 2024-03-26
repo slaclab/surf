@@ -253,22 +253,6 @@ class AxiPciePhy(pr.Device):
         }
 
         self.add(pr.LocalVariable(
-            name   = 'LnkStaSpeed',
-            mode   = 'RO',
-            value  = 0,
-            units  = 'GT/s',
-            enum   = speedEnum
-        ))
-
-        self.add(pr.LocalVariable(
-            name   = 'LnkStaWidth',
-            mode   = 'RO',
-            value  = 0,
-            units  = 'lanes',
-            disp   = '{:d}',
-        ))
-
-        self.add(pr.LocalVariable(
             name   = 'LnkCapSpeed',
             mode   = 'RO',
             value  = 0,
@@ -284,6 +268,22 @@ class AxiPciePhy(pr.Device):
             disp   = '{:d}',
         ))
 
+        self.add(pr.LocalVariable(
+            name   = 'LnkStaSpeed',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'GT/s',
+            enum   = speedEnum
+        ))
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkStaWidth',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'lanes',
+            disp   = '{:d}',
+        ))
+
     def updateLinkStatus(self):
         # Check if value points to the Device Specific Region
         if (self.CapabilitiesPointer.value() >= 0x40):
@@ -292,13 +292,13 @@ class AxiPciePhy(pr.Device):
             offset = self.DevSpecRegion[(self.CapabilitiesPointer.value()-0x40) + 1].get()
 
             # Capabilities Express Endpoint offset
-            linkStatus = self.DevSpecRegion[(offset-0x40) + 0x12].get() | (self.DevSpecRegion[(offset-0x40) + 0x13].get() << 8)
             linkCap    = self.DevSpecRegion[(offset-0x40) + 0x0C].get() | (self.DevSpecRegion[(offset-0x40) + 0x0D].get() << 8)
+            linkStatus = self.DevSpecRegion[(offset-0x40) + 0x12].get() | (self.DevSpecRegion[(offset-0x40) + 0x13].get() << 8)
+
+            # Set the link speed and width capabilities
+            self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
+            self.LnkCapWidth.set( (linkCap>>4) & 0xFF )
 
             # Set the link speed and width status
             self.LnkStaSpeed.set( (linkStatus>>0) & 0xF )
             self.LnkStaWidth.set( (linkStatus>>4) & 0xFF )
-
-            # Set the link speed and width status
-            self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
-            self.LnkCapWidth.set( (linkCap>>4) & 0xFF )
