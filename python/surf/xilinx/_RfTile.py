@@ -59,7 +59,7 @@ class RfTile(pr.Device):
             name         = 'RestartStateEnd',
             description  = 'End state for power-on sequence',
             offset       =  0x0008,
-            bitSize      =  8,
+            bitSize      =  4,
             bitOffset    =  0,
             mode         = 'RW',
             enum         = powerOnSequenceSteps,
@@ -69,7 +69,7 @@ class RfTile(pr.Device):
             name         = 'RestartStateStart',
             description  = 'Start state for power-on sequence',
             offset       =  0x0008,
-            bitSize      =  8,
+            bitSize      =  4,
             bitOffset    =  8,
             mode         = 'RW',
             enum         = powerOnSequenceSteps,
@@ -79,7 +79,7 @@ class RfTile(pr.Device):
             name         = 'CurrentState',
             description  = 'Current state register',
             offset       =  0x000C,
-            bitSize      =  8,
+            bitSize      =  4,
             bitOffset    =  0,
             mode         = 'RO',
             pollInterval = 1,
@@ -196,14 +196,13 @@ class RfTile(pr.Device):
             hidden       = True,
         ))
 
-        if gen3:
-            prefix = 'adc' if isAdc else 'dac'
+        prefix = 'adc' if isAdc else 'dac'
 
-            for i in range(4):
-                self.add(xil.RfBlock(
-                    name      = f'{prefix}Block[{i}]',
-                    isAdc     = isAdc,
-                    RestartSM = self.RestartSM,
-                    offset    = 0x2000 + 0x400*i,
-                    expand    = False,
-                ))
+        for i in range(4):
+            self.add(xil.RfBlock(
+                name      = f'{prefix}Block[{i}]',
+                isAdc     = isAdc,
+                RestartSM = self.RestartSM,
+                offset    = 0x2000 + 0x400*i,
+                expand    = False,
+            ))

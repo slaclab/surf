@@ -43,6 +43,10 @@ entity AxiStreamMux is
       TID_MODE_G           : string                  := "PASSTHROUGH";
       -- In ROUTED mode, an array mapping how TID should be assigned for each slave port
       TID_ROUTES_G         : Slv8Array               := (0 => "--------");
+      -- Assign a priority for each input stream index.
+      -- Higher priority streams will be selected over those with lower priority of both are active.
+      -- Format is (index => priority)
+      -- Leave unchanged for equal priority round-robbin
       PRIORITY_G           : IntegerArray            := (0 => 0);
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G          : integer range 0 to 7    := 0;

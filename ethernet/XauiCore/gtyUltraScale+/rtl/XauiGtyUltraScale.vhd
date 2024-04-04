@@ -28,6 +28,7 @@ use unisim.vcomponents.all;
 entity XauiGtyUltraScale is
    generic (
       TPD_G          : time                := 1 ns;
+      JUMBO_G        : boolean             := true;
       PAUSE_EN_G     : boolean             := true;
       -- XAUI Configurations
       REF_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
@@ -202,6 +203,7 @@ begin
    U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G             => TPD_G,
+         JUMBO_G           => JUMBO_G,
          PAUSE_EN_G        => PAUSE_EN_G,
          FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
          SYNTH_MODE_G      => "xpm",

@@ -212,8 +212,10 @@ begin
 
                   -- Set the flags
                   v.tValid   := '1';
-                  v.tLast    := r.tLastDly;
-                  v.tLastDly := '0';
+                  if (v.writeIndex <= MST_BYTES_C) then
+                     v.tLast    := r.tLastDly;
+                     v.tLastDly := '0';
+                  end if;
 
                end if;
 
@@ -265,7 +267,7 @@ begin
             end if;
 
             -- Increment writeIndex
-            v.writeIndex := v.writeIndex + SLV_BYTES_C;
+            v.writeIndex := v.writeIndex + getTKeep(resize(sAxisMaster.tKeep(1*SLV_BYTES_C-1 downto 0), AXI_STREAM_MAX_TKEEP_WIDTH_C), SLAVE_AXI_CONFIG_G);
 
             -- Assert tValid
             if (v.writeIndex >= MST_BYTES_C) or (sAxisMaster.tLast = '1') then

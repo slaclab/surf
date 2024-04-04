@@ -18,7 +18,7 @@ from cocotb.regression import TestFactory
 
 from cocotbext.axi import AxiStreamFrame, AxiStreamBus, AxiStreamSource, AxiStreamSink
 
-# test_AxiStreamFifoV2IpIntegrator
+# test_AxiStreamDemuxMuxTb
 from cocotb_test.simulator import run
 import pytest
 import glob
@@ -33,25 +33,22 @@ class TB:
         self.log = logging.getLogger("cocotb.tb")
         self.log.setLevel(logging.DEBUG)
 
-        # Start S_AXIS_ACLK clock (200 MHz) in a separate thread
-        cocotb.start_soon(Clock(dut.S_AXIS_ACLK, 5.0, units='ns').start())
-
-        # Start M_AXIS_ACLK clock (200 MHz) in a separate thread
-        cocotb.start_soon(Clock(dut.M_AXIS_ACLK, 5.0, units='ns').start())
+        # Start AXIS_ACLK clock (200 MHz) in a separate thread
+        cocotb.start_soon(Clock(dut.AXIS_ACLK, 5.0, units='ns').start())
 
         # Setup the AXI stream source
         self.source = AxiStreamSource(
             bus   = AxiStreamBus.from_prefix(dut, "S_AXIS"),
-            clock = dut.S_AXIS_ACLK,
-            reset = dut.S_AXIS_ARESETN,
+            clock = dut.AXIS_ACLK,
+            reset = dut.AXIS_ARESETN,
             reset_active_level = False,
         )
 
         # Setup the AXI stream sink
         self.sink = AxiStreamSink(
             bus   = AxiStreamBus.from_prefix(dut, "M_AXIS"),
-            clock = dut.M_AXIS_ACLK,
-            reset = dut.M_AXIS_ARESETN,
+            clock = dut.AXIS_ACLK,
+            reset = dut.AXIS_ARESETN,
             reset_active_level = False,
         )
 
@@ -63,33 +60,18 @@ class TB:
         if generator:
             self.sink.set_pause_generator(generator())
 
-    async def s_cycle_reset(self):
-        self.dut.S_AXIS_ARESETN.setimmediatevalue(0)
-        await RisingEdge(self.dut.S_AXIS_ACLK)
-        await RisingEdge(self.dut.S_AXIS_ACLK)
-        self.dut.S_AXIS_ARESETN.value = 0
-        await RisingEdge(self.dut.S_AXIS_ACLK)
-        await RisingEdge(self.dut.S_AXIS_ACLK)
-        self.dut.S_AXIS_ARESETN.value = 1
-        await RisingEdge(self.dut.S_AXIS_ACLK)
-        await RisingEdge(self.dut.S_AXIS_ACLK)
-
-    async def m_cycle_reset(self):
-        self.dut.M_AXIS_ARESETN.setimmediatevalue(0)
-        await RisingEdge(self.dut.M_AXIS_ACLK)
-        await RisingEdge(self.dut.M_AXIS_ACLK)
-        self.dut.M_AXIS_ARESETN.value = 0
-        await RisingEdge(self.dut.M_AXIS_ACLK)
-        await RisingEdge(self.dut.M_AXIS_ACLK)
-        self.dut.M_AXIS_ARESETN.value = 1
-        await RisingEdge(self.dut.M_AXIS_ACLK)
-        await RisingEdge(self.dut.M_AXIS_ACLK)
+    async def cycle_reset(self):
+        self.dut.AXIS_ARESETN.setimmediatevalue(0)
+        await RisingEdge(self.dut.AXIS_ACLK)
+        await RisingEdge(self.dut.AXIS_ACLK)
+        self.dut.AXIS_ARESETN.value = 0
+        await RisingEdge(self.dut.AXIS_ACLK)
+        await RisingEdge(self.dut.AXIS_ACLK)
+        self.dut.AXIS_ARESETN.value = 1
+        await RisingEdge(self.dut.AXIS_ACLK)
+        await RisingEdge(self.dut.AXIS_ACLK)
 
 async def run_test(dut, payload_lengths=None, payload_data=None, idle_inserter=None, backpressure_inserter=None):
-
-    # Debug messages in case it fails
-    dut._log.info( f'Found M_TDATA_NUM_BYTES={dut.M_TDATA_NUM_BYTES.value.integer}' )
-    dut._log.info( f'Found S_TDATA_NUM_BYTES={dut.S_TDATA_NUM_BYTES.value.integer}' )
 
     tb = TB(dut)
 
@@ -97,8 +79,7 @@ async def run_test(dut, payload_lengths=None, payload_data=None, idle_inserter=N
 
     cur_id = 1
 
-    await tb.s_cycle_reset()
-    await tb.m_cycle_reset()
+    await tb.cycle_reset()
 
     tb.set_idle_generator(idle_inserter)
     tb.set_backpressure_generator(backpressure_inserter)
@@ -143,23 +124,16 @@ if cocotb.SIM_NAME:
     factory.generate_tests()
 
 tests_dir = os.path.dirname(__file__)
-tests_module = 'AxiStreamFifoV2IpIntegrator'
+tests_module = 'AxiStreamDemuxMuxTb'
 
 ##############################################################################
 
-paramSweep = []
-for sTdataByte in ['2','5','6']:
-    for mTdataByte in ['2','5','6']:
-        tmpDict = {
-          "M_TDATA_NUM_BYTES": mTdataByte,
-          "S_TDATA_NUM_BYTES": sTdataByte,
-        }
-        paramSweep.append(tmpDict)
-
-##############################################################################
-
-@pytest.mark.parametrize("parameters", paramSweep)
-def test_AxiStreamFifoV2IpIntegrator(parameters):
+@pytest.mark.parametrize(
+    "parameters", [
+        {'MUX_STREAMS_G': '2', 'PIPE_STAGES_G': '0'},
+        {'MUX_STREAMS_G': '3', 'PIPE_STAGES_G': '1'},
+    ])
+def test_AxiStreamDemuxMuxTb(parameters):
 
     # https://github.com/themperek/cocotb-test#arguments-for-simulatorrun
     # https://github.com/themperek/cocotb-test/blob/master/cocotb_test/simulator.py

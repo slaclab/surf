@@ -221,7 +221,7 @@ def test_LineCode12b14bTb(parameters):
         parameters = parameters,
 
         # The directory used to compile the tests. (default: sim_build)
-        sim_build = f'{tests_dir}/sim_build/{tests_module}.',
+        sim_build = f'{tests_dir}/sim_build/{tests_module}',
 
         # A dictionary of extra environment variables set in simulator process.
         extra_env=parameters,
@@ -233,6 +233,8 @@ def test_LineCode12b14bTb(parameters):
         # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
         vhdl_compile_args = ['-fsynopsys', '-fexplicit'],
 
-        # Dump waveform to file ($ gtkwave sim_build/LineCode12b14bTb./LineCode12b14bTb.vcd)
-        sim_args =[f'--vcd={tests_module}.vcd'],
+        ########################################################################
+        # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
+        ########################################################################
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )

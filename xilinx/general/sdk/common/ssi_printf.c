@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +32,7 @@ void ssi_putc ( void* p, char c) {
       pp->tmp = 0;
       pp->tmpCnt = 0;
    }
-   
+
    // Dual port ram buffer if enabled
    if ( pp->buffSize > 0 ) {
       //Xil_Out8(pp->buffBase+4+pp->buffPtr, c);
@@ -44,17 +44,17 @@ void ssi_putc ( void* p, char c) {
 
       // Adjust pointer
       pp->buffPtr++;
-      if ( pp->buffPtr == (pp->buffSize-4) ) 
+      if ( pp->buffPtr == (pp->buffSize-4) )
          pp->buffPtr = 0;
 
       // Adjust total
-      if ( pp->buffTot < (pp->buffSize-4) ) 
+      if ( pp->buffTot < (pp->buffSize-4) )
          pp->buffTot++;
 
       // Update tracking
       Xil_Out32(pp->buffBase, pp->buffTot << 16 | pp->buffPtr);
    }
-   
+
 }
 
 void ssi_printf_init(uint32_t buffBase, uint16_t buffSize) {

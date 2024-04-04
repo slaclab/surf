@@ -161,4 +161,9 @@ def test_DspComparator(parameters):
 
         # Select a simulator
         simulator="ghdl",
+
+        ########################################################################
+        # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
+        ########################################################################
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )
