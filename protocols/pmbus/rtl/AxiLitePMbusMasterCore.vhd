@@ -116,8 +116,7 @@ architecture rtl of AxiLitePMbusMasterCore is
       regReq      => '0',
       busReq      => '0',
       endianness  => '0',               -- Little endian
-      repeatStart => '1',
-      wrDataOnRd  => '0');
+      repeatStart => '1');
 
    type StateType is (
       IDLE_S,

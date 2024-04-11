@@ -84,8 +84,7 @@ architecture rtl of Si5394I2cCore is
       regReq      => '0',
       busReq      => '0',
       endianness  => '0',
-      repeatStart => '0',
-      wrDataOnRd  => '0');
+      repeatStart => '0');
 
    type StateType is (
       POR_WAIT_S,
