@@ -313,7 +313,12 @@ begin
                -- Start output when a block or end of frame is available
                elsif fifoValidLast = '1' or (VALID_THOLD_G /= 0 and fifoRdCount >= VALID_THOLD_G) then
                   fifoInFrame <= '1' after TPD_G;
+
+               -- Prevent the FIFO from locking up when frame deeper than what the U_Fifo can hold
+               elsif (fifoAFull = '1') then
+                  fifoInFrame <= '1' after TPD_G;
                end if;
+
             end if;
          end process;
 
