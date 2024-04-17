@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : I2cRegMasterMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-21
--- Last update: 2018-06-27
 -------------------------------------------------------------------------------
 -- Description: Multiplexes access to a single I2cRegMaster module
 -- Attached devices may also lock others out in order to execute multiple
@@ -10,11 +7,11 @@
 -- transaction and set low for the last transaction.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,8 +20,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.I2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.I2cPkg.all;
 
 entity I2cRegMasterMux is
    generic (

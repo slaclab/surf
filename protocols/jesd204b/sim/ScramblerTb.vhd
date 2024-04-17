@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : ScramblerTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-07-06
--- Last update: 2017-07-06
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing JESD Scramblers
 ------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 Common Carrier Core'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 Common Carrier Core', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 Common Carrier Core', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
@@ -20,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity ScramblerTb is
 end entity;
@@ -50,7 +49,7 @@ architecture testbed of ScramblerTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -85,7 +84,7 @@ begin
       end if;
    end process;
 
-   U_Sync : entity work.jesdLmfcGen
+   U_Sync : entity surf.jesdLmfcGen
       generic map (
          TPD_G => TPD_C,
          K_G   => 256,
@@ -97,7 +96,7 @@ begin
          sysref_i => '0',
          lmfc_o   => sync);
 
-   U_LmfcGen : entity work.jesdLmfcGen
+   U_LmfcGen : entity surf.jesdLmfcGen
       generic map (
          TPD_G => TPD_C,
          F_G   => 2,
@@ -110,7 +109,7 @@ begin
          sysrefRe_o => sysref,
          lmfc_o     => lmfc);
 
-   U_TX : entity work.JesdTxLane
+   U_TX : entity surf.JesdTxLane
       generic map (
          TPD_G => TPD_C,
          F_G   => 2,
@@ -136,7 +135,7 @@ begin
    rxGt.rstDone   <= '1';
    rxGt.cdrStable <= '1';
 
-   U_RX : entity work.JesdRxLane
+   U_RX : entity surf.JesdRxLane
       generic map (
          TPD_G => TPD_C,
          F_G   => 2,

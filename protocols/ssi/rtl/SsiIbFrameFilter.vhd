@@ -1,20 +1,20 @@
 -------------------------------------------------------------------------------
--- File       : SsiIbFrameFilter.vhd
--- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2017-06-01
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- Description:   This module is used to filter out bad SSI frames.
---
--- Note: If EN_FRAME_FILTER_G = true, then this module DOES NOT support 
---       interleaving of channels during the middle of a frame transfer.
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: Inbound AXI Stream FIFO SSI Filter ....
+--              Tags frames with EOFE on double SOFs
+--              Drops frames that are missing SOF frame marker
+--              Tags frames with EOFE on change in TDEST during move
+--              Generates the overflow FIFO signal for user logic
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,24 +23,25 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiIbFrameFilter is
    generic (
-      TPD_G             : time                := 1 ns;
-      SLAVE_READY_EN_G  : boolean             := true;
-      EN_FRAME_FILTER_G : boolean             := true;
-      AXIS_CONFIG_G     : AxiStreamConfigType := ssiAxiStreamConfig(16));
+      TPD_G            : time    := 1 ns;
+      RST_ASYNC_G      : boolean := false;
+      SLAVE_READY_EN_G : boolean := true;
+      AXIS_CONFIG_G    : AxiStreamConfigType);
    port (
-      -- Slave Port
+      -- Slave Interface (User Application Interface)
       sAxisMaster    : in  AxiStreamMasterType;
       sAxisSlave     : out AxiStreamSlaveType;
       sAxisCtrl      : out AxiStreamCtrlType;
-      sAxisDropWrite : out sl;          -- Word dropped status output
-      sAxisTermFrame : out sl;          -- Frame dropped status output
-      -- Master Port (AXIS FIFO Write Interface)
+      sAxisDropWord  : out sl;          -- Word dropped status output
+      sAxisDropFrame : out sl;          -- Frame dropped status output
+      -- Master Interface (AXIS FIFO Write Interface)
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
       mAxisCtrl      : in  AxiStreamCtrlType;
@@ -51,174 +52,262 @@ end SsiIbFrameFilter;
 
 architecture rtl of SsiIbFrameFilter is
 
+   constant SLAVE_INIT_C : AxiStreamSlaveType := ite(SLAVE_READY_EN_G, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_SLAVE_FORCE_C);
+
+   constant CHECK_TDEST_C : boolean := AXIS_CONFIG_G.TDEST_BITS_C > 0;
+   constant TDEST_BITS_C  : natural := ite(CHECK_TDEST_C, AXIS_CONFIG_G.TDEST_BITS_C, 1);
+
    type StateType is (
-      INIT_S,
       IDLE_S,
       BLOWOFF_S,
-      MOVE_S);
+      MOVE_S,
+      INSERT_EOFE_S);
 
    type RegType is record
+      overflow     : sl;
       wordDropped  : sl;
       frameDropped : sl;
-      tDest        : slv(7 downto 0);
+      tDest        : slv(TDEST_BITS_C-1 downto 0);
       master       : AxiStreamMasterType;
       slave        : AxiStreamSlaveType;
       state        : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      overflow     => '0',
       wordDropped  => '0',
       frameDropped => '0',
-      tDest        => x"00",
+      tDest        => (others => '0'),
       master       => AXI_STREAM_MASTER_INIT_C,
-      slave        => AXI_STREAM_SLAVE_INIT_C,
-      state        => INIT_S);
+      slave        => SLAVE_INIT_C,
+      state        => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   assert (AXIS_CONFIG_G.TUSER_BITS_C >= 2) report "SsiIbFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
+--   assert (AXIS_CONFIG_G.TDEST_INTERLEAVE_C = false)
+--      report "SsiIbFrameFilter does NOT support interleaved TDEST" severity failure;
 
-   sAxisCtrl <= mAxisCtrl;
+   assert (AXIS_CONFIG_G.TUSER_BITS_C >= 2)
+      report "SsiIbFrameFilter:  AXIS_CONFIG_G.TUSER_BITS_C must be >= 2" severity failure;
 
-   NO_FILTER : if (EN_FRAME_FILTER_G = false) generate
+   comb : process (axisRst, mAxisCtrl, mAxisSlave, r, sAxisMaster) is
+      variable v   : RegType;
+      variable sof : sl;
+   begin
+      -- Latch the current value
+      v := r;
 
-      mAxisMaster <= sAxisMaster;
-      sAxisSlave  <= mAxisSlave;
+      -- Reset strobe Signals
+      v.overflow     := '0';
+      v.wordDropped  := '0';
+      v.frameDropped := '0';
 
-      sAxisDropWrite <= '0';
-      sAxisTermFrame <= '0';
+      -- Flow Control Signals
+      v.slave := SLAVE_INIT_C;
+      if (mAxisSlave.tReady = '1') then
+         v.master.tValid := '0';
+      end if;
 
-   end generate;
+      -- Get the SOF status
+      sof := ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster);
 
-   ADD_FILTER : if (EN_FRAME_FILTER_G = true) generate
+      -- State Machine
+      case (r.state) is
+         ----------------------------------------------------------------------
+         when IDLE_S =>
+            -- Check for new inbound data
+            if (sAxisMaster.tValid = '1') then
 
-      comb : process (axisRst, mAxisCtrl, mAxisSlave, r, sAxisMaster) is
-         variable v   : RegType;
-         variable sof : sl;
-      begin
-         -- Latch the current value
-         v := r;
+               -- Check for overflow
+               if (v.master.tValid = '1') and not(SLAVE_READY_EN_G) then
 
-         -- Reset strobe Signals
-         v.wordDropped  := '0';
-         v.frameDropped := '0';
-         v.slave        := AXI_STREAM_SLAVE_INIT_C;
-         if (mAxisSlave.tReady = '1') or (SLAVE_READY_EN_G = false) then
-            v.master.tValid := '0';
-         end if;
-
-         -- Get the SOF status
-         sof := ssiGetUserSof(AXIS_CONFIG_G, sAxisMaster);
-
-         -- State Machine
-         case (r.state) is
-            ----------------------------------------------------------------------
-            when INIT_S =>
-               -- Wait for FIFO to initialize
-               if (mAxisSlave.tReady = '1') then
-                  -- Next state
-                  v.state := IDLE_S;
-               end if;
-            ----------------------------------------------------------------------
-            when IDLE_S =>
-               -- Check if ready to move data
-               if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
                   -- Accept the data
                   v.slave.tReady := '1';
-                  -- Check for SOF and no overflow
+
+                  -- Set the flag
+                  v.overflow := '1';
+
+                  -- Strobe the error flags
+                  v.wordDropped  := sAxisMaster.tValid;
+                  v.frameDropped := sAxisMaster.tLast;
+
+               -- Else ready to accept new data
+               elsif (v.master.tValid = '0') then
+
+                  -- Accept the data
+                  v.slave.tReady := '1';
+
+                  -- Check for SOF
                   if (sof = '1') then
+
                      -- Move the data bus
                      v.master := sAxisMaster;
+
                      -- Latch tDest
-                     v.tDest  := sAxisMaster.tDest;
+                     v.tDest := sAxisMaster.tDest(TDEST_BITS_C-1 downto 0);
+
                      -- Check for no EOF
                      if (sAxisMaster.tLast = '0') then
                         -- Next state
                         v.state := MOVE_S;
                      end if;
+
+                  -- No SOF frame maker detected
                   else
+
                      -- Strobe the error flags
-                     v.wordDropped  := '1';
+                     v.wordDropped  := sAxisMaster.tValid;
                      v.frameDropped := sAxisMaster.tLast;
+
                      -- Check for non-EOF
                      if (sAxisMaster.tLast = '0') then
                         -- Next state
                         v.state := BLOWOFF_S;
                      end if;
+
                   end if;
+
                end if;
-            ----------------------------------------------------------------------
-            when BLOWOFF_S =>
-               -- Blowoff the data
-               v.slave.tReady := '1';
-               -- Strobe the error flags
-               v.wordDropped  := '1';
-               v.frameDropped := sAxisMaster.tLast;
-               -- Check for EOF
-               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
-                  -- Next state
-                  v.state := IDLE_S;
-               end if;
-            ----------------------------------------------------------------------
-            when MOVE_S =>
-               -- Check if ready to move data
-               if (v.master.tValid = '0') and (sAxisMaster.tValid = '1') then
+            end if;
+         ----------------------------------------------------------------------
+         when BLOWOFF_S =>
+            -- Blow-off the data
+            v.slave.tReady := '1';
+
+            -- Strobe the error flags
+            v.wordDropped  := sAxisMaster.tValid;
+            v.frameDropped := sAxisMaster.tLast;
+
+            -- Check for EOF
+            if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+               -- Next state
+               v.state := IDLE_S;
+            end if;
+         ----------------------------------------------------------------------
+         when MOVE_S =>
+            -- Check for new inbound data
+            if (sAxisMaster.tValid = '1') then
+
+               -- Check for overflow
+               if (v.master.tValid = '1') and not(SLAVE_READY_EN_G) then
+
                   -- Accept the data
                   v.slave.tReady := '1';
+
+                  -- Set the flag
+                  v.overflow := '1';
+
+                  -- Strobe the error flags
+                  v.wordDropped  := sAxisMaster.tValid;
+                  v.frameDropped := sAxisMaster.tLast;
+
+                  -- Next state
+                  v.state := INSERT_EOFE_S;
+
+               -- Else ready to accept new data
+               elsif (v.master.tValid = '0') then
+
+                  -- Accept the data
+                  v.slave.tReady := '1';
+
                   -- Move the data bus
-                  v.master       := sAxisMaster;
-                  -- Check for EOF   
+                  v.master := sAxisMaster;
+
+                  -- Check for EOF
                   if (sAxisMaster.tLast = '1') then
                      -- Next state
                      v.state := IDLE_S;
                   end if;
+
                   -- Check for SSI framing errors (repeated SOF or interleaved frame)
-                  if (sof = '1') or (r.tDest /= sAxisMaster.tDest) then
+                  if (sof = '1') or (CHECK_TDEST_C and (r.tDest /= sAxisMaster.tDest(TDEST_BITS_C-1 downto 0))) then
+
                      -- Set the EOF flag
                      v.master.tLast := '1';
+
                      -- Set the EOFE flag
                      ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
+
+                     -- Override SOF flag
+                     ssiSetUserSof(AXIS_CONFIG_G, v.master, '0');
+
                      -- Strobe the error flags
-                     v.wordDropped  := '1';
+                     v.wordDropped  := sAxisMaster.tValid;
                      v.frameDropped := sAxisMaster.tLast;
+
                      -- Check for non-EOF
                      if (sAxisMaster.tLast = '0') then
                         -- Next state
                         v.state := BLOWOFF_S;
                      end if;
+
                   end if;
                end if;
+            end if;
          ----------------------------------------------------------------------
-         end case;
-         
-         -- Combinatorial outputs before the reset
-         sAxisSlave <= v.slave;
+         when INSERT_EOFE_S =>
+            -- Blow-off the data
+            v.slave.tReady := '1';
 
-         -- Synchronous Reset
-         if (axisRst = '1') then
-            v := REG_INIT_C;
-         end if;
+            -- Set the flag
+            v.overflow := sAxisMaster.tValid;
 
-         -- Register the variable for next clock cycle
-         rin <= v;
+            -- Strobe the error flags
+            v.wordDropped  := sAxisMaster.tValid;
+            v.frameDropped := sAxisMaster.tLast;
 
-         -- Registered Outputs
-         mAxisMaster    <= r.master;
-         sAxisDropWrite <= r.wordDropped;
-         sAxisTermFrame <= r.frameDropped;
+            -- Check if AXI stream FIFO can be written into
+            if (v.master.tValid = '0') then
 
-      end process comb;
+               -- Write to FIFO
+               v.master.tValid := '1';
 
-      seq : process (axisClk) is
-      begin
-         if rising_edge(axisClk) then
-            r <= rin after TPD_G;
-         end if;
-      end process seq;
+               -- Set the EOF flag
+               v.master.tLast := '1';
 
-   end generate;
+               -- Set the EOFE flag
+               ssiSetUserEofe(AXIS_CONFIG_G, v.master, '1');
+
+               -- Override SOF flag
+               ssiSetUserSof(AXIS_CONFIG_G, v.master, '0');
+
+               -- Next state
+               v.state := IDLE_S;
+
+            end if;
+      ----------------------------------------------------------------------
+      end case;
+
+      -- Slave Outputs
+      sAxisSlave         <= v.slave;
+      sAxisCtrl          <= mAxisCtrl;
+      sAxisCtrl.overflow <= r.overflow or mAxisCtrl.overflow;
+      sAxisDropWord      <= r.wordDropped;
+      sAxisDropFrame     <= r.frameDropped;
+
+      -- Master Outputs
+      mAxisMaster <= r.master;
+
+      -- Synchronous Reset
+      if (RST_ASYNC_G = false and axisRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+   end process comb;
+
+   seq : process (axisClk, axisRst) is
+   begin
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end rtl;

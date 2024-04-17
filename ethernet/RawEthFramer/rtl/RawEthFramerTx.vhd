@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : RawEthFramerTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-05-23
--- Last update: 2016-05-26
 -------------------------------------------------------------------------------
 -- Description: Raw L2 Ethernet Framer's TX Engine
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.RawEthFramerPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.RawEthFramerPkg.all;
 
 entity RawEthFramerTx is
    generic (
@@ -53,7 +52,7 @@ architecture rtl of RawEthFramerTx is
       IDLE_S,
       TDEST_S,
       CACHE_S,
-      MOVE_S); 
+      MOVE_S);
 
    type RegType is record
       bcf         : sl;
@@ -83,7 +82,7 @@ architecture rtl of RawEthFramerTx is
       eofe        => '0',
       obAppSlave  => AXI_STREAM_SLAVE_INIT_C,
       ibMacMaster => AXI_STREAM_MASTER_INIT_C,
-      state       => IDLE_S);     
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -93,12 +92,13 @@ architecture rtl of RawEthFramerTx is
    -- attribute dont_touch           : string;
    -- attribute dont_touch of r      : signal is "TRUE";
    -- attribute dont_touch of rdData : signal is "TRUE";
-   
+
 begin
 
-   U_MinEthCache : entity work.QuadPortRam
+   U_MinEthCache : entity surf.LutRam
       generic map (
          TPD_G        => TPD_G,
+         NUM_PORTS_G  => 2,
          REG_EN_G     => false,         -- 1 cycle read
          DATA_WIDTH_G => 64,
          ADDR_WIDTH_G => 3)
@@ -128,7 +128,7 @@ begin
          v.ibMacMaster.tValid := '0';
          v.ibMacMaster.tLast  := '0';
          v.ibMacMaster.tUser  := (others => '0');
-         v.ibMacMaster.tKeep  := x"00FF";
+         v.ibMacMaster.tKeep  := resize(x"00FF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
 
       -- Update variables
@@ -161,7 +161,7 @@ begin
                v.obAppSlave.tReady := '1';
                -- Reset the flag
                v.req               := '0';
-               -- Check for valid DST MAC or broadcast 
+               -- Check for valid DST MAC or broadcast
                if (remoteMac /= 0) or (r.bcf = '1') then
                   -- Write to cache
                   v.wen    := '1';
@@ -170,11 +170,11 @@ begin
                      if tKeep(i) = '1' then
                         v.wrData(7+(8*i) downto (8*i)) := obAppMaster.tData(7+(8*i) downto (8*i));
                      else
-                        v.wrData(7+(8*i) downto (8*i)) := x"00";  -- zero padding                    
+                        v.wrData(7+(8*i) downto (8*i)) := x"00";  -- zero padding
                      end if;
                   end loop;
                   -- Update the min. ETH Byte counter
-                  v.minByteCnt := 16 + getTKeep(tKeep);           -- include header offset
+                  v.minByteCnt := 16 + getTKeep(tKeep,RAW_ETH_CONFIG_INIT_C);           -- include header offset
                   -- Check for tLast
                   if obAppMaster.tLast = '1' then
                      -- Set EOF
@@ -221,11 +221,11 @@ begin
                   if tKeep(i) = '1' then
                      v.wrData(7+(8*i) downto (8*i)) := obAppMaster.tData(7+(8*i) downto (8*i));
                   else
-                     v.wrData(7+(8*i) downto (8*i)) := x"00";     -- zero padding           
+                     v.wrData(7+(8*i) downto (8*i)) := x"00";     -- zero padding
                   end if;
                end loop;
                -- Update the min. ETH Byte counter
-               v.minByteCnt := r.minByteCnt + getTKeep(tKeep);
+               v.minByteCnt := r.minByteCnt + getTKeep(tKeep,RAW_ETH_CONFIG_INIT_C);
                -- Check for tLast
                if obAppMaster.tLast = '1' then
                   -- Set EOF
@@ -244,7 +244,7 @@ begin
                if v.state = MOVE_S then
                   ------------------
                   -- Write HDR[1] --
-                  ------------------               
+                  ------------------
                   -- Move the data
                   v.ibMacMaster.tValid              := '1';
                   v.ibMacMaster.tData(31 downto 0)  := localMac(47 downto 16);
@@ -327,7 +327,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       obAppSlave <= v.obAppSlave;
       tDest      <= v.tDest;
@@ -341,9 +341,9 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs      
+      -- Registered Outputs
       ibMacMaster <= r.ibMacMaster;
-      
+
    end process comb;
 
    seq : process (clk) is

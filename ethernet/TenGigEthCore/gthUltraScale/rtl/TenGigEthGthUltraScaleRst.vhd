@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGthUltraScaleRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-05-04
--- Last update: 2015-12-03
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet Reset Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -42,7 +41,7 @@ entity TenGigEthGthUltraScaleRst is
       gtTxRst     : out sl;
       gtRxRst     : out sl;
       txUsrRdy    : out sl;
-      rstCntDone  : out sl);      
+      rstCntDone  : out sl);
 end TenGigEthGthUltraScaleRst;
 
 architecture rtl of TenGigEthGthUltraScaleRst is
@@ -64,13 +63,25 @@ begin
    phyClk    <= txClock;
 
    -- Reset Outputs
-   coreRst    <= coreReset;
-   phyRst     <= txReset;
+   U_coreRst : entity surf.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => coreClk,
+         rstIn  => coreReset,
+         rstOut => coreRst);
+   U_phyRst : entity surf.RstPipeline
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk    => txClock,
+         rstIn  => txReset,
+         rstOut => phyRst);
    rstCntDone <= rstCnt(15);
    gtTxRst    <= rstPulse(0);
    gtRxRst    <= rstPulse(0);
 
-   Synchronizer_0 : entity work.Synchronizer
+   Synchronizer_0 : entity surf.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
@@ -81,7 +92,7 @@ begin
          clk     => coreClk,
          rst     => extRst,
          dataIn  => '0',
-         dataOut => coreReset);    
+         dataOut => coreReset);
 
    CLK312_BUFG_GT : BUFG_GT
       port map (
@@ -91,7 +102,7 @@ begin
          CLR     => txBufgGtRst,
          CLRMASK => '0',
          DIV     => "000",
-         O       => txUsrClk);   
+         O       => txUsrClk);
 
    CLK156_BUFG_GT : BUFG_GT
       port map (
@@ -101,14 +112,14 @@ begin
          CLR     => txBufgGtRst,
          CLRMASK => '0',
          DIV     => "001",
-         O       => txClockGt);   
+         O       => txClockGt);
 
    CLK156_BUFG : BUFG
       port map (
          I => txClockGt,
-         O => txClock);           
+         O => txClock);
 
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
@@ -119,9 +130,9 @@ begin
          clk     => txClock,
          rst     => qPllLock,
          dataIn  => '1',
-         dataOut => txReady);           
+         dataOut => txReady);
 
-   Synchronizer_2 : entity work.Synchronizer
+   Synchronizer_2 : entity surf.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
@@ -132,7 +143,7 @@ begin
          clk     => txClock,
          rst     => rstPulse(0),
          dataIn  => '0',
-         dataOut => txReset);  
+         dataOut => txReset);
 
    process(coreClk)
    begin

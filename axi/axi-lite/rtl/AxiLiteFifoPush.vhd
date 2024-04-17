@@ -1,44 +1,37 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteFifoPush.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-04-02
--- Last update: 2016-04-26
 -------------------------------------------------------------------------------
 -- Description:
 -- Supports writing of general purpose FIFOs from the AxiLite bus.
 -- 16 address locations per FIFO.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteFifoPush is
    generic (
       TPD_G              : time                  := 1 ns;
+      RST_ASYNC_G        : boolean               := false;
       PUSH_FIFO_COUNT_G  : positive              := 1;
       PUSH_SYNC_FIFO_G   : boolean               := false;
-      PUSH_BRAM_EN_G     : boolean               := false;
-      PUSH_ADDR_WIDTH_G  : integer range 4 to 48 := 4;
-      ALTERA_SYN_G       : boolean               := false;
-      ALTERA_RAM_G       : string                := "M9K";
-      USE_BUILT_IN_G     : boolean               := false;
-      XIL_DEVICE_G       : string                := "7SERIES"
-   );
+      PUSH_MEMORY_TYPE_G : string                := "distributed";
+      PUSH_ADDR_WIDTH_G  : integer range 4 to 48 := 4);
    port (
-
       -- AXI Interface (axiClk)
       axiClk             : in  sl;
       axiClkRst          : in  sl;
@@ -47,14 +40,12 @@ entity AxiLiteFifoPush is
       axiWriteMaster     : in  AxiLiteWriteMasterType;
       axiWriteSlave      : out AxiLiteWriteSlaveType;
       pushFifoAFull      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
-
       -- Push FIFO Read Interface (pushFifoClk)
       pushFifoClk        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoRst        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoValid      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoDout       : out Slv36Array(PUSH_FIFO_COUNT_G-1 downto 0);
-      pushFifoRead       : in  slv(PUSH_FIFO_COUNT_G-1 downto 0)
-   );
+      pushFifoRead       : in  slv(PUSH_FIFO_COUNT_G-1 downto 0));
 end AxiLiteFifoPush;
 
 architecture structure of AxiLiteFifoPush is
@@ -79,20 +70,18 @@ architecture structure of AxiLiteFifoPush is
       pushFifoWrite     => (others => '0'),
       pushFifoDin       => (others => '0'),
       axiReadSlave      => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C
-   );
+      axiWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-
    -----------------------------------------
    -- FIFOs
    -----------------------------------------
    U_GenFifo : for i in 0 to PUSH_FIFO_COUNT_G-1 generate
-      U_FIfo : entity work.FifoCascade 
+      U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -100,13 +89,8 @@ begin
             RST_POLARITY_G     => '1',
             RST_ASYNC_G        => true,
             GEN_SYNC_FIFO_G    => PUSH_SYNC_FIFO_G,
-            BRAM_EN_G          => PUSH_BRAM_EN_G,
+            MEMORY_TYPE_G      => PUSH_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
-            USE_DSP48_G        => "no",
-            ALTERA_SYN_G       => ALTERA_SYN_G,
-            ALTERA_RAM_G       => ALTERA_RAM_G,
-            USE_BUILT_IN_G     => USE_BUILT_IN_G,
-            XIL_DEVICE_G       => XIL_DEVICE_G,
             SYNC_STAGES_G      => 3,
             DATA_WIDTH_G       => 36,
             ADDR_WIDTH_G       => PUSH_ADDR_WIDTH_G,
@@ -149,16 +133,7 @@ begin
    -- AXI Lite
    -----------------------------------------
 
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipushFifoFull, ipushFifoAFull ) is
+   comb : process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipushFifoFull, ipushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -191,7 +166,7 @@ begin
       end if;
 
       -- Reset
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -203,8 +178,16 @@ begin
       axiWriteSlave  <= r.axiWriteSlave;
       ipushFifoDin   <= r.pushFifoDin;
       ipushFifoWrite <= r.pushFifoWrite;
-      
-   end process;
+
+   end process comb;
+
+   seq : process (axiClk, axiClkRst) is
+   begin
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end architecture structure;
-

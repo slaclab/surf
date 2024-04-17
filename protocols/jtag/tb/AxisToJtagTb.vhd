@@ -1,22 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisToJtagTb.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-05
--- Last update: 2017-12-05
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Simulation Test bench for AxisToJtag
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,9 +18,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.TextUtilPkg.all;
 
 
 -- use this module if a reliable stream is available (reliable network to host)
@@ -231,7 +227,7 @@ begin
       variable rxid : slv(7 downto 0) := x"00";
       variable v    : natural;
       variable cnt  : natural;
-   
+
       procedure rcv(expin : in Word; lst : in sl) is
          variable exp : Word;
       begin
@@ -276,7 +272,7 @@ begin
             end if;
          end if;
       end procedure rcvVec;
-   
+
    begin
       if ( rising_edge( clk ) ) then
       if ( rst = '1' ) then
@@ -325,7 +321,7 @@ begin
                         x"11121314",
                         x"21222324",
                         x"31323334") );
- 
+
             when others  =>
                run <= false;
                report "Test PASSED";
@@ -347,7 +343,7 @@ begin
       end if;
    end process P_CLK;
 
-   U_DUT : entity work.AxisToJtag
+   U_DUT : entity surf.AxisToJtag
       generic map (
          TPD_G           => TPD_C,
          MEM_DEPTH_G     => 4

@@ -1,22 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : MDIO Support
 -------------------------------------------------------------------------------
--- File       : MdioPkg.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-27
--- Last update: 2017-11-27
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: VHDL Package for MDIO Protocol
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,7 +18,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package MdioPkg is
 
@@ -54,7 +50,7 @@ package MdioPkg is
       phyAddr : in natural;
       regAddr : in natural
    ) return MdioCommandType;
-      
+
    -- create a WRITE command
    function mdioWriteCommand(
       phyAddr : in natural;
@@ -80,7 +76,7 @@ package MdioPkg is
       regAddr : in natural;
       theLast : in boolean := false
    ) return MdioInstType;
-      
+
    -- create/initialize a WRITE instruction. 'theLast' must
    -- be set to 'true' if this instruction is the last one
    -- of a sequence.
@@ -90,7 +86,7 @@ package MdioPkg is
       dataOut : in slv(15 downto 0);
       theLast : in boolean := false
    ) return MdioInstType;
- 
+
    -- A sequence of instructions. The 'MdioSeqCore' module
    -- processes a sequence of commands up to and including one
    -- that has the 'theLast' flag set.
@@ -114,7 +110,7 @@ package MdioPkg is
    --    constant SEQ_1_START_C : natural := 0;
    --    constant SEQ_2_START_C : natural := SEQ_1_START_C + seq1'length;
    --
-   -- PROGRAMS_C is then used as the MDIO_PROG_G generic (MdioSeqCore) and 
+   -- PROGRAMS_C is then used as the MDIO_PROG_G generic (MdioSeqCore) and
    -- the indices 'SEQ_1_START_C', 'SEQ_2_START_C' etc. are used to
    -- initiate processing of the respective sequences.
 
@@ -195,5 +191,5 @@ package body MdioPkg is
       return n;
    end function mdioProgNumReadTransactions;
 
-  
+
 end package body MdioPkg;

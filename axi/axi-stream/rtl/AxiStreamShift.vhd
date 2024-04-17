@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamShift.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-10-27
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to shift data bytes within an AXI stream. Both left and right shifting
@@ -10,11 +7,11 @@
 -- will pause until a new shift command is provided.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,14 +20,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ArbiterPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamShift is
    generic (
       TPD_G          : time                  := 1 ns;
-      AXIS_CONFIG_G  : AxiStreamConfigType   := AXI_STREAM_CONFIG_INIT_C;
+      RST_ASYNC_G    : boolean               := false;
+      AXIS_CONFIG_G  : AxiStreamConfigType;
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
       ADD_VALID_EN_G : boolean               := false;
       BYP_SHIFT_G    : boolean               := false);
@@ -156,7 +155,7 @@ architecture rtl of AxiStreamShift is
    signal pipeAxisSlave  : AxiStreamSlaveType;
 
 --   attribute dont_touch      : string;
---   attribute dont_touch of r : signal is "TRUE";    
+--   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -171,7 +170,7 @@ begin
          variable v       : RegType;
          variable sMaster : AxiStreamMasterType;
       begin
-         -- Latch the current value 
+         -- Latch the current value
          v := r;
 
          -- Init Ready
@@ -257,30 +256,31 @@ begin
          end case;
 
          -- Mask off the unused tStrb and tKeep bits
-         if (AXIS_CONFIG_G.TDATA_BYTES_C /= 16) then
-            v.master.tKeep(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
-            v.master.tStrb(15 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+         if (AXIS_CONFIG_G.TDATA_BYTES_C /= AXI_STREAM_MAX_TKEEP_WIDTH_C) then
+            v.master.tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
+            v.master.tStrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto AXIS_CONFIG_G.TDATA_BYTES_C) := (others => '0');
          end if;
-         
+
          -- Combinatorial outputs before the reset
          sAxisSlave <= v.slave;
 
          -- Reset
-         if (axisRst = '1') then
+         if (RST_ASYNC_G = false and axisRst = '1') then
             v := REG_INIT_C;
          end if;
 
-         -- Register the variable for next clock cycle  
+         -- Register the variable for next clock cycle
          rin <= v;
 
-         -- Outputs 
+         -- Outputs
          pipeAxisMaster <= r.master;
 
       end process comb;
 
-      U_Pipeline : entity work.AxiStreamPipeline
+      U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             PIPE_STAGES_G => PIPE_STAGES_G)
          port map (
             axisClk     => axisClk,
@@ -288,15 +288,17 @@ begin
             sAxisMaster => pipeAxisMaster,
             sAxisSlave  => pipeAxisSlave,
             mAxisMaster => mAxisMaster,
-            mAxisSlave  => mAxisSlave);   
+            mAxisSlave  => mAxisSlave);
 
-      seq : process (axisClk) is
+      seq : process (axisClk, axisRst) is
       begin
-         if (rising_edge(axisClk)) then
+         if (RST_ASYNC_G) and (axisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(axisClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
 end rtl;

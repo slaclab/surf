@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-24
--- Last update: 2017-02-09
 -------------------------------------------------------------------------------
 -- Description: AXI Stream Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,19 +17,25 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+-- use surf.TextUtilPkg.all;
 
 package AxiStreamPkg is
 
+   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 512;  -- Units of bits
+   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8);  -- Units of bytes
+
    type AxiStreamMasterType is record
       tValid : sl;
-      tData  : slv(127 downto 0);
-      tStrb  : slv(15 downto 0);
-      tKeep  : slv(15 downto 0);
+      tData  : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      tStrb  : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      tKeep  : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       tLast  : sl;
       tDest  : slv(7 downto 0);
       tId    : slv(7 downto 0);
-      tUser  : slv(127 downto 0);
+      tUser  : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
    end record AxiStreamMasterType;
 
    constant AXI_STREAM_MASTER_INIT_C : AxiStreamMasterType := (
@@ -46,8 +49,12 @@ package AxiStreamPkg is
       tUser  => (others => '0'));
    type AxiStreamMasterArray is array (natural range<>) of AxiStreamMasterType;
    type AxiStreamMasterVectorArray is array (natural range<>, natural range<>) of AxiStreamMasterType;
+   subtype AxiStreamDualMasterType is AxiStreamMasterArray(1 downto 0);
+   type AxiStreamDualMasterArray is array (natural range <>) of AxiStreamMasterArray(1 downto 0);
    subtype AxiStreamQuadMasterType is AxiStreamMasterArray(3 downto 0);
    type AxiStreamQuadMasterArray is array (natural range <>) of AxiStreamMasterArray(3 downto 0);
+   subtype AxiStreamOctalMasterType is AxiStreamMasterArray(7 downto 0);
+   type AxiStreamOctalMasterArray is array (natural range <>) of AxiStreamMasterArray(7 downto 0);
 
    type AxiStreamSlaveType is record
       tReady : sl;
@@ -55,8 +62,12 @@ package AxiStreamPkg is
 
    type AxiStreamSlaveArray is array (natural range<>) of AxiStreamSlaveType;
    type AxiStreamSlaveVectorArray is array (natural range<>, natural range<>) of AxiStreamSlaveType;
+   subtype AxiStreamDualSlaveType is AxiStreamSlaveArray(1 downto 0);
+   type AxiStreamDualSlaveArray is array (natural range <>) of AxiStreamSlaveArray(1 downto 0);
    subtype AxiStreamQuadSlaveType is AxiStreamSlaveArray(3 downto 0);
    type AxiStreamQuadSlaveArray is array (natural range <>) of AxiStreamSlaveArray(3 downto 0);
+   subtype AxiStreamOctalSlaveType is AxiStreamSlaveArray(7 downto 0);
+   type AxiStreamOctalSlaveArray is array (natural range <>) of AxiStreamSlaveArray(7 downto 0);
 
    constant AXI_STREAM_SLAVE_INIT_C : AxiStreamSlaveType := (
       tReady => '0');
@@ -69,23 +80,25 @@ package AxiStreamPkg is
    type TKeepModeType is (TKEEP_NORMAL_C, TKEEP_COMP_C, TKEEP_FIXED_C, TKEEP_COUNT_C);
 
    type AxiStreamConfigType is record
-      TSTRB_EN_C    : boolean;
-      TDATA_BYTES_C : natural range 1 to 16;
-      TDEST_BITS_C  : natural range 0 to 8;
-      TID_BITS_C    : natural range 0 to 8;
-      TKEEP_MODE_C  : TkeepModeType;
-      TUSER_BITS_C  : natural range 0 to 8;
-      TUSER_MODE_C  : TUserModeType;
+      -- TDEST_INTERLEAVE_C : boolean;
+      TSTRB_EN_C         : boolean;
+      TDATA_BYTES_C      : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C;
+      TDEST_BITS_C       : natural range 0 to 8;
+      TID_BITS_C         : natural range 0 to 8;
+      TKEEP_MODE_C       : TkeepModeType;
+      TUSER_BITS_C       : natural range 0 to 8;
+      TUSER_MODE_C       : TUserModeType;
    end record AxiStreamConfigType;
 
    constant AXI_STREAM_CONFIG_INIT_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16,
-      TDEST_BITS_C  => 4,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_NORMAL_C);
+      -- TDEST_INTERLEAVE_C => true,
+      TSTRB_EN_C         => false,
+      TDATA_BYTES_C      => 16,
+      TDEST_BITS_C       => 4,
+      TID_BITS_C         => 0,
+      TKEEP_MODE_C       => TKEEP_NORMAL_C,
+      TUSER_BITS_C       => 4,
+      TUSER_MODE_C       => TUSER_NORMAL_C);
 
    type AxiStreamConfigArray is array (natural range<>) of AxiStreamConfigType;
    type AxiStreamConfigVectorArray is array (natural range<>, natural range<>) of AxiStreamConfigType;
@@ -117,8 +130,12 @@ package AxiStreamPkg is
 
    type AxiStreamCtrlArray is array (natural range<>) of AxiStreamCtrlType;
    type AxiStreamCtrlVectorArray is array (natural range<>, natural range<>) of AxiStreamCtrlType;
+   subtype AxiStreamDualCtrlType is AxiStreamCtrlArray(1 downto 0);
+   type AxiStreamDualCtrlArray is array (natural range <>) of AxiStreamCtrlArray(1 downto 0);
    subtype AxiStreamQuadCtrlType is AxiStreamCtrlArray(3 downto 0);
    type AxiStreamQuadCtrlArray is array (natural range <>) of AxiStreamCtrlArray(3 downto 0);
+   subtype AxiStreamOctalCtrlType is AxiStreamCtrlArray(7 downto 0);
+   type AxiStreamOctalCtrlArray is array (natural range <>) of AxiStreamCtrlArray(7 downto 0);
 
    -------------------------------------------------------------------------------------------------
    -- Helper function prototypes
@@ -167,10 +184,10 @@ package AxiStreamPkg is
    function ite(i : boolean; t : TUserModeType; e : TUserModeType) return TUserModeType;
    function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;
 
-   function genTKeep (bytes           : integer range 0 to 16) return slv;
+   function genTKeep (bytes           : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv;
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
-   function getTKeep (tKeep : slv) return natural;
+   function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural;
 
 end package AxiStreamPkg;
 
@@ -210,7 +227,7 @@ package body AxiStreamPkg is
    begin
 
       if bytePos = -1 then
-         ret := getTKeep(axisMaster.tKeep)-1;
+         ret := getTKeep(axisMaster.tKeep, axisConfig)-1;
          if (ret > axisConfig.TDATA_BYTES_C) then
             ret := axisConfig.TDATA_BYTES_C-1;
          end if;
@@ -231,14 +248,22 @@ package body AxiStreamPkg is
       return slv is
 
       variable pos : integer;
+      variable lsb : integer;
       variable ret : slv(maximum(axisConfig.TUSER_BITS_C-1, 0) downto 0);
    begin
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
+      lsb := axisConfig.TUSER_BITS_C*pos;
 
-      ret := ite(axisConfig.TUSER_BITS_C>0,
-                 axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto ((axisConfig.TUSER_BITS_C*pos))),
-                 "0");
+      if axisConfig.TUSER_BITS_C > 0 then
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+            if lsb = i then
+               ret := axisMaster.tUser(ret'HIGH+i downto ret'LOW+i);
+            end if;
+         end loop;
+      else
+         ret := (others => '0');
+      end if;
 
       -- Handle TUSER_BITS_C=0 case
       if (axisConfig.TUSER_BITS_C = 0 or axisConfig.TUSER_MODE_C = TUSER_NONE_C) then
@@ -270,13 +295,20 @@ package body AxiStreamPkg is
       bytePos    : in    integer := -1) is
 
       variable pos : integer;
+      variable lsb : integer;
    begin
 
       pos := axiStreamGetUserPos(axisConfig, axisMaster, bytePos);
+      lsb := axisConfig.TUSER_BITS_C*pos;
 
       if (axisConfig.TUSER_BITS_C > 0 and axisConfig.TUSER_MODE_C /= TUSER_NONE_C) then
-         axisMaster.tUser((axisConfig.TUSER_BITS_C*pos)+axisConfig.TUSER_BITS_C-1 downto
-                          ((axisConfig.TUSER_BITS_C*pos))) := fieldValue;
+
+         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+            if lsb = i then
+               axisMaster.tUser(fieldValue'HIGH+i downto fieldValue'LOW+i) := fieldValue;
+            end if;
+         end loop;
+
       else
          axisMaster.tUser := (others => '0');
       end if;
@@ -329,58 +361,59 @@ package body AxiStreamPkg is
       if (i) then return t; else return e; end if;
    end function ite;
 
-   function genTKeep (bytes : integer range 0 to 16) return slv is
+   function genTKeep (bytes : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv is
+      variable retVar : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
    begin
-      case bytes is
-         when 0  => return X"0000";
-         when 1  => return X"0001";
-         when 2  => return X"0003";
-         when 3  => return X"0007";
-         when 4  => return X"000F";
-         when 5  => return X"001F";
-         when 6  => return X"003F";
-         when 7  => return X"007F";
-         when 8  => return X"00FF";
-         when 9  => return X"01FF";
-         when 10 => return X"03FF";
-         when 11 => return X"07FF";
-         when 12 => return X"0FFF";
-         when 13 => return X"1FFF";
-         when 14 => return X"3FFF";
-         when 15 => return X"7FFF";
-         when 16 => return X"FFFF";
-      end case;
+      retVar := (others => '0');
+      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         if (bytes > i) then
+            retVar(i) := '1';
+         end if;
+      end loop;
+      return retVar;
    end function genTKeep;
 
    function genTKeep (constant config : AxiStreamConfigType) return slv is
    begin
+      -- Assumes TKEEP_MODE_C /= TKEEP_COUNT_C
       return genTKeep(config.TDATA_BYTES_C);
    end function genTKeep;
 
-   function getTKeep (tKeep : slv) return natural is
-      variable tKeepFull : slv(15 downto 0);
+   function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural is
+      variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      variable retVar    : natural;
+      variable i         : natural;
    begin
-      tKeepFull := resize(tKeep, 16);
-      case tKeepFull is
-         when X"0000" => return 0;
-         when X"0001" => return 1;
-         when X"0003" => return 2;
-         when X"0007" => return 3;
-         when X"000F" => return 4;
-         when X"001F" => return 5;
-         when X"003F" => return 6;
-         when X"007F" => return 7;
-         when X"00FF" => return 8;
-         when X"01FF" => return 9;
-         when X"03FF" => return 10;
-         when X"07FF" => return 11;
-         when X"0FFF" => return 12;
-         when X"1FFF" => return 13;
-         when X"3FFF" => return 14;
-         when X"7FFF" => return 15;
-         when X"FFFF" => return 16;
-         when others  => return 0;
-      end case;
+      -- Init
+      retVar    := 0;
+      tKeepFull := resize(tKeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
+      -- Check if TKEEP_MODE_C = TKEEP_COUNT_C
+      if (axisConfig.TKEEP_MODE_C = TKEEP_COUNT_C) then
+         retVar := conv_integer(tKeep(bitSize(axisConfig.TDATA_BYTES_C)-1 downto 0));
+      else
+         for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
+            -- report "AxiStreamPkg::genTKeep( i:" & integer'image(i) & ")" severity warning;
+            ----------------------------------------------------
+            -- Confirmed in simulation the for loop ordering is:
+            ----------------------------------------------------
+            -- Warning: AxiStreamPkg::genTKeep( i:0)
+            -- Warning: AxiStreamPkg::genTKeep( i:1)
+            -- Warning: AxiStreamPkg::genTKeep( i:2)
+            -- .....................................
+            -- .....................................
+            ----------------------------------------------------
+            if (tKeepFull(i) = '1') then
+               if (axisConfig.TKEEP_MODE_C = TKEEP_COMP_C) then
+                  -- Assume LSBs are active when calculating active bytes in TKEEP_COMP_C mode
+                  retVar := (i+1);
+               else
+                  -- TKEEP_NORMAL_C mode
+                  retVar := retVar + 1;
+               end if;
+            end if;
+         end loop;
+      end if;
+      return retVar;
    end function getTKeep;
 
    procedure axiStreamSimSendTxn (
@@ -389,11 +422,11 @@ package body AxiStreamPkg is
       signal master     : out AxiStreamMasterType;
       signal slave      : in  AxiStreamSlaveType;
       tData             : in  slv;
-      tKeep             : in  slv               := "X";
-      tLast             : in  sl                := '0';
-      tDest             : in  slv(7 downto 0)   := X"00";
-      tId               : in  slv(7 downto 0)   := X"00";
-      tUser             : in  slv(127 downto 0) := (others => '0')) is
+      tKeep             : in  slv                                          := "X";
+      tLast             : in  sl                                           := '0';
+      tDest             : in  slv(7 downto 0)                              := X"00";
+      tId               : in  slv(7 downto 0)                              := X"00";
+      tUser             : in  slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0')) is
    begin
       -- Wait for rising edge
       wait until clk = '1';
@@ -401,9 +434,9 @@ package body AxiStreamPkg is
       -- Set the bus
       master        <= axiStreamMasterInit(CONFIG_C);
       master.tValid <= '1';
-      master.tData  <= resize(tdata, 128);
+      master.tData  <= resize(tdata, AXI_STREAM_MAX_TDATA_WIDTH_C);
       if (tKeep /= "X") then
-         master.tKeep <= resize(tkeep, 16);
+         master.tKeep <= resize(tkeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
       master.tLast <= tlast;
       master.tDest <= tDest;
@@ -423,7 +456,7 @@ package body AxiStreamPkg is
       signal master     : in  AxiStreamMasterType;
       signal slave      : out AxiStreamSlaveType;
       tData             : out slv;
-      tKeep             : out slv(15 downto 0);
+      tKeep             : out slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       tLast             : out sl;
       tDest             : out slv(7 downto 0);
       tId               : out slv(7 downto 0);
@@ -579,16 +612,16 @@ package body AxiStreamPkg is
       size := size + c.TDATA_BYTES_C*8;
 
       -- Keep
-      size := size + ite( (c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,          -- TKEEP_NORMAL_C
-                     ite( (c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1), -- TKEEP_COMP_C
-                     ite( (c.TKEEP_MODE_C = TKEEP_COUNT_C), 5,                         -- TKEEP_COUNT_C
-                     0)));                                                             -- TKEEP_FIXED_C
+      size := size + ite((c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,                       -- TKEEP_NORMAL_C
+                     ite((c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1),              -- TKEEP_COMP_C
+                     ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C),  -- TKEEP_COUNT_C
+                     0)));  -- TKEEP_FIXED_C
 
       -- User bits
       size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
-                         ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
-                             ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
-                                 0)));  -- TUSER_NONE_C
+                     ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
+                     ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
+                     0)));  -- TUSER_NONE_C
 
       size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0);  -- Strobe bits
       size := size + c.TDEST_BITS_C;
@@ -615,9 +648,9 @@ package body AxiStreamPkg is
          assignSlv(i, retValue, din.tKeep(c.TDATA_BYTES_C-1 downto 0));
       elsif c.TKEEP_MODE_C = TKEEP_COMP_C then
          -- Assume lsb is present
-         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1)), bitSize(c.TDATA_BYTES_C-1)));
+         assignSlv(i, retValue, toSlv(getTKeep(din.tKeep(c.TDATA_BYTES_C-1 downto 1), c), bitSize(c.TDATA_BYTES_C-1)));
       elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
-         assignSlv(i, retValue, din.tKeep(4 downto 0));
+         assignSlv(i, retValue, din.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       end if;
       -- TKEEP_FIXED_C uses 0 bits
 
@@ -663,7 +696,7 @@ package body AxiStreamPkg is
       variable i      : integer                                    := 0;
    begin
 
-      -- Set valid, 
+      -- Set valid,
       master.tValid := valid;
 
       -- Set last
@@ -679,7 +712,7 @@ package body AxiStreamPkg is
          assignRecord(i, din, keep);
          master.tKeep := genTKeep(conv_integer(keep)+1);
       elsif c.TKEEP_MODE_C = TKEEP_COUNT_C then
-         assignRecord(i, din, master.tKeep(4 downto 0));       
+         assignRecord(i, din, master.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       else                              -- KEEP_MODE_C = TKEEP_FIXED_C
          master.tKeep := genTKeep(c.TDATA_BYTES_C);
       end if;

@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : DeviceDna7Series.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-25
--- Last update: 2016-12-06
 -------------------------------------------------------------------------------
 -- Description: Wrapper for the 7 Series DNA_PORT
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -71,7 +70,7 @@ architecture rtl of DeviceDna7Series is
    signal locClk  : sl;
    signal locRst  : sl;
 
-   signal locClkInv : sl;
+   signal locClkInv  : sl;
    signal locClkInvR : sl;
 
 begin
@@ -99,9 +98,9 @@ begin
          CE  => '1',
          CLR => '0',
          O   => locClkInvR);
-   
 
-   RstSync_Inst : entity work.RstSync
+
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          IN_POLARITY_G => RST_POLARITY_G)
@@ -113,14 +112,14 @@ begin
    comb : process (dnaDout, locRst, r) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset the strobing signals
       v.dnaRead  := '0';
       v.dnaShift := '0';
 
-      -- State Machine      
+      -- State Machine
       case (r.state) is
          ----------------------------------------------------------------------
          when READ_S =>
@@ -139,12 +138,14 @@ begin
             if r.dnaShift = '1' then
                -- Shift register
                v.dnaValue := r.dnaValue(DNA_SHIFT_LENGTH_C-2 downto 0) & dnaDout;
-               -- Increment the counter
-               v.bitCount := r.bitCount + 1;
                -- Check the counter value
                if (r.bitCount = DNA_SHIFT_LENGTH_C-1) then
                   -- Next State
-                  v.state := DONE_S;
+                  v.bitCount := 0;
+                  v.state    := DONE_S;
+               else
+                  -- Increment the counter
+                  v.bitCount := r.bitCount + 1;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -181,7 +182,7 @@ begin
          DIN   => '0',
          DOUT  => dnaDout);
 
-   SyncValid : entity work.Synchronizer
+   SyncValid : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3)
@@ -190,7 +191,7 @@ begin
          dataIn  => r.dnaValid,
          dataOut => dnaValid);
 
-   SyncData : entity work.SynchronizerVector
+   SyncData : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2,

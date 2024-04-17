@@ -1,18 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : AxiWritePathMux.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2018-03-11
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect multiple incoming AXI write path interfaces.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.ArbiterPkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.ArbiterPkg.all;
+use surf.AxiPkg.all;
 
 entity AxiWritePathMux is
    generic (
@@ -142,7 +141,7 @@ begin
             -- Assert ready
             v.slaves(conv_integer(r.addrAckNum)).awready := '1';
 
-            -- Advance pipeline 
+            -- Advance pipeline
             v.master.awvalid := '1';
             v.master.awaddr  := selAddr.awaddr;
             v.master.awid    := selAddr.awid;
@@ -203,7 +202,7 @@ begin
          when S_MOVE_C =>
             v.dataAck  := '0';
 
-            -- Advance pipeline 
+            -- Advance pipeline
             if r.master.wvalid = '0' or mAxiWriteSlave.wready = '1' then
                v.master.wdata  := selData.wdata;
                v.master.wlast  := selData.wlast;
@@ -272,8 +271,8 @@ begin
            sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
          end loop;
          mAxiWriteMaster.bready <= v.master.bready;
-      end if;      
-   
+      end if;
+
       if (axiRst = '1') or (NUM_SLAVES_G = 1) then
          v := REG_INIT_C;
       end if;

@@ -1,7 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane transmitter module
 --              Transmitter JESD204b module.
@@ -19,11 +17,11 @@
 --                Second sample in time: sampleData_i(31 downto 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,14 +30,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity Jesd204bTx is
    generic (
       TPD_G        : time                   := 1 ns;
-      -- Register sample data at input and/or output 
+      -- Register sample data at input and/or output
       INPUT_REG_G  : boolean                := false;
       OUTPUT_REG_G : boolean                := false;
       -- Number of bytes in a frame
@@ -49,7 +49,7 @@ entity Jesd204bTx is
       -- Number of TX lanes (1 to 32)
       L_G          : positive range 1 to 32 := 2);
    port (
-      -- AXI interface      
+      -- AXI interface
       -- Clocks and Resets
       axiClk : in sl;
       axiRst : in sl;
@@ -61,18 +61,19 @@ entity Jesd204bTx is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- JESD
-      -- Clocks and Resets   
+      -- Clocks and Resets
       devClk_i : in sl;
       devRst_i : in sl;
 
       -- SYSREF for subclass 1 fixed latency
       sysRef_i : in sl;
 
-      -- Synchronization input combined from all receivers 
-      nSync_i : in sl;
+      -- Synchronization input combined from all receivers
+      nSync_i : in slv(L_G-1 downto 0);
 
       -- External sample data input
-      extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);
+      extSampleDataArray_i : in  sampleDataArray(L_G-1 downto 0);
+      dacReady_o           : out slv(L_G-1 downto 0);
 
       -- GT is ready to transmit data after reset
       gtTxReset_o : out slv(L_G-1 downto 0);
@@ -100,8 +101,8 @@ architecture rtl of Jesd204bTx is
 
    -- Internal signals
 
-   -- Local Multi Frame Clock 
-   signal s_lmfc : sl;
+   -- Local Multi Frame Clock
+   signal s_lmfc : slv(L_G-1 downto 0);
 
    -- Control and status from AxiLite
    ------------------------------------------------------------
@@ -122,7 +123,6 @@ architecture rtl of Jesd204bTx is
    -- Test signal control
    signal s_rampStep      : slv(PER_STEP_WIDTH_C-1 downto 0);
    signal s_squarePeriod  : slv(PER_STEP_WIDTH_C-1 downto 0);
-   signal s_enableTestSig : sl;
 
    signal s_posAmplitude : slv(F_G*8-1 downto 0);
    signal s_negAmplitude : slv(F_G*8-1 downto 0);
@@ -138,17 +138,16 @@ architecture rtl of Jesd204bTx is
 
    -- Sysref conditioning
    signal s_sysrefSync : sl;
-   signal s_sysrefRe   : sl;
+   signal s_sysrefRe   : slv(L_G-1 downto 0);
    signal s_sysrefD    : sl;
 
    -- Sync conditioning
-   signal s_nSync      : sl;
+   signal s_nSync      : slv(L_G-1 downto 0);
    signal s_invertSync : sl;
-   signal s_nSyncSync  : sl;
+   signal s_nSyncSync  : slv(L_G-1 downto 0);
 
-   -- Select output 
+   -- Select output
    signal s_muxOutSelArr : Slv3Array(L_G-1 downto 0);
-   signal s_testEn       : slv(L_G-1 downto 0);
    signal s_jesdGtTxArr  : jesdGtTxLaneTypeArray(L_G-1 downto 0);
 
 begin
@@ -181,7 +180,7 @@ begin
    ---------------------
    -- AXI-Lite registers
    ---------------------
-   U_Reg : entity work.JesdTxReg
+   U_Reg : entity surf.JesdTxReg
       generic map (
          TPD_G => TPD_G,
          L_G   => L_G,
@@ -196,7 +195,7 @@ begin
          -- DevClk domain
          devClk_i        => devClk_i,
          devRst_i        => devRst_i,
-         sysrefRe_i      => s_sysrefRe,
+         sysrefRe_i      => s_sysrefRe(0),
          statusTxArr_i   => s_statusTxArr,
          muxOutSelArr_o  => s_muxOutSelArr,
          sysrefDlyTx_o   => s_sysrefDlyTx,
@@ -212,7 +211,6 @@ begin
          negAmplitude_o  => s_negAmplitude,
          rampStep_o      => s_rampStep,
          squarePeriod_o  => s_squarePeriod,
-         enableTestSig_o => s_enableTestSig,
          invertSync_o    => s_invertSync,
          -- TX Configurable Driver Ports
          txDiffCtrl      => txDiffCtrl,
@@ -224,17 +222,14 @@ begin
 
    GEN_TEST : for i in L_G-1 downto 0 generate
 
-      -- Check the test pattern enable bit 
-      s_testEn(i) <= s_dataValid(i) and s_enableTestSig;
-
-      U_TestStream : entity work.JesdTestStreamTx
+      U_TestStream : entity surf.JesdTestStreamTx
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G)
          port map (
             clk            => devClk_i,
             rst            => devRst_i,
-            enable_i       => s_testEn(i),
+            enable_i       => s_dataValid(i),
             rampStep_i     => s_rampStep,
             squarePeriod_i => s_squarePeriod,
             posAmplitude_i => s_posAmplitude,
@@ -274,73 +269,63 @@ begin
    -----------------------------------------------------------
 
    -- Synchronize SYSREF input to devClk_i
-   Synchronizer_sysref_INST : entity work.Synchronizer
+   Synchronizer_sysref_INST : entity surf.Synchronizer
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
+         TPD_G => TPD_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => sysref_i,
          dataOut => s_sysrefSync);
 
-   -- Invert/or not nSync signal (control from axil) 
+   -- Invert/or not nSync signal (control from axil)
    s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
 
    -- Synchronize nSync input to devClk_i
-   Synchronizer_nsync_INST : entity work.Synchronizer
+   Synchronizer_nsync_INST : entity surf.SynchronizerVector
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
+         TPD_G   => TPD_G,
+         WIDTH_G => L_G)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
          dataIn  => s_nSync,
          dataOut => s_nSyncSync);
 
-   -- Delay SYSREF input (for 1 to 32 c-c)
-   U_SysrefDly : entity work.JesdSysrefDly
+   -- Delay SYSREF input (for 1 to 256 c-c)
+   U_SysrefDly : entity surf.SlvDelay
       generic map (
-         TPD_G       => TPD_G,
-         DLY_WIDTH_G => SYSRF_DLY_WIDTH_C)
+         TPD_G        => TPD_G,
+         REG_OUTPUT_G => true,
+         DELAY_G      => 2**SYSRF_DLY_WIDTH_C)
       port map (
-         clk      => devClk_i,
-         rst      => devRst_i,
-         dly_i    => s_sysrefDlyTx,
-         sysref_i => s_sysrefSync,
-         sysref_o => s_sysrefD
-         );
-
-   -- LMFC period generator aligned to SYSREF input
-   U_LmfcGen : entity work.JesdLmfcGen
-      generic map (
-         TPD_G => TPD_G,
-         K_G   => K_G,
-         F_G   => F_G)
-      port map (
-         clk        => devClk_i,
-         rst        => devRst_i,
-         nSync_i    => s_nSyncSync,
-         sysref_i   => s_sysrefD,
-         sysrefRe_o => s_sysrefRe,      -- Rising-edge of SYSREF OUT 
-         lmfc_o     => s_lmfc);
+         clk     => devClk_i,
+         rst     => devRst_i,
+         delay   => s_sysrefDlyTx,
+         din(0)  => s_sysrefSync,
+         dout(0) => s_sysrefD);
 
    ----------------------------
    -- Transmitter modules (L_G)
    ----------------------------
    GEN_TX : for i in L_G-1 downto 0 generate
+
+      -- LMFC period generator aligned to SYSREF input
+      U_LmfcGen : entity surf.JesdLmfcGen
+         generic map (
+            TPD_G => TPD_G,
+            K_G   => K_G,
+            F_G   => F_G)
+         port map (
+            clk        => devClk_i,
+            rst        => devRst_i,
+            nSync_i    => s_nSyncSync(i),
+            sysref_i   => s_sysrefD,
+            sysrefRe_o => s_sysrefRe(i),      -- Rising-edge of SYSREF OUT
+            lmfc_o     => s_lmfc(i));
+
       -- JESD Transmitter modules (one module per Lane)
-      U_JesdTxLane : entity work.JesdTxLane
+      U_JesdTxLane : entity surf.JesdTxLane
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G,
@@ -353,13 +338,15 @@ begin
             replEnable_i => s_replEnable,      -- From AXI lite
             scrEnable_i  => s_scrEnable,       -- From AXI lite
             inv_i        => s_invertData(i),   -- From AXI lite
-            lmfc_i       => s_lmfc,
-            nSync_i      => s_nSyncSync,
+            lmfc_i       => s_lmfc(i),
+            nSync_i      => s_nSyncSync(i),
             gtTxReady_i  => gtTxReady_i(i),
-            sysRef_i     => s_sysrefRe,
+            sysRef_i     => s_sysrefRe(i),
             status_o     => s_statusTxArr(i),  -- To AXI lite
+            dacReady_o   => dacReady_o(i),
             sampleData_i => s_sampleDataArr(i),
             r_jesdGtTx   => s_jesdGtTxArr(i));
+
    end generate GEN_TX;
 
    ------------------
@@ -383,6 +370,6 @@ begin
 
    -- Output assignment
    gtTxReset_o <= (others => s_gtReset);
-   leds_o      <= uOr(s_dataValid) & s_nSyncSync;
+   leds_o      <= uOr(s_dataValid) & uAnd(s_nSyncSync);
 
 end rtl;

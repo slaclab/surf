@@ -1,29 +1,27 @@
 -------------------------------------------------------------------------------
--- File       : i2cRamSlave.vhd
--- Author     : Benjamin Reese  <bareese@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-01-24
--- Last update: 2013-01-28
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for i2cRamSlave
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.i2cPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.i2cPkg.all;
 
 entity i2cRamSlave is
-  
+
   generic (
     TPD_G : time := 1 ns;
 
@@ -59,7 +57,7 @@ architecture rtl of i2cRamSlave is
 
 begin
 
-  i2cRegSlave_1 : entity work.i2cRegSlave
+  i2cRegSlave_1 : entity surf.i2cRegSlave
     generic map (
       TENBIT_G             => TENBIT_G,
       I2C_ADDR_G           => I2C_ADDR_G,

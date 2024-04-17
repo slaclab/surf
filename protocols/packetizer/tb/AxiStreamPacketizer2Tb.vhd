@@ -1,11 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : Testbench for design "AxiStreamPacketizer2"
+-- Title      : AxiStreamPackerizerV2 Protocol: https://confluence.slac.stanford.edu/x/3nh4DQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Testbench for design "AxiStreamPacketizer2"
 -------------------------------------------------------------------------------
 -- This file is part of SURF. It is subject to
 -- the license terms in the LICENSE.txt file found in the top-level directory
@@ -20,10 +18,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ architecture tb of AxiStreamPacketizer2Tb is
 
 begin
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          CLK_DELAY_G       => 1 ns,
@@ -82,7 +82,7 @@ begin
          rst  => axisRst);
 
    PRBS_GEN : for i in 0 to NUM_CHANNELS_C-1 generate
-      U_SsiPrbsTx_1 : entity work.SsiPrbsTx
+      U_SsiPrbsTx_1 : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_G,
             GEN_SYNC_FIFO_G            => true,
@@ -103,7 +103,7 @@ begin
             tId          => X"00");                -- [in]
    end generate PRBS_GEN;
 
-   U_AxiStreamMux_1 : entity work.AxiStreamMux
+   U_AxiStreamMux_1 : entity surf.AxiStreamMux
       generic map (
          TPD_G                    => TPD_G,
          NUM_SLAVES_G             => NUM_CHANNELS_C,
@@ -125,7 +125,7 @@ begin
          mAxisSlave   => muxAxisSlave);      -- [in]
 
    -- component instantiation
-   U_AxiStreamPacketizer2 : entity work.AxiStreamPacketizer2
+   U_AxiStreamPacketizer2 : entity surf.AxiStreamPacketizer2
       generic map (
          TPD_G                => TPD_G,
          CRC_EN_G             => true,
@@ -142,7 +142,7 @@ begin
          mAxisMaster => packetizedAxisMaster,  -- [out]
          mAxisSlave  => packetizedAxisSlave);  -- [in]
 
-   U_AxiStreamDepacketizer2_1 : entity work.AxiStreamDepacketizer2
+   U_AxiStreamDepacketizer2_1 : entity surf.AxiStreamDepacketizer2
       generic map (
          TPD_G                => TPD_G,
          CRC_EN_G             => true,
@@ -155,7 +155,7 @@ begin
          mAxisMaster => depacketizedAxisMaster,  -- [out]
          mAxisSlave  => depacketizedAxisSlave);  -- [in]
 
-   U_AxiStreamDeMux_1 : entity work.AxiStreamDeMux
+   U_AxiStreamDeMux_1 : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
          NUM_MASTERS_G => NUM_CHANNELS_C,
@@ -172,7 +172,7 @@ begin
          mAxisMasters => demuxedAxisMasters,                     -- [out]
          mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));  -- [in]
 
---    U_SsiPrbsRx_1 : entity work.SsiPrbsRx
+--    U_SsiPrbsRx_1 : entity surf.SsiPrbsRx
 --       generic map (
 --          TPD_G                     => TPD_G,
 --          GEN_SYNC_FIFO_G           => true,

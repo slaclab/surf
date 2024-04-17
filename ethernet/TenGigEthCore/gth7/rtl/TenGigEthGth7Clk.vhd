@@ -1,24 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGth7Clk.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-30
--- Last update: 2016-05-19
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet's Clock Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -42,7 +41,7 @@ entity TenGigEthGth7Clk is
       qplllock      : out sl;
       qplloutclk    : out sl;
       qplloutrefclk : out sl;
-      qpllRst       : in  sl);      
+      qpllRst       : in  sl);
 end TenGigEthGth7Clk;
 
 architecture mapping of TenGigEthGth7Clk is
@@ -56,7 +55,7 @@ architecture mapping of TenGigEthGth7Clk is
    signal phyReset     : sl := '1';
    signal pwrUpRst     : sl := '1';
    signal qpllReset    : sl := '1';
-   
+
 begin
 
    phyClk <= phyClock;
@@ -64,16 +63,16 @@ begin
 
    qpllReset <= qpllRst or pwrUpRst;
 
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 15625000)        -- 100 ms
+         DURATION_G => 156250000)       -- 1000 ms
       port map (
          arst   => extRst,
          clk    => phyClock,
-         rstOut => pwrUpRst);  
+         rstOut => pwrUpRst);
 
-   Synchronizer_0 : entity work.Synchronizer
+   Synchronizer_0 : entity surf.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_ASYNC_G    => true,
@@ -84,7 +83,7 @@ begin
          clk     => phyClock,
          rst     => extRst,
          dataIn  => '0',
-         dataOut => phyReset);    
+         dataOut => phyReset);
 
    GEN_IBUFDS_GTE2 : if (USE_GTREFCLK_G = false) generate
       IBUFDS_GTE2_Inst : IBUFDS_GTE2
@@ -101,9 +100,9 @@ begin
    CLK156_BUFG : BUFG
       port map (
          I => refClk,
-         O => phyClock);        
+         O => phyClock);
 
-   Gth7QuadPll_Inst : entity work.Gth7QuadPll
+   Gth7QuadPll_Inst : entity surf.Gth7QuadPll
       generic map (
          TPD_G               => TPD_G,
          SIM_RESET_SPEEDUP_G => "FALSE",       --Does not affect hardware
@@ -111,24 +110,24 @@ begin
          QPLL_CFG_G          => x"04801C7",
          QPLL_REFCLK_SEL_G   => QPLL_REFCLK_SEL_C,
          QPLL_FBDIV_G        => "0101000000",  -- 64B/66B Encoding
-         QPLL_FBDIV_RATIO_G  => '0',           -- 64B/66B Encoding
-         QPLL_REFCLK_DIV_G   => 1)    
+         QPLL_FBDIV_RATIO_G  => '0',    -- 64B/66B Encoding
+         QPLL_REFCLK_DIV_G   => 1)
       port map (
-         qPllRefClk     => refClk,             -- 156.25 MHz
+         qPllRefClk     => refClk,      -- 156.25 MHz
          qPllOutClk     => qPllOutClk,
          qPllOutRefClk  => qPllOutRefClk,
          qPllLock       => qPllLock,
-         qPllLockDetClk => '0',                -- IP Core ties this to GND (see note below) 
+         qPllLockDetClk => '0',  -- IP Core ties this to GND (see note below)
          qPllRefClkLost => open,
          qPllPowerDown  => '0',
-         qPllReset      => qpllReset);          
+         qPllReset      => qpllReset);
    ---------------------------------------------------------------------------------------------
-   -- Note: GTXE2_COMMON pin gtxe2_common_0_i.QPLLLOCKDETCLK cannot be driven by a clock derived 
-   --       from the same clock used as the reference clock for the QPLL, including TXOUTCLK*, 
-   --       RXOUTCLK*, the output from the IBUFDS_GTE2 providing the reference clock, and any 
-   --       buffered or multiplied/divided versions of these clock outputs. Please see UG476 for 
-   --       more information. Source, through a clock buffer, is the same as the GT cell 
+   -- Note: GTXE2_COMMON pin gtxe2_common_0_i.QPLLLOCKDETCLK cannot be driven by a clock derived
+   --       from the same clock used as the reference clock for the QPLL, including TXOUTCLK*,
+   --       RXOUTCLK*, the output from the IBUFDS_GTE2 providing the reference clock, and any
+   --       buffered or multiplied/divided versions of these clock outputs. Please see UG476 for
+   --       more information. Source, through a clock buffer, is the same as the GT cell
    --       reference clock.
    ---------------------------------------------------------------------------------------------
-   
+
 end mapping;

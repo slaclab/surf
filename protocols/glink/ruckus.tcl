@@ -1,11 +1,11 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 # Load the Core
 loadRuckusTcl "$::DIR_PATH/core"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 #############################################################################
 # Note: Our G-Link implementation only supported by the Xilinx 7-Series FPGAs
@@ -20,5 +20,9 @@ if { ${family} == "kintex7" } {
 }
 
 if { ${family} == "zynq" } {
-   loadRuckusTcl "$::DIR_PATH/gtx7"
+   if { [ regexp "XC7Z(015|012).*" [string toupper "$::env(PRJ_PART)"] ] } {
+      loadRuckusTcl "$::DIR_PATH/gtp7"
+   } else {
+      loadRuckusTcl "$::DIR_PATH/gtx7"
+   }
 }

@@ -1,26 +1,27 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bPkg.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2017-11-13
 -------------------------------------------------------------------------------
 -- Description:
 -- PGP ID and other global constants.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 package Pgp2bPkg is
 
@@ -59,10 +60,9 @@ package Pgp2bPkg is
    type Pgp2bRxInArray is array (natural range <>) of Pgp2bRxInType;
 
    constant PGP2B_RX_IN_INIT_C : Pgp2bRxInType := (
-      '0',
-      '0',
-      "000"
-      );
+      flush    => '0',
+      resetRx  => '0',
+      loopback => "000");
 
    type Pgp2bRxOutType is record
       phyRxReady   : sl;                -- RX Phy is ready
@@ -84,21 +84,20 @@ package Pgp2bPkg is
    type Pgp2bRxOutArray is array (natural range <>) of Pgp2bRxOutType;
 
    constant PGP2B_RX_OUT_INIT_C : Pgp2bRxOutType := (
-      '0',
-      '0',
-      "00",
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      '0',
-      (others => '0'),
-      '0',
-      (others => '0'),
-      (others => '0'),
-      (others => '0')
-      );
+      phyRxReady   => '0',
+      linkReady    => '0',
+      linkPolarity => "00",
+      frameRx      => '0',
+      frameRxErr   => '0',
+      cellError    => '0',
+      linkDown     => '0',
+      linkError    => '0',
+      opCodeEn     => '0',
+      opCode       => (others => '0'),
+      remLinkReady => '0',
+      remLinkData  => (others => '0'),
+      remOverflow  => (others => '0'),
+      remPause     => (others => '0'));
 
    -----------------------------------------------------
    -- PGP2B TX non-data types
@@ -117,24 +116,22 @@ package Pgp2bPkg is
    type Pgp2bTxInArray is array (natural range <>) of Pgp2bTxInType;
 
    constant PGP2B_TX_IN_INIT_C : Pgp2bTxInType := (
-      '0',
-      '0',
-      (others => '0'),
-      (others => '0'),
-      '0',
-      '0',
-      '0'
-      );
+      flush       => '0',
+      opCodeEn    => '0',
+      opCode      => (others => '0'),
+      locData     => (others => '0'),
+      flowCntlDis => '0',
+      resetTx     => '0',
+      resetGt     => '0');
 
    constant PGP2B_TX_IN_HALF_DUPLEX_C : Pgp2bTxInType := (
-      '0',
-      '0',
-      (others => '0'),
-      (others => '0'),
-      '1',
-      '0',
-      '0'
-      );
+      flush       => '0',
+      opCodeEn    => '0',
+      opCode      => (others => '0'),
+      locData     => (others => '0'),
+      flowCntlDis => '1',
+      resetTx     => '0',
+      resetGt     => '0');
 
    type Pgp2bTxOutType is record
       locOverflow : slv(3 downto 0);    -- Local overflow status
@@ -148,13 +145,12 @@ package Pgp2bPkg is
    type Pgp2bTxOutArray is array (natural range <>) of Pgp2bTxOutType;
 
    constant PGP2B_TX_OUT_INIT_C : Pgp2bTxOutType := (
-      (others => '0'),
-      (others => '0'),
-      '0',
-      '0',
-      '0',
-      '0'
-      );
+      locOverflow => (others => '0'),
+      locPause    => (others => '0'),
+      phyTxReady  => '0',
+      linkReady   => '0',
+      frameTx     => '0',
+      frameTxErr  => '0');
 
    -----------------------------------------------------
    -- PGP2B RX Phy types
@@ -178,11 +174,10 @@ package Pgp2bPkg is
    type Pgp2bRxPhyLaneInArray is array (natural range <>) of Pgp2bRxPhyLaneInType;
 
    constant PGP2B_RX_PHY_LANE_IN_INIT_C : Pgp2bRxPhyLaneInType := (
-      (others => '0'),
-      (others => '0'),
-      (others => '0'),
-      (others => '0')
-      );
+      data    => (others => '0'),
+      dataK   => (others => '0'),
+      dispErr => (others => '0'),
+      decErr  => (others => '0'));
 
    -----------------------------------------------------
    -- PGP2B TX Phy types
@@ -196,9 +191,8 @@ package Pgp2bPkg is
    type Pgp2bTxPhyLaneOutArray is array (natural range <>) of Pgp2bTxPhyLaneOutType;
 
    constant PGP2B_TX_PHY_LANE_OUT_INIT_C : Pgp2bTxPhyLaneOutType := (
-      (others => '0'),
-      (others => '0')
-      );
+      data  => (others => '0'),
+      datak => (others => '0'));
 
 end Pgp2bPkg;
 

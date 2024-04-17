@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : FifoTbSubModule.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-05
--- Last update: 2014-05-05
 -------------------------------------------------------------------------------
 -- Description: Simulation sub module for testing the FifoFwft modules
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,21 +17,22 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoTbSubModule is
    generic (
       TPD_G           : time                  := 1 ns;
       GEN_SYNC_FIFO_G : boolean               := false;
-      BRAM_EN_G       : boolean               := true;
-      USE_BUILT_IN_G  : boolean               := false;  --if set to true, this module is only xilinx compatible only!!!
+      MEMORY_TYPE_G   : string                := "block";
       PIPE_STAGES_G   : natural range 0 to 16 := 0);
    port (
       rst    : in  sl;
       wrClk  : in  sl;
       rdClk  : in  sl;
       passed : out sl := '0';
-      failed : out sl := '0');   
+      failed : out sl := '0');
 end FifoTbSubModule;
 
 architecture mapping of FifoTbSubModule is
@@ -51,7 +49,7 @@ architecture mapping of FifoTbSubModule is
    signal din,
       dout,
       check : slv(15 downto 0) := (others => '0');
-   
+
 begin
 
    process(wrClk)
@@ -62,7 +60,7 @@ begin
             din        <= (others => '1') after TPD_G;
             writeDelay <= (others => '0') after TPD_G;
          else
-            
+
             writeDelay    <= writeDelay + 1 after TPD_G;
             if writeDelay <= 3 then
                if aFull = '0' then
@@ -74,16 +72,15 @@ begin
       end if;
    end process;
 
-   Fifo_Inst : entity work.Fifo
+   Fifo_Inst : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
          GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
-         BRAM_EN_G       => BRAM_EN_G,
-         USE_BUILT_IN_G  => USE_BUILT_IN_G,
+         MEMORY_TYPE_G   => MEMORY_TYPE_G,
          PIPE_STAGES_G   => PIPE_STAGES_G,
          FWFT_EN_G       => true,
          DATA_WIDTH_G    => 16,
-         ADDR_WIDTH_G    => 10)        
+         ADDR_WIDTH_G    => 10)
       port map (
          -- Resets
          rst         => rst,
@@ -96,7 +93,7 @@ begin
          rd_clk      => rdClk,
          rd_en       => rdEn,
          dout        => dout,
-         valid       => valid); 
+         valid       => valid);
 
    rdEn <= valid and ready;
 

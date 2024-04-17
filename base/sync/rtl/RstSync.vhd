@@ -1,31 +1,30 @@
 -------------------------------------------------------------------------------
--- File       : RstSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-01
--- Last update: 2017-02-23
 -------------------------------------------------------------------------------
 -- Description: Synchronizes the trailing edge of an asynchronous reset to a
 --              given clock.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use work.StdRtlPkg.all;
+library ieee;
+use ieee.std_logic_1164.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity RstSync is
    generic (
       TPD_G           : time                             := 1 ns;   -- Simulation FF output delay
       IN_POLARITY_G   : sl                               := '1';  -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : sl                               := '1';
-      BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration   
+      BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration
       RELEASE_DELAY_G : integer range 3 to positive'high := 3;  -- Delay between deassertion of async and sync resets
       OUT_REG_RST_G   : boolean                          := true);  -- Apply async reset to final reg stage
    port (
@@ -43,7 +42,7 @@ begin
 --   assert (RELEASE_DELAY_G >= 3) report "RELEASE_DELAY_G must be >= 3" severity failure;
 
    -- Reuse synchronizer that turns off shift reg extraction and register balancing for you
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => IN_POLARITY_G,

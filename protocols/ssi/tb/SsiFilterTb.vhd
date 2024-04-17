@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : SsiFilterTb.vhd
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-24
--- Last update: 2016-10-11
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the SsiFifo module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiFilterTb is end SsiFilterTb;
 
@@ -70,7 +71,7 @@ begin
    ---------------------------------------
    -- Generate fast clocks and fast resets
    ---------------------------------------
-   ClkRst_Fast : entity work.ClkRst
+   ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -79,9 +80,9 @@ begin
          clkP => fastClk,
          clkN => open,
          rst  => fastRst,
-         rstL => open); 
+         rstL => open);
 
-   ClkRst_Slow : entity work.ClkRst
+   ClkRst_Slow : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -90,7 +91,7 @@ begin
          clkP => slowClk,
          clkN => open,
          rst  => slowRst,
-         rstL => open);          
+         rstL => open);
 
    comb : process (r, slowRst) is
       variable v : RegType;
@@ -147,17 +148,16 @@ begin
       end if;
    end process seq;
 
-   U_Fifo : entity work.SsiFifo
+   U_Fifo : entity surf.SsiFifo
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
          INT_PIPE_STAGES_G   => 1,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => false,
-         EN_FRAME_FILTER_G   => true,
          VALID_THOLD_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          CASCADE_SIZE_G      => 4,
          CASCADE_PAUSE_SEL_G => 1,
@@ -165,7 +165,7 @@ begin
          FIFO_PAUSE_THRESH_G => 500,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_C,
-         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_C)        
+         MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_C)
       port map (
          sAxisClk    => slowClk,
          sAxisRst    => slowRst,
@@ -173,7 +173,7 @@ begin
          mAxisClk    => fastClk,
          mAxisRst    => fastRst,
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);           
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
    process (fastClk) is
    begin
@@ -202,5 +202,5 @@ begin
             report "Simulation Passed!" severity failure;
       end if;
    end process;
-   
+
 end testbed;

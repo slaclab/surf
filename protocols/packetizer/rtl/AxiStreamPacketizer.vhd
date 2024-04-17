@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPacketizer
+-- Title      : AxiStreamPackerizerV0 Protocol: https://confluence.slac.stanford.edu/x/1oyfD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-29
--- Last update: 2018-03-29
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
 --    Formats an AXI-Stream for a transport link.
@@ -10,49 +9,56 @@
 --    Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamPacketizer is
-
    generic (
-      TPD_G                : time             := 1 ns;
-      MAX_PACKET_BYTES_G   : integer          := 1440;  -- Must be a multiple of 8
-      MIN_TKEEP_G          : slv(15 downto 0) := X"0001";
-      OUTPUT_SSI_G         : boolean          := true;  -- SSI compliant output (SOF on tuser)
-      INPUT_PIPE_STAGES_G  : integer          := 0;
-      OUTPUT_PIPE_STAGES_G : integer          := 0);
-
+      TPD_G                : time            := 1 ns;
+      RST_ASYNC_G          : boolean         := false;
+      MAX_PACKET_BYTES_G   : integer         := 1440;  -- Must be a multiple of 8
+      MIN_TKEEP_G          : slv(7 downto 0) := x"01";
+      OUTPUT_SSI_G         : boolean         := true;  -- SSI compliant output (SOF on tuser)
+      INPUT_PIPE_STAGES_G  : integer         := 0;
+      OUTPUT_PIPE_STAGES_G : integer         := 0);
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axisClk : in sl;
       axisRst : in sl;
+
+      -- Actual byte count; will be truncated to multiple of word-size
+      maxPktBytes : in slv(bitSize(MAX_PACKET_BYTES_G) - 1 downto 0) := toSlv(MAX_PACKET_BYTES_G, bitSize(MAX_PACKET_BYTES_G));
 
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
 
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
-
 end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
 
-   constant MAX_WORD_COUNT_C : integer := (MAX_PACKET_BYTES_G / 8) - 3;
+   constant LD_WORD_SIZE_C : positive := 3;
+   constant WORD_SIZE_C    : positive := 2**LD_WORD_SIZE_C;
+
+   subtype WordCounterType is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
+
+   constant PROTO_WORDS_C    : positive        := 3;
+   constant MAX_WORD_COUNT_C : WordCounterType := to_unsigned(MAX_PACKET_BYTES_G / WORD_SIZE_C, WordCounterType'length);
 
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
@@ -72,9 +78,10 @@ architecture rtl of AxiStreamPacketizer is
 
    type RegType is record
       state            : StateType;
-      frameNumber      : slv(11 downto 0);
-      packetNumber     : slv(23 downto 0);
-      wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
+      frameNumber      : unsigned(11 downto 0);
+      packetNumber     : unsigned(23 downto 0);
+      wordCount        : WordCounterType;
+      maxWords         : WordCounterType;
       eof              : sl;
       tUserLast        : slv(7 downto 0);
       inputAxisSlave   : AxiStreamSlaveType;
@@ -86,6 +93,7 @@ architecture rtl of AxiStreamPacketizer is
       frameNumber      => (others => '0'),
       packetNumber     => (others => '0'),
       wordCount        => (others => '0'),
+      maxWords         => to_unsigned(1, WordCounterType'length),
       eof              => '0',
       tUserLast        => (others => '0'),
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -99,6 +107,8 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
+   signal maxWords : WordCounterType;
+
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
@@ -111,12 +121,15 @@ begin
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
       report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
 
+   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto LD_WORD_SIZE_C));
+
    -----------------
    -- Input pipeline
    -----------------
-   U_Input : entity work.AxiStreamPipeline
+   U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -126,8 +139,9 @@ begin
          mAxisMaster => inputAxisMaster,
          mAxisSlave  => inputAxisSlave);
 
-   comb : process (axisRst, inputAxisMaster, outputAxisSlave, r) is
-      variable v : RegType;
+   comb : process (axisRst, inputAxisMaster, outputAxisSlave, r, maxWords) is
+      variable v    : RegType;
+      variable fits : boolean;
 
    begin
       -- Latch the current value
@@ -146,15 +160,31 @@ begin
          when IDLE_S =>
             -- Reset the counter
             v.wordCount := (others => '0');
-            -- Check if ready to move data                         
-            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+
+            -- Check and register the max. word count
+            -- NOTE: wordCount is compared only after incrementing
+            --       (and doing some work in MOVE_S), thus at least
+            --       one non-protocol word  must fit.
+            if (maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length)) then
+               fits := false;
+            else
+               fits := true;
+               if (maxWords >= MAX_WORD_COUNT_C) then
+                  v.maxWords := MAX_WORD_COUNT_C - PROTO_WORDS_C;
+               else
+                  v.maxWords := maxWords - PROTO_WORDS_C;
+               end if;
+            end if;
+
+            -- Check if ready to move data
+            if (fits and inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Initialize the AXIS buffer
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
                -- Generate the 64-bit header
                v.outputAxisMaster.tValid              := '1';
                v.outputAxisMaster.tData(3 downto 0)   := VERSION_C;
-               v.outputAxisMaster.tData(15 downto 4)  := r.frameNumber;
-               v.outputAxisMaster.tData(39 downto 16) := r.packetNumber;
+               v.outputAxisMaster.tData(15 downto 4)  := slv(r.frameNumber);
+               v.outputAxisMaster.tData(39 downto 16) := slv(r.packetNumber);
                v.outputAxisMaster.tData(47 downto 40) := inputAxisMaster.tDest(7 downto 0);
                v.outputAxisMaster.tData(55 downto 48) := inputAxisMaster.tId(7 downto 0);
                v.outputAxisMaster.tData(63 downto 56) := inputAxisMaster.tUser(7 downto 0);
@@ -170,7 +200,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
-            -- Check if ready to move data   
+            -- Check if ready to move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
 
                -- Accept the data
@@ -181,13 +211,13 @@ begin
                v.outputAxisMaster.tUser := (others => '0');
                v.outputAxisMaster.tDest := (others => '0');
                v.outputAxisMaster.tId   := (others => '0');
-               v.outputAxisMaster.tKeep := x"00FF";
+               v.outputAxisMaster.tKeep := resize(x"00FF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
 
                -- Reach max packet size. Append tail.
-               if (r.wordCount = MAX_WORD_COUNT_C) then
+               if (r.wordCount = r.maxWords) then
                   -- Next state
                   v.state := TAIL_S;
                end if;
@@ -205,42 +235,42 @@ begin
                   ----------------------------------------------------------------------
                   -- Generate the TAIL with respect to the TKEEP
                   ----------------------------------------------------------------------
-                  case (inputAxisMaster.tKeep) is
-                     when x"0000" =>
-                        v.outputAxisMaster.tKeep             := (x"0001" or MIN_TKEEP_G);
+                  case (inputAxisMaster.tKeep(7 downto 0)) is
+                     when x"00" =>
+                        v.outputAxisMaster.tKeep(7 downto 0) := (x"01" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(7 downto 0) := '1' & inputAxisMaster.tUser(6 downto 0);
-                     when x"0001" =>
-                        v.outputAxisMaster.tKeep              := (x"0003" or MIN_TKEEP_G);
+                     when x"01" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)  := (x"03" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(15 downto 8) := '1' & inputAxisMaster.tUser(14 downto 8);
-                     when x"0003" =>
-                        v.outputAxisMaster.tKeep               := (x"0007" or MIN_TKEEP_G);
+                     when x"03" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"07" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(23 downto 16) := '1' & inputAxisMaster.tUser(22 downto 16);
-                     when x"0007" =>
-                        v.outputAxisMaster.tKeep               := (x"000F" or MIN_TKEEP_G);
+                     when x"07" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"0F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(31 downto 24) := '1' & inputAxisMaster.tUser(30 downto 24);
-                     when x"000F" =>
-                        v.outputAxisMaster.tKeep               := (x"001F" or MIN_TKEEP_G);
+                     when x"0F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"1F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(39 downto 32) := '1' & inputAxisMaster.tUser(38 downto 32);
-                     when x"001F" =>
-                        v.outputAxisMaster.tKeep               := (x"003F" or MIN_TKEEP_G);
+                     when x"1F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"3F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(47 downto 40) := '1' & inputAxisMaster.tUser(46 downto 40);
-                     when x"003F" =>
-                        v.outputAxisMaster.tKeep               := (x"007F" or MIN_TKEEP_G);
+                     when x"3F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"7F" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(55 downto 48) := '1' & inputAxisMaster.tUser(54 downto 48);
-                     when x"007F" =>
-                        v.outputAxisMaster.tKeep               := (x"00FF" or MIN_TKEEP_G);
+                     when x"7F" =>
+                        v.outputAxisMaster.tKeep(7 downto 0)   := (x"FF" or MIN_TKEEP_G);
                         v.outputAxisMaster.tData(63 downto 56) := '1' & inputAxisMaster.tUser(62 downto 56);
                      when others =>
                         -- No room for TAIL this cycle and will add it in the next state
-                        v.outputAxisMaster.tKeep := (x"00FF" or MIN_TKEEP_G);
+                        v.outputAxisMaster.tKeep(7 downto 0) := (x"FF" or MIN_TKEEP_G);
                         -- Save the tUser at tLast
-                        v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
+                        v.tUserLast                          := inputAxisMaster.tUser(7 downto 0);
                         -- Set the flag
-                        v.eof                    := '1';
+                        v.eof                                := '1';
                         -- Reset the flag
-                        v.outputAxisMaster.tLast := '0';
+                        v.outputAxisMaster.tLast             := '0';
                         -- Next state
-                        v.state                  := TAIL_S;
+                        v.state                              := TAIL_S;
                   end case;
                   ----------------------------------------------------------------------
 
@@ -252,7 +282,7 @@ begin
             if (v.outputAxisMaster.tValid = '0') then
                -- Generate the footer
                v.outputAxisMaster.tValid            := '1';
-               v.outputAxisMaster.tKeep             := MIN_TKEEP_G;  --X"0001";
+               v.outputAxisMaster.tKeep(7 downto 0) := MIN_TKEEP_G;  --x"01";
                v.outputAxisMaster.tData             := (others => '0');
                v.outputAxisMaster.tData(7)          := r.eof;
                v.outputAxisMaster.tData(6 downto 0) := r.tUserLast(6 downto 0);
@@ -273,7 +303,7 @@ begin
       inputAxisSlave <= v.inputAxisSlave;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -285,9 +315,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -295,9 +327,10 @@ begin
    ------------------
    -- Output pipeline
    ------------------
-   U_Output : entity work.AxiStreamPipeline
+   U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : PGP3 Support Package
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: PGPv3 Support Package
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,14 +19,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 package Pgp3Pkg is
 
    constant PGP3_VERSION_C : slv(2 downto 0) := "011";
-   
+
    constant PGP3_DEFAULT_TX_CELL_WORDS_MAX_C : positive := 128;  -- Number of 64-bit words per cell
 
    constant PGP3_AXIS_CONFIG_C : AxiStreamConfigType :=
@@ -79,6 +78,7 @@ package Pgp3Pkg is
    subtype PGP3_EOFC_CRC_FIELD_C is natural range 55 downto 24;
    subtype PGP3_USER_CHECKSUM_FIELD_C is natural range 55 downto 48;
    subtype PGP3_USER_OPCODE_FIELD_C is natural range 47 downto 0;
+   subtype PGP3_SKIP_DATA_FIELD_C is natural range 55 downto 0;
 
    constant PGP3_CRC_POLY_C : slv(31 downto 0) := X"04C11DB7";
 
@@ -101,10 +101,12 @@ package Pgp3Pkg is
    type Pgp3TxInType is record
       disable      : sl;
       flowCntlDis  : sl;
+      resetTx      : sl;
       skpInterval  : slv(31 downto 0);
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
       opCodeData   : slv(47 downto 0);
+      locData      : slv(55 downto 0);
    end record Pgp3TxInType;
 
    type Pgp3TxInArray is array (natural range<>) of Pgp3TxInType;
@@ -112,10 +114,12 @@ package Pgp3Pkg is
    constant PGP3_TX_IN_INIT_C : Pgp3TxInType := (
       disable      => '0',
       flowCntlDis  => '0',
-      skpInterval  => (others => '0'),
+      resetTx      => '0',
+      skpInterval  => toSlv(5000, 32),
       opCodeEn     => '0',
       opCodeNumber => (others => '0'),
-      opCodeData   => (others => '0'));
+      opCodeData   => (others => '0'),
+      locData      => (others => '0'));
 
 
    type Pgp3TxOutType is record
@@ -123,6 +127,7 @@ package Pgp3Pkg is
       locPause    : slv(15 downto 0);
       phyTxActive : sl;
       linkReady   : sl;
+      opCodeReady : sl;
       frameTx     : sl;                 -- A good frame was transmitted
       frameTxErr  : sl;                 -- An errored frame was transmitted
    end record;
@@ -134,6 +139,7 @@ package Pgp3Pkg is
       locPause    => (others => '0'),
       phyTxActive => '0',
       linkReady   => '0',
+      opCodeReady => '0',
       frameTx     => '0',
       frameTxErr  => '0');
 
@@ -156,10 +162,11 @@ package Pgp3Pkg is
       frameRxErr     : sl;                -- An errored frame was received
       cellError      : sl;                -- A cell error has occured
       linkDown       : sl;                -- A link down event has occured
-      linkError      : sl;                -- A link error has occured      
+      linkError      : sl;                -- A link error has occured
       opCodeEn       : sl;                -- Opcode valid
       opCodeNumber   : slv(2 downto 0);   -- Opcode number
       opCodeData     : slv(47 downto 0);  -- Opcode data
+      remLinkData    : slv(55 downto 0);  -- Far end side User Data
       remRxLinkReady : sl;                -- Far end RX has link
       remRxOverflow  : slv(15 downto 0);  -- Far end RX overflow status
       remRxPause     : slv(15 downto 0);  -- Far end pause status
@@ -191,6 +198,7 @@ package Pgp3Pkg is
       opCodeEn       => '0',
       opCodeNumber   => (others => '0'),
       opCodeData     => (others => '0'),
+      remLinkData    => (others => '0'),
       remRxLinkReady => '0',
       remRxOverflow  => (others => '0'),
       remRxPause     => (others => '0'),
@@ -204,12 +212,6 @@ package Pgp3Pkg is
       ebValid        => '0',
       ebOverflow     => '0',
       ebStatus       => (others => '0'));
-
-   type Pgp3RefClkType is (
-      PGP3_REFCLK_125_C,                -- Used in 6.25Gbps only
-      PGP3_REFCLK_156_C,                -- Used in 10.3125Gbps & 6.25Gbps
-      PGP3_REFCLK_250_C,                -- Used in 6.25Gbps only
-      PGP3_REFCLK_312_C);               -- Used in 10.3125Gbps & 6.25Gbps
 
 end package Pgp3Pkg;
 

@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : RoguePgp3Sim.vhd
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-06-19
--- Last update: 2018-06-19
 -------------------------------------------------------------------------------
 -- Description: Wrapper on RogueStreamSim to simulate a PGPv3
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,19 +19,19 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity RoguePgp3Sim is
    generic (
-      TPD_G     : time                   := 1 ns;
-      USER_ID_G : integer range 0 to 100 := 1;
-      NUM_VC_G  : integer range 1 to 16  := 4);
+      TPD_G         : time                        := 1 ns;
+      PORT_NUM_G    : natural range 1024 to 49151 := 9000;
+      NUM_VC_G      : integer range 1 to 16       := 4;
+      EN_SIDEBAND_G : boolean                     := true);
    port (
       -- GT Ports
       pgpRefClk       : in  sl;
@@ -82,7 +81,7 @@ begin
 
    clk <= pgpRefClk;
 
-   PwrUpRst_Inst : entity work.PwrUpRst
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -93,26 +92,38 @@ begin
          rstOut => rst);
 
    GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
-      U_PGP_VC : entity work.RogueStreamSimWrap
+      U_PGP_VC : entity surf.RogueTcpStreamWrap
          generic map (
-            TPD_G               => TPD_G,
-            DEST_ID_G           => i,
-            USER_ID_G           => USER_ID_G,
-            COMMON_MASTER_CLK_G => true,
-            COMMON_SLAVE_CLK_G  => true,
-            AXIS_CONFIG_G       => PGP3_AXIS_CONFIG_C)
+            TPD_G         => TPD_G,
+            PORT_NUM_G    => (PORT_NUM_G + i*2),
+            SSI_EN_G      => true,
+            CHAN_COUNT_G  => 1,
+            TDEST_MASK_G  => toSlv(i,8),
+            AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C)
          port map (
-            clk         => clk,              -- [in]
-            rst         => rst,              -- [in]
-            sAxisClk    => clk,              -- [in]
-            sAxisRst    => rst,              -- [in]
+            axisClk     => clk,              -- [in]
+            axisRst     => rst,              -- [in]
             sAxisMaster => pgpTxMasters(i),  -- [in]
             sAxisSlave  => pgpTxSlaves(i),   -- [out]
-            mAxisClk    => clk,              -- [in]
-            mAxisRst    => rst,              -- [in]
             mAxisMaster => pgpRxMasters(i),  -- [out]
             mAxisSlave  => pgpRxSlaves(i));  -- [in]
    end generate GEN_VEC;
+
+   GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
+      U_RogueSideBandWrap_1 : entity surf.RogueSideBandWrap
+         generic map (
+            TPD_G      => TPD_G,
+            PORT_NUM_G => PORT_NUM_G + 32)
+         port map (
+            sysClk     => clk,
+            sysRst     => rst,
+            txOpCode   => pgpTxIn.opCodeData(7 downto 0),
+            txOpCodeEn => pgpTxIn.opCodeEn,
+            txRemData  => pgpTxIn.opCodeData(15 downto 8),
+            rxOpCode   => rxOut.opCodeData(7 downto 0),
+            rxOpCodeEn => rxOut.opCodeEn,
+            rxRemData  => rxOut.opCodeData(15 downto 8));
+   end generate GEN_SIDEBAND;
 
    txOut.phyTxActive <= '1';
    txOut.linkReady   <= '1';

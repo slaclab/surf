@@ -1,28 +1,29 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7FixedLatWrapperTb.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-10-31
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for Pgp2bGtx7FixedLatWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Gtx7CfgPkg.all;
-use work.Pgp2bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Gtx7CfgPkg.all;
+use surf.Pgp2bPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -113,7 +114,7 @@ begin
    gtRxN <= gtTxN;
 
    -- component instantiation
-   U_Pgp2bGtx7FixedLatWrapper : entity work.Pgp2bGtx7FixedLatWrapper
+   U_Pgp2bGtx7FixedLatWrapper : entity surf.Pgp2bGtx7FixedLatWrapper
       generic map (
          TPD_G                   => TPD_G,
          SIM_GTRESET_SPEEDUP_G   => SIM_GTRESET_SPEEDUP_G,
@@ -185,7 +186,7 @@ begin
          axilWriteSlave   => axilWriteSlave);   -- [out]
 
 
-   U_ClkRst_GT_CLK0 : entity work.ClkRst
+   U_ClkRst_GT_CLK0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.4 ns,
          CLK_DELAY_G       => 0 ns,
@@ -198,7 +199,7 @@ begin
          rst  => extRst,
          rstL => open);
 
-   U_ClkRst_GT_CLK1 : entity work.ClkRst
+   U_ClkRst_GT_CLK1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1.11231 ns,

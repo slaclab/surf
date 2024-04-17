@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : SsiPkg.vhd
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2016-05-04
 -------------------------------------------------------------------------------
 -- Description: SSI Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,18 +19,20 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 package SsiPkg is
 
-   constant SSI_EOFE_C : integer := 0;
-   constant SSI_SOF_C  : integer := 1;
+   constant SSI_EOFE_C : natural := 0;
+   constant SSI_SOF_C  : natural := 1;
 
-   constant SSI_TUSER_BITS_C : integer := 2;
-   constant SSI_TDEST_BITS_C : integer := 4;
-   constant SSI_TID_BITS_C   : integer := 0;
-   constant SSI_TSTRB_EN_C   : boolean := false;
+   constant SSI_TUSER_BITS_C : positive := 2;
+   constant SSI_TDEST_BITS_C : positive := 4;
+   constant SSI_TID_BITS_C   : natural  := 0;
+   constant SSI_TSTRB_EN_C   : boolean  := false;
 
    constant SSI_MASTER_FORCE_EOFE_C : AxiStreamMasterType := (
       tValid => '1',                                   -- Force
@@ -41,17 +42,18 @@ package SsiPkg is
       tLast  => '1',                                   -- EOF
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => x"01010101010101010101010101010101");  -- EOFE   
+      tUser  => (others => '1'));  -- EOFE
 
    -------------------------------------------------------------------------------------------------
    -- Build an SSI configuration
    -------------------------------------------------------------------------------------------------
    function ssiAxiStreamConfig (
-      dataBytes : natural;
-      tKeepMode : TKeepModeType        := TKEEP_COMP_C;
-      tUserMode : TUserModeType        := TUSER_FIRST_LAST_C;
-      tDestBits : integer range 0 to 8 := 4;
-      tUserBits : integer range 2 to 8 := 2)
+      dataBytes : positive;
+      tKeepMode : TKeepModeType         := TKEEP_COMP_C;
+      tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
+      tDestBits : natural  range 0 to 8 := SSI_TDEST_BITS_C;
+      tUserBits : positive range 2 to 8 := SSI_TUSER_BITS_C;
+      tIdBits   : natural  range 0 to 8 := SSI_TID_BITS_C)
       return AxiStreamConfigType;
 
    -- A default SSI config is useful to have
@@ -62,9 +64,9 @@ package SsiPkg is
    -------------------------------------------------------------------------------------------------
    type SsiMasterType is record
       valid  : sl;
-      data   : slv(127 downto 0);
-      strb   : slv(15 downto 0);
-      keep   : slv(15 downto 0);
+      data   : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      strb   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      keep   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       dest   : slv(SSI_TDEST_BITS_C-1 downto 0);
       packed : sl;
       sof    : sl;
@@ -145,19 +147,20 @@ end package SsiPkg;
 package body SsiPkg is
 
    function ssiAxiStreamConfig (
-      dataBytes : natural;
-      tKeepMode : TKeepModeType        := TKEEP_COMP_C;
-      tUserMode : TUserModeType        := TUSER_FIRST_LAST_C;
-      tDestBits : integer range 0 to 8 := 4;
-      tUserBits : integer range 2 to 8 := 2)
+      dataBytes : positive;
+      tKeepMode : TKeepModeType         := TKEEP_COMP_C;
+      tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
+      tDestBits : natural  range 0 to 8 := SSI_TDEST_BITS_C;
+      tUserBits : positive range 2 to 8 := SSI_TUSER_BITS_C;
+      tIdBits   : natural  range 0 to 8 := SSI_TID_BITS_C)
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
       ret.TDATA_BYTES_C := dataBytes;       -- Configurable data size
       ret.TUSER_BITS_C  := tUserBits;       -- 2 TUSER: EOFE, SOF
       ret.TDEST_BITS_C  := tDestBits;       -- 4 TDEST bits for VC
-      ret.TID_BITS_C    := SSI_TID_BITS_C;  -- TID not used
-      ret.TKEEP_MODE_C  := tKeepMode;       -- 
+      ret.TID_BITS_C    := tIdBits;         -- Optional TID
+      ret.TKEEP_MODE_C  := tKeepMode;       --
       ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;  -- No TSTRB support in SSI
       ret.TUSER_MODE_C  := tUserMode;       -- User field valid on last only
       return ret;

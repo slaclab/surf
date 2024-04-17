@@ -1,8 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
-# Load Source Code
-loadSource -dir "$::DIR_PATH/rtl/"
-
-# Load Simulation
-loadSource -sim_only -dir "$::DIR_PATH/sim/"
+loadRuckusTcl "$::DIR_PATH/v1"
+loadRuckusTcl "$::DIR_PATH/v1b"

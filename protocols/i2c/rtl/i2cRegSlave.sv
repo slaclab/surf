@@ -30,7 +30,7 @@ module i2cRegSlave #
   (
    time 		TPD_P = 1,
    logic 		TENBIT_P = 0,
-   logic [7+TENBIT_P*3] I2C_ADDR_P = 111,
+   logic [7+TENBIT_P*3:0] I2C_ADDR_P = 111,
    logic 		OUTPUT_EN_POLARITY_P = 0,
    integer 		FILTER_P = 4,
    integer 		ADDR_SIZE_P = 2, // in bytes

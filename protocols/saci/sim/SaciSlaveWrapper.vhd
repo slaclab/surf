@@ -1,23 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : SaciSlaveWrapper.vhd
+-- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-17
--- Last update: 2016-06-17
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for SaciSlaveWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SaciSlaveWrapper is
   generic (
@@ -32,7 +33,7 @@ entity SaciSlaveWrapper is
 end entity SaciSlaveWrapper;
 
 architecture rtl of SaciSlaveWrapper is
-  
+
   signal saciSlaveRstL : sl;
   signal exec          : sl;
   signal ack           : sl;
@@ -42,12 +43,12 @@ architecture rtl of SaciSlaveWrapper is
   signal wrData        : slv(31 downto 0);
   signal rdData        : slv(31 downto 0);
   signal saciRspInt : sl;
-  
+
 begin
 
   saciRsp <= saciRspInt when saciSelL = '0' else 'Z';
 
-  SaciSlave_i : entity work.SaciSlave2
+  SaciSlave_i : entity surf.SaciSlave
     generic map (
       TPD_G => TPD_G)
     port map (
@@ -66,7 +67,7 @@ begin
       wrData   => wrData,
       rdData   => rdData);
 
-  SaciSlaveRam_1 : entity work.SaciSlaveRam
+  SaciSlaveRam_1 : entity surf.SaciSlaveRam
     port map (
       saciClkOut => saciClk,
       exec       => exec,

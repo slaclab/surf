@@ -1,18 +1,17 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bRx.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2009-05-27
--- Last update: 2017-03-28
 -------------------------------------------------------------------------------
 -- Description:
--- Cell Receive interface module for the Pretty Good Protocol core. 
+-- Cell Receive interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,12 +19,14 @@ LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 
-entity Pgp2bRx is 
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+
+entity Pgp2bRx is
    generic (
       TPD_G             : time                 := 1 ns;
       RX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-2
@@ -88,12 +89,12 @@ architecture Pgp2bRx of Pgp2bRx is
    signal overflow         : slv(3 downto 0);
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       U_Pgp2bRxPhy,
       U_Pgp2bRxCell,
       Rx_CRC : label is "TRUE";
-   
-begin 
+
+begin
 
    -- Status
    pgpRxOut.linkReady    <= intRxLinkReady;
@@ -116,8 +117,8 @@ begin
 
 
    -- PHY Logic
-   U_Pgp2bRxPhy: entity work.Pgp2bRxPhy 
-      generic map ( 
+   U_Pgp2bRxPhy: entity surf.Pgp2bRxPhy
+      generic map (
          TPD_G            => TPD_G,
          RX_LANE_CNT_G    => RX_LANE_CNT_G
       ) port map (
@@ -145,14 +146,14 @@ begin
          phyRxDecErr      => intPhyRxDecErr,
          phyRxReady       => phyRxReady,
          phyRxInit        => phyRxInit
-      ); 
+      );
 
 
    -- Cell Receiver
-   U_Pgp2bRxCell: entity work.Pgp2bRxCell 
-      generic map ( 
+   U_Pgp2bRxCell: entity surf.Pgp2bRxCell
+      generic map (
          TPD_G                => TPD_G,
-         RX_LANE_CNT_G        => RX_LANE_CNT_G, 
+         RX_LANE_CNT_G        => RX_LANE_CNT_G,
          EN_SHORT_CELLS_G     => 1,
          PAYLOAD_CNT_TOP_G    => PAYLOAD_CNT_TOP_G
       ) port map (
@@ -209,7 +210,7 @@ begin
          intMaster := AXI_STREAM_MASTER_INIT_C;
 
          if pgpRxClkEn = '1' then
-            
+
             intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
             intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
             intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
@@ -220,10 +221,10 @@ begin
             axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof,0);
 
             pgpRxOut.frameRx    <= uOr(intRxVcValid) and intRxEof and (not intRxEofe) after TPD_G;
-            pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G; 
+            pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G;
 
             -- Generate valid and dest values
-            case intRxVcValid is 
+            case intRxVcValid is
                when "0001" =>
                   intMaster.tValid            := '1';
                   intMaster.tDest(3 downto 0) := "0000";
@@ -239,7 +240,7 @@ begin
                when others =>
                   intMaster.tValid            := '0';
             end case;
-         
+
          end if;
 
          if pgpRxClkRst = '1' then
@@ -272,7 +273,7 @@ begin
       crcRxInAdjust(7 downto 0)  <= crcRxIn(31 downto 24);
    end generate CRC_RX_2xLANE;
 
-   Rx_CRC : entity work.CRC32Rtl
+   Rx_CRC : entity surf.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(

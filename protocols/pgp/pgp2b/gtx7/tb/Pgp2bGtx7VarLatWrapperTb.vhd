@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7VarLatWrapperTb.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-10-31
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for Pgp2bGtx7VarLatWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -88,7 +87,7 @@ architecture tb of Pgp2bGtx7VarLatWrapperTb is
 begin
 
    -- component instantiation
-   U_Pgp2bGtx7VarLatWrapper: entity work.Pgp2bGtx7VarLatWrapper
+   U_Pgp2bGtx7VarLatWrapper: entity surf.Pgp2bGtx7VarLatWrapper
       generic map (
          TPD_G              => TPD_G,
          CLKIN_PERIOD_G     => CLKIN_PERIOD_G,
@@ -143,7 +142,7 @@ begin
          axilReadMaster  => axilReadMaster,   -- [in]
          axilReadSlave   => axilReadSlave,    -- [out]
          axilWriteMaster => axilWriteMaster,  -- [in]
-         axilWriteSlave  => axilWriteSlave);  -- [out] 
+         axilWriteSlave  => axilWriteSlave);  -- [out]
 
 end architecture tb;
 

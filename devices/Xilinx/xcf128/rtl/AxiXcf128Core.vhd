@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiXcf128Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-24
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to XCF128 FLASH IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,9 +16,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiXcf128Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiXcf128Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -48,17 +47,17 @@ architecture mapping of AxiXcf128Core is
 
    signal status : AxiXcf128StatusType;
    signal config : AxiXcf128ConfigType;
-   
+
 begin
 
    GEN_IOBUF :
    for i in 15 downto 0 generate
-      IOBUF_inst : IOBUF
+      IOBUF_inst : entity surf.IoBufWrapper
          port map (
             O  => status.data(i),       -- Buffer output
             IO => xcfInOut.data(i),     -- Buffer inout port (connect directly to top-level port)
             I  => config.data(i),       -- Buffer input
-            T  => config.tristate);     -- 3-state enable input, high=input, low=output     
+            T  => config.tristate);     -- 3-state enable input, high=input, low=output
    end generate GEN_IOBUF;
 
    xcfOut.ceL   <= config.ceL;
@@ -67,7 +66,7 @@ begin
    xcfOut.latch <= config.latch;
    xcfOut.addr  <= config.addr;
 
-   AxiXcf128Reg_Inst : entity work.AxiXcf128Reg
+   AxiXcf128Reg_Inst : entity surf.AxiXcf128Reg
       generic map(
          TPD_G            => TPD_G,
          AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
@@ -82,6 +81,6 @@ begin
          config         => config,
          -- Clock and Reset
          axiClk         => axiClk,
-         axiRst         => axiRst);    
+         axiRst         => axiRst);
 
 end mapping;

@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- Title      : Pgp3 Transmit
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-03-30
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Pgpv3 Transmit
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3Tx is
 
@@ -34,8 +33,6 @@ entity Pgp3Tx is
       -- PGP configuration
       NUM_VC_G                 : integer range 1 to 16 := 1;
       CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
-      SKP_INTERVAL_G           : integer               := 5000;
-      SKP_BURST_SIZE_G         : integer               := 8;
       -- Mux configuration
       MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
@@ -46,7 +43,7 @@ entity Pgp3Tx is
       -- Transmit interface
       pgpTxClk     : in  sl;
       pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp3TxInType;
+      pgpTxIn      : in  Pgp3TxInType := PGP3_TX_IN_INIT_C;
       pgpTxOut     : out Pgp3TxOutType;
       pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
@@ -60,8 +57,8 @@ entity Pgp3Tx is
       -- PHY interface
       phyTxActive   : in  sl;
       phyTxReady    : in  sl;
+      phyTxValid    : out sl;
       phyTxStart    : out sl;
-      phyTxSequence : out slv(5 downto 0);
       phyTxData     : out slv(63 downto 0);
       phyTxHeader   : out slv(1 downto 0));
 
@@ -86,7 +83,6 @@ architecture rtl of Pgp3Tx is
    signal phyTxActiveL   : sl;
    signal protTxValid    : sl;
    signal protTxReady    : sl;
-   signal protTxSequence : slv(5 downto 0);
    signal protTxStart    : sl;
    signal protTxData     : slv(63 downto 0);
    signal protTxHeader   : slv(1 downto 0);
@@ -94,7 +90,7 @@ architecture rtl of Pgp3Tx is
 begin
 
    -- Synchronize remote link and fifo status to tx clock
-   U_Synchronizer_REM : entity work.Synchronizer
+   U_Synchronizer_REM : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -103,7 +99,7 @@ begin
          dataIn  => remRxLinkReady,                        -- [in]
          dataOut => syncRemRxLinkReady);                   -- [out]
    REM_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
-      U_SynchronizerVector_1 : entity work.SynchronizerVector
+      U_SynchronizerVector_1 : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2)
@@ -117,7 +113,7 @@ begin
    end generate;
 
    -- Synchronize local rx status
-   U_Synchronizer_LOC : entity work.Synchronizer
+   U_Synchronizer_LOC : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -126,15 +122,15 @@ begin
          dataIn  => locRxLinkReady,                        -- [in]
          dataOut => syncLocRxLinkReady);                   -- [out]
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
-      U_Synchronizer_pause : entity work.Synchronizer
+      U_Synchronizer_pause : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (
             clk     => pgpTxClk,                              -- [in]
             rst     => pgpTxRst,                              -- [in]
             dataIn  => locRxFifoCtrl(i).pause,                -- [in]
-            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out] 
-      U_Synchronizer_overflow : entity work.SynchronizerOneShot
+            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out]
+      U_Synchronizer_overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -160,7 +156,7 @@ begin
    end process;
 
    -- Multiplex the incomming tx streams with interleaving
-   U_AxiStreamMux_1 : entity work.AxiStreamMux
+   U_AxiStreamMux_1 : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
          NUM_SLAVES_G         => NUM_VC_G,
@@ -184,12 +180,13 @@ begin
    -- Note that the mux is doing the work of chunking
    -- Packetizer applies packet formatting and CRC
    -- rearbitrate signal doesn't really do anything (yet)
-   U_AxiStreamPacketizer2_1 : entity work.AxiStreamPacketizer2
+   U_AxiStreamPacketizer2_1 : entity surf.AxiStreamPacketizer2
       generic map (
          TPD_G                => TPD_G,
          CRC_MODE_G           => "DATA",
          CRC_POLY_G           => PGP3_CRC_POLY_C,
          MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
+         SEQ_CNT_SIZE_G       => 12,
          INPUT_PIPE_STAGES_G  => 1,
          OUTPUT_PIPE_STAGES_G => 1)
       port map (
@@ -203,12 +200,10 @@ begin
 
    -- Feed packets into PGP TX Protocol engine
    -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
-   U_Pgp3TxProtocol_1 : entity work.Pgp3TxProtocol
+   U_Pgp3TxProtocol_1 : entity surf.Pgp3TxProtocol
       generic map (
          TPD_G            => TPD_G,
-         NUM_VC_G         => NUM_VC_G,
-         SKP_INTERVAL_G   => SKP_INTERVAL_G,
-         SKP_BURST_SIZE_G => SKP_BURST_SIZE_G)
+         NUM_VC_G         => NUM_VC_G)
       port map (
          pgpTxClk       => pgpTxClk,            -- [in]
          pgpTxRst       => pgpTxRst,            -- [in]
@@ -223,32 +218,32 @@ begin
          protTxReady    => protTxReady,         -- [in]
          protTxValid    => protTxValid,         -- [out]
          protTxStart    => protTxStart,         -- [out]
-         protTxSequence => protTxSequence,      -- [out]
          protTxData     => protTxData,          -- [out]
          protTxHeader   => protTxHeader);       -- [out]
 
    -- Scramble the data for 64b66b
-   U_Scrambler_1 : entity work.Scrambler
+   U_Scrambler_1 : entity surf.Scrambler
       generic map (
          TPD_G            => TPD_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
-         SIDEBAND_WIDTH_G => 9,
+         SIDEBAND_WIDTH_G => 3,
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
          clk                        => pgpTxClk,        -- [in]
          rst                        => phyTxActiveL,    -- [in]
+         -- Input Interface
          inputValid                 => protTxValid,     -- [in]
          inputReady                 => protTxReady,     -- [out]
          inputData                  => protTxData,      -- [in]
          inputSideband(1 downto 0)  => protTxHeader,    -- [in]
          inputSideband(2)           => protTxStart,     -- [in]
-         inputSideband(8 downto 3)  => protTxSequence,  -- [in]
+         -- Output Interface
+         outputValid                => phyTxValid,      -- [out]
          outputReady                => phyTxReady,      -- [in]
          outputData                 => phyTxData,       -- [out]
          outputSideband(1 downto 0) => phyTxHeader,     -- [out]
-         outputSideband(2)          => phyTxStart,      -- [out]
-         outputSideband(8 downto 3) => phyTxSequence);  -- [out]
+         outputSideband(2)          => phyTxStart);     -- [out]
 
    phyTxActiveL <= not(phyTxActive);
 

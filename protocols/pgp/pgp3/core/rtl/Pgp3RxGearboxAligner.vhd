@@ -1,21 +1,19 @@
 -------------------------------------------------------------------------------
--- Title      : Gearbox Aligner
+-- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
 -- Description: Aligns a GT RX gearbox.
--- After reset, require GOOD_COUNT_G consecutive valid headers to lock.
--- Once locked, require BAD_COUNT_G invalid headers withing GOOD_COUNT_G
+-- After reset, require GOOD_COUNT_C consecutive valid headers to lock.
+-- Once locked, require BAD_COUNT_C invalid headers withing GOOD_COUNT_C
 -- total headers to break the lock.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,16 +22,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Pgp3RxGearboxAligner is
-
    generic (
       TPD_G        : time    := 1 ns;
-      GOOD_COUNT_G : integer := 128;
-      BAD_COUNT_G  : integer := 16;
+      RST_ASYNC_G  : boolean := false;
       SLIP_WAIT_G  : integer := 32);
-
    port (
       clk           : in  sl;
       rst           : in  sl;
@@ -41,19 +37,21 @@ entity Pgp3RxGearboxAligner is
       rxHeaderValid : in  sl;
       slip          : out sl;
       locked        : out sl);
-
 end entity Pgp3RxGearboxAligner;
 
 architecture rtl of Pgp3RxGearboxAligner is
 
-   constant GOOD_COUNT_WIDTH_C : integer := log2(maximum(GOOD_COUNT_G, SLIP_WAIT_G));
+   constant GOOD_COUNT_C : integer := 128;
+   constant BAD_COUNT_C  : integer := 16;
+
+   constant GOOD_COUNT_WIDTH_C : integer := log2(maximum(GOOD_COUNT_C, SLIP_WAIT_G));
 
    type StateType is (UNLOCKED_S, SLIP_WAIT_S, LOCKED_S);
 
    type RegType is record
       state     : StateType;
       goodCount : slv(GOOD_COUNT_WIDTH_C-1 downto 0);
-      badCount  : slv(log2(BAD_COUNT_G)-1 downto 0);
+      badCount  : slv(log2(BAD_COUNT_C)-1 downto 0);
       slip      : sl;
       locked    : sl;
    end record RegType;
@@ -88,7 +86,7 @@ begin
                   v.state     := SLIP_WAIT_S;
                end if;
             end if;
-            if (r.goodCount = GOOD_COUNT_G-1) then
+            if (r.goodCount = GOOD_COUNT_C-1) then
                v.state     := LOCKED_S;
                v.locked    := '1';
                v.goodCount := (others => '0');
@@ -109,10 +107,10 @@ begin
                   v.badCount := r.badCount + 1;
                end if;
             end if;
-            if (r.goodCount = GOOD_COUNT_G-1) then
+            if (r.goodCount = GOOD_COUNT_C-1) then
                v.goodCount := (others => '0');
                v.badCount  := (others => '0');
-               if (r.badCount >= BAD_COUNT_G-1) then
+               if (r.badCount >= BAD_COUNT_C-1) then
                   v.locked := '0';
                   v.state  := UNLOCKED_S;
                end if;
@@ -121,7 +119,7 @@ begin
          when others => null;
       end case;
 
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -132,9 +130,11 @@ begin
 
    end process comb;
 
-   seq: process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G) and (rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

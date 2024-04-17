@@ -1,20 +1,22 @@
 //////////////////////////////////////////////////////////////////////////////
+// Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+//////////////////////////////////////////////////////////////////////////////
 // File       : SaciSlaveAnalog.vhd
 // Company    : SLAC National Accelerator Laboratory
-// Created    : 2016-06-17
-// Last update: 2016-06-17
+//////////////////////////////////////////////////////////////////////////////
+// Description: SACI Slave Analog Module
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
 // Edge Module Definition
-module SaciSlaveAnalog 
+module SaciSlaveAnalog
     (input wire  CLK,
      input wire  RST,
      input wire  ack,
@@ -39,9 +41,9 @@ module SaciSlaveAnalog
      output wire cmd_4,
      output wire cmd_5,
      output wire cmd_6,
-     
+
      output wire exec,
-     
+
      input wire  rdData_0,
      input wire  rdData_1,
      input wire  rdData_2,
@@ -74,11 +76,11 @@ module SaciSlaveAnalog
      input wire  rdData_29,
      input wire  rdData_30,
      input wire  rdData_31,
-     
+
      output wire readL,
      input wire  rstL,
      output wire rstOutL,
-     input wire  saciCmd, 
+     input wire  saciCmd,
      output wire saciRsp,
      input wire  saciSelL,
 
@@ -116,7 +118,7 @@ module SaciSlaveAnalog
      output wire wrData_31
 
    );
-   
-	       
-   
-endmodule 
+
+
+
+endmodule

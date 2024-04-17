@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTop.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-22
--- Last update: 2016-10-20
 -------------------------------------------------------------------------------
 -- Description: Top-level for 1GbE/10GbE/40GbE ETH MAC Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,43 +17,45 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTop is
    generic (
       -- Simulation Generics
-      TPD_G               : time                     := 1 ns;
+      TPD_G             : time                     := 1 ns;
       -- MAC Configurations
-      PAUSE_EN_G          : boolean                  := true;
-      PAUSE_512BITS_G     : positive range 1 to 1024 := 8;
-      PHY_TYPE_G          : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
-      DROP_ERR_PKT_G      : boolean                  := true;
-      JUMBO_G             : boolean                  := true;
+      PAUSE_EN_G        : boolean                  := true;
+      PAUSE_512BITS_G   : positive range 1 to 1024 := 8;  -- For 10GbE: 8 clock cycles for 512 bits = one pause "quanta"
+      PHY_TYPE_G        : string                   := "XGMII";  -- "GMII", "XGMII", or "XLGMII"
+      DROP_ERR_PKT_G    : boolean                  := true;
+      JUMBO_G           : boolean                  := true;
       -- RX FIFO Configurations
-      INT_PIPE_STAGES_G   : natural                  := 1;
-      PIPE_STAGES_G       : natural                  := 1;
-      FIFO_ADDR_WIDTH_G   : positive                 := 10;
-      CASCADE_SIZE_G      : positive                 := 2;
-      FIFO_PAUSE_THRESH_G : positive                 := 1000;
-      CASCADE_PAUSE_SEL_G : natural                  := 0;
+      INT_PIPE_STAGES_G : natural                  := 1;
+      PIPE_STAGES_G     : natural                  := 1;
+      FIFO_ADDR_WIDTH_G : positive                 := 11;
+      SYNTH_MODE_G      : string                   := "inferred";
+      MEMORY_TYPE_G     : string                   := "block";
       -- Non-VLAN Configurations
-      FILT_EN_G           : boolean                  := false;
-      PRIM_COMMON_CLK_G   : boolean                  := false;
-      PRIM_CONFIG_G       : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
-      BYP_EN_G            : boolean                  := false;
-      BYP_ETH_TYPE_G      : slv(15 downto 0)         := x"0000";
-      BYP_COMMON_CLK_G    : boolean                  := false;
-      BYP_CONFIG_G        : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
+      FILT_EN_G         : boolean                  := false;
+      PRIM_COMMON_CLK_G : boolean                  := false;
+      PRIM_CONFIG_G     : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
+      BYP_EN_G          : boolean                  := false;
+      BYP_ETH_TYPE_G    : slv(15 downto 0)         := x"0000";
+      BYP_COMMON_CLK_G  : boolean                  := false;
+      BYP_CONFIG_G      : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
       -- VLAN Configurations
-      VLAN_EN_G           : boolean                  := false;
-      VLAN_SIZE_G         : positive range 1 to 8    := 1;
-      VLAN_VID_G          : Slv12Array               := (0 => x"001");
-      VLAN_COMMON_CLK_G   : boolean                  := false;
-      VLAN_CONFIG_G       : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);      
+      VLAN_EN_G         : boolean                  := false;
+      VLAN_SIZE_G       : positive range 1 to 8    := 1;
+      VLAN_VID_G        : Slv12Array               := (0 => x"001");
+      VLAN_COMMON_CLK_G : boolean                  := false;
+      VLAN_CONFIG_G     : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);
    port (
       -- Core Clock and Reset
+      ethClkEn         : in  sl                                           := '1';
       ethClk           : in  sl;
       ethRst           : in  sl;
       -- Primary Interface
@@ -137,7 +136,7 @@ begin
    ----------
    -- TX FIFO
    ----------
-   U_TxFifo : entity work.EthMacTxFifo
+   U_TxFifo : entity surf.EthMacTxFifo
       generic map (
          TPD_G             => TPD_G,
          PRIM_COMMON_CLK_G => PRIM_COMMON_CLK_G,
@@ -148,7 +147,8 @@ begin
          VLAN_EN_G         => VLAN_EN_G,
          VLAN_SIZE_G       => VLAN_SIZE_G,
          VLAN_COMMON_CLK_G => VLAN_COMMON_CLK_G,
-         VLAN_CONFIG_G     => VLAN_CONFIG_G)
+         VLAN_CONFIG_G     => VLAN_CONFIG_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G)
       port map (
          -- Master Clock and Reset
          mClk         => ethClk,
@@ -178,7 +178,7 @@ begin
    ------------
    -- TX Module
    ------------
-   U_Tx : entity work.EthMacTx
+   U_Tx : entity surf.EthMacTx
       generic map (
          -- Simulation Generics
          TPD_G           => TPD_G,
@@ -193,9 +193,12 @@ begin
          -- VLAN Configurations
          VLAN_EN_G       => VLAN_EN_G,
          VLAN_SIZE_G     => VLAN_SIZE_G,
-         VLAN_VID_G      => VLAN_VID_G)
+         VLAN_VID_G      => VLAN_VID_G,
+         -- RAM sythesis Mode
+         SYNTH_MODE_G    => SYNTH_MODE_G)
       port map (
          -- Clocks
+         ethClkEn       => ethClkEn,
          ethClk         => ethClk,
          ethRst         => ethRst,
          -- Primary Interface
@@ -227,12 +230,12 @@ begin
          ethConfig      => ethConfig,
          txCountEn      => ethStatus.txCountEn,
          txUnderRun     => ethStatus.txUnderRunCnt,
-         txLinkNotReady => ethStatus.txNotReadyCnt);          
+         txLinkNotReady => ethStatus.txNotReadyCnt);
 
-   ---------------------      
+   ---------------------
    -- Flow Control Logic
-   ---------------------      
-   U_FlowCtrl : entity work.EthMacFlowCtrl
+   ---------------------
+   U_FlowCtrl : entity surf.EthMacFlowCtrl
       generic map (
          TPD_G       => TPD_G,
          BYP_EN_G    => BYP_EN_G,
@@ -251,8 +254,8 @@ begin
 
    ------------
    -- RX Module
-   ------------      
-   U_Rx : entity work.EthMacRx
+   ------------
+   U_Rx : entity surf.EthMacRx
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_G,
@@ -267,9 +270,12 @@ begin
          -- VLAN Configurations
          VLAN_EN_G      => VLAN_EN_G,
          VLAN_SIZE_G    => VLAN_SIZE_G,
-         VLAN_VID_G     => VLAN_VID_G)
+         VLAN_VID_G     => VLAN_VID_G,
+         -- RAM Synthesis mode
+         SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and Reset
+         ethClkEn     => ethClkEn,
          ethClk       => ethClk,
          ethRst       => ethRst,
          -- Primary Interface
@@ -302,33 +308,33 @@ begin
 
    ----------
    -- RX FIFO
-   ----------         
-   U_RxFifo : entity work.EthMacRxFifo
+   ----------
+   U_RxFifo : entity surf.EthMacRxFifo
       generic map (
-         TPD_G               => TPD_G,
-         DROP_ERR_PKT_G      => DROP_ERR_PKT_G,
-         INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
-         PIPE_STAGES_G       => PIPE_STAGES_G,
-         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         CASCADE_SIZE_G      => CASCADE_SIZE_G,
-         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         CASCADE_PAUSE_SEL_G => CASCADE_PAUSE_SEL_G,
-         PRIM_COMMON_CLK_G   => PRIM_COMMON_CLK_G,
-         PRIM_CONFIG_G       => PRIM_CONFIG_G,
-         BYP_EN_G            => BYP_EN_G,
-         BYP_COMMON_CLK_G    => BYP_COMMON_CLK_G,
-         BYP_CONFIG_G        => BYP_CONFIG_G,
-         VLAN_EN_G           => VLAN_EN_G,
-         VLAN_SIZE_G         => VLAN_SIZE_G,
-         VLAN_COMMON_CLK_G   => VLAN_COMMON_CLK_G,
-         VLAN_CONFIG_G       => VLAN_CONFIG_G)
+         TPD_G             => TPD_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G,
+         MEMORY_TYPE_G     => MEMORY_TYPE_G,
+         DROP_ERR_PKT_G    => DROP_ERR_PKT_G,
+         INT_PIPE_STAGES_G => INT_PIPE_STAGES_G,
+         PIPE_STAGES_G     => PIPE_STAGES_G,
+         FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+         PRIM_COMMON_CLK_G => PRIM_COMMON_CLK_G,
+         PRIM_CONFIG_G     => PRIM_CONFIG_G,
+         BYP_EN_G          => BYP_EN_G,
+         BYP_COMMON_CLK_G  => BYP_COMMON_CLK_G,
+         BYP_CONFIG_G      => BYP_CONFIG_G,
+         VLAN_EN_G         => VLAN_EN_G,
+         VLAN_SIZE_G       => VLAN_SIZE_G,
+         VLAN_COMMON_CLK_G => VLAN_COMMON_CLK_G,
+         VLAN_CONFIG_G     => VLAN_CONFIG_G)
       port map (
          -- Slave Clock and Reset
          sClk         => ethClk,
          sRst         => ethRst,
-         -- Status (sClk domain)
+         -- Status/Config (sClk domain)
          phyReady     => phyReady,
          rxFifoDrop   => ethStatus.rxFifoDropCnt,
+         pauseThresh  => ethConfig.pauseThresh,
          -- Primary Interface
          mPrimClk     => primClk,
          mPrimRst     => primRst,

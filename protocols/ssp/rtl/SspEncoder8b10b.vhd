@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : SspEncoder8b10b.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-07-14
--- Last update: 2017-05-05
 -------------------------------------------------------------------------------
 -- Description: SimpleStreamingProtocol - A simple protocol layer for inserting
 -- idle and framing control characters into a raw data stream. This module
 -- ties the framing core to an RTL 8b10b encoder.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,8 +19,10 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 
-use work.StdRtlPkg.all;
-use work.Code8b10bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code8b10bPkg.all;
 
 entity SspEncoder8b10b is
 
@@ -49,7 +48,6 @@ end entity SspEncoder8b10b;
 
 architecture rtl of SspEncoder8b10b is
 
-   signal readyOutInt : sl;
    signal framedData  : slv(15 downto 0);
    signal framedDataK : slv(1 downto 0);
    signal validInt    : sl;
@@ -57,7 +55,7 @@ architecture rtl of SspEncoder8b10b is
 
 begin
 
-   SspFramer_1 : entity work.SspFramer
+   SspFramer_1 : entity surf.SspFramer
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,
@@ -85,7 +83,7 @@ begin
          dataOut  => framedData,
          dataKOut => framedDataK);
 
-   Encoder8b10b_1 : entity work.Encoder8b10b
+   Encoder8b10b_1 : entity surf.Encoder8b10b
       generic map (
          TPD_G          => TPD_G,
          NUM_BYTES_G    => 2,
@@ -100,7 +98,7 @@ begin
          dataIn   => framedData,
          dataKIn  => framedDataK,
          validOut => validOut,
-         readyOut => readyOutInt,
+         readyOut => readyOut,
          dataOut  => dataOut);
 
 end architecture rtl;

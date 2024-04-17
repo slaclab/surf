@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
--- File       : SsiCmdMaster.vhd
+-- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-09
--- Last update: 2015-06-23
 -------------------------------------------------------------------------------
 -- Description:
 -- Block for Command protocol over the VC.
@@ -16,11 +15,11 @@
 -- Word 3             = Don't Care
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,33 +28,29 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.SsiCmdMasterPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.SsiCmdMasterPkg.all;
 
 entity SsiCmdMaster is
    generic (
-      TPD_G : time := 1 ns;
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false;
 
       -- AXI Stream FIFO Config
       SLAVE_READY_EN_G    : boolean                    := false;
-      BRAM_EN_G           : boolean                    := false;
-      XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
+      MEMORY_TYPE_G       : string                     := "distributed";
       GEN_SYNC_FIFO_G     : boolean                    := false;
-      ALTERA_SYN_G        : boolean                    := false;
-      ALTERA_RAM_G        : string                     := "M9K";
       CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
-      FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 4;
+      FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 5;
       FIFO_FIXED_THRESH_G : boolean                    := true;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 8;
 
       -- AXI Stream Configuration
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
-      );
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
-
       -- Streaming Data Interface
       axisClk     : in  sl;
       axisRst     : in  sl := '0';
@@ -66,8 +61,7 @@ entity SsiCmdMaster is
       -- Command signals
       cmdClk    : in  sl;
       cmdRst    : in  sl;
-      cmdMaster : out SsiCmdMasterType
-      );
+      cmdMaster : out SsiCmdMasterType);
 end SsiCmdMaster;
 
 architecture rtl of SsiCmdMaster is
@@ -84,8 +78,7 @@ architecture rtl of SsiCmdMaster is
 
    constant REG_INIT_C : RegType := (
       txnNumber => (others => '0'),
-      cmdMaster => SSI_CMD_MASTER_INIT_C
-      );
+      cmdMaster => SSI_CMD_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -95,18 +88,15 @@ architecture rtl of SsiCmdMaster is
 begin
 
    ----------------------------------
-   -- Fifo
+   -- FIFO
    ----------------------------------
-   SlaveAxiStreamFifo : entity work.AxiStreamFifoV2
+   SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => CASCADE_SIZE_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
@@ -146,7 +136,7 @@ begin
 
          case r.txnNumber is
             when "000" =>
-               v.cmdMaster.context := fifoAxisMaster.tData(31 downto 8);
+               v.cmdMaster.ctx := fifoAxisMaster.tData(31 downto 8);
             when "001" =>
                v.cmdMaster.opCode := fifoAxisMaster.tData(7 downto 0);
             when "011" =>
@@ -169,10 +159,10 @@ begin
             -- Reset frame on tLast or EOFE
             v.txnNumber := "000";
          end if;
-         
+
       end if;
 
-      if (cmdRst = '1') then
+      if (RST_ASYNC_G = false and cmdRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -182,9 +172,11 @@ begin
 
    end process comb;
 
-   seq : process (cmdClk) is
+   seq : process (cmdClk, cmdRst) is
    begin
-      if (rising_edge(cmdClk)) then
+      if (RST_ASYNC_G) and (cmdRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(cmdClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

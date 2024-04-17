@@ -1,25 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : GtyUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2018-04-06
--- Last update: 2018-04-06
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC MGT Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC MGT Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC MGT Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -66,7 +65,8 @@ entity GtyUltraScaleQuadPll is
       QPLL_SDM_CFG1_G    : Slv16Array(1 downto 0)   := (others => x"0000");
       QPLL_SDM_CFG2_G    : Slv16Array(1 downto 0)   := (others => x"0000");
       -- Clock Selects
-      QPLL_REFCLK_SEL_G  : Slv3Array(1 downto 0)    := (others => "001"));
+      QPLL_REFCLK_SEL_G   : Slv3Array(1 downto 0)   := (others => "001");
+      EN_DRP_G            : boolean                 := true);
    port (
       qPllRefClk      : in  slv(1 downto 0);
       qPllOutClk      : out slv(1 downto 0);
@@ -96,12 +96,12 @@ architecture mapping of GtyUltraScaleQuadPll is
    signal gtSouthRefClk1 : slv(1 downto 0);
    signal gtGRefClk      : slv(1 downto 0);
 
-   signal drpEn   : sl;
-   signal drpWe   : sl;
-   signal drpRdy  : sl;
-   signal drpAddr : slv(15 downto 0);
-   signal drpDi   : slv(15 downto 0);
-   signal drpDo   : slv(15 downto 0);
+   signal drpEn   : sl               := '0';
+   signal drpWe   : sl               := '0';
+   signal drpRdy  : sl               := '0';
+   signal drpAddr : slv(15 downto 0) := (others => '0');
+   signal drpDi   : slv(15 downto 0) := (others => '0');
+   signal drpDo   : slv(15 downto 0) := (others => '0');
 
 begin
 
@@ -320,30 +320,32 @@ begin
          UBMDMTCK          => '0',
          UBMDMTDI          => '0');
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
-      generic map (
-         TPD_G            => TPD_G,
-         COMMON_CLK_G     => true,
-         EN_ARBITRATION_G => false,
-         TIMEOUT_G        => 4096,
-         ADDR_WIDTH_G     => 16,
-         DATA_WIDTH_G     => 16)
-      port map (
-         -- AXI-Lite Port
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave,
-         -- DRP Interface
-         drpClk          => axilClk,
-         drpRst          => axilRst,
-         drpRdy          => drpRdy,
-         drpEn           => drpEn,
-         drpWe           => drpWe,
-         drpAddr         => drpAddr,
-         drpDi           => drpDi,
-         drpDo           => drpDo);
+   GEN_DRP : if (EN_DRP_G) generate
+      U_AxiLiteToDrp : entity surf.AxiLiteToDrp
+         generic map (
+            TPD_G            => TPD_G,
+            COMMON_CLK_G     => true,
+            EN_ARBITRATION_G => false,
+            TIMEOUT_G        => 4096,
+            ADDR_WIDTH_G     => 16,
+            DATA_WIDTH_G     => 16)
+         port map (
+            -- AXI-Lite Port
+            axilClk         => axilClk,
+            axilRst         => axilRst,
+            axilReadMaster  => axilReadMaster,
+            axilReadSlave   => axilReadSlave,
+            axilWriteMaster => axilWriteMaster,
+            axilWriteSlave  => axilWriteSlave,
+            -- DRP Interface
+            drpClk          => axilClk,
+            drpRst          => axilRst,
+            drpRdy          => drpRdy,
+            drpEn           => drpEn,
+            drpWe           => drpWe,
+            drpAddr         => drpAddr,
+            drpDi           => drpDi,
+            drpDo           => drpDo);
+   end generate GEN_DRP;
 
 end architecture mapping;

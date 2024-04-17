@@ -1,23 +1,22 @@
 -------------------------------------------------------------------------------
--- File       : Gth7TxManualPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-01
--- Last update: 2015-04-01
 -------------------------------------------------------------------------------
 -- Description: GTH7 TX manual phase aligner
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Gth7TxManualPhaseAligner is
    generic (
@@ -76,14 +75,14 @@ architecture rtl of Gth7TxManualPhaseAligner is
    signal gtTxPhAlignDoneEdge   : sl;
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       TX_DLY_S_RESET_DONE_SYNC,
       TX_PH_INIT_DONE_SYNC,
       TX_PH_ALIGN_DONE_SYNC : label is "TRUE";
-   
+
 begin
 
-   TX_DLY_S_RESET_DONE_SYNC : entity work.Synchronizer
+   TX_DLY_S_RESET_DONE_SYNC : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -91,7 +90,7 @@ begin
          dataIn  => gtTxDlySResetDone,
          dataOut => gtTxDlySResetDoneSync);
 
-   TX_PH_INIT_DONE_SYNC : entity work.Synchronizer
+   TX_PH_INIT_DONE_SYNC : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -99,7 +98,7 @@ begin
          dataIn  => gtTxPhInitDone,
          dataOut => gtTxPhInitDoneSync);
 
-   TX_PH_ALIGN_DONE_SYNC : entity work.SynchronizerEdge
+   TX_PH_ALIGN_DONE_SYNC : entity surf.SynchronizerEdge
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -153,7 +152,7 @@ begin
 
          when DONE_S =>
             v.phaseAlignmentDone := '1';
-            
+
          when others => null;
       end case;
 
@@ -168,7 +167,7 @@ begin
       gtTxPhInit         <= r.gtTxPhInit;
       gtTxPhAlign        <= r.gtTxPhAlign;
       gtTxDlyEn          <= r.gtTxDlyEn;
-      
+
    end process comb;
 
    seq : process (stableClk) is

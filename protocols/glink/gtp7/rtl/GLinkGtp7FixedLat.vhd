@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : GLinkGtp7FixedLat.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-30
--- Last update: 2017-05-08
 -------------------------------------------------------------------------------
 -- Description: G-Link wrapper for GTP7 transceiver
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.GlinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GlinkPkg.all;
 
 entity GLinkGtp7FixedLat is
    generic (
@@ -42,7 +41,7 @@ entity GLinkGtp7FixedLat is
       RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit        := '1';                       -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard         
+      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard
       -- Configure PLL sources
       TX_PLL_G              : string     := "PLL0";
       RX_PLL_G              : string     := "PLL1");
@@ -107,7 +106,7 @@ begin
 
       txClk <= gLinkTxRefClk;
 
-      Synchronizer_0 : entity work.Synchronizer
+      Synchronizer_0 : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -115,7 +114,7 @@ begin
             dataIn  => gtTxRstDone,
             dataOut => txReady);
 
-      SyncFifo_TX : entity work.SynchronizerFifo
+      SyncFifo_TX : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             INIT_G       => toSlv(GLINK_TX_UNUSED_C),
@@ -134,7 +133,7 @@ begin
 
       gtTxRst <= not(gtTxRstDone) or gLinkTxSync.linkRst;
 
-      GLinkEncoder_Inst : entity work.GLinkEncoder
+      GLinkEncoder_Inst : entity surf.GLinkEncoder
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
@@ -161,7 +160,7 @@ begin
 
       rxClk <= rxRecClk;
 
-      Synchronizer_1 : entity work.Synchronizer
+      Synchronizer_1 : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -169,7 +168,7 @@ begin
             dataIn  => gtRxRstDone,
             dataOut => rxReady);
 
-      SyncFifo_RX : entity work.SynchronizerFifo
+      SyncFifo_RX : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             INIT_G       => toSlv(GLINK_RX_INIT_C),
@@ -192,7 +191,7 @@ begin
       rxRst   <= '0';
       gtRxRst <= not(gtRxRstDone) or rxRst;
 
-      GLinkDecoder_Inst : entity work.GLinkDecoder
+      GLinkDecoder_Inst : entity surf.GLinkDecoder
          generic map (
             TPD_G          => TPD_G,
             FLAGSEL_G      => FLAGSEL_G,
@@ -223,7 +222,7 @@ begin
    gtRxData         <= bitReverse(gtRxDataReversed);
 
    -- GTP 7 Core in Fixed Latency mode
-   Gtp7Core_Inst : entity work.Gtp7Core
+   Gtp7Core_Inst : entity surf.Gtp7Core
       generic map (
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,

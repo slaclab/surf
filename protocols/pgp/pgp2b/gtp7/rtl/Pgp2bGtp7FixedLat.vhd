@@ -1,61 +1,62 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtp7FixedLat.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-06-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gth7 Fixed Latency Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
 entity Pgp2bGtp7FixedLat is
    generic (
-      TPD_G : time := 1 ns;
-      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
+      TPD_G                 : time       := 1 ns;
+      COMMON_CLK_G          : boolean    := false;  -- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
       -- Sim Generics --
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
-      SIM_VERSION_G         : string     := "1.0";
+      SIM_VERSION_G         : string     := "2.0";
       SIMULATION_G          : boolean    := false;
       STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
       REF_CLK_FREQ_G        : real       := 125.0E6;
-      -- TX/RX Settings - Defaults to 2.5 Gbps operation 
+      -- TX/RX Settings - Defaults to 2.5 Gbps operation
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
       PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
       RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit        := '1';                       -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard      
+      RXLPM_INCM_CFG_G      : bit        := '1';    -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit        := '0';    -- Set by wizard
 
       -- Allow TX to run in var lat mode by altering these generics
       TX_BUF_EN_G      : boolean := false;
       TX_OUTCLK_SRC_G  : string  := "PLLREFCLK";
       TX_PHASE_ALIGN_G : string  := "MANUAL";
       -- Configure PLL sources
-      DYNAMIC_QPLL_G   : boolean := false; 
+      DYNAMIC_QPLL_G   : boolean := false;
       TX_PLL_G         : string  := "PLL0";
       RX_PLL_G         : string  := "PLL1";
 
@@ -73,7 +74,7 @@ entity Pgp2bGtp7FixedLat is
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       qPllRxSelect     : in  slv(1 downto 0) := "00";
-      qPllTxSelect     : in  slv(1 downto 0) := "00";      
+      qPllTxSelect     : in  slv(1 downto 0) := "00";
       gtQPllOutRefClk  : in  slv(1 downto 0) := "00";     -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
@@ -119,12 +120,12 @@ entity Pgp2bGtp7FixedLat is
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
 
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
       drpOverride     : in  sl                     := '0';
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -153,6 +154,7 @@ architecture rtl of Pgp2bGtp7FixedLat is
    -- PgpRx Signals
    signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
    signal dataValid     : sl;                              -- no decode or disparity errors
+   signal dataValidTmp  : sl;                              -- no decode or disparity errors
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
    signal phyRxReady    : sl;                              -- To RxRst
@@ -186,7 +188,7 @@ begin
    -- PGP Core
    --------------------------------------------------------------------------------------------------
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -214,15 +216,29 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => gtRxUserReset   -- Ignore phyRxInit, rx will reset on its own
+         phyRxInit        => phyRxInit       -- Ignore phyRxInit, rx will reset on its own
          );
+
+   -------------------------------------------------------------------------------------------------
+   -- Oneshot the phy init because clock may drop out and leave it stuck high
+   -------------------------------------------------------------------------------------------------
+   U_gtRxUserReset : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '1',
+         PULSE_WIDTH_G  => 100)
+      port map (
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => gtRxUserReset);     -- [out]
 
    --------------------------------------------------------------------------------------------------
    -- Rx Data Path
    -- Hold Decoder and PgpRx in reset until GtRxResetDone.
    --------------------------------------------------------------------------------------------------
    gtRxResetDoneL <= not gtRxResetDone;
-   Decoder8b10b_1 : entity work.Decoder8b10b
+   Decoder8b10b_1 : entity surf.Decoder8b10b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '0',         --active low polarity
@@ -236,7 +252,24 @@ begin
          codeErr  => phyRxLanesIn(0).decErr,
          dispErr  => phyRxLanesIn(0).dispErr);
 
-   dataValid <= not (uOr(phyRxLanesIn(0).decErr) or uOr(phyRxLanesIn(0).dispErr));
+   dataValidTmp <= not (uOr(phyRxLanesIn(0).decErr) or uOr(phyRxLanesIn(0).dispErr));
+
+   -------------------------------------------------------------------------------------------------
+   -- Filter on dataValid so that it doesn't drop immediately on errors
+   -- Not currently hooked up but leaving it in so we can try it someday.
+   -------------------------------------------------------------------------------------------------
+   U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner
+      generic map (
+         TPD_G       => TPD_G,
+         SLIP_WAIT_G => 1)
+      port map (
+         clk           => pgpRxClk,        -- [in]
+         rst           => gtRxResetDoneL,  -- [in]
+         rxHeader(0)   => dataValidTmp,    -- [in]
+         rxHeader(1)   => '0',             -- [in]
+         rxHeaderValid => '1',             -- [in]
+         slip          => open,            -- [out]
+         locked        => dataValid);      -- [out]
 
    pgpRxRecClkRst <= gtRxResetDoneL;
 
@@ -248,7 +281,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- GTP 7 Core in Fixed Latency mode
    --------------------------------------------------------------------------------------------------
-   Gtp7Core_1 : entity work.Gtp7Core
+   Gtp7Core_1 : entity surf.Gtp7Core
       generic map (
          TPD_G                 => TPD_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
@@ -326,7 +359,7 @@ begin
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
          rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
-         rxDataValidIn    => dataValid,   -- From 8b10b
+         rxDataValidIn    => '1',   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
          rxCharIsKOut     => open,      -- Not using gt rx 8b10b
@@ -359,7 +392,7 @@ begin
          drpDi            => drpDi,
          drpDo            => drpDo);
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => COMMON_CLK_G,
@@ -386,19 +419,19 @@ begin
          drpDi           => drpDi,
          drpDo           => drpDo);
 
-   GEN_RST : if (COMMON_CLK_G = false) generate   
-      U_RstSync : entity work.RstSync
+   GEN_RST : if (COMMON_CLK_G = false) generate
+      U_RstSync : entity surf.RstSync
          generic map (
-            TPD_G => TPD_G)      
+            TPD_G => TPD_G)
          port map (
             clk      => stableClk,
             asyncRst => axilRst,
-            syncRst  => stableRst);     
+            syncRst  => stableRst);
    end generate;
-   
-   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate   
-      stableRst <= axilRst; 
-   end generate;   
+
+   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate
+      stableRst <= axilRst;
+   end generate;
 
 end rtl;
 

@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPipelineTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-05-02
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiStreamPipelineTb module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamPipelineTb is end AxiStreamPipelineTb;
 
@@ -30,8 +29,8 @@ architecture testbed of AxiStreamPipelineTb is
    constant CLK_PERIOD_C  : time              := 4 ns;
    constant TPD_C         : time              := CLK_PERIOD_C/4;
    constant PIPE_STAGES_C : natural           := 1;
-   constant MAX_CNT_C     : slv(127 downto 0) := x"000000000000000019999997E241C000";
-   -- constant MAX_CNT_C     : slv(127 downto 0) := x"000000000000000000000000000000FF";
+   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000019999997E241C000",AXI_STREAM_MAX_TDATA_WIDTH_C);
+   -- constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000000000000000000FF",AXI_STREAM_MAX_TDATA_WIDTH_C);
    constant PRBS_TAPS_C   : NaturalArray      := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
 
    type RegType is record
@@ -39,14 +38,14 @@ architecture testbed of AxiStreamPipelineTb is
       failed      : sl;
       wrPbrs      : slv(31 downto 0);
       wrSof       : sl;
-      wrPkt       : slv(127 downto 0);
-      wrCnt       : slv(127 downto 0);
-      wrSize      : slv(127 downto 0);
+      wrPkt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      wrCnt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      wrSize      : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
       rdPbrs      : slv(31 downto 0);
       rdSof       : sl;
-      rdPkt       : slv(127 downto 0);
-      rdCnt       : slv(127 downto 0);
-      rdSize      : slv(127 downto 0);
+      rdPkt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      rdCnt       : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
+      rdSize      : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0);
       sAxisMaster : AxiStreamMasterType;
       mAxisSlave  : AxiStreamSlaveType;
    end record RegType;
@@ -64,7 +63,7 @@ architecture testbed of AxiStreamPipelineTb is
       rdCnt       => (others => '0'),
       rdSize      => (others => '0'),
       sAxisMaster => AXI_STREAM_MASTER_INIT_C,
-      mAxisSlave  => AXI_STREAM_SLAVE_INIT_C);      
+      mAxisSlave  => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -78,11 +77,11 @@ architecture testbed of AxiStreamPipelineTb is
    signal rst    : sl := '0';
    signal passed : sl := '0';
    signal failed : sl := '0';
-   
+
 begin
 
    -- Generate clocks and resets
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -91,10 +90,10 @@ begin
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => open); 
+         rstL => open);
 
    -- AxiStreamPipeline (VHDL module to be tested)
-   AxiStreamPipeline_Inst : entity work.AxiStreamPipeline
+   AxiStreamPipeline_Inst : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_C,
          PIPE_STAGES_G => PIPE_STAGES_C)
@@ -107,7 +106,7 @@ begin
          sAxisSlave  => sAxisSlave,
          -- Master Port
          mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);            
+         mAxisSlave  => mAxisSlave);
 
    comb : process (mAxisMaster, r, rst, sAxisSlave) is
       variable v : RegType;
@@ -116,7 +115,7 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the flags      
+      -- Reset the flags
       v.mAxisSlave := AXI_STREAM_SLAVE_INIT_C;
       if sAxisSlave.tReady = '1' then
          v.sAxisMaster.tValid := '0';
@@ -162,7 +161,7 @@ begin
          end if;
       end if;
 
-      -- Read Process with time domain randomization      
+      -- Read Process with time domain randomization
       if (mAxisMaster.tValid = '1') and (r.rdPbrs(0) = '0') then
          -- Accept the data
          v.mAxisSlave.tReady := '1';
@@ -195,16 +194,16 @@ begin
                end if;
                -- Reset the flag
                v.rdSof := '1';
-               -- Check if test passed 
+               -- Check if test passed
                if r.rdSize = MAX_CNT_C then
                   v.passed := '1';
                end if;
             end if;
          end if;
       end if;
-      
+
       -- Combinatorial outputs before the reset
-      mAxisSlave  <= v.mAxisSlave;      
+      mAxisSlave  <= v.mAxisSlave;
 
       -- Reset
       if (rst = '1') then
@@ -214,11 +213,11 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
+      -- Outputs
       sAxisMaster <= r.sAxisMaster;
       failed      <= r.failed;
       passed      <= r.passed;
-      
+
    end process comb;
 
    seq : process (clk) is

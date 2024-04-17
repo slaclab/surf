@@ -1,48 +1,54 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPacketizer2.vhd
+-- Title      : AxiStreamPackerizerV2 Protocol: https://confluence.slac.stanford.edu/x/3nh4DQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-05-02
--- Last update: 2018-08-01
 -------------------------------------------------------------------------------
 -- Description: Formats an AXI-Stream for a transport link.
 -- Sideband fields are placed into the data stream in a header.
 -- Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
+use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiStreamPacketizer2Pkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamPacketizer2 is
    generic (
-      TPD_G                : time             := 1 ns;
-      BRAM_EN_G            : boolean          := false;
-      CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
-      CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : positive         := 256*8;  -- Must be a multiple of 8
-      TDEST_BITS_G         : natural          := 8;
-      INPUT_PIPE_STAGES_G  : natural          := 0;
-      OUTPUT_PIPE_STAGES_G : natural          := 0);
+      TPD_G                : time                   := 1 ns;
+      RST_ASYNC_G          : boolean                := false;
+      MEMORY_TYPE_G        : string                 := "distributed";
+      REG_EN_G             : boolean                := false;
+      CRC_MODE_G           : string                 := "DATA";  -- or "NONE" or "FULL"
+      CRC_POLY_G           : slv(31 downto 0)       := x"04C11DB7";
+      MAX_PACKET_BYTES_G   : positive               := 256*8;   -- Must be a multiple of 8
+      SEQ_CNT_SIZE_G       : positive range 4 to 16 := 16;
+      TDEST_BITS_G         : natural                := 8;
+      OUTPUT_TDEST_G       : slv(7 downto 0)        := (others => '0');
+      OUTPUT_TID_G         : slv(7 downto 0)        := (others => '0');
+      INPUT_PIPE_STAGES_G  : natural                := 0;
+      OUTPUT_PIPE_STAGES_G : natural                := 0);
    port (
       -- Clock and Reset
       axisClk     : in  sl;
       axisRst     : in  sl;
       -- Status for phase locking externally
       rearbitrate : out sl;
+      -- Actual byte count; will be truncated to multiple of word-size
+      maxPktBytes : in  slv(bitSize(MAX_PACKET_BYTES_G) - 1 downto 0) := toSlv(MAX_PACKET_BYTES_G, bitSize(MAX_PACKET_BYTES_G));
       -- AXIS Interfaces
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -52,24 +58,42 @@ end entity AxiStreamPacketizer2;
 
 architecture rtl of AxiStreamPacketizer2 is
 
-   constant MAX_WORD_COUNT_C : positive := (MAX_PACKET_BYTES_G / 8) - 3;
-   constant CRC_EN_C         : boolean  := (CRC_MODE_G /= "NONE");
-   constant CRC_HEAD_TAIL_C  : boolean  := (CRC_MODE_G = "FULL");
-   constant ADDR_WIDTH_C     : positive := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 8,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
+      TKEEP_MODE_C  => TKEEP_COMP_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+
+   constant LD_WORD_SIZE_C : positive := 3;
+   constant WORD_SIZE_C    : positive := 2**LD_WORD_SIZE_C;
+
+   subtype WordCounterType is unsigned(maxPktBytes'left - LD_WORD_SIZE_C downto 0);
+
+   constant PROTO_WORDS_C    : positive        := 3;
+   constant MAX_WORD_COUNT_C : WordCounterType := to_unsigned(MAX_PACKET_BYTES_G / WORD_SIZE_C, WordCounterType'length);
+   constant CRC_EN_C         : boolean         := (CRC_MODE_G /= "NONE");
+   constant CRC_HEAD_TAIL_C  : boolean         := (CRC_MODE_G = "FULL");
+   constant ADDR_WIDTH_C     : positive        := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant RAM_DATA_WIDTH_C : positive        := 32+1+SEQ_CNT_SIZE_G;
 
    type StateType is (
       IDLE_S,
+      WAIT_S,
       HEADER_S,
       MOVE_S,
       TAIL_S);
 
    type RegType is record
       state            : StateType;
-      packetSeq        : slv(15 downto 0);
+      packetSeq        : slv(SEQ_CNT_SIZE_G-1 downto 0);
       packetActive     : sl;
       activeTDest      : slv(ADDR_WIDTH_C-1 downto 0);
       ramWe            : sl;
-      wordCount        : slv(bitSize(MAX_WORD_COUNT_C)-1 downto 0);
+      wordCount        : WordCounterType;
+      maxWords         : WordCounterType;
       eof              : sl;
       lastByteCount    : slv(3 downto 0);
       tUserLast        : slv(7 downto 0);
@@ -92,6 +116,7 @@ architecture rtl of AxiStreamPacketizer2 is
       activeTDest      => (others => '0'),
       ramWe            => '0',
       wordCount        => (others => '0'),
+      maxWords         => to_unsigned(1, WordCounterType'length),
       eof              => '0',
       lastByteCount    => "1000",
       tUserLast        => (others => '0'),
@@ -114,7 +139,9 @@ architecture rtl of AxiStreamPacketizer2 is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
-   signal ramPacketSeqOut    : slv(15 downto 0);
+   signal ramDin             : slv(RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramDout            : slv(RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramPacketSeqOut    : slv(SEQ_CNT_SIZE_G-1 downto 0);
    signal ramPacketActiveOut : sl;
    signal ramCrcRem          : slv(31 downto 0) := (others => '1');
    signal ramAddrr           : slv(ADDR_WIDTH_C-1 downto 0);
@@ -122,6 +149,8 @@ architecture rtl of AxiStreamPacketizer2 is
    signal crcIn  : slv(63 downto 0) := (others => '1');
    signal crcOut : slv(31 downto 0) := (others => '0');
    signal crcRem : slv(31 downto 0) := (others => '1');
+
+   signal maxWords : WordCounterType;
 
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
@@ -135,8 +164,8 @@ architecture rtl of AxiStreamPacketizer2 is
 
 begin
 
-   assert ((MAX_PACKET_BYTES_G rem 8) = 0)
-      report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
+   assert ((MAX_PACKET_BYTES_G rem WORD_SIZE_C) = 0)
+      report "MAX_PACKET_BYTES_G must be a multiple of " & integer'image(WORD_SIZE_C) severity error;
 
    assert ((CRC_MODE_G = "NONE") or (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
       report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
@@ -144,12 +173,15 @@ begin
    assert (TDEST_BITS_G <= 8)
       report "TDEST_BITS_G must be less than or equal to 8" severity error;
 
+   maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto LD_WORD_SIZE_C));
+
    -----------------
    -- Input pipeline
    -----------------
-   U_Input : entity work.AxiStreamPipeline
+   U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -163,43 +195,49 @@ begin
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
    -------------------------------------------------------------------------------
-   U_DualPortRam_1 : entity work.DualPortRam
+   ramDin(31 downto 0)                   <= rin.crcRem;
+   ramDin(32)                            <= rin.packetActive;
+   ramDin(33+SEQ_CNT_SIZE_G-1 downto 33) <= rin.packetSeq;
+
+   ramCrcRem          <= ramDout(31 downto 0);
+   ramPacketActiveOut <= ramDout(32);
+   ramPacketSeqOut    <= ramDout(33+SEQ_CNT_SIZE_G-1 downto 33);
+   U_DualPortRam_1 : entity surf.DualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => BRAM_EN_G,
-         REG_EN_G     => false,
-         DOA_REG_G    => false,
-         DOB_REG_G    => false,
-         BYTE_WR_EN_G => false,
-         DATA_WIDTH_G => 17+32,
-         ADDR_WIDTH_G => ADDR_WIDTH_C)
+         TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
+         REG_EN_G      => REG_EN_G,
+         DOA_REG_G     => REG_EN_G,
+         DOB_REG_G     => REG_EN_G,
+         BYTE_WR_EN_G  => false,
+         DATA_WIDTH_G  => (32+1+SEQ_CNT_SIZE_G),
+         ADDR_WIDTH_G  => ADDR_WIDTH_C)
       port map (
-         clka                => axisClk,
-         rsta                => axisRst,
-         wea                 => rin.ramWe,
-         addra               => rin.activeTDest,
-         dina(15 downto 0)   => rin.packetSeq,
-         dina(16)            => rin.packetActive,
-         dina(48 downto 17)  => rin.crcRem,
-         clkb                => axisClk,
-         rstb                => axisRst,
-         addrb               => ramAddrr,
-         doutb(15 downto 0)  => ramPacketSeqOut,
-         doutb(16)           => ramPacketActiveOut,
-         doutb(48 downto 17) => ramCrcRem);
+         clka  => axisClk,
+         rsta  => axisRst,
+         wea   => rin.ramWe,
+         addra => rin.activeTDest,
+         dina  => ramDin,
+         clkb  => axisClk,
+         rstb  => axisRst,
+         addrb => ramAddrr,
+         doutb => ramDout);
 
    ramAddrr <= inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0) when (TDEST_BITS_G > 0) else (others => '0');
 
    GEN_CRC : if (CRC_EN_C) generate
 
       ETH_CRC : if (CRC_POLY_G = x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32Parallel
+         U_Crc32 : entity surf.Crc32Parallel
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
+               BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -211,14 +249,16 @@ begin
       end generate;
 
       GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
-         U_Crc32 : entity work.Crc32
+         U_Crc32 : entity surf.Crc32
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
-               BYTE_WIDTH_G     => 8,
+               BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF",
                CRC_POLY_G       => CRC_POLY_G)
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -231,10 +271,11 @@ begin
 
    end generate;
 
-   comb : process (axisRst, crcOut, crcRem, inputAxisMaster, outputAxisSlave,
+   comb : process (crcOut, crcRem, inputAxisMaster, maxWords, outputAxisSlave,
                    r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut) is
       variable v     : RegType;
       variable tdest : slv(7 downto 0);
+      variable fits  : boolean;
    begin
       -- Latch the current value
       v := r;
@@ -265,23 +306,47 @@ begin
          when IDLE_S =>
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
-               v.state := HEADER_S;
+               -- Check for 2 read cycle latency
+               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) then
+                  v.state := WAIT_S;
+               -- Else 1 read cycle latency
+               else
+                  v.state := HEADER_S;
+               end if;
             end if;
+         ----------------------------------------------------------------------
+         when WAIT_S =>
+            v.state := HEADER_S;
          ----------------------------------------------------------------------
          when HEADER_S =>
             -- Reset the word counter
             v.wordCount     := (others => '0');
             -- Set default tlast.tkeep (8 Bytes)
-            v.lastByteCount := "1000";
-            -- Pre-load the CRC with the interim remainder 
+            v.lastByteCount := slv(to_unsigned(WORD_SIZE_C, bitSize(WORD_SIZE_C)));
+            -- Pre-load the CRC with the interim remainder
             v.crcInit       := ramCrcRem;
             -- Reset the CRC (which pre-loads it with crcInit)
             v.crcReset      := '1';
             -- Use header in CRC if enabled
             v.crcDataValid  := toSl(CRC_HEAD_TAIL_C);
 
+            -- Check and register the max. word count
+            -- NOTE: wordCount is compared only after incrementing
+            --       (and doing some work in MOVE_S), thus at least
+            --       one non-protocol word  must fit.
+            if (maxWords <= to_unsigned(PROTO_WORDS_C, maxWords'length)) then
+               fits := false;
+            else
+               fits := true;
+               if (maxWords >= MAX_WORD_COUNT_C) then
+                  v.maxWords := MAX_WORD_COUNT_C - PROTO_WORDS_C;
+               else
+                  v.maxWords := maxWords - PROTO_WORDS_C;
+               end if;
+            end if;
+
             -- Check if ready to move data
-            if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
+            if (fits and inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                tdest                          := x"00";
                tdest(ADDR_WIDTH_C-1 downto 0) := inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0);
                v.outputAxisMaster :=
@@ -292,7 +357,7 @@ begin
                      tdest      => tDest,
                      tuser      => inputAxisMaster.tUser(7 downto 0),
                      tid        => inputAxisMaster.tId,
-                     seq        => ramPacketSeqOut);
+                     seq        => resize(ramPacketSeqOut, 16));
 
                -- Check for active header
                if (ramPacketActiveOut = '0') then
@@ -301,7 +366,7 @@ begin
                end if;
 
                -- Increment the sequence counter
-               v.packetSeq    := ramPacketSeqOut + 1;
+               v.packetSeq    := slv(unsigned(ramPacketSeqOut) + 1);
                -- Set the flag
                v.packetActive := '1';
                -- Latch the current TDEST for TDEST change detection in next state
@@ -321,14 +386,14 @@ begin
                -- Send data through
                v.outputAxisMaster       := inputAxisMaster;
                v.outputAxisMaster.tUser := (others => '0');
-               v.outputAxisMaster.tDest := (others => '0');
-               v.outputAxisMaster.tId   := (others => '0');
+               v.outputAxisMaster.tDest := OUTPUT_TDEST_G;
+               v.outputAxisMaster.tId   := OUTPUT_TID_G;
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
 
                -- Reach max packet size. Append tail.
-               if (r.wordCount = MAX_WORD_COUNT_C) then
+               if (r.wordCount = r.maxWords) then
                   -- Next state
                   v.state := TAIL_S;
                end if;
@@ -352,9 +417,9 @@ begin
                   -- Reset frame state in ram
                   v.packetSeq              := (others => '0');
                   v.packetActive           := '0';
-                  v.tUserLast              := inputAxisMaster.tUser(7 downto 0);
+                  v.tUserLast              := axiStreamGetUserField(AXIS_CONFIG_C, inputAxisMaster);
                   v.eof                    := '1';
-                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0)), 4);
+                  v.lastByteCount          := toSlv(getTKeep(inputAxisMaster.tKeep(7 downto 0), PACKETIZER2_AXIS_CFG_C), 4);
                   v.outputAxisMaster.tLast := '0';
                   -- Next state
                   v.state                  := TAIL_S;
@@ -396,9 +461,9 @@ begin
                   v.ramWe     := '1';
                   v.eof       := '0';
                   v.tUserLast := (others => '0');
-                  -- Check for BRAM used
-                  if (BRAM_EN_G) then
-                     -- Next state (1 cycle read latency)
+                  -- Check for BRAM or REG_EN_G used
+                  if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
+                     -- Next state (1 or 2 cycle read latency)
                      v.state := IDLE_S;
                   else
                      -- Next state (0 cycle read latency)
@@ -410,8 +475,8 @@ begin
       end case;
 
       -- Always a 64-bit transfer
-      v.outputAxisMaster.tKeep := x"00FF";
-      v.outputAxisMaster.tStrb := v.outputAxisMaster.tKeep;
+      v.outputAxisMaster.tKeep(7 downto 0) := x"FF";
+      v.outputAxisMaster.tStrb             := v.outputAxisMaster.tKeep;
 
       if (r.state /= TAIL_S) then
          v.crcIn := v.outputAxisMaster.tData(63 downto 0);
@@ -425,37 +490,37 @@ begin
                crc        => crcOut);
       end if;
 
-      -- Combinatorial outputs before the reset
-      inputAxisSlave <= v.inputAxisSlave;
-      crcIn          <= endianSwap(v.crcIn);
-
-      -- Reset
-      if (axisRst = '1') then
-         v := REG_INIT_C;
-      end if;
-
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs
+      -- Outputs
+      inputAxisSlave   <= v.inputAxisSlave;
+      crcIn            <= endianSwap(v.crcIn);
       outputAxisMaster <= r.outputAxisMaster;
       rearbitrate      <= r.rearbitrate;
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
-         r <= rin after TPD_G;
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif (rising_edge(axisClk)) then
+         if (RST_ASYNC_G = false and axisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         else
+            r <= rin after TPD_G;
+         end if;
       end if;
    end process seq;
 
    ------------------
    -- Output pipeline
    ------------------
-   U_Output : entity work.AxiStreamPipeline
+   U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

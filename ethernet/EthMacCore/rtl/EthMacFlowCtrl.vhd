@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EthMacFlowCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-21
--- Last update: 2016-10-20
 -------------------------------------------------------------------------------
 -- Description: ETH MAC Flow Control Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity EthMacFlowCtrl is
    generic (
@@ -47,13 +46,13 @@ architecture rtl of EthMacFlowCtrl is
       flowCtrl : AxiStreamCtrlType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      flowCtrl => AXI_STREAM_CTRL_INIT_C);      
+      flowCtrl => AXI_STREAM_CTRL_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 --   attribute dont_touch      : string;
---   attribute dont_touch of r : signal is "TRUE";   
+--   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -67,7 +66,7 @@ begin
       -- Sample the primary interface flow control
       v.flowCtrl.pause    := primCtrl.pause;
       v.flowCtrl.overflow := primCtrl.overflow;
-      v.flowCtrl.idle     := '0';       -- Unused 
+      v.flowCtrl.idle     := '0';       -- Unused
 
       -- Check if bypass interface is enabled
       if (BYP_EN_G) then
@@ -104,9 +103,9 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
+      -- Outputs
       flowCtrl <= r.flowCtrl;
-      
+
    end process comb;
 
    seq : process (ethClk) is
@@ -115,5 +114,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

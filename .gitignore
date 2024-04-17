@@ -1,3 +1,6 @@
+# EMACS temp files
+*~
+
 # Compiled source files
 *.o
 *.pyc
@@ -5,4 +8,13 @@
 *.swp
 *._*
 *.db
+*.log
+*.vho
+*.xml
 xvcSrv
+doxygen/
+ghdl-build/
+ruckus/
+build/
+sim_build/
+.coverage

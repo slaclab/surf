@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteSaciMaster2.vhd
+-- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-01
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: New and improved version of the AxiLiteSaciMaster.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.SaciMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SaciMasterPkg.all;
 
 entity AxiLiteSaciMaster is
    generic (
@@ -39,6 +40,9 @@ entity AxiLiteSaciMaster is
       saciCmd         : out sl;
       saciSelL        : out slv(SACI_NUM_CHIPS_G-1 downto 0);
       saciRsp         : in  slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0);
+      -- Optional SACI bus arbitration
+      saciBusReq      : out sl;
+      saciBusGr       : in  sl := '1';
       -- AXI-Lite Register Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -60,6 +64,7 @@ architecture rtl of AxiLiteSaciMaster is
 
    type RegType is record
       state          : StateType;
+      saciBusReq     : sl;
       saciRst        : sl;
       req            : sl;
       chip           : slv(log2(SACI_NUM_CHIPS_G)-1 downto 0);
@@ -75,6 +80,7 @@ architecture rtl of AxiLiteSaciMaster is
 
    constant REG_INIT_C : RegType := (
       state          => IDLE_S,
+      saciBusReq     => '0',
       saciRst        => '1',
       req            => '0',
       chip           => (others => '0'),
@@ -94,7 +100,7 @@ architecture rtl of AxiLiteSaciMaster is
    signal rdData : slv(31 downto 0);
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";   
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -110,8 +116,8 @@ begin
       report "AXIL_CLK_PERIOD_G must be < SACI_CLK_PERIOD_G" severity failure;
    assert (SACI_CLK_PERIOD_G < AXIL_TIMEOUT_G)
       report "SACI_CLK_PERIOD_G must be < AXIL_TIMEOUT_G" severity failure;
-   
-   U_SaciMaster2_1 : entity work.SaciMaster2
+
+   U_SaciMaster2_1 : entity surf.SaciMaster2
       generic map (
          TPD_G              => TPD_G,
          SYS_CLK_PERIOD_G   => AXIL_CLK_PERIOD_G,
@@ -136,7 +142,7 @@ begin
          saciCmd  => saciCmd,           -- [out]
          saciRsp  => saciRsp);          -- [in]
 
-   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData) is
+   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData, saciBusGr) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable resp       : slv(1 downto 0);
@@ -163,34 +169,45 @@ begin
             -- Reset the timer
             v.saciRst := '0';
             v.timer   := 0;
-            -- Check for a write request
-            if (axilStatus.writeEnable = '1') then
-               -- SACI Commands
-               v.req  := '1';
-               v.op   := '1';
-               v.chip := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
-               if (SACI_NUM_CHIPS_G = 1) then
-                  v.chip := "0";
+            v.saciBusReq := '0';
+            if (saciBusGr = '1') then
+               -- Check for a write request
+               if (axilStatus.writeEnable = '1') then
+                  v.saciBusReq := '1';
+                  -- SACI Commands
+                  v.req  := '1';
+                  v.op   := '1';
+                  v.chip := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
+                  if (SACI_NUM_CHIPS_G = 1) then
+                     v.chip := "0";
+                  end if;
+                  v.cmd    := axilWriteMaster.awaddr(20 downto 14);
+                  v.addr   := axilWriteMaster.awaddr(13 downto 2);
+                  v.wrData := axilWriteMaster.wdata;
+                  -- Next state
+                  v.state  := SACI_REQ_S;
+               -- Check for a read request
+               elsif (axilStatus.readEnable = '1') then
+                  v.saciBusReq := '1';
+                  -- SACI Commands
+                  v.req  := '1';
+                  v.op   := '0';
+                  v.chip := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
+                  if (SACI_NUM_CHIPS_G = 1) then
+                     v.chip := "0";
+                  end if;
+                  v.cmd    := axilReadMaster.araddr(20 downto 14);
+                  v.addr   := axilReadMaster.araddr(13 downto 2);
+                  v.wrData := (others => '0');
+                  -- Next state
+                  v.state  := SACI_REQ_S;
                end if;
-               v.cmd    := axilWriteMaster.awaddr(20 downto 14);
-               v.addr   := axilWriteMaster.awaddr(13 downto 2);
-               v.wrData := axilWriteMaster.wdata;
-               -- Next state
-               v.state  := SACI_REQ_S;
-            -- Check for a read request            
-            elsif (axilStatus.readEnable = '1') then
-               -- SACI Commands
-               v.req  := '1';
-               v.op   := '0';
-               v.chip := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
-               if (SACI_NUM_CHIPS_G = 1) then
-                  v.chip := "0";
+            else
+               if (axilStatus.writeEnable = '1') then
+                  axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_SLVERR_C);
+               elsif (axilStatus.readEnable = '1') then
+                  axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_SLVERR_C);
                end if;
-               v.cmd    := axilReadMaster.araddr(20 downto 14);
-               v.addr   := axilReadMaster.araddr(13 downto 2);
-               v.wrData := (others => '0');
-               -- Next state
-               v.state  := SACI_REQ_S;
             end if;
          ----------------------------------------------------------------------
          when SACI_REQ_S =>
@@ -240,6 +257,7 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      saciBusReq     <= r.saciBusReq;
 
    end process comb;
 

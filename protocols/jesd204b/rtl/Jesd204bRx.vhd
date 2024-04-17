@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-14
--- Last update: 2018-07-27
 -------------------------------------------------------------------------------
 -- Description: JESD204b multi-lane receiver module
 --              Receiver JESD204b module.
@@ -15,17 +12,17 @@
 --              - Lane alignment using RX buffers
 --              - Serial lane error check
 --              - Alignment character replacement and alignment check
---               
+--
 --          Note: sampleDataArr_o is little endian and not byte-swapped
---                First sample in time:  sampleData_o(15 downto 0) 
+--                First sample in time:  sampleData_o(15 downto 0)
 --                Second sample in time: sampleData_o(31 downto 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,13 +31,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity Jesd204bRx is
    generic (
       TPD_G : time := 1 ns;
+
+      GEN_ASYNC_G : boolean := false;   -- default false don't add synchronizer
 
       -- Test tx module instead of GTX
       TEST_G : boolean := false;
@@ -57,7 +58,7 @@ entity Jesd204bRx is
       L_G : positive range 1 to 32 := 2);
 
    port (
-      -- AXI interface      
+      -- AXI interface
       -- Clocks and Resets
       axiClk : in sl;
       axiRst : in sl;
@@ -73,7 +74,7 @@ entity Jesd204bRx is
       dataValidVec_o  : out slv(L_G-1 downto 0);
 
       -- JESD
-      -- Clocks and Resets   
+      -- Clocks and Resets
       devClk_i : in sl;
       devRst_i : in sl;
 
@@ -90,7 +91,7 @@ entity Jesd204bRx is
       rxPowerDown : out slv(L_G-1 downto 0);
       rxPolarity  : out slv(L_G-1 downto 0);
 
-      -- Synchronization output combined from all receivers 
+      -- Synchronization output combined from all receivers
       nSync_o : out sl;
 
       -- Debug signals
@@ -115,7 +116,7 @@ architecture rtl of Jesd204bRx is
 
    -- Internal signals
 
-   -- Local Multi Frame Clock 
+   -- Local Multi Frame Clock
    signal s_lmfc : sl;
 
    -- Synchronization output generation
@@ -179,7 +180,7 @@ begin
    end generate GEN_rawData;
 
    -- axiLite register interface
-   U_Reg : entity work.JesdRxReg
+   U_Reg : entity surf.JesdRxReg
       generic map (
          TPD_G => TPD_G,
          L_G   => L_G)
@@ -216,14 +217,14 @@ begin
 
    -----------------------------------------------------------
    -- TEST or OPER
-   -----------------------------------------------------------  
+   -----------------------------------------------------------
    -- IF DEF TEST_G
 
    -- Generate TX test core if TEST_G=true is selected
    TEST_GEN : if TEST_G = true generate
       -----------------------------------------
       TX_LANES_GEN : for i in L_G-1 downto 0 generate
-         JesdTxTest_INST : entity work.JesdTxTest
+         JesdTxTest_INST : entity surf.JesdTxTest
             generic map (
                TPD_G => TPD_G)
             port map (
@@ -246,44 +247,55 @@ begin
       -- Use input from GTX
       s_jesdGtRxArr <= r_jesdGtRxArr;
    end generate GT_OPER_GEN;
-   ---------------------------------------- 
+   ----------------------------------------
 
    -----------------------------------------------------------
    -- SYSREF and LMFC
-   -----------------------------------------------------------     
-   -- Synchronize SYSREF input to devClk_i
-   Synchronizer_INST : entity work.Synchronizer
+   -----------------------------------------------------------
+
+   GEN_ASYNC : if (GEN_ASYNC_G = true) generate
+      -- Synchronize SYSREF input to devClk_i
+      Synchronizer_INST : entity surf.Synchronizer
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => '1',
+            OUT_POLARITY_G => '1',
+            RST_ASYNC_G    => false,
+            STAGES_G       => 2,
+            BYPASS_SYNC_G  => false,
+            INIT_G         => "0")
+         port map (
+            clk     => devClk_i,
+            rst     => devRst_i,
+            dataIn  => sysref_i,
+            dataOut => s_sysrefSync
+            );
+   end generate;
+
+   GEN_SYNC : if (GEN_ASYNC_G = false) generate
+      process(devClk_i)
+      begin
+         if rising_edge(devClk_i) then
+            s_sysrefSync <= sysref_i after TPD_G;
+         end if;
+      end process;
+   end generate;
+
+   -- Delay SYSREF input (for 1 to 256 c-c)
+   U_SysrefDly : entity surf.SlvDelay
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',
-         OUT_POLARITY_G => '1',
-         RST_ASYNC_G    => false,
-         STAGES_G       => 2,
-         BYPASS_SYNC_G  => false,
-         INIT_G         => "0")
+         TPD_G        => TPD_G,
+         REG_OUTPUT_G => true,
+         DELAY_G      => 2**SYSRF_DLY_WIDTH_C)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
-         dataIn  => sysref_i,
-         dataOut => s_sysrefSync
-         );
-
-   -- Delay SYSREF input (for 1 to 32 c-c)
-   SysrefDly_INST : entity work.JesdSysrefDly
-      generic map (
-         TPD_G       => TPD_G,
-         DLY_WIDTH_G => SYSRF_DLY_WIDTH_C
-         )
-      port map (
-         clk      => devClk_i,
-         rst      => devRst_i,
-         dly_i    => s_sysrefDlyRx,
-         sysref_i => s_sysrefSync,
-         sysref_o => s_sysrefD
-         );
+         delay   => s_sysrefDlyRx,
+         din(0)  => s_sysrefSync,
+         dout(0) => s_sysrefD);
 
    -- LMFC period generator aligned to SYSREF input
-   LmfcGen_INST : entity work.JesdLmfcGen
+   LmfcGen_INST : entity surf.JesdLmfcGen
       generic map (
          TPD_G => TPD_G,
          K_G   => K_G,
@@ -291,7 +303,7 @@ begin
       port map (
          clk        => devClk_i,
          rst        => devRst_i,
-         --nSync_i     => '0', -- r.nSyncAnyD1,     
+         --nSync_i     => '0', -- r.nSyncAnyD1,
          nSync_i    => r.nSyncAnyD1,
          sysref_i   => s_sysrefD,       -- Delayed SYSREF IN
          sysrefRe_o => s_sysrefRe,      -- Rising-edge of SYSREF OUT
@@ -300,11 +312,11 @@ begin
 
    -----------------------------------------------------------
    -- Receiver modules (L_G)
-   ----------------------------------------------------------- 
+   -----------------------------------------------------------
 
    -- JESD Receiver modules (one module per Lane)
    generateRxLanes : for i in L_G-1 downto 0 generate
-      JesdRx_INST : entity work.JesdRxLane
+      JesdRx_INST : entity surf.JesdRxLane
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G,
@@ -333,7 +345,7 @@ begin
 
    -- Test signal generator
    generatePulserLanes : for i in L_G-1 downto 0 generate
-      Pulser_INST : entity work.JesdTestSigGen
+      Pulser_INST : entity surf.JesdTestSigGen
          generic map (
             TPD_G => TPD_G,
             F_G   => F_G)

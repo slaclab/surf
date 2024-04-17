@@ -1,49 +1,48 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGthUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-08
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet for GTH Ultra Scale
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.TenGigEthPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.TenGigEthPkg.all;
+use surf.EthMacPkg.all;
 
 entity TenGigEthGthUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
+      JUMBO_G         : boolean             := true;
       PAUSE_EN_G      : boolean             := true;
-      PAUSE_512BITS_G : positive            := 8;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -169,6 +168,11 @@ architecture mapping of TenGigEthGthUltraScale is
    signal phyTxd : slv(63 downto 0);
    signal phyTxc : slv(7 downto 0);
 
+   signal xgmiiRxd : slv(63 downto 0);
+   signal xgmiiRxc : slv(7 downto 0);
+   signal xgmiiTxd : slv(63 downto 0);
+   signal xgmiiTxc : slv(7 downto 0);
+
    signal areset      : sl;
    signal coreRst     : sl;
    signal phyClock    : sl;
@@ -189,8 +193,9 @@ architecture mapping of TenGigEthGthUltraScale is
 
    signal configurationVector : slv(535 downto 0) := (others => '0');
 
-   signal config : TenGigEthConfig;
-   signal status : TenGigEthStatus;
+   signal config    : TenGigEthConfig;
+   signal status    : TenGigEthStatus;
+   signal statusReg : TenGigEthStatus;
 
    signal macRxAxisMaster : AxiStreamMasterType;
    signal macRxAxisCtrl   : AxiStreamCtrlType;
@@ -206,9 +211,9 @@ begin
    status.qplllock <= qplllock;
 
    ------------------
-   -- Synchronization 
+   -- Synchronization
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -229,7 +234,7 @@ begin
 
    txDisable <= status.txDisable;
 
-   U_Sync : entity work.SynchronizerVector
+   U_Sync : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 3)
@@ -247,11 +252,11 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
+         JUMBO_G         => JUMBO_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
          PHY_TYPE_G      => "XGMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (
@@ -267,12 +272,24 @@ begin
          ethRst          => phyReset,
          ethConfig       => config.macConfig,
          ethStatus       => status.macStatus,
-         phyReady        => status.phyReady,
+         phyReady        => statusReg.phyReady,
          -- XGMII PHY Interface
-         xgmiiRxd        => phyRxd,
-         xgmiiRxc        => phyRxc,
-         xgmiiTxd        => phyTxd,
-         xgmiiTxc        => phyTxc);
+         xgmiiRxd        => xgmiiRxd,
+         xgmiiRxc        => xgmiiRxc,
+         xgmiiTxd        => xgmiiTxd,
+         xgmiiTxc        => xgmiiTxc);
+
+   process(phyClock)
+   begin
+      if rising_edge(phyClock) then
+         -- Help with making timing
+         statusReg <= status   after TPD_G;
+         xgmiiRxd  <= phyRxd   after TPD_G;
+         xgmiiRxc  <= phyRxc   after TPD_G;
+         phyTxd    <= xgmiiTxd after TPD_G;
+         phyTxc    <= xgmiiTxc after TPD_G;
+      end if;
+   end process;
 
    -----------------
    -- 10GBASE-R core
@@ -320,8 +337,8 @@ begin
          tx_disable           => status.txDisable,
          pma_pmd_type         => config.pma_pmd_type,
          -- DRP interface
-         -- Note: If no arbitration is required on the GT DRP ports 
-         -- then connect REQ to GNT and connect other signals i <= o;         
+         -- Note: If no arbitration is required on the GT DRP ports
+         -- then connect REQ to GNT and connect other signals i <= o;
          drp_req              => drpReqGnt,
          drp_gnt              => drpReqGnt,
          core_to_gt_drpen     => drpEn,
@@ -365,8 +382,8 @@ begin
 
    -------------------------------------
    -- 10GBASE-R's Reset Module
-   -------------------------------------        
-   U_TenGigEthRst : entity work.TenGigEthGthUltraScaleRst
+   -------------------------------------
+   U_TenGigEthRst : entity surf.TenGigEthGthUltraScaleRst
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -385,9 +402,9 @@ begin
          txUsrRdy    => txUsrRdy,
          rstCntDone  => status.rstCntDone);
 
-   -------------------------------         
+   -------------------------------
    -- Configuration Vector Mapping
-   -------------------------------         
+   -------------------------------
    configurationVector(0)              <= config.pma_loopback;
    configurationVector(15)             <= config.pma_reset;
    configurationVector(110)            <= config.pcs_loopback;
@@ -396,13 +413,13 @@ begin
 
    ----------------------
    -- Core Status Mapping
-   ----------------------   
+   ----------------------
    status.phyReady <= status.core_status(0) or config.pcs_loopback;
 
-   --------------------------------     
-   -- Configuration/Status Register   
-   --------------------------------     
-   U_TenGigEthReg : entity work.TenGigEthReg
+   --------------------------------
+   -- Configuration/Status Register
+   --------------------------------
+   U_TenGigEthReg : entity surf.TenGigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)
@@ -419,6 +436,6 @@ begin
          axiWriteSlave  => mAxiWriteSlave,
          -- Configuration and Status Interface
          config         => config,
-         status         => status);
+         status         => statusReg);
 
 end mapping;

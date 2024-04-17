@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-12-17
--- Last update: 2016-10-27
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx 7-series GTX primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.math_real.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -225,14 +224,14 @@ entity Gtx7Core is
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
       txPolarityIn   : in  sl               := '0';
-      -- Debug Interface   
+      -- Debug Interface
       txPowerDown    : in  slv(1 downto 0)  := "00";
       rxPowerDown    : in  slv(1 downto 0)  := "00";
       loopbackIn     : in  slv(2 downto 0)  := "000";
       txPreCursor    : in  slv(4 downto 0)  := (others => '0');
       txPostCursor   : in  slv(4 downto 0)  := (others => '0');
       txDiffCtrl     : in  slv(3 downto 0)  := "1000";
-      -- DRP Interface (drpClk Domain)      
+      -- DRP Interface (drpClk Domain)
       drpClk         : in  sl               := '0';
       drpRdy         : out sl;
       drpEn          : in  sl               := '0';
@@ -322,6 +321,7 @@ architecture rtl of Gtx7Core is
 
    signal rxUserResetInt : sl;
    signal rxFsmResetDone : sl;
+   signal rxResetDoneAll : sl;
    signal rxRstTxUserRdy : sl;          --
 
    signal rxRecClkStable         : sl;
@@ -467,9 +467,9 @@ begin
    -- 7. Wait gtRxResetDone
    -- 8. Do phase alignment if necessary
    -- 9. Wait DATA_VALID (aligned) - 100 us
-   --10. Wait 1 us, Set rxFsmResetDone. 
+   --10. Wait 1 us, Set rxFsmResetDone.
    --------------------------------------------------------------------------------------------------
-   Gtx7RxRst_Inst : entity work.Gtx7RxRst
+   Gtx7RxRst_Inst : entity surf.Gtx7RxRst
       generic map (
          TPD_G                  => TPD_G,
          EXAMPLE_SIMULATION     => 0,
@@ -506,14 +506,15 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_RxResetDone : entity work.RstSync
+   rxResetDoneAll <= rxResetDone and rxFsmResetDone;
+   RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '0')
       port map (
          clk      => rxUsrClkIn,
-         asyncRst => rxFsmResetDone,
+         asyncRst => rxResetDoneAll,
          syncRst  => rxResetDoneOut);   -- Output
 
    -------------------------------------------------------------------------------------------------
@@ -525,7 +526,7 @@ begin
          O => rxOutClkBufg);
 
 --    GTX7_RX_REC_CLK_MONITOR_GEN : if (RX_BUF_EN_G = false) generate
---       Gtx7RecClkMonitor_Inst : entity work.Gtx7RecClkMonitor
+--       Gtx7RecClkMonitor_Inst : entity surf.Gtx7RecClkMonitor
 --          generic map (
 --             COUNTER_UPPER_VALUE      => 15,
 --             GCLK_COUNTER_UPPER_VALUE => 15,
@@ -567,7 +568,7 @@ begin
    -- Use special fixed latency aligner when RX_BUF_EN_G=false and RX_ALIGN_FIXED_LAT_G=true
    -------------------------------------------------------------------------------------------------
    RX_AUTO_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "GT") generate
-      Gtx7AutoPhaseAligner_Rx : entity work.Gtx7AutoPhaseAligner
+      Gtx7AutoPhaseAligner_Rx : entity surf.Gtx7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
          port map (
@@ -583,7 +584,7 @@ begin
    end generate;
 
    RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
-      Gtx7RxFixedLatPhaseAligner_Inst : entity work.Gtx7RxFixedLatPhaseAligner
+      Gtx7RxFixedLatPhaseAligner_Inst : entity surf.Gtx7RxFixedLatPhaseAligner
          generic map (
             TPD_G       => TPD_G,
             WORD_SIZE_G => RX_EXT_DATA_WIDTH_G,
@@ -648,7 +649,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Reset Module
    --------------------------------------------------------------------------------------------------
-   Gtx7TxRst_Inst : entity work.Gtx7TxRst
+   Gtx7TxRst_Inst : entity surf.Gtx7TxRst
       generic map (
          TPD_G                  => TPD_G,
          GT_TYPE                => "GTX",
@@ -675,7 +676,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
-   RstSync_Tx : entity work.RstSync
+   RstSync_Tx : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -691,7 +692,7 @@ begin
    -------------------------------------------------------------------------------------------------
    TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
 
-      PhaseAlign_Tx : entity work.Gtx7AutoPhaseAligner
+      PhaseAlign_Tx : entity surf.Gtx7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
          port map (
@@ -709,7 +710,7 @@ begin
    end generate TxAutoPhaseAlignGen;
 
    TxManualPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "MANUAL") generate
-      Gtx7TxManualPhaseAligner_1 : entity work.Gtx7TxManualPhaseAligner
+      Gtx7TxManualPhaseAligner_1 : entity surf.Gtx7TxManualPhaseAligner
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -829,7 +830,7 @@ begin
 
          ---------------------------PMA Attributes----------------------------
          OUTREFCLK_SEL_INV => ("11"),          -- ??
-         PMA_RSV           => PMA_RSV_G,       -- 
+         PMA_RSV           => PMA_RSV_G,       --
          PMA_RSV2          => (x"2070"),
          PMA_RSV3          => ("00"),
          PMA_RSV4          => (x"00000000"),

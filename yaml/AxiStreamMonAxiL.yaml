@@ -1,0 +1,261 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+#schemaversion 3.0.0
+#once AxiStreamMonAxiL.yaml
+
+AxiStreamMonChannel: &AxiStreamMonChannel
+  class: MMIODev
+  configPrio: 1
+  description: "AXI stream monitoring channel"
+  size: 0x0040
+  children:
+    ########################################################
+    ### Registers                                        ###
+    ########################################################
+    FrameCnt:
+      at:
+        offset:    0x04
+      class:       IntField
+      sizeBits:    64
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Increments every time a tValid + tLast + tReady detected"
+    ########################################################
+    FrameRate:
+      at:
+        offset:    0x0C
+      class:       IntField
+      sizeBits:    32
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Current Frame Rate"
+    ########################################################
+    FrameRateMax:
+      at:
+        offset:    0x10
+      class:       IntField
+      sizeBits:    32
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Max Frame Rate"
+    ########################################################
+    FrameRateMin:
+      at:
+        offset:    0x14
+      class:       IntField
+      sizeBits:    32
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Min Frame Rate"
+    ########################################################
+    Bandwidth:
+      at:
+        offset:    0x18
+      class:       IntField
+      sizeBits:    64
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Current Bandwidth"
+    ########################################################
+    BandwidthMax:
+      at:
+        offset:    0x20
+      class:       IntField
+      sizeBits:    64
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Max Bandwidth"
+    ########################################################
+    BandwidthMin:
+      at:
+        offset:    0x28
+      class:       IntField
+      sizeBits:    64
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Min Bandwidth"
+    ########################################################
+    FrameSize:
+      at:
+        offset:    0x30
+      class:       IntField
+      sizeBits:    32
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Current Frame Size. Note: Only valid for non-interleaved AXI stream frames"
+    ########################################################
+    FrameSizeMax:
+      at:
+        offset:    0x34
+      class:       IntField
+      sizeBits:    32
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Max Frame Size. Note: Only valid for non-interleaved AXI stream frames"
+    ########################################################
+    FrameSizeMin:
+      at:
+        offset:    0x38
+      class:       IntField
+      sizeBits:    32
+      lsBit:       0
+      mode:        RO
+      pollSecs:    1.0
+      description: "Min Frame Size. Note: Only valid for non-interleaved AXI stream frames"
+
+
+AxiStreamMonAxiL: &AxiStreamMonAxiL
+  class: MMIODev
+  configPrio: 1
+  description: "AXI stream monitoring diagnostic module"
+  size: 0x2000
+  children:
+    ########################################################
+    ### Registers                                        ###
+    ########################################################
+    AXIS_CONFIG_G_TDATA_BYTES_C:
+      at:
+        offset:    0x03
+      class:       IntField
+      sizeBits:    8
+      lsBit:       0
+      mode:        RO
+      description: "AXIS_CONFIG_G_TDATA_BYTES_C"
+    ########################################################
+    AXIS_CONFIG_G_TDEST_BITS_C:
+      at:
+        offset:    0x02
+      class:       IntField
+      sizeBits:    4
+      lsBit:       4
+      mode:        RO
+      description: "AXIS_CONFIG_G_TDEST_BITS_C"
+    ########################################################
+    AXIS_CONFIG_G_TUSER_BITS_C:
+      at:
+        offset:    0x02
+      class:       IntField
+      sizeBits:    4
+      lsBit:       0
+      mode:        RO
+      description: "AXIS_CONFIG_G_TUSER_BITS_C"
+    ########################################################
+    AXIS_CONFIG_G_TID_BITS_C:
+      at:
+        offset:    0x01
+      class:       IntField
+      sizeBits:    4
+      lsBit:       4
+      mode:        RO
+      description: "AXIS_CONFIG_G_TID_BITS_C"
+    ########################################################
+    AXIS_CONFIG_G_TKEEP_MODE_C:
+      at:
+        offset:    0x01
+      class:       IntField
+      sizeBits:    4
+      lsBit:       0
+      mode:        RO
+      enums:
+        - { value: 0x0, name:  "TUSER_NORMAL_C" }
+        - { value: 0x1, name:  "TKEEP_COMP_C"   }
+        - { value: 0x2, name:  "TKEEP_FIXED_C"  }
+        - { value: 0x3, name:  "TKEEP_COUNT_C"  }
+        - { value: 0xF, name:  "UNDEFINED"      }
+      description: "AXIS_CONFIG_G_TKEEP_MODE_C"
+    ########################################################
+    AXIS_CONFIG_G_TUSER_MODE_C:
+      at:
+        offset:    0x00
+      class:       IntField
+      sizeBits:    4
+      lsBit:       4
+      mode:        RO
+      enums:
+        - { value: 0x0, name:  "TUSER_NORMAL_C"     }
+        - { value: 0x1, name:  "TUSER_FIRST_LAST_C" }
+        - { value: 0x2, name:  "TUSER_LAST_C"       }
+        - { value: 0x3, name:  "TUSER_NONE_C"       }
+        - { value: 0xF, name:  "UNDEFINED"          }
+      description: "AXIS_CONFIG_G_TUSER_MODE_C"
+    ########################################################
+    AXIS_CONFIG_G_TSTRB_EN_C:
+      at:
+        offset:    0x00
+      class:       IntField
+      sizeBits:    1
+      lsBit:       1
+      mode:        RO
+      description: "AXIS_CONFIG_G_TSTRB_EN_C"
+    ########################################################
+    COMMON_CLK_G:
+      at:
+        offset:    0x00
+      class:       IntField
+      sizeBits:    1
+      lsBit:       0
+      mode:        RO
+      description: "COMMON_CLK_G"
+    ########################################################
+    AxiStreamMonChannel:
+      <<: *AxiStreamMonChannel
+      at:
+        offset: 0x00
+        stride: 0x40
+        nelms:  1
+
+    ########################################################
+    ### Commands                                         ###
+    ########################################################
+    CntRst:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: "Counter Reset"
+      sequence:
+      - entry: AXIS_CONFIG_G_TSTRB_EN_C
+        value: 0x1
+    ########################################################
+    hardReset:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: "Counter Reset"
+      sequence:
+      - entry: AXIS_CONFIG_G_TSTRB_EN_C
+        value: 0x1
+    ########################################################
+    initialize:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: "Counter Reset"
+      sequence:
+      - entry: AXIS_CONFIG_G_TSTRB_EN_C
+        value: 0x1
+    ########################################################
+    countReset:
+      class: SequenceCommand
+      at:
+        offset: 0x0
+      description: "Counter Reset"
+      sequence:
+      - entry: AXIS_CONFIG_G_TSTRB_EN_C
+        value: 0x1
+

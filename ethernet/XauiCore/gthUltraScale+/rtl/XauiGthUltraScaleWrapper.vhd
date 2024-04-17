@@ -1,54 +1,54 @@
 -------------------------------------------------------------------------------
--- File       : XauiGthUltraScaleWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-08
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: GTH UltraScale+ Wrapper for 10 GigE XAUI
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.XauiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.XauiPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity XauiGthUltraScaleWrapper is
    generic (
-      TPD_G             : time                     := 1 ns;
-      PAUSE_EN_G        : boolean                  := true;
-      PAUSE_512BITS_G   : positive range 1 to 1024 := 8;
-      EN_WDT_G          : boolean                  := false;
-      STABLE_CLK_FREQ_G : real                     := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
+      TPD_G             : time                := 1 ns;
+      JUMBO_G           : boolean             := true;
+      PAUSE_EN_G        : boolean             := true;
+      EN_WDT_G          : boolean             := false;
+      EXT_REF_G         : boolean             := false;
+      STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
-      EN_AXI_REG_G      : boolean                  := false;
+      EN_AXI_REG_G      : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G     : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -68,8 +68,9 @@ entity XauiGthUltraScaleWrapper is
       gtRxPolarity       : in  slv(3 downto 0)        := x"0";
       gtTxPolarity       : in  slv(3 downto 0)        := x"0";
       -- MGT Clock Port (156.25MHz or 312.5MHz)
-      gtClkP             : in  sl;
-      gtClkN             : in  sl;
+      gtRefClk           : in  sl                     := '0';
+      gtClkP             : in  sl                     := '0';
+      gtClkN             : in  sl                     := '1';
       -- MGT Ports
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
@@ -80,6 +81,7 @@ end XauiGthUltraScaleWrapper;
 architecture mapping of XauiGthUltraScaleWrapper is
 
    signal refClk   : sl;
+   signal refClock : sl;
    signal linkUp   : sl;
    signal wdtRst   : sl;
    signal wdtReset : sl;
@@ -97,12 +99,14 @@ begin
          ODIV2 => open,
          O     => refClk);
 
+   refClock <= gtRefClk when(EXT_REF_G) else refClk;
+
    GEN_WDT : if (EN_WDT_G = true) generate
 
       -----------------------
       -- 10 Second LinkUp WDT
       -----------------------
-      U_Rst : entity work.PwrUpRst
+      U_Rst : entity surf.PwrUpRst
          generic map(
             TPD_G      => TPD_G,
             DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 1.0))  -- 1 s reset
@@ -111,7 +115,7 @@ begin
             clk    => stableClk,
             rstOut => extReset);
 
-      U_WTD : entity work.WatchDogRst
+      U_WTD : entity surf.WatchDogRst
          generic map(
             TPD_G      => TPD_G,
             DURATION_G => getTimeRatio(STABLE_CLK_FREQ_G, 0.1))  -- 10 s timeout
@@ -133,15 +137,15 @@ begin
    ----------------------
    -- 10 GigE XAUI Module
    ----------------------
-   XauiGthUltraScale_Inst : entity work.XauiGthUltraScale
+   XauiGthUltraScale_Inst : entity surf.XauiGthUltraScale
       generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         TPD_G         => TPD_G,
+         JUMBO_G       => JUMBO_G,
+         PAUSE_EN_G    => PAUSE_EN_G,
          -- AXI-Lite Configurations
-         EN_AXI_REG_G    => EN_AXI_REG_G,
+         EN_AXI_REG_G  => EN_AXI_REG_G,
          -- AXI Streaming Configurations
-         AXIS_CONFIG_G   => AXIS_CONFIG_G)
+         AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Local Configurations
          localMac           => localMac,
@@ -152,7 +156,7 @@ begin
          dmaIbSlave         => dmaIbSlave,
          dmaObMaster        => dmaObMaster,
          dmaObSlave         => dmaObSlave,
-         -- Slave AXI-Lite Interface 
+         -- Slave AXI-Lite Interface
          axiLiteClk         => axiLiteClk,
          axiLiteRst         => axiLiteRst,
          axiLiteReadMaster  => axiLiteReadMaster,
@@ -171,7 +175,7 @@ begin
          gtRxPolarity       => gtRxPolarity,
          gtTxPolarity       => gtTxPolarity,
          -- MGT Ports
-         refClk             => refClk,
+         refClk             => refClock,
          gtTxP              => gtTxP,
          gtTxN              => gtTxN,
          gtRxP              => gtRxP,

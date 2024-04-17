@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Jesd32bTo64b.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-10
--- Last update: 2017-11-10
 -------------------------------------------------------------------------------
 -- Description: Converts the 32-bit interface to 64-bit JESD interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,11 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Jesd32bTo64b is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G         : time                 := 1 ns;
+      SYNTH_MODE_G  : string               := "inferred";
+      SYNC_STAGES_G : natural range 2 to 8 := 3);
    port (
       -- 16-bit Write Interface
       wrClk     : in  sl;
@@ -101,13 +102,13 @@ begin
 
    end process comb;
 
-   U_FIFO : entity work.FifoAsync
+   U_FIFO : entity surf.Fifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
+         SYNTH_MODE_G  => SYNTH_MODE_G,
+         MEMORY_TYPE_G => "distributed",
          FWFT_EN_G     => true,
-         ALTERA_SYN_G  => false,
-         SYNC_STAGES_G => 3,
+         SYNC_STAGES_G => SYNC_STAGES_G,
          DATA_WIDTH_G  => 66,
          ADDR_WIDTH_G  => 5)
       port map (

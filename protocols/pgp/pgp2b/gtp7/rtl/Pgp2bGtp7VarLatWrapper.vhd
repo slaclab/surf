@@ -1,29 +1,30 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtp7VarLatWrapper.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Example PGP2b front end wrapper
 -- Note: Default generic configurations are for the AC701 development board
 -- Note: Default uses 125 MHz reference clock to generate 3.125 Gbps PGP link
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -59,7 +60,7 @@ entity Pgp2bGtp7VarLatWrapper is
       TX_ENABLE_G          : boolean                 := true;
       RX_ENABLE_G          : boolean                 := true;
       PAYLOAD_CNT_TOP_G    : integer                 := 7;      -- Top bit for payload counter
-      VC_INTERLEAVE_G      : integer                 := 1;      -- Interleave Frames      
+      VC_INTERLEAVE_G      : integer                 := 1;      -- Interleave Frames
       NUM_VC_EN_G          : integer range 1 to 4    := 4);
    port (
       -- Manual Reset
@@ -87,14 +88,14 @@ entity Pgp2bGtp7VarLatWrapper is
       gtTxN           : out sl;
       gtRxP           : in  sl;
       gtRxN           : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
       drpOverride     : in  sl                     := '0';
       qPllRxSelect    : in  slv(1 downto 0)        := "00";
       qPllTxSelect    : in  slv(1 downto 0)        := "00";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -145,7 +146,7 @@ begin
          O => stableClock);
 
 
-   ClockManager7_Inst : entity work.ClockManager7
+   ClockManager7_Inst : entity surf.ClockManager7
       generic map(
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
@@ -163,7 +164,6 @@ begin
          clkIn     => pgpTxRecClk,
          rstIn     => pgpTxMmcmReset,
          clkOut(0) => pgpClock,
-         rstOut(0) => open,
          locked    => pgpTxMmcmLocked);
 
    -- PLL0 Port Mapping
@@ -176,7 +176,7 @@ begin
    pllLockDetClk(1) <= stableClock;
    qPllReset(1)     <= pgpReset or gtQPllReset(1);
 
-   Quad_Pll_Inst : entity work.Gtp7QuadPll
+   Quad_Pll_Inst : entity surf.Gtp7QuadPll
       generic map (
          TPD_G                => TPD_G,
          SIM_RESET_SPEEDUP_G  => ite(SIMULATION_G, "TRUE", "FALSE"),
@@ -197,7 +197,7 @@ begin
          qPllRefClkLost => gtQPllRefClkLost,
          qPllReset      => qPllReset);
 
-   Pgp2bGtp7VarLat_Inst : entity work.Pgp2bGtp7VarLat
+   Pgp2bGtp7VarLat_Inst : entity surf.Pgp2bGtp7VarLat
       generic map (
          TPD_G                 => TPD_G,
          COMMON_CLK_G          => COMMON_CLK_G,
@@ -262,12 +262,12 @@ begin
          -- Frame RX Interface
          pgpRxMasters     => pgpRxMasters,
          pgpRxCtrl        => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
          drpOverride      => drpOverride,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk          => axilClk,
          axilRst          => axilRst,
          axilReadMaster   => axilReadMaster,

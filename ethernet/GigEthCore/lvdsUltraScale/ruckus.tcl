@@ -1,18 +1,14 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
-if { [info exists ::env(INCLUDE_ETH_SGMII_LVDS)] != 1 || $::env(INCLUDE_ETH_SGMII_LVDS) == 0 } {
-   set useEthSgmiiLvds 0
+# Load Source Code
+if { $::env(VIVADO_VERSION) >= 2021.2 } {
+
+   loadSource -lib surf -dir  "$::DIR_PATH/rtl"
+
+   loadSource -lib surf -path "$::DIR_PATH/ip/GigEthLvdsUltraScaleCore.dcp"
+   # loadIpCore -path "$::DIR_PATH/ip/GigEthLvdsUltraScaleCore.xci"
+
 } else {
-
-   loadSource -dir "$::DIR_PATH/rtl"
-
-   loadConstraints -path "$::DIR_PATH/xdc/GigEthLvdsClockMux.xdc"
-   set_property SCOPED_TO_REF    GigEthLvdsClockMux [get_files "$::DIR_PATH/xdc/GigEthLvdsClockMux.xdc"]
-   set_property PROCESSING_ORDER LATE               [get_files "$::DIR_PATH/xdc/GigEthLvdsClockMux.xdc"]
-
-   loadConstraints -path "$::DIR_PATH/xdc/GigEthLvdsUltraScaleWrapper.xdc"
-   set_property SCOPED_TO_REF    GigEthLvdsUltraScaleWrapper [get_files "$::DIR_PATH/xdc/GigEthLvdsUltraScaleWrapper.xdc"]
-   set_property PROCESSING_ORDER LATE                        [get_files "$::DIR_PATH/xdc/GigEthLvdsUltraScaleWrapper.xdc"]
-   
+   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2021.2 (or later)\n\n"
 }

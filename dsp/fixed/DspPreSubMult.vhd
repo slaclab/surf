@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : DspPreSubMult.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-08
--- Last update: 2018-02-14
 -------------------------------------------------------------------------------
--- Description: Generalized DSP inferred multiplier with pre-adder 
+-- Description: Generalized DSP inferred multiplier with pre-adder
 --              configured as subtractor (based on UG901)
 -- Equation: p = (a - b) x c
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,12 +18,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspPreSubMult is
    generic (
       TPD_G          : time                 := 1 ns;
       RST_POLARITY_G : sl                   := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean              := false;
       USE_DSP_G      : string               := "yes";
       PIPE_STAGES_G  : natural range 0 to 1 := 0;
       A_WIDTH_G      : natural              := 12;
@@ -72,8 +71,8 @@ architecture rtl of DspPreSubMult is
 
    signal p : slv(B_WIDTH_G + C_WIDTH_G downto 0);
 
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
 
 begin
 
@@ -91,7 +90,7 @@ begin
 
       --------------------------------------------------------------------
       -- 1st latency cycle
-      --------------------------------------------------------------------      
+      --------------------------------------------------------------------
 
       -- Reset the flags
       v.ibReady := '0';
@@ -134,33 +133,36 @@ begin
       tReady(0) <= v.tReady;
 
       -- Reset
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
+      -- Outputs
       p <= std_logic_vector(r.p);
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
-   U_Pipe : entity work.FifoOutputPipeline
+   U_Pipe : entity surf.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => RST_POLARITY_G,
          DATA_WIDTH_G   => (B_WIDTH_G + C_WIDTH_G + 1),
          PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
-         -- Slave Port         
+         -- Slave Port
          sData  => p,
          sValid => r.tValid(1),
          sRdEn  => tReady(1),

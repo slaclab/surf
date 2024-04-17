@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : DspXor.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-09-19
--- Last update: 2017-09-25
 -------------------------------------------------------------------------------
--- Description: Generalized DSP inferred XOR, which can be used to help with 
+-- Description: Generalized DSP inferred XOR, which can be used to help with
 --              performance when implementing FEC and CRC algorithms
 -- Equation: p = XOR(a[i])
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,7 +18,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity DspXor is
    generic (
@@ -50,8 +48,8 @@ architecture rtl of DspXor is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   attribute use_dsp48      : string;
-   attribute use_dsp48 of r : signal is USE_DSP_G;
+   attribute use_dsp      : string;
+   attribute use_dsp of r : signal is USE_DSP_G;
 
    attribute dont_touch        : string;
    attribute dont_touch of rtl : architecture is "true";  -- prevent optimization from DSP to RTL
@@ -74,7 +72,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
+      -- Outputs
       pOut <= r.p;
 
    end process comb;
@@ -89,5 +87,5 @@ begin
          r <= REG_INIT_C after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

@@ -1,31 +1,29 @@
 -------------------------------------------------------------------------------
--- File       : ClockDivider.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-06-01
--- Last update: 2016-09-22
 -------------------------------------------------------------------------------
 -- Description: A clock divider with programmable duty cycle and phase delay.
 -------------------------------------------------------------------------------
--- This file is part of StdLib. It is subject to
--- the license terms in the LICENSE.txt file found in the top-level directory
--- of this distribution and at:
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
 --    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of StdLib, including this file, may be
--- copied, modified, propagated, or distributed except according to the terms
--- contained in the LICENSE.txt file.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity ClockDivider is
-
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_ASYNC_G    : boolean               := false;
       LEADING_EDGE_G : sl                    := '1';
       COUNT_WIDTH_G  : integer range 1 to 32 := 16);
    port (
@@ -37,7 +35,6 @@ entity ClockDivider is
       divClk     : out sl;
       preRise    : out sl;
       preFall    : out sl);
-
 end entity ClockDivider;
 
 architecture rtl of ClockDivider is
@@ -103,7 +100,7 @@ begin
             end if;
       end case;
 
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -114,12 +111,13 @@ begin
       preFall <= r.preFall;
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
-
 
 end architecture rtl;

@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : XadcSimpleCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-10
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: This core only measures internal voltages and temperature
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,22 +16,25 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity XadcSimpleCore is
    generic (
-      TPD_G              : time   := 1 ns;
-      SIM_DEVICE_G       : string := "7SERIES";
-      SIM_MONITOR_FILE_G : string := "design.txt";
+      TPD_G              : time    := 1 ns;
+      COMMON_CLK_G       : boolean := true;
+      SIM_DEVICE_G       : string  := "7SERIES";
+      SIM_MONITOR_FILE_G : string  := "design.txt";
 
       -- Global XADC configurations
       SEQUENCER_MODE_G : string                 := "DEFAULT";  -- SINGLE_PASS, CONTINUOUS, SINGLE_CHANNEL,
                                                                -- SIMULTANEOUS, INDEPENDENT
-      SAMPLING_MODE_G  : string                 := "CONTINUOUS";  -- or "EVENT-DRIVEN"      
+      SAMPLING_MODE_G  : string                 := "CONTINUOUS";  -- or "EVENT-DRIVEN"
       MUX_EN_G         : boolean                := false;      -- Enable external multiplexer
       ADCCLK_RATIO_G   : integer range 2 to 255 := 7;
       SAMPLE_AVG_G     : slv(1 downto 0)        := "11";  -- No averaging, 16  64 or 256 samples
@@ -130,6 +130,8 @@ entity XadcSimpleCore is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       --XADC I/O ports
+      xadcClk         : in  sl               := '0';
+      xadcRst         : in  sl               := '0';
       vpIn            : in  sl               := '0';
       vnIn            : in  sl               := '0';
       vAuxP           : in  slv(15 downto 0) := (others => '0');
@@ -316,6 +318,8 @@ architecture rtl of XadcSimpleCore is
    -------------------------------------------------------------------------------------------------
    -- Signals
    -------------------------------------------------------------------------------------------------
+   signal drpClk    : sl;
+   signal drpRst    : sl;
    signal drpAddr   : slv(6 downto 0);
    signal drpEn     : sl;
    signal drpDi     : slv(15 downto 0);
@@ -326,10 +330,20 @@ architecture rtl of XadcSimpleCore is
 
 begin
 
-   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+   DRP_COMMON_CLK_GEN : if (COMMON_CLK_G) generate
+      drpClk <= axilClk;
+      drpRst <= axilRst;
+   end generate;
+
+   DRP_ASYNC_CLK_GEN : if (not COMMON_CLK_G) generate
+      drpClk <= xadcClk;
+      drpRst <= xadcRst;
+   end generate;
+
+   U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
-         COMMON_CLK_G     => true,
+         COMMON_CLK_G     => COMMON_CLK_G,
          EN_ARBITRATION_G => false,
          TIMEOUT_G        => 4096,
          ADDR_WIDTH_G     => 7,
@@ -341,8 +355,8 @@ begin
          axilReadSlave   => axilReadSlave,    -- [out]
          axilWriteMaster => axilWriteMaster,  -- [in]
          axilWriteSlave  => axilWriteSlave,   -- [out]
-         drpClk          => axilClk,          -- [in]
-         drpRst          => axilRst,          -- [in]
+         drpClk          => drpClk,           -- [in]
+         drpRst          => drpRst,           -- [in]
          drpRdy          => drpRdy,           -- [in]
          drpEn           => drpEn,            -- [out]
          drpWe           => drpWe,            -- [out]
@@ -391,7 +405,7 @@ begin
          CONVST       => convSt,
          CONVSTCLK    => convStClk,
          DADDR        => drpAddr,
-         DCLK         => axilClk,
+         DCLK         => drpClk,
          DEN          => drpEn,
          DI           => drpDi,
          DWE          => drpWe,

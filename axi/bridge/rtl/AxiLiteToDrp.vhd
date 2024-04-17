@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteToDrp.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-02-10
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
--- Description: AXI-Lite to Xilinx DRP Bridge 
+-- Description: AXI-Lite to Xilinx DRP Bridge
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteToDrp is
    generic (
@@ -50,7 +49,7 @@ entity AxiLiteToDrp is
       drpUsrRst       : out sl;
       drpAddr         : out slv(ADDR_WIDTH_G-1 downto 0);
       drpDi           : out slv(DATA_WIDTH_G-1 downto 0);
-      drpDo           : in  slv(DATA_WIDTH_G-1 downto 0));      
+      drpDo           : in  slv(DATA_WIDTH_G-1 downto 0));
 end entity AxiLiteToDrp;
 
 architecture rtl of AxiLiteToDrp is
@@ -58,7 +57,7 @@ architecture rtl of AxiLiteToDrp is
    type StateType is (
       IDLE_S,
       REQ_S,
-      ACK_S); 
+      ACK_S);
 
    type RegType is record
       drpUsrRst  : sl;
@@ -100,7 +99,7 @@ begin
 
    GEN_ASYNC : if (COMMON_CLK_G = false) generate
 
-      U_AxiLiteAsync : entity work.AxiLiteAsync
+      U_AxiLiteAsync : entity surf.AxiLiteAsync
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -117,7 +116,7 @@ begin
             mAxiReadMaster  => readMaster,
             mAxiReadSlave   => readSlave,
             mAxiWriteMaster => writeMaster,
-            mAxiWriteSlave  => writeSlave);  
+            mAxiWriteSlave  => writeSlave);
 
    end generate;
 
@@ -127,7 +126,7 @@ begin
       axilReadSlave  <= readSlave;
       writeMaster    <= axilWriteMaster;
       axilWriteSlave <= writeSlave;
-      
+
    end generate;
 
    comb : process (drpDo, drpGnt, drpRdy, drpRst, r, readMaster, writeMaster) is
@@ -170,7 +169,7 @@ begin
                   -- Next state
                   v.state := ACK_S;
                end if;
-            -- Check for a read request            
+            -- Check for a read request
             elsif (axiStatus.readEnable = '1') then
                -- Set the write address bus (32-bit access alignment)
                v.drpAddr := readMaster.araddr(ADDR_WIDTH_G+1 downto 2);
@@ -204,7 +203,7 @@ begin
                   end if;
                   -- Next state
                   v.state := ACK_S;
-               -- Check for a read request            
+               -- Check for a read request
                elsif (axiStatus.readEnable = '1') then
                   -- Check for non-timeout
                   if (drpGnt = '1') then
@@ -242,7 +241,7 @@ begin
                if (axiStatus.writeEnable = '1') then
                   -- Send AXI-Lite response
                   axiSlaveWriteResponse(v.writeSlave, axiResp);
-               -- Check for a read request            
+               -- Check for a read request
                elsif (axiStatus.readEnable = '1') then
                   -- Set the read bus
                   v.readSlave.rdata(DATA_WIDTH_G-1 downto 0) := drpDo;
@@ -275,7 +274,7 @@ begin
       drpAddr    <= r.drpAddr;
       drpDi      <= r.drpDi;
       drpUsrRst  <= r.drpUsrRst;
-      
+
    end process comb;
 
    seq : process (drpClk) is

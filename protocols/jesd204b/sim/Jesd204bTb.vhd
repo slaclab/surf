@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-02-03
--- Last update: 2018-05-22
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for Jesd204b
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity Jesd204bTb is
 end Jesd204bTb;
@@ -34,7 +33,13 @@ architecture tb of Jesd204bTb is
 
    constant EN_SCRAMBLER_C : boolean := true;
 
-   constant BYTE_SHIFT_C : natural range 0 to 3 := 1;
+   --------------------------------------------------------
+   -- BYTE_SHIFT_C=0: JesdRx.JesdAlignChGen.position="0001"
+   -- BYTE_SHIFT_C=1: JesdRx.JesdAlignChGen.position="1000"
+   -- BYTE_SHIFT_C=2: JesdRx.JesdAlignChGen.position="0100"
+   -- BYTE_SHIFT_C=3: JesdRx.JesdAlignChGen.position="0010"
+   --------------------------------------------------------
+   constant BYTE_SHIFT_C : natural range 0 to 3 := 3;
 
    signal clk        : sl := '0';
    signal rst        : sl := '0';
@@ -74,7 +79,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -114,7 +119,7 @@ begin
          end if;
          -- Create a free running counter
          cnt                      <= cnt + 1                  after TPD_G;
-         -- Calculate next RX data 
+         -- Calculate next RX data
          nextRxData(7 downto 0)   <= rxData(7 downto 0) + 4   after TPD_G;
          nextRxData(15 downto 8)  <= rxData(15 downto 8) + 4  after TPD_G;
          nextRxData(23 downto 16) <= rxData(23 downto 16) + 4 after TPD_G;
@@ -130,7 +135,7 @@ begin
    -----------------
    -- JESD TX Module
    -----------------
-   U_Jesd204bTx : entity work.Jesd204bTx
+   U_Jesd204bTx : entity surf.Jesd204bTx
       generic map (
          TPD_G => TPD_G,
          K_G   => 32,
@@ -147,12 +152,12 @@ begin
          devClk_i                => clk,
          devRst_i                => rst,
          sysRef_i                => sysRef,
-         nSync_i                 => nSync,
+         nSync_i(0)              => nSync,
          gtTxReady_i             => (others => configDone),
          r_jesdGtTxArr(0)        => jesdGtTxArr);
 
    ------------------------------------
-   -- Generate SLV to test unaligned 
+   -- Generate SLV to test unaligned
    -- byte compensations in the JESD RX
    ------------------------------------
    process(clk)
@@ -173,9 +178,9 @@ begin
    jesdGtRxArr.rstDone   <= configDone;
    jesdGtRxArr.cdrStable <= configDone;
 
-   -----------------------------------   
+   -----------------------------------
    -- Adding char detect for debugging
-   -----------------------------------   
+   -----------------------------------
    process(jesdGtRxArr)
       variable i    : natural;
       variable kDet : slv(3 downto 0);
@@ -214,8 +219,8 @@ begin
 
    -----------------
    -- JESD RX Module
-   -----------------            
-   U_Jesd204bRx : entity work.Jesd204bRx
+   -----------------
+   U_Jesd204bRx : entity surf.Jesd204bRx
       generic map (
          TPD_G => TPD_G,
          K_G   => 32,
@@ -245,20 +250,20 @@ begin
       wait until rst = '0';
 
       -- Configure the JESD TX
-      axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000000", x"00000001");  -- Enable=0x1 
+      axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000000", x"00000001");  -- Enable=0x1
       if(EN_SCRAMBLER_C) then
-         axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000043");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1 
+         axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000043");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1
       else
          axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1
       end if;
 
       -- Configure the JESD RX
-      axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000000", x"00000001");  -- Enable=0x1 
+      axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000000", x"00000001");  -- Enable=0x1
       axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000004", x"0000000B");  -- SysrefDelay=0x8
       if(EN_SCRAMBLER_C) then
-         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000023");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1 
+         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000023");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1
       else
-         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1 
+         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1
       end if;
 
       configDone <= '1';

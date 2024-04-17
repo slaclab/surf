@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineDhcp.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-08-12
--- Last update: 2018-08-02
 -------------------------------------------------------------------------------
 -- Description: DHCP Engine
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineDhcp is
    generic (
@@ -31,13 +30,15 @@ entity UdpEngineDhcp is
       TPD_G          : time     := 1 ns;
       -- UDP ARP/DHCP Generics
       CLK_FREQ_G     : real     := 156.25E+06;  -- In units of Hz
-      COMM_TIMEOUT_G : positive := 30);
+      COMM_TIMEOUT_G : positive := 30;
+      -- RAM/FIFO synthesis mode
+      SYNTH_MODE_G   : string   := "inferred");
    port (
       -- Local Configurations
-      localMac     : in  slv(47 downto 0);  --  big-Endian configuration
-      localIp      : in  slv(31 downto 0);  --  big-Endian configuration 
-      dhcpIp       : out slv(31 downto 0);  --  big-Endian configuration       
-      -- Interface to DHCP Engine  
+      localMac     : in  slv(47 downto 0);      --  big-Endian configuration
+      localIp      : in  slv(31 downto 0);      --  big-Endian configuration
+      dhcpIp       : out slv(31 downto 0);      --  big-Endian configuration
+      -- Interface to DHCP Engine
       ibDhcpMaster : in  AxiStreamMasterType;
       ibDhcpSlave  : out AxiStreamSlaveType;
       obDhcpMaster : out AxiStreamMasterType;
@@ -69,6 +70,7 @@ architecture rtl of UdpEngineDhcp is
       DATA_S);
 
    type RegType is record
+      localMac   : slv(47 downto 0);
       heartbeat  : sl;
       cnt        : natural range 0 to 127;
       timer      : natural range 0 to (TIMER_1_SEC_C-1);
@@ -96,6 +98,7 @@ architecture rtl of UdpEngineDhcp is
       state      : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
+      localMac   => (others => '0'),
       heartbeat  => '0',
       cnt        => 0,
       timer      => 0,
@@ -139,7 +142,7 @@ architecture rtl of UdpEngineDhcp is
 
 begin
 
-   FIFO_RX : entity work.AxiStreamFifoV2
+   FIFO_RX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -148,8 +151,8 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
@@ -278,7 +281,7 @@ begin
                   -- OP/HTYPE/HLEN/HOPS
                   when 0 =>
                      v.txMaster.tData(31 downto 0) := CLIENT_HDR_C;
-                     v.txMaster.tKeep              := x"000F";
+                     v.txMaster.tKeep(15 downto 0) := x"000F";
                      ssiSetUserSof(DHCP_CONFIG_C, v.txMaster, '1');
                   -- XID
                   when 1 =>
@@ -298,10 +301,10 @@ begin
                      end if;
                   -- CHADDR[31:0]
                   when 7 =>
-                     v.txMaster.tData(31 downto 0) := localMac(31 downto 0);
+                     v.txMaster.tData(31 downto 0) := r.localMac(31 downto 0);
                   -- CHADDR[47:32]
                   when 8 =>
-                     v.txMaster.tData(15 downto 0) := localMac(47 downto 32);
+                     v.txMaster.tData(15 downto 0) := r.localMac(47 downto 32);
                   -- Magic cookie
                   when 59 =>
                      v.txMaster.tData(31 downto 0) := MAGIC_COOKIE_C;
@@ -310,9 +313,9 @@ begin
                      -- Check for DHCP Discover
                      if r.dhcpReq = '0' then
                         v.txMaster.tData(7 downto 0)   := toSlv(53, 8);  -- code = DHCP Message Type
-                        v.txMaster.tData(15 downto 8)  := x"01";  -- len = 1 byte
-                        v.txMaster.tData(23 downto 16) := x"01";  -- DHCP Discover = 0x1
-                        v.txMaster.tData(31 downto 24) := x"FF";  -- Endmark
+                        v.txMaster.tData(15 downto 8)  := x"01";      -- len = 1 byte
+                        v.txMaster.tData(23 downto 16) := x"01";      -- DHCP Discover = 0x1
+                        v.txMaster.tData(31 downto 24) := x"FF";      -- Endmark
                         v.txMaster.tLast               := '1';
                         -- Start the communication timer
                         v.commCnt                      := COMM_TIMEOUT_C;
@@ -322,35 +325,35 @@ begin
                         v.state                        := IDLE_S;
                      else
                         v.txMaster.tData(7 downto 0)   := toSlv(53, 8);  -- code = DHCP Message Type
-                        v.txMaster.tData(15 downto 8)  := x"01";  -- len = 1 byte
-                        v.txMaster.tData(23 downto 16) := x"03";  -- DHCP request = 0x3                    
+                        v.txMaster.tData(15 downto 8)  := x"01";      -- len = 1 byte
+                        v.txMaster.tData(23 downto 16) := x"03";      -- DHCP request = 0x3
                      end if;
                   -- Requested IP address[15:0]
                   when 61 =>
                      v.txMaster.tData(7 downto 0)   := toSlv(50, 8);  -- code = Requested IP address
-                     v.txMaster.tData(15 downto 8)  := x"04";  -- len = 4 byte
+                     v.txMaster.tData(15 downto 8)  := x"04";         -- len = 4 byte
                      v.txMaster.tData(31 downto 16) := r.yiaddr(15 downto 0);  -- YIADDR[15:0]
                   -- Requested IP address[32:16]
                   when 62 =>
-                     v.txMaster.tData(15 downto 0) := r.yiaddr(31 downto 16);  -- YIADDR[31:16] 
+                     v.txMaster.tData(15 downto 0) := r.yiaddr(31 downto 16);  -- YIADDR[31:16]
                   -- Server Identifier[15:0]
                   when 63 =>
                      v.txMaster.tData(7 downto 0)   := toSlv(54, 8);  -- code = Server Identifier
-                     v.txMaster.tData(15 downto 8)  := x"04";  -- len = 4 byte
+                     v.txMaster.tData(15 downto 8)  := x"04";         -- len = 4 byte
                      v.txMaster.tData(31 downto 16) := r.siaddr(15 downto 0);  -- SIADDR[15:0]
                   -- Server Identifier[32:16]
                   when 64 =>
-                     v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16] 
+                     v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16]
                   when 65 =>
-                     v.txMaster.tData(7 downto 0) := x"FF";    -- Endmark
-                     v.txMaster.tKeep             := x"0001";
-                     v.txMaster.tLast             := '1';
+                     v.txMaster.tData(7 downto 0)  := x"FF";          -- Endmark
+                     v.txMaster.tKeep(15 downto 0) := x"0001";
+                     v.txMaster.tLast              := '1';
                      -- Start the communication timer
-                     v.commCnt                    := COMM_TIMEOUT_C;
+                     v.commCnt                     := COMM_TIMEOUT_C;
                      -- Reset the counter
-                     v.cnt                        := 0;
+                     v.cnt                         := 0;
                      -- Next state
-                     v.state                      := IDLE_S;
+                     v.state                       := IDLE_S;
                   when others =>
                      null;
                end case;
@@ -384,20 +387,20 @@ begin
                   -- CHADDR[31:0]
                   when 7 =>
                      -- Check if CHADDR[31:0] doesn't match
-                     if rxMaster.tData(31 downto 0) /= localMac(31 downto 0) then
+                     if rxMaster.tData(31 downto 0) /= r.localMac(31 downto 0) then
                         -- Next state
                         v.state := IDLE_S;
                      end if;
                   -- CHADDR[47:32]
                   when 8 =>
                      -- Check if CHADDR[47:32] doesn't match
-                     if rxMaster.tData(15 downto 0) /= localMac(47 downto 32) then
+                     if rxMaster.tData(15 downto 0) /= r.localMac(47 downto 32) then
                         -- Next state
                         v.state := IDLE_S;
                      end if;
                   -- Magic cookie
                   when 59 =>
-                     -- Check if Magic cookie doesn't match                  
+                     -- Check if Magic cookie doesn't match
                      if rxMaster.tData(31 downto 0) /= MAGIC_COOKIE_C then
                         -- Next state
                         v.state := IDLE_S;
@@ -455,7 +458,7 @@ begin
                         v.decode := CODE_S;
                      end if;
                      -- Check the Code
-                     if (r.opCode = 53) then  -- Note: Assuming zero padding
+                     if (r.opCode = 53) then                          -- Note: Assuming zero padding
                         -- Check for DHCP Message Type
 
                         if (r.len = 1) then
@@ -497,7 +500,7 @@ begin
                   v.index := r.index + 1;
                end if;
                -- Check for last transfer
-               if (rxMaster.tLast = '1') and (getTKeep(tKeep) = (r.index+1)) then
+               if (rxMaster.tLast = '1') and (getTKeep(tKeep, DHCP_CONFIG_C) = (r.index+1)) then
                   -- Check for no EOFE
                   if ssiGetUserEofe(DHCP_CONFIG_C, rxMaster) = '0' then
                      -- Next state
@@ -519,13 +522,13 @@ begin
                if (r.dhcpReq = '0') and (r.msgType = 2) then
                   -- Set the flag
                   v.dhcpReq := '1';
-                  -- Reset counter to immediately start the "DHCP request"  
+                  -- Reset counter to immediately start the "DHCP request"
                   v.commCnt := 0;
                -- Check for "DHCP request" request and "DHCP ACK" reply
                elsif (r.dhcpReq = '1') and (r.msgType = 5) then
-                  -- Set the DHCP address 
+                  -- Set the DHCP address
                   v.dhcpIp   := r.yiaddrTemp;
-                  -- Clients begin to attempt to renew their leases 
+                  -- Clients begin to attempt to renew their leases
                   -- once half the lease interval has expired.
                   v.renewCnt := r.leaseTime(31 downto 1);
                   v.leaseCnt := r.leaseTime;
@@ -536,18 +539,26 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Keep delayed copy of the local MAC
+      v.localMac := localMac;
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') then
-         v := REG_INIT_C;
+      if (rst = '1') or (r.localMac /= v.localMac) or (r.localMac = 0) then
+         -- Reset the DHCP FSM
+         v                := REG_INIT_C;
+         -- Don't touch the delayed copy of local MAC
+         v.localMac       := localMac;
+         -- Prevent locking up the ETH stack
+         v.rxSlave.tReady := '1';
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs       
+      -- Registered Outputs
       txMaster <= r.txMaster;
       dhcpIp   <= r.dhcpIp;
 
@@ -560,7 +571,7 @@ begin
       end if;
    end process seq;
 
-   FIFO_TX : entity work.AxiStreamFifoV2
+   FIFO_TX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -569,8 +580,8 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,

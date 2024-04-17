@@ -1,27 +1,26 @@
 -------------------------------------------------------------------------------
--- File       : AxiMicronN25QCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-03
--- Last update: 2018-06-22
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to N25Q FLASH Memory IC
 -------------------------------------------------------------------------------
 -- Note: This module doesn't support DSPI or QSPI interface yet.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -40,7 +39,7 @@ entity AxiMicronN25QCore is
       sck            : out sl;
       mosi           : out sl;
       miso           : in  sl;
-      -- Shared SPI Interface 
+      -- Shared SPI Interface
       busyIn         : in  sl := '0';
       busyOut        : out sl;
       -- AXI-Lite Register Interface
@@ -66,7 +65,7 @@ begin
       report "AXI_CLK_FREQ_G must be >= 2*SPI_CLK_FREQ_G"
       severity failure;
 
-   AxiMicronN25QReg_Inst : entity work.AxiMicronN25QReg
+   AxiMicronN25QReg_Inst : entity surf.AxiMicronN25QReg
       generic map(
          TPD_G              => TPD_G,
          EN_PASSWORD_LOCK_G => EN_PASSWORD_LOCK_G,
@@ -80,10 +79,10 @@ begin
          sck            => sck,
          mosi           => mosi,
          miso           => miso,
-         -- Shared SPI Interface 
+         -- Shared SPI Interface
          busyIn         => busyIn,
          busyOut        => busyOut,
-         -- AXI-Lite Register Interface    
+         -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,
          axiReadSlave   => axiReadSlave,
          axiWriteMaster => axiWriteMaster,

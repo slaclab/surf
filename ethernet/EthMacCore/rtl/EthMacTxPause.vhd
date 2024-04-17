@@ -1,19 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxPause.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-09-22
--- Last update: 2016-10-20
 -------------------------------------------------------------------------------
 -- Description:
 -- Generic pause frame generator for Ethernet MACs.  This module as acts as
 -- a gate keeper when the peer has requested a pause period.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxPause is
    generic (
@@ -32,7 +31,7 @@ entity EthMacTxPause is
       PAUSE_EN_G      : boolean                 := true;
       PAUSE_512BITS_G : natural range 1 to 1024 := 8;
       VLAN_EN_G       : boolean                 := false;
-      VLAN_SIZE_G     : positive range 1 to 8   := 1);      
+      VLAN_SIZE_G     : positive range 1 to 8   := 1);
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -60,7 +59,7 @@ end EthMacTxPause;
 
 architecture rtl of EthMacTxPause is
 
-   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G);
+   constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G-1);
    constant SIZE_C     : natural := ite(VLAN_EN_G, (VLAN_SIZE_G+1), 1);
 
    type StateType is (
@@ -109,22 +108,22 @@ begin
    sAxisSlave   <= rxSlaves(0);
 
    U_NoVlanGen : if (VLAN_EN_G = false) generate
-      
+
       rxMaster    <= rxMasters(0);
       rxSlaves(0) <= rxSlave;
       sAxisSlaves <= (others => AXI_STREAM_SLAVE_FORCE_C);
-      
+
    end generate;
 
    U_VlanGen : if (VLAN_EN_G = true) generate
-      
+
       GEN_VEC :
       for i in (VLAN_SIZE_G-1) downto 0 generate
          rxMasters(i+1) <= sAxisMasters(i);
          sAxisSlaves(i) <= rxSlaves(i+1);
       end generate GEN_VEC;
 
-      U_AxiStreamMux : entity work.AxiStreamMux
+      U_AxiStreamMux : entity surf.AxiStreamMux
          generic map (
             TPD_G        => TPD_G,
             NUM_SLAVES_G => SIZE_C)
@@ -137,14 +136,14 @@ begin
             sAxisSlaves  => rxSlaves,
             -- Master
             mAxisMaster  => rxMaster,
-            mAxisSlave   => rxSlave);    
+            mAxisSlave   => rxSlave);
 
    end generate;
 
    U_TxPauseGen : if (PAUSE_EN_G = true) generate
 
-      comb : process (clientPause, ethRst, mAxisSlave, macAddress, pauseEnable, pauseTime, phyReady,
-                      r, rxMaster, rxPauseReq, rxPauseValue) is
+      comb : process (clientPause, ethRst, mAxisSlave, pauseEnable, pauseTime,
+                      phyReady, r, rxMaster, rxPauseReq, rxPauseValue) is
          variable v : RegType;
       begin
          -- Latch the current value
@@ -191,9 +190,9 @@ begin
                end if;
             ----------------------------------------------------------------------
             when PAUSE_S =>
-               ----------------------------------------------------------------------------------------------------------
-               -- Refer to https://www.safaribooksonline.com/library/view/ethernet-the-definitive/1565926609/ch04s02.html
-               ----------------------------------------------------------------------------------------------------------
+               --------------------------------------------------------------------------------------------------------------------
+               -- Refer to https://hasanmansur1.files.wordpress.com/2012/12/ethernet-flow-control-pause-frame-framing-structure.png
+               --------------------------------------------------------------------------------------------------------------------
                -- Check if ready to move data
                if (v.mAxisMaster.tValid = '0') then
                   -- Reset the bus to defaults
@@ -205,37 +204,37 @@ begin
                   -- Check the flag
                   if (r.txCount = 0) then
                      -- DST MAC (Pause MAC Address)
-                     v.mAxisMaster.tData(47 downto 0)    := x"010000C28001";
-                     -- SRC MAC (local MAC address)
-                     v.mAxisMaster.tData(95 downto 48)   := macAddress;
+                     v.mAxisMaster.tData(47 downto 0)    := x"01_00_00_C2_80_01";
+                     -- SRC MAC (NULL MAC address)
+                     v.mAxisMaster.tData(95 downto 48)   := x"00_00_00_00_00_00";
                      -- MAC Control Type
-                     v.mAxisMaster.tData(111 downto 96)  := x"0888";
+                     v.mAxisMaster.tData(111 downto 96)  := x"08_88";
                      -- Pause Op-code
-                     v.mAxisMaster.tData(127 downto 112) := x"0100";                -- 2 bytes
+                     v.mAxisMaster.tData(127 downto 112) := x"01_00";  -- 2 bytes
                   elsif (r.txCount = 1) then
                      -- Pause length
                      v.mAxisMaster.tData(7 downto 0)    := pauseTime(15 downto 8);  -- 1 bytes
-                     v.mAxisMaster.tData(15 downto 8)   := pauseTime(7 downto 0);   -- 1 bytes
+                     v.mAxisMaster.tData(15 downto 8)   := pauseTime(7 downto 0);  -- 1 bytes
                      -- Zero Padding
-                     v.mAxisMaster.tData(127 downto 16) := (others => '0');         -- 14 bytes
+                     v.mAxisMaster.tData(127 downto 16) := (others => '0');  -- 14 bytes
                   elsif (r.txCount = 2) then
                      -- Zero Padding
-                     v.mAxisMaster.tData := (others => '0');
-                     v.mAxisMaster.tKeep := x"FFFF";  -- 16 bytes    
+                     v.mAxisMaster.tData(127 downto 0) := (others => '0');
+                     v.mAxisMaster.tKeep(15 downto 0)  := x"FFFF";  -- 16 bytes
                   else
                      -- Zero Padding
-                     v.mAxisMaster.tData := (others => '0');
-                     v.mAxisMaster.tKeep := x"0FFF";  -- 12 bytes (Fixed frame size = 46 bytes)
+                     v.mAxisMaster.tData(127 downto 0) := (others => '0');
+                     v.mAxisMaster.tKeep(15 downto 0)  := x"0FFF";  -- 12 bytes (Fixed frame size = 46 bytes)
                      -- Set EOF
-                     v.mAxisMaster.tLast := '1';
-                     -- Latch the Pause time   
-                     v.remPauseCnt       := pauseTime;
-                     v.remPreCnt         := (others => '1');
-                     v.pauseTx           := '1';
+                     v.mAxisMaster.tLast               := '1';
+                     -- Latch the Pause time
+                     v.remPauseCnt                     := '0' & pauseTime(15 downto 1);  -- retransmit if half of pauseTime time
+                     v.remPreCnt                       := (others => '1');
+                     v.pauseTx                         := '1';
                      -- Reset the counter
-                     v.txCount           := (others => '0');
+                     v.txCount                         := (others => '0');
                      -- Next state
-                     v.state             := IDLE_S;
+                     v.state                           := IDLE_S;
                   end if;
                end if;
             ----------------------------------------------------------------------
@@ -254,7 +253,7 @@ begin
                end if;
          ----------------------------------------------------------------------
          end case;
-         
+
          -- Combinatorial outputs before the reset
          rxSlave <= v.rxSlave;
 
@@ -278,7 +277,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
    U_BypTxPause : if (PAUSE_EN_G = false) generate
@@ -286,5 +285,5 @@ begin
       rxSlave     <= mAxisSlave;
       pauseTx     <= '0';
    end generate;
-   
+
 end rtl;

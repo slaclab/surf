@@ -1,28 +1,27 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249Serializer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-02-22
--- Last update: 2016-11-30
 -------------------------------------------------------------------------------
 -- Description: 14 bit DDR deserializer using 7 series IDELAYE2 and ISERDESE2.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
 entity Ad9249Serializer is
-   
+
    port (
       clk    : in sl;                   -- Serial High speed clock
       clkDiv     : in sl;               -- Parallel low speed clock
@@ -37,7 +36,7 @@ architecture rtl of Ad9249Serializer is
 
    signal shift1 : sl;
    signal shift2 : sl;
-   
+
 begin
 
     oserdese2_master : OSERDESE2
@@ -45,7 +44,7 @@ begin
          DATA_RATE_OQ   => "DDR",
          DATA_RATE_TQ   => "SDR",
          DATA_WIDTH     => 14,
- 
+
          TRISTATE_WIDTH => 1,
          SERDES_MODE    => "MASTER")
        port map (
@@ -76,7 +75,7 @@ begin
          TFB            => open,
          TCE            => '0',
          RST            => rst);
-    
+
     oserdese2_slave : OSERDESE2
        generic map (
          DATA_RATE_OQ   => "DDR",
@@ -85,7 +84,7 @@ begin
          TRISTATE_WIDTH => 1,
          SERDES_MODE    => "SLAVE")
        port map (
-         D1             => '0', 
+         D1             => '0',
          D2             => '0',
          D3             => iData(5),
          D4             => iData(4),
@@ -112,5 +111,5 @@ begin
          TBYTEOUT      => open,
          TCE            => '0',
          RST            => rst);
-    
+
 end architecture rtl;

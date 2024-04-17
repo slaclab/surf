@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxImportGmii.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-02-04
--- Last update: 2016-09-14
 -------------------------------------------------------------------------------
 -- Description: 1GbE Import MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,18 +17,22 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxImportGmii is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
+      ethClkEn    : in  sl;
       ethClk      : in  sl;
       ethRst      : in  sl;
-      -- AXIS Interface   
+      -- AXIS Interface
       macIbMaster : out AxiStreamMasterType;
       -- GMII PHY Interface
       gmiiRxDv    : in  sl;
@@ -47,13 +48,13 @@ architecture rtl of EthMacRxImportGmii is
 
    constant SFD_C : slv(7 downto 0) := x"D5";
    constant AXI_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TSTRB_EN_C    => INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
       TDATA_BYTES_C => 1,               -- 8-bit AXI stream interface
-      TDEST_BITS_C  => EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
-      TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
-      TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
+      TDEST_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => INT_EMAC_AXIS_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    type StateType is(
       WAIT_SFD_S,
@@ -103,7 +104,7 @@ architecture rtl of EthMacRxImportGmii is
 
 begin
 
-   DATA_MUX : entity work.AxiStreamFifoV2
+   DATA_MUX : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -111,27 +112,28 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,        --  8-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface          
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,            --  8-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macMaster,                   -- 8-bit AXI stream interface  
+         sAxisMaster => macMaster,                       -- 8-bit AXI stream interface
          sAxisSlave  => open,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macIbMaster,                 -- 128-bit AXI stream interface
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  
+         mAxisMaster => macIbMaster,                     -- 128-bit AXI stream interface
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
-   comb : process (crcIn, crcOut, ethRst, gmiiRxDv, gmiiRxEr, gmiiRxd, phyReady, r) is
+   comb : process (crcIn, crcOut, ethClkEn, ethRst, gmiiRxDv, gmiiRxEr,
+                   gmiiRxd, phyReady, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -147,69 +149,74 @@ begin
       v.macMaster.tUser  := (others => '0');
       v.macMaster.tKeep  := (others => '1');
 
-      -- Delay data to avoid sending the CRC
-      v.macData(63 downto 0) := r.macData(55 downto 0) & gmiiRxd;
+      -- Check for clock enable
+      if (ethClkEn = '1') then
 
-      -- Delay the GMII valid for start up sequencing
-      v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
+         -- Delay data to avoid sending the CRC
+         v.macData(63 downto 0) := r.macData(55 downto 0) & gmiiRxd;
 
-      -- Check for CRC reset
-      v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+         -- Delay the GMII valid for start up sequencing
+         v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
 
-      -- State Machine
-      case r.state is
-         ----------------------------------------------------------------------
-         when WAIT_SFD_S =>
-            v.sof := '1';
-            if ((gmiiRxd = SFD_C) and (gmiiRxDv = '1') and (gmiiRxEr = '0') and (phyReady = '1')) then
-               v.delRxDv := '1';
-               v.state   := WAIT_DATA_S;
-            end if;
-         ----------------------------------------------------------------------
-         when WAIT_DATA_S =>
-            if (gmiiRxDv = '0') or (gmiiRxEr = '1') or (phyReady = '0') then
-               v.state := WAIT_SFD_S;
-            elsif (r.delRxDvSr(3) = '1') then
-               v.state := GET_DATA_S;
-            end if;
-         ----------------------------------------------------------------------
-         when GET_DATA_S =>
-            if ((gmiiRxEr = '1') and (gmiiRxDv = '1')) or (phyReady = '0') then  -- Error
+         -- Check for CRC reset
+         v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+
+         -- State Machine
+         case r.state is
+            ----------------------------------------------------------------------
+            when WAIT_SFD_S =>
+               v.sof := '1';
+               if ((gmiiRxd = SFD_C) and (gmiiRxDv = '1') and (gmiiRxEr = '0') and (phyReady = '1')) then
+                  v.delRxDv := '1';
+                  v.state   := WAIT_DATA_S;
+               end if;
+            ----------------------------------------------------------------------
+            when WAIT_DATA_S =>
+               if (gmiiRxDv = '0') or (gmiiRxEr = '1') or (phyReady = '0') then
+                  v.state := WAIT_SFD_S;
+               elsif (r.delRxDvSr(3) = '1') then
+                  v.state := GET_DATA_S;
+               end if;
+            ----------------------------------------------------------------------
+            when GET_DATA_S =>
+               if ((gmiiRxEr = '1') and (gmiiRxDv = '1')) or (phyReady = '0') then  -- Error
+                  v.macMaster.tvalid := '1';
+                  v.macMaster.tlast  := '1';
+                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
+                  v.state            := WAIT_SFD_S;
+               else
+                  v.crcDataValid                := '1';
+                  v.macMaster.tvalid            := gmiiRxDv;
+                  v.macMaster.tdata(7 downto 0) := r.macData(39 downto 32);
+                  if (gmiiRxDv = '0') then
+                     v.state := DELAY0_S;
+                  end if;
+                  if (r.sof = '1') then
+                     axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_SOF_BIT_C, '1', 0);
+                     v.sof := '0';
+                  end if;
+               end if;
+            ----------------------------------------------------------------------
+            when DELAY0_S =>
+               v.state := DELAY1_S;
+            ----------------------------------------------------------------------
+            when DELAY1_S =>
+               v.state := CRC_S;
+            ----------------------------------------------------------------------
+            when CRC_S =>
                v.macMaster.tvalid := '1';
                v.macMaster.tlast  := '1';
-               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
-               v.state            := WAIT_SFD_S;
-            else
-               v.crcDataValid                := '1';
-               v.macMaster.tvalid            := gmiiRxDv;
-               v.macMaster.tdata(7 downto 0) := r.macData(39 downto 32);
-               if (gmiiRxDv = '0') then
-                  v.state := DELAY0_S;
+               if (crcIn /= crcOut) then
+                  v.rxCrcError := '1';
+                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
+               else
+                  v.rxCountEn := '1';
                end if;
-               if (r.sof = '1') then
-                  axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_SOF_BIT_C, '1', 0);
-                  v.sof := '0';
-               end if;
-            end if;
+               v.state := WAIT_SFD_S;
          ----------------------------------------------------------------------
-         when DELAY0_S =>
-            v.state := DELAY1_S;
-         ----------------------------------------------------------------------
-         when DELAY1_S =>
-            v.state := CRC_S;
-         ----------------------------------------------------------------------
-         when CRC_S =>
-            v.macMaster.tvalid := '1';
-            v.macMaster.tlast  := '1';
-            if (crcIn /= crcOut) then
-               v.rxCrcError := '1';
-               axiStreamSetUserBit(AXI_CONFIG_C, v.macMaster, EMAC_EOFE_BIT_C, '1', 0);
-            else
-               v.rxCountEn := '1';
-            end if;
-            v.state := WAIT_SFD_S;
-      ----------------------------------------------------------------------
-      end case;
+         end case;
+
+      end if;
 
       -- Reset
       if (ethRst = '1') then
@@ -219,11 +226,11 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs        
+      -- Outputs
       macMaster  <= r.macMaster;
       rxCountEn  <= r.rxCountEn;
       rxCrcError <= r.rxCrcError;
-      
+
    end process comb;
 
    seq : process (ethClk) is
@@ -237,7 +244,7 @@ begin
    crcIn(31 downto 0) <= r.macData(55 downto 24);
 
    -- CRC
-   U_Crc32 : entity work.Crc32Parallel
+   U_Crc32 : entity surf.Crc32Parallel
       generic map (
          BYTE_WIDTH_G => 1)
       port map (
@@ -246,6 +253,6 @@ begin
          crcDataValid => r.crcDataValid,
          crcDataWidth => "000",
          crcIn        => r.macData(47 downto 40),
-         crcReset     => r.crcReset); 
+         crcReset     => r.crcReset);
 
 end rtl;

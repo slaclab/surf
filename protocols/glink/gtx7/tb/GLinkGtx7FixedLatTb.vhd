@@ -1,25 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : GLinkGtx7FixedLatTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-02-03
--- Last update: 2014-02-03
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for GLinkGtx7FixedLat
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.GlinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GlinkPkg.all;
 
 entity GLinkGtx7FixedLatTb is end GLinkGtx7FixedLatTb;
 
@@ -42,13 +41,13 @@ architecture testbed of GLinkGtx7FixedLatTb is
       qPllRefClkLost,
       qPllReset,
       gtQPllReset : sl := '0';
-      
+
    signal gLinkTx    : GLinkTxType := GLINK_TX_INIT_C;
    signal gLinkRx    : GLinkRxType := GLINK_RX_INIT_C;
-      
+
 begin
 
-   ClkRst_0 : entity work.ClkRst
+   ClkRst_0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 16 ns,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -58,8 +57,8 @@ begin
          clkN => open,
          rst  => stableRst,
          rstL => open);
-         
-   ClkRst_1 : entity work.ClkRst
+
+   ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.25 ns,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -68,9 +67,9 @@ begin
          clkP => gtClk,
          clkN => open,
          rst  => open,
-         rstL => open); 
+         rstL => open);
 
-   ClkRst_2 : entity work.ClkRst
+   ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 25 ns,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -79,7 +78,7 @@ begin
          clkP => txClock,
          clkN => open,
          rst  => open,
-         rstL => open);          
+         rstL => open);
 
    txRst <= stableRst;
 
@@ -90,7 +89,7 @@ begin
    --rxClock       <= rxRecClk;
    rxClock       <= txClock;
 
-   QPllCore_1 : entity work.Gtx7QuadPll
+   QPllCore_1 : entity surf.Gtx7QuadPll
       generic map (
          QPLL_REFCLK_SEL_G  => "111",
          QPLL_FBDIV_G       => "0100100000",-- N = 80
@@ -103,13 +102,13 @@ begin
          qPllLock       => qPllLock,
          qPllLockDetClk => pllLockDetClk,
          qPllRefClkLost => qPllRefClkLost,
-         qPllReset      => qPllReset);                    
+         qPllReset      => qPllReset);
 
-   GLinkGtx7FixedLat_Inst : entity work.GLinkGtx7FixedLat
+   GLinkGtx7FixedLat_Inst : entity surf.GLinkGtx7FixedLat
       generic map (
          -- Simulation Settings
          SIM_GTRESET_SPEEDUP_G => "TRUE",
-         SIMULATION_G          => true,         
+         SIMULATION_G          => true,
          -- GLink Settings
          FLAGSEL_G         => false,
          -- CPLL Settings -
@@ -158,6 +157,6 @@ begin
          gtTxP            => open,
          gtTxN            => open,
          gtRxP            => '1',
-         gtRxN            => '0');            
+         gtRxN            => '0');
 
 end testbed;

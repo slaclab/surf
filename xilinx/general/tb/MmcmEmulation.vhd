@@ -1,30 +1,29 @@
 -------------------------------------------------------------------------------
--- File       : MmcmEmulation.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-09-18
--- Last update: 2018-06-21
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity MmcmEmulation is
    generic (
       CLKIN_PERIOD_G         : real                       := 10.0;
       DIVCLK_DIVIDE_G        : integer range 1 to 106     := 2;
-      CLKFBOUT_MULT_F_G      : real range 1.0 to 64.0     := 20.0;
+      CLKFBOUT_MULT_F_G      : real range 1.0 to 128.0    := 20.0;
       CLKOUT0_DIVIDE_F_G     : real range 1.0 to 128.0    := 1.0;
       CLKOUT1_DIVIDE_G       : integer range 1 to 128     := 2;
       CLKOUT2_DIVIDE_G       : integer range 1 to 128     := 3;
@@ -68,18 +67,27 @@ end entity MmcmEmulation;
 
 architecture MmcmEmulation of MmcmEmulation is
 
-   constant VCO_PERIOD_C : time := (real(DIVCLK_DIVIDE_G)*CLKIN_PERIOD_G*(1 ns))/(CLKFBOUT_MULT_F_G);
+   constant VCO_PERIOD_REAL_C : real := (real(DIVCLK_DIVIDE_G)*CLKIN_PERIOD_G)/(CLKFBOUT_MULT_F_G);
+
+   constant CLKOUT_PERIOD_REAL_C : RealArray := (
+      0 => (VCO_PERIOD_REAL_C*CLKOUT0_DIVIDE_F_G),
+      1 => (VCO_PERIOD_REAL_C*CLKOUT1_DIVIDE_G),
+      2 => (VCO_PERIOD_REAL_C*CLKOUT2_DIVIDE_G),
+      3 => (VCO_PERIOD_REAL_C*CLKOUT3_DIVIDE_G),
+      4 => (VCO_PERIOD_REAL_C*CLKOUT4_DIVIDE_G),
+      5 => (VCO_PERIOD_REAL_C*CLKOUT5_DIVIDE_G),
+      6 => (VCO_PERIOD_REAL_C*CLKOUT6_DIVIDE_G));
 
    constant CLKOUT_PERIOD_C : TimeArray := (
-      0 => (VCO_PERIOD_C*CLKOUT0_DIVIDE_F_G),
-      1 => (VCO_PERIOD_C*CLKOUT1_DIVIDE_G),
-      2 => (VCO_PERIOD_C*CLKOUT2_DIVIDE_G),
-      3 => (VCO_PERIOD_C*CLKOUT3_DIVIDE_G),
-      4 => (VCO_PERIOD_C*CLKOUT4_DIVIDE_G),
-      5 => (VCO_PERIOD_C*CLKOUT5_DIVIDE_G),
-      6 => (VCO_PERIOD_C*CLKOUT6_DIVIDE_G));
+      0 => (CLKOUT_PERIOD_REAL_C(0)*(1 ns)),
+      1 => (CLKOUT_PERIOD_REAL_C(1)*(1 ns)),
+      2 => (CLKOUT_PERIOD_REAL_C(2)*(1 ns)),
+      3 => (CLKOUT_PERIOD_REAL_C(3)*(1 ns)),
+      4 => (CLKOUT_PERIOD_REAL_C(4)*(1 ns)),
+      5 => (CLKOUT_PERIOD_REAL_C(5)*(1 ns)),
+      6 => (CLKOUT_PERIOD_REAL_C(6)*(1 ns)));
 
-   constant PHASE_OFFSET_C : TimeArray(6 downto 0) := (others => (1 ps));  -- place holder for future feature support      
+   constant PHASE_OFFSET_C : TimeArray(6 downto 0) := (others => (1 ps));  -- place holder for future feature support
 
    constant CLK_HI_CYCLE_C : TimeArray := (
       0 => (CLKOUT_PERIOD_C(0)*CLKOUT0_DUTY_CYCLE_G),
@@ -117,40 +125,14 @@ begin
 
    GEN_VEC :
    for i in 6 downto 0 generate
-      process is
-      begin
-         while (true) loop
-            ---------------------------------------------
-            -- Reset and Phasing Up Procedure
-            ---------------------------------------------
-            while ((RST = '1') or (phasedUp(i) = '0')) loop
-               clkOut(i) <= CLKOUT_RST_POLARITY_C(i);
-               if (RST = '1') then
-                  phasedUp(i) <= '0';
-               else
-                  wait for 10 us;
-                  wait until CLKIN = '0';
-                  wait until CLKIN = '1';
-                  wait for PHASE_OFFSET_C(i);
-                  phasedUp(i) <= '1';
-               end if;
-            end loop;
-            ---------------------------------------------
-            -- Clock Procedure
-            --------------------------------------------- 
-            if (CLKOUT_RST_POLARITY_C(i) = '1') then
-               clkOut(i) <= '1';
-               wait for CLK_HI_CYCLE_C(i);
-               clkOut(i) <= '0';
-               wait for CLK_LO_CYCLE_C(i);
-            else
-               clkOut(i) <= '0';
-               wait for CLK_LO_CYCLE_C(i);
-               clkOut(i) <= '1';
-               wait for CLK_HI_CYCLE_C(i);
-            end if;
-         end loop;
-      end process;
+      U_ClkPgp : entity surf.ClkRst
+         generic map (
+            CLK_PERIOD_G      => CLKOUT_PERIOD_C(i),
+            RST_START_DELAY_G => 0 ns,
+            RST_HOLD_TIME_G   => 1000 ns)
+         port map (
+            clkP => clkOut(i),
+            rstL => phasedUp(i));
    end generate GEN_VEC;
 
 end MmcmEmulation;

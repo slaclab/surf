@@ -1,22 +1,18 @@
 -------------------------------------------------------------------------------
--- File       : SrpV0AxiLite.vhd
+-- Title      : SRPv0 Protocol: https://confluence.slac.stanford.edu/x/aRmVD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-09
--- Last update: 2016-05-11
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 0, AXI-Lite Interface
 --
--- Documentation: https://confluence.slac.stanford.edu/x/aRmVD
---
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
---
+-- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,10 +21,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
 
 entity SrpV0AxiLite is
    generic (
@@ -39,20 +37,17 @@ entity SrpV0AxiLite is
       RESP_THOLD_G        : integer range 0 to (2**24) := 1;  -- =1 = normal operation
       SLAVE_READY_EN_G    : boolean                    := false;
       EN_32BIT_ADDR_G     : boolean                    := false;
-      BRAM_EN_G           : boolean                    := true;
-      XIL_DEVICE_G        : string                     := "7SERIES";  --Xilinx only generic parameter    
-      USE_BUILT_IN_G      : boolean                    := false;  --if set to true, this module is only Xilinx compatible only!!!
-      ALTERA_SYN_G        : boolean                    := false;
-      ALTERA_RAM_G        : string                     := "M9K";
+      SYNTH_MODE_G        : string                     := "inferred";
+      MEMORY_TYPE_G       : string                     := "block";
       GEN_SYNC_FIFO_G     : boolean                    := false;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
 
       -- AXI Stream IO Config
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
 
-      -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+      -- Streaming Slave (Rx) Interface (sAxisClk domain)
       sAxisClk    : in  sl;
       sAxisRst    : in  sl := '0';
       sAxisMaster : in  AxiStreamMasterType;
@@ -78,33 +73,32 @@ end SrpV0AxiLite;
 
 architecture rtl of SrpV0AxiLite is
 
-   constant SLAVE_FIFO_SSI_CONFIG_C  : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
-   constant MASTER_FIFO_SSI_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4, TKEEP_COMP_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
 
-   signal sFifoAxisMaster : AxiStreamMasterType;
-   signal sFifoAxisSlave  : AxiStreamSlaveType;
-   signal mFifoAxisMaster : AxiStreamMasterType;
-   signal mFifoAxisSlave  : AxiStreamSlaveType;
-   signal mFifoAxisCtrl   : AxiStreamCtrlType;
-
-   type StateType is (S_IDLE_C, S_ADDR_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_SIZE_C,
-                      S_READ_C, S_READ_AXI_C, S_STATUS_C, S_DUMP_C);
+   type StateType is (
+      S_IDLE_C,
+      S_ADDR_C,
+      S_WRITE_C,
+      S_WRITE_AXI_C,
+      S_READ_SIZE_C,
+      S_READ_C,
+      S_READ_AXI_C,
+      S_STATUS_C,
+      S_DUMP_C);
 
    type RegType is record
-      echo    : slv(31 downto 0);
-      address : slv(31 downto 0);
-      rdSize  : slv(8 downto 0);
-      rdCount : slv(8 downto 0);
-      timer   : slv(23 downto 0);
-      state   : StateType;
-      timeout : sl;
-      fail    : sl;
-
+      echo                : slv(31 downto 0);
+      address             : slv(31 downto 0);
+      rdSize              : slv(8 downto 0);
+      rdCount             : slv(8 downto 0);
+      timer               : slv(23 downto 0);
+      state               : StateType;
+      timeout             : sl;
+      fail                : sl;
       mAxiLiteWriteMaster : AxiLiteWriteMasterType;
       mAxiLiteReadMaster  : AxiLiteReadMasterType;
       sFifoAxisSlave      : AxiStreamSlaveType;
       mFifoAxisMaster     : AxiStreamMasterType;
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -124,37 +118,38 @@ architecture rtl of SrpV0AxiLite is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal sFifoAxisMaster : AxiStreamMasterType;
+   signal sFifoAxisSlave  : AxiStreamSlaveType;
+   signal mFifoAxisMaster : AxiStreamMasterType;
+   signal mFifoAxisSlave  : AxiStreamSlaveType;
+   signal mFifoAxisCtrl   : AxiStreamCtrlType;
+
    -- attribute dont_touch                    : string;
    -- attribute dont_touch of r               : signal is "TRUE";
    -- attribute dont_touch of sFifoAxisMaster : signal is "TRUE";
-   -- attribute dont_touch of sFifoAxisSlave  : signal is "TRUE";   
+   -- attribute dont_touch of sFifoAxisSlave  : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisMaster : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisSlave  : signal is "TRUE";
    -- attribute dont_touch of mFifoAxisCtrl   : signal is "TRUE";
 
 begin
 
-   ----------------------------------
-   -- Input FIFO 
-   ----------------------------------
-   SlaveAxiStreamFifo : entity work.SsiFifo
+   -------------
+   -- Input FIFO
+   -------------
+   SlaveAxiStreamFifo : entity surf.SsiFifo
       generic map (
          TPD_G               => TPD_G,
-         EN_FRAME_FILTER_G   => true,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G => SLAVE_FIFO_SSI_CONFIG_C)
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
       port map (
          sAxisClk    => sAxisClk,
          sAxisRst    => sAxisRst,
@@ -164,13 +159,10 @@ begin
          mAxisClk    => axiLiteClk,
          mAxisRst    => axiLiteRst,
          mAxisMaster => sFifoAxisMaster,
-         mAxisSlave  => sFifoAxisSlave);     
-         
-   -------------------------------------
-   -- Master State Machine
-   -------------------------------------
+         mAxisSlave  => sFifoAxisSlave);
 
-   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave, mFifoAxisCtrl, r, sFifoAxisMaster) is
+   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave,
+                   mFifoAxisCtrl, r, sFifoAxisMaster) is
       variable v : RegType;
    begin
       v := r;
@@ -181,14 +173,16 @@ begin
       v.mFifoAxisMaster.tKeep  := (others => '1');
       v.mFifoAxisMaster.tValid := '0';
       v.mFifoAxisMaster.tLast  := '0';
+      v.sFifoAxisSlave.tReady  := '0';
 
-      v.sFifoAxisSlave.tReady := '0';
-
-
-      -- State machine
+      ----------------
+      -- State Machine
+      ----------------
       case r.state is
 
+         ----------------------------------------------------------------------
          -- Idle
+         ----------------------------------------------------------------------
          when S_IDLE_C =>
             v.mAxiLiteWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
             v.mAxiLiteReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
@@ -202,7 +196,7 @@ begin
             if sFifoAxisMaster.tValid = '1' and mFifoAxisCtrl.pause = '0' then
                v.sFifoAxisSlave.tReady := '1';
 
-               -- Bad frame 
+               -- Bad frame
                if sFifoAxisMaster.tLast = '0' then
                   v.mFifoAxisMaster.tValid := '1';  -- Echo word 0
                   v.mFifoAxisMaster.tUser  := sFifoAxisMaster.tUser;
@@ -211,7 +205,9 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Address Field
+         ----------------------------------------------------------------------
          when S_ADDR_C =>
             v.sFifoAxisSlave.tReady := '1';
 
@@ -233,7 +229,7 @@ begin
                elsif sFifoAxisMaster.tData(31 downto 30) = "00" then
                   v.state := S_READ_SIZE_C;
 
-               -- Write 
+               -- Write
                elsif sFifoAxisMaster.tData(31 downto 30) = "01" then
                   v.state := S_WRITE_C;
 
@@ -244,7 +240,9 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Prepare Write Transaction
+         ----------------------------------------------------------------------
          when S_WRITE_C =>
             v.mAxiLiteWriteMaster.awaddr := r.address;
             v.mAxiLiteWriteMaster.awprot := (others => '0');
@@ -256,7 +254,7 @@ begin
             if sFifoAxisMaster.tValid = '1' then
                if sFifoAxisMaster.tLast = '1' then
                   -- check tkeep here
-                  if (not axiStreamPacked(SLAVE_FIFO_SSI_CONFIG_C, sFifoAxisMaster)) then
+                  if (not axiStreamPacked(AXIS_CONFIG_C, sFifoAxisMaster)) then
                      v.fail := '1';
                   end if;
                   v.state := S_STATUS_C;
@@ -269,7 +267,9 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Write Transaction, AXI
+         ----------------------------------------------------------------------
          when S_WRITE_AXI_C =>
             v.timer := r.timer - 1;
 
@@ -305,7 +305,9 @@ begin
                v.state   := S_WRITE_C;
             end if;
 
-         -- Read size 
+         ----------------------------------------------------------------------
+         -- Read size
+         ----------------------------------------------------------------------
          when S_READ_SIZE_C =>
             v.rdCount := (others => '0');
             v.rdSize  := sFifoAxisMaster.tData(8 downto 0);
@@ -327,7 +329,9 @@ begin
             v.mAxiLiteReadMaster.rready  := '1';
             v.state                      := S_READ_AXI_C;
 
+         ----------------------------------------------------------------------
          -- Read AXI
+         ----------------------------------------------------------------------
          when S_READ_AXI_C =>
             v.timer := r.timer - 1;
 
@@ -364,19 +368,23 @@ begin
                end if;
             end if;
 
+         ----------------------------------------------------------------------
          -- Dump until EOF
+         ----------------------------------------------------------------------
          when S_DUMP_C =>
             v.sFifoAxisSlave.tReady := '1';
 
             if sFifoAxisMaster.tValid = '1' and sFifoAxisMaster.tLast = '1' then
                -- Check tKeep here
-               if (not axiStreamPacked(SLAVE_FIFO_SSI_CONFIG_C, sFifoAxisMaster)) then
+               if (not axiStreamPacked(AXIS_CONFIG_C, sFifoAxisMaster)) then
                   v.fail := '1';
                end if;
                v.state := S_STATUS_C;
             end if;
 
+         ----------------------------------------------------------------------
          -- Send Status
+         ----------------------------------------------------------------------
          when S_STATUS_C =>
             v.mFifoAxisMaster.tValid             := '1';
             v.mFifoAxisMaster.tLast              := '1';
@@ -385,13 +393,18 @@ begin
             v.mFifoAxisMaster.tData(16)          := r.fail;
             v.state                              := S_IDLE_C;
 
+         ----------------------------------------------------------------------
          when others =>
             v.state := S_IDLE_C;
 
+      ----------------------------------------------------------------------
       end case;
-      
-      -- Combinatorial outputs before the reset
-      sFifoAxisSlave <= v.sFifoAxisSlave;
+
+      -- Outputs
+      sFifoAxisSlave      <= v.sFifoAxisSlave;
+      mAxiLiteWriteMaster <= r.mAxiLiteWriteMaster;
+      mAxiLiteReadMaster  <= r.mAxiLiteReadMaster;
+      mFifoAxisMaster     <= r.mFifoAxisMaster;
 
       -- Reset
       if (axiLiteRst = '1') then
@@ -400,11 +413,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Registered Outputs
-      mAxiLiteWriteMaster <= r.mAxiLiteWriteMaster;
-      mAxiLiteReadMaster  <= r.mAxiLiteReadMaster;
-      mFifoAxisMaster     <= r.mFifoAxisMaster;
 
    end process comb;
 
@@ -415,27 +423,23 @@ begin
       end if;
    end process seq;
 
-
-   ----------------------------------
-   -- Output FIFO 
-   ----------------------------------
-   MasterAxiStreamFifo : entity work.AxiStreamFifoV2
+   --------------
+   -- Output FIFO
+   --------------
+   MasterAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G => 0,
+         INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          VALID_THOLD_G       => RESP_THOLD_G,
-         BRAM_EN_G           => BRAM_EN_G,
-         XIL_DEVICE_G        => XIL_DEVICE_G,
-         USE_BUILT_IN_G      => USE_BUILT_IN_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(4, TKEEP_COMP_C),
+         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
          sAxisClk    => axiLiteClk,
@@ -449,4 +453,3 @@ begin
          mAxisSlave  => mAxisSlave);
 
 end rtl;
-

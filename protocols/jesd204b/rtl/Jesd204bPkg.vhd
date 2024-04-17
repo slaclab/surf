@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Jesd204bPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-07-11
--- Last update: 2017-07-06
 -------------------------------------------------------------------------------
 -- Description: JESD204B Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package Jesd204bPkg is
 
@@ -35,11 +34,11 @@ package Jesd204bPkg is
    constant R_CHAR_C : slv(7 downto 0) := x"1C";
    -- K.28.3
    constant A_CHAR_C : slv(7 downto 0) := x"7C";
-   -- K.28.7   
+   -- K.28.7
    constant F_CHAR_C : slv(7 downto 0) := x"FC";
 
    -- Register or counter widths
-   constant SYSRF_DLY_WIDTH_C : positive := 5;
+   constant SYSRF_DLY_WIDTH_C : positive := 8;
    constant RX_STAT_WIDTH_C   : positive := 19 + 2*GT_WORD_SIZE_C;
    constant TX_STAT_WIDTH_C   : positive := 6;
 
@@ -54,8 +53,8 @@ package Jesd204bPkg is
    -- Scrambler/Descrambler PBRS taps for 1 + x^14 + x^15
    constant JESD_PRBS_TAPS_C : NaturalArray := (0 => 14, 1 => 15);
 
--- Sub-types 
--------------------------------------------------------------------------- 
+-- Sub-types
+--------------------------------------------------------------------------
    type jesdGtRxLaneType is record
       data      : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
       dataK     : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data is K character
@@ -93,11 +92,11 @@ package Jesd204bPkg is
    type alignTxArray is array (natural range <>) of slv((GT_WORD_SIZE_C)-1 downto 0);
 
 -- Functions
---------------------------------------------------------------------------  
+--------------------------------------------------------------------------
    -- Detect K character
    function detKcharFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic;
 
-   -- Output variable index from SLV (use in variable length shift register) 
+   -- Output variable index from SLV (use in variable length shift register)
    function varIndexOutFunc(shft_slv : slv; index_slv : slv) return std_logic;
 
    -- Detect position of first non K character (Swapped)
@@ -129,7 +128,7 @@ package Jesd204bPkg is
 
    -- Invert functions
 
-   -- Invert signed 
+   -- Invert signed
    function invSigned(input : slv) return std_logic_vector;
    function invData(data    : slv; F_int : positive; bytes_int : positive) return std_logic_vector;
 
@@ -144,7 +143,7 @@ end Jesd204bPkg;
 package body Jesd204bPkg is
 
 -- Functions
---------------------------------------------------------------------------  
+--------------------------------------------------------------------------
    -- Detect K character
    function detKcharFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic is
    begin
@@ -173,7 +172,7 @@ package body Jesd204bPkg is
       end if;
    end detKcharFunc;
 
-   -- Output variable index from SLV (use in variable length shift register) 
+   -- Output variable index from SLV (use in variable length shift register)
    function varIndexOutFunc(shft_slv : slv; index_slv : slv) return std_logic is
       variable i : integer;
    begin

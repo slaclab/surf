@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SpiSlave.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-27
--- Last update: 2014-03-14
 -------------------------------------------------------------------------------
 -- Description: Generic SPI Slave Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SpiSlave is
    generic (
@@ -82,18 +81,18 @@ architecture rtl of SpiSlave is
 
 begin
 
-   SEL_SYNCHRONIZER : entity work.Synchronizer
+   SEL_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
-         TPD_G  => TPD_G,
+         TPD_G    => TPD_G,
          STAGES_G => 3,
-         INIT_G => "111")
+         INIT_G   => "111")
       port map (
          clk     => clk,
          rst     => rst,
          dataIn  => selL,
          dataOut => selLSync);
 
-   SCLK_SYNCHRONIZER : entity work.Synchronizer
+   SCLK_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -102,7 +101,7 @@ begin
          dataIn  => sclk,
          dataOut => sclkSync);
 
-   MOSI_SYNCHRONIZER : entity work.Synchronizer
+   MOSI_SYNCHRONIZER : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -116,7 +115,7 @@ begin
       if (rising_edge(clk)) then
          r <= rin after TPD_G;
       end if;
-      
+
    end process seq;
 
 
@@ -139,6 +138,13 @@ begin
       procedure shift is
       begin
          v.shiftReg := r.shiftReg(WORD_SIZE_G-1 downto 0) & '0';
+
+         if (CPHA_G = '1') then
+            v.shiftCnt := r.shiftCnt + 1;
+            if (r.shiftCnt = MAX_COUNT_C) then
+               v.shiftCnt := (others => '0');
+            end if;
+         end if;
       end procedure;
 
       -- Clock in the current mosi bit and increment counter
@@ -146,12 +152,14 @@ begin
       begin
          v.shiftReg(0) := mosiSync;
 
-         v.shiftCnt := r.shiftCnt + 1;
-         if (r.shiftCnt = MAX_COUNT_C) then
-            v.shiftCnt := (others => '0');
+         if (CPHA_G = '0') then
+            v.shiftCnt := r.shiftCnt + 1;
+            if (r.shiftCnt = MAX_COUNT_C) then
+               v.shiftCnt := (others => '0');
+            end if;
          end if;
       end procedure;
-      
+
    begin
       v := r;
 
@@ -191,6 +199,10 @@ begin
       if (r.wrStb = '1' and (rdStb = '1' or isLeadingEdge)) then
          v.wrStb                            := '0';
          v.shiftReg(WORD_SIZE_G-1 downto 0) := rdData;
+         -- Hack special case
+         if (CPHA_G = '0') then
+            v.shiftReg(WORD_SIZE_G downto 1) := rdData;
+         end if;
       end if;
 
       if (rst = '1') then

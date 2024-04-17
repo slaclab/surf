@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Gtx7CfgPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-09-02
--- Last update: 2015-01-08
 -------------------------------------------------------------------------------
 -- Description: Provides useful functions for generating GTX7 configurations.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,7 +19,9 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.math_real.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package Gtx7CfgPkg is
 
@@ -194,7 +193,7 @@ package body Gtx7CfgPkg is
       dloop : for d in QPLL_OUT_DIV_VALIDS_C'range loop
          mloop : for m in QPLL_REFCLK_DIV_VALIDS_C'range loop
             nloop : for n in QPLL_FBDIV_INT_VALIDS_C'range loop
-               
+
                vcoClk := refClkFreq * real(QPLL_FBDIV_INT_VALIDS_C(n)) /
                          (real(QPLL_REFCLK_DIV_VALIDS_C(m)));
                pllClk := vcoClk / 2.0;
@@ -207,7 +206,7 @@ package body Gtx7CfgPkg is
 --                  "D: " & integer'image(QPLL_OUT_DIV_VALIDS_C(d)) & lf &
 --                  "vcoClk: " & real'image(vcoClk) & lf &
 --                  "pllClk: " & real'image(pllClk) & lf &
---                  "rate: " &   real'image(rate) & lf                  
+--                  "rate: " &   real'image(rate) & lf
 --                  severity note;
 
                if ( rate = lineRate) then
@@ -218,7 +217,7 @@ package body Gtx7CfgPkg is
                      ret.QPLL_CFG_G := QPLL_CFG_VCO_UPPER_C;
                      found := true;
                   end if;
-                   
+
                   if (found) then
                      ret.QPLL_REFCLK_DIV_G := QPLL_REFCLK_DIV_VALIDS_C(m);
                      ret.QPLL_FBDIV_G      := getQPllFbdiv(QPLL_FBDIV_INT_VALIDS_C(n));

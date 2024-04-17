@@ -1,24 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : AxiAds42lb69Pll.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-03-20
--- Last update: 2016-09-20
 -------------------------------------------------------------------------------
 -- Description: PLL Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -27,6 +26,7 @@ entity AxiAds42lb69Pll is
    generic (
       TPD_G          : time    := 1 ns;
       USE_PLL_G      : boolean := true;
+      USE_FBCLK_G    : boolean := true;
       ADC_CLK_FREQ_G : real    := 250.0E+6;
       XIL_DEVICE_G   : string  := "7SERIES");
    port (
@@ -40,8 +40,8 @@ entity AxiAds42lb69Pll is
       -- ADC Reference Signals
       adcSync   : in  sl;
       adcClk    : in  sl;
-      adcRst    : in  sl;              
-      adcClock  : out  sl);                
+      adcRst    : in  sl;
+      adcClock  : out sl);
 end AxiAds42lb69Pll;
 
 architecture mapping of AxiAds42lb69Pll is
@@ -122,15 +122,15 @@ begin
       BUFH_0 : BUFH
          port map (
             I => clkFeedBack,
-            O => clkFeedBackOut);     
+            O => clkFeedBackOut);
 
-      ClkOutBufDiff_0 : entity work.ClkOutBufDiff
+      ClkOutBufDiff_0 : entity surf.ClkOutBufDiff
          port map (
             clkIn   => clkFeedBackOut,
             clkOutP => adcClkP,
             clkOutN => adcClkN);
 
-      SynchronizerOneShot_0 : entity work.SynchronizerOneShot
+      SynchronizerOneShot_0 : entity surf.SynchronizerOneShot
          generic map (
             TPD_G         => TPD_G,
             BYPASS_SYNC_G => false)
@@ -141,38 +141,38 @@ begin
 
       ODDR_0 : ODDR
          generic map(
-            DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
-            INIT         => '0',              -- Initial value for Q port ('1' or '0')
-            SRTYPE       => "SYNC")           -- Reset Type ("ASYNC" or "SYNC")
+            DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE"
+            INIT         => '0',  -- Initial value for Q port ('1' or '0')
+            SRTYPE       => "SYNC")     -- Reset Type ("ASYNC" or "SYNC")
          port map (
-            D1 => sync,                       -- 1-bit data input (positive edge)
-            D2 => sync,                       -- 1-bit data input (negative edge)
-            Q  => syncOut,                    -- 1-bit DDR output
-            C  => clkFeedBackOut,             -- 1-bit clock input
-            CE => '1',                        -- 1-bit clock enable input
-            R  => '0',                        -- 1-bit reset
-            S  => '0');                       -- 1-bit set
+            D1 => sync,                 -- 1-bit data input (positive edge)
+            D2 => sync,                 -- 1-bit data input (negative edge)
+            Q  => syncOut,              -- 1-bit DDR output
+            C  => clkFeedBackOut,       -- 1-bit clock input
+            CE => '1',                  -- 1-bit clock enable input
+            R  => '0',                  -- 1-bit reset
+            S  => '0');                 -- 1-bit set
 
       OBUFDS_0 : OBUFDS
          port map(
             I  => syncOut,
             O  => adcSyncP,
-            OB => adcSyncN);  
+            OB => adcSyncN);
 
       adcClock <= adcClk;
 
    end generate;
 
    GEN_NO_PLL : if (USE_PLL_G = false and XIL_DEVICE_G = "7SERIES") generate
-      
-      ClkOutBufDiff_1 : entity work.ClkOutBufDiff
+
+      ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          port map (
             clkIn   => adcClk,
             rstIn   => adcRst,
             clkOutP => adcClkP,
-            clkOutN => adcClkN);   
+            clkOutN => adcClkN);
 
-      SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+      SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
             TPD_G         => TPD_G,
             BYPASS_SYNC_G => true)
@@ -183,50 +183,64 @@ begin
 
       ODDR_1 : ODDR
          generic map(
-            DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE" 
-            INIT         => '0',              -- Initial value for Q port ('1' or '0')
-            SRTYPE       => "SYNC")           -- Reset Type ("ASYNC" or "SYNC")
+            DDR_CLK_EDGE => "OPPOSITE_EDGE",  -- "OPPOSITE_EDGE" or "SAME_EDGE"
+            INIT         => '0',  -- Initial value for Q port ('1' or '0')
+            SRTYPE       => "SYNC")     -- Reset Type ("ASYNC" or "SYNC")
          port map (
-            D1 => sync,                       -- 1-bit data input (positive edge)
-            D2 => sync,                       -- 1-bit data input (negative edge)
-            Q  => syncOut,                    -- 1-bit DDR output
-            C  => adcClk,                     -- 1-bit clock input
-            CE => '1',                        -- 1-bit clock enable input
-            R  => '0',                        -- 1-bit reset
-            S  => '0');                       -- 1-bit set
+            D1 => sync,                 -- 1-bit data input (positive edge)
+            D2 => sync,                 -- 1-bit data input (negative edge)
+            Q  => syncOut,              -- 1-bit DDR output
+            C  => adcClk,               -- 1-bit clock input
+            CE => '1',                  -- 1-bit clock enable input
+            R  => '0',                  -- 1-bit reset
+            S  => '0');                 -- 1-bit set
 
       OBUFDS_1 : OBUFDS
          port map(
             I  => syncOut,
             O  => adcSyncP,
-            OB => adcSyncN);         
+            OB => adcSyncN);
 
-      IBUFGDS_1 : IBUFGDS
-         port map (
-            I  => adcClkFbP,
-            IB => adcClkFbN,
-            O  => adcInClk);
+      GEN_FBCLK : if (USE_FBCLK_G = true) generate
 
-      BUFG_1 : BUFG
-         port map (
-            I => adcInClk,
-            O => adcClock); 
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => adcInClk);
+
+         BUFG_1 : BUFG
+            port map (
+               I => adcInClk,
+               O => adcClock);
+
+      end generate;
+      GEN_NO_FBCLK : if (USE_FBCLK_G = false) generate
+
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => open);
+
+         adcClock <= adcClk;
+      end generate;
 
    end generate;
-   
-   
+
+
    GEN_ULTRASCALE_NO_PLL : if (XIL_DEVICE_G = "ULTRASCALE") generate
-      
-      ClkOutBufDiff_1 : entity work.ClkOutBufDiff
+
+      ClkOutBufDiff_1 : entity surf.ClkOutBufDiff
          generic map (
             XIL_DEVICE_G => XIL_DEVICE_G)
          port map (
             clkIn   => adcClk,
             rstIn   => adcRst,
             clkOutP => adcClkP,
-            clkOutN => adcClkN);   
+            clkOutN => adcClkN);
 
-      SynchronizerOneShot_1 : entity work.SynchronizerOneShot
+      SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
             TPD_G         => TPD_G,
             BYPASS_SYNC_G => true)
@@ -237,30 +251,42 @@ begin
 
       ODDRE1_1 : ODDRE1
          port map (
-            D1 => sync,                       -- 1-bit data input (positive edge)
-            D2 => sync,                       -- 1-bit data input (negative edge)
-            Q  => syncOut,                    -- 1-bit DDR output
-            C  => adcClk,                     -- 1-bit clock input
-            SR  => '0');
-      
+            D1 => sync,                 -- 1-bit data input (positive edge)
+            D2 => sync,                 -- 1-bit data input (negative edge)
+            Q  => syncOut,              -- 1-bit DDR output
+            C  => adcClk,               -- 1-bit clock input
+            SR => '0');
+
       OBUFDS_1 : OBUFDS
          port map(
             I  => syncOut,
             O  => adcSyncP,
-            OB => adcSyncN);         
+            OB => adcSyncN);
 
-      IBUFGDS_1 : IBUFGDS
-         port map (
-            I  => adcClkFbP,
-            IB => adcClkFbN,
-            O  => adcInClk);
+      GEN_FBCLK : if (USE_FBCLK_G = true) generate
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => adcInClk);
 
-      BUFG_1 : BUFG
-         port map (
-            I => adcInClk,
-            O => adcClock); 
+         BUFG_1 : BUFG
+            port map (
+               I => adcInClk,
+               O => adcClock);
+      end generate;
+      GEN_NO_FBCLK : if (USE_FBCLK_G = false) generate
 
-      
+         IBUFGDS_1 : IBUFGDS
+            port map (
+               I  => adcClkFbP,
+               IB => adcClkFbN,
+               O  => open);
+
+         adcClock <= adcClk;
+      end generate;
+
+
    end generate;
-   
+
 end mapping;

@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : JesdTxReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2018-05-08
 -------------------------------------------------------------------------------
--- Description: AXI-Lite interface for register access  
+-- Description: AXI-Lite interface for register access
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', includataIng this file, 
--- may be copied, modified, propagated, or distributed except accordataIng to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', includataIng this file,
+-- may be copied, modified, propagated, or distributed except accordataIng to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,15 +17,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdTxReg is
    generic (
       -- General Configurations
       TPD_G : time                   := 1 ns;
-      -- JESD 
+      -- JESD
       L_G   : positive range 1 to 16 := 2;
       F_G   : positive               := 2);
    port (
@@ -65,7 +64,6 @@ entity JesdTxReg is
       gtReset_o       : out sl;
       clearErr_o      : out sl;
       invertSync_o    : out sl;
-      enableTestSig_o : out sl;
 
       posAmplitude_o : out slv(F_G*8-1 downto 0);
       negAmplitude_o : out slv(F_G*8-1 downto 0);
@@ -112,7 +110,7 @@ architecture rtl of JesdTxReg is
       signalSelectArr => (others => b"0000_0001"),  -- Set to external
       periodStep      => intToSlv(1, PER_STEP_WIDTH_C) & intToSlv(1, PER_STEP_WIDTH_C),
       --signalSelectArr=> (others => b"0001_0011"), -- Set to ramp
-      --periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(1,PER_STEP_WIDTH_C),      
+      --periodStep     => intToSlv(1,PER_STEP_WIDTH_C) & intToSlv(1,PER_STEP_WIDTH_C),
 
       posAmplitude => (others => '1'),
       negAmplitude => (others => '0'),
@@ -161,14 +159,14 @@ architecture rtl of JesdTxReg is
 
 begin
 
-   U_JesdSysrefMon : entity work.JesdSysrefMon
+   U_JesdSysrefMon : entity surf.JesdSysrefMon
       generic map (
          TPD_G => TPD_G)
       port map (
          -- SYSREF Edge detection (devClk domain)
          devClk          => devClk_i,
          sysrefEdgeDet_i => sysrefRe_i,
-         -- Max/Min measurements  (axilClk domain)   
+         -- Max/Min measurements  (axilClk domain)
          axilClk         => axiClk_i,
          statClr         => r.commonCtrl(3),
          sysRefPeriodmin => sysRefPeriodmin,
@@ -182,7 +180,7 @@ begin
    end generate GEN_LANES;
 
 
-   U_SyncStatusVector : entity work.SyncStatusVector
+   U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
          OUT_POLARITY_G => '1',
@@ -192,9 +190,9 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          statusIn  => s_adcValids,
-         -- Output Status bit Signals (rdClk domain)  
+         -- Output Status bit Signals (rdClk domain)
          statusOut => open,
-         -- Status Bit Counters Signals (rdClk domain) 
+         -- Status Bit Counters Signals (rdClk domain)
          cntRstIn  => r.commonCtrl(3),
          cntOut    => s_statusCnt,
          -- Clocks and Reset Ports
@@ -261,12 +259,11 @@ begin
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveWriteResponse(v.axilWriteSlave);
+         axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
       end if;
 
       if (axilStatus.readEnable = '1') then
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         v.axilReadSlave.rdata := (others => '0');
          case (s_RdAddr) is
             when 16#00# =>              -- ADDR (0x0)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableTx;
@@ -323,7 +320,7 @@ begin
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveReadResponse(v.axilReadSlave);
+         axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
       end if;
 
       -- Reset
@@ -355,7 +352,7 @@ begin
 
    -- Input assignment and synchronization
    GEN_0 : for i in L_G-1 downto 0 generate
-      U_statusTxArr : entity work.SynchronizerVector
+      U_statusTxArr : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => TX_STAT_WIDTH_C)
@@ -366,7 +363,7 @@ begin
    end generate GEN_0;
 
    -- Output assignment and synchronization
-   U_sysrefDlyTx : entity work.SynchronizerVector
+   U_sysrefDlyTx : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => SYSRF_DLY_WIDTH_C)
@@ -375,7 +372,7 @@ begin
          dataIn  => r.sysrefDlyTx,
          dataOut => sysrefDlyTx);
 
-   U_sysrefDlyTx_Pipeline : entity work.RstPipelineVector
+   U_sysrefDlyTx_Pipeline : entity surf.RstPipelineVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => SYSRF_DLY_WIDTH_C)
@@ -384,9 +381,9 @@ begin
          rstIn  => sysrefDlyTx,
          rstOut => sysrefDlyTx_o);
 
-   ------------------------------------------------------------            
+   ------------------------------------------------------------
 
-   U_enableTx : entity work.SynchronizerVector
+   U_enableTx : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -395,7 +392,7 @@ begin
          dataIn  => r.enableTx,
          dataOut => enableTx);
 
-   U_enableTx_Pipeline : entity work.RstPipelineVector
+   U_enableTx_Pipeline : entity surf.RstPipelineVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -404,9 +401,9 @@ begin
          rstIn  => enableTx,
          rstOut => enableTx_o);
 
-   ------------------------------------------------------------         
+   ------------------------------------------------------------
 
-   U_subClass : entity work.Synchronizer
+   U_subClass : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -414,7 +411,7 @@ begin
          dataIn  => r.commonCtrl(0),
          dataOut => subClass);
 
-   U_subClass_Pipeline : entity work.RstPipeline
+   U_subClass_Pipeline : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -422,9 +419,9 @@ begin
          rstIn  => subClass,
          rstOut => subClass_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
-   U_replEnable : entity work.Synchronizer
+   U_replEnable : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -432,7 +429,7 @@ begin
          dataIn  => r.commonCtrl(1),
          dataOut => replEnable);
 
-   U_replEnable_Pipeline : entity work.RstPipeline
+   U_replEnable_Pipeline : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -440,9 +437,9 @@ begin
          rstIn  => replEnable,
          rstOut => replEnable_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
-   U_gtReset : entity work.Synchronizer
+   U_gtReset : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -450,7 +447,7 @@ begin
          dataIn  => r.commonCtrl(2),
          dataOut => gtReset);
 
-   U_gtReset_Pipeline : entity work.RstPipeline
+   U_gtReset_Pipeline : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -458,9 +455,9 @@ begin
          rstIn  => gtReset,
          rstOut => gtReset_o);
 
-   ------------------------------------------------------------              
+   ------------------------------------------------------------
 
-   U_clearErr : entity work.Synchronizer
+   U_clearErr : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -468,7 +465,7 @@ begin
          dataIn  => r.commonCtrl(3),
          dataOut => clearErr);
 
-   U_clearErr_Pipeline : entity work.RstPipeline
+   U_clearErr_Pipeline : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -476,9 +473,9 @@ begin
          rstIn  => clearErr,
          rstOut => clearErr_o);
 
-   ------------------------------------------------------------          
+   ------------------------------------------------------------
 
-   U_invertSync : entity work.Synchronizer
+   U_invertSync : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -486,7 +483,7 @@ begin
          dataIn  => r.commonCtrl(4),
          dataOut => invertSync);
 
-   U_invertSync_Pipeline : entity work.RstPipeline
+   U_invertSync_Pipeline : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -494,27 +491,9 @@ begin
          rstIn  => invertSync,
          rstOut => invertSync_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
-   U_enableTestSig : entity work.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => devClk_i,
-         dataIn  => r.commonCtrl(5),
-         dataOut => enableTestSig);
-
-   U_enableTestSig_Pipeline : entity work.RstPipeline
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk    => devClk_i,
-         rstIn  => enableTestSig,
-         rstOut => enableTestSig_o);
-
-   ------------------------------------------------------------           
-
-   U_scrEnable : entity work.Synchronizer
+   U_scrEnable : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -522,7 +501,7 @@ begin
          dataIn  => r.commonCtrl(6),
          dataOut => scrEnable);
 
-   U_scrEnable_Pipeline : entity work.RstPipeline
+   U_scrEnable_Pipeline : entity surf.RstPipeline
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -530,9 +509,9 @@ begin
          rstIn  => scrEnable,
          rstOut => scrEnable_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
-   U_rampStep_A : entity work.SynchronizerVector
+   U_rampStep_A : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => PER_STEP_WIDTH_C)
@@ -541,7 +520,7 @@ begin
          dataIn  => r.periodStep(PER_STEP_WIDTH_C-1 downto 0),
          dataOut => rampStep);
 
-   U_rampStep_Pipeline : entity work.RstPipelineVector
+   U_rampStep_Pipeline : entity surf.RstPipelineVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => PER_STEP_WIDTH_C)
@@ -550,9 +529,9 @@ begin
          rstIn  => rampStep,
          rstOut => rampStep_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
-   U_squarePeriod : entity work.SynchronizerVector
+   U_squarePeriod : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => PER_STEP_WIDTH_C)
@@ -561,7 +540,7 @@ begin
          dataIn  => r.periodStep(16+PER_STEP_WIDTH_C-1 downto 16),
          dataOut => squarePeriod);
 
-   U_squarePeriod_Pipeline : entity work.RstPipelineVector
+   U_squarePeriod_Pipeline : entity surf.RstPipelineVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => PER_STEP_WIDTH_C)
@@ -570,9 +549,9 @@ begin
          rstIn  => squarePeriod,
          rstOut => squarePeriod_o);
 
-   ------------------------------------------------------------           
+   ------------------------------------------------------------
 
-   U_posAmplitude : entity work.SynchronizerVector
+   U_posAmplitude : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => F_G*8)
@@ -581,7 +560,7 @@ begin
          dataIn  => r.posAmplitude,
          dataOut => posAmplitude);
 
-   U_posAmplitude_Pipeline : entity work.RstPipelineVector
+   U_posAmplitude_Pipeline : entity surf.RstPipelineVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => F_G*8)
@@ -590,9 +569,9 @@ begin
          rstIn  => posAmplitude,
          rstOut => posAmplitude_o);
 
-   ------------------------------------------------------------          
+   ------------------------------------------------------------
 
-   U_negAmplitude : entity work.SynchronizerVector
+   U_negAmplitude : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => F_G*8)
@@ -601,7 +580,7 @@ begin
          dataIn  => r.negAmplitude,
          dataOut => negAmplitude);
 
-   U_negAmplitude_Pipeline : entity work.RstPipelineVector
+   U_negAmplitude_Pipeline : entity surf.RstPipelineVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => F_G*8)
@@ -610,9 +589,9 @@ begin
          rstIn  => negAmplitude,
          rstOut => negAmplitude_o);
 
-   ------------------------------------------------------------             
+   ------------------------------------------------------------
 
-   U_invertData : entity work.SynchronizerVector
+   U_invertData : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -621,7 +600,7 @@ begin
          dataIn  => r.invertData,
          dataOut => invertData);
 
-   U_invertData_Pipeline : entity work.RstPipelineVector
+   U_invertData_Pipeline : entity surf.RstPipelineVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => L_G)
@@ -630,13 +609,13 @@ begin
          rstIn  => invertData,
          rstOut => invertData_o);
 
-   ------------------------------------------------------------          
+   ------------------------------------------------------------
 
    GEN_1 : for i in L_G-1 downto 0 generate
 
-      ------------------------------------------------------------              
+      ------------------------------------------------------------
 
-      U_muxOutSelArr : entity work.SynchronizerVector
+      U_muxOutSelArr : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 3)
@@ -645,7 +624,7 @@ begin
             dataIn  => r.signalSelectArr(i)(2 downto 0),
             dataOut => muxOutSelArr(i));
 
-      U_muxOutSelArr_Pipeline : entity work.RstPipelineVector
+      U_muxOutSelArr_Pipeline : entity surf.RstPipelineVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 3)
@@ -654,9 +633,9 @@ begin
             rstIn  => muxOutSelArr(i),
             rstOut => muxOutSelArr_o(i));
 
-      ------------------------------------------------------------              
+      ------------------------------------------------------------
 
-      U_sigTypeArr : entity work.SynchronizerVector
+      U_sigTypeArr : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2)
@@ -665,7 +644,7 @@ begin
             dataIn  => r.signalSelectArr(i)(5 downto 4),
             dataOut => sigTypeArr(i));
 
-      U_sigTypeArr_Pipeline : entity work.RstPipelineVector
+      U_sigTypeArr_Pipeline : entity surf.RstPipelineVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2)
@@ -674,7 +653,7 @@ begin
             rstIn  => sigTypeArr(i),
             rstOut => sigTypeArr_o(i));
 
-      ------------------------------------------------------------                 
+      ------------------------------------------------------------
 
    end generate GEN_1;
 

@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : ads54j60.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-10-09
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity ads54j60 is
    generic (
@@ -105,7 +104,7 @@ begin
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset strobes
@@ -136,7 +135,7 @@ begin
                   v.xferType := axiWriteMaster.awaddr(17 downto 14);
                   -- Next State
                   v.state    := INIT_S;
-               -- Check if read transaction      
+               -- Check if read transaction
                elsif (axiStatus.readEnable = '1') then
                   -- Set the flag
                   v.axiRd    := '1';
@@ -215,7 +214,7 @@ begin
                   v.wrArray(1) := (x"4004" & x"6A");
                   v.wrArray(2) := (x"4005" & x"01");
                   v.wrArray(3) := (r.axiRd & "111" & r.addr & r.data);
-               -- Clear Unused Pages: (XFER_Type = 0xE)   
+               -- Clear Unused Pages: (XFER_Type = 0xE)
                when x"E" =>
                   v.size       := 2;
                   v.wrArray(0) := (x"4001" & x"00");
@@ -231,7 +230,7 @@ begin
                   else
                      -- Reade the bit
                      v.axiReadSlave.rdata(7 downto 0) := ("0000000" & r.rst);
-                     -- Send the response 
+                     -- Send the response
                      axiSlaveReadResponse(v.axiReadSlave);
                   end if;
                   --- Next state
@@ -264,7 +263,7 @@ begin
                   else
                      -- Latch the read byte
                      v.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
-                     -- Send the response 
+                     -- Send the response
                      axiSlaveReadResponse(v.axiReadSlave);
                   end if;
                   --- Next state
@@ -285,7 +284,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;
       coreBusyOut   <= r.busy;
@@ -300,7 +299,7 @@ begin
       end if;
    end process seq;
 
-   U_SpiMaster : entity work.SpiMaster
+   U_SpiMaster : entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,

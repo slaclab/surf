@@ -1,25 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : Synchronizer.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-05-13
--- Last update: 2016-09-13
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
 --              Sets attributes to keep synthesis for mucking with FF chain.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Synchronizer is
    generic (
@@ -28,7 +26,7 @@ entity Synchronizer is
       OUT_POLARITY_G : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
       RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
       STAGES_G       : positive := 2;
-      BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration      
+      BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration
       INIT_G         : slv      := "0");
    port (
       clk     : in  sl;                 -- clock to be SYNC'd to
@@ -70,11 +68,11 @@ architecture rtl of Synchronizer is
    attribute register_balancing of crossDomainSyncReg : signal is "no";
 
    -------------------------------
-   -- Altera Attributes 
-   ------------------------------- 
+   -- Altera Attributes
+   -------------------------------
    attribute altera_attribute                       : string;
    attribute altera_attribute of crossDomainSyncReg : signal is "-name AUTO_SHIFT_REGISTER_RECOGNITION OFF";
-   
+
 begin
 
    assert (STAGES_G >= 2) report "STAGES_G must be >= 2" severity failure;
@@ -90,7 +88,7 @@ begin
          else
             dataOut <= not(crossDomainSyncReg(STAGES_G-1));
          end if;
-         
+
       end process comb;
 
       ASYNC_RST : if (RST_ASYNC_G) generate
@@ -123,7 +121,7 @@ begin
    BYPASS : if (BYPASS_SYNC_G = true) generate
 
       dataOut <= dataIn when(OUT_POLARITY_G = '1') else not(dataIn);
-      
+
    end generate;
 
 end architecture rtl;

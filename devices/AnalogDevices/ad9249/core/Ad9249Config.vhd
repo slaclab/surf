@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249Config.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-09-23
--- Last update: 2018-09-07
 -------------------------------------------------------------------------------
 -- Description: AD9249 Configuration/Status Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,8 +20,10 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Ad9249Config is
 
@@ -156,7 +155,6 @@ begin
                   v.axilWriteSlave := axilEp.axiWriteSlave;
                else
                   -- Finish read
-                  axilEp.axiReadSlave.rdata             := (others => '0');
                   axilEp.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
                   axiSlaveReadResponse(axilEp.axiReadSlave);
                   v.axilReadSlave                       := axilEp.axiReadSlave;
@@ -188,7 +186,7 @@ begin
       end if;
    end process seq;
 
-   SpiMaster_1 : entity work.SpiMaster
+   SpiMaster_1 : entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => NUM_CHIPS_G*2,
@@ -222,7 +220,7 @@ begin
 
    -- Allow input when doing a read and in the data segment of the shift operation
    sdioDir <= '1' when shiftCount >= 16 and r.wrData(23) = '1' else '0';
-   SDIO_IOBUFT : IOBUF
+   SDIO_IOBUFT : entity surf.IoBufWrapper
       port map (
          I  => coreSDout,
          O  => coreSDin,

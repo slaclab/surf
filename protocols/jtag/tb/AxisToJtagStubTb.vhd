@@ -1,22 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisToJtagStubTb.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-05
--- Last update: 2017-12-05
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Simulation Test bench for AxisToJtagStub
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,9 +18,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxisToJtagPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxisToJtagPkg.all;
 
 entity AxisToJtagStubTb is
 end entity AxisToJtagStubTb;
@@ -77,7 +73,7 @@ begin
                if ( sAxisReq.tReady = '0' ) then
                   stage := ini;
                else
-                  mAxisReq.tValid <= '0'; 
+                  mAxisReq.tValid <= '0';
                end if; when 8             => when 9             =>
                mAxisReq.tData(31 downto 0) <= (others => '1');
                mAxisReq.tValid             <= '1';
@@ -160,7 +156,7 @@ begin
       end if;
    end process U_RX;
 
-   U_dut : entity work.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
+   U_dut : entity surf.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
       port map (
          axisClk  => clk,
          axisRst  => rst,

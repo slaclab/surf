@@ -1,12 +1,12 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 # Load Source Code
-loadSource -dir "$::DIR_PATH/core"
-loadSource -sim_only -dir "$::DIR_PATH/tb"
+loadSource -lib surf -dir "$::DIR_PATH/core"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {artix7}  ||
      ${family} eq {kintex7} ||
@@ -16,8 +16,11 @@ if { ${family} eq {artix7}  ||
 }
 
 if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
-     ${family} eq {zynquplus} } {
+     ${family} eq {virtexuplusHBM} ||
+     ${family} eq {zynquplus} ||
+     ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale"
 }

@@ -1,22 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisToJtagPkg.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-05
--- Last update: 2017-12-05
--- Platform   : 
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description: 
+-- Description: Axi Stream to JTAG Package
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,14 +20,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 --
 -- This module implements a simple protocol for encoding XVC transactions over
 -- an AXI stream. Part of this is support for unreliable transport protocols
 -- (by means of a memory buffer and transaction IDs).
--- Once the protocol header is processed the stream is delegated to the 
+-- Once the protocol header is processed the stream is delegated to the
 -- AxisToJtagCore module.
 --
 -- INCOMING STREAM

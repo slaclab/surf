@@ -1,54 +1,52 @@
 -------------------------------------------------------------------------------
--- File       : XauiGtyUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-08
--- Last update: 2018-08-23
 -------------------------------------------------------------------------------
 -- Description: 10 GigE XAUI for GTH Ultra Scale
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.XauiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.XauiPkg.all;
+use surf.EthMacPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity XauiGtyUltraScale is
    generic (
-      TPD_G           : time                := 1 ns;
-      PAUSE_EN_G      : boolean             := true;
-      PAUSE_512BITS_G : positive            := 8;
+      TPD_G          : time                := 1 ns;
+      JUMBO_G        : boolean             := true;
+      PAUSE_EN_G     : boolean             := true;
       -- XAUI Configurations
-      REF_CLK_FREQ_G  : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
+      REF_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G   : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      AXIS_CONFIG_G  : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -76,6 +74,106 @@ end XauiGtyUltraScale;
 
 architecture mapping of XauiGtyUltraScale is
 
+   component XauiGtyUltraScale156p25MHz10GigECore
+      port (
+         dclk                         : in  std_logic;
+         reset                        : in  std_logic;
+         clk156_out                   : out std_logic;
+         clk156_lock                  : out std_logic;
+         refclk                       : in  std_logic;
+         xgmii_txd                    : in  std_logic_vector (63 downto 0);
+         xgmii_txc                    : in  std_logic_vector (7 downto 0);
+         xgmii_rxd                    : out std_logic_vector (63 downto 0);
+         xgmii_rxc                    : out std_logic_vector (7 downto 0);
+         xaui_tx_l0_p                 : out std_logic;
+         xaui_tx_l0_n                 : out std_logic;
+         xaui_tx_l1_p                 : out std_logic;
+         xaui_tx_l1_n                 : out std_logic;
+         xaui_tx_l2_p                 : out std_logic;
+         xaui_tx_l2_n                 : out std_logic;
+         xaui_tx_l3_p                 : out std_logic;
+         xaui_tx_l3_n                 : out std_logic;
+         xaui_rx_l0_p                 : in  std_logic;
+         xaui_rx_l0_n                 : in  std_logic;
+         xaui_rx_l1_p                 : in  std_logic;
+         xaui_rx_l1_n                 : in  std_logic;
+         xaui_rx_l2_p                 : in  std_logic;
+         xaui_rx_l2_n                 : in  std_logic;
+         xaui_rx_l3_p                 : in  std_logic;
+         xaui_rx_l3_n                 : in  std_logic;
+         signal_detect                : in  std_logic_vector (3 downto 0);
+         debug                        : out std_logic_vector (5 downto 0);
+         gt0_drpaddr                  : in  std_logic_vector (9 downto 0);
+         gt0_drpen                    : in  std_logic;
+         gt0_drpdi                    : in  std_logic_vector (15 downto 0);
+         gt0_drpdo                    : out std_logic_vector (15 downto 0);
+         gt0_drprdy                   : out std_logic;
+         gt0_drpwe                    : in  std_logic;
+         gt1_drpaddr                  : in  std_logic_vector (9 downto 0);
+         gt1_drpen                    : in  std_logic;
+         gt1_drpdi                    : in  std_logic_vector (15 downto 0);
+         gt1_drpdo                    : out std_logic_vector (15 downto 0);
+         gt1_drprdy                   : out std_logic;
+         gt1_drpwe                    : in  std_logic;
+         gt2_drpaddr                  : in  std_logic_vector (9 downto 0);
+         gt2_drpen                    : in  std_logic;
+         gt2_drpdi                    : in  std_logic_vector (15 downto 0);
+         gt2_drpdo                    : out std_logic_vector (15 downto 0);
+         gt2_drprdy                   : out std_logic;
+         gt2_drpwe                    : in  std_logic;
+         gt3_drpaddr                  : in  std_logic_vector (9 downto 0);
+         gt3_drpen                    : in  std_logic;
+         gt3_drpdi                    : in  std_logic_vector (15 downto 0);
+         gt3_drpdo                    : out std_logic_vector (15 downto 0);
+         gt3_drprdy                   : out std_logic;
+         gt3_drpwe                    : in  std_logic;
+         gt_reset_tx_datapath         : in  std_logic;
+         gt_reset_tx_pll_and_datapath : in  std_logic;
+         gt_txpmareset                : in  std_logic_vector (3 downto 0);
+         gt_txpcsreset                : in  std_logic_vector (3 downto 0);
+         gt_txresetdone               : out std_logic_vector (3 downto 0);
+         gt_reset_rx_datapath         : in  std_logic;
+         gt_reset_rx_pll_and_datapath : in  std_logic;
+         gt_rxpmareset                : in  std_logic_vector (3 downto 0);
+         gt_rxpcsreset                : in  std_logic_vector (3 downto 0);
+         gt_rxpmaresetdone            : out std_logic_vector (3 downto 0);
+         gt_rxresetdone               : out std_logic_vector (3 downto 0);
+         gt_rxbufstatus               : out std_logic_vector (11 downto 0);
+         gt_txphaligndone             : out std_logic_vector (3 downto 0);
+         gt_txphinitdone              : out std_logic_vector (3 downto 0);
+         gt_txdlysresetdone           : out std_logic_vector (3 downto 0);
+         gt_qplllock                  : out std_logic;
+         gt_eyescantrigger            : in  std_logic_vector (3 downto 0);
+         gt_eyescanreset              : in  std_logic_vector (3 downto 0);
+         gt_eyescandataerror          : out std_logic_vector (3 downto 0);
+         gt_rxrate                    : in  std_logic_vector (11 downto 0);
+         gt_loopback                  : in  std_logic_vector (11 downto 0);
+         gt_rxpolarity                : in  std_logic_vector (3 downto 0);
+         gt_txpolarity                : in  std_logic_vector (3 downto 0);
+         gt_rxlpmen                   : in  std_logic_vector (3 downto 0);
+         gt_rxdfelpmreset             : in  std_logic_vector (3 downto 0);
+         gt_txpostcursor              : in  std_logic_vector (19 downto 0);
+         gt_txprecursor               : in  std_logic_vector (19 downto 0);
+         gt_txdiffctrl                : in  std_logic_vector (19 downto 0);
+         gt_txinhibit                 : in  std_logic_vector (3 downto 0);
+         gt_rxprbscntreset            : in  std_logic_vector (3 downto 0);
+         gt_rxprbserr                 : out std_logic_vector (3 downto 0);
+         gt_rxprbssel                 : in  std_logic_vector (15 downto 0);
+         gt_txprbssel                 : in  std_logic_vector (15 downto 0);
+         gt_txprbsforceerr            : in  std_logic_vector (3 downto 0);
+         gt_rxcdrhold                 : in  std_logic_vector (3 downto 0);
+         gt_dmonitorout               : out std_logic_vector (63 downto 0);
+         gt_pcsrsvdin                 : in  std_logic_vector (63 downto 0);
+         gt_rxdisperr                 : out std_logic_vector (7 downto 0);
+         gt_rxnotintable              : out std_logic_vector (7 downto 0);
+         gt_rxcommadet                : out std_logic_vector (3 downto 0);
+         gt_powergood_out             : out std_logic_vector (3 downto 0);
+         configuration_vector         : in  std_logic_vector (6 downto 0);
+         status_vector                : out std_logic_vector (7 downto 0)
+         );
+   end component;
+
+
    signal phyRxd : slv(63 downto 0);
    signal phyRxc : slv(7 downto 0);
    signal phyTxd : slv(63 downto 0);
@@ -102,13 +200,16 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
-         PHY_TYPE_G      => "XGMII",
-         PRIM_CONFIG_G   => AXIS_CONFIG_G)
+         TPD_G             => TPD_G,
+         JUMBO_G           => JUMBO_G,
+         PAUSE_EN_G        => PAUSE_EN_G,
+         FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
+         SYNTH_MODE_G      => "xpm",
+         MEMORY_TYPE_G     => "ultra",
+         PHY_TYPE_G        => "XGMII",
+         PRIM_CONFIG_G     => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -132,7 +233,7 @@ begin
    --------------------
    -- 10 GigE XAUI Core
    --------------------
-   U_XauiGtyUltraScaleCore : entity work.XauiGtyUltraScale156p25MHz10GigECore
+   U_XauiGtyUltraScaleCore : XauiGtyUltraScale156p25MHz10GigECore
       port map (
          -- Clocks and Resets
          dclk                         => phyClock,
@@ -250,7 +351,7 @@ begin
    --------------------------
    status.areset <= config.softRst or extRst;
 
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => '0',
@@ -261,10 +362,10 @@ begin
          asyncRst => status.clkLock,
          syncRst  => phyReset);
 
-   --------------------------------     
-   -- Configuration/Status Register   
-   --------------------------------     
-   U_XauiReg : entity work.XauiReg
+   --------------------------------
+   -- Configuration/Status Register
+   --------------------------------
+   U_XauiReg : entity surf.XauiReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

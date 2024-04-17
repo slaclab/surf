@@ -1,343 +1,301 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-08-17
--- Last update: 2015-08-28
 -------------------------------------------------------------------------------
--- Description: Simulation Testbed for testing the UdpEngine module
+-- Description: Simulation Testbed for testing the EthMac module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
-entity UdpEngineTb is end UdpEngineTb;
+entity UdpEngineTb is
+end UdpEngineTb;
 
 architecture testbed of UdpEngineTb is
 
-   constant CLK_PERIOD_C : time             := 6.4 ns;
-   constant TPD_C        : time             := (CLK_PERIOD_C/4);
-   constant LOCAL_MAC_C  : slv(47 downto 0) := x"123456789ABC";
-   constant LOCAL_IP_C   : slv(31 downto 0) := x"12345678";
-   constant REMOTE_MAC_C : slv(47 downto 0) := x"DEADBEEFCAFE";
-   constant REMOTE_IP_C  : slv(31 downto 0) := x"ABCDEFFF";
+   constant CLK_PERIOD_C : time := 6.4 ns;
+   constant TPD_G        : time := (CLK_PERIOD_C/4);
 
-   constant VLAN_C : boolean          := false;
-   constant VID_C  : slv(15 downto 0) := x"0000";
+   constant MAC_ADDR_C : Slv48Array(1 downto 0) := (
+      0 => x"010300564400",             --00:44:56:00:03:01
+      1 => x"020300564400");            --00:44:56:00:03:02
 
-   constant PROTOCOL_C         : Slv8Array(0 downto 0) := (0 => UDP_C);
-   constant SERVER_PORTS_C     : PositiveArray         := (0 => 8192);
-   constant CLIENT_PORTS_C     : PositiveArray         := (0 => 8193);
-   constant SIM_ERROR_HALT_C   : boolean               := true;
-   constant TX_CALC_CHECKSUM_C : boolean               := true;
+   constant IP_ADDR_C : Slv32Array(1 downto 0) := (
+      0 => x"0A02A8C0",                 -- 192.168.2.10
+      1 => x"0B02A8C0");                -- 192.168.2.11
 
-   signal clk    : sl := '0';
-   signal rst    : sl := '0';
-   signal passed : sl := '0';
-   signal failed : sl := '0';
+   type RegType is record
+      packetLength : slv(31 downto 0);
+      trig         : sl;
+      txBusy       : sl;
+      errorDet     : sl;
+   end record RegType;
 
-   signal obServerMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal obServerSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal ibServerMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal ibServerSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   constant REG_INIT_C : RegType := (
+      packetLength => toSlv(0, 32),
+      trig         => '0',
+      txBusy       => '0',
+      errorDet     => '0');
 
-   signal obClientMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal obClientSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal ibClientMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal ibClientSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
-   signal obProtocolMasters : AxiStreamMasterArray(1 downto 0);
-   signal obProtocolSlaves  : AxiStreamSlaveArray(1 downto 0);
-   signal ibProtocolMasters : AxiStreamMasterArray(1 downto 0);
-   signal ibProtocolSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal clk : sl := '0';
+   signal rst : sl := '0';
 
-   signal arpReqMasters : AxiStreamMasterArray(1 downto 0);
-   signal arpReqSlaves  : AxiStreamSlaveArray(1 downto 0);
-   signal arpAckMasters : AxiStreamMasterArray(1 downto 0);
-   signal arpAckSlaves  : AxiStreamSlaveArray(1 downto 0);
+   signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal txSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   signal ibMacMasters : AxiStreamMasterArray(1 downto 0);
-   signal ibMacSlaves  : AxiStreamSlaveArray(1 downto 0);
-   signal obMacMasters : AxiStreamMasterArray(1 downto 0);
-   signal obMacSlaves  : AxiStreamSlaveArray(1 downto 0);
-   
+   signal obMacMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal obMacSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+
+   signal ibMacMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal ibMacSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+
+   signal ethConfig : EthMacConfigArray(1 downto 0) := (others => ETH_MAC_CONFIG_INIT_C);
+   signal phyD      : Slv64Array(1 downto 0)        := (others => (others => '0'));
+   signal phyC      : Slv8Array(1 downto 0)         := (others => (others => '0'));
+
+   signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
+   signal phyReady       : sl;
+   signal updatedResults : sl;
+   signal errorDet       : sl;
+   signal rxBusy         : sl;
+   signal txBusy         : sl;
+
 begin
 
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 1000 ns)
       port map (
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => open);       
+         rstL => phyReady);
 
-   -- Loopback the UDP datagram
-   ibServerMasters(1) <= obServerMasters(1);
-   obServerSlaves(1)  <= ibServerSlaves(1);
+   ----------
+   -- PRBS TX
+   ----------
+   U_TX : entity surf.SsiPrbsTx
+      generic map (
+         TPD_G                      => TPD_G,
+         AXI_EN_G                   => '0',
+         MASTER_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C)
+      port map (
+         -- Master Port (mAxisClk)
+         mAxisClk     => clk,
+         mAxisRst     => rst,
+         mAxisMaster  => txMaster,
+         mAxisSlave   => txSlave,
+         -- Trigger Signal (locClk domain)
+         locClk       => clk,
+         locRst       => rst,
+         packetLength => r.packetLength,
+         trig         => r.trig,
+         busy         => txBusy);
 
-   UdpEngine_Remote : entity work.UdpEngine
+   ----------------------
+   -- IPv4/ARP/UDP Engine
+   ----------------------
+   U_UDP_Client : entity surf.UdpEngineWrapper
       generic map (
          -- Simulation Generics
-         TPD_G              => TPD_C,
-         SIM_ERROR_HALT_G   => SIM_ERROR_HALT_C,
-         -- UDP General Generic
-         RX_FORWARD_EOFE_G  => false,
-         TX_FORWARD_EOFE_G  => false,
-         TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_C,
+         TPD_G               => TPD_G,
          -- UDP Server Generics
-         SERVER_EN_G        => true,
-         SERVER_SIZE_G      => 1,
-         SERVER_PORTS_G     => SERVER_PORTS_C,
+         SERVER_EN_G         => false,
          -- UDP Client Generics
-         CLIENT_EN_G        => true,
-         CLIENT_SIZE_G      => 1,
-         CLIENT_PORTS_G     => CLIENT_PORTS_C,
-         -- UDP ARP Generics
-         CLK_FREQ_G         => 156.25E+06,  -- In units of Hz
-         COMM_TIMEOUT_EN_G  => true,    -- Disable the timeout by setting to false
-         COMM_TIMEOUT_G     => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
+         CLIENT_EN_G         => true,
+         CLIENT_SIZE_G       => 1,
+         CLIENT_PORTS_G      => (0 => 8193),
+         CLIENT_EXT_CONFIG_G => true)
       port map (
          -- Local Configurations
-         localIp            => REMOTE_IP_C,
-         -- Interface to IPV4 Engine  
-         obUdpMaster        => obProtocolMasters(1),
-         obUdpSlave         => obProtocolSlaves(1),
-         ibUdpMaster        => ibProtocolMasters(1),
-         ibUdpSlave         => ibProtocolSlaves(1),
-         -- Interface to ARP Engine
-         arpReqMasters(0)   => arpReqMasters(1),
-         arpReqSlaves(0)    => arpReqSlaves(1),
-         arpAckMasters(0)   => arpAckMasters(1),
-         arpAckSlaves(0)    => arpAckSlaves(1),
+         localMac            => MAC_ADDR_C(0),
+         localIp             => IP_ADDR_C(0),
+         -- Remote Configurations
+         clientRemotePort(0) => x"0020",  -- PORT = 8192 = 0x2000 (0x0020 in big endianness)
+         clientRemoteIp(0)   => IP_ADDR_C(1),
+         -- Interface to Ethernet Media Access Controller (MAC)
+         obMacMaster         => obMacMasters(0),
+         obMacSlave          => obMacSlaves(0),
+         ibMacMaster         => ibMacMasters(0),
+         ibMacSlave          => ibMacSlaves(0),
          -- Interface to UDP Server engine(s)
-         obServerMasters(0) => obServerMasters(1),
-         obServerSlaves(0)  => obServerSlaves(1),
-         ibServerMasters(0) => ibServerMasters(1),
-         ibServerSlaves(0)  => ibServerSlaves(1),
-         -- Interface to UDP Client engine(s)
-         clientRemotePort   => (others => x"0120"),
-         clientRemoteIp     => (others => LOCAL_IP_C),
-         obClientMasters(0) => obClientMasters(1),
-         obClientSlaves(0)  => obClientSlaves(1),
-         ibClientMasters(0) => ibClientMasters(1),
-         ibClientSlaves(0)  => ibClientSlaves(1),
+         obClientMasters     => open,
+         obClientSlaves(0)   => AXI_STREAM_SLAVE_FORCE_C,
+         ibClientMasters(0)  => txMaster,
+         ibClientSlaves(0)   => txSlave,
          -- Clock and Reset
-         clk                => clk,
-         rst                => rst);       
+         clk                 => clk,
+         rst                 => rst);
 
-   IpV4Engine_Remote : entity work.IpV4Engine
+   --------------------
+   -- Ethernet MAC core
+   --------------------
+   U_MAC0 : entity surf.EthMacTop
       generic map (
-         TPD_G            => TPD_C,
-         SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
-         PROTOCOL_SIZE_G  => 1,
-         PROTOCOL_G       => PROTOCOL_C,
-         CLIENT_SIZE_G    => 1,
-         ARP_TIMEOUT_G    => 156250000,
-         VLAN_G           => VLAN_C)
+         TPD_G         => TPD_G,
+         PHY_TYPE_G    => "XGMII",
+         PRIM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
-         -- Local Configurations
-         localMac             => REMOTE_MAC_C,
-         localIp              => REMOTE_IP_C,
-         -- Interface to Ethernet Media Access Controller (MAC)
-         obMacMaster          => obMacMasters(1),
-         obMacSlave           => obMacSlaves(1),
-         ibMacMaster          => ibMacMasters(1),
-         ibMacSlave           => ibMacSlaves(1),
-         -- Interface to Protocol Engine(s)  
-         obProtocolMasters(0) => obProtocolMasters(1),
-         obProtocolSlaves(0)  => obProtocolSlaves(1),
-         ibProtocolMasters(0) => ibProtocolMasters(1),
-         ibProtocolSlaves(0)  => ibProtocolSlaves(1),
-         -- Interface to Client Engine(s)
-         arpReqMasters(0)     => arpReqMasters(1),
-         arpReqSlaves(0)      => arpReqSlaves(1),
-         arpAckMasters(0)     => arpAckMasters(1),
-         arpAckSlaves(0)      => arpAckSlaves(1),
-         -- Clock and Reset
-         clk                  => clk,
-         rst                  => rst);  
+         -- DMA Interface
+         primClk         => clk,
+         primRst         => rst,
+         ibMacPrimMaster => ibMacMasters(0),
+         ibMacPrimSlave  => ibMacSlaves(0),
+         obMacPrimMaster => obMacMasters(0),
+         obMacPrimSlave  => obMacSlaves(0),
+         -- Ethernet Interface
+         ethClk          => clk,
+         ethRst          => rst,
+         ethConfig       => ethConfig(0),
+         phyReady        => phyReady,
+         -- XGMII PHY Interface
+         xgmiiRxd        => phyD(0),
+         xgmiiRxc        => phyC(0),
+         xgmiiTxd        => phyD(1),
+         xgmiiTxc        => phyC(1));
+   ethConfig(0).macAddress <= MAC_ADDR_C(0);
 
-   MAC_FIFO_0 : entity work.AxiStreamFifoV2
+   U_MAC1 : entity surf.EthMacTop
       generic map (
-         -- General Configurations
-         TPD_G               => TPD_C,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)            
+         TPD_G         => TPD_G,
+         PHY_TYPE_G    => "XGMII",
+         PRIM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
-         -- Slave Port
-         sAxisClk    => clk,
-         sAxisRst    => rst,
-         sAxisMaster => ibMacMasters(0),
-         sAxisSlave  => ibMacSlaves(0),
-         -- Master Port
-         mAxisClk    => clk,
-         mAxisRst    => rst,
-         mAxisMaster => obMacMasters(1),
-         mAxisSlave  => obMacSlaves(1));    
+         -- DMA Interface
+         primClk         => clk,
+         primRst         => rst,
+         ibMacPrimMaster => ibMacMasters(1),
+         ibMacPrimSlave  => ibMacSlaves(1),
+         obMacPrimMaster => obMacMasters(1),
+         obMacPrimSlave  => obMacSlaves(1),
+         -- Ethernet Interface
+         ethClk          => clk,
+         ethRst          => rst,
+         ethConfig       => ethConfig(1),
+         phyReady        => phyReady,
+         -- XGMII PHY Interface
+         xgmiiRxd        => phyD(1),
+         xgmiiRxc        => phyC(1),
+         xgmiiTxd        => phyD(0),
+         xgmiiTxc        => phyC(0));
+   ethConfig(1).macAddress <= MAC_ADDR_C(1);
 
-   MAC_FIFO_1 : entity work.AxiStreamFifoV2
-      generic map (
-         -- General Configurations
-         TPD_G               => TPD_C,
-         PIPE_STAGES_G       => 0,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 1,
-         -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
-         GEN_SYNC_FIFO_G     => true,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 4,
-         -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)            
-      port map (
-         -- Slave Port
-         sAxisClk    => clk,
-         sAxisRst    => rst,
-         sAxisMaster => ibMacMasters(1),
-         sAxisSlave  => ibMacSlaves(1),
-         -- Master Port
-         mAxisClk    => clk,
-         mAxisRst    => rst,
-         mAxisMaster => obMacMasters(0),
-         mAxisSlave  => obMacSlaves(0));   
-
-   IpV4Engine_Local : entity work.IpV4Engine
-      generic map (
-         TPD_G            => TPD_C,
-         SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
-         PROTOCOL_SIZE_G  => 1,
-         PROTOCOL_G       => PROTOCOL_C,
-         CLIENT_SIZE_G    => 1,
-         ARP_TIMEOUT_G    => 156250000,
-         VLAN_G           => VLAN_C)
-      port map (
-         -- Local Configurations
-         localMac             => LOCAL_MAC_C,
-         localIp              => LOCAL_IP_C,
-         -- Interface to Ethernet Media Access Controller (MAC)
-         obMacMaster          => obMacMasters(0),
-         obMacSlave           => obMacSlaves(0),
-         ibMacMaster          => ibMacMasters(0),
-         ibMacSlave           => ibMacSlaves(0),
-         -- Interface to Protocol Engine(s)  
-         obProtocolMasters(0) => obProtocolMasters(0),
-         obProtocolSlaves(0)  => obProtocolSlaves(0),
-         ibProtocolMasters(0) => ibProtocolMasters(0),
-         ibProtocolSlaves(0)  => ibProtocolSlaves(0),
-         -- Interface to Client Engine(s)
-         arpReqMasters(0)     => arpReqMasters(0),
-         arpReqSlaves(0)      => arpReqSlaves(0),
-         arpAckMasters(0)     => arpAckMasters(0),
-         arpAckSlaves(0)      => arpAckSlaves(0),
-         -- Clock and Reset
-         clk                  => clk,
-         rst                  => rst); 
-
-   UdpEngine_Local : entity work.UdpEngine
+   ----------------------
+   -- IPv4/ARP/UDP Engine
+   ----------------------
+   U_UDP_Server : entity surf.UdpEngineWrapper
       generic map (
          -- Simulation Generics
-         TPD_G              => TPD_C,
-         SIM_ERROR_HALT_G   => SIM_ERROR_HALT_C,
-         -- UDP General Generic
-         RX_FORWARD_EOFE_G  => false,
-         TX_FORWARD_EOFE_G  => false,
-         TX_CALC_CHECKSUM_G => TX_CALC_CHECKSUM_C,
+         TPD_G          => TPD_G,
          -- UDP Server Generics
-         SERVER_EN_G        => true,
-         SERVER_SIZE_G      => 1,
-         SERVER_PORTS_G     => SERVER_PORTS_C,
+         SERVER_EN_G    => true,
+         SERVER_SIZE_G  => 1,
+         SERVER_PORTS_G => (0 => 8192),
          -- UDP Client Generics
-         CLIENT_EN_G        => true,
-         CLIENT_SIZE_G      => 1,
-         CLIENT_PORTS_G     => CLIENT_PORTS_C,
-         -- UDP ARP Generics
-         CLK_FREQ_G         => 156.25E+06,  -- In units of Hz
-         COMM_TIMEOUT_EN_G  => true,    -- Disable the timeout by setting to false
-         COMM_TIMEOUT_G     => 30)  -- In units of seconds, Client's Communication timeout before re-ARPing
+         CLIENT_EN_G    => false)
       port map (
          -- Local Configurations
-         localIp            => LOCAL_IP_C,
-         -- Interface to IPV4 Engine  
-         obUdpMaster        => obProtocolMasters(0),
-         obUdpSlave         => obProtocolSlaves(0),
-         ibUdpMaster        => ibProtocolMasters(0),
-         ibUdpSlave         => ibProtocolSlaves(0),
-         -- Interface to ARP Engine
-         arpReqMasters(0)   => arpReqMasters(0),
-         arpReqSlaves(0)    => arpReqSlaves(0),
-         arpAckMasters(0)   => arpAckMasters(0),
-         arpAckSlaves(0)    => arpAckSlaves(0),
+         localMac           => MAC_ADDR_C(1),
+         localIp            => IP_ADDR_C(1),
+         -- Interface to Ethernet Media Access Controller (MAC)
+         obMacMaster        => obMacMasters(1),
+         obMacSlave         => obMacSlaves(1),
+         ibMacMaster        => ibMacMasters(1),
+         ibMacSlave         => ibMacSlaves(1),
          -- Interface to UDP Server engine(s)
-         obServerMasters(0) => obServerMasters(0),
-         obServerSlaves(0)  => obServerSlaves(0),
-         ibServerMasters(0) => ibServerMasters(0),
-         ibServerSlaves(0)  => ibServerSlaves(0),
-         -- Interface to UDP Client engine(s)
-         clientRemotePort   => (others => x"0020"),
-         clientRemoteIp     => (others => REMOTE_IP_C),
-         obClientMasters(0) => obClientMasters(0),
-         obClientSlaves(0)  => obClientSlaves(0),
-         ibClientMasters(0) => ibClientMasters(0),
-         ibClientSlaves(0)  => ibClientSlaves(0),
+         obServerMasters(0) => rxMaster,
+         obServerSlaves(0)  => rxSlave,
+         ibServerMasters(0) => AXI_STREAM_MASTER_INIT_C,
+         ibServerSlaves     => open,
          -- Clock and Reset
          clk                => clk,
-         rst                => rst);    
+         rst                => rst);
 
-   UdpEngineCoreTb_Inst : entity work.UdpEngineCoreTb
+   ----------
+   -- PRBS RX
+   ----------
+   U_RX : entity surf.SsiPrbsRx
       generic map (
-         TPD_G => TPD_C)
+         TPD_G                     => TPD_G,
+         SLAVE_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
-         -- Interface to UDP Engine
-         obClientMaster => obClientMasters(0),
-         obClientSlave  => obClientSlaves(0),
-         ibClientMaster => ibClientMasters(0),
-         ibClientSlave  => ibClientSlaves(0),
-         -- Simulation Result
-         passed         => passed,
-         failed         => failed,
-         -- Clock and Reset
-         clk            => clk,
-         rst            => rst);  
+         -- Slave Port (sAxisClk)
+         sAxisClk       => clk,
+         sAxisRst       => rst,
+         sAxisMaster    => rxMaster,
+         sAxisSlave     => rxSlave,
+         -- Error Detection Signals (sAxisClk domain)
+         updatedResults => updatedResults,
+         errorDet       => errorDet,
+         busy           => rxBusy);
 
-   process(failed, passed)
+   comb : process (errorDet, r, rst, txBusy) is
+      variable v : RegType;
    begin
-      if failed = '1' then
+      -- Latch the current value
+      v := r;
+
+      -- Keep delay copies
+      v.errorDet := errorDet;
+      v.txBusy   := txBusy;
+      v.trig     := not(r.txBusy);
+
+      -- Check for the packet completion
+      if (txBusy = '1') and (r.txBusy = '0') then
+         -- Sweeping the packet size size
+         v.packetLength := r.packetLength + 1;
+         -- Check for Jumbo frame roll over
+         if (r.packetLength = (8192/4)-1) then
+            -- Reset the counter
+            v.packetLength := (others => '0');
+         end if;
+      end if;
+
+      -- Reset
+      if (rst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      ---------------------------------
+      -- Simulation Error Self-checking
+      ---------------------------------
+      if r.errorDet = '1' then
          assert false
             report "Simulation Failed!" severity failure;
       end if;
-      if passed = '1' then
-         assert false
-            report "Simulation Passed!" severity failure;
+
+      -- Register the variable for next clock cycle
+      rin <= v;
+
+   end process comb;
+
+   seq : process (clk) is
+   begin
+      if (rising_edge(clk)) then
+         r <= rin after TPD_G;
       end if;
-   end process;
+   end process seq;
 
 end testbed;

@@ -1,18 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : AxiWritePathFifo.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-25
--- Last update: 2014-05-01
 -------------------------------------------------------------------------------
 -- Description:
 -- FIFO for AXI write path transactions.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
 
 entity AxiWritePathFifo is
    generic (
@@ -31,11 +30,7 @@ entity AxiWritePathFifo is
       TPD_G : time := 1 ns;
 
       -- General FIFO configurations
-      XIL_DEVICE_G             : string  := "7SERIES";
-      USE_BUILT_IN_G           : boolean := false;
       GEN_SYNC_FIFO_G          : boolean := false;
-      ALTERA_SYN_G             : boolean := false;
-      ALTERA_RAM_G             : string  := "M9K";
 
       -- Bit Optimizations
       ADDR_LSB_G               : natural range 0 to 31 := 0;
@@ -48,24 +43,23 @@ entity AxiWritePathFifo is
       CACHE_FIXED_EN_G         : boolean := false;
 
       -- Address FIFO Config
-      ADDR_BRAM_EN_G           : boolean                    := true;
+      ADDR_MEMORY_TYPE_G       : string                     := "block";
       ADDR_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       ADDR_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
       -- Data FIFO Config
-      DATA_BRAM_EN_G           : boolean                    := true;
+      DATA_MEMORY_TYPE_G       : string                     := "block";
       DATA_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       DATA_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
       DATA_FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 500;
 
       -- Response FIFO Config
-      RESP_BRAM_EN_G           : boolean                    := true;
+      RESP_MEMORY_TYPE_G       : string                     := "block";
       RESP_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
       RESP_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
       -- BUS Config
-      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C
-      );
+      AXI_CONFIG_G : AxiConfigType);
    port (
 
       -- Slave Port
@@ -96,7 +90,7 @@ architecture rtl of AxiWritePathFifo is
    constant STRB_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C;
    constant RESP_BITS_C  : integer := 2;
 
-   constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C  + ID_BITS_C   + LEN_BITS_C  + SIZE_BITS_C + 
+   constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C  + ID_BITS_C   + LEN_BITS_C  + SIZE_BITS_C +
                                           BURST_BITS_C + LOCK_BITS_C + PROT_BITS_C + CACHE_BITS_C;
 
    constant DATA_FIFO_SIZE_C : integer := 1 + DATA_BITS_C  + STRB_BITS_C + ID_BITS_C;
@@ -153,13 +147,13 @@ architecture rtl of AxiWritePathFifo is
 
    -- Convert slv to address record
    procedure slvToAddr (din    : in    slv(ADDR_FIFO_SIZE_C-1 downto 0);
-                        valid  : in    sl; 
+                        valid  : in    sl;
                         slave  : in    AxiWriteMasterType;
                         master : inout AxiWriteMasterType ) is
       variable i   : integer;
    begin
 
-      -- Set valid, 
+      -- Set valid,
       master.awvalid := valid;
 
       master.awaddr := (others=>'0');
@@ -250,13 +244,13 @@ architecture rtl of AxiWritePathFifo is
 
    -- Convert slv to data record
    procedure slvToData (din    : in    slv(DATA_FIFO_SIZE_C-1 downto 0);
-                        valid  : in    sl; 
+                        valid  : in    sl;
                         slave  : in    AxiWriteMasterType;
                         master : inout AxiWriteMasterType ) is
       variable i   : integer;
    begin
 
-      -- Set valid, 
+      -- Set valid,
       master.wvalid := valid;
       master.wlast  := din(0);
       i := 1;
@@ -299,13 +293,13 @@ architecture rtl of AxiWritePathFifo is
 
    -- Convert slv to resp record
    procedure slvToResp (din    : in    slv(RESP_FIFO_SIZE_C-1 downto 0);
-                        valid  : in    sl; 
+                        valid  : in    sl;
                         master : in    AxiWriteMasterType;
                         slave  : inout AxiWriteSlaveType  ) is
       variable i   : integer;
    begin
 
-      -- Set valid, 
+      -- Set valid,
       slave.bvalid := valid;
 
       slave.bresp := din(RESP_BITS_C-1 downto 0);
@@ -346,7 +340,7 @@ begin
    -- FIFOs
    -------------------------
 
-   U_AddrFifo : entity work.FifoCascade
+   U_AddrFifo : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => ADDR_CASCADE_SIZE_G,
@@ -354,13 +348,8 @@ begin
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => ADDR_BRAM_EN_G,
+         MEMORY_TYPE_G      => ADDR_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => ADDR_FIFO_SIZE_C,
          ADDR_WIDTH_G       => ADDR_FIFO_ADDR_WIDTH_G,
@@ -391,7 +380,7 @@ begin
          empty         => open
          );
 
-   U_DataFifo : entity work.FifoCascade
+   U_DataFifo : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => DATA_CASCADE_SIZE_G,
@@ -399,13 +388,8 @@ begin
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => DATA_BRAM_EN_G,
+         MEMORY_TYPE_G      => DATA_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => DATA_FIFO_SIZE_C,
          ADDR_WIDTH_G       => DATA_FIFO_ADDR_WIDTH_G,
@@ -436,7 +420,7 @@ begin
          empty         => open
          );
 
-   U_RespFifo : entity work.FifoCascade
+   U_RespFifo : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
          CASCADE_SIZE_G     => RESP_CASCADE_SIZE_G,
@@ -444,13 +428,8 @@ begin
          RST_POLARITY_G     => '1',
          RST_ASYNC_G        => false,
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
-         BRAM_EN_G          => RESP_BRAM_EN_G,
+         MEMORY_TYPE_G      => RESP_MEMORY_TYPE_G,
          FWFT_EN_G          => true,
-         USE_DSP48_G        => "no",
-         ALTERA_SYN_G       => ALTERA_SYN_G,
-         ALTERA_RAM_G       => ALTERA_RAM_G,
-         USE_BUILT_IN_G     => USE_BUILT_IN_G,
-         XIL_DEVICE_G       => XIL_DEVICE_G,
          SYNC_STAGES_G      => 3,
          DATA_WIDTH_G       => RESP_FIFO_SIZE_C,
          ADDR_WIDTH_G       => RESP_FIFO_ADDR_WIDTH_G,
@@ -506,7 +485,7 @@ begin
    -- Fifo Outputs
    -------------------------
 
-   process ( sAxiWriteMaster, mAxiWriteSlave, 
+   process ( sAxiWriteMaster, mAxiWriteSlave,
              addrFifoDout, addrFifoAFull, addrFifoValid,
              dataFifoDout, dataFifoAFull, dataFifoValid,
              respFifoDout, respFifoAFull, respFifoValid ) is

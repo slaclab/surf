@@ -1,2 +1,0 @@
-vhdl work rtl/Salt7Series.vhd
-vhdl work dcp/images/Salt7SeriesCore.dcp 

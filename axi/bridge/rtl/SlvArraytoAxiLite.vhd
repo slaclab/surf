@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SlvArraytoAxiLite.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-07-21
--- Last update: 2017-10-24
 -------------------------------------------------------------------------------
--- Description: SLV array to AXI-Lite Master Bridge 
+-- Description: SLV array to AXI-Lite Master Bridge
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiLiteMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity SlvArraytoAxiLite is
    generic (
@@ -54,7 +52,7 @@ architecture rtl of SlvArraytoAxiLite is
       cnt   : natural range 0 to SIZE_G-1;
       valid : slv(SIZE_G-1 downto 0);
       inSlv : Slv32Array(SIZE_G-1 downto 0);
-      req   : AxiLiteMasterReqType;
+      req   : AxiLiteReqType;
       state : StateType;
    end record;
 
@@ -62,14 +60,14 @@ architecture rtl of SlvArraytoAxiLite is
       cnt   => 0,
       valid => (others => '0'),
       inSlv => (others => (others => '0')),
-      req   => AXI_LITE_MASTER_REQ_INIT_C,
+      req   => AXI_LITE_REQ_INIT_C,
       state => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal inSlv : Slv32Array(SIZE_G-1 downto 0);
-   signal ack   : AxiLiteMasterAckType;
+   signal ack   : AxiLiteAckType;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
@@ -78,7 +76,7 @@ begin
 
    GEN_VEC :
    for i in (SIZE_G-1) downto 0 generate
-      SyncFifo : entity work.SynchronizerFifo
+      SyncFifo : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             COMMON_CLK_G => COMMON_CLK_G,
@@ -92,7 +90,7 @@ begin
             dout   => inSlv(i));
    end generate GEN_VEC;
 
-   AxiLiteMaster : entity work.AxiLiteMaster
+   U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -107,7 +105,6 @@ begin
 
    comb : process (ack, axilRst, inSlv, r) is
       variable v : RegType;
-      variable i : natural;
    begin
       -- Latch the current value
       v := r;

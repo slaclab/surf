@@ -1,25 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteWriteFilterTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-11-13
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "AxiLiteAsync"
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteWriteFilterTb is
 end entity AxiLiteWriteFilterTb;
@@ -42,7 +41,7 @@ architecture tb of AxiLiteWriteFilterTb is
 
 begin
 
-   U_axilClk : entity work.ClkRst
+   U_axilClk : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -65,8 +64,8 @@ begin
       wait for 1 us;
       wait until axilClk = '1';
       report "Should be two DECODE_ERROR";
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"11111111", true);      
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);      
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"11111111", true);
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);
       report "###################################################################################";
       report "###################################################################################";
       report "###################################################################################";
@@ -76,11 +75,11 @@ begin
       wait for 1 us;
       wait until axilClk = '1';
       report "Should be one DECODE_ERROR";
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"FFFFFFFF", true);      
-      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);   
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"00000FF0", x"FFFFFFFF", true);
+      axiLiteBusSimWrite(axilClk, axilWriteMaster, axilWriteSlave, x"000001A0", x"11111111", true);
       report "###################################################################################";
       report "###################################################################################";
-      report "###################################################################################";     
+      report "###################################################################################";
 
       wait for 1 us;
       wait until axilClk = '1';
@@ -89,7 +88,7 @@ begin
       axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"000001A0", data, true);
       report "###################################################################################";
       report "###################################################################################";
-      report "###################################################################################";      
+      report "###################################################################################";
 
       wait for 1 us;
       enFilter <= '0';
@@ -100,7 +99,7 @@ begin
       report "###################################################################################";
       report "###################################################################################";
       report "###################################################################################";
-      
+
       wait for 1 us;
       wait until axilClk = '1';
       report "Read back the data";
@@ -108,11 +107,11 @@ begin
       axiLiteBusSimRead(axilClk, axilReadMaster, axilReadSlave, x"000001A0", data, true);
       report "###################################################################################";
       report "###################################################################################";
-      report "###################################################################################";      
+      report "###################################################################################";
 
    end process test;
 
-   U_Filter : entity work.AxiLiteWriteFilter
+   U_Filter : entity surf.AxiLiteWriteFilter
       generic map (
          TPD_G            => TPD_G,
          FILTER_SIZE_G    => 1,
@@ -130,11 +129,9 @@ begin
          mAxilWriteMaster => filterWriteMaster,
          mAxilWriteSlave  => filterWriteSlave);
 
-   U_Mem : entity work.AxiDualPortRam
+   U_Mem : entity surf.AxiDualPortRam
       generic map (
          TPD_G            => TPD_G,
-         BRAM_EN_G        => true,
-         REG_EN_G         => true,
          AXI_WR_EN_G      => true,
          SYS_WR_EN_G      => false,
          COMMON_CLK_G     => false,

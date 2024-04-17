@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : SaciPrepRdout.vhd
+-- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 07/21/2016
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: The AXI lite master to issue SACI prepare for readout command
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,35 +19,41 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity SaciPrepRdout is
    generic (
       TPD_G              : time             := 1 ns;
       MASK_REG_ADDR_G    : slv(31 downto 0) := x"00000034";
+      MASK_REG_READ_G    : boolean          := true;
       SACI_BASE_ADDR_G   : slv(31 downto 0) := x"02000000";
       SACI_NUM_CHIPS_G   : natural range 1 to 4 := 4
    );
    port (
       axilClk           : in  sl;
       axilRst           : in  sl;
-      
+
       -- Prepare for readout req/ack
       prepRdoutReq      : in  sl;
       prepRdoutAck      : out sl;
-      
+
       -- Optional AXI lite slave port for status readout
-      sAxilWriteMaster  : in  AxiLiteWriteMasterType;
+      sAxilWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       sAxilWriteSlave   : out AxiLiteWriteSlaveType;
-      sAxilReadMaster   : in  AxiLiteReadMasterType;
+      sAxilReadMaster   : in  AxiLiteReadMasterType := AXI_LITE_READ_MASTER_INIT_C;
       sAxilReadSlave    : out AxiLiteReadSlaveType;
-      
+
       -- AXI lite master port for command issue
       mAxilWriteMaster  : out AxiLiteWriteMasterType;
       mAxilWriteSlave   : in  AxiLiteWriteSlaveType;
       mAxilReadMaster   : out AxiLiteReadMasterType;
-      mAxilReadSlave    : in  AxiLiteReadSlaveType
+      mAxilReadSlave    : in  AxiLiteReadSlaveType;
+
+      -- optianally provide ASIC mask
+      asicMask          : in slv(SACI_NUM_CHIPS_G-1 downto 0) := (others=>'0')
    );
 
 end SaciPrepRdout;
@@ -56,7 +61,7 @@ end SaciPrepRdout;
 architecture rtl of SaciPrepRdout is
 
    type StateType is (S_IDLE_C, S_IS_ASIC_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_C, S_READ_AXI_C);
-   
+
    type RegType is record
       asicMask         : slv(SACI_NUM_CHIPS_G-1 downto 0);
       state            : StateType;
@@ -90,7 +95,7 @@ architecture rtl of SaciPrepRdout is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
    function asicBaseAddr(asic : natural) return slv is
    begin
       return toSlv(asic*(2**22), 32);
@@ -98,24 +103,23 @@ architecture rtl of SaciPrepRdout is
 
 begin
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, mAxilReadSlave, mAxilWriteSlave, r, prepRdoutReq) is
+   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, mAxilReadSlave, mAxilWriteSlave, r, prepRdoutReq, asicMask) is
       variable v        : RegType;
       variable regCon   : AxiLiteEndPointType;
    begin
       v := r;
-      
-      v.sAxilReadSlave.rdata := (others => '0');
+
       axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
-      
+
       -- error counters
       axiSlaveRegisterR(regCon, x"00", 0, r.rdFail);
       axiSlaveRegisterR(regCon, x"04", 0, r.rdTimeout);
       axiSlaveRegisterR(regCon, x"08", 0, r.wrFail);
       axiSlaveRegisterR(regCon, x"0C", 0, r.wrTimeout);
       axiSlaveRegisterR(regCon, x"10", 0, r.asicMask);
-      
+
       axiSlaveDefault(regCon, v.sAxilWriteSlave, v.sAxilReadSlave, AXI_RESP_DECERR_C);
-      
+
       -- State machine for SACI mediation
       -- SACI command is issued via the AXI lite master bus
       case(r.state) is
@@ -127,9 +131,14 @@ begin
 
             -- If we see a multi-pixel write request, handle it
             if (prepRdoutReq = '1') then
+               if MASK_REG_READ_G = true then
                   v.state     := S_READ_C;
+               else
+                  v.asicMask  := asicMask;
+                  v.state     := S_IS_ASIC_C;
+               end if;
             end if;
-            
+
          -- Read the ASIC mask
          when S_READ_C =>
             v.mAxilReadMaster.araddr := MASK_REG_ADDR_G;
@@ -173,7 +182,7 @@ begin
                   v.state := S_IS_ASIC_C;
                end if;
             end if;
-            
+
          -- Check if ASIC is enabled
          when S_IS_ASIC_C =>
             if r.asicCnt >= SACI_NUM_CHIPS_G then
@@ -184,7 +193,7 @@ begin
             else
                v.asicCnt      := r.asicCnt + 1;
             end if;
-            
+
          -- Prepare Write Transactions
          when S_WRITE_C =>
             -- Prepare for readout: CMD = 0, ADDR = 0, DATA = 0
@@ -193,7 +202,7 @@ begin
             v.mAxilWriteMaster.awprot  := (others => '0');
             v.mAxilWriteMaster.wstrb   := (others => '1');
             v.timer                    := (others => '1');
-            
+
             v.mAxilWriteMaster.awvalid := '1';
             v.mAxilWriteMaster.wvalid  := '1';
             v.mAxilWriteMaster.bready  := '1';
@@ -230,18 +239,12 @@ begin
             if v.mAxilWriteMaster.awvalid = '0' and
                v.mAxilWriteMaster.wvalid = '0' and
                v.mAxilWriteMaster.bready = '0' then
-               
-               if mAxilWriteSlave.bresp /= AXI_RESP_OK_C or r.timer = 0 then
-                  v.state    := S_IDLE_C;
-               else
-                  v.asicCnt  := r.asicCnt + 1;
-                  v.state    := S_IS_ASIC_C;
-               end if;
-               
+               v.asicCnt  := r.asicCnt + 1;
+               v.state    := S_IS_ASIC_C;
             end if;
-            
+
       end case;
-      
+
       if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
@@ -252,7 +255,7 @@ begin
       sAxilReadSlave    <= r.sAxilReadSlave;
       mAxilWriteMaster  <= r.mAxilWriteMaster;
       mAxilReadMaster   <= r.mAxilReadMaster;
-      
+
       prepRdoutAck      <= r.prepRdoutAck;
 
    end process comb;

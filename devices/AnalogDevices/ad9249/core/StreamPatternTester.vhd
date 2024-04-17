@@ -1,44 +1,42 @@
 -------------------------------------------------------------------------------
--- File       : StreamPatternTester.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 05/27/2016
--- Last update: 05/27/2016
 -------------------------------------------------------------------------------
 -- Description:   Test which compares the data stream to selected pattern
---                Designed for the automated delay alignment of the fast LVDS lines  
+--                Designed for the automated delay alignment of the fast LVDS lines
 --                of ADCs with single or multiple serial data lanes
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
-use work.all;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
 
-entity StreamPatternTester is 
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+
+entity StreamPatternTester is
    generic (
       TPD_G             : time := 1 ns;
-      NUM_CHANNELS_G    : integer range 1 to 31 := 8
+      NUM_CHANNELS_G    : integer range 1 to 128 := 8
    );
-   port ( 
+   port (
       -- Master system clock
       clk               : in  std_logic;
       rst               : in  std_logic;
-      
+
       -- ADC data stream inputs
       adcStreams        : in  AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0);
-      
+
       -- Axi Interface
       axilWriteMaster   : in  AxiLiteWriteMasterType;
       axilWriteSlave    : out AxiLiteWriteSlaveType;
@@ -78,7 +76,7 @@ architecture RTL of StreamPatternTester is
 
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
-   
+
    signal dataMux       : std_logic_vector(31 downto 0);
    signal dataValidMux  : std_logic;
    signal testCnt       : unsigned(31 downto 0);
@@ -87,7 +85,7 @@ architecture RTL of StreamPatternTester is
    signal testFailed    : std_logic;
    signal passCnt       : unsigned(31 downto 0);
    signal timeoutCnt    : unsigned(31 downto 0);
-   
+
 begin
 
    -------------------------------------------------------------------------------------------------
@@ -128,22 +126,22 @@ begin
          axilR <= axilRin after TPD_G;
       end if;
    end process axilSeq;
-   
+
    -------------------------------------------------------------------------------------------------
    -- Tester logic
    -------------------------------------------------------------------------------------------------
-   
+
    dataValidMux <= adcStreams(to_integer(unsigned(axilR.testChannel))).tValid;
-   
+
    maskGen: for i in 0 to 31 generate
       dataMux(i) <= adcStreams(to_integer(unsigned(axilR.testChannel))).tData(i) and axilR.testDataMask(i);
    end generate maskGen;
-   
-   
-   
-   testProc: process ( clk ) 
+
+
+
+   testProc: process ( clk )
    begin
-      
+
       -- test samples counter
       if rising_edge(clk) then
          if rst = '1' or axilR.testRequest = '1' then
@@ -152,7 +150,7 @@ begin
             testCnt <= testCnt + 1        after TPD_G;
          end if;
       end if;
-      
+
       -- comparison passed counter
       if rising_edge(clk) then
          if rst = '1' or axilR.testRequest = '1' then
@@ -161,7 +159,7 @@ begin
             passCnt <= passCnt + 1        after TPD_G;
          end if;
       end if;
-      
+
       -- timeout counter
       if rising_edge(clk) then
          if rst = '1' or axilR.testRequest = '1' or dataValidMux = '1' then
@@ -170,9 +168,9 @@ begin
             timeoutCnt <= timeoutCnt - 1        after TPD_G;
          end if;
       end if;
-      
+
    end process;
-   
+
    testDone <= '1' when (testCnt >= unsigned(axilR.testSamples) or timeoutCnt = 0) and axilR.testRequest = '0' else '0';
    testPassed <= '1' when testDone = '1' and passCnt = unsigned(axilR.testSamples) else '0';
    testFailed <= '1' when testDone = '1' and passCnt < unsigned(axilR.testSamples) else '0';

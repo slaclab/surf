@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd9467Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-09-23
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AD9467 AXI-Lite Register Access Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd9467Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd9467Pkg.all;
 
 entity AxiAd9467Reg is
    generic (
@@ -44,7 +43,7 @@ entity AxiAd9467Reg is
       -- Global Signals
       adcClk         : in  sl;
       adcRst         : in  sl;
-      refClk200MHz   : in  sl);      
+      refClk200MHz   : in  sl);
 end AxiAd9467Reg;
 
 architecture rtl of AxiAd9467Reg is
@@ -104,11 +103,11 @@ architecture rtl of AxiAd9467Reg is
       end case;
       return retVar;
    end function;
-   
+
    type StateType is (
       IDLE_S,
       REQ_S,
-      ACK_S);    
+      ACK_S);
 
    type RegType is record
       config        : AxiAd9467ConfigType;
@@ -116,7 +115,7 @@ architecture rtl of AxiAd9467Reg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       AXI_AD9467_CONFIG_INIT_C,
       IDLE_S,
@@ -132,7 +131,7 @@ begin
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, r, syncIn) is
       variable i            : integer;
       variable v            : RegType;
@@ -205,8 +204,6 @@ begin
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         -- Reset the register
-         v.axiReadSlave.rdata := (others => '0');
          if (axiReadMaster.araddr(9 downto 2) < 15) then
             v.config.spi.req  := '1';
             v.config.spi.RnW  := '1';
@@ -323,7 +320,7 @@ begin
       -- Outputs
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -333,40 +330,40 @@ begin
       end if;
    end process seq;
 
-   -------------------------------            
+   -------------------------------
    -- Synchronization: Outputs
    -------------------------------
    config.spi <= r.config.spi;
 
-   SyncIn_delay_dmux : entity work.Synchronizer
+   SyncIn_delay_dmux : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => refClk200MHz,
          dataIn  => r.config.delay.dmux,
-         dataOut => config.delay.dmux);    
+         dataOut => config.delay.dmux);
 
-   SyncOut_delayIn_load : entity work.RstSync
+   SyncOut_delayIn_load : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 32)   
+         RELEASE_DELAY_G => 32)
       port map (
          clk      => refClk200MHz,
          asyncRst => r.config.delay.load,
-         syncRst  => config.delay.load); 
+         syncRst  => config.delay.load);
 
-   SyncOut_delayIn_rst : entity work.RstSync
+   SyncOut_delayIn_rst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 16)   
+         RELEASE_DELAY_G => 16)
       port map (
          clk      => refClk200MHz,
          asyncRst => r.config.delay.rst,
-         syncRst  => config.delay.rst);     
+         syncRst  => config.delay.rst);
 
    GEN_DAT_CONFIG :
    for i in 0 to 7 generate
-      SyncOut_delayIn_data : entity work.SynchronizerFifo
+      SyncOut_delayIn_data : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 5)
@@ -382,17 +379,17 @@ begin
    -------------------------------
    syncIn.spi <= status.spi;
 
-   SyncIn_pllLocked : entity work.Synchronizer
+   SyncIn_pllLocked : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => axiClk,
          dataIn  => status.pllLocked,
-         dataOut => syncIn.pllLocked);   
+         dataOut => syncIn.pllLocked);
 
    GEN_ADC_MON :
    for i in 0 to 15 generate
-      SyncIn_adcDataMon : entity work.SynchronizerFifo
+      SyncIn_adcDataMon : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 16)
@@ -400,20 +397,20 @@ begin
             wr_clk => adcClk,
             din    => status.adcDataMon(i),
             rd_clk => axiClk,
-            dout   => syncIn.adcDataMon(i));       
+            dout   => syncIn.adcDataMon(i));
    end generate GEN_ADC_MON;
 
-   SyncIn_delayOut_rdy : entity work.Synchronizer
+   SyncIn_delayOut_rdy : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => axiClk,
          dataIn  => status.delay.rdy,
-         dataOut => syncIn.delay.rdy);   
+         dataOut => syncIn.delay.rdy);
 
    GEN_DAT_STATUS :
    for i in 0 to 7 generate
-      SyncIn_delayOut_data : entity work.SynchronizerFifo
+      SyncIn_delayOut_data : entity surf.SynchronizerFifo
          generic map (
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 5)
@@ -421,7 +418,7 @@ begin
             wr_clk => refClk200MHz,
             din    => status.delay.data(i),
             rd_clk => axiClk,
-            dout   => syncIn.delay.data(i));       
+            dout   => syncIn.delay.data(i));
    end generate GEN_DAT_STATUS;
 
 end rtl;

@@ -1,18 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxCsum.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-09-08
--- Last update: 2018-01-31
 -------------------------------------------------------------------------------
 -- Description: TX Checksum Hardware Offloading Engine
 -- https://docs.google.com/spreadsheets/d/1_1M1keasfq8RLmRYHkO0IlRhMq5YZTgJ7OGrWvkib8I/edit?usp=sharing
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,9 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacTxCsum is
    generic (
@@ -31,7 +30,8 @@ entity EthMacTxCsum is
       DROP_ERR_PKT_G : boolean          := true;
       JUMBO_G        : boolean          := true;
       VLAN_G         : boolean          := false;
-      VID_G          : slv(11 downto 0) := x"001");
+      VID_G          : slv(11 downto 0) := x"001";
+      SYNTH_MODE_G   : string           := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -151,7 +151,7 @@ architecture rtl of EthMacTxCsum is
 
 begin
 
-   U_RxPipeline : entity work.AxiStreamPipeline
+   U_RxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -241,11 +241,11 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Set the flag
-               v.fragDet(0)     := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
+               v.fragDet(0)     := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Write the transaction data
                   v.tranWr     := '1';
                else
@@ -258,7 +258,7 @@ begin
                      end if;
                      -- Fill in the IPv4 header checksum
                      v.ipv4Hdr(0) := rxMaster.tData(119 downto 112);  -- IPVersion + Header length
-                     v.ipv4Hdr(1) := rxMaster.tData(127 downto 120);  -- DSCP and ECN     
+                     v.ipv4Hdr(1) := rxMaster.tData(127 downto 120);  -- DSCP and ECN
                   else
                      -- Add the IEEE 802.1Q header
                      v.sMaster.tData(111 downto 96)  := VLAN_TYPE_C;
@@ -279,13 +279,13 @@ begin
                v.sMaster        := rxMaster;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
-                  -- if IPv4 detected, ETH frame too short 
+                  -- if IPv4 detected, ETH frame too short
                   if (r.ipv4Det(0) = '1') then
                      -- Set the error flag
                      v.eofeDet(0) := '1';
                   else
                      -- Save the EOFE value
-                     v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                     v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   end if;
                   -- Write the transaction data
                   v.tranWr := '1';
@@ -303,10 +303,10 @@ begin
                      v.ipv4Hdr(9)         := rxMaster.tData(63 downto 56);  -- Protocol
                      v.ipv4Hdr(12)        := rxMaster.tData(87 downto 80);  -- Source IP Address
                      v.ipv4Hdr(13)        := rxMaster.tData(95 downto 88);  -- Source IP Address
-                     v.ipv4Hdr(14)        := rxMaster.tData(103 downto 96);  -- Source IP Address
+                     v.ipv4Hdr(14)        := rxMaster.tData(103 downto 96);   -- Source IP Address
                      v.ipv4Hdr(15)        := rxMaster.tData(111 downto 104);  -- Source IP Address
                      v.ipv4Hdr(16)        := rxMaster.tData(119 downto 112);  -- Destination IP Address
-                     v.ipv4Hdr(17)        := rxMaster.tData(127 downto 120);  -- Destination IP Address    
+                     v.ipv4Hdr(17)        := rxMaster.tData(127 downto 120);  -- Destination IP Address
                      -- Fill in the TCP/UDP checksum
                      v.tData(63 downto 0) := rxMaster.tData(127 downto 80) & rxMaster.tData(63 downto 56) & x"00";
                      v.tKeep(7 downto 0)  := (others => '1');
@@ -326,7 +326,7 @@ begin
                      v.ipv4Hdr(8)         := rxMaster.tData(87 downto 80);  -- Time-To-Live
                      v.ipv4Hdr(9)         := rxMaster.tData(95 downto 88);  -- Protocol
                      v.ipv4Hdr(12)        := rxMaster.tData(119 downto 112);  -- Source IP Address
-                     v.ipv4Hdr(13)        := rxMaster.tData(127 downto 120);  -- Source IP Address      
+                     v.ipv4Hdr(13)        := rxMaster.tData(127 downto 120);  -- Source IP Address
                      -- Fill in the TCP/UDP checksum
                      v.tData(31 downto 0) := rxMaster.tData(127 downto 112) & rxMaster.tData(95 downto 88) & x"00";
                      v.tKeep(3 downto 0)  := (others => '1');
@@ -352,42 +352,42 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Fill in the TCP/UDP checksum
-               v.tKeep          := rxMaster.tKeep;
-               v.tData          := rxMaster.tData;
+               v.tKeep          := rxMaster.tKeep(15 downto 0);
+               v.tData          := rxMaster.tData(127 downto 0);
                -- Check if NON-VLAN
                if (VLAN_G = false) then
                   -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(18) := rxMaster.tData(7 downto 0);  -- Destination IP Address
-                  v.ipv4Hdr(19) := rxMaster.tData(15 downto 8);  -- Destination IP Address   
+                  v.ipv4Hdr(18) := rxMaster.tData(7 downto 0);        -- Destination IP Address
+                  v.ipv4Hdr(19) := rxMaster.tData(15 downto 8);       -- Destination IP Address
                   -- Check for UDP data with inbound length/checksum
                   if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
                      -- Mask off inbound UDP length/checksum
                      v.tData := rxMaster.tData(127 downto 80) & x"00000000" & rxMaster.tData(47 downto 0);
                   end if;
-                  -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep) - 2;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep) - 2;
+                  -- Track the number of bytes
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
                else
                   -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);  -- Source IP Address
-                  v.ipv4Hdr(15) := rxMaster.tData(15 downto 8);  -- Source IP Address
-                  v.ipv4Hdr(16) := rxMaster.tData(23 downto 16);  -- Destination IP Address
-                  v.ipv4Hdr(17) := rxMaster.tData(31 downto 24);  -- Destination IP Address               
-                  v.ipv4Hdr(18) := rxMaster.tData(39 downto 32);  -- Destination IP Address
-                  v.ipv4Hdr(19) := rxMaster.tData(47 downto 40);  -- Destination IP Address   
+                  v.ipv4Hdr(14) := rxMaster.tData(7 downto 0);        -- Source IP Address
+                  v.ipv4Hdr(15) := rxMaster.tData(15 downto 8);       -- Source IP Address
+                  v.ipv4Hdr(16) := rxMaster.tData(23 downto 16);      -- Destination IP Address
+                  v.ipv4Hdr(17) := rxMaster.tData(31 downto 24);      -- Destination IP Address
+                  v.ipv4Hdr(18) := rxMaster.tData(39 downto 32);      -- Destination IP Address
+                  v.ipv4Hdr(19) := rxMaster.tData(47 downto 40);      -- Destination IP Address
                   -- Check for UDP data with inbound length/checksum
                   if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
                      -- Mask off inbound UDP length/checksum
                      v.tData := rxMaster.tData(127 downto 112) & x"00000000" & rxMaster.tData(79 downto 0);
                   end if;
-                  -- Track the number of bytes 
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep) - 6;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep) - 6;
+                  -- Track the number of bytes
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 6;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 6;
                end if;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Write the transaction data
                   v.tranWr     := '1';
                   -- Next state
@@ -406,8 +406,8 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Fill in the TCP/UDP checksum
-               v.tData          := rxMaster.tData;
-               v.tKeep          := rxMaster.tKeep;
+               v.tData          := rxMaster.tData(127 downto 0);
+               v.tKeep          := rxMaster.tKeep(15 downto 0);
                -- Check for TCP data with inbound checksum
                if (r.ipv4Det(0) = '1') and (r.tcpDet(0) = '1') and (r.tcpFlag = '0') then
                   -- Set the flag
@@ -421,13 +421,13 @@ begin
                      v.tData := rxMaster.tData(127 downto 64) & x"0000" & rxMaster.tData(47 downto 0);
                   end if;
                end if;
-               -- Track the number of bytes 
-               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep);
-               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep);
+               -- Track the number of bytes
+               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C);
+               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C);
                -- Check for EOF
                if (rxMaster.tLast = '1') or (v.ipv4Len(0) > MAX_FRAME_SIZE_C) then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Check for overflow
                   if (rxMaster.tLast = '0') then
                      -- Error detect
@@ -461,9 +461,9 @@ begin
 
       -- Fill in the IPv4 header
       v.ipv4Hdr(2) := v.ipv4Len(0)(15 downto 8);  -- IPV4_Length(15 downto 8)
-      v.ipv4Hdr(3) := v.ipv4Len(0)(7 downto 0);  -- IPV4_Length(7 downto 0)        
+      v.ipv4Hdr(3) := v.ipv4Len(0)(7 downto 0);   -- IPV4_Length(7 downto 0)
 
-      -- Wait for the transaction data 
+      -- Wait for the transaction data
       if (tranValid = '1') and (r.tranRd = '0') then
          -- Check for data
          if (mMaster.tValid = '1') and (v.txMaster.tValid = '0') then
@@ -481,7 +481,7 @@ begin
                -- Increment the counter
                v.mvCnt := r.mvCnt + 1;
             end if;
-            -- Check for IPv4 checksum/length insertion 
+            -- Check for IPv4 checksum/length insertion
             if (ipv4Det = '1') and (r.mvCnt = 1) then
                -- Check if NON-VLAN
                if (VLAN_G = false) then
@@ -600,15 +600,15 @@ begin
             if (mMaster.tLast = '1') then
                -- Reset the counter
                v.mvCnt  := 0;
-               -- Forward the EOFE               
-               axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
+               -- Forward the EOFE
+               axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
                v.dbg(5) := eofeDet;
                -- Accept the data
                v.tranRd := '1';
             end if;
          end if;
       end if;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
       mSlave  <= v.mSlave;
@@ -621,7 +621,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs       
+      -- Registered Outputs
       sMaster  <= r.sMaster;
       txMaster <= r.txMaster;
 
@@ -634,7 +634,7 @@ begin
       end if;
    end process seq;
 
-   Fifo_Cache : entity work.AxiStreamFifoV2
+   Fifo_Cache : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -643,14 +643,14 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => ite(JUMBO_G, 2, 1),
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB per FIFO
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
@@ -663,17 +663,19 @@ begin
          mAxisMaster => mMaster,
          mAxisSlave  => mSlave);
 
-   Fifo_Trans : entity work.FifoSync
+   Fifo_Trans : entity surf.Fifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 69,
-         ADDR_WIDTH_G => 4,
-         FULL_THRES_G => 8)
+         TPD_G           => TPD_G,
+         GEN_SYNC_FIFO_G => true,
+         SYNTH_MODE_G    => SYNTH_MODE_G,
+         MEMORY_TYPE_G   => "distributed",
+         FWFT_EN_G       => true,
+         DATA_WIDTH_G    => 69,
+         ADDR_WIDTH_G    => 4,
+         FULL_THRES_G    => 8)
       port map (
-         clk                => ethClk,
          rst                => ethRst,
+         wr_clk             => ethClk,
          --Write Ports (wr_clk domain)
          wr_en              => r.calc(0).step(EMAC_CSUM_PIPELINE_C),
          din(68)            => r.fragDet(EMAC_CSUM_PIPELINE_C+1),
@@ -687,6 +689,7 @@ begin
          din(15 downto 0)   => r.protCsum,
          prog_full          => tranPause,
          --Read Ports (rd_clk domain)
+         rd_clk             => ethClk,
          rd_en              => r.tranRd,
          dout(68)           => fragDet,
          dout(67)           => eofeDet,
@@ -699,7 +702,7 @@ begin
          dout(15 downto 0)  => protCsum,
          valid              => tranValid);
 
-   U_TxPipeline : entity work.AxiStreamPipeline
+   U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1)

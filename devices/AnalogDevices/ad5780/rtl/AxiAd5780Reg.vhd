@@ -1,17 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd5780Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-04-18
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD5780 DAC IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,17 +17,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd5780Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd5780Pkg.all;
 
 entity AxiAd5780Reg is
    generic (
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      USE_DSP48_G        : string                := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices      
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz      
+      SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz
    port (
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -43,7 +41,7 @@ entity AxiAd5780Reg is
       -- Global Signals
       axiClk         : in  sl;
       axiRst         : in  sl;
-      dacRst         : out sl);      
+      dacRst         : out sl);
 end AxiAd5780Reg;
 
 architecture rtl of AxiAd5780Reg is
@@ -58,7 +56,7 @@ architecture rtl of AxiAd5780Reg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       '1',
       AXI_AD5780_CONFIG_INIT_C,
@@ -77,7 +75,7 @@ begin
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, dacRefreshRate, r, regIn) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
@@ -133,7 +131,6 @@ begin
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Decode address and assign read data
-         v.axiReadSlave.rdata := (others => '0');
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"10" =>
                v.axiReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := dacRefreshRate;
@@ -178,7 +175,7 @@ begin
       regOut <= r.regOut;
 
       dacRst <= r.dacRst;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -188,25 +185,24 @@ begin
       end if;
    end process seq;
 
-   -------------------------------            
+   -------------------------------
    -- Synchronization: Outputs
    -------------------------------
    config <= regOut;
 
    -------------------------------
    -- Synchronization: Inputs
-   ------------------------------- 
+   -------------------------------
    regIn.dacData <= status.dacData;
 
-   SyncTrigRate_Inst : entity work.SyncTrigRate
+   SyncTrigRate_Inst : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
          COMMON_CLK_G   => true,
          IN_POLARITY_G  => '1',
          REF_CLK_FREQ_G => AXI_CLK_FREQ_G,
          REFRESH_RATE_G => 1.0E+0,
-         USE_DSP48_G    => USE_DSP48_G,
-         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G)     
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G)
       port map (
          -- Trigger Input (locClk domain)
          trigIn          => status.dacUpdated,
@@ -216,6 +212,6 @@ begin
          -- Clocks
          locClkEn        => '1',
          locClk          => axiClk,
-         refClk          => axiClk);        
+         refClk          => axiClk);
 
 end rtl;

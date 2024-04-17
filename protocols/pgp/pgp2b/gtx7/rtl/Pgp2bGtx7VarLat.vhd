@@ -1,27 +1,28 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7VarLat.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-01-14
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Variable Latency Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Pgp2bGtx7VarLat is
    generic (
@@ -49,6 +50,7 @@ entity Pgp2bGtx7VarLat is
       RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
 
       -- RX Equalizer Attributes
+      RX_EQUALIZER_G   : string     := "DFE";        -- Or "LPM"
       RX_DFE_KL_CFG2_G : bit_vector := x"3010D90C";  -- Set by wizard
       -- Configure PLL sources
       TX_PLL_G         : string     := "QPLL";
@@ -111,24 +113,24 @@ entity Pgp2bGtx7VarLat is
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor      : in  slv(4 downto 0)                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                  := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk          : in  sl                               := '0';
       axilRst          : in  sl                               := '0';
       axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave    : out AxiLiteReadSlaveType;
       axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave   : out AxiLiteWriteSlaveType);             
+      axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp2bGtx7VarLat;
 
 architecture mapping of Pgp2bGtx7VarLat is
 
 begin
 
-   MuliLane_Inst : entity work.Pgp2bGtx7MultiLane
+   MuliLane_Inst : entity surf.Pgp2bGtx7MultiLane
       generic map (
          -- Sim Generics
          TPD_G                 => TPD_G,
@@ -149,6 +151,7 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
          -- RX Equalizer Attributes
+         RX_EQUALIZER_G        => RX_EQUALIZER_G,
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
          -- Configure PLL sources
          TX_PLL_G              => TX_PLL_G,
@@ -168,7 +171,7 @@ begin
          TX_POLARITY_G         => TX_POLARITY_G,
          RX_POLARITY_G         => RX_POLARITY_G,
          TX_ENABLE_G           => TX_ENABLE_G,
-         RX_ENABLE_G           => RX_ENABLE_G)  
+         RX_ENABLE_G           => RX_ENABLE_G)
       port map (
          -- GT Clocking
          stableClk           => stableClk,
@@ -209,16 +212,16 @@ begin
          pgpRxMasters        => pgpRxMasters,
          pgpRxMasterMuxed    => pgpRxMasterMuxed,
          pgpRxCtrl           => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor         => txPreCursor,
          txPostCursor        => txPostCursor,
          txDiffCtrl          => txDiffCtrl,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk             => axilClk,
          axilRst             => axilRst,
          axilReadMasters(0)  => axilReadMaster,
          axilReadSlaves(0)   => axilReadSlave,
          axilWriteMasters(0) => axilWriteMaster,
-         axilWriteSlaves(0)  => axilWriteSlave);                 
+         axilWriteSlaves(0)  => axilWriteSlave);
 
 end mapping;

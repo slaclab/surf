@@ -1,8 +1,5 @@
 -------------------------------------------------------------------------------
--- File       : Gtp7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2012-11-06
--- Last update: 2016-12-16
 -------------------------------------------------------------------------------
 -- Description:
 -- Used in conjunction for a Xilinx 7 Series GTX.
@@ -14,14 +11,14 @@
 -- so that a new CDR lock can be obtained. The GTX in PMA Slide Mode shifts
 -- the phase of the output clock only every other slide. This module's
 -- purpose is to obtain an output clock that exactly matches the phase of the
--- commas. 
+-- commas.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,7 +26,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Gtp7RxFixedLatPhaseAligner is
 
@@ -83,7 +82,7 @@ architecture rtl of Gtp7RxFixedLatPhaseAligner is
 begin
 
    -- Must use async resets since rxUsrClk can drop out
-   RstSync_1 : entity work.RstSync
+   RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',

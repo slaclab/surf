@@ -1,20 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : SrpV3Axi.vhd
+-- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-04-14
--- Last update: 2016-05-04
 -------------------------------------------------------------------------------
 -- Description: SLAC Register Protocol Version 3, AXI Interface
---
--- Documentation: https://confluence.slac.stanford.edu/x/cRmVD
---
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,12 +19,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.SrpV3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.SrpV3Pkg.all;
 
 entity SrpV3Axi is
    generic (
@@ -38,31 +36,29 @@ entity SrpV3Axi is
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := true;
       GEN_SYNC_FIFO_G     : boolean                 := false;
-      ALTERA_SYN_G        : boolean                 := false;
-      ALTERA_RAM_G        : string                  := "M9K";
       AXI_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
-      AXI_CONFIG_G        : AxiConfigType           := (33, 4, 1, 8);
+      AXI_CONFIG_G        : AxiConfigType;
       AXI_BURST_G         : slv(1 downto 0)         := "01";
       AXI_CACHE_G         : slv(3 downto 0)         := "1111";
       ACK_WAIT_BVALID_G   : boolean                 := true;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       UNALIGNED_ACCESS_G  : boolean                 := false;
       BYTE_ACCESS_G       : boolean                 := false;
-      WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
-      READ_EN_G           : boolean                 := true);      -- Read ops enabled
+      WRITE_EN_G          : boolean                 := true;  -- Write ops enabled
+      READ_EN_G           : boolean                 := true);  -- Read ops enabled
    port (
-      -- AXIS Slave Interface (sAxisClk domain) 
+      -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk       : in  sl;
       sAxisRst       : in  sl;
       sAxisMaster    : in  AxiStreamMasterType;
       sAxisSlave     : out AxiStreamSlaveType;
       sAxisCtrl      : out AxiStreamCtrlType;
-      -- AXIS Master Interface (mAxisClk domain) 
+      -- AXIS Master Interface (mAxisClk domain)
       mAxisClk       : in  sl;
       mAxisRst       : in  sl;
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType;
-      -- Master AXI Interface  (mAxiClk domain) 
+      -- Master AXI Interface  (mAxiClk domain)
       axiClk         : in  sl;
       axiRst         : in  sl;
       axiWriteMaster : out AxiWriteMasterType;
@@ -74,13 +70,13 @@ end SrpV3Axi;
 architecture rtl of SrpV3Axi is
 
    constant DMA_AXIS_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 4,
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 0,              
-      TUSER_MODE_C  => TUSER_NONE_C);
+      TSTRB_EN_C    => AXI_STREAM_CONFIG_G.TSTRB_EN_C,
+      TDATA_BYTES_C => AXI_CONFIG_G.DATA_BYTES_C,  -- Matches the AXI4 DATA width
+      TDEST_BITS_C  => AXI_STREAM_CONFIG_G.TDEST_BITS_C,
+      TID_BITS_C    => AXI_STREAM_CONFIG_G.TID_BITS_C,
+      TKEEP_MODE_C  => AXI_STREAM_CONFIG_G.TKEEP_MODE_C,
+      TUSER_BITS_C  => AXI_STREAM_CONFIG_G.TUSER_BITS_C,
+      TUSER_MODE_C  => AXI_STREAM_CONFIG_G.TUSER_MODE_C);
 
    type RegType is record
       srpAck   : SrpV3AckType;
@@ -109,7 +105,7 @@ architecture rtl of SrpV3Axi is
 
 begin
 
-   U_SrpV3Core_1 : entity work.SrpV3Core
+   U_SrpV3Core_1 : entity surf.SrpV3Core
       generic map (
          TPD_G               => TPD_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
@@ -117,8 +113,6 @@ begin
          TX_VALID_THOLD_G    => TX_VALID_THOLD_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          SRP_CLK_FREQ_G      => AXI_CLK_FREQ_G,
          AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_G,
          UNALIGNED_ACCESS_G  => UNALIGNED_ACCESS_G,
@@ -144,7 +138,7 @@ begin
          srpRdMaster => srpRdMaster,    -- [in]
          srpRdSlave  => srpRdSlave);    -- [out]
 
-   U_AxiStreamDmaWrite_1 : entity work.AxiStreamDmaWrite
+   U_AxiStreamDmaWrite_1 : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
@@ -164,7 +158,7 @@ begin
          axiWriteSlave  => axiWriteSlave,       -- [in]
          axiWriteCtrl   => AXI_CTRL_UNUSED_C);  -- [in]
 
-   U_AxiStreamDmaRead_1 : entity work.AxiStreamDmaRead
+   U_AxiStreamDmaRead_1 : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,
@@ -184,7 +178,7 @@ begin
          axiReadSlave  => axiReadSlave);             -- [in]
 
 
-   comb : process (r, axiRst, rdDmaAck, srpReq, wrDmaAck) is
+   comb : process (axiRst, r, rdDmaAck, srpReq, wrDmaAck) is
       variable v         : RegType;
       variable addrError : sl;
    begin
@@ -199,18 +193,20 @@ begin
 
       v.wrDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_WRITE_C or srpReq.opcode = SRP_POSTED_WRITE_C) and not addrError;
       v.wrDmaReq.address := srpReq.addr;
+      v.wrDmaReq.prot    := srpReq.prot;
       -- This helps the DMA engines trim their unaligned access logic
       if (UNALIGNED_ACCESS_G = false and BYTE_ACCESS_G = false) then
          v.wrDmaReq.address(1 downto 0) := (others => '0');
       end if;
       v.wrDmaReq.maxSize := srpReq.reqSize + 1;
 
-      v.rdDmaReq.request   := srpReq.request and toSl(srpReq.opcode = SRP_READ_C) and not addrError;
-      v.rdDmaReq.address   := srpReq.addr;
+      v.rdDmaReq.request := srpReq.request and toSl(srpReq.opcode = SRP_READ_C) and not addrError;
+      v.rdDmaReq.address := srpReq.addr;
+      v.rdDmaReq.prot    := srpReq.prot;
       if (UNALIGNED_ACCESS_G = false and BYTE_ACCESS_G = false) then
          v.rdDmaReq.address(1 downto 0) := (others => '0');
       end if;
-      v.rdDmaReq.size      := srpReq.reqSize + 1;
+      v.rdDmaReq.size := srpReq.reqSize + 1;
 
 
       v.srpAck.done := '0';
@@ -236,7 +232,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-   -- Outputs    
+   -- Outputs
    end process comb;
 
    seq : process (axiClk) is

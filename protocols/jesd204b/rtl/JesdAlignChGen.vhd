@@ -1,30 +1,27 @@
 -------------------------------------------------------------------------------
--- File       : JesdAlignChGen.vhd
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2015-04-15
--- Last update: 2016-02-22
 -------------------------------------------------------------------------------
 -- Description:  Alignment character generator
 --     Scrambles incoming data if enabled
 --     Inverts incoming data if enabled
 --
 --     Replaces data with F and A characters.
---     A(K28.3) - x"7C" - Inserted at the end of a multi-frame.   
+--     A(K28.3) - x"7C" - Inserted at the end of a multi-frame.
 --     F(K28.7) - x"FC" - Inserted at the end of a frame.
---     
+--
 --     Note: Character replacement mechanism is different weather scrambler is enabled or disabled.
 --     Disabled: The characters are inserted if two corresponding octets in consecutive samples have the same value.
---     Enabled:  The characters are inserted it the corresponding octet has the same value as the inserted character.    
---     
+--     Enabled:  The characters are inserted it the corresponding octet has the same value as the inserted character.
+--
 --     3 c-c data latency
---       
+--
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -33,8 +30,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.jesd204bpkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.jesd204bpkg.all;
 
 entity JesdAlignChGen is
    generic (
@@ -44,7 +43,7 @@ entity JesdAlignChGen is
       clk : in sl;
       rst : in sl;
 
-      -- Enable counter      
+      -- Enable counter
       enable_i : in sl;
 
       -- Enable scrambling/descrambling
@@ -58,11 +57,11 @@ entity JesdAlignChGen is
 
       -- Invert ADC data
       inv_i     : in sl:='0';
-      
-      -- 
+
+      --
       sampleData_i : in slv(GT_WORD_SIZE_C*8-1 downto 0);
 
-      -- Outs    
+      -- Outs
       sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0);
       sampleK_o    : out slv(GT_WORD_SIZE_C-1 downto 0)
       );
@@ -85,8 +84,8 @@ architecture rtl of JesdAlignChGen is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      sampleDataReg => (others => '0'), 
-      sampleDataInv => (others => '0'),             
+      sampleDataReg => (others => '0'),
+      sampleDataInv => (others => '0'),
       sampleDataD1  => (others => '0'),
       sampleDataD2  => (others => '0'),
       sampleKD1     => (others => '0'),
@@ -111,18 +110,24 @@ begin
       variable v_twoCharBuff : slv((2*GT_WORD_SIZE_C) -1 downto 0);
    begin
       v := r;
-      
+
       -- Register data
       v.sampleDataReg := sampleData_i;
-      
+
       -- Invert Data if enabled
       if (inv_i = '1') then
-      -- Invert sample data      
+      -- Invert sample data
          v.sampleDataInv :=  invData(r.sampleDataReg, F_G, GT_WORD_SIZE_C);
+
+         -- +1 correction (https://jira.slac.stanford.edu/browse/ESLMPS-94)
+         for i in F_G-1 downto 0 loop
+            v.sampleDataInv(i*8*F_G+8*F_G-1 downto i*8*F_G) := v.sampleDataInv(i*8*F_G+8*F_G-1 downto i*8*F_G) - 1;
+         end loop;
+
       else
          v.sampleDataInv :=  r.sampleDataReg;
       end if;
-     
+
       -- Scramble Data if enabled
       if scrEnable_i = '1' then
          for i in (GT_WORD_SIZE_C*8)-1 downto 0 loop
@@ -133,7 +138,7 @@ begin
             v.lfsr := v.lfsr((GT_WORD_SIZE_C*8)-2 downto 0) & v.sampleDataD1(i);
          end loop;
       else
-         -- Use the data from the input if scrambling disabled 
+         -- Use the data from the input if scrambling disabled
          v.sampleDataD1 := r.sampleDataInv;
       end if;
 
@@ -155,7 +160,7 @@ begin
             if scrEnable_i = '1' then
                if (v_twoWordBuff(7 downto 0) = A_CHAR_C) then
                   v_twoCharBuff(0) := '1';
-               end if;            
+               end if;
             else
                if (v_twoWordBuff((F_G*8)+7 downto (F_G*8)) = v_twoWordBuff(7 downto 0)) then
                   v_twoWordBuff(7 downto 0) := A_CHAR_C;
@@ -171,8 +176,8 @@ begin
                   v_twoCharBuff((i*F_G+F_G)) = '0')
                then
                   v_twoCharBuff(i*F_G) := '1';
-               end if;            
-            else   
+               end if;
+            else
                if (v_twoWordBuff((i*F_G*8)+(F_G*8)+7 downto (i*F_G*8)+(F_G*8)) = v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) and
                    v_twoCharBuff((i*F_G+F_G)) = '0')
                then
@@ -187,7 +192,7 @@ begin
          v := REG_INIT_C;
       end if;
 
-      -- Buffer char for one clock cycle     
+      -- Buffer char for one clock cycle
       v.sampleKD1 := v_twoCharBuff((GT_WORD_SIZE_C)-1 downto 0);
 
       rin <= v;

@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7FixedLatWrapper.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2014-01-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Fixed Latency Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,65 +18,80 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiLitePkg.all;
-use work.Gtx7CfgPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Gtx7CfgPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity Pgp2bGtx7FixedLatWrapper is
    generic (
-      TPD_G                   : time                 := 1 ns;
-      SIM_GTRESET_SPEEDUP_G   : string               := "FALSE";
-      SIM_VERSION_G           : string               := "4.0";
-      SIMULATION_G            : boolean              := false;
+      TPD_G                   : time                   := 1 ns;
+      COMMON_CLK_G            : boolean                := false;
+      SIM_GTRESET_SPEEDUP_G   : string                 := "FALSE";
+      SIM_VERSION_G           : string                 := "4.0";
+      SIMULATION_G            : boolean                := false;
       -- PGP Settings
-      VC_INTERLEAVE_G         : integer              := 0;         -- No interleave Frames
-      PAYLOAD_CNT_TOP_G       : integer              := 7;         -- Top bit for payload counter
-      NUM_VC_EN_G             : integer range 1 to 4 := 4;
-      TX_POLARITY_G           : sl                   := '0';
-      RX_POLARITY_G           : sl                   := '0';
-      TX_ENABLE_G             : boolean              := true;      -- Enable TX direction
-      RX_ENABLE_G             : boolean              := true;      -- Enable RX direction
+      VC_INTERLEAVE_G         : integer                := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G       : integer                := 7;  -- Top bit for payload counter
+      NUM_VC_EN_G             : integer range 1 to 4   := 4;
+      EXT_RST_POLARITY_G      : sl                     := '1';
+      TX_POLARITY_G           : sl                     := '0';
+      RX_POLARITY_G           : sl                     := '0';
+      TX_ENABLE_G             : boolean                := true;           -- Enable TX direction
+      RX_ENABLE_G             : boolean                := true;           -- Enable RX direction
       -- CM Configurations
-      TX_CM_EN_G              : boolean              := false;
-      TX_CM_TYPE_G            : string               := "MMCM";
-      TX_CM_CLKIN_PERIOD_G    : real                 := 8.000;
-      TX_CM_DIVCLK_DIVIDE_G   : natural              := 8;
-      TX_CM_CLKFBOUT_MULT_F_G : real                 := 8.000;
-      TX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
-      RX_CM_EN_G              : boolean              := false;
-      RX_CM_TYPE_G            : string               := "MMCM";
-      RX_CM_CLKIN_PERIOD_G    : real                 := 8.000;
-      RX_CM_DIVCLK_DIVIDE_G   : natural              := 8;
-      RX_CM_CLKFBOUT_MULT_F_G : real                 := 8.000;
-      RX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
+      TX_CM_EN_G              : boolean                := false;
+      TX_CM_TYPE_G            : string                 := "MMCM";
+      TX_CM_BANDWIDTH_G       : string                 := "OPTIMIZED";
+      TX_CM_CLKIN_PERIOD_G    : real                   := 8.000;
+      TX_CM_DIVCLK_DIVIDE_G   : natural                := 8;
+      TX_CM_CLKFBOUT_MULT_F_G : real                   := 8.000;
+      TX_CM_CLKFBOUT_MULT_G   : integer range 2 to 64  := 8;
+      TX_CM_CLKOUT_DIVIDE_F_G : real                   := 8.000;
+      TX_CM_CLKOUT_DIVIDE_G   : integer range 1 to 128 := 8;
+      RX_CM_EN_G              : boolean                := false;
+      RX_CM_TYPE_G            : string                 := "MMCM";
+      RX_CM_BANDWIDTH_G       : string                 := "OPTIMIZED";
+      RX_CM_CLKIN_PERIOD_G    : real                   := 8.000;
+      RX_CM_DIVCLK_DIVIDE_G   : natural                := 8;
+      RX_CM_CLKFBOUT_MULT_F_G : real                   := 8.000;
+      RX_CM_CLKFBOUT_MULT_G   : integer range 2 to 64  := 8;
+      RX_CM_CLKOUT_DIVIDE_F_G : real                   := 8.000;
+      RX_CM_CLKOUT_DIVIDE_G   : integer range 1 to 128 := 8;
       -- MGT Configurations
-      PMA_RSV_G               : bit_vector           := x"00018480";
-      RX_OS_CFG_G             : bit_vector           := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G             : bit_vector           := x"03000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G            : sl                   := '0';       -- Set by wizard
-      RX_DFE_KL_CFG2_G        : bit_vector           := x"3008E56A";
+      PMA_RSV_G               : bit_vector             := x"00018480";
+      RX_OS_CFG_G             : bit_vector             := "0000010000000";        -- Set by wizard
+      RXCDR_CFG_G             : bit_vector             := x"03000023ff40200020";  -- Set by wizard
+      RXDFEXYDEN_G            : sl                     := '0';            -- Set by wizard
+      RX_DFE_KL_CFG2_G        : bit_vector             := x"3008E56A";
       -- PLL and clock configurations
-      STABLE_CLK_SRC_G        : string               := "gtClk0";  -- or "gtClk0" or "gtClk1"
-      TX_REFCLK_SRC_G         : string               := "gtClk0";
-      RX_REFCLK_SRC_G         : string               := "gtClk1";
-      CPLL_CFG_G              : Gtx7CPllCfgType      := getGtx7CPllCfg(250.0E6, 3.125E9);
-      QPLL_CFG_G              : Gtx7QPllCfgType      := getGtx7QPllCfg(156.25e6, 3.125e9);
-      TX_PLL_G                : string               := "QPLL";
-      RX_PLL_G                : string               := "CPLL");
+      STABLE_CLK_SRC_G        : string                 := "stableClkIn";  -- or "gtClk0" or "gtClk1"
+      TX_REFCLK_SRC_G         : string                 := "gtClk0";
+      TX_USER_CLK_SRC_G       : string                 := "txRefClk";     -- or "txOutClk"
+      TX_BUF_EN_G             : boolean                := false;
+      TX_OUTCLK_SRC_G         : string                 := "PLLREFCLK";
+      TX_PHASE_ALIGN_G        : string                 := "MANUAL";
+      RX_REFCLK_SRC_G         : string                 := "gtClk1";
+      CPLL_CFG_G              : Gtx7CPllCfgType        := getGtx7CPllCfg(250.0E6, 3.125E9);
+      QPLL_CFG_G              : Gtx7QPllCfgType        := getGtx7QPllCfg(156.25e6, 3.125e9);
+      TX_PLL_G                : string                 := "QPLL";
+      RX_PLL_G                : string                 := "CPLL");
    port (
       -- Manual Reset
       stableClkIn      : in  sl                               := '0';
-      extRst           : in  sl;
+      extRst           : in  sl                               := '0';
       -- Status and Clock Signals
       txPllLock        : out sl;
       rxPllLock        : out sl;
       -- Output internally configured clocks
       pgpTxClkOut      : out sl;
+      pgpTxRstOut      : out sl;
       pgpRxClkOut      : out sl;
       pgpRxRstOut      : out sl;
       stableClkOut     : out sl;
@@ -93,7 +107,7 @@ entity Pgp2bGtx7FixedLatWrapper is
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
+      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);
       -- GT Pins
       gtgClk           : in  sl                               := '0';
       gtClk0P          : in  sl                               := '0';
@@ -104,11 +118,11 @@ entity Pgp2bGtx7FixedLatWrapper is
       gtTxN            : out sl;
       gtRxP            : in  sl;
       gtRxN            : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor      : in  slv(4 downto 0)                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                  := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk          : in  sl                               := '0';
       axilRst          : in  sl                               := '0';
       axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
@@ -121,8 +135,10 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
 
    constant GTX7_CFG_C : Gtx7CfgType := getGtx7Cfg(TX_PLL_G, RX_PLL_G, CPLL_CFG_G, QPLL_CFG_G);
 
-   signal gtClk0 : sl := '0';
-   signal gtClk1 : sl := '0';
+   signal gtClk0     : sl := '0';
+   signal gtClk0Div2 : sl;
+   signal gtClk1     : sl := '0';
+   signal gtClk1Div2 : sl;
 
    signal txRefClk : sl := '0';
    signal txOutClk : sl := '0';
@@ -133,9 +149,11 @@ architecture rtl of Pgp2bGtx7FixedLatWrapper is
    signal stableClk     : sl := '0';
    signal stableRst     : sl := '0';
 
-   signal pgpTxClkBase : sl;
-   signal pgpTxClk     : sl;
-   signal pgpTxReset   : sl;
+   signal pgpTxClkBase    : sl;
+   signal pgpTxClk        : sl;
+   signal pgpTxReset      : sl;
+   signal pgpTxMmcmReset  : sl;
+   signal pgpTxMmcmLocked : sl;
 
    signal pgpRxRecClk     : sl;
    signal pgpRxRecClkRst  : sl;
@@ -168,7 +186,7 @@ begin
             I     => gtClk0P,
             IB    => gtClk0N,
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => gtClk0Div2,
             O     => gtClk0);
    end generate;
 
@@ -178,7 +196,7 @@ begin
             I     => gtClk1P,
             IB    => gtClk1N,
             CEB   => '0',
-            ODIV2 => open,
+            ODIV2 => gtClk1Div2,
             O     => gtClk1);
    end generate;
 
@@ -186,7 +204,9 @@ begin
    -- Create the stable clock and reset
    -------------------------------------------------------------------------------------------------
    stableClkRef <= gtClk0 when STABLE_CLK_SRC_G = "gtClk0" else
-                   gtClk1 when STABLE_CLK_SRC_G = "gtClk1" else
+                   gtClk0Div2 when STABLE_CLK_SRC_G = "gtClk0Div2" else
+                   gtClk1     when STABLE_CLK_SRC_G = "gtClk1" else
+                   gtClk1Div2 when STABLE_CLK_SRC_G = "gtClk1Div2" else
                    '0';
 
 
@@ -199,12 +219,12 @@ begin
                 stableClkRefG;
 
 
-   -- Power Up Reset      
-   PwrUpRst_Inst : entity work.PwrUpRst
+   -- Power Up Reset
+   PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G          => TPD_G,
          SIM_SPEEDUP_G  => SIMULATION_G,
-         IN_POLARITY_G  => '1',
+         IN_POLARITY_G  => EXT_RST_POLARITY_G,
          OUT_POLARITY_G => '1')
       port map (
          arst   => extRst,
@@ -231,40 +251,52 @@ begin
 
 
    -- pgpTxClk and stable clock might be the same
-   pgpTxClkBase <= stableClk when STABLE_CLK_SRC_G = TX_REFCLK_SRC_G else
+   pgpTxClkBase <= txOutClk when TX_USER_CLK_SRC_G = "txOutClk" else
+                   stableClk  when STABLE_CLK_SRC_G = TX_USER_CLK_SRC_G else
+                   gtClk0     when TX_USER_CLK_SRC_G = "gtClk0" else
+                   gtClk0Div2 when TX_USER_CLK_SRC_G = "gtClk0Div2" else
+                   gtClk1     when TX_USER_CLK_SRC_G = "gtClk1" else
+                   gtClk1Div2 when TX_USER_CLK_SRC_G = "gtClk1Div2" else
                    txRefClk;
 
    TX_CM_GEN : if (TX_CM_EN_G) generate
-      ClockManager7_TX : entity work.ClockManager7
+      ClockManager7_TX : entity surf.ClockManager7
          generic map(
             TPD_G              => TPD_G,
             TYPE_G             => TX_CM_TYPE_G,
-            INPUT_BUFG_G       => (TX_REFCLK_SRC_G /= STABLE_CLK_SRC_G),
+            INPUT_BUFG_G       => ((TX_USER_CLK_SRC_G = "txOutClk") or (TX_REFCLK_SRC_G /= STABLE_CLK_SRC_G)),
             FB_BUFG_G          => true,
             RST_IN_POLARITY_G  => '1',
             NUM_CLOCKS_G       => 1,
             -- MMCM attributes
-            BANDWIDTH_G        => "OPTIMIZED",
+            BANDWIDTH_G        => TX_CM_BANDWIDTH_G,
             CLKIN_PERIOD_G     => TX_CM_CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G    => TX_CM_DIVCLK_DIVIDE_G,
             CLKFBOUT_MULT_F_G  => TX_CM_CLKFBOUT_MULT_F_G,
+            CLKFBOUT_MULT_G    => TX_CM_CLKFBOUT_MULT_G,
             CLKOUT0_DIVIDE_F_G => TX_CM_CLKOUT_DIVIDE_F_G,
+            CLKOUT0_DIVIDE_G   => TX_CM_CLKOUT_DIVIDE_G,
             CLKOUT0_RST_HOLD_G => 16)
          port map(
             clkIn     => pgpTxClkBase,
-            rstIn     => extRst,
+            rstIn     => pgpTxMmcmReset,
             clkOut(0) => pgpTxClk,
-            rstOut(0) => pgpTxReset);
+            locked    => pgpTxMmcmLocked);
+
+      pgpTxReset <= extRst;
+
    end generate TX_CM_GEN;
 
    NO_TX_CM_GEN : if (not TX_CM_EN_G) generate
-      PGP_TX_CLK_BUFG : if (TX_REFCLK_SRC_G /= STABLE_CLK_SRC_G) generate
+      pgpTxMmcmLocked <= '1';
+
+      PGP_TX_CLK_BUFG : if (TX_USER_CLK_SRC_G = "txOutClk") generate
          BUFG_pgpTxClk : BUFG
             port map (
                i => pgpTxClkBase,
                o => pgpTxClk);
 
-         RstSync_pgpTxRst : entity work.RstSync
+         RstSync_pgpTxRst : entity surf.RstSync
             generic map (
                TPD_G           => TPD_G,
                RELEASE_DELAY_G => 16,
@@ -273,15 +305,16 @@ begin
                clk      => pgpTxClk,     -- [in]
                asyncRst => extRst,       -- [in]
                syncRst  => pgpTxReset);  -- [out]
+
       end generate PGP_TX_CLK_BUFG;
-      NO_PGP_TX_CLK_BUFG : if (TX_REFCLK_SRC_G = STABLE_CLK_SRC_G) generate
+      NO_PGP_TX_CLK_BUFG : if (TX_USER_CLK_SRC_G /= "txOutClk") generate
          pgpTxClk   <= pgpTxClkBase;
          pgpTxReset <= stableRst;
       end generate;
    end generate NO_TX_CM_GEN;
 
    -- PGP RX Reset
-   RstSync_pgpTxRst : entity work.RstSync
+   RstSync_pgpRxRst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 16,
@@ -309,7 +342,7 @@ begin
    rxPllLock <= ite((RX_PLL_G = "QPLL"), qPllLock, gtCPllLock);
 
    QPLL_GEN : if (TX_PLL_G = "QPLL" or RX_PLL_G = "QPLL") generate
-      QPllCore_1 : entity work.Gtx7QuadPll
+      QPllCore_1 : entity surf.Gtx7QuadPll
          generic map (
             QPLL_REFCLK_SEL_G  => "001",
             QPLL_FBDIV_G       => QPLL_CFG_G.QPLL_FBDIV_G,
@@ -325,9 +358,10 @@ begin
             qPllReset      => qPllReset);
    end generate QPLL_GEN;
 
-   Pgp2bGtx7Fixedlat_Inst : entity work.Pgp2bGtx7Fixedlat
+   Pgp2bGtx7Fixedlat_Inst : entity surf.Pgp2bGtx7Fixedlat
       generic map (
          TPD_G                 => TPD_G,
+         COMMON_CLK_G          => COMMON_CLK_G,
          SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
          SIM_VERSION_G         => SIM_VERSION_G,
          SIMULATION_G          => SIMULATION_G,
@@ -345,9 +379,9 @@ begin
          RXCDR_CFG_G           => RXCDR_CFG_G,
          RXDFEXYDEN_G          => RXDFEXYDEN_G,
          RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
-         TX_BUF_EN_G           => false,
-         TX_OUTCLK_SRC_G       => "PLLREFCLK",
-         TX_PHASE_ALIGN_G      => "MANUAL",
+         TX_BUF_EN_G           => TX_BUF_EN_G,
+         TX_OUTCLK_SRC_G       => TX_OUTCLK_SRC_G,
+         TX_PHASE_ALIGN_G      => TX_PHASE_ALIGN_G,
          TX_PLL_G              => TX_PLL_G,
          RX_PLL_G              => RX_PLL_G,
          VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
@@ -377,8 +411,11 @@ begin
          -- Tx Clocking
          pgpTxReset       => pgpTxReset,
          pgpTxClk         => pgpTxClk,
+         pgpTxMmcmReset   => pgpTxMmcmReset,
+         pgpTxMmcmLocked  => pgpTxMmcmLocked,
+
          -- Rx clocking
-         pgpRxReset       => pgpRxReset,   --extRst,    
+         pgpRxReset       => pgpRxReset,   --extRst,
          pgpRxRecClk      => pgpRxRecClk,
          pgpRxRecClkRst   => pgpRxRecClkRst,
          pgpRxClk         => pgpRxClkLoc,  -- RecClk fed back, optionally though MMCM
@@ -397,11 +434,11 @@ begin
          pgpRxMasters     => pgpRxMasters,
          pgpRxMasterMuxed => pgpRxMasterMuxed,
          pgpRxCtrl        => pgpRxCtrl,
-         -- Debug Interface 
+         -- Debug Interface
          txPreCursor      => txPreCursor,
          txPostCursor     => txPostCursor,
          txDiffCtrl       => txDiffCtrl,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilClk          => axilClk,
          axilRst          => axilRst,
          axilReadMaster   => axilReadMaster,
@@ -413,18 +450,20 @@ begin
    -- Clock manager to clean up recovered clock
    -------------------------------------------------------------------------------------------------
    RxClkMmcmGen : if (RX_CM_EN_G) generate
-      ClockManager7_1 : entity work.ClockManager7
+      ClockManager7_1 : entity surf.ClockManager7
          generic map (
             TPD_G              => TPD_G,
             TYPE_G             => RX_CM_TYPE_G,
             INPUT_BUFG_G       => false,
             FB_BUFG_G          => true,
             NUM_CLOCKS_G       => 1,
-            BANDWIDTH_G        => "OPTIMIZED",
+            BANDWIDTH_G        => RX_CM_BANDWIDTH_G,
             CLKIN_PERIOD_G     => RX_CM_CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G    => RX_CM_DIVCLK_DIVIDE_G,
             CLKFBOUT_MULT_F_G  => RX_CM_CLKFBOUT_MULT_F_G,
+            CLKFBOUT_MULT_G    => RX_CM_CLKFBOUT_MULT_G,
             CLKOUT0_DIVIDE_F_G => RX_CM_CLKOUT_DIVIDE_F_G,
+            CLKOUT0_DIVIDE_G   => RX_CM_CLKOUT_DIVIDE_G,
             CLKOUT0_RST_HOLD_G => 16)
          port map (
             clkIn     => pgpRxRecClk,
@@ -433,7 +472,7 @@ begin
             locked    => pgpRxMmcmLocked);
 
       -- I think this is right, sync reset to mmcm clk
-      RstSync_1 : entity work.RstSync
+      RstSync_1 : entity surf.RstSync
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -449,6 +488,8 @@ begin
    end generate RxClkNoMmcmGen;
 
    pgpRxClkOut <= pgpRxClkLoc;
+   pgpTxClkOut <= pgpTxClk;
+   pgpTxRstOut <= pgpTxReset;
 
    stableClkOut <= stableClk;
 

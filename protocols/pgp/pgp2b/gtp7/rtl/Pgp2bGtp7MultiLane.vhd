@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtp7MultiLane.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2013-06-29
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Gtp7 Variable Latency, multi-lane Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,10 +18,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -36,9 +37,9 @@ entity Pgp2bGtp7MultiLane is
       ----------------------------------------------------------------------------------------------
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
-      SIM_VERSION_G         : string               := "1.0";
+      SIM_VERSION_G         : string               := "2.0";
       STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;                    --units of seconds
-      -- Configure PLL 
+      -- Configure PLL
       RXOUT_DIV_G           : integer              := 2;
       TXOUT_DIV_G           : integer              := 2;
       RX_CLK25_DIV_G        : integer              := 7;      -- Set by wizard
@@ -48,7 +49,7 @@ entity Pgp2bGtp7MultiLane is
       RXCDR_CFG_G           : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit                  := '1';    -- Set by wizard
       RXLPM_IPCM_CFG_G      : bit                  := '0';    -- Set by wizard
-      DYNAMIC_QPLL_G        : boolean              := false;      
+      DYNAMIC_QPLL_G        : boolean              := false;
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
       -- Configure Buffer usage
@@ -73,7 +74,7 @@ entity Pgp2bGtp7MultiLane is
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       qPllRxSelect     : in  slv(1 downto 0) := "00";
-      qPllTxSelect     : in  slv(1 downto 0) := "00";          
+      qPllTxSelect     : in  slv(1 downto 0) := "00";
       gtQPllOutRefClk  : in  slv(1 downto 0);
       gtQPllOutClk     : in  slv(1 downto 0);
       gtQPllLock       : in  slv(1 downto 0);
@@ -86,13 +87,13 @@ entity Pgp2bGtp7MultiLane is
       gtRxN            : in  slv((LANE_CNT_G-1) downto 0);    -- GT Serial Receive Negative
       -- Tx Clocking
       pgpTxReset       : in  sl;
-      pgpTxRecClk      : out sl;        -- recovered clock      
+      pgpTxRecClk      : out sl;        -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmReset   : out sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
-      pgpRxRecClk      : out sl;        -- recovered clock      
+      pgpRxRecClk      : out sl;        -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmReset   : out sl;
       pgpRxMmcmLocked  : in  sl;
@@ -110,18 +111,18 @@ entity Pgp2bGtp7MultiLane is
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
 
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor      : in  slv(4 downto 0)                                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                                  := "1000";
       drpOverride      : in  sl                                               := '0';
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk          : in  sl                                               := '0';
       axilRst          : in  sl                                               := '0';
       axilReadMasters  : in  AxiLiteReadMasterArray((LANE_CNT_G-1) downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
       axilReadSlaves   : out AxiLiteReadSlaveArray((LANE_CNT_G-1) downto 0);
       axilWriteMasters : in  AxiLiteWriteMasterArray((LANE_CNT_G-1) downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
-      axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));      
+      axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));
 
 end Pgp2bGtp7MultiLane;
 
@@ -169,7 +170,7 @@ architecture rtl of Pgp2bGtp7MultiLane is
    signal drpAddr   : Slv9Array(LANE_CNT_G-1 downto 0);
    signal drpDi     : Slv16Array(LANE_CNT_G-1 downto 0);
    signal drpDo     : Slv16Array(LANE_CNT_G-1 downto 0);
-   
+
 begin
 
    gtQPllReset    <= gtQPllResets(0);
@@ -184,7 +185,7 @@ begin
    gtRxUserResetIn <= gtRxUserReset or pgpRxReset;
    gtTxUserResetIn <= pgpTxReset;
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -228,7 +229,7 @@ begin
          rxChBondIn(i) <= rxChBondOut(i-1);
       end generate Bond_Slaves;
 
-      Gtp7Core_Inst : entity work.Gtp7Core
+      Gtp7Core_Inst : entity surf.Gtp7Core
          generic map (
             TPD_G                    => TPD_G,
             SIM_GTRESET_SPEEDUP_G    => SIM_GTRESET_SPEEDUP_G,
@@ -320,7 +321,7 @@ begin
          port map (
             stableClkIn      => stableClk,
             qPllRxSelect     => qPllRxSelect,
-            qPllTxSelect     => qPllTxSelect,            
+            qPllTxSelect     => qPllTxSelect,
             qPllRefClkIn     => gtQPllOutRefClk,
             qPllClkIn        => gtQPllOutClk,
             qPllLockIn       => gtQPllLock,
@@ -372,16 +373,16 @@ begin
             drpWe            => drpWe(i),
             drpAddr          => drpAddr(i),
             drpDi            => drpDi(i),
-            drpDo            => drpDo(i));            
+            drpDo            => drpDo(i));
 
-      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => COMMON_CLK_G,
             EN_ARBITRATION_G => true,
             TIMEOUT_G        => 4096,
             ADDR_WIDTH_G     => 9,
-            DATA_WIDTH_G     => 16)      
+            DATA_WIDTH_G     => 16)
          port map (
             -- AXI-Lite Port
             axilClk         => axilClk,
@@ -399,22 +400,22 @@ begin
             drpWe           => drpWe(i),
             drpAddr         => drpAddr(i),
             drpDi           => drpDi(i),
-            drpDo           => drpDo(i));            
+            drpDo           => drpDo(i));
 
    end generate GTP7_CORE_GEN;
 
-   GEN_RST : if (COMMON_CLK_G = false) generate   
-      U_RstSync : entity work.RstSync
+   GEN_RST : if (COMMON_CLK_G = false) generate
+      U_RstSync : entity surf.RstSync
          generic map (
-            TPD_G => TPD_G)      
+            TPD_G => TPD_G)
          port map (
             clk      => stableClk,
             asyncRst => axilRst,
-            syncRst  => stableRst);     
+            syncRst  => stableRst);
    end generate;
-   
-   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate   
-      stableRst <= axilRst; 
-   end generate;      
+
+   BYP_RST_SYNC : if (COMMON_CLK_G = true) generate
+      stableRst <= axilRst;
+   end generate;
 
 end rtl;

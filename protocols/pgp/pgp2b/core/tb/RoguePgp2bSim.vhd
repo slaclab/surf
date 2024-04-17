@@ -1,18 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : RoguePgp2bSim.vhd
--- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-12-05
--- Last update: 2017-02-02
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- Description: Wrapper on RogueStreamSim to simulate a PGP lane with 4
--- virtual channels
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: Wrapper on RogueStreamSim to simulate a PGPv3
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,153 +19,106 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp2bPkg.all;
-
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp2bPkg.all;
 
 entity RoguePgp2bSim is
-
    generic (
-      TPD_G           : time                   := 1 ns;
-      FIXED_LAT_G     : boolean                := false;
-      RX_CLK_PERIOD_G : real                   := 8.0e-9;
-      USER_ID_G       : integer range 0 to 100 := 1;
-      NUM_VC_EN_G     : integer range 1 to 4   := 4);
-
+      TPD_G         : time                        := 1 ns;
+      PORT_NUM_G    : natural range 1024 to 49151 := 9000;
+      NUM_VC_G      : integer range 1 to 16       := 4;
+      EN_SIDEBAND_G : boolean                     := true);
    port (
-      refClkP : in sl;
-      refClkM : in sl;
-
-      pgpTxClk     : out sl;
-      pgpTxRst     : out sl;
-      pgpTxIn      : in  Pgp2bTxInType := PGP2B_TX_IN_INIT_C;
-      pgpTxOut     : out Pgp2bTxOutType;
-      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
-      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0);
-
-      pgpRxClk     : out sl            := '0';  -- Used in FIXED_LAT mode
-      pgpRxRst     : out sl            := '0';
-      pgpRxIn      : in  Pgp2bRxInType := PGP2B_RX_IN_INIT_C;
-      pgpRxOut     : out Pgp2bRxOutType;
-      pgpRxMasters : out AxiStreamMasterArray(NUM_VC_EN_G-1 downto 0);
-      pgpRxSlaves  : in  AxiStreamSlaveArray(NUM_VC_EN_G-1 downto 0));
-
+      -- PGP Clock and Reset
+      pgpClk          : in  sl;
+      pgpClkRst       : in  sl;
+      -- Non VC Rx Signals
+      pgpRxIn         : in  Pgp2bRxInType;
+      pgpRxOut        : out Pgp2bRxOutType;
+      -- Non VC Tx Signals
+      pgpTxIn         : in  Pgp2bTxInType;
+      pgpTxOut        : out Pgp2bTxOutType;
+      -- Frame Transmit Interface
+      pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves     : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      -- Frame Receive Interface
+      pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpRxSlaves     : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      -- AXI-Lite Register Interface (axilClk domain)
+      axilClk         : in  sl                     := '0';  -- Stable Clock
+      axilRst         : in  sl                     := '0';
+      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_EMPTY_OK_C;
+      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_EMPTY_OK_C);
 end entity RoguePgp2bSim;
 
 architecture sim of RoguePgp2bSim is
 
-   constant RX_CLK_PERIOD_C : time := RX_CLK_PERIOD_G * (1000 ms);
+   signal txOut : Pgp2bTxOutType := PGP2B_TX_OUT_INIT_C;
+   signal rxOut : Pgp2bRxOutType := PGP2B_RX_OUT_INIT_C;
 
-   signal pgpClk : sl := '0';
-   signal pgpRst : sl := '0';
-
-   signal rxClk : sl := '0';
-   signal rxRst : sl := '0';
+   signal pgpTxMastersLoc : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
 
 begin
 
-   IBUFDS_GTE2_Inst : IBUFGDS
-      port map (
-         I  => refClkP,
-         IB => refClkM,
-         O  => pgpClk);
+   pgpTxOut <= txOut;
+   pgpRxOut <= rxOut;
 
-   PwrUpRst_Inst : entity work.PwrUpRst
-      generic map (
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '1',
-         DURATION_G     => 50)
-      port map (
-         clk    => pgpClk,
-         rstOut => pgpRst);
+   TDEST_ZERO : process (pgpTxMasters) is
+      variable tmp : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+   begin
+      tmp := pgpTxMasters;
+      for i in NUM_VC_G-1 downto 0 loop
+         tmp(i).tDest := (others => '0');
+      end loop;
+      pgpTxMastersLoc <= tmp;
 
-   pgpTxClk <= pgpClk;
-   pgpTxRst <= pgpRst;
+   end process TDEST_ZERO;
 
-
-   -- pgpRxClk is same as pgpTxClk if not in fixed lat mode
-   NORMAL : if (not FIXED_LAT_G) generate
-      pgpRxClk <= pgpClk;
-      pgpRxRst <= pgpRst;
-      rxClk    <= pgpClk;
-   end generate NORMAL;
-
-   -- If fixed late, create an internal clock to emulate recovered clock
-   FIXED_LAT : if (FIXED_LAT_G) generate
-      U_ClkRst_1 : entity work.ClkRst
-         generic map (
-            CLK_PERIOD_G    => RX_CLK_PERIOD_C,
-            CLK_DELAY_G     => 0.14159 ns,
-            RST_HOLD_TIME_G => 30 ns,
-            SYNC_RESET_G    => true)
-         port map (
-            clkP => rxClk,              -- [out]
-            rst  => rxRst);             -- [out]
-
-      pgpRxClk <= rxClk;
-      pgpRxRst <= rxRst;
-   end generate FIXED_LAT;
-
-   GEN_AXIS_LANE : for i in NUM_VC_EN_G-1 downto 0 generate
-      U_RogueStreamSimWrap_PGP_VC : entity work.RogueStreamSimWrap
+   GEN_VEC : for i in NUM_VC_G-1 downto 0 generate
+      U_PGP_VC : entity surf.RogueTcpStreamWrap
          generic map (
             TPD_G         => TPD_G,
-            DEST_ID_G     => i,
-            USER_ID_G     => USER_ID_G,
+            PORT_NUM_G    => (PORT_NUM_G + i*2),
+            SSI_EN_G      => true,
+            CHAN_MASK_G   => "00000000",
+            TDEST_MASK_G  => toSlv(i, 8),
             AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
          port map (
-            clk         => pgpClk,           -- [in]
-            rst         => pgpRst,           -- [in]
-            sAxisClk    => pgpClk,           -- [in]
-            sAxisRst    => pgpRst,           -- [in]
-            sAxisMaster => pgpTxMasters(i),  -- [in]
-            sAxisSlave  => pgpTxSlaves(i),   -- [out]
-            mAxisClk    => rxClk,            -- [in]
-            mAxisRst    => rxRst,            -- [in]
-            mAxisMaster => pgpRxMasters(i),  -- [out]
-            mAxisSlave  => pgpRxSlaves(i));  -- [in]
-   end generate GEN_AXIS_LANE;
+            axisClk     => pgpClk,              -- [in]
+            axisRst     => pgpClkRst,           -- [in]
+            sAxisMaster => pgpTxMastersLoc(i),  -- [in]
+            sAxisSlave  => pgpTxSlaves(i),      -- [out]
+            mAxisMaster => pgpRxMasters(i),     -- [out]
+            mAxisSlave  => pgpRxSlaves(i));     -- [in]
+   end generate GEN_VEC;
 
-   U_RogueStreamSimWrap_OPCODE : entity work.RogueStreamSimWrap
-      generic map (
-         TPD_G         => TPD_G,
-         DEST_ID_G     => 4,
-         AXIS_CONFIG_G => SSI_PGP2B_CONFIG_C)
-      port map (
-         clk         => pgpClk,                    -- [in]
-         rst         => pgpRst,                    -- [in]
-         sAxisClk    => pgpClk,                    -- [in]
-         sAxisRst    => pgpRst,                    -- [in]
-         sAxisMaster => AXI_STREAM_MASTER_INIT_C,  -- [in]
-         sAxisSlave  => open,                      -- [out]
-         mAxisClk    => rxClk,                     -- [in]
-         mAxisRst    => rxRst,                     -- [in]
-         mAxisMaster => open,                      -- [out]
-         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C,  -- [in]
-         opCode      => pgpRxOut.opCode,           -- [out]
-         opCodeEn    => pgpRxOut.opCodeEn,         -- [out]
-         remData     => pgpRxOut.remLinkData);     -- [out]
+   GEN_SIDEBAND : if (EN_SIDEBAND_G) generate
+      U_RogueSideBandWrap_1 : entity surf.RogueSideBandWrap
+         generic map (
+            TPD_G      => TPD_G,
+            PORT_NUM_G => PORT_NUM_G + 8)
+         port map (
+            sysClk     => pgpClk,              -- [in]
+            sysRst     => pgpClkRst,           -- [in]
+            txOpCode   => pgpTxIn.opCode,      -- [in]
+            txOpCodeEn => pgpTxIn.opCodeEn,    -- [in]
+            txRemData  => pgpTxIn.locData,     -- [in]
+            rxOpCode   => rxOut.opCode,        -- [out]
+            rxOpCodeEn => rxOut.opCodeEn,      -- [out]
+            rxRemData  => rxOut.remLinkData);  -- [out]
+   end generate GEN_SIDEBAND;
 
-   pgpRxOut.phyRxReady   <= '1';
-   pgpRxOut.linkReady    <= '1';
-   pgpRxOut.linkPolarity <= (others => '0');
-   pgpRxOut.frameRx      <= '0';
-   pgpRxOut.frameRxErr   <= '0';
-   pgpRxOut.linkDown     <= '0';
-   pgpRxOut.linkError    <= '0';
-   pgpRxOut.remLinkReady <= '1';
-   pgpRxOut.remOverflow  <= (others => '0');
-   pgpRxOut.remPause     <= (others => '0');
+   txOut.phyTxReady <= '1';
+   txOut.linkReady  <= '1';
 
-   pgpTxOut.locOverflow <= (others => '0');
-   pgpTxOut.locPause    <= (others => '0');
-   pgpTxOut.phyTxReady  <= '1';
-   pgpTxOut.linkReady   <= '1';
-   pgpTxOut.frameTx     <= '0';
-   pgpTxOut.frameTxErr  <= '0';
-end architecture sim;
+   rxOut.phyRxReady   <= '1';
+   rxOut.linkReady    <= '1';
+   rxOut.remLinkReady <= '1';
+
+end sim;

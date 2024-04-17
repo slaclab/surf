@@ -1,15 +1,9 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisJtagDebugBridge.vhd
--- Author     : Till Straumann <strauman@slac.stanford.edu>
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2017-12-05
--- Last update: 2017-12-05
--- Platform   :
--- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
--- Description:
+-- Description: AXI Stream Debug Bridge
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -26,9 +20,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxisToJtagPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxisToJtagPkg.all;
 
 -- Connect AxisToJtag to a debug bridge IP (convenience wrapper)
 entity AxisJtagDebugBridge is
@@ -75,7 +71,7 @@ architecture AxisJtagDebugBridgeImpl of AxisJtagDebugBridge is
 
 begin
 
-   U_AXIS_JTAG : entity work.AxisToJtag
+   U_AXIS_JTAG : entity surf.AxisToJtag
       generic map (
          TPD_G        => TPD_G,
          AXIS_WIDTH_G => AXIS_WIDTH_G,

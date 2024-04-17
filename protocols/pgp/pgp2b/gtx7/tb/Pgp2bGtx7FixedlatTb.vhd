@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : Pgp2bGtx7FixedLatTb.vhd
+-- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 2016-10-27
--- Last update: 2018-01-08
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for Pgp2bGtx7FixedLat
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -96,7 +95,7 @@ architecture tb of Pgp2bGtx7FixedLatTb is
 begin
 
    -- component instantiation
-   U_Pgp2bGtx7FixedLatWrapper: entity work.Pgp2bGtx7FixedLatWrapper
+   U_Pgp2bGtx7FixedLatWrapper: entity surf.Pgp2bGtx7FixedLatWrapper
       generic map (
          VC_INTERLEAVE_G         => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G       => PAYLOAD_CNT_TOP_G,
@@ -161,8 +160,8 @@ begin
          axilWriteMaster  => axilWriteMaster,   -- [in]
          axilWriteSlave   => axilWriteSlave);   -- [out]
 
-   
---    U_ClkRst_1 : entity work.ClkRst
+
+--    U_ClkRst_1 : entity surf.ClkRst
 --       generic map (
 --          CLK_PERIOD_G      => 10 ns,
 --          CLK_DELAY_G       => 1 ns,
@@ -174,7 +173,7 @@ begin
 --          clkN => ,
 --          rst  => ,
 --          rstL => );
-   
+
 
 end architecture tb;
 

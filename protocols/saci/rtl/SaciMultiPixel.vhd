@@ -1,15 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : PgpParallelSimModel.vhd
+-- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
--- Created    : 07/21/2016
--- Last update: 2018-01-08
+-------------------------------------------------------------------------------
+-- Description: SACI Multi-pixel Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.SaciMultiPixelPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SaciMultiPixelPkg.all;
 
 entity SaciMultiPixel is
    generic (
@@ -32,13 +35,13 @@ entity SaciMultiPixel is
    port (
       axilClk           : in sl;
       axilRst           : in sl;
-      
+
       -- AXI lite slave port
       sAxilWriteMaster  : in  AxiLiteWriteMasterType;
       sAxilWriteSlave   : out AxiLiteWriteSlaveType;
       sAxilReadMaster   : in  AxiLiteReadMasterType;
       sAxilReadSlave    : out AxiLiteReadSlaveType;
-      
+
       -- AXI lite master port
       mAxilWriteMaster  : out AxiLiteWriteMasterType;
       mAxilWriteSlave   : in  AxiLiteWriteSlaveType;
@@ -94,10 +97,9 @@ begin
       variable axiStatus   : AxiLiteStatusType;
    begin
       v := r;
-      
-      v.sAxilReadSlave.rdata := (others => '0');
+
       axiSlaveWaitTxn(sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave, axiStatus);
-      
+
       if (axiStatus.writeEnable = '1' and r.globalMultiPix.req = '0') then
          -- Pseudo SACI Commands (multi-pixel write)
          if (sAxilWriteMaster.awaddr(7 downto 0) = x"00") then
@@ -124,7 +126,7 @@ begin
             axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_DECERR_C);
          end if;
       end if;
-      
+
       if (axiStatus.readEnable = '1' and r.globalMultiPix.req = '0') then
          if (sAxilReadMaster.araddr(7 downto 0) = x"00") then
             v.sAxilReadSlave.rdata(9 downto 0)  := r.globalMultiPix.row;
@@ -154,8 +156,8 @@ begin
             axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_DECERR_C);
          end if;
       end if;
-      
-      
+
+
       -- State machine for SACI mediation
       -- SACI is accessed via the AXI lite master bus
       case(r.state) is
@@ -182,7 +184,7 @@ begin
                   v.localMultiPix.bankFlag := "1110";
                   v.state := S_READ_C;
             end if;
-            
+
          -- Read the ASIC mask
          when S_READ_C =>
             v.mAxilReadMaster.araddr := MASK_REG_ADDR_G;
@@ -226,7 +228,7 @@ begin
                   v.state := S_IS_ASIC_C;
                end if;
             end if;
-            
+
          -- Check if ASIC is enabled
          when S_IS_ASIC_C =>
             -- If the ASIC is not active, immediately drop the req and return
@@ -235,7 +237,7 @@ begin
             else
                v.state := S_WRITE_C;
             end if;
-         
+
          -- Prepare Write Transactions
          when S_WRITE_C =>
             if r.writeCnt = 0 then
@@ -254,11 +256,11 @@ begin
                -- DATA = MT
                v.mAxilWriteMaster.wdata  := x"0000" & r.localMultiPix.data(0);
             end if;
-            
+
             v.mAxilWriteMaster.awprot  := (others => '0');
             v.mAxilWriteMaster.wstrb   := (others => '1');
             v.timer                    := (others => '1');
-            
+
             v.mAxilWriteMaster.awvalid := '1';
             v.mAxilWriteMaster.wvalid  := '1';
             v.mAxilWriteMaster.bready  := '1';
@@ -295,7 +297,7 @@ begin
             if v.mAxilWriteMaster.awvalid = '0' and
                v.mAxilWriteMaster.wvalid = '0' and
                v.mAxilWriteMaster.bready = '0' then
-               
+
                if v.fail = '1' or v.timeout = '1' then
                   v.state    := S_DONE_FAIL_C;
                elsif r.writeCnt >= 2 then
@@ -314,21 +316,21 @@ begin
                   v.writeCnt := r.writeCnt + 1;
                   v.state    := S_WRITE_C;
                end if;
-               
+
             end if;
-            
+
          when S_DONE_OK_C =>
             v.globalMultiPix.req := '0';
             axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_OK_C);
             v.state  := S_IDLE_C;
-         
+
          when S_DONE_FAIL_C =>
             v.globalMultiPix.req := '0';
             axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
             v.state  := S_IDLE_C;
-            
+
       end case;
-      
+
       if (axilRst = '1') then
          v := REG_INIT_C;
       end if;
