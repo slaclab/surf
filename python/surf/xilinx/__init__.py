@@ -11,6 +11,7 @@ from surf.xilinx._AxiPciePhy          import *
 from surf.xilinx._AxiSysMonUltraScale import *
 from surf.xilinx._ClockManager        import *
 from surf.xilinx._GpioPs              import *
+from surf.xilinx._GtRxAlignCheck      import *
 from surf.xilinx._Gtye4Channel        import *
 from surf.xilinx._Gtye4Common         import *
 from surf.xilinx._Gthe3Channel        import *

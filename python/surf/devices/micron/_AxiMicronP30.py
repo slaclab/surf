@@ -39,117 +39,135 @@ class AxiMicronP30(pr.Device):
         ##############################
         # Setup variables
         ##############################
-        self.add(pr.RemoteVariable(name='DataWrBus',
-                                   offset=0x0,
-                                   base=pr.UInt,
-                                   bitSize=32,
-                                   bitOffset=0,
-                                   retryCount=tryCount,
-                                   updateNotify=False,
-                                   bulkOpEn=False,
-                                   hidden=True,
-                                   verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'DataWrBus',
+            offset       = 0x0,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-        self.add(pr.RemoteVariable(name='AddrBus',
-                                   offset=0x4,
-                                   base=pr.UInt,
-                                   bitSize=32,
-                                   bitOffset=0,
-                                   retryCount=tryCount,
-                                   updateNotify=False,
-                                   bulkOpEn=False,
-                                   hidden=True,
-                                   verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'AddrBus',
+            offset       = 0x4,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-        self.add(pr.RemoteVariable(name='DataRdBus',
-                                   offset=0x8,
-                                   base=pr.UInt,
-                                   bitSize=32,
-                                   bitOffset=0,
-                                   retryCount=tryCount,
-                                   updateNotify=False,
-                                   bulkOpEn=False,
-                                   hidden=True,
-                                   verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'DataRdBus',
+            offset       = 0x8,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-        self.add(pr.RemoteVariable(name='TranSize',
-                                   offset=0x80,
-                                   base=pr.UInt,
-                                   bitSize=8,
-                                   bitOffset=0,
-                                   retryCount=tryCount,
-                                   updateNotify=False,
-                                   bulkOpEn=False,
-                                   hidden=True,
-                                   verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'TranSize',
+            offset       = 0x80,
+            base         = pr.UInt,
+            bitSize      = 8,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-        self.add(pr.RemoteVariable(name='BurstTran',
-                                   offset=0x84,
-                                   base=pr.UInt,
-                                   bitSize=32,
-                                   bitOffset=0,
-                                   retryCount=tryCount,
-                                   updateNotify=False,
-                                   bulkOpEn=False,
-                                   hidden=True,
-                                   verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'BurstTran',
+            offset       = 0x84,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-        self.add(pr.RemoteVariable(name='BurstData',
-                                   offset=0x400,
-                                   base=pr.UInt,
-                                   bitSize=32*256,
-                                   bitOffset=0,
-                                   numValues=256,
-                                   valueBits=32,
-                                   valueStride=32,
-                                   retryCount=tryCount,
-                                   updateNotify=False,
-                                   bulkOpEn=False,
-                                   hidden=True,
-                                   verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'BurstData',
+            offset       = 0x400,
+            base         = pr.UInt,
+            bitSize      = 32*256,
+            bitOffset    = 0,
+            numValues    = 256,
+            valueBits    = 32,
+            valueStride  = 32,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-        @self.command(value='',description="Load the .MCS into PROM",)
-        def LoadMcsFile(arg):
+        self.add(pr.LocalCommand(
+            name        = 'LoadMcsFile',
+            function    = self._LoadMcsFile,
+            description = 'Load the .MCS into PROM',
+            value       = '',
+        ))
 
-            click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
-            self._progDone = False
+    def _LoadMcsFile(self,arg):
 
-            # Start time measurement for profiling
-            start = time.time()
+        click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
+        self._progDone = False
 
-            # Configuration: Force default configurations
-            self._writeToFlash(0xFD4F,0x60,0x03)
+        # Start time measurement for profiling
+        start = time.time()
 
-            # Open the MCS file
-            self._mcs.open(arg)
+        # Configuration: Force default configurations
+        self._writeToFlash(0xFD4F,0x60,0x03)
 
-            # Erase the PROM
-            self.eraseProm()
+        # Open the MCS file
+        self._mcs.open(arg)
 
-            # Write to the PROM
-            self.writeProm()
+        # Erase the PROM
+        self.eraseProm()
 
-            # Verify the PROM
-            self.verifyProm()
+        # Write to the PROM
+        self.writeProm()
 
-            # End time measurement for profiling
-            end = time.time()
-            elapsed = end - start
-            click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
+        # Verify the PROM
+        self.verifyProm()
 
-            # Add a power cycle reminder
-            self._progDone = True
-            click.secho(
-                "\n\n\
-                ***************************************************\n\
-                ***************************************************\n\
-                The MCS data has been written into the PROM.       \n\
-                To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD or power cycle is be required.\n\
-                ***************************************************\n\
-                ***************************************************\n\n"
-                , bg='green',
-            )
+        # End time measurement for profiling
+        end = time.time()
+        elapsed = end - start
+        click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
+
+        # Add a power cycle reminder
+        self._progDone = True
+        click.secho(
+            "\n\n\
+            ***************************************************\n\
+            ***************************************************\n\
+            The MCS data has been written into the PROM.       \n\
+            To reprogram the FPGA with the new PROM data,      \n\
+            a IPROG CMD or power cycle is be required.\n\
+            ***************************************************\n\
+            ***************************************************\n\n"
+            , bg='green',
+        )
 
     def eraseProm(self):
         # Set the starting address index
