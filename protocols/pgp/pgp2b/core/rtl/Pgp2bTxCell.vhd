@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Cell Transmit interface module for the Pretty Good Protocol core. 
+-- Cell Transmit interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,13 +24,13 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 
-entity Pgp2bTxCell is 
+entity Pgp2bTxCell is
    generic (
       TPD_G             : time                 := 1 ns;
       TX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of bonded lanes, 1-2
       PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
    );
-   port ( 
+   port (
 
       -- System clock, reset & control
       pgpTxClkEn        : in  sl := '1';                        -- Master clock Enable
@@ -41,16 +41,16 @@ entity Pgp2bTxCell is
       pgpTxLinkReady    : in  sl;                               -- Local side has link
 
       -- Phy Transmit Interface
-      cellTxSOC         : out sl;                               -- Cell data start of cell
-      cellTxSOF         : out sl;                               -- Cell data start of frame
-      cellTxEOC         : out sl;                               -- Cell data end of cell
-      cellTxEOF         : out sl;                               -- Cell data end of frame
-      cellTxEOFE        : out sl;                               -- Cell data end of frame error
-      cellTxData        : out slv(TX_LANE_CNT_G*16-1 downto 0); -- Cell data data
+      cellTxSOC         : out sl := '0';                               -- Cell data start of cell
+      cellTxSOF         : out sl := '0';                               -- Cell data start of frame
+      cellTxEOC         : out sl := '0';                               -- Cell data end of cell
+      cellTxEOF         : out sl := '0';                               -- Cell data end of frame
+      cellTxEOFE        : out sl := '0';                               -- Cell data end of frame error
+      cellTxData        : out slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0'); -- Cell data data
 
       -- Transmit Scheduler Interface
-      schTxSOF          : out sl;                               -- Cell contained SOF
-      schTxEOF          : out sl;                               -- Cell contained EOF
+      schTxSOF          : out sl := '0';                               -- Cell contained SOF
+      schTxEOF          : out sl := '0';                               -- Cell contained EOF
       schTxIdle         : in  sl;                               -- Force IDLE transmit
       schTxReq          : in  sl;                               -- Cell transmit request
       schTxAck          : out sl;                               -- Cell transmit acknowledge
@@ -121,12 +121,12 @@ architecture Pgp2bTxCell of Pgp2bTxCell is
    signal muxFrameTxEOFE     : sl;
    signal muxFrameTxData     : slv(TX_LANE_CNT_G*16-1 downto 0);
    signal muxRemAlmostFull   : sl;
-   signal cellCnt            : slv(PAYLOAD_CNT_TOP_G downto 0);
+   signal cellCnt            : slv(PAYLOAD_CNT_TOP_G downto 0) := (others => '0');
    signal cellCntRst         : sl;
    signal nxtFrameTxReady    : sl;
    signal nxtType            : slv(2 downto 0);
    signal nxtTypeLast        : slv(2 downto 0);
-   signal curTypeLast        : slv(2 downto 0);
+   signal curTypeLast        : slv(2 downto 0) := (others => '0');
    signal nxtTxSOF           : sl;
    signal nxtTxEOF           : sl;
    signal nxtTxAck           : sl;
@@ -136,27 +136,27 @@ architecture Pgp2bTxCell of Pgp2bTxCell is
    signal crcWordA           : slv(TX_LANE_CNT_G*16-1 downto 0);
    signal crcWordB           : slv(TX_LANE_CNT_G*16-1 downto 0);
    signal serialCntEn        : sl;
-   signal vc0Serial          : slv(5 downto 0);
-   signal vc1Serial          : slv(5 downto 0);
-   signal vc2Serial          : slv(5 downto 0);
-   signal vc3Serial          : slv(5 downto 0);
+   signal vc0Serial          : slv(5 downto 0) := (others => '0');
+   signal vc1Serial          : slv(5 downto 0) := (others => '0');
+   signal vc2Serial          : slv(5 downto 0) := (others => '0');
+   signal vc3Serial          : slv(5 downto 0) := (others => '0');
    signal muxSerial          : slv(5 downto 0);
-   signal dly0Data           : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal dly0Type           : slv(2 downto 0);
-   signal dly1Data           : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal dly1Type           : slv(2 downto 0);
-   signal dly2Data           : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal dly2Type           : slv(2 downto 0);
-   signal dly3Data           : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal dly3Type           : slv(2 downto 0);
-   signal dly4Data           : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal dly4Type           : slv(2 downto 0);
-   signal int0FrameTxReady   : sl;
-   signal int1FrameTxReady   : sl;
-   signal int2FrameTxReady   : sl;
-   signal int3FrameTxReady   : sl;
-   signal intTimeout         : sl;
-   signal intOverflow        : slv(3 downto 0);
+   signal dly0Data           : slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0');
+   signal dly0Type           : slv(2 downto 0) := (others => '0');
+   signal dly1Data           : slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0');
+   signal dly1Type           : slv(2 downto 0) := (others => '0');
+   signal dly2Data           : slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0');
+   signal dly2Type           : slv(2 downto 0) := (others => '0');
+   signal dly3Data           : slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0');
+   signal dly3Type           : slv(2 downto 0) := (others => '0');
+   signal dly4Data           : slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0');
+   signal dly4Type           : slv(2 downto 0) := (others => '0');
+   signal int0FrameTxReady   : sl := '0';
+   signal int1FrameTxReady   : sl := '0';
+   signal int2FrameTxReady   : sl := '0';
+   signal int3FrameTxReady   : sl := '0';
+   signal intTimeout         : sl := '0';
+   signal intOverflow        : slv(3 downto 0) := (others => '0');
 
    -- Transmit Data Marker
    constant TX_DATA_C   : slv(2 downto 0) := "000";
@@ -169,8 +169,6 @@ architecture Pgp2bTxCell of Pgp2bTxCell is
    constant TX_CRCB_C   : slv(2 downto 0) := "111";
 
    -- Transmit states
-   signal   curState    : slv(2 downto 0);
-   signal   nxtState    : slv(2 downto 0);
    constant ST_IDLE_C   : slv(2 downto 0) := "001";
    constant ST_EMPTY_C  : slv(2 downto 0) := "010";
    constant ST_SOC_C    : slv(2 downto 0) := "011";
@@ -178,6 +176,8 @@ architecture Pgp2bTxCell of Pgp2bTxCell is
    constant ST_CRCA_C   : slv(2 downto 0) := "101";
    constant ST_CRCB_C   : slv(2 downto 0) := "110";
    constant ST_EOC_C    : slv(2 downto 0) := "111";
+   signal   curState    : slv(2 downto 0) := ST_IDLE_C;
+   signal   nxtState    : slv(2 downto 0);
 
 begin
 
@@ -367,7 +367,7 @@ begin
    process ( curState, schTxIdle, schTxReq, intTimeout, cellCnt, eocWord, socWord, curTypeLast,
             muxFrameTxValid, muxFrameTxSOF, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxData,
             muxRemAlmostFull ) begin
-      case curState is 
+      case curState is
 
          -- Idle
          when ST_IDLE_C =>
@@ -468,7 +468,7 @@ begin
                   nxtTypeLast     <= TX_EOFE_C;
                   nxtState        <= ST_CRCA_C;
                   nxtFrameTxReady <= '0';
-              
+
                -- EOF is asserted
                elsif muxFrameTxEOF = '1' then
                   nxtTypeLast     <= TX_EOF_C;
@@ -637,7 +637,7 @@ begin
             cellTxData   <= (others=>'0') after TPD_G;
          elsif pgpTxClkEn = '1' then
             -- Which data type
-            case dly2Type is 
+            case dly2Type is
                when TX_DATA_C =>
                   cellTxSOC    <= '0'           after TPD_G;
                   cellTxSOF    <= '0'           after TPD_G;

@@ -5,11 +5,11 @@
 -- CameraLink control interface.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ entity ClinkCtrl is
       TPD_G              : time                := 1 ns;
       INV_34_G           : boolean             := false;
       UART_READY_EN_G    : boolean             := true;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      UART_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Cable In/Out
       cblHalfP    : inout slv(4 downto 0); -- 15, 17,  5,  6, 3
@@ -38,8 +38,8 @@ entity ClinkCtrl is
       cblSerP     : out   sl; -- 20
       cblSerM     : out   sl; -- 7
       -- Delay clock and reset, 200Mhz
-      dlyClk      : in  sl; 
-      dlyRst      : in  sl; 
+      dlyClk      : in  sl;
+      dlyRst      : in  sl;
       -- System clock and reset, must be 100Mhz or greater
       sysClk      : in  sl;
       sysRst      : in  sl;
@@ -90,7 +90,7 @@ begin
    -------------------------------
    -- Camera control bits
    -------------------------------
-   process(camCtrl, chanConfig) 
+   process(camCtrl, chanConfig)
       variable tmpBits : slv(3 downto 0);
    begin
       for i in 0 to 3 loop

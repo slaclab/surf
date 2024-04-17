@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 # Load local source Code and constraints
 if { $::env(VIVADO_VERSION) >= 2018.3 } {
@@ -11,4 +11,4 @@ if { $::env(VIVADO_VERSION) >= 2018.3 } {
 
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2018.3 (or later)\n\n"
-}      
+}

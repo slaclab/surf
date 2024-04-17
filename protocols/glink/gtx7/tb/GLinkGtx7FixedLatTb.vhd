@@ -4,11 +4,11 @@
 -- Description: Simulation testbed for GLinkGtx7FixedLat
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,10 +41,10 @@ architecture testbed of GLinkGtx7FixedLatTb is
       qPllRefClkLost,
       qPllReset,
       gtQPllReset : sl := '0';
-      
+
    signal gLinkTx    : GLinkTxType := GLINK_TX_INIT_C;
    signal gLinkRx    : GLinkRxType := GLINK_RX_INIT_C;
-      
+
 begin
 
    ClkRst_0 : entity surf.ClkRst
@@ -57,7 +57,7 @@ begin
          clkN => open,
          rst  => stableRst,
          rstL => open);
-         
+
    ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 6.25 ns,
@@ -67,7 +67,7 @@ begin
          clkP => gtClk,
          clkN => open,
          rst  => open,
-         rstL => open); 
+         rstL => open);
 
    ClkRst_2 : entity surf.ClkRst
       generic map (
@@ -78,7 +78,7 @@ begin
          clkP => txClock,
          clkN => open,
          rst  => open,
-         rstL => open);          
+         rstL => open);
 
    txRst <= stableRst;
 
@@ -102,13 +102,13 @@ begin
          qPllLock       => qPllLock,
          qPllLockDetClk => pllLockDetClk,
          qPllRefClkLost => qPllRefClkLost,
-         qPllReset      => qPllReset);                    
+         qPllReset      => qPllReset);
 
    GLinkGtx7FixedLat_Inst : entity surf.GLinkGtx7FixedLat
       generic map (
          -- Simulation Settings
          SIM_GTRESET_SPEEDUP_G => "TRUE",
-         SIMULATION_G          => true,         
+         SIMULATION_G          => true,
          -- GLink Settings
          FLAGSEL_G         => false,
          -- CPLL Settings -
@@ -157,6 +157,6 @@ begin
          gtTxP            => open,
          gtTxN            => open,
          gtRxP            => '1',
-         gtRxN            => '0');            
+         gtRxN            => '0');
 
 end testbed;

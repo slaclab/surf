@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue RSSI module
 #-----------------------------------------------------------------------------
@@ -7,11 +6,11 @@
 # Description:
 # PyRogue RSSI module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -19,17 +18,14 @@
 import pyrogue as pr
 
 class RssiCore(pr.Device):
-    def __init__(   self,       
-            name        = 'RssiCore',
-            description = 'RSSI module',
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables
         ##############################
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'OpenConn',
             description  = 'Open Connection Request (Server goes to listen state, Client actively requests the connection by sending SYN segment)',
             offset       = 0x00,
@@ -38,7 +34,7 @@ class RssiCore(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'CloseConn',
             description  = 'Close Connection Request (Send a RST Segment to peer and close the connection)',
             offset       = 0x00,
@@ -47,7 +43,7 @@ class RssiCore(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'Mode',
             description  = 'Mode: 0x0 = Use internal parameters from generics, 0x1 = Use parameters from registers',
             offset       = 0x00,
@@ -56,7 +52,7 @@ class RssiCore(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'HeaderChksumEn',
             description  = 'Header checksum: 0x1 = Enable calculation and check, 0x0: Disable check and insert 0 in place of header checksum',
             offset       = 0x00,
@@ -65,7 +61,7 @@ class RssiCore(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'InjectFault',
             description  = 'Inject fault to the next packet header checksum (Default 0x0). Acts on rising edge - injects exactly one fault in next segment',
             offset       = 0x00,
@@ -74,7 +70,7 @@ class RssiCore(pr.Device):
             mode         = 'RW',
         ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'InitSeqN',
             # description  = 'Initial sequence number [7:0]',
             # offset       = 0x04,
@@ -83,7 +79,7 @@ class RssiCore(pr.Device):
             # mode         = 'RW',
         # ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'locVersion',
             # description  = 'Version register [3:0]',
             # offset       = 0x08,
@@ -92,8 +88,8 @@ class RssiCore(pr.Device):
             # mode         = 'RW',
             # disp         = '{:d}',
         # ))
-        
-        # self.add(pr.RemoteVariable(    
+
+        # self.add(pr.RemoteVariable(
             # name         = 'curVersion',
             # description  = 'Version register [3:0]',
             # offset       = 0x08,
@@ -101,12 +97,12 @@ class RssiCore(pr.Device):
             # bitOffset    = 16,
             # mode         = 'RO',
             # disp         = '{:d}',
-        # ))        
+        # ))
 
         varPrefix = ['loc','cur']
         for i in range(2):
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = (varPrefix[i]+'MaxOutsSeg'),
                 description  = 'Maximum out standing segments [7:0]',
                 offset       = 0x0C,
@@ -116,7 +112,7 @@ class RssiCore(pr.Device):
                 disp         = '{:d}',
             ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = (varPrefix[i]+'MaxSegSize'),
                 description  = 'Maximum segment size [15:0]',
                 offset       = 0x10,
@@ -126,7 +122,7 @@ class RssiCore(pr.Device):
                 disp         = '{:d}',
             ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = (varPrefix[i]+'RetransTimeout'),
                 description  = 'Retransmission timeout [15:0]',
                 offset       = 0x14,
@@ -136,7 +132,7 @@ class RssiCore(pr.Device):
                 disp         = '{:d}',
             ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = (varPrefix[i]+'CumAckTimeout'),
                 description  = 'Cumulative acknowledgment timeout [15:0]',
                 offset       = 0x18,
@@ -146,7 +142,7 @@ class RssiCore(pr.Device):
                 disp         = '{:d}',
             ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = (varPrefix[i]+'NullSegTimeout'),
                 description  = 'Null segment timeout [15:0]',
                 offset       = 0x1C,
@@ -156,7 +152,7 @@ class RssiCore(pr.Device):
                 disp         = '{:d}',
             ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = (varPrefix[i]+'MaxNumRetrans'),
                 description  = 'Maximum number of retransmissions [7:0]',
                 offset       = 0x20,
@@ -166,7 +162,7 @@ class RssiCore(pr.Device):
                 disp         = '{:d}',
             ))
 
-            self.add(pr.RemoteVariable(    
+            self.add(pr.RemoteVariable(
                 name         = (varPrefix[i]+'MaxCumAck'),
                 description  = 'Maximum cumulative acknowledgments [7:0]',
                 offset       = 0x24,
@@ -176,7 +172,7 @@ class RssiCore(pr.Device):
                 disp         = '{:d}',
             ))
 
-            # self.add(pr.RemoteVariable(    
+            # self.add(pr.RemoteVariable(
                 # name         = (varPrefix[i]+'MaxOutOfSeq'),
                 # description  = 'Max out of sequence segments (EACK) [7:0]',
                 # offset       = 0x28,
@@ -186,7 +182,7 @@ class RssiCore(pr.Device):
                 # disp         = '{:d}',
             # ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'ConnectionActive',
             description  = 'Connection Active',
             offset       = 0x40,
@@ -196,7 +192,7 @@ class RssiCore(pr.Device):
             pollInterval = 1,
         ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'ErrMaxRetrans',
             # description  = 'Maximum retransmissions exceeded retransMax.',
             # offset       = 0x40,
@@ -206,7 +202,7 @@ class RssiCore(pr.Device):
             # pollInterval = 1,
         # ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'ErrNullTout',
             # description  = 'Null timeout reached (server) nullTout.',
             # offset       = 0x40,
@@ -216,7 +212,7 @@ class RssiCore(pr.Device):
             # pollInterval = 1,
         # ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'ErrAck',
             # description  = 'Error in acknowledgment mechanism.',
             # offset       = 0x40,
@@ -226,7 +222,7 @@ class RssiCore(pr.Device):
             # pollInterval = 1,
         # ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'ErrSsiFrameLen',
             # description  = 'SSI Frame length too long',
             # offset       = 0x40,
@@ -236,7 +232,7 @@ class RssiCore(pr.Device):
             # pollInterval = 1,
         # ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'ErrConnTout',
             # description  = 'Connection to peer timed out. Timeout defined in generic PEER_CONN_TIMEOUT_G (Default: 1000 ms)',
             # offset       = 0x40,
@@ -246,7 +242,7 @@ class RssiCore(pr.Device):
             # pollInterval = 1,
         # ))
 
-        # self.add(pr.RemoteVariable(    
+        # self.add(pr.RemoteVariable(
             # name         = 'ParamRejected',
             # description  = 'Client rejected the connection (parameters out of range), Server proposed new parameters (parameters out of range)',
             # offset       = 0x40,
@@ -256,7 +252,7 @@ class RssiCore(pr.Device):
             # pollInterval = 1,
         # ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'ValidCnt',
             description  = 'Number of valid segments [31:0]',
             offset       = 0x44,
@@ -266,7 +262,7 @@ class RssiCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'DropCnt',
             description  = 'Number of dropped segments [31:0]',
             offset       = 0x48,
@@ -276,7 +272,7 @@ class RssiCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'RetransmitCnt',
             description  = 'Counts all retransmission requests within the active connection [31:0]',
             offset       = 0x4C,
@@ -286,7 +282,7 @@ class RssiCore(pr.Device):
             pollInterval = 1,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = 'ReconnectCnt',
             description  = 'Counts all reconnections from reset [31:0]',
             offset       = 0x50,
@@ -295,8 +291,8 @@ class RssiCore(pr.Device):
             mode         = 'RO',
             pollInterval = 1,
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = 'TxFrameRate',
             description  = 'Outbound Frame Rate',
             units        = 'Hz',
@@ -304,9 +300,9 @@ class RssiCore(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             pollInterval = 1,
-        ))   
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'TxBandwidth',
             description  = 'Outbound Bandwidth',
             units        = 'B/s',
@@ -315,9 +311,9 @@ class RssiCore(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             pollInterval = 1,
-        ))           
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'RxFrameRate',
             description  = 'Inbound Frame Rate',
             units        = 'Hz',
@@ -325,9 +321,9 @@ class RssiCore(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             pollInterval = 1,
-        ))           
-        
-        self.add(pr.RemoteVariable(    
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'RxBandwidth',
             description  = 'Inbound Bandwidth',
             units        = 'B/s',
@@ -336,27 +332,27 @@ class RssiCore(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             pollInterval = 1,
-        ))           
+        ))
 
         ##############################
         # Commands
         ##############################
         @self.command(name='C_OpenConn', description='Open connection request',)
-        def C_OpenConn():        
-           self.CloseConn.set(0)
-           self.OpenConn.set(1)
+        def C_OpenConn():
+            self.CloseConn.set(0)
+            self.OpenConn.set(1)
 
         @self.command(name='C_CloseConn', description='Close connection request',)
-        def C_CloseConn():                        
-           self.OpenConn.set(0)
-           self.CloseConn.set(1)
-                    
+        def C_CloseConn():
+            self.OpenConn.set(0)
+            self.CloseConn.set(1)
+
         @self.command(name='C_RestartConn', description='Restart connection request',)
-        def C_RestartConn():        
-           self.C_CloseConn()
-           self.C_OpenConn()
-           
+        def C_RestartConn():
+            self.C_CloseConn()
+            self.C_OpenConn()
+
         @self.command(name='C_InjectFault', description='Inject a single fault(for debug and test purposes only). Corrupts checksum during transmission',)
-        def C_InjectFault():                        
-           self.InjectFault.set(1)
-           self.InjectFault.set(0)
+        def C_InjectFault():
+            self.InjectFault.set(1)
+            self.InjectFault.set(0)

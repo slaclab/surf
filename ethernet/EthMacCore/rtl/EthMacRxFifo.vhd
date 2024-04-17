@@ -4,11 +4,11 @@
 -- Description: Outbound FIFO buffers
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,19 +26,21 @@ use surf.EthMacPkg.all;
 entity EthMacRxFifo is
    generic (
       TPD_G             : time                   := 1 ns;
+      SYNTH_MODE_G      : string                 := "inferred";
+      MEMORY_TYPE_G     : string                 := "block";
       DROP_ERR_PKT_G    : boolean                := true;
       INT_PIPE_STAGES_G : natural                := 1;
       PIPE_STAGES_G     : natural                := 1;
       FIFO_ADDR_WIDTH_G : positive range 9 to 16 := 11;
       PRIM_COMMON_CLK_G : boolean                := false;
-      PRIM_CONFIG_G     : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C;
+      PRIM_CONFIG_G     : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
       BYP_EN_G          : boolean                := false;
       BYP_COMMON_CLK_G  : boolean                := false;
-      BYP_CONFIG_G      : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C;
+      BYP_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
       VLAN_EN_G         : boolean                := false;
       VLAN_SIZE_G       : positive               := 1;
       VLAN_COMMON_CLK_G : boolean                := false;
-      VLAN_CONFIG_G     : AxiStreamConfigType    := EMAC_AXIS_CONFIG_C);
+      VLAN_CONFIG_G     : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C);
    port (
       -- Clock and Reset
       sClk         : in  sl;
@@ -92,7 +94,7 @@ architecture rtl of EthMacRxFifo is
    signal vlanDrops : slv(VLAN_SIZE_G-1 downto 0) := (others => '0');
 
 --   attribute dont_touch      : string;
---   attribute dont_touch of r : signal is "TRUE";   
+--   attribute dont_touch of r : signal is "TRUE";
 
 begin
 
@@ -103,23 +105,22 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => false,
-         EN_FRAME_FILTER_G   => true,
-         OR_DROP_FLAGS_G     => true,
          VALID_THOLD_G       => VALID_THOLD_C,
          -- FIFO configurations
-         MEMORY_TYPE_G       => "block",
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => false,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)
       port map (
          sAxisClk        => sClk,
          sAxisRst        => sRst,
          sAxisMaster     => sPrimMaster,
          sAxisCtrl       => sPrimCtrl,
-         sAxisTermFrame  => primDrop,
+         sAxisDropFrame  => primDrop,
          fifoPauseThresh => r.fifoPauseThresh,
          mAxisClk        => mPrimClk,
          mAxisRst        => mPrimRst,
@@ -139,23 +140,22 @@ begin
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => false,
-            EN_FRAME_FILTER_G   => true,
-            OR_DROP_FLAGS_G     => true,
             VALID_THOLD_G       => VALID_THOLD_C,
             -- FIFO configurations
-            MEMORY_TYPE_G       => "block",
+            SYNTH_MODE_G        => SYNTH_MODE_G,
+            MEMORY_TYPE_G       => MEMORY_TYPE_G,
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => false,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => BYP_CONFIG_G)
          port map (
             sAxisClk        => sClk,
             sAxisRst        => sRst,
             sAxisMaster     => sBypMaster,
             sAxisCtrl       => sBypCtrl,
-            sAxisTermFrame  => bypDrop,
+            sAxisDropFrame  => bypDrop,
             fifoPauseThresh => r.fifoPauseThresh,
             mAxisClk        => mBypClk,
             mAxisRst        => mBypRst,
@@ -177,23 +177,22 @@ begin
                INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
                PIPE_STAGES_G       => PIPE_STAGES_G,
                SLAVE_READY_EN_G    => false,
-               EN_FRAME_FILTER_G   => true,
-               OR_DROP_FLAGS_G     => true,
                VALID_THOLD_G       => VALID_THOLD_C,
                -- FIFO configurations
-               MEMORY_TYPE_G       => "block",
+               SYNTH_MODE_G        => SYNTH_MODE_G,
+               MEMORY_TYPE_G       => MEMORY_TYPE_G,
                GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
                FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
                FIFO_FIXED_THRESH_G => false,
                -- AXI Stream Port Configurations
-               SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+               SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
                MASTER_AXI_CONFIG_G => VLAN_CONFIG_G)
             port map (
                sAxisClk        => sClk,
                sAxisRst        => sRst,
                sAxisMaster     => sVlanMasters(i),
                sAxisCtrl       => sVlanCtrl(i),
-               sAxisTermFrame  => vlanDrops(i),
+               sAxisDropFrame  => vlanDrops(i),
                fifoPauseThresh => r.fifoPauseThresh,
                mAxisClk        => mVlanClk,
                mAxisRst        => mVlanRst,
@@ -220,7 +219,7 @@ begin
          v.fifoPauseThresh := pauseThresh(FIFO_ADDR_WIDTH_G-1 downto 0);
       end if;
 
-      -- Outputs        
+      -- Outputs
       rxFifoDrop <= r.rxFifoDrop;
 
       -- Reset

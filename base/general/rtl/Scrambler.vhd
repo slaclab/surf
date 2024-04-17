@@ -1,10 +1,8 @@
 -------------------------------------------------------------------------------
--- Title      : Source Synchronous Scrambler
--------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- A source synchronous (multiplicative) scrambler with paramatized data width
+-- A source synchronous (multiplicative) scrambler with parameterized data width
 -- and scrambling polynomial.
 -------------------------------------------------------------------------------
 -- This file is part of SURF. It is subject to
@@ -25,16 +23,15 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity Scrambler is
-
    generic (
       TPD_G             : time         := 1 ns;
+      RST_ASYNC_G       : boolean      := false;
       DIRECTION_G       : string       := "SCRAMBLER";  -- or DESCRAMBLER
       DATA_WIDTH_G      : integer      := 64;
       SIDEBAND_WIDTH_G  : integer      := 2;
       BIT_REVERSE_IN_G  : boolean      := false;
       BIT_REVERSE_OUT_G : boolean      := false;
       TAPS_G            : IntegerArray := (0 => 39, 1 => 58));
-
    port (
       clk            : in  sl;
       rst            : in  sl;
@@ -46,7 +43,6 @@ entity Scrambler is
       outputReady    : in  sl := '1';
       outputData     : out slv(DATA_WIDTH_G-1 downto 0);
       outputSideband : out slv(SIDEBAND_WIDTH_G-1 downto 0));
-
 end entity Scrambler;
 
 architecture rtl of Scrambler is
@@ -133,14 +129,14 @@ begin
       inputReady <= v.inputReady;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs 
+      -- Registered Outputs
       outputValid <= r.outputValid;
       if BIT_REVERSE_OUT_G then
          outputData     <= bitReverse(r.outputData);
@@ -152,9 +148,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

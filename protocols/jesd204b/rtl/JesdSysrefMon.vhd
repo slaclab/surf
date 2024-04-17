@@ -4,11 +4,11 @@
 -- Description: Monitors the time between sysref rising edge detections
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ entity JesdSysrefMon is
       -- SYSREF Edge detection (devClk domain)
       devClk          : in  sl;
       sysrefEdgeDet_i : in  sl;
-      -- Max/Min measurements  (axilClk domain)   
+      -- Max/Min measurements  (axilClk domain)
       axilClk         : in  sl;
       statClr         : in  sl;
       sysRefPeriodmin : out slv(15 downto 0);
@@ -101,12 +101,12 @@ begin
          -- Normal mode
          else
 
-            -- Check for max. 
+            -- Check for max.
             if (r.cnt > r.sysRefPeriodmax) then
                v.sysRefPeriodmax := r.cnt;
             end if;
 
-            -- Check for min. 
+            -- Check for min.
             if (r.cnt < r.sysRefPeriodmin) then
                v.sysRefPeriodmin := r.cnt;
             end if;
@@ -115,7 +115,7 @@ begin
 
       end if;
 
-      -- Check for reseting statistics 
+      -- Check for reseting statistics
       if (clr = '1') then
          v := REG_INIT_C;
       end if;

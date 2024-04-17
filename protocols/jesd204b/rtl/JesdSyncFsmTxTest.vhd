@@ -6,11 +6,11 @@
 --              lane synchronization.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,14 +28,14 @@ entity JesdSyncFsmTxTest is
    generic (
       TPD_G : time := 1 ns);
    port (
-      -- Clocks and Resets   
+      -- Clocks and Resets
       clk : in sl;
       rst : in sl;
 
       -- Enable the module
       enable_i : in sl;
 
-      -- JESD subclass selection: '0' or '1'(default)     
+      -- JESD subclass selection: '0' or '1'(default)
       subClass_i : in sl;
 
       -- Local multi frame clock
@@ -46,7 +46,7 @@ entity JesdSyncFsmTxTest is
 
       testCntr_o : out slv(7 downto 0);
 
-      -- Synchronization process is complete start sending data 
+      -- Synchronization process is complete start sending data
       dataValid_o : out sl;
       -- First data
       align_o     : out sl
@@ -103,7 +103,7 @@ begin
             v.dataValid := '0';
             v.align     := '0';
 
-            -- Next state condition            
+            -- Next state condition
             if nSync_i = '0' then
                v.state := SYNC_S;
             end if;
@@ -137,7 +137,7 @@ begin
             v.dataValid := '0';
             v.align     := '1';
 
-            -- Next state condition            
+            -- Next state condition
             v.state := DATA_S;
          ----------------------------------------------------------------------
          when DATA_S =>
@@ -147,11 +147,11 @@ begin
             v.dataValid := '1';
             v.align     := '0';
 
-            -- Next state condition            
+            -- Next state condition
             if nSync_i = '0' or enable_i = '0' then
                v.state := IDLE_S;
             end if;
-         ----------------------------------------------------------------------      
+         ----------------------------------------------------------------------
          when others =>
 
             -- Outputs
@@ -159,7 +159,7 @@ begin
             v.dataValid := '0';
             v.align     := '0';
 
-            -- Next state condition            
+            -- Next state condition
             v.state := IDLE_S;
       ----------------------------------------------------------------------
       end case;

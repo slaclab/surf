@@ -6,11 +6,11 @@
 -- Description: Saci Master Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.SaciMasterPkg.all;
 
 entity SaciMaster is
-  
+
   generic (
     TPD_G                 : time    := 1 ns;
     SYNCHRONIZE_CONTROL_G : boolean := true);
@@ -54,9 +54,9 @@ architecture rtl of SaciMaster is
   end record;
 
   type SynchronizerArray is array (natural range <>) of SynchronizerType;
-  
+
   constant SYNCHRONIZER_INIT_0_C : SynchronizerType := (tmp => '0', sync => '0', last => '0');
-  constant SYNCHRONIZER_INIT_1_C : SynchronizerType := (tmp => '1', sync => '1', last => '1');  
+  constant SYNCHRONIZER_INIT_1_C : SynchronizerType := (tmp => '1', sync => '1', last => '1');
 
   procedure synchronize (
     input   : in  sl;
@@ -267,7 +267,7 @@ begin
             rVar.saciMasterOut.fail := '0';
             rVar.state              := IDLE_S;
           end if;
-          
+
         when others => null;
       end case;
 
@@ -278,7 +278,7 @@ begin
     saciSelL      <= r.saciSelL;
     saciCmd       <= r.saciCmd;
     saciMasterOut <= r.saciMasterOut;
-    
+
   end process comb;
 
 end architecture rtl;

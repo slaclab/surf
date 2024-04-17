@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   Uses the ICAP primitive to internally 
+-- Description:   Uses the ICAP primitive to internally
 --                toggle the PROG_B via IPROG command
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ entity IprogUltraScale is
       TPD_G          : time    := 1 ns;
       USE_SLOWCLK_G  : boolean := false;
       BUFR_CLK_DIV_G : natural := 8;
-      RST_POLARITY_G : sl      := '1');      
+      RST_POLARITY_G : sl      := '1');
    port (
       clk         : in sl;
       rst         : in sl;
@@ -84,8 +84,10 @@ architecture rtl of IprogUltraScale is
    signal startEdge : sl;
    signal rdy       : sl;
 
+   signal bootAddressSync : slv(31 downto 0);
+
 begin
-   
+
    icape2Clk <= slowClk when(USE_SLOWCLK_G) else divClk;
 
    BUFGCE_DIV_Inst : BUFGCE_DIV
@@ -95,7 +97,7 @@ begin
          I   => clk,
          CE  => '1',
          CLR => '0',
-         O   => divClk);         
+         O   => divClk);
 
    RstSync_Inst : entity surf.RstSync
       generic map (
@@ -108,12 +110,22 @@ begin
 
    SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G => TPD_G)
+         TPD_G   => TPD_G)
       port map (
          clk     => icape2Clk,
          rst     => icape2Rst,
          dataIn  => start,
          dataOut => startEdge);
+
+   SynchronizerVector_1 : entity surf.SynchronizerVector
+      generic map (
+         TPD_G    => TPD_G,
+         STAGES_G => 2,
+         WIDTH_G  => 32)
+      port map (
+         clk     => icape2Clk,
+         dataIn  => bootAddress,
+         dataOut => bootAddressSync);
 
    ICAPE3_Inst : ICAPE3
       generic map (
@@ -130,7 +142,7 @@ begin
          I       => r.configData,       -- 32-bit input: Configuration data input bus
          RDWRB   => r.rnw);             -- 1-bit input: Read/Write Select input
 
-   comb : process (bootAddress, icape2Rst, r, rdy, startEdge) is
+   comb : process (bootAddressSync, icape2Rst, r, rdy, startEdge) is
       variable v : RegType;
    begin
       v := r;
@@ -142,7 +154,7 @@ begin
             v.csl         := '1';
             v.rnw         := '1';
             v.cnt         := (others => '0');
-            v.bootAddress := bootAddress;
+            v.bootAddress := bootAddressSync;
             if (startEdge = '1') then
                v.state := PROG_S;
             end if;
@@ -193,7 +205,7 @@ begin
       end if;
 
       rin <= v;
-      
+
    end process comb;
 
    seq : process (icape2Clk) is
@@ -202,5 +214,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

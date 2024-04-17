@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for testing the AxiRssiCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ architecture testbed of AxiRssiCoreTb is
    -- RSSI Timeouts
    constant CLK_FREQUENCY_C   : real     := 100.0E+6;  -- In units of Hz
    constant TIMEOUT_UNIT_C    : real     := 1.0E-6;    -- In units of seconds
-   constant ACK_TOUT_C        : positive := 25;  -- unit depends on TIMEOUT_UNIT_G 
+   constant ACK_TOUT_C        : positive := 25;  -- unit depends on TIMEOUT_UNIT_G
    constant RETRANS_TOUT_C    : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
    constant NULL_TOUT_C       : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
    -- Counters
@@ -52,7 +52,7 @@ architecture testbed of AxiRssiCoreTb is
       ADDR_WIDTH_C => ite(JUMBO_C, 16, 13),  -- (true=64kB buffer),(false=8kB buffer)
       DATA_BYTES_C => 8,                -- 8 bytes = 64-bits
       ID_BITS_C    => 2,
-      LEN_BITS_C   => ite(JUMBO_C, 8, 7));  -- (true=2kB bursting),(false=1kB bursting)   
+      LEN_BITS_C   => ite(JUMBO_C, 8, 7));  -- (true=2kB bursting),(false=1kB bursting)
 
    type RegType is record
       packetLength : slv(31 downto 0);
@@ -185,7 +185,7 @@ begin
 
    --------------
    -- RSSI Client
-   --------------         
+   --------------
    U_RssiClient : entity surf.AxiRssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
@@ -274,7 +274,7 @@ begin
                    obSrvMaster, r, rst, txBusy) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Keep delay copies
@@ -282,13 +282,13 @@ begin
       v.txBusy   := txBusy;
       v.trig     := not(r.txBusy) and linkUp;
 
-      -- Check for the packet completion 
+      -- Check for the packet completion
       if (txBusy = '1') and (r.txBusy = '0') then
          -- Sweeping the packet size size
          v.packetLength := r.packetLength + 1;
       end if;
 
-      -- Reset      
+      -- Reset
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
@@ -314,7 +314,7 @@ begin
          obSrvSlave  <= AXI_STREAM_SLAVE_FORCE_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;

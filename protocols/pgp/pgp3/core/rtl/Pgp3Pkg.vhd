@@ -6,11 +6,11 @@
 -- Description: PGPv3 Support Package
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ use surf.SsiPkg.all;
 package Pgp3Pkg is
 
    constant PGP3_VERSION_C : slv(2 downto 0) := "011";
-   
+
    constant PGP3_DEFAULT_TX_CELL_WORDS_MAX_C : positive := 128;  -- Number of 64-bit words per cell
 
    constant PGP3_AXIS_CONFIG_C : AxiStreamConfigType :=
@@ -106,7 +106,7 @@ package Pgp3Pkg is
       opCodeEn     : sl;
       opCodeNumber : slv(2 downto 0);
       opCodeData   : slv(47 downto 0);
-      locData      : slv(55 downto 0);      
+      locData      : slv(55 downto 0);
    end record Pgp3TxInType;
 
    type Pgp3TxInArray is array (natural range<>) of Pgp3TxInType;
@@ -162,7 +162,7 @@ package Pgp3Pkg is
       frameRxErr     : sl;                -- An errored frame was received
       cellError      : sl;                -- A cell error has occured
       linkDown       : sl;                -- A link down event has occured
-      linkError      : sl;                -- A link error has occured      
+      linkError      : sl;                -- A link error has occured
       opCodeEn       : sl;                -- Opcode valid
       opCodeNumber   : slv(2 downto 0);   -- Opcode number
       opCodeData     : slv(47 downto 0);  -- Opcode data
@@ -212,12 +212,6 @@ package Pgp3Pkg is
       ebValid        => '0',
       ebOverflow     => '0',
       ebStatus       => (others => '0'));
-
-   type Pgp3RefClkType is (
-      PGP3_REFCLK_125_C,                -- Used in 6.25Gbps only
-      PGP3_REFCLK_156_C,                -- Used in 10.3125Gbps & 6.25Gbps
-      PGP3_REFCLK_250_C,                -- Used in 6.25Gbps only
-      PGP3_REFCLK_312_C);               -- Used in 10.3125Gbps & 6.25Gbps
 
 end package Pgp3Pkg;
 

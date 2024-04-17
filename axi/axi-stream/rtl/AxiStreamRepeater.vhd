@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- Block to connect a single incoming AXI stream to multiple outgoing AXI
--- streams 
+-- streams
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -27,8 +26,9 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamRepeater is
    generic (
       TPD_G                : time     := 1 ns;
+      RST_ASYNC_G          : boolean  := false;
       NUM_MASTERS_G        : positive := 2;
-      INCR_AXIS_ID_G       : boolean  := false;  -- true = overwrites the TID with a counter that increments after each TLAST (help with frame alignment down stream) 
+      INCR_AXIS_ID_G       : boolean  := false;  -- true = overwrites the TID with a counter that increments after each TLAST (help with frame alignment down stream)
       INPUT_PIPE_STAGES_G  : natural  := 0;
       OUTPUT_PIPE_STAGES_G : natural  := 0);
    port (
@@ -72,6 +72,7 @@ begin
    U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -142,7 +143,7 @@ begin
       outputAxisMasters <= r.masters;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -151,9 +152,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -167,6 +170,7 @@ begin
       U_Output : entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
          port map (
             axisClk     => axisClk,

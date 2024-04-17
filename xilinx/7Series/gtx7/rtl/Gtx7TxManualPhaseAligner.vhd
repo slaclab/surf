@@ -4,11 +4,11 @@
 -- Description: GTX7 TX manual phase aligner
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -76,11 +76,11 @@ architecture rtl of Gtx7TxManualPhaseAligner is
    signal gtTxPhAlignDoneEdge   : sl;
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       TX_DLY_S_RESET_DONE_SYNC,
       TX_PH_INIT_DONE_SYNC,
       TX_PH_ALIGN_DONE_SYNC : label is "TRUE";
-   
+
 begin
 
    TX_DLY_S_RESET_DONE_SYNC : entity surf.Synchronizer
@@ -153,7 +153,7 @@ begin
 
          when DONE_S =>
             v.phaseAlignmentDone := '1';
-            
+
          when others => null;
       end case;
 
@@ -168,7 +168,7 @@ begin
       gtTxPhInit         <= r.gtTxPhInit;
       gtTxPhAlign        <= r.gtTxPhAlign;
       gtTxDlyEn          <= r.gtTxDlyEn;
-      
+
    end process comb;
 
    seq : process (stableClk) is

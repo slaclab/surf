@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTH Ultrascale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ use UNISIM.VCOMPONENTS.all;
 entity Pgp3GthUs is
    generic (
       TPD_G                       : time                  := 1 ns;
-      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"     
+      RATE_G                      : string                := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -51,6 +51,8 @@ entity Pgp3GthUs is
       EN_PGP_MON_G                : boolean               := false;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
@@ -139,12 +141,15 @@ architecture rtl of Pgp3GthUs is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal loopback : slv(2 downto 0);
+   signal loopback     : slv(2 downto 0);
+   signal txDiffCtrl   : slv(4 downto 0);
+   signal txPreCursor  : slv(4 downto 0);
+   signal txPostCursor : slv(4 downto 0);
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
       severity error;
 
    pgpClk    <= pgpTxClkInt;
@@ -174,7 +179,7 @@ begin
    end generate GEN_XBAR;
 
    -- If DRP or PGP_MON not enabled, no crossbar needed
-   -- If neither enabled, default values will auto-terminate the bus   
+   -- If neither enabled, default values will auto-terminate the bus
    GEN_DRP_ONLY : if (EN_DRP_G and not EN_PGP_MON_G) generate
       axilWriteSlave                     <= axilWriteSlaves(DRP_AXIL_INDEX_C);
       axilWriteMasters(DRP_AXIL_INDEX_C) <= axilWriteMaster;
@@ -204,6 +209,8 @@ begin
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
          EN_PGP_MON_G                => EN_PGP_MON_G,
+         STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+         ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
@@ -238,6 +245,9 @@ begin
          phyRxSlip       => phyRxSlip,                           -- [out]
          -- Debug Interface
          loopback        => loopback,                            -- [out]
+         txDiffCtrl      => txDiffCtrl,                          -- [out]
+         txPreCursor     => txPreCursor,                         -- [out]
+         txPostCursor    => txPostCursor,                        -- [out]
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
@@ -290,6 +300,9 @@ begin
          txHeader        => phyTxHeader,                         -- [in]
          txOutClk        => open,                                -- [out]
          loopback        => loopback,                            -- [in]
+         txDiffCtrl      => txDiffCtrl,                          -- [in]
+         txPreCursor     => txPreCursor,                         -- [in]
+         txPostCursor    => txPostCursor,                        -- [in]
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
          axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C),   -- [in]

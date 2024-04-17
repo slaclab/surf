@@ -4,11 +4,11 @@
 -- Description: Wrapper for XPM True Dual Port RAM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -28,7 +27,7 @@ entity SimpleDualPortRamXpm is
    generic (
       TPD_G               : time                       := 1 ns;
       COMMON_CLK_G        : boolean                    := false;
-      RST_POLARITY_G      : sl                         := '1';  -- '1' for active high rst, '0' for active low       
+      RST_POLARITY_G      : sl                         := '1';  -- '1' for active high rst, '0' for active low
       MEMORY_TYPE_G       : string                     := "block";
       MEMORY_INIT_FILE_G  : string                     := "none";
       MEMORY_INIT_PARAM_G : string                     := "0";
@@ -38,7 +37,7 @@ entity SimpleDualPortRamXpm is
       BYTE_WIDTH_G        : integer range 8 to 9       := 8;  -- If BRAM, should be multiple or 8 or 9
       ADDR_WIDTH_G        : integer range 1 to (2**24) := 4);
    port (
-      -- Port A     
+      -- Port A
       clka   : in  sl                                                                          := '0';
       ena    : in  sl                                                                          := '1';
       wea    : in  slv(ite(BYTE_WR_EN_G, wordCount(DATA_WIDTH_G, BYTE_WIDTH_G), 1)-1 downto 0) := (others => '0');
@@ -56,6 +55,8 @@ end SimpleDualPortRamXpm;
 architecture rtl of SimpleDualPortRamXpm is
 
    signal resetB : sl;
+
+   signal doutb_xpm : slv(DATA_WIDTH_G-1 downto 0);
 
 begin
 
@@ -91,7 +92,7 @@ begin
          enb            => enb,
          clkb           => clkb,
          addrb          => addrb,
-         doutb          => doutb,
+         doutb          => doutb_xpm,
          regceb         => regceb,
          -- Misc.Interface
          rstb           => resetB,
@@ -102,5 +103,7 @@ begin
          sleep          => '0');
 
    resetB <= rstb when(RST_POLARITY_G = '1') else not(rstb);
+
+   doutb <= doutb_xpm after TPD_G;
 
 end rtl;

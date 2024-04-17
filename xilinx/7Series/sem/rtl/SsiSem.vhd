@@ -4,11 +4,11 @@
 -- Description: SSI wrapper for 7-series SEM module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,8 +31,8 @@ entity SsiSem is
       TPD_G               : time                := 1 ns;
       COMMON_AXIL_CLK_G   : boolean             := false;
       COMMON_AXIS_CLK_G   : boolean             := false;
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := ssiAxiStreamConfig(1);
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := ssiAxiStreamConfig(1));
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- SEM clock and reset
       semClk          : in  sl;
@@ -108,9 +108,9 @@ architecture rtl of SsiSem is
 
 begin
 
-   ------------------------------   
+   ------------------------------
    --  Soft Error Mitigation Core
-   ------------------------------   
+   ------------------------------
    U_Sem : entity surf.SemWrapper
       generic map (
          TPD_G => TPD_G)
@@ -217,7 +217,7 @@ begin
       variable axilEp : AxiLiteEndpointType;
       variable c      : integer range 0 to 7;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset strobes
@@ -298,9 +298,9 @@ begin
          end if;
       end if;
 
-      ------------------------      
+      ------------------------
       -- AXI-Lite Transactions
-      ------------------------   
+      ------------------------
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);

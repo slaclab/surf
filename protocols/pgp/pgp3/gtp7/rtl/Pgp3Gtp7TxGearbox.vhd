@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTP7 64B66B to 32B33B TX Gearbox
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ begin
          end if;
 
          --------------------------------------------------------------------------------------
-         -- UG482 (v1.9) Figure 3-9 shows how a pause occurs at counter value 31 when using 
+         -- UG482 (v1.9) Figure 3-9 shows how a pause occurs at counter value 31 when using
          -- an 4-byte fabric interface in external sequence counter mode with 64B/66B encoding.
          --------------------------------------------------------------------------------------
          -- Check if not a "pause" cycle
@@ -145,7 +145,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs   
+      -- Registered Outputs
       txHeader   <= r.txHeader;
       txData     <= r.txData;
       txSequence <= r.txSequence;

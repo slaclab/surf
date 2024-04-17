@@ -4,11 +4,11 @@
 -- Description: This will infer this module as either Block RAM or distributed RAM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,14 +17,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SimpleDualPortRam is
    generic (
       TPD_G          : time                       := 1 ns;
-      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low      
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean                    := false;
       MEMORY_TYPE_G  : string                     := "block";
       DOB_REG_G      : boolean                    := false;  -- Extra reg on doutb (folded into BRAM)
       BYTE_WR_EN_G   : boolean                    := false;
@@ -33,7 +33,7 @@ entity SimpleDualPortRam is
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
    port (
-      -- Port A     
+      -- Port A
       clka    : in  sl                                                    := '0';
       ena     : in  sl                                                    := '1';
       wea     : in  sl                                                    := '0';
@@ -61,13 +61,13 @@ architecture rtl of SimpleDualPortRam is
 
    constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
 
-   -- Shared memory 
+   -- Shared memory
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
-   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0);
+   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
 
-   signal weaByteInt : slv(weaByte'range);
+   signal weaByteInt : slv(weaByte'range) := (others => '0');
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
@@ -76,7 +76,7 @@ architecture rtl of SimpleDualPortRam is
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
-   -- Attribute for Synplicity Synthesizer 
+   -- Attribute for Synplicity Synthesizer
    attribute syn_ramstyle        : string;
    attribute syn_ramstyle of mem : variable is XST_BRAM_STYLE_C;
 
@@ -103,10 +103,12 @@ begin
    end process;
 
    -- Port B
-   process(clkb)
+   process(clkb, rstb)
    begin
-      if rising_edge(clkb) then
-         if rstb = RST_POLARITY_G then
+      if (RST_ASYNC_G and rstb = RST_POLARITY_G) then
+         doutbInt <= INIT_C after TPD_G;
+      elsif rising_edge(clkb) then
+         if (RST_ASYNC_G = false and rstb = RST_POLARITY_G) then
             doutbInt <= INIT_C after TPD_G;
          elsif enb = '1' then
             doutBInt <= mem(conv_integer(addrb)) after TPD_G;

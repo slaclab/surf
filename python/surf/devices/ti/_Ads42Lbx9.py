@@ -1,50 +1,29 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue Ads42Lbx9 Module
-#-----------------------------------------------------------------------------
-# File       : ADS42LBx9.py
-# Created    : 2017-06-23
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue Ads42Lbx9 Module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import time
 
 class Ads42Lbx9Config(pr.Device):
-    def __init__( self,       
-        name        = "Ads42Lbx9Config",
-        description = "ADS42LBx9 Config Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-        enabled     =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-            enabled     = enabled,
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables
         ##############################
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0006",
             description  = "ADC Control Registers",
             offset       =  0x18,
@@ -54,8 +33,8 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
             verify       = False,
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0007",
             description  = "ADC Control Registers",
             offset       =  0x1C,
@@ -64,8 +43,8 @@ class Ads42Lbx9Config(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0008",
             description  = "ADC Control Registers",
             offset       =  0x20,
@@ -74,8 +53,8 @@ class Ads42Lbx9Config(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x000B",
             description  = "ADC Control Registers",
             offset       =  0x2C,
@@ -84,8 +63,8 @@ class Ads42Lbx9Config(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x000C",
             description  = "ADC Control Registers",
             offset       =  0x30,
@@ -95,7 +74,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x000D",
             description  = "ADC Control Registers",
             offset       =  0x34,
@@ -106,7 +85,7 @@ class Ads42Lbx9Config(pr.Device):
             verify       = False,
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x000F",
             description  = "ADC Control Registers",
             offset       =  0x3C,
@@ -116,7 +95,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0010",
             description  = "ADC Control Registers",
             offset       =  0x40,
@@ -126,7 +105,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0011",
             description  = "ADC Control Registers",
             offset       =  0x44,
@@ -136,7 +115,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0012",
             description  = "ADC Control Registers",
             offset       =  0x48,
@@ -146,7 +125,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0013",
             description  = "ADC Control Registers",
             offset       =  0x4C,
@@ -156,7 +135,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0014",
             description  = "ADC Control Registers",
             offset       =  0x50,
@@ -166,7 +145,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0015",
             description  = "ADC Control Registers",
             offset       =  0x54,
@@ -176,7 +155,7 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(    
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0016",
             description  = "ADC Control Registers",
             offset       =  0x58,
@@ -185,8 +164,8 @@ class Ads42Lbx9Config(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0017",
             description  = "ADC Control Registers",
             offset       =  0x5C,
@@ -195,8 +174,8 @@ class Ads42Lbx9Config(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0018",
             description  = "ADC Control Registers",
             offset       =  0x60,
@@ -205,8 +184,8 @@ class Ads42Lbx9Config(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x001F",
             description  = "ADC Control Registers",
             offset       =  0x7C,
@@ -216,8 +195,8 @@ class Ads42Lbx9Config(pr.Device):
             mode         = "RW",
             verify       = False,
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "AdcReg_0x0020",
             description  = "ADC Control Registers",
             offset       =  0x80,
@@ -228,30 +207,14 @@ class Ads42Lbx9Config(pr.Device):
         ))
 
 class Ads42Lbx9Readout(pr.Device):
-    def __init__( self,       
-        name        = "Ads42Lbx9Readout",
-        description = "ADS42LBx9 Readout Module",
-        memBase     =  None,
-        offset      =  0x00,
-        hidden      =  False,
-        expand      =  True,
-        enabled     =  True,
-    ):
-        super().__init__(
-            name        = name,
-            description = description,
-            memBase     = memBase,
-            offset      = offset,
-            hidden      = hidden,
-            expand      = expand,
-            enabled     = enabled,
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         ##############################
         # Variables
         ##############################
-        
-        self.addRemoteVariables(    
+
+        self.addRemoteVariables(
             name         = "DelayAdcALane",
             description  = "LVDS Lane Delay",
             offset       =  0x200,
@@ -259,12 +222,12 @@ class Ads42Lbx9Readout(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             number       =  8,
-            stride       =  4,            
+            stride       =  4,
             mode         = "RW",
             verify       = False,
         )
 
-        self.addRemoteVariables(    
+        self.addRemoteVariables(
             name         = "DelayAdcBLane",
             description  = "LVDS Lane Delay",
             offset       =  0x220,
@@ -272,12 +235,12 @@ class Ads42Lbx9Readout(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             number       =  8,
-            stride       =  4,            
+            stride       =  4,
             mode         = "RW",
             verify       = False,
         )
-        
-        self.addRemoteVariables(    
+
+        self.addRemoteVariables(
             name         = "AdcASample",
             description  = "ADC Sample",
             offset       =  0x180,
@@ -285,11 +248,11 @@ class Ads42Lbx9Readout(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             number       =  8,
-            stride       =  4,             
+            stride       =  4,
             mode         = "RO",
         )
-                            
-        self.addRemoteVariables(    
+
+        self.addRemoteVariables(
             name         = "AdcBSample",
             description  = "ADC Sample",
             offset       =  0x1A0,
@@ -297,11 +260,11 @@ class Ads42Lbx9Readout(pr.Device):
             bitOffset    =  0x00,
             base         = pr.UInt,
             number       =  8,
-            stride       =  4,             
+            stride       =  4,
             mode         = "RO",
         )
-                        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "DMode",
             description  = "DMode",
             offset       =  0x240,
@@ -310,8 +273,8 @@ class Ads42Lbx9Readout(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "Invert",
             description  = "Invert",
             offset       =  0x244,
@@ -320,8 +283,8 @@ class Ads42Lbx9Readout(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
         ))
-        
-        self.add(pr.RemoteVariable(    
+
+        self.add(pr.RemoteVariable(
             name         = "Convert",
             description  = "Convert",
             offset       =  0x248,

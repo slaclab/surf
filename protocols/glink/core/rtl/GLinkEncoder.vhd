@@ -4,11 +4,11 @@
 -- Description: Encodes 16 bit data raw words into 20 bit GLink words.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ entity GLinkEncoder is
    generic (
       TPD_G          : time    := 1 ns;
       RST_ASYNC_G    : boolean := false;
-      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       FLAGSEL_G      : boolean := false);
    port (
       en          : in  sl := '1';
@@ -102,7 +102,7 @@ begin
       -- Latch the reversed word
       glinkWordVar.w := rawBufferflyVar;
 
-      -- Control overrides data assignments 
+      -- Control overrides data assignments
       if (gLinkTx.control = '1') then
          glinkWordVar.w := rawBufferflyVar(0 to 6) & "01" & rawBufferflyVar(7 to 13);
       end if;
@@ -141,7 +141,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs      
+      -- Outputs
       encodedData <= r.encodedData;
 
    end process comb;

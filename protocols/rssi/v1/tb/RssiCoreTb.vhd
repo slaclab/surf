@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for testing the RssiCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          AXI_STREAM_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+         -- Streaming Slave (Rx) Interface (sAxisClk domain)
          sAxisClk         => clk,
          sAxisRst         => rst,
          sAxisMaster      => sSrpMaster,
@@ -192,7 +192,7 @@ begin
 
    --------------
    -- RSSI Client
-   --------------         
+   --------------
    U_RssiClient : entity surf.RssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
@@ -287,7 +287,7 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move data
                v.txMaster.tValid := '1';
-               -- Check for sweeping 
+               -- Check for sweeping
                if (SWEEP_C) then
                   v.txMaster.tData(31 downto 0) := r.sweep(29 downto 0) & "11";  -- ReqSize[31:0] = varies
                else
@@ -302,10 +302,10 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move data
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt), 32);  -- Data = Address 
+               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt), 32);  -- Data = Address
                -- Increment the counter
                v.cnt                         := r.cnt + 1;
-               -- Check for sweeping 
+               -- Check for sweeping
                if (SWEEP_C) then
                   -- Check for last transfer
                   if (r.cnt = r.sweep) then
@@ -347,7 +347,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs        
+      -- Registered Outputs
       txMaster <= r.txMaster;
 
    end process comb;

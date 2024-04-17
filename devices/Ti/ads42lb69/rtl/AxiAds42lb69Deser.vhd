@@ -4,11 +4,11 @@
 -- Description: ADC DDR Deserializer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,12 +29,13 @@ entity AxiAds42lb69Deser is
    generic (
       TPD_G           : time                                    := 1 ns;
       USE_PLL_G       : boolean                                 := false;
+      USE_FBCLK_G     : boolean                                 := true;
       ADC_CLK_FREQ_G  : real                                    := 250.0E+6;
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
       XIL_DEVICE_G    : string                                  := "7SERIES");
    port (
-      -- ADC Ports  
+      -- ADC Ports
       clkP         : out sl;
       clkN         : out sl;
       syncP        : out sl;
@@ -56,7 +57,8 @@ entity AxiAds42lb69Deser is
       adcClk       : in  sl;
       adcRst       : in  sl;
       adcSync      : in  sl;
-      refClk200MHz : in  sl);
+      refClk200MHz : in  sl;
+      refRst200MHz : in  sl);
 end AxiAds42lb69Deser;
 
 architecture rtl of AxiAds42lb69Deser is
@@ -71,7 +73,7 @@ architecture rtl of AxiAds42lb69Deser is
    signal adcDmuxA  : Slv8Array(1 downto 0);
    signal adcDmuxB  : Slv8Array(1 downto 0);
    signal data      : Slv16Array(1 downto 0);
-   
+
 begin
 
    assert (XIL_DEVICE_G = "ULTRASCALE" and USE_PLL_G = false) or XIL_DEVICE_G /= "ULTRASCALE"
@@ -82,6 +84,7 @@ begin
       generic map(
          TPD_G          => TPD_G,
          USE_PLL_G      => USE_PLL_G,
+         USE_FBCLK_G    => USE_FBCLK_G,
          ADC_CLK_FREQ_G => ADC_CLK_FREQ_G,
          XIL_DEVICE_G   => XIL_DEVICE_G)
       port map (
@@ -96,7 +99,7 @@ begin
          adcSync   => adcSync,
          adcClk    => adcClk,
          adcRst    => adcRst,
-         adcClock  => adcClock);         
+         adcClock  => adcClock);
 
    SynchVector_Inst : entity surf.SynchronizerVector
       generic map(
@@ -106,34 +109,24 @@ begin
          clk     => adcClock,
          dataIn  => dmode,
          dataOut => dmux);
-   
+
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       attribute IODELAY_GROUP                    : string;
       attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
-      signal rstSync : sl;
    begin
       IDELAYCTRL_Inst : IDELAYCTRL
          port map (
             RDY    => delayOut.rdy,        -- 1-bit output: Ready output
             REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
-            RST    => rstSync);            -- 1-bit input: Active high reset input
-      
-      Sync_delayIn_rst : entity surf.RstSync
-         generic map (
-            TPD_G           => TPD_G,
-            RELEASE_DELAY_G => 16)   
-         port map (
-            clk      => refClk200MHz,
-            asyncRst => delayIn.rst,
-            syncRst  => rstSync);   
-         
+            RST    => refRst200MHz);       -- 1-bit input: Active high reset input
+
    end generate;
 
    GEN_CH :
    for ch in 1 downto 0 generate
       GEN_DAT :
       for i in 7 downto 0 generate
-         
+
          AxiAds42lb69DeserBit_Inst : entity surf.AxiAds42lb69DeserBit
             generic map(
                TPD_G           => TPD_G,
@@ -194,5 +187,5 @@ begin
             dout   => adcData(ch));
 
    end generate GEN_CH;
-   
+
 end rtl;

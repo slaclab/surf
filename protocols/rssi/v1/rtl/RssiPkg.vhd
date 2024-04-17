@@ -6,11 +6,11 @@
 -- Description: RSSI Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -45,15 +45,15 @@ package RssiPkg is
    constant NULL_HEADER_SIZE_C : natural := 8;
    constant DATA_HEADER_SIZE_C : natural := 8;
 
-   -------------------------------------------------------------------------- 
-   -- Sub-types 
-   -------------------------------------------------------------------------- 
+   --------------------------------------------------------------------------
+   -- Sub-types
+   --------------------------------------------------------------------------
    type RssiParamType is record
       version     : slv(3 downto 0);
       chksumEn    : slv(0 downto 0);
       timeoutUnit : slv(7 downto 0);
 
-      maxOutsSeg : slv(7 downto 0);     -- Receiver parameter       
+      maxOutsSeg : slv(7 downto 0);     -- Receiver parameter
       maxSegSize : slv(15 downto 0);    -- Receiver parameter
 
       retransTout  : slv(15 downto 0);
@@ -108,12 +108,12 @@ package RssiPkg is
       segSize  => 0,
       occupied => '0');
 
-   -- Arrays   
+   -- Arrays
    type WindowTypeArray is array (natural range<>) of WindowType;
 
-   --------------------------------------------------------------------------  
+   --------------------------------------------------------------------------
    -- Function declarations
-   --------------------------------------------------------------------------  
+   --------------------------------------------------------------------------
    -- Swap little and big endians
    -- 64-bit header word
    function endianSwap64(data_slv : slv(63 downto 0)) return std_logic_vector;
@@ -122,9 +122,9 @@ end RssiPkg;
 
 package body RssiPkg is
 
-   --------------------------------------------------------------------------  
+   --------------------------------------------------------------------------
    -- Function bodies
-   --------------------------------------------------------------------------  
+   --------------------------------------------------------------------------
    -- Swap little or big endians 64-bit header
    function endianSwap64(data_slv : slv(63 downto 0)) return std_logic_vector is
       variable vSlv : slv(63 downto 0);

@@ -4,11 +4,11 @@
 -- Description: Raw L2 Ethernet Framer Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ package RawEthFramerPkg is
    -- tDestBits = 8
    -- tUserBits = 3
    constant RAW_ETH_CONFIG_INIT_C : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_COMP_C, TUSER_FIRST_LAST_C, 8, 3);
-   
+
    function ssiGetUserBcf (
       axisConfig : AxiStreamConfigType;
       axisMaster : AxiStreamMasterType)
@@ -43,7 +43,7 @@ package RawEthFramerPkg is
    procedure ssiSetUserBcf (
       axisConfig : in    AxiStreamConfigType;
       axisMaster : inout AxiStreamMasterType;
-      bcf        : in    sl);   
+      bcf        : in    sl);
 
 end package RawEthFramerPkg;
 

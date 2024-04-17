@@ -1,15 +1,15 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Writing to this module sets a timer for a deleyed write response
+-- Description: Writing to this module sets a timer for a delayed write response
 --              Read transaction are not supported and will respond with error
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,14 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity AxiLiteRespTimer is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false);
    port (
       -- Slave AXI-Lite Interface
       axilClk         : in  sl;
@@ -83,7 +83,7 @@ begin
 
       -- State Machine
       case (r.state) is
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for write transaction
             if (axilStatus.writeEnable = '1') then
@@ -95,7 +95,7 @@ begin
                v.state := TIMER_S;
 
             end if;
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when TIMER_S =>
             -- Check for timeout
             if (r.timer = 0) then
@@ -114,7 +114,7 @@ begin
       end case;
 
       -- Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -127,9 +127,11 @@ begin
 
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

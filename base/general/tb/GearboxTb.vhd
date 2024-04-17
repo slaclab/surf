@@ -20,7 +20,7 @@ use ieee.std_logic_arith.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library surf; 
+library surf;
 ----------------------------------------------------------------------------------------------------
 
 entity GearboxTb is
@@ -63,7 +63,7 @@ architecture sim of GearboxTb is
    signal masterReady_1 : sl                            := '1';  -- [in]
    signal slip_1        : sl                            := '0';
    signal startOfSeq_1  : sl                            := '0';
-                                        -- 
+                                        --
    signal slip          : sl                            := '0';
    signal slipCnt       : slv(6 downto 0)               := (others => '0');
 

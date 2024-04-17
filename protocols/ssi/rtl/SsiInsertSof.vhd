@@ -6,11 +6,11 @@
 -- Description: Inserts the SOF for converting a generic AXIS into a SSI bus
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -29,6 +28,7 @@ entity SsiInsertSof is
    generic (
       -- General Configurations
       TPD_G               : time                                         := 1 ns;
+      RST_ASYNC_G         : boolean                                      := false;
       TUSER_MASK_G        : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '1');  -- '1' = masked off bit
       INSERT_USER_HDR_G   : boolean                                      := false;  -- If True the module adds one user header word (mUserHdr = user header data)
       -- FIFO configurations
@@ -38,8 +38,8 @@ entity SsiInsertSof is
       SLAVE_FIFO_G        : boolean                                      := true;
       MASTER_FIFO_G       : boolean                                      := true;
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType                          := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType                          := AXI_STREAM_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       sAxisClk    : in  sl;
@@ -90,6 +90,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
@@ -193,21 +194,23 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (mAxisRst = '1') then
+      if (RST_ASYNC_G = false and mAxisRst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs        
+      -- Registered Outputs
       txMaster <= r.txMaster;
 
    end process comb;
 
-   seq : process (mAxisClk) is
+   seq : process (mAxisClk, mAxisRst) is
    begin
-      if rising_edge(mAxisClk) then
+      if (RST_ASYNC_G) and (mAxisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(mAxisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -222,6 +225,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,

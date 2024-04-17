@@ -4,11 +4,11 @@
 -- Description: AD9467 Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 package AxiAd9467Pkg is
-   
+
    type AxiAd9467InType is record
       clkP  : sl;
       clkN  : sl;
@@ -37,7 +37,7 @@ package AxiAd9467Pkg is
       orP   => '0',
       orN   => '1',
       dataP => (others => '0'),
-      dataN => (others => '1'));  
+      dataN => (others => '1'));
 
    type AxiAd9467InOutType is record
       sdio : sl;
@@ -45,7 +45,7 @@ package AxiAd9467Pkg is
    type AxiAd9467InOutArray is array (natural range <>) of AxiAd9467InOutType;
    type AxiAd9467InOutVectorArray is array (integer range<>, integer range<>)of AxiAd9467InOutType;
    constant AXI_AD9467_IN_OUT_INIT_C : AxiAd9467InOutType := (
-      sdio => 'Z');        
+      sdio => 'Z');
 
    type AxiAd9467OutType is record
       cs   : sl;
@@ -59,7 +59,7 @@ package AxiAd9467Pkg is
       cs   => '1',
       sck  => '1',
       clkP => '0',
-      clkN => '1');       
+      clkN => '1');
 
    type AxiAd9467SpiInType is record
       req  : sl;
@@ -71,7 +71,7 @@ package AxiAd9467Pkg is
       '0',
       '0',
       (others => '0'),
-      (others => '0'));            
+      (others => '0'));
 
    type AxiAd9467SpiOutType is record
       ack  : sl;
@@ -79,7 +79,7 @@ package AxiAd9467Pkg is
    end record;
    constant AXI_AD9467_SPI_OUT_INIT_C : AxiAd9467SpiOutType := (
       '0',
-      (others => '0'));  
+      (others => '0'));
 
    type AxiAd9467DelayInType is record
       dmux : sl;
@@ -91,7 +91,7 @@ package AxiAd9467Pkg is
       dmux => '0',
       load => '0',
       rst  => '0',
-      data => (others => "00000"));  
+      data => (others => "00000"));
 
    type AxiAd9467DelayOutType is record
       rdy  : sl;
@@ -99,7 +99,7 @@ package AxiAd9467Pkg is
    end record;
    constant AXI_AD9467_DELAY_OUT_INIT_C : AxiAd9467DelayOutType := (
       rdy  => '0',
-      data => (others => "00000"));  
+      data => (others => "00000"));
 
    type AxiAd9467StatusType is record
       pllLocked  : sl;
@@ -113,7 +113,7 @@ package AxiAd9467Pkg is
       adcData    => x"0000",
       adcDataMon => (others => x"0000"),
       spi        => AXI_AD9467_SPI_OUT_INIT_C,
-      delay      => AXI_AD9467_DELAY_OUT_INIT_C); 
+      delay      => AXI_AD9467_DELAY_OUT_INIT_C);
 
    type AxiAd9467ConfigType is record
       spi   : AxiAd9467SpiInType;
@@ -121,6 +121,6 @@ package AxiAd9467Pkg is
    end record;
    constant AXI_AD9467_CONFIG_INIT_C : AxiAd9467ConfigType := (
       spi   => AXI_AD9467_SPI_IN_INIT_C,
-      delay => AXI_AD9467_DELAY_IN_INIT_C); 
+      delay => AXI_AD9467_DELAY_IN_INIT_C);
 
 end package;

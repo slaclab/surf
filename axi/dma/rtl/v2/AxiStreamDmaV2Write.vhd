@@ -6,11 +6,11 @@
 -- interface. Version 2 supports interleaved frames.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -30,8 +30,8 @@ entity AxiStreamDmaV2Write is
    generic (
       TPD_G             : time                    := 1 ns;
       AXI_READY_EN_G    : boolean                 := false;
-      AXIS_CONFIG_G     : AxiStreamConfigType     := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G      : AxiConfigType           := AXI_CONFIG_INIT_C;
+      AXIS_CONFIG_G     : AxiStreamConfigType;
+      AXI_CONFIG_G      : AxiConfigType;
       PIPE_STAGES_G     : natural                 := 1;
       BURST_BYTES_G     : integer range 1 to 4096 := 4096;
       ACK_WAIT_BVALID_G : boolean                 := true);
@@ -47,7 +47,7 @@ entity AxiStreamDmaV2Write is
       -- Config and status
       dmaWrIdle       : out sl;
       axiCache        : in  slv(3 downto 0);
-      -- Streaming Interface 
+      -- Streaming Interface
       axisMaster      : in  AxiStreamMasterType;
       axisSlave       : out AxiStreamSlaveType;
       -- AXI Interface
@@ -70,6 +70,7 @@ architecture rtl of AxiStreamDmaV2Write is
       ADDR_S,
       MOVE_S,
       PAD_S,
+      META_S,
       RETURN_S,
       DUMP_S);
 
@@ -119,7 +120,7 @@ architecture rtl of AxiStreamDmaV2Write is
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
-   
+
 begin
 
    assert AXIS_CONFIG_G.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
@@ -136,13 +137,13 @@ begin
          sAxisMaster => axisMaster,
          sAxisSlave  => axisSlave,
          mAxisMaster => intAxisMaster,
-         mAxisSlave  => intAxisSlave);    
+         mAxisSlave  => intAxisSlave);
 
    -- Pause when enabled
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
 
    -- State machine
-   comb : process (axiRst, axiWriteSlave, dmaWrDescAck, dmaWrDescRetAck, 
+   comb : process (axiRst, axiWriteSlave, dmaWrDescAck, dmaWrDescRetAck,
                    intAxisMaster, trackData, pause, r, axiCache) is
       variable v       : RegType;
       variable bytes   : natural;
@@ -190,7 +191,7 @@ begin
       else
          bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),AXIS_CONFIG_G);
       end if;
-      
+
       -- State machine
       case r.state is
          ----------------------------------------------------------------------
@@ -209,6 +210,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Set write dma request data
+            v.dmaWrDescReq.dest := intAxisMaster.tDest;
+            v.dmaWrDescReq.id   := intAxisMaster.tId;
+
             if intAxisMaster.tValid = '1' then
                -- Current destination matches incoming frame
                if r.dmaWrTrack.dest = intAxisMaster.tDest then
@@ -231,9 +236,8 @@ begin
 
                -- Wait for mem selection to match incoming frame
                elsif trackData.dest = intAxisMaster.tDest then
-                  -- Set tracking data and setup request
+                  -- Set tracking data
                   v.dmaWrTrack := trackData;
-                  v.dmaWrDescReq.dest := trackData.dest;
 
                   -- Is entry valid or do we need a new buffer
                   if trackData.inUse = '1' then
@@ -256,15 +260,17 @@ begin
          when REQ_S =>
             -- Wait for response and latch fields
             if dmaWrDescAck.valid = '1' then
-               v.dmaWrTrack.inUse     := '1';
-               v.dmaWrTrack.address   := dmaWrDescAck.address;
-               v.dmaWrTrack.maxSize   := dmaWrDescAck.maxSize;
-               v.dmaWrTrack.size      := (others=>'0');
-               v.dmaWrTrack.firstUser := (others=>'0');
-               v.dmaWrTrack.contEn    := dmaWrDescAck.contEn;
-               v.dmaWrTrack.dropEn    := dmaWrDescAck.dropEn;
-               v.dmaWrTrack.buffId    := dmaWrDescAck.buffId;
-               v.dmaWrTrack.overflow  := '0';
+               v.dmaWrTrack.inUse      := '1';
+               v.dmaWrTrack.size       := (others=>'0');
+               v.dmaWrTrack.firstUser  := (others=>'0');
+               v.dmaWrTrack.contEn     := dmaWrDescAck.contEn;
+               v.dmaWrTrack.dropEn     := dmaWrDescAck.dropEn;
+               v.dmaWrTrack.buffId     := dmaWrDescAck.buffId;
+               v.dmaWrTrack.overflow   := '0';
+               v.dmaWrTrack.metaEnable := dmaWrDescAck.metaEnable;
+               v.dmaWrTrack.metaAddr   := dmaWrDescAck.metaAddr;
+               v.dmaWrTrack.address    := dmaWrDescAck.address;
+               v.dmaWrTrack.maxSize    := dmaWrDescAck.maxSize;
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
@@ -286,7 +292,7 @@ begin
             -- Address can be sent
             if (v.wMaster.awvalid = '0') and (v.axiLen.valid = "11") then
                -- Set the memory address
-               v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := 
+               v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) :=
                   r.dmaWrTrack.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Latch AXI awlen value
                v.wMaster.awlen := v.axiLen.value;
@@ -308,7 +314,7 @@ begin
             if intAxisMaster.tValid = '1' then
                v.stCount := (others=>'0');
                -- Destination has changed, complete current write
-               if intAxisMaster.tDest /= r.dmaWrDescReq.dest then
+               if intAxisMaster.tDest /= r.dmaWrTrack.dest then
                   v.state := PAD_S;
                -- Overflow detect
                elsif (r.dmaWrTrack.maxSize(31 downto 5) = 0) then -- Assumes max AXIS.TDATA width of 128-bits
@@ -336,7 +342,7 @@ begin
                      v.wMaster.wstrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0) := genTKeep(bytes);
                   else
                      v.wMaster.wstrb(DATA_BYTES_C-1 downto 0)                 := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
-                  end if;                  
+                  end if;
                   -- Address and size increment
                   v.dmaWrTrack.address := r.dmaWrTrack.address + DATA_BYTES_C;
                   -- Force address alignment
@@ -350,18 +356,22 @@ begin
                   if r.dmaWrTrack.size = 0 then
                      -- Latch the tDest/tId/tUser values
                      v.dmaWrTrack.id := intAxisMaster.tId;
-                     v.dmaWrTrack.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := 
+                     v.dmaWrTrack.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) :=
                         axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster, 0);
                   end if;
                   -- -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      -- Latch the tUser value
-                     v.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) := 
+                     v.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) :=
                         axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster);
                      v.dmaWrTrack.inUse := '0';
                      -- Pad write if transaction is not done, return will following PAD because inUse = 0
                      if r.awlen = 0 then
-                        v.state := RETURN_S;
+                        if r.dmaWrTrack.metaEnable = '1' then
+                           v.state := META_S;
+                        else
+                           v.state := RETURN_S;
+                        end if;
                      else
                         v.state := PAD_S;
                      end if;
@@ -398,7 +408,11 @@ begin
                   v.wMaster.wlast := '1';
                   -- Frame is done. Go to return. Otherwise go to idle.
                   if r.dmaWrTrack.inUse = '0' then
-                     v.state := RETURN_S;
+                     if r.dmaWrTrack.metaEnable = '1' then
+                        v.state := META_S;
+                     else
+                        v.state := RETURN_S;
+                     end if;
                   else
                      v.state := IDLE_S;
                   end if;
@@ -406,6 +420,37 @@ begin
                   -- Decrement the counter
                   v.awlen := r.awlen - 1;
                end if;
+            end if;
+         ----------------------------------------------------------------------
+         when META_S =>
+
+            -- Wair for existing transactions to complete
+            if v.wMaster.wvalid = '0' and v.wMaster.awvalid = '0' then
+
+               -- Init
+               v.wMaster := axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000");
+
+               -- Write address channel
+               v.wMaster.awaddr := r.dmaWrTrack.metaAddr;
+               v.wMaster.awlen  := x"00";  -- Single transaction
+
+               -- Write data channel
+               v.wMaster.wlast := '1';
+
+               -- Descriptor data, 64-bits
+               v.wMaster.wdata(63 downto 32)   := r.dmaWrTrack.size;
+               v.wMaster.wdata(31 downto 24)   := r.dmaWrTrack.firstUser;
+               v.wMaster.wdata(23 downto 16)   := r.lastUser;
+               v.wMaster.wdata(15 downto 4)    := (others => '0');
+               v.wMaster.wdata(3)              := r.continue;
+               v.wMaster.wdata(2)              := '0';
+               v.wMaster.wdata(1 downto 0)     := r.result;
+
+               v.wMaster.wstrb := resize(x"FF", 128);
+
+               v.wMaster.awvalid := '1';
+               v.wMaster.wvalid  := '1';
+               v.state           := RETURN_S;
             end if;
          ----------------------------------------------------------------------
          when RETURN_S =>
@@ -427,7 +472,7 @@ begin
                if (r.ackCount = r.reqCount) or (ACK_WAIT_BVALID_G = false) then
                   v.dmaWrDescRet.valid := '1';
                   v.state := IDLE_S;
-               -- Check for ACK timeout   
+               -- Check for ACK timeout
                elsif (r.stCount = x"FFFF") then
                   -- Set the flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
@@ -447,7 +492,7 @@ begin
             -- Incoming valid data
             if intAxisMaster.tValid = '1' then
                -- Destination has changed, complete current write
-               if intAxisMaster.tDest /= r.dmaWrDescReq.dest then
+               if intAxisMaster.tDest /= r.dmaWrTrack.dest then
                   v.state := IDLE_S;
                else
                   -- Accept the data
@@ -470,19 +515,19 @@ begin
       else
          v.dmaWrIdle := '0';
       end if;
-      
+
       -- Combinatorial outputs before the reset
       intAxisSlave <= v.slave;
 
-      -- Reset      
+      -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs 
+      -- Registered Outputs
       axiWriteMaster <= r.wMaster;
       dmaWrDescReq   <= r.dmaWrDescReq;
       dmaWrDescRet   <= r.dmaWrDescRet;
@@ -500,7 +545,7 @@ begin
    --------------------------
    -- Tracking RAM
    --------------------------
-   U_TrackRam: entity surf.DualPortRam 
+   U_TrackRam: entity surf.DualPortRam
       generic map (
          TPD_G          => TPD_G,
          MEMORY_TYPE_G  => "block",

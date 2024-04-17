@@ -4,11 +4,11 @@
 -- Description: AXI-Lite Register Access Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,15 +37,15 @@ entity AxiDac7654Reg is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- Register Inputs/Outputs (axiClk domain)
       status         : in  AxiDac7654StatusType;
-      config         : out AxiDac7654ConfigType);      
+      config         : out AxiDac7654ConfigType);
 end AxiDac7654Reg;
 
 architecture rtl of AxiDac7654Reg is
-   
+
    type StateType is (
       IDLE_S,
       REQ_S,
-      ACK_S);    
+      ACK_S);
 
    type RegType is record
       config        : AxiDac7654ConfigType;
@@ -53,7 +53,7 @@ architecture rtl of AxiDac7654Reg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       AXI_DAC7654_CONFIG_INIT_C,
       IDLE_S,
@@ -69,7 +69,7 @@ begin
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, r, syncIn) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
@@ -115,8 +115,6 @@ begin
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         -- Reset the register
-         v.axiReadSlave.rdata := (others => '0');
          -- Decode address and assign read data
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"80" =>
@@ -168,7 +166,7 @@ begin
       -- Outputs
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -178,7 +176,7 @@ begin
       end if;
    end process seq;
 
-   -------------------------------            
+   -------------------------------
    -- Synchronization: Outputs
    -------------------------------
    config.spi <= r.config.spi;

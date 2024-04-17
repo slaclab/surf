@@ -4,11 +4,11 @@
 -- Description: IPv4 AXIS DEMUX module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,10 +27,10 @@ use surf.EthMacPkg.all;
 entity IpV4EngineDeMux is
    generic (
       TPD_G  : time    := 1 ns;
-      VLAN_G : boolean := false);    
+      VLAN_G : boolean := false);
    port (
       -- Local Configurations
-      localMac     : in  slv(47 downto 0);  --  big-Endian configuration   
+      localMac     : in  slv(47 downto 0);  --  big-Endian configuration
       -- Slave
       obMacMaster  : in  AxiStreamMasterType;
       obMacSlave   : out AxiStreamSlaveType;
@@ -41,7 +41,7 @@ entity IpV4EngineDeMux is
       ibIpv4Slave  : in  AxiStreamSlaveType;
       -- Clock and Reset
       clk          : in  sl;
-      rst          : in  sl);      
+      rst          : in  sl);
 end IpV4EngineDeMux;
 
 architecture rtl of IpV4EngineDeMux is
@@ -51,7 +51,7 @@ architecture rtl of IpV4EngineDeMux is
    type StateType is (
       IDLE_S,
       CHECK_S,
-      MOVE_S); 
+      MOVE_S);
 
    type RegType is record
       arpSel       : sl;
@@ -62,7 +62,7 @@ architecture rtl of IpV4EngineDeMux is
       obMacSlave   : AxiStreamSlaveType;
       state        : StateType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       arpSel       => '0',
       ipv4Sel      => '0',
@@ -83,7 +83,7 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset strobing signals   
+      -- Reset strobing signals
       v.obMacSlave.tReady := '0';
       if ibArpSlave.tReady = '1' then
          v.ibArpMaster.tValid := '0';
@@ -96,7 +96,7 @@ begin
       if (obMacMaster.tValid = '1') and (v.ibArpMaster.tValid = '0') and (v.ibIpv4Master.tValid = '0') then
          ----------------------------------------------------------------------
          -- Checking for non-VLAN
-         ----------------------------------------------------------------------         
+         ----------------------------------------------------------------------
          if (VLAN_G = false) then
             -- Accept for data
             v.obMacSlave.tReady := '1';
@@ -132,7 +132,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          -- Checking for VLAN
-         ----------------------------------------------------------------------         
+         ----------------------------------------------------------------------
          else
             -- State Machine
             case r.state is
@@ -189,7 +189,7 @@ begin
             end case;
          end if;
       end if;
-      
+
       -- Combinatorial outputs before the reset
       obMacSlave <= v.obMacSlave;
 
@@ -204,7 +204,7 @@ begin
       -- Registered Outputs
       ibArpMaster  <= r.ibArpMaster;
       ibIpv4Master <= r.ibIpv4Master;
-      
+
    end process comb;
 
    seq : process (clk) is

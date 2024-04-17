@@ -7,11 +7,11 @@
 -- Designed specifically for Xilinx 7 series FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -78,6 +78,8 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
       invert         : sl;
+      curDelayFrame  : slv(4 downto 0);
+      curDelayData   : slv5Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -90,7 +92,9 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
-      invert         => '0'
+      invert         => '0',
+      curDelayFrame  => (others => '0'),
+      curDelayData   => (others => (others => '0'))
    );
 
    signal lockedSync      : sl;
@@ -144,7 +148,7 @@ architecture rtl of Ad9249ReadoutGroup is
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
-   
+
    signal invertSync    : sl;
 
 begin
@@ -190,7 +194,7 @@ begin
          rst     => axilRst,
          dataIn  => adcFrame,
          dataOut => adcFrameSync);
-   
+
    Synchronizer_2 : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
@@ -212,7 +216,9 @@ begin
 
       v.dataDelaySet        := (others => '0');
       v.frameDelaySet       := '0';
-      v.axilReadSlave.rdata := (others => '0');
+
+      v.curDelayFrame := curDelayFrame;
+      v.curDelayData  := curDelayData;
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
@@ -235,9 +241,9 @@ begin
 
       -- Override read from r.delay and use curDealy output from delay primative instead
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, curDelayData(i));
+         axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
       end loop;
-      axiSlaveRegisterR(axilEp, X"20", 0, curDelayFrame);
+      axiSlaveRegisterR(axilEp, X"20", 0, axilR.curDelayFrame);
 
 
       -- Debug output to see how many times the shift has needed a relock
@@ -245,7 +251,7 @@ begin
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
       axiSlaveRegisterR(axilEp, X"34", 0, adcFrameSync);
       axiSlaveRegister(axilEp, X"38", 0, v.lockedCountRst);
-      
+
       axiSlaveRegister(axilEp, X"40", 0, v.invert);
 
       -- Debug registers. Output the last 2 words received
@@ -421,7 +427,7 @@ begin
          if (adcR.locked = '1' and adcFrame = "11111110000000") then
             -- Locked, output adc data
             if invertSync = '1' then
-               v.fifoWrData(i) := "00" & (x"3FFF" - adcData(i));
+               v.fifoWrData(i) := "00" & ("11111111111111" - adcData(i));
             else
                v.fifoWrData(i) := "00" & adcData(i);
             end if;

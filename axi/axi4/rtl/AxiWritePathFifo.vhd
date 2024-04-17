@@ -5,11 +5,11 @@
 -- FIFO for AXI write path transactions.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -59,8 +59,7 @@ entity AxiWritePathFifo is
       RESP_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
 
       -- BUS Config
-      AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C
-      );
+      AXI_CONFIG_G : AxiConfigType);
    port (
 
       -- Slave Port
@@ -91,7 +90,7 @@ architecture rtl of AxiWritePathFifo is
    constant STRB_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C;
    constant RESP_BITS_C  : integer := 2;
 
-   constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C  + ID_BITS_C   + LEN_BITS_C  + SIZE_BITS_C + 
+   constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C  + ID_BITS_C   + LEN_BITS_C  + SIZE_BITS_C +
                                           BURST_BITS_C + LOCK_BITS_C + PROT_BITS_C + CACHE_BITS_C;
 
    constant DATA_FIFO_SIZE_C : integer := 1 + DATA_BITS_C  + STRB_BITS_C + ID_BITS_C;
@@ -148,13 +147,13 @@ architecture rtl of AxiWritePathFifo is
 
    -- Convert slv to address record
    procedure slvToAddr (din    : in    slv(ADDR_FIFO_SIZE_C-1 downto 0);
-                        valid  : in    sl; 
+                        valid  : in    sl;
                         slave  : in    AxiWriteMasterType;
                         master : inout AxiWriteMasterType ) is
       variable i   : integer;
    begin
 
-      -- Set valid, 
+      -- Set valid,
       master.awvalid := valid;
 
       master.awaddr := (others=>'0');
@@ -245,13 +244,13 @@ architecture rtl of AxiWritePathFifo is
 
    -- Convert slv to data record
    procedure slvToData (din    : in    slv(DATA_FIFO_SIZE_C-1 downto 0);
-                        valid  : in    sl; 
+                        valid  : in    sl;
                         slave  : in    AxiWriteMasterType;
                         master : inout AxiWriteMasterType ) is
       variable i   : integer;
    begin
 
-      -- Set valid, 
+      -- Set valid,
       master.wvalid := valid;
       master.wlast  := din(0);
       i := 1;
@@ -294,13 +293,13 @@ architecture rtl of AxiWritePathFifo is
 
    -- Convert slv to resp record
    procedure slvToResp (din    : in    slv(RESP_FIFO_SIZE_C-1 downto 0);
-                        valid  : in    sl; 
+                        valid  : in    sl;
                         master : in    AxiWriteMasterType;
                         slave  : inout AxiWriteSlaveType  ) is
       variable i   : integer;
    begin
 
-      -- Set valid, 
+      -- Set valid,
       slave.bvalid := valid;
 
       slave.bresp := din(RESP_BITS_C-1 downto 0);
@@ -486,7 +485,7 @@ begin
    -- Fifo Outputs
    -------------------------
 
-   process ( sAxiWriteMaster, mAxiWriteSlave, 
+   process ( sAxiWriteMaster, mAxiWriteSlave,
              addrFifoDout, addrFifoAFull, addrFifoValid,
              dataFifoDout, dataFifoAFull, dataFifoValid,
              respFifoDout, respFifoAFull, respFifoValid ) is

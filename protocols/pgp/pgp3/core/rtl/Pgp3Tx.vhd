@@ -6,11 +6,11 @@
 -- Description: Pgpv3 Transmit
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -128,10 +128,10 @@ begin
          generic map (
             TPD_G => TPD_G)
          port map (
-            clk     => pgpTxClk,                        -- [in]
-            rst     => pgpTxRst,                        -- [in]
-            dataIn  => locRxFifoCtrl(i).pause,          -- [in]
-            dataOut => syncLocRxFifoCtrl(i).pause);     -- [out] 
+            clk     => pgpTxClk,                              -- [in]
+            rst     => pgpTxRst,                              -- [in]
+            dataIn  => locRxFifoCtrl(i).pause,                -- [in]
+            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out]
       U_Synchronizer_overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
@@ -189,6 +189,7 @@ begin
          CRC_POLY_G           => PGP3_CRC_POLY_C,
          MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
          TDEST_BITS_G         => log2(NUM_VC_G),
+         SEQ_CNT_SIZE_G       => 12,
          INPUT_PIPE_STAGES_G  => ite(DISABLE_PIPELINING_G, 0, 1),
          OUTPUT_PIPE_STAGES_G => ite(DISABLE_PIPELINING_G, 0, 1))
       port map (

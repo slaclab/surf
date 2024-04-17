@@ -4,18 +4,18 @@
 -- Description: LMFC Generator
 --              Local Multi Frame Clock Generator
 --              Periodically outputs one clock cycle pulse (LMFC).
---              Synchronizes with the rising edge of sysref_i if sync is requested 
+--              Synchronizes with the rising edge of sysref_i if sync is requested
 --              by any of the on-board JESD receivers.
 --              Outputs first pulse 2 c-c after sysref_i='1'
 --              Period determined by F_G*K_G/GT_WORD_SIZE_C.
 --              (Example: 2*32/4 = 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,19 +37,19 @@ entity JesdLmfcGen is
    port (
       clk      : in  sl;
       rst      : in  sl;
-      
+
       -- Synchronization inputs
-      nSync_i  : in  sl; 
+      nSync_i  : in  sl;
       sysref_i : in  sl;
-      
+
       -- Outs
-      sysrefRe_o : out sl;      
-      lmfc_o     : out sl  
+      sysrefRe_o : out sl;
+      lmfc_o     : out sl
    );
 end entity JesdLmfcGen;
 
 architecture rtl of JesdLmfcGen is
-   
+
    constant PERIOD_C    : positive := ((K_G * F_G)/GT_WORD_SIZE_C)-1;
    constant CNT_WIDTH_C : positive := bitSize(PERIOD_C);
 
@@ -69,34 +69,34 @@ architecture rtl of JesdLmfcGen is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    comb : process (r, rst,sysref_i,nSync_i) is
       variable v : RegType;
    begin
       v := r;
-      
-      -- Delay sysref for one clock cycle 
+
+      -- Delay sysref for one clock cycle
       v.sysrefD1 := sysref_i;
-      
+
       -- Detect rising edge on sysref
-      v.sysrefRe := sysref_i and not r.sysrefD1; 
-      
+      v.sysrefRe := sysref_i and not r.sysrefD1;
 
-      -- Period counter 
 
-      -- LMFC is aligned to sysref on rising edge of sysref_i. 
-      -- The alignment is only done when nSync_i='0'    
+      -- Period counter
+
+      -- LMFC is aligned to sysref on rising edge of sysref_i.
+      -- The alignment is only done when nSync_i='0'
       if (r.sysrefRe = '1' and nSync_i = '0' ) then
          v.cnt  := (others => '0');
          v.lmfc := '1';
       elsif (r.cnt = PERIOD_C) then
          v.cnt  := (others => '0');
          v.lmfc := '1';
-      else 
+      else
          v.cnt := r.cnt + 1;
-         v.lmfc := '0';         
+         v.lmfc := '0';
       end if;
 
       if (rst = '1') then
@@ -104,7 +104,7 @@ begin
       end if;
 
       rin <= v;
-      
+
    end process comb;
 
    seq : process (clk) is
@@ -113,9 +113,9 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
    -- Output assignment
    lmfc_o       <= r.lmfc;
    sysrefRe_o   <= r.sysrefRe;
----------------------------------------   
+---------------------------------------
 end architecture rtl;

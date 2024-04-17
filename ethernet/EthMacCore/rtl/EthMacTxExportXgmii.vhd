@@ -4,11 +4,11 @@
 -- Description: 10GbE Export MAC core with GMII interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,12 +25,13 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxExportXgmii is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClk         : in  sl;
       ethRst         : in  sl;
-      -- AXIS Interface   
+      -- AXIS Interface
       macObMaster    : in  AxiStreamMasterType;
       macObSlave     : out AxiStreamSlaveType;
       -- XAUI Interface
@@ -48,13 +49,13 @@ architecture rtl of EthMacTxExportXgmii is
    constant INTERGAP_C : slv(3 downto 0) := x"3";
 
    constant AXI_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TSTRB_EN_C    => INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
       TDATA_BYTES_C => 8,               -- 64-bit AXI stream interface
-      TDEST_BITS_C  => EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
-      TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
-      TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);   
+      TDEST_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => INT_EMAC_AXIS_CONFIG_C.TID_BITS_C,
+      TKEEP_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
    -- Local Signals
    signal macMaster        : AxiStreamMasterType;
@@ -146,24 +147,25 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface  
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)        -- 64-bit AXI stream interface          
+         SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)            -- 64-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macObMaster,                 -- 128-bit AXI stream interface 
+         sAxisMaster => macObMaster,                     -- 128-bit AXI stream interface
          sAxisSlave  => macObSlave,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macMaster,                   -- 64-bit AXI stream interface 
-         mAxisSlave  => macSlave);  
+         mAxisMaster => macMaster,                       -- 64-bit AXI stream interface
+         mAxisSlave  => macSlave);
 
    -- Generate read
    macSlave.tReady <= (intAdvance and (not intPad)) or intDump;
@@ -208,7 +210,7 @@ begin
             elsif intAdvance = '1' and exportWordCnt /= x"F" then
                exportWordCnt <= exportWordCnt + 1 after TPD_G;
             end if;
-            
+
             crcInit <= wordCountRst after TPD_G;
 
          end if;
@@ -229,16 +231,16 @@ begin
             intLastValidByte <= "011";
          else
             intLastValidByte <= onesCount(macMaster.tKeep(7 downto 1));
-         end if;   
+         end if;
       else
-         intLastValidByte <= onesCount(macMaster.tKeep(7 downto 1));      
-      end if;   
-   end process;   
-   
+         intLastValidByte <= onesCount(macMaster.tKeep(7 downto 1));
+      end if;
+   end process;
+
    -- State machine
    process (curState, ethRst, exportWordCnt, intError, macMaster, phyReady, stateCount)
    begin
-      
+
       -- Init
       txCountEn      <= '0';
       txUnderRun     <= '0';
@@ -288,14 +290,14 @@ begin
             if macMaster.tLast = '1' and (exportWordCnt < 7) then
                nxtState  <= ST_PAD_C;
                txCountEn <= '1';
-               nxtError  <= intError or axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
+               nxtError  <= intError or axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
 
             elsif macMaster.tLast = '1' and (exportWordCnt >= 7) then
                intLastLine   <= '1';
                nxtState      <= ST_WAIT_C;
                txCountEn     <= '1';
                stateCountRst <= '1';
-               nxtError      <= intError or axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
+               nxtError      <= intError or axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
 
             -- Detect underflow
             elsif macMaster.tValid = '0' then
@@ -340,9 +342,9 @@ begin
 
             -- Wait for gap, min 3 clocks
             if stateCount >= INTERGAP_C and stateCount >= 3 then
-               nxtState     <= ST_IDLE_C;
+               nxtState <= ST_IDLE_C;
             else
-               nxtState     <= curState;
+               nxtState <= curState;
             end if;
 
          -- Padding frame
@@ -396,12 +398,12 @@ begin
             frameShift0 <= intAdvance  after TPD_G;
             frameShift1 <= frameShift0 after TPD_G;
 
-            -- Input to transmit enable shift register. 
+            -- Input to transmit enable shift register.
             -- Asserted with frameShift0
             if intAdvance = '1'and frameShift0 = '0' then
                txEnable0 <= '1' after TPD_G;
 
-            -- De-assert following frame shift0, 
+            -- De-assert following frame shift0,
             -- keep one extra clock if nxtMask contains a non-zero value.
             elsif frameShift0 = '0' and nxtMaskIn = x"00" then
                txEnable0 <= '0' after TPD_G;
@@ -414,7 +416,7 @@ begin
 
             -- CRC Valid
             crcDataValid <= intAdvance after TPD_G;
-            crcIn        <= intData after TPD_G;
+            crcIn        <= intData    after TPD_G;
 
             -- Last line
             if intLastLine = '1' then

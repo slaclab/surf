@@ -6,11 +6,11 @@
 -- interface.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -30,8 +30,8 @@ entity AxiStreamDmaV2Read is
    generic (
       TPD_G           : time                     := 1 ns;
       AXIS_READY_EN_G : boolean                  := false;
-      AXIS_CONFIG_G   : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G    : AxiConfigType            := AXI_CONFIG_INIT_C;
+      AXIS_CONFIG_G   : AxiStreamConfigType;
+      AXI_CONFIG_G    : AxiConfigType;
       PIPE_STAGES_G   : natural                  := 1;
       BURST_BYTES_G   : positive range 1 to 4096 := 4096;
       PEND_THRESH_G   : positive                 := 1);  -- In units of bytes
@@ -39,7 +39,7 @@ entity AxiStreamDmaV2Read is
       -- Clock/Reset
       axiClk          : in  sl;
       axiRst          : in  sl;
-      -- DMA Control Interface 
+      -- DMA Control Interface
       dmaRdDescReq    : in  AxiReadDmaDescReqType;
       dmaRdDescAck    : out sl;
       dmaRdDescRet    : out AxiReadDmaDescRetType;
@@ -47,7 +47,7 @@ entity AxiStreamDmaV2Read is
       -- Config and status
       dmaRdIdle       : out sl;
       axiCache        : in  slv(3 downto 0);
-      -- Streaming Interface 
+      -- Streaming Interface
       axisMaster      : out AxiStreamMasterType;
       axisSlave       : in  AxiStreamSlaveType;
       axisCtrl        : in  AxiStreamCtrlType;
@@ -151,7 +151,7 @@ begin
       variable v         : RegType;
       variable pendBytes : slv(31 downto 0);
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- AXI Cache Setting
@@ -189,7 +189,7 @@ begin
          ----------------------------------
          -- if (pendBytes < PEND_THRESH_G) then  -- old code
          ----------------------------------
-         if (pendBytes(31 downto PEND_LSB_C) = 0) then  -- new optimized code      
+         if (pendBytes(31 downto PEND_LSB_C) = 0) then  -- new optimized code
             v.pending := false;
          end if;
       end if;
@@ -226,7 +226,7 @@ begin
             -- Reset flags
             v.pending                                     := false;
             v.axiLen.valid                                := "00";
-            -- Check for DMA request 
+            -- Check for DMA request
             if dmaRdDescReq.valid = '1' then
                v.dmaRdDescAck  := '1';
                -- Set the flags
@@ -242,15 +242,15 @@ begin
          ----------------------------------------------------------------------
          when ADDR_S =>
             -- Determine transfer size aligned to 4k boundaries
-            getAxiLenProc(AXI_CONFIG_G, BURST_BYTES_G, r.reqSize, r.dmaRdDescReq.address,r.axiLen,v.axiLen);         
+            getAxiLenProc(AXI_CONFIG_G, BURST_BYTES_G, r.reqSize, r.dmaRdDescReq.address,r.axiLen,v.axiLen);
             -- Check if ready to make memory request
             if (r.rMaster.arvalid = '0') and (v.axiLen.valid = "11") then
-               -- Set the memory address 
+               -- Set the memory address
                v.rMaster.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaRdDescReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Latch AXI arlen value
                v.rMaster.arlen                                        := v.axiLen.value;
                -- Check for the following:
-               --    1) There is enough room in the FIFO for a burst 
+               --    1) There is enough room in the FIFO for a burst
                --    2) pending flag
                --    3) Last transaction already completed
                if (pause = '0') and (r.pending = false) and (notReqDone = '1') then
@@ -322,7 +322,7 @@ begin
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + DATA_BYTES_C;
                end if;
-               -- Check for completion 
+               -- Check for completion
                if (v.size = 0) then
                   -- Terminate the frame
                   v.sMaster.tLast := not r.dmaRdDescReq.continue;
@@ -343,7 +343,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
-            -- Check for ACK completion 
+            -- Check for ACK completion
             if (r.dmaRdDescRet.valid = '0')then
                -- Reset the flag
                v.leftovers := '0';
@@ -359,7 +359,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when BLOWOFF_S =>
-            -- Blowoff the data 
+            -- Blowoff the data
             v.rMaster.rready := '1';
             -- Check for last transfer
             if (axiReadSlave.rvalid = '1') and (axiReadSlave.rlast = '1') then
@@ -382,15 +382,15 @@ begin
       -- Combinatorial outputs before the reset
       axiReadMaster.rready <= v.rMaster.rready;
 
-      -- Reset      
+      -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs         
+      -- Outputs
       dmaRdIdle              <= r.idle;
       dmaRdDescAck           <= r.dmaRdDescAck;
       dmaRdDescRet           <= r.dmaRdDescRet;

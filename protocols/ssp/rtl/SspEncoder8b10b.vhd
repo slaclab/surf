@@ -6,11 +6,11 @@
 -- ties the framing core to an RTL 8b10b encoder.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -48,7 +48,6 @@ end entity SspEncoder8b10b;
 
 architecture rtl of SspEncoder8b10b is
 
-   signal readyOutInt : sl;
    signal framedData  : slv(15 downto 0);
    signal framedDataK : slv(1 downto 0);
    signal validInt    : sl;
@@ -99,7 +98,7 @@ begin
          dataIn   => framedData,
          dataKIn  => framedDataK,
          validOut => validOut,
-         readyOut => readyOutInt,
+         readyOut => readyOut,
          dataOut  => dataOut);
 
 end architecture rtl;

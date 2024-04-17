@@ -6,11 +6,11 @@
 -- interface.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -30,8 +30,8 @@ entity AxiStreamDmaWrite is
    generic (
       TPD_G             : time                := 1 ns;
       AXI_READY_EN_G    : boolean             := false;
-      AXIS_CONFIG_G     : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      AXI_CONFIG_G      : AxiConfigType       := AXI_CONFIG_INIT_C;
+      AXIS_CONFIG_G     : AxiStreamConfigType;
+      AXI_CONFIG_G      : AxiConfigType;
       AXI_BURST_G       : slv(1 downto 0)     := "01";
       AXI_CACHE_G       : slv(3 downto 0)     := "1111";
       BURST_BYTES_G     : positive range 1 to 4096 := 4096;
@@ -48,7 +48,7 @@ entity AxiStreamDmaWrite is
       dmaReq         : in  AxiWriteDmaReqType;
       dmaAck         : out AxiWriteDmaAckType;
       swCache        : in  slv(3 downto 0) := "0000";
-      -- Streaming Interface 
+      -- Streaming Interface
       axisMaster     : in  AxiStreamMasterType;
       axisSlave      : out AxiStreamSlaveType;
       -- AXI Interface
@@ -65,7 +65,7 @@ architecture rtl of AxiStreamDmaWrite is
       TDEST_BITS_C  => AXIS_CONFIG_G.TDEST_BITS_C,
       TID_BITS_C    => AXIS_CONFIG_G.TID_BITS_C,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,  -- Override
-      TUSER_BITS_C  => AXIS_CONFIG_G.TUSER_BITS_C, 
+      TUSER_BITS_C  => AXIS_CONFIG_G.TUSER_BITS_C,
       TUSER_MODE_C  => TUSER_NORMAL_C); -- Override
 
    constant DATA_BYTES_C      : integer         := LOC_AXIS_CONFIG_C.TDATA_BYTES_C;
@@ -129,7 +129,7 @@ architecture rtl of AxiStreamDmaWrite is
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
-   
+
 begin
 
    assert LOC_AXIS_CONFIG_C.TDATA_BYTES_C = AXI_CONFIG_G.DATA_BYTES_C
@@ -143,7 +143,7 @@ begin
          TPD_G             => TPD_G,
          PIPE_STAGES_G     => PIPE_STAGES_G,
          AXIS_CONFIG_G     => LOC_AXIS_CONFIG_C,
-         BYP_SHIFT_G       => BYP_SHIFT_G) 
+         BYP_SHIFT_G       => BYP_SHIFT_G)
       port map (
          axisClk     => axiClk,
          axisRst     => axiRst,
@@ -156,7 +156,7 @@ begin
          mAxisSlave  => shiftSlave);
 
    GEN_CACHE : if (BYP_CACHE_G = false) generate
-      
+
       U_Cache : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
@@ -170,7 +170,7 @@ begin
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_C,
             FIFO_FIXED_THRESH_G => false,  -- Using r.threshold
             SLAVE_AXI_CONFIG_G  => LOC_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => LOC_AXIS_CONFIG_C) 
+            MASTER_AXI_CONFIG_G => LOC_AXIS_CONFIG_C)
          port map (
             -- Slave Port
             sAxisClk        => axiClk,
@@ -184,7 +184,7 @@ begin
             mAxisClk        => axiClk,
             mAxisRst        => axiRst,
             mAxisMaster     => intAxisMaster,
-            mAxisSlave      => intAxisSlave);    
+            mAxisSlave      => intAxisSlave);
 
       wrEn <= shiftMaster.tValid and shiftMaster.tLast and shiftSlave.tReady;
       rdEn <= intAxisMaster.tValid and intAxisMaster.tLast and intAxisSlave.tReady;
@@ -201,7 +201,7 @@ begin
             wr_en => wrEn,
             rd_en => rdEn,
             din   => (others => '0'),
-            valid => lastDet);            
+            valid => lastDet);
 
    end generate;
 
@@ -213,7 +213,7 @@ begin
       cache.overflow <= '0';
       cache.idle     <= '0';
       lastDet        <= '0';
-      
+
    end generate;
 
    comb : process (axiRst, axiWriteSlave, cache, dmaReq, intAxisMaster, lastDet, pause, r, swCache) is
@@ -283,9 +283,11 @@ begin
             -- Align shift and address to transfer size
             if (DATA_BYTES_C /= 1) then
                v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
-               v.shift(ADDR_LSB_C-1 downto 0)          := dmaReq.address(ADDR_LSB_C-1 downto 0);
+               if (BYP_SHIFT_G = false) then
+                  v.shift(ADDR_LSB_C-1 downto 0) := dmaReq.address(ADDR_LSB_C-1 downto 0);
+               end if;
             end if;
-            -- Check for DMA request 
+            -- Check for DMA request
             if (dmaReq.request = '1') then
                -- Reset the flags and counters
                v.dmaAck.size       := (others => '0');
@@ -347,7 +349,7 @@ begin
          when NEXT_S =>
             -- Check if ready to make memory request
             if (v.wMaster.awvalid = '0') then
-               -- Set the memory address         
+               -- Set the memory address
                v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
                -- Bursts after the FIRST are garunteed to be aligned.
                v.wMaster.awlen                                        := AWLEN_C;
@@ -449,7 +451,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DUMP_S =>
-            -- Blowoff data 
+            -- Blowoff data
             v.slave.tReady := '1';
             -- Check for data
             if (intAxisMaster.tValid = '1') then
@@ -478,7 +480,7 @@ begin
                v.dmaAck.done := '1';
                -- Next state
                v.state       := DONE_S;
-            -- Check for ACK timeout   
+            -- Check for ACK timeout
             elsif (r.stCount = x"FFFF") then
                -- Set the flags
                v.dmaAck.done       := '1';
@@ -491,7 +493,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
-            -- Check for ACK completion 
+            -- Check for ACK completion
             if (r.dmaAck.done = '0') then
                -- Next state
                v.state := IDLE_S;
@@ -507,22 +509,22 @@ begin
          -- Reset the flag
          v.dmaAck.idle := '0';
       end if;
-      
+
       -- Combinatorial outputs before the reset
       intAxisSlave <= v.slave;
 
-      -- Reset      
+      -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs 
+      -- Registered Outputs
       dmaAck         <= r.dmaAck;
       axiWriteMaster <= r.wMaster;
-      
+
    end process comb;
 
    seq : process (axiClk) is

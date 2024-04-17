@@ -6,19 +6,18 @@
 -- One address location per FIFO.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -27,6 +26,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteFifoPushPop is
    generic (
       TPD_G              : time                       := 1 ns;
+      RST_ASYNC_G        : boolean                    := false;
       POP_FIFO_COUNT_G   : positive                   := 1;
       POP_SYNC_FIFO_G    : boolean                    := false;
       POP_MEMORY_TYPE_G  : string                     := "block";
@@ -42,10 +42,8 @@ entity AxiLiteFifoPushPop is
       PUSH_ADDR_WIDTH_G  : integer range 4 to 48      := 4;
       RANGE_LSB_G        : integer range 0 to 31      := 8;
       VALID_POSITION_G   : integer range 0 to 31      := 0;
-      VALID_POLARITY_G   : sl                         := '0'
-   );
+      VALID_POLARITY_G   : sl                         := '0');
    port (
-
       -- AXI Interface
       axiClk             : in  sl;
       axiClkRst          : in  sl;
@@ -74,8 +72,7 @@ entity AxiLiteFifoPushPop is
       pushFifoRst        : in  slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoValid      : out slv(PUSH_FIFO_COUNT_G-1 downto 0);
       pushFifoDout       : out Slv36Array(PUSH_FIFO_COUNT_G-1 downto 0);
-      pushFifoRead       : in  slv(PUSH_FIFO_COUNT_G-1 downto 0)
-   );
+      pushFifoRead       : in  slv(PUSH_FIFO_COUNT_G-1 downto 0));
 end AxiLiteFifoPushPop;
 
 architecture structure of AxiLiteFifoPushPop is
@@ -120,8 +117,7 @@ architecture structure of AxiLiteFifoPushPop is
       pushFifoWrite => (others => '0'),
       pushFifoDin   => (others => '0'),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C
-   );
+      axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -137,13 +133,11 @@ begin
    assert RANGE_LSB_G > (PUSH_SIZE_C +2)
       report "RANGE_LSB_G is too small for PUSH_FIFO_COUNT_G" severity failure;
 
-   -----------------------------------------(
-
-
+   -----------------------------------------
    -- pop FIFOs
    -----------------------------------------
    U_PopFifo : for i in 0 to POP_FIFO_COUNT_G-1 generate
-      U_FIfo : entity surf.FifoCascade 
+      U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -179,8 +173,7 @@ begin
             underflow     => open,
             prog_empty    => open,
             almost_empty  => popFifoAEmpty(i),
-            empty         => open
-      );
+            empty         => open);
 
       popFifoValid(i) <= ipopFifoValid(i);
    end generate;
@@ -190,13 +183,12 @@ begin
       ipopFifoDout(POP_COUNT_C-1 downto POP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
    end generate;
 
-
    -----------------------------------------
    -- Loop FIFOs
    -----------------------------------------
    U_LoopFifoEn : if LOOP_FIFO_EN_G generate
       U_LoopFifo : for i in 0 to LOOP_FIFO_COUNT_G-1 generate
-         U_FIfo : entity surf.FifoCascade 
+         U_FIfo : entity surf.FifoCascade
             generic map (
                TPD_G              => TPD_G,
                CASCADE_SIZE_G     => 1,
@@ -232,8 +224,7 @@ begin
                underflow     => open,
                prog_empty    => open,
                almost_empty  => loopFifoAEmpty(i),
-               empty         => open
-         );
+               empty         => open);
 
          loopFifoValid(i) <= iloopFifoValid(i);
 
@@ -253,12 +244,11 @@ begin
       iloopFifoDout(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
    end generate;
 
-
    -----------------------------------------
    -- push FIFOs
    -----------------------------------------
    U_PushFifo : for i in 0 to PUSH_FIFO_COUNT_G-1 generate
-      U_FIfo : entity surf.FifoCascade 
+      U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
             CASCADE_SIZE_G     => 1,
@@ -294,8 +284,7 @@ begin
             underflow     => open,
             prog_empty    => open,
             almost_empty  => open,
-            empty         => open
-      );
+            empty         => open);
 
    end generate;
 
@@ -307,21 +296,11 @@ begin
 
    pushFifoAFull <= ipushFifoAFull;
 
-
    -----------------------------------------
    -- AXI Lite
    -----------------------------------------
 
-   -- Sync
-   process (axiClk) is
-   begin
-      if (rising_edge(axiClk)) then
-         r <= rin after TPD_G;
-      end if;
-   end process;
-
-   -- Async
-   process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid, 
+   comb : process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid,
             iloopFifoDout, iloopFifoValid, ipushFifoFull, ipushFifoAFull ) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
@@ -360,7 +339,7 @@ begin
          if axiReadMaster.araddr(RANGE_LSB_G+1 downto RANGE_LSB_G) = 0 then
             v.axiReadSlave.rdata := ipopFifoDout(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not ipopFifoValid(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))));
 
             v.popFifoRead(conv_integer(axiReadMaster.araddr(POP_SIZE_C+1 downto 2))) :=
@@ -370,10 +349,10 @@ begin
          elsif axiReadMaster.araddr(RANGE_LSB_G+1 downto RANGE_LSB_G) = 1 then
             v.axiReadSlave.rdata := iloopFifoDout(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
-            v.axiReadSlave.rdata(VALID_POSITION_G) := 
+            v.axiReadSlave.rdata(VALID_POSITION_G) :=
                VALID_POLARITY_G xor (not iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))));
 
-            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) := 
+            v.loopFifoRead(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2))) :=
                iloopFifoValid(conv_integer(axiReadMaster.araddr(LOOP_SIZE_C+1 downto 2)));
 
          -- Write FIFO Space
@@ -390,7 +369,7 @@ begin
       end if;
 
       -- Reset
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -406,8 +385,16 @@ begin
       iloopFifoWrite <= r.loopFifoWrite;
       ipushFifoDin   <= r.pushFifoDin;
       ipushFifoWrite <= r.pushFifoWrite;
-      
-   end process;
+
+   end process comb;
+
+   seq : process (axiClk, axiClkRst) is
+   begin
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end architecture structure;
-

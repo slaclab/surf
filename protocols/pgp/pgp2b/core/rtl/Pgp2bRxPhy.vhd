@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Physical interface receive module for the Pretty Good Protocol version 2 core. 
+-- Physical interface receive module for the Pretty Good Protocol version 2 core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -154,7 +154,7 @@ begin
       phyRxPolarity(i) <= intRxPolarity(i);
    end generate;
 
-   -- State transition sync logic. 
+   -- State transition sync logic.
    process (pgpRxClk, pgpRxClkRst)
    begin
 

@@ -4,11 +4,11 @@
 -- Description: AXI Stream to DMA Ring Buffer Read Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -38,10 +38,10 @@ entity AxiStreamDmaRingRead is
       AXI_BURST_G           : slv(1 downto 0)          := "01";    -- INCR
       AXI_CACHE_G           : slv(3 downto 0)          := "0011";  -- Cacheable
       AXI_STREAM_READY_EN_G : boolean                  := true;
-      AXI_STREAM_CONFIG_G   : AxiStreamConfigType      := ssiAxiStreamConfig(8);
-      AXI_READ_CONFIG_G     : AxiConfigType            := axiConfig(32, 8, 1, 8));
+      AXI_STREAM_CONFIG_G   : AxiStreamConfigType;
+      AXI_READ_CONFIG_G     : AxiConfigType);
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : out AxiLiteReadMasterType;
@@ -62,7 +62,7 @@ entity AxiStreamDmaRingRead is
       dataSlave  : in  AxiStreamSlaveType;
       dataCtrl   : in  AxiStreamCtrlType := AXI_STREAM_CTRL_UNUSED_C;
 
-      -- AXI4 Interface for RAM      
+      -- AXI4 Interface for RAM
       axiClk        : in  sl;
       axiRst        : in  sl;
       axiReadMaster : out AxiReadMasterType;

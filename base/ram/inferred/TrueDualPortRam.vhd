@@ -6,18 +6,17 @@
 -- NOTE: TDP ram with read enable logic is not supported.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -27,6 +26,7 @@ entity TrueDualPortRam is
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean                    := false;
       DOA_REG_G      : boolean                    := false;  -- Extra output register on doutA.
       DOB_REG_G      : boolean                    := false;  -- Extra output register on doutB.
       MODE_G         : string                     := "read-first";
@@ -36,7 +36,7 @@ entity TrueDualPortRam is
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 9;
       INIT_G         : slv                        := "0");
    port (
-      -- Port A     
+      -- Port A
       clka    : in  sl                                                    := '0';
       ena     : in  sl                                                    := '1';
       wea     : in  sl                                                    := '0';
@@ -68,15 +68,15 @@ architecture rtl of TrueDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   -- Shared memory 
+   -- Shared memory
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
-   signal doutAInt : slv(FULL_DATA_WIDTH_C-1 downto 0);
-   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0);
+   signal doutAInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
+   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
 
-   signal weaByteInt : slv(weaByte'range);
-   signal webByteInt : slv(webByte'range);
+   signal weaByteInt : slv(weaByte'range) := (others => '0');
+   signal webByteInt : slv(webByte'range) := (others => '0');
 
    -- Attribute for XST (Xilinx Synthesizer)
    attribute ram_style        : string;
@@ -88,7 +88,7 @@ architecture rtl of TrueDualPortRam is
    attribute keep        : boolean;           --"keep" is same for XST and Altera
    attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
 
-   -- Attribute for Synplicity Synthesizer 
+   -- Attribute for Synplicity Synthesizer
    attribute syn_ramstyle        : string;
    attribute syn_ramstyle of mem : variable is "block";
 
@@ -103,7 +103,7 @@ begin
       severity failure;
 
    weaByteInt <= weaByte when BYTE_WR_EN_G else (others => wea);
-   webByteInt <= webByte when BYTE_WR_EN_G else (others => web);   
+   webByteInt <= webByte when BYTE_WR_EN_G else (others => web);
 
    -------------------------------------------------------------------------------------------------
    -- No Change Mode
@@ -126,13 +126,15 @@ begin
 
       -- Vivado does crazy stupid things if output isn't broken out into its own process in
       -- no-change mode
-      process (clka) is
+      process (clka, rsta) is
       begin
-         if (rising_edge(clka)) then
+         if (RST_ASYNC_G and rsta = RST_POLARITY_G and DOA_REG_G = false) then
+            doutAInt <= INIT_C after TPD_G;
+         elsif (rising_edge(clka)) then
             if (ena = '1' and weaByte = 0 and wea = '0') then
                doutAInt <= mem(conv_integer(addra)) after TPD_G;
             end if;
-            if rsta = RST_POLARITY_G and DOA_REG_G = false then
+            if (RST_ASYNC_G = false and rsta = RST_POLARITY_G and DOA_REG_G = false) then
                doutAInt <= INIT_C after TPD_G;
             end if;
          end if;
@@ -153,13 +155,15 @@ begin
          end if;
       end process;
 
-      process (clkb) is
+      process (clkb, rstb) is
       begin
-         if (rising_edge(clkb)) then
+         if (RST_ASYNC_G and rstb = RST_POLARITY_G and DOB_REG_G = false) then
+            doutBInt <= INIT_C after TPD_G;
+         elsif (rising_edge(clkb)) then
             if (enb = '1' and webByte = 0 and web = '0') then
                doutBInt <= mem(conv_integer(addrb)) after TPD_G;
             end if;
-            if rstb = RST_POLARITY_G and DOB_REG_G = false then
+            if (RST_ASYNC_G = false and rstb = RST_POLARITY_G and DOB_REG_G = false) then
                doutBInt <= INIT_C after TPD_G;
             end if;
          end if;
@@ -172,9 +176,11 @@ begin
    -------------------------------------------------------------------------------------------------
    READ_FIRST_MODE : if MODE_G = "read-first" generate
       -- Port A
-      process(clka)
+      process(clka, rsta)
       begin
-         if rising_edge(clka) then
+         if (RST_ASYNC_G and rsta = RST_POLARITY_G and DOA_REG_G = false) then
+            doutAInt <= INIT_C after TPD_G;
+         elsif rising_edge(clka) then
             if (ena = '1') then
                doutAInt <= mem(conv_integer(addra)) after TPD_G;
                for i in 0 to NUM_BYTES_C-1 loop
@@ -184,16 +190,18 @@ begin
                   end if;
                end loop;
             end if;
-            if rsta = RST_POLARITY_G and DOA_REG_G = false then
+            if (RST_ASYNC_G = false and rsta = RST_POLARITY_G and DOA_REG_G = false) then
                doutAInt <= INIT_C after TPD_G;
             end if;
          end if;
       end process;
 
       -- Port B
-      process(clkb)
+      process(clkb, rstb)
       begin
-         if rising_edge(clkb) then
+         if (RST_ASYNC_G and rstb = RST_POLARITY_G and DOB_REG_G = false) then
+            doutBInt <= INIT_C after TPD_G;
+         elsif rising_edge(clkb) then
             if (enb = '1') then
                doutBInt <= mem(conv_integer(addrb)) after TPD_G;
                for i in 0 to NUM_BYTES_C-1 loop
@@ -203,7 +211,7 @@ begin
                   end if;
                end loop;
             end if;
-            if rstb = RST_POLARITY_G and DOB_REG_G = false then
+            if (RST_ASYNC_G = false and rstb = RST_POLARITY_G and DOB_REG_G = false) then
                doutBInt <= INIT_C after TPD_G;
             end if;
          end if;
@@ -216,9 +224,11 @@ begin
    -------------------------------------------------------------------------------------------------
    WRITE_FIRST_MODE : if MODE_G = "write-first" generate
       -- Port A
-      process(clka)
+      process(clka, rsta)
       begin
-         if rising_edge(clka) then
+         if (RST_ASYNC_G and rsta = RST_POLARITY_G and DOA_REG_G = false) then
+            doutAInt <= INIT_C after TPD_G;
+         elsif rising_edge(clka) then
             if (ena = '1') then
                for i in 0 to NUM_BYTES_C-1 loop
                   if (weaByteInt(i) = '1') then
@@ -228,7 +238,7 @@ begin
                end loop;
                doutAInt <= mem(conv_integer(addra)) after TPD_G;
             end if;
-            if rsta = RST_POLARITY_G and DOA_REG_G = false then
+            if (RST_ASYNC_G = false and rsta = RST_POLARITY_G and DOA_REG_G = false) then
                doutAInt <= INIT_C after TPD_G;
             end if;
          end if;
@@ -236,9 +246,11 @@ begin
       end process;
 
       -- Port B
-      process(clkb)
+      process(clkb, rstb)
       begin
-         if rising_edge(clkb) then
+         if (RST_ASYNC_G and rstb = RST_POLARITY_G and DOB_REG_G = false) then
+            doutBInt <= INIT_C after TPD_G;
+         elsif rising_edge(clkb) then
             if (enb = '1') then
                for i in 0 to NUM_BYTES_C-1 loop
                   if (webByteInt(i) = '1') then
@@ -248,7 +260,7 @@ begin
                end loop;
                doutBInt <= mem(conv_integer(addrb)) after TPD_G;
             end if;
-            if rstb = RST_POLARITY_G and DOB_REG_G = false then
+            if (RST_ASYNC_G = false and rstb = RST_POLARITY_G and DOB_REG_G = false) then
                doutBInt <= INIT_C after TPD_G;
             end if;
          end if;
@@ -265,10 +277,12 @@ begin
    end generate NO_DOUT_A_REG;
 
    DOUT_A_REG : if (DOA_REG_G) generate
-      process (clka) is
+      process (clka, rsta) is
       begin
-         if (rising_edge(clka)) then
-            if (rstA = RST_POLARITY_G) then
+         if (RST_ASYNC_G and rsta = RST_POLARITY_G) then
+            douta <= (others => '0') after TPD_G;
+         elsif (rising_edge(clka)) then
+            if (RST_ASYNC_G = false and rstA = RST_POLARITY_G) then
                douta <= (others => '0') after TPD_G;
             elsif (regcea = '1') then
                douta <= doutAInt(DATA_WIDTH_G-1 downto 0) after TPD_G;
@@ -282,10 +296,12 @@ begin
    end generate NO_DOUT_B_REG;
 
    DOUT_B_REG : if (DOB_REG_G) generate
-      process (clkb) is
+      process (clkb, rstb) is
       begin
-         if (rising_edge(clkb)) then
-            if (rstB = RST_POLARITY_G) then
+         if (RST_ASYNC_G and rstb = RST_POLARITY_G) then
+            doutb <= (others => '0') after TPD_G;
+         elsif (rising_edge(clkb)) then
+            if (RST_ASYNC_G = false and rstB = RST_POLARITY_G) then
                doutb <= (others => '0') after TPD_G;
             elsif (regceb = '1') then
                doutb <= doutBInt(DATA_WIDTH_G-1 downto 0) after TPD_G;

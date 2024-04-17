@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity:      i2c2ahb
 -- File:        i2c2ahb.vhd
@@ -70,7 +70,7 @@ architecture rtl of i2c2ahb is
   signal i2c2ahbi : i2c2ahb_in_type;
 
 begin
-  
+
   bridge : i2c2ahbx
     generic map (
       hindex   => hindex,
@@ -85,7 +85,7 @@ begin
       i2co     => i2co,
       i2c2ahbi => i2c2ahbi,
       i2c2ahbo => open);
-  
+
   i2c2ahbi.en <= '1';
   i2c2ahbi.haddr <= conv_std_logic_vector(ahbaddrh, 16) &
                     conv_std_logic_vector(ahbaddrl, 16);
@@ -94,5 +94,5 @@ begin
   i2c2ahbi.slvaddr <= conv_std_logic_vector(i2cslvaddr, 7);
   i2c2ahbi.cfgaddr <= conv_std_logic_vector(i2ccfgaddr, 7);
 
-  
+
 end architecture rtl;

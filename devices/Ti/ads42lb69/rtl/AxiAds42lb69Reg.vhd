@@ -4,11 +4,11 @@
 -- Description: AXI-Lite Register Access
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -43,11 +43,11 @@ entity AxiAds42lb69Reg is
       adcRst         : in  sl;
       axiClk         : in  sl;
       axiRst         : in  sl
-   );      
+   );
 end AxiAds42lb69Reg;
 
 architecture rtl of AxiAds42lb69Reg is
-   
+
    constant TIMEOUT_1S_C : natural := ite(SIM_SPEEDUP_G, 1000, getTimeRatio(ADC_CLK_FREQ_G, 1.0E+00));
 
    type RegType is record
@@ -56,19 +56,19 @@ architecture rtl of AxiAds42lb69Reg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       adcSmpl       => (others => (others => (others => '0'))),
       regOut        => AXI_ADS42LB69_CONFIG_INIT_C,
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
-   
+
    type AdcType is record
       timer         : natural range 0 to TIMEOUT_1S_C;
       smplCnt       : natural range 0 to 7;
       armed         : sl;
    end record AdcType;
-   
+
    constant ADC_INIT_C : AdcType := (
       timer         => 0,
       smplCnt       => 0,
@@ -83,11 +83,11 @@ architecture rtl of AxiAds42lb69Reg is
 
 begin
 
-   
+
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiRst, adcRst, axiReadMaster, axiWriteMaster, r, ra, regIn) is
       variable v            : RegType;
       variable va           : AdcType;
@@ -105,7 +105,7 @@ begin
       -- Reset strobe signals
       v.regOut.delayIn.load := (others=>(others=>'0'));
       v.regOut.delayIn.rst  := '0';
-      
+
       -- Increment the counter (ADC clock domain)
       va.timer := ra.timer + 1;
       -- Check the timer for 1 second timeout
@@ -115,7 +115,7 @@ begin
          va.smplCnt := 0;
          -- Set the flag
          va.armed := '1';
-      end if; 
+      end if;
       -- Count ADC samples (ADC clock domain)
       if ra.armed = '1' then
          va.smplCnt := ra.smplCnt + 1;
@@ -221,8 +221,6 @@ begin
       elsif (axiStatus.readEnable = '1') then
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         -- Reset the register
-         v.axiReadSlave.rdata := (others => '0');
          -- Decode address and assign read data
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"60" =>
@@ -322,7 +320,7 @@ begin
       axiReadSlave   <= r.axiReadSlave;
       axiWriteSlave  <= r.axiWriteSlave;
       config         <= r.regOut;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -331,7 +329,7 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
    seqa : process (adcClk) is
    begin
       if rising_edge(adcClk) then
@@ -339,7 +337,7 @@ begin
       end if;
    end process seqa;
 
-   -------------------------------            
+   -------------------------------
    -- Synchronization
    -------------------------------
 
@@ -359,7 +357,7 @@ begin
             dout     => regIn.adcData(ch)
          );
    end generate;
-   
+
    regIn.delayOut <= status.delayOut;
 
 end rtl;

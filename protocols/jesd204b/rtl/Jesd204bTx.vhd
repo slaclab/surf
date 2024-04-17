@@ -17,11 +17,11 @@
 --                Second sample in time: sampleData_i(31 downto 16)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ use surf.Jesd204bPkg.all;
 entity Jesd204bTx is
    generic (
       TPD_G        : time                   := 1 ns;
-      -- Register sample data at input and/or output 
+      -- Register sample data at input and/or output
       INPUT_REG_G  : boolean                := false;
       OUTPUT_REG_G : boolean                := false;
       -- Number of bytes in a frame
@@ -49,7 +49,7 @@ entity Jesd204bTx is
       -- Number of TX lanes (1 to 32)
       L_G          : positive range 1 to 32 := 2);
    port (
-      -- AXI interface      
+      -- AXI interface
       -- Clocks and Resets
       axiClk : in sl;
       axiRst : in sl;
@@ -61,18 +61,19 @@ entity Jesd204bTx is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- JESD
-      -- Clocks and Resets   
+      -- Clocks and Resets
       devClk_i : in sl;
       devRst_i : in sl;
 
       -- SYSREF for subclass 1 fixed latency
       sysRef_i : in sl;
 
-      -- Synchronization input combined from all receivers 
+      -- Synchronization input combined from all receivers
       nSync_i : in slv(L_G-1 downto 0);
 
       -- External sample data input
-      extSampleDataArray_i : in sampleDataArray(L_G-1 downto 0);
+      extSampleDataArray_i : in  sampleDataArray(L_G-1 downto 0);
+      dacReady_o           : out slv(L_G-1 downto 0);
 
       -- GT is ready to transmit data after reset
       gtTxReset_o : out slv(L_G-1 downto 0);
@@ -100,7 +101,7 @@ architecture rtl of Jesd204bTx is
 
    -- Internal signals
 
-   -- Local Multi Frame Clock 
+   -- Local Multi Frame Clock
    signal s_lmfc : slv(L_G-1 downto 0);
 
    -- Control and status from AxiLite
@@ -145,7 +146,7 @@ architecture rtl of Jesd204bTx is
    signal s_invertSync : sl;
    signal s_nSyncSync  : slv(L_G-1 downto 0);
 
-   -- Select output 
+   -- Select output
    signal s_muxOutSelArr : Slv3Array(L_G-1 downto 0);
    signal s_jesdGtTxArr  : jesdGtTxLaneTypeArray(L_G-1 downto 0);
 
@@ -277,7 +278,7 @@ begin
          dataIn  => sysref_i,
          dataOut => s_sysrefSync);
 
-   -- Invert/or not nSync signal (control from axil) 
+   -- Invert/or not nSync signal (control from axil)
    s_nSync <= nSync_i when s_invertSync = '0' else not nSync_i;
 
    -- Synchronize nSync input to devClk_i
@@ -302,13 +303,13 @@ begin
          rst     => devRst_i,
          delay   => s_sysrefDlyTx,
          din(0)  => s_sysrefSync,
-         dout(0) => s_sysrefD);        
+         dout(0) => s_sysrefD);
 
    ----------------------------
    -- Transmitter modules (L_G)
    ----------------------------
    GEN_TX : for i in L_G-1 downto 0 generate
-   
+
       -- LMFC period generator aligned to SYSREF input
       U_LmfcGen : entity surf.JesdLmfcGen
          generic map (
@@ -320,9 +321,9 @@ begin
             rst        => devRst_i,
             nSync_i    => s_nSyncSync(i),
             sysref_i   => s_sysrefD,
-            sysrefRe_o => s_sysrefRe(i),      -- Rising-edge of SYSREF OUT 
+            sysrefRe_o => s_sysrefRe(i),      -- Rising-edge of SYSREF OUT
             lmfc_o     => s_lmfc(i));
-   
+
       -- JESD Transmitter modules (one module per Lane)
       U_JesdTxLane : entity surf.JesdTxLane
          generic map (
@@ -342,9 +343,10 @@ begin
             gtTxReady_i  => gtTxReady_i(i),
             sysRef_i     => s_sysrefRe(i),
             status_o     => s_statusTxArr(i),  -- To AXI lite
+            dacReady_o   => dacReady_o(i),
             sampleData_i => s_sampleDataArr(i),
             r_jesdGtTx   => s_jesdGtTxArr(i));
-            
+
    end generate GEN_TX;
 
    ------------------

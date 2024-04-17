@@ -4,11 +4,11 @@
 -- Description: Block to connect multiple incoming AXI write path interfaces.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -130,7 +130,7 @@ begin
             -- Assert ready
             v.slaves(conv_integer(r.addrAckNum)).arready := '1';
 
-            -- Advance pipeline 
+            -- Advance pipeline
             v.master.arvalid := '1';
             v.master.araddr := selAddr.araddr;
             v.master.arid := selAddr.arid;
@@ -183,7 +183,7 @@ begin
          -- Output data
          sAxiReadSlaves <= r.slaves;
          mAxiReadMaster <= r.master;
-      
+
          -- Readies are direct
          -- Assign combinatorial outputs before reset
          for i in 0 to (NUM_SLAVES_G-1) loop

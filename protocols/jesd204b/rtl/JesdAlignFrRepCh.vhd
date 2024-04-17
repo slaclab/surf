@@ -7,21 +7,21 @@
 --              Frame sizes 1, 2, 4
 --              GT Word sizes 2, 4  <--- I don't think 2 word is supported because hard coded in Jesd204bPkg.vhd
 --
---          Note: 
+--          Note:
 --          dataRx_i - is little endian and byte-swapped (directly from GTH)
 --                First sample in time:  dataRx_i(7  downto 0) & dataRx_i(15 downto 8)
---                Second sample in time: dataRx_i(23 downto 16)& dataRx_i(31 downto 24) 
+--                Second sample in time: dataRx_i(23 downto 16)& dataRx_i(31 downto 24)
 --
 --          sampleData_o is big endian and not byte-swapped
---                First sample in time:  sampleData_o(31 downto 16) 
---                Second sample in time: sampleData_o(15 downto 0)   
+--                First sample in time:  sampleData_o(31 downto 16)
+--                Second sample in time: sampleData_o(15 downto 0)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -58,11 +58,11 @@ entity JesdAlignFrRepCh is
       -- Data ready (replace control character with data when '1')
       dataValid_i : in sl;
 
-      -- Data and character indication 
+      -- Data and character indication
       dataRx_i    : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
       chariskRx_i : in slv(GT_WORD_SIZE_C-1 downto 0);
 
-      -- Sample data output (after alignment, character replacement and scrambling)   
+      -- Sample data output (after alignment, character replacement and scrambling)
       sampleData_o      : out slv((GT_WORD_SIZE_C*8)-1 downto 0);
       sampleDataValid_o : out sl;
 
@@ -103,7 +103,7 @@ architecture rtl of JesdAlignFrRepCh is
       sampleData    => (others => '0'),
       descrDataValid  => '0',
       dataValid     => '0',
-      position      => intToSlv(1, GT_WORD_SIZE_C)  -- Initialize at "0001" or "01"  
+      position      => intToSlv(1, GT_WORD_SIZE_C)  -- Initialize at "0001" or "01"
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -129,11 +129,11 @@ begin
       variable v_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1 downto 0);
       variable v_dataaligned   : slv(dataRx_i'range);
       variable v_charAligned   : slv(chariskRx_i'range);
-     
+
    begin
       v := r;
 
-      -- Buffer data and char one clock cycle 
+      -- Buffer data and char one clock cycle
       v.dataRxD1    := dataRx_i;
       v.chariskRxD1 := chariskRx_i;
 
@@ -141,12 +141,12 @@ begin
       v.dataAlignedD1 := v_dataAligned;
       v.charAlignedD1 := v_charAligned;
 
-      -- Register the alignment 
+      -- Register the alignment
       if (alignFrame_i = '1') then
          v.position := detectPosFuncSwap(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);
       end if;
 
-      -- Align samples (Combinatorial logic) 
+      -- Align samples (Combinatorial logic)
 
       -- Check position error (if position vector "1111" is returned)
       v_positionErr := ite(allBits (r.position, '1'), '1', '0');
@@ -155,7 +155,7 @@ begin
       v_twoWordBuff := byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);
       v_twoCharBuff := bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
 
-      -- Align the bytes within the words                     
+      -- Align the bytes within the words
       v_dataAligned := JesdDataAlign(v_twoWordBuff, r.position, GT_WORD_SIZE_C);
       v_charAligned := JesdCharAlign(v_twoCharBuff, r.position, GT_WORD_SIZE_C);
 
@@ -164,10 +164,10 @@ begin
       v_twoCharBuffAl := r.charAlignedD1 & v_charAligned;
       v_alignErr      := '0';
 
-      -- Replace the control characters in the data with valid data   
+      -- Replace the control characters in the data with valid data
       if(replEnable_i = '1' and dataValid_i = '1') then
          for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
-            -- If the A_CHAR_C or F_CHAR_C characters detected in the stream           
+            -- If the A_CHAR_C or F_CHAR_C characters detected in the stream
             if (v_twoCharBuffAl(i*F_G) = '1' and
                 (v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = A_CHAR_C or
                  v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = F_CHAR_C)
@@ -188,7 +188,7 @@ begin
       end if;
 
       -- Check character if there are still characters in the data and issue the alignment error
-      -- The error indicates that the characters in the data are possibly misplaced or wrong characters 
+      -- The error indicates that the characters in the data are possibly misplaced or wrong characters
       -- have been received.
       if(replEnable_i = '1' and dataValid_i = '1') then
          for i in (GT_WORD_SIZE_C-1) downto 0 loop
@@ -202,9 +202,9 @@ begin
       v.scrData := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
       v.scrDataValid  := dataValid_i;
       v.descrDataValid := r.scrDataValid;
-      
+
       -- Descramble data put data into descrambler MSB first
-      -- Start descrambling when data is enabled 
+      -- Start descrambling when data is enabled
       if (scrEnable_i = '1' and r.scrDataValid = '1') then
          for i in (GT_WORD_SIZE_C*8)-1 downto 0 loop
             v.lfsr := v.lfsr(v.lfsr'left-1 downto v.lfsr'right) & r.scrData(i);
@@ -223,17 +223,17 @@ begin
       if (scrEnable_i = '1') then
          -- 3 c-c latency
          v.sampleData   := r.descrData;
-         v.dataValid    := r.descrDataValid;   
+         v.dataValid    := r.descrDataValid;
       else
          -- 1 c-c latency
          v.sampleData   := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
          v.dataValid    := dataValid_i;
       end if;
-      
+
       -- Combinatorial outputs before the reset
       positionErr_o     <= v_positionErr;
       alignErr_o        <= v_alignErr;
-      
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;

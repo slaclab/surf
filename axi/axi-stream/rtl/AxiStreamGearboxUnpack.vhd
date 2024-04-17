@@ -5,11 +5,11 @@
 --              7 80 bit (5x14) frames.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,17 +18,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity AxiStreamGearboxUnpack is
-   
    generic (
-      TPD_G               : time := 1 ns;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
+      TPD_G               : time    := 1 ns;
+      RST_ASYNC_G         : boolean := false;
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       RANGE_HIGH_G        : integer := 119;
       RANGE_LOW_G         : integer := 8);
 --      PACK_SIZE_G         : integer);
@@ -42,14 +41,11 @@ entity AxiStreamGearboxUnpack is
 
       rawAxisMaster : out AxiStreamMasterType;
       rawAxisSlave  : in  AxiStreamSlaveType;
-      rawAxisCtrl   : in  AxiStreamCtrlType
-
-      );
-
+      rawAxisCtrl   : in  AxiStreamCtrlType);
 end entity AxiStreamGearboxUnpack;
 
 architecture rtl of AxiStreamGearboxUnpack is
-   
+
    constant STREAM_WIDTH_C    : integer                           := AXI_STREAM_CONFIG_G.TDATA_BYTES_C*8;
    constant PACK_SIZE_C       : integer                           := RANGE_HIGH_G-RANGE_LOW_G+1;
    constant SIZE_DIFFERENCE_C : integer                           := STREAM_WIDTH_C-PACK_SIZE_C;
@@ -123,7 +119,7 @@ begin
             v.splitIndex                      := v.splitIndex-SIZE_DIFFERENCE_C;
 
          else
-            -- Each incomming txn contains part of the data from two outgoing txns.
+            -- Each incoming txn contains part of the data from two outgoing txns.
             -- First we find the split index.
             -- On the first txn the split index is at STREAM_WIDTH_C-SIZE_DIFFERENCE_C.
             -- It then decrements by SIZE_DIFFERENCE_C on each subsequent txn.
@@ -190,11 +186,10 @@ begin
       -- Synthesis will merge the r.data registers with r.rawSsiMaster.data
       v.rawSsiMaster.data(STREAM_WIDTH_C -1 downto 0) := v.data(STREAM_WIDTH_C-1 downto 0);
 
-
       ----------------------------------------------------------------------------------------------
       -- Reset
       ----------------------------------------------------------------------------------------------
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -209,9 +204,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -224,6 +221,7 @@ begin
 --   AxiStreamFifo_1 : entity surf.AxiStreamFifoV2
 --      generic map (
 --         TPD_G               => TPD_G,
+--         RST_ASYNC_G         => RST_ASYNC_G,
 --         MEMORY_TYPE_G       => "distributed",
 --         GEN_SYNC_FIFO_G     => true,
 --         FIFO_ADDR_WIDTH_G   => 4,

@@ -6,11 +6,11 @@
 -- Description: Simulation testbed for AxiLiteSaciMaster2
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -42,17 +42,17 @@ architecture sim of AxiLiteSaciMasterTb is
    constant SACI_RSP_BUSSED_G  : boolean               := false;
 
    -- component ports
-   signal saciClk         : sl;        
-   signal saciCmd         : sl;        
-   signal saciSelL        : slv(SACI_NUM_CHIPS_G-1 downto 0);  
-   signal saciRsp         : slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0) := (others => '0');  
-   signal axilClk         : sl;         
-   signal axilRst         : sl;         
+   signal saciClk         : sl;
+   signal saciCmd         : sl;
+   signal saciSelL        : slv(SACI_NUM_CHIPS_G-1 downto 0);
+   signal saciRsp         : slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0) := (others => '0');
+   signal axilClk         : sl;
+   signal axilRst         : sl;
    signal axilRstL        : sl;
-   signal axilReadMaster  : AxiLiteReadMasterType;             
-   signal axilReadSlave   : AxiLiteReadSlaveType;              
-   signal axilWriteMaster : AxiLiteWriteMasterType;            
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;             
+   signal axilReadMaster  : AxiLiteReadMasterType;
+   signal axilReadSlave   : AxiLiteReadSlaveType;
+   signal axilWriteMaster : AxiLiteWriteMasterType;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
    signal rstLoopL : slv(SACI_NUM_CHIPS_G-1 downto 0);
    signal exec     : slv(SACI_NUM_CHIPS_G-1 downto 0);

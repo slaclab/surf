@@ -6,11 +6,11 @@
 -- Description: Gth7 Fixed Latency Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ entity Pgp2bGtp7FixedLat is
       SIMULATION_G          : boolean    := false;
       STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
       REF_CLK_FREQ_G        : real       := 125.0E6;
-      -- TX/RX Settings - Defaults to 2.5 Gbps operation 
+      -- TX/RX Settings - Defaults to 2.5 Gbps operation
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
       RX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
@@ -49,7 +49,7 @@ entity Pgp2bGtp7FixedLat is
       RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit        := '1';    -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';    -- Set by wizard      
+      RXLPM_IPCM_CFG_G      : bit        := '0';    -- Set by wizard
 
       -- Allow TX to run in var lat mode by altering these generics
       TX_BUF_EN_G      : boolean := false;
@@ -120,12 +120,12 @@ entity Pgp2bGtp7FixedLat is
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
 
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor     : in  slv(4 downto 0)        := (others => '0');
       txPostCursor    : in  slv(4 downto 0)        := (others => '0');
       txDiffCtrl      : in  slv(3 downto 0)        := "1000";
       drpOverride     : in  sl                     := '0';
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -154,7 +154,7 @@ architecture rtl of Pgp2bGtp7FixedLat is
    -- PgpRx Signals
    signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
    signal dataValid     : sl;                              -- no decode or disparity errors
-   signal dataValidTmp  : sl;                              -- no decode or disparity errors   
+   signal dataValidTmp  : sl;                              -- no decode or disparity errors
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
    signal phyRxReady    : sl;                              -- To RxRst
@@ -222,7 +222,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Oneshot the phy init because clock may drop out and leave it stuck high
    -------------------------------------------------------------------------------------------------
-   U_SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
+   U_gtRxUserReset : entity surf.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
@@ -359,7 +359,7 @@ begin
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
          rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
-         rxDataValidIn    => '1',       -- From 8b10b
+         rxDataValidIn    => '1',   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
          rxCharIsKOut     => open,      -- Not using gt rx 8b10b

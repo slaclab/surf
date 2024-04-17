@@ -4,11 +4,11 @@
 -- Description: Simulation testbed for Jesd204b
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ begin
          end if;
          -- Create a free running counter
          cnt                      <= cnt + 1                  after TPD_G;
-         -- Calculate next RX data 
+         -- Calculate next RX data
          nextRxData(7 downto 0)   <= rxData(7 downto 0) + 4   after TPD_G;
          nextRxData(15 downto 8)  <= rxData(15 downto 8) + 4  after TPD_G;
          nextRxData(23 downto 16) <= rxData(23 downto 16) + 4 after TPD_G;
@@ -157,7 +157,7 @@ begin
          r_jesdGtTxArr(0)        => jesdGtTxArr);
 
    ------------------------------------
-   -- Generate SLV to test unaligned 
+   -- Generate SLV to test unaligned
    -- byte compensations in the JESD RX
    ------------------------------------
    process(clk)
@@ -178,9 +178,9 @@ begin
    jesdGtRxArr.rstDone   <= configDone;
    jesdGtRxArr.cdrStable <= configDone;
 
-   -----------------------------------   
+   -----------------------------------
    -- Adding char detect for debugging
-   -----------------------------------   
+   -----------------------------------
    process(jesdGtRxArr)
       variable i    : natural;
       variable kDet : slv(3 downto 0);
@@ -219,7 +219,7 @@ begin
 
    -----------------
    -- JESD RX Module
-   -----------------            
+   -----------------
    U_Jesd204bRx : entity surf.Jesd204bRx
       generic map (
          TPD_G => TPD_G,
@@ -250,20 +250,20 @@ begin
       wait until rst = '0';
 
       -- Configure the JESD TX
-      axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000000", x"00000001");  -- Enable=0x1 
+      axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000000", x"00000001");  -- Enable=0x1
       if(EN_SCRAMBLER_C) then
-         axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000043");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1 
+         axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000043");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1
       else
          axiLiteBusSimWrite(clk, txWriteMaster, txWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1
       end if;
 
       -- Configure the JESD RX
-      axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000000", x"00000001");  -- Enable=0x1 
+      axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000000", x"00000001");  -- Enable=0x1
       axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000004", x"0000000B");  -- SysrefDelay=0x8
       if(EN_SCRAMBLER_C) then
-         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000023");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1 
+         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000023");  -- scrEnable=0x1,SubClass=x01,ReplaceEnable=0x1
       else
-         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1 
+         axiLiteBusSimWrite(clk, rxWriteMaster, rxWriteSlave, x"00000010", x"00000003");  -- SubClass=x01,ReplaceEnable=0x1
       end if;
 
       configDone <= '1';

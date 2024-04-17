@@ -4,11 +4,11 @@
 -- Description: Mapping for 1GbE/10GbE/40GbE ETH MAC RX path
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,14 +25,15 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxImport is
    generic (
-      TPD_G      : time   := 1 ns;
-      PHY_TYPE_G : string := "XGMII");
+      TPD_G        : time   := 1 ns;
+      PHY_TYPE_G   : string := "XGMII";
+      SYNTH_MODE_G : string := "inferred");
    port (
       -- Clock and Reset
       ethClkEn    : in  sl;
       ethClk      : in  sl;
       ethRst      : in  sl;
-      -- AXIS Interface   
+      -- AXIS Interface
       macIbMaster : out AxiStreamMasterType;
       -- XLGMII PHY Interface
       xlgmiiRxd   : in  slv(127 downto 0);
@@ -59,12 +60,12 @@ begin
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
       U_XLGMII : entity surf.EthMacRxImportXlgmii
          generic map (
-            TPD_G => TPD_G) 
+            TPD_G => TPD_G)
          port map (
             -- Clock and Reset
             ethClk      => ethClk,
             ethRst      => ethRst,
-            -- AXIS Interface 
+            -- AXIS Interface
             macIbMaster => macIbMaster,
             -- XLGMII PHY Interface
             phyRxd      => xlgmiiRxd,
@@ -78,12 +79,12 @@ begin
    U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity surf.EthMacRxImportXgmii
          generic map (
-            TPD_G => TPD_G) 
+            TPD_G => TPD_G)
          port map (
             -- Clock and Reset
             ethClk      => ethClk,
             ethRst      => ethRst,
-            -- AXIS Interface 
+            -- AXIS Interface
             macIbMaster => macIbMaster,
             -- XGMII PHY Interface
             phyRxdata   => xgmiiRxd,
@@ -97,13 +98,14 @@ begin
    U_1G : if (PHY_TYPE_G = "GMII") generate
       U_GMII : entity surf.EthMacRxImportGmii
          generic map (
-            TPD_G => TPD_G) 
+            TPD_G        => TPD_G,
+            SYNTH_MODE_G => SYNTH_MODE_G)
          port map (
-            -- Clock and Reset         
+            -- Clock and Reset
             ethClkEn    => ethClkEn,
             ethClk      => ethClk,
             ethRst      => ethRst,
-            -- AXIS Interface 
+            -- AXIS Interface
             macIbMaster => macIbMaster,
             -- GMII PHY Interface
             gmiiRxDv    => gmiiRxDv,

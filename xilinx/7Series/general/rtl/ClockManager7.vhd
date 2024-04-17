@@ -4,11 +4,11 @@
 -- Description: A wrapper over MMCM/PLL to avoid coregen use.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ entity ClockManager7 is
       clkOut          : out slv(NUM_CLOCKS_G-1 downto 0);
       rstOut          : out slv(NUM_CLOCKS_G-1 downto 0);
       locked          : out sl;
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -366,7 +366,7 @@ begin
    end generate;
 
    FbNoBufg : if (not FB_BUFG_G) generate
-      clkFbOut <= clkFbIn;
+      clkFbIn <= clkFbOut;
    end generate;
 
    OutBufgGen : if (OUTPUT_BUFG_G) generate

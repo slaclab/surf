@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTH Ultrascale QPLL Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,25 +19,27 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity Pgp3GthUsQpll is
    generic (
-      TPD_G    : time    := 1 ns;
-      RATE_G   : string  := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
-      EN_DRP_G : boolean := true);
+      TPD_G             : time            := 1 ns;
+      REFCLK_FREQ_G     : real            := 156.25E+6;
+      RATE_G            : string          := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      QPLL_REFCLK_SEL_G : slv(2 downto 0) := "001";
+      EN_DRP_G          : boolean         := true);
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
       stableRst       : in  sl;
       -- QPLL Clocking
-      pgpRefClk       : in  sl;         -- 156.25 MHz
+      pgpRefClk       : in  sl;         -- REFCLK_FREQ_G
       qpllLock        : out Slv2Array(3 downto 0);
       qpllClk         : out Slv2Array(3 downto 0);
       qpllRefclk      : out Slv2Array(3 downto 0);
@@ -53,8 +55,103 @@ end Pgp3GthUsQpll;
 
 architecture mapping of Pgp3GthUsQpll is
 
-   constant QPLL_CP_C    : slv(9 downto 0) := ite((RATE_G = "10.3125Gbps"), "0000011111", "0111111111");
-   constant QPLL_FBDIV_C : positive        := ite((RATE_G = "10.3125Gbps"), 66, 80);
+   type QpllConfig is record
+      QPLL_CFG0        : slv(15 downto 0);
+      QPLL_CFG1        : slv(15 downto 0);
+      QPLL_CFG1_G3     : slv(15 downto 0);
+      QPLL_CFG2        : slv(15 downto 0);
+      QPLL_CFG2_G3     : slv(15 downto 0);
+      QPLL_CFG3        : slv(15 downto 0);
+      QPLL_CFG4        : slv(15 downto 0);
+      QPLL_CP          : slv(9 downto 0);
+      QPLL_CP_G3       : slv(9 downto 0);
+      QPLL_FBDIV       : natural;
+      QPLL_FBDIV_G3    : natural;
+      QPLL_INIT_CFG0   : slv(15 downto 0);
+      QPLL_INIT_CFG1   : slv(7 downto 0);
+      QPLL_LOCK_CFG    : slv(15 downto 0);
+      QPLL_LOCK_CFG_G3 : slv(15 downto 0);
+      QPLL_LPF         : slv(9 downto 0);
+      QPLL_LPF_G3      : slv(9 downto 0);
+      QPLL_REFCLK_DIV  : natural;
+   end record QpllConfig;
+   constant QPLL_CONFIG_INIT_C : QpllConfig := (
+      QPLL_CFG0        => "0011001000011100",
+      QPLL_CFG1        => "0001000000011000",
+      QPLL_CFG1_G3     => "0001000000011000",
+      QPLL_CFG2        => "0000000001001000",
+      QPLL_CFG2_G3     => "0000000001001000",
+      QPLL_CFG3        => "0000000100100000",
+      QPLL_CFG4        => "0000000000001001",
+      QPLL_CP          => "0000011111",
+      QPLL_CP_G3       => "1111111111",
+      QPLL_FBDIV       => 66,
+      QPLL_FBDIV_G3    => 80,
+      QPLL_INIT_CFG0   => "0000001010110010",
+      QPLL_INIT_CFG1   => "00000000",
+      QPLL_LOCK_CFG    => "0010000111101000",
+      QPLL_LOCK_CFG_G3 => "0010000111101000",
+      QPLL_LPF         => "1111111100",
+      QPLL_LPF_G3      => "0000010101",
+      QPLL_REFCLK_DIV  => 1);
+   function getQpllConfig (refClkFreq : real; rate : string) return QpllConfig is
+      variable retVar : QpllConfig;
+   begin
+      -- Init
+      retVar := QPLL_CONFIG_INIT_C;
+
+      ----------------------------------------
+      -- Check for 156.25 MHz or 312.5 MHz OSC
+      ----------------------------------------
+      if (refClkFreq = 156.25E+6) or (refClkFreq = 312.5E+6) then
+
+         -- Check for 15 Gb/s rate
+         if (RATE_G = "15.46875Gbps") then
+            retVar.QPLL_CFG4        := "0000000000011011";
+            retVar.QPLL_CP          := "0111111111";
+            retVar.QPLL_FBDIV       := 99;
+            retVar.QPLL_LOCK_CFG    := "0010010111101000";
+            retVar.QPLL_LOCK_CFG_G3 := "0010010111101000";
+
+         -- Check for non-10Gb/s rate
+         elsif (rate /= "10.3125Gbps") then
+            retVar.QPLL_CP    := "0111111111";
+            retVar.QPLL_FBDIV := 80;
+         end if;
+
+         -- Check for double rate OSC
+         if (refClkFreq = 312.5E+6) then
+            retVar.QPLL_REFCLK_DIV := 2;
+         end if;
+
+      ------------------------------------
+      -- Else 185.71 MHz or 371.42 MHz OSC
+      ------------------------------------
+      else
+
+         -- Only support 10.3125 Gb/s
+         assert (rate = "10.3125Gbps")
+            report "Pgp3GthUsQpll.getQpllConfig(): (RATE_G = 10.3125Gbps) condition not meet"
+            severity error;
+
+         -- Init
+         retVar.QPLL_CP    := "0111111111";
+         retVar.QPLL_FBDIV := 111;
+
+         -- Check for OSC Frequency
+         if (refClkFreq = 185.7142855E+6) then
+            retVar.QPLL_REFCLK_DIV := 2;
+         else
+            retVar.QPLL_REFCLK_DIV := 4;
+         end if;
+
+      end if;
+
+      -- Return the configuration
+      return(retVar);
+   end function;
+
+   constant QPLL_CONFIG_C : QpllConfig := getQpllConfig(REFCLK_FREQ_G, RATE_G);
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -70,8 +167,12 @@ architecture mapping of Pgp3GthUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
+      severity error;
+
+   assert ((REFCLK_FREQ_G = 156.25E+6) or (REFCLK_FREQ_G = 185.7142855E+6) or (REFCLK_FREQ_G = 312.5E+6) or (REFCLK_FREQ_G = 371.428571E+6))
+      report "REFCLK_FREQ_G: Must be either 156.25E+6, 185.7142855E+6, 312.5E+6 or 371.428571E+6"
       severity error;
 
    GEN_VEC :
@@ -113,26 +214,26 @@ begin
          -- AXI-Lite Parameters
          EN_DRP_G           => EN_DRP_G,
          -- QPLL Configuration Parameters
-         QPLL_CFG0_G        => (others => x"321C"),
-         QPLL_CFG1_G        => (others => x"1018"),
-         QPLL_CFG1_G3_G     => (others => x"1018"),
-         QPLL_CFG2_G        => (others => x"0048"),
-         QPLL_CFG2_G3_G     => (others => x"0048"),
-         QPLL_CFG3_G        => (others => x"0120"),
-         QPLL_CFG4_G        => (others => x"0009"),
-         QPLL_CP_G          => (others => QPLL_CP_C),
-         QPLL_CP_G3_G       => (others => "1111111111"),
-         QPLL_FBDIV_G       => (others => QPLL_FBDIV_C),
-         QPLL_FBDIV_G3_G    => (others => 80),
-         QPLL_INIT_CFG0_G   => (others => x"02B2"),
-         QPLL_INIT_CFG1_G   => (others => x"00"),
-         QPLL_LOCK_CFG_G    => (others => x"21E8"),
-         QPLL_LOCK_CFG_G3_G => (others => x"21E8"),
-         QPLL_LPF_G         => (others => "1111111100"),
-         QPLL_LPF_G3_G      => (others => "0000010101"),
-         QPLL_REFCLK_DIV_G  => (others => 1),
+         QPLL_CFG0_G        => (others => QPLL_CONFIG_C.QPLL_CFG0),
+         QPLL_CFG1_G        => (others => QPLL_CONFIG_C.QPLL_CFG1),
+         QPLL_CFG1_G3_G     => (others => QPLL_CONFIG_C.QPLL_CFG1_G3),
+         QPLL_CFG2_G        => (others => QPLL_CONFIG_C.QPLL_CFG2),
+         QPLL_CFG2_G3_G     => (others => QPLL_CONFIG_C.QPLL_CFG2_G3),
+         QPLL_CFG3_G        => (others => QPLL_CONFIG_C.QPLL_CFG3),
+         QPLL_CFG4_G        => (others => QPLL_CONFIG_C.QPLL_CFG4),
+         QPLL_CP_G          => (others => QPLL_CONFIG_C.QPLL_CP),
+         QPLL_CP_G3_G       => (others => QPLL_CONFIG_C.QPLL_CP_G3),
+         QPLL_FBDIV_G       => (others => QPLL_CONFIG_C.QPLL_FBDIV),
+         QPLL_FBDIV_G3_G    => (others => QPLL_CONFIG_C.QPLL_FBDIV_G3),
+         QPLL_INIT_CFG0_G   => (others => QPLL_CONFIG_C.QPLL_INIT_CFG0),
+         QPLL_INIT_CFG1_G   => (others => QPLL_CONFIG_C.QPLL_INIT_CFG1),
+         QPLL_LOCK_CFG_G    => (others => QPLL_CONFIG_C.QPLL_LOCK_CFG),
+         QPLL_LOCK_CFG_G3_G => (others => QPLL_CONFIG_C.QPLL_LOCK_CFG_G3),
+         QPLL_LPF_G         => (others => QPLL_CONFIG_C.QPLL_LPF),
+         QPLL_LPF_G3_G      => (others => QPLL_CONFIG_C.QPLL_LPF_G3),
+         QPLL_REFCLK_DIV_G  => (others => QPLL_CONFIG_C.QPLL_REFCLK_DIV),
          -- Clock Selects
-         QPLL_REFCLK_SEL_G  => (others => "001"))
+         QPLL_REFCLK_SEL_G  => (others => QPLL_REFCLK_SEL_G))
       port map (
          qPllRefClk       => pllRefClk,
          qPllOutClk       => pllOutClk,

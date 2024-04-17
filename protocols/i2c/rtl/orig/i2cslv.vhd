@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity: i2cslv
 -- File:   i2cslv.vhd
@@ -135,14 +135,14 @@ architecture rtl of i2cslv is
  constant I2C_WRITE : std_ulogic := '0';
 
  constant OEPOL_LEVEL : std_ulogic := conv_std_logic(oepol = 1);
- 
+
  constant I2C_LOW   : std_ulogic := OEPOL_LEVEL;  -- OE
  constant I2C_HIZ   : std_ulogic := not OEPOL_LEVEL;
 
  constant I2C_ACK   : std_ulogic := '0';
 
  constant TENBIT_ADDR_START : std_logic_vector(4 downto 0) := "11110";
- 
+
  -----------------------------------------------------------------------------
  -- Types
  -----------------------------------------------------------------------------
@@ -165,7 +165,7 @@ architecture rtl of i2cslv is
       tba      : std_ulogic;            -- 10-bit address
       slvaddr  : std_logic_vector((I2CADDRLEN-1) downto 0);
  end record;
- 
+
  type i2cslv_reg_bank is record        -- APB registers
       slvaddr  : slvaddr_reg_type;
       ctrl     : ctrl_reg_type;
@@ -179,7 +179,7 @@ architecture rtl of i2cslv is
 
  type slv_state_type is (idle, checkaddr, check10bitaddr, sclhold,
                          movebyte, handshake);
- 
+
  type i2cslv_reg_type is record
       slvstate : slv_state_type;
       --
@@ -230,7 +230,7 @@ architecture rtl of i2cslv is
  begin  -- compaddr2ndb
    return ibyte((I2CADDRLEN-3) downto 0) = slvaddr((I2CADDRLEN-3) downto 0);
  end compaddr2ndb;
- 
+
  -----------------------------------------------------------------------------
  -- Signals
  -----------------------------------------------------------------------------
@@ -253,7 +253,7 @@ begin
    apbaddr := apbi.paddr(7 downto 2); apbout := (others => '0');
    v.i2ci(0) := i2ci; v.i2ci(filter downto 1) := r.i2ci(filter-1 downto 0);
    tba := false;
-   
+
    ---------------------------------------------------------------------------
    -- APB register interface
    ---------------------------------------------------------------------------
@@ -311,14 +311,14 @@ begin
    ----------------------------------------------------------------------------
    -- Bus filtering
    ----------------------------------------------------------------------------
-   for i in 0 to filter-1 loop 
+   for i in 0 to filter-1 loop
      sclfilt(i) := r.i2ci(i+1).scl; sdafilt(i) := r.i2ci(i+1).sda;
    end loop;  -- i
    if andv(sclfilt) = '1' then v.scl := '1'; end if;
    if orv(sclfilt) = '0' then v.scl := '0'; end if;
    if andv(sdafilt) = '1' then v.sda := '1'; end if;
    if orv(sdafilt) = '0' then v.sda := '0'; end if;
-   
+
    ---------------------------------------------------------------------------
    -- I2C slave control FSM
    ---------------------------------------------------------------------------
@@ -328,7 +328,7 @@ begin
        if (r.scl and not v.scl) = '1' then
          v.sdaoen := I2C_HIZ;
        end if;
-     
+
      when checkaddr =>
        tba := r.reg.slvaddr.tba = '1';
        if compaddr1stb(r.sreg, r.reg.slvaddr) then
@@ -361,7 +361,7 @@ begin
          v.slvstate := idle;
        end if;
        v.sreg := r.reg.transmit;
-       
+
      when check10bitaddr =>
        if compaddr2ndb(r.sreg, r.reg.slvaddr.slvaddr) then
          -- Slave has been addressed with a matching 10 bit address
@@ -375,7 +375,7 @@ begin
        else
          v.slvstate := idle;
        end if;
-       
+
      when sclhold =>
        -- This state is used when the device has been addressed to see if SCL
        -- should be kept low until the receive register is free or the
@@ -420,7 +420,7 @@ begin
            v.cnt := r.cnt + 1;
          end if;
        end if;
-      
+
      when handshake =>
        -- Falling edge
        if (r.scl and not v.scl) = '1' then
@@ -502,7 +502,7 @@ begin
          v.sreg := r.reg.transmit;
        end if;
    end case;
-   
+
    if r.reg.ctrl.en = '1' then
      -- STOP condition
      if (r.scl and v.scl and not r.sda and v.sda) = '1' then
@@ -519,7 +519,7 @@ begin
        v.receive := false;
      end if;
    end if;
-   
+
    ----------------------------------------------------------------------------
    -- Reset and idle operation
    ----------------------------------------------------------------------------
@@ -539,7 +539,7 @@ begin
    ----------------------------------------------------------------------------
    -- Signal assignments
    ----------------------------------------------------------------------------
-   
+
    -- Update registers
    rin <= v;
 

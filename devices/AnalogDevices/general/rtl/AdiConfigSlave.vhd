@@ -5,11 +5,11 @@
 -- use by many AnalogDevices chips.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity AdiConfigSlave is
-   
+
    generic (
       TPD_G : time := 1 ns);
 
@@ -95,11 +95,11 @@ architecture behavioral of AdiConfigSlave is
    signal csbSync  : sl;
    signal csbRise  : sl;
    signal csbFall  : sl;
-   
+
 begin
 
    sdio <= '0' when r.dataOut = '0' else 'Z';
-   
+
    sdioRes <= to_x01z(sdio);
    sclkRes <= to_x01z(sclk);
    csbRes <= to_x01z(csb);
@@ -248,7 +248,7 @@ begin
       addr      <= r.addr;
       byteValid <= r.byteValid;
 
-      
+
    end process comb;
 
    seq : process (clk) is

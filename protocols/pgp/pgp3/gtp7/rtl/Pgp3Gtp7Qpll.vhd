@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTP7 QPLL Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ entity Pgp3Gtp7Qpll is
    generic (
       TPD_G         : time           := 1 ns;
       EN_DRP_G      : boolean        := true;
-      REFCLK_TYPE_G : Pgp3RefClkType := PGP3_REFCLK_250_C;
+      REFCLK_FREQ_G : real           := 250.0E+6;
       RATE_G        : string         := "6.25Gbps");  -- or "3.125Gbps"
    port (
       -- Stable Clock and Reset
@@ -59,7 +59,7 @@ architecture mapping of Pgp3Gtp7Qpll is
    ----------------------------------------------------------------
    -- | Ref Clk | FBDIV_IN_C | FBDIV_45_IN_C | REFCLK_DIV_IN_C | --
    ----------------------------------------------------------------
-   -- |   312   |     4      |      5        |        2        | -- 
+   -- |   312   |     4      |      5        |        2        | --
    -- |   156   |     4      |      5        |        1        | --
    -- |   250   |     5      |      5        |        2        | --
    -- |   125   |     5      |      5        |        1        | --
@@ -67,9 +67,9 @@ architecture mapping of Pgp3Gtp7Qpll is
 
    impure function GenQpllFbDiv return integer is
    begin
-      if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) or (REFCLK_TYPE_G = PGP3_REFCLK_156_C) then
+      if (REFCLK_FREQ_G = 312.5E+6) or (REFCLK_FREQ_G = 156.25E+6) then
          return 4;
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_250_C) or (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
+      elsif (REFCLK_FREQ_G = 250.0E+6) or (REFCLK_FREQ_G = 125.0E+6) then
          return 5;
       else
          return -1;
@@ -81,9 +81,9 @@ architecture mapping of Pgp3Gtp7Qpll is
 
    impure function GenQpllRefDiv return integer is
    begin
-      if (REFCLK_TYPE_G = PGP3_REFCLK_312_C) or (REFCLK_TYPE_G = PGP3_REFCLK_250_C) then
+      if (REFCLK_FREQ_G = 312.5E+6) or (REFCLK_FREQ_G = 250.0E+6) then
          return 2;
-      elsif (REFCLK_TYPE_G = PGP3_REFCLK_156_C) or (REFCLK_TYPE_G = PGP3_REFCLK_125_C) then
+      elsif (REFCLK_FREQ_G = 156.25E+6) or (REFCLK_FREQ_G = 125.0E+6) then
          return 1;
       else
          return -1;

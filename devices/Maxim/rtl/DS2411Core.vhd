@@ -4,11 +4,11 @@
 -- Description: Controller for DS2411 64-bit serial ID PROM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -37,6 +37,8 @@ entity DS2411Core is
       rst       : in    sl;
       -- ID Prom Signals
       fdSerSdio : inout sl;
+      -- output hookup of the fdSerSdio (optional)
+      fdSerDin  : out   sl;
       -- Serial Number
       fdValue   : out   slv(63 downto 0);
       fdValid   : out   sl);
@@ -56,7 +58,7 @@ architecture rtl of DS2411Core is
 
    signal setOutLow,
       fdValidSet,
-      fdSerDin,
+      iFdSerDin,
       bitSet,
       bitCntEn : sl := '0';
    signal bitCntRst,
@@ -80,15 +82,16 @@ begin
    NORMAL_GEN : if (SIMULATION_G = false) generate
 
       setOutLowInv <= not setOutLow;
-      FD_SER_SDIO_BUFT : IOBUF
+      FD_SER_SDIO_BUFT : entity surf.IoBufWrapper
          port map (
             I  => '0',
-            O  => fdSerDin,
+            O  => iFdSerDin,
             IO => fdSerSdio,
             T  => setOutLowInv);
 
 --      fdSerSdio <= '0' when(setOutLow = '1') else 'Z';
---      fdSerDin  <= fdSerSdio;
+--      iFdSerDin  <= fdSerSdio;
+      fdSerDin <= iFdSerDin;
 
       -- Sync state logic
       process (clk, rst)
@@ -108,7 +111,7 @@ begin
 
             -- Bit Set Of Received Data
             if bitSet = '1' then
-               fdSerial(conv_integer(bitCnt)) <= fdSerDin after TPD_G;
+               fdSerial(conv_integer(bitCnt)) <= iFdSerDin after TPD_G;
             end if;
 
             -- Bit Counter

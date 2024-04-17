@@ -4,11 +4,11 @@
 -- Description: Wrapper for UDP 'XVC' Server
 -------------------------------------------------------------------------------
 -- This file is part of 'xvc-udp-debug-bridge'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'xvc-udp-debug-bridge', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'xvc-udp-debug-bridge', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,7 +26,8 @@ use surf.EthMacPkg.all;
 
 entity UdpDebugBridgeWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G           : time := 1 ns;
+      AXIS_CLK_FREQ_G : real := 156.25e6);
    port (
       -- Clock and Reset
       clk            : in  sl;
@@ -41,6 +42,8 @@ end UdpDebugBridgeWrapper;
 architecture rtl of UdpDebugBridgeWrapper is
 
    component UdpDebugBridge is
+      generic (
+         AXIS_CLK_FREQ_G : real);
       port (
          axisClk            : in  std_logic;
          axisRst            : in  std_logic;
@@ -112,6 +115,8 @@ begin
    end process P_SOF_SPLICE;
 
    U_XvcServer : component UdpDebugBridge
+      generic map (
+         AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G)
       port map (
          axisClk => clk,
          axisRst => rst,

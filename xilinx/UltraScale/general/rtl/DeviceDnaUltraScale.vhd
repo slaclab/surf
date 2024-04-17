@@ -4,11 +4,11 @@
 -- Description: Wrapper for the UltraScale DNA_PORT
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ entity DeviceDnaUltraScale is
 end DeviceDnaUltraScale;
 
 architecture rtl of DeviceDnaUltraScale is
-   
+
    constant DNA_SHIFT_LENGTH_C : natural := 96;
 
    type StateType is (READ_S, SHIFT_S, DONE_S);
@@ -89,18 +89,18 @@ begin
       port map (
          clk      => locClk,
          asyncRst => rst,
-         syncRst  => locRst); 
+         syncRst  => locRst);
 
    comb : process (dnaDout, locRst, r) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset the strobing signals
       v.dnaRead  := '0';
 
-      -- State Machine      
+      -- State Machine
       case (r.state) is
          ----------------------------------------------------------------------
          when READ_S =>
@@ -131,7 +131,7 @@ begin
             v.dnaValue(95 downto 94) := "01";
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Outputs
       dnaRead  <= v.dnaRead;
 
@@ -142,7 +142,7 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-      
+
    end process comb;
 
    sync : process (locClk) is
@@ -151,7 +151,7 @@ begin
          r <= rin after TPD_G;
       end if;
    end process sync;
-   
+
    DNA_PORT_I : DNA_PORTE2
       generic map (
          SIM_DNA_VALUE => SIM_DNA_VALUE_G)
@@ -161,7 +161,7 @@ begin
          SHIFT => '1',
          DIN   => '0',
          DOUT  => dnaDout);
-         
+
    SyncValid : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
@@ -179,6 +179,6 @@ begin
       port map (
          clk     => clk,
          dataIn  => r.dnaValue,
-         dataOut => dnaValue);                           
+         dataOut => dnaValue);
 
 end rtl;

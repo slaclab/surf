@@ -2,15 +2,15 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This MUX is used to make sure that the write descriptor is sent
---              after the data is sent. Else the descriptor can get to the 
---              software driver before the data received 
+--              after the data is sent. Else the descriptor can get to the
+--              software driver before the data received
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ use surf.AxiPkg.all;
 entity AxiStreamDmaV2WriteMux is
    generic (
       TPD_G          : time          := 1 ns;
-      AXI_CONFIG_G   : AxiConfigType := AXI_CONFIG_INIT_C;
+      AXI_CONFIG_G   : AxiConfigType;
       AXI_READY_EN_G : boolean       := false);
    port (
       -- Clock and reset
@@ -81,10 +81,10 @@ begin
                    mAxiWriteSlave, r) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
-      -- Valid/Ready Handshaking         
+      -- Valid/Ready Handshaking
       v.descSlave.awready := '0';
       v.descSlave.wready  := '0';
 
@@ -118,7 +118,7 @@ begin
             v.pause := '0';
             -- Check if ready to set the address
             if (v.master.awvalid = '0') then
-               -- Check DMA channel 
+               -- Check DMA channel
                if (dataWriteMaster.awvalid = '1') then
                   -- ACK the valid
                   v.dataSlave.awready := '1';
@@ -147,7 +147,7 @@ begin
                      -- Configuration to two 64-bit cycles
                      v.master.wlast  := '0';  -- Mask off the wlast from single transaction
                      v.master.awlen  := toSlv(1, 8);  -- Double transaction
-                     v.master.awsize := toSlv(log2(8), 3);  -- Update to 8B size                     
+                     v.master.awsize := toSlv(log2(8), 3);  -- Update to 8B size
                      -- Set the pause flag
                      v.pause         := '1';
                      -- Next state

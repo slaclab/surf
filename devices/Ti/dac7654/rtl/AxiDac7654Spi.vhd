@@ -4,11 +4,11 @@
 -- Description: SPI Interface Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ entity AxiDac7654Spi is
       dacRst  : out sl;
       --Global Signals
       axiClk  : in  sl;
-      axiRst  : in  sl);     
+      axiRst  : in  sl);
 end AxiDac7654Spi;
 
 architecture rtl of AxiDac7654Spi is
@@ -69,7 +69,7 @@ architecture rtl of AxiDac7654Spi is
    signal ch   : slv(1 downto 0)              := (others => '0');
    signal pntr : natural range 0 to 23        := 0;
    signal cnt  : natural range 0 to MAX_CNT_C := 0;
-   
+
 begin
 
    dacCs      <= cs;
@@ -150,7 +150,7 @@ begin
                      cnt   <= 0      after TPD_G;
                      state <= LOAD_S after TPD_G;
                   end if;
-               ----------------------------------------------------------------------         
+               ----------------------------------------------------------------------
                when LOAD_S =>
                   load <= '0'     after TPD_G;
                   cnt  <= cnt + 1 after TPD_G;
@@ -159,11 +159,11 @@ begin
                      cnt   <= 0      after TPD_G;
                      state <= LDAC_S after TPD_G;
                   end if;
-               ----------------------------------------------------------------------         
+               ----------------------------------------------------------------------
                when LDAC_S =>
                   ldac <= '1'     after TPD_G;
                   cnt  <= cnt + 1 after TPD_G;
-                  if cnt = getTimeRatio(166.4E-9, AXI_CLK_PERIOD_C) then  -- 166.4 ns wait   
+                  if cnt = getTimeRatio(166.4E-9, AXI_CLK_PERIOD_C) then  -- 166.4 ns wait
                      ldac <= '0'    after TPD_G;
                      cnt  <= 0      after TPD_G;
                      ch   <= ch + 1 after TPD_G;

@@ -1,14 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI stream Packer Module 
+-- Description: AXI stream Packer Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,17 +17,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity AxiStreamGearboxPack is
-   
    generic (
-      TPD_G               : time := 1 ns;
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType := SSI_CONFIG_INIT_C;
+      TPD_G               : time    := 1 ns;
+      RST_ASYNC_G         : boolean := false;
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       RANGE_HIGH_G        : integer := 13;
       RANGE_LOW_G         : integer := 2);
    port (
@@ -40,31 +39,27 @@ entity AxiStreamGearboxPack is
 
       packedAxisMaster : out AxiStreamMasterType;
       packedAxisSlave  : in  AxiStreamSlaveType;
-      packedAxisCtrl   : in  AxiStreamCtrlType
-
-      );
-
+      packedAxisCtrl   : in  AxiStreamCtrlType);
 end entity AxiStreamGearboxPack;
 
 architecture rtl of AxiStreamGearboxPack is
-
 
    constant STREAM_WIDTH_C    : integer := AXI_STREAM_CONFIG_G.TDATA_BYTES_C*8;
    constant PACK_SIZE_C       : integer := RANGE_HIGH_G-RANGE_LOW_G+1;
    constant SIZE_DIFFERENCE_C : integer := STREAM_WIDTH_C-PACK_SIZE_C;
 
    -- Vivado chokes if you try to calculate these on the fly inside the comb process.
-   -- Precompute all of the assignment indicies instead
-   function computeIndicies      return IntegerArray is
+   -- Pre-compute all of the assignment indices instead
+   function computeIndices      return IntegerArray is
       variable ret : IntegerArray(0 to STREAM_WIDTH_C/SIZE_DIFFERENCE_C-1);
    begin
       for i in ret'range loop
          ret(i) := STREAM_WIDTH_C - (i*SIZE_DIFFERENCE_C);
       end loop;
       return ret;
-   end function computeIndicies;
+   end function computeIndices;
 
-   constant ASSIGNMENT_INDECIES_C : IntegerArray := computeIndicies;
+   constant ASSIGNMENT_INDECIES_C : IntegerArray := computeIndices;
 
    type RegType is record
       packedSsiMaster : SsiMasterType;
@@ -121,7 +116,6 @@ begin
             v.packedSsiMaster.eof  := rawSsiMaster.eof;
             v.packedSsiMaster.eofe := rawSsiMaster.eofe;
 
-
             -- Shift the data over
             v.data(STREAM_WIDTH_C-1 downto 0) := r.data(STREAM_WIDTH_C*2-1 downto STREAM_WIDTH_C);
 
@@ -133,11 +127,9 @@ begin
 --            v.packedSsiMaster.valid := toSl(indexInt+PACK_SIZE_C >= STREAM_WIDTH_C);
             v.packedSsiMaster.valid := toSl(r.index /= 0) or rawSsiMaster.eofe or rawSsiMaster.eof;
 
-
             -- Increment index
             v.index := r.index + 1;
 
-            
          end if;
       end if;
 
@@ -146,7 +138,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Reset
       ----------------------------------------------------------------------------------------------
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -161,9 +153,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

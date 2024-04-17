@@ -6,11 +6,11 @@
 -- Description: 8B10B Encoder Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ architecture rtl of Encoder8b10b is
 
 begin
 
-   comb : process (dataIn, dataKIn, r, readyOut, rst) is
+   comb : process (dataIn, dataKIn, r, readyOut, rst, validIn) is
       variable v            : RegType;
       variable dispChainVar : sl;
    begin
@@ -74,7 +74,7 @@ begin
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
+      if ((v.validOut = '0') and (validIn = '1')) or (FLOW_CTRL_EN_G = false) then
          v.validOut := '1';
 
          dispChainVar := r.runDisp;
@@ -87,9 +87,9 @@ begin
          end loop;
          v.runDisp := dispChainVar;
       end if;
-      
+
       -- Combinatorial outputs before the reset
-      readyIn  <= v.readyIn;      
+      readyIn  <= v.readyIn;
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
@@ -103,7 +103,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(clk)) then
          if clkEn = '1' then

@@ -4,11 +4,11 @@
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ begin
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset strobes
@@ -129,7 +129,7 @@ begin
                   v.xferType := axiWriteMaster.awaddr(17 downto 14);
                   -- Next State
                   v.state    := INIT_S;
-               -- Check if read transaction      
+               -- Check if read transaction
                elsif (axiStatus.readEnable = '1') then
                   -- Set the flag
                   v.axiRd    := '1';
@@ -147,18 +147,18 @@ begin
                   v.axiRd      := '0';
                   -- Save the data/address
                   v.size       := 1;
-                  v.wrArray(0) := ('0' & axiWriteMaster.awaddr(17 downto 2) & axiWriteMaster.wdata(7 downto 0));
+                  v.wrArray(0) := ('0' & axiWriteMaster.awaddr(16 downto 2) & axiWriteMaster.wdata(7 downto 0));
                   -- Reset the counter
                   v.cnt        := 0;
                   -- Next State
                   v.state      := REQ_S;
-               -- Check if read transaction      
+               -- Check if read transaction
                elsif (axiStatus.readEnable = '1') then
                   -- Set the flag
                   v.axiRd      := '1';
                   -- Save the data/address
                   v.size       := 1;
-                  v.wrArray(0) := ('1' & axiReadMaster.araddr(17 downto 2) & x"FF");
+                  v.wrArray(0) := ('1' & axiReadMaster.araddr(16 downto 2) & x"FF");
                   -- Reset the counter
                   v.cnt        := 0;
                   -- Next State
@@ -213,11 +213,11 @@ begin
                --  Decimation Filter Page channel A: (XFER_Type = 0x5)
                when x"5" =>
                   v.size       := 1;  -- Address bit A[11] selects channel A (A[11] = 0) or channel B (A[11] = 1).
-                  v.wrArray(0) := (r.axiRd & "101" & "0000" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)  
+                  v.wrArray(0) := (r.axiRd & "101" & "0000" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)
                --  Power Detector Page channel A: (XFER_Type = 0x6)
                when x"6" =>
                   v.size       := 1;  -- Address bit A[11] selects channel A (A[11] = 0) or channel B (A[11] = 1).
-                  v.wrArray(0) := (r.axiRd & "101" & "0100" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)        
+                  v.wrArray(0) := (r.axiRd & "101" & "0100" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)
                -- Master Bank: (XFER_Type = 0x7)
                when x"7" =>
                   v.size       := 3;
@@ -265,11 +265,11 @@ begin
                --  Decimation Filter Page channel B: (XFER_Type = 0xD)
                when x"D" =>
                   v.size       := 1;  -- Address bit A[11] selects channel A (A[11] = 0) or channel B (A[11] = 1).
-                  v.wrArray(0) := (r.axiRd & "101" & "1000" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)  
+                  v.wrArray(0) := (r.axiRd & "101" & "1000" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)
                --  Power Detector Page channel B: (XFER_Type = 0xE)
                when x"E" =>
                   v.size       := 1;  -- Address bit A[11] selects channel A (A[11] = 0) or channel B (A[11] = 1).
-                  v.wrArray(0) := (r.axiRd & "101" & "1100" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)          
+                  v.wrArray(0) := (r.axiRd & "101" & "1100" & r.addr(7 downto 0) & r.data);  -- Address bit A[10] selects the decimation filter page (A[10] = 0) or the power detector page (A[10] = 1)
                -- Hardware Reset (XFER_Type = 0xF)
                when others =>
                   -- Check if transaction type
@@ -281,7 +281,7 @@ begin
                   else
                      -- Reade the bit
                      v.axiReadSlave.rdata(7 downto 0) := ("0000000" & r.rst);
-                     -- Send the response 
+                     -- Send the response
                      axiSlaveReadResponse(v.axiReadSlave);
                   end if;
                   --- Next state
@@ -314,7 +314,7 @@ begin
                   else
                      -- Latch the read byte
                      v.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
-                     -- Send the response 
+                     -- Send the response
                      axiSlaveReadResponse(v.axiReadSlave);
                   end if;
                   --- Next state
@@ -335,7 +335,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;
       coreRst       <= (r.rst or axiRst);

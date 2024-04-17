@@ -6,11 +6,11 @@
 -- Description: PGPv3 Receive Block
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -121,7 +121,7 @@ begin
       port map (
          clk            => phyRxClk,            -- [in]
          rst            => phyRxRst,            -- [in]
-         inputValid     => unscramblerValid,    -- [in]         
+         inputValid     => unscramblerValid,    -- [in]
          inputData      => phyRxData,           -- [in]
          inputSideband  => phyRxHeader,         -- [in]
          outputValid    => unscrambledValid,    -- [out]
@@ -175,6 +175,7 @@ begin
          MEMORY_TYPE_G       => "distributed",
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP3_CRC_POLY_C,
+         SEQ_CNT_SIZE_G      => 12,
          TDEST_BITS_G        => 4,
          INPUT_PIPE_STAGES_G => 1)
       port map (

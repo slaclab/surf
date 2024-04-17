@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Physical interface receive module for the Pretty Good Protocol version 2 core. 
+-- Physical interface receive module for the Pretty Good Protocol version 2 core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,12 +24,12 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 
-entity Pgp2bTxPhy is 
+entity Pgp2bTxPhy is
    generic (
       TPD_G         : time                 := 1 ns;
       TX_LANE_CNT_G : integer range 1 to 2 := 1  -- Number of receive lanes, 1-2
    );
-   port ( 
+   port (
 
       -- System clock, reset & control
       pgpTxClkEn        : in  sl := '1';                        -- Master clock Enable
@@ -59,7 +59,7 @@ entity Pgp2bTxPhy is
       phyTxData         : out slv(TX_LANE_CNT_G*16-1 downto 0); -- PHY receive data
       phyTxDataK        : out slv(TX_LANE_CNT_G*2-1  downto 0); -- PHY receive data is K character
       phyTxReady        : in  sl                                -- PHY receive interface is ready
-   ); 
+   );
 
 end Pgp2bTxPhy;
 
@@ -68,19 +68,19 @@ end Pgp2bTxPhy;
 architecture Pgp2bTxPhy of Pgp2bTxPhy is
 
    -- Local Signals
-   signal algnCnt        : slv(6 downto 0);
+   signal algnCnt        : slv(6 downto 0) := (others => '0');
    signal algnCntRst     : sl;
-   signal intTxLinkReady : sl;
+   signal intTxLinkReady : sl := '0';
    signal nxtTxLinkReady : sl;
    signal nxtTxData      : slv(TX_LANE_CNT_G*16-1 downto 0);
    signal nxtTxDataK     : slv(TX_LANE_CNT_G*2-1  downto 0);
-   signal dlyTxData      : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal dlyTxDataK     : slv(TX_LANE_CNT_G*2-1  downto 0);
-   signal dlySelect      : sl;
-   signal intTxData      : slv(TX_LANE_CNT_G*16-1 downto 0);
-   signal intTxDataK     : slv(TX_LANE_CNT_G*2-1  downto 0);
-   signal intTxOpCode    : slv(7 downto 0);
-   signal intTxOpCodeEn  : sl;
+   signal dlyTxData      : slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0');
+   signal dlyTxDataK     : slv(TX_LANE_CNT_G*2-1  downto 0) := (others => '0');
+   signal dlySelect      : sl := '0';
+   signal intTxData      : slv(TX_LANE_CNT_G*16-1 downto 0) := (others => '0');
+   signal intTxDataK     : slv(TX_LANE_CNT_G*2-1  downto 0) := (others => '0');
+   signal intTxOpCode    : slv(7 downto 0) := (others => '0');
+   signal intTxOpCodeEn  : sl := '0';
    signal skpAData       : slv(TX_LANE_CNT_G*16-1 downto 0);
    signal skpADataK      : slv(TX_LANE_CNT_G*2-1  downto 0);
    signal skpBData       : slv(TX_LANE_CNT_G*16-1 downto 0);
@@ -95,7 +95,7 @@ architecture Pgp2bTxPhy of Pgp2bTxPhy is
    signal ltsBDataK      : slv(TX_LANE_CNT_G*2-1  downto 0);
    signal cellData       : slv(TX_LANE_CNT_G*16-1 downto 0);
    signal cellDataK      : slv(TX_LANE_CNT_G*2-1  downto 0);
-   signal dlyTxEOC       : sl;
+   signal dlyTxEOC       : sl := '0';
 
    -- Physical Link State
    constant ST_LOCK_C  : slv(3 downto 0) := "0000";
@@ -107,7 +107,7 @@ architecture Pgp2bTxPhy of Pgp2bTxPhy is
    constant ST_ALN_B_C : slv(3 downto 0) := "0110";
    constant ST_CELL_C  : slv(3 downto 0) := "0111";
    constant ST_EMPTY_C : slv(3 downto 0) := "1000";
-   signal   curState   : slv(3 downto 0);
+   signal   curState   : slv(3 downto 0) := ST_LOCK_C;
    signal   nxtState   : slv(3 downto 0);
 
 begin
@@ -115,7 +115,7 @@ begin
    -- Link status
    pgpTxLinkReady <= intTxLinkReady;
 
-   -- State transition sync logic. 
+   -- State transition sync logic.
    process ( pgpTxClk ) begin
       if rising_edge(pgpTxClk) then
          if pgpTxClkRst = '1' then
@@ -156,7 +156,7 @@ begin
    process ( curState, intTxLinkReady, cellTxEOC, algnCnt,
              skpAData, skpADataK, skpBData, skpBDataK, alnAData, alnADataK, alnBData,
              alnBDataK, ltsAData, ltsADataK, ltsBData, ltsBDataK, cellData, cellDataK ) begin
-      case curState is 
+      case curState is
 
          -- Wait for lock state
          when ST_LOCK_C =>
@@ -167,7 +167,7 @@ begin
             nxtState       <= ST_SKP_A_C;
 
          -- Transmit SKIP word A
-         when ST_SKP_A_C => 
+         when ST_SKP_A_C =>
             nxtTxData      <= skpAData;
             nxtTxDataK     <= skpADataK;
             algnCntRst     <= '0';
@@ -175,7 +175,7 @@ begin
             nxtState       <= ST_SKP_B_C;
 
          -- Transmit SKIP word B
-         when ST_SKP_B_C => 
+         when ST_SKP_B_C =>
             nxtTxData      <= skpBData;
             nxtTxDataK     <= skpBDataK;
             algnCntRst     <= '0';
@@ -183,7 +183,7 @@ begin
             nxtState       <= ST_LTS_A_C;
 
          -- Transmit Align word A
-         when ST_ALN_A_C => 
+         when ST_ALN_A_C =>
             nxtTxData      <= alnAData;
             nxtTxDataK     <= alnADataK;
             algnCntRst     <= '0';
@@ -191,7 +191,7 @@ begin
             nxtState       <= ST_ALN_B_C;
 
          -- Transmit Align word B
-         when ST_ALN_B_C => 
+         when ST_ALN_B_C =>
             nxtTxData      <= alnBData;
             nxtTxDataK     <= alnBDataK;
             algnCntRst     <= '0';
@@ -199,7 +199,7 @@ begin
             nxtState       <= ST_LTS_A_C;
 
          -- Transmit Link Training word A
-         when ST_LTS_A_C => 
+         when ST_LTS_A_C =>
             nxtTxData      <= ltsAData;
             nxtTxDataK     <= ltsADataK;
             algnCntRst     <= '0';
@@ -207,7 +207,7 @@ begin
             nxtState       <= ST_LTS_B_C;
 
          -- Transmit Link Training word B
-         when ST_LTS_B_C => 
+         when ST_LTS_B_C =>
             nxtTxData      <= ltsBData;
             nxtTxDataK     <= ltsBDataK;
             algnCntRst     <= '0';
@@ -215,7 +215,7 @@ begin
             nxtState       <= ST_CELL_C;
 
          -- Transmit Cell Data
-         when ST_CELL_C => 
+         when ST_CELL_C =>
             nxtTxLinkReady <= '1';
             nxtTxData      <= cellData;
             nxtTxDataK     <= cellDataK;
@@ -229,7 +229,7 @@ begin
             end if;
 
          -- Empty location, used to re-adjust delay pipeline
-         when ST_EMPTY_C => 
+         when ST_EMPTY_C =>
             nxtTxLinkReady <= '1';
             nxtTxData      <= (others=>'0');
             nxtTxDataK     <= (others=>'0');
@@ -308,8 +308,8 @@ begin
       cellData(i*16+15 downto i*16+8) <= cellTxData(i*16+15 downto i*16+8);
 
       -- Cell Data, lower control
-      cellDataK(i*2) <= '1' when cellTxSOF = '1' or cellTxSOC = '1' or cellTxEOFE = '1' or 
-                                 cellTxEOF = '1' or cellTxEOC = '1' else '0'; 
+      cellDataK(i*2) <= '1' when cellTxSOF = '1' or cellTxSOC = '1' or cellTxEOFE = '1' or
+                                 cellTxEOF = '1' or cellTxEOC = '1' else '0';
 
       -- Cell Data, upper control
       cellDataK(i*2+1) <= '0';
@@ -330,7 +330,7 @@ begin
             -- Choose delay chain when opcode is transmitted
             if intTxOpCodeEn = '1' then
                dlySelect <= '1' after TPD_G;
-           
+
             -- Reset delay chain when delayed EOC is transmitted
             elsif dlyTxEOC = '1' then
                dlySelect <= '0' after TPD_G;
@@ -377,7 +377,7 @@ begin
                      intTxDataK(i*2+1)                <= '0'         after TPD_G;
 
                   -- Nornal Data
-                  else 
+                  else
                      intTxData(i*16+15 downto i*16) <= nxtTxData(i*16+15 downto i*16) after TPD_G;
                      intTxDataK(i*2+1  downto i*2)  <= nxtTxDataK(i*2+1  downto i*2)  after TPD_G;
                   end if;

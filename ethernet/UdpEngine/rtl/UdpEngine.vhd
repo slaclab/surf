@@ -4,17 +4,16 @@
 -- Description: Top-Level UDP/DHCP Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -32,18 +31,22 @@ entity UdpEngine is
       CLIENT_EN_G    : boolean       := true;
       CLIENT_SIZE_G  : positive      := 1;
       CLIENT_PORTS_G : PositiveArray := (0 => 8193);
-      -- General UDP/ARP/DHCP Generics
-      TX_FLOW_CTRL_G : boolean       := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      -- General UDP/IGMP/ARP/DHCP Generics
+      TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       DHCP_G         : boolean       := false;
-      CLK_FREQ_G     : real          := 156.25E+06;  -- In units of Hz
-      COMM_TIMEOUT_G : positive      := 30);  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      IGMP_G         : boolean       := false;
+      IGMP_GRP_SIZE  : positive      := 1;
+      CLK_FREQ_G     : real          := 156.25E+06;   -- In units of Hz
+      COMM_TIMEOUT_G : positive      := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      SYNTH_MODE_G   : string        := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
-      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration  
-      localIpIn        : in  slv(31 downto 0);  --  big-Endian configuration 
-      dhcpIpOut        : out slv(31 downto 0);  --  big-Endian configuration 
-      -- Interface to IPV4 Engine  
+      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration
+      igmpIp           : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
+      localIpIn        : in  slv(31 downto 0);  --  big-Endian configuration
+      dhcpIpOut        : out slv(31 downto 0);  --  big-Endian configuration
+      -- Interface to IPV4 Engine
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
       ibUdpMaster      : in  AxiStreamMasterType;
@@ -66,7 +69,7 @@ entity UdpEngine is
       obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       ibClientMasters  : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration    
+      ibClientSlaves   : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);  --  tData is big-Endian configuration
       -- Clock and Reset
       clk              : in  sl;
       rst              : in  sl);
@@ -105,6 +108,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          DHCP_G         => DHCP_G,
+         IGMP_G         => IGMP_G,
+         IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
          SERVER_EN_G    => SERVER_EN_G,
          SERVER_SIZE_G  => SERVER_SIZE_G,
          SERVER_PORTS_G => SERVER_PORTS_G,
@@ -115,7 +120,8 @@ begin
          -- Local Configurations
          localIp          => localIp,
          broadcastIp      => broadcastIp,
-         -- Interface to IPV4 Engine  
+         igmpIp           => igmpIp,
+         -- Interface to IPV4 Engine
          ibUdpMaster      => ibUdpMaster,
          ibUdpSlave       => ibUdpSlave,
          -- Interface to UDP Server engine(s)
@@ -128,7 +134,7 @@ begin
          clientRemoteDet  => clientRemoteDet,
          obClientMasters  => obClientMasters,
          obClientSlaves   => obClientSlaves,
-         -- Interface to DHCP Engine  
+         -- Interface to DHCP Engine
          ibDhcpMaster     => ibDhcpMaster,
          ibDhcpSlave      => ibDhcpSlave,
          -- Clock and Reset
@@ -143,13 +149,14 @@ begin
             TPD_G          => TPD_G,
             -- UDP ARP/DHCP Generics
             CLK_FREQ_G     => CLK_FREQ_G,
-            COMM_TIMEOUT_G => COMM_TIMEOUT_G)
+            COMM_TIMEOUT_G => COMM_TIMEOUT_G,
+            SYNTH_MODE_G   => SYNTH_MODE_G)
          port map (
             -- Local Configurations
             localMac     => localMac,
             localIp      => localIpIn,
             dhcpIp       => localIp,
-            -- Interface to DHCP Engine  
+            -- Interface to DHCP Engine
             ibDhcpMaster => ibDhcpMaster,
             ibDhcpSlave  => ibDhcpSlave,
             obDhcpMaster => obDhcpMaster,
@@ -177,7 +184,7 @@ begin
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
             PORT_G         => SERVER_PORTS_G)
          port map (
-            -- Interface to IPV4 Engine  
+            -- Interface to IPV4 Engine
             obUdpMaster  => obUdpMasters(0),
             obUdpSlave   => obUdpSlaves(0),
             -- Interface to User Application
@@ -188,7 +195,7 @@ begin
             remoteMac    => serverRemoteMac,
             ibMasters    => ibServerMasters,
             ibSlaves     => ibServerSlaves,
-            -- Interface to DHCP Engine  
+            -- Interface to DHCP Engine
             obDhcpMaster => obDhcpMaster,
             obDhcpSlave  => obDhcpSlave,
             -- Clock and Reset
@@ -228,7 +235,7 @@ begin
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
             PORT_G         => CLIENT_PORTS_G)
          port map (
-            -- Interface to IPV4 Engine  
+            -- Interface to IPV4 Engine
             obUdpMaster => obUdpMasters(1),
             obUdpSlave  => obUdpSlaves(1),
             -- Interface to User Application

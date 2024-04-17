@@ -5,11 +5,11 @@
 -- Note: This module supports up to a MGT QUAD of 1GigE interfaces
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@ entity GigEthGthUltraScaleWrapper is
    generic (
       TPD_G              : time                             := 1 ns;
       NUM_LANE_G         : natural range 1 to 4             := 1;
+      JUMBO_G            : boolean                          := true;
       PAUSE_EN_G         : boolean                          := true;
       -- Clocking Configurations
       EXT_PLL_G          : boolean                          := false;
@@ -46,14 +47,14 @@ entity GigEthGthUltraScaleWrapper is
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk              : in  slv(NUM_LANE_G-1 downto 0);
       dmaRst              : in  slv(NUM_LANE_G-1 downto 0);
       dmaIbMasters        : out AxiStreamMasterArray(NUM_LANE_G-1 downto 0);
       dmaIbSlaves         : in  AxiStreamSlaveArray(NUM_LANE_G-1 downto 0);
       dmaObMasters        : in  AxiStreamMasterArray(NUM_LANE_G-1 downto 0);
       dmaObSlaves         : out AxiStreamSlaveArray(NUM_LANE_G-1 downto 0);
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk          : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       axiLiteRst          : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       axiLiteReadMasters  : in  AxiLiteReadMasterArray(NUM_LANE_G-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
@@ -66,7 +67,7 @@ entity GigEthGthUltraScaleWrapper is
       phyRst              : out sl;
       phyReady            : out slv(NUM_LANE_G-1 downto 0);
       sigDet              : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '1');
-      -- MGT Clock Port 
+      -- MGT Clock Port
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
@@ -74,6 +75,9 @@ entity GigEthGthUltraScaleWrapper is
       extPll125Rst        : in  sl                                             := '0';
       extPll62Clk         : in  sl                                             := '0';
       extPll62Rst         : in  sl                                             := '0';
+      -- Copy of internal MMCM reference clock and Reset
+      refClkOut           : out sl;
+      refRstOut           : out sl;
       -- Switch Polarity of TxN/TxP, RxN/RxP
       gtTxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       gtRxPolarity        : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
@@ -105,6 +109,9 @@ begin
 
    phyClk <= sysClk125;
    phyRst <= sysRst125;
+
+   refClkOut <= refClk;
+   refRstOut <= refRst;
 
    -----------------------------
    -- Select the Reference Clock
@@ -179,7 +186,7 @@ begin
    sysRst62  <= extPll62Rst  when(EXT_PLL_G) else ethRst62;
 
    --------------
-   -- GigE Module 
+   -- GigE Module
    --------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
@@ -187,6 +194,7 @@ begin
       U_GigEthGthUltraScale : entity surf.GigEthGthUltraScale
          generic map (
             TPD_G         => TPD_G,
+            JUMBO_G       => JUMBO_G,
             PAUSE_EN_G    => PAUSE_EN_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G  => EN_AXI_REG_G,
@@ -195,14 +203,14 @@ begin
          port map (
             -- Local Configurations
             localMac           => localMac(i),
-            -- Streaming DMA Interface 
+            -- Streaming DMA Interface
             dmaClk             => dmaClk(i),
             dmaRst             => dmaRst(i),
             dmaIbMaster        => dmaIbMasters(i),
             dmaIbSlave         => dmaIbSlaves(i),
             dmaObMaster        => dmaObMasters(i),
             dmaObSlave         => dmaObSlaves(i),
-            -- Slave AXI-Lite Interface 
+            -- Slave AXI-Lite Interface
             axiLiteClk         => axiLiteClk(i),
             axiLiteRst         => axiLiteRst(i),
             axiLiteReadMaster  => axiLiteReadMasters(i),

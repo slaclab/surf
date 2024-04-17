@@ -4,11 +4,11 @@
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC MGT Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC MGT Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC MGT Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -319,7 +319,7 @@ begin
          UBMDMSYSRST       => '0',
          UBMDMTCK          => '0',
          UBMDMTDI          => '0');
-         
+
    GEN_DRP : if (EN_DRP_G) generate
       U_AxiLiteToDrp : entity surf.AxiLiteToDrp
          generic map (
@@ -347,5 +347,5 @@ begin
             drpDi           => drpDi,
             drpDo           => drpDo);
    end generate GEN_DRP;
-   
+
 end architecture mapping;

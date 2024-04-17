@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity: i2cslv
 -- File:   i2cslv.vhd
@@ -166,7 +166,7 @@ architecture rtl of I2cSlave is
       scloen => I2C_HIZ_C,
       sdaoen => I2C_HIZ_C,
       o => I2C_SLAVE_OUT_INIT_C);
-   
+
    -----------------------------------------------------------------------------
    -- Subprograms
    -----------------------------------------------------------------------------
@@ -242,7 +242,7 @@ begin
             if (r.scl and not v.scl) = '1' then
                v.sdaoen := I2C_HIZ_C;
             end if;
-            
+
          when checkaddr =>
             if compaddr1stb(r.sreg) then
                if r.sreg(0) = I2C_READ_C then
@@ -271,7 +271,7 @@ begin
                v.slvstate := idle;
             end if;
             v.sreg := i2cSlaveIn.txData;
-            
+
          when check10bitaddr =>
             if compaddr2ndb(r.sreg) then
                -- Slave has been addressed with a matching 10 bit address
@@ -285,7 +285,7 @@ begin
             else
                v.slvstate := idle;
             end if;
-            
+
          when sclhold =>
             -- This state is used when the device has been addressed to see if SCL
             -- should be kept low until the receive register is free or the
@@ -331,7 +331,7 @@ begin
                   v.cnt := r.cnt + 1;
                end if;
             end if;
-            
+
          when handshake =>
             -- Falling edge
             if (r.scl and not v.scl) = '1' then
@@ -440,7 +440,7 @@ begin
          v.o.txActive := '0';
          v.o.txAck    := '0';
          v.o.nack     := '0';
-         
+
       end if;
 
       ----------------------------------------------------------------------------

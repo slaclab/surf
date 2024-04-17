@@ -4,11 +4,11 @@
 -- Description: Wrapper for Xilinx 7-series GTP's QPLL
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -126,16 +126,16 @@ begin
          DRPEN             => drpEn,
          DRPRDY            => drpRdy,
          DRPWE             => drpWe,
-         -- Clocking Ports 
+         -- Clocking Ports
          GTREFCLK0         => gtRefClk0,      --address="001" for both PLLs
-         GTREFCLK1         => gtRefClk1,      --address="010" for both PLLs   
-         GTEASTREFCLK0     => gtEastRefClk0,  --address="011" for both PLLs   
-         GTEASTREFCLK1     => gtEastRefClk1,  --address="100" for both PLLs   
-         GTWESTREFCLK0     => gtWestRefClk0,  --address="101" for both PLLs  
-         GTWESTREFCLK1     => gtWestRefClk1,  --address="110" for both PLLs       
-         GTGREFCLK0        => gtGRefClk0,     --address="111" for PLL0  
+         GTREFCLK1         => gtRefClk1,      --address="010" for both PLLs
+         GTEASTREFCLK0     => gtEastRefClk0,  --address="011" for both PLLs
+         GTEASTREFCLK1     => gtEastRefClk1,  --address="100" for both PLLs
+         GTWESTREFCLK0     => gtWestRefClk0,  --address="101" for both PLLs
+         GTWESTREFCLK1     => gtWestRefClk1,  --address="110" for both PLLs
+         GTGREFCLK0        => gtGRefClk0,     --address="111" for PLL0
          GTGREFCLK1        => gtGRefClk1,     --address="111" for PLL1
-         -- PLL0 Ports 
+         -- PLL0 Ports
          PLL0OUTCLK        => qPllOutClk(0),
          PLL0OUTREFCLK     => qPllOutRefClk(0),
          PLL0FBCLKLOST     => open,
@@ -146,7 +146,7 @@ begin
          PLL0REFCLKLOST    => qPllRefClkLost(0),
          PLL0REFCLKSEL     => to_stdlogicvector(PLL0_REFCLK_SEL_G),
          PLL0RESET         => qPllReset(0),
-         -- PLL1 Ports 
+         -- PLL1 Ports
          PLL1OUTCLK        => qPllOutClk(1),
          PLL1OUTREFCLK     => qPllOutRefClk(1),
          PLL1FBCLKLOST     => open,
@@ -157,7 +157,7 @@ begin
          PLL1REFCLKLOST    => qPllRefClkLost(1),
          PLL1REFCLKSEL     => to_stdlogicvector(PLL1_REFCLK_SEL_G),
          PLL1RESET         => qPllReset(1),
-         -- MISC Ports 
+         -- MISC Ports
          DMONITOROUT       => open,
          BGRCALOVRDENB     => '1',
          PLLRSVD1          => "0000000000000000",
@@ -166,7 +166,7 @@ begin
          REFCLKOUTMONITOR1 => open,
          -- RX AFE Ports -----------------------
          PMARSVDOUT        => open,
-         -- QPLL Ports 
+         -- QPLL Ports
          BGBYPASSB         => '1',
          BGMONITORENB      => '1',
          BGPDB             => '1',

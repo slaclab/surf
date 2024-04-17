@@ -4,11 +4,11 @@
 -- Description: Wrapper for Xilinx 7-series GTH primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -188,13 +188,13 @@ entity Gth7Core is
       txCharIsKIn      : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut   : out slv(1 downto 0);
       txPolarityIn     : in  sl              := '0';
-      -- Debug Interface      
+      -- Debug Interface
       txPowerDown      : in  slv(1 downto 0) := "00";
       rxPowerDown      : in  slv(1 downto 0) := "00";
       loopbackIn       : in  slv(2 downto 0) := "000";
       txPreCursor      : in  slv(4 downto 0) := (others => '0');
       txPostCursor     : in  slv(4 downto 0) := (others => '0');
-      txDiffCtrl       : in  slv(3 downto 0) := "1000";      
+      txDiffCtrl       : in  slv(3 downto 0) := "1000";
       -- DRP Interface (stableClkIn Domain)
       drpGnt         : out sl;
       drpRdy         : out sl;
@@ -202,7 +202,7 @@ entity Gth7Core is
       drpWe          : in  sl := '0';
       drpAddr        : in  slv(8 downto 0) := "000000000";
       drpDi          : in  slv(15 downto 0) := X"0000";
-      drpDo          : out slv(15 downto 0));      
+      drpDo          : out slv(15 downto 0));
 end entity Gth7Core;
 
 architecture rtl of Gth7Core is
@@ -282,6 +282,7 @@ architecture rtl of Gth7Core is
 
    signal rxUserResetInt : sl;
    signal rxFsmResetDone : sl;
+   signal rxResetDoneAll : sl;
    signal rxRstTxUserRdy : sl;
    signal rxPmaResetDone : sl;
 
@@ -353,10 +354,10 @@ architecture rtl of Gth7Core is
    signal drpRstDi   : slv(15 downto 0);
    signal drpRstRdy  : sl;
    signal drpRstEn   : sl;
-   signal drpRstWe   : sl;   
-   signal drpRstDone : sl;   
+   signal drpRstWe   : sl;
+   signal drpRstDone : sl;
    signal gtRxRst    : sl;
-   
+
 begin
 
    rxOutClkOut <= rxOutClkBufg;
@@ -433,7 +434,7 @@ begin
    -- 7. Wait gtRxResetDone
    -- 8. Do phase alignment if necessary
    -- 9. Wait DATA_VALID (aligned) - 100 us
-   --10. Wait 1 us, Set rxFsmResetDone. 
+   --10. Wait 1 us, Set rxFsmResetDone.
    --------------------------------------------------------------------------------------------------
    Gth7RxRst_Inst : entity surf.Gth7RxRst
       generic map (
@@ -472,6 +473,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
+   rxResetDoneAll <= rxResetDone and rxFsmResetDone;
    RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
@@ -479,7 +481,7 @@ begin
          OUT_POLARITY_G => '0')
       port map (
          clk      => rxUsrClkIn,
-         asyncRst => rxFsmResetDone,
+         asyncRst => rxResetDoneAll,
          syncRst  => rxResetDoneOut);   -- Output
 
    -------------------------------------------------------------------------------------------------
@@ -654,7 +656,7 @@ begin
    -- Only used when bypassing buffer
    -------------------------------------------------------------------------------------------------
    TxAutoPhaseAlignGen : if (TX_BUF_EN_G = false and TX_PHASE_ALIGN_G = "AUTO") generate
-      
+
       PhaseAlign_Tx : entity surf.Gth7AutoPhaseAligner
          generic map (
             GT_TYPE => "GTX")
@@ -782,7 +784,7 @@ begin
          RX_DATA_WIDTH                => (RX_DATA_WIDTH_C),
          ---------------------------PMA Attributes----------------------------
          OUTREFCLK_SEL_INV            => ("11"),    -- ??
-         PMA_RSV                      => PMA_RSV_G,      -- 
+         PMA_RSV                      => PMA_RSV_G,      --
          PMA_RSV2                     => (x"1C00000A"),
          PMA_RSV3                     => ("00"),
          PMA_RSV4                     => (x"0008"),
@@ -836,7 +838,7 @@ begin
          RXCDRPHRESET_TIME            => ("00001"),
          RXISCANRESET_TIME            => ("00001"),
          RXPCSRESET_TIME              => ("00001"),
-         RXPMARESET_TIME              => ("00011"),      -- ! Check this         
+         RXPMARESET_TIME              => ("00011"),      -- ! Check this
          -------------------RX OOB Signaling Attributes-------------------
          RXOOB_CFG                    => ("0000110"),
          -------------------------RX Gearbox Attributes---------------------------
@@ -1338,9 +1340,9 @@ begin
          DRPWE          => drpRstWe,
          DRPDO          => drpRstDo,
          DRPDI          => drpRstDi,
-         DRPRDY         => drpRstRdy); 
-   
-   drpGnt     <= drpRstDone;         
+         DRPRDY         => drpRstRdy);
+
+   drpGnt     <= drpRstDone;
    drpRstRdy  <= drpMuxRdy when(drpRstDone = '0') else '0';
    drpRdy     <= drpMuxRdy when(drpRstDone = '1') else '0';
    drpMuxEn   <= drpEn     when(drpRstDone = '1') else drpRstEn;
@@ -1348,6 +1350,6 @@ begin
    drpMuxAddr <= drpAddr   when(drpRstDone = '1') else drpRstAddr;
    drpMuxDi   <= drpDi     when(drpRstDone = '1') else drpRstDi;
    drpRstDo   <= drpMuxDo;
-   drpDo      <= drpMuxDo;         
-         
+   drpDo      <= drpMuxDo;
+
 end architecture rtl;

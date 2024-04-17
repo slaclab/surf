@@ -4,11 +4,11 @@
 -- Description: This controller is designed around the Micrel SY56040AR.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ entity AxiSy56040Reg is
       AXI_CLK_FREQ_G   : real                  := 200.0E+6;  -- units of Hz
       XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
    port (
-      -- XBAR Ports 
+      -- XBAR Ports
       xBarSin        : out slv(1 downto 0);
       xBarSout       : out slv(1 downto 0);
       xBarConfig     : out sl;
@@ -106,10 +106,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Check for a read request            
+            -- Check for a read request
             if (axiStatus.readEnable = '1') then
-               -- Reset the register
-               v.axiReadSlave.rdata := (others => '0');
                axiReadResp          := AXI_RESP_OK_C;
                -- Decode address and assign read data
                case (axiReadMaster.araddr(3 downto 0)) is
@@ -156,7 +154,7 @@ begin
             v.load := '0';
             -- Increment the counter
             v.cnt  := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt   := 0;
@@ -168,7 +166,7 @@ begin
             v.load := '1';
             -- Increment the counter
             v.cnt  := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt   := 0;
@@ -180,13 +178,13 @@ begin
             v.load := '0';
             -- Increment the counter
             v.cnt  := r.cnt + 1;
-            -- Check the counter 
+            -- Check the counter
             if r.cnt = MAX_CNT_C then
                -- Reset the counter
                v.cnt   := 0;
                -- Increment the counter
                v.index := r.index + 1;
-               -- Check the counter 
+               -- Check the counter
                if r.index = 3 then
                   -- Reset the counter
                   v.index := 0;

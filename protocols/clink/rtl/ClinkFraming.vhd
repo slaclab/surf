@@ -5,11 +5,11 @@
 -- CameraLink framing module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,9 +26,9 @@ use surf.ClinkPkg.all;
 
 entity ClinkFraming is
    generic (
-      TPD_G              : time                := 1 ns;
-      COMMON_DATA_CLK_G  : boolean             := false;  -- true if dataClk=sysClk
-      DATA_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      TPD_G              : time    := 1 ns;
+      COMMON_DATA_CLK_G  : boolean := false;  -- true if dataClk=sysClk
+      DATA_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
       sysClk     : in  sl;
@@ -50,29 +50,39 @@ end ClinkFraming;
 
 architecture rtl of ClinkFraming is
 
-   constant SLV_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 10, tDestBits => 0);
+   constant SLV_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 16, tDestBits => 0);
    constant MST_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 16, tDestBits => 0);
 
    type RegType is record
-      ready    : sl;
-      portData : ClDataType;
-      byteData : ClDataType;
-      bytes    : integer range 1 to 10;
-      inFrame  : sl;
-      dump     : sl;
-      status   : ClChanStatusType;
-      master   : AxiStreamMasterType;
+      hCnt      : slv(15 downto 0);
+      vCnt      : slv(15 downto 0);
+      byteCnt   : slv(31 downto 0);
+      lineValid : sl;
+      ready     : sl;
+      portData  : ClDataType;
+      byteData  : ClDataType;
+      bytes     : integer range 1 to 16;
+      inFrame   : sl;
+      dump      : sl;
+      status    : ClChanStatusType;
+      master    : AxiStreamMasterType;
+      pipeline  : AxiStreamMasterArray(1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ready    => '1',
-      portData => CL_DATA_INIT_C,
-      byteData => CL_DATA_INIT_C,
-      bytes    => 1,
-      inFrame  => '0',
-      dump     => '0',
-      status   => CL_CHAN_STATUS_INIT_C,
-      master   => AXI_STREAM_MASTER_INIT_C);
+      hCnt      => (others => '0'),
+      vCnt      => (others => '0'),
+      byteCnt   => (others => '0'),
+      lineValid => '0',
+      ready     => '1',
+      portData  => CL_DATA_INIT_C,
+      byteData  => CL_DATA_INIT_C,
+      bytes     => 1,
+      inFrame   => '0',
+      dump      => '0',
+      status    => CL_CHAN_STATUS_INIT_C,
+      master    => AXI_STREAM_MASTER_INIT_C,
+      pipeline  => (others => AXI_STREAM_MASTER_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -80,7 +90,7 @@ architecture rtl of ClinkFraming is
    signal intCtrl    : AxiStreamCtrlType;
    signal packMaster : AxiStreamMasterType;
 
-   -- attribute MARK_DEBUG : string;
+   -- attribute MARK_DEBUG               : string;
    -- attribute MARK_DEBUG of r          : signal is "TRUE";
    -- attribute MARK_DEBUG of parData    : signal is "TRUE";
    -- attribute MARK_DEBUG of parValid   : signal is "TRUE";
@@ -97,7 +107,7 @@ begin
       v := r;
 
       ---------------------------------
-      -- Map parrallel data to ports
+      -- Map parallel data to ports
       -- Taken from cameraLink spec V2.0
       ---------------------------------
       v.status.running := '0';
@@ -111,7 +121,7 @@ begin
          v.portData.dv    := '1';
          v.portData.fv    := parData(0)(25);
 
-         -- 8-bit, cameraLink spec V2.0, page 16
+         -- 8-bit/10-tap, cameraLink spec V2.0, page 23-25
          if chanConfig.dataMode = CDM_8BIT_C then
             v.portData.lv                  := parData(0)(24) and parData(1)(27) and parData(2)(27);
             v.portData.data(0)             := parData(0)(7 downto 0);
@@ -127,46 +137,58 @@ begin
             v.portData.data(8)             := parData(2)(18 downto 11);
             v.portData.data(9)             := parData(2)(26 downto 19);
 
-         -- 10-bit, cameraLink spec V2.0, page 17
+         -- 10-bit/8-tap, cameraLink spec V2.0, page 26-28
          elsif chanConfig.dataMode = CDM_10BIT_C then
-            v.portData.lv                  := parData(0)(24) and parData(1)(24) and parData(2)(24);
-            v.portData.data(0)(4 downto 0) := parData(0)(4 downto 0);
-            v.portData.data(0)(5)          := parData(0)(6);
-            v.portData.data(0)(6)          := parData(0)(27);
-            v.portData.data(0)(7)          := parData(0)(5);
-            v.portData.data(1)(2 downto 0) := parData(0)(9 downto 7);
-            v.portData.data(1)(5 downto 3) := parData(0)(14 downto 12);
-            v.portData.data(1)(7 downto 6) := parData(0)(11 downto 10);
-            v.portData.data(2)(0)          := parData(0)(15);
-            v.portData.data(2)(5 downto 1) := parData(0)(22 downto 18);
-            v.portData.data(2)(7 downto 6) := parData(0)(17 downto 16);
-            v.portData.data(3)(4 downto 0) := parData(1)(4 downto 0);
-            v.portData.data(3)(5)          := parData(1)(6);
-            v.portData.data(3)(6)          := parData(1)(27);
-            v.portData.data(3)(7)          := parData(1)(5);
-            v.portData.data(4)(2 downto 0) := parData(1)(9 downto 7);
-            v.portData.data(4)(5 downto 3) := parData(1)(14 downto 12);
-            v.portData.data(4)(7 downto 6) := parData(1)(11 downto 10);
-            v.portData.data(5)(0)          := parData(1)(15);
-            v.portData.data(5)(5 downto 1) := parData(1)(22 downto 18);
-            v.portData.data(5)(7 downto 6) := parData(1)(17 downto 16);
-            v.portData.data(6)(4 downto 0) := parData(2)(4 downto 0);
-            v.portData.data(6)(5)          := parData(2)(6);
-            v.portData.data(6)(6)          := parData(2)(27);
-            v.portData.data(6)(7)          := parData(2)(5);
-            v.portData.data(7)(2 downto 0) := parData(2)(9 downto 7);
-            v.portData.data(7)(5 downto 3) := parData(2)(14 downto 12);
-            v.portData.data(7)(7 downto 6) := parData(2)(11 downto 10);
-            v.portData.data(8)(0)          := parData(0)(26);
-            v.portData.data(8)(1)          := parData(0)(23);
-            v.portData.data(8)(3 downto 2) := parData(1)(26 downto 25);
-            v.portData.data(8)(4)          := parData(1)(23);
-            v.portData.data(8)(5)          := parData(2)(15);
-            v.portData.data(8)(7 downto 6) := parData(2)(19 downto 18);
-            v.portData.data(9)(2 downto 0) := parData(2)(22 downto 20);
-            v.portData.data(9)(4 downto 3) := parData(2)(17 downto 16);
-            v.portData.data(9)(6 downto 5) := parData(2)(26 downto 25);
-            v.portData.data(9)(7)          := parData(2)(23);
+            v.portData.lv := parData(0)(24) and parData(1)(24) and parData(2)(24);
+
+            v.portData.data(0)(0)          := parData(0)(26);
+            v.portData.data(0)(1)          := parData(0)(23);
+            v.portData.data(0)(6 downto 2) := parData(0)(4 downto 0);
+            v.portData.data(0)(7)          := parData(0)(6);
+            v.portData.data(1)(0)          := parData(0)(27);
+            v.portData.data(1)(1)          := parData(0)(5);
+
+            v.portData.data(2)(1 downto 0) := parData(1)(26 downto 25);
+            v.portData.data(2)(4 downto 2) := parData(0)(9 downto 7);
+            v.portData.data(2)(7 downto 5) := parData(0)(14 downto 12);
+            v.portData.data(3)(1 downto 0) := parData(0)(11 downto 10);
+
+            v.portData.data(4)(0)          := parData(1)(23);
+            v.portData.data(4)(1)          := parData(2)(15);
+            v.portData.data(4)(2)          := parData(0)(15);
+            v.portData.data(4)(7 downto 3) := parData(0)(22 downto 18);
+            v.portData.data(5)(1 downto 0) := parData(0)(17 downto 16);
+
+            v.portData.data(6)(1 downto 0) := parData(2)(19 downto 18);
+            v.portData.data(6)(6 downto 2) := parData(1)(4 downto 0);
+            v.portData.data(6)(7)          := parData(1)(6);
+            v.portData.data(7)(0)          := parData(1)(27);
+            v.portData.data(7)(1)          := parData(1)(5);
+
+            v.portData.data(8)(1 downto 0) := parData(2)(21 downto 20);
+            v.portData.data(8)(4 downto 2) := parData(1)(9 downto 7);
+            v.portData.data(8)(7 downto 5) := parData(1)(14 downto 12);
+            v.portData.data(9)(1 downto 0) := parData(1)(11 downto 10);
+
+            v.portData.data(10)(0)          := parData(2)(22);
+            v.portData.data(10)(1)          := parData(2)(16);
+            v.portData.data(10)(2)          := parData(1)(15);
+            v.portData.data(10)(7 downto 3) := parData(1)(22 downto 18);
+            v.portData.data(11)(1 downto 0) := parData(1)(17 downto 16);
+
+            v.portData.data(12)(0)          := parData(2)(17);
+            v.portData.data(12)(1)          := parData(2)(25);
+            v.portData.data(12)(6 downto 2) := parData(2)(4 downto 0);
+            v.portData.data(12)(7)          := parData(2)(6);
+            v.portData.data(13)(0)          := parData(2)(27);
+            v.portData.data(13)(1)          := parData(2)(5);
+
+            v.portData.data(14)(0)          := parData(2)(26);
+            v.portData.data(14)(1)          := parData(2)(23);
+            v.portData.data(14)(4 downto 2) := parData(2)(9 downto 7);
+            v.portData.data(14)(7 downto 5) := parData(2)(14 downto 12);
+            v.portData.data(15)(1 downto 0) := parData(2)(11 downto 10);
+
          end if;
 
       -- Base, Medium, Full Modes
@@ -242,6 +264,60 @@ begin
       -- Drive ready, dump when not running
       v.ready := v.portData.valid or (not r.status.running);
 
+      -- Check for VALID
+      if (v.portData.valid = '1') then
+
+         -- Check of non-fv
+         if (v.portData.fv = '0') then
+            -- Reset the counter
+            v.vCnt      := (others => '0');
+            v.lineValid := '0';
+         else
+
+            -- Keep a delayed copy
+            v.lineValid := v.portData.lv;
+
+            -- Check for a falling edge of LV
+            if (r.lineValid = '1') and (v.lineValid = '0') then
+               -- Increment the counter
+               v.vCnt := r.vCnt + 1;
+            end if;
+
+            -- Check if out of bound
+            if (r.vCnt < chanConfig.vSkip) and (chanConfig.vSkip /= 0) then
+               -- Reset dv
+               v.portData.dv := '0';
+            end if;
+
+            -- Check if out of bound
+            if (r.vCnt >= (chanConfig.vSkip+chanConfig.vActive)) then
+               -- Reset dv
+               v.portData.dv := '0';
+            end if;
+
+         end if;
+
+         -- Check of non-lv
+         if (v.portData.lv = '0') then
+            -- Reset the counter
+            v.hCnt := (others => '0');
+         else
+            -- Increment the counter
+            v.hCnt := r.hCnt + 1;
+            -- Check if out of bound
+            if (r.hCnt < chanConfig.hSkip) and (chanConfig.hSkip /= 0) then
+               -- Reset lv
+               v.portData.lv := '0';
+            end if;
+            -- Check if out of bound
+            if (r.hCnt >= (chanConfig.hSkip+chanConfig.hActive)) then
+               -- Reset dv
+               v.portData.lv := '0';
+            end if;
+         end if;
+
+      end if;
+
       ---------------------------------
       -- Map data bytes
       ---------------------------------
@@ -263,8 +339,39 @@ begin
             -- 10 bits, base, medium, full & deca, cameraLink spec V2.0 pages 19-28
             when CDM_10BIT_C =>
                if chanConfig.linkMode = CLM_DECA_C then
-                  v.byteData := r.portData;
-                  v.bytes    := 10;
+
+                  v.byteData.data(0)(7 downto 0) := r.portData.data(0)(7 downto 0);  -- T0.BIT[07:00]
+                  v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0);  -- T0.BIT[09:08]
+
+                  v.byteData.data(1)(7 downto 2) := r.portData.data(2)(5 downto 0);  -- T1.BIT[05:00]
+                  v.byteData.data(2)(1 downto 0) := r.portData.data(2)(7 downto 6);  -- T1.BIT[07:06]
+                  v.byteData.data(2)(3 downto 2) := r.portData.data(3)(1 downto 0);  -- T1.BIT[09:08]
+
+                  v.byteData.data(2)(7 downto 4) := r.portData.data(4)(3 downto 0);  -- T2.BIT[03:00]
+                  v.byteData.data(3)(3 downto 0) := r.portData.data(4)(7 downto 4);  -- T2.BIT[07:04]
+                  v.byteData.data(3)(5 downto 4) := r.portData.data(5)(1 downto 0);  -- T2.BIT[09:08]
+
+                  v.byteData.data(3)(7 downto 6) := r.portData.data(6)(1 downto 0);  -- T3.BIT[01:00]
+                  v.byteData.data(4)(5 downto 0) := r.portData.data(6)(7 downto 2);  -- T3.BIT[07:02]
+                  v.byteData.data(4)(7 downto 6) := r.portData.data(7)(1 downto 0);  -- T3.BIT[09:08]
+
+                  v.byteData.data(5)(7 downto 0) := r.portData.data(8)(7 downto 0);  -- T4.BIT[07:00]
+                  v.byteData.data(6)(1 downto 0) := r.portData.data(9)(1 downto 0);  -- T4.BIT[09:08]
+
+                  v.byteData.data(6)(7 downto 2) := r.portData.data(10)(5 downto 0);  -- T5.BIT[05:00]
+                  v.byteData.data(7)(1 downto 0) := r.portData.data(10)(7 downto 6);  -- T5.BIT[07:06]
+                  v.byteData.data(7)(3 downto 2) := r.portData.data(11)(1 downto 0);  -- T5.BIT[09:08]
+
+                  v.byteData.data(7)(7 downto 4) := r.portData.data(12)(3 downto 0);  -- T6.BIT[03:00]
+                  v.byteData.data(8)(3 downto 0) := r.portData.data(12)(7 downto 4);  -- T6.BIT[07:04]
+                  v.byteData.data(8)(5 downto 4) := r.portData.data(13)(1 downto 0);  -- T6.BIT[09:08]
+
+                  v.byteData.data(8)(7 downto 6) := r.portData.data(14)(1 downto 0);  -- T7.BIT[01:00]
+                  v.byteData.data(9)(5 downto 0) := r.portData.data(14)(7 downto 2);  -- T7.BIT[07:02]
+                  v.byteData.data(9)(7 downto 6) := r.portData.data(15)(1 downto 0);  -- T7.BIT[09:08]
+
+                  v.bytes := 10;        -- No ZERO padding for DECA mode
+
                else
                   v.byteData.data(0)             := r.portData.data(0);  -- T1, DA[07:00]
                   v.byteData.data(1)(1 downto 0) := r.portData.data(1)(1 downto 0);  -- T1, DA[09:08]
@@ -371,15 +478,20 @@ begin
          if (chanConfig.frameMode = CFM_FRAME_C and r.byteData.fv = '1' and r.portData.fv = '0') or  -- Frame mode
             (chanConfig.frameMode = CFM_LINE_C and r.byteData.lv = '1' and r.portData.lv = '0') then  -- Line mode
 
-            -- Frame was dumped, or bad end markers
-            if (r.dump = '1' or r.inFrame = '0' or r.byteData.dv = '0') then
+            -- Frame was dumped or not in frame
+            if (r.dump = '1' or r.inFrame = '0') then
                ssiSetUserEofe (SLV_CONFIG_C, v.master, '1');
                v.status.dropCount := r.status.dropCount + 1;
             else
                v.status.frameCount := r.status.frameCount + 1;
             end if;
 
-            v.master.tValid := r.inFrame;
+            -- Check for no data at end of frame
+            if (v.master.tValid = '0') then
+               v.master.tKeep := (others => '0');
+            end if;
+
+            v.master.tValid := '1';
             v.master.tLast  := '1';
 
             v.inFrame := '0';
@@ -394,11 +506,64 @@ begin
 
       -- Check for counter reset
       if (chanConfig.cntRst = '1') then
+         v.status.frameSize  := (others => '0');
          v.status.frameCount := (others => '0');
          v.status.dropCount  := (others => '0');
       end if;
 
-      -- Outputs 
+      ----------------------------------
+      -- Handle the tKeep=0 @ tLast Case
+      ----------------------------------
+
+      -- Clear the tValid of pipeline output stage
+      v.pipeline(1).tValid := '0';
+      v.pipeline(1).tLast  := '0';
+
+      -- Check for new data for the pipeline input stage
+      if (r.master.tValid = '1') or (r.pipeline(0).tLast = '1') then
+
+         -- Check for empty tLast
+         if (r.master.tValid = '1') and (r.master.tKeep = 0) then
+
+            -- Clear the first stage pipeline
+            v.pipeline(0).tValid := '0';
+            v.pipeline(0).tLast  := '0';
+
+            -- Only pop register first stage to the output
+            v.pipeline(1) := r.pipeline(0);
+
+            -- Terminate the frame
+            v.pipeline(1).tLast := '1';
+
+            -- Pass the meta data as well (e.g. EOFE)
+            v.pipeline(1).tUser := r.master.tUser;
+
+         else
+
+            -- Update the pipeline
+            v.pipeline(0) := r.master;
+            v.pipeline(1) := r.pipeline(0);
+
+         end if;
+
+      end if;
+
+      -- Check for outbound data
+      if (r.pipeline(1).tValid = '1') then
+
+         -- Increment the counter
+         v.byteCnt := r.byteCnt + r.bytes;
+
+         -- Check for last byte
+         if (r.pipeline(1).tLast = '1') then
+            -- Latch the value
+            v.status.frameSize := v.byteCnt;
+            -- Reset the counter
+            v.byteCnt          := (others => '0');
+         end if;
+      end if;
+
+      -- Outputs
       parReady   <= v.ready;
       chanStatus <= r.status;
 
@@ -409,7 +574,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
 
    end process;
 
@@ -431,7 +595,7 @@ begin
       port map (
          axiClk      => sysClk,
          axiRst      => sysRst,
-         sAxisMaster => r.master,
+         sAxisMaster => r.pipeline(1),
          mAxisMaster => packMaster);
 
    ---------------------------------

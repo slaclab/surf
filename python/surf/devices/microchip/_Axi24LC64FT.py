@@ -1,18 +1,14 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AMC Carrier core's Non-volatile memory (100k endurance)
-#-----------------------------------------------------------------------------
-# File       : Axi24LC64FT.py
-# Created    : 2017-04-03
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue AMC Carrier core's Non-volatile memory (100k endurance)
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -20,22 +16,25 @@
 import pyrogue as pr
 
 class Axi24LC64FT(pr.Device):
-    def __init__(self,       
-            name        = "Axi24LC64FT",
-            description = "Axi24LC64FT",
-            nelms       =  0x800,
-            instantiate =  True,
-            **kwargs):
-        super().__init__(name=name, description=description, **kwargs) 
+    def __init__(self,
+                 nelms       = 0x800,
+                 instantiate = True,
+                 hidden      = True,
+                 **kwargs):
+
+        super().__init__(hidden=hidden,**kwargs)
 
         ##############################
         # Variables
         ##############################
         if (instantiate):
-            pr.MemoryDevice(
+            self.add(pr.RemoteVariable(
                 name        = "Mem",
-                description = "Memory Array",        
-                size        = (4*nelms),
-                # nelms     = nelms,
-            )
-            
+                description = "Memory Array",
+                offset      = 0x0000,
+                numValues   = nelms,
+                valueBits   = 32,
+                valueStride = 32,
+                bitSize     = 32 * nelms,
+                bulkOpEn    = False, # FALSE for large variables,
+            ))

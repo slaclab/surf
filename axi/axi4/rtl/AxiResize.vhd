@@ -1,18 +1,18 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Block to resize AXI. Re-sizing is always little endian. 
--- 
+-- Description: Block to resize AXI. Re-sizing is always little endian.
+--
 -- Disclaimer: This module doesn't support the following:
 --             Narrow write transfers
 --             Unaligned transfers
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -31,8 +31,8 @@ entity AxiResize is
       -- General Configurations
       TPD_G               : time          := 1 ns;
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiConfigType := AXI_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiConfigType := AXI_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G  : AxiConfigType;
+      MASTER_AXI_CONFIG_G : AxiConfigType);
    port (
       -- Clock and reset
       axiClk          : in  sl;
@@ -80,7 +80,7 @@ architecture rtl of AxiResize is
 
 begin
 
-   -- Make sure data widths are appropriate. 
+   -- Make sure data widths are appropriate.
    assert ((SLV_BYTES_C >= MST_BYTES_C and SLV_BYTES_C mod MST_BYTES_C = 0) or
            (MST_BYTES_C >= SLV_BYTES_C and MST_BYTES_C mod SLV_BYTES_C = 0))
       report "Data widths must be even number multiples of each other" severity failure;
@@ -106,7 +106,7 @@ begin
 
          ----------------------------------------------------------------------
          --                AXI Read Resizing Logic                           --
-         ----------------------------------------------------------------------         
+         ----------------------------------------------------------------------
 
          -- Update the indexes
          rdIdx := conv_integer(r.rdCount);
@@ -209,11 +209,11 @@ begin
          mAxiReadMaster.arcache  <= sAxiReadMaster.arcache;
          mAxiReadMaster.arqos    <= sAxiReadMaster.arqos;
          mAxiReadMaster.arregion <= sAxiReadMaster.arregion;
-         -- Read data channel         
+         -- Read data channel
          mAxiReadMaster.rready   <= v.rdMaster.rready;
 
          --------------------------
-         -- sAxiReadSlave's Outputs 
+         -- sAxiReadSlave's Outputs
          --------------------------
          -- Read Address channel
          sAxiReadSlave.arready <= mAxiReadSlave.arready;
@@ -340,8 +340,8 @@ begin
          mAxiWriteMaster.bready   <= sAxiWriteMaster.bready;
 
          --------------------------
-         -- sAxiWriteSlave's Outputs 
-         --------------------------         
+         -- sAxiWriteSlave's Outputs
+         --------------------------
          -- Write address channel
          sAxiWriteSlave.awready <= mAxiWriteSlave.awready;
          -- Write data channel
@@ -351,12 +351,12 @@ begin
          sAxiWriteSlave.bvalid  <= mAxiWriteSlave.bvalid;
          sAxiWriteSlave.bid     <= mAxiWriteSlave.bid;
 
-         -- Reset      
+         -- Reset
          if (axiRst = '1') then
             v := REG_INIT_C;
          end if;
 
-         -- Register the variable for next clock cycle      
+         -- Register the variable for next clock cycle
          rin <= v;
 
       end process comb;

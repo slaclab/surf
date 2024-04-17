@@ -6,11 +6,11 @@
 -- Description: PGPv2b GTH Ultrascale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'Example Project Firmware'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'Example Project Firmware', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'Example Project Firmware', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -77,12 +77,12 @@ entity Pgp2bGthUltra is
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
       -- AXI-Lite DRP interface
-      axilClk         : in  sl                     := '0';
-      axilRst         : in  sl                     := '0';
-      axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilClk          : in  sl                               := '0';
+      axilRst          : in  sl                               := '0';
+      axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave    : out AxiLiteReadSlaveType;
+      axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp2bGthUltra;
 
 architecture mapping of Pgp2bGthUltra is
@@ -110,14 +110,14 @@ begin
    pgpTxResetDone <= phyTxReady;
    pgpRxResetDone <= phyRxReady;
 
-   U_RstSync_1 : entity surf.SynchronizerOneShot
+   U_RstSync_1 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 125000000)
+         TPD_G      => TPD_G,
+         DURATION_G => 125000000)
       port map (
-         clk     => stableClk,          -- [in]
-         dataIn  => pgpTxIn.resetGt,    -- [in]
-         dataOut => resetGtSync);       -- [out]
+         arst   => pgpTxIn.resetGt,     -- [in]
+         clk    => stableClk,           -- [in]
+         rstOut => resetGtSync);        -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
 
@@ -126,31 +126,30 @@ begin
          TPD_G         => TPD_G,
          PULSE_WIDTH_G => 12500000)
       port map (
-         clk     => stableClk,          -- [in]
-         dataIn  => phyRxInit,          -- [in]
-         dataOut => phyRxInitSync);     -- [out]
-
+         clk     => stableClk,           -- [in]
+         dataIn  => phyRxInit,           -- [in]
+         dataOut => phyRxInitSync);      -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
-   U_RstSync_2 : entity surf.SynchronizerOneShot
+   U_RstSync_2 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 125000000)
+         TPD_G      => TPD_G,
+         DURATION_G => 125000000)
       port map (
-         clk     => stableClk,          -- [in]
-         dataIn  => pgpRxIn.resetRx,    -- [in]
-         dataOut => resetRxSync);       -- [out]
+         arst   => pgpRxIn.resetRx,     -- [in]
+         clk    => stableClk,           -- [in]
+         rstOut => resetRxSync);        -- [out]
 
    gtRxUserReset <= phyRxInitSync or resetRxSync;
 
-   U_RstSync_3 : entity surf.SynchronizerOneShot
+   U_RstSync_3 : entity surf.PwrUpRst
       generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 125000000)
+         TPD_G      => TPD_G,
+         DURATION_G => 125000000)
       port map (
-         clk     => stableClk,          -- [in]
-         dataIn  => pgpTxIn.resetTx,    -- [in]
-         dataOut => gtTxUserReset);     -- [out]
+         arst   => pgpTxIn.resetTx,     -- [in]
+         clk    => stableClk,           -- [in]
+         rstOut => gtTxUserReset);      -- [out]
 
    U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
@@ -186,7 +185,7 @@ begin
    --------------------------
    PgpGthCoreWrapper_1 : entity surf.PgpGthCoreWrapper
       generic map (
-         TPD_G             => TPD_G)
+         TPD_G => TPD_G)
       port map (
          stableClk       => stableClk,
          stableRst       => gtHardReset,

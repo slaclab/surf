@@ -4,11 +4,11 @@
 -- Description: Wrapper for Xilinx 7-series GTP primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ entity Gtp7Core is
       TXOUT_DIV_G      : integer    := 2;
       RX_CLK25_DIV_G   : integer    := 5;                         -- Set by wizard
       TX_CLK25_DIV_G   : integer    := 5;                         -- Set by wizard
-      PMA_RSV_G        : bit_vector := x"00000333";               -- Set by wizard 
+      PMA_RSV_G        : bit_vector := x"00000333";               -- Set by wizard
       RX_OS_CFG_G      : bit_vector := "0001111110000";           -- Set by wizard
       RXCDR_CFG_G      : bit_vector := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G : bit        := '1';                       -- Set by wizard
@@ -50,9 +50,9 @@ entity Gtp7Core is
       -- Configure PLL sources
       TX_PLL_G : string := "PLL0";
       RX_PLL_G : string := "PLL1";
-      
+
       DYNAMIC_QPLL_G : boolean := false;
-      
+
       -- Configure Data widths
       TX_EXT_DATA_WIDTH_G : integer := 16;
       TX_INT_DATA_WIDTH_G : integer := 20;
@@ -209,7 +209,7 @@ entity Gtp7Core is
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
       txPolarityIn   : in  sl               := '0';
-      -- Debug Interface      
+      -- Debug Interface
       txPowerDown    : in  slv(1 downto 0)  := "00";
       rxPowerDown    : in  slv(1 downto 0)  := "00";
       loopbackIn     : in  slv(2 downto 0)  := "000";
@@ -279,7 +279,7 @@ architecture rtl of Gtp7Core is
 
    signal rxPllSel  : slv(1 downto 0);
    signal txPllSel  : slv(1 downto 0);
-   
+
    ----------------------------
    -- Rx Signals
    signal rxOutClk     : sl;
@@ -293,6 +293,7 @@ architecture rtl of Gtp7Core is
 
    signal rxUserResetInt : sl;
    signal rxFsmResetDone : sl;
+   signal rxResetDoneAll : sl;
    signal rxRstTxUserRdy : sl;
    signal rxPmaResetDone : sl;
 
@@ -376,7 +377,7 @@ begin
    rxOutClkOut     <= rxOutClkBufg;
    qPllResetOut(0) <= rxPllResets(0) or txPllResets(0);
    qPllResetOut(1) <= rxPllResets(1) or txPllResets(1);
-   
+
    rxPllSel <= qPllRxSelect when DYNAMIC_QPLL_G else RX_SYSCLK_SEL_C;
    txPllSel <= qPllTxSelect when DYNAMIC_QPLL_G else TX_SYSCLK_SEL_C;
 
@@ -426,7 +427,7 @@ begin
    -- 7. Wait gtRxResetDone
    -- 8. Do phase alignment if necessary
    -- 9. Wait DATA_VALID (aligned) - 100 us
-   --10. Wait 1 us, Set rxFsmResetDone. 
+   --10. Wait 1 us, Set rxFsmResetDone.
    --------------------------------------------------------------------------------------------------
    Gtp7RxRst_Inst : entity surf.Gtp7RxRst
       generic map (
@@ -473,6 +474,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
+   rxResetDoneAll <= rxResetDone and rxFsmResetDone;
    RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
@@ -480,7 +482,7 @@ begin
          OUT_POLARITY_G => '0')
       port map (
          clk      => rxUsrClkIn,
-         asyncRst => rxFsmResetDone,
+         asyncRst => rxResetDoneAll,
          syncRst  => rxResetDoneOut);   -- Output
 
    -------------------------------------------------------------------------------------------------
@@ -621,7 +623,7 @@ begin
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C)
       port map (
-         qPllTxSelect      => qPllTxSelect,      
+         qPllTxSelect      => qPllTxSelect,
          STABLE_CLOCK      => stableClkIn,
          TXUSERCLK         => txUsrClkIn,
          SOFT_RESET        => txUserResetIn,
@@ -789,7 +791,7 @@ begin
          RX_DATA_WIDTH              => (RX_DATA_WIDTH_C),
          ---------------------------PMA Attributes----------------------------
          OUTREFCLK_SEL_INV          => ("11"),     -- ??
-         PMA_RSV                    => PMA_RSV_G,  -- 
+         PMA_RSV                    => PMA_RSV_G,  --
          PMA_RSV2                   => (x"00002040"),
          PMA_RSV3                   => ("00"),
          PMA_RSV4                   => ("0000"),

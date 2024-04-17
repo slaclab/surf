@@ -4,11 +4,11 @@
 -- Description: A wrapper over MMCM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ entity ClinkDataClk is
       clinkClk7x      : out sl;
       clinkClk        : out sl;
       clinkRst        : out sl;
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       sysClk          : in  sl;
       sysRst          : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -95,16 +95,31 @@ begin
          BANDWIDTH        => "OPTIMIZED",
          CLKOUT4_CASCADE  => false,
          STARTUP_WAIT     => false,
---         CLKIN1_PERIOD    => 40.0,      -- 25 MHz
---         DIVCLK_DIVIDE    => 1,
---         CLKFBOUT_MULT_F  => 42.0,      -- VCO = 1050MHz
---         CLKOUT0_DIVIDE_F => 42.0,      -- 25 MHz
---         CLKOUT1_DIVIDE   => 6)         -- 175MHz
+-----------------------------------------------------------
+--       CLKIN1_PERIOD    => 40.0,      -- 25 MHz
+--       DIVCLK_DIVIDE    => 1,
+--       CLKFBOUT_MULT_F  => 42.0,      -- VCO = 1050MHz
+--       CLKOUT0_DIVIDE_F => 42.0,      -- 25 MHz
+--       CLKOUT1_DIVIDE   => 6)         -- 175MHz
+-----------------------------------------------------------
+--       CLKIN1_PERIOD    => 25.0,      -- 40 MHz
+--       DIVCLK_DIVIDE    => 1,
+--       CLKFBOUT_MULT_F  => 28.0,      -- VCO = 1120MHz
+--       CLKOUT0_DIVIDE_F => 28.0,      -- 40 MHz
+--       CLKOUT1_DIVIDE   => 4)         -- 280MHz
+-----------------------------------------------------------
+--       CLKIN1_PERIOD    => 20.0,      -- 50 MHz
+--       DIVCLK_DIVIDE    => 1,
+--       CLKFBOUT_MULT_F  => 21.0,      -- VCO = 1050MHz
+--       CLKOUT0_DIVIDE_F => 21.0,      -- 50 MHz
+--       CLKOUT1_DIVIDE   => 3)         -- 350MHz
+-----------------------------------------------------------
          CLKIN1_PERIOD    => 11.764,  -- 85 MHz (CLKIN[min.] = 43 MHz, CLKIN[max] = 102 MHz)
          DIVCLK_DIVIDE    => 1,
          CLKFBOUT_MULT_F  => 14.0,  -- VCO = 1190MHz (VCO[min] = 600 MHz, VCO[max] = 1440 MHz)
          CLKOUT0_DIVIDE_F => 14.0,      -- 85 MHz = 1190MHz/14
          CLKOUT1_DIVIDE   => 2)         -- 595MHz = 1190MHz/2
+-----------------------------------------------------------
       port map (
          DCLK     => sysClk,
          DRDY     => drpRdy,

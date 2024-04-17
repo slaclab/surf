@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity:      I2cMaster
 -- Author:      Jan Andersson - Gaisler Research
@@ -24,7 +24,7 @@
 --
 --         Generic interface to OpenCores I2C-master. This is a wrapper
 --         that instantiates the byte- and bit-controller of the OpenCores I2C
---         master (OC core developed by Richard Herveille, richard@asics.ws). 
+--         master (OC core developed by Richard Herveille, richard@asics.ws).
 --
 -- Modifications:
 --   10/2012 - Ben Reese <bareese@slac.stanford.edu>
@@ -46,10 +46,11 @@ use surf.I2cPkg.all;
 
 entity I2cMaster is
    generic (
-      TPD_G                : time                   := 1 ns;  -- Simulated propagation delay
-      OUTPUT_EN_POLARITY_G : integer range 0 to 1   := 0;     -- output enable polarity
-      FILTER_G             : integer range 2 to 512 := 126;   -- filter bit size
-      DYNAMIC_FILTER_G     : integer range 0 to 1   := 0);
+      TPD_G                : time                      := 1 ns;  -- Simulated propagation delay
+      OUTPUT_EN_POLARITY_G : integer range 0 to 1      := 0;     -- output enable polarity
+      PRESCALE_G           : integer range 0 to 655535 := 62;
+      FILTER_G             : integer range 2 to 512    := 126;   -- filter bit size
+      DYNAMIC_FILTER_G     : integer range 0 to 1      := 0);
    port (
       clk          : in  sl;
       srst         : in  sl := '0';
@@ -68,9 +69,10 @@ architecture rtl of I2cMaster is
    -----------------------------------------------------------------------------
    -- Constants
    -----------------------------------------------------------------------------
+   constant TIMEOUT_C : integer := (PRESCALE_G+1)*5*500;
 
    -----------------------------------------------------------------------------
-   -- Types 
+   -- Types
    -----------------------------------------------------------------------------
    -- i2c_master_byte_ctrl IO
    type ByteCtrlInType is record
@@ -90,16 +92,19 @@ architecture rtl of I2cMaster is
       dout   : slv(7 downto 0);
    end record;
 
-   type StateType is (WAIT_TXN_REQ_S,
-                      ADDR_S,
-                      WAIT_ADDR_ACK_S,
-                      READ_S,
-                      WAIT_READ_DATA_S,
-                      WRITE_S,
-                      WAIT_WRITE_ACK_S);
+   type StateType is (
+      WAIT_TXN_REQ_S,
+      ADDR_S,
+      WAIT_ADDR_ACK_S,
+      READ_S,
+      WAIT_READ_DATA_S,
+      WRITE_S,
+      WAIT_WRITE_ACK_S);
 
    -- Module Registers
    type RegType is record
+      timer        : integer range 0 to TIMEOUT_C;
+      coreRst      : sl;
       byteCtrlIn   : ByteCtrlInType;
       state        : StateType;
       tenbit       : sl;
@@ -107,6 +112,8 @@ architecture rtl of I2cMaster is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      timer        => 0,
+      coreRst      => '0',
       byteCtrlIn   => (
          start     => '0',
          stop      => '0',
@@ -137,10 +144,14 @@ architecture rtl of I2cMaster is
    signal iSdaOEn     : sl;                                           -- Internal SDA output enablee
    signal filter      : slv((FILTER_G-1)*DYNAMIC_FILTER_G downto 0);  -- filt input to byte_ctrl
    signal arstL       : sl;
+   signal coreRst     : sl;
 
 begin
 
    arstL <= not arst;
+
+   coreRst <= r.coreRst or srst;
+
 
    -- Byte Controller from OpenCores I2C master,
    -- by Richard Herveille (richard@asics.ws). The asynchronous
@@ -152,10 +163,10 @@ begin
          dynfilt => DYNAMIC_FILTER_G)
       port map (
          clk      => clk,
-         rst      => srst,
+         rst      => coreRst,
          nReset   => arstL,
          ena      => i2cMasterIn.enable,
-         clk_cnt  => i2cMasterIn.prescale,
+         clk_cnt  => slv(to_unsigned(PRESCALE_G, 16)),
          start    => r.byteCtrlIn.start,
          stop     => r.byteCtrlIn.stop,
          read     => r.byteCtrlIn.read,
@@ -196,6 +207,9 @@ begin
    begin  -- process comb
       v := r;
 
+      -- Pulsed
+      v.coreRst := '0';
+
       -- byteCtrl commands default to zero
       -- unless overridden in a state below
       v.byteCtrlIn.start := '0';
@@ -204,18 +218,20 @@ begin
       v.byteCtrlIn.write := '0';
       v.byteCtrlIn.ackIn := '0';
 
-      v.i2cMasterOut.wrAck  := '0';      -- pulsed
-      v.i2cMasterOut.busAck := '0';      -- pulsed
+      v.i2cMasterOut.wrAck  := '0';     -- pulsed
+      v.i2cMasterOut.busAck := '0';     -- pulsed
 
       if (i2cMasterIn.rdAck = '1') then
          v.i2cMasterOut.rdValid  := '0';
+         v.i2cMasterOut.rdData   := (others => '0');
          v.i2cMasterOut.txnError := '0';
       end if;
+
+      v.timer := 0;
 
       case (r.state) is
          when WAIT_TXN_REQ_S =>
             -- Reset front end outputs
-            v.i2cMasterOut.rdData := (others => '0');  -- Necessary?
             -- If new request and any previous rdData has been acked.
             if (i2cMasterIn.txnReq = '1') and (r.i2cMasterOut.rdValid = '0') and (r.i2cMasterOut.busAck = '0') then
                v.state  := ADDR_S;
@@ -242,8 +258,10 @@ begin
             end if;
             v.state := WAIT_ADDR_ACK_S;
 
-            
+
          when WAIT_ADDR_ACK_S =>
+            v.timer := r.timer + 1;
+
             if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
                if (byteCtrlOut.ackOut = '0') then  -- Slave ack'd the transfer
                   if (r.tenbit = '1') then         -- Must send second half of addr if tenbit set
@@ -270,7 +288,7 @@ begin
                end if;
             end if;
 
-            
+
          when READ_S =>
             if (r.i2cMasterOut.rdValid = '0') then  -- Previous byte has been ack'd
                v.byteCtrlIn.read  := '1';
@@ -283,6 +301,8 @@ begin
 
 
          when WAIT_READ_DATA_S =>
+            v.timer := r.timer + 1;
+
             v.byteCtrlIn.stop  := r.byteCtrlIn.stop;   -- Hold stop or it wont get seen
             v.byteCtrlIn.ackIn := r.byteCtrlIn.ackIn;  -- This too
             if (byteCtrlOut.cmdAck = '1') then         -- Master sent the command
@@ -310,6 +330,8 @@ begin
             end if;
 
          when WAIT_WRITE_ACK_S =>
+            v.timer := r.timer + 1;
+
             v.byteCtrlIn.stop := r.byteCtrlIn.stop;
             if (byteCtrlOut.cmdAck = '1') then        -- Master sent the command
                if (byteCtrlOut.ackOut = '0') then     -- Slave ack'd the transfer
@@ -330,25 +352,36 @@ begin
                   v.state                 := WAIT_TXN_REQ_S;
                end if;
             end if;
-            
+
          when others => v.state := WAIT_TXN_REQ_S;
       end case;
 
       -- Must always monitor for arbitration loss
       if (byteCtrlOut.al = '1') then
-         -- Retry the entire TXN. Nothing done has been valid if arbitration is lost.
-         -- Should probably have a retry limit.
+         -- Return error back to next layer
          v.state                 := WAIT_TXN_REQ_S;
          v.i2cMasterOut.txnError := '1';
          v.i2cMasterOut.rdValid  := '1';
          v.i2cMasterOut.rdData   := I2C_ARBITRATION_LOST_ERROR_C;
       end if;
 
+      -- Always monitor for timeouts.
+      if (r.timer = TIMEOUT_C) then
+         -- Return error back to next layer
+         v.state                 := WAIT_TXN_REQ_S;
+         v.i2cMasterOut.txnError := '1';
+         v.i2cMasterOut.rdValid  := '1';
+         v.i2cMasterOut.rdData   := I2C_TIMEOUT_ERROR_C;
+         v.timer                 := 0;
+         v.coreRst               := '1';
+      end if;
+
       ------------------------------------------------------------------------------------------------
       -- Synchronous Reset
       ------------------------------------------------------------------------------------------------
       if (srst = '1') then
-         v := REG_INIT_C;
+         v         := REG_INIT_C;
+         v.coreRst := r.coreRst;        -- Remove srst from coreRst path
       end if;
 
       ------------------------------------------------------------------------------------------------

@@ -13,7 +13,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity UdpDebugBridge is
-  Port ( 
+  Port (
     axisClk : in STD_LOGIC;
     axisRst : in STD_LOGIC;
     \mAxisReq[tValid]\ : in STD_LOGIC;

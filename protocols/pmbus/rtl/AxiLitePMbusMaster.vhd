@@ -4,11 +4,11 @@
 -- Description: Wrapper for AxiLitePMbusMasterCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -42,14 +42,14 @@ entity AxiLitePMbusMaster is
       axilWriteSlave  : out   AxiLiteWriteSlaveType;
       -- Clocks and Resets
       axilClk         : in    sl;
-      axilRst         : in    sl);     
+      axilRst         : in    sl);
 end AxiLitePMbusMaster;
 
 architecture mapping of AxiLitePMbusMaster is
 
    signal i2ci : i2c_in_type;
    signal i2co : i2c_out_type;
-   
+
 begin
 
    U_Core : entity surf.AxiLitePMbusMasterCore
@@ -70,20 +70,20 @@ begin
          axilWriteSlave  => axilWriteSlave,
          -- Clocks and Resets
          axilClk         => axilClk,
-         axilRst         => axilRst); 
+         axilRst         => axilRst);
 
-   IOBUF_SCL : IOBUF
+   IOBUF_SCL : entity surf.IoBufWrapper
       port map (
          O  => i2ci.scl,                -- Buffer output
          IO => scl,                     -- Buffer inout port (connect directly to top-level port)
          I  => i2co.scl,                -- Buffer input
-         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output  
+         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output
 
-   IOBUF_SDA : IOBUF
+   IOBUF_SDA : entity surf.IoBufWrapper
       port map (
          O  => i2ci.sda,                -- Buffer output
          IO => sda,                     -- Buffer inout port (connect directly to top-level port)
          I  => i2co.sda,                -- Buffer input
-         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output  
+         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output
 
 end mapping;

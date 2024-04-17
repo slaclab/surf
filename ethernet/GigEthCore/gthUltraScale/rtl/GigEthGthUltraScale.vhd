@@ -4,11 +4,11 @@
 -- Description: 1000BASE-X Ethernet for Gth7
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ use surf.GigEthPkg.all;
 entity GigEthGthUltraScale is
    generic (
       TPD_G           : time                := 1 ns;
+      JUMBO_G         : boolean             := true;
       PAUSE_EN_G      : boolean             := true;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
@@ -34,14 +35,14 @@ entity GigEthGthUltraScale is
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -144,7 +145,7 @@ architecture mapping of GigEthGthUltraScale is
 begin
 
    ------------------
-   -- Synchronization 
+   -- Synchronization
    ------------------
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
@@ -182,6 +183,7 @@ begin
    U_MAC : entity surf.EthMacTop
       generic map (
          TPD_G           => TPD_G,
+         JUMBO_G         => JUMBO_G,
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_C,
          PHY_TYPE_G      => "GMII",
@@ -254,9 +256,9 @@ begin
    status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
-   --------------------------------     
-   -- Configuration/Status Register   
-   --------------------------------     
+   --------------------------------
+   -- Configuration/Status Register
+   --------------------------------
    U_GigEthReg : entity surf.GigEthReg
       generic map (
          TPD_G        => TPD_G,

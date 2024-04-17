@@ -3,14 +3,14 @@
 -------------------------------------------------------------------------------
 -- Description: AXI4-to-AXI-Lite bridge
 --
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
+-- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ entity AxiToAxiLite is
       -- Clocks & Reset
       axiClk          : in  sl;
       axiClkRst       : in  sl;
-      -- AXI Slave 
+      -- AXI Slave
       axiReadMaster   : in  AxiReadMasterType;
       axiReadSlave    : out AxiReadSlaveType;
       axiWriteMaster  : in  AxiWriteMasterType;

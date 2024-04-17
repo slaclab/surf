@@ -6,11 +6,11 @@
 -- Description: SSI Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ package SsiPkg is
       tLast  => '1',                                   -- EOF
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => (others => '1'));  -- EOFE   
+      tUser  => (others => '1'));  -- EOFE
 
    -------------------------------------------------------------------------------------------------
    -- Build an SSI configuration
@@ -51,8 +51,9 @@ package SsiPkg is
       dataBytes : positive;
       tKeepMode : TKeepModeType         := TKEEP_COMP_C;
       tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
-      tDestBits : natural range 0 to 8  := 4;
-      tUserBits : positive range 2 to 8 := 2)
+      tDestBits : natural  range 0 to 8 := SSI_TDEST_BITS_C;
+      tUserBits : positive range 2 to 8 := SSI_TUSER_BITS_C;
+      tIdBits   : natural  range 0 to 8 := SSI_TID_BITS_C)
       return AxiStreamConfigType;
 
    -- A default SSI config is useful to have
@@ -149,16 +150,17 @@ package body SsiPkg is
       dataBytes : positive;
       tKeepMode : TKeepModeType         := TKEEP_COMP_C;
       tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
-      tDestBits : natural range 0 to 8  := 4;
-      tUserBits : positive range 2 to 8 := 2)
+      tDestBits : natural  range 0 to 8 := SSI_TDEST_BITS_C;
+      tUserBits : positive range 2 to 8 := SSI_TUSER_BITS_C;
+      tIdBits   : natural  range 0 to 8 := SSI_TID_BITS_C)
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
       ret.TDATA_BYTES_C := dataBytes;       -- Configurable data size
       ret.TUSER_BITS_C  := tUserBits;       -- 2 TUSER: EOFE, SOF
       ret.TDEST_BITS_C  := tDestBits;       -- 4 TDEST bits for VC
-      ret.TID_BITS_C    := SSI_TID_BITS_C;  -- TID not used
-      ret.TKEEP_MODE_C  := tKeepMode;       -- 
+      ret.TID_BITS_C    := tIdBits;         -- Optional TID
+      ret.TKEEP_MODE_C  := tKeepMode;       --
       ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;  -- No TSTRB support in SSI
       ret.TUSER_MODE_C  := tUserMode;       -- User field valid on last only
       return ret;

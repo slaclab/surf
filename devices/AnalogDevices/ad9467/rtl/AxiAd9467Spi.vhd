@@ -4,11 +4,11 @@
 -- Description: AD9467 SPI Interface Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -60,19 +60,19 @@ architecture rtl of AxiAd9467Spi is
    signal r    : AxiAd9467SpiOutType;
    signal pntr : slv(7 downto 0)              := (others => '0');
    signal cnt  : natural range 0 to MAX_CNT_C := 0;
-   
+
 begin
-   
+
    adcCs     <= cs;
    adcSck    <= sck;
    adcSpiOut <= r;
 
-   IOBUF_inst : IOBUF
+   IOBUF_inst : entity surf.IoBufWrapper
       port map (
          O  => sdo,                     -- Buffer output
          IO => adcSdio,                 -- Buffer inout port (connect directly to top-level port)
          I  => sdi,                     -- Buffer input
-         T  => inEn);                   -- 3-state enable input, high=input, low=output        
+         T  => inEn);                   -- 3-state enable input, high=input, low=output
 
    process(axiClk)
    begin
@@ -148,5 +148,5 @@ begin
          end if;
       end if;
    end process;
-   
+
 end rtl;

@@ -4,11 +4,11 @@
 -- Description: Programmable One-Shot Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ entity OneShot is
    generic (
       TPD_G             : time     := 1 ns;  -- Simulation FF output delay
       RST_POLARITY_G    : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean  := false;
       IN_POLARITY_G     : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
       OUT_POLARITY_G    : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
       PULSE_BIT_WIDTH_G : positive := 4);  -- maximum one-shot pulse width duration = 2**PULSE_BIT_WIDTH_G (units of clk cycles)
@@ -57,7 +58,7 @@ architecture rtl of OneShot is
    signal rin : RegType;
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";      
+   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -72,14 +73,14 @@ begin
 
       -- State Machine
       case r.state is
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for trigger
             if (trigIn = IN_POLARITY_G) then
                -- Next state
                v.state := CNT_S;
             end if;
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when CNT_S =>
             -- Set the flag
             v.pulseOut := OUT_POLARITY_G;
@@ -105,21 +106,21 @@ begin
                end if;
 
             end if;
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when WAIT_S =>
             -- Check for trigger
             if (trigIn /= IN_POLARITY_G) then
                -- Next state
                v.state := IDLE_S;
             end if;
-      ----------------------------------------------------------------------   
+      ----------------------------------------------------------------------
       end case;
 
       -- Outputs
       pulseOut <= r.pulseOut;
 
       -- Reset
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -128,9 +129,11 @@ begin
 
    end process;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

@@ -4,11 +4,11 @@
 -- Description: General Purpose AXI4 memory tester
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ entity AxiMemTester is
       START_ADDR_G     : slv                      := X"00000000";
       STOP_ADDR_G      : slv                      := X"FFFFFFFF";
       BURST_LEN_G      : positive range 1 to 4096 := 4096;
-      AXI_CONFIG_G     : AxiConfigType            := AXI_CONFIG_INIT_C);
+      AXI_CONFIG_G     : AxiConfigType);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -40,7 +40,7 @@ entity AxiMemTester is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       memReady        : out sl;
       memError        : out sl;
-      -- DDR Memory Interface
+      -- AXI4 Memory Interface
       axiClk          : in  sl;
       axiRst          : in  sl;
       start           : in  sl;
@@ -61,7 +61,7 @@ architecture rtl of AxiMemTester is
    constant AXI_LEN_C         : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
 
    constant PRBS_TAPS_C : NaturalArray := (0 => (DATA_BITS_C-1), 1 => (DATA_BITS_C/2), 2 => (DATA_BITS_C/4));
-   
+
    constant DATA_SYNC_BITS_C : natural := ite(DATA_BITS_C<1024, DATA_BITS_C, 1024);
 
    function GenSeed return slv is
@@ -171,7 +171,7 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Update output registers 
+      -- Update output registers
       if axiWriteSlave.awready = '1' then
          v.axiWriteMaster.awvalid := '0';
       end if;
@@ -241,9 +241,9 @@ begin
          when WRITE_RESP_S =>
             -- Wait for the response
             if axiWriteSlave.bvalid = '1' then
-               -- Check for "OKAY" response 
+               -- Check for "OKAY" response
                if axiWriteSlave.bresp = "00" then
-                  -- Check for max. address 
+                  -- Check for max. address
                   if r.address = STOP_ADDR_C then
                      -- Reset the start address
                      v.address                                       := (others => '0');
@@ -283,7 +283,7 @@ begin
                -- Save data for AXIL access
                v.rData := axiReadSlave.rdata(DATA_BITS_C-1 downto 0);
                v.rPattern := r.randomData(DATA_BITS_C-1 downto 0);
-               -- Compare the data 
+               -- Compare the data
                if r.randomData(DATA_BITS_C-1 downto 0) /= axiReadSlave.rdata(DATA_BITS_C-1 downto 0) then
                   -- Set the flag
                   v.rErrData := '1';
@@ -295,7 +295,7 @@ begin
                -- Check for last transfer
                if axiReadSlave.rlast = '1' then
                   if axiReadSlave.rresp = "00" then
-                     -- Check for max. address 
+                     -- Check for max. address
                      if r.address = STOP_ADDR_C then
                         report "AxiMemTester: Passed Test!";
                         report "wTimer = " & integer'image(conv_integer(v.wTimer));
@@ -342,19 +342,19 @@ begin
          v := REG_INIT_C;
       end if;
 
-      -- Write Address Constants      
+      -- Write Address Constants
       v.axiWriteMaster.awid    := (others => '0');
       v.axiWriteMaster.awlen   := AXI_LEN_C;
       v.axiWriteMaster.awsize  := toSlv(log2(AXI_CONFIG_G.DATA_BYTES_C), 3);
       v.axiWriteMaster.awburst := "01";    -- Burst type = "INCR"
       v.axiWriteMaster.awlock  := (others => '0');
       v.axiWriteMaster.awprot  := (others => '0');
-      v.axiWriteMaster.awcache := "1111";  -- Write-back Read and Write-allocate      
+      v.axiWriteMaster.awcache := "1111";  -- Write-back Read and Write-allocate
       v.axiWriteMaster.awqos   := (others => '0');
       v.axiWriteMaster.bready  := '1';
       v.axiWriteMaster.wstrb   := (others => '1');
 
-      -- Read Address Constants (copied from Write Constants) 
+      -- Read Address Constants (copied from Write Constants)
       v.axiReadMaster.arid    := v.axiWriteMaster.awid;
       v.axiReadMaster.arlen   := v.axiWriteMaster.awlen;
       v.axiReadMaster.arsize  := v.axiWriteMaster.awsize;
@@ -401,7 +401,7 @@ begin
          dataOut(4) => wErrResp,
          dataOut(5) => rErrResp,
          dataOut(6) => rErrData);
-     
+
    U_wTimer : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
@@ -425,7 +425,7 @@ begin
          -- Read Ports (rd_clk domain)
          rd_clk => axilClk,
          dout   => rTimer);
-   
+
    rDataIn <= r.rData(DATA_SYNC_BITS_C-1 downto 0);
    U_rData : entity surf.SynchronizerVector
       generic map (
@@ -435,7 +435,7 @@ begin
          clk     => axilClk,
          dataIn  => rDataIn,
          dataOut => rDataOut(DATA_SYNC_BITS_C-1 downto 0));
-   
+
    rPatternIn <= r.rPattern(DATA_SYNC_BITS_C-1 downto 0);
    U_rPattern : entity surf.SynchronizerVector
       generic map (
@@ -445,7 +445,7 @@ begin
          clk     => axilClk,
          dataIn  => rPatternIn,
          dataOut => rPatternOut(DATA_SYNC_BITS_C-1 downto 0));
-   
+
    combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error, busy, startSync,
                        rLite, rTimer, wTimer, wErrResp, rErrResp, rErrData, rDataOut, rPatternOut) is
       variable v      : RegLiteType;

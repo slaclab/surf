@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the AxiLiteIpBusBridgeTb module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -96,10 +96,10 @@ begin
 
       -- Write to the scratch pad
       axiLiteBusSimWrite (axilClk, axilWriteMaster, axilWriteSlave, x"0000_0004", x"1234_5678", true);
-      
+
       -- Write to a read-only register to test error bus response path
       axiLiteBusSimWrite (axilClk, axilWriteMaster, axilWriteSlave, x"0000_0000", x"1234_5678", true);
-      
+
       ---------------------------------------------------------------------------------
       -- Here's the expected output:
       ---------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ begin
       -- AxiLitePkg::axiLiteBusSimRead( addr:00000610, data: 11112222)
       -- AxiLitePkg::axiLiteBusSimWrite(addr:00000004, data: 12345678)
       -- AxiLitePkg::axiLiteBusSimWrite(addr:00000000, data: 12345678)
-      -- Warning: AxiLitePkg::axiLiteBusSimWrite( addr:00000000): - BRESP = SLAVE_ERROR      
+      -- Warning: AxiLitePkg::axiLiteBusSimWrite( addr:00000000): - BRESP = SLAVE_ERROR
       ---------------------------------------------------------------------------------
 
    end process test;
@@ -138,14 +138,14 @@ begin
          ipbWdata        => ipbWdata,
          ipbStrobe       => ipbStrobe,
          ipbWrite        => ipbWrite);
-         
+
    ----------------------------
    -- IP Bus to Axi-Lite Bridge
-   ----------------------------        
+   ----------------------------
    U_IpBusToAxiLite : entity surf.IpBusToAxiLite
       generic map (
          TPD_G        => TPD_G)
-      port map (   
+      port map (
          -- Clock and Reset
          clk             => axilClk,
          rst             => axilRst,
@@ -162,7 +162,7 @@ begin
          axilReadSlave   => regReadSlave,
          axilWriteMaster => regWriteMaster,
          axilWriteSlave  => regWriteSlave);
-         
+
    --------------------------
    -- Example Register Module
    --------------------------

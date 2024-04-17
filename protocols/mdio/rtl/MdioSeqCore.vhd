@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 --    Execute sequence(s) of MDIO transaction(s). A list (array) of all possible
 --    transaction sequences is passed in the MDIO_PROG_G generic. Individual (sub-)
 --    sequences are separated by the asserted 'theLast' flag in the last instruction
@@ -36,11 +36,11 @@
 --    data is presented at 'din' (valid while 'don' is asserted).
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ entity MdioSeqCore is
       -- clock and reset
       clk                 : in    sl;
       rst                 : in    sl;
- 
+
       -- programming interface;
       trg                 : in    sl;               -- assert trg for ONE clock
       pc                  : in    natural;

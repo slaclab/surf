@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the FifoFwft module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -101,13 +101,13 @@ architecture testbed of FifoFwftTb is
       15                 => (
          PIPE_STAGES_G   => 1,
          GEN_SYNC_FIFO_G => true,
-         MEMORY_TYPE_G   => "block"));          
+         MEMORY_TYPE_G   => "block"));
 
    -- Signals
    signal wrClk,
       rst,
       rdClk : sl;
-   
+
    signal failed,
       passed,
       subRdClk : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
@@ -135,7 +135,7 @@ begin
          clkP => wrClk,
          clkN => open,
          rst  => rst,
-         rstL => open); 
+         rstL => open);
 
    ClkRst_Read : entity surf.ClkRst
       generic map (
@@ -146,10 +146,10 @@ begin
          clkP => rdClk,
          clkN => open,
          rst  => open,
-         rstL => open); 
+         rstL => open);
 
 
-   
+
    GEN_TEST_MODULES :
    for i in 0 to CONFIG_TEST_SIZE_C generate
       subRdClk(i) <= ite(SIM_CONFIG_C(i).GEN_SYNC_FIFO_G, wrClk, rdClk);
@@ -164,7 +164,7 @@ begin
             wrClk  => wrClk,
             rdClk  => subRdClk(i),
             passed => passed(i),
-            failed => failed(i));               
+            failed => failed(i));
 
    end generate GEN_TEST_MODULES;
 

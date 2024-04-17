@@ -8,18 +8,17 @@
 -- Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -29,15 +28,19 @@ use surf.AxiStreamPacketizer2Pkg.all;
 
 entity AxiStreamPacketizer2 is
    generic (
-      TPD_G                : time             := 1 ns;
-      MEMORY_TYPE_G        : string           := "distributed";
-      REG_EN_G             : boolean          := false;
-      CRC_MODE_G           : string           := "DATA";  -- or "NONE" or "FULL"
-      CRC_POLY_G           : slv(31 downto 0) := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : positive         := 256*8;   -- Must be a multiple of 8
-      TDEST_BITS_G         : natural          := 8;
-      INPUT_PIPE_STAGES_G  : natural          := 0;
-      OUTPUT_PIPE_STAGES_G : natural          := 0);
+      TPD_G                : time                   := 1 ns;
+      RST_ASYNC_G          : boolean                := false;
+      MEMORY_TYPE_G        : string                 := "distributed";
+      REG_EN_G             : boolean                := false;
+      CRC_MODE_G           : string                 := "DATA";  -- or "NONE" or "FULL"
+      CRC_POLY_G           : slv(31 downto 0)       := x"04C11DB7";
+      MAX_PACKET_BYTES_G   : positive               := 256*8;   -- Must be a multiple of 8
+      SEQ_CNT_SIZE_G       : positive range 4 to 16 := 16;
+      TDEST_BITS_G         : natural                := 8;
+      OUTPUT_TDEST_G       : slv(7 downto 0)        := (others => '0');
+      OUTPUT_TID_G         : slv(7 downto 0)        := (others => '0');
+      INPUT_PIPE_STAGES_G  : natural                := 0;
+      OUTPUT_PIPE_STAGES_G : natural                := 0);
    port (
       -- Clock and Reset
       axisClk     : in  sl;
@@ -74,6 +77,7 @@ architecture rtl of AxiStreamPacketizer2 is
    constant CRC_EN_C         : boolean         := (CRC_MODE_G /= "NONE");
    constant CRC_HEAD_TAIL_C  : boolean         := (CRC_MODE_G = "FULL");
    constant ADDR_WIDTH_C     : positive        := ite((TDEST_BITS_G = 0), 1, TDEST_BITS_G);
+   constant RAM_DATA_WIDTH_C : positive        := 32+1+SEQ_CNT_SIZE_G;
 
    type StateType is (
       IDLE_S,
@@ -84,7 +88,7 @@ architecture rtl of AxiStreamPacketizer2 is
 
    type RegType is record
       state            : StateType;
-      packetSeq        : slv(15 downto 0);
+      packetSeq        : slv(SEQ_CNT_SIZE_G-1 downto 0);
       packetActive     : sl;
       activeTDest      : slv(ADDR_WIDTH_C-1 downto 0);
       ramWe            : sl;
@@ -135,7 +139,9 @@ architecture rtl of AxiStreamPacketizer2 is
    signal outputAxisMaster : AxiStreamMasterType;
    signal outputAxisSlave  : AxiStreamSlaveType;
 
-   signal ramPacketSeqOut    : slv(15 downto 0);
+   signal ramDin             : slv(RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramDout            : slv(RAM_DATA_WIDTH_C-1 downto 0);
+   signal ramPacketSeqOut    : slv(SEQ_CNT_SIZE_G-1 downto 0);
    signal ramPacketActiveOut : sl;
    signal ramCrcRem          : slv(31 downto 0) := (others => '1');
    signal ramAddrr           : slv(ADDR_WIDTH_C-1 downto 0);
@@ -175,6 +181,7 @@ begin
    U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -187,52 +194,34 @@ begin
    -------------------------------------------------------------------------------
    -- Packet Count ram
    -- track current frame number, packet count and physical channel for each tDest
-   -- If TDEST_BITS_G = 0, we can use a simple register to track the
-   -- packet sequence number and CRC, rather than a RAM
    -------------------------------------------------------------------------------
-   GEN_SEQ_REG : if (TDEST_BITS_G = 0) generate
-      U_RegisterVector_1 : entity work.RegisterVector
-         generic map (
-            TPD_G   => TPD_G,
-            WIDTH_G => 17+32)
-         port map (
-            clk                 => axisClk,             -- [in]
-            rst                 => axisRst,             -- [in]
-            en                  => rin.ramWe,           -- [in]
-            sig_i(15 downto 0)  => rin.packetSeq,       -- [in]
-            sig_i(16)           => rin.packetActive,    -- [in]
-            sig_i(47 downto 17) => rin.crcRem           -- [in]
-            reg_o(15 downto 0)  => ramPacketSeqOut,     -- [out]
-            reg_o(16)           => ramPacketActiveOut,  -- [out]
-            reg_o(48 downto 17) => ramCrcRem);          -- [out]
-   end generate GEN_SEQ_REG;
-   GEN_SEQ_RAM : if (TDEST_BITS_G > 0) generate
-      U_DualPortRam_1 : entity surf.DualPortRam
-         generic map (
-            TPD_G         => TPD_G,
-            MEMORY_TYPE_G => MEMORY_TYPE_G,
-            REG_EN_G      => REG_EN_G,
-            DOA_REG_G     => REG_EN_G,
-            DOB_REG_G     => REG_EN_G,
-            BYTE_WR_EN_G  => false,
-            DATA_WIDTH_G  => 17+32,
-            ADDR_WIDTH_G  => ADDR_WIDTH_C)
-         port map (
-            clka                => axisClk,
-            rsta                => axisRst,
-            wea                 => rin.ramWe,
-            addra               => rin.activeTDest,
-            dina(15 downto 0)   => rin.packetSeq,
-            dina(16)            => rin.packetActive,
-            dina(48 downto 17)  => rin.crcRem,
-            clkb                => axisClk,
-            rstb                => axisRst,
-            addrb               => ramAddrr,
-            doutb(15 downto 0)  => ramPacketSeqOut,
-            doutb(16)           => ramPacketActiveOut,
-            doutb(48 downto 17) => ramCrcRem);
-
-   end generate GEN_SEQ_RAM;
+   ramDin(31 downto 0)                   <= rin.crcRem;
+   ramDin(32)                            <= rin.packetActive;
+   ramDin(33+SEQ_CNT_SIZE_G-1 downto 33) <= rin.packetSeq;
+   ramCrcRem          <= ramDout(31 downto 0);
+   ramPacketActiveOut <= ramDout(32);
+   ramPacketSeqOut    <= ramDout(33+SEQ_CNT_SIZE_G-1 downto 33);
+   U_DualPortRam_1 : entity surf.DualPortRam
+      generic map (
+         TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
+         REG_EN_G      => REG_EN_G,
+         DOA_REG_G     => REG_EN_G,
+         DOB_REG_G     => REG_EN_G,
+         BYTE_WR_EN_G  => false,
+         DATA_WIDTH_G  => (32+1+SEQ_CNT_SIZE_G),
+         ADDR_WIDTH_G  => ADDR_WIDTH_C)
+      port map (
+         clka  => axisClk,
+         rsta  => axisRst,
+         wea   => rin.ramWe,
+         addra => rin.activeTDest,
+         dina  => ramDin,
+         clkb  => axisClk,
+         rstb  => axisRst,
+         addrb => ramAddrr,
+         doutb => ramDout);
 
    ramAddrr <= inputAxisMaster.tDest(ADDR_WIDTH_C-1 downto 0) when (TDEST_BITS_G > 0) else (others => '0');
 
@@ -242,10 +231,12 @@ begin
          U_Crc32 : entity surf.Crc32Parallel
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -260,11 +251,13 @@ begin
          U_Crc32 : entity surf.Crc32
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF",
                CRC_POLY_G       => CRC_POLY_G)
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -277,8 +270,8 @@ begin
 
    end generate;
 
-   comb : process (crcOut, crcRem, inputAxisMaster, outputAxisSlave,
-                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut, maxWords) is
+   comb : process (crcOut, crcRem, inputAxisMaster, maxWords, outputAxisSlave,
+                   r, ramCrcRem, ramPacketActiveOut, ramPacketSeqOut) is
       variable v     : RegType;
       variable tdest : slv(7 downto 0);
       variable fits  : boolean;
@@ -313,7 +306,7 @@ begin
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
                -- Check for 2 read cycle latency
-               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) and TDEST_BITS_G > 0 then
+               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) then
                   v.state := WAIT_S;
                -- Else 1 read cycle latency
                else
@@ -329,7 +322,7 @@ begin
             v.wordCount     := (others => '0');
             -- Set default tlast.tkeep (8 Bytes)
             v.lastByteCount := slv(to_unsigned(WORD_SIZE_C, bitSize(WORD_SIZE_C)));
-            -- Pre-load the CRC with the interim remainder 
+            -- Pre-load the CRC with the interim remainder
             v.crcInit       := ramCrcRem;
             -- Reset the CRC (which pre-loads it with crcInit)
             v.crcReset      := '1';
@@ -363,7 +356,7 @@ begin
                      tdest      => tDest,
                      tuser      => inputAxisMaster.tUser(7 downto 0),
                      tid        => inputAxisMaster.tId,
-                     seq        => ramPacketSeqOut);
+                     seq        => resize(ramPacketSeqOut, 16));
 
                -- Check for active header
                if (ramPacketActiveOut = '0') then
@@ -392,8 +385,8 @@ begin
                -- Send data through
                v.outputAxisMaster       := inputAxisMaster;
                v.outputAxisMaster.tUser := (others => '0');
-               v.outputAxisMaster.tDest := (others => '0');
-               v.outputAxisMaster.tId   := (others => '0');
+               v.outputAxisMaster.tDest := OUTPUT_TDEST_G;
+               v.outputAxisMaster.tId   := OUTPUT_TID_G;
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
@@ -470,7 +463,7 @@ begin
                   v.eof       := '0';
                   v.tUserLast := (others => '0');
                   -- Check for BRAM or REG_EN_G used
-                  if TDEST_BITS_G > 0 and ((MEMORY_TYPE_G /= "distributed") or (REG_EN_G))  then
+                  if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                      -- Next state (1 or 2 cycle read latency)
                      v.state := IDLE_S;
                   else
@@ -509,10 +502,12 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
-         if (axisRst = '1') then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif (rising_edge(axisClk)) then
+         if (RST_ASYNC_G = false and axisRst = '1') then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -526,6 +521,7 @@ begin
    U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

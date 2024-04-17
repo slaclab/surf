@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -----------------------------------------------------------------------------
 -- Package:     i2c
 -- File:        i2c.vhd
@@ -52,6 +52,7 @@ package I2cPkg is
    constant I2C_INVALID_ADDR_ERROR_C     : slv(7 downto 0) := X"01";
    constant I2C_WRITE_ACK_ERROR_C        : slv(7 downto 0) := X"02";
    constant I2C_ARBITRATION_LOST_ERROR_C : slv(7 downto 0) := X"03";
+   constant I2C_TIMEOUT_ERROR_C          : slv(7 downto 0) := X"04";
 
    type I2cMasterInType is record
       enable   : sl;                    -- Enable the master

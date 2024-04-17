@@ -4,11 +4,11 @@
 -- Description: Wrapper for Xilinx 7-series GTX primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -224,14 +224,14 @@ entity Gtx7Core is
       txCharIsKIn    : in  slv((TX_EXT_DATA_WIDTH_G/8)-1 downto 0);
       txBufStatusOut : out slv(1 downto 0);
       txPolarityIn   : in  sl               := '0';
-      -- Debug Interface   
+      -- Debug Interface
       txPowerDown    : in  slv(1 downto 0)  := "00";
       rxPowerDown    : in  slv(1 downto 0)  := "00";
       loopbackIn     : in  slv(2 downto 0)  := "000";
       txPreCursor    : in  slv(4 downto 0)  := (others => '0');
       txPostCursor   : in  slv(4 downto 0)  := (others => '0');
       txDiffCtrl     : in  slv(3 downto 0)  := "1000";
-      -- DRP Interface (drpClk Domain)      
+      -- DRP Interface (drpClk Domain)
       drpClk         : in  sl               := '0';
       drpRdy         : out sl;
       drpEn          : in  sl               := '0';
@@ -321,6 +321,7 @@ architecture rtl of Gtx7Core is
 
    signal rxUserResetInt : sl;
    signal rxFsmResetDone : sl;
+   signal rxResetDoneAll : sl;
    signal rxRstTxUserRdy : sl;          --
 
    signal rxRecClkStable         : sl;
@@ -466,7 +467,7 @@ begin
    -- 7. Wait gtRxResetDone
    -- 8. Do phase alignment if necessary
    -- 9. Wait DATA_VALID (aligned) - 100 us
-   --10. Wait 1 us, Set rxFsmResetDone. 
+   --10. Wait 1 us, Set rxFsmResetDone.
    --------------------------------------------------------------------------------------------------
    Gtx7RxRst_Inst : entity surf.Gtx7RxRst
       generic map (
@@ -505,6 +506,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
+   rxResetDoneAll <= rxResetDone and rxFsmResetDone;
    RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
@@ -512,7 +514,7 @@ begin
          OUT_POLARITY_G => '0')
       port map (
          clk      => rxUsrClkIn,
-         asyncRst => rxFsmResetDone,
+         asyncRst => rxResetDoneAll,
          syncRst  => rxResetDoneOut);   -- Output
 
    -------------------------------------------------------------------------------------------------
@@ -828,7 +830,7 @@ begin
 
          ---------------------------PMA Attributes----------------------------
          OUTREFCLK_SEL_INV => ("11"),          -- ??
-         PMA_RSV           => PMA_RSV_G,       -- 
+         PMA_RSV           => PMA_RSV_G,       --
          PMA_RSV2          => (x"2070"),
          PMA_RSV3          => ("00"),
          PMA_RSV4          => (x"00000000"),

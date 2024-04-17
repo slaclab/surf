@@ -4,11 +4,11 @@
 -- Description: 10GbE Reset Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ entity TenGigEthRst is
       rstCntDone  : out sl;
       -- Quad PLL Ports
       qplllock    : in  sl;
-      qpllRst     : out sl);      
+      qpllRst     : out sl);
 end TenGigEthRst;
 
 architecture rtl of TenGigEthRst is
@@ -80,7 +80,7 @@ begin
          clk     => txClock,
          rst     => qPllLock,
          dataIn  => '1',
-         dataOut => txReady);           
+         dataOut => txReady);
 
    Synchronizer_2 : entity surf.Synchronizer
       generic map(
@@ -93,7 +93,7 @@ begin
          clk     => txClock,
          rst     => rstPulse(0),
          dataIn  => '0',
-         dataOut => txReset);  
+         dataOut => txReset);
 
    process(phyClk)
    begin

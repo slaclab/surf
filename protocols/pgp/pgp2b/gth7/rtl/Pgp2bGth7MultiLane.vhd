@@ -6,11 +6,11 @@
 -- Description: Gth7 Variable Latency, multi-lane Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -116,17 +116,17 @@ entity Pgp2bGth7MultiLane is
       pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
       pgpRxMasterMuxed : out AxiStreamMasterType;
       pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
-      -- Debug Interface 
+      -- Debug Interface
       txPreCursor      : in  slv(4 downto 0)                                  := (others => '0');
       txPostCursor     : in  slv(4 downto 0)                                  := (others => '0');
       txDiffCtrl       : in  slv(3 downto 0)                                  := "1000";
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk          : in  sl                                               := '0';
       axilRst          : in  sl                                               := '0';
       axilReadMasters  : in  AxiLiteReadMasterArray((LANE_CNT_G-1) downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
       axilReadSlaves   : out AxiLiteReadSlaveArray((LANE_CNT_G-1) downto 0);
       axilWriteMasters : in  AxiLiteWriteMasterArray((LANE_CNT_G-1) downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
-      axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));    
+      axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));
 end Pgp2bGth7MultiLane;
 
 -- Define architecture
@@ -169,7 +169,7 @@ architecture rtl of Pgp2bGth7MultiLane is
    signal drpAddr   : Slv9Array(LANE_CNT_G-1 downto 0);
    signal drpDi     : Slv16Array(LANE_CNT_G-1 downto 0);
    signal drpDo     : Slv16Array(LANE_CNT_G-1 downto 0);
-   
+
 begin
 
    gtQPllReset    <= gtQPllResets(0);
@@ -374,7 +374,7 @@ begin
             drpWe            => drpWe(i),
             drpAddr          => drpAddr(i),
             drpDi            => drpDi(i),
-            drpDo            => drpDo(i));            
+            drpDo            => drpDo(i));
 
       U_AxiLiteToDrp : entity surf.AxiLiteToDrp
          generic map (
@@ -383,7 +383,7 @@ begin
             EN_ARBITRATION_G => true,
             TIMEOUT_G        => 4096,
             ADDR_WIDTH_G     => 9,
-            DATA_WIDTH_G     => 16)      
+            DATA_WIDTH_G     => 16)
          port map (
             -- AXI-Lite Port
             axilClk         => axilClk,
@@ -401,16 +401,16 @@ begin
             drpWe           => drpWe(i),
             drpAddr         => drpAddr(i),
             drpDi           => drpDi(i),
-            drpDo           => drpDo(i));            
+            drpDo           => drpDo(i));
 
    end generate GTH7_CORE_GEN;
 
    U_RstSync : entity surf.RstSync
       generic map (
-         TPD_G => TPD_G)      
+         TPD_G => TPD_G)
       port map (
          clk      => stableClk,
          asyncRst => axilRst,
-         syncRst  => stableRst);     
+         syncRst  => stableRst);
 
 end rtl;

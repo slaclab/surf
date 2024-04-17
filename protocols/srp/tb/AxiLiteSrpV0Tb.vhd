@@ -4,11 +4,11 @@
 -- Description: Simulation testbed for AxiLiteSrpV0
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -42,26 +43,26 @@ architecture tb of AxiLiteSrpV0Tb is
    constant GEN_SYNC_FIFO_G     : boolean                    := false;
    constant FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
    constant FIFO_PAUSE_THRESH_G : integer range 1 to (2**24) := 2**8;
-   constant AXI_STREAM_CONFIG_G : AxiStreamConfigType        := ssiAxiStreamConfig(4);
+   constant AXI_STREAM_CONFIG_G : AxiStreamConfigType        := EMAC_AXIS_CONFIG_C;
 
    -- component ports
-   signal axisClk            : sl;                                                      -- [in]
-   signal axisRst            : sl                     := '0';                           -- [in]
-   signal txAxisMaster       : AxiStreamMasterType;                                     -- [out]
-   signal txAxisSlave        : AxiStreamSlaveType;                                      -- [in]
-   signal rxAxisMaster       : AxiStreamMasterType;                                     -- [in]
-   signal rxAxisSlave        : AxiStreamSlaveType;                                      -- [out]
-   signal rxAxisCtrl         : AxiStreamCtrlType;                                       -- [out]
-   signal axilClk            : sl;                                                      -- [in]
-   signal axilRst            : sl;                                                      -- [in]
+   signal axisClk            : sl;      -- [in]
+   signal axisRst            : sl                     := '0';  -- [in]
+   signal txAxisMaster       : AxiStreamMasterType;            -- [out]
+   signal txAxisSlave        : AxiStreamSlaveType;             -- [in]
+   signal rxAxisMaster       : AxiStreamMasterType;            -- [in]
+   signal rxAxisSlave        : AxiStreamSlaveType;             -- [out]
+   signal rxAxisCtrl         : AxiStreamCtrlType;              -- [out]
+   signal axilClk            : sl;      -- [in]
+   signal axilRst            : sl;      -- [in]
    signal uutAxilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [in]
-   signal uutAxilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;   -- [out]
-   signal uutAxilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;   -- [in]
-   signal uutAxilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;    -- [out]
+   signal uutAxilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;  -- [out]
+   signal uutAxilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [in]
+   signal uutAxilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;  -- [out]
    signal srpAxilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [in]
-   signal srpAxilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;   -- [out]
-   signal srpAxilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;   -- [in]
-   signal srpAxilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;    -- [out]
+   signal srpAxilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;  -- [out]
+   signal srpAxilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [in]
+   signal srpAxilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;  -- [out]
 
 begin
 
@@ -183,9 +184,24 @@ begin
       wait for 1 us;
 
       for i in 0 to 256 loop
-         axiLiteBusSimWrite (axilClk, uutAxilWriteMaster, uutAxilWriteSlave, toSlv(i, 32), toSlv(i, 32), true);
-         axiLiteBusSimRead (axilClk, uutAxilReadMaster, uutAxilReadSlave, toSlv(i, 32), data, true);
+
+         -- Write AXI-Lite Transaction
+         axiLiteBusSimWrite (axilClk, uutAxilWriteMaster, uutAxilWriteSlave, toSlv(4*i, 32), toSlv(i, 32), true);
+
+         -- Read AXI-Lite Transaction
+         axiLiteBusSimRead (axilClk, uutAxilReadMaster, uutAxilReadSlave, toSlv(4*i, 32), data, true);
+
+         -- Check for failure
+         if (data /= i) then
+            -- Simulation failed
+            assert false report "Simulation Failed!" severity failure;
+         end if;
+
       end loop;
+
+      -- Simulation Passed
+      assert false report "Simulation Passed!" severity failure;
+
    end process test;
 
 end architecture tb;

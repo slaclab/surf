@@ -4,11 +4,11 @@
 -- Description: AXI-Lite interface to ADS42LB69 ADC IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -28,6 +28,7 @@ entity AxiAds42lb69Core is
       TPD_G           : time                                    := 1 ns;
       SIM_SPEEDUP_G   : boolean                                 := false;
       USE_PLL_G       : boolean                                 := false;  -- true = phase compensate the ADC data bus
+      USE_FBCLK_G     : boolean                                 := true;
       ADC_CLK_FREQ_G  : real                                    := 250.00E+6;  -- units of Hz
       DMODE_INIT_G    : slv(1 downto 0)                         := "00";
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
@@ -51,7 +52,8 @@ entity AxiAds42lb69Core is
       axiRst         : in  sl;
       adcClk         : in  sl;
       adcRst         : in  sl;
-      refclk200MHz   : in  sl);
+      refClk200MHz   : in  sl;
+      refRst200MHz   : in  sl := '0');
 end AxiAds42lb69Core;
 
 architecture mapping of AxiAds42lb69Core is
@@ -128,12 +130,13 @@ begin
       generic map(
          TPD_G           => TPD_G,
          USE_PLL_G       => USE_PLL_G,
+         USE_FBCLK_G     => USE_FBCLK_G,
          ADC_CLK_FREQ_G  => ADC_CLK_FREQ_G,
          DELAY_INIT_G    => DELAY_INIT_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G,
          XIL_DEVICE_G    => XIL_DEVICE_G)
       port map (
-         -- ADC Ports  
+         -- ADC Ports
          clkP         => adcOut.clkP,
          clkN         => adcOut.clkN,
          syncP        => adcOut.syncP,
@@ -155,6 +158,7 @@ begin
          adcClk       => adcClk,
          adcRst       => adcRst,
          adcSync      => adcSync,
-         refclk200MHz => refclk200MHz);
+         refClk200MHz => refClk200MHz,
+         refRst200MHz => refRst200MHz);
 
 end mapping;

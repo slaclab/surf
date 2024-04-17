@@ -9,11 +9,11 @@
 --              Outputs (oth=>'0')If no header is addressed
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,15 +34,15 @@ entity RssiHeaderReg is
 
       SYN_HEADER_SIZE_G  : natural := 24;
       ACK_HEADER_SIZE_G  : natural := 8;
-      EACK_HEADER_SIZE_G : natural := 8;      
-      RST_HEADER_SIZE_G  : natural := 8;      
+      EACK_HEADER_SIZE_G : natural := 8;
+      RST_HEADER_SIZE_G  : natural := 8;
       NULL_HEADER_SIZE_G : natural := 8;
-      DATA_HEADER_SIZE_G : natural := 8     
+      DATA_HEADER_SIZE_G : natural := 8
    );
    port (
       clk_i      : in  sl;
       rst_i      : in  sl;
-      
+
       -- Header control inputs (must hold values while reading header)
       synHeadSt_i  : in  sl;
       rstHeadSt_i  : in  sl;
@@ -51,17 +51,17 @@ entity RssiHeaderReg is
       ackHeadSt_i  : in  sl;
       busyHeadSt_i : in  sl;
       --eackHeadSt_i : in  sl;
-         
+
       -- Ack sequence number valid
       ack_i : in sl;
-      
-      -- Header values 
+
+      -- Header values
       txSeqN_i : in slv(7 downto 0); -- Sequence number of the current packet
-      rxAckN_i : in slv(7 downto 0); -- Acknowledgment number of the recived packet handelled by receiver 
+      rxAckN_i : in slv(7 downto 0); -- Acknowledgment number of the recived packet handelled by receiver
 
       -- Negotiated or from GENERICS
       headerValues_i : in  RssiParamType;
-      
+
       -- Out of order sequence numbers from received EACK packet
       --eackSeqnArr_i  : in Slv16Array(0 to integer(ceil(real(MAX_OUT_OF_SEQUENCE_G)/2.0))-1);
       --eackN_i        : in natural;
@@ -74,23 +74,23 @@ entity RssiHeaderReg is
 end entity RssiHeaderReg;
 
 architecture rtl of RssiHeaderReg is
-  
+
    type RegType is record
       headerData :  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       rdy        :  sl;
-      
+
       -- Registered header parameters (so they don't change during the checksum calculation)
       ack        :  sl;
       busy        :  sl;
       txSeqN     :  slv(7 downto 0);
       rxAckN     :  slv(7 downto 0);
-      
+
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       headerData  => (others =>'0'),
       rdy         => '0',
-      
+
       ack        => '0',
       busy        => '0',
       txSeqN     => (others =>'0'),
@@ -99,31 +99,31 @@ architecture rtl of RssiHeaderReg is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
    signal addrInt : integer;
-   
+
 begin
-   
+
    -- Convert address to integer
    addrInt <= conv_integer(addr_i);
-   
-   -- 
+
+   --
    comb : process (r, rst_i, headerValues_i, addrInt, txSeqN_i, rxAckN_i, busyHeadSt_i,
                    synHeadSt_i, rstHeadSt_i, dataHeadSt_i, nullHeadSt_i, ackHeadSt_i, ack_i ) is
-      
+
       variable v : RegType;
-      
+
    begin
       v := r;
-      
-      -- 
+
+      --
       if (synHeadSt_i = '1') then
-         headerLength_o  <= SYN_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;    
+         headerLength_o  <= SYN_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
                v.headerData := "1" & r.ack & "000000" & toSlv(SYN_HEADER_SIZE_G, 8) &
                                txSeqN_i & r.rxAckN                                  &
-                               headerValues_i.version & '1' & headerValues_i.chksumEn & "00" & headerValues_i.maxOutsSeg &       
+                               headerValues_i.version & '1' & headerValues_i.chksumEn & "00" & headerValues_i.maxOutsSeg &
                                headerValues_i.maxSegSize;
                v.rdy := '1';
             when 16#01# =>
@@ -133,19 +133,19 @@ begin
                                headerValues_i.maxRetrans & headerValues_i.maxCumAck;
                v.rdy := '1';
             when 16#02# =>
-               v.headerData := headerValues_i.maxOutofseq & headerValues_i.timeoutUnit &           
+               v.headerData := headerValues_i.maxOutofseq & headerValues_i.timeoutUnit &
                                headerValues_i.connectionId(31 downto 16) &
                                headerValues_i.connectionId(15 downto 0)  &
                                x"00" & x"00"; -- Place for checksum
                v.rdy := '1';
             when others =>
               v.headerData := (others=> '0');
-              v.rdy        := '0';                            
+              v.rdy        := '0';
          end case;
-      elsif (rstHeadSt_i = '1') then 
-         headerLength_o  <= RST_HEADER_SIZE_G/RSSI_WORD_WIDTH_C; 
+      elsif (rstHeadSt_i = '1') then
+         headerLength_o  <= RST_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
-             
+
             when 16#00# =>
                v.headerData := "0001000" & r.busy & toSlv(RST_HEADER_SIZE_G, 8) &
                               txSeqN_i & r.rxAckN                      &
@@ -156,7 +156,7 @@ begin
               v.headerData := (others=> '0');
               v.rdy := '0';
          end case;
-      elsif (dataHeadSt_i = '1') then 
+      elsif (dataHeadSt_i = '1') then
          headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
@@ -167,9 +167,9 @@ begin
                v.rdy := '1';
             when others =>
                v.rdy := '0';
-               v.headerData := (others=> '0');    
+               v.headerData := (others=> '0');
          end case;
-      elsif (ackHeadSt_i = '1') then 
+      elsif (ackHeadSt_i = '1') then
          headerLength_o  <= DATA_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
@@ -180,12 +180,12 @@ begin
                v.rdy := '1';
             when others =>
                v.rdy := '0';
-               v.headerData := (others=> '0');    
-         end case;    
-         
-     
+               v.headerData := (others=> '0');
+         end case;
+
+
       elsif (nullHeadSt_i = '1') then
-         headerLength_o  <= NULL_HEADER_SIZE_G/RSSI_WORD_WIDTH_C; 
+         headerLength_o  <= NULL_HEADER_SIZE_G/RSSI_WORD_WIDTH_C;
          case addrInt is
             when 16#00# =>
                v.headerData :="0" & r.ack & "00100" & r.busy & toSlv(NULL_HEADER_SIZE_G, 8) &
@@ -195,7 +195,7 @@ begin
                v.rdy := '1';
             when others =>
                v.rdy := '1';
-               v.headerData := (others=> '0');   
+               v.headerData := (others=> '0');
          end case;
      -- elsif (eackHeadSt_i = '1') then
      --    case addrInt is
@@ -218,12 +218,12 @@ begin
          headerLength_o  <= 1;
          v.headerData := (others=> '0');
          v.rdy := '0';
-      end if;   
+      end if;
 
       if (rst_i = '1') then
          v := REG_INIT_C;
       end if;
-      
+
       rin <= v;
       -----------------------------------------------------------
    end process comb;

@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for the SynchronizerFifo module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ architecture testbed of SynchronizerFifoTb is
    signal wr_clk : sl := '0';
    signal rd_clk : sl := '0';
 
-   -- Test signals   
+   -- Test signals
    signal wr_en : sl;
    signal rd_en : sl;
 
@@ -109,7 +109,7 @@ begin
       wait;
    end process;
 
---*********************************************************************************--   
+--*********************************************************************************--
    SynchronizerFifo_Inst : entity surf.SynchronizerFifo
       generic map(
          DATA_WIDTH_G => DATA_WIDTH_C,
@@ -120,8 +120,8 @@ begin
          din    => din,
          rd_clk => rd_clk,
          valid  => valid,
-         dout   => dout);        
---*********************************************************************************--   
+         dout   => dout);
+--*********************************************************************************--
    WRITE_PATTERN : process(rst, wr_clk)
    begin
       if rst = '1' then

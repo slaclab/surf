@@ -4,11 +4,11 @@
 -- Description: AD5780 DAC Module's serializer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ use surf.AxiAd5780Pkg.all;
 entity AxiAd5780Ser is
    generic (
       TPD_G          : time := 1 ns;
-      AXI_CLK_FREQ_G : real := 200.0E+6);    -- units of Hz      
+      AXI_CLK_FREQ_G : real := 200.0E+6);    -- units of Hz
    port (
       -- DAC Ports
       dacIn         : in  AxiAd5780InType;
@@ -42,7 +42,7 @@ entity AxiAd5780Ser is
       -- Clocks and Resets
       axiClk        : in  sl;
       axiRst        : in  sl;
-      dacRst        : in  sl); 
+      dacRst        : in  sl);
 end AxiAd5780Ser;
 
 architecture rtl of AxiAd5780Ser is
@@ -77,10 +77,10 @@ architecture rtl of AxiAd5780Ser is
       (others => '0'),
       0,
       (others => '0'),
-      RST_S); 
+      RST_S);
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   
+
 begin
 
    comb : process (binaryOffset, dacData, dacRst, dacTriState, halfSckPeriod, opGnd, r, rbuf,
@@ -135,8 +135,8 @@ begin
                   v.reg(4)            := binaryOffset;     -- BIN/2sC: use 2's complement
                   v.reg(3)            := dacTriState;  -- DACTRI: put DAC into normal operating mode
                   v.reg(2)            := opGnd;        -- OPGND: put DAC into normal operating mode
-                  v.reg(1)            := rbuf;         -- RBUF: Unity-Gain Configuration 
-                  v.reg(0)            := '0';  -- Reserved: reserved should be set to zero             
+                  v.reg(1)            := rbuf;         -- RBUF: Unity-Gain Configuration
+                  v.reg(0)            := '0';  -- Reserved: reserved should be set to zero
                   -- Set the chip select flag
                   v.csL               := '0';
                   -- Preset the counter
@@ -232,7 +232,7 @@ begin
       dacOut.dacLdac <= '0';
       dacOut.dacClr  <= '1';
       dacOut.dacRst  <= r.rstL;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -241,5 +241,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

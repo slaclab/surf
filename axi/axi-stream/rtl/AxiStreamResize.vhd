@@ -2,15 +2,15 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Block to resize AXI Streams. Re-sizing is always little endian. 
+-- Block to resize AXI Streams. Re-sizing is always little endian.
 -- Resizer should not be used when interleaving tDests
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,23 +19,22 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
 entity AxiStreamResize is
    generic (
-
       -- General Configurations
-      TPD_G         : time    := 1 ns;
-      READY_EN_G    : boolean := true;
-      PIPE_STAGES_G : natural := 0;
+      TPD_G             : time     := 1 ns;
+      RST_ASYNC_G       : boolean  := false;
+      READY_EN_G        : boolean  := true;
+      PIPE_STAGES_G     : natural  := 0;
+      SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
 
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C
-      );
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
 
       -- Clock and reset
@@ -44,12 +43,13 @@ entity AxiStreamResize is
 
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
+      sSideBand   : in  slv(SIDE_BAND_WIDTH_G-1 downto 0) := (others => '0');
       sAxisSlave  : out AxiStreamSlaveType;
 
       -- Master Port
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType
-      );
+      mSideBand   : out slv(SIDE_BAND_WIDTH_G-1 downto 0);
+      mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamResize;
 
 architecture rtl of AxiStreamResize is
@@ -65,12 +65,14 @@ architecture rtl of AxiStreamResize is
    type RegType is record
       count    : slv(bitSize(COUNT_C)-1 downto 0);
       obMaster : AxiStreamMasterType;
+      sideBand : slv(SIDE_BAND_WIDTH_G-1 downto 0);
       ibSlave  : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       count    => (others => '0'),
       obMaster => axiStreamMasterInit(MASTER_AXI_CONFIG_G),
+      sideBand => (others => '0'),
       ibSlave  => AXI_STREAM_SLAVE_INIT_C
       );
 
@@ -78,11 +80,12 @@ architecture rtl of AxiStreamResize is
    signal rin : RegType;
 
    signal pipeAxisMaster : AxiStreamMasterType;
+   signal pipeSideBand   : slv(SIDE_BAND_WIDTH_G-1 downto 0);
    signal pipeAxisSlave  : AxiStreamSlaveType;
 
 begin
 
-   -- Make sure data widths are appropriate. 
+   -- Make sure data widths are appropriate.
    assert ((SLV_BYTES_C >= MST_BYTES_C and SLV_BYTES_C mod MST_BYTES_C = 0) or
            (MST_BYTES_C >= SLV_BYTES_C and MST_BYTES_C mod SLV_BYTES_C = 0))
       report "Data widths must be even number multiples of each other" severity failure;
@@ -94,12 +97,13 @@ begin
    -- Cant use tkeep_fixed on master side when resizing or if not on slave side
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
-      report "AxiStreamFifoV2: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
+      report "AxiStreamResize: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
       severity error;
 
-   comb : process (pipeAxisSlave, r, sAxisMaster) is
+   comb : process (pipeAxisSlave, r, sAxisMaster, sSideBand) is
       variable v       : RegType;
       variable ibM     : AxiStreamMasterType;
+      variable ibSide  : slv(SIDE_BAND_WIDTH_G-1 downto 0);
       variable idx     : integer;       -- index version of counter
       variable byteCnt : integer;  -- Number of valid bytes in incoming bus
       variable bytes   : integer;       -- byte version of counter
@@ -123,6 +127,7 @@ begin
 
       -- Inbound data with normalized user bits (8 user bits)
       ibM       := sAxisMaster;
+      ibSide    := sSideBand;
       ibM.tUser := (others => '0');
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
          ibM.tKeep := genTKeep(byteCnt);
@@ -161,6 +166,7 @@ begin
             v.obMaster.tId   := ibM.tId;
             v.obMaster.tDest := ibM.tDest;
             v.obMaster.tLast := ibM.tLast;
+            v.sideBand       := ibSide;
 
             -- Determine if we move data
             if ibM.tValid = '1' then
@@ -184,6 +190,7 @@ begin
 
             v.obMaster.tId   := ibM.tId;
             v.obMaster.tDest := ibM.tDest;
+            v.sideBand       := ibSide;
 
             -- Determine if we move data
             if ibM.tValid = '1' then
@@ -208,6 +215,7 @@ begin
       if SLV_BYTES_C = MST_BYTES_C then
          sAxisSlave     <= pipeAxisSlave;
          pipeAxisMaster <= sAxisMaster;
+         pipeSideBand   <= sSideBand;
 
          -- Check for TKEEP_COUNT_C mode on either side
          if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) or (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
@@ -241,6 +249,7 @@ begin
 
          -- Outbound data with proper user bits
          pipeAxisMaster       <= r.obMaster;
+         pipeSideBand         <= r.sideBand;
          pipeAxisMaster.tUser <= (others => '0');
          if (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
             pipeAxisMaster.tKeep <= toSlv(getTKeep(r.obMaster.tKeep, MASTER_AXI_CONFIG_G), AXI_STREAM_MAX_TKEEP_WIDTH_C);
@@ -255,10 +264,12 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
-         if axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C) then
+      if (RST_ASYNC_G) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+         r <= REG_INIT_C after TPD_G;
+      elsif (rising_edge(axisClk)) then
+         if (RST_ASYNC_G = false) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -269,14 +280,18 @@ begin
    -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G             => TPD_G,
+         RST_ASYNC_G       => RST_ASYNC_G,
+         SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
+         PIPE_STAGES_G     => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
          sAxisMaster => pipeAxisMaster,
+         sSideBand   => pipeSideBand,
          sAxisSlave  => pipeAxisSlave,
          mAxisMaster => mAxisMaster,
+         mSideBand   => mSideBand,
          mAxisSlave  => mAxisSlave);
 
 end rtl;

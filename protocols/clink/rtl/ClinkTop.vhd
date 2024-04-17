@@ -5,11 +5,11 @@
 -- CameraLink Top Level
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,8 +34,8 @@ entity ClinkTop is
       UART_READY_EN_G    : boolean              := true;
       COMMON_AXIL_CLK_G  : boolean              := false;  -- true if axilClk=sysClk
       COMMON_DATA_CLK_G  : boolean              := false;  -- true if dataClk=sysClk
-      DATA_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType  := AXI_STREAM_CONFIG_INIT_C;
+      DATA_AXIS_CONFIG_G : AxiStreamConfigType;
+      UART_AXIS_CONFIG_G : AxiStreamConfigType;
       AXIL_BASE_ADDR_G   : slv(31 downto 0));
    port (
       -- Connector 0, Half 0, Control for Base,Medium,Full,Deca
@@ -158,7 +158,7 @@ begin
 
    --------------------------
    -- AXI-Lite: Crossbar Core
-   --------------------------  
+   --------------------------
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
          TPD_G              => TPD_G,
@@ -244,7 +244,7 @@ begin
          parData         => parData(0),
          parValid        => parValid(0),
          parReady        => frameReady(0),
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilReadMaster  => axilReadMasters(DRP0_INDEX_C),
          axilReadSlave   => axilReadSlaves(DRP0_INDEX_C),
          axilWriteMaster => axilWriteMasters(DRP0_INDEX_C),
@@ -295,7 +295,7 @@ begin
             ADDR_WIDTH_G => 7,
             DATA_WIDTH_G => 16)
          port map (
-            -- AXI-Lite Interface 
+            -- AXI-Lite Interface
             axiClk         => sysClk,
             axiRst         => sysRst,
             axiReadMaster  => axilReadMasters(DRP2_INDEX_C),
@@ -327,7 +327,7 @@ begin
             parData         => parData(2),
             parValid        => parValid(2),
             parReady        => frameReady(0),
-            -- AXI-Lite Interface 
+            -- AXI-Lite Interface
             axilReadMaster  => axilReadMasters(DRP2_INDEX_C),
             axilReadSlave   => axilReadSlaves(DRP2_INDEX_C),
             axilWriteMaster => axilWriteMasters(DRP2_INDEX_C),
@@ -335,7 +335,7 @@ begin
 
       -----------------
       -- Unused signals
-      -----------------            
+      -----------------
       U_SerOut : OBUFDS
          port map (
             I  => '0',
@@ -361,7 +361,7 @@ begin
          parData         => parData(1),
          parValid        => parValid(1),
          parReady        => frameReady(1),
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          axilReadMaster  => axilReadMasters(DRP1_INDEX_C),
          axilReadSlave   => axilReadSlaves(DRP1_INDEX_C),
          axilWriteMaster => axilWriteMasters(DRP1_INDEX_C),

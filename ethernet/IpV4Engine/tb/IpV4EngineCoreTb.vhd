@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for testing the IpV4EngineCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ architecture rtl of IpV4EngineCoreTb is
       IDLE_S,
       ARP_S,
       UDP_S,
-      DONE_S); 
+      DONE_S);
 
    type RegType is record
       passed           : sl;
@@ -108,7 +108,7 @@ architecture rtl of IpV4EngineCoreTb is
       ibProtocolSlave  => AXI_STREAM_SLAVE_INIT_C,
       arpReqMaster     => AXI_STREAM_MASTER_INIT_C,
       arpAckSlave      => AXI_STREAM_SLAVE_INIT_C,
-      state            => IDLE_S);      
+      state            => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -310,7 +310,7 @@ begin
             v.timer  := x"0000";
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       arpAckSlave     <= v.arpAckSlave;
       ibProtocolSlave <= v.ibProtocolSlave;
@@ -323,7 +323,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs    
+      -- Registered Outputs
       arpReqMaster     <= r.arpReqMaster;
       obProtocolMaster <= r.obProtocolMaster;
       passed           <= r.passedDly;
@@ -337,5 +337,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   
+
 end rtl;

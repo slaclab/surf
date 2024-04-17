@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Cell Receive interface module for the Pretty Good Protocol core. 
+-- Cell Receive interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 
-entity Pgp2bRxCell is 
+entity Pgp2bRxCell is
    generic (
       TPD_G             : time                 := 1 ns;
       RX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-2
@@ -236,7 +236,7 @@ begin
             intCrcRxValid <= '0'           after TPD_G;
          elsif pgpRxClkEn = '1' then
             -- Shift when not paused
-            if cellRxPause = '0' then 
+            if cellRxPause = '0' then
 
                -- Delay stage 0
                dly0SOC   <= cellRxSOC    after TPD_G;
@@ -253,7 +253,7 @@ begin
                dly1EOF   <= dly0EOF     after TPD_G;
                dly1EOFE  <= dly0EOFE    after TPD_G;
                dly1Data  <= dly0Data    after TPD_G;
-              
+
                -- Delay stage 2
                dly2SOC   <= dly1SOC     after TPD_G;
                dly2SOF   <= dly1SOF     after TPD_G;
@@ -320,7 +320,7 @@ begin
       process ( dly0SOC, dly0Data ) begin
          if dly0SOC = '1' then
             crcRxIn(i*16+7 downto i*16) <= (others=>'0');
-         else 
+         else
             crcRxIn(i*16+7 downto i*16) <= dly0Data(i*16+7 downto i*16);
          end if;
          crcRxIn(i*16+15 downto i*16+8) <= dly0Data(i*16+15 downto i*16+8);
@@ -339,7 +339,7 @@ begin
    compSOC  <= dly6SOC;
    compData <= dly6Data;
 
-   -- SOC detect position, 
+   -- SOC detect position,
    detSOC   <= dly7SOC;
    detSOF   <= dly7SOF;
    outData  <= dly7Data;
@@ -383,7 +383,7 @@ begin
             elsif cellRxPause = '0' then
 
                -- SOC for compare
-               if compSOC = '1' then 
+               if compSOC = '1' then
 
                   -- Register VC value
                   currVc <= compData(15 downto 14) after TPD_G;
@@ -392,10 +392,10 @@ begin
                   case compData(15 downto 14) is
 
                      -- VC 0
-                     when "00" => 
-                        if compData(13 downto 8) = vc0Serial then 
-                           serErr <= '0' after TPD_G; 
-                        else 
+                     when "00" =>
+                        if compData(13 downto 8) = vc0Serial then
+                           serErr <= '0' after TPD_G;
+                        else
                            vc0Serial <= compData(13 downto 8) after TPD_G;
                            serErr    <= vc0Valid              after TPD_G;
                         end if;
@@ -403,9 +403,9 @@ begin
 
                      -- VC 1
                      when "01" =>
-                        if compData(13 downto 8) = vc1Serial then 
-                           serErr <= '0' after TPD_G; 
-                        else 
+                        if compData(13 downto 8) = vc1Serial then
+                           serErr <= '0' after TPD_G;
+                        else
                            vc1Serial <= compData(13 downto 8) after TPD_G;
                            serErr    <= vc1Valid              after TPD_G;
                         end if;
@@ -413,9 +413,9 @@ begin
 
                      -- VC 2
                      when "10" =>
-                        if compData(13 downto 8) = vc2Serial then 
-                           serErr <= '0' after TPD_G; 
-                        else 
+                        if compData(13 downto 8) = vc2Serial then
+                           serErr <= '0' after TPD_G;
+                        else
                            vc2Serial <= compData(13 downto 8) after TPD_G;
                            serErr    <= vc2Valid              after TPD_G;
                         end if;
@@ -423,9 +423,9 @@ begin
 
                      -- VC 3
                      when others =>
-                        if compData(13 downto 8) = vc3Serial then 
-                           serErr <= '0' after TPD_G; 
-                        else 
+                        if compData(13 downto 8) = vc3Serial then
+                           serErr <= '0' after TPD_G;
+                        else
                            vc3Serial <= compData(13 downto 8) after TPD_G;
                            serErr    <= vc3Valid              after TPD_G;
                         end if;
@@ -433,7 +433,7 @@ begin
                   end case;
 
                -- SOC for increment
-               elsif detSOC = '1' then 
+               elsif detSOC = '1' then
                   case currVc is
                      when "00"   => vc0Serial <= vc0Serial + 1 after TPD_G;
                      when "01"   => vc1Serial <= vc1Serial + 1 after TPD_G;
@@ -472,7 +472,7 @@ begin
             pgpRxCellError <= intCellError and not dlyCellError after TPD_G;
 
             -- CRC Error
-            if crcRxOut = 0 then 
+            if crcRxOut = 0 then
                crcNotZero <= '0' after TPD_G;
             else
                crcNotZero <= '1' after TPD_G;
@@ -500,7 +500,7 @@ begin
                -- Enabled every 4 clocks to ensure proper spacing between generated EOFs
                if linkDownCnt(1 downto 0) = "11" then
 
-                  -- VC is active 
+                  -- VC is active
                   if vcInFrame(conv_integer(linkDownCnt(3 downto 2))) = '1' then
                      abortEn <= '1' after TPD_G;
                      vcInFrame(conv_integer(linkDownCnt(3 downto 2))) <= '0' after TPD_G;
@@ -524,7 +524,7 @@ begin
                intCellError <= '0' after TPD_G;
 
             -- Link is ready
-            else 
+            else
 
                -- Clear abort flags
                abortVc <= (others=>'0') after TPD_G;
@@ -541,7 +541,7 @@ begin
                   if detSOC = '1' then
 
                      -- Do we output data and mark in frame?
-                     -- Yes if SOF is set 
+                     -- Yes if SOF is set
                      -- Yes if already in frame
                      if nxtCellEn = '1' then
                         inCellEn                        <= '1' after TPD_G;
@@ -560,8 +560,8 @@ begin
                      if vcInFrame(conv_integer(currVc)) = '1' and (detSOF = '1' or serErr = '1') then
                         inCellSerErr <= '1' after TPD_G;
                      end if;
-                  
-                  -- Mark out of cell after EOC 
+
+                  -- Mark out of cell after EOC
                   elsif inCellEOC = '1' then
                      inCellEn     <= '0' after TPD_G;
                      inCellSerErr <= '0' after TPD_G;
@@ -615,7 +615,7 @@ begin
    -- Do we output data and mark in frame?
    -- Yes if SOF is set
    -- Yes if already in frame
-   nxtCellEn <= '1' when (detSOF = '1' or vcInFrame(conv_integer(currVc)) = '1') else '0'; 
+   nxtCellEn <= '1' when (detSOF = '1' or vcInFrame(conv_integer(currVc)) = '1') else '0';
 
 
    -- Data Output
@@ -693,7 +693,7 @@ begin
                vcFrameRxEOFE  <= inCellEOFE after TPD_G;
 
             -- Paused or no data
-            else 
+            else
                vc0FrameRxValid <= '0' after TPD_G;
                vc1FrameRxValid <= '0' after TPD_G;
                vc2FrameRxValid <= '0' after TPD_G;
@@ -728,7 +728,7 @@ begin
                vc3RemAlmostFull <= '1' after TPD_G;
                vc3RemOverflow   <= '0' after TPD_G;
 
-            -- Update buffer status 
+            -- Update buffer status
             elsif cellRxEOC = '1' then
                vc0RemAlmostFull <= cellRxData(8)  after TPD_G;
                vc0RemOverflow   <= cellRxData(12) after TPD_G;

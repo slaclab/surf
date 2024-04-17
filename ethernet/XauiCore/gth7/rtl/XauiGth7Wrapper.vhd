@@ -4,11 +4,11 @@
 -- Description: Gth7 Wrapper for 10 GigE XAUI
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -29,6 +29,7 @@ use unisim.vcomponents.all;
 entity XauiGth7Wrapper is
    generic (
       TPD_G           : time                := 1 ns;
+      JUMBO_G         : boolean             := true;
       PAUSE_EN_G      : boolean             := true;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G  : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
@@ -40,14 +41,14 @@ entity XauiGth7Wrapper is
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -95,6 +96,7 @@ begin
    XauiGth7_Inst : entity surf.XauiGth7
       generic map (
          TPD_G           => TPD_G,
+         JUMBO_G         => JUMBO_G,
          PAUSE_EN_G      => PAUSE_EN_G,
          -- AXI-Lite Configurations
          EN_AXI_REG_G    => EN_AXI_REG_G,
@@ -110,7 +112,7 @@ begin
          dmaIbSlave         => dmaIbSlave,
          dmaObMaster        => dmaObMaster,
          dmaObSlave         => dmaObSlave,
-         -- Slave AXI-Lite Interface 
+         -- Slave AXI-Lite Interface
          axiLiteClk         => axiLiteClk,
          axiLiteRst         => axiLiteRst,
          axiLiteReadMaster  => axiLiteReadMaster,

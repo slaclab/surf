@@ -5,16 +5,16 @@
 --              given clock.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -24,7 +24,7 @@ entity RstSync is
       TPD_G           : time                             := 1 ns;   -- Simulation FF output delay
       IN_POLARITY_G   : sl                               := '1';  -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : sl                               := '1';
-      BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration   
+      BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration
       RELEASE_DELAY_G : integer range 3 to positive'high := 3;  -- Delay between deassertion of async and sync resets
       OUT_REG_RST_G   : boolean                          := true);  -- Apply async reset to final reg stage
    port (

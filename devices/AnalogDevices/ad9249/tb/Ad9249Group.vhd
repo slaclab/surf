@@ -4,11 +4,11 @@
 -- Description: AD9249 Group Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -32,8 +32,8 @@ entity Ad9249Group is
       CLK_PERIOD_G     : time    := 24 ns;
       DIVCLK_DIVIDE_G  : integer := 1;
       CLKFBOUT_MULT_G  : integer := 49;
-      CLK_DCO_DIVIDE_G : integer := 49;
-      CLK_FCO_DIVIDE_G : integer := 7);
+      CLK_DCO_DIVIDE_G : integer := 7;
+      CLK_FCO_DIVIDE_G : integer := 49);
 
    port (
       clk : in sl;
@@ -230,31 +230,32 @@ begin
    -- Use a clock manager to create the serial clock
    -- There's probably a better way but this works.
    -------------------------------------------------------------------------------------------------
-   U_CtrlClockManager7 : entity surf.ClockManager7
-      generic map (
-         TPD_G            => TPD_G,
-         TYPE_G           => "MMCM",
-         INPUT_BUFG_G     => false,
-         FB_BUFG_G        => true,
-         NUM_CLOCKS_G     => 4,
-         BANDWIDTH_G      => "HIGH",
-         CLKIN_PERIOD_G   => CLK_PERIOD_C,
-         DIVCLK_DIVIDE_G  => DIVCLK_DIVIDE_G,
-         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
-         CLKOUT0_DIVIDE_G => CLK_FCO_DIVIDE_G,
-         CLKOUT1_DIVIDE_G => CLK_DCO_DIVIDE_G,
-         CLKOUT2_DIVIDE_G => CLK_DCO_DIVIDE_G,
-         CLKOUT2_PHASE_G  => 90.0,
-         CLKOUT3_DIVIDE_G => CLK_FCO_DIVIDE_G,
-         CLKOUT3_PHASE_G  => 257.143)
-      port map (
-         clkIn     => clk,
-         rstIn     => pllRst,
-         clkOut(0) => fClk,
-         clkOut(1) => dClk,
-         clkOut(2) => dco,
-         clkOut(3) => fco,
-         locked    => locked);
+      U_CtrlClockManager7 : entity surf.ClockManager7
+         generic map (
+            TPD_G            => TPD_G,
+            TYPE_G           => "PLL",
+            INPUT_BUFG_G     => false,
+            FB_BUFG_G        => true,
+            NUM_CLOCKS_G     => 4,
+            BANDWIDTH_G      => "HIGH",
+            CLKIN_PERIOD_G   => CLK_PERIOD_C,
+            DIVCLK_DIVIDE_G  => DIVCLK_DIVIDE_G,
+            CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
+            CLKOUT0_DIVIDE_G => CLK_FCO_DIVIDE_G,
+            CLKOUT1_DIVIDE_G => CLK_DCO_DIVIDE_G,
+            CLKOUT2_DIVIDE_G => CLK_DCO_DIVIDE_G,
+            CLKOUT2_PHASE_G  => 90.0,
+            CLKOUT3_DIVIDE_G => CLK_FCO_DIVIDE_G,
+            CLKOUT3_PHASE_G  => 257.143)
+         port map (
+            clkIn     => clk,
+            rstIn     => pllRst,
+            clkOut(0) => fClk,
+            clkOut(1) => dClk,
+            clkOut(2) => dco,
+            clkOut(3) => fco,
+            locked    => locked);
+
 
 
    RstSync_1 : entity surf.RstSync

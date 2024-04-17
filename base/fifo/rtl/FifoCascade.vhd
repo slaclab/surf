@@ -4,18 +4,17 @@
 -- Description: Wrapper for cascading FWFT FIFOs together
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -33,7 +32,7 @@ entity FifoCascade is
       GEN_SYNC_FIFO_G    : boolean                    := false;
       FWFT_EN_G          : boolean                    := false;
       SYNTH_MODE_G       : string                     := "inferred";
-      MEMORY_TYPE_G      : string                     := "block";      
+      MEMORY_TYPE_G      : string                     := "block";
       SYNC_STAGES_G      : integer range 3 to (2**24) := 3;
       PIPE_STAGES_G      : natural range 0 to 16      := 0;
       DATA_WIDTH_G       : integer range 1 to (2**24) := 16;
@@ -92,7 +91,7 @@ begin
    -----------------------------------------------------------------
 
    ONE_STAGE : if (CASCADE_SIZE_G = 1) generate
-      
+
       prog_full      <= progFull;
       progFullVec(0) <= progFull;
 
@@ -135,16 +134,16 @@ begin
             underflow     => underflow,
             prog_empty    => prog_empty,
             almost_empty  => almost_empty,
-            empty         => empty);   
+            empty         => empty);
 
    end generate;
 
    -----------------------------------------------------------------
    -----------------------------------------------------------------
-   -----------------------------------------------------------------   
+   -----------------------------------------------------------------
 
    TWO_STAGE : if (CASCADE_SIZE_G >= 2) generate
-      
+
       prog_full                     <= progFull;
       progFullVec(CASCADE_SIZE_G-1) <= progFull;
 
@@ -156,7 +155,7 @@ begin
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_FIRST_C,
             FWFT_EN_G       => true,
             SYNTH_MODE_G    => SYNTH_MODE_G,
-            MEMORY_TYPE_G   => MEMORY_TYPE_G,            
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -189,7 +188,7 @@ begin
 
          GEN_MULTI_STAGE :
          for i in (CASCADE_SIZE_G-2) downto 1 generate
-            
+
             Fifo_Middle_Stage : entity surf.Fifo
                generic map (
                   TPD_G           => TPD_G,
@@ -198,7 +197,7 @@ begin
                   GEN_SYNC_FIFO_G => true,
                   FWFT_EN_G       => true,
                   SYNTH_MODE_G    => SYNTH_MODE_G,
-                  MEMORY_TYPE_G   => MEMORY_TYPE_G,                  
+                  MEMORY_TYPE_G   => MEMORY_TYPE_G,
                   SYNC_STAGES_G   => SYNC_STAGES_G,
                   PIPE_STAGES_G   => PIPE_STAGES_G,
                   DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -219,9 +218,9 @@ begin
                   rd_clk      => cascadeClk,
                   rd_en       => readJump(i-1),
                   dout        => dataJump(i-1),
-                  valid       => validJump(i-1)); 
+                  valid       => validJump(i-1));
             readJump(i-1) <= validJump(i-1) and not AFullJump(i-1);
-            
+
          end generate GEN_MULTI_STAGE;
       end generate;
 
@@ -233,7 +232,7 @@ begin
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_LAST_C,
             FWFT_EN_G       => FWFT_EN_G,
             SYNTH_MODE_G    => SYNTH_MODE_G,
-            MEMORY_TYPE_G   => MEMORY_TYPE_G,            
+            MEMORY_TYPE_G   => MEMORY_TYPE_G,
             SYNC_STAGES_G   => SYNC_STAGES_G,
             PIPE_STAGES_G   => PIPE_STAGES_G,
             DATA_WIDTH_G    => DATA_WIDTH_G,
@@ -259,8 +258,8 @@ begin
             underflow     => underflow,
             prog_empty    => prog_empty,
             almost_empty  => almost_empty,
-            empty         => empty);                
+            empty         => empty);
 
    end generate;
-   
+
 end architecture mapping;

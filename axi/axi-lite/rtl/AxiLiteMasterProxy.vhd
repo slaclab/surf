@@ -3,18 +3,18 @@
 -------------------------------------------------------------------------------
 -- Description: A Proxy module for sending transactions on an AXI-Lite bus.
 --
--- Usefull for situations with long transactions times, such as when the
--- AXI-Lite bus is bridged to I2C. In this case, the AXI-Lite bus Master 
--- could be locked out for some time while waiting for the I2C transaction to 
+-- Useful for situations with long transactions times, such as when the
+-- AXI-Lite bus is bridged to I2C. In this case, the AXI-Lite bus Master
+-- could be locked out for some time while waiting for the I2C transaction to
 -- complete. This module allows the transaction to be kicked off and then the
 -- response to be polled for later.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,15 +22,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity AxiLiteMasterProxy is
+   generic (
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false);
    port (
       -- Clocks and Resets
       axiClk          : in    sl;
@@ -50,7 +49,7 @@ end AxiLiteMasterProxy;
 architecture mapping of AxiLiteMasterProxy is
 
    type StateType is ( READY_S, ACK_S );
-   
+
    type RegType is record
       sAxiWriteSlave  : AxiLiteWriteSlaveType;
       sAxiReadSlave   : AxiLiteReadSlaveType;
@@ -88,9 +87,9 @@ begin
       -- Latch the current value
       v := r;
 
-      ------------------------      
+      ------------------------
       -- AXI-Lite Transactions
-      ------------------------ 
+      ------------------------
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, sAxiWriteMaster, sAxiReadMaster, v.sAxiWriteSlave, v.sAxiReadSlave);
@@ -102,7 +101,7 @@ begin
       axiSlaveRegister (axilEp,  X"0C", 0, v.data);
       newCmd := '0';
       axiWrDetect     (axilEp,  X"00", newcmd);
-      
+
       -- Close out the transaction
       axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_OK_C);
 
@@ -128,33 +127,38 @@ begin
                v.done        := '1';
                v.data        := ack.rdData;
                v.resp        := ack.resp;
-               -- Next state      
+               -- Next state
                v.state := READY_S;
             end if;
       end case;
 
       -- Reset
-      if (axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       sAxiReadSlave  <= r.sAxiReadSlave;
       sAxiWriteSlave <= r.sAxiWriteSlave;
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiRst) is
    begin
-      if rising_edge(axiClk) then
-         r <= rin;
+      if (RST_ASYNC_G and axiRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
    U_AxiLiteMaster : entity surf.AxiLiteMaster
+      generic map (
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          req             => r.req,
          ack             => ack,

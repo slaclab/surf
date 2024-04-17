@@ -6,11 +6,11 @@
 -- Description: PGPv3 GTX7 IP Core Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -73,11 +73,11 @@ entity Pgp3Gtx7IpWrapper is
       txData          : in  slv(63 downto 0);
       txHeader        : in  slv(1 downto 0);
       txStart         : in  sl;
-      -- Debug Interface 
+      -- Debug Interface
       loopback        : in  slv(2 downto 0);
+      txDiffCtrl      : in  slv(4 downto 0);
       txPreCursor     : in  slv(4 downto 0);
       txPostCursor    : in  slv(4 downto 0);
-      txDiffCtrl      : in  slv(3 downto 0);
       -- AXI-Lite DRP Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -554,7 +554,7 @@ begin
             gt0_txusrclk_in             => txUsrClkInt,  -- 322.26 MHz (3.103 ns period)
             gt0_txusrclk2_in            => txUsrClk2Int,  -- 161.13 MHz (6.206 ns period)
             --------------- Transmit Ports - TX Configurable Driver Ports --------------
-            gt0_txdiffctrl_in           => txDiffCtrl,
+            gt0_txdiffctrl_in           => txDiffCtrl(4 downto 1),
             ------------------ Transmit Ports - TX Data Path interface -----------------
             gt0_txdata_in               => txData,
             ---------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -661,7 +661,7 @@ begin
             gt0_txusrclk_in             => txUsrClkInt,  -- 195.31 MHz (5.12 ns period)
             gt0_txusrclk2_in            => txUsrClk2Int,  -- 97.655 MHz (10.24 ns period)
             --------------- Transmit Ports - TX Configurable Driver Ports --------------
-            gt0_txdiffctrl_in           => txDiffCtrl,
+            gt0_txdiffctrl_in           => txDiffCtrl(4 downto 1),
             ------------------ Transmit Ports - TX Data Path interface -----------------
             gt0_txdata_in               => txData,
             ---------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -768,7 +768,7 @@ begin
             gt0_txusrclk_in             => txUsrClkInt,  -- 195.31 MHz (5.12 ns period)
             gt0_txusrclk2_in            => txUsrClk2Int,  -- 97.655 MHz (10.24 ns period)
             --------------- Transmit Ports - TX Configurable Driver Ports --------------
-            gt0_txdiffctrl_in           => txDiffCtrl,
+            gt0_txdiffctrl_in           => txDiffCtrl(4 downto 1),
             ------------------ Transmit Ports - TX Data Path interface -----------------
             gt0_txdata_in               => txData,
             ---------------- Transmit Ports - TX Driver and OOB signaling --------------

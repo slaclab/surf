@@ -5,11 +5,11 @@
 -- https://forums.xilinx.com/t5/Versal-and-UltraScale/IDELAY-ODELAY-Usage/td-p/812362
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ entity Delaye3PatchFsm is
    port (
       -- Inputs
       CLK           : in  sl;           -- 1-bit input: Clock input
-      RST           : in  sl;  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE   
+      RST           : in  sl;  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
       LOAD          : in  sl;           -- 1-bit input: Load DELAY_VALUE input
       CNTVALUEIN    : in  slv(8 downto 0);  -- 9-bit input: Counter value input
       CNTVALUEOUT   : in  slv(8 downto 0);  -- 9-bit output: Counter value output
@@ -49,6 +49,7 @@ architecture rtl of Delaye3PatchFsm is
 
    type StateType is (
       IDLE_S,
+      CHECK_CNT_S,
       LOAD_S,
       WAIT_S);
 
@@ -84,19 +85,21 @@ begin
          v.Load := '0';
 
          -- Check for load request
-         if (LOAD = '1') then
-            -- Update the target delay value
-            v.dlyTarget := CNTVALUEIN;
-         end if;
-
          -- Main state machine
          case r.state is
             ----------------------------------------------------------------------
             when IDLE_S =>
+               if (LOAD = '1') then
+                  -- Update the target delay value on load request
+                  v.dlyTarget := CNTVALUEIN;
+                  v.state     := CHECK_CNT_S;
+               end if;
+            ----------------------------------------------------------------------
+            when CHECK_CNT_S =>
                -- Check if load target different from current output
-               if (v.dlyTarget /= CNTVALUEOUT) then
+               if (r.dlyTarget /= CNTVALUEOUT) then
                   -- Check if we should increment the value
-                  if (v.dlyTarget > CNTVALUEOUT) then
+                  if (r.dlyTarget > CNTVALUEOUT) then
                      v.dlyValue := CNTVALUEOUT + 1;
                   -- Else decrement the value
                   else
@@ -104,6 +107,8 @@ begin
                   end if;
                   -- Next state
                   v.state := LOAD_S;
+               else
+                  v.state := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when LOAD_S =>
@@ -121,7 +126,7 @@ begin
                   -- Reset the counter
                   v.waitCnt := (others => '0');
                   -- Next state
-                  v.state   := IDLE_S;
+                  v.state   := CHECK_CNT_S;
                end if;
          ----------------------------------------------------------------------
          end case;
@@ -129,7 +134,7 @@ begin
          -- Outputs
          patchLoad     <= r.Load;
          patchCntValue <= r.dlyValue;
-         if (v.dlyTarget /= CNTVALUEOUT) or (r.state /= IDLE_S) then
+         if (r.state /= IDLE_S) then
             busy <= '1';
          else
             busy <= '0';
@@ -153,7 +158,7 @@ begin
                r <= rin after TPD_G;
             end if;
          end if;
-         -- Asynchronous Reset to the DELAY_VALUE 
+         -- Asynchronous Reset to the DELAY_VALUE
          if ((RST = '1') and (IS_RST_INVERTED = '0')) or ((RST = '0') and (IS_RST_INVERTED = '1')) then
             r <= REG_INIT_C after TPD_G;
          end if;

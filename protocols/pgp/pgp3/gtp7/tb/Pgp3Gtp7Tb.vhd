@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for Pgp3Gtp7
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ begin
          NUM_LANES_G         => 1,
          NUM_VC_G            => 4,
          RATE_G              => "6.25Gbps",
-         REFCLK_TYPE_G       => PGP3_REFCLK_250_C)
+         REFCLK_FREQ_G       => 250.0E+6)
       port map (
          -- Stable Clock and Reset
          stableClk         => stableClk,

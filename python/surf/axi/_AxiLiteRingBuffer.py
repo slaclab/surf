@@ -1,40 +1,25 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
 # Title      : PyRogue AXI-Lite Ring Buffer Module
-#-----------------------------------------------------------------------------
-# File       : AxiLiteRingBuffer.py
-# Created    : 2019-06-24
 #-----------------------------------------------------------------------------
 # Description:
 # PyRogue AXI-Lite Ring Buffer Module
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import datetime
-import parse
 import pyrogue as pr
 
 class AxiLiteRingBuffer(pr.Device):
 
     # Last comment added by rherbst for demonstration.
-    def __init__(
-            self,       
-            datawidth        = 32,
-            name             = 'AxiLiteRingBuffer',
-            description      = 'AXI-Lite Ring Buffer Module',
-            **kwargs):
-        
-        super().__init__(
-            name        = name,
-            description = description,
-            **kwargs)
+    def __init__(self, datawidth=32, **kwargs):
+        super().__init__(**kwargs)
 
         self._datawidth = datawidth
 
@@ -52,7 +37,7 @@ class AxiLiteRingBuffer(pr.Device):
             mode         = 'RW'
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'clear',
             description  = 'Clear buffer',
             offset       = 0x03,
@@ -62,7 +47,7 @@ class AxiLiteRingBuffer(pr.Device):
             mode         = 'RW',
         ))
 
-        self.add(pr.RemoteVariable(   
+        self.add(pr.RemoteVariable(
             name         = 'enable',
             description  = 'Enable buffer',
             offset       = 0x03,
@@ -72,7 +57,7 @@ class AxiLiteRingBuffer(pr.Device):
             mode         = 'RW',
         ))
 
-        self.addRemoteVariables(   
+        self.addRemoteVariables(
             name         = 'data',
             description  = 'Buffer values',
             offset       = 0x4,
@@ -88,9 +73,9 @@ class AxiLiteRingBuffer(pr.Device):
         @self.command()
         def Dump():
             mask  = (1<<self._datawidth)-1
-            cmask = (self._datawidth+3)/4
+            # cmask = (self._datawidth+3)/4
             len_  = self.blen.get()
-            if len_ > 512: 
+            if len_ > 512:
                 len_ = 256
 
             buff = []
@@ -102,4 +87,3 @@ class AxiLiteRingBuffer(pr.Device):
                 print(fmt.format(buff[i])),
                 if (i&0xf)==0xf:
                     print()
-

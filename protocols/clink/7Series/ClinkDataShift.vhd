@@ -5,11 +5,11 @@
 -- Block to de-serialize a block of 28 bits packed into 4 7-bit serial streams.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ entity ClinkDataShift is
       -- Frequency Measurements
       clkInFreq       : out   slv(31 downto 0);
       clinkClkFreq    : out   slv(31 downto 0);
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       sysClk          : in    sl;
       sysRst          : in    sl;
       axilReadMaster  : in    AxiLiteReadMasterType;
@@ -119,7 +119,7 @@ begin
          clinkClk        => intClk,
          clinkClk7x      => intClk7x,
          clinkRst        => intRst,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          sysClk          => sysClk,
          sysRst          => sysRst,
          axilReadMaster  => axilReadMaster,
@@ -165,7 +165,7 @@ begin
             IO  => cblHalfP(i),
             IOB => cblHalfM(i));
 
-      -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps 
+      -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps
       -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
       U_Delay : IDELAYE2
          generic map (
@@ -239,7 +239,7 @@ begin
    -------------------------------------------------------
    -- Timing diagram from DS90CR288A data sheet
    -------------------------------------------------------
-   -- Lane   T0   T1   T2   T3   T4   T5   T6 
+   -- Lane   T0   T1   T2   T3   T4   T5   T6
    --    0    7    6    4    3    2    1    0
    --    1   18   15   14   13   12    9    8
    --    2   26   25   24   22   21   20   19

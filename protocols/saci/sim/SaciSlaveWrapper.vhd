@@ -6,11 +6,11 @@
 -- Description: Simulation testbed for SaciSlaveWrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ entity SaciSlaveWrapper is
 end entity SaciSlaveWrapper;
 
 architecture rtl of SaciSlaveWrapper is
-  
+
   signal saciSlaveRstL : sl;
   signal exec          : sl;
   signal ack           : sl;
@@ -43,12 +43,12 @@ architecture rtl of SaciSlaveWrapper is
   signal wrData        : slv(31 downto 0);
   signal rdData        : slv(31 downto 0);
   signal saciRspInt : sl;
-  
+
 begin
 
   saciRsp <= saciRspInt when saciSelL = '0' else 'Z';
 
-  SaciSlave_i : entity surf.SaciSlave2
+  SaciSlave_i : entity surf.SaciSlave
     generic map (
       TPD_G => TPD_G)
     port map (

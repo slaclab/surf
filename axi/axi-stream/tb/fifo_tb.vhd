@@ -4,11 +4,11 @@
 -- Description: Simulation Testbed for FIFO module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
@@ -105,7 +105,7 @@ begin
             busy         => open,
             tDest        => (others => '0'),
             tId          => (others => '0')
-         );     
+         );
 
       U_AxiStreamFifo: entity surf.AxiStreamFifoV2
          generic map (
@@ -128,7 +128,7 @@ begin
          );
    end generate GEN_SRC;
 
-   U_Mux: entity surf.AxiStreamMux 
+   U_Mux: entity surf.AxiStreamMux
       generic map (
          TPD_G          => TPD_C,
          NUM_SLAVES_G   => EP_COUNT_C,
@@ -157,7 +157,7 @@ begin
          FIFO_FIXED_THRESH_G    => true,
          FIFO_PAUSE_THRESH_G    => 1,
          FIFO_USE_WIDER_G       => true,
-         LAST_FIFO_ADDR_WIDTH_G => 0,  
+         LAST_FIFO_ADDR_WIDTH_G => 0,
          CASCADE_PAUSE_SEL_G    => 0,
          SLAVE_AXI_CONFIG_G     => FIFO_CONFIG_C,
          MASTER_AXI_CONFIG_G    => FIFO_CONFIG_C
@@ -172,7 +172,7 @@ begin
          mAxisSlave  => fifoSlave
       );
 
-   U_DeMux: entity surf.AxiStreamDeMux 
+   U_DeMux: entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_C,
          NUM_MASTERS_G => EP_COUNT_C,
@@ -205,7 +205,7 @@ begin
             mAxisRst       => axiClkRst,
             updatedResults => updated(i),
             errorDet       => errorDet(i)
-         );     
+         );
    end generate;
 
 end fifo_tb;

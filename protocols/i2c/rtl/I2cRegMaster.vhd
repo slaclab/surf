@@ -7,11 +7,11 @@
 --   FILTER_G = (min_pulse_time / clk_period) + 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 use surf.I2cPkg.all;
 
 entity I2cRegMaster is
-   
+
    generic (
       TPD_G                : time                      := 1 ns;
       OUTPUT_EN_POLARITY_G : integer range 0 to 1      := 0;
@@ -45,12 +45,12 @@ end entity I2cRegMaster;
 architecture rtl of I2cRegMaster is
 
    type StateType is (
-      WAIT_REQ_S, 
-      ADDR_S, 
-      WRITE_S, 
-      READ_TXN_S, 
-      READ_S, 
-      BUS_ACK_S, 
+      WAIT_REQ_S,
+      ADDR_S,
+      WRITE_S,
+      READ_TXN_S,
+      READ_S,
+      BUS_ACK_S,
       REG_ACK_S);
 
    type RegType is record
@@ -108,6 +108,7 @@ begin
       generic map (
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => OUTPUT_EN_POLARITY_G,
+         PRESCALE_G           => PRESCALE_G,
          FILTER_G             => FILTER_G,
          DYNAMIC_FILTER_G     => 0)
       port map (
@@ -153,11 +154,11 @@ begin
                      v.state := WRITE_S;
                   else
                      v.i2cMasterIn.op := '0';
-                     v.state := READ_S;
-                  end if;                  
+                     v.state          := READ_S;
+                  end if;
                end if;
             end if;
-            
+
          when ADDR_S =>
             -- When a new register access request is seen,
             -- Write the register address out on the bus first
@@ -195,7 +196,7 @@ begin
                   v.state := REG_ACK_S;
                end if;
             end if;
-            
+
 
          when READ_TXN_S =>
             -- Start new txn to read data bytes
@@ -218,19 +219,19 @@ begin
                end if;
             end if;
 
-         when BUS_ACK_S => 
+         when BUS_ACK_S =>
             if i2cMasterOut.busAck = '1' then
                v.i2cMasterIn.txnReq := '0';
                v.state              := REG_ACK_S;
             end if;
-            
+
          when REG_ACK_S =>
             -- Req done. Ack the req.
             -- Might have failed so hold regFail (would be set to 0 otherwise).
             v.regOut.regAck  := '1';
             v.regOut.regFail := r.regOut.regFail;
             if (regIn.regReq = '0') then
---          v.regOut.regAck := '0'; Might want this back. 
+--          v.regOut.regAck := '0'; Might want this back.
                v.state := WAIT_REQ_S;
             end if;
 
@@ -260,8 +261,8 @@ begin
 
       -- Internal signals
       i2cMasterIn.enable   <= '1';
-      i2cMasterIn.prescale <= slv(to_unsigned(PRESCALE_G, 16));
-      i2cMasterIn.filter   <= (others => '0');  -- Not using dynamic filtering
+      i2cMasterIn.prescale <= slv(to_unsigned(PRESCALE_G, 16));  -- Now unused
+      i2cMasterIn.filter   <= (others => '0');                   -- Not using dynamic filtering
       i2cMasterIn.addr     <= regIn.i2cAddr;
       i2cMasterIn.tenbit   <= regIn.tenbit;
       i2cMasterIn.txnReq   <= r.i2cMasterIn.txnReq;
@@ -274,7 +275,7 @@ begin
 
       -- Outputs
       regOut <= r.regOut;
-      
+
    end process comb;
 
    seq : process (clk, arst) is

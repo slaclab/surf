@@ -4,11 +4,11 @@
 -- Description: RX bypass frame extractor.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -34,9 +34,9 @@ entity EthMacRxBypass is
       ethRst      : in  sl;
       -- Incoming data from MAC
       sAxisMaster : in  AxiStreamMasterType;
-      -- Outgoing primary data 
+      -- Outgoing primary data
       mPrimMaster : out AxiStreamMasterType;
-      -- Outgoing bypass data 
+      -- Outgoing bypass data
       mBypMaster  : out AxiStreamMasterType);
 end EthMacRxBypass;
 
@@ -62,8 +62,8 @@ architecture rtl of EthMacRxBypass is
    signal rin : RegType;
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";   
-   
+   -- attribute dont_touch of r : signal is "true";
+
 begin
 
    U_BypRxEnGen : if (BYP_EN_G = true) generate
@@ -80,7 +80,7 @@ begin
 
          -- State Machine
          case r.state is
-            ----------------------------------------------------------------------         
+            ----------------------------------------------------------------------
             when IDLE_S =>
                -- Check for data
                if sAxisMaster.tValid = '1' then
@@ -103,7 +103,7 @@ begin
                      end if;
                   end if;
                end if;
-            ----------------------------------------------------------------------         
+            ----------------------------------------------------------------------
             when BYP_S =>
                -- Move data
                v.mBypMaster := sAxisMaster;
@@ -112,7 +112,7 @@ begin
                   -- Next state
                   v.state := IDLE_S;
                end if;
-            ----------------------------------------------------------------------         
+            ----------------------------------------------------------------------
             when PRIM_S =>
                -- Move data
                v.mPrimMaster := sAxisMaster;
@@ -121,7 +121,7 @@ begin
                   -- Next state
                   v.state := IDLE_S;
                end if;
-         ----------------------------------------------------------------------         
+         ----------------------------------------------------------------------
          end case;
 
          -- Reset
@@ -132,7 +132,7 @@ begin
          -- Register the variable for next clock cycle
          rin <= v;
 
-         -- Outputs 
+         -- Outputs
          mPrimMaster <= r.mPrimMaster;
          mBypMaster  <= r.mBypMaster;
 
@@ -144,7 +144,7 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
 
    U_BypRxDisGen : if (BYP_EN_G = false) generate

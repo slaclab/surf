@@ -4,11 +4,11 @@
 -- Description: Ethernet MAC RX Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -38,7 +38,9 @@ entity EthMacRx is
       -- VLAN Configurations
       VLAN_EN_G      : boolean               := false;
       VLAN_SIZE_G    : positive range 1 to 8 := 1;
-      VLAN_VID_G     : Slv12Array            := (0 => x"001"));
+      VLAN_VID_G     : Slv12Array            := (0 => x"001");
+      -- Internal RAM sythesis mode
+      SYNTH_MODE_G   : string                := "inferred");
    port (
       -- Clock and Reset
       ethClkEn     : in  sl;
@@ -88,14 +90,15 @@ begin
    -------------------
    U_Import : entity surf.EthMacRxImport
       generic map (
-         TPD_G      => TPD_G,
-         PHY_TYPE_G => PHY_TYPE_G)
+         TPD_G        => TPD_G,
+         PHY_TYPE_G   => PHY_TYPE_G,
+         SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
          -- Clock and reset
          ethClkEn    => ethClkEn,
          ethClk      => ethClk,
          ethRst      => ethRst,
-         -- AXIS Interface   
+         -- AXIS Interface
          macIbMaster => macIbMaster,
          -- XLGMII PHY Interface
          xlgmiiRxd   => xlgmiiRxd,
@@ -121,14 +124,14 @@ begin
          PAUSE_EN_G  => PAUSE_EN_G,
          VLAN_EN_G   => VLAN_EN_G,
          VLAN_SIZE_G => VLAN_SIZE_G,
-         VLAN_VID_G  => VLAN_VID_G)         
+         VLAN_VID_G  => VLAN_VID_G)
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
          ethRst       => ethRst,
          -- Incoming data from MAC
          sAxisMaster  => macIbMaster,
-         -- Outgoing data 
+         -- Outgoing data
          mAxisMaster  => pauseMaster,
          mAxisMasters => pauseMasters,
          -- Pause Values
@@ -142,7 +145,7 @@ begin
       generic map (
          TPD_G   => TPD_G,
          JUMBO_G => JUMBO_G,
-         VLAN_G  => false) 
+         VLAN_G  => false)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -155,9 +158,9 @@ begin
          sAxisMaster => pauseMaster,
          mAxisMaster => csumMaster);
 
-   --------------------------         
+   --------------------------
    -- RX VLAN Checksum Module
-   --------------------------         
+   --------------------------
    GEN_VLAN : if (VLAN_EN_G = true) generate
       GEN_VEC :
       for i in (VLAN_SIZE_G-1) downto 0 generate
@@ -165,7 +168,7 @@ begin
             generic map (
                TPD_G   => TPD_G,
                JUMBO_G => JUMBO_G,
-               VLAN_G  => true) 
+               VLAN_G  => true)
             port map (
                -- Clock and Reset
                ethClk      => ethClk,
@@ -187,30 +190,30 @@ begin
 
    -------------------
    -- RX Bypass Module
-   -------------------      
+   -------------------
    U_Bypass : entity surf.EthMacRxBypass
       generic map (
          TPD_G          => TPD_G,
          BYP_EN_G       => BYP_EN_G,
-         BYP_ETH_TYPE_G => BYP_ETH_TYPE_G) 
+         BYP_ETH_TYPE_G => BYP_ETH_TYPE_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
          ethRst      => ethRst,
          -- Incoming data from MAC
          sAxisMaster => csumMaster,
-         -- Outgoing primary data 
+         -- Outgoing primary data
          mPrimMaster => bypassMaster,
-         -- Outgoing bypass data 
+         -- Outgoing bypass data
          mBypMaster  => mBypMaster);
 
    -------------------
    -- RX Filter Module
-   -------------------      
+   -------------------
    U_Filter : entity surf.EthMacRxFilter
       generic map (
          TPD_G     => TPD_G,
-         FILT_EN_G => FILT_EN_G) 
+         FILT_EN_G => FILT_EN_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -223,6 +226,6 @@ begin
          -- Configuration
          dropOnPause => ethConfig.dropOnPause,
          macAddress  => ethConfig.macAddress,
-         filtEnable  => ethConfig.filtEnable);   
+         filtEnable  => ethConfig.filtEnable);
 
 end mapping;

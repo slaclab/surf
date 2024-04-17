@@ -4,14 +4,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Transmit scheduler interface module for the Pretty Good Protocol core. 
+-- Transmit scheduler interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -73,22 +73,22 @@ architecture Pgp2bTxSched of Pgp2bTxSched is
 
    -- Local Signals
    signal currValid    : sl;
-   signal currVc       : slv(1 downto 0);
+   signal currVc       : slv(1 downto 0) := (others => '0');
    signal nextVc       : slv(1 downto 0);
    signal arbVc        : slv(1 downto 0);
    signal arbValid     : sl;
-   signal vcInFrame    : slv(3 downto 0);
-   signal intTxReq     : sl;
-   signal intTxIdle    : sl;
+   signal vcInFrame    : slv(3 downto 0) := (others => '0');
+   signal intTxReq     : sl := '0';
+   signal intTxIdle    : sl := '0';
    signal nxtTxReq     : sl;
    signal nxtTxIdle    : sl;
    signal nxtTxTimeout : sl;
-   signal intTxTimeout : sl;
-   signal vcTimerA     : slv(23 downto 0);
-   signal vcTimerB     : slv(23 downto 0);
-   signal vcTimerC     : slv(23 downto 0);
-   signal vcTimerD     : slv(23 downto 0);
-   signal vcTimeout    : slv(3 downto 0);
+   signal intTxTimeout : sl := '0';
+   signal vcTimerA     : slv(23 downto 0) := (others => '0');
+   signal vcTimerB     : slv(23 downto 0) := (others => '0');
+   signal vcTimerC     : slv(23 downto 0) := (others => '0');
+   signal vcTimerD     : slv(23 downto 0) := (others => '0');
+   signal vcTimeout    : slv(3 downto 0) := (others => '0');
    signal gateTxValid  : slv(3 downto 0);
 
    -- Schedular state
@@ -98,7 +98,7 @@ architecture Pgp2bTxSched of Pgp2bTxSched is
    constant ST_GAP_A_C : slv(2 downto 0) := "100";
    constant ST_GAP_B_C : slv(2 downto 0) := "101";
    constant ST_GAP_C_C : slv(2 downto 0) := "110";
-   signal   curState   : slv(2 downto 0);
+   signal   curState   : slv(2 downto 0) := ST_ARB_C;
    signal   nxtState   : slv(2 downto 0);
 
 begin
@@ -152,7 +152,7 @@ begin
             nextVc       <= (others => '0');
             nxtState     <= ST_ARB_C;
 
-         -- IDLE, wait for ack receiver to be ready 
+         -- IDLE, wait for ack receiver to be ready
          when ST_ARB_C =>
 
             -- VC0 Timeout

@@ -6,11 +6,11 @@
 -- Description: Simulation Testbed for PGP
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -116,14 +116,14 @@ begin
       wait;
    end process;
 
-   U_TxGen: for i in 0 to 0 generate 
+   U_TxGen: for i in 0 to 0 generate
 
       process ( locClk ) begin
          if rising_edge(locClk) then
             if locClkRst = '1' then
                txEnable(i) <= '0' after 1 ns;
 
-               case i is 
+               case i is
                   when 0      => txLength(i) <= x"00000004" after 1 ns;
                   --when 1      => txLength(i) <= x"00000800" after 1 ns;
                   --when 2      => txLength(i) <= x"00000900" after 1 ns;
@@ -155,7 +155,7 @@ begin
             PRBS_TAPS_G                => (0 => 16),
             FIFO_ADDR_WIDTH_G          => 9,
             FIFO_PAUSE_THRESH_G        => 256,    -- Almost full at 1/2 capacity
-            MASTER_AXI_STREAM_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_G, 
+            MASTER_AXI_STREAM_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_G,
             MASTER_AXI_PIPE_STAGES_G   => 0
          ) port map (
 
@@ -202,7 +202,7 @@ begin
 
    --prbsTxMasters(3 downto 1) <= (others=>AXI_STREAM_MASTER_INIT_C);
 
-   U_PgpTxMux : entity surf.AxiStreamDeMux 
+   U_PgpTxMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => 1 ns,
          NUM_MASTERS_G => 4
@@ -216,7 +216,7 @@ begin
       );
 
 
-   U_Pgp: entity surf.Pgp2bLane 
+   U_Pgp: entity surf.Pgp2bLane
       generic map (
          TPD_G             => 1 ns,
          LANE_CNT_G        => 1,
@@ -225,7 +225,7 @@ begin
          NUM_VC_EN_G       => 4,
          TX_ENABLE_G       => true,
          RX_ENABLE_G       => true
-      ) port map ( 
+      ) port map (
          pgpTxClk          => locClk,
          pgpTxClkRst       => locClkRst,
          pgpTxIn           => pgpTxIn,
@@ -263,7 +263,7 @@ begin
 
 
    -- PRBS receiver
-   U_RxGen: for i in 0 to 0 generate 
+   U_RxGen: for i in 0 to 0 generate
 
       AxiStreamFifo_Rx : entity surf.AxiStreamFifoV2
          generic map(
@@ -293,7 +293,7 @@ begin
             mAxisMaster => iprbsRxMasters(i),
             mAxisSlave  => iprbsRxSlaves(i));
 
-      U_SsiPrbsRx: entity surf.SsiPrbsRx 
+      U_SsiPrbsRx: entity surf.SsiPrbsRx
          generic map (
             TPD_G                      => 1 ns,
             STATUS_CNT_WIDTH_G         => 32,
@@ -334,7 +334,7 @@ begin
             errbitCnt       => errbitCnt(i),
             packetRate      => packetRate(i),
             packetLength    => packetLength(i)
-         ); 
+         );
    end generate;
 
 end pgp_test;

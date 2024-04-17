@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -35,20 +35,20 @@ void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData) {
    data->zmqCtx   = NULL;
    data->zmqPush  = NULL;
    data->zmqPull  = NULL;
- 
+
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
    data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
 
    vhpi_printf("RogueTcpStream: Listening on ports %i & %i\n",data->port,data->port+1);
 
-   sprintf(buffer,"tcp://*:%i",data->port);
+   sprintf(buffer,"tcp://127.0.0.1:%i",data->port);
    if ( zmq_bind(data->zmqPull,buffer) ) {
       vhpi_assert("RogueTcpStream: Failed to bind pull port",vhpiFatal);
       return;
    }
 
-   sprintf(buffer,"tcp://*:%i",data->port+1);
+   sprintf(buffer,"tcp://127.0.0.1:%i",data->port+1);
    if ( zmq_bind(data->zmqPush,buffer) ) {
       vhpi_assert("RogueTcpStream: Failed to bind push port",vhpiFatal);
       return;
@@ -93,7 +93,7 @@ void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
 
    // Copy data
    memcpy(zmq_msg_data(&(msg[3])),data->ibData,data->ibSize);
-    
+
    // Send data
    for (x=0; x < 4; x++) {
      if ( zmq_msg_send(&(msg[x]), data->zmqPush, (x==3)?0:ZMQ_SNDMORE) < 0 ) {
@@ -180,7 +180,7 @@ int RogueTcpStreamRecv ( RogueTcpStreamData *data, portDataT *portData ) {
 
 
 // Init function
-void RogueTcpStreamInit(vhpiHandleT compInst) { 
+void RogueTcpStreamInit(vhpiHandleT compInst) {
 
    // Create new port data structure
    portDataT             *portData  = (portDataT *)             malloc(sizeof(portDataT));
@@ -190,10 +190,10 @@ void RogueTcpStreamInit(vhpiHandleT compInst) {
    portData->portCount = PORT_COUNT;
 
    // Set port directions
-   portData->portDir[s_clock]      = vhpiIn; 
-   portData->portDir[s_reset]      = vhpiIn; 
-   portData->portDir[s_port]       = vhpiIn; 
-   portData->portDir[s_ssi]        = vhpiIn; 
+   portData->portDir[s_clock]      = vhpiIn;
+   portData->portDir[s_reset]      = vhpiIn;
+   portData->portDir[s_port]       = vhpiIn;
+   portData->portDir[s_ssi]        = vhpiIn;
 
    portData->portDir[s_obValid]    = vhpiOut;
    portData->portDir[s_obReady]    = vhpiIn;
@@ -204,7 +204,7 @@ void RogueTcpStreamInit(vhpiHandleT compInst) {
    portData->portDir[s_obKeep]     = vhpiOut;
    portData->portDir[s_obLast]     = vhpiOut;
 
-   portData->portDir[s_ibValid]    = vhpiIn; 
+   portData->portDir[s_ibValid]    = vhpiIn;
    portData->portDir[s_ibReady]    = vhpiOut;
    portData->portDir[s_ibDataLow]  = vhpiIn;
    portData->portDir[s_ibDataHigh] = vhpiIn;
@@ -285,7 +285,7 @@ void RogueTcpStreamUpdate ( void *userPtr ) {
             setInt(s_obUserHigh,0);
             setInt(s_obKeep,0);
             setInt(s_obLast,0);
-         } 
+         }
 
          // Data movement
          else {
@@ -341,7 +341,7 @@ void RogueTcpStreamUpdate ( void *userPtr ) {
                if ( data->obCount == 0 ) setInt(s_obUserLow,data->obFuser);
                else setInt(s_obUserLow,0);
                setInt(s_obUserHigh,0);
-              
+
                // Get data
                dHigh = 0;
                dLow  = 0;
@@ -362,7 +362,7 @@ void RogueTcpStreamUpdate ( void *userPtr ) {
                   }
                   else {
                      dHigh |= (data->obData[data->obCount] << ((x-4)*8));
-                     if ( (data->obCount+1) == data->obSize ) 
+                     if ( (data->obCount+1) == data->obSize )
                          setInt(s_obUserHigh,(data->obLuser << ((x-4)*8)));
                   }
 

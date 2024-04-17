@@ -4,11 +4,11 @@
 -- Description: AXI-Lite interface to AD9467 ADC IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ entity AxiAd9467Core is
       adcData        : out   slv(15 downto 0);
       -- IDELAY Reference clock
       refClk200Mhz   : in    sl;
-      -- AXI-Lite Register Interface (axiClk domain)      
+      -- AXI-Lite Register Interface (axiClk domain)
       axiClk         : in    sl;
       axiRst         : in    sl;
       axiReadMaster  : in    AxiLiteReadMasterType;
@@ -51,10 +51,10 @@ entity AxiAd9467Core is
 end AxiAd9467Core;
 
 architecture mapping of AxiAd9467Core is
-   
+
    signal status : AxiAd9467StatusType;
    signal config : AxiAd9467ConfigType;
-   
+
 begin
 
    adcData <= status.adcData;
@@ -66,7 +66,7 @@ begin
          DELAY_INIT_G       => DELAY_INIT_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G)
       port map(
-         -- AXI-Lite Register Interface    
+         -- AXI-Lite Register Interface
          axiClk         => axiClk,
          axiRst         => axiRst,
          axiReadMaster  => axiReadMaster,
@@ -110,7 +110,7 @@ begin
          pllLocked  => status.pllLocked,
          -- ADC Reference Signals
          adcClk     => adcClk,
-         adcRst     => adcRst);  
+         adcRst     => adcRst);
 
    AxiAd9467Deser_Inst : entity surf.AxiAd9467Deser
       generic map(
@@ -130,7 +130,7 @@ begin
          -- IDELAY Interface
          refClk200Mhz => refClk200Mhz,
          delayin      => config.delay,
-         delayOut     => status.delay); 
+         delayOut     => status.delay);
 
    AxiAd9467Mon_Inst : entity surf.AxiAd9467Mon
       generic map (
@@ -140,6 +140,6 @@ begin
          adcClk     => adcClk,
          adcRst     => adcRst,
          adcData    => status.adcData,
-         adcDataMon => status.adcDataMon);       
+         adcDataMon => status.adcDataMon);
 
 end mapping;

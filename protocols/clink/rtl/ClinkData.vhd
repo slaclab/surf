@@ -2,15 +2,15 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- CameraLink data de-serializer. 
+-- CameraLink data de-serializer.
 -- Wrapper for ClinkDeSerial when used as dedicated data channel.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ entity ClinkData is
       parData         : out   slv(27 downto 0);
       parValid        : out   sl;
       parReady        : in    sl;
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilReadMaster  : in    AxiLiteReadMasterType;
       axilReadSlave   : out   AxiLiteReadSlaveType;
       axilWriteMaster : in    AxiLiteWriteMasterType;
@@ -60,7 +60,7 @@ architecture rtl of ClinkData is
 
    type LinkState is (RESET_S, WAIT_C_S, SHIFT_C_S, CHECK_C_S, LOAD_C_S, SHIFT_D_S, CHECK_D_S, DONE_S);
 
-   -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps 
+   -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps
    -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
 
    type RegType is record
@@ -124,7 +124,7 @@ begin
          -- Frequency Measurements
          clkInFreq       => linkStatus.clkInFreq,
          clinkClkFreq    => linkStatus.clinkClkFreq,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          sysClk          => sysClk,
          sysRst          => sysRst,
          axilReadMaster  => axilReadMaster,

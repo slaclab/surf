@@ -4,11 +4,11 @@
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,12 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-
-library surf; 
 
 entity Si5345 is
    generic (
@@ -39,6 +36,8 @@ entity Si5345 is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Status Interface
+      booting        : out sl;
       -- SPI Interface
       coreRst        : out sl;
       coreSclk       : out sl;
@@ -136,7 +135,7 @@ begin
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Flow Control
@@ -192,7 +191,7 @@ begin
                axiSlaveWriteResponse(v.axiWriteSlave);
                -- Next State
                v.state := INIT_S;
-            -- Check if read transaction      
+            -- Check if read transaction
             elsif (axiStatus.readEnable = '1') then
                -- Set the flag
                v.axiRd := '1';
@@ -214,7 +213,7 @@ begin
             v.wrArray(1) := x"40" & r.page;
             -- Set the address location within the page
             v.wrArray(2) := x"00" & r.addr;
-            -- Check if write transaction 
+            -- Check if write transaction
             if (r.axiRd = '0') then
                -- Write Data
                v.wrArray(3) := x"40" & r.data;
@@ -250,7 +249,7 @@ begin
                   if (r.axiRd = '1') then
                      -- Latch the read byte
                      v.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
-                     -- Send the response 
+                     -- Send the response
                      axiSlaveReadResponse(v.axiReadSlave);
                   end if;
                   --- Next state
@@ -276,10 +275,11 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Outputs 
+      -- Outputs
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;
       coreRst       <= axiRst;
+      booting       <= r.booting;
       if (r.state = IDLE_S) or (r.state = BOOT_ROM_S) then
          freeRunClk <= '0';
       else

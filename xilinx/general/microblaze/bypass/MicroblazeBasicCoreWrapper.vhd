@@ -4,17 +4,16 @@
 -- Description: "BYPASS" Wrapper for Microblaze Basic Core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -25,8 +24,9 @@ use surf.SsiPkg.all;
 entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
-      AXIL_RESP_C     : boolean := false;
-      AXIL_ADDR_MSB_C : boolean := false);  -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_RESP_G     : boolean := false;
+      AXIL_ADDR_MSB_G : boolean := false;   -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_ADDR_SEL_G : boolean := false);
    port (
       -- Master AXI-Lite Interface
       mAxilWriteMaster : out AxiLiteWriteMasterType;
