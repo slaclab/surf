@@ -131,6 +131,42 @@ class UdpEngine(pr.Device):
         ##############
 
         self.add(pr.RemoteVariable(
+            name         = 'SoftIpRaw',
+            description  = 'software configurable IP used when softIp connected to localIp in firmware (big-Endian configuration)',
+            offset       = 0xFE4,
+            bitSize      = 32,
+            mode         = 'RW',
+            hidden       = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'SoftIp',
+            description  = 'Ip (human readable string)',
+            mode         = 'RW',
+            linkedGet    = udp.getIpValue,
+            linkedSet    = udp.setIpValue,
+            dependencies = [self.variables['SoftIpRaw']],
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'SoftMacRaw',
+            description  = 'software configurable MAC used when softMac connected to localMac in firmware (big-Endian configuration)',
+            offset       = 0xFE8,
+            bitSize      = 48,
+            mode         = 'RW',
+            hidden       = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'SoftMac',
+            description  = 'MacAddress (human readable)',
+            mode         = 'RW',
+            linkedGet    = udp.getMacValue,
+            linkedSet    = udp.setMacValue,
+            dependencies = [self.variables['SoftMacRaw']],
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'BroadcastIpRaw',
             description  = 'BroadcastIp (big-Endian configuration)',
             offset       = 0xFF0,
