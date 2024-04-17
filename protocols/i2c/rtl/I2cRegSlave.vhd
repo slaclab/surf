@@ -34,6 +34,7 @@ entity I2cRegSlave is
       -- RAM generics
       ADDR_SIZE_G          : natural                 := 2;   -- in bytes
       DATA_SIZE_G          : positive                := 1;   -- in bytes
+      ADDR_AUTO_INC_G      : boolean                 := true;
       ENDIANNESS_G         : integer range 0 to 1    := 0);  -- 0=LE, 1=BE
    port (
       sRst   : in  sl := '0';
@@ -137,8 +138,10 @@ begin
 
       -- Auto increment the address after each read or write
       -- This enables bursts.
-      if (r.wrEn = '1' or r.rdEn = '1') then
-         v.addr := r.addr + 1;
+      if (ADDR_AUTO_INC_G) then
+         if (r.wrEn = '1' or r.rdEn = '1') then
+            v.addr := r.addr + 1;
+         end if;
       end if;
 
       -- Tx Data always valid, assigned based on byte cnt
