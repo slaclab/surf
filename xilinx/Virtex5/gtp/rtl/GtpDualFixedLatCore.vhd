@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : GtpDualFixedLatCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Pgp2 Gtp Low Latency Core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,7 +16,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity GtpDualFixedLatCore is
    generic (
@@ -186,7 +187,7 @@ begin
             S  => rxUsrClk2Sel(i),
             O  => gtpRxUsrClk2Int(i));
 
-      RstSync_1 : entity work.RstSync
+      RstSync_1 : entity surf.RstSync
          generic map (
             TPD_G           => TPD_G,
             IN_POLARITY_G   => '0',
@@ -206,7 +207,7 @@ begin
       gtpRxCdrResetFinal(i) <= gtpRxCdrReset(i) or rxCommaAlignReset(i);
 
       -- Manual comma aligner
-      GtpRxCommaAligner_1 : entity work.GtpRxCommaAligner
+      GtpRxCommaAligner_1 : entity surf.GtpRxCommaAligner
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -220,12 +221,12 @@ begin
             gtpRxCdrReset   => rxCommaAlignReset(i),
             aligned         => gtpRxAligned(i));
 
-      Decoder8b10b_1 : entity work.Decoder8b10b
+      Decoder8b10b_1 : entity surf.Decoder8b10b
          generic map (
             TPD_G          => TPD_G,
             NUM_BYTES_G    => 2,
             RST_POLARITY_G => '1',
-            RST_ASYNC_G    => true)        
+            RST_ASYNC_G    => true)
          port map (
             clk      => gtpRxUsrClk2Int(i),
             rst      => gtpRxUsrClkRstInt(i),
@@ -244,7 +245,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Tx Data Path
    --------------------------------------------------------------------------------------------------
-   GtpTxPhaseAligner_1 : entity work.GtpTxPhaseAligner
+   GtpTxPhaseAligner_1 : entity surf.GtpTxPhaseAligner
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -267,7 +268,7 @@ begin
    --------------------------------------------------------------------------------------------------
 
 
-   ----------------------------- GTP_DUAL Instance  --------------------------   
+   ----------------------------- GTP_DUAL Instance  --------------------------
    UGtpDual : GTP_DUAL
       generic map (
 
@@ -291,7 +292,7 @@ begin
 
          --____________________ Transmit Interface Attributes ___________________
 
-         ------------------- TX Buffering and Phase Alignment -------------------   
+         ------------------- TX Buffering and Phase Alignment -------------------
 
          TX_BUFFER_USE_0 => false,
          TX_XCLK_SEL_0   => "TXUSR",
@@ -301,13 +302,13 @@ begin
          TX_XCLK_SEL_1   => "TXUSR",
          TXRX_INVERT_1   => "00100",
 
-         --------------------- TX Serial Line Rate settings ---------------------   
+         --------------------- TX Serial Line Rate settings ---------------------
 
          PLL_TXDIVSEL_OUT_0 => 1,       -- Must be 1 when TX_BUFFER_USE = false
 
          PLL_TXDIVSEL_OUT_1 => 1,
 
-         --------------------- TX Driver and OOB signalling --------------------  
+         --------------------- TX Driver and OOB signalling --------------------
 
          TX_DIFF_BOOST_0 => true,
 
@@ -320,7 +321,7 @@ begin
          COM_BURST_VAL_1 => "1111",
          --_______________________ Receive Interface Attributes ________________
 
-         ------------ RX Driver,OOB signalling,Coupling and Eq,CDR -------------  
+         ------------ RX Driver,OOB signalling,Coupling and Eq,CDR -------------
 
          AC_CAP_DIS_0          => true,
          OOBDETECT_THRESHOLD_0 => "001",
@@ -342,7 +343,7 @@ begin
          TERMINATION_CTRL      => "10100",
          TERMINATION_OVRD      => false,
 
-         --------------------- RX Serial Line Rate Attributes ------------------   
+         --------------------- RX Serial Line Rate Attributes ------------------
 
          PLL_RXDIVSEL_OUT_0 => 1,
          PLL_SATA_0         => true,
@@ -350,13 +351,13 @@ begin
          PLL_RXDIVSEL_OUT_1 => 1,
          PLL_SATA_1         => true,
 
-         ----------------------- PRBS Detection Attributes ---------------------  
+         ----------------------- PRBS Detection Attributes ---------------------
 
          PRBS_ERR_THRESHOLD_0 => x"00000001",
 
          PRBS_ERR_THRESHOLD_1 => x"00000001",
 
-         ---------------- Comma Detection and Alignment Attributes -------------  
+         ---------------- Comma Detection and Alignment Attributes -------------
 
          ALIGN_COMMA_WORD_0     => 2,
          COMMA_10B_ENABLE_0     => "1111111111",
@@ -382,7 +383,7 @@ begin
          PCOMMA_DETECT_1        => false,
          RX_SLIDE_MODE_1        => "PMA",
 
-         ------------------ RX Loss-of-sync State Machine Attributes -----------  
+         ------------------ RX Loss-of-sync State Machine Attributes -----------
 
          RX_LOSS_OF_SYNC_FSM_0 => false,
          RX_LOS_INVALID_INCR_0 => 8,
@@ -392,7 +393,7 @@ begin
          RX_LOS_INVALID_INCR_1 => 8,
          RX_LOS_THRESHOLD_1    => 128,
 
-         -------------- RX Elastic Buffer and Phase alignment Attributes -------   
+         -------------- RX Elastic Buffer and Phase alignment Attributes -------
 
          RX_BUFFER_USE_0 => false,
          RX_XCLK_SEL_0   => "RXUSR",
@@ -400,7 +401,7 @@ begin
          RX_BUFFER_USE_1 => false,
          RX_XCLK_SEL_1   => "RXUSR",
 
-         ------------------------ Clock Correction Attributes ------------------   
+         ------------------------ Clock Correction Attributes ------------------
 
          CLK_CORRECT_USE_0          => false,
          CLK_COR_ADJ_LEN_0          => 4,
@@ -446,7 +447,7 @@ begin
          CLK_COR_SEQ_2_USE_1        => false,
          RX_DECODE_SEQ_MATCH_1      => true,
 
-         ------------------------ Channel Bonding Attributes -------------------   
+         ------------------------ Channel Bonding Attributes -------------------
 
          CHAN_BOND_1_MAX_SKEW_0   => 1,
          CHAN_BOND_2_MAX_SKEW_0   => 1,

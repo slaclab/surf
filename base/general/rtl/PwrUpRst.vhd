@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : PwrUpRst.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Synchronizes a reset signal and holds it for a parametrized
 -- number of cycles.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,15 +18,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity PwrUpRst is
    generic (
       TPD_G          : time                           := 1 ns;
+      RST_ASYNC_G    : boolean                        := false;
       SIM_SPEEDUP_G  : boolean                        := false;
       IN_POLARITY_G  : sl                             := '1';
       OUT_POLARITY_G : sl                             := '1';
-      USE_DSP48_G    : string                         := "no";
+      USE_DSP_G      : string                         := "no";
       DURATION_G     : natural range 0 to ((2**30)-1) := 156250000);
    port (
       arst   : in  sl := not IN_POLARITY_G;
@@ -43,17 +44,12 @@ architecture rtl of PwrUpRst is
    signal cnt : natural range 0 to DURATION_G := 0;
 
    -- Attribute for XST
-   attribute use_dsp48        : string;
-   attribute use_dsp48 of cnt : signal is USE_DSP48_G;
-   
+   attribute use_dsp        : string;
+   attribute use_dsp of cnt : signal is USE_DSP_G;
+
 begin
 
-   -- USE_DSP48_G check
-   assert ((USE_DSP48_G = "yes") or (USE_DSP48_G = "no") or (USE_DSP48_G = "auto") or (USE_DSP48_G = "automax"))
-      report "USE_DSP48_G must be either yes, no, auto, or automax"
-      severity failure;
-
-   RstSync_Inst : entity work.RstSync
+   RstSync_Inst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => IN_POLARITY_G,
@@ -63,10 +59,13 @@ begin
          asyncRst => arst,
          syncRst  => rstSync);
 
-   process (clk)
+   process (clk, rstSync)
    begin
-      if rising_edge(clk) then
-         if rstSync = OUT_POLARITY_G then
+      if (RST_ASYNC_G and rstSync = OUT_POLARITY_G) then
+         rst <= OUT_POLARITY_G after TPD_G;
+         cnt <= 0              after TPD_G;
+      elsif rising_edge(clk) then
+         if (RST_ASYNC_G = false and rstSync = OUT_POLARITY_G) then
             rst <= OUT_POLARITY_G after TPD_G;
             cnt <= 0              after TPD_G;
          else
@@ -81,5 +80,5 @@ begin
    end process;
 
    rstOut <= rst;
-   
+
 end rtl;

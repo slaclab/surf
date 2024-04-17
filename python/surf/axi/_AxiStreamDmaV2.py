@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -12,9 +11,9 @@ import pyrogue as pr
 
 class AxiStreamDmaV2Desc(pr.Device):
     def __init__(self, **kwargs):
-        super().__init__(description='', **kwargs)
+        super().__init__(**kwargs)
 
-        
+
         self.add(pr.RemoteVariable(
             name='HwEnable',
             mode = 'RO',
@@ -22,10 +21,10 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=1,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='Version',
-            mode = 'RO',            
+            mode = 'RO',
             offset=0x0,
             bitOffset=24,
             bitSize=8,
@@ -33,12 +32,12 @@ class AxiStreamDmaV2Desc(pr.Device):
 
         self.add(pr.RemoteVariable(
             name='IntEnable',
-            mode = 'RO',            
+            mode = 'RO',
             offset=0x4,
             bitOffset=0,
             bitSize=1,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='ContEn',
             mode = 'RO',
@@ -46,7 +45,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=1,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='DropEn',
             mode = 'RO',
@@ -62,7 +61,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=64,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='RdBaseAddr',
             mode = 'RO',
@@ -70,7 +69,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=64,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='FifoReset',
             mode = 'RO',
@@ -85,7 +84,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=32,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='MaxSize',
             mode = 'RO',
@@ -94,7 +93,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitSize=24,
             disp='{:d}',
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='Online',
             mode = 'RO',
@@ -102,7 +101,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=1,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='Acknowledge',
             mode = 'RO',
@@ -126,7 +125,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=8,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='DescCache',
             mode = 'RO',
@@ -141,7 +140,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=8,
             bitSize=4,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='FifoDin',
             mode = 'RO',
@@ -149,7 +148,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=32,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='IntAckCount',
             mode = 'RO',
@@ -157,7 +156,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=16,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='IntEnableDup',
             mode = 'RO',
@@ -165,7 +164,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=17,
             bitSize=1,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='IntReqCount',
             mode = 'RO',
@@ -173,7 +172,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=32,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='WrIndex',
             mode = 'RO',
@@ -188,7 +187,7 @@ class AxiStreamDmaV2Desc(pr.Device):
             bitOffset=0,
             bitSize=32,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name='WrReqMissed',
             mode = 'RO',

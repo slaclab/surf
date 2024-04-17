@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SyncTrigPeriod.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This module measures the trigger period between triggers
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,11 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncTrigPeriod is
    generic (
       TPD_G         : time     := 1 ns;   -- Simulation FF output delay
+      RST_ASYNC_G   : boolean  := false;
       COMMON_CLK_G  : boolean  := false;  -- true if trigClk & locClk are the same clock
       IN_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
       CNT_WIDTH_G   : positive := 32);  -- Counters' width
@@ -66,7 +67,7 @@ architecture rtl of SyncTrigPeriod is
 
 begin
 
-   U_OneShot : entity work.SynchronizerOneShot
+   U_OneShot : entity surf.SynchronizerOneShot
       generic map (
          TPD_G          => TPD_G,
          BYPASS_SYNC_G  => COMMON_CLK_G,
@@ -76,7 +77,6 @@ begin
          clk     => locClk,
          dataIn  => trigIn,
          dataOut => trig);
-
 
    comb : process (locRst, r, resetStat, trig) is
       variable v : RegType;
@@ -126,7 +126,7 @@ begin
       periodMin <= r.periodMin;
 
       -- Reset
-      if (locRst = '1') or (resetStat = '1') then
+      if (RST_ASYNC_G = false and locRst = '1') or (resetStat = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -135,9 +135,11 @@ begin
 
    end process comb;
 
-   seq : process (locClk) is
+   seq : process (locClk, locRst) is
    begin
-      if rising_edge(locClk) then
+      if (RST_ASYNC_G) and (locRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(locClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

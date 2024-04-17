@@ -1,31 +1,29 @@
 -------------------------------------------------------------------------------
--- File       : dma_read_tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for DMA read
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-library unisim;
-use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
 
 entity dma_read_tb is end dma_read_tb;
 
@@ -98,7 +96,7 @@ begin
    -----------------------------
    -- Generate a Clock and Reset
    -----------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -107,25 +105,25 @@ begin
          clkP => axiClk,
          clkN => open,
          rst  => axiClkRst,
-         rstL => open);  
+         rstL => open);
 
    ---------------------------------
    -- Emulate the AXI Read Interface
    ---------------------------------
-   U_AxiReadEmulate : entity work.AxiReadEmulate
+   U_AxiReadEmulate : entity surf.AxiReadEmulate
       generic map (
          TPD_G        => TPD_G,
-         AXI_CONFIG_G => AXI_CONFIG_C) 
+         AXI_CONFIG_G => AXI_CONFIG_C)
       port map (
          axiClk        => axiClk,
          axiRst        => axiClkRst,
          axiReadMaster => axiReadMaster,
-         axiReadSlave  => axiReadSlave);         
+         axiReadSlave  => axiReadSlave);
 
    -----------------------------
    -- Module that's being tested
    -----------------------------
-   U_AxiStreamDmaRead : entity work.AxiStreamDmaRead
+   U_AxiStreamDmaRead : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,
@@ -143,12 +141,12 @@ begin
          axisSlave     => axisSlave,
          axisCtrl      => AXI_STREAM_CTRL_UNUSED_C,
          axiReadMaster => axiReadMaster,
-         axiReadSlave  => axiReadSlave);         
+         axiReadSlave  => axiReadSlave);
 
    comb : process (axiClkRst, axisMaster, dmaAck, r) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Check if back pressuring
@@ -200,7 +198,7 @@ begin
                   v.sof := '0';
                   -- Check the firstUser
                   if (r.dmaReq.firstUser(AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) /= axiStreamGetUserField(AXIS_CONFIG_C, axisMaster, 0)) then
-                     -- Check for the non-byte 1 case because lastUser can overwrite firstUser if only 1 byte is transferred 
+                     -- Check for the non-byte 1 case because lastUser can overwrite firstUser if only 1 byte is transferred
                      if (r.dmaReq.size /= 1) then
                         -- Error detected
                         v.failed(0) := '1';
@@ -265,13 +263,13 @@ begin
 
       -- Combinatorial outputs
       axisSlave <= v.axisSlave;
-      
-      -- Reset      
+
+      -- Reset
       if (axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;

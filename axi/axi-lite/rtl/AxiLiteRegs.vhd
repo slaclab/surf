@@ -4,11 +4,11 @@
 -- Supports a configurable number of write and read vectors.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,12 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteRegs is
    generic (
       TPD_G            : time                  := 1 ns;
+      RST_ASYNC_G      : boolean               := false;
       NUM_WRITE_REG_G  : integer range 1 to 32 := 1;
       INI_WRITE_REG_G  : Slv32Array            := (0 => x"0000_0000");
       NUM_READ_REG_G   : integer range 1 to 32 := 1);
@@ -78,7 +81,6 @@ begin
    comb : process (axiClkRst, axiReadMaster, axiWriteMaster, r, readRegister) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
-      variable i      : natural;
    begin
       -- Latch the current value
       v := r;
@@ -100,7 +102,7 @@ begin
       axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -111,12 +113,14 @@ begin
       axiReadSlave  <= r.axiReadSlave;
       axiWriteSlave <= r.axiWriteSlave;
       writeRegister <= r.writeRegister;
-      
+
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiClkRst) is
    begin
-      if (rising_edge(axiClk)) then
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

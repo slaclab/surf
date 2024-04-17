@@ -60,14 +60,14 @@ The package addresses the aforementioned issues:
 
   - The firmware can be configured to enable a memory buffer. This buffer is used
     to support unreliable transport media (such as UDP). Each message is sent to
-    the firmware tagged with a "transaction ID". If no reply arrives the same 
+    the firmware tagged with a "transaction ID". If no reply arrives the same
     message (with the same ID) is re-sent. The firmware, upon receiving a new ID
     drives JTAG, remembers the transaction ID and stores the TDO vector in the buffer
     while sending it back. If firmware receives the same ID again (supposedly because
     the reply was lost) it does *not* execute the JTAG vectors again but "plays back"
     the stored TDO data from memory (JTAG transactions are not idempotent).
 
-  - The firmware core can easily be hooked to a separate UDP server port which 
+  - The firmware core can easily be hooked to a separate UDP server port which
     allows orthogonal access to JTAG with minimal FPGA resource overhead.
 
 Note that the firmware does *not* directly implement the XVC protocol (since that
@@ -76,7 +76,7 @@ documented below. Instead, there is a software program which operates as an XVC
 server and acts as a bridge to the firmware. Different transport methods can
 be employed for communication between firm-and software:
 
-                                                    
+
     | Xilinx hw_server | <--- XVC / TCP --> | xvcSrv SW | <- transport -> | AxisToJtag FW |
 
 
@@ -91,7 +91,7 @@ Other Uses
 While the most common use case may be establishing connectivity to a Xilinx
 debug hub the package is not restricted to this use case -- it is suitable as
 a general-purpose JTAG controller.
-                                                    
+
 Firmware Configuration and Use
 ------------------------------
 
@@ -100,7 +100,7 @@ the same generics and the same streaming interface. For convenience the latter
 variant already instantiates a JTAG to BSCAN IP and connects to its JTAG port.
 
 ### Architectures
-There are two VHDL architectures of the `AxisJtagDebugBridge` entity: 
+There are two VHDL architectures of the `AxisJtagDebugBridge` entity:
 `AxisJtagDebugBridgeStub` and `AxisJtagDebugBridgeImpl`. While the latter provides the
 real implementation described in this document the stub only implements
 the QUERY command and replies with a `ERR_NOT_PRESENT_C` error, thus informing
@@ -217,7 +217,7 @@ The driver recognizes the following options (given to `xvcSrv` after `--`)
                      Note that xvcSrv sets the DF (dont-fragment) bit on the
                      UDP connection, so that UDP datagrams are never broken up.
                      (firmware does not support IP defragmentation AFAIK.)
-                     
+
     -f             : Disable DF; i.e., allow IP fragmentation.
 
 Vivado Notes
@@ -256,7 +256,7 @@ When trying to add ILAs to a synthesized design (e.g., via tcl `create_debug_cor
 >     ERROR: [Common 17-69] Command failed: This design contains a
 >     debug_bridge IP configured in either 'From_AXI_to_BSCAN' or
 >     'From_JTAG_to_BSCAN' mode. Debug insertion is not currently supported
->     for such designs. Please use the debug instantiation flow. 
+>     for such designs. Please use the debug instantiation flow.
 
 Therefore, under 2016.04 you can only use XVC when instantiating ILAs
 into your hdl code.
@@ -366,7 +366,7 @@ The header word is defined as
 
     [29:28]  Command -- the request command is returned unless an error occurred;
              in case of an error the command bits in the reply are:
- 
+
              "10"  ERROR: An error was detected. The 8 least-significant bits
                    [7:0] contain an error code:
                       1: bad protocol version; the protocol version in the reply

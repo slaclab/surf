@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteMaster.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Master module controlled via REQ/ACK interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,13 +17,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteMaster is
    generic (
-      -- General Config
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false);
    port (
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -33,9 +33,7 @@ entity AxiLiteMaster is
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType;
       axilReadMaster  : out AxiLiteReadMasterType;
-      axilReadSlave   : in  AxiLiteReadSlaveType
-      );
-
+      axilReadSlave   : in  AxiLiteReadSlaveType);
 end AxiLiteMaster;
 
 architecture rtl of AxiLiteMaster is
@@ -57,7 +55,6 @@ architecture rtl of AxiLiteMaster is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
 
 begin
 
@@ -149,26 +146,25 @@ begin
 
       end case;
 
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      ack              <= r.ack;
+      ack             <= r.ack;
       axilWriteMaster <= r.axilWriteMaster;
       axilReadMaster  <= r.axilReadMaster;
 
-
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
-
 end rtl;
-

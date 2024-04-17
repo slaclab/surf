@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: General AXI RAM Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
 
 entity AxiRam is
    generic (
@@ -27,7 +28,7 @@ entity AxiRam is
       SYNTH_MODE_G   : string               := "inferred";
       MEMORY_TYPE_G  : string               := "block";
       READ_LATENCY_G : natural range 0 to 2 := 2;
-      AXI_CONFIG_G   : AxiConfigType        := axiConfig(16, 8, 4, 8));
+      AXI_CONFIG_G   : AxiConfigType);
    port (
       -- Clock and Reset
       axiClk          : in  sl;
@@ -114,7 +115,7 @@ begin
       report "AxiRam: Inferred SimpleDualPortRam does not support zero latency reads" severity failure;
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity work.SimpleDualPortRamXpm
+      U_RAM : entity surf.SimpleDualPortRamXpm
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -125,7 +126,7 @@ begin
             BYTE_WIDTH_G   => 8,
             ADDR_WIDTH_G   => ADDR_WIDTH_C)
          port map (
-            -- Port A     
+            -- Port A
             ena    => wrEn,
             clka   => axiClk,
             addra  => wrAddr,
@@ -140,7 +141,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity work.SimpleDualPortRamAlteraMf
+      U_RAM : entity surf.SimpleDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -151,7 +152,7 @@ begin
             BYTE_WIDTH_G   => 8,
             ADDR_WIDTH_G   => ADDR_WIDTH_C)
          port map (
-            -- Port A     
+            -- Port A
             ena    => wrEn,
             clka   => axiClk,
             addra  => wrAddr,
@@ -166,17 +167,17 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_RAM : entity work.SimpleDualPortRam
+      U_RAM : entity surf.SimpleDualPortRam
          generic map (
-            TPD_G        => TPD_G,
-            BRAM_EN_G    => ite(READ_LATENCY_G = 0, false, true),
-            DOB_REG_G    => ite(READ_LATENCY_G = 2, true, false),
-            BYTE_WR_EN_G => true,
-            DATA_WIDTH_G => DATA_WIDTH_C,
-            BYTE_WIDTH_G => 8,
-            ADDR_WIDTH_G => ADDR_WIDTH_C)
+            TPD_G         => TPD_G,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            DOB_REG_G     => ite(READ_LATENCY_G = 2, true, false),
+            BYTE_WR_EN_G  => true,
+            DATA_WIDTH_G  => DATA_WIDTH_C,
+            BYTE_WIDTH_G  => 8,
+            ADDR_WIDTH_G  => ADDR_WIDTH_C)
          port map (
-            -- Port A     
+            -- Port A
             ena     => wrEn,
             clka    => axiClk,
             addra   => wrAddr,
@@ -193,12 +194,12 @@ begin
    comb : process (axiRst, r, rdData, sAxiReadMaster, sAxiWriteMaster) is
       variable v : RegType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       ----------------------------------------------------------------------
       --                      AXI Write Logic                             --
-      ----------------------------------------------------------------------      
+      ----------------------------------------------------------------------
 
       -- Reset the strobes
       v.wstrb                  := (others => '0');
@@ -283,8 +284,8 @@ begin
       wrData <= r.wrData;
 
       --------------------------
-      -- sAxiWriteSlave's Outputs 
-      --------------------------         
+      -- sAxiWriteSlave's Outputs
+      --------------------------
       -- Write address channel
       sAxiWriteSlave.awready <= v.sAxiWriteSlave.awready;
       -- Write data channel
@@ -382,8 +383,8 @@ begin
       end if;
 
       --------------------------
-      -- sAxiReadSlave's Outputs 
-      --------------------------      
+      -- sAxiReadSlave's Outputs
+      --------------------------
       -- Read Address channel
       sAxiReadSlave.arready <= v.sAxiReadSlave.arready;
       -- Read data channel

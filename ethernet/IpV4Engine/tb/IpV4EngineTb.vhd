@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : IpV4EngineTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the IpV4Engine module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity IpV4EngineTb is end IpV4EngineTb;
 
@@ -58,10 +59,10 @@ architecture testbed of IpV4EngineTb is
    signal arpReqSlaves      : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
    signal arpAckMasters     : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal arpAckSlaves      : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   
+
 begin
 
-   ClkRst_Inst : entity work.ClkRst
+   ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -70,9 +71,9 @@ begin
          clkP => clk,
          clkN => open,
          rst  => rst,
-         rstL => open);          
+         rstL => open);
 
-   IpV4Engine_Local : entity work.IpV4Engine
+   IpV4Engine_Local : entity surf.IpV4Engine
       generic map (
          TPD_G            => TPD_C,
          SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
@@ -90,7 +91,7 @@ begin
          obMacSlave           => obMacSlaves(0),
          ibMacMaster          => ibMacMasters(0),
          ibMacSlave           => ibMacSlaves(0),
-         -- Interface to Protocol Engine(s)  
+         -- Interface to Protocol Engine(s)
          obProtocolMasters(0) => obProtocolMasters(0),
          obProtocolSlaves(0)  => obProtocolSlaves(0),
          ibProtocolMasters(0) => ibProtocolMasters(0),
@@ -102,9 +103,9 @@ begin
          arpAckSlaves(0)      => arpAckSlaves(0),
          -- Clock and Reset
          clk                  => clk,
-         rst                  => rst); 
+         rst                  => rst);
 
-   MAC_FIFO_0 : entity work.AxiStreamFifoV2
+   MAC_FIFO_0 : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
@@ -112,14 +113,13 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -130,9 +130,9 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => obMacMasters(1),
-         mAxisSlave  => obMacSlaves(1));    
+         mAxisSlave  => obMacSlaves(1));
 
-   MAC_FIFO_1 : entity work.AxiStreamFifoV2
+   MAC_FIFO_1 : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_C,
@@ -140,14 +140,13 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
-         BRAM_EN_G           => false,
-         USE_BUILT_IN_G      => false,
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)            
+         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => clk,
@@ -158,9 +157,9 @@ begin
          mAxisClk    => clk,
          mAxisRst    => rst,
          mAxisMaster => obMacMasters(0),
-         mAxisSlave  => obMacSlaves(0));             
+         mAxisSlave  => obMacSlaves(0));
 
-   IpV4Engine_Remote : entity work.IpV4Engine
+   IpV4Engine_Remote : entity surf.IpV4Engine
       generic map (
          TPD_G            => TPD_C,
          SIM_ERROR_HALT_G => SIM_ERROR_HALT_C,
@@ -178,7 +177,7 @@ begin
          obMacSlave           => obMacSlaves(1),
          ibMacMaster          => ibMacMasters(1),
          ibMacSlave           => ibMacSlaves(1),
-         -- Interface to Protocol Engine(s)  
+         -- Interface to Protocol Engine(s)
          obProtocolMasters(0) => obProtocolMasters(1),
          obProtocolSlaves(0)  => obProtocolSlaves(1),
          ibProtocolMasters(0) => ibProtocolMasters(1),
@@ -190,9 +189,9 @@ begin
          arpAckSlaves(0)      => arpAckSlaves(1),
          -- Clock and Reset
          clk                  => clk,
-         rst                  => rst);   
+         rst                  => rst);
 
-   IpV4EngineLoopback_Inst : entity work.IpV4EngineLoopback
+   IpV4EngineLoopback_Inst : entity surf.IpV4EngineLoopback
       generic map (
          TPD_G => TPD_C)
       port map (
@@ -208,9 +207,9 @@ begin
          arpAckSlave      => arpAckSlaves(1),
          -- Clock and Reset
          clk              => clk,
-         rst              => rst);            
+         rst              => rst);
 
-   IpV4EngineCoreTb_Inst : entity work.IpV4EngineCoreTb
+   IpV4EngineCoreTb_Inst : entity surf.IpV4EngineCoreTb
       generic map (
          TPD_G        => TPD_C,
          LOCAL_MAC_G  => LOCAL_MAC_C,
@@ -237,7 +236,7 @@ begin
          failed           => failed,
          -- Clock and Reset
          clk              => clk,
-         rst              => rst);  
+         rst              => rst);
 
    process(failed, passed)
    begin

@@ -1,5 +1,10 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
-# Load the source code
-loadSource -dir "$::DIR_PATH/rtl"
+# Check for non-zero Vivado version (in-case non-Vivado project)
+if {  $::env(VIVADO_VERSION) > 0.0} {
+   # Load the source code
+   loadSource -lib surf -dir "$::DIR_PATH/rtl"
+} else {
+   loadSource -lib surf -dir  "$::DIR_PATH/dummy"
+}

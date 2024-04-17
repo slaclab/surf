@@ -1,23 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : Iprog.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for the ICAP Module to issue IPROG command
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
 
 entity Iprog is
    generic (
@@ -66,7 +67,7 @@ architecture rtl of Iprog is
 
 begin
 
-   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS") 
+   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS")
       report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate

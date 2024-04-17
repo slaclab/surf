@@ -1,28 +1,29 @@
 -------------------------------------------------------------------------------
--- File       : MmcmEmulation.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity MmcmEmulation is
    generic (
       CLKIN_PERIOD_G         : real                       := 10.0;
       DIVCLK_DIVIDE_G        : integer range 1 to 106     := 2;
-      CLKFBOUT_MULT_F_G      : real range 1.0 to 64.0     := 20.0;
+      CLKFBOUT_MULT_F_G      : real range 1.0 to 128.0    := 20.0;
       CLKOUT0_DIVIDE_F_G     : real range 1.0 to 128.0    := 1.0;
       CLKOUT1_DIVIDE_G       : integer range 1 to 128     := 2;
       CLKOUT2_DIVIDE_G       : integer range 1 to 128     := 3;
@@ -86,7 +87,7 @@ architecture MmcmEmulation of MmcmEmulation is
       5 => (CLKOUT_PERIOD_REAL_C(5)*(1 ns)),
       6 => (CLKOUT_PERIOD_REAL_C(6)*(1 ns)));
 
-   constant PHASE_OFFSET_C : TimeArray(6 downto 0) := (others => (1 ps));  -- place holder for future feature support      
+   constant PHASE_OFFSET_C : TimeArray(6 downto 0) := (others => (1 ps));  -- place holder for future feature support
 
    constant CLK_HI_CYCLE_C : TimeArray := (
       0 => (CLKOUT_PERIOD_C(0)*CLKOUT0_DUTY_CYCLE_G),
@@ -124,7 +125,7 @@ begin
 
    GEN_VEC :
    for i in 6 downto 0 generate
-      U_ClkPgp : entity work.ClkRst
+      U_ClkPgp : entity surf.ClkRst
          generic map (
             CLK_PERIOD_G      => CLKOUT_PERIOD_C(i),
             RST_START_DELAY_G => 0 ns,

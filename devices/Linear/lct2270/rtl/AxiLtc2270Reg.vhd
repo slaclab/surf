@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLtc2270Reg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Register Access Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiLtc2270Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiLtc2270Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -50,18 +51,18 @@ entity AxiLtc2270Reg is
       -- Global Signals
       axiClk         : in    sl;
       axiRst         : in    sl;
-      refClk200MHz   : in    sl);      
+      refClk200MHz   : in    sl);
 end AxiLtc2270Reg;
 
 architecture rtl of AxiLtc2270Reg is
 
    constant HALF_SCLK_C  : natural := getTimeRatio(AXI_CLK_FREQ_G, 8.0E+06);
    constant TIMEOUT_1S_C : natural := getTimeRatio(AXI_CLK_FREQ_G, 1.0E+00);
-   
+
    type StateType is (
       IDLE_S,
       SCK_LOW_S,
-      SCK_HIGH_S);    
+      SCK_HIGH_S);
 
    type RegType is record
       debug         : sl;
@@ -81,7 +82,7 @@ architecture rtl of AxiLtc2270Reg is
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       '0',
       '0',
@@ -116,16 +117,16 @@ begin
    adcSck <= '1' when (r.debug = '0') else r.sck;  -- '1' = Double Data Rate LVDS Output Mode
    adcSdi <= '0' when (r.debug = '0') else r.sdi;  -- '0' = Normal Operation
 
-   IOBUF_INST : IOBUF
+   IOBUF_INST : entity surf.IoBufWrapper
       port map (
          O  => sdo,                     -- Buffer output
          IO => adcSdo,                  -- Buffer inout port (connect directly to top-level port)
          I  => '0',                     -- Buffer input
-         T  => r.debug);                -- 3-state enable input, high=input, low=output    
+         T  => r.debug);                -- 3-state enable input, high=input, low=output
 
    -------------------------------
    -- Configuration Register
-   -------------------------------  
+   -------------------------------
    comb : process (axiReadMaster, axiRst, axiWriteMaster, r, regIn, sdo) is
       variable i            : integer;
       variable v            : RegType;
@@ -160,7 +161,7 @@ begin
          if (r.armed(i) = '1') and (regIn.adcValid(i) = '1') then
             -- Latch the value
             v.adcSmpl(i, conv_integer(r.smplCnt(i))) := regIn.adcData(i);
-            -- Increment the counter   
+            -- Increment the counter
             v.smplCnt(i)                             := r.smplCnt(i) + 1;
             -- Check the counter value
             if r.smplCnt(i) = 7 then
@@ -263,8 +264,6 @@ begin
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         -- Reset the register
-         v.axiReadSlave.rdata := (others => '0');
          if (axiReadMaster.araddr(9 downto 2) < 5) then
             v.serReg(15)           := '1';  -- Read
             v.serReg(14 downto 13) := "00";
@@ -415,7 +414,7 @@ begin
 
       regOut <= r.regOut;
       cntRst <= r.cntRst;
-      
+
    end process comb;
 
    seq : process (axiClk) is
@@ -425,7 +424,7 @@ begin
       end if;
    end process seq;
 
-   -------------------------------            
+   -------------------------------
    -- Synchronization: Outputs
    -------------------------------
    config.dmode <= regOut.dmode;
@@ -434,7 +433,7 @@ begin
    for ch in 0 to 1 generate
       GEN_DAT_CONFIG :
       for i in 0 to 7 generate
-         SyncOut_delayIn_data : entity work.SynchronizerFifo
+         SyncOut_delayIn_data : entity surf.SynchronizerFifo
             generic map (
                TPD_G        => TPD_G,
                DATA_WIDTH_G => 5)
@@ -446,23 +445,23 @@ begin
       end generate GEN_DAT_CONFIG;
    end generate GEN_CH_CONFIG;
 
-   SyncOut_delayIn_load : entity work.RstSync
+   SyncOut_delayIn_load : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 32)   
+         RELEASE_DELAY_G => 32)
       port map (
          clk      => refClk200MHz,
          asyncRst => regOut.delayIn.load,
-         syncRst  => config.delayIn.load); 
+         syncRst  => config.delayIn.load);
 
-   SyncOut_delayIn_rst : entity work.RstSync
+   SyncOut_delayIn_rst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 16)   
+         RELEASE_DELAY_G => 16)
       port map (
          clk      => refClk200MHz,
          asyncRst => regOut.delayIn.rst,
-         syncRst  => config.delayIn.rst);     
+         syncRst  => config.delayIn.rst);
 
    -------------------------------
    -- Synchronization: Inputs
@@ -470,19 +469,19 @@ begin
    regIn.adcData  <= status.adcData;
    regIn.adcValid <= status.adcValid;
 
-   SyncIn_delayOut_rdy : entity work.Synchronizer
+   SyncIn_delayOut_rdy : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
          clk     => axiClk,
          dataIn  => status.delayOut.rdy,
-         dataOut => regIn.delayOut.rdy);   
+         dataOut => regIn.delayOut.rdy);
 
    GEN_CH_STATUS :
    for ch in 0 to 1 generate
       GEN_DAT_STATUS :
       for i in 0 to 7 generate
-         SyncIn_delayOut_data : entity work.SynchronizerFifo
+         SyncIn_delayOut_data : entity surf.SynchronizerFifo
             generic map (
                TPD_G        => TPD_G,
                DATA_WIDTH_G => 5)
@@ -490,7 +489,7 @@ begin
                wr_clk => refClk200MHz,
                din    => status.delayOut.data(ch, i),
                rd_clk => axiClk,
-               dout   => regIn.delayOut.data(ch, i));       
+               dout   => regIn.delayOut.data(ch, i));
       end generate GEN_DAT_STATUS;
    end generate GEN_CH_STATUS;
 

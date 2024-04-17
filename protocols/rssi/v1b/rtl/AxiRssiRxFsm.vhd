@@ -1,22 +1,21 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : AxiRssiRxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Receiver FSM
 --              Receiver has the following functionality:
 --              Transport side FSM. Receive check and save segments to RX buffer.
---               - WAIT_SOF Waits for Transport side SOF,  
+--               - WAIT_SOF Waits for Transport side SOF,
 --               - CHECK Determines the segment type and checks:
 --                    ACK, NULL, DATA, or RST segment
---                    1. Validates checksum (when valid), 
---                    2. Header length (number of bytes), 
+--                    1. Validates checksum (when valid),
+--                    2. Header length (number of bytes),
 --                    3. Sequence number (Only current seqN or lastSeqN+1 allowed)
 --                    4. Acknowledgment number (Valid range is lastAckN to lastAckN + txWindowSize)
 --               - CHECK_SYN Toggles through SYN header addresses and saves the RSSI parameters
 --                    Checks the following:
---                    1. Validates checksum (when valid), 
+--                    1. Validates checksum (when valid),
 --                    2. Validates Ack number if the ack is sent with the SYN segment
 --               - DATA Receives the payload part of the DATA segment
 --               - VALID Checks if next valid SEQn is received. If yes:
@@ -25,18 +24,18 @@
 --                      3. increment rxBufferAddr
 --               - DROP Just report dropped packet and got back to WAIT_SOF
 --              Receiver side FSM. Send data to App side.
---                - CHECK_BUFFER and DATA Send the data frame to the Application  
+--                - CHECK_BUFFER and DATA Send the data frame to the Application
 --                  when the data at the next txSegmentAddr is ready.
---                - SENT Release the windowbuffer at txBufferAddr. 
---                       Increment txBufferAddr. 
+--                - SENT Release the windowbuffer at txBufferAddr.
+--                       Increment txBufferAddr.
 --                       Register the received SeqN for acknowledgment.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -45,18 +44,20 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiRssiRxFsm is
    generic (
       TPD_G               : time          := 1 ns;
-      AXI_CONFIG_G        : AxiConfigType := RSSI_AXI_CONFIG_C;
+      AXI_CONFIG_G        : AxiConfigType;
       BURST_BYTES_G       : positive      := 1024;
       WINDOW_ADDR_SIZE_G  : positive      := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
       HEADER_CHKSUM_EN_G  : boolean       := true;
@@ -185,7 +186,7 @@ architecture rtl of AxiRssiRxFsm is
       segValid     => '0',
       segDrop      => '0',
       simErrorDet  => '0',
-      -- Inbound Transport Interface 
+      -- Inbound Transport Interface
       tspSlave     => AXI_STREAM_SLAVE_INIT_C,
       -- Transport side state
       tspState     => IDLE_S,
@@ -195,7 +196,7 @@ architecture rtl of AxiRssiRxFsm is
       rdReq        => AXI_READ_DMA_REQ_INIT_C,
       txBufferAddr => (others => '0'),
       rxLastSeqN   => (others => '0'),
-      -- Application side state            
+      -- Application side state
       appState     => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -208,11 +209,11 @@ architecture rtl of AxiRssiRxFsm is
    signal wrDmaSlave  : AxiStreamSlaveType;
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";    
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
-   U_DmaWrite : entity work.AxiStreamDmaWrite
+   U_DmaWrite : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
@@ -233,14 +234,14 @@ begin
          -- DMA Control Interface
          dmaReq         => r.wrReq,
          dmaAck         => wrAck,
-         -- Streaming Interface 
+         -- Streaming Interface
          axisMaster     => wrDmaMaster,
          axisSlave      => wrDmaSlave,
          -- AXI Interface
          axiWriteMaster => mAxiWriteMaster_o,
          axiWriteSlave  => mAxiWriteSlave_i);
 
-   U_DmaRead : entity work.AxiStreamDmaRead
+   U_DmaRead : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,
@@ -256,10 +257,10 @@ begin
          -- Clock/Reset
          axiClk        => clk_i,
          axiRst        => rst_i,
-         -- DMA Control Interface 
+         -- DMA Control Interface
          dmaReq        => r.rdReq,
          dmaAck        => rdAck,
-         -- Streaming Interface 
+         -- Streaming Interface
          axisMaster    => appMaster_o,
          axisSlave     => appSlave_i,
          axisCtrl      => AXI_STREAM_CTRL_UNUSED_C,
@@ -267,7 +268,7 @@ begin
          axiReadMaster => mAxiReadMaster_o,
          axiReadSlave  => mAxiReadSlave_i);
 
-   ----------------------------------------------------------------------------------------------- 
+   -----------------------------------------------------------------------------------------------
    comb : process (axiOffset_i, connActive_i, lastAckN_i, r, rdAck, rst_i,
                    rxBufferSize_i, rxWindowSize_i, tspMaster_i, txWindowSize_i,
                    wrAck, wrDmaSlave) is
@@ -278,14 +279,14 @@ begin
       variable rxBufIdx   : natural;
       variable txBufIdx   : natural;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Reset strobes
       v.tspSlave  := AXI_STREAM_SLAVE_INIT_C;
       v.segValid  := '0';
       v.segDrop   := '0';
-      v.chksumRdy := '0';      
+      v.chksumRdy := '0';
 
       -- Endian swap the header
       headerData := endianSwap64(tspMaster_i.tData(63 downto 0));
@@ -310,11 +311,11 @@ begin
       case r.tspState is
          ----------------------------------------------------------------------
          when IDLE_S =>
-         
+
             -- Calculate the checksum
             GetRssiCsum(
-               -- Input 
-               '1',                     -- init        
+               -- Input
+               '1',                     -- init
                headerData,              -- header
                r.csumAccum,             -- accumReg
                -- Results
@@ -380,16 +381,16 @@ begin
 
                -- Calculate the checksum
                GetRssiCsum(
-                  -- Input 
+                  -- Input
                   '0',                  -- init
                   headerData,           -- header
                   r.csumAccum,          -- accumReg
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum               
+                  v.checksum);          -- checksum
 
-               -- Syn parameters              
+               -- Syn parameters
                v.rxParam.retransTout  := headerData(63 downto 48);
                v.rxParam.cumulAckTout := headerData(47 downto 32);
                v.rxParam.nullSegTout  := headerData(31 downto 16);
@@ -419,14 +420,14 @@ begin
 
                -- Calculate the checksum
                GetRssiCsum(
-                  -- Input 
+                  -- Input
                   '0',                  -- init
                   headerData,           -- header
                   r.csumAccum,          -- accumReg
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum 
+                  v.checksum);          -- checksum
 
                -- Syn parameters
                v.rxParam.maxOutofseq               := headerData(63 downto 56);
@@ -451,20 +452,20 @@ begin
             -- Last cycle of pipeline
             v.chksumRdy := '1';
             GetRssiCsum(
-               -- Input 
-               '0',                     -- init  
+               -- Input
+               '0',                     -- init
                (others => '0'),         -- header
                r.csumAccum,             -- accumReg
                -- Results
                v.csumAccum,             -- accumVar
                v.chksumOk,              -- chksumOk
-               v.checksum);             -- checksum         
+               v.checksum);             -- checksum
 
             if (r.chksumRdy = '1') then
 
                -- Check the header
                if ((HEADER_CHKSUM_EN_G = false) or (r.chksumOk = '1')) and (r.rxHeadLen = toSlv(24, 8)) then
-                  -- Next State              
+                  -- Next State
                   v.tspState := VALID_S;
                else
 
@@ -482,14 +483,14 @@ begin
             -- Last cycle of pipeline
             v.chksumRdy := '1';
             GetRssiCsum(
-               -- Input 
+               -- Input
                '0',                     -- init
                (others => '0'),         -- header
                r.csumAccum,             -- accumReg
                -- Results
                v.csumAccum,             -- accumVar
                v.chksumOk,              -- chksumOk
-               v.checksum);             -- checksum         
+               v.checksum);             -- checksum
 
             if (r.chksumRdy = '1') then
 
@@ -500,7 +501,7 @@ begin
                   r.rxHeadLen = toSlv(8, 8) and
                   -- Check SeqN range
                   (r.rxSeqN - r.inOrderSeqN) <= 1 and
-                  -- Check AckN range                  
+                  -- Check AckN range
                   (r.rxAckN - lastAckN_i)    <= txWindowSize_i
                   ) then
 
@@ -512,7 +513,7 @@ begin
                      if (r.windowArray(rxBufIdx).occupied = '0') then
                         -- Start the DMA write transaction
                         v.wrReq.request := '1';
-                        -- Next State             
+                        -- Next State
                         v.tspState      := DATA_S;
 
                      -- Buffer is full -> drop segment
@@ -523,7 +524,7 @@ begin
                         v.tspState := IDLE_S;
                      end if;
 
-                  -- Valid non data segment               
+                  -- Valid non data segment
                   elsif (r.rxF.data = '0') then
                      -- Next State
                      v.tspState := VALID_S;
@@ -563,7 +564,7 @@ begin
                   -- Next State
                   v.tspState := IDLE_S;
                else
-                  -- Next State              
+                  -- Next State
                   v.tspState := VALID_S;
                end if;
 
@@ -628,13 +629,13 @@ begin
       txBufIdx                     := conv_integer(r.txBufferAddr);
       v.rdReq.address              := axiOffset_i + toSlv((txBufIdx*maxSegSize), 64);
       v.rdReq.size                 := toSlv(r.windowArray(txBufIdx).segSize, 32);
-      v.rdReq.firstUser(SSI_SOF_C) := '1';  -- SOF     
+      v.rdReq.firstUser(SSI_SOF_C) := '1';  -- SOF
 
-      ----------------------------------------------------------------------------      
+      ----------------------------------------------------------------------------
       -- TX Application side FSM:
       -- Transmit the segments in correct order
       -- Check the buffer if the next slot is available and send the buffer to APP
-      ----------------------------------------------------------------------------      
+      ----------------------------------------------------------------------------
       case r.appState is
          ----------------------------------------------------------------------
          when IDLE_S =>
@@ -652,7 +653,7 @@ begin
 
                   -- Check if ready to move data
                   if (rdAck.idle = '1') then
-                     -- Start the DMA read transaction                   
+                     -- Start the DMA read transaction
                      v.rdReq.request := '1';
 
                      -- Next State

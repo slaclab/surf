@@ -1,30 +1,30 @@
 -------------------------------------------------------------------------------
--- File       : AxiAd5780Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite interface to AD5780 DAC IC
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiAd5780Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiAd5780Pkg.all;
 
 entity AxiAd5780Core is
    generic (
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
-      USE_DSP48_G        : string                := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices      
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
       SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz
    port (
@@ -44,26 +44,25 @@ entity AxiAd5780Core is
 end AxiAd5780Core;
 
 architecture rtl of AxiAd5780Core is
-   
+
    signal status : AxiAd5780StatusType;
    signal config : AxiAd5780ConfigType;
 
    signal dacRst     : sl;
    signal dacDataMux : slv(17 downto 0);
-   
+
 begin
 
    status.dacData <= dacData;
 
-   AxiAd5780Reg_Inst : entity work.AxiAd5780Reg
+   AxiAd5780Reg_Inst : entity surf.AxiAd5780Reg
       generic map(
          TPD_G              => TPD_G,
          STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
-         USE_DSP48_G        => USE_DSP48_G,
          AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G,
          SPI_CLK_FREQ_G     => SPI_CLK_FREQ_G)
       port map(
-         -- AXI-Lite Register Interface    
+         -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,
          axiReadSlave   => axiReadSlave,
          axiWriteMaster => axiWriteMaster,
@@ -87,10 +86,10 @@ begin
       end if;
    end process;
 
-   AxiAd5780Ser_Inst : entity work.AxiAd5780Ser
+   AxiAd5780Ser_Inst : entity surf.AxiAd5780Ser
       generic map(
          TPD_G          => TPD_G,
-         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)         
+         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
       port map(
          -- DAC Ports
          dacIn         => dacIn,
@@ -107,6 +106,6 @@ begin
          -- Clocks and Resets
          axiClk        => axiClk,
          axiRst        => axiRst,
-         dacRst        => dacRst); 
+         dacRst        => dacRst);
 
 end rtl;

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : FifoSync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SYNC FIFO module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,19 +17,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoSync is
    generic (
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean  := false;
-      BRAM_EN_G      : boolean  := true;
+      MEMORY_TYPE_G  : string   := "block";
       BYP_RAM_G      : boolean  := false;
       FWFT_EN_G      : boolean  := false;
-      USE_DSP48_G    : string   := "no";
-      ALTERA_SYN_G   : boolean  := false;
-      ALTERA_RAM_G   : string   := "M9K";
       PIPE_STAGES_G  : natural  := 0;
       DATA_WIDTH_G   : positive := 16;
       ADDR_WIDTH_G   : positive := 4;
@@ -80,7 +77,7 @@ architecture mapping of FifoSync is
 
 begin
 
-   U_WR_FSM : entity work.FifoWrFsm
+   U_WR_FSM : entity surf.FifoWrFsm
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -113,12 +110,13 @@ begin
          full          => full,
          not_full      => not_full);
 
-   U_RD_FSM : entity work.FifoRdFsm
+   U_RD_FSM : entity surf.FifoRdFsm
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          FIFO_ASYNC_G   => false,       -- SYNC FIFO
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
          FWFT_EN_G      => FWFT_EN_G,
          DATA_WIDTH_G   => DATA_WIDTH_G,
          ADDR_WIDTH_G   => ADDR_WIDTH_G,
@@ -148,15 +146,13 @@ begin
          empty         => empty);
 
    GEN_RAM : if (BYP_RAM_G = false) generate
-      U_RAM : entity work.SimpleDualPortRam
+      U_RAM : entity surf.SimpleDualPortRam
          generic map(
-            TPD_G        => TPD_G,
-            DOB_REG_G    => FWFT_EN_G,
-            BRAM_EN_G    => BRAM_EN_G,
-            ALTERA_SYN_G => ALTERA_SYN_G,
-            ALTERA_RAM_G => ALTERA_RAM_G,
-            DATA_WIDTH_G => DATA_WIDTH_G,
-            ADDR_WIDTH_G => ADDR_WIDTH_G)
+            TPD_G         => TPD_G,
+            DOB_REG_G     => ite(MEMORY_TYPE_G/="distributed", FWFT_EN_G, false),
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            DATA_WIDTH_G  => DATA_WIDTH_G,
+            ADDR_WIDTH_G  => ADDR_WIDTH_G)
          port map (
             -- Port A
             clka   => clk,
@@ -165,6 +161,7 @@ begin
             dina   => dina,
             -- Port B
             clkb   => clk,
+            rstb   => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
             addrb  => addrb,
             doutb  => doutb,
             enb    => enb,
@@ -173,7 +170,7 @@ begin
 
    GEN_PIPE : if (FWFT_EN_G = true) generate
 
-      U_Pipeline : entity work.FifoOutputPipeline
+      U_Pipeline : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,

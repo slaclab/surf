@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EthMacTxExport.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Mapping for 1GbE/10GbE/40GbE ETH MAC TX path
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,19 +17,22 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.AxiStreamPkg.all;
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.AxiStreamPkg.all;
+use surf.StdRtlPkg.all;
 
 entity EthMacTxExport is
    generic (
-      TPD_G      : time   := 1 ns;
-      PHY_TYPE_G : string := "XGMII");
+      TPD_G        : time   := 1 ns;
+      PHY_TYPE_G   : string := "XGMII";
+      SYNTH_MODE_G : string := "inferred");
    port (
       -- Clock and Reset
       ethClkEn       : in  sl;
       ethClk         : in  sl;
       ethRst         : in  sl;
-      -- AXIS Interface   
+      -- AXIS Interface
       macObMaster    : in  AxiStreamMasterType;
       macObSlave     : out AxiStreamSlaveType;
       -- XLGMII PHY Interface
@@ -57,14 +59,14 @@ begin
    assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacTxExport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
 
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
-      U_XLGMII : entity work.EthMacTxExportXlgmii
+      U_XLGMII : entity surf.EthMacTxExportXlgmii
          generic map (
-            TPD_G => TPD_G) 
+            TPD_G => TPD_G)
          port map (
             -- Clock and Reset
             ethClk         => ethClk,
             ethRst         => ethRst,
-            -- AXIS Interface 
+            -- AXIS Interface
             macObMaster    => macObMaster,
             macObSlave     => macObSlave,
             -- XLGMII PHY Interface
@@ -84,14 +86,15 @@ begin
    end generate;
 
    U_10G : if (PHY_TYPE_G = "XGMII") generate
-      U_XGMII : entity work.EthMacTxExportXgmii
+      U_XGMII : entity surf.EthMacTxExportXgmii
          generic map (
-            TPD_G => TPD_G) 
+            TPD_G        => TPD_G,
+            SYNTH_MODE_G => SYNTH_MODE_G)
          port map (
             -- Clock and Reset
             ethClk         => ethClk,
             ethRst         => ethRst,
-            -- AXIS Interface 
+            -- AXIS Interface
             macObMaster    => macObMaster,
             macObSlave     => macObSlave,
             -- XGMII PHY Interface
@@ -111,15 +114,15 @@ begin
    end generate;
 
    U_1G : if (PHY_TYPE_G = "GMII") generate
-      U_GMII : entity work.EthMacTxExportGmii
+      U_GMII : entity surf.EthMacTxExportGmii
          generic map (
-            TPD_G => TPD_G) 
+            TPD_G => TPD_G)
          port map (
-            -- Clock and Reset         
+            -- Clock and Reset
             ethClkEn       => ethClkEn,
             ethClk         => ethClk,
             ethRst         => ethRst,
-            -- AXIS Interface 
+            -- AXIS Interface
             macObMaster    => macObMaster,
             macObSlave     => macObSlave,
             -- GMII PHY Interface

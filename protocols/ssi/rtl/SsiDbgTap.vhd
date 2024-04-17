@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiDbgTap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SSI debug tap, intended to be connect to chipscope for debugging
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,15 +19,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiDbgTap is
    generic (
-      TPD_G        : time                := 1 ns;
-      CNT_WIDTH_G  : positive            := 16;
-      AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      TPD_G        : time     := 1 ns;
+      RST_ASYNC_G  : boolean  := false;
+      CNT_WIDTH_G  : positive := 16;
+      AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       axisClk    : in sl;
@@ -101,7 +102,7 @@ begin
       end if;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -110,9 +111,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if rising_edge(axisClk) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

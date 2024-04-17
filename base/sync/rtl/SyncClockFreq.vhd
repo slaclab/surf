@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : SyncClockFreq.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:   This module measures the frequency of an input clock
 --                with respect to a stable reference clock.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,12 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncClockFreq is
    generic (
       TPD_G             : time     := 1 ns;  -- Simulation FF output delay
-      USE_DSP48_G       : string   := "no";  -- "no" for no DSP48 implementation, "yes" to use DSP48 slices
+      RST_ASYNC_G       : boolean  := false;
+      USE_DSP_G         : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
       REF_CLK_FREQ_G    : real     := 200.0E+6;       -- Reference Clock frequency, units of Hz
       REFRESH_RATE_G    : real     := 1.0E+3;         -- Refresh rate, units of Hz
       CLK_LOWER_LIMIT_G : real     := 159.0E+6;       -- Lower Limit for clock lock, units of Hz
@@ -67,13 +68,13 @@ architecture rtl of SyncClockFreq is
    signal diffCnt   : slv(CNT_WIDTH_G-1 downto 0) := (others => '0');
 
    -- Attribute for XST
-   attribute use_dsp48              : string;
-   attribute use_dsp48 of cntIn     : signal is USE_DSP48_G;
-   attribute use_dsp48 of cntStable : signal is USE_DSP48_G;
-   attribute use_dsp48 of cntAccum  : signal is USE_DSP48_G;
-   attribute use_dsp48 of accum     : signal is USE_DSP48_G;
-   attribute use_dsp48 of diffCnt   : signal is USE_DSP48_G;
-   attribute use_dsp48 of freqHertz : signal is USE_DSP48_G;
+   attribute use_dsp              : string;
+   attribute use_dsp of cntIn     : signal is USE_DSP_G;
+   attribute use_dsp of cntStable : signal is USE_DSP_G;
+   attribute use_dsp of cntAccum  : signal is USE_DSP_G;
+   attribute use_dsp of accum     : signal is USE_DSP_G;
+   attribute use_dsp of diffCnt   : signal is USE_DSP_G;
+   attribute use_dsp of freqHertz : signal is USE_DSP_G;
 
 begin
 
@@ -94,12 +95,13 @@ begin
       end if;
    end process;
 
-   ------------------------------------------------     
-   -- Calculate the frequency of the input clock 
-   ------------------------------------------------               
-   SynchronizerFifo_In : entity work.SynchronizerFifo
+   ------------------------------------------------
+   -- Calculate the frequency of the input clock
+   ------------------------------------------------
+   SynchronizerFifo_In : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          DATA_WIDTH_G => CNT_WIDTH_G)
       port map (
          --Write Ports (wr_clk domain)
@@ -146,9 +148,10 @@ begin
       end if;
    end process;
 
-   U_Sync : entity work.SynchronizerFifo
+   U_Sync : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => CNT_WIDTH_G)
       port map (

@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -242,7 +242,7 @@ RssiCore: &RssiCore
       mode: RO
       description: Number of valid segments [31:0]
     DropCnt:
-    #########################################################    
+    #########################################################
       at:
         offset: 0x48
       class: IntField
@@ -261,7 +261,7 @@ RssiCore: &RssiCore
       description: Counts all retransmission requests within the active connection
         [31:0]
     ReconnectCnt:
-    #########################################################    
+    #########################################################
       at:
         offset: 0x50
       class: IntField
@@ -270,7 +270,7 @@ RssiCore: &RssiCore
       mode: RO
       description: Counts all reconnections from reset [31:0]
     FrameRate:
-    #########################################################    
+    #########################################################
       at:
         offset: 0x54
         nelms: 2
@@ -280,7 +280,7 @@ RssiCore: &RssiCore
       sizeBits: 32
       mode: RO
       description: Frame Rate (in units of Hz)
-    #########################################################    
+    #########################################################
     Bandwidth:
       at:
         offset: 0x5C
@@ -290,7 +290,7 @@ RssiCore: &RssiCore
       sizeBits: 64
       mode: RO
       description: Bandwidth (in units of bytes per second)
-    #########################################################    
+    #########################################################
     C_OpenConn:
       class: SequenceCommand
       at:

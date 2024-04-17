@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation PGPv3 Testbed 
+-- Description: Simulation PGPv3 Testbed
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 ----------------------------------------------------------------------------------------------------
 
@@ -79,7 +80,7 @@ architecture tb of Pgp3Tb is
    signal pgpTxOut       : Pgp3TxOutType;
    signal pgpTxMasters   : AxiStreamMasterArray(NUM_VC_G-1 downto 0);  -- [in]
    signal pgpTxSlaves    : AxiStreamSlaveArray(NUM_VC_G-1 downto 0);   -- [out]
-   signal pgpTxCtrl      : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+
    -- status from rx to tx
    signal locRxLinkReady : sl;
    signal remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -106,9 +107,9 @@ begin
       pgpTxIn.disable <= '0';
       wait;
    end process;
-              
 
-   U_ClkRst_1 : entity work.ClkRst
+
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          CLK_DELAY_G       => 1 ns,
@@ -120,7 +121,7 @@ begin
          rst  => axisRst);
 
    PRBS_GEN : for i in 0 to NUM_VC_G-1 generate
-      U_SsiPrbsTx_1 : entity work.SsiPrbsTx
+      U_SsiPrbsTx_1 : entity surf.SsiPrbsTx
          generic map (
             TPD_G                      => TPD_G,
             GEN_SYNC_FIFO_G            => true,
@@ -144,18 +145,16 @@ begin
    -------------------------------------------------------------------------------------------------
    -- PGP3 Transmit
    -------------------------------------------------------------------------------------------------
-   U_Pgp3Tx_1 : entity work.Pgp3Tx
+   U_Pgp3Tx_1 : entity surf.Pgp3Tx
       generic map (
-         TPD_G                        => TPD_G,
-         NUM_VC_G                     => NUM_VC_G,
-         TX_CELL_WORDS_MAX_G          => TX_CELL_WORDS_MAX_G,
-         SKP_INTERVAL_G               => SKP_INTERVAL_G,
-         SKP_BURST_SIZE_G             => SKP_BURST_SIZE_G,
-         MUX_MODE_G                   => MUX_MODE_G,
-         MUX_TDEST_ROUTES_G           => MUX_TDEST_ROUTES_G,
-         MUX_TDEST_LOW_G              => MUX_TDEST_LOW_G,
-         MUX_INTERLEAVE_EN_G          => MUX_INTERLEAVE_EN_G,
-         MUX_INTERLEAVE_ON_NOTVALID_G => MUX_INTERLEAVE_ON_NOTVALID_G)
+         TPD_G                    => TPD_G,
+         NUM_VC_G                 => NUM_VC_G,
+         CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
+         MUX_MODE_G               => MUX_MODE_G,
+         MUX_TDEST_ROUTES_G       => MUX_TDEST_ROUTES_G,
+         MUX_TDEST_LOW_G          => MUX_TDEST_LOW_G,
+         MUX_ILEAVE_EN_G          => MUX_INTERLEAVE_EN_G,
+         MUX_ILEAVE_ON_NOTVALID_G => MUX_INTERLEAVE_ON_NOTVALID_G)
       port map (
          pgpTxClk       => axisClk,         -- [in]
          pgpTxRst       => axisRst,         -- [in]
@@ -163,11 +162,11 @@ begin
          pgpTxOut       => pgpTxOut,        -- [out]
          pgpTxMasters   => pgpTxMasters,    -- [in]
          pgpTxSlaves    => pgpTxSlaves,     -- [out]
-         pgpTxCtrl      => pgpTxCtrl,       -- [out]
          locRxFifoCtrl  => pgpRxCtrl,       -- [in]
          locRxLinkReady => locRxLinkReady,  -- [in]
          remRxFifoCtrl  => remRxFifoCtrl,   -- [in]
          remRxLinkReady => remRxLinkReady,  -- [in]
+         phyTxActive    => '1',             -- [in]
          phyTxReady     => '1',             -- [in]
          phyTxData      => phyTxData,       -- [out]
          phyTxHeader    => phyTxHeader);    -- [out]
@@ -175,7 +174,7 @@ begin
    phyRxHeader <= phyTxHeader;
    phyRxData   <= phyTxData;
 
-   U_Pgp3Rx_1 : entity work.Pgp3Rx
+   U_Pgp3Rx_1 : entity surf.Pgp3Rx
       generic map (
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
@@ -190,17 +189,17 @@ begin
          remRxLinkReady   => remRxLinkReady,  -- [out]
          locRxLinkReady   => locRxLinkReady,  -- [out]
          phyRxClk         => '0',             -- [in]
-         phyRxReady       => '1',             -- [in]
+         phyRxRst         => axisRst,         -- [in]
+         phyRxActive      => '1',             -- [in]
          phyRxInit        => open,            -- [out]
-         phyRxHeaderValid => '1',             -- [in]
          phyRxHeader      => phyRxHeader,     -- [in]
-         phyRxDataValid   => "11",            -- [in]
+         phyRxValid       => '1',             -- [in]
          phyRxData        => phyRxData,       -- [in]
          phyRxStartSeq    => '0',             -- [in]
          phyRxSlip        => open);           -- [out]
 
 
-   U_ClkRst_2 : entity work.ClkRst
+   U_ClkRst_2 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 40 ns,
          CLK_DELAY_G       => 1 ns,
@@ -213,13 +212,13 @@ begin
 
 
    RX_BUFERS : for i in NUM_VC_G-1 downto 0 generate
-      U_AxiStreamFifoV2_1 : entity work.AxiStreamFifoV2
+      U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,
             SLAVE_READY_EN_G    => false,
 --            VALID_THOLD_G          => VALID_THOLD_G,
 --            VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
-            BRAM_EN_G           => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => false,
             FIFO_ADDR_WIDTH_G   => 5,
 --            FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,

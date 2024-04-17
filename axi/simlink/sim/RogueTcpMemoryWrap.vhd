@@ -1,25 +1,25 @@
 -------------------------------------------------------------------------------
--- File       : RogueTcpMemoryWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Rogue Stream Module Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
-use work.all;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity RogueTcpMemoryWrap is
    generic (
@@ -40,7 +40,7 @@ architecture RogueTcpMemoryWrap of RogueTcpMemoryWrap is
 begin
 
    -- Sim Core
-   U_RogueTcpMemory : entity work.RogueTcpMemory
+   U_RogueTcpMemory : entity surf.RogueTcpMemory
       port map (
          clock   => axilClk,
          reset   => axilRst,

@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtp7Tb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for Pgp3Gtp7
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3Gtp7Tb is end Pgp3Gtp7Tb;
 
@@ -60,7 +61,7 @@ begin
    -----------------------------
    -- Generate clocks and resets
    -----------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -73,14 +74,14 @@ begin
    -----------------------
    -- PGP Core for ARTIX-7
    -----------------------
-   U_PGP : entity work.Pgp3Gtp7Wrapper
+   U_PGP : entity surf.Pgp3Gtp7Wrapper
       generic map (
          TPD_G               => TPD_G,
          SIM_PLL_EMULATION_G => true,
          NUM_LANES_G         => 1,
          NUM_VC_G            => 4,
          RATE_G              => "6.25Gbps",
-         REFCLK_TYPE_G       => PGP3_REFCLK_250_C)
+         REFCLK_FREQ_G       => 250.0E+6)
       port map (
          -- Stable Clock and Reset
          stableClk         => stableClk,

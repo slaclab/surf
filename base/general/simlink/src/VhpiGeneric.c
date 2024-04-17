@@ -12,11 +12,11 @@
 // and only has to set the width and the in/out types for each port.
 //-----------------------------------------------------------------------------
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //-----------------------------------------------------------------------------
 // Modification history:
@@ -49,7 +49,7 @@ void VhpiGenericConvertIn( portDataT *portData ) {
    for (x=0; x < portData->portCount; x++) {
       if ( portData->portDir[x] != vhpiOut ) {
          if ( portData->portWidth[x] == 1 ) {
-            if ( portData->portValue[x]->value.enumval == 3 ) 
+            if ( portData->portValue[x]->value.enumval == 3 )
                portData->intValue[x] = 1;
             else
                portData->intValue[x] = 0;
@@ -58,7 +58,7 @@ void VhpiGenericConvertIn( portDataT *portData ) {
             portData->intValue[x] = 0;
             for (y=0; y < portData->portWidth[x]; y++) {
                bit = (portData->portWidth[x] - 1) - y;
-               if ( portData->portValue[x]->value.enums[y] == 3 ) 
+               if ( portData->portValue[x]->value.enums[y] == 3 )
                   portData->intValue[x] += 1<<bit;
             }
          }
@@ -94,7 +94,7 @@ void VhpiGenericConvertOut( portDataT *portData ) {
                      portData->portValue[x]->value.enums[y] = 2;
                }
             }
-            else 
+            else
                for (y=0; y < portData->portWidth[x]; y++) {
                   portData->portValue[x]->value.enums[y] = 4; // Tri-state
                }
@@ -135,7 +135,7 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
 
    // Set output values
    for (x=0; x < portData->portCount; x++) {
-      if ( portData->portDir[x] != vhpiIn ) 
+      if ( portData->portDir[x] != vhpiIn )
          vhpi_put_value(portData->portHandle[x],portData->portValue[x], vhpiForcePropagate);
    }
 }
@@ -150,7 +150,7 @@ void VhpiGenericErrors ( vhpiCbDataT *cb ) {
 
 
 // Function that is called as the module is elaborated.
-// Here we will simply register an error handling callback function. 
+// Here we will simply register an error handling callback function.
 void VhpiGenericElab(vhpiHandleT compInst) {
 
    // Create callback structure, setup callback function
@@ -162,7 +162,7 @@ void VhpiGenericElab(vhpiHandleT compInst) {
 }
 
 
-// Function that is called as the module is initialized. 
+// Function that is called as the module is initialized.
 // Check ports and setup functions to handle clock changes
 void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
 
@@ -198,7 +198,7 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
          portData->portValue[x]->format        = vhpiEnumVecVal;
          width = vhpi_value_size(portData->portHandle[x],vhpiEnumVecVal);
          portData->portValue[x]->value.enums   = (vhpiEnumT*)malloc(width);
-         for (y=0; y < portData->portWidth[x]; y++ ) 
+         for (y=0; y < portData->portWidth[x]; y++ )
             portData->portValue[x]->value.enums[y] = 2;
       }
 

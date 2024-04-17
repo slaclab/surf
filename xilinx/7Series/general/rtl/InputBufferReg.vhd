@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : InputBufferReg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Output Registers
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -68,9 +69,9 @@ begin
          DDR_CLK_EDGE => DDR_CLK_EDGE_G,  -- "OPPOSITE_EDGE", "SAME_EDGE", or "SAME_EDGE_PIPELINED"
          INIT_Q1      => INIT_Q1_G,     -- Initial value of Q1: '0' or '1'
          INIT_Q2      => INIT_Q2_G,     -- Initial value of Q2: '0' or '1'
-         SRTYPE       => SRTYPE_G)      -- Set/Reset type: "SYNC" or "ASYNC" 
+         SRTYPE       => SRTYPE_G)      -- Set/Reset type: "SYNC" or "ASYNC"
       port map (
-         Q1 => Q1,  -- 1-bit output for positive edge of clock 
+         Q1 => Q1,  -- 1-bit output for positive edge of clock
          Q2 => Q2,  -- 1-bit output for negative edge of clock
          C  => C,                       -- 1-bit clock input
          CE => CE,                      -- 1-bit clock enable input

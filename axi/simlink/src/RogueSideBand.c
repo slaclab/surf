@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -27,40 +27,41 @@
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
    char buffer[100];
 
-   if ( data->zmqPush != NULL ) zmq_close(data->zmqPush );   
+   if ( data->zmqPush != NULL ) zmq_close(data->zmqPush );
    if ( data->zmqPull != NULL ) zmq_close(data->zmqPull);
    if ( data->zmqCtx  != NULL ) zmq_term(data->zmqCtx);
 
    data->zmqCtx  = NULL;
    data->zmqPush  = NULL;
    data->zmqPull = NULL;
- 
+
    data->zmqCtx = zmq_ctx_new();
    data->zmqPull = zmq_socket(data->zmqCtx,ZMQ_PULL);
-   data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);   
+   data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
 
    vhpi_printf("RogueSideBand: Listening on ports %i & %i\n",data->port, data->port+1);
 
-   sprintf(buffer,"tcp://*:%i",data->port+1);
+   sprintf(buffer,"tcp://127.0.0.1:%i",data->port+1);
    if ( zmq_bind(data->zmqPull,buffer) ) {
       vhpi_assert("RogueSideBand: Failed to bind sideband port",vhpiFatal);
       return;
    }
 
-   sprintf(buffer,"tcp://*:%i",data->port);
+   sprintf(buffer,"tcp://127.0.0.1:%i",data->port);
    if ( zmq_bind(data->zmqPush,buffer) ) {
       vhpi_assert("RogueSideBand: Failed to bind push port",vhpiFatal);
       return;
    }
-   
+
 }
 
 // Send a message
 void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    zmq_msg_t msg;
    uint8_t  ba[4];
+   char buffer[200];
 
-   if ( (zmq_msg_init_size(&msg,4) < 0) ) {  
+   if ( (zmq_msg_init_size(&msg,4) < 0) ) {
       vhpi_assert("RogueSideBand: Failed to init message",vhpiFatal);
       return;
    }
@@ -73,14 +74,15 @@ void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
    memcpy(zmq_msg_data(&msg), ba, 4);
 
    // Send data
-   if ( zmq_msg_send(&msg,data->zmqPush,ZMQ_DONTWAIT) < 0 ) {
-         vhpi_assert("RogueSideBand: Failed to send message",vhpiFatal);
+   if ( zmq_msg_send(&msg,data->zmqPush, 0) < 0 ) {
+         sprintf(buffer, "RogueSideBand: Failed to send opcode: %x, remData: %x, on port %i\n", data->txOpCode, data->txRemData, data->port);
+         vhpi_assert(buffer, vhpiFatal);
    }
    if (data->txOpCodeEn) {
-     vhpi_printf("%lu RogueSideBand: Sent Opcode: %x\n", portData->simTime, data->txOpCode);
+     vhpi_printf("%lu RogueSideBand: Sent Opcode: %x on port %i\n", portData->simTime, data->txOpCode, data->port);
    }
    if (data->txRemDataChanged) {
-     vhpi_printf("%lu RogueSideBand: Sent remData: %x\n", portData->simTime, data->txRemData);
+     vhpi_printf("%lu RogueSideBand: Sent remData: %x on port %i\n", portData->simTime, data->txRemData, data->port);
    }
 }
 
@@ -104,11 +106,11 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
       if ( rd[0] == 0x01 ) {
          data->rxOpCode   = rd[1];
          data->rxOpCodeEn = 1;
-         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x\n",portData->simTime,data->rxOpCode);
+         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x on port %i\n",portData->simTime,data->rxOpCode, data->port+1);
       }
       if ( rd[2] == 0x01 ) {
          data->rxRemData = rd[3];
-         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x\n",portData->simTime,data->rxRemData);
+         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x on port %i\n",portData->simTime,data->rxRemData, data->port+1);
       }
 
    }
@@ -117,7 +119,7 @@ int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
 }
 
 // Init function
-void RogueSideBandInit(vhpiHandleT compInst) { 
+void RogueSideBandInit(vhpiHandleT compInst) {
 
    // Create new port data structure
    portDataT         *portData  = (portDataT *)         malloc(sizeof(portDataT));
@@ -186,7 +188,7 @@ void RogueSideBandUpdate ( void *userPtr ) {
             data->rxOpCode   = 0x00;
             data->rxOpCodeEn = 0;
             data->txRemData  = 0x00;
-            data->txRemDataChanged  = 0x00;            
+            data->txRemDataChanged  = 0x00;
             data->txOpCode   = 0x00;
             data->txOpCodeEn = 0;
             setInt(s_rxOpCodeEn,0);

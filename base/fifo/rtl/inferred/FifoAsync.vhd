@@ -1,15 +1,14 @@
-------------------------------------------------------------------------------- 
--- File       : FifoAsync.vhd
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ASYNC FIFO module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,18 +17,17 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoAsync is
    generic (
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
-      BRAM_EN_G      : boolean  := true;
+      RST_ASYNC_G    : boolean  := false;
+      MEMORY_TYPE_G  : string   := "block";
       BYP_RAM_G      : boolean  := false;
       FWFT_EN_G      : boolean  := false;
-      USE_DSP48_G    : string   := "no";
-      ALTERA_SYN_G   : boolean  := false;
-      ALTERA_RAM_G   : string   := "M9K";
       SYNC_STAGES_G  : positive := 3;
       PIPE_STAGES_G  : natural  := 0;
       DATA_WIDTH_G   : positive := 16;
@@ -98,9 +96,9 @@ begin
 
    -----------------------------------------
    --       wr_clk clock domain
-   -----------------------------------------   
+   -----------------------------------------
 
-   U_wrRst : entity work.RstSync
+   U_wrRst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -110,32 +108,35 @@ begin
          asyncRst => rst,
          syncRst  => wrRst);
 
-   U_rdIndex : entity work.SynchronizerVector
+   U_rdIndex : entity surf.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         WIDTH_G  => ADDR_WIDTH_G,
-         INIT_G   => GRAY_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         STAGES_G    => SYNC_STAGES_G,
+         WIDTH_G     => ADDR_WIDTH_G,
+         INIT_G      => GRAY_INIT_C)
       port map (
          clk     => wr_clk,
          rst     => wrRst,
          dataIn  => rdIndex,
          dataOut => rdIndexSync);
 
-   U_rdRdy : entity work.Synchronizer
+   U_rdRdy : entity surf.Synchronizer
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         INIT_G   => SYNC_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         STAGES_G    => SYNC_STAGES_G,
+         INIT_G      => SYNC_INIT_C)
       port map (
          clk     => wr_clk,
          rst     => wrRst,
          dataIn  => rdRdy,
          dataOut => rdRdySync);
 
-   U_WR_FSM : entity work.FifoWrFsm
+   U_WR_FSM : entity surf.FifoWrFsm
       generic map(
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          FIFO_ASYNC_G => true,          -- ASYNC FIFO
          DATA_WIDTH_G => DATA_WIDTH_G,
          ADDR_WIDTH_G => ADDR_WIDTH_G,
@@ -166,9 +167,9 @@ begin
 
    -----------------------------------------
    --       rd_clk clock domain
-   -----------------------------------------   
+   -----------------------------------------
 
-   U_rdRst : entity work.RstSync
+   U_rdRst : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
@@ -178,33 +179,37 @@ begin
          asyncRst => rst,
          syncRst  => rdRst);
 
-   U_wrIndex : entity work.SynchronizerVector
+   U_wrIndex : entity surf.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         WIDTH_G  => ADDR_WIDTH_G,
-         INIT_G   => GRAY_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         STAGES_G    => SYNC_STAGES_G,
+         WIDTH_G     => ADDR_WIDTH_G,
+         INIT_G      => GRAY_INIT_C)
       port map (
          clk     => rd_clk,
          rst     => rdRst,
          dataIn  => wrIndex,
          dataOut => wrIndexSync);
 
-   U_wrRdy : entity work.Synchronizer
+   U_wrRdy : entity surf.Synchronizer
       generic map (
-         TPD_G    => TPD_G,
-         STAGES_G => SYNC_STAGES_G,
-         INIT_G   => SYNC_INIT_C)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         STAGES_G    => SYNC_STAGES_G,
+         INIT_G      => SYNC_INIT_C)
       port map (
          clk     => rd_clk,
          rst     => rdRst,
          dataIn  => wrRdy,
          dataOut => wrRdySync);
 
-   U_RD_FSM : entity work.FifoRdFsm
+   U_RD_FSM : entity surf.FifoRdFsm
       generic map(
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          FIFO_ASYNC_G  => true,         -- ASYNC FIFO
+         MEMORY_TYPE_G => MEMORY_TYPE_G,
          FWFT_EN_G     => FWFT_EN_G,
          DATA_WIDTH_G  => DATA_WIDTH_G,
          ADDR_WIDTH_G  => ADDR_WIDTH_G,
@@ -235,17 +240,15 @@ begin
 
    -----------------------------------------
    --             RAM Module
-   ----------------------------------------- 
+   -----------------------------------------
    GEN_RAM : if (BYP_RAM_G = false) generate
-      U_RAM : entity work.SimpleDualPortRam
+      U_RAM : entity surf.SimpleDualPortRam
          generic map(
-            TPD_G        => TPD_G,
-            DOB_REG_G    => FWFT_EN_G,
-            BRAM_EN_G    => BRAM_EN_G,
-            ALTERA_SYN_G => ALTERA_SYN_G,
-            ALTERA_RAM_G => ALTERA_RAM_G,
-            DATA_WIDTH_G => DATA_WIDTH_G,
-            ADDR_WIDTH_G => ADDR_WIDTH_G)
+            TPD_G         => TPD_G,
+            DOB_REG_G     => ite(MEMORY_TYPE_G /= "distributed", FWFT_EN_G, false),
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            DATA_WIDTH_G  => DATA_WIDTH_G,
+            ADDR_WIDTH_G  => ADDR_WIDTH_G)
          port map (
             -- Port A
             clka   => wr_clk,
@@ -254,6 +257,7 @@ begin
             dina   => dina,
             -- Port B
             clkb   => rd_clk,
+            rstb   => '0',  -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
             addrb  => addrb,
             doutb  => doutb,
             enb    => enb,
@@ -262,9 +266,10 @@ begin
 
    GEN_PIPE : if (FWFT_EN_G = true) generate
 
-      U_Pipeline : entity work.FifoOutputPipeline
+      U_Pipeline : entity surf.FifoOutputPipeline
          generic map (
             TPD_G         => TPD_G,
+            RST_ASYNC_G   => RST_ASYNC_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             PIPE_STAGES_G => PIPE_STAGES_G)
          port map (

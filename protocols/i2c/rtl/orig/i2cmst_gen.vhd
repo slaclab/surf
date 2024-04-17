@@ -15,7 +15,7 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with this program; if not, write to the Free Software
---  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -------------------------------------------------------------------------------
 -- Entity:      i2cmst_gen
 -- File:        i2cmst_gen.vhd
@@ -74,7 +74,7 @@ architecture rtl of i2cmst_gen is
   -- I2C signals
   signal i2ci  : i2c_in_type;
   signal i2co  : i2c_out_type;
-  
+
 begin
 
   apbi.psel(0) <= psel;
@@ -100,10 +100,10 @@ begin
   i2co_sda     <= i2co.sda;
   i2co_sdaoen  <= i2co.sdaoen;
   i2co_enable  <= i2co.enable;
-  
+
   i2c0 : i2cmst
     generic map (pindex => 0, paddr => 0, pmask => 0, pirq => 0,
                  oepol  => oepol, filter => filter, dynfilt => dynfilt)
     port map (rstn, clk, apbi, apbo, i2ci, i2co);
-  
+
 end architecture rtl;

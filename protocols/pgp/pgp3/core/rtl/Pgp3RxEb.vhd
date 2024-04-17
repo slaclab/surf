@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3RxEb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 Rx Elastic Buffer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
@@ -19,8 +18,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3RxEb is
 
@@ -86,13 +87,13 @@ begin
          v.remLinkData := phyRxData(PGP3_SKIP_DATA_FIELD_C);
       end if;
 
-      -- Reset  
+      -- Reset
       if (phyRxRst = '1') then
          -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
       end if;
 
-      -- Register the variable for next clock cycle   
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;
@@ -104,7 +105,7 @@ begin
       end if;
    end process seq;
 
-   U_remLinkData : entity work.SynchronizerFifo
+   U_remLinkData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 56)
@@ -115,10 +116,10 @@ begin
          rd_clk => pgpRxClk,
          dout   => remLinkData);
 
-   U_FifoAsync_1 : entity work.FifoAsync
+   U_FifoAsync_1 : entity surf.FifoAsync
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => true,
+         MEMORY_TYPE_G => "block",
          FWFT_EN_G     => true,
          PIPE_STAGES_G => 0,
          DATA_WIDTH_G  => 66,
@@ -146,7 +147,7 @@ begin
          almost_empty       => open,         -- [out]
          empty              => open);        -- [out]
 
-   U_RstSync_1 : entity work.RstSync
+   U_RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (

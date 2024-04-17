@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3GthUsWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTH Ultrascale Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -32,11 +33,14 @@ entity Pgp3GthUsWrapper is
    generic (
       TPD_G                       : time                        := 1 ns;
       ROGUE_SIM_EN_G              : boolean                     := false;
+      ROGUE_SIM_SIDEBAND_G        : boolean                     := true;
       ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
       NUM_LANES_G                 : positive range 1 to 4       := 1;
       NUM_VC_G                    : positive range 1 to 16      := 4;
       REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
-      RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps" 
+      RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      REFCLK_FREQ_G               : real                        := 156.25E+6;
+      QPLL_REFCLK_SEL_G           : slv(2 downto 0)             := "001";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
@@ -44,7 +48,7 @@ entity Pgp3GthUsWrapper is
       RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
       PGP_TX_ENABLE_G             : boolean                     := true;
       TX_CELL_WORDS_MAX_G         : integer                     := PGP3_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_MUX_MODE_G               : string                      := "INDEXED";      -- Or "ROUTED"
+      TX_MUX_MODE_G               : string                      := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
@@ -54,6 +58,8 @@ entity Pgp3GthUsWrapper is
       EN_QPLL_DRP_G               : boolean                     := false;
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32       := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32       := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');
       AXIL_CLK_FREQ_G             : real                        := 125.0E+6);
    port (
@@ -66,9 +72,9 @@ entity Pgp3GthUsWrapper is
       pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
       pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
       -- GT Clocking
-      pgpRefClkP        : in  sl                                                     := '0';  -- 156.25 MHz
-      pgpRefClkN        : in  sl                                                     := '1';  -- 156.25 MHz
-      pgpRefClkIn       : in  sl                                                     := '0';  -- 156.25 MHz
+      pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_FREQ_G
+      pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_FREQ_G
+      pgpRefClkIn       : in  sl                                                     := '0';  -- REFCLK_FREQ_G
       pgpRefClkOut      : out sl;
       pgpRefClkDiv2Bufg : out sl;
       -- Clocking
@@ -156,7 +162,7 @@ begin
 
    REAL_PGP : if (not ROGUE_SIM_EN_G) generate
 
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -174,11 +180,13 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity work.Pgp3GthUsQpll
+      U_QPLL : entity surf.Pgp3GthUsQpll
          generic map (
-            TPD_G    => TPD_G,
-            RATE_G   => RATE_G,
-            EN_DRP_G => EN_QPLL_DRP_G)
+            TPD_G             => TPD_G,
+            RATE_G            => RATE_G,
+            REFCLK_FREQ_G     => REFCLK_FREQ_G,
+            QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G,
+            EN_DRP_G          => EN_QPLL_DRP_G)
          port map (
             -- Stable Clock and Reset
             stableClk       => stableClk,                            -- [in]
@@ -200,7 +208,7 @@ begin
       -- PGP Core
       -----------
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Pgp : entity work.Pgp3GthUs
+         U_Pgp : entity surf.Pgp3GthUs
             generic map (
                TPD_G                       => TPD_G,
                RATE_G                      => RATE_G,
@@ -222,6 +230,8 @@ begin
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
                AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
+               STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+               ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
                AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
             port map (
                -- Stable Clock and Reset
@@ -266,11 +276,12 @@ begin
 
    SIM_PGP : if (ROGUE_SIM_EN_G) generate
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
-         U_Rogue : entity work.RoguePgp3Sim
+         U_Rogue : entity surf.RoguePgp3Sim
             generic map(
-               TPD_G      => TPD_G,
-               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),
-               NUM_VC_G   => NUM_VC_G)
+               TPD_G         => TPD_G,
+               PORT_NUM_G    => (ROGUE_SIM_PORT_NUM_G+(i*34)),
+               EN_SIDEBAND_G => ROGUE_SIM_SIDEBAND_G,
+               NUM_VC_G      => NUM_VC_G)
             port map(
                -- GT Ports
                pgpRefClk       => pgpRefClk,

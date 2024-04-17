@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerFifoTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for the SynchronizerFifo module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerFifoTb is end SynchronizerFifoTb;
 
@@ -39,7 +40,7 @@ architecture testbed of SynchronizerFifoTb is
    constant CLK_SEL_C    : integer := 2;  --change this parameter for simulating different clock configurations
    constant WRITE_CLK_C  : time    := WRITE_CLK_ARRAY_C(CLK_SEL_C);
    constant READ_CLK_C   : time    := READ_CLK_ARRAY_C(CLK_SEL_C);
-   constant BRAM_EN_C    : boolean := true;
+   constant MEMORY_TYPE_G: string  := "block";
    constant FWFT_EN_C    : boolean := true;
    constant DATA_WIDTH_C : integer := 8;
    constant ADDR_WIDTH_C : integer := 2;
@@ -52,7 +53,7 @@ architecture testbed of SynchronizerFifoTb is
    signal wr_clk : sl := '0';
    signal rd_clk : sl := '0';
 
-   -- Test signals   
+   -- Test signals
    signal wr_en : sl;
    signal rd_en : sl;
 
@@ -76,7 +77,7 @@ architecture testbed of SynchronizerFifoTb is
    signal reset   : sl := '0';
 begin
 --*********************************************************************************--
-   WR_CLK_Inst : entity work.ClkRst
+   WR_CLK_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => WRITE_CLK_C,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -87,7 +88,7 @@ begin
          rst  => reset,
          rstL => open);
 
-   RD_CLK_Inst : entity work.ClkRst
+   RD_CLK_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => READ_CLK_C,
          RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
@@ -108,8 +109,8 @@ begin
       wait;
    end process;
 
---*********************************************************************************--   
-   SynchronizerFifo_Inst : entity work.SynchronizerFifo
+--*********************************************************************************--
+   SynchronizerFifo_Inst : entity surf.SynchronizerFifo
       generic map(
          DATA_WIDTH_G => DATA_WIDTH_C,
          ADDR_WIDTH_G => ADDR_WIDTH_C)
@@ -119,8 +120,8 @@ begin
          din    => din,
          rd_clk => rd_clk,
          valid  => valid,
-         dout   => dout);        
---*********************************************************************************--   
+         dout   => dout);
+--*********************************************************************************--
    WRITE_PATTERN : process(rst, wr_clk)
    begin
       if rst = '1' then

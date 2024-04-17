@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Si5345.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SPI Master Wrapper that includes a state machine for SPI paging
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,14 +17,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity Si5345 is
    generic (
-      TPD_G             : time := 1 ns;
-      CLK_PERIOD_G      : real := (1.0/156.25E+6);
-      SPI_SCLK_PERIOD_G : real := (1.0/10.0E+6));
+      TPD_G              : time   := 1 ns;
+      MEMORY_INIT_FILE_G : string := "none";  -- Used to initialization boot ROM
+      CLK_PERIOD_G       : real   := (1.0/156.25E+6);
+      SPI_SCLK_PERIOD_G  : real   := (1.0/10.0E+6));
    port (
       -- Clock and Reset
       axiClk         : in  sl;
@@ -35,6 +36,8 @@ entity Si5345 is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
+      -- Status Interface
+      booting        : out sl;
       -- SPI Interface
       coreRst        : out sl;
       coreSclk       : out sl;
@@ -45,9 +48,12 @@ end entity Si5345;
 
 architecture rtl of Si5345 is
 
+   constant BOOT_ROM_C : boolean := (MEMORY_INIT_FILE_G /= "none");
+
    constant DLY_C : natural := 4*integer(SPI_SCLK_PERIOD_G/CLK_PERIOD_G);  -- >= 2 SCLK delay between SPI cycles
 
    type StateType is (
+      BOOT_ROM_S,
       IDLE_S,
       INIT_S,
       REQ_S,
@@ -66,6 +72,8 @@ architecture rtl of Si5345 is
       wrArray       : Slv16Array(3 downto 0);
       axiReadSlave  : AxiLiteReadSlaveType;
       axiWriteSlave : AxiLiteWriteSlaveType;
+      ramAddr       : slv(9 downto 0);
+      booting       : sl;
       state         : StateType;
    end record RegType;
 
@@ -81,7 +89,9 @@ architecture rtl of Si5345 is
       wrArray       => (others => (others => '0')),
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      state         => IDLE_S);
+      ramAddr       => (others => '0'),
+      booting       => ite(BOOT_ROM_C, '1', '0'),
+      state         => BOOT_ROM_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -89,6 +99,8 @@ architecture rtl of Si5345 is
    signal freeRunClk : sl;
    signal rdEn       : sl;
    signal rdData     : slv(15 downto 0);
+
+   signal ramData : slv(19 downto 0) := (others => '0');
 
    -- attribute dont_touch               : string;
    -- attribute dont_touch of r          : signal is "TRUE";
@@ -98,11 +110,32 @@ architecture rtl of Si5345 is
 
 begin
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, r, rdData, rdEn) is
+   GEN_BOOT_ROM : if BOOT_ROM_C generate
+      U_ROM : entity surf.SimpleDualPortRamXpm
+         generic map (
+            TPD_G               => TPD_G,
+            COMMON_CLK_G        => true,
+            MEMORY_TYPE_G       => "block",
+            MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
+            MEMORY_INIT_PARAM_G => "",
+            READ_LATENCY_G      => 1,
+            DATA_WIDTH_G        => 20,
+            ADDR_WIDTH_G        => 10)
+         port map (
+            -- Port A
+            clka  => axiClk,
+            -- Port B
+            clkb  => axiClk,
+            addrb => r.ramAddr,
+            doutb => ramData);
+   end generate;
+
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, r, ramData, rdData,
+                   rdEn) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
-      -- Latch the current value   
+      -- Latch the current value
       v := r;
 
       -- Flow Control
@@ -121,6 +154,28 @@ begin
       -- State Machine
       case r.state is
          ----------------------------------------------------------------------
+         when BOOT_ROM_S =>
+            -- Set the flag
+            v.axiRd   := '0';
+            -- Save the data/address
+            v.data    := ramData(7 downto 0);
+            v.addr    := ramData(15 downto 8);
+            v.page    := x"0" & ramData(19 downto 16);
+            -- Increment the counter
+            v.ramAddr := r.ramAddr + 1;
+            -- Check for empty transaction or roll over of counter
+            if (ramData /= 0) and (v.ramAddr /= 0) then
+               -- Next State
+               v.state := INIT_S;
+            else
+               -- Reset the counter
+               v.ramAddr := (others => '0');
+               -- Reset the flag
+               v.booting := '0';
+               -- Next State
+               v.state   := IDLE_S;
+            end if;
+         ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the timer
             v.timer := 0;
@@ -136,7 +191,7 @@ begin
                axiSlaveWriteResponse(v.axiWriteSlave);
                -- Next State
                v.state := INIT_S;
-            -- Check if read transaction      
+            -- Check if read transaction
             elsif (axiStatus.readEnable = '1') then
                -- Set the flag
                v.axiRd := '1';
@@ -158,7 +213,7 @@ begin
             v.wrArray(1) := x"40" & r.page;
             -- Set the address location within the page
             v.wrArray(2) := x"00" & r.addr;
-            -- Check if write transaction 
+            -- Check if write transaction
             if (r.axiRd = '0') then
                -- Write Data
                v.wrArray(3) := x"40" & r.data;
@@ -185,7 +240,7 @@ begin
                -- Reset the timer
                v.timer := 0;
                -- Increment the counter
-               v.cnt    := r.cnt + 1;               
+               v.cnt   := r.cnt + 1;
                -- Check for last transaction
                if (r.cnt = 3) then
                   -- Reset the counter
@@ -194,7 +249,7 @@ begin
                   if (r.axiRd = '1') then
                      -- Latch the read byte
                      v.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
-                     -- Send the response 
+                     -- Send the response
                      axiSlaveReadResponse(v.axiReadSlave);
                   end if;
                   --- Next state
@@ -208,17 +263,24 @@ begin
          when DONE_S =>
             -- Check for min. chip select gap
             if (r.timer = DLY_C) then
-               --- Next state
-               v.state := IDLE_S;
+               -- Check if booting
+               if (r.booting = '1') then
+                  --- Next state
+                  v.state := BOOT_ROM_S;
+               else
+                  --- Next state
+                  v.state := IDLE_S;
+               end if;
             end if;
       ----------------------------------------------------------------------
       end case;
 
-      -- Outputs 
+      -- Outputs
       axiWriteSlave <= r.axiWriteSlave;
       axiReadSlave  <= r.axiReadSlave;
       coreRst       <= axiRst;
-      if (r.state = IDLE_S) then
+      booting       <= r.booting;
+      if (r.state = IDLE_S) or (r.state = BOOT_ROM_S) then
          freeRunClk <= '0';
       else
          freeRunClk <= '1';
@@ -227,6 +289,11 @@ begin
       -- Reset
       if (axiRst = '1') then
          v := REG_INIT_C;
+         if BOOT_ROM_C then
+            v.state := BOOT_ROM_S;
+         else
+            v.state := IDLE_S;
+         end if;
       end if;
 
       -- Register the variable for next clock cycle
@@ -241,7 +308,7 @@ begin
       end if;
    end process seq;
 
-   U_SpiMaster : entity work.SpiMaster
+   U_SpiMaster : entity surf.SpiMaster
       generic map (
          TPD_G             => TPD_G,
          NUM_CHIPS_G       => 1,
@@ -264,4 +331,4 @@ begin
          spiSdi     => coreSDout,
          spiSdo     => coreSDin);
 
-end architecture rtl;
+end rtl;

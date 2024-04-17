@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtp7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTP7 Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
@@ -55,6 +56,8 @@ entity Pgp3Gtp7 is
       EN_PGP_MON_G                : boolean               := false;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 156.25E+6);
    port (
@@ -93,10 +96,6 @@ entity Pgp3Gtp7 is
       -- Frame Receive Interface
       pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-      -- Debug Interface 
-      txPreCursor     : in  slv(4 downto 0)        := "00111";
-      txPostCursor    : in  slv(4 downto 0)        := "00111";
-      txDiffCtrl      : in  slv(3 downto 0)        := "1111";
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -149,7 +148,10 @@ architecture rtl of Pgp3Gtp7 is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal loopback : slv(2 downto 0) := (others => '0');
+   signal loopback     : slv(2 downto 0) := (others => '0');
+   signal txDiffCtrl   : slv(4 downto 0);
+   signal txPreCursor  : slv(4 downto 0);
+   signal txPostCursor : slv(4 downto 0);
 
    -- attribute dont_touch                 : string;
    -- attribute dont_touch of phyRxClk     : signal is "TRUE";
@@ -179,7 +181,7 @@ begin
    pgpRxOut  <= locRxOut;
 
    GEN_XBAR : if (EN_DRP_G and EN_PGP_MON_G) generate
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -199,7 +201,7 @@ begin
    end generate GEN_XBAR;
 
    -- If DRP or PGP_MON not enabled, no crossbar needed
-   -- If neither enabled, default values will auto-terminate the bus      
+   -- If neither enabled, default values will auto-terminate the bus
    GEN_DRP_ONLY : if (EN_DRP_G and not EN_PGP_MON_G) generate
       axilWriteSlave                     <= axilWriteSlaves(DRP_AXIL_INDEX_C);
       axilWriteMasters(DRP_AXIL_INDEX_C) <= axilWriteMaster;
@@ -214,7 +216,7 @@ begin
       axilReadMasters(PGP_AXIL_INDEX_C)  <= axilReadMaster;
    end generate GEN_PGP_MON_ONLY;
 
-   U_Pgp3Core : entity work.Pgp3Core
+   U_Pgp3Core : entity surf.Pgp3Core
       generic map (
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
@@ -228,6 +230,8 @@ begin
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
          EN_PGP_MON_G                => EN_PGP_MON_G,
+         STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+         ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
@@ -262,6 +266,9 @@ begin
          phyRxSlip       => phyRxSlip,                           -- [out]
          -- Debug Interface
          loopback        => loopback,                            -- [out]
+         txDiffCtrl      => txDiffCtrl,                          -- [out]
+         txPreCursor     => txPreCursor,                         -- [out]
+         txPostCursor    => txPostCursor,                        -- [out]
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
@@ -273,7 +280,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3Gtp7IpWrapper : entity work.Pgp3Gtp7IpWrapper
+   U_Pgp3Gtp7IpWrapper : entity surf.Pgp3Gtp7IpWrapper
       generic map (
          TPD_G            => TPD_G,
          CLKIN_PERIOD_G   => CLKIN_PERIOD_G,
@@ -325,7 +332,7 @@ begin
          txData          => phyTxData,
          txValid         => phyTxValid,
          txReady         => phyTxDataRdy,
-         -- Debug Interface 
+         -- Debug Interface
          loopback        => loopback,
          txPreCursor     => txPreCursor,
          txPostCursor    => txPostCursor,

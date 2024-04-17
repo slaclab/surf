@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : RssiCoreTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the RssiCore
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.SsiPkg.all;
-use work.RssiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SsiPkg.all;
+use surf.RssiPkg.all;
 
 entity RssiCoreTb is
 
@@ -103,7 +104,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -117,7 +118,7 @@ begin
    ---------------------------
    GEN_VEC :
    for i in (NUM_XBAR_C-2) downto 0 generate
-      U_XBAR : entity work.AxiLiteCrossbar
+      U_XBAR : entity surf.AxiLiteCrossbar
          generic map (
             TPD_G              => TPD_G,
             NUM_SLAVE_SLOTS_G  => 1,
@@ -139,14 +140,14 @@ begin
    ------------------
    -- SRPv3 End Point
    ------------------
-   U_SRPv3 : entity work.SrpV3AxiLite
+   U_SRPv3 : entity surf.SrpV3AxiLite
       generic map (
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
          GEN_SYNC_FIFO_G     => true,
          AXI_STREAM_CONFIG_G => RSSI_AXIS_CONFIG_C)
       port map (
-         -- Streaming Slave (Rx) Interface (sAxisClk domain) 
+         -- Streaming Slave (Rx) Interface (sAxisClk domain)
          sAxisClk         => clk,
          sAxisRst         => rst,
          sAxisMaster      => sSrpMaster,
@@ -167,7 +168,7 @@ begin
    --------------
    -- RSSI Server
    --------------
-   U_RssiServer : entity work.RssiCoreWrapper
+   U_RssiServer : entity surf.RssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          SERVER_G          => true,     -- Server
@@ -191,8 +192,8 @@ begin
 
    --------------
    -- RSSI Client
-   --------------         
-   U_RssiClient : entity work.RssiCoreWrapper
+   --------------
+   U_RssiClient : entity surf.RssiCoreWrapper
       generic map (
          TPD_G             => TPD_G,
          SERVER_G          => false,    -- Client
@@ -286,7 +287,7 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move data
                v.txMaster.tValid := '1';
-               -- Check for sweeping 
+               -- Check for sweeping
                if (SWEEP_C) then
                   v.txMaster.tData(31 downto 0) := r.sweep(29 downto 0) & "11";  -- ReqSize[31:0] = varies
                else
@@ -301,10 +302,10 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move data
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt), 32);  -- Data = Address 
+               v.txMaster.tData(31 downto 0) := toSlv(4*conv_integer(r.cnt), 32);  -- Data = Address
                -- Increment the counter
                v.cnt                         := r.cnt + 1;
-               -- Check for sweeping 
+               -- Check for sweeping
                if (SWEEP_C) then
                   -- Check for last transfer
                   if (r.cnt = r.sweep) then
@@ -346,7 +347,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs        
+      -- Registered Outputs
       txMaster <= r.txMaster;
 
    end process comb;

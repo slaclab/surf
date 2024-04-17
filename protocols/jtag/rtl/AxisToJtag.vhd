@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : JTAG Support
 -------------------------------------------------------------------------------
--- File       : AxisToJtagWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI stream to JTAG 
+-- Description: AXI stream to JTAG
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -21,15 +20,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxisToJtagPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxisToJtagPkg.all;
 
 --
 -- This module implements a simple protocol for encoding XVC transactions over
 -- an AXI stream. Part of this is support for unreliable transport protocols
 -- (by means of a memory buffer and transaction IDs).
--- Once the protocol header is processed the stream is delegated to the 
+-- Once the protocol header is processed the stream is delegated to the
 -- AxisToJtagCore module.
 --
 -- INCOMING STREAM
@@ -321,7 +322,7 @@ architecture AxisToJtagImpl of AxisToJtag is
       coreRunning : sl;
 
       locConsumed : sl;
- 
+
       sAxisReqLoc : AxiStreamSlaveType;
 
       lastTdi     : sl;
@@ -391,7 +392,7 @@ begin
 
       -- streams into the StreamSelector
       -- port 0 is locally generated data
-      -- port 1 is output from the AxisToJtagCore        
+      -- port 1 is output from the AxisToJtagCore
    s.mIb(LOCL_OSTRM_PORT)      <= r.replyData;
    s.mIb(JTAG_OSTRM_PORT)      <= s.mTdo;
 
@@ -421,7 +422,7 @@ begin
    -- is routed to Ob.
    -- We use this to splice locally generated info (reply header and
    -- memory playback data) into the output stream.
-   U_MUX  : entity work.AxiStreamSelector
+   U_MUX  : entity surf.AxiStreamSelector
       generic map (
          TPD_G           => TPD_G
       )
@@ -439,7 +440,7 @@ begin
 
    -- The core which does all the JTAG work (while this module deals with
    -- the protocol and housekeeping.
-   U_JTAG : entity work.AxisToJtagCore
+   U_JTAG : entity surf.AxisToJtagCore
       generic map (
          TPD_G           => TPD_G,
          AXIS_WIDTH_G    => AXIS_WIDTH_G,
@@ -493,13 +494,13 @@ begin
                   sendHeaderNow( v );
                else
                   case getCommand( mAxisReq.tData ) is
-   
+
                      when CMD_QUERY_C =>
                         setQueryData( AXIS_WIDTH_G, MEM_DEPTH_G, v.replyData.tData );
                         sendHeaderNow( v );
                         -- assume a new connection
                         v.memValid := false;
-   
+
                      when CMD_TRANS_C =>
                         if ( mAxisReq.tLast = '1' ) then
                            setErr( ERR_TRUNCATED_C, v.replyData.tData );
@@ -522,7 +523,7 @@ begin
                               v.ridx             := ADDR_ZERO_C + 1;
                            end if;
                         end if;
-   
+
                      when others =>
                         setErr( ERR_BAD_COMMAND_C, v.replyData.tData );
                         sendHeaderNow( v );

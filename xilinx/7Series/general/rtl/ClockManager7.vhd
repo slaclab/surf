@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : ClockManager7.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper over MMCM/PLL to avoid coregen use.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,8 +21,10 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity ClockManager7 is
    generic (
@@ -83,7 +84,7 @@ entity ClockManager7 is
       clkOut          : out slv(NUM_CLOCKS_G-1 downto 0);
       rstOut          : out slv(NUM_CLOCKS_G-1 downto 0);
       locked          : out sl;
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -133,7 +134,7 @@ begin
 
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';
 
-   U_AxiLiteToDrp : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => true,
@@ -218,7 +219,7 @@ begin
    end generate MmcmGen;
 
    MmcmEmu : if (TYPE_G = "MMCM") and (SIMULATION_G = true) generate
-      U_Mmcm : entity work.MmcmEmulation
+      U_Mmcm : entity surf.MmcmEmulation
          generic map (
             CLKIN_PERIOD_G       => CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G      => DIVCLK_DIVIDE_G,
@@ -309,7 +310,7 @@ begin
    end generate;
 
    PllEmu : if (TYPE_G = "PLL") and (SIMULATION_G = true) generate
-      U_Pll : entity work.MmcmEmulation
+      U_Pll : entity surf.MmcmEmulation
          generic map (
             CLKIN_PERIOD_G       => CLKIN_PERIOD_G,
             DIVCLK_DIVIDE_G      => DIVCLK_DIVIDE_G,
@@ -365,7 +366,7 @@ begin
    end generate;
 
    FbNoBufg : if (not FB_BUFG_G) generate
-      clkFbOut <= clkFbIn;
+      clkFbIn <= clkFbOut;
    end generate;
 
    OutBufgGen : if (OUTPUT_BUFG_G) generate
@@ -388,7 +389,7 @@ begin
    locked <= lockedLoc;
 
    RstOutGen : for i in NUM_CLOCKS_G-1 downto 0 generate
-      RstSync_1 : entity work.RstSync
+      RstSync_1 : entity surf.RstSync
          generic map (
             TPD_G           => TPD_G,
             IN_POLARITY_G   => '0',

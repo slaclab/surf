@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : SyncTrigRate.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This module measures the trigger rate of a trigger
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,11 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SyncTrigRate is
    generic (
       TPD_G          : time     := 1 ns;   -- Simulation FF output delay
+      RST_ASYNC_G    : boolean  := false;
       COMMON_CLK_G   : boolean  := false;  -- true if locClk & refClk are the same clock
       ONE_SHOT_G     : boolean  := false;
       IN_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
@@ -83,7 +84,7 @@ begin
 
    GEN_ONE_SHOT : if (ONE_SHOT_G = true) generate
 
-      U_OneShot : entity work.SynchronizerOneShot
+      U_OneShot : entity surf.SynchronizerOneShot
          generic map (
             TPD_G          => TPD_G,
             IN_POLARITY_G  => IN_POLARITY_G,
@@ -111,7 +112,7 @@ begin
       end if;
    end process;
 
-   SyncIn_trigCnt : entity work.SynchronizerFifo
+   SyncIn_trigCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          COMMON_CLK_G => COMMON_CLK_G,
@@ -131,7 +132,7 @@ begin
       -- Reset strobing signals
       v.updated := '0';
 
-      -- Check for timeout 
+      -- Check for timeout
       if r.timer = TIMEOUT_C then
          -- Reset the timer
          v.timer      := 0;
@@ -159,13 +160,14 @@ begin
 
    rstStat <= refRst or locRst;
 
-   U_Sync : entity work.SyncMinMax
+   U_Sync : entity surf.SyncMinMax
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          WIDTH_G      => CNT_WIDTH_G)
       port map (
-         -- ASYNC statistics reset    
+         -- ASYNC statistics reset
          rstStat => rstStat,
          -- Write Interface (wrClk domain)
          wrClk   => refClk,

@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : UdpEngineRx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UDP RX Engine Module
 -- Note: UDP checksum checked in EthMac core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,10 +18,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity UdpEngineRx is
    generic (
@@ -30,6 +30,8 @@ entity UdpEngineRx is
       TPD_G          : time          := 1 ns;
       -- UDP General Generic
       DHCP_G         : boolean       := false;
+      IGMP_G         : boolean       := false;
+      IGMP_GRP_SIZE  : positive      := 1;
       -- UDP Server Generics
       SERVER_EN_G    : boolean       := true;
       SERVER_SIZE_G  : positive      := 1;
@@ -40,9 +42,10 @@ entity UdpEngineRx is
       CLIENT_PORTS_G : PositiveArray := (0 => 8193));
    port (
       -- Local Configurations
-      localIp          : in  slv(31 downto 0);  --  big-Endian configuration      
-      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration      
-      -- Interface to IPV4 Engine  
+      localIp          : in  slv(31 downto 0);  --  big-Endian configuration
+      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration
+      igmpIp           : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
+      -- Interface to IPV4 Engine
       ibUdpMaster      : in  AxiStreamMasterType;
       ibUdpSlave       : out AxiStreamSlaveType;
       -- Interface to UDP Server engine(s)
@@ -131,7 +134,7 @@ architecture rtl of UdpEngineRx is
 
 begin
 
-   U_RxPipeline : entity work.AxiStreamPipeline
+   U_RxPipeline : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)
@@ -143,10 +146,11 @@ begin
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave);
 
-   comb : process (broadcastIp, clientSlave, dhcpSlave, localIp, r, rst,
-                   rxMaster, serverSlave) is
-      variable v : RegType;
-      variable i : natural;
+   comb : process (broadcastIp, clientSlave, dhcpSlave, igmpIp, localIp, r,
+                   rst, rxMaster, serverSlave) is
+      variable v            : RegType;
+      variable i            : natural;
+      variable multiCastDet : boolean;
    begin
       -- Latch the current value
       v := r;
@@ -171,6 +175,16 @@ begin
          v.dhcpMaster.tLast  := '0';
          v.dhcpMaster.tUser  := (others => '0');
          v.dhcpMaster.tKeep  := (others => '1');
+      end if;
+
+      -- Check for IGMP multi-cast
+      multiCastDet := false;
+      if IGMP_G then
+         for i in IGMP_GRP_SIZE-1 downto 0 loop
+            if r.tData(127 downto 96) = igmpIp(i) then
+               multiCastDet := true;
+            end if;
+         end loop;
       end if;
 
       -- State Machine
@@ -202,7 +216,7 @@ begin
                ------------------------------------------------
                -- tData[0][47:0]   = Remote MAC Address
                -- tData[0][63:48]  = zeros
-               -- tData[0][95:64]  = Remote IP Address 
+               -- tData[0][95:64]  = Remote IP Address
                -- tData[0][127:96] = Local IP address
                -- tData[1][7:0]    = zeros
                -- tData[1][15:8]   = Protocol Type = UDP
@@ -210,11 +224,11 @@ begin
                -- tData[1][47:32]  = Remote Port
                -- tData[1][63:48]  = Local Port
                -- tData[1][79:64]  = UDP Length
-               -- tData[1][95:80]  = UDP Checksum 
-               -- tData[1][127:96] = UDP Datagram 
-               ------------------------------------------------               
+               -- tData[1][95:80]  = UDP Checksum
+               -- tData[1][127:96] = UDP Datagram
+               ------------------------------------------------
                -- Check the local IP address or broadcast IP
-               if (r.tData(127 downto 96) = localIp) or (r.tData(127 downto 96) = broadcastIp) then
+               if (r.tData(127 downto 96) = localIp) or (r.tData(127 downto 96) = broadcastIp) or multiCastDet then
                   -- Check if server engine(s) is enabled
                   if (SERVER_EN_G = true) then
                      for i in (SERVER_SIZE_G-1) downto 0 loop
@@ -290,7 +304,7 @@ begin
                      v.serverMaster.tData(31 downto 0)       := r.tData(31 downto 0);
                      v.serverMaster.tData(127 downto 32)     := rxMaster.tData(95 downto 0);
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.serverMaster, r.sof);
-                     -- Track the leftovers                                 
+                     -- Track the leftovers
                      v.tData(31 downto 0)                    := rxMaster.tData(127 downto 96);
                      -- Reset the flag
                      v.sof                                   := '0';
@@ -338,7 +352,7 @@ begin
                      v.clientMaster.tData(31 downto 0)       := r.tData(31 downto 0);
                      v.clientMaster.tData(127 downto 32)     := rxMaster.tData(95 downto 0);
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.clientMaster, r.sof);
-                     -- Track the leftovers                                 
+                     -- Track the leftovers
                      v.tData(31 downto 0)                    := rxMaster.tData(127 downto 96);
                      -- Reset the flag
                      v.sof                                   := '0';
@@ -369,7 +383,7 @@ begin
                               v.clientMaster.tKeep(15 downto 0) := rxMaster.tKeep(11 downto 0) & x"F";
                               v.clientMaster.tLast              := '1';
                               -- Next state
-                              v.state              := IDLE_S;
+                              v.state                           := IDLE_S;
                            end if;
                         end if;
                      end if;
@@ -385,7 +399,7 @@ begin
                      v.dhcpMaster.tData(31 downto 0)         := r.tData(31 downto 0);
                      v.dhcpMaster.tData(127 downto 32)       := rxMaster.tData(95 downto 0);
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.dhcpMaster, r.sof);
-                     -- Track the leftovers                                 
+                     -- Track the leftovers
                      v.tData(31 downto 0)                    := rxMaster.tData(127 downto 96);
                      -- Reset the flag
                      v.sof                                   := '0';
@@ -465,7 +479,7 @@ begin
             end case;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
@@ -477,7 +491,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs  
+      -- Registered Outputs
       serverRemotePort <= r.serverRemotePort;
       serverRemoteIp   <= r.serverRemoteIp;
       serverRemoteMac  <= r.serverRemoteMac;
@@ -492,7 +506,7 @@ begin
       end if;
    end process seq;
 
-   U_Servers : entity work.AxiStreamDeMux
+   U_Servers : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
@@ -501,14 +515,14 @@ begin
          -- Clock and reset
          axisClk      => clk,
          axisRst      => rst,
-         -- Slave         
+         -- Slave
          sAxisMaster  => r.serverMaster,
          sAxisSlave   => serverSlave,
          -- Masters
          mAxisMasters => obServerMasters,
          mAxisSlaves  => obServerSlaves);
 
-   U_Clients : entity work.AxiStreamDeMux
+   U_Clients : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 1,
@@ -517,14 +531,14 @@ begin
          -- Clock and reset
          axisClk      => clk,
          axisRst      => rst,
-         -- Slave         
+         -- Slave
          sAxisMaster  => r.clientMaster,
          sAxisSlave   => clientSlave,
          -- Masters
          mAxisMasters => obClientMasters,
          mAxisSlaves  => obClientSlaves);
 
-   U_Dhcp : entity work.AxiStreamPipeline
+   U_Dhcp : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
          PIPE_STAGES_G => 0)

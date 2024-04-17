@@ -1,13 +1,12 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteSequencerRam.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: The slave AXI-Lite interface used to load a sequence of master 
---              AXI-Lite transactions.  The transactions are stored in 
---              address=[1:2**ADDR_WIDTH_G-1].  Writing to Address[0] will 
---              start the transaction sequence and the number of transactions 
---              to execute.  At the end of the sequence (or if a bus error is 
---              detected during the sequence) a slave AXI-lite bus response is 
+-- Description: The slave AXI-Lite interface used to load a sequence of master
+--              AXI-Lite transactions.  The transactions are stored in
+--              address=[1:2**ADDR_WIDTH_G-1].  Writing to Address[0] will
+--              start the transaction sequence and the number of transactions
+--              to execute.  At the end of the sequence (or if a bus error is
+--              detected during the sequence) a slave AXI-lite bus response is
 --              executed.  If there is a bus error, the address/response/data
 --              is written into address[0] of the RAM for debugging.
 -------------------------------------------------------------------------------
@@ -27,14 +26,14 @@
 -- .....
 -- sAxil.address[8*r.size+0x0] = Ram.Address[r.size].BIT[31:00]: Sequenced mAxil.Data[r.size-1][31:00]
 -- sAxil.address[8*r.size+0x4] = Ram.Address[r.size].BIT[63:32]: Sequenced mAxil.Address[r.size-1].BIT[31:02] & '0' & RnW
--- 
+--
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -43,23 +42,30 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteSequencerRam is
    generic (
       TPD_G               : time                 := 1 ns;
+      RST_ASYNC_G         : boolean              := false;
       SYNTH_MODE_G        : string               := "inferred";
       MEMORY_TYPE_G       : string               := "block";
       MEMORY_INIT_FILE_G  : string               := "none";  -- Used for MEMORY_TYPE_G="XPM only
-      MEMORY_INIT_PARAM_G : string               := "0";  -- Used for MEMORY_TYPE_G="XPM only    
-      WAIT_FOR_RESPONSE_G : boolean              := false;  -- false: immediately respond back for address[0], true: wait for the end of the transaction sequences 
+      MEMORY_INIT_PARAM_G : string               := "0";  -- Used for MEMORY_TYPE_G="XPM only
+      WAIT_FOR_RESPONSE_G : boolean              := false;  -- false: immediately respond back for address[0], true: wait for the end of the transaction sequences
       READ_LATENCY_G      : natural range 0 to 3 := 2;
       ADDR_WIDTH_G        : positive             := 8);  -- Number of sequenced AXI-Lite master transactions = 2**ADDR_WIDTH_G - 1
    port (
       -- Clock and Reset
       axilClk          : in  sl;
       axilRst          : in  sl;
+      -- External Control Interface
+      extStart         : in  sl                           := '0';
+      extSize          : in  slv(ADDR_WIDTH_G-1 downto 0) := (others => '0');
+      extBusy          : out sl;
+      extDone          : out sl;
       -- Slave AXI-Lite Interface
       sAxilReadMaster  : in  AxiLiteReadMasterType;
       sAxilReadSlave   : out AxiLiteReadSlaveType;
@@ -87,6 +93,8 @@ architecture rtl of AxiLiteSequencerRam is
       SEQ_DONE_S);
 
    type RegType is record
+      extBusy         : sl;
+      extDone         : sl;
       sAxilWriteSlave : AxiLiteWriteSlaveType;
       sAxilReadSlave  : AxiLiteReadSlaveType;
       din             : slv(63 downto 0);
@@ -102,6 +110,8 @@ architecture rtl of AxiLiteSequencerRam is
    end record;
 
    constant REG_INIT_C : RegType := (
+      extBusy         => '0',
+      extDone         => '0',
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       sAxilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       wstrb           => (others => '0'),
@@ -127,9 +137,10 @@ architecture rtl of AxiLiteSequencerRam is
 
 begin
 
-   U_AxiLiteMaster : entity work.AxiLiteMaster
+   U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          req             => r.req,
          ack             => ack,
@@ -141,7 +152,7 @@ begin
          axilReadSlave   => mAxilReadSlave);
 
    GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity work.TrueDualPortRamXpm
+      U_RAM : entity surf.TrueDualPortRamXpm
          generic map (
             TPD_G               => TPD_G,
             COMMON_CLK_G        => true,
@@ -154,7 +165,7 @@ begin
             BYTE_WIDTH_G        => 8,
             ADDR_WIDTH_G        => ADDR_WIDTH_G)
          port map (
-            -- Port A  
+            -- Port A
             clka  => axilClk,
             wea   => r.wstrb,
             addra => r.addr,
@@ -167,7 +178,7 @@ begin
    end generate;
 
    GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity work.TrueDualPortRamAlteraMf
+      U_RAM : entity surf.TrueDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
             COMMON_CLK_G   => true,
@@ -178,7 +189,7 @@ begin
             BYTE_WIDTH_G   => 8,
             ADDR_WIDTH_G   => ADDR_WIDTH_G)
          port map (
-            -- Port A  
+            -- Port A
             clka  => axilClk,
             wea   => r.wstrb,
             addra => r.addr,
@@ -191,9 +202,10 @@ begin
    end generate;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_RAM : entity work.TrueDualPortRam
+      U_RAM : entity surf.TrueDualPortRam
          generic map (
             TPD_G        => TPD_G,
+            RST_ASYNC_G  => RST_ASYNC_G,
             BYTE_WR_EN_G => true,
             DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
             DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
@@ -201,7 +213,7 @@ begin
             BYTE_WIDTH_G => 8,
             ADDR_WIDTH_G => ADDR_WIDTH_G)
          port map (
-            -- Port A  
+            -- Port A
             clka    => axilClk,
             wea     => '1',
             weaByte => r.wstrb,
@@ -214,8 +226,8 @@ begin
             doutb   => seqData);
    end generate;
 
-   comb : process (ack, axilRst, dout, r, sAxilReadMaster, sAxilWriteMaster,
-                   seqData) is
+   comb : process (ack, axilRst, dout, extSize, extStart, r, sAxilReadMaster,
+                   sAxilWriteMaster, seqData) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable rdIdx      : natural;
@@ -243,8 +255,12 @@ begin
 
       -- State Machine
       case (r.state) is
-         ----------------------------------------------------------------------   
+         ----------------------------------------------------------------------
          when IDLE_S =>
+
+            -- Reset the flags
+            v.extBusy := '0';
+            v.extDone := '0';
 
             -- Preset RAM Address to first transaction
             v.seqAddr := toSlv(1, ADDR_WIDTH_G);
@@ -305,6 +321,26 @@ begin
 
                -- Next state
                v.state := S_AXI_RD_S;
+
+            -- Check for external start and non-zero size
+            elsif (extStart = '1') and (extSize /= 0) then
+
+               -- Set the flag
+               v.extBusy := '1';
+
+               -- Latch the size
+               v.size := extSize;
+
+               -- Reset the counter
+               v.cnt := (others => '0');
+
+               -- Clear out debugging cache
+               v.addr  := (others => '0');
+               v.din   := (others => '0');
+               v.wstrb := (others => '1');
+
+               -- Next state
+               v.state := M_AXI_REQ_S;
 
             end if;
          ----------------------------------------------------------------------
@@ -430,23 +466,33 @@ begin
          v.rdLatecy := r.rdLatecy - 1;
       end if;
 
+      -- Check for IDLE transition
+      if (r.state /= IDLE_S) and (v.state = IDLE_S) then
+         -- Set flag if sequence was externally initiated
+         v.extDone := r.extBusy;
+      end if;
+
+      -- Output assignment
+      sAxilReadSlave  <= r.sAxilReadSlave;
+      sAxilWriteSlave <= r.sAxilWriteSlave;
+      extBusy         <= v.extBusy;
+      extDone         <= v.extDone;
+
       -- Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Output assignment
-      sAxilReadSlave  <= r.sAxilReadSlave;
-      sAxilWriteSlave <= r.sAxilWriteSlave;
-
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

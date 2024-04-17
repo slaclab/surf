@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLtc2270Deser.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ADC DDR Deserializer
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLtc2270Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLtc2270Pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -30,7 +31,7 @@ entity AxiLtc2270Deser is
       DELAY_INIT_G    : Slv5VectorArray(0 to 1, 0 to 7) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                          := "AXI_LTC2270_IODELAY_GRP");
    port (
-      -- ADC Ports  
+      -- ADC Ports
       clkInP       : in  sl;
       clkInN       : in  sl;
       clkOutP      : out sl;
@@ -41,7 +42,7 @@ entity AxiLtc2270Deser is
       orN          : in  sl;
       -- ADC Data Interface (axiClk domain)
       adcValid     : out slv(0 to 1);
-      adcData      : out Slv16Array(0 to 1);  -- 2's complement  
+      adcData      : out Slv16Array(0 to 1);  -- 2's complement
       -- Register Interface (axiClk domain)
       dmode        : in  slv(1 downto 0);
       -- Register Interface (refclk200MHz domain)
@@ -70,10 +71,10 @@ architecture rtl of AxiLtc2270Deser is
 
    attribute IODELAY_GROUP                    : string;
    attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
-   
+
 begin
 
-   ClkOutBufDiff_0 : entity work.ClkOutBufDiff
+   ClkOutBufDiff_0 : entity surf.ClkOutBufDiff
       port map (
          clkIn   => adcClk,
          clkOutP => clkOutP,
@@ -96,9 +97,9 @@ begin
    BUFG_0 : BUFG
       port map (
          I => adcInClk,
-         O => adcClock);         
+         O => adcClock);
 
-   SynchVector_Inst : entity work.SynchronizerVector
+   SynchVector_Inst : entity surf.SynchronizerVector
       generic map(
          WIDTH_G => 2)
       port map(
@@ -110,14 +111,14 @@ begin
       port map (
          RDY    => delayOut.rdy,        -- 1-bit output: Ready output
          REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
-         RST    => delayIn.rst);        -- 1-bit input: Active high reset input                   
+         RST    => delayIn.rst);        -- 1-bit input: Active high reset input
 
    GEN_CH :
    for ch in 0 to 1 generate
       GEN_DAT :
       for i in 0 to 7 generate
-         
-         AxiLtc2270DeserBit_Inst : entity work.AxiLtc2270DeserBit
+
+         AxiLtc2270DeserBit_Inst : entity surf.AxiLtc2270DeserBit
             generic map(
                TPD_G           => TPD_G,
                DELAY_INIT_G    => DELAY_INIT_G(ch, i),
@@ -159,7 +160,7 @@ begin
          end if;
       end process;
 
-      SyncFifo_Inst : entity work.SynchronizerFifo
+      SyncFifo_Inst : entity surf.SynchronizerFifo
          generic map(
             DATA_WIDTH_G => 16)
          port map(
@@ -174,5 +175,5 @@ begin
             dout   => adcData(ch));
 
    end generate GEN_CH;
-   
+
 end rtl;

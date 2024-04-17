@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePMbusMasterCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,12 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.I2cPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.I2cPkg.all;
 
 entity AxiLitePMbusMasterCore is
    generic (
@@ -118,7 +116,8 @@ architecture rtl of AxiLitePMbusMasterCore is
       regReq      => '0',
       busReq      => '0',
       endianness  => '0',               -- Little endian
-      repeatStart => '1');
+      repeatStart => '1',
+      wrDataOnRd  => '0');
 
    type StateType is (
       IDLE_S,
@@ -158,7 +157,7 @@ architecture rtl of AxiLitePMbusMasterCore is
 
 begin
 
-   U_I2cRegMaster : entity work.I2cRegMaster
+   U_I2cRegMaster : entity surf.I2cRegMaster
       generic map(
          TPD_G                => TPD_G,
          OUTPUT_EN_POLARITY_G => 0,
@@ -222,7 +221,7 @@ begin
                      -- Else skipping address
                      else
 
-                        -- Send the address into the data 
+                        -- Send the address into the data
                         v.regIn.regWrData := x"0000_00" & axilWriteMaster.awaddr(9 downto 2);
 
                         -- Force 1 byte transaction
@@ -238,9 +237,9 @@ begin
 
                      -- Read back I2C configuration
                      if axilWriteMaster.awaddr(7 downto 0) = x"00" then
-                        v.regIn.i2cAddr     := axilWriteMaster.wData(9 downto 0);
-                        v.regIn.tenbit      := axilWriteMaster.wData(10);
-                        v.ignoreResp        := axilWriteMaster.wData(11);
+                        v.regIn.i2cAddr := axilWriteMaster.wData(9 downto 0);
+                        v.regIn.tenbit  := axilWriteMaster.wData(10);
+                        v.ignoreResp    := axilWriteMaster.wData(11);
                      end if;
 
                      -- Send AXI-Lite response
@@ -248,7 +247,7 @@ begin
 
                   end if;
 
-               -- Check for a read request            
+               -- Check for a read request
                elsif (axilStatus.readEnable = '1') then
 
                   -- Check for I2C data Access

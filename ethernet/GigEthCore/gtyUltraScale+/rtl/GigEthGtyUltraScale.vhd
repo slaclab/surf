@@ -1,46 +1,53 @@
 -------------------------------------------------------------------------------
--- File       : GigEthGtyUltraScale.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 1000BASE-X Ethernet for Gty
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.GigEthPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.GigEthPkg.all;
 
 entity GigEthGtyUltraScale is
    generic (
-      TPD_G           : time                := 1 ns;
-      PAUSE_EN_G      : boolean             := true;
+      TPD_G             : time                := 1 ns;
+      -- MAC Configurations
+      INT_PIPE_STAGES_G : natural             := 1;
+      PIPE_STAGES_G     : natural             := 1;
+      FIFO_ADDR_WIDTH_G : positive            := 12;  -- single 4K UltraRAM
+      SYNTH_MODE_G      : string              := "xpm";
+      MEMORY_TYPE_G     : string              := "ultra";
+      JUMBO_G           : boolean             := true;
+      PAUSE_EN_G        : boolean             := true;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G      : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G     : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk             : in  sl;
       dmaRst             : in  sl;
       dmaIbMaster        : out AxiStreamMasterType;
       dmaIbSlave         : in  AxiStreamSlaveType;
       dmaObMaster        : in  AxiStreamMasterType;
       dmaObSlave         : out AxiStreamSlaveType;
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk         : in  sl                     := '0';
       axiLiteRst         : in  sl                     := '0';
       axiLiteReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -129,30 +136,36 @@ architecture mapping of GigEthGtyUltraScale is
 begin
 
    ------------------
-   -- Synchronization 
+   -- Synchronization
    ------------------
-   U_AxiLiteAsync : entity work.AxiLiteAsync
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Slave Port
-         sAxiClk         => axiLiteClk,
-         sAxiClkRst      => axiLiteRst,
-         sAxiReadMaster  => axiLiteReadMaster,
-         sAxiReadSlave   => axiLiteReadSlave,
-         sAxiWriteMaster => axiLiteWriteMaster,
-         sAxiWriteSlave  => axiLiteWriteSlave,
-         -- Master Port
-         mAxiClk         => sysClk125,
-         mAxiClkRst      => sysRst125,
-         mAxiReadMaster  => mAxiReadMaster,
-         mAxiReadSlave   => mAxiReadSlave,
-         mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);
+   GEN_REG : if (EN_AXI_REG_G = true) generate
+      U_AxiLiteAsync : entity surf.AxiLiteAsync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Slave Port
+            sAxiClk         => axiLiteClk,
+            sAxiClkRst      => axiLiteRst,
+            sAxiReadMaster  => axiLiteReadMaster,
+            sAxiReadSlave   => axiLiteReadSlave,
+            sAxiWriteMaster => axiLiteWriteMaster,
+            sAxiWriteSlave  => axiLiteWriteSlave,
+            -- Master Port
+            mAxiClk         => sysClk125,
+            mAxiClkRst      => sysRst125,
+            mAxiReadMaster  => mAxiReadMaster,
+            mAxiReadSlave   => mAxiReadSlave,
+            mAxiWriteMaster => mAxiWriteMaster,
+            mAxiWriteSlave  => mAxiWriteSlave);
+   end generate;
+   BYP_REG : if (EN_AXI_REG_G = false) generate
+      axiLiteReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axiLiteWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+   end generate;
 
    areset <= extRst or config.softRst or sysRst125;
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
          DURATION_G => 1000)
@@ -164,13 +177,19 @@ begin
    --------------------
    -- Ethernet MAC core
    --------------------
-   U_MAC : entity work.EthMacTop
+   U_MAC : entity surf.EthMacTop
       generic map (
-         TPD_G           => TPD_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_C,
-         PHY_TYPE_G      => "GMII",
-         PRIM_CONFIG_G   => AXIS_CONFIG_G)
+         TPD_G             => TPD_G,
+         INT_PIPE_STAGES_G => INT_PIPE_STAGES_G,
+         PIPE_STAGES_G     => PIPE_STAGES_G,
+         FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+         SYNTH_MODE_G      => SYNTH_MODE_G,
+         MEMORY_TYPE_G     => MEMORY_TYPE_G,
+         JUMBO_G           => JUMBO_G,
+         PAUSE_EN_G        => PAUSE_EN_G,
+         PAUSE_512BITS_G   => PAUSE_512BITS_C,
+         PHY_TYPE_G        => "GMII",
+         PRIM_CONFIG_G     => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,
@@ -239,10 +258,10 @@ begin
    status.phyReady <= status.coreStatus(1);
    phyReady        <= status.phyReady;
 
-   --------------------------------     
-   -- Configuration/Status Register   
-   --------------------------------     
-   U_GigEthReg : entity work.GigEthReg
+   --------------------------------
+   -- Configuration/Status Register
+   --------------------------------
+   U_GigEthReg : entity surf.GigEthReg
       generic map (
          TPD_G        => TPD_G,
          EN_AXI_REG_G => EN_AXI_REG_G)

@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : i2cRegTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for i2cReg
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,9 +16,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.StdRtlPkg.all;
-use work.i2cPkg.all;
-use work.i2cRegMasterPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.i2cPkg.all;
+use surf.i2cRegMasterPkg.all;
 
 entity i2cRegTb is
 
@@ -49,7 +50,7 @@ begin
   -- Master
   --------------------------------------------------------------------------------------------------
   -- Create Master clock and reset
-  ClkRst_Master : entity work.ClkRst
+  ClkRst_Master : entity surf.ClkRst
     generic map (
       CLK_PERIOD_G      => 8 ns,
       RST_START_DELAY_G => 0 ns,
@@ -62,7 +63,7 @@ begin
       rstL => open);
 
   -- Instantiate Master
-  i2cRegMaster_1 : entity work.i2cRegMaster
+  i2cRegMaster_1 : entity surf.i2cRegMaster
     generic map (
       TPD_G                => TPD_C,
       OUTPUT_EN_POLARITY_G => 0,
@@ -91,7 +92,7 @@ begin
 --  gen_i : for i in 0 to 3 generate
 --    gen_j : for j in 0 to 3 generate
 
---      ClkRst_Slave : entity work.ClkRst
+--      ClkRst_Slave : entity surf.ClkRst
 --        generic map (
 --          CLK_PERIOD_G      => (8+i)* 1 ns,
 --          CLK_DELAY_G       => j * 1 ns,
@@ -104,7 +105,7 @@ begin
 --          rst  => slaveRst(i*4+j),
 --          rstL => open);
 
---      i2cRamSlave_1 : entity work.i2cRamSlave
+--      i2cRamSlave_1 : entity surf.i2cRamSlave
 --        generic map (
 --          TPD_G        => TPD_C,
 --          I2C_ADDR_G   => (i*4+j)*4+9,
@@ -122,7 +123,7 @@ begin
 --    end generate gen_j;
 --  end generate gen_i;
 
-  ClkRst_Slave : entity work.ClkRst
+  ClkRst_Slave : entity surf.ClkRst
     generic map (
       CLK_PERIOD_G      => 9 ns,
       CLK_DELAY_G       => 1 ns,
@@ -135,7 +136,7 @@ begin
       rst  => slaveRst(0),
       rstL => open);
 
-  i2cRamSlave_1 : entity work.i2cRamSlave
+  i2cRamSlave_1 : entity surf.i2cRamSlave
     generic map (
       TPD_G        => TPD_C,
       I2C_ADDR_G   => 85,

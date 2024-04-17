@@ -1,17 +1,4 @@
 #!/usr/bin/python3
-
-#-----------------------------------------------------------------------------
-# Title      : JTAG Support
-#-----------------------------------------------------------------------------
-# File       : test.py
-# Author     : Till Straumann <strauman@slac.stanford.edu>
-# Company    : SLAC National Accelerator Laboratory
-# Created    : 2017-12-05
-# Last update: 2017-12-05
-# Platform   :
-# Standard   : VHDL'93/02
-#-----------------------------------------------------------------------------
-# Description:
 #-----------------------------------------------------------------------------
 # This file is part of 'SLAC Firmware Standard Library'.
 # It is subject to the license terms in the LICENSE.txt file found in the
@@ -138,9 +125,9 @@ def playfile(f):
 if __name__ == "__main__":
   (opts, args) = getopt.getopt(sys.argv[1:], "k")
   dokill = False
-  for (o, a) in opts: 
+  for (o, a) in opts:
     if o == '-k':
-      dokill = True; 
+      dokill = True;
   try:
     playfile('testData.txt')
   except:

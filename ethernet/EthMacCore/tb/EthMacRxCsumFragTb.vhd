@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : EthMacRxCsumFragTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: EthMacRxCsum for Frag SOF Simulation Testbed
 -------------------------------------------------------------------------------
 -- This file is part of 'LCLS2 LLRF Firmware'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'LCLS2 LLRF Firmware', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'LCLS2 LLRF Firmware', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,13 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity EthMacRxCsumFragTb is end EthMacRxCsumFragTb;
 
@@ -51,7 +49,7 @@ architecture testbed of EthMacRxCsumFragTb is
 
 begin
 
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -219,7 +217,7 @@ begin
       end if;
    end process seq;
 
-   U_EthMacRxCsum : entity work.EthMacRxCsum
+   U_EthMacRxCsum : entity surf.EthMacRxCsum
       generic map (
          TPD_G => TPD_G)
       port map (

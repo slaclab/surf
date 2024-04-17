@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : XadcSimpleCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This core only measures internal voltages and temperature
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,8 +16,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -33,7 +34,7 @@ entity XadcSimpleCore is
       -- Global XADC configurations
       SEQUENCER_MODE_G : string                 := "DEFAULT";  -- SINGLE_PASS, CONTINUOUS, SINGLE_CHANNEL,
                                                                -- SIMULTANEOUS, INDEPENDENT
-      SAMPLING_MODE_G  : string                 := "CONTINUOUS";  -- or "EVENT-DRIVEN"      
+      SAMPLING_MODE_G  : string                 := "CONTINUOUS";  -- or "EVENT-DRIVEN"
       MUX_EN_G         : boolean                := false;      -- Enable external multiplexer
       ADCCLK_RATIO_G   : integer range 2 to 255 := 7;
       SAMPLE_AVG_G     : slv(1 downto 0)        := "11";  -- No averaging, 16  64 or 256 samples
@@ -339,7 +340,7 @@ begin
       drpRst <= xadcRst;
    end generate;
 
-   U_AxiLiteToDrp_1 : entity work.AxiLiteToDrp
+   U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
       generic map (
          TPD_G            => TPD_G,
          COMMON_CLK_G     => COMMON_CLK_G,

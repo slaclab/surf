@@ -1,22 +1,21 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamBytePacker.vhd.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Byte packer for AXI-Stream. 
--- Accepts an incoming stream and packs data into the outbound stream. 
--- Similiar to AxiStreamResize, but allows an input and output width to have 
--- non multiples and for the input size to be dynamic. 
--- This module does not downsize and creates more complex combinitorial logic 
+-- Byte packer for AXI-Stream.
+-- Accepts an incoming stream and packs data into the outbound stream.
+-- Similar to AxiStreamResize, but allows an input and output width to have
+-- non multiples and for the input size to be dynamic.
+-- This module does not downsize and creates more complex combinatorial logic
 -- than in AxiStreamResize.
 -- Ready handshaking is not supported.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,14 +23,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamBytePacker is
    generic (
-      TPD_G           : time                := 1 ns;
-      SLAVE_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      TPD_G           : time    := 1 ns;
+      RST_ASYNC_G     : boolean := false;
+      SLAVE_CONFIG_G  : AxiStreamConfigType;
+      MASTER_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
       axiClk       : in  sl;
@@ -43,6 +45,8 @@ entity AxiStreamBytePacker is
 end AxiStreamBytePacker;
 
 architecture rtl of AxiStreamBytePacker is
+
+   constant SLV_TUSER_BITS_C : natural := ite(SLAVE_CONFIG_G.TUSER_BITS_C/=0,SLAVE_CONFIG_G.TUSER_BITS_C,1);
 
    constant MAX_IN_BYTE_C  : integer := SLAVE_CONFIG_G.TDATA_BYTES_C-1;
    constant MAX_OUT_BYTE_C : integer := MASTER_CONFIG_G.TDATA_BYTES_C-1;
@@ -67,13 +71,16 @@ architecture rtl of AxiStreamBytePacker is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- attribute MARK_DEBUG      : string;
+   -- attribute MARK_DEBUG of r : signal is "TRUE";
+
 begin
 
    comb : process (r, axiRst, sAxisMaster ) is
       variable v     : RegType;
       variable valid : sl;
       variable last  : sl;
-      variable user  : slv(SLAVE_CONFIG_G.TUSER_BITS_C-1 downto 0);
+      variable user  : slv(SLV_TUSER_BITS_C-1 downto 0);
       variable data  : slv(7 downto 0);
    begin
       v := r;
@@ -106,7 +113,7 @@ begin
                data  := r.inMaster.tData(i*8+7 downto i*8);
 
                -- Still filling current data
-               if v.curMaster.tValid = '0' then 
+               if v.curMaster.tValid = '0' then
 
                   v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := data;
                   v.curMaster.tKeep(v.byteCount) := '1';
@@ -139,7 +146,7 @@ begin
       end if;
 
       -- Reset
-      if (axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = '1') then
          v := REG_INIT_C;
          v.curMaster.tKeep := (others=>'0');
          v.nxtMaster.tKeep := (others=>'0');
@@ -151,12 +158,13 @@ begin
 
    end process;
 
-   seq : process (axiClk) is
-   begin  
-      if (rising_edge(axiClk)) then
-         r <= rin;
+   seq : process (axiClk, axiRst) is
+   begin
+      if (RST_ASYNC_G and axiRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
+         r <= rin after TPD_G;
       end if;
-   end process;
+   end process seq;
 
 end architecture rtl;
-

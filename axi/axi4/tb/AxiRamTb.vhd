@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiRamTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiRamTb module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiRamTb is end AxiRamTb;
 
@@ -57,7 +58,7 @@ begin
    ---------------------------
    -- Generate clock and reset
    ---------------------------
-   U_ClkRst : entity work.ClkRst
+   U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
@@ -71,7 +72,7 @@ begin
    -------------
    -- AXI Memory
    -------------
-   U_MEM : entity work.AxiRam
+   U_MEM : entity surf.AxiRam
       generic map (
          TPD_G          => TPD_G,
          ------------------------------
@@ -102,10 +103,10 @@ begin
          sAxiReadMaster  => axiReadMaster,
          sAxiReadSlave   => axiReadSlave);
 
-   ----------------  
+   ----------------
    -- Memory Tester
-   ----------------  
-   U_AxiMemTester : entity work.AxiMemTester
+   ----------------
+   U_AxiMemTester : entity surf.AxiMemTester
       generic map (
          TPD_G        => TPD_G,
          START_ADDR_G => START_ADDR_C,

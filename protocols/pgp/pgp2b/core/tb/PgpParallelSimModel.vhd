@@ -1,26 +1,27 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : PgpParallelSimModel.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for PGP
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity PgpParallelSimModel is
    generic (
@@ -36,7 +37,7 @@ entity PgpParallelSimModel is
       PAYLOAD_CNT_TOP_G     : integer              := 7;    -- Top bit for payload counter
       NUM_VC_EN_G           : integer range 1 to 4 := 4;
       TX_ENABLE_G           : boolean              := true;        -- Enable TX direction
-      RX_ENABLE_G           : boolean              := true);       -- Enable RX direction      
+      RX_ENABLE_G           : boolean              := true);       -- Enable RX direction
    port (
       -- System Signals
       clk          : in  sl;
@@ -55,7 +56,7 @@ entity PgpParallelSimModel is
       pgpTxOut     : out Pgp2bTxOutType;
       -- PGP 8B/10B Encoded
       pgpIn        : in  slv(19 downto 0);
-      pgpOut       : out slv(19 downto 0));       
+      pgpOut       : out slv(19 downto 0));
 end PgpParallelSimModel;
 
 architecture mapping of PgpParallelSimModel is
@@ -77,10 +78,10 @@ architecture mapping of PgpParallelSimModel is
 
    signal phyTxLanesOut : Pgp2bTxPhyLaneOutArray(0 to 0);
    signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);
-   
+
 begin
 
-   U_CableDelay : entity work.SlvDelay
+   U_CableDelay : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => CABLE_DELAY_C,
@@ -88,9 +89,9 @@ begin
       port map (
          clk  => clk,
          din  => pgpIn,
-         dout => pgpInDly); 
+         dout => pgpInDly);
 
-   U_RxSerDelay : entity work.SlvDelay
+   U_RxSerDelay : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => RX_SER_DELAY_C,
@@ -98,9 +99,9 @@ begin
       port map (
          clk  => clk,
          din  => pgpInDly,
-         dout => dataIn);                 
+         dout => dataIn);
 
-   U_Decoder8b10b : entity work.Decoder8b10b
+   U_Decoder8b10b : entity surf.Decoder8b10b
       generic map (
          TPD_G       => TPD_G,
          NUM_BYTES_G => 2)
@@ -111,12 +112,12 @@ begin
          dataOut  => phyRxLanesIn(0).data,
          dataKOut => phyRxLanesIn(0).dataK,
          codeErr  => phyRxLanesIn(0).decErr,
-         dispErr  => phyRxLanesIn(0).dispErr);      
+         dispErr  => phyRxLanesIn(0).dispErr);
 
    phyTxReady <= not(rst);
    phyRxReady <= not(rst);
 
-   U_Pgp2bLane : entity work.Pgp2bLane
+   U_Pgp2bLane : entity surf.Pgp2bLane
       generic map (
          TPD_G             => TPD_G,
          LANE_CNT_G        => 1,
@@ -124,7 +125,7 @@ begin
          PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
          NUM_VC_EN_G       => NUM_VC_EN_G,
          TX_ENABLE_G       => TX_ENABLE_G,
-         RX_ENABLE_G       => RX_ENABLE_G)         
+         RX_ENABLE_G       => RX_ENABLE_G)
       port map (
          pgpTxClk         => clk,
          pgpTxClkRst      => rst,
@@ -146,7 +147,7 @@ begin
          phyRxReady       => phyRxReady,
          phyRxInit        => open);
 
-   U_Encoder8b10b : entity work.Encoder8b10b
+   U_Encoder8b10b : entity surf.Encoder8b10b
       generic map (
          TPD_G       => TPD_G,
          NUM_BYTES_G => 2)
@@ -157,7 +158,7 @@ begin
          dataKIn => phyTxLanesOut(0).dataK,
          dataOut => dataOut);
 
-   U_TxSerDelay : entity work.SlvDelay
+   U_TxSerDelay : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => TX_SER_DELAY_C,
@@ -165,6 +166,6 @@ begin
       port map (
          clk  => clk,
          din  => dataOut,
-         dout => pgpOut);        
+         dout => pgpOut);
 
 end mapping;

@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Tx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Pgpv3 Transmit
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,10 +19,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3Tx is
 
@@ -89,7 +90,7 @@ architecture rtl of Pgp3Tx is
 begin
 
    -- Synchronize remote link and fifo status to tx clock
-   U_Synchronizer_REM : entity work.Synchronizer
+   U_Synchronizer_REM : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -98,7 +99,7 @@ begin
          dataIn  => remRxLinkReady,                        -- [in]
          dataOut => syncRemRxLinkReady);                   -- [out]
    REM_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
-      U_SynchronizerVector_1 : entity work.SynchronizerVector
+      U_SynchronizerVector_1 : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2)
@@ -112,7 +113,7 @@ begin
    end generate;
 
    -- Synchronize local rx status
-   U_Synchronizer_LOC : entity work.Synchronizer
+   U_Synchronizer_LOC : entity surf.Synchronizer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -121,15 +122,15 @@ begin
          dataIn  => locRxLinkReady,                        -- [in]
          dataOut => syncLocRxLinkReady);                   -- [out]
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
-      U_Synchronizer_pause : entity work.Synchronizer
+      U_Synchronizer_pause : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (
             clk     => pgpTxClk,                              -- [in]
             rst     => pgpTxRst,                              -- [in]
             dataIn  => locRxFifoCtrl(i).pause,                -- [in]
-            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out] 
-      U_Synchronizer_overflow : entity work.SynchronizerOneShot
+            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out]
+      U_Synchronizer_overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -155,7 +156,7 @@ begin
    end process;
 
    -- Multiplex the incomming tx streams with interleaving
-   U_AxiStreamMux_1 : entity work.AxiStreamMux
+   U_AxiStreamMux_1 : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
          NUM_SLAVES_G         => NUM_VC_G,
@@ -179,12 +180,13 @@ begin
    -- Note that the mux is doing the work of chunking
    -- Packetizer applies packet formatting and CRC
    -- rearbitrate signal doesn't really do anything (yet)
-   U_AxiStreamPacketizer2_1 : entity work.AxiStreamPacketizer2
+   U_AxiStreamPacketizer2_1 : entity surf.AxiStreamPacketizer2
       generic map (
          TPD_G                => TPD_G,
          CRC_MODE_G           => "DATA",
          CRC_POLY_G           => PGP3_CRC_POLY_C,
          MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
+         SEQ_CNT_SIZE_G       => 12,
          INPUT_PIPE_STAGES_G  => 1,
          OUTPUT_PIPE_STAGES_G => 1)
       port map (
@@ -198,7 +200,7 @@ begin
 
    -- Feed packets into PGP TX Protocol engine
    -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
-   U_Pgp3TxProtocol_1 : entity work.Pgp3TxProtocol
+   U_Pgp3TxProtocol_1 : entity surf.Pgp3TxProtocol
       generic map (
          TPD_G            => TPD_G,
          NUM_VC_G         => NUM_VC_G)
@@ -220,7 +222,7 @@ begin
          protTxHeader   => protTxHeader);       -- [out]
 
    -- Scramble the data for 64b66b
-   U_Scrambler_1 : entity work.Scrambler
+   U_Scrambler_1 : entity surf.Scrambler
       generic map (
          TPD_G            => TPD_G,
          DIRECTION_G      => "SCRAMBLER",

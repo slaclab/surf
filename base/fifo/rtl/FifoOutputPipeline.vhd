@@ -1,23 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : FifoOutputPipeline.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description:   This module is used to sync a FWFT FIFO bus 
+-- Description:   This module is used to sync a FWFT FIFO bus
 --                either as a pass through or with pipeline register stages.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoOutputPipeline is
    generic (
@@ -51,7 +51,7 @@ architecture rtl of FifoOutputPipeline is
       mValid : slv(0 to PIPE_STAGES_C);
       mData  : DataArray(0 to PIPE_STAGES_C);
    end record RegType;
-   
+
    constant REG_INIT_C : RegType := (
       sRdEn  => '0',
       mValid => (others => '0'),
@@ -71,10 +71,9 @@ begin
    end generate;
 
    PIPE_REG : if (PIPE_STAGES_G > 0) generate
-      
+
       comb : process (mRdEn, r, rst, sData, sValid) is
          variable v : RegType;
-         variable i : natural;
       begin
          -- Latch the current value
          v := r;
@@ -134,7 +133,7 @@ begin
             for i in PIPE_STAGES_C-1 downto 1 loop
                -- Check for empty cell ahead of a filled cell
                if (r.mValid(i) = '0') and (r.mValid(i-1) = '1') then
-                  -- Shift the lowest cell                  
+                  -- Shift the lowest cell
                   v.mValid(i)   := r.mValid(i-1);
                   v.mData(i)    := r.mData(i-1);
                   -- Reset the flag
@@ -155,20 +154,18 @@ begin
          sRdEn  <= r.sRdEn;
          mValid <= r.mValid(PIPE_STAGES_C);
          mData  <= r.mData(PIPE_STAGES_C);
-         
+
       end process comb;
 
       seq : process (clk, rst) is
       begin
-         if rising_edge(clk) then
-            r <= rin after TPD_G;
-         end if;
-         -- Asynchronous Reset
          if (RST_ASYNC_G and rst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(clk) then
+            r <= rin after TPD_G;
          end if;
       end process seq;
-      
+
    end generate;
-   
+
 end rtl;

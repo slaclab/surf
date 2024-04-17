@@ -1,7 +1,7 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
-if { $::env(VIVADO_VERSION) >= 2016.4 } {
+if { ($::env(VIVADO_VERSION) >= 2016.4) && ([isVersal] != true) } {
 
    # Create Debug Bridge IP -- but only if it doesn't exist yet
    # which can happen if this is re-run.
@@ -11,6 +11,6 @@ if { $::env(VIVADO_VERSION) >= 2016.4 } {
          set_property -dict [list CONFIG.C_DEBUG_MODE {4}] [get_ips DebugBridgeJtag]
    }
 
-   loadSource -dir  "$::DIR_PATH/rtl"
-   
+   loadSource -lib surf -dir  "$::DIR_PATH/rtl"
+
 }

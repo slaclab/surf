@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdTxTest.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdTx simple module for testing RX
@@ -7,11 +6,11 @@
 --              - it replaces GT core and generates a dummy data stream for JESD Rx testing.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,8 +19,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdTxTest is
    generic (
@@ -30,11 +31,11 @@ entity JesdTxTest is
    port (
 
       -- JESD
-      -- Clocks and Resets   
+      -- Clocks and Resets
       devClk_i : in sl;
       devRst_i : in sl;
 
-      -- JESD subclass selection: '0' or '1'(default)     
+      -- JESD subclass selection: '0' or '1'(default)
       subClass_i : in sl;
 
       -- Control and status register records
@@ -43,7 +44,7 @@ entity JesdTxTest is
       -- Local multi frame clock
       lmfc_i : in sl;
 
-      -- Synchronization request input 
+      -- Synchronization request input
       nSync_i : in sl;
 
       -- Lane delay inputs
@@ -89,8 +90,8 @@ architecture rtl of JesdTxTest is
 
 begin
 
-   -- Delay lmfc input (for 1 to 16 c-c) to 
-   lmfcDly_INST : entity work.SlvDelay
+   -- Delay lmfc input (for 1 to 16 c-c) to
+   lmfcDly_INST : entity surf.SlvDelay
       generic map (
          TPD_G   => TPD_G,
          DELAY_G => 16)
@@ -101,8 +102,8 @@ begin
          din(0)  => lmfc_i,
          dout(0) => s_lmfc_dly);
 
-   -- Delay nsync input (for 1 to 16 c-c) to 
-   nsyncDly_INST : entity work.SlvDelay
+   -- Delay nsync input (for 1 to 16 c-c) to
+   nsyncDly_INST : entity surf.SlvDelay
       generic map (
          TPD_G    => TPD_G,
           DELAY_G => 16)
@@ -114,7 +115,7 @@ begin
          dout(0) => s_nsync_dly);
 
    -- Synchronization FSM
-   syncFSM_INST : entity work.JesdSyncFsmTxTest
+   syncFSM_INST : entity surf.JesdSyncFsmTxTest
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -134,7 +135,7 @@ begin
    begin
       v := r;
 
-      -- Buffer data and char one clock cycle 
+      -- Buffer data and char one clock cycle
       v.dataKD1 := s_dataK;
       v.dataD1  := s_data;
 
@@ -186,35 +187,35 @@ begin
       r_jesdGtRx.dispErr <= "0000";
       r_jesdGtRx.decErr  <= "0000";
       r_jesdGtRx.rstDone <= '1';
-   -----------------------------------------------   
+   -----------------------------------------------
    end generate SIZE_4_GEN;
 
    -- GT output generation (depending on GT_WORD_SIZE_C)
    -- SIZE_2_GEN: if GT_WORD_SIZE_C = 2 generate
    -- ----------------------------------------------------
-   -- s_dataK   <= "11"                     when (s_dataValid = '0' and  s_align = '0') else 
+   -- s_dataK   <= "11"                     when (s_dataValid = '0' and  s_align = '0') else
    -- "00";
-   -- s_data    <= (K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else 
+   -- s_data    <= (K_CHAR_C   & K_CHAR_C)  when (s_dataValid = '0' and  s_align = '0') else
    -- ((s_testCntr+1) & (s_testCntr));
 
-   -- with align_i select 
-   -- r_jesdGtRx.dataK   <= s_dataK                       when "01", 
+   -- with align_i select
+   -- r_jesdGtRx.dataK   <= s_dataK                       when "01",
    -- s_dataK(0) & r.dataKD1(1)     when "10",
    -- s_dataK                       when others;
 
-   -- with align_i select 
-   -- r_jesdGtRx.data    <= s_data                                       when "01", 
+   -- with align_i select
+   -- r_jesdGtRx.data    <= s_data                                       when "01",
    -- s_data(7 downto 0)  & r.dataD1(15 downto 8)  when "10",
-   -- s_data                                       when others; 
+   -- s_data                                       when others;
 
    -- r_jesdGtRx.dispErr <= "00";
    -- r_jesdGtRx.decErr  <= "00";
    -- r_jesdGtRx.rstDone <= '1';
-   -- ----------------------------------------------- 
+   -- -----------------------------------------------
    -- end generate SIZE_2_GEN;
 
 
-   -- Output assignment   
+   -- Output assignment
    txDataValid_o <= s_dataValid;
 --------------------------------------------
 end rtl;

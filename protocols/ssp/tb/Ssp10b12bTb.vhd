@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Ssp10b12bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation testbed for Ssp10b12b
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
 ----------------------------------------------------------------------------------------------------
 
 entity Ssp10b12bTb is
@@ -60,7 +61,7 @@ architecture tb of Ssp10b12bTb is
 begin
 
    -- component instantiation
-   U_SspEncoder10b12b : entity work.SspEncoder10b12b
+   U_SspEncoder10b12b : entity surf.SspEncoder10b12b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -77,7 +78,7 @@ begin
          dataOut  => encDataOut);       -- [out]
 
    decDataIn <= encDataOut;
-   U_SspDecoder10b12b_1 : entity work.SspDecoder10b12b
+   U_SspDecoder10b12b_1 : entity surf.SspDecoder10b12b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -96,7 +97,7 @@ begin
          dispError => decDispError);    -- [out]
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1 ns,

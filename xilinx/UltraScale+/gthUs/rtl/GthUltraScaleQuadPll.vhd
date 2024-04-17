@@ -1,23 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : GthUltraScaleQuadPll.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Ultrascale GTH QPLL primitive
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC MGT Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC MGT Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC MGT Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -293,9 +294,9 @@ begin
          QPLLRSVD3         => (others => '0'),
          QPLLRSVD4         => (others => '0'),
          RCALENB           => '1');
-         
+
    GEN_DRP : if (EN_DRP_G) generate
-      U_AxiLiteToDrp : entity work.AxiLiteToDrp
+      U_AxiLiteToDrp : entity surf.AxiLiteToDrp
          generic map (
             TPD_G            => TPD_G,
             COMMON_CLK_G     => true,
@@ -321,5 +322,5 @@ begin
             drpDi           => drpDi,
             drpDo           => drpDo);
    end generate GEN_DRP;
-   
+
 end architecture mapping;

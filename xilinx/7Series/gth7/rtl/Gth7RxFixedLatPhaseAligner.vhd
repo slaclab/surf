@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Gth7RxFixedLatPhaseAligner.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -12,14 +11,14 @@
 -- so that a new CDR lock can be obtained. The GTX in PMA Slide Mode shifts
 -- the phase of the output clock only every other slide. This module's
 -- purpose is to obtain an output clock that exactly matches the phase of the
--- commas. 
+-- commas.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -27,10 +26,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Gth7RxFixedLatPhaseAligner is
-   
+
    generic (
       TPD_G       : time            := 1 ns;
       WORD_SIZE_G : integer         := 20;
@@ -64,7 +65,7 @@ architecture rtl of Gth7RxFixedLatPhaseAligner is
       rxReset              : sl;
       rxSlide              : sl;        -- Output
       rxPhaseAlignmentDone : sl;        --Output
-      
+
    end record RegType;
 
    constant REG_RESET_C : RegType :=
@@ -83,15 +84,15 @@ architecture rtl of Gth7RxFixedLatPhaseAligner is
 
    attribute dont_touch      : string;
    attribute dont_touch of r : signal is "TRUE";
-   
+
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       RstSync_1 : label is "TRUE";
-   
+
 begin
 
    -- Must use async resets since rxUsrClk can drop out
-   RstSync_1 : entity work.RstSync
+   RstSync_1 : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -144,7 +145,7 @@ begin
          when RESET_S =>
             -- Async reset will eventually get everything back to SEARCH_S state
             v.rxReset := '1';
-            
+
          when SLIDE_S =>
             v.rxSlide := '1';
             v.state   := SLIDE_WAIT_S;
@@ -164,7 +165,7 @@ begin
          when ALIGNED_S =>
             v.rxPhaseAlignmentDone := '1';
             -- Gth7RxRst module will reset this module back to SEARCH_S if alignment is lost
-            
+
       end case;
 
       rin <= v;
@@ -184,5 +185,5 @@ begin
          r <= REG_RESET_C after TPD_G;
       end if;
    end process;
-   
+
 end architecture rtl;

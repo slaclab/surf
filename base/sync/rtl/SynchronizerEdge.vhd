@@ -1,22 +1,22 @@
 -------------------------------------------------------------------------------
--- File       : SynchronizerEdge.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A simple multi Flip FLop synchronization module.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity SynchronizerEdge is
    generic (
@@ -24,7 +24,7 @@ entity SynchronizerEdge is
       RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       OUT_POLARITY_G : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
       RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
-      BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration      
+      BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration
       STAGES_G       : positive := 3;
       INIT_G         : slv      := "0");
    port (
@@ -47,19 +47,21 @@ architecture rtl of SynchronizerEdge is
       fallingEdge : sl;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      '0',
-      (not OUT_POLARITY_G),
-      (not OUT_POLARITY_G),
-      (not OUT_POLARITY_G));
-   signal r        : RegType := REG_INIT_C;
-   signal rin      : RegType;
+      syncDataDly => '0',
+      dataOut     => (not OUT_POLARITY_G),
+      risingEdge  => (not OUT_POLARITY_G),
+      fallingEdge => (not OUT_POLARITY_G));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    signal syncData : sl;
-   
+
 begin
 
    assert (STAGES_G >= 3) report "STAGES_G must be >= 3" severity failure;
 
-   Synchronizer_Inst : entity work.Synchronizer
+   Synchronizer_Inst : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -67,12 +69,12 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          STAGES_G       => (STAGES_G-1),
          BYPASS_SYNC_G  => BYPASS_SYNC_G,
-         INIT_G         => INIT_C(STAGES_G-2 downto 0))      
+         INIT_G         => INIT_C(STAGES_G-2 downto 0))
       port map (
          clk     => clk,
          rst     => rst,
          dataIn  => dataIn,
-         dataOut => syncData); 
+         dataOut => syncData);
 
    comb : process (r, rst, syncData) is
       variable v : RegType;
@@ -117,7 +119,7 @@ begin
       dataOut     <= r.dataOut;
       risingEdge  <= r.risingEdge;
       fallingEdge <= r.fallingEdge;
-      
+
    end process comb;
 
    seq : process (clk, rst, syncData) is
@@ -131,5 +133,5 @@ begin
          r.syncDataDly <= syncData   after TPD_G;  -- prevent accidental edge detection
       end if;
    end process seq;
-   
+
 end architecture rtl;

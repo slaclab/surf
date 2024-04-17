@@ -1,18 +1,17 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bTx.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Top Level Transmit interface module for the Pretty Good Protocol core. 
+-- Top Level Transmit interface module for the Pretty Good Protocol core.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,12 +19,14 @@ LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.Pgp2bPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
 
-entity Pgp2bTx is 
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Pgp2bPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+
+entity Pgp2bTx is
    generic (
       TPD_G             : time                 := 1 ns;
       TX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-2
@@ -33,7 +34,7 @@ entity Pgp2bTx is
       PAYLOAD_CNT_TOP_G : integer              := 7; -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4
    );
-   port ( 
+   port (
 
       -- System clock, reset & control
       pgpTxClkEn        : in  sl := '1';-- Master clock enable
@@ -53,7 +54,7 @@ entity Pgp2bTx is
 
       -- Phy interface
       phyTxLanesOut     : out Pgp2bTxPhyLaneOutArray(0 to TX_LANE_CNT_G-1);
-      phyTxReady        : in  sl         
+      phyTxReady        : in  sl
    );
 
 end Pgp2bTx;
@@ -100,17 +101,17 @@ architecture Pgp2bTx of Pgp2bTx is
    signal intTxSlaves      : AxiStreamSlaveArray(3 downto 0);
 
    attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of 
+   attribute KEEP_HIERARCHY of
       U_Pgp2bTxPhy,
       U_Pgp2bTxSched,
       U_Pgp2bTxCell,
       Tx_CRC : label is "TRUE";
-   
-begin 
+
+begin
 
    -- Sync flow control & buffer status
    U_VcFlowGen: for i in 0 to 3 generate
-      U_Sync: entity work.SynchronizerVector
+      U_Sync: entity surf.SynchronizerVector
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => '1',
@@ -132,7 +133,7 @@ begin
    end generate;
 
 
-   U_LinkReady: entity work.Synchronizer
+   U_LinkReady: entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -179,11 +180,11 @@ begin
    end process;
 
    -- Physical Interface
-   U_Pgp2bTxPhy: entity work.Pgp2bTxPhy 
+   U_Pgp2bTxPhy: entity surf.Pgp2bTxPhy
       generic map (
          TPD_G             => TPD_G,
          TX_LANE_CNT_G     => TX_LANE_CNT_G
-      ) port map ( 
+      ) port map (
          pgpTxClkEn        => pgpTxClkEn,
          pgpTxClk          => pgpTxClk,
          pgpTxClkRst       => pgpTxClkRst,
@@ -201,16 +202,16 @@ begin
          phyTxData         => intPhyTxData,
          phyTxDataK        => intPhyTxDataK,
          phyTxReady        => phyTxReady
-      ); 
+      );
 
 
    -- Scheduler
-   U_Pgp2bTxSched: entity work.Pgp2bTxSched 
+   U_Pgp2bTxSched: entity surf.Pgp2bTxSched
       generic map (
          TPD_G             => TPD_G,
          VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
          NUM_VC_EN_G       => NUM_VC_EN_G
-      ) port map ( 
+      ) port map (
          pgpTxClkEn        => pgpTxClkEn,
          pgpTxClk          => pgpTxClk,
          pgpTxClkRst       => pgpTxClkRst,
@@ -235,11 +236,12 @@ begin
 
 
    -- Cell Transmitter
-   U_Pgp2bTxCell: entity work.Pgp2bTxCell 
+   U_Pgp2bTxCell: entity surf.Pgp2bTxCell
       generic map (
          TPD_G             => TPD_G,
-         TX_LANE_CNT_G     => TX_LANE_CNT_G
-      ) port map ( 
+         TX_LANE_CNT_G     => TX_LANE_CNT_G,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G
+      ) port map (
          pgpTxClkEn        => pgpTxClkEn,
          pgpTxClk          => pgpTxClk,
          pgpTxClkRst       => pgpTxClkRst,
@@ -304,7 +306,7 @@ begin
    U_Vc_Gen: for i in 0 to 3 generate
 
       -- Add pipeline stages to ensure ready stays asserted
-      U_InputPipe: entity work.AxiStreamPipeline 
+      U_InputPipe: entity surf.AxiStreamPipeline
          generic map (
             TPD_G         => TPD_G,
             PIPE_STAGES_G => 0
@@ -341,7 +343,7 @@ begin
       crcTxInAdjust(7 downto 0)  <= crcTxIn(31 downto 24);
    end generate CRC_TX_2xLANE;
 
-   Tx_CRC : entity work.CRC32Rtl
+   Tx_CRC : entity surf.CRC32Rtl
       generic map(
          CRC_INIT => x"FFFFFFFF")
       port map(

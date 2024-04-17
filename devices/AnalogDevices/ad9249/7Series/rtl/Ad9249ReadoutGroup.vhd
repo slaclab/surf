@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : Ad9249ReadoutGroup.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
@@ -8,11 +7,11 @@
 -- Designed specifically for Xilinx 7 series FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,10 +23,12 @@ use ieee.std_logic_unsigned.all;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.Ad9249Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.Ad9249Pkg.all;
 
 entity Ad9249ReadoutGroup is
    generic (
@@ -77,6 +78,8 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug1  : slv16Array(NUM_CHANNELS_G-1 downto 0);
       lockedCountRst : sl;
       invert         : sl;
+      curDelayFrame  : slv(4 downto 0);
+      curDelayData   : slv5Array(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -89,7 +92,9 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
-      invert         => '0'
+      invert         => '0',
+      curDelayFrame  => (others => '0'),
+      curDelayData   => (others => (others => '0'))
    );
 
    signal lockedSync      : sl;
@@ -143,7 +148,7 @@ architecture rtl of Ad9249ReadoutGroup is
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
-   
+
    signal invertSync    : sl;
 
 begin
@@ -151,7 +156,7 @@ begin
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------
 
-   SynchronizerOneShotCnt_1 : entity work.SynchronizerOneShotCnt
+   SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
@@ -169,7 +174,7 @@ begin
          rdClk      => axilClk,
          rdRst      => axilRst);
 
-   Synchronizer_1 : entity work.Synchronizer
+   Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -179,7 +184,7 @@ begin
          dataIn  => adcR.locked,
          dataOut => lockedSync);
 
-   SynchronizerVec_1 : entity work.SynchronizerVector
+   SynchronizerVec_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2,
@@ -189,8 +194,8 @@ begin
          rst     => axilRst,
          dataIn  => adcFrame,
          dataOut => adcFrameSync);
-   
-   Synchronizer_2 : entity work.Synchronizer
+
+   Synchronizer_2 : entity surf.Synchronizer
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2)
@@ -211,7 +216,9 @@ begin
 
       v.dataDelaySet        := (others => '0');
       v.frameDelaySet       := '0';
-      v.axilReadSlave.rdata := (others => '0');
+
+      v.curDelayFrame := curDelayFrame;
+      v.curDelayData  := curDelayData;
 
       -- Store last two samples read from ADC
       if (debugDataValid = '1' and axilR.freezeDebug = '0') then
@@ -234,9 +241,9 @@ begin
 
       -- Override read from r.delay and use curDealy output from delay primative instead
       for i in 0 to NUM_CHANNELS_G-1 loop
-         axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, curDelayData(i));
+         axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
       end loop;
-      axiSlaveRegisterR(axilEp, X"20", 0, curDelayFrame);
+      axiSlaveRegisterR(axilEp, X"20", 0, axilR.curDelayFrame);
 
 
       -- Debug output to see how many times the shift has needed a relock
@@ -244,7 +251,7 @@ begin
       axiSlaveRegisterR(axilEp, X"30", 16, lockedSync);
       axiSlaveRegisterR(axilEp, X"34", 0, adcFrameSync);
       axiSlaveRegister(axilEp, X"38", 0, v.lockedCountRst);
-      
+
       axiSlaveRegister(axilEp, X"40", 0, v.invert);
 
       -- Debug registers. Output the last 2 words received
@@ -309,7 +316,7 @@ begin
          CLR => '0');
 
    -- Regional clock reset
-   ADC_BITCLK_RST_SYNC : entity work.RstSync
+   ADC_BITCLK_RST_SYNC : entity surf.RstSync
       generic map (
          TPD_G           => TPD_G,
          RELEASE_DELAY_G => 5)
@@ -332,7 +339,7 @@ begin
          IB => adcSerial.fClkN,
          O  => adcFramePad);
 
-   U_FRAME_DESERIALIZER : entity work.Ad9249Deserializer
+   U_FRAME_DESERIALIZER : entity surf.Ad9249Deserializer
       generic map (
          TPD_G             => TPD_G,
          IODELAY_GROUP_G   => IODELAY_GROUP_G,
@@ -367,7 +374,7 @@ begin
       -- Optionally invert the pad input
       adcDataPad(i) <= adcDataPadOut(i) when ADC_INVERT_CH_G(i) = '0' else not adcDataPadOut(i);
 
-      U_DATA_DESERIALIZER : entity work.Ad9249Deserializer
+      U_DATA_DESERIALIZER : entity surf.Ad9249Deserializer
          generic map (
             TPD_G             => TPD_G,
             IODELAY_GROUP_G   => IODELAY_GROUP_G,
@@ -420,7 +427,7 @@ begin
          if (adcR.locked = '1' and adcFrame = "11111110000000") then
             -- Locked, output adc data
             if invertSync = '1' then
-               v.fifoWrData(i) := "00" & (x"3FFF" - adcData(i));
+               v.fifoWrData(i) := "00" & ("11111111111111" - adcData(i));
             else
                v.fifoWrData(i) := "00" & adcData(i);
             end if;
@@ -456,13 +463,13 @@ begin
    end generate;
 
    -- Single fifo to synchronize adc data to the Stream clock
-   U_DataFifo : entity work.SynchronizerFifo
+   U_DataFifo : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G => 4,
-         INIT_G       => "0")
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => NUM_CHANNELS_G*16,
+         ADDR_WIDTH_G  => 4,
+         INIT_G        => "0")
       port map (
          rst    => adcBitRst,
          wr_clk => adcBitClkR,
@@ -473,13 +480,13 @@ begin
          valid  => fifoDataValid,
          dout   => fifoDataOut);
 
-   U_DataFifoDebug : entity work.SynchronizerFifo
+   U_DataFifoDebug : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G => 4,
-         INIT_G       => "0")
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => NUM_CHANNELS_G*16,
+         ADDR_WIDTH_G  => 4,
+         INIT_G        => "0")
       port map (
          rst    => adcBitRst,
          wr_clk => adcBitClkR,

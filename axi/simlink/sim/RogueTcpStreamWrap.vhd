@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : RogueTcpStreamWrap.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Rogue Stream Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -17,16 +16,20 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity RogueTcpStreamWrap is
    generic (
       TPD_G         : time                        := 1 ns;
       PORT_NUM_G    : natural range 1024 to 49151 := 9000;
       SSI_EN_G      : boolean                     := true;
-      CHAN_COUNT_G  : positive range 1 to 256     := 1;
-      AXIS_CONFIG_G : AxiStreamConfigType         := AXI_STREAM_CONFIG_INIT_C);
+      CHAN_COUNT_G  : natural range 0 to 256      := 1;
+      CHAN_MASK_G   : slv(7 downto 0)             := "00000000";  -- Overrides CHAN_COUNT_G if non-zero
+      TDEST_MASK_G  : slv(7 downto 0)             := x"00";  -- Sets output TDEST when CHAN_COUNT_G=1
+      AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and Reset
       axisClk     : in  sl;
@@ -52,44 +55,88 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   -- Local Signals
-   signal dmMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal dmSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-   signal ibMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal ibSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-   signal obMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal obSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
-   signal mxMasters : AxiStreamMasterArray(CHAN_COUNT_G-1 downto 0);
-   signal mxSlaves  : AxiStreamSlaveArray(CHAN_COUNT_G-1 downto 0);
+   -- Use CHAN_MASK_G to determine CHAN_COUNT_C if non-zero, else use CHAN_COUNT_G
+   constant CHAN_COUNT_C : integer := ite(CHAN_MASK_G = X"00", CHAN_COUNT_G,
+                                          2**conv_integer(onesCount(CHAN_MASK_G)));
 
+
+   -- Generate a correct channel mask if using CHAN_COUNT_G
+   constant CHAN_MASK_C : slv(7 downto 0) := ite(CHAN_MASK_G /= X"00", CHAN_MASK_G,
+                                                 toSlv(2**log2(CHAN_COUNT_G)-1, 8));
+
+   function channelMap return Slv8Array
+   is
+      variable vec  : slv(7 downto 0);
+      variable chan : integer := 0;
+      variable ret  : Slv8Array(0 to CHAN_COUNT_C-1);
+   begin
+      chan := 0;
+      if (CHAN_COUNT_C = 1) then
+         ret(0) := (others => '0');
+         return ret;
+      end if;
+
+      for i in 0 to 255 loop
+         vec := toSlv(i, 8);
+         if (((CHAN_MASK_C nor vec) or CHAN_MASK_C) = X"FF") then
+            ret(chan) := vec;
+            chan      := chan + 1;
+         end if;
+      end loop;
+      return ret;
+   end function channelMap;
+
+   constant CHAN_MAP_C : Slv8Array(0 to CHAN_COUNT_C-1) := channelMap;
+
+
+   -- Local Signals
+   signal dmMasters : AxiStreamMasterArray(CHAN_COUNT_C-1 downto 0);
+   signal dmSlaves  : AxiStreamSlaveArray(CHAN_COUNT_C-1 downto 0);
+   signal ibMasters : AxiStreamMasterArray(CHAN_COUNT_C-1 downto 0);
+   signal ibSlaves  : AxiStreamSlaveArray(CHAN_COUNT_C-1 downto 0);
+   signal obMasters : AxiStreamMasterArray(CHAN_COUNT_C-1 downto 0);
+   signal obSlaves  : AxiStreamSlaveArray(CHAN_COUNT_C-1 downto 0);
+   signal mxMasters : AxiStreamMasterArray(CHAN_COUNT_C-1 downto 0);
+   signal mxSlaves  : AxiStreamSlaveArray(CHAN_COUNT_C-1 downto 0);
+
+   signal portMap : Slv16Array(CHAN_COUNT_C-1 downto 0);
 begin
 
-   assert (PORT_NUM_G + 2*(CHAN_COUNT_G-1) <= 65535)
-      report "PORT_NUM_G + 2*(CHAN_COUNT_G-1) must less than or equal to 65535" severity failure;
+   PORT_MAP : for i in portMap'range generate
+      portMap(i) <= toSlv(PORT_NUM_G + (conv_integer(CHAN_MAP_C(i))*2), 16);
+   end generate PORT_MAP;
 
    ----------------
    -- Inbound DEMUX
    ----------------
-   U_DeMux : entity work.AxiStreamDeMux
-      generic map (
-         TPD_G         => 1 ns,
-         NUM_MASTERS_G => CHAN_COUNT_G)
-      port map (
-         -- Clock and reset
-         axisClk      => axisClk,
-         axisRst      => axisRst,
-         sAxisMaster  => sAxisMaster,
-         sAxisSlave   => sAxisSlave,
-         mAxisMasters => dmMasters,
-         mAxisSlaves  => dmSlaves);
+   GEN_DEMUX : if (CHAN_COUNT_C /= 1) generate
+      U_DeMux : entity surf.AxiStreamDeMux
+         generic map (
+            TPD_G          => TPD_G,
+            NUM_MASTERS_G  => CHAN_COUNT_C,
+            MODE_G         => "ROUTED",
+            TDEST_ROUTES_G => CHAN_MAP_C)
+         port map (
+            -- Clock and reset
+            axisClk      => axisClk,
+            axisRst      => axisRst,
+            sAxisMaster  => sAxisMaster,
+            sAxisSlave   => sAxisSlave,
+            mAxisMasters => dmMasters,
+            mAxisSlaves  => dmSlaves);
+   end generate;
+
+   BYP_DEMUX : if (CHAN_COUNT_C = 1) generate
+      dmMasters(0) <= sAxisMaster;
+      sAxisSlave   <= dmSlaves(0);
+   end generate;
 
    -- Channels
-   U_ChanGen : for i in 0 to CHAN_COUNT_G-1 generate
-
+   U_ChanGen : for i in 0 to CHAN_COUNT_C-1 generate
       ------------------
-      -- Inbound Resizer 
+      -- Inbound Resizer
       ------------------
-      U_Ib_Resize : entity work.AxiStreamResize
+      U_Ib_Resize : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -110,11 +157,11 @@ begin
       ------------------------------------
       -- Sim Core
       ------------------------------------
-      U_RogueTcpStream : entity work.RogueTcpStream
+      U_RogueTcpStream : entity surf.RogueTcpStream
          port map(
             clock      => axisClk,
             reset      => axisRst,
-            portNum    => toSlv(PORT_NUM_G + i*2, 16),
+            portNum    => portMap(i),  --toSlv(PORT_NUM_G, 16), --toSlv(PORT_NUM_G + (CHAN_MAP_C(i)*2), 16),
             ssi        => toSl(SSI_EN_G),
             obValid    => obMasters(i).tValid,
             obReady    => obSlaves(i).tReady,
@@ -133,18 +180,18 @@ begin
             ibKeep     => ibMasters(i).tKeep(7 downto 0),
             ibLast     => ibMasters(i).tLast);
 
-      obMasters(i).tStrb <= (others => '1');
-      obMasters(i).tDest <= (others => '0');
-      obMasters(i).tId   <= (others => '0');
+      obMasters(i).tStrb <= (others                                          => '1');
+      obMasters(i).tDest <= TDEST_MASK_G when(CHAN_COUNT_C = 1) else (others => '0');  --toSlv(CHAN_MAP_C(i), 8);
+      obMasters(i).tId   <= (others                                          => '0');
 
       obMasters(i).tKeep(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 8)  <= (others => '0');
       obMasters(i).tData(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
       obMasters(i).tUser(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 64) <= (others => '0');
 
       -------------------
-      -- Outbound Resizer 
+      -- Outbound Resizer
       -------------------
-      U_Ob_Resize : entity work.AxiStreamResize
+      U_Ob_Resize : entity surf.AxiStreamResize
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
@@ -167,16 +214,25 @@ begin
    ---------------
    -- Outbound MUX
    ---------------
-   U_Mux : entity work.AxiStreamMux
-      generic map (
-         TPD_G        => 1 ns,
-         NUM_SLAVES_G => CHAN_COUNT_G)
-      port map (
-         axisClk      => axisClk,
-         axisRst      => axisRst,
-         sAxisMasters => mxMasters,
-         sAxisSlaves  => mxSlaves,
-         mAxisMaster  => mAxisMaster,
-         mAxisSlave   => mAxisSlave);
+   GEN_MUX : if (CHAN_COUNT_C /= 1) generate
+      U_Mux : entity surf.AxiStreamMux
+         generic map (
+            TPD_G          => TPD_G,
+            NUM_SLAVES_G   => CHAN_COUNT_C,
+            MODE_G         => "ROUTED",
+            TDEST_ROUTES_G => CHAN_MAP_C)
+         port map (
+            axisClk      => axisClk,
+            axisRst      => axisRst,
+            sAxisMasters => mxMasters,
+            sAxisSlaves  => mxSlaves,
+            mAxisMaster  => mAxisMaster,
+            mAxisSlave   => mAxisSlave);
+   end generate;
+
+   BYP_MUX : if (CHAN_COUNT_C = 1) generate
+      mAxisMaster <= mxMasters(0);
+      mxSlaves(0) <= mAxisSlave;
+   end generate;
 
 end RogueTcpStreamWrap;

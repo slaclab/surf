@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : ClinkUart.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- CameraLink UART RX/TX
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,15 +17,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity ClinkUart is
    generic (
-      TPD_G              : time                := 1 ns;
-      UART_READY_EN_G    : boolean             := true;
-      UART_AXIS_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      TPD_G              : time    := 1 ns;
+      UART_READY_EN_G    : boolean := true;
+      UART_AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and reset, 200Mhz
       intClk      : in  sl;
@@ -54,13 +55,13 @@ architecture rtl of ClinkUart is
    constant INT_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 4, tDestBits => 0);
 
    type RegType is record
-      count : integer;
-      clkEn : sl;
+      count     : integer;
+      baudClkEn : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      count => 0,
-      clkEn => '0');
+      count     => 0,
+      baudClkEn => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : Regtype;
@@ -82,15 +83,25 @@ begin
    begin
       v := r;
 
-      -- 16x (add min of 1 to ensure data moves when baud=0)
-      v.count := r.count + conv_integer(baud & x"1");
-      v.clkEn := '0';
+      -- Reset strobe
+      v.baudClkEn := '0';
 
-      if r.count >= INT_FREQ_C then
-         v.count := 0;
-         v.clkEn := '1';
+      -- Check for 0 baud rate condition
+      if (baud = 0) then
+         -- Keep pipeline moving
+         v.count := r.count + 1;
+      else
+         -- MULTIPLIER_G = 16
+         v.count := r.count + conv_integer(baud & b"0000");
       end if;
 
+      -- Check for max count
+      if r.count >= INT_FREQ_C then
+         v.count     := 0;
+         v.baudClkEn := '1';
+      end if;
+
+      -- Reset
       if (intRst = '1') then
          v := REG_INIT_C;
       end if;
@@ -108,7 +119,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Transmit FIFO
    -------------------------------------------------------------------------------------------------
-   U_TxFifo : entity work.AxiStreamFifoV2
+   U_TxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,
@@ -127,7 +138,7 @@ begin
          mAxisMaster => txMasters(0),
          mAxisSlave  => txSlaves(0));
 
-   U_TxThrottle : entity work.ClinkUartThrottle
+   U_TxThrottle : entity surf.ClinkUartThrottle
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -145,32 +156,32 @@ begin
    -------------------------------------------------------------------------------------------------
    -- UART transmitter
    -------------------------------------------------------------------------------------------------
-   U_UartTx_1 : entity work.UartTx
+   U_UartTx_1 : entity surf.UartTx
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => intClk,                          -- [in]
-         rst     => intRst,                          -- [in]
-         baud16x => r.clkEn,                         -- [in]
-         wrData  => txMasters(1).tData(7 downto 0),  -- [in]
-         wrValid => txMasters(1).tValid,             -- [in]
-         wrReady => txSlaves(1).tReady,              -- [out]
-         tx      => txOut);                          -- [out]
+         clk       => intClk,                          -- [in]
+         rst       => intRst,                          -- [in]
+         baudClkEn => r.baudClkEn,                     -- [in]
+         wrData    => txMasters(1).tData(7 downto 0),  -- [in]
+         wrValid   => txMasters(1).tValid,             -- [in]
+         wrReady   => txSlaves(1).tReady,              -- [out]
+         tx        => txOut);                          -- [out]
 
    -------------------------------------------------------------------------------------------------
    -- UART Receiver
    -------------------------------------------------------------------------------------------------
-   U_UartRx_1 : entity work.UartRx
+   U_UartRx_1 : entity surf.UartRx
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => intClk,             -- [in]
-         rst     => intRst,             -- [in]
-         baud16x => r.clkEn,            -- [in]
-         rdData  => rdData,             -- [out]
-         rdValid => rdValid,            -- [out]
-         rdReady => '1',                -- [in]
-         rx      => rxIn);              -- [in]
+         clk       => intClk,           -- [in]
+         rst       => intRst,           -- [in]
+         baudClkEn => r.baudClkEn,      -- [in]
+         rdData    => rdData,           -- [out]
+         rdValid   => rdValid,          -- [out]
+         rdReady   => '1',              -- [in]
+         rx        => rxIn);            -- [in]
 
    process (rdData, rdValid) is
       variable mst : AxiStreamMasterType;
@@ -192,7 +203,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Receive FIFO
    -------------------------------------------------------------------------------------------------
-   U_RxFifo : entity work.AxiStreamFifoV2
+   U_RxFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          GEN_SYNC_FIFO_G     => false,

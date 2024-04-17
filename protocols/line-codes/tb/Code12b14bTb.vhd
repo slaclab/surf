@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Encoder12b14bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "Encoder12b14b"
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code12b14bPkg.all;
+use surf.TextUtilPkg.all;
 
 
 ----------------------------------------------------------------------------------------------------
@@ -81,7 +82,7 @@ begin
    encDataInString <= toString(encDataIn, encDataKIn);
 
    -- component instantiation
-   U_Encoder12b14b : entity work.Encoder12b14b
+   U_Encoder12b14b : entity surf.Encoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -99,7 +100,7 @@ begin
 --          invalidK => invalidK);         -- [out]
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4 ns,
          CLK_DELAY_G       => 1 ns,
@@ -246,7 +247,7 @@ begin
 
          assert (decDispError = '0') report "Disparity Error" severity failure;
          assert (decCodeError = '0') report "Code Error" severity failure;
-         assert (decDataOut = dlyDataOut and decDataKOut = dlyDataKOut) report "Encode/Decode mismatch" severity error;         
+         assert (decDataOut = dlyDataOut and decDataKOut = dlyDataKOut) report "Encode/Decode mismatch" severity error;
       end if;
 
       run <= runVar;
@@ -258,7 +259,7 @@ begin
    -- Decoder
    -------------------------------------------------------------------------------------------------
    decDataIn <= encDataOut;
-   U_Decoder12b14b_1 : entity work.Decoder12b14b
+   U_Decoder12b14b_1 : entity surf.Decoder12b14b
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -279,7 +280,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Delay encDataIn in parallel to compare against output of decoder
    -------------------------------------------------------------------------------------------------
-   U_SynchronizerVector_1 : entity work.SynchronizerVector
+   U_SynchronizerVector_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

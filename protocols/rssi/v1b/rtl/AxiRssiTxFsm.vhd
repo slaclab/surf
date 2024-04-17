@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : AxiRssiTxFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Transmitter FSM
@@ -24,17 +23,17 @@
 --                   - INIT Initializes seqN to initSeqN. Waits until new connection requested. ConnFSM goin out od Closed state.
 --                   - DISS_CONN allows sending SYN, ACK, or RST segments. Goes to CONN when connection becomes active.
 --                   - CONN allows sending DATA, NULL, ACK, or RST segments.
---                     In Resend procedure the FSM resends all the unacknowledged (DATA, NULL, RST) segments in the buffer window. 
---              
+--                     In Resend procedure the FSM resends all the unacknowledged (DATA, NULL, RST) segments in the buffer window.
+--
 --              Note:Sequence number is incremented with sending SYN, DATA, NULL, and RST segments.
 --              Note:Only the following segments are saved into Tx buffer DATA, NULL, and RST.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -43,18 +42,20 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiPkg.all;
-use work.AxiDmaPkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiDmaPkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiRssiTxFsm is
    generic (
       TPD_G               : time          := 1 ns;
-      AXI_CONFIG_G        : AxiConfigType := RSSI_AXI_CONFIG_C;
+      AXI_CONFIG_G        : AxiConfigType;
       BURST_BYTES_G       : positive      := 1024;
       WINDOW_ADDR_SIZE_G  : positive      := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
       SEGMENT_ADDR_SIZE_G : positive      := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
@@ -78,7 +79,7 @@ entity AxiRssiTxFsm is
       connActive_i      : in  sl;
       -- Closed state in connFSM (initialize seqN)
       closed_i          : in  sl;
-      -- Fault injection corrupts header checksum      
+      -- Fault injection corrupts header checksum
       injectFault_i     : in  sl;
       -- Various segment requests
       sndSyn_i          : in  sl;
@@ -160,7 +161,7 @@ architecture rtl of AxiRssiTxFsm is
       lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       lastAckSeqN    : slv(7 downto 0);
       --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
-      --eackIndex      : integer;      
+      --eackIndex      : integer;
       bufferFull     : sl;
       bufferEmpty    : sl;
       ackErr         : sl;
@@ -207,7 +208,7 @@ architecture rtl of AxiRssiTxFsm is
       -- Fault injection
       injectFaultD1  : sl;
       injectFaultReg : sl;
-      -- Transport Interface  
+      -- Transport Interface
       rdDmaSlave     : AxiStreamSlaveType;
       tspMaster      : AxiStreamMasterType;
       -- State Machine
@@ -218,7 +219,7 @@ architecture rtl of AxiRssiTxFsm is
       ----------------------------------------------------
       -- Buffer window handling and acknowledgment control
       ----------------------------------------------------
-      -- Window control   
+      -- Window control
       firstUnackAddr => (others => '0'),
       lastSentAddr   => (others => '0'),
       nextSentAddr   => (others => '0'),
@@ -271,7 +272,7 @@ architecture rtl of AxiRssiTxFsm is
       -- Fault injection
       injectFaultD1  => '0',
       injectFaultReg => '0',
-      -- Transport Interface  
+      -- Transport Interface
       rdDmaSlave     => AXI_STREAM_SLAVE_INIT_C,
       tspMaster      => AXI_STREAM_MASTER_INIT_C,
       -- State Machine
@@ -290,11 +291,11 @@ architecture rtl of AxiRssiTxFsm is
    signal rdDmaSlave  : AxiStreamSlaveType;
 
    -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "TRUE";      
+   -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
-   U_DmaWrite : entity work.AxiStreamDmaWrite
+   U_DmaWrite : entity surf.AxiStreamDmaWrite
       generic map (
          TPD_G             => TPD_G,
          AXI_READY_EN_G    => true,
@@ -315,14 +316,14 @@ begin
          -- DMA Control Interface
          dmaReq         => r.wrReq,
          dmaAck         => wrAck,
-         -- Streaming Interface 
+         -- Streaming Interface
          axisMaster     => wrDmaMaster,
          axisSlave      => wrDmaSlave,
          -- AXI Interface
          axiWriteMaster => mAxiWriteMaster_o,
          axiWriteSlave  => mAxiWriteSlave_i);
 
-   U_DmaRead : entity work.AxiStreamDmaRead
+   U_DmaRead : entity surf.AxiStreamDmaRead
       generic map (
          TPD_G           => TPD_G,
          AXIS_READY_EN_G => true,
@@ -338,10 +339,10 @@ begin
          -- Clock/Reset
          axiClk        => clk_i,
          axiRst        => rst_i,
-         -- DMA Control Interface 
+         -- DMA Control Interface
          dmaReq        => r.rdReq,
          dmaAck        => rdAck,
-         -- Streaming Interface 
+         -- Streaming Interface
          axisMaster    => rdDmaMaster,
          axisSlave     => rdDmaSlave,
          axisCtrl      => AXI_STREAM_CTRL_UNUSED_C,
@@ -350,7 +351,7 @@ begin
          axiReadSlave  => mAxiReadSlave_i);
 
 
-   ----------------------------------------------------------------------------------------------- 
+   -----------------------------------------------------------------------------------------------
    comb : process (ackN_i, ack_i, appMaster_i, axiOffset_i, bufferSize_i,
                    closed_i, connActive_i, initSeqN_i, injectFault_i, r, rdAck,
                    rdDmaMaster, rdHeaderData_i, rst_i, sndAck_i, sndNull_i,
@@ -377,7 +378,7 @@ begin
       -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- Buffer window handling
-      ------------------------------------------------------------   
+      ------------------------------------------------------------
       -- /////////////////////////////////////////////////////////
 
       ------------------------------------------------------------
@@ -444,7 +445,7 @@ begin
             --v.eackIndex      := 0;
             v.ackErr         := '0';
 
-            -- Next state condition          
+            -- Next state condition
             if (ack_i = '1') then
                v.ackState := ACK_S;
             end if;
@@ -467,7 +468,7 @@ begin
             -- v.eackIndex      := 0;
             v.ackErr := '0';
 
-            -- Next state condition            
+            -- Next state condition
 
             -- If the same ackN received
             if (r.lastAckSeqN = ackN_i) then
@@ -481,10 +482,10 @@ begin
             elsif (r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i) then
                v.lastAckSeqN := ackN_i;  -- Save the last Acked seqN
                --if eack_i = '1' then
-               -- Go back to init when the acked seqN is found            
-               --   v.ackState   := EACK_S;               
+               -- Go back to init when the acked seqN is found
+               --   v.ackState   := EACK_S;
                --else
-               -- Go back to init when the acked seqN is found            
+               -- Go back to init when the acked seqN is found
                v.ackState    := IDLE_S;
             --end if;
             end if;
@@ -492,23 +493,23 @@ begin
             -- when EACK_S =>
 
             -- -- Increment EACK address from firstUnackAddr to nextSentAddr
-            -- if r.eackAddr < (windowSize_i-1) then 
+            -- if r.eackAddr < (windowSize_i-1) then
             -- v.eackAddr  := r.eackAddr+1;
             -- else
             -- v.eackAddr  := (others => '0');
             -- end if;
 
             -- -- For every address check if the sequence number equals value from eackSeqnArr_i array.
-            -- -- If it matches mark the eack field at the address and compare the next value from the table.          
+            -- -- If it matches mark the eack field at the address and compare the next value from the table.
             -- if  r.windowArray(conv_integer(r.eackAddr)).seqN = eackSeqnArr_i(r.eackIndex)  then
             -- v.windowArray(conv_integer(r.eackAddr)).eacked := '1';
-            -- v.eackIndex := r.eackIndex + 1;               
+            -- v.eackIndex := r.eackIndex + 1;
             -- end if;
 
             -- v.firstUnackAddr  := r.firstUnackAddr;
             -- v.ackErr          := '0';
 
-         -- -- Next state condition 
+         -- -- Next state condition
          -- if (r.eackAddr = r.nextSentAddr) then
          -- -- If the acked seqN is not found go to error state
          -- v.ackState   := IDLE_S;
@@ -521,16 +522,16 @@ begin
             --v.eackIndex      := 0;
             v.ackErr         := '1';
 
-            -- Next state condition            
+            -- Next state condition
             v.ackState := IDLE_S;
       ----------------------------------------------------------------------
       end case;
 
-      -- ///////////////////////////////////////////////////////// 
+      -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- Application side FSM
       ------------------------------------------------------------
-      -- /////////////////////////////////////////////////////////      
+      -- /////////////////////////////////////////////////////////
 
       -- Calculate the next DMA write transaction
       rxBufIdx        := conv_integer(r.rxBufferAddr);
@@ -573,7 +574,7 @@ begin
                   v.appBusy       := '1';
                   -- Start the DMA write transaction
                   v.wrReq.request := '1';
-                  -- Next State             
+                  -- Next State
                   v.appState      := DATA_S;
                else
                   -- Blow off the data
@@ -595,11 +596,11 @@ begin
                   -- Next state
                   v.appState := IDLE_S;
                else
-                  -- Next state              
+                  -- Next state
                   v.appState := SEG_RDY_S;
                end if;
             end if;
-         ----------------------------------------------------------------------            
+         ----------------------------------------------------------------------
          when SEG_RDY_S =>
             -- Request data transfer
             v.sndData := '1';
@@ -611,15 +612,15 @@ begin
                else
                   v.rxBufferAddr := (others => '0');
                end if;
-               -- Next state    
+               -- Next state
                v.appState := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;
 
 
-      -- ///////////////////////////////////////////////////////// 
-      ------------------------------------------------------------      
+      -- /////////////////////////////////////////////////////////
+      ------------------------------------------------------------
       -- Initialization of the parameters when the connection is broken
       if (connActive_i = '0') then
          v.firstUnackAddr := REG_INIT_C.firstUnackAddr;
@@ -634,13 +635,13 @@ begin
          v.appState       := REG_INIT_C.appState;
       end if;
       ------------------------------------------------------------
-      -- /////////////////////////////////////////////////////////       
+      -- /////////////////////////////////////////////////////////
 
-      -- ///////////////////////////////////////////////////////// 
+      -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- Arm fault injection on rising edge of injectFault_i
       ------------------------------------------------------------
-      -- /// //////////////////////////////////////////////////////  
+      -- /// //////////////////////////////////////////////////////
       v.injectFaultD1 := injectFault_i;
 
       if (injectFault_i = '1' and r.injectFaultD1 = '0') then
@@ -650,11 +651,11 @@ begin
       end if;
 
 
-      -- ///////////////////////////////////////////////////////// 
+      -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- Transport side FSM
       ------------------------------------------------------------
-      -- /////////////////////////////////////////////////////////  
+      -- /////////////////////////////////////////////////////////
 
       -- Reset strobes
       v.buffWe     := '0';
@@ -674,14 +675,14 @@ begin
 
       -- Update the pipeline
       GetRssiCsum(
-         -- Input 
+         -- Input
          '0',                           -- init
          (others => '0'),               -- header
          r.csumAccum,                   -- accumReg
          -- Results
          v.csumAccum,                   -- accumVar
          v.chksumOk,                    -- chksumOk
-         v.checksum);                   -- checksum       
+         v.checksum);                   -- checksum
 
 
       case r.tspState is
@@ -692,7 +693,7 @@ begin
             -- Register initial sequence number
             v.nextSeqN := initSeqN_i;
             v.seqN     := r.nextSeqN;
-            -- Next state condition   
+            -- Next state condition
             if (closed_i = '0') then
                -- Next state
                v.tspState := DISS_CONN_S;
@@ -713,7 +714,7 @@ begin
             v.dataD        := '0';
             v.resend       := '0';
             v.hdrAmrmed    := '0';
-            -- Check for SYN 
+            -- Check for SYN
             if (sndSyn_i = '1') then
                -- Set the flag
                v.synH     := '1';
@@ -753,7 +754,7 @@ begin
             v.dataD        := '0';
             v.resend       := '0';
             v.hdrAmrmed    := '0';
-            -- Check for RST  
+            -- Check for RST
             if (sndRst_i = '1') then
                -- Set the flags
                v.rstH     := '1';
@@ -764,7 +765,7 @@ begin
                -- Set the flags
                v.ackSndData    := '1';
                v.dataH         := '1';
-               v.buffWe        := '1';  -- Update buffer seqN and Type 
+               v.buffWe        := '1';  -- Update buffer seqN and Type
                -- Start the DMA read transaction
                v.rdReq.request := '1';
                -- Next state
@@ -783,10 +784,10 @@ begin
             elsif (sndNull_i = '1') and (r.bufferFull = '0') and (r.appBusy = '0') then
                -- Set flags
                v.nullH    := '1';
-               v.buffWe   := '1';       -- Update buffer seqN and Type 
+               v.buffWe   := '1';       -- Update buffer seqN and Type
                -- Next state
                v.tspState := NSYN_H_S;
-            -- Check for link down               
+            -- Check for link down
             elsif (connActive_i = '0') then
                -- Next state
                v.tspState := INIT_S;
@@ -808,25 +809,25 @@ begin
                   ssiSetUserSof(RSSI_AXIS_CONFIG_C, v.tspMaster, '1');
                   -- Calculate the checksum
                   GetRssiCsum(
-                     -- Input 
+                     -- Input
                      '1',               -- init
                      rdHeaderData_i,    -- header
                      r.csumAccum,       -- accumReg
                      -- Results
                      v.csumAccum,       -- accumVar
                      v.chksumOk,        -- chksumOk
-                     v.checksum);       -- checksum               
+                     v.checksum);       -- checksum
                elsif (r.txHeaderAddr = 1) or (r.txHeaderAddr = 2) then
                   -- Calculate the checksum
                   GetRssiCsum(
-                     -- Input 
+                     -- Input
                      '0',               -- init
                      rdHeaderData_i,    -- header
                      r.csumAccum,       -- accumReg
                      -- Results
                      v.csumAccum,       -- accumVar
                      v.chksumOk,        -- chksumOk
-                     v.checksum);       -- checksum                   
+                     v.checksum);       -- checksum
                   if (r.txHeaderAddr = 2) then
                      -- Keep counter value
                      v.txHeaderAddr     := r.txHeaderAddr;
@@ -834,7 +835,7 @@ begin
                      v.tspMaster.tValid := '0';
                      -- Reset the flag
                      v.hdrAmrmed        := '0';
-                     -- Next state            
+                     -- Next state
                      v.tspState         := SYN_XSUM_S;
                   end if;
                end if;
@@ -860,7 +861,7 @@ begin
                -- Increment SEQ number at the end of segment transmission
                v.nextSeqN := r.nextSeqN+1;
                v.seqN     := r.nextSeqN+1;
-               -- Next state            
+               -- Next state
                v.tspState := DISS_CONN_S;
             end if;
          ----------------------------------------------------------------------
@@ -873,17 +874,17 @@ begin
                v.tspMaster.tData(63 downto 0) := endianSwap64(rdHeaderData_i);
                -- Calculate the checksum
                GetRssiCsum(
-                  -- Input 
+                  -- Input
                   '1',                  -- init
                   rdHeaderData_i,       -- header
                   r.csumAccum,          -- accumReg
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum   
+                  v.checksum);          -- checksum
                -- Reset the flag
                v.hdrAmrmed := '0';
-               -- Next state            
+               -- Next state
                v.tspState  := NSYN_XSUM_S;
             end if;
          ----------------------------------------------------------------------
@@ -891,7 +892,7 @@ begin
             -- Set the flag
             v.hdrAmrmed := '1';
             -- Check if ready to move data (r.tspMaster.tValid already '0' from previous state)
-            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing            
+            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing
                -- Move the data
                v.tspMaster.tValid := '1';
                -- Set the SOF flag
@@ -914,10 +915,10 @@ begin
                v.buffSent := r.nullH;
                -- Check if link up
                if connActive_i = '0' then
-                  -- Next state   
+                  -- Next state
                   v.tspState := DISS_CONN_S;
                else
-                  -- Next state   
+                  -- Next state
                   v.tspState := CONN_S;
                end if;
             end if;
@@ -931,17 +932,17 @@ begin
                v.tspMaster.tData(63 downto 0) := endianSwap64(rdHeaderData_i);
                -- Calculate the checksum
                GetRssiCsum(
-                  -- Input 
+                  -- Input
                   '1',                  -- init
                   rdHeaderData_i,       -- header
                   r.csumAccum,          -- accumReg
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum   
+                  v.checksum);          -- checksum
                -- Reset the flag
                v.hdrAmrmed := '0';
-               -- Next state            
+               -- Next state
                v.tspState  := DATA_XSUM_S;
             end if;
          ----------------------------------------------------------------------
@@ -949,7 +950,7 @@ begin
             -- Set the flag
             v.hdrAmrmed := '1';
             -- Check if ready to move data (r.tspMaster.tValid already '0' from previous state)
-            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing   
+            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing
                -- Move the data
                v.tspMaster.tValid := '1';
                -- Set the SOF flag
@@ -971,8 +972,8 @@ begin
                v.injectFaultReg := '0';
                -- Update the flags
                v.dataH          := '0';
-               v.dataD          := '1';  -- Send data               
-               -- Next state   
+               v.dataD          := '1';  -- Send data
+               -- Next state
                v.tspState       := DATA_S;
             end if;
          ----------------------------------------------------------------------
@@ -1005,14 +1006,14 @@ begin
          ----------------------------------------------------------------------
          -- Resend all packets from the buffer
          -- Packets between r.firstUnackAddr and r.lastSentAddr
-         ----------------------------------------------------------------------            
+         ----------------------------------------------------------------------
          when RESEND_INIT_S =>
             -- Check if first segment iteration of resending
             if (r.resend = '0') then
-               -- Start from first unack address 
+               -- Start from first unack address
                v.txBufferAddr := r.firstUnackAddr;
                -- Update the sequence indexes
-               v.nextSeqN     := r.nextSeqN;  -- Never increment seqN while resending 
+               v.nextSeqN     := r.nextSeqN;  -- Never increment seqN while resending
                v.seqN         := r.windowArray(conv_integer(r.firstUnackAddr)).seqN;
             end if;
             -- Update the RSSI flags
@@ -1037,17 +1038,17 @@ begin
                v.tspMaster.tData(63 downto 0) := endianSwap64(rdHeaderData_i);
                -- Calculate the checksum
                GetRssiCsum(
-                  -- Input 
+                  -- Input
                   '1',                  -- init
                   rdHeaderData_i,       -- header
                   r.csumAccum,          -- accumReg
                   -- Results
                   v.csumAccum,          -- accumVar
                   v.chksumOk,           -- chksumOk
-                  v.checksum);          -- checksum   
+                  v.checksum);          -- checksum
                -- Reset the flag
                v.hdrAmrmed := '0';
-               -- Next state            
+               -- Next state
                v.tspState  := RESEND_XSUM_S;
             end if;
          ----------------------------------------------------------------------
@@ -1055,7 +1056,7 @@ begin
             -- Set the flag
             v.hdrAmrmed := '1';
             -- Check if ready to move data (r.tspMaster.tValid already '0' from previous state)
-            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing   
+            if (r.hdrAmrmed = '1') then  -- Using registered value to help relax timing
                -- Move the data
                v.tspMaster.tValid := '1';
                -- Set the SOF flag
@@ -1080,7 +1081,7 @@ begin
                   v.tspState      := DATA_S;
                end if;
             end if;
-         ----------------------------------------------------------------------            
+         ----------------------------------------------------------------------
          when RESEND_PP_S =>
             -- Increment buffer address (circular)
             if r.txBufferAddr < (windowSize_i-1) then
@@ -1088,7 +1089,7 @@ begin
             else
                v.txBufferAddr := (others => '0');
             end if;
-            -- Go back to CONN_S when the last sent address reached 
+            -- Go back to CONN_S when the last sent address reached
             if (r.txBufferAddr = r.lastSentAddr) then
                -- Next state
                v.tspState := CONN_S;
@@ -1103,7 +1104,7 @@ begin
      -- if r.simErrorDet = '1' then
         -- assert false
            -- report "Simulation Failed!" severity failure;
-     -- end if;       
+     -- end if;
 
       ----------------------------------------------------------------------
       --                            Outputs                               --

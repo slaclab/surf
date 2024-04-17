@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -37,7 +37,7 @@ AxiMemTester: &AxiMemTester
       sizeBits: 1
       description: Failed Memory Test
     WriteTimer:
-    ######################################################### 
+    #########################################################
       at:
         offset: 0x108
       class: IntField
@@ -47,7 +47,7 @@ AxiMemTester: &AxiMemTester
       sizeBits: 32
       description: Write Timer
     ReadTimer:
-    #########################################################   
+    #########################################################
       at:
         offset: 0x10C
       class: IntField
@@ -57,7 +57,7 @@ AxiMemTester: &AxiMemTester
       sizeBits: 32
       description: Read Timer
     StartAddress:
-    #########################################################   
+    #########################################################
       at:
         offset: 0x110
       class: IntField
@@ -67,7 +67,7 @@ AxiMemTester: &AxiMemTester
       sizeBits: 64
       description: Start Address
     StopAddress:
-    #########################################################    
+    #########################################################
       at:
         offset: 0x118
       class: IntField
@@ -77,7 +77,7 @@ AxiMemTester: &AxiMemTester
       sizeBits: 64
       description: Stop Address
     ADDR_WIDTH_C:
-    #########################################################   
+    #########################################################
       at:
         offset: 0x120
       class: IntField
@@ -87,7 +87,7 @@ AxiMemTester: &AxiMemTester
       sizeBits: 32
       description: AXI4 Address Bus Width (units of bits)
     DATA_BYTES_C:
-    #########################################################   
+    #########################################################
       at:
         offset: 0x124
       class: IntField
@@ -97,7 +97,7 @@ AxiMemTester: &AxiMemTester
       sizeBits: 32
       description: AXI4 Data Bus Width (units of bits)
     ID_BITS_C:
-    #########################################################  
+    #########################################################
       at:
         offset: 0x128
       class: IntField

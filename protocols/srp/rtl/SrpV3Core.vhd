@@ -1,21 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: SLAC Register Protocol Version 3, AXI-Lite Interface
---
--- Note: This module only supports 32-bit aligned addresses and 32-bit transactions.  
---       For non 32-bit aligned addresses or non 32-bit transactions, use
---       the SrpV3Axi.vhd module with the AxiToAxiLite.vhd bridge
+-- Description: SLAC Register Protocol Version 3, Core FSM Logic
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -24,37 +19,38 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.AxiLitePkg.all;
-use work.SrpV3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.AxiLitePkg.all;
+use surf.SrpV3Pkg.all;
 
 entity SrpV3Core is
    generic (
       TPD_G               : time                    := 1 ns;
       PIPE_STAGES_G       : natural range 0 to 16   := 1;
+      SYNTH_MODE_G        : string                  := "inferred";
       FIFO_PAUSE_THRESH_G : positive range 1 to 511 := 256;
       TX_VALID_THOLD_G    : positive                := 1;
       SLAVE_READY_EN_G    : boolean                 := false;
       GEN_SYNC_FIFO_G     : boolean                 := false;
-      ALTERA_SYN_G        : boolean                 := false;
-      ALTERA_RAM_G        : string                  := "M9K";
       SRP_CLK_FREQ_G      : real                    := 156.25E+6;  -- units of Hz
-      AXI_STREAM_CONFIG_G : AxiStreamConfigType     := ssiAxiStreamConfig(2);
+      AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       UNALIGNED_ACCESS_G  : boolean                 := false;
       BYTE_ACCESS_G       : boolean                 := false;
       WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
       READ_EN_G           : boolean                 := true        -- Read ops enabled
       );
    port (
-      -- AXIS Slave Interface (sAxisClk domain) 
+      -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk    : in  sl;
       sAxisRst    : in  sl;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType;
-      -- AXIS Master Interface (mAxisClk domain) 
+      -- AXIS Master Interface (mAxisClk domain)
       mAxisClk    : in  sl;
       mAxisRst    : in  sl;
       mAxisMaster : out AxiStreamMasterType;
@@ -154,29 +150,24 @@ begin
 
    sAxisCtrl <= sCtrl;
 
-   RX_FIFO : entity work.SsiFifo
+   RX_FIFO : entity surf.SsiFifo
       generic map (
          -- General Configurations
-         TPD_G                  => TPD_G,
-         EN_FRAME_FILTER_G      => true,
-         PIPE_STAGES_G          => PIPE_STAGES_G,
-         SLAVE_READY_EN_G       => SLAVE_READY_EN_G,
-         VALID_THOLD_G          => 0,  -- = 0 = only when frame ready                                                                 
+         TPD_G               => TPD_G,
+         PIPE_STAGES_G       => PIPE_STAGES_G,
+         SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
+         VALID_THOLD_G       => 0,      -- = 0 = only when frame ready
          -- FIFO configurations
-         BRAM_EN_G              => true,
-         XIL_DEVICE_G           => "7SERIES",
-         USE_BUILT_IN_G         => false,
-         GEN_SYNC_FIFO_G        => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G           => ALTERA_SYN_G,
-         ALTERA_RAM_G           => ALTERA_RAM_G,
-         FIFO_ADDR_WIDTH_G      => 9,   -- 2kB/FIFO = 32-bits x 512 entries
-         CASCADE_SIZE_G         => 3,   -- 6kB = 3 FIFOs x 2 kB/FIFO
-         CASCADE_PAUSE_SEL_G    => 2,   -- Set pause select on top FIFO
-         FIFO_FIXED_THRESH_G    => true,
-         FIFO_PAUSE_THRESH_G    => FIFO_PAUSE_THRESH_G,
+         MEMORY_TYPE_G       => "block",
+         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
+         FIFO_ADDR_WIDTH_G   => 9,      -- 2kB/FIFO = 32-bits x 512 entries
+         CASCADE_SIZE_G      => 3,      -- 6kB = 3 FIFOs x 2 kB/FIFO
+         CASCADE_PAUSE_SEL_G => 2,      -- Set pause select on top FIFO
+         FIFO_FIXED_THRESH_G => true,
+         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G     => AXI_STREAM_CONFIG_G,
-         MASTER_AXI_CONFIG_G    => SRP_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
+         MASTER_AXI_CONFIG_G => SRP_AXIS_CONFIG_C)
       port map (
          -- Slave Port
          sAxisClk    => sAxisClk,
@@ -195,7 +186,7 @@ begin
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
-      Sync_Ctrl : entity work.SynchronizerVector
+      Sync_Ctrl : entity surf.SynchronizerVector
          generic map (
             TPD_G   => TPD_G,
             WIDTH_G => 2,
@@ -207,7 +198,7 @@ begin
             dataIn(1)  => sCtrl.idle,
             dataOut(0) => rxCtrl.pause,
             dataOut(1) => rxCtrl.idle);
-      Sync_Overflow : entity work.SynchronizerOneShot
+      Sync_Overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
@@ -254,7 +245,7 @@ begin
          when IDLE_S =>
             -- Reset error flags
             v.memResp     := (others => '0');
-            v.timeout     := '0';
+            -- v.timeout     := '0'; <--- if timeout ever happens then latch the timeout (don't reset) to inform SW that "hardware bus lock"
             v.eofe        := '0';
             v.frameError  := '0';
             v.verMismatch := '0';
@@ -405,8 +396,8 @@ begin
                         v.state := FOOTER_S;
                      end if;
 
-                     -- Check for framing error or EOFE
-                     if (r.frameError = '1') or (r.eofe = '1') then
+                     -- Check for framing error or EOFE or timeout (A.K.A. "hardware bus lock")
+                     if (r.frameError = '1') or (r.eofe = '1') or (r.timeout = '1') then
                         -- Next State
                         v.state := FOOTER_S;
                      end if;
@@ -434,7 +425,7 @@ begin
                            v.state    := FOOTER_S;
                         end if;
 
-                        -- Check for non 32-bit address alignment                     
+                        -- Check for non 32-bit address alignment
                         if BYTE_ACCESS_G = false and UNALIGNED_ACCESS_G = false and r.srpReq.addr(1 downto 0) /= 0 then
                            v.reqError := '1';
                            v.state    := FOOTER_S;
@@ -640,7 +631,8 @@ begin
                v.txMaster.tData(10)           := r.frameError;
                v.txMaster.tData(11)           := r.verMismatch;
                v.txMaster.tData(12)           := r.reqError;
-               v.txMaster.tData(31 downto 13) := (others => '0');
+               v.txMaster.tData(13)           := r.timeout;
+               v.txMaster.tData(31 downto 14) := (others => '0');
                -- Next state
                v.state                        := IDLE_S;
             end if;
@@ -651,7 +643,7 @@ begin
       if (rxMaster.tLast = '1') and (v.rxSlave.tReady = '1') then
          v.eofe := ssiGetUserEofe(SRP_AXIS_CONFIG_C, rxMaster);
       end if;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave       <= v.rxSlave;
       srpRdSlaveInt <= v.srpRdSlave;
@@ -677,7 +669,7 @@ begin
       end if;
    end process seq;
 
-   TX_FIFO : entity work.AxiStreamFifoV2
+   TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -685,12 +677,9 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => TX_VALID_THOLD_G,
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         XIL_DEVICE_G        => "7SERIES",
-         USE_BUILT_IN_G      => false,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
-         ALTERA_SYN_G        => ALTERA_SYN_G,
-         ALTERA_RAM_G        => ALTERA_RAM_G,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
@@ -708,29 +697,36 @@ begin
          mAxisMaster => mAxisMaster,
          mAxisSlave  => mAxisSlave);
 
-   -- Pipeline the rdData and wrData streams
-   U_AxiStreamPipeline_rdData : entity work.AxiStreamPipeline
+   U_Rx : entity surf.AxiStreamResize
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G               => TPD_G,
+         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
+         MASTER_AXI_CONFIG_G => SRP_AXIS_CONFIG_C)
       port map (
-         axisClk     => srpClk,          -- [in]
-         axisRst     => srpRst,          -- [in]
-         sAxisMaster => srpRdMaster,     -- [in]
-         sAxisSlave  => srpRdSlave,      -- [out]
-         mAxisMaster => srpRdMasterInt,  -- [out]
-         mAxisSlave  => srpRdSlaveInt);  -- [in]
+         -- Clock and reset
+         axisClk     => srpClk,
+         axisRst     => srpRst,
+         -- Slave Port
+         sAxisMaster => srpRdMaster,
+         sAxisSlave  => srpRdSlave,
+         -- Master Port
+         mAxisMaster => srpRdMasterInt,
+         mAxisSlave  => srpRdSlaveInt);
 
-   U_AxiStreamPipeline_wrData : entity work.AxiStreamPipeline
+   U_Tx : entity surf.AxiStreamResize
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G               => TPD_G,
+         SLAVE_AXI_CONFIG_G  => SRP_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
       port map (
-         axisClk     => srpClk,          -- [in]
-         axisRst     => srpRst,          -- [in]
-         sAxisMaster => srpWrMasterInt,  -- [in]
-         sAxisSlave  => srpWrSlaveInt,   -- [out]
-         mAxisMaster => srpWrMaster,     -- [out]
-         mAxisSlave  => srpWrSlave);     -- [in]
+         -- Clock and reset
+         axisClk     => srpClk,
+         axisRst     => srpRst,
+         -- Slave Port
+         sAxisMaster => srpWrMasterInt,
+         sAxisSlave  => srpWrSlaveInt,
+         -- Master Port
+         mAxisMaster => srpWrMaster,
+         mAxisSlave  => srpWrSlave);
 
 end rtl;

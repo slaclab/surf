@@ -1,22 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGtyUltraScaleClk.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 10GBASE-R Ethernet's Clock Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -24,7 +25,7 @@ use unisim.vcomponents.all;
 entity TenGigEthGtyUltraScaleClk is
    generic (
       TPD_G             : time            := 1 ns;
-      REF_CLK_FREQ_G    : real            := 156.25E+6;  -- Support 156.25MHz or 312.5MHz   
+      REF_CLK_FREQ_G    : real            := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       QPLL_REFCLK_SEL_G : slv(2 downto 0) := "001");
    port (
       -- MGT Clock Port (156.25 MHz)
@@ -81,7 +82,7 @@ begin
    qpllReset(0) <= qpllRst(0) or coreRst;
    qpllReset(1) <= qpllRst(1) or coreRst;
 
-   GtyUltraScaleQuadPll_Inst : entity work.GtyUltraScaleQuadPll
+   GtyUltraScaleQuadPll_Inst : entity surf.GtyUltraScaleQuadPll
       generic map (
          -- Simulation Parameters
          TPD_G              => TPD_G,
@@ -115,7 +116,7 @@ begin
          qPllOutClk     => qPllOutClk,
          qPllOutRefClk  => qPllOutRefClk,
          qPllLock       => qPllLock,
-         qPllLockDetClk => "00",  -- IP Core ties this to GND (see note below) 
+         qPllLockDetClk => "00",  -- IP Core ties this to GND (see note below)
          qPllReset      => qpllReset);
 
 end mapping;

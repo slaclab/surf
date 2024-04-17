@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Caui4GtyIpWrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 
+-- Description:
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity Caui4GtyIpWrapper is
    generic (
@@ -171,12 +172,40 @@ architecture mapping of Caui4GtyIpWrapper is
          rx_otn_data_2                        : out std_logic_vector(65 downto 0);
          rx_otn_data_3                        : out std_logic_vector(65 downto 0);
          rx_otn_data_4                        : out std_logic_vector(65 downto 0);
+         rx_otn_ena                           : out std_logic;
+         rx_otn_lane0                         : out std_logic;
+         rx_otn_vlmarker                      : out std_logic;
          rx_preambleout                       : out std_logic_vector(55 downto 0);
          usr_rx_reset                         : out std_logic;
          gt_rxusrclk2                         : out std_logic;
+         stat_rx_aligned                      : out std_logic;
+         stat_rx_aligned_err                  : out std_logic;
          stat_rx_bad_code                     : out std_logic_vector(2 downto 0);
          stat_rx_bad_fcs                      : out std_logic_vector(2 downto 0);
+         stat_rx_bad_preamble                 : out std_logic;
+         stat_rx_bad_sfd                      : out std_logic;
+         stat_rx_bip_err_0                    : out std_logic;
+         stat_rx_bip_err_1                    : out std_logic;
+         stat_rx_bip_err_10                   : out std_logic;
+         stat_rx_bip_err_11                   : out std_logic;
+         stat_rx_bip_err_12                   : out std_logic;
+         stat_rx_bip_err_13                   : out std_logic;
+         stat_rx_bip_err_14                   : out std_logic;
+         stat_rx_bip_err_15                   : out std_logic;
+         stat_rx_bip_err_16                   : out std_logic;
+         stat_rx_bip_err_17                   : out std_logic;
+         stat_rx_bip_err_18                   : out std_logic;
+         stat_rx_bip_err_19                   : out std_logic;
+         stat_rx_bip_err_2                    : out std_logic;
+         stat_rx_bip_err_3                    : out std_logic;
+         stat_rx_bip_err_4                    : out std_logic;
+         stat_rx_bip_err_5                    : out std_logic;
+         stat_rx_bip_err_6                    : out std_logic;
+         stat_rx_bip_err_7                    : out std_logic;
+         stat_rx_bip_err_8                    : out std_logic;
+         stat_rx_bip_err_9                    : out std_logic;
          stat_rx_block_lock                   : out std_logic_vector(19 downto 0);
+         stat_rx_broadcast                    : out std_logic;
          stat_rx_fragment                     : out std_logic_vector(2 downto 0);
          stat_rx_framing_err_0                : out std_logic_vector(1 downto 0);
          stat_rx_framing_err_1                : out std_logic_vector(1 downto 0);
@@ -198,23 +227,74 @@ architecture mapping of Caui4GtyIpWrapper is
          stat_rx_framing_err_7                : out std_logic_vector(1 downto 0);
          stat_rx_framing_err_8                : out std_logic_vector(1 downto 0);
          stat_rx_framing_err_9                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_valid_0          : out std_logic;
+         stat_rx_framing_err_valid_1          : out std_logic;
+         stat_rx_framing_err_valid_10         : out std_logic;
+         stat_rx_framing_err_valid_11         : out std_logic;
+         stat_rx_framing_err_valid_12         : out std_logic;
+         stat_rx_framing_err_valid_13         : out std_logic;
+         stat_rx_framing_err_valid_14         : out std_logic;
+         stat_rx_framing_err_valid_15         : out std_logic;
+         stat_rx_framing_err_valid_16         : out std_logic;
+         stat_rx_framing_err_valid_17         : out std_logic;
+         stat_rx_framing_err_valid_18         : out std_logic;
+         stat_rx_framing_err_valid_19         : out std_logic;
+         stat_rx_framing_err_valid_2          : out std_logic;
+         stat_rx_framing_err_valid_3          : out std_logic;
+         stat_rx_framing_err_valid_4          : out std_logic;
+         stat_rx_framing_err_valid_5          : out std_logic;
+         stat_rx_framing_err_valid_6          : out std_logic;
+         stat_rx_framing_err_valid_7          : out std_logic;
+         stat_rx_framing_err_valid_8          : out std_logic;
+         stat_rx_framing_err_valid_9          : out std_logic;
+         stat_rx_got_signal_os                : out std_logic;
+         stat_rx_hi_ber                       : out std_logic;
+         stat_rx_inrangeerr                   : out std_logic;
+         stat_rx_internal_local_fault         : out std_logic;
+         stat_rx_jabber                       : out std_logic;
+         stat_rx_local_fault                  : out std_logic;
          stat_rx_mf_err                       : out std_logic_vector(19 downto 0);
          stat_rx_mf_len_err                   : out std_logic_vector(19 downto 0);
          stat_rx_mf_repeat_err                : out std_logic_vector(19 downto 0);
+         stat_rx_misaligned                   : out std_logic;
+         stat_rx_multicast                    : out std_logic;
+         stat_rx_oversize                     : out std_logic;
+         stat_rx_packet_1024_1518_bytes       : out std_logic;
+         stat_rx_packet_128_255_bytes         : out std_logic;
+         stat_rx_packet_1519_1522_bytes       : out std_logic;
+         stat_rx_packet_1523_1548_bytes       : out std_logic;
+         stat_rx_packet_1549_2047_bytes       : out std_logic;
+         stat_rx_packet_2048_4095_bytes       : out std_logic;
+         stat_rx_packet_256_511_bytes         : out std_logic;
+         stat_rx_packet_4096_8191_bytes       : out std_logic;
+         stat_rx_packet_512_1023_bytes        : out std_logic;
+         stat_rx_packet_64_bytes              : out std_logic;
+         stat_rx_packet_65_127_bytes          : out std_logic;
+         stat_rx_packet_8192_9215_bytes       : out std_logic;
+         stat_rx_packet_bad_fcs               : out std_logic;
+         stat_rx_packet_large                 : out std_logic;
          stat_rx_packet_small                 : out std_logic_vector(2 downto 0);
          ctl_rx_enable                        : in  std_logic;
          ctl_rx_force_resync                  : in  std_logic;
          ctl_rx_test_pattern                  : in  std_logic;
          core_rx_reset                        : in  std_logic;
          rx_clk                               : in  std_logic;
+         stat_rx_received_local_fault         : out std_logic;
+         stat_rx_remote_fault                 : out std_logic;
+         stat_rx_status                       : out std_logic;
          stat_rx_stomped_fcs                  : out std_logic_vector(2 downto 0);
          stat_rx_synced                       : out std_logic_vector(19 downto 0);
          stat_rx_synced_err                   : out std_logic_vector(19 downto 0);
          stat_rx_test_pattern_mismatch        : out std_logic_vector(2 downto 0);
+         stat_rx_toolong                      : out std_logic;
          stat_rx_total_bytes                  : out std_logic_vector(6 downto 0);
          stat_rx_total_good_bytes             : out std_logic_vector(13 downto 0);
+         stat_rx_total_good_packets           : out std_logic;
          stat_rx_total_packets                : out std_logic_vector(2 downto 0);
+         stat_rx_truncated                    : out std_logic;
          stat_rx_undersize                    : out std_logic_vector(2 downto 0);
+         stat_rx_unicast                      : out std_logic;
+         stat_rx_vlan                         : out std_logic;
          stat_rx_pcsl_demuxed                 : out std_logic_vector(19 downto 0);
          stat_rx_pcsl_number_0                : out std_logic_vector(4 downto 0);
          stat_rx_pcsl_number_1                : out std_logic_vector(4 downto 0);
@@ -398,12 +478,40 @@ architecture mapping of Caui4GtyIpWrapper is
          rx_otn_data_2                        : out std_logic_vector(65 downto 0);
          rx_otn_data_3                        : out std_logic_vector(65 downto 0);
          rx_otn_data_4                        : out std_logic_vector(65 downto 0);
+         rx_otn_ena                           : out std_logic;
+         rx_otn_lane0                         : out std_logic;
+         rx_otn_vlmarker                      : out std_logic;
          rx_preambleout                       : out std_logic_vector(55 downto 0);
          usr_rx_reset                         : out std_logic;
          gt_rxusrclk2                         : out std_logic;
+         stat_rx_aligned                      : out std_logic;
+         stat_rx_aligned_err                  : out std_logic;
          stat_rx_bad_code                     : out std_logic_vector(2 downto 0);
          stat_rx_bad_fcs                      : out std_logic_vector(2 downto 0);
+         stat_rx_bad_preamble                 : out std_logic;
+         stat_rx_bad_sfd                      : out std_logic;
+         stat_rx_bip_err_0                    : out std_logic;
+         stat_rx_bip_err_1                    : out std_logic;
+         stat_rx_bip_err_10                   : out std_logic;
+         stat_rx_bip_err_11                   : out std_logic;
+         stat_rx_bip_err_12                   : out std_logic;
+         stat_rx_bip_err_13                   : out std_logic;
+         stat_rx_bip_err_14                   : out std_logic;
+         stat_rx_bip_err_15                   : out std_logic;
+         stat_rx_bip_err_16                   : out std_logic;
+         stat_rx_bip_err_17                   : out std_logic;
+         stat_rx_bip_err_18                   : out std_logic;
+         stat_rx_bip_err_19                   : out std_logic;
+         stat_rx_bip_err_2                    : out std_logic;
+         stat_rx_bip_err_3                    : out std_logic;
+         stat_rx_bip_err_4                    : out std_logic;
+         stat_rx_bip_err_5                    : out std_logic;
+         stat_rx_bip_err_6                    : out std_logic;
+         stat_rx_bip_err_7                    : out std_logic;
+         stat_rx_bip_err_8                    : out std_logic;
+         stat_rx_bip_err_9                    : out std_logic;
          stat_rx_block_lock                   : out std_logic_vector(19 downto 0);
+         stat_rx_broadcast                    : out std_logic;
          stat_rx_fragment                     : out std_logic_vector(2 downto 0);
          stat_rx_framing_err_0                : out std_logic_vector(1 downto 0);
          stat_rx_framing_err_1                : out std_logic_vector(1 downto 0);
@@ -425,23 +533,74 @@ architecture mapping of Caui4GtyIpWrapper is
          stat_rx_framing_err_7                : out std_logic_vector(1 downto 0);
          stat_rx_framing_err_8                : out std_logic_vector(1 downto 0);
          stat_rx_framing_err_9                : out std_logic_vector(1 downto 0);
+         stat_rx_framing_err_valid_0          : out std_logic;
+         stat_rx_framing_err_valid_1          : out std_logic;
+         stat_rx_framing_err_valid_10         : out std_logic;
+         stat_rx_framing_err_valid_11         : out std_logic;
+         stat_rx_framing_err_valid_12         : out std_logic;
+         stat_rx_framing_err_valid_13         : out std_logic;
+         stat_rx_framing_err_valid_14         : out std_logic;
+         stat_rx_framing_err_valid_15         : out std_logic;
+         stat_rx_framing_err_valid_16         : out std_logic;
+         stat_rx_framing_err_valid_17         : out std_logic;
+         stat_rx_framing_err_valid_18         : out std_logic;
+         stat_rx_framing_err_valid_19         : out std_logic;
+         stat_rx_framing_err_valid_2          : out std_logic;
+         stat_rx_framing_err_valid_3          : out std_logic;
+         stat_rx_framing_err_valid_4          : out std_logic;
+         stat_rx_framing_err_valid_5          : out std_logic;
+         stat_rx_framing_err_valid_6          : out std_logic;
+         stat_rx_framing_err_valid_7          : out std_logic;
+         stat_rx_framing_err_valid_8          : out std_logic;
+         stat_rx_framing_err_valid_9          : out std_logic;
+         stat_rx_got_signal_os                : out std_logic;
+         stat_rx_hi_ber                       : out std_logic;
+         stat_rx_inrangeerr                   : out std_logic;
+         stat_rx_internal_local_fault         : out std_logic;
+         stat_rx_jabber                       : out std_logic;
+         stat_rx_local_fault                  : out std_logic;
          stat_rx_mf_err                       : out std_logic_vector(19 downto 0);
          stat_rx_mf_len_err                   : out std_logic_vector(19 downto 0);
          stat_rx_mf_repeat_err                : out std_logic_vector(19 downto 0);
+         stat_rx_misaligned                   : out std_logic;
+         stat_rx_multicast                    : out std_logic;
+         stat_rx_oversize                     : out std_logic;
+         stat_rx_packet_1024_1518_bytes       : out std_logic;
+         stat_rx_packet_128_255_bytes         : out std_logic;
+         stat_rx_packet_1519_1522_bytes       : out std_logic;
+         stat_rx_packet_1523_1548_bytes       : out std_logic;
+         stat_rx_packet_1549_2047_bytes       : out std_logic;
+         stat_rx_packet_2048_4095_bytes       : out std_logic;
+         stat_rx_packet_256_511_bytes         : out std_logic;
+         stat_rx_packet_4096_8191_bytes       : out std_logic;
+         stat_rx_packet_512_1023_bytes        : out std_logic;
+         stat_rx_packet_64_bytes              : out std_logic;
+         stat_rx_packet_65_127_bytes          : out std_logic;
+         stat_rx_packet_8192_9215_bytes       : out std_logic;
+         stat_rx_packet_bad_fcs               : out std_logic;
+         stat_rx_packet_large                 : out std_logic;
          stat_rx_packet_small                 : out std_logic_vector(2 downto 0);
          ctl_rx_enable                        : in  std_logic;
          ctl_rx_force_resync                  : in  std_logic;
          ctl_rx_test_pattern                  : in  std_logic;
          core_rx_reset                        : in  std_logic;
          rx_clk                               : in  std_logic;
+         stat_rx_received_local_fault         : out std_logic;
+         stat_rx_remote_fault                 : out std_logic;
+         stat_rx_status                       : out std_logic;
          stat_rx_stomped_fcs                  : out std_logic_vector(2 downto 0);
          stat_rx_synced                       : out std_logic_vector(19 downto 0);
          stat_rx_synced_err                   : out std_logic_vector(19 downto 0);
          stat_rx_test_pattern_mismatch        : out std_logic_vector(2 downto 0);
+         stat_rx_toolong                      : out std_logic;
          stat_rx_total_bytes                  : out std_logic_vector(6 downto 0);
          stat_rx_total_good_bytes             : out std_logic_vector(13 downto 0);
+         stat_rx_total_good_packets           : out std_logic;
          stat_rx_total_packets                : out std_logic_vector(2 downto 0);
+         stat_rx_truncated                    : out std_logic;
          stat_rx_undersize                    : out std_logic_vector(2 downto 0);
+         stat_rx_unicast                      : out std_logic;
+         stat_rx_vlan                         : out std_logic;
          stat_rx_pcsl_demuxed                 : out std_logic_vector(19 downto 0);
          stat_rx_pcsl_number_0                : out std_logic_vector(4 downto 0);
          stat_rx_pcsl_number_1                : out std_logic_vector(4 downto 0);
@@ -563,7 +722,7 @@ begin
    assert (isPowerOf2(MAX_PAYLOAD_SIZE_G) = true)
       report "MAX_PAYLOAD_SIZE_G must be power of 2" severity failure;
 
-   U_PwrUpRst : entity work.PwrUpRst
+   U_PwrUpRst : entity surf.PwrUpRst
       generic map(
          TPD_G         => TPD_G,
          SIM_SPEEDUP_G => SIM_SPEEDUP_G)
@@ -572,7 +731,7 @@ begin
          clk    => stableClk,
          rstOut => stableReset);
 
-   U_phyClk : entity work.ClockManagerUltraScale
+   U_phyClk : entity surf.ClockManagerUltraScale
       generic map(
          TPD_G             => TPD_G,
          TYPE_G            => "PLL",
@@ -621,7 +780,7 @@ begin
       end if;
    end process;
 
-   U_RX_FIFO : entity work.AxiStreamFifoV2
+   U_RX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -629,7 +788,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          -- FIFO configurations
-         BRAM_EN_G           => true,
+         MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
@@ -646,7 +805,7 @@ begin
          mAxisMaster => phyRxMaster,
          mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
-   U_TX_FIFO : entity work.AxiStreamFifoV2
+   U_TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -655,7 +814,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,      -- Help with making timing
          -- FIFO configurations
-         BRAM_EN_G           => ite((TX_FIFO_ADDR_WIDTH_C > 5), true, false),
+         MEMORY_TYPE_G       => ite((TX_FIFO_ADDR_WIDTH_C > 5), "block", "distributed"),
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => TX_FIFO_ADDR_WIDTH_C,
          -- AXI Stream Port Configurations
@@ -887,7 +1046,7 @@ begin
             tx_axis_tdata                        => txMaster.tdata(511 downto 0),
             tx_axis_tlast                        => txMaster.tlast,
             tx_axis_tkeep                        => txMaster.tkeep(63 downto 0),
-            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE        
+            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE
             tx_ovfout                            => open,
             tx_unfout                            => open,
             tx_preamblein                        => (others => '0'),  -- tx_preamblein is driven as 0
@@ -1116,7 +1275,7 @@ begin
             tx_axis_tdata                        => txMaster.tdata(511 downto 0),
             tx_axis_tlast                        => txMaster.tlast,
             tx_axis_tkeep                        => txMaster.tkeep(63 downto 0),
-            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE        
+            tx_axis_tuser                        => '0',  -- Unclear if I want to have the MAC drop EOFE
             tx_ovfout                            => open,
             tx_unfout                            => open,
             tx_preamblein                        => (others => '0'),  -- tx_preamblein is driven as 0
@@ -1159,7 +1318,7 @@ begin
          when DONE_S =>
             -- 4. Data transmission and reception can be performed.
             v.phyRdy := '1';
-            -- Check for error or not aligned 
+            -- Check for error or not aligned
             if (stat_rx_aligned_err = '1') or (stat_rx_aligned = '0') then
                -- Reset the state machine to re-align
                v := REG_INIT_C;
@@ -1184,7 +1343,7 @@ begin
       end if;
    end process seq;
 
-   U_SyncBits : entity work.Synchronizer
+   U_SyncBits : entity surf.Synchronizer
       generic map(
          TPD_G => TPD_G)
       port map (

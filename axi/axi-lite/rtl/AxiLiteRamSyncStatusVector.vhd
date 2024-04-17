@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteRamSyncStatusVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: A wrapper of AxiDualPortRam & SyncStatusVector
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,8 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteRamSyncStatusVector is
    generic (
@@ -36,26 +36,25 @@ entity AxiLiteRamSyncStatusVector is
       RST_POLARITY_G  : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean                := false;  -- true if reset is asynchronous, false if reset is synchronous
       COMMON_CLK_G    : boolean                := false;  -- True if wrClk and rdClk are the same clock
-      RELEASE_DELAY_G : positive               := 3;  -- Delay between deassertion of async and sync resets
       IN_POLARITY_G   : slv                    := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G  : sl                     := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
-      SYNTH_CNT_G     : slv                    := "1";  -- Set to 1 for synthesising counter RTL, '0' to not synthesis the counter
+      SYNTH_CNT_G     : slv                    := "1";  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
       CNT_RST_EDGE_G  : boolean                := true;  -- true if counter reset should be edge detected, else level detected
       CNT_WIDTH_G     : positive range 1 to 32 := 32;   -- Counters' width
       WIDTH_G         : positive);      -- Status vector width
    port (
       ---------------------------------------------
-      -- Inbound Status bit Signals (wrClk domain)      
+      -- Inbound Status bit Signals (wrClk domain)
       ---------------------------------------------
       wrClk           : in  sl;
       wrRst           : in  sl                      := '0';
       statusIn        : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
       ---------------------------------------------
-      -- Outbound Status/control Signals (axilClk domain)      
+      -- Outbound Status/control Signals (axilClk domain)
       ---------------------------------------------
-      statusOut       : out slv(WIDTH_G-1 downto 0);  -- Synced data      
+      statusOut       : out slv(WIDTH_G-1 downto 0);  -- Synced data
       cntRstIn        : in  sl                      := '0';
-      rollOverEnIn    : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- No roll over for all counters by default      
+      rollOverEnIn    : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- No roll over for all counters by default
       ---------------------
       -- AXI-Lite Interface
       ---------------------
@@ -90,9 +89,10 @@ architecture mapping of AxiLiteRamSyncStatusVector is
 
 begin
 
-   U_AxiDualPortRam : entity work.AxiDualPortRam
+   U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SYNTH_MODE_G   => SYNTH_MODE_G,
          MEMORY_TYPE_G  => MEMORY_TYPE_G,
          READ_LATENCY_G => READ_LATENCY_G,
@@ -116,9 +116,10 @@ begin
          addr           => r.addr,
          din            => r.data);
 
-   U_SyncStatusVector : entity work.SyncStatusVector
+   U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => CNT_WIDTH_G,
@@ -126,9 +127,9 @@ begin
       port map (
          -- Input Status bit Signals (wrClk domain)
          statusIn     => statusIn,
-         -- Output Status bit Signals (rdClk domain)  
+         -- Output Status bit Signals (rdClk domain)
          statusOut    => statusOut,
-         -- Status Bit Counters Signals (rdClk domain) 
+         -- Status Bit Counters Signals (rdClk domain)
          cntRstIn     => cntRstIn,
          rollOverEnIn => rollOverEnIn,
          cntOut       => statusCnt,
@@ -157,7 +158,7 @@ begin
       end if;
 
       -- Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -166,11 +167,13 @@ begin
 
    end process;
 
-   process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
-   end process;
+   end process seq;
 
 end mapping;

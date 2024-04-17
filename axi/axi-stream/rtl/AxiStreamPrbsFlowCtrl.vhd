@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamPrbsFlowCtrl.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Generates pseudo-random back pressure
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,12 +17,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
 
 entity AxiStreamPrbsFlowCtrl is
    generic (
       TPD_G         : time                 := 1 ns;
+      RST_ASYNC_G   : boolean              := false;
       PIPE_STAGES_G : natural range 0 to 1 := 0;
       SEED_G        : slv(31 downto 0)     := x"AAAA_5555";
       PRBS_TAPS_G   : NaturalArray         := (0 => 31, 1 => 6, 2 => 2, 3 => 1));
@@ -65,15 +66,16 @@ begin
    rxMaster   <= sAxisMaster;
    sAxisSlave <= rxSlave;
 
-   U_DspComparator : entity work.DspComparator
+   U_DspComparator : entity surf.DspComparator
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 32)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         WIDTH_G     => 32)
       port map (
          clk => clk,
          ain => r.randomData,
          bin => threshold,
-         ls  => pause);                 --  (a <  b)   
+         ls  => pause);                 --  (a <  b)
 
    comb : process (pause, r, rst, rxMaster, txSlave) is
       variable v : RegType;
@@ -98,33 +100,36 @@ begin
          -- Move the data
          v.txMaster       := rxMaster;
       end if;
-      
+
       -- Combinatorial outputs before the reset
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs              
+      -- Outputs
       txMaster <= r.txMaster;
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G) and (rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
-   U_Pipe : entity work.AxiStreamPipeline
+   U_Pipe : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          axisClk     => clk,

@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 #-----------------------------------------------------------------------------
-# This file is part of the rogue software platform. It is subject to
+# This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
 #    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
-# No part of the rogue software platform, including this file, may be
+# No part of the 'SLAC Firmware Standard Library', including this file, may be
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
@@ -21,19 +20,19 @@ class AxiStreamScatterGather(pr.Device):
             mode = 'RO',
             offset = 0x00,
             disp = '{:#08x}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'RxSofAddr',
             mode = 'RO',
             offset = 0x04,
             disp = '{:#08x}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'RxWordCount',
             mode = 'RO',
             offset = 0x08,
             disp = '{:d}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'RxFrameNumber',
             mode = 'RO',
@@ -48,7 +47,7 @@ class AxiStreamScatterGather(pr.Device):
             bitSize = 1,
             bitOffset = 31,
             base = pr.Bool))
-        
+
         self.add(pr.RemoteVariable(
             name = 'TxRamRdAddr',
             mode = 'RO',
@@ -84,10 +83,9 @@ class AxiStreamScatterGather(pr.Device):
             mode = 'RO',
             offset = 0x24,
             disp = '{:d}'))
-        
+
         self.add(pr.RemoteVariable(
             name = 'BadWordCount',
             mode = 'RO',
             offset = 0x28,
             disp = '{:d}'))
-        

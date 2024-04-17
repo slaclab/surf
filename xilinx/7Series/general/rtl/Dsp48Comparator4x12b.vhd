@@ -1,22 +1,23 @@
 -------------------------------------------------------------------------------
--- File       : Dsp48Comparator4x12b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: This module is a quad 12-bit digital comparator using a DSP48
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -26,13 +27,13 @@ entity Dsp48Comparator4x12b is
       TPD_G              : time    := 1 ns;
       EN_GREATER_EQUAL_G : boolean := false);  -- true is ">=" operation and false is ">" operation
    port (
-      -- Data and Threshold Signals 
+      -- Data and Threshold Signals
       polarity : in  sl := '0';
       dataIn   : in  Slv12Array(0 to 3);
       threshIn : in  Slv12Array(0 to 3);
-      -- Hit detected Signals      
+      -- Hit detected Signals
       compOut  : out slv(3 downto 0);          -- '1' when data > threshold
-      -- Clock and Reset Signals      
+      -- Clock and Reset Signals
       clk      : in  sl;
       rst      : in  sl := '0');
 end Dsp48Comparator4x12b;
@@ -92,7 +93,7 @@ begin
             end if;
          end if;
       end process;
-      
+
    end generate GEN_HIT;
 
    DSP48E1_Inst : DSP48E1
@@ -154,7 +155,7 @@ begin
          INMODE         => "00011",     -- 5-bit input: INMODE control input
          OPMODE         => "0110011",   -- 7-bit input: Operation mode input
          RSTINMODE      => reset,       -- 1-bit input: Reset input for INMODEREG
-         -- Data: 30-bit (each) input: Data Ports         
+         -- Data: 30-bit (each) input: Data Ports
          A              => A,           -- 30-bit input: A data input
          B              => B,           -- 18-bit input: B data input
          C              => C,           -- 48-bit input: C data input

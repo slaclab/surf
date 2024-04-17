@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : ArpEngine.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: ARP Engine
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,17 +17,19 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
-use work.EthMacPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+use surf.EthMacPkg.all;
 
 entity ArpEngine is
    generic (
       TPD_G         : time     := 1 ns;
       CLIENT_SIZE_G : positive := 1;
       CLK_FREQ_G    : real     := 156.25E+06;                              -- In units of Hz
-      VLAN_G        : boolean  := false);  
+      VLAN_G        : boolean  := false);
    port (
       -- Local Configuration
       localMac      : in  slv(47 downto 0);
@@ -38,7 +39,7 @@ entity ArpEngine is
       arpReqSlaves  : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       arpAckMasters : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Respond with MAC address
       arpAckSlaves  : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-      -- Interface to Ethernet Frame MUX/DEMUX 
+      -- Interface to Ethernet Frame MUX/DEMUX
       ibArpMaster   : in  AxiStreamMasterType;
       ibArpSlave    : out AxiStreamSlaveType;
       obArpMaster   : out AxiStreamMasterType;
@@ -59,13 +60,13 @@ architecture rtl of ArpEngine is
    constant ARP_REQ_C        : slv(15 downto 0) := x"0100";  -- OpCode = ARP Request  = 0x0001
    constant ARP_REPLY_C      : slv(15 downto 0) := x"0200";  -- OpCode = ARP Reply    = 0x0002
    constant TIMER_1_SEC_C    : natural          := getTimeRatio(CLK_FREQ_G, 1.0);
-   
+
    type StateType is (
       IDLE_S,
       RX_S,
       CHECK_S,
       SCAN_S,
-      TX_S); 
+      TX_S);
 
    type RegType is record
       cnt           : natural range 0 to 3;
@@ -89,14 +90,14 @@ architecture rtl of ArpEngine is
       arpTimers     => (others => 0),
       reqCnt        => 0,
       ackCnt        => 0,
-      state         => IDLE_S);      
+      state         => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
-   
+
 begin
 
    comb : process (arpAckSlaves, arpReqMasters, ibArpMaster, localIp, localMac, obArpSlave, r, rst) is
@@ -238,7 +239,7 @@ begin
                         v.state := CHECK_S;
                      end if;
                   end if;
-               -- Word[3] (or more)   
+               -- Word[3] (or more)
                else
                   if ibArpMaster.tLast = '1' then
                      -- Check for EOFE error
@@ -327,7 +328,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SCAN_S =>
-            -- Check the tValid 
+            -- Check the tValid
             if (arpReqMasters(r.ackCnt).tValid = '1') and (v.arpAckMasters(r.ackCnt).tValid = '0') then
                ------------------------
                -- Checking for non-VLAN
@@ -389,7 +390,7 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-      
+
       -- Combinatorial outputs before the reset
       arpReqSlaves <= v.arpReqSlaves;
       ibArpSlave   <= v.ibArpSlave;
@@ -402,7 +403,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs  
+      -- Registered Outputs
       arpAckMasters <= r.arpAckMasters;
       obArpMaster   <= r.txArpMaster;
 

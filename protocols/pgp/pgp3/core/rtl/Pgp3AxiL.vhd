@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite block to manage the PGPv3 interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3AxiL is
    generic (
@@ -32,7 +33,7 @@ entity Pgp3AxiL is
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 16;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 8;
-      AXIL_CLK_FREQ_G     : real                 := 125.0E+6);
+      AXIL_CLK_FREQ_G    : real                  := 125.0E+6);
    port (
 
       -- TX PGP Interface (pgpTxClk)
@@ -54,6 +55,11 @@ entity Pgp3AxiL is
       statusSend : out sl;
 
       phyRxClk : in sl;
+
+      -- Debug Interface (axilClk domain)
+      txDiffCtrl        : out  slv(4 downto 0);
+      txPreCursor       : out  slv(4 downto 0);
+      txPostCursor      : out  slv(4 downto 0);
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
@@ -102,6 +108,9 @@ architecture rtl of Pgp3AxiL is
    signal gearboxAlignCnt : SlVectorArray(0 downto 0, 7 downto 0);
 
    type RegType is record
+      txDiffCtrl     : slv(4 downto 0);
+      txPreCursor    : slv(4 downto 0);
+      txPostCursor   : slv(4 downto 0);
       countReset     : sl;
       loopBack       : slv(2 downto 0);
       flowCntlDis    : sl;
@@ -113,6 +122,9 @@ architecture rtl of Pgp3AxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txDiffCtrl     => (others => '1'),
+      txPreCursor    => "00111",
+      txPostCursor   => "00111",
       countReset     => '0',
       loopBack       => (others => '0'),
       flowCntlDis    => PGP3_TX_IN_INIT_C.flowCntlDis,
@@ -185,12 +197,12 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_RxOpCodeSync : entity work.SynchronizerFifo
+   U_RxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 51,
+         ADDR_WIDTH_G  => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -202,19 +214,18 @@ begin
          dout(50 downto 48) => rxStatusSync.rxOpCodeNumberLast);
 
    -- Errror counters and non counted values
-   U_RxError : entity work.SyncStatusVector
+   U_RxError : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_RX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => X"0030000FFFF7C",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => RX_ERROR_COUNTERS_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => X"0030000FFFF7C",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => RX_ERROR_COUNTERS_C)
       port map (
          statusIn(0)            => pgpRxOut.phyRxActive,
          statusIn(1)            => pgpRxOut.linkReady,
@@ -279,19 +290,18 @@ begin
    rxStatusSync.ebOverflowCnt <= muxSlVectorArray(rxErrorCntOut, 41);
 
    -- Status counters
-   U_RxStatus : entity work.SyncStatusVector
+   U_RxStatus : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_RX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "1",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
-         WIDTH_G         => RX_STATUS_COUNTERS_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "1",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => RX_STATUS_COUNTERS_C)
       port map (
          statusIn(0)  => pgpRxOut.frameRx,
          statusOut    => open,
@@ -308,10 +318,9 @@ begin
 
    rxStatusSync.frameCount <= muxSlVectorArray(rxStatusCntOut, 0);
 
-   U_RxClkFreq : entity work.SyncClockFreq
+   U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         USE_DSP48_G    => "no",
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
@@ -325,12 +334,12 @@ begin
          refClk      => axilClk
          );
 
-   U_RxEbDataSync : entity work.SynchronizerFifo
+   U_RxEbDataSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 67,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpRxClk,
@@ -344,12 +353,12 @@ begin
          dout(66 downto 65) => rxStatusSync.ebHeader);
 
 
-   U_RxPhyDataSync : entity work.SynchronizerFifo
+   U_RxPhyDataSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 67,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 67,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst                => r.countReset,
          wr_clk             => phyRxClk,
@@ -362,19 +371,18 @@ begin
          dout(64 downto 1)  => rxStatusSync.phyData,
          dout(66 downto 65) => rxStatusSync.phyHeader);
 
-   U_RxGearboxStatus : entity work.SyncStatusVector
+   U_RxGearboxStatus : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => false,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "1",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => 8,
-         WIDTH_G         => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => false,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "1",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => 8,
+         WIDTH_G        => 1)
       port map (
          statusIn(0)  => pgpRxOut.gearboxAligned,
          statusOut(0) => rxStatusSync.gearboxAligned,
@@ -391,7 +399,7 @@ begin
 
    rxStatusSync.gearboxAlignCnt <= muxSlVectorArray(gearboxAlignCnt, 0);
 
-   U_remLinkData : entity work.SynchronizerFifo
+   U_remLinkData : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 56)
@@ -406,12 +414,12 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_TxOpCodeSync : entity work.SynchronizerFifo
+   U_TxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 51,
-         ADDR_WIDTH_G => 2)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 51,
+         ADDR_WIDTH_G  => 2)
       port map (
          rst                => r.countReset,
          wr_clk             => pgpTxClk,
@@ -423,19 +431,18 @@ begin
          dout(50 downto 48) => txStatusSync.txOpCodeNumberLast);
 
    -- Errror counters and non counted values
-   U_TxError : entity work.SyncStatusVector
+   U_TxError : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_TX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => X"0000FFFFE",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => TX_ERROR_COUNTERS_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => X"0000FFFFE",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => TX_ERROR_COUNTERS_C)
       port map (
          statusIn(0)            => pgpTxOut.phyTxActive,
          statusIn(1)            => pgpTxOut.linkReady,
@@ -469,19 +476,18 @@ begin
    end generate LOC_OVERFLOW_CNT;
 
    -- Status counters
-   U_TxStatus : entity work.SyncStatusVector
+   U_TxStatus : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_TX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "1",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
-         WIDTH_G         => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "1",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => 1)
       port map (
          statusIn(0)  => pgpTxOut.frameTx,
          statusOut    => open,
@@ -498,10 +504,9 @@ begin
 
    txStatusSync.frameCount <= muxSlVectorArray(txStatusCntOut, 0);
 
-   U_TxClkFreq : entity work.SyncClockFreq
+   U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         USE_DSP48_G    => "no",
          REF_CLK_FREQ_G => AXIL_CLK_FREQ_G,
          CNT_WIDTH_G    => 32)
       port map (
@@ -520,7 +525,7 @@ begin
    -------------------------------------
 
    -- Sync flow cntl disable
-   U_FlowCntlDis : entity work.Synchronizer
+   U_FlowCntlDis : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -535,12 +540,12 @@ begin
          dataOut => syncFlowCntlDis
          );
 
-   U_SKP_SYNC : entity work.SynchronizerFifo
+   U_SKP_SYNC : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         DATA_WIDTH_G => 32,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 32,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst    => '0',
          wr_clk => axilClk,
@@ -554,7 +559,7 @@ begin
    pgpTxIn.opCodeEn     <= locTxIn.opCodeEn;
    pgpTxIn.opCodeData   <= locTxIn.opCodeData;
    pgpTxIn.opCodeNumber <= locTxIn.opCodeNumber;
-   pgpTxIn.locData      <= locTxIn.locData;   
+   pgpTxIn.locData      <= locTxIn.locData;
    pgpTxIn.flowCntlDis  <= locTxIn.flowCntlDis or syncFlowCntlDis;
    pgpTxIn.skpInterval  <= syncSkpInterval;
 
@@ -639,7 +644,7 @@ begin
       axiSlaveRegisterR(axilEp, X"120", 8, rxStatusSync.gearboxAlignCnt);
 
       axiSlaveRegisterR(axilEp, X"130", 0, rxStatusSync.phyRxInitCnt);
-      
+
       axiSlaveRegisterR(axilEp, X"138", 0, rxStatusSync.remLinkData);
 
 
@@ -671,6 +676,9 @@ begin
       axiSlaveRegisterR(axilEp, X"0A4", 0, txStatusSync.txOpCodeDataLast);
       axiSlaveRegisterR(axilEp, X"0A4", 56, txStatusSync.txOpCodeNumberLast);
 
+      axiSlaveRegister (axilEp, X"0AC", 0,  v.txDiffCtrl);
+      axiSlaveRegister (axilEp, X"0AC", 8,  v.txPreCursor);
+      axiSlaveRegister (axilEp, X"0AC", 16, v.txPostCursor);
 
       for i in 0 to 15 loop
          axiSlaveRegisterR(axilEp, X"0B0"+toSlv(i*4, 12), 0, txStatusSync.locOverflowCnt(i));
@@ -691,6 +699,9 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      txDiffCtrl     <= r.txDiffCtrl;
+      txPreCursor    <= r.txPreCursor;
+      txPostCursor   <= r.txPostCursor;
 
    end process;
 

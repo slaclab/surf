@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStreamPackerizerV0 Protocol: https://confluence.slac.stanford.edu/x/1oyfD
 -------------------------------------------------------------------------------
--- File       : AxiStreamPacketizer
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI stream DePacketerizer Module (non-interleave only)
@@ -10,11 +9,11 @@
 --    Long frames are broken into smaller packets.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -22,22 +21,22 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamPacketizer is
-
    generic (
       TPD_G                : time            := 1 ns;
+      RST_ASYNC_G          : boolean         := false;
       MAX_PACKET_BYTES_G   : integer         := 1440;  -- Must be a multiple of 8
       MIN_TKEEP_G          : slv(7 downto 0) := x"01";
       OUTPUT_SSI_G         : boolean         := true;  -- SSI compliant output (SOF on tuser)
       INPUT_PIPE_STAGES_G  : integer         := 0;
       OUTPUT_PIPE_STAGES_G : integer         := 0);
-
    port (
-      -- AXI-Lite Interface for local registers 
+      -- AXI-Lite Interface for local registers
       axisClk : in sl;
       axisRst : in sl;
 
@@ -49,7 +48,6 @@ entity AxiStreamPacketizer is
 
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
-
 end entity AxiStreamPacketizer;
 
 architecture rtl of AxiStreamPacketizer is
@@ -110,6 +108,7 @@ architecture rtl of AxiStreamPacketizer is
    signal outputAxisSlave  : AxiStreamSlaveType;
 
    signal maxWords : WordCounterType;
+
    -- attribute dont_touch                     : string;
    -- attribute dont_touch of r                : signal is "TRUE";
    -- attribute dont_touch of inputAxisMaster  : signal is "TRUE";
@@ -127,9 +126,10 @@ begin
    -----------------
    -- Input pipeline
    -----------------
-   U_Input : entity work.AxiStreamPipeline
+   U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -176,7 +176,7 @@ begin
                end if;
             end if;
 
-            -- Check if ready to move data                         
+            -- Check if ready to move data
             if (fits and inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
                -- Initialize the AXIS buffer
                v.outputAxisMaster                     := axiStreamMasterInit(AXIS_CONFIG_C);
@@ -200,7 +200,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
-            -- Check if ready to move data   
+            -- Check if ready to move data
             if (inputAxisMaster.tValid = '1' and v.outputAxisMaster.tValid = '0') then
 
                -- Accept the data
@@ -303,7 +303,7 @@ begin
       inputAxisSlave <= v.inputAxisSlave;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -315,9 +315,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -325,9 +327,10 @@ begin
    ------------------
    -- Output pipeline
    ------------------
-   U_Output : entity work.AxiStreamPipeline
+   U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

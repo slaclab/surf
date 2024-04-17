@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : RegisterVector.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: 1 c-c register delay 
+-- Description: 1 c-c register delay
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,12 +17,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity RegisterVector is
    generic (
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean  := false;
       WIDTH_G        : positive := 1;
       INIT_G         : slv      := "0");
    port (
@@ -58,24 +59,26 @@ begin
 
       -- Check the clock enable
       if en = '1' then
-         -- Register/Delay for 1 clock cycle 
+         -- Register/Delay for 1 clock cycle
          v.reg := sig_i;
       end if;
 
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs  
+      -- Outputs
       reg_o <= r.reg;
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

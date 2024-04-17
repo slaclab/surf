@@ -1,0 +1,29 @@
+package:
+  name: surf
+  version: {{ GIT_DESCRIBE_TAG }}
+
+source:
+   path: ..
+
+build:
+   number: {{ GIT_DESCRIBE_NUMBER|int }}
+   noarch: python
+
+requirements:
+
+   host:
+     - python>=3.7
+     - git
+     - gitpython
+
+   run:
+     - python>=3.7
+     - rogue
+     - numpy
+
+about:
+   home: https://github.com/slaclab/surf
+   license: SLAC Open License
+   license_file: LICENSE.txt
+   summary: SLAC Ultimate RTL Framework
+

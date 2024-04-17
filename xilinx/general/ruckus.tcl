@@ -1,11 +1,11 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 # Load the Core
 loadRuckusTcl "$::DIR_PATH/microblaze"
 
 # Load Source Code
-loadSource -dir "$::DIR_PATH/rtl"
+loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
 # Load Simulation
-loadSource -sim_only -dir "$::DIR_PATH/tb"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"

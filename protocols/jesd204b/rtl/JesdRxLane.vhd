@@ -1,5 +1,4 @@
 -------------------------------------------------------------------------------
--- File       : JesdRxLane.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: JesdRx single lane module
@@ -16,7 +15,7 @@
 --                bit 0: GT Reset done
 --                bit 1: Received data valid
 --                bit 2: Received data is misaligned
---                bit 3: Synchronization output status 
+--                bit 3: Synchronization output status
 --                bit 4: Rx buffer overflow
 --                bit 5: Rx buffer underflow
 --                bit 6: Comma position not as expected during alignment
@@ -29,20 +28,20 @@
 --                bit 26: CDR Status of the GTH (Not used in yaml)
 --
 --          Note: sampleData_o is little endian and not byte swapped
---                First sample in time:  sampleData_o(15 downto 0) 
+--                First sample in time:  sampleData_o(15 downto 0)
 --                Second sample in time: sampleData_o(31 downto 16)
 --
 --          Note: The output ADC sample data can be inverted.
 --                     inv_i:     '1' Inverted,      '0' Normal
 --                If inverted the mode can be chosen:
---                     invMode_i: '1' Offset binary, '0' Twos complement 
+--                     invMode_i: '1' Offset binary, '0' Twos complement
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -51,8 +50,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Jesd204bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Jesd204bPkg.all;
 
 entity JesdRxLane is
    generic (
@@ -62,14 +63,14 @@ entity JesdRxLane is
       -- Number of frames in a multi frame
       K_G   : positive := 32);
    port (
-      -- Clocks and Resets   
+      -- Clocks and Resets
       devClk_i      : in  sl;
       devRst_i      : in  sl;
-      -- JESD subclass selection: '0' or '1'(default)     
+      -- JESD subclass selection: '0' or '1'(default)
       subClass_i    : in  sl;
       -- SYSREF for subclass 1 fixed latency
       sysRef_i      : in  sl;
-      -- Clear registered errors     
+      -- Clear registered errors
       clearErr_i    : in  sl;
       -- Control register
       enable_i      : in  sl;
@@ -87,7 +88,7 @@ entity JesdRxLane is
       nSyncAnyD1_i  : in  sl;
       -- Invert ADC data
       inv_i         : in  sl              := '0';
-      -- Synchronization request output 
+      -- Synchronization request output
       nSync_o       : out sl;
       -- Synchronization process is complete and data is valid
       dataValid_o   : out sl;
@@ -169,16 +170,13 @@ begin
    -----------------------------------------------------------------------
    -- Buffer samples between first data and LMFC Min size one LMFC period
    -----------------------------------------------------------------------
-   RX_buffer_fifo_INST : entity work.FifoSync
+   RX_buffer_fifo_INST : entity surf.FifoSync
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
          RST_ASYNC_G    => false,
-         BRAM_EN_G      => true,
+         MEMORY_TYPE_G  => "block",
          FWFT_EN_G      => false,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          PIPE_STAGES_G  => 0,
          DATA_WIDTH_G   => (GT_WORD_SIZE_C*8) + GT_WORD_SIZE_C,
          -- ADDR_WIDTH_G   => bitSize((K_G * F_G)/GT_WORD_SIZE_C),
@@ -201,7 +199,7 @@ begin
    ----------------------
    -- Synchronization FSM
    ----------------------
-   syncFSM_INST : entity work.JesdSyncFsmRx
+   syncFSM_INST : entity surf.JesdSyncFsmRx
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G,
@@ -231,7 +229,7 @@ begin
    ------------------------------------------------------------------
    -- Align the rx data within the GT word and replace the characters
    ------------------------------------------------------------------
-   alignFrRepCh_INST : entity work.JesdAlignFrRepCh
+   alignFrRepCh_INST : entity surf.JesdAlignFrRepCh
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -281,7 +279,7 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Keep a delayed copy 
+      -- Keep a delayed copy
       v.jesdGtRx := r_jesdGtRx;
       v.bufWeD1  := s_bufWe;
 
@@ -304,13 +302,19 @@ begin
 
       -- Check if inverting the data
       if (inv_i = '1') then
-         -- Invert sample data      
+         -- Invert sample data
          v.sampleData := invData(s_sampleData, F_G, GT_WORD_SIZE_C);
+
+         -- +1 correction (https://jira.slac.stanford.edu/browse/ESLMPS-94)
+         for i in F_G-1 downto 0 loop
+            v.sampleData(i*8*F_G+8*F_G-1 downto i*8*F_G) := v.sampleData(i*8*F_G+8*F_G-1 downto i*8*F_G) - 1;
+         end loop;
+
       else
          v.sampleData := s_sampleData;
       end if;
 
-      -- Register the variable for next clock cycle      
+      -- Register the variable for next clock cycle
       rin <= v;
 
       -- Output assignment

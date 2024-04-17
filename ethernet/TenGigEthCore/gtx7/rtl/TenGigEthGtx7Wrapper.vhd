@@ -1,32 +1,34 @@
 -------------------------------------------------------------------------------
--- File       : TenGigEthGtx7Wrapper.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Gtx7 Wrapper for 10GBASE-R Ethernet
 -- Note: This module supports up to a MGT QUAD of 10GigE interfaces
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.EthMacPkg.all;
-use work.TenGigEthPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.EthMacPkg.all;
+use surf.TenGigEthPkg.all;
 
 entity TenGigEthGtx7Wrapper is
    generic (
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      JUMBO_G           : boolean                          := true;
       PAUSE_EN_G        : boolean                          := true;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G    : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
@@ -39,14 +41,14 @@ entity TenGigEthGtx7Wrapper is
    port (
       -- Local Configurations
       localMac            : in  Slv48Array(NUM_LANE_G-1 downto 0)              := (others => MAC_ADDR_INIT_C);
-      -- Streaming DMA Interface 
+      -- Streaming DMA Interface
       dmaClk              : in  slv(NUM_LANE_G-1 downto 0);
       dmaRst              : in  slv(NUM_LANE_G-1 downto 0);
       dmaIbMasters        : out AxiStreamMasterArray(NUM_LANE_G-1 downto 0);
       dmaIbSlaves         : in  AxiStreamSlaveArray(NUM_LANE_G-1 downto 0);
       dmaObMasters        : in  AxiStreamMasterArray(NUM_LANE_G-1 downto 0);
       dmaObSlaves         : out AxiStreamSlaveArray(NUM_LANE_G-1 downto 0);
-      -- Slave AXI-Lite Interface 
+      -- Slave AXI-Lite Interface
       axiLiteClk          : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       axiLiteRst          : in  slv(NUM_LANE_G-1 downto 0)                     := (others => '0');
       axiLiteReadMasters  : in  AxiLiteReadMasterArray(NUM_LANE_G-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
@@ -98,9 +100,9 @@ begin
    phyRst <= phyReset;
 
    ----------------------
-   -- Common Clock Module 
+   -- Common Clock Module
    ----------------------
-   TenGigEthGtx7Clk_Inst : entity work.TenGigEthGtx7Clk
+   TenGigEthGtx7Clk_Inst : entity surf.TenGigEthGtx7Clk
       generic map (
          TPD_G             => TPD_G,
          USE_GTREFCLK_G    => USE_GTREFCLK_G,
@@ -125,14 +127,15 @@ begin
    qpllReset <= uOr(qpllRst) and not(qPllLock);
 
    ----------------
-   -- 10GigE Module 
+   -- 10GigE Module
    ----------------
    GEN_LANE :
    for i in 0 to NUM_LANE_G-1 generate
 
-      TenGigEthGtx7_Inst : entity work.TenGigEthGtx7
+      TenGigEthGtx7_Inst : entity surf.TenGigEthGtx7
          generic map (
             TPD_G           => TPD_G,
+            JUMBO_G         => JUMBO_G,
             PAUSE_EN_G      => PAUSE_EN_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G    => EN_AXI_REG_G,
@@ -141,14 +144,14 @@ begin
          port map (
             -- Local Configurations
             localMac           => localMac(i),
-            -- Streaming DMA Interface 
+            -- Streaming DMA Interface
             dmaClk             => dmaClk(i),
             dmaRst             => dmaRst(i),
             dmaIbMaster        => dmaIbMasters(i),
             dmaIbSlave         => dmaIbSlaves(i),
             dmaObMaster        => dmaObMasters(i),
             dmaObSlave         => dmaObSlaves(i),
-            -- Slave AXI-Lite Interface 
+            -- Slave AXI-Lite Interface
             axiLiteClk         => axiLiteClk(i),
             axiLiteRst         => axiLiteRst(i),
             axiLiteReadMaster  => axiLiteReadMasters(i),

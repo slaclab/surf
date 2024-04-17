@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : FifoWrFsm.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: FIFO Write FSM
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
 
 entity FifoWrFsm is
    generic (
@@ -214,11 +214,10 @@ begin
    ASYNC_RST : if (RST_ASYNC_G) generate
       seq : process (rst, wr_clk) is
       begin
-         if (rising_edge(wr_clk)) then
-            r <= rin after TPD_G;
-         end if;
          if (rst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
+         elsif (rising_edge(wr_clk)) then
+            r <= rin after TPD_G;
          end if;
       end process seq;
    end generate ASYNC_RST;

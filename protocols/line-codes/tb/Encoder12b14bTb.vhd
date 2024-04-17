@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Encoder12b14bTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Testbench for design "Encoder12b14b"
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,9 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code12b14bPkg.all;
+use surf.TextUtilPkg.all;
 
 
 ----------------------------------------------------------------------------------------------------
@@ -63,7 +64,7 @@ begin
 --   dispOutInt <= toDisparityOutType(dispOut);
 
 --   -- component instantiation
---   U_Encoder12b14b : entity work.Encoder12b14b
+--   U_Encoder12b14b : entity surf.Encoder12b14b
 --      generic map (
 --         TPD_G          => TPD_G,
 --         RST_POLARITY_G => RST_POLARITY_G,
@@ -81,7 +82,7 @@ begin
 --         invalidK => invalidK);         -- [out]
 
 
-   U_ClkRst_1 : entity work.ClkRst
+   U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 10 ns,
          CLK_DELAY_G       => 1 ns,
@@ -97,7 +98,7 @@ begin
 --   main : process is
 --      variable a : slv(11 downto 0);
 --      variable b : slv(11 downto 0);
-      
+
 --      procedure doComb (
 --         a  : in slv(11 downto 0);
 --         ak : in sl;

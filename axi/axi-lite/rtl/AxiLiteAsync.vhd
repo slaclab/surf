@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : AxiLiteAsync.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Asynchronous bridge for AXI Lite bus. Allows AXI transactions to cross 
+-- Asynchronous bridge for AXI Lite bus. Allows AXI transactions to cross
 -- a clock boundary.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,16 +19,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiLiteAsync is
    generic (
       TPD_G            : time                  := 1 ns;
+      RST_ASYNC_G      : boolean               := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
-      COMMON_CLK_G    : boolean               := false;    
-      NUM_ADDR_BITS_G : natural               := 32;
-      PIPE_STAGES_G   : integer range 0 to 16 := 0);
+      COMMON_CLK_G     : boolean               := false;
+      NUM_ADDR_BITS_G  : natural               := 32;
+      PIPE_STAGES_G    : integer range 0 to 16 := 0);
    port (
       -- Slave Port
       sAxiClk         : in  sl;
@@ -95,13 +96,13 @@ begin
       sAxiReadSlave   <= mAxiReadSlave;
       mAxiWriteMaster <= sAxiWriteMaster;
       sAxiWriteSlave  <= mAxiWriteSlave;
-      
+
    end generate;
-   
-   GEN_ASYNC : if (COMMON_CLK_G = false) generate   
-   
+
+   GEN_ASYNC : if (COMMON_CLK_G = false) generate
+
    -- Synchronize each reset across to the other clock domain
-   LOC_S2M_RstSync : entity work.RstSync
+   LOC_S2M_RstSync : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          OUT_REG_RST_G => false)
@@ -110,7 +111,7 @@ begin
          asyncRst => sAxiClkRst,
          syncRst  => s2mRst);
 
-   LOC_M2S_RstSync : entity work.RstSync
+   LOC_M2S_RstSync : entity surf.RstSync
       generic map (
          TPD_G         => TPD_G,
          OUT_REG_RST_G => false)
@@ -119,22 +120,18 @@ begin
          asyncRst => mAxiClkRst,
          syncRst  => m2sRst);
 
-
-
    ------------------------------------
    -- Read: Slave to Master
    ------------------------------------
 
    -- Read Slave To Master FIFO
-   U_ReadSlaveToMastFifo : entity work.FifoASync
+   U_ReadSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
@@ -186,21 +183,18 @@ begin
    mAxiReadMaster.arvalid <= readSlaveToMastValid;
    readSlaveToMastRead    <= mAxiReadSlave.arready;
 
-
    ------------------------------------
    -- Read: Master To Slave
    ------------------------------------
 
    -- Read Master To Slave FIFO
-   U_ReadMastToSlaveFifo : entity work.FifoASync
+   U_ReadMastToSlaveFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 34,
@@ -247,21 +241,18 @@ begin
    sAxiReadSlave.rvalid <= ite(m2sRst = '0', readMastToSlaveValid, '1');
    readMastToSlaveRead  <= sAxiReadMaster.rready;
 
-
    ------------------------------------
    -- Write Addr : Slave To Master
    ------------------------------------
 
    -- Write Addr Master To Slave FIFO
-   U_WriteAddrSlaveToMastFifo : entity work.FifoASync
+   U_WriteAddrSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
@@ -313,21 +304,18 @@ begin
    mAxiWriteMaster.awvalid  <= writeAddrSlaveToMastValid;
    writeAddrSlaveToMastRead <= mAxiWriteSlave.awready;
 
-
    ------------------------------------
    -- Write Data : Slave to Master
    ------------------------------------
 
    -- Write Data Slave To Master FIFO
-   U_WriteDataSlaveToMastFifo : entity work.FifoASync
+   U_WriteDataSlaveToMastFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 36,
@@ -374,21 +362,18 @@ begin
    mAxiWriteMaster.wvalid   <= writeDataSlaveToMastValid;
    writeDataSlaveToMastRead <= mAxiWriteSlave.wready;
 
-
    ------------------------------------
    -- Write: Status Master To Slave
    ------------------------------------
 
    -- Write Status Master To Slave FIFO
-   U_WriteMastToSlaveFifo : entity work.FifoASync
+   U_WriteMastToSlaveFifo : entity surf.FifoASync
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => '1',
-         BRAM_EN_G      => false,       -- Use Dist Ram
+         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
          FWFT_EN_G      => true,
-         USE_DSP48_G    => "no",
-         ALTERA_SYN_G   => false,
-         ALTERA_RAM_G   => "M9K",
          SYNC_STAGES_G  => 3,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          DATA_WIDTH_G   => 2,
@@ -432,7 +417,7 @@ begin
    -- Read control and valid
    sAxiWriteSlave.bvalid <= ite(m2sRst = '0', writeMastToSlaveValid, '1');
    writeMastToSlaveRead  <= sAxiWriteMaster.bready;
-   
+
    end generate;
-   
+
 end architecture STRUCTURE;

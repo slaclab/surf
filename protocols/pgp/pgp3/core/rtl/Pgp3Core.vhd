@@ -1,26 +1,27 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Core.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 Core
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp3Pkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp3Pkg.all;
 
 entity Pgp3Core is
 
@@ -37,6 +38,8 @@ entity Pgp3Core is
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
       EN_PGP_MON_G                : boolean               := true;
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
       -- Tx User interface
@@ -75,7 +78,10 @@ entity Pgp3Core is
       phyRxSlip     : out sl;
 
       -- Debug Interface
-      loopback : out slv(2 downto 0);
+      loopback     : out slv(2 downto 0);
+      txDiffCtrl   : out slv(4 downto 0);
+      txPreCursor  : out slv(4 downto 0);
+      txPostCursor : out slv(4 downto 0);
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
@@ -102,7 +108,7 @@ begin
    pgpRxOut <= pgpRxOutInt;
    pgpTxOut <= pgpTxOutInt;
 
-   U_Pgp3Tx_1 : entity work.Pgp3Tx
+   U_Pgp3Tx_1 : entity surf.Pgp3Tx
       generic map (
          TPD_G                    => TPD_G,
          NUM_VC_G                 => NUM_VC_G,
@@ -130,7 +136,7 @@ begin
          phyTxData      => phyTxData,       -- [out]
          phyTxHeader    => phyTxHeader);    -- [out]
 
-   U_Pgp3Rx_1 : entity work.Pgp3Rx
+   U_Pgp3Rx_1 : entity surf.Pgp3Rx
       generic map (
          TPD_G              => TPD_G,
          NUM_VC_G           => NUM_VC_G,
@@ -156,14 +162,14 @@ begin
          phyRxSlip      => phyRxSlip);      -- [out]
 
    GEN_PGP_MON : if (EN_PGP_MON_G) generate
-      U_Pgp3Axi_1 : entity work.Pgp3AxiL
+      U_Pgp3Axi_1 : entity surf.Pgp3AxiL
          generic map (
             TPD_G              => TPD_G,
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
             WRITE_EN_G         => true,
-            STATUS_CNT_WIDTH_G => 16,
-            ERROR_CNT_WIDTH_G  => 8,
+            STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
+            ERROR_CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (
             pgpTxClk        => pgpTxClk,         -- [in]
@@ -179,6 +185,9 @@ begin
             statusWord      => open,             -- [out]
             statusSend      => open,             -- [out]
             phyRxClk        => phyRxClk,         -- [in]
+            txDiffCtrl      => txDiffCtrl,       -- [out]
+            txPreCursor     => txPreCursor,      -- [out]
+            txPostCursor    => txPostCursor,     -- [out]
             axilClk         => axilClk,          -- [in]
             axilRst         => axilRst,          -- [in]
             axilReadMaster  => axilReadMaster,   -- [in]
@@ -188,8 +197,11 @@ begin
    end generate GEN_PGP_MON;
 
    NO_PGP_MON : if (not EN_PGP_MON_G) generate
-      pgpTxInInt <= pgpTxIn;
-      pgpRxInInt <= pgpRxIn;
+      pgpTxInInt   <= pgpTxIn;
+      pgpRxInInt   <= pgpRxIn;
+      txDiffCtrl   <= (others => '1');
+      txPreCursor  <= "00111";
+      txPostCursor <= "00111";
    end generate NO_PGP_MON;
 
    loopback <= pgpRxInInt.loopback;

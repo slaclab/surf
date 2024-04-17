@@ -1,99 +1,17 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
 -------------------------------------------------------------------------------
--- File       : Pgp2bAxi.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP interface.
---
--- Address map (offset from base):
---    0x00 = Read/Write
---       Bits 0 = Count Reset
---    0x04 = Read/Write
---       Bits 0 = Reset Rx
---    0x08 = Read/Write
---       Bits 0 = Flush
---    0x0C = Read/Write
---       Bits 1:0 = Loop Back
---    0x10 = Read/Write
---       Bits 7:0 = Sideband data to transmit
---       Bits 8   = Sideband data enable
---    0x14 = Read/Write
---       Bits 0 = Auto Status Send Enable (PPI)
---    0x18 = Read/Write
---       Bits 0 = Disable Flow Control
---    0x20 = Read Only
---       Bits 0     = Rx Phy Ready
---       Bits 1     = Tx Phy Ready
---       Bits 2     = Local Link Ready
---       Bits 3     = Remote Link Ready
---       Bits 4     = Transmit Ready
---       Bits 9:8   = Receive Link Polarity
---       Bits 15:12 = Remote Pause Status
---       Bits 19:16 = Local Pause Status
---       Bits 23:20 = Remote Overflow Status
---       Bits 27:24 = Local Overflow Status
---    0x24 = Read Only
---       Bits 7:0 = Remote Link Data
---    0x28 = Read Only
---       Bits ?:0 = Cell Error Count
---    0x2C = Read Only
---       Bits ?:0 = Link Down Count
---    0x30 = Read Only
---       Bits ?:0 = Link Error Count
---    0x34 = Read Only
---       Bits ?:0 = Remote Overflow VC 0 Count
---    0x38 = Read Only
---       Bits ?:0 = Remote Overflow VC 1 Count
---    0x3C = Read Only
---       Bits ?:0 = Remote Overflow VC 2 Count
---    0x40 = Read Only
---       Bits ?:0 = Remote Overflow VC 3 Count
---    0x44 = Read Only
---       Bits ?:0 = Receive Frame Error Count
---    0x48 = Read Only
---       Bits ?:0 = Receive Frame Count
---    0x4C = Read Only
---       Bits ?:0 = Local Overflow VC 0 Count
---    0x50 = Read Only
---       Bits ?:0 = Local Overflow VC 1 Count
---    0x54 = Read Only
---       Bits ?:0 = Local Overflow VC 2 Count
---    0x58 = Read Only
---       Bits ?:0 = Local Overflow VC 3 Count
---    0x5C = Read Only
---       Bits ?:0 = Transmit Frame Error Count
---    0x60 = Read Only
---       Bits ?:0 = Transmit Frame Count
---    0x64 = Read Only
---       Bits 31:0 = Receive Clock Frequency
---    0x68 = Read Only
---       Bits 31:0 = Transmit Clock Frequency
---    0x70 = Read Only
---       Bits 7:0 = Last OpCode Transmitted
---    0x74 = Read Only
---       Bits 7:0 = Last OpCode Received
---    0x78 = Read Only
---       Bits ?:0 = OpCode Transmit count
---    0x7C = Read Only
---       Bits ?:0 = OpCode Received count
---
--- Status vector:
---       Bits 31:24 = Rx Link Down Count
---       Bits 23:16 = Rx Frame Error Count
---       Bits 15:8  = Rx Cell Error Count
---       Bits  7:6  = Zeros
---       Bits    5  = Remote Link Ready
---       Bits    4  = Local Link Ready
---       Bits  3:0  = Remote Overflow Status
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -102,9 +20,11 @@ use ieee.std_logic_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.Pgp2bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.Pgp2bPkg.all;
 
 entity Pgp2bAxi is
    generic (
@@ -134,6 +54,11 @@ entity Pgp2bAxi is
       -- Status Bus (axilClk domain)
       statusWord : out slv(63 downto 0);
       statusSend : out sl;
+
+      -- Debug Interface (axilClk domain)
+      txDiffCtrl      : out slv(4 downto 0);
+      txPreCursor     : out slv(4 downto 0);
+      txPostCursor    : out slv(4 downto 0);
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
@@ -170,6 +95,9 @@ architecture structure of Pgp2bAxi is
    signal syncFlowCntlDis : sl;
 
    type RegType is record
+      txDiffCtrl     : slv(4 downto 0);
+      txPreCursor    : slv(4 downto 0);
+      txPostCursor   : slv(4 downto 0);
       flush          : sl;
       resetTx        : sl;
       resetRx        : sl;
@@ -185,6 +113,9 @@ architecture structure of Pgp2bAxi is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txDiffCtrl     => "11111",
+      txPreCursor    => "00111",
+      txPostCursor   => "01111",
       flush          => '0',
       resetTx        => '0',
       resetRx        => '0',
@@ -207,7 +138,7 @@ architecture structure of Pgp2bAxi is
       linkPolarity    : slv(1 downto 0);
       locLinkReady    : sl;
       remLinkReady    : sl;
-      remLinkReadyCnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);      
+      remLinkReadyCnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       remLinkData     : slv(7 downto 0);
       cellErrorCount  : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       linkDownCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
@@ -254,12 +185,10 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_RxOpCodeSync : entity work.SynchronizerFifo
+   U_RxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
-         ALTERA_SYN_G  => false,
-         ALTERA_RAM_G  => "M9K",
+         MEMORY_TYPE_G => "distributed",
          SYNC_STAGES_G => 3,
          DATA_WIDTH_G  => 8,
          ADDR_WIDTH_G  => 2,
@@ -276,12 +205,10 @@ begin
 
    -- Sync remote data
    U_RxDataSyncEn : if COMMON_RX_CLK_G = false generate
-      U_RxDataSync : entity work.SynchronizerFifo
+      U_RxDataSync : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
-            ALTERA_SYN_G  => false,
-            ALTERA_RAM_G  => "M9K",
+            MEMORY_TYPE_G => "distributed",
             SYNC_STAGES_G => 3,
             DATA_WIDTH_G  => 8,
             ADDR_WIDTH_G  => 2,
@@ -302,19 +229,18 @@ begin
    end generate;
 
    -- Errror counters and non counted values
-   U_RxError : entity work.SyncStatusVector
+   U_RxError : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_RX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "111110000111110000",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => 18)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "111110000111110000",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => 18)
       port map (
          statusIn(0)           => pgpRxOut.phyRxReady,
          statusIn(1)           => pgpRxOut.linkReady,
@@ -373,19 +299,18 @@ begin
    rxStatusSync.rxOpCodeCount   <= muxSlVectorArray(rxErrorCntOut, 17);
 
    -- Status counters
-   U_RxStatus : entity work.SyncStatusVector
+   U_RxStatus : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_RX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "1",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
-         WIDTH_G         => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "1",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => 1)
       port map (
          statusIn(0)  => pgpRxOut.frameRx,
          statusOut    => open,
@@ -401,10 +326,9 @@ begin
 
    rxStatusSync.frameCount <= muxSlVectorArray(rxStatusCntOut, 0);
 
-   U_RxClkFreq : entity work.SyncClockFreq
+   U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
@@ -426,12 +350,10 @@ begin
    ---------------------------------------
 
    -- OpCode Capture
-   U_TxOpCodeSync : entity work.SynchronizerFifo
+   U_TxOpCodeSync : entity surf.SynchronizerFifo
       generic map (
          TPD_G         => TPD_G,
-         BRAM_EN_G     => false,
-         ALTERA_SYN_G  => false,
-         ALTERA_RAM_G  => "M9K",
+         MEMORY_TYPE_G => "distributed",
          SYNC_STAGES_G => 3,
          DATA_WIDTH_G  => 8,
          ADDR_WIDTH_G  => 2,
@@ -447,19 +369,18 @@ begin
          dout   => txStatusSync.txOpCodeLast);
 
    -- Errror counters and non counted values
-   U_TxError : entity work.SyncStatusVector
+   U_TxError : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_TX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "110000111100",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => ERROR_CNT_WIDTH_G,
-         WIDTH_G         => 12)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "110000111100",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => 12)
       port map (
          statusIn(0)          => pgpTxOut.phyTxReady,
          statusIn(1)          => pgpTxOut.linkReady,
@@ -493,19 +414,18 @@ begin
    txStatusSync.txOpCodeCount   <= muxSlVectorArray(txErrorCntOut, 11);
 
    -- Status counters
-   U_TxStatus : entity work.SyncStatusVector
+   U_TxStatus : entity surf.SyncStatusVector
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
-         COMMON_CLK_G    => COMMON_TX_CLK_G,
-         RELEASE_DELAY_G => 3,
-         IN_POLARITY_G   => "1",
-         OUT_POLARITY_G  => '1',
-         USE_DSP48_G     => "no",
-         SYNTH_CNT_G     => "1",
-         CNT_RST_EDGE_G  => false,
-         CNT_WIDTH_G     => STATUS_CNT_WIDTH_G,
-         WIDTH_G         => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         SYNC_STAGES_G  => 3,
+         IN_POLARITY_G  => "1",
+         OUT_POLARITY_G => '1',
+         SYNTH_CNT_G    => "1",
+         CNT_RST_EDGE_G => false,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => 1)
       port map (
          statusIn(0)  => pgpTxOut.frameTx,
          statusOut    => open,
@@ -521,10 +441,9 @@ begin
 
    txStatusSync.frameCount <= muxSlVectorArray(txStatusCntOut, 0);
 
-   U_TxClkFreq : entity work.SyncClockFreq
+   U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G             => TPD_G,
-         USE_DSP48_G       => "no",
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
          REFRESH_RATE_G    => 100.0,
          CLK_LOWER_LIMIT_G => 155.0E+6,
@@ -546,12 +465,10 @@ begin
 
    -- Sync Tx Control
    U_TxDataSyncEn : if COMMON_RX_CLK_G = false generate
-      U_TxDataSync : entity work.SynchronizerFifo
+      U_TxDataSync : entity surf.SynchronizerFifo
          generic map (
             TPD_G         => TPD_G,
-            BRAM_EN_G     => false,
-            ALTERA_SYN_G  => false,
-            ALTERA_RAM_G  => "M9K",
+            MEMORY_TYPE_G => "distributed",
             SYNC_STAGES_G => 3,
             DATA_WIDTH_G  => 9,
             ADDR_WIDTH_G  => 2,
@@ -570,7 +487,7 @@ begin
    end generate;
 
    -- Sync flow cntl disable
-   U_FlowCntlDis : entity work.Synchronizer
+   U_FlowCntlDis : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',
@@ -590,26 +507,7 @@ begin
       locTxData   <= r.locData;
    end generate;
 
-   -- Flush Sync
---    U_TxFlushSync : entity work.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpTxClk,
---          dataIn  => r.flush,
---          dataOut => txFlush);
    txFlush <= r.flush;
-
-   -- Flush Sync
---    U_TxResetSync : entity work.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpTxClk,
---          dataIn  => r.resetTx,
---          dataout => txReset);
    txReset <= r.resetTx;
 
 
@@ -626,29 +524,7 @@ begin
    -------------------------------------
    -- Rx Control Sync
    -------------------------------------
-
-   -- Flush Sync
---    U_RxFlushSync : entity work.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpRxClk,
---          dataIn  => r.flush,
---          dataOut => rxFlush);
-
    rxFlush <= r.flush;
-
-   -- Reset Rx Sync
---    U_ResetRxSync : entity work.SynchronizerOneShot
---       generic map (
---          TPD_G         => TPD_G,
---          PULSE_WIDTH_G => 10)
---       port map (
---          clk     => pgpRxClk,
---          dataIn  => r.resetRx,
---          dataOut => rxReset);
-
    rxReset <= r.resetRx;
 
    -- Set rx input
@@ -701,6 +577,12 @@ begin
                v.autoStatus := axilWriteMaster.wdata(0);
             when X"18" =>
                v.flowCntlDis := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
+            when X"1C" =>
+               if WRITE_EN_G then
+                  v.txDiffCtrl   := axilWriteMaster.wdata(4 downto 0);
+                  v.txPreCursor  := axilWriteMaster.wdata(9 downto 5);
+                  v.txPostCursor := axilWriteMaster.wdata(14 downto 10);
+               end if;
             when others => null;
          end case;
 
@@ -710,7 +592,6 @@ begin
 
       -- Read
       if (axiStatus.readEnable = '1') then
-         v.axilReadSlave.rdata := (others => '0');
 
          -- Decode address and assign read data
          case axilReadMaster.araddr(7 downto 0) is
@@ -731,6 +612,10 @@ begin
                v.axilReadSlave.rdata(0) := r.autoStatus;
             when X"18" =>
                v.axilReadSlave.rdata(0) := r.flowCntlDis;
+            when X"1C" =>
+               v.axilReadSlave.rdata(4 downto 0)   := r.txDiffCtrl;
+               v.axilReadSlave.rdata(9 downto 5)   := r.txPreCursor;
+               v.axilReadSlave.rdata(14 downto 10) := r.txPostCursor;
             when X"20" =>
                v.axilReadSlave.rdata(0)            := rxStatusSync.phyRxReady;
                v.axilReadSlave.rdata(1)            := txStatusSync.phyTxReady;
@@ -807,6 +692,9 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      txDiffCtrl     <= r.txDiffCtrl;
+      txPreCursor    <= r.txPreCursor;
+      txPostCursor   <= r.txPostCursor;
 
    end process;
 

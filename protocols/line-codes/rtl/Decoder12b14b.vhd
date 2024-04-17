@@ -1,24 +1,25 @@
 -------------------------------------------------------------------------------
 -- Title      : Line Code 12B14B: https://confluence.slac.stanford.edu/x/6AJODQ
 -------------------------------------------------------------------------------
--- File       : Decoder12b14b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: 12B14B Decoder Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
-use work.StdRtlPkg.all;
-use work.Code12b14bPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.Code12b14bPkg.all;
 
 entity Decoder12b14b is
 
@@ -56,7 +57,7 @@ architecture rtl of Decoder12b14b is
 
    constant REG_INIT_C : RegType := (
       validOut  => '0',
-      dispOut   => "01",
+      dispOut   => "00",
       dataOut   => (others => '0'),
       dataKOut  => '0',
       codeError => '0',

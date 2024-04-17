@@ -1,26 +1,27 @@
 -------------------------------------------------------------------------------
 -- Title      : SRPv3 Protocol: https://confluence.slac.stanford.edu/x/cRmVD
 -------------------------------------------------------------------------------
--- File       : SrpV3Pkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SRPv3 Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 package SrpV3Pkg is
 
@@ -30,7 +31,7 @@ package SrpV3Pkg is
 --       TDEST_BITS_C  => 0,
 --       TID_BITS_C    => 0,
 --       TKEEP_MODE_C  => TKEEP_NORMAL_C,
---       TUSER_BITS_C  => 2,              
+--       TUSER_BITS_C  => 2,
 --       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    constant SRP_VERSION_C : slv(7 downto 0) := x"03";
@@ -134,7 +135,7 @@ package body SrpV3Pkg is
 --       txData(0 to 4)               := srpHeader(SRP_READ_C, addr, data'length*4-1, txnId, timeout);
 --       axiStreamSimSendFrame(SRP_AXIS_CONFIG_C, clk, master, slave, txData, "02", "00");
 
---       --axiStreamSimReceiveFrame(SRP_AXIS_CONFIG_C, clk, 
+--       --axiStreamSimReceiveFrame(SRP_AXIS_CONFIG_C, clk,
 
 --    end procedure;
 

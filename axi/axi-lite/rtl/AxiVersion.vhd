@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : AxiVersion.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Creates AXI accessible registers containing configuration
 -- information.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -19,12 +18,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity AxiVersion is
    generic (
       TPD_G              : time             := 1 ns;
+      RST_ASYNC_G        : boolean          := false;
       BUILD_INFO_G       : BuildInfoType;
       SIM_DNA_VALUE_G    : slv              := X"000000000000000000000000";
       DEVICE_ID_G        : slv(31 downto 0) := (others => '0');
@@ -115,7 +116,7 @@ begin
    fdValueOut  <= fdValue;
 
    GEN_DEVICE_DNA : if (EN_DEVICE_DNA_G) generate
-      DeviceDna_1 : entity work.DeviceDna
+      DeviceDna_1 : entity surf.DeviceDna
          generic map (
             TPD_G           => TPD_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
@@ -130,7 +131,7 @@ begin
    end generate GEN_DEVICE_DNA;
 
    GEN_DS2411 : if (EN_DS2411_G) generate
-      DS2411Core_1 : entity work.DS2411Core
+      DS2411Core_1 : entity surf.DS2411Core
          generic map (
             TPD_G        => TPD_G,
             CLK_PERIOD_G => CLK_PERIOD_G)
@@ -142,7 +143,7 @@ begin
    end generate GEN_DS2411;
 
    GEN_ICAP : if (EN_ICAP_G) generate
-      Iprog_1 : entity work.Iprog
+      Iprog_1 : entity surf.Iprog
          generic map (
             TPD_G          => TPD_G,
             USE_SLOWCLK_G  => USE_SLOWCLK_G,
@@ -164,9 +165,9 @@ begin
       -- Latch the current value
       v := r;
 
-      ------------------------      
+      ------------------------
       -- AXI-Lite Transactions
-      ------------------------      
+      ------------------------
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
@@ -194,7 +195,7 @@ begin
 
       ---------------------------------
       -- Uptime counter
-      ---------------------------------      
+      ---------------------------------
       if r.timer = TIMEOUT_1HZ_C then
          -- Reset the counter
          v.timer := 0;
@@ -222,14 +223,14 @@ begin
       --------
       -- Reset
       --------
-      if (axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs 
+      -- Outputs
       axiReadSlave   <= r.axiReadSlave;
       axiWriteSlave  <= r.axiWriteSlave;
       fpgaReload     <= r.fpgaReload;
@@ -239,9 +240,11 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiRst) is
    begin
-      if (rising_edge(axiClk)) then
+      if (RST_ASYNC_G and axiRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : PGPv3: https://confluence.slac.stanford.edu/x/OndODQ
 -------------------------------------------------------------------------------
--- File       : Pgp3Gtp7TxGearbox.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: PGPv3 GTP7 64B66B to 32B33B TX Gearbox
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,7 +19,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Pgp3Gtp7TxGearbox is
    generic (
@@ -68,13 +69,13 @@ architecture rtl of Pgp3Gtp7TxGearbox is
 
 begin
 
-   U_FifoAsync : entity work.FifoAsync
+   U_FifoAsync : entity surf.FifoAsync
       generic map (
-         TPD_G        => TPD_G,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 66,
-         BRAM_EN_G    => false,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         FWFT_EN_G     => true,
+         DATA_WIDTH_G  => 66,
+         MEMORY_TYPE_G => "distributed",
+         ADDR_WIDTH_G  => 4)
       port map (
          rst               => phyTxRstFast,
          -- Write Ports
@@ -115,7 +116,7 @@ begin
          end if;
 
          --------------------------------------------------------------------------------------
-         -- UG482 (v1.9) Figure 3-9 shows how a pause occurs at counter value 31 when using 
+         -- UG482 (v1.9) Figure 3-9 shows how a pause occurs at counter value 31 when using
          -- an 4-byte fabric interface in external sequence counter mode with 64B/66B encoding.
          --------------------------------------------------------------------------------------
          -- Check if not a "pause" cycle
@@ -144,7 +145,7 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs   
+      -- Registered Outputs
       txHeader   <= r.txHeader;
       txData     <= r.txData;
       txSequence <= r.txSequence;

@@ -1,12 +1,11 @@
 -------------------------------------------------------------------------------
 -- Title      : RSSI Protocol: https://confluence.slac.stanford.edu/x/1IyfD
 -------------------------------------------------------------------------------
--- File       : AxiRssiCore.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: The module is based upon RUDP (Cisco implementation) RFC-908, RFC-1151, draft-ietf-sigtran-reliable-udp-00.
 --              The specifications in the drafts are modified by internal simplifications and improvements.
---              
+--
 --              Interfaces to transport and application side through AxiStream ports
 --              The AxiStream IO port widths can be adjusted (AxiStream FIFOs added to IO)
 --              Optional AxiLite Register interface. More info on registers is in RssiAxiLiteRegItf.vhd
@@ -16,21 +15,21 @@
 --                 - Client: - Actively requests connection
 --                           - Sends NULL packages if there is no incoming data
 --  Status register:
---    statusReg_o(0) : Connection Active          
+--    statusReg_o(0) : Connection Active
 --    statusReg_o(1) : Maximum retransmissions exceeded r.retransMax and
 --    statusReg_o(2) : Null timeout reached (server) r.nullTout;
---    statusReg_o(3) : Error in acknowledgment mechanism   
+--    statusReg_o(3) : Error in acknowledgment mechanism
 --    statusReg_o(4) : SSI Frame length too long
 --    statusReg_o(5) : Connection to peer timed out
 --    statusReg_o(6) : Client rejected the connection (parameters out of range)
---                     Server proposed new parameters (parameters out of range)               
+--                     Server proposed new parameters (parameters out of range)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -40,28 +39,30 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.math_real.all;
 
-use work.StdRtlPkg.all;
-use work.AxiPkg.all;
-use work.AxiStreamPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiRssiPkg.all;
-use work.RssiPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiRssiPkg.all;
+use surf.RssiPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiRssiCore is
    generic (
       TPD_G               : time                := 1 ns;
-      SERVER_G            : boolean             := true;  --! Module is server or client      
+      SERVER_G            : boolean             := true;  --! Module is server or client
       -- AXI Configurations
       MAX_SEG_SIZE_G      : positive            := 1024;  --! max. payload size (units of bytes)
-      AXI_CONFIG_G        : AxiConfigType       := RSSI_AXI_CONFIG_C;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire memory address space
+      AXI_CONFIG_G        : AxiConfigType;  --! Defines the AXI configuration but ADDR_WIDTH_C should be defined as the space for RSSI and maybe not the entire memory address space
       -- AXIS Configurations
-      APP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(8, TKEEP_NORMAL_C);
-      TSP_AXIS_CONFIG_G   : AxiStreamConfigType := ssiAxiStreamConfig(16, TKEEP_NORMAL_C);
+      APP_AXIS_CONFIG_G   : AxiStreamConfigType;
+      TSP_AXIS_CONFIG_G   : AxiStreamConfigType;
       -- RSSI Timeouts
       CLK_FREQUENCY_G     : real                := 156.25E+6;  --! In units of Hz
       TIMEOUT_UNIT_G      : real                := 1.0E-3;  --! In units of seconds
-      ACK_TOUT_G          : positive            := 25;  --! unit depends on TIMEOUT_UNIT_G 
+      ACK_TOUT_G          : positive            := 25;  --! unit depends on TIMEOUT_UNIT_G
       RETRANS_TOUT_G      : positive            := 50;  --! unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_C*Data segment transmission time)
       NULL_TOUT_G         : positive            := 200;  --! unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
       RETRANSMIT_ENABLE_G : boolean             := true;  --! Enable/Disable retransmissions in tx module
@@ -152,7 +153,7 @@ architecture rtl of AxiRssiCore is
    signal s_nullHeadSt : sl;
    signal s_ackHeadSt  : sl;
 
-   -- Tx Segment requests 
+   -- Tx Segment requests
    signal s_sndResend : sl;
    signal s_sndSyn    : sl;
    signal s_sndAck    : sl;
@@ -161,7 +162,7 @@ architecture rtl of AxiRssiCore is
    signal s_sndRst    : sl;
    signal s_sndNull   : sl;
 
-   -- Current transmitted or received SeqN and AckN   
+   -- Current transmitted or received SeqN and AckN
    signal s_txSeqN     : slv(7 downto 0);
    signal s_txAckN     : slv(7 downto 0);
    signal s_rxSeqN     : slv(7 downto 0);
@@ -231,7 +232,7 @@ begin
    ---------------------
    -- Register interface
    ---------------------
-   U_Reg : entity work.RssiAxiLiteRegItf
+   U_Reg : entity surf.RssiAxiLiteRegItf
       generic map (
          TPD_G                 => TPD_G,
          COMMON_CLK_G          => true,
@@ -265,6 +266,7 @@ begin
          mode_o          => s_modeReg,
          initSeqN_o      => s_initSeqNReg,
          appRssiParam_o  => s_appRssiParamReg,
+         negRssiParam_i  => s_rssiParam,
          injectFault_o   => s_injectFaultReg,
          -- Status (RO)
          frameRate_i     => s_frameRate,
@@ -279,7 +281,7 @@ begin
 
    PACKET_RATE :
    for i in 1 downto 0 generate
-      U_AxiStreamMon : entity work.AxiStreamMon
+      U_AxiStreamMon : entity surf.AxiStreamMon
          generic map (
             TPD_G           => TPD_G,
             COMMON_CLK_G    => true,
@@ -300,7 +302,7 @@ begin
 
    ----------------------------------------------------------------------------
    --             Connection, Auto Negotiation and Monitoring                --
-   ----------------------------------------------------------------------------   
+   ----------------------------------------------------------------------------
 
    -----------------------
    -- Parameter assignment
@@ -344,8 +346,8 @@ begin
 
    ----------------------------------
    -- Connection Finite State Machine
-   ----------------------------------   
-   U_ConnFSM : entity work.RssiConnFsm
+   ----------------------------------
+   U_ConnFSM : entity surf.RssiConnFsm
       generic map (
          TPD_G               => TPD_G,
          SERVER_G            => SERVER_G,
@@ -384,7 +386,7 @@ begin
    -------------------------------
    -- Connection Monitoring Module
    -------------------------------
-   U_Monitor : entity work.RssiMonitor
+   U_Monitor : entity surf.RssiMonitor
       generic map (
          TPD_G               => TPD_G,
          CLK_FREQUENCY_G     => CLK_FREQUENCY_G,
@@ -422,10 +424,10 @@ begin
          resendCnt_o     => s_resendCntReg,
          reconCnt_o      => s_reconCntReg);
 
-   ------------------------------------         
+   ------------------------------------
    -- Outbound Header Generation Module
-   ------------------------------------         
-   U_HeaderReg : entity work.RssiHeaderReg
+   ------------------------------------
+   U_HeaderReg : entity surf.RssiHeaderReg
       generic map (
          TPD_G              => TPD_G,
          SYN_HEADER_SIZE_G  => SYN_HEADER_SIZE_C,
@@ -459,9 +461,9 @@ begin
    ----------------------------------------------------------------------------
 
    --------------------
-   -- Application Layer   
+   -- Application Layer
    --------------------
-   U_AppIn : entity work.AxiStreamResize
+   U_AppIn : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -486,7 +488,7 @@ begin
    -----------------------------------
    -- Transmitter Finite State Machine
    -----------------------------------
-   U_TxFSM : entity work.AxiRssiTxFsm
+   U_TxFSM : entity surf.AxiRssiTxFsm
       generic map (
          TPD_G               => TPD_G,
          AXI_CONFIG_G        => AXI_CONFIG_G,
@@ -513,7 +515,7 @@ begin
          connActive_i      => s_connActive,
          -- Closed state in connFSM (initialize seqN)
          closed_i          => s_closed,
-         -- Fault injection corrupts header checksum 
+         -- Fault injection corrupts header checksum
          injectFault_i     => s_injectFault,
          -- Various segment requests
          sndSyn_i          => s_sndSyn,
@@ -556,7 +558,7 @@ begin
    ------------------
    -- Transport Layer
    ------------------
-   U_TspOut : entity work.AxiStreamResize
+   U_TspOut : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -582,7 +584,7 @@ begin
    ------------------
    -- Transport Layer
    ------------------
-   U_TspIn : entity work.AxiStreamResize
+   U_TspIn : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
@@ -604,7 +606,7 @@ begin
    --------------------------------
    -- Receiver Finite State Machine
    --------------------------------
-   U_RxFSM : entity work.AxiRssiRxFsm
+   U_RxFSM : entity surf.AxiRssiRxFsm
       generic map (
          TPD_G               => TPD_G,
          AXI_CONFIG_G        => AXI_CONFIG_G,
@@ -627,7 +629,7 @@ begin
          -- Outbound Application Interface
          appMaster_o       => s_sAppAxisMaster,
          appSlave_i        => s_sAppAxisSlave,
-         -- RX Buffer Full         
+         -- RX Buffer Full
          rxBuffBusy_o      => s_rxBuffBusy,
          -- Connection FSM indicating active connection
          connActive_i      => s_connActive,
@@ -655,9 +657,9 @@ begin
    s_rxAck <= s_rxValidSeg and s_rxFlags.ack and s_connActive;  -- Acknowledge valid packet
 
    --------------------
-   -- Application Layer   
+   -- Application Layer
    --------------------
-   U_AppOut : entity work.AxiStreamResize
+   U_AppOut : entity surf.AxiStreamResize
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,

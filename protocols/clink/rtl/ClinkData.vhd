@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
--- File       : ClinkData.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- CameraLink data de-serializer. 
+-- CameraLink data de-serializer.
 -- Wrapper for ClinkDeSerial when used as dedicated data channel.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,9 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.ClinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.ClinkPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -48,7 +49,7 @@ entity ClinkData is
       parData         : out   slv(27 downto 0);
       parValid        : out   sl;
       parReady        : in    sl;
-      -- AXI-Lite Interface 
+      -- AXI-Lite Interface
       axilReadMaster  : in    AxiLiteReadMasterType;
       axilReadSlave   : out   AxiLiteReadSlaveType;
       axilWriteMaster : in    AxiLiteWriteMasterType;
@@ -59,7 +60,7 @@ architecture rtl of ClinkData is
 
    type LinkState is (RESET_S, WAIT_C_S, SHIFT_C_S, CHECK_C_S, LOAD_C_S, SHIFT_D_S, CHECK_D_S, DONE_S);
 
-   -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps 
+   -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps
    -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
 
    type RegType is record
@@ -101,7 +102,7 @@ begin
    -------------------------------
    -- DeSerializer
    -------------------------------
-   U_DataShift : entity work.ClinkDataShift
+   U_DataShift : entity surf.ClinkDataShift
       generic map (
          TPD_G        => TPD_G,
          XIL_DEVICE_G => XIL_DEVICE_G)
@@ -123,7 +124,7 @@ begin
          -- Frequency Measurements
          clkInFreq       => linkStatus.clkInFreq,
          clinkClkFreq    => linkStatus.clinkClkFreq,
-         -- AXI-Lite Interface 
+         -- AXI-Lite Interface
          sysClk          => sysClk,
          sysRst          => sysRst,
          axilReadMaster  => axilReadMaster,
@@ -252,7 +253,7 @@ begin
       end if;
    end process seq;
 
-   U_RstSync : entity work.RstSync
+   U_RstSync : entity surf.RstSync
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -263,13 +264,13 @@ begin
    --------------------------------------
    -- Output FIFO and status
    --------------------------------------
-   U_DataFifo : entity work.Fifo
+   U_DataFifo : entity surf.Fifo
       generic map (
-         TPD_G        => TPD_G,
-         BRAM_EN_G    => false,
-         FWFT_EN_G    => true,
-         DATA_WIDTH_G => 28,
-         ADDR_WIDTH_G => 4)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         FWFT_EN_G     => true,
+         DATA_WIDTH_G  => 28,
+         ADDR_WIDTH_G  => 4)
       port map (
          rst    => clinkRst,
          wr_clk => clinkClk,
@@ -280,7 +281,7 @@ begin
          dout   => parData,
          valid  => parValid);
 
-   U_Locked : entity work.Synchronizer
+   U_Locked : entity surf.Synchronizer
       generic map (TPD_G => TPD_G)
       port map (
          clk     => sysClk,
@@ -288,7 +289,7 @@ begin
          dataIn  => r.status.locked,
          dataOut => linkStatus.locked);
 
-   U_Delay : entity work.SynchronizerVector
+   U_Delay : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 5)
@@ -298,7 +299,7 @@ begin
          dataIn  => r.status.delay,
          dataOut => linkStatus.delay);
 
-   U_ShiftCnt : entity work.SynchronizerVector
+   U_ShiftCnt : entity surf.SynchronizerVector
       generic map (
          TPD_G   => TPD_G,
          WIDTH_G => 3)

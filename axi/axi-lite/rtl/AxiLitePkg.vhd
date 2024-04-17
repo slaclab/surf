@@ -1,23 +1,24 @@
 -------------------------------------------------------------------------------
--- File       : AxiLitePkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: AXI-Lite Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.NUMERIC_STD.all;
-use work.StdRtlPkg.all;
-use work.TextUtilPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.TextUtilPkg.all;
 
 package AxiLitePkg is
 
@@ -30,21 +31,21 @@ package AxiLitePkg is
    -- Note: There are no "exclusive access" in AXI-Lite.  This is just a placeholder constant.
 
    constant AXI_RESP_SLVERR_C : slv(1 downto 0) := "10";  -- Slave Error
-   -- Note: A SLVERR response is returned to the master if the AXI peripheral interface receives any 
+   -- Note: A SLVERR response is returned to the master if the AXI peripheral interface receives any
    --       of the following unsupported accesses:
    --
    --          1) Any accesses with AWSIZE information other than 32-bit receives a SLVERR response.
    --          2) Any accesses with AWLEN information other than zero receives a SLVERR response.
-   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2'b00, 
-   --             returns a SLVERR response where a read access returns all zeros and a write access 
+   --          3) Any access that is unaligned, for example, where AWADDRP[1:0] is not equal to 2'b00,
+   --             returns a SLVERR response where a read access returns all zeros and a write access
    --             does not modify the address location.
-   --          4) Any write access that attempts to make use of the WSTRB lines, 
-   --             for example where any bits of WSTRB[3:0] are 0, returns a SLVERR response 
-   --             and does not modify the address location.   
+   --          4) Any write access that attempts to make use of the WSTRB lines,
+   --             for example where any bits of WSTRB[3:0] are 0, returns a SLVERR response
+   --             and does not modify the address location.
 
    constant AXI_RESP_DECERR_C : slv(1 downto 0) := "11";  -- Decode Error
-   -- Note: Any transaction that does not decode to a legal master interface destination, 
-   --       or programmers view register, receives a DECERR response. For an AHB master, 
+   -- Note: Any transaction that does not decode to a legal master interface destination,
+   --       or programmers view register, receives a DECERR response. For an AHB master,
    --       the AXI DECERR is mapped back to an AHB ERROR.
 
    --------------------------------------------------------
@@ -208,35 +209,35 @@ package AxiLitePkg is
    -- Constants for endpoint abstractions (migrated from legacy AxiLiteMasterPkg.vhd)
    ----------------------------------------------------------------------------------
    type AxiLiteReqType is record
-      request   : sl;
+      request : sl;
       rnw     : sl;
       address : slv(31 downto 0);
       wrData  : slv(31 downto 0);
    end record AxiLiteReqType;
 
    constant AXI_LITE_REQ_INIT_C : AxiLiteReqType := (
-      request   => '0',
+      request => '0',
       rnw     => '1',
       address => (others => '0'),
       wrData  => (others => '0'));
 
    type AxiLiteAckType is record
-      done  : sl;
+      done   : sl;
       resp   : slv(1 downto 0);
       rdData : slv(31 downto 0);
    end record AxiLiteAckType;
 
    constant AXI_LITE_ACK_INIT_C : AxiLiteAckType := (
-      done  => '0',
+      done   => '0',
       resp   => (others => '0'),
-      rdData => (others => '0'));      
-      
+      rdData => (others => '0'));
+
    -------------------------------------------------------------------------------------------------
    -- Crossbar Config Generic Types
    -------------------------------------------------------------------------------------------------
    type AxiLiteCrossbarMasterConfigType is record
       baseAddr     : slv(31 downto 0);
-      addrBits     : natural;
+      addrBits     : natural range 1 to 32;
       connectivity : slv(15 downto 0);
    end record;
 
@@ -357,19 +358,18 @@ package AxiLitePkg is
       variable axiWriteSlave : in    AxiLiteWriteSlaveType;
       variable axiReadSlave  : in    AxiLiteReadSlaveType);
 
-   procedure axiSlaveRegisterLegacy (
-      variable ep : inout AxiLiteEndpointType;
-      addr        : in    slv;
-      offset      : in    integer;
-      reg         : inout slv;
-      constVal    : in    slv := "X");
-      
    procedure axiSlaveRegister (
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv := "X");
+      constVal    : in    slv);
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv);
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
@@ -382,7 +382,13 @@ package AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout sl;
-      constVal    : in    sl := 'X');
+      constVal    : in    sl);
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout sl);
 
    procedure axiSlaveRegisterR (
       variable ep : inout AxiLiteEndpointType;
@@ -409,7 +415,7 @@ package AxiLitePkg is
       variable ep : inout AxiLiteEndpointType;
       addr        : in    slv;
       reg         : inout sl);
-   
+
 
    procedure axiSlaveDefault (
       variable ep            : inout AxiLiteEndpointType;
@@ -524,19 +530,30 @@ package body AxiLitePkg is
       ----------------------------------------------------------------------------------------------
       writeEnable := '0';
 
-      axiWriteSlave.awready := '0';
-      axiWriteSlave.wready  := '0';
-
-      -- Incomming Write txn and last txn has concluded
-      if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
-         writeEnable := '1';
-      end if;
-
       -- Reset resp valid
       if (axiWriteMaster.bready = '1') then
          axiWriteSlave.bvalid := '0';
       end if;
-   end procedure;
+
+      -- Check if last cycle accepted write address and write data
+      if (axiWriteSlave.awready = '1') and (axiWriteSlave.wready = '1') then
+
+         -- Prevent AXI_ERRS_BRESP_AW: A slave must not give a write response before the write address. Spec: section A3.3.1 and figure A3-7.
+         axiWriteSlave.bvalid := '1';
+
+      else
+
+         -- Incoming Write txn and last txn has concluded
+         if (axiWriteMaster.awvalid = '1' and axiWriteMaster.wvalid = '1' and axiWriteSlave.bvalid = '0') then
+            writeEnable := '1';
+         end if;
+
+      end if;
+
+      axiWriteSlave.awready := '0';
+      axiWriteSlave.wready  := '0';
+
+   end procedure axiSlaveWaitWriteTxn;
 
    procedure axiSlaveWaitReadTxn (
       signal axiReadMaster  : in    AxiLiteReadMasterType;
@@ -548,18 +565,29 @@ package body AxiLitePkg is
       ----------------------------------------------------------------------------------------------
       readEnable := '0';
 
+      -- Check if last cycle accepted read address
+      if (axiReadSlave.arready = '1') then
+
+         -- Prevent AXI_AUXM_RCAM_UNDERFLOW: Read CAM underflow.
+         axiReadSlave.rvalid := '1';
+
+      else
+
+         -- Reset rvalid upon rready
+         if (axiReadMaster.rready = '1') then
+            axiReadSlave.rvalid := '0';
+            axiReadSlave.rdata  := (others => '0');
+         end if;
+
+         -- Incoming read txn and last txn has concluded
+         if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
+            readEnable := '1';
+         end if;
+
+      end if;
+
       axiReadSlave.arready := '0';
 
-      -- Incomming read txn and last txn has concluded
-      if (axiReadMaster.arvalid = '1' and axiReadSlave.rvalid = '0') then
-         readEnable := '1';
-      end if;
-
-      -- Reset rvalid upon rready
-      if (axiReadMaster.rready = '1') then
-         axiReadSlave.rvalid := '0';
-         axiReadSlave.rdata  := (others => '0');
-      end if;
    end procedure axiSlaveWaitReadTxn;
 
    procedure axiSlaveWaitTxn (
@@ -579,7 +607,7 @@ package body AxiLitePkg is
    begin
       axiWriteSlave.awready := '1';
       axiWriteSlave.wready  := '1';
-      axiWriteSlave.bvalid  := '1';
+      axiWriteSlave.bvalid  := '0';     -- bvalid set in axiSlaveWaitWriteTxn
       axiWriteSlave.bresp   := axiResp;
    end procedure;
 
@@ -588,7 +616,7 @@ package body AxiLitePkg is
       axiResp               : in    slv(1 downto 0) := AXI_RESP_OK_C) is
    begin
       axiReadSlave.arready := '1';      -- not sure this is necessary
-      axiReadSlave.rvalid  := '1';
+      axiReadSlave.rvalid  := '0';      -- rvalid set in axiSlaveWaitReadTxn
       axiReadSlave.rresp   := axiResp;
    end procedure;
 
@@ -724,7 +752,7 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv := "X")
+      constVal    : in    slv)
    is
       -- Need to remap addr range to be (length-1 downto 0)
       constant ADDR_LEN_C   : integer                    := addr'length;
@@ -760,14 +788,64 @@ package body AxiLitePkg is
          if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
              std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
             if (constVal /= "X") then
-               reg(REG_HIGH_BIT_C downto reg'low) := constVal;
+               reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal,(REG_HIGH_BIT_C-reg'low)+1);
             else
                reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C);
             end if;
             axiSlaveWriteResponse(ep.axiWriteSlave);
          end if;
       end if;
-      
+
+   end procedure;
+
+   procedure axiSlaveRegisterLegacy (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv)
+   is
+      -- Need to remap addr range to be (length-1 downto 0)
+      constant ADDR_LEN_C   : integer                    := addr'length;
+      constant ADDR_C       : slv(ADDR_LEN_C-1 downto 0) := addr;
+      -- Offset as measured from addr[1:0]="00"
+      constant ABS_OFFSET_C : integer                    := offset + (to_integer(unsigned(ADDR_C(1 downto 0)))*8);
+      -- Normalized address and offset (for when addr[1:0]!=00)
+      constant NORMAL_ADDR_C : slv(ADDR_LEN_C-1 downto 0) := ite(ABS_OFFSET_C /= 0,
+                                                                 slv((unsigned(slv(ADDR_C))) + ((ABS_OFFSET_C/32)*4)),
+                                                                 ADDR_C);
+      constant NORMAL_OFFSET_C : integer := ABS_OFFSET_C mod 32;
+      -- Most significant register bit before wrapping to the next word address
+      constant REG_HIGH_BIT_C  : integer := minimum(31-NORMAL_OFFSET_C+reg'low, reg'high);
+      -- Most significant data bus bit to be used in this recursion (max out at 31)
+      constant BUS_HIGH_BIT_C  : integer := minimum(NORMAL_OFFSET_C+reg'length-1, 31);
+
+      variable strobeMask : slv(3 downto 0) := (others => '-');
+   begin
+
+      for i in BUS_HIGH_BIT_C downto NORMAL_OFFSET_C loop
+         strobeMask(i/8) := '1';
+      end loop;
+
+      -- Read must come first so as not to overwrite the variable if read and write happen at once
+      if (ep.axiStatus.readEnable = '1') then
+         if (std_match(ep.axiReadMaster.araddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2))) then
+            ep.axiReadSlave.rdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C) := reg(REG_HIGH_BIT_C downto reg'low);
+            axiSlaveReadResponse(ep.axiReadSlave);
+         end if;
+      end if;
+
+      if (ep.axiStatus.writeEnable = '1') then
+         if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
+             std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
+            -- if (constVal /= "X") then
+               -- reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal,(REG_HIGH_BIT_C-reg'low)+1);
+            -- else
+               reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C);
+            -- end if;
+            axiSlaveWriteResponse(ep.axiWriteSlave);
+         end if;
+      end if;
+
    end procedure;
 
    procedure axiSlaveRegister (
@@ -775,7 +853,7 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout slv;
-      constVal    : in    slv := "X")
+      constVal    : in    slv)
    is
       variable highbit : integer;
    begin
@@ -787,6 +865,26 @@ package body AxiLitePkg is
             highbit := 31 + (32*i) + reg'low;
          end if;
          axiSlaveRegisterLegacy(ep, slv(unsigned(addr)+(4*i)), offset, reg(highbit downto (32*i)+reg'low), constVal);
+      end loop;
+
+   end procedure;
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout slv)
+   is
+      variable highbit : integer;
+   begin
+
+      for i in ((reg'length-1)/32) downto 0 loop
+         if i = ((reg'length-1)/32) then
+            highbit := ((reg'length-1) mod 32) + (32*i) + reg'low;
+         else
+            highbit := 31 + (32*i) + reg'low;
+         end if;
+         axiSlaveRegisterLegacy(ep, slv(unsigned(addr)+(4*i)), offset, reg(highbit downto (32*i)+reg'low));
       end loop;
 
    end procedure;
@@ -810,7 +908,7 @@ package body AxiLitePkg is
       addr        : in    slv;
       offset      : in    integer;
       reg         : inout sl;
-      constVal    : in    sl := 'X')
+      constVal    : in    sl)
    is
       variable tmpReg : slv(0 downto 0);
       variable tmpVal : slv(0 downto 0);
@@ -818,6 +916,19 @@ package body AxiLitePkg is
       tmpReg(0) := reg;
       tmpVal(0) := constVal;
       axiSlaveRegister(ep, addr, offset, tmpReg, tmpVal);
+      reg       := tmpReg(0);
+   end procedure;
+
+   procedure axiSlaveRegister (
+      variable ep : inout AxiLiteEndpointType;
+      addr        : in    slv;
+      offset      : in    integer;
+      reg         : inout sl)
+   is
+      variable tmpReg : slv(0 downto 0);
+   begin
+      tmpReg(0) := reg;
+      axiSlaveRegister(ep, addr, offset, tmpReg);
       reg       := tmpReg(0);
    end procedure;
 

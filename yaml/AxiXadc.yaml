@@ -1,10 +1,10 @@
 ##############################################################################
 ## This file is part of 'SLAC Firmware Standard Library'.
-## It is subject to the license terms in the LICENSE.txt file found in the 
-## top-level directory of this distribution and at: 
-##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-## No part of 'SLAC Firmware Standard Library', including this file, 
-## may be copied, modified, propagated, or distributed except according to 
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 #schemaversion 3.0.0
@@ -429,7 +429,7 @@ AxiXadc: &AxiXadc
       class: IntField
       name: FlagRegister
       mode: RO
-      description: "This register contains general status information (Read Only). Flag Register Bits are defined in Figure 3-2 and Table 3-2 on page 37 of UG480 (v1.2)" 
+      description: "This register contains general status information (Read Only). Flag Register Bits are defined in Figure 3-2 and Table 3-2 on page 37 of UG480 (v1.2)"
     #########################################################
     ConfigurationRegister:
       at:
@@ -438,7 +438,7 @@ AxiXadc: &AxiXadc
       class: IntField
       name: ConfigurationRegister
       mode: RW
-      description: "These are AxiXadc configuration registers (see Configuration Registers (40hto 42h)) on page 39 of UG480 (v1.2)" 
+      description: "These are AxiXadc configuration registers (see Configuration Registers (40hto 42h)) on page 39 of UG480 (v1.2)"
     #########################################################
     SequenceReg:
       at:
@@ -447,7 +447,7 @@ AxiXadc: &AxiXadc
       class: IntField
       name: SequenceReg
       mode: RW
-      description: "These registers are used to program the channel sequencer function (see Chapter 4, AxiXadc Operating Modes) of UG480 (v1.2)" 
+      description: "These registers are used to program the channel sequencer function (see Chapter 4, AxiXadc Operating Modes) of UG480 (v1.2)"
     #########################################################
     AlarmThreshold:
       at:

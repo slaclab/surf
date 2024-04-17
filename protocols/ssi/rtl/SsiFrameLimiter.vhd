@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : SSI Protocol: https://confluence.slac.stanford.edu/x/0oyfD
 -------------------------------------------------------------------------------
--- File       : SsiFrameLimiter.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Limits the amount of data being sent across a SSI AXIS bus 
+-- Description: Limits the amount of data being sent across a SSI AXIS bus
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -20,13 +19,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity SsiFrameLimiter is
    generic (
       TPD_G               : time                := 1 ns;
+      RST_ASYNC_G         : boolean             := false;
       EN_TIMEOUT_G        : boolean             := true;
       MAXIS_CLK_FREQ_G    : real                := 156.25E+06;  -- In units of Hz
       TIMEOUT_G           : real                := 1.0E-3;  -- In units of seconds
@@ -35,8 +36,8 @@ entity SsiFrameLimiter is
       SLAVE_FIFO_G        : boolean             := false;
       MASTER_FIFO_G       : boolean             := false;
       SLAVE_READY_EN_G    : boolean             := true;
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType := AXI_STREAM_CONFIG_INIT_C);
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Slave Port
       sAxisClk    : in  sl;
@@ -85,10 +86,11 @@ architecture rtl of SsiFrameLimiter is
 begin
 
    BYPASS_FIFO_RX : if (SLAVE_FIFO_C = false) generate
-      U_Resize_OB : entity work.AxiStreamResize
+      U_Resize_OB : entity surf.AxiStreamGearbox
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             READY_EN_G          => true,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
@@ -106,18 +108,17 @@ begin
    end generate;
 
    GEN_FIFO_RX : if (SLAVE_FIFO_C = true) generate
-      FIFO_RX : entity work.AxiStreamFifoV2
+      FIFO_RX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             PIPE_STAGES_G       => 0,
             SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => COMMON_CLK_G,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
@@ -219,7 +220,7 @@ begin
                -- Increment the timer
                v.timer := r.timer + 1;
             else
-               -- Check ready to move data 
+               -- Check ready to move data
                if (v.txMaster.tValid = '0') then
                   -- Set EOF and EOFE
                   v.txMaster.tValid := '1';
@@ -236,21 +237,23 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (mAxisRst = '1') then
+      if (RST_ASYNC_G = false and mAxisRst = '1') then
          v := REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Registered Outputs       
+      -- Registered Outputs
       txMaster <= r.txMaster;
 
    end process comb;
 
-   seq : process (mAxisClk) is
+   seq : process (mAxisClk, mAxisRst) is
    begin
-      if rising_edge(mAxisClk) then
+      if (RST_ASYNC_G) and (mAxisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(mAxisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -261,18 +264,17 @@ begin
    end generate;
 
    GEN_FIFO_TX : if (MASTER_FIFO_G = true) generate
-      FIFO_TX : entity work.AxiStreamFifoV2
+      FIFO_TX : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             PIPE_STAGES_G       => 0,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
-            BRAM_EN_G           => false,
-            USE_BUILT_IN_G      => false,
+            MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => true,
-            CASCADE_SIZE_G      => 1,
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => MASTER_AXI_CONFIG_G,

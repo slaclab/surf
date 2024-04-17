@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : FifoAlteraMf.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Wrapper for Xilinx XPM FIFO module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 library altera_mf;
 use altera_mf_altera_mf_components.all;
@@ -27,6 +28,7 @@ entity FifoAlteraMf is
    generic (
       TPD_G           : time     := 1 ns;
       RST_POLARITY_G  : sl       := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G     : boolean  := false;
       FWFT_EN_G       : boolean  := false;
       GEN_SYNC_FIFO_G : boolean  := false;
       MEMORY_TYPE_G   : string   := "auto";
@@ -196,11 +198,11 @@ begin
 
    GEN_PIPE : if ((FWFT_EN_G = true) and (PIPE_STAGES_G /= 0)) generate
 
-      U_Pipeline : entity work.FifoOutputPipeline
+      U_Pipeline : entity surf.FifoOutputPipeline
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => false,
+            RST_ASYNC_G    => RST_ASYNC_G,
             DATA_WIDTH_G   => DATA_WIDTH_G,
             PIPE_STAGES_G  => PIPE_STAGES_G)
          port map (

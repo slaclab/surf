@@ -1,16 +1,15 @@
 -------------------------------------------------------------------------------
--- File       : GlinkDecoder.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Decoder for the Condition Inversion Master Transition coding
 -- used by the GLink Protocol.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,14 +17,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-use work.StdRtlPkg.all;
-use work.GlinkPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.GlinkPkg.all;
 
 entity GLinkDecoder is
    generic (
       TPD_G          : time    := 1 ns;
       RST_ASYNC_G    : boolean := false;
-      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset      
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       FLAGSEL_G      : boolean := false);
    port (
       en            : in  sl := '1';
@@ -36,7 +37,7 @@ entity GLinkDecoder is
       txReady       : in  sl;           -- TX Clock domain
       gLinkRx       : out GLinkRxType;
       decoderError  : out sl;
-      decoderErrorL : out sl);  
+      decoderErrorL : out sl);
 end entity GLinkDecoder;
 
 architecture rtl of GLinkDecoder is
@@ -46,20 +47,20 @@ architecture rtl of GLinkDecoder is
       toggle   : sl;
       gLinkRx  : GLinkRxType;
    end record;
-   
+
    constant REG_INIT_C : RegType := (
       deglitch => (others => '0'),
       toggle   => '0',
-      gLinkRx  => GLINK_RX_INIT_C);      
+      gLinkRx  => GLINK_RX_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal txRdy : sl;
-   
+
 begin
 
-   Synchronizer_Inst : entity work.Synchronizer
+   Synchronizer_Inst : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_ASYNC_G    => RST_ASYNC_G,
@@ -154,11 +155,11 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
-      -- Outputs      
+      -- Outputs
       gLinkRx       <= r.gLinkRx;
       decoderError  <= uAnd(r.deglitch);
       decoderErrorL <= not(uAnd(r.deglitch));
-      
+
    end process comb;
 
    seq : process (clk, rst) is

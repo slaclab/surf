@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : AxiStreamFlushTb.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Simulation Testbed for testing the AxiStreamFlush module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,10 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiLitePkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 
 entity AxiStreamFlushTb is end AxiStreamFlushTb;
 
@@ -56,7 +57,7 @@ begin
    ---------------------------------------
    -- Generate fast clocks and fast resets
    ---------------------------------------
-   ClkRst_Fast : entity work.ClkRst
+   ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
@@ -65,12 +66,12 @@ begin
          clkP => fastClk,
          clkN => open,
          rst  => fastRst,
-         rstL => open); 
+         rstL => open);
 
    --------------
    -- Data Source
    --------------
-   SsiPrbsTx_Inst : entity work.SsiPrbsTx
+   SsiPrbsTx_Inst : entity surf.SsiPrbsTx
       generic map (
          -- General Configurations
          TPD_G                      => TPD_C,
@@ -90,9 +91,9 @@ begin
          forceEofe    => '0',
          busy         => open,
          tDest        => (others => '0'),
-         tId          => (others => '0'));     
+         tId          => (others => '0'));
 
-   U_Flush: entity work.AxiStreamFlush
+   U_Flush: entity surf.AxiStreamFlush
       generic map (
          TPD_G         => TPD_C,
          AXIS_CONFIG_G => AXI_STREAM_CONFIG_C,

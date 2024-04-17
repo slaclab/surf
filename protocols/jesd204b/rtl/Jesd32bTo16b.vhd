@@ -1,15 +1,14 @@
 -------------------------------------------------------------------------------
--- File       : Jesd32bTo16b.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Converts the 32-bit JESD interface to 16-bit interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
@@ -18,7 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 entity Jesd32bTo16b is
    generic (
@@ -72,12 +73,11 @@ architecture rtl of Jesd32bTo16b is
 
 begin
 
-   U_FIFO : entity work.Fifo
+   U_FIFO : entity surf.Fifo
       generic map (
          TPD_G         => TPD_G,
          SYNTH_MODE_G  => SYNTH_MODE_G,
          MEMORY_TYPE_G => "distributed",
-         BRAM_EN_G     => false,
          FWFT_EN_G     => true,
          SYNC_STAGES_G => SYNC_STAGES_G,
          DATA_WIDTH_G  => 34,
@@ -105,30 +105,34 @@ begin
       -- Latch the current value
       v := r;
 
-      -- Reset the strobes
-      v.rdEn  := '0';
+      -- Delay to align with output data
       v.valid := valid;
 
       -- Check if FIFO has data
-      if r.valid = '1' then
+      if valid = '1' then
          -- Check the 16-bit word select flag
          if r.wordSel = '0' then
             -- Set the flags and data bus
             v.wordSel := '1';
             v.data    := data(15 downto 0);
             v.trig    := trig(0);
+            -- Acknowledge the FIFO read on next cycle
+            v.rdEn    := '1';
          else
             -- Set the flags and data bus
             v.wordSel := '0';
             v.data    := data(31 downto 16);
             v.trig    := trig(1);
-            -- Acknowledge the FIFO read
-            v.rdEn    := '1';
+            -- Reset the flag
+            v.rdEn    := '0';
          end if;
       end if;
 
-      -- Combinatorial outputs before the reset
-      rdEn <= v.rdEn;
+      -- Outputs
+      rdEn     <= r.rdEn;
+      validOut <= r.valid;
+      trigOut  <= r.trig;
+      dataOut  <= r.data;
 
       -- Synchronous Reset
       if (rdRst = '1') then
@@ -137,11 +141,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      validOut <= r.valid;
-      trigOut  <= r.trig;
-      dataOut  <= r.data;
 
    end process comb;
 

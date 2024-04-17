@@ -1,17 +1,16 @@
 -------------------------------------------------------------------------------
 -- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
 -------------------------------------------------------------------------------
--- File       : SaciMultiPixelPkg.vhd
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: SaciMultiPixel Package File
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the 
--- top-level directory of this distribution and at: 
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
--- No part of 'SLAC Firmware Standard Library', including this file, 
--- may be copied, modified, propagated, or distributed except according to 
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
@@ -20,11 +19,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.StdRtlPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
 
 package SaciMultiPixelPkg is
 
-   constant FPGA_VERSION_C : slv(31 downto 0) := x"00000000";
+   constant FPGA_VERSION_C : slv(31 downto 0) := x"E0000000";
 
    type MultiPixelWriteType is record
       asic       : slv(1 downto 0);
@@ -56,32 +57,32 @@ package SaciMultiPixelPkg is
    constant NCOL_C : integer := getNumColumns(FPGA_VERSION_C);
    --Number of columns in ePix "super row"
    -- (columns / ch) * (channels / asic) * (asics / row) / (adc values / word)
-   -- constant WORDS_PER_SUPER_ROW_C : integer := NCOL_C * 4 * 2 / 2; 
+   -- constant WORDS_PER_SUPER_ROW_C : integer := NCOL_C * 4 * 2 / 2;
    constant WORDS_PER_SUPER_ROW_C  : integer := getWordsPerSuperRow(FPGA_VERSION_C);
    constant EPIX100_COLS_PER_ROW   : integer := 96;
    constant EPIX10K_COLS_PER_ROW   : integer := 48;
    constant EPIXS_COLS_PER_ROW     : integer := 10;
    constant EPIX100A_ROWS_PER_ASIC : integer := 352;
-   
-   procedure globalToLocalPixel( signal   globalRow  : in slv; 
-                                 signal   globalCol  : in slv; 
-                                 signal   calRowFlag : in sl; 
+
+   procedure globalToLocalPixel( signal   globalRow  : in slv;
+                                 signal   globalCol  : in slv;
+                                 signal   calRowFlag : in sl;
                                  signal   calBotFlag : in sl;
                                  signal   inputData  : in Slv16Array;
-                                 variable localAsic  : inout slv; 
-                                 variable localRow   : inout slv; 
+                                 variable localAsic  : inout slv;
+                                 variable localRow   : inout slv;
                                  variable localCol   : inout slv;
                                  variable localData  : inout Slv16Array);
-   procedure globalToLocalPixelEpix100A( signal   globalRow  : in slv; 
-                                         signal   globalCol  : in slv; 
-                                         signal   calRowFlag : in sl; 
+   procedure globalToLocalPixelEpix100A( signal   globalRow  : in slv;
+                                         signal   globalCol  : in slv;
+                                         signal   calRowFlag : in sl;
                                          signal   calBotFlag : in sl;
                                          signal   inputData  : in Slv16Array;
-                                         variable localAsic  : inout slv; 
-                                         variable localRow   : inout slv; 
+                                         variable localAsic  : inout slv;
+                                         variable localRow   : inout slv;
                                          variable localCol   : inout slv;
                                          variable localData  : inout Slv16Array) ;
-   
+
 end SaciMultiPixelPkg;
 
 package body SaciMultiPixelPkg is
@@ -91,25 +92,12 @@ package body SaciMultiPixelPkg is
       return toSlv(asic*(2**22), 32);
    end function;
 
+
+   -- SaciMultiPixel.vhd and SaciMultiPixelPkg.vhd is only intended for the oldest ePix100a
+   -- removing version dependency for all other ASIC types
    function getNumColumns (version : slv ) return integer is
    begin
-      assert (version(31 downto 24) = x"E0" or 
-              version(31 downto 24) = x"EA" or
-              version(31 downto 24) = x"E2" or
-              version(31 downto 24) = x"E3") report "Unable to determine ASIC type from version string!" severity failure;
-      --Epix 100p and Epix100a
-      if (version(31 downto 24) = x"E0" or version(31 downto 24) = x"EA") then
-         return EPIX100_COLS_PER_ROW;
-      --Epix 10k
-      elsif (version(31 downto 24) = x"E2") then
-         return EPIX10K_COLS_PER_ROW;
-      --Epix S
-      elsif (version(31 downto 24) = x"E3") then
-         return EPIXS_COLS_PER_ROW;
-      --Other (default to Epix 100)
-      else
-         return EPIX100_COLS_PER_ROW;
-      end if; 
+      return EPIX100_COLS_PER_ROW;
    end function;
 
    function getWordsPerSuperRow (version : slv ) return integer is
@@ -120,7 +108,7 @@ package body SaciMultiPixelPkg is
       --Other
       else
          return NCOL_C * 4 * 2 / 2;
-      end if; 
+      end if;
    end function;
 
    procedure globalToLocalPixel (
@@ -134,13 +122,13 @@ package body SaciMultiPixelPkg is
        variable localCol   : inout slv;
        variable localData  : inout Slv16Array)
    is
-   begin 
-      assert (FPGA_VERSION_C(31 downto 24) = x"EA") report "Multi-pixel writes not supported for this ASIC!" severity warning;   
+   begin
+      assert (FPGA_VERSION_C(31 downto 24) = x"EA") report "Multi-pixel writes not supported for this ASIC!" severity warning;
       if FPGA_VERSION_C(31 downto 24) = x"EA" then
          globalToLocalPixelEpix100A(globalRow,globalCol,calRowFlag,calBotFlag,inputData,localAsic,localRow,localCol,localData);
       end if;
    end procedure globalToLocalPixel;
-   
+
    procedure globalToLocalPixelEpix100A (
        signal   globalRow  : in slv;
        signal   globalCol  : in slv;
@@ -153,7 +141,7 @@ package body SaciMultiPixelPkg is
        variable localData  : inout Slv16Array)
    is
       variable asicCol  : slv(9 downto 0);
-   begin 
+   begin
       -- Top 2 ASICs
       if (globalRow < EPIX100A_ROWS_PER_ASIC and calRowFlag = '0') or (calRowFlag = '1' and calBotFlag = '0') then
          -- ASIC 2 (upper left)
@@ -197,7 +185,7 @@ package body SaciMultiPixelPkg is
             localData(i) := inputData(i);
          end loop;
       end if;
-      -- Decode column to column within a bank   
+      -- Decode column to column within a bank
       if asicCol  < NCOL_C then
          localCol := asicCol;
       elsif asicCol < NCOL_C * 2 then
@@ -207,6 +195,6 @@ package body SaciMultiPixelPkg is
       else
          localCol := asicCol - NCOL_C * 3;
       end if;
-   end procedure globalToLocalPixelEpix100A;  
-   
+   end procedure globalToLocalPixelEpix100A;
+
 end package body SaciMultiPixelPkg;

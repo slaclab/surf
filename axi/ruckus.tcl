@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 # Load Source Code
 loadRuckusTcl "$::DIR_PATH/axi4"
@@ -9,4 +9,4 @@ loadRuckusTcl "$::DIR_PATH/bridge"
 loadRuckusTcl "$::DIR_PATH/dma"
 
 # Load Simulation
-loadSource -sim_only -dir "$::DIR_PATH/simlink/sim"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/simlink/sim"
