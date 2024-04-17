@@ -15,7 +15,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -29,14 +29,14 @@ use surf.SsiPkg.all;
 
 entity Pgp2fcLane is
    generic (
-      TPD_G             : time                             := 1 ns;
-      FC_WORDS_G        : integer range 1 to 4             := 1;    -- Number of lanes, 1-2
-      VC_INTERLEAVE_G   : integer                          := 1;    -- Interleave Frames
-      PAYLOAD_CNT_TOP_G : integer                          := 7;    -- Top bit for payload counter
-      NUM_VC_EN_G       : integer range 1 to 4             := 4;
-      TX_ENABLE_G       : boolean                          := true; -- Enable TX direction
-      RX_ENABLE_G       : boolean                          := true  -- Enable RX direction
-   );
+      TPD_G             : time                 := 1 ns;
+      FC_WORDS_G        : integer range 1 to 8 := 1;     -- Number of words in FC bus
+      VC_INTERLEAVE_G   : integer              := 1;     -- Interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;     -- Top bit for payload counter
+      NUM_VC_EN_G       : integer range 1 to 4 := 4;
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true   -- Enable RX direction
+      );
    port (
 
       ---------------------------------
@@ -44,55 +44,47 @@ entity Pgp2fcLane is
       ---------------------------------
 
       -- System clock, reset & control
-      pgpTxClkEn        : in  sl := '1';
-      pgpTxClk          : in  sl := '0';
-      pgpTxClkRst       : in  sl := '0';
-
-      -- Fast control input interface
-      fcTxSend          : in  sl := '0';
-      fcTxWord          : in  slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
+      pgpTxClkEn  : in sl := '1';
+      pgpTxClk    : in sl := '0';
+      pgpTxClkRst : in sl := '0';
 
       -- Non-VC related IO
-      pgpTxIn           : in  Pgp2fcTxCtrlInType := PGP2FC_TX_CTRL_IN_INIT_C;
-      pgpTxOut          : out Pgp2fcTxStatusOutType;
+      pgpTxIn  : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
+      pgpTxOut : out Pgp2fcTxOutType;
 
       -- VC Interface
-      pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others=>AXI_STREAM_MASTER_INIT_C);
-      pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
+      pgpTxMasters : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves  : out AxiStreamSlaveArray(3 downto 0);
 
       -- Phy interface
-      phyTxLaneOut      : out Pgp2fcTxPhyLaneOutType;
-      phyTxReady        : in  sl := '0';
+      phyTxLaneOut : out Pgp2fcTxPhyLaneOutType;
+      phyTxReady   : in  sl := '0';
 
       ---------------------------------
       -- Receiver Interface
       ---------------------------------
 
       -- System clock, reset & control
-      pgpRxClkEn        : in  sl := '1';
-      pgpRxClk          : in  sl := '0';
-      pgpRxClkRst       : in  sl := '0';
-
-      -- Fast control output interface
-      fcRxRecv          : out sl;
-      fcRxWord          : out slv(16*FC_WORDS_G-1 downto 0);
+      pgpRxClkEn  : in sl := '1';
+      pgpRxClk    : in sl := '0';
+      pgpRxClkRst : in sl := '0';
 
       -- Non-VC related IO
-      pgpRxIn           : in  Pgp2fcRxCtrlInType := PGP2FC_RX_CTRL_IN_INIT_C;
-      pgpRxOut          : out Pgp2fcRxStatusOutType;
+      pgpRxIn  : in  Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
+      pgpRxOut : out Pgp2fcRxOutType;
 
       -- VC Outputs
-      pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
-      pgpRxMasterMuxed  : out AxiStreamMasterType;
+      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed : out AxiStreamMasterType;
 
       -- Receive flow control
-      pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0) := (others=>AXI_STREAM_CTRL_UNUSED_C);
+      pgpRxCtrl : in AxiStreamCtrlArray(3 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
       -- PHY interface
-      phyRxLaneIn       : in  Pgp2fcRxPhyLaneInType;
-      phyRxReady        : in  sl := '0';
-      phyRxInit         : out sl
-   );
+      phyRxLaneIn : in  Pgp2fcRxPhyLaneInType;
+      phyRxReady  : in  sl := '0';
+      phyRxInit   : out sl
+      );
 
 end Pgp2fcLane;
 
@@ -103,7 +95,7 @@ architecture Pgp2fcLane of Pgp2fcLane is
    -- Local Signals
    signal intRxMaster   : AxiStreamMasterType;
    signal remFifoStatus : AxiStreamCtrlArray(3 downto 0);
-   signal intRxOut      : Pgp2fcRxStatusOutType;
+   signal intRxOut      : Pgp2fcRxOutType;
 
 begin
 
@@ -111,38 +103,36 @@ begin
    -- Transmit
    -----------------------------
 
-   U_TxEnGen: if TX_ENABLE_G = true generate
+   U_TxEnGen : if TX_ENABLE_G = true generate
 
       -- Transmit
-      U_Pgp2fcTx: entity surf.Pgp2fcTx
+      U_Pgp2fcTx : entity surf.Pgp2fcTx
          generic map (
-            TPD_G              => TPD_G,
-            FC_WORDS_G         => FC_WORDS_G,
-            VC_INTERLEAVE_G    => VC_INTERLEAVE_G,
-            PAYLOAD_CNT_TOP_G  => PAYLOAD_CNT_TOP_G,
-            NUM_VC_EN_G        => NUM_VC_EN_G
-         ) port map (
-            pgpTxClkEn         => pgpTxClkEn,
-            pgpTxClk           => pgpTxClk,
-            pgpTxClkRst        => pgpTxClkRst,
-            fcSend             => fcTxSend,
-            fcWord             => fcTxWord,
-            pgpTxIn            => pgpTxIn,
-            pgpTxOut           => pgpTxOut,
-            locLinkReady       => intRxOut.linkReady,
-            pgpTxMasters       => pgpTxMasters,
-            pgpTxSlaves        => pgpTxSlaves,
-            locFifoStatus      => pgpRxCtrl,
-            remFifoStatus      => remFifoStatus,
-            phyTxLaneOut       => phyTxLaneOut,
-            phyTxReady         => phyTxReady
-         );
+            TPD_G             => TPD_G,
+            FC_WORDS_G        => FC_WORDS_G,
+            VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
+            PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
+            NUM_VC_EN_G       => NUM_VC_EN_G
+            ) port map (
+               pgpTxClkEn    => pgpTxClkEn,
+               pgpTxClk      => pgpTxClk,
+               pgpTxClkRst   => pgpTxClkRst,
+               pgpTxIn       => pgpTxIn,
+               pgpTxOut      => pgpTxOut,
+               locLinkReady  => intRxOut.linkReady,
+               pgpTxMasters  => pgpTxMasters,
+               pgpTxSlaves   => pgpTxSlaves,
+               locFifoStatus => pgpRxCtrl,
+               remFifoStatus => remFifoStatus,
+               phyTxLaneOut  => phyTxLaneOut,
+               phyTxReady    => phyTxReady
+               );
    end generate;
 
-   U_TxDisGen: if TX_ENABLE_G = false generate
-      pgpTxOut      <= PGP2FC_TX_STATUS_OUT_INIT_C;
-      pgpTxSlaves   <= (others=>AXI_STREAM_SLAVE_INIT_C);
-      phyTxLaneOut  <= PGP2FC_TX_PHY_LANE_OUT_INIT_C;
+   U_TxDisGen : if TX_ENABLE_G = false generate
+      pgpTxOut     <= PGP2FC_TX_OUT_INIT_C;
+      pgpTxSlaves  <= (others => AXI_STREAM_SLAVE_INIT_C);
+      phyTxLaneOut <= PGP2FC_TX_PHY_LANE_OUT_INIT_C;
    end generate;
 
 
@@ -150,51 +140,49 @@ begin
    -- Receive
    -----------------------------
 
-   U_RxEnGen: if RX_ENABLE_G = true generate
+   U_RxEnGen : if RX_ENABLE_G = true generate
 
       -- Receive
-      U_Pgp2fcRx: entity surf.Pgp2fcRx
+      U_Pgp2fcRx : entity surf.Pgp2fcRx
          generic map (
-            TPD_G              => TPD_G,
-            FC_WORDS_G         => FC_WORDS_G,
-            PAYLOAD_CNT_TOP_G  => PAYLOAD_CNT_TOP_G
-         ) port map (
-            pgpRxClkEn        => pgpRxClkEn,
-            pgpRxClk          => pgpRxClk,
-            pgpRxClkRst       => pgpRxClkRst,
-            fcRecv            => fcRxRecv,
-            fcWord            => fcRxWord,
-            pgpRxIn           => pgpRxIn,
-            pgpRxOut          => intRxOut,
-            pgpRxMaster       => intRxMaster,
-            remFifoStatus     => remFifoStatus,
-            phyRxLaneIn       => phyRxLaneIn,
-            phyRxReady        => phyRxReady,
-            phyRxInit         => phyRxInit
-         );
+            TPD_G             => TPD_G,
+            FC_WORDS_G        => FC_WORDS_G,
+            PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G
+            ) port map (
+               pgpRxClkEn    => pgpRxClkEn,
+               pgpRxClk      => pgpRxClk,
+               pgpRxClkRst   => pgpRxClkRst,
+               pgpRxIn       => pgpRxIn,
+               pgpRxOut      => intRxOut,
+               pgpRxMaster   => intRxMaster,
+               remFifoStatus => remFifoStatus,
+               phyRxLaneIn   => phyRxLaneIn,
+               phyRxReady    => phyRxReady,
+               phyRxInit     => phyRxInit
+               );
 
       -- Demux
       U_RxDeMux : entity surf.AxiStreamDeMux
          generic map (
             TPD_G         => TPD_G,
             NUM_MASTERS_G => 4
-         ) port map (
-            axisClk      => pgpRxClk,
-            axisRst      => pgpRxClkRst,
-            sAxisMaster  => intRxMaster,
-            sAxisSlave   => open,
-            mAxisMasters => pgpRxMasters,
-            mAxisSlaves  => (others=>AXI_STREAM_SLAVE_FORCE_C)
-         );
+            ) port map (
+               axisClk      => pgpRxClk,
+               axisRst      => pgpRxClkRst,
+               sAxisMaster  => intRxMaster,
+               sAxisSlave   => open,
+               mAxisMasters => pgpRxMasters,
+               mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C)
+               );
 
    end generate;
 
-   U_RxDisGen: if RX_ENABLE_G = false generate
-      intRxOut               <= PGP2FC_RX_STATUS_OUT_INIT_C;
-      pgpRxMasters           <= (others=>AXI_STREAM_MASTER_INIT_C);
-      intRxMaster            <= AXI_STREAM_MASTER_INIT_C;
-      phyRxInit              <= '0';
-      remFifoStatus          <= (others=>AXI_STREAM_CTRL_UNUSED_C);
+   U_RxDisGen : if RX_ENABLE_G = false generate
+      intRxOut      <= PGP2FC_RX_OUT_INIT_C;
+      pgpRxMasters  <= (others => AXI_STREAM_MASTER_INIT_C);
+      intRxMaster   <= AXI_STREAM_MASTER_INIT_C;
+      phyRxInit     <= '0';
+      remFifoStatus <= (others => AXI_STREAM_CTRL_UNUSED_C);
    end generate;
 
    -- De-Muxed Version

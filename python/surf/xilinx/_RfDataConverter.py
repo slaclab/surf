@@ -125,6 +125,42 @@ class RfDataConverter(pr.Device):
                     expand  = False,
                 ))
 
+        for i in range(2):
+            self.add(pr.RemoteVariable(
+                name         = f'MtsFifoCtrl[{i}]',
+                description  = 'index[0] is MtsFifoCtrlADC, index[1] is MtsFifoCtrlDAC',
+                offset       =  0x0010+4*i,
+                bitSize      =  2,
+                bitOffset    =  0,
+                mode         = 'RW',
+                hidden       = True,
+            ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MtsSysRefEnable',
+            offset       =  0x6000+0x1C00+(0x24<<2), # XRFDC_DAC_TILE_DRP_ADDR(0) + XRFDC_HSCOM_ADDR offsets + XRFDC_MTS_SRCAP_T1
+            bitSize      =  1,
+            bitOffset    =  10, #  XRFDC_MTS_SRCAP_EN_TRX_M=0x0400
+            mode         = 'RW',
+            hidden       = True,
+        ))
+
+    def MtsAdcSync(self):
+        # Disable the FIFOs
+        self.MtsFifoCtrl[0].set(0x2)
+        # Enable SysRef Rx
+        self.MtsSysRefEnable.set(1)
+        # Disable the FIFOs
+        self.MtsFifoCtrl[0].set(0x3)
+
+    def MtsDacSync(self):
+        # Disable the FIFOs
+        self.MtsFifoCtrl[1].set(0x2)
+        # Enable SysRef Rx
+        self.MtsSysRefEnable.set(1)
+        # Disable the FIFOs
+        self.MtsFifoCtrl[1].set(0x3)
+
     def Init(self, dynamicNco=False):
 
         # Useful pointers

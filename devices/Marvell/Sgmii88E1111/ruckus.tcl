@@ -8,6 +8,7 @@ loadSource -lib surf -dir "$::DIR_PATH/core"
 set family [getFpgaArch]
 
 if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||

@@ -88,7 +88,7 @@ echo "" > .nojekyll
 echo 'Generating Doxygen code documentation...'
 doxygen -v
 
-# Update the INPUT configuration 
+# Update the INPUT configuration
 echo "INPUT = $TRAVIS_BUILD_DIR" >> $DOXYFILE
 
 # Update the EXCLUDE configuration
