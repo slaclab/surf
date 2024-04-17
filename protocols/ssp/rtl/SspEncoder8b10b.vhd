@@ -48,7 +48,6 @@ end entity SspEncoder8b10b;
 
 architecture rtl of SspEncoder8b10b is
 
-   signal readyOutInt : sl;
    signal framedData  : slv(15 downto 0);
    signal framedDataK : slv(1 downto 0);
    signal validInt    : sl;
@@ -99,7 +98,7 @@ begin
          dataIn   => framedData,
          dataKIn  => framedDataK,
          validOut => validOut,
-         readyOut => readyOutInt,
+         readyOut => readyOut,
          dataOut  => dataOut);
 
 end architecture rtl;

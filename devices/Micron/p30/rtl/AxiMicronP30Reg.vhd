@@ -187,8 +187,6 @@ begin
             -- Check for a read request
             -------------------------------------------------------------------
             if (axiStatus.readEnable = '1') then
-               -- Reset the register
-               v.axiReadSlave.rdata := (others => '0');
                -- Check for RAM access
                if (axiReadMaster.araddr(10) = '1') then
                   -- Read the ram
@@ -553,6 +551,7 @@ begin
          dina  => r.ramDin,
          -- Port B
          clkb  => axiClk,
+         rstb  => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
          addrb => r.raddr,
          doutb => ramDout);
 

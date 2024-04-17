@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -25,6 +24,7 @@ entity SimpleDualPortRam is
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean                    := false;
       MEMORY_TYPE_G  : string                     := "block";
       DOB_REG_G      : boolean                    := false;  -- Extra reg on doutb (folded into BRAM)
       BYTE_WR_EN_G   : boolean                    := false;
@@ -65,9 +65,9 @@ architecture rtl of SimpleDualPortRam is
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
    shared variable mem : mem_type := (others => INIT_C);
 
-   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0);
+   signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
 
-   signal weaByteInt : slv(weaByte'range);
+   signal weaByteInt : slv(weaByte'range) := (others => '0');
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
@@ -103,10 +103,12 @@ begin
    end process;
 
    -- Port B
-   process(clkb)
+   process(clkb, rstb)
    begin
-      if rising_edge(clkb) then
-         if rstb = RST_POLARITY_G then
+      if (RST_ASYNC_G and rstb = RST_POLARITY_G) then
+         doutbInt <= INIT_C after TPD_G;
+      elsif rising_edge(clkb) then
+         if (RST_ASYNC_G = false and rstb = RST_POLARITY_G) then
             doutbInt <= INIT_C after TPD_G;
          elsif enb = '1' then
             doutBInt <= mem(conv_integer(addrb)) after TPD_G;

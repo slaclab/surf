@@ -210,6 +210,10 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IDLE_S =>
+            -- Set write dma request data
+            v.dmaWrDescReq.dest := intAxisMaster.tDest;
+            v.dmaWrDescReq.id   := intAxisMaster.tId;
+
             if intAxisMaster.tValid = '1' then
                -- Current destination matches incoming frame
                if r.dmaWrTrack.dest = intAxisMaster.tDest then
@@ -232,9 +236,8 @@ begin
 
                -- Wait for mem selection to match incoming frame
                elsif trackData.dest = intAxisMaster.tDest then
-                  -- Set tracking data and setup request
+                  -- Set tracking data
                   v.dmaWrTrack := trackData;
-                  v.dmaWrDescReq.dest := trackData.dest;
 
                   -- Is entry valid or do we need a new buffer
                   if trackData.inUse = '1' then
@@ -311,7 +314,7 @@ begin
             if intAxisMaster.tValid = '1' then
                v.stCount := (others=>'0');
                -- Destination has changed, complete current write
-               if intAxisMaster.tDest /= r.dmaWrDescReq.dest then
+               if intAxisMaster.tDest /= r.dmaWrTrack.dest then
                   v.state := PAD_S;
                -- Overflow detect
                elsif (r.dmaWrTrack.maxSize(31 downto 5) = 0) then -- Assumes max AXIS.TDATA width of 128-bits
@@ -489,7 +492,7 @@ begin
             -- Incoming valid data
             if intAxisMaster.tValid = '1' then
                -- Destination has changed, complete current write
-               if intAxisMaster.tDest /= r.dmaWrDescReq.dest then
+               if intAxisMaster.tDest /= r.dmaWrTrack.dest then
                   v.state := IDLE_S;
                else
                   -- Accept the data

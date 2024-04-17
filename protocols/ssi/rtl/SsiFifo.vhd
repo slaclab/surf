@@ -32,6 +32,7 @@ entity SsiFifo is
    generic (
       -- General Configurations
       TPD_G                  : time                := 1 ns;
+      RST_ASYNC_G            : boolean             := false;
       INT_PIPE_STAGES_G      : natural             := 0;  -- Internal FIFO setting
       PIPE_STAGES_G          : natural             := 1;
       SLAVE_READY_EN_G       : boolean             := true;
@@ -137,6 +138,7 @@ begin
    U_IbFilter : entity surf.SsiIbFrameFilter
       generic map (
          TPD_G            => TPD_G,
+         RST_ASYNC_G      => RST_ASYNC_G,
          SLAVE_READY_EN_G => SLAVE_READY_EN_G,
          AXIS_CONFIG_G    => SLAVE_AXI_CONFIG_G)
       port map (
@@ -161,6 +163,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G                  => TPD_G,
+         RST_ASYNC_G            => RST_ASYNC_G,
          INT_PIPE_STAGES_G      => INT_PIPE_STAGES_G,
          PIPE_STAGES_G          => PIPE_STAGES_G,
          SLAVE_READY_EN_G       => true,  -- Using TREADY between FIFO and IbFilter
@@ -255,7 +258,7 @@ begin
          fifoRst        <= r.fifoRst or sAxisRst;
 
          -- Synchronous Reset
-         if (sAxisRst = '1') then
+         if (RST_ASYNC_G = false and sAxisRst = '1') then
             v := REG_INIT_C;
          end if;
 
@@ -264,9 +267,11 @@ begin
 
       end process comb;
 
-      seq : process (sAxisClk) is
+      seq : process (sAxisClk, sAxisRst) is
       begin
-         if rising_edge(sAxisClk) then
+         if (RST_ASYNC_G) and (sAxisRst = '1') then
+            r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(sAxisClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;
@@ -279,6 +284,7 @@ begin
    U_ObFilter : entity surf.SsiObFrameFilter
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          VALID_THOLD_G => VALID_THOLD_G,
          PIPE_STAGES_G => PIPE_STAGES_G,
          AXIS_CONFIG_G => SLAVE_AXI_CONFIG_G)
@@ -304,6 +310,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             -- FIFO configurations
@@ -331,10 +338,11 @@ begin
    -- sAxisClk = mAxisClk
    ----------------------
    GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
-      U_Resize : entity surf.AxiStreamResize
+      U_Resize : entity surf.AxiStreamGearbox
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             READY_EN_G          => SLAVE_READY_EN_G,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,

@@ -40,7 +40,7 @@ entity AxiMemTester is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       memReady        : out sl;
       memError        : out sl;
-      -- DDR Memory Interface
+      -- AXI4 Memory Interface
       axiClk          : in  sl;
       axiRst          : in  sl;
       start           : in  sl;

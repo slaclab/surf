@@ -35,10 +35,10 @@ entity Ad9249ReadoutGroup is
       TPD_G             : time                 := 1 ns;
       NUM_CHANNELS_G    : natural range 1 to 8 := 8;
       IODELAY_GROUP_G   : string               := "DEFAULT_GROUP";
+      SIM_DEVICE_G      : string               := "ULTRASCALE";
       D_DELAY_CASCADE_G : boolean              := false;
       F_DELAY_CASCADE_G : boolean              := false;
       IDELAYCTRL_FREQ_G : real                 := 200.0;
-      DELAY_VALUE_G     : natural              := 1250;
       DEFAULT_DELAY_G   : slv(8 downto 0)      := (others => '0');
       ADC_INVERT_CH_G   : slv(7 downto 0)      := "00000000";
       USE_MMCME_G       : boolean              := false;
@@ -54,8 +54,16 @@ entity Ad9249ReadoutGroup is
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
 
-      -- Reset for adc deserializer
+      -- Reset for adc deserializer (axilClk domain)
       adcClkRst : in sl;
+
+      -- clocks must be provided with USE_MMCME_G = false
+      -- this option is necessary if there is many ADCs
+      -- one external MMCM should be instantiated to be used with all Ad9249ReadoutGroups
+      adcBitClkIn     : in sl;          -- 350.0 MHz
+      adcBitClkDiv4In : in sl;          --  87.5 MHz
+      adcBitRstIn     : in sl;
+      adcBitRstDiv4In : in sl;
 
       -- Serial Data from ADC
       adcSerial : in Ad9249SerialGroupType;
@@ -63,7 +71,10 @@ entity Ad9249ReadoutGroup is
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
-      (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
+      (others                                                      => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
+      -- optional ready to allow evenout samples readout in adcStreamClk
+      adcReady     : in  slv(NUM_CHANNELS_G-1 downto 0) := (others => '1')
+      );
 end Ad9249ReadoutGroup;
 
 -- Define architecture
@@ -100,7 +111,7 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
       invert         => '0'
-   );
+      );
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
@@ -112,65 +123,57 @@ architecture rtl of Ad9249ReadoutGroup is
    -- ADC Readout Clocked Registers
    -------------------------------------------------------------------------------------------------
    type AdcRegType is record
-      slip          : slv(3 downto 0);
-      count         : slv(5 downto 0);
-      gearBoxOffset : slv(2 downto 0);
+      slip         : sl;
+      count        : slv(5 downto 0);
       --loadDelay      : sl;
       --delayValue     : slv(8 downto 0);
-      locked        : sl;
-      fifoWrData    : Slv16Array(NUM_CHANNELS_G-1 downto 0);
+      locked       : sl;
+      fifoWrData   : Slv16Array(NUM_CHANNELS_G-1 downto 0);
+      fifoWrDataEn : slv(NUM_CHANNELS_G-1 downto 0);
    end record;
 
    constant ADC_REG_INIT_C : AdcRegType := (
-      slip          => (others => '0'),
-      count         => (others => '0'),
-      gearBoxOffset => (others => '0'),
+      slip         => '0',
+      count        => (others => '0'),
       --loadDelay      => '0',
       --delayValue     => (others => '0'),
-      locked        => '0',
-      fifoWrData    => (others => (others => '0')));
+      locked       => '0',
+      fifoWrData   => (others => (others => '0')),
+      fifoWrDataEn => (others => '0')
+      );
 
    signal adcR   : AdcRegType := ADC_REG_INIT_C;
    signal adcRin : AdcRegType;
 
+   signal adcDataValid  : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcFrameValid : sl;
+
 
    -- Local Signals
-   signal tmpAdcClk     : sl;
-   signal adcBitClkIoIn : sl;
-   signal adcBitClkIo   : sl;
-   signal adcBitClkR    : sl;
-   signal adcBitClkRD4  : sl;
+   signal adcDclk       : sl;
+   signal adcBitClk     : sl;
+   signal adcBitClkDiv4 : sl;
+   signal adcBitRstDiv4 : sl;
    signal adcBitRst     : sl;
-   signal adcBitIoRst   : sl;
+   signal adcClkRstSync : sl;
 
-   signal adcFramePad   : sl;
-   signal adcFrame      : slv(13 downto 0);
-   signal adcFrameSync  : slv(13 downto 0);
-   signal adcDataPadOut : slv(NUM_CHANNELS_G-1 downto 0);
-   signal adcDataPad    : slv(NUM_CHANNELS_G-1 downto 0);
-   signal adcData       : Slv14Array(NUM_CHANNELS_G-1 downto 0);
+   signal adcFrame     : slv(13 downto 0);
+   signal adcFrameSync : slv(13 downto 0);
+   signal adcData      : Slv14Array(NUM_CHANNELS_G-1 downto 0);
 
    signal curDelayFrame : slv(8 downto 0);
    signal curDelayData  : slv9Array(NUM_CHANNELS_G-1 downto 0);
 
-   signal fifoDataValid : sl;
-   signal fifoDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
-   signal fifoDataIn    : slv(NUM_CHANNELS_G*16-1 downto 0);
-   signal fifoDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+   signal fifoDataValid : slv(NUM_CHANNELS_G-1 downto 0);
+   signal fifoDataRdEn  : slv(NUM_CHANNELS_G-1 downto 0);
 
-   signal debugDataValid : sl;
-   signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
-   signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
+   signal debugDataValid : slv(NUM_CHANNELS_G-1 downto 0);
+   signal debugData      : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
    signal frameDelay    : slv(8 downto 0);
    signal frameDelaySet : sl;
 
-   signal invertSync    : sl;
-
-   attribute keep of adcBitClkRD4 : signal is "true";
-   attribute keep of adcBitClkR   : signal is "true";
-   attribute keep of adcFrame     : signal is "true";
-   attribute keep of adcBitClkIo  : signal is "true";
+   signal invertSync : sl;
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -185,15 +188,17 @@ begin
          CNT_RST_EDGE_G => true,
          CNT_WIDTH_G    => 16)
       port map (
+         wrClk      => adcBitClkDiv4,
+         wrRst      => '0',
          dataIn     => adcR.locked,
+         ---
          rollOverEn => '0',
-         cntRst     => axilR.lockedCountRst,
          dataOut    => open,
          cntOut     => lockedFallCount,
-         wrClk      => adcBitClkR,
-         wrRst      => '0',
          rdClk      => axilClk,
-         rdRst      => axilRst);
+         rdRst      => axilRst,
+         cntRst     => axilR.lockedCountRst
+         );
 
    Synchronizer_1 : entity surf.Synchronizer
       generic map (
@@ -221,7 +226,7 @@ begin
          TPD_G    => TPD_G,
          STAGES_G => 2)
       port map (
-         clk     => adcBitClkR,
+         clk     => adcBitClkDiv4,
          dataIn  => axilR.invert,
          dataOut => invertSync);
 
@@ -229,22 +234,23 @@ begin
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
    axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync, adcClkRst) is
+                       curDelayFrame, debugData, debugDataValid, lockedFallCount, lockedSync, adcClkRst) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       v := axilR;
 
-      v.dataDelaySet        := (others => '0');
-      v.frameDelaySet       := '0';
-      v.axilReadSlave.rdata := (others => '0');
-      v.lockedCountRst      := '0';
+      v.dataDelaySet   := (others => '0');
+      v.frameDelaySet  := '0';
+      v.lockedCountRst := '0';
 
       -- Store last two samples read from ADC
-      if (debugDataValid = '1' and axilR.freezeDebug = '0') then
-         v.readoutDebug0 := debugDataTmp;
-         v.readoutDebug1 := axilR.readoutDebug0;
-      end if;
+      for i in 0 to NUM_CHANNELS_G-1 loop
+         if (debugDataValid(i) = '1' and axilR.freezeDebug = '0') then
+            v.readoutDebug0(i) := debugData(i);
+            v.readoutDebug1(i) := axilR.readoutDebug0(i);
+         end if;
+      end loop;
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -305,125 +311,66 @@ begin
       end if;
    end process axilSeq;
 
-
-
    -------------------------------------------------------------------------------------------------
    -- Create Clocks
    -------------------------------------------------------------------------------------------------
-   AdcClk_I_Ibufds : IBUFDS
-      generic map (
-         DQS_BIAS => "FALSE"            -- (FALSE, TRUE)
-         )
-      port map (
-         I  => adcSerial.dClkP,
-         IB => adcSerial.dClkN,
-         O  => adcBitClkIoIn);
 
    G_MMCM : if USE_MMCME_G = true generate
+
+      AdcClk_I_Ibufds : IBUFDS
+         generic map (
+            DQS_BIAS => "FALSE"
+            )
+         port map (
+            I  => adcSerial.dClkP,
+            IB => adcSerial.dClkN,
+            O  => adcDclk
+            );
+
       ------------------------------------------
-      -- Generate clocks from 156.25 MHz PGP  --
+      -- Generate clocks from ADC incoming clock
       ------------------------------------------
-      -- clkIn     : 350.00 MHz PGP
-      -- clkOut(0) : 350.00 MHz adcBitClkIo clock
+      -- clkIn     : 350.00 MHz ADC clock
+      -- clkOut(0) : 350.00 MHz adcBitClk clock
+      -- clkOut(1) :  87.50 MHz adcBitClkDiv4 clock
       U_iserdesClockGen : entity surf.ClockManagerUltraScale
          generic map(
-            TPD_G                  => 1 ns,
-            TYPE_G                 => "MMCM",  -- or "PLL"
-            INPUT_BUFG_G           => true,
-            FB_BUFG_G              => true,
-            RST_IN_POLARITY_G      => '1',     -- '0' for active low
-            NUM_CLOCKS_G           => 1,
+            TPD_G              => 1 ns,
+            TYPE_G             => "MMCM",  -- or "PLL"
+            INPUT_BUFG_G       => true,
+            FB_BUFG_G          => true,
+            RST_IN_POLARITY_G  => '1',     -- '0' for active low
+            NUM_CLOCKS_G       => 2,
             -- MMCM attributes
-            BANDWIDTH_G            => "OPTIMIZED",
-            CLKIN_PERIOD_G         => 2.85,    -- Input period in ns );
-            DIVCLK_DIVIDE_G        => 10,
-            CLKFBOUT_MULT_F_G      => 20.0,
-            CLKFBOUT_MULT_G        => 5,
-            CLKOUT0_DIVIDE_F_G     => 1.0,
-            CLKOUT0_DIVIDE_G       => 2,
-            CLKOUT0_PHASE_G        => 0.0,
-            CLKOUT0_DUTY_CYCLE_G   => 0.5,
-            CLKOUT0_RST_HOLD_G     => 3,
-            CLKOUT0_RST_POLARITY_G => '1')
+            BANDWIDTH_G        => "OPTIMIZED",
+            CLKIN_PERIOD_G     => 2.85,    -- Input period in ns );
+            DIVCLK_DIVIDE_G    => 10,
+            CLKFBOUT_MULT_F_G  => 20.0,
+            CLKFBOUT_MULT_G    => 5,
+            CLKOUT0_DIVIDE_F_G => 1.0,
+            CLKOUT0_DIVIDE_G   => 2,
+            CLKOUT1_DIVIDE_G   => 8
+            )
          port map(
-            clkIn     => adcBitClkIoIn,
-            rstIn     => adcClkRst,
-            clkOut(0) => tmpAdcClk,
-            rstOut(0) => adcBitIoRst,
+            clkIn     => adcDclk,
+            rstIn     => '0',
+            clkOut(0) => adcBitClk,
+            clkOut(1) => adcBitClkDiv4,
+            rstOut(0) => adcBitRst,
+            rstOut(1) => adcBitRstDiv4,
             locked    => open
-         );
-
-      U_bitClkBufG : BUFG
-         port map (
-            O => adcBitClkIo,
-            I => tmpAdcClk);
+            );
 
    end generate G_MMCM;
 
    G_NO_MMCM : if USE_MMCME_G = false generate
 
-      tmpAdcClk <= adcBitClkIoIn;
-
-      U_bitClkBufG : BUFG
-         port map (
-            O => adcBitClkIo,
-            I => tmpAdcClk);
-
-      U_PwrUpRst : entity surf.PwrUpRst
-         generic map (
-            TPD_G          => TPD_G,
-            SIM_SPEEDUP_G  => SIM_SPEEDUP_G,
-            DURATION_G     => 511,
-            IN_POLARITY_G  => '1',
-            OUT_POLARITY_G => '1')
-         port map (
-            clk    => adcBitClkIo,
-            arst   => adcClkRst,
-            rstOut => adcBitIoRst);
+      adcBitClk     <= adcBitClkIn;
+      adcBitClkDiv4 <= adcBitClkDiv4In;
+      adcBitRst     <= adcBitRstIn;
+      adcBitRstDiv4 <= adcBitRstDiv4In;
 
    end generate G_NO_MMCM;
-
-
-
-   -- Regional clock
-   U_AdcBitClkR : BUFGCE_DIV
-      generic map (
-         BUFGCE_DIVIDE   => 7,          -- 1-8
-         -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
-         IS_CE_INVERTED  => '0',        -- Optional inversion for CE
-         IS_CLR_INVERTED => '0',        -- Optional inversion for CLR
-         IS_I_INVERTED   => '0'         -- Optional inversion for I
-         )
-      port map (
-         I   => adcBitClkIo,
-         O   => adcBitClkR,
-         CE  => '1',
-         CLR => '0');
-
-   -- Regional clock
-   U_AdcBitClkRD4 : BUFGCE_DIV
-      generic map (
-         BUFGCE_DIVIDE   => 4,          -- 1-8
-         -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
-         IS_CE_INVERTED  => '0',        -- Optional inversion for CE
-         IS_CLR_INVERTED => '0',        -- Optional inversion for CLR
-         IS_I_INVERTED   => '0'         -- Optional inversion for I
-         )
-      port map (
-         I   => adcBitClkIo,
-         O   => adcBitClkRD4,
-         CE  => '1',
-         CLR => '0');
-
-   -- Regional clock reset
-   ADC_BITCLK_RST_SYNC : entity surf.RstSync
-      generic map (
-         TPD_G           => TPD_G,
-         RELEASE_DELAY_G => 5)
-      port map (
-         clk      => adcBitClkR,
-         asyncRst => adcBitIoRst,
-         syncRst  => adcBitRst);
 
    -------------------------------------------------------------------------------------------------
    -- Deserializers
@@ -431,6 +378,7 @@ begin
    U_FRAME_DESERIALIZER : entity surf.Ad9249Deserializer
       generic map (
          TPD_G             => TPD_G,
+         SIM_DEVICE_G      => SIM_DEVICE_G,
          IODELAY_GROUP_G   => "DEFAULT_GROUP",
          IDELAY_CASCADE_G  => F_DELAY_CASCADE_G,
          IDELAYCTRL_FREQ_G => 350.0,
@@ -438,18 +386,18 @@ begin
          ADC_INVERT_CH_G   => '1',
          BIT_REV_G         => '0')
       port map (
-         adcClkRst     => adcBitRst,
-         dClk          => adcBitClkIo,      -- Data clock
-         dClkDiv4      => adcBitClkRD4,
-         dClkDiv7      => adcBitClkR,
+         dClk          => adcBitClk,        -- Data clock
+         dRst          => adcBitRst,
+         dClkDiv4      => adcBitClkDiv4,
+         dRstDiv4      => adcBitRstDiv4,
          sDataP        => adcSerial.fClkP,  -- Frame clock
          sDataN        => adcSerial.fClkN,
          loadDelay     => frameDelaySet,
          delay         => frameDelay,
          delayValueOut => curDelayFrame,
          bitSlip       => adcR.slip,
-         gearboxOffset => adcR.gearboxOffset,
-         adcData       => adcFrame
+         adcData       => adcFrame,
+         adcValid      => adcFrameValid
          );
 
    U_FrmDlyFifo : entity surf.SynchronizerFifo
@@ -464,7 +412,7 @@ begin
          wr_clk => axilClk,
          wr_en  => axilR.frameDelaySet,
          din    => axilR.delay,
-         rd_clk => adcBitClkRD4,
+         rd_clk => adcBitClkDiv4,
          rd_en  => '1',
          valid  => frameDelaySet,
          dout   => frameDelay);
@@ -480,6 +428,7 @@ begin
       U_DATA_DESERIALIZER : entity surf.Ad9249Deserializer
          generic map (
             TPD_G             => TPD_G,
+            SIM_DEVICE_G      => SIM_DEVICE_G,
             IODELAY_GROUP_G   => "DEFAULT_GROUP",
             IDELAY_CASCADE_G  => D_DELAY_CASCADE_G,
             IDELAYCTRL_FREQ_G => 350.0,
@@ -487,18 +436,18 @@ begin
             ADC_INVERT_CH_G   => ADC_INVERT_CH_G(i),
             BIT_REV_G         => '1')
          port map (
-            adcClkRst     => adcBitRst,
-            dClk          => adcBitClkIo,       -- Data clock
-            dClkDiv4      => adcBitClkRD4,
-            dClkDiv7      => adcBitClkR,
+            dClk          => adcBitClk,         -- Data clock
+            dRst          => adcBitRst,
+            dClkDiv4      => adcBitClkDiv4,
+            dRstDiv4      => adcBitRstDiv4,
             sDataP        => adcSerial.chP(i),  -- Frame clock
             sDataN        => adcSerial.chN(i),
             loadDelay     => dataDelaySet(i),
             delay         => dataDelay(i),
             delayValueOut => curDelayData(i),
             bitSlip       => adcR.slip,
-            gearboxOffset => adcR.gearboxOffset,
-            adcData       => adcData(i)
+            adcData       => adcData(i),
+            adcValid      => adcDataValid(i)
             );
 
 
@@ -514,7 +463,7 @@ begin
             wr_clk => axilClk,
             wr_en  => axilR.dataDelaySet(i),
             din    => axilR.delay,
-            rd_clk => adcBitClkRD4,
+            rd_clk => adcBitClkDiv4,
             rd_en  => '1',
             valid  => dataDelaySet(i),
             dout   => dataDelay(i));
@@ -524,7 +473,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Bit Clocked Logic
    -------------------------------------------------------------------------------------------------
-   adcComb : process (adcData, adcFrame, adcR, invertSync) is
+   adcComb : process (adcData, adcDataValid, adcFrame, adcFrameValid, adcR, invertSync) is
       variable v : AdcRegType;
    begin
       v := adcR;
@@ -532,16 +481,15 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Slip bits until correct alignment seen
       ----------------------------------------------------------------------------------------------
+      v.slip := '0';
       if (adcR.count = 0) then
-         if (adcFrame = FRAME_PATTERN_C) then
-            v.locked := '1';
-         else
-            v.locked := '0';
-            v.slip   := adcR.slip + 1;
-            v.count  := adcR.count + 1;
-            -- increments the gearbox
-            if adcR.slip = 0 then
-               v.gearBoxOffset := adcR.gearBoxOffset + 1;
+         if adcFrameValid = '1' then
+            if (adcFrame = FRAME_PATTERN_C) then
+               v.locked := '1';
+            else
+               v.locked := '0';
+               v.slip   := '1';
+               v.count  := adcR.count + 1;
             end if;
          end if;
       end if;
@@ -558,14 +506,18 @@ begin
       for i in NUM_CHANNELS_G-1 downto 0 loop
          if (adcR.locked = '1' and adcFrame = FRAME_PATTERN_C) then
             -- Locked, output adc data
-            if invertSync = '1' then
-               v.fifoWrData(i) := "00" & (x"3FFF" - adcData(i));
-            else
-               v.fifoWrData(i) := "00" & adcData(i);
+            if adcDataValid(i) = '1' then
+               if invertSync = '1' then
+                  v.fifoWrData(i) := "00" & ("11111111111111" - adcData(i));
+               else
+                  v.fifoWrData(i) := "00" & adcData(i);
+               end if;
             end if;
+            v.fifoWrDataEn(i) := adcDataValid(i);
          else
             -- Not locked
-            v.fifoWrData(i) := (others => '1');  --"10" & "00000000000000";
+            v.fifoWrData(i)   := (others => '0');
+            v.fifoWrDataEn(i) := '0';
          end if;
       end loop;
 
@@ -573,61 +525,68 @@ begin
 
    end process adcComb;
 
-   adcSeq : process (adcBitClkR, adcBitRst) is
+   adcSeq : process (adcBitClkDiv4) is
    begin
-      if (adcBitRst = '1') then
-         adcR <= ADC_REG_INIT_C after TPD_G;
-      elsif (rising_edge(adcBitClkR)) then
-         adcR <= adcRin after TPD_G;
+      if (rising_edge(adcBitClkDiv4)) then
+         if (adcBitRstDiv4 = '1' or adcClkRstSync = '1') then
+            adcR <= ADC_REG_INIT_C after TPD_G;
+         else
+            adcR <= adcRin after TPD_G;
+         end if;
       end if;
    end process adcSeq;
 
-   -- Flatten fifoWrData onto fifoDataIn for FIFO
-   -- Regroup fifoDataOut by channel into fifoDataTmp
-   -- Format fifoDataTmp into AxiStream channels
-   glue : for i in NUM_CHANNELS_G-1 downto 0 generate
-      fifoDataIn(i*16+15 downto i*16)  <= adcR.fifoWrData(i);
-      fifoDataTmp(i)                   <= fifoDataOut(i*16+15 downto i*16);
-      debugDataTmp(i)                  <= debugDataOut(i*16+15 downto i*16);
-      adcStreams(i).tdata(15 downto 0) <= fifoDataTmp(i);
-      adcStreams(i).tDest              <= toSlv(i, 8);
-      adcStreams(i).tValid             <= fifoDataValid;
+   RstSync_1 : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G
+         )
+      port map (
+         clk      => adcBitClkDiv4,
+         asyncRst => adcClkRst,
+         syncRst  => adcClkRstSync
+         );
+
+   -- synchronize data cross-clocks
+   G_FIFO_SYNC : for i in NUM_CHANNELS_G-1 downto 0 generate
+
+
+      U_DataFifo : entity surf.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16,
+            ADDR_WIDTH_G => 4)
+         port map (
+            rst    => adcBitRstDiv4,
+            wr_clk => adcBitClkDiv4,
+            wr_en  => adcR.fifoWrDataEn(i),
+            din    => adcR.fifoWrData(i),
+            rd_clk => adcStreamClk,
+            rd_en  => fifoDataRdEn(i),
+            valid  => fifoDataValid(i),
+            dout   => adcStreams(i).tdata(15 downto 0)
+            );
+
+      fifoDataRdEn(i)      <= adcReady(i) and fifoDataValid(i);
+      adcStreams(i).tDest  <= toSlv(i, 8);
+      adcStreams(i).tValid <= fifoDataValid(i);
+
+      U_DataFifoDebug : entity surf.SynchronizerFifo
+         generic map (
+            TPD_G        => TPD_G,
+            DATA_WIDTH_G => 16,
+            ADDR_WIDTH_G => 4)
+         port map (
+            rst    => adcBitRstDiv4,
+            wr_clk => adcBitClkDiv4,
+            wr_en  => adcR.fifoWrDataEn(i),
+            din    => adcR.fifoWrData(i),
+            rd_clk => axilClk,
+            rd_en  => debugDataValid(i),
+            valid  => debugDataValid(i),
+            dout   => debugData(i)
+            );
+
    end generate;
-
-   -- Single fifo to synchronize adc data to the Stream clock
-   U_DataFifo : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G         => TPD_G,
-         MEMORY_TYPE_G => "distributed",
-         DATA_WIDTH_G  => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G  => 4,
-         INIT_G        => "0")
-      port map (
-         rst    => adcBitRst,
-         wr_clk => adcBitClkR,
-         wr_en  => '1',                 --Always write data
-         din    => fifoDataIn,
-         rd_clk => adcStreamClk,
-         rd_en  => fifoDataValid,
-         valid  => fifoDataValid,
-         dout   => fifoDataOut);
-
-   U_DataFifoDebug : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G         => TPD_G,
-         MEMORY_TYPE_G => "distributed",
-         DATA_WIDTH_G  => NUM_CHANNELS_G*16,
-         ADDR_WIDTH_G  => 4,
-         INIT_G        => "0")
-      port map (
-         rst    => adcBitRst,
-         wr_clk => adcBitClkR,
-         wr_en  => '1',                 --Always write data
-         din    => fifoDataIn,
-         rd_clk => axilClk,
-         rd_en  => debugDataValid,
-         valid  => debugDataValid,
-         dout   => debugDataOut);
 
 
 end rtl;

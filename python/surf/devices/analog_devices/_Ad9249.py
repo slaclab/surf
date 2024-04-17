@@ -96,23 +96,39 @@ class Ad9249ConfigGroup(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'DevIndexMask[7:0]',
-            offset      = [0x10, 0x14],
+            name        = 'DevIndexMask_DataCh[0]',
+            offset      = 0x10,
             bitSize     = 4,
             bitOffset   = 0,
             mode        = 'RW',
             disp        = '{:#b}',
-            base        = pr.UInt,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'DevIndexMask[DCO:FCO]',
+            name        = 'DevIndexMask_DataCh[1]',
             offset      = 0x14,
-            bitSize     = 2,
-            bitOffset   = 0x4,
+            bitSize     = 4,
+            bitOffset   = 0,
             mode        = 'RW',
             disp        = '{:#b}',
-            base        = pr.UInt,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'DevIndexMask_FCO',
+            offset      = 0x14,
+            bitSize     = 1,
+            bitOffset   = 4,
+            mode        = 'RW',
+            disp        = '{:#b}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'DevIndexMask_DCO',
+            offset      = 0x14,
+            bitSize     = 1,
+            bitOffset   = 5,
+            mode        = 'RW',
+            disp        = '{:#b}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -256,8 +272,8 @@ class Ad9249Config(pr.Device):
                     base        = pr.Bool,
                     mode        = 'RW',
                 ))
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[0]', offset=i*0x1000))
-                self.add(Ad9249ConfigGroup(name=f'Ad9249Chip[{i}].BankConfig[1]', offset=i*0x1000+0x0800))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249ChipBankConfig0[{i}]', offset=i*0x1000))
+                self.add(Ad9249ConfigGroup(name=f'Ad9249ChipBankConfig1[{i}]', offset=i*0x1000+0x0800))
 
 class Ad9249ReadoutGroup(pr.Device):
     def __init__(self,
@@ -378,25 +394,294 @@ class Ad9249ReadoutGroup(pr.Device):
 
     @staticmethod
     def getDelay(var, read):
-        return var.dependencies[0].get(read)
+        return var.dependencies[0].get(read=read)
 
-    def readBlocks(self, recurse=True, variable=None, checkEach=False):
+    def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
+        """
+        Perform background reads
+        """
+        checkEach = checkEach or self.forceCheckEach
+
         if variable is not None:
             freeze = isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
             if freeze:
                 self.FreezeDebug(1)
-            for b in self._getBlocks(variable):
-                b.startTransaction(rim.Read, checkEach)
+            pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
             if freeze:
                 self.FreezeDebug(0)
+
         else:
             self.FreezeDebug(1)
             for block in self._blocks:
-                if block.bulkEn:
-                    block.startTransaction(rim.Read, checkEach)
+                if block.bulkOpEn:
+                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
             self.FreezeDebug(0)
 
+            if recurse:
+                for key,value in self.devices.items():
+                    value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
+
+
+class Ad9249ReadoutGroup2(pr.Device):
+    def __init__(self,
+                 name        = 'Ad9249Readout',
+                 description = 'Configure readout of 1 bank of an AD9249',
+                 fpga        = '7series',
+                 channels    = 8,
+                 **kwargs):
+
+        assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 0 and 8'
+        super().__init__(name=name, description=description, **kwargs)
+
+        if fpga == '7series':
+            delayBits = 6
+        elif fpga == 'ultrascale':
+            delayBits = 9
+        else:
+            delayBits = 6
+
+
+        self.add(pr.RemoteVariable(
+            name         = 'Delay',
+            description  = 'IDELAY value',
+            offset       = 0x00,
+            bitSize      = delayBits,
+            bitOffset    = 0,
+            base         = pr.UInt,
+            mode         = 'RW',
+            verify       = False,
+            groups       = 'NoConfig',
+        ))
+
+        self.add(pr.RemoteCommand(
+            name='Relock',
+            hidden=False,
+            offset=0x20,
+            bitSize=1,
+            bitOffset=0,
+            base=pr.UInt,
+            function=pr.RemoteCommand.toggle))
+
+        self.add(pr.RemoteVariable(
+            name        = 'ErrorDetCount',
+            description = 'Number of times that frame lock has been lost since reset',
+            offset      = 0x30,
+            disp = '{:d}',
+            bitSize     = 16,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RO',
+            ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'LostLockCount',
+            description = 'Number of times that frame lock has been lost since reset',
+            offset      = 0x50,
+            bitSize     = 16,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Locked',
+            description = 'Readout has locked on to the frame boundary',
+            offset      = 0x50,
+            bitSize     = 1,
+            bitOffset   = 16,
+            base        = pr.Bool,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'AdcFrameSync',
+            description = 'Last deserialized FCO value for debug',
+            offset      = 0x58,
+            bitSize     = 14,
+            base        = pr.UInt,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Invert',
+            description = 'Optional ADC data inversion (offset binary only)',
+            offset      = 0x60,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        for i in range(channels):
+            self.add(pr.RemoteVariable(
+                name        = f'AdcChannel[{i:d}]',
+                description = f'Last deserialized channel {i:d} ADC value for debug',
+                offset      = 0x80 + (i*4),
+                bitSize     = 32,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                disp        = '{:09_x}',
+                mode        = 'RO',
+            ))
+
+        for i in range(channels):
+            self.add(pr.LinkVariable(
+                name = f'AdcVoltage[{i}]',
+                mode = 'RO',
+                disp = '{:1.9f}',
+                variable = self.AdcChannel[i],
+                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
+                units = 'V'))
+
+        self.add(pr.RemoteCommand(
+            name        = 'LostLockCountReset',
+            description = 'Reset LostLockCount',
+            function    = pr.BaseCommand.toggle,
+            offset      = 0x5C,
+            bitSize     = 1,
+            bitOffset   = 0,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name='FreezeDebug',
+            description='Freeze all of the AdcChannel registers',
+            hidden=True,
+            offset=0xA0,
+            bitSize=1,
+            bitOffset=0,
+            base=pr.UInt,
+            function=pr.RemoteCommand.touch))
+
+    def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
+        """
+        Perform background reads
+        """
+        checkEach = checkEach or self.forceCheckEach
+
+        if variable is not None:
+            pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
+
+        else:
+            self.FreezeDebug(1)
+            for block in self._blocks:
+                if block.bulkOpEn:
+                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
+            self.FreezeDebug(0)
 
             if recurse:
-                for key, value in self.devices.items():
-                    value.readBlocks(recurse=True, checkEach=checkEach)
+                for key,value in self.devices.items():
+                    value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
+
+
+class AdcTester(pr.Device):
+    def __init__(self, **kwargs):
+        """Create AdcTester"""
+        super().__init__(description='ADC Pattern Tester Regsisters', **kwargs)
+
+        # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
+        # contains this object. In most cases the parent and memBase are the same but they can be
+        # different in more complex bus structures. They will also be different for the top most node.
+        # The setMemBase call can be used to update the memBase for this Device. All sub-devices and local
+        # blocks will be updated.
+
+        #############################################
+        # Create block / variable combinations
+        #############################################
+
+
+        #Setup registers & variables
+        self.add(pr.RemoteVariable(
+            name       = 'TestChannel',
+            description= 'Test Channel Select',
+            offset     = 0x00000000,
+            bitSize    = 32,
+            bitOffset  = 0,
+            base       = pr.UInt,
+            mode       = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name       = 'TestDataMask',
+            description= 'Test Data Mask',
+            offset     = 0x00000004,
+            bitSize    = 32,
+            bitOffset  = 0,
+            base       = pr.UInt,
+            mode       = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name       = 'TestPattern',
+            description= 'Test Pattern',
+            offset     = 0x00000008,
+            bitSize    = 32,
+            bitOffset  = 0,
+            base       = pr.UInt,
+            mode       = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name       = 'TestSamples',
+            description= 'Test Samples Number',
+            offset     = 0x0000000C,
+            bitSize    = 32,
+            bitOffset  = 0,
+            base       = pr.UInt,
+            mode       = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name       = 'TestTimeout',
+            description= 'Test Timeout',
+            offset     = 0x00000010,
+            bitSize    = 32,
+            bitOffset  = 0,
+            base       = pr.UInt,
+            mode       = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name       = 'TestRequest',
+            description= 'Test Request',
+            offset     = 0x00000014,
+            bitSize    = 1,
+            bitOffset  = 0,
+            base       = pr.Bool,
+            mode       = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name       = 'TestPassed',
+            description= 'Test Passed Flag',
+            offset     = 0x00000018,
+            bitSize    = 1,
+            bitOffset  = 0,
+            base       = pr.Bool,
+            mode       = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name       = 'TestFailed',
+            description= 'Test Failed Flag',
+            offset     = 0x0000001C,
+            bitSize    = 1,
+            bitOffset  = 0,
+            base       = pr.Bool,
+            mode       = 'RO',
+        ))
+
+    #####################################
+    # Create commands
+    #####################################
+
+    # A command has an associated function. The function can be a series of
+    # python commands in a string. Function calls are executed in the command scope
+    # the passed arg is available as 'arg'. Use 'dev' to get to device scope.
+    # A command can also be a call to a local function with local scope.
+    # The command object and the arg are passed
+
+    @staticmethod
+    def frequencyConverter(self):
+        def func(dev, var):
+            return '{:.3f} kHz'.format(1/(self.clkPeriod * self._count(var.dependencies)) * 1e-3)
+        return func

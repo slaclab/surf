@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Block to extract and re-isnert a destination from an interleaved stream.
+-- Block to extract and re-insert a destination from an interleaved stream.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamTap is
    generic (
       TPD_G                : time                   := 1 ns;
+      RST_ASYNC_G          : boolean                := false;
       TAP_DEST_G           : natural range 0 to 255 := 0;
       PIPE_STAGES_G        : natural range 0 to 16  := 0;
       ILEAVE_ON_NOTVALID_G : boolean                := false;
@@ -48,8 +49,8 @@ end AxiStreamTap;
 
 architecture structure of AxiStreamTap is
 
-   constant ROUTES_C : Slv8Array := (0 => "--------",
-                                     1 => toSlv(TAP_DEST_G, 8));
+   constant ROUTES_C : Slv8Array := (0 => toSlv(TAP_DEST_G, 8),
+                                     1 => "--------");
 
    signal iAxisMaster : AxiStreamMasterType;
    signal iAxisSlave  : AxiStreamSlaveType;
@@ -59,6 +60,7 @@ begin
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          NUM_MASTERS_G  => 2,
          MODE_G         => "ROUTED",
@@ -66,19 +68,20 @@ begin
       port map (
          sAxisMaster     => sAxisMaster,
          sAxisSlave      => sAxisSlave,
-         mAxisMasters(0) => iAxisMaster,
-         mAxisMasters(1) => tmAxisMaster,
-         mAxisSlaves(0)  => iAxisSlave,
-         mAxisSlaves(1)  => tmAxisSlave,
+         mAxisMasters(0) => tmAxisMaster,
+         mAxisMasters(1) => iAxisMaster,
+         mAxisSlaves(0)  => tmAxisSlave,
+         mAxisSlaves(1)  => iAxisSlave,
          axisClk         => axisClk,
          axisRst         => axisRst);
 
    U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
+         RST_ASYNC_G          => RST_ASYNC_G,
          PIPE_STAGES_G        => PIPE_STAGES_G,
          NUM_SLAVES_G         => 2,
-         MODE_G               => "ROUTED",
+         MODE_G               => "PASSTHROUGH",
          TDEST_ROUTES_G       => ROUTES_C,
          ILEAVE_EN_G          => true,
          ILEAVE_ON_NOTVALID_G => ILEAVE_ON_NOTVALID_G,
@@ -86,10 +89,10 @@ begin
       port map (
          axisClk         => axisClk,
          axisRst         => axisRst,
-         sAxisMasters(0) => iAxisMaster,
-         sAxisMasters(1) => tsAxisMaster,
-         sAxisSlaves(0)  => iAxisSlave,
-         sAxisSlaves(1)  => tsAxisSlave,
+         sAxisMasters(0) => tsAxisMaster,
+         sAxisMasters(1) => iAxisMaster,
+         sAxisSlaves(0)  => tsAxisSlave,
+         sAxisSlaves(1)  => iAxisSlave,
          mAxisMaster     => mAxisMaster,
          mAxisSlave      => mAxisSlave);
 

@@ -294,6 +294,7 @@ package body Code12b14bPkg is
    function getDisparity (vec : slv) return BlockDisparityType is
       variable ones      : integer;
       variable zeros     : integer;
+      variable difference: integer;
       variable disparity : BlockDisparityType;
    begin
       zeros := 0;
@@ -305,7 +306,14 @@ package body Code12b14bPkg is
       end loop;
 
       ones      := vec'length-zeros;
-      disparity := ones-zeros;
+      difference:= ones-zeros;
+      if (difference > 4) then
+        disparity := 4;
+      elsif (difference < -4) then
+        disparity := -4;
+      else
+        disparity :=  difference;
+      end if;
 
       return disparity;
 

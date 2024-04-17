@@ -36,6 +36,7 @@ package EthMacPkg is
    constant UDP_C  : slv(7 downto 0) := x"11";  -- Protocol = UDP  = 0x11
    constant TCP_C  : slv(7 downto 0) := x"06";  -- Protocol = TCP  = 0x06
    constant ICMP_C : slv(7 downto 0) := x"01";  -- Protocol = ICMP = 0x01
+   constant IGMP_C : slv(7 downto 0) := x"02";  -- Protocol = IGMP = 0x02
 
    -- DHCP Constants
    constant DHCP_CPORT : slv(15 downto 0) := x"4400";  -- Port = 68 = 0x0044

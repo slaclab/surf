@@ -199,6 +199,10 @@ begin
       if (r.wrStb = '1' and (rdStb = '1' or isLeadingEdge)) then
          v.wrStb                            := '0';
          v.shiftReg(WORD_SIZE_G-1 downto 0) := rdData;
+         -- Hack special case
+         if (CPHA_G = '0') then
+            v.shiftReg(WORD_SIZE_G downto 1) := rdData;
+         end if;
       end if;
 
       if (rst = '1') then

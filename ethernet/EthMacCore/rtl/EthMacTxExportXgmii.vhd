@@ -25,7 +25,8 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxExportXgmii is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G        : time   := 1 ns;
+      SYNTH_MODE_G : string := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClk         : in  sl;
@@ -146,23 +147,24 @@ begin
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
          -- FIFO configurations
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => true,
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)        -- 64-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)            -- 64-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macObMaster,                 -- 128-bit AXI stream interface
+         sAxisMaster => macObMaster,                     -- 128-bit AXI stream interface
          sAxisSlave  => macObSlave,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macMaster,                   -- 64-bit AXI stream interface
+         mAxisMaster => macMaster,                       -- 64-bit AXI stream interface
          mAxisSlave  => macSlave);
 
    -- Generate read
@@ -340,9 +342,9 @@ begin
 
             -- Wait for gap, min 3 clocks
             if stateCount >= INTERGAP_C and stateCount >= 3 then
-               nxtState     <= ST_IDLE_C;
+               nxtState <= ST_IDLE_C;
             else
-               nxtState     <= curState;
+               nxtState <= curState;
             end if;
 
          -- Padding frame
@@ -414,7 +416,7 @@ begin
 
             -- CRC Valid
             crcDataValid <= intAdvance after TPD_G;
-            crcIn        <= intData after TPD_G;
+            crcIn        <= intData    after TPD_G;
 
             -- Last line
             if intLastLine = '1' then

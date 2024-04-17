@@ -38,7 +38,9 @@ entity EthMacRx is
       -- VLAN Configurations
       VLAN_EN_G      : boolean               := false;
       VLAN_SIZE_G    : positive range 1 to 8 := 1;
-      VLAN_VID_G     : Slv12Array            := (0 => x"001"));
+      VLAN_VID_G     : Slv12Array            := (0 => x"001");
+      -- Internal RAM sythesis mode
+      SYNTH_MODE_G   : string                := "inferred");
    port (
       -- Clock and Reset
       ethClkEn     : in  sl;
@@ -88,8 +90,9 @@ begin
    -------------------
    U_Import : entity surf.EthMacRxImport
       generic map (
-         TPD_G      => TPD_G,
-         PHY_TYPE_G => PHY_TYPE_G)
+         TPD_G        => TPD_G,
+         PHY_TYPE_G   => PHY_TYPE_G,
+         SYNTH_MODE_G => SYNTH_MODE_G)
       port map (
          -- Clock and reset
          ethClkEn    => ethClkEn,

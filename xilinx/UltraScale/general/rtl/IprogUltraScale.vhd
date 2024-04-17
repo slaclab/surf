@@ -117,7 +117,7 @@ begin
          dataIn  => start,
          dataOut => startEdge);
 
-   SynchronizerVector_1 : entity work.SynchronizerVector
+   SynchronizerVector_1 : entity surf.SynchronizerVector
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 2,

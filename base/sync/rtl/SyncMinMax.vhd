@@ -17,13 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SyncMinMax is
    generic (
       TPD_G        : time     := 1 ns;
+      RST_ASYNC_G  : boolean  := false;
       COMMON_CLK_G : boolean  := false;
       WIDTH_G      : positive := 16);
    port (
@@ -46,6 +46,7 @@ end SyncMinMax;
 architecture rtl of SyncMinMax is
 
    type RegType is record
+      reset   : sl;
       armed   : sl;
       update  : sl;
       dataIn  : slv(WIDTH_G-1 downto 0);
@@ -53,6 +54,7 @@ architecture rtl of SyncMinMax is
       dataMax : slv(WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
+      reset   => '1',
       armed   => '0',
       update  => '0',
       dataIn  => (others => '0'),
@@ -84,10 +86,12 @@ begin
 
    U_LessThan : entity surf.DspComparator
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => WIDTH_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         WIDTH_G     => WIDTH_G)
       port map (
          clk     => wrClk,
+         rst     => r.reset,
          -- Inbound Interface
          ibValid => wrEn,
          ain     => dataIn,
@@ -97,10 +101,12 @@ begin
 
    U_GreaterThan : entity surf.DspComparator
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => WIDTH_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G,
+         WIDTH_G     => WIDTH_G)
       port map (
          clk     => wrClk,
+         rst     => r.reset,
          -- Inbound Interface
          ibValid => wrEn,
          ain     => dataIn,
@@ -119,6 +125,7 @@ begin
 
       -- Reset strobes
       v.update := '0';
+      v.reset  := '0';
 
       -- Check for write clock enable
       if (valid = '1') then
@@ -157,7 +164,7 @@ begin
       dataMaxFeadback <= v.dataMax;
 
       -- Reset
-      if (wrRst = '1') or (resetStat = '1') then
+      if (RST_ASYNC_G = false and wrRst = '1') or (resetStat = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -166,19 +173,23 @@ begin
 
    end process;
 
-   process (wrClk) is
+   seq : process (wrClk, wrRst) is
    begin
-      if (rising_edge(wrClk)) then
+      if (RST_ASYNC_G) and (wrRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(wrClk) then
          r <= rin after TPD_G;
       end if;
-   end process;
+   end process seq;
 
    U_dataOut : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => WIDTH_G)
       port map (
+         rst    => r.reset,
          -- Write Interface
          wr_clk => wrClk,
          wr_en  => valid,
@@ -191,9 +202,11 @@ begin
    U_dataMin : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => WIDTH_G)
       port map (
+         rst    => r.reset,
          -- Write Interface
          wr_clk => wrClk,
          wr_en  => r.update,
@@ -206,9 +219,11 @@ begin
    U_dataMax : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => WIDTH_G)
       port map (
+         rst    => r.reset,
          -- Write Interface
          wr_clk => wrClk,
          wr_en  => r.update,

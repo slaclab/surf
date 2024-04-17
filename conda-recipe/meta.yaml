@@ -7,17 +7,17 @@ source:
 
 build:
    number: {{ GIT_DESCRIBE_NUMBER|int }}
+   noarch: python
 
 requirements:
-   build:
-     - python
-     - rogue
+
+   host:
+     - python>=3.7
      - git
      - gitpython
-     - numpy
 
    run:
-     - python
+     - python>=3.7
      - rogue
      - numpy
 

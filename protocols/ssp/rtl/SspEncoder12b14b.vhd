@@ -48,7 +48,6 @@ end entity SspEncoder12b14b;
 
 architecture rtl of SspEncoder12b14b is
 
-   signal readyOutInt : sl;
    signal framedData  : slv(11 downto 0) := (others => '0');
    signal framedDataK : slv(0 downto 0)  := (others => '0');
    signal validInt    : sl;
@@ -98,7 +97,7 @@ begin
          dataIn   => framedData,
          dataKIn  => framedDataK(0),
          validOut => validOut,
-         readyOut => readyOutInt,
+         readyOut => readyOut,
          dataOut  => dataOut);
 
 end architecture rtl;

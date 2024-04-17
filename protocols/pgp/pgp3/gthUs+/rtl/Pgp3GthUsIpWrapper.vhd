@@ -66,6 +66,9 @@ entity Pgp3GthUsIpWrapper is
       txHeader       : in  slv(1 downto 0);
       txOutClk       : out sl;
       loopback       : in  slv(2 downto 0);
+      txDiffCtrl     : in slv(4 downto 0);
+      txPreCursor    : in slv(4 downto 0);
+      txPostCursor   : in slv(4 downto 0);
 
       -- AXI-Lite DRP Interface
       axilClk         : in  sl                     := '0';
@@ -77,6 +80,128 @@ entity Pgp3GthUsIpWrapper is
 end entity Pgp3GthUsIpWrapper;
 
 architecture mapping of Pgp3GthUsIpWrapper is
+
+   component Pgp3GthUsIp15G
+      port (
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(63 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(63 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         qpll0clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
+         qpll1clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
+         rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txdiffctrl_in                      : in  std_logic_vector(4 downto 0);
+         txheader_in                        : in  std_logic_vector(5 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txpostcursor_in                    : in  std_logic_vector(4 downto 0);
+         txprecursor_in                     : in  std_logic_vector(4 downto 0);
+         txsequence_in                      : in  std_logic_vector(6 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         rxdatavalid_out                    : out std_logic_vector(1 downto 0);
+         rxheader_out                       : out std_logic_vector(5 downto 0);
+         rxheadervalid_out                  : out std_logic_vector(1 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         rxstartofseq_out                   : out std_logic_vector(1 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         );
+   end component;
+
+   component Pgp3GthUsIp12G
+      port (
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_srcclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk_out        : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_usrclk2_out       : out std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_out        : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0lock_in           : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_qpll0reset_out         : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(63 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(63 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gthrxn_in                          : in  std_logic_vector(0 downto 0);
+         gthrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         qpll0clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll0refclk_in                     : in  std_logic_vector(0 downto 0);
+         qpll1clk_in                        : in  std_logic_vector(0 downto 0);
+         qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
+         rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txdiffctrl_in                      : in  std_logic_vector(4 downto 0);
+         txheader_in                        : in  std_logic_vector(5 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txpostcursor_in                    : in  std_logic_vector(4 downto 0);
+         txprecursor_in                     : in  std_logic_vector(4 downto 0);
+         txsequence_in                      : in  std_logic_vector(6 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gthtxn_out                         : out std_logic_vector(0 downto 0);
+         gthtxp_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         rxdatavalid_out                    : out std_logic_vector(1 downto 0);
+         rxheader_out                       : out std_logic_vector(5 downto 0);
+         rxheadervalid_out                  : out std_logic_vector(1 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         rxstartofseq_out                   : out std_logic_vector(1 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         );
+   end component;
 
    component Pgp3GthUsIp10G
       port (
@@ -318,6 +443,134 @@ begin
          asyncRst => rxUsrClkActiveInt,  -- [in]
          syncRst  => rxUsrClkRst);       -- [out]
 
+   GEN_15G : if (RATE_G = "15.46875Gbps") generate
+      U_Pgp3GthUsIp : Pgp3GthUsIp15G
+         port map (
+            gtwiz_userclk_tx_reset_in(0)          => txReset,
+            gtwiz_userclk_tx_srcclk_out(0)        => txOutClk,
+            gtwiz_userclk_tx_usrclk_out(0)        => txUsrClk,
+            gtwiz_userclk_tx_usrclk2_out(0)       => txUsrClk2Int,
+            gtwiz_userclk_tx_active_out(0)        => txUsrClkActiveInt,
+            gtwiz_userclk_rx_reset_in(0)          => rxReset,
+            gtwiz_userclk_rx_srcclk_out(0)        => rxOutClk,
+            gtwiz_userclk_rx_usrclk_out(0)        => rxUsrClk,
+            gtwiz_userclk_rx_usrclk2_out(0)       => rxUsrClk2Int,
+            gtwiz_userclk_rx_active_out(0)        => rxUsrClkActiveInt,
+            gtwiz_reset_clk_freerun_in(0)         => stableClk,
+            gtwiz_reset_all_in(0)                 => stableRst,
+            gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
+            gtwiz_reset_rx_datapath_in(0)         => rxReset,
+            gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
+            gtwiz_reset_rx_cdr_stable_out(0)      => dummy5,
+            gtwiz_reset_tx_done_out(0)            => txResetDone,
+            gtwiz_reset_rx_done_out(0)            => rxResetDone,
+            gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
+            gtwiz_userdata_tx_in                  => txData,
+            gtwiz_userdata_rx_out                 => rxData,
+            drpclk_in(0)                          => stableClk,
+            drpaddr_in                            => drpAddr,
+            drpdi_in                              => drpDi,
+            drpen_in(0)                           => drpEn,
+            drpwe_in(0)                           => drpWe,
+            drpdo_out                             => drpDo,
+            drprdy_out(0)                         => drpRdy,
+            gthrxn_in(0)                          => gtRxN,
+            gthrxp_in(0)                          => gtRxP,
+            loopback_in                           => loopback,
+            qpll0clk_in(0)                        => qpllclk(0),
+            qpll0refclk_in(0)                     => qpllrefclk(0),
+            qpll1clk_in(0)                        => qpllclk(1),
+            qpll1refclk_in(0)                     => qpllrefclk(1),
+            rxgearboxslip_in(0)                   => rxGearboxSlip,
+            rxpolarity_in(0)                      => RX_POLARITY_G,
+            txdiffctrl_in                         => txDiffCtrl,
+            txheader_in                           => txheader_in,
+            txpolarity_in(0)                      => TX_POLARITY_G,
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
+            txsequence_in                         => txsequence_in,
+            gthtxn_out(0)                         => gtTxN,
+            gthtxp_out(0)                         => gtTxP,
+            rxdatavalid_out(0)                    => rxDataValid,
+            rxdatavalid_out(1)                    => dummy1,
+            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(5 downto 2)              => dummy3,
+            rxheadervalid_out(0)                  => rxHeaderValid,
+            rxheadervalid_out(1)                  => dummy4,
+            rxpmaresetdone_out(0)                 => dummy8,
+            rxprgdivresetdone_out(0)              => dummy9,
+            rxstartofseq_out(1)                   => dummy2,
+            rxstartofseq_out(0)                   => rxStartOfSeq,
+            txpmaresetdone_out(0)                 => dummy10,
+            txprgdivresetdone_out(0)              => dummy11);
+   end generate GEN_15G;
+
+   GEN_12G : if (RATE_G = "12.5Gbps") generate
+      U_Pgp3GthUsIp : Pgp3GthUsIp12G
+         port map (
+            gtwiz_userclk_tx_reset_in(0)          => txReset,
+            gtwiz_userclk_tx_srcclk_out(0)        => txOutClk,
+            gtwiz_userclk_tx_usrclk_out(0)        => txUsrClk,
+            gtwiz_userclk_tx_usrclk2_out(0)       => txUsrClk2Int,
+            gtwiz_userclk_tx_active_out(0)        => txUsrClkActiveInt,
+            gtwiz_userclk_rx_reset_in(0)          => rxReset,
+            gtwiz_userclk_rx_srcclk_out(0)        => rxOutClk,
+            gtwiz_userclk_rx_usrclk_out(0)        => rxUsrClk,
+            gtwiz_userclk_rx_usrclk2_out(0)       => rxUsrClk2Int,
+            gtwiz_userclk_rx_active_out(0)        => rxUsrClkActiveInt,
+            gtwiz_reset_clk_freerun_in(0)         => stableClk,
+            gtwiz_reset_all_in(0)                 => stableRst,
+            gtwiz_reset_tx_pll_and_datapath_in(0) => zeroBit,
+            gtwiz_reset_tx_datapath_in(0)         => zeroBit,
+            gtwiz_reset_rx_pll_and_datapath_in(0) => zeroBit,
+            gtwiz_reset_rx_datapath_in(0)         => rxReset,
+            gtwiz_reset_qpll0lock_in(0)           => qpllLock(0),
+            gtwiz_reset_rx_cdr_stable_out(0)      => dummy5,
+            gtwiz_reset_tx_done_out(0)            => txResetDone,
+            gtwiz_reset_rx_done_out(0)            => rxResetDone,
+            gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
+            gtwiz_userdata_tx_in                  => txData,
+            gtwiz_userdata_rx_out                 => rxData,
+            drpclk_in(0)                          => stableClk,
+            drpaddr_in                            => drpAddr,
+            drpdi_in                              => drpDi,
+            drpen_in(0)                           => drpEn,
+            drpwe_in(0)                           => drpWe,
+            drpdo_out                             => drpDo,
+            drprdy_out(0)                         => drpRdy,
+            gthrxn_in(0)                          => gtRxN,
+            gthrxp_in(0)                          => gtRxP,
+            loopback_in                           => loopback,
+            qpll0clk_in(0)                        => qpllclk(0),
+            qpll0refclk_in(0)                     => qpllrefclk(0),
+            qpll1clk_in(0)                        => qpllclk(1),
+            qpll1refclk_in(0)                     => qpllrefclk(1),
+            rxgearboxslip_in(0)                   => rxGearboxSlip,
+            rxpolarity_in(0)                      => RX_POLARITY_G,
+            txdiffctrl_in                         => txDiffCtrl,
+            txheader_in                           => txheader_in,
+            txpolarity_in(0)                      => TX_POLARITY_G,
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
+            txsequence_in                         => txsequence_in,
+            gthtxn_out(0)                         => gtTxN,
+            gthtxp_out(0)                         => gtTxP,
+            rxdatavalid_out(0)                    => rxDataValid,
+            rxdatavalid_out(1)                    => dummy1,
+            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(5 downto 2)              => dummy3,
+            rxheadervalid_out(0)                  => rxHeaderValid,
+            rxheadervalid_out(1)                  => dummy4,
+            rxpmaresetdone_out(0)                 => dummy8,
+            rxprgdivresetdone_out(0)              => dummy9,
+            rxstartofseq_out(1)                   => dummy2,
+            rxstartofseq_out(0)                   => rxStartOfSeq,
+            txpmaresetdone_out(0)                 => dummy10,
+            txprgdivresetdone_out(0)              => dummy11);
+   end generate GEN_12G;
+
    GEN_10G : if (RATE_G = "10.3125Gbps") generate
       U_Pgp3GthUsIp : Pgp3GthUsIp10G
          port map (
@@ -360,11 +613,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
-            txdiffctrl_in                         => "11111",
+            txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => TX_POLARITY_G,
-            txpostcursor_in                       => "00111",
-            txprecursor_in                        => "00111",
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
             gthtxn_out(0)                         => gtTxN,
             gthtxp_out(0)                         => gtTxP,
@@ -424,11 +677,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
-            txdiffctrl_in                         => "11111",
+            txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => TX_POLARITY_G,
-            txpostcursor_in                       => "00111",
-            txprecursor_in                        => "00111",
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
             gthtxn_out(0)                         => gtTxN,
             gthtxp_out(0)                         => gtTxP,
@@ -488,11 +741,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => RX_POLARITY_G,
-            txdiffctrl_in                         => "11111",
+            txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => TX_POLARITY_G,
-            txpostcursor_in                       => "00111",
-            txprecursor_in                        => "00111",
+            txpostcursor_in                       => txPostCursor,
+            txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
             gthtxn_out(0)                         => gtTxN,
             gthtxp_out(0)                         => gtTxP,

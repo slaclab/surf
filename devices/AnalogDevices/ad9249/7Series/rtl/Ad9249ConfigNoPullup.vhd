@@ -125,7 +125,6 @@ begin
    begin
       v := r;
 
-      v.axilReadSlave.rdata := (others => '0');
       axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axilStatus);
 
       -- Any other address is forwarded to the chip via SPI

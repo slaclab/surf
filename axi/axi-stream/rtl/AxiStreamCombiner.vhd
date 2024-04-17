@@ -3,6 +3,8 @@
 -------------------------------------------------------------------------------
 -- Description: Combines multiple "narrower" buses into a "wide" AXI stream bus
 -------------------------------------------------------------------------------
+-- Note: This module does NOT support interleaving of TDEST
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -16,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -26,6 +27,7 @@ use surf.SsiPkg.all;
 entity AxiStreamCombiner is
    generic (
       TPD_G               : time     := 1 ns;
+      RST_ASYNC_G         : boolean  := false;
       LANES_G             : positive := 4;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
@@ -87,8 +89,6 @@ begin
    begin
       -- Latch the current value
       v := r;
-
-      v.sof := '0';
 
       tready := (others => '0');
 
@@ -155,11 +155,12 @@ begin
             end if;
          when EOF_S =>
             if ready = '1' and v.master.tValid = '0' then
+               v.sof    := '0';
                tready   := (others => '1');
                v.master := sAxisMasters(0);
                -- assemble the data
                for i in 0 to LANES_G-1 loop
-                  for j in 0 to MASTER_AXI_CONFIG_G.TDATA_BYTES_C-1 loop
+                  for j in 0 to SLAVE_AXI_CONFIG_G.TDATA_BYTES_C-1 loop
                      m                            := 8*j;
                      n                            := 8*(LANES_G*j+i);
                      v.master.tData(n+7 downto n) := sAxisMasters(i).tData(m+7 downto m);
@@ -167,21 +168,19 @@ begin
                   end loop;
                end loop;
                -- user bits
-               axiStreamSetUserBit(MASTER_AXI_CONFIG_G, v.master, SSI_SOF_C, r.sof, 0);
+               ssiSetUserSof(MASTER_AXI_CONFIG_G, v.master, r.sof);
                -- cleanup
                if allBits(tlast, '0') then
                   v.discard      := (others => '0');
                   v.master.tLast := '0';
-                  axiStreamSetUserBit(MASTER_AXI_CONFIG_G, v.master, SSI_EOFE_C, '0');
                elsif allBits(tlast, '1') then
                   v.discard      := (others => '0');
                   v.master.tLast := '1';
-                  axiStreamSetUserBit(MASTER_AXI_CONFIG_G, v.master, SSI_EOFE_C, '0');
                   v.state        := SOF_S;
                else
                   v.discard      := not tlast;
                   v.master.tLast := '1';
-                  axiStreamSetUserBit(MASTER_AXI_CONFIG_G, v.master, SSI_EOFE_C, '0');
+                  ssiSetUserEofe(MASTER_AXI_CONFIG_G, v.master, '1');
                   v.state        := ERR_S;
                end if;
             end if;
@@ -210,7 +209,7 @@ begin
       mAxisMaster <= r.master;
 
       -- Synchronous Reset
-      if axisRst = '1' then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -219,9 +218,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if rising_edge(axisClk) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

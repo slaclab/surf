@@ -34,8 +34,9 @@ entity AxiLiteSrpV0 is
       TPD_G : time := 1 ns;
 
       -- FIFO Config
-      RESP_THOLD_G        : integer range 0 to (2**24) := 1;      -- =1 = normal operation
+      RESP_THOLD_G        : integer range 0 to (2**24) := 1;  -- =1 = normal operation
       SLAVE_READY_EN_G    : boolean                    := false;
+      SYNTH_MODE_G        : string                     := "inferred";
       MEMORY_TYPE_G       : string                     := "block";
       GEN_SYNC_FIFO_G     : boolean                    := false;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
@@ -124,6 +125,7 @@ begin
          PIPE_STAGES_G       => 1,
          INT_PIPE_STAGES_G   => 0,
          VALID_THOLD_G       => RESP_THOLD_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => 1,
@@ -152,6 +154,7 @@ begin
          PIPE_STAGES_G       => 1,
          INT_PIPE_STAGES_G   => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => 1,
@@ -176,7 +179,7 @@ begin
    -------------------------------------
 
    comb : process (axilRst, r, rxFifoAxisMaster, sAxilReadMaster, sAxilWriteMaster, txFifoAxisSlave) is
-      variable v  : RegType;
+      variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
    begin
       v := r;
@@ -256,15 +259,15 @@ begin
                   then
                      v.sAxilReadSlave.rdata := rxFifoAxisMaster.tdata(95 downto 64);
                      axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_OK_C);
-                     v.state               := WAIT_AXIL_REQ_S;
+                     v.state                := WAIT_AXIL_REQ_S;
                   elsif (rxFifoAxisMaster.tLast = '0') then
                      v.sAxilReadSlave.rdata := (others => '1');
                      axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
-                     v.state := BLEED_S;
+                     v.state                := BLEED_S;
                   else
                      v.sAxilReadSlave.rdata := (others => '1');
                      axiSlaveReadResponse(v.sAxilReadSlave, AXI_RESP_SLVERR_C);
-                     v.state               := WAIT_AXIL_REQ_S;
+                     v.state                := WAIT_AXIL_REQ_S;
                   end if;
                end if;
 

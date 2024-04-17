@@ -37,6 +37,7 @@ entity SrpV0AxiLite is
       RESP_THOLD_G        : integer range 0 to (2**24) := 1;  -- =1 = normal operation
       SLAVE_READY_EN_G    : boolean                    := false;
       EN_32BIT_ADDR_G     : boolean                    := false;
+      SYNTH_MODE_G        : string                     := "inferred";
       MEMORY_TYPE_G       : string                     := "block";
       GEN_SYNC_FIFO_G     : boolean                    := false;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
@@ -431,6 +432,7 @@ begin
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          VALID_THOLD_G       => RESP_THOLD_G,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          CASCADE_SIZE_G      => 1,

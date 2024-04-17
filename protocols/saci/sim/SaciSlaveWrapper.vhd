@@ -48,7 +48,7 @@ begin
 
   saciRsp <= saciRspInt when saciSelL = '0' else 'Z';
 
-  SaciSlave_i : entity surf.SaciSlave2
+  SaciSlave_i : entity surf.SaciSlave
     generic map (
       TPD_G => TPD_G)
     port map (

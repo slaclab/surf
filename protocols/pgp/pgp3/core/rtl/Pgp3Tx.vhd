@@ -186,6 +186,7 @@ begin
          CRC_MODE_G           => "DATA",
          CRC_POLY_G           => PGP3_CRC_POLY_C,
          MAX_PACKET_BYTES_G   => CELL_WORDS_MAX_G*8*2,
+         SEQ_CNT_SIZE_G       => 12,
          INPUT_PIPE_STAGES_G  => 1,
          OUTPUT_PIPE_STAGES_G => 1)
       port map (

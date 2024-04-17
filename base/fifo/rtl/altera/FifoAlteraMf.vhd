@@ -28,6 +28,7 @@ entity FifoAlteraMf is
    generic (
       TPD_G           : time     := 1 ns;
       RST_POLARITY_G  : sl       := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G     : boolean  := false;
       FWFT_EN_G       : boolean  := false;
       GEN_SYNC_FIFO_G : boolean  := false;
       MEMORY_TYPE_G   : string   := "auto";
@@ -201,7 +202,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => false,
+            RST_ASYNC_G    => RST_ASYNC_G,
             DATA_WIDTH_G   => DATA_WIDTH_G,
             PIPE_STAGES_G  => PIPE_STAGES_G)
          port map (

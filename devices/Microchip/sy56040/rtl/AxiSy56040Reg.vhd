@@ -108,8 +108,6 @@ begin
          when IDLE_S =>
             -- Check for a read request
             if (axiStatus.readEnable = '1') then
-               -- Reset the register
-               v.axiReadSlave.rdata := (others => '0');
                axiReadResp          := AXI_RESP_OK_C;
                -- Decode address and assign read data
                case (axiReadMaster.araddr(3 downto 0)) is

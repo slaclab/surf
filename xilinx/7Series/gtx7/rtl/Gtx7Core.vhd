@@ -321,6 +321,7 @@ architecture rtl of Gtx7Core is
 
    signal rxUserResetInt : sl;
    signal rxFsmResetDone : sl;
+   signal rxResetDoneAll : sl;
    signal rxRstTxUserRdy : sl;          --
 
    signal rxRecClkStable         : sl;
@@ -505,6 +506,7 @@ begin
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
    --------------------------------------------------------------------------------------------------
+   rxResetDoneAll <= rxResetDone and rxFsmResetDone;
    RstSync_RxResetDone : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
@@ -512,7 +514,7 @@ begin
          OUT_POLARITY_G => '0')
       port map (
          clk      => rxUsrClkIn,
-         asyncRst => rxFsmResetDone,
+         asyncRst => rxResetDoneAll,
          syncRst  => rxResetDoneOut);   -- Output
 
    -------------------------------------------------------------------------------------------------

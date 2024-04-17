@@ -29,6 +29,7 @@ entity TenGigEthGtyUltraScaleWrapper is
    generic (
       TPD_G             : time                             := 1 ns;
       NUM_LANE_G        : natural range 1 to 4             := 1;
+      JUMBO_G           : boolean                          := true;
       PAUSE_EN_G        : boolean                          := true;
       -- QUAD PLL Configurations
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
@@ -101,7 +102,7 @@ begin
    PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 15625000)        -- 100 ms
+         DURATION_G => 156250000)       -- 1000 ms
       port map (
          arst   => extRst,
          clk    => coreClock,
@@ -139,12 +140,13 @@ begin
 
       TenGigEthGtyUltraScale_Inst : entity surf.TenGigEthGtyUltraScale
          generic map (
-            TPD_G           => TPD_G,
-            PAUSE_EN_G      => PAUSE_EN_G,
+            TPD_G         => TPD_G,
+            JUMBO_G       => JUMBO_G,
+            PAUSE_EN_G    => PAUSE_EN_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G    => EN_AXI_REG_G,
+            EN_AXI_REG_G  => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

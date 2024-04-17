@@ -56,6 +56,11 @@ entity Pgp3AxiL is
 
       phyRxClk : in sl;
 
+      -- Debug Interface (axilClk domain)
+      txDiffCtrl        : out  slv(4 downto 0);
+      txPreCursor       : out  slv(4 downto 0);
+      txPostCursor      : out  slv(4 downto 0);
+
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -103,6 +108,9 @@ architecture rtl of Pgp3AxiL is
    signal gearboxAlignCnt : SlVectorArray(0 downto 0, 7 downto 0);
 
    type RegType is record
+      txDiffCtrl     : slv(4 downto 0);
+      txPreCursor    : slv(4 downto 0);
+      txPostCursor   : slv(4 downto 0);
       countReset     : sl;
       loopBack       : slv(2 downto 0);
       flowCntlDis    : sl;
@@ -114,6 +122,9 @@ architecture rtl of Pgp3AxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txDiffCtrl     => (others => '1'),
+      txPreCursor    => "00111",
+      txPostCursor   => "00111",
       countReset     => '0',
       loopBack       => (others => '0'),
       flowCntlDis    => PGP3_TX_IN_INIT_C.flowCntlDis,
@@ -665,6 +676,9 @@ begin
       axiSlaveRegisterR(axilEp, X"0A4", 0, txStatusSync.txOpCodeDataLast);
       axiSlaveRegisterR(axilEp, X"0A4", 56, txStatusSync.txOpCodeNumberLast);
 
+      axiSlaveRegister (axilEp, X"0AC", 0,  v.txDiffCtrl);
+      axiSlaveRegister (axilEp, X"0AC", 8,  v.txPreCursor);
+      axiSlaveRegister (axilEp, X"0AC", 16, v.txPostCursor);
 
       for i in 0 to 15 loop
          axiSlaveRegisterR(axilEp, X"0B0"+toSlv(i*4, 12), 0, txStatusSync.locOverflowCnt(i));
@@ -685,6 +699,9 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      txDiffCtrl     <= r.txDiffCtrl;
+      txPreCursor    <= r.txPreCursor;
+      txPostCursor   <= r.txPostCursor;
 
    end process;
 

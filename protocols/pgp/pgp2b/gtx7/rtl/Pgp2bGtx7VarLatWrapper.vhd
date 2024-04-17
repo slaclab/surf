@@ -31,17 +31,21 @@ use unisim.vcomponents.all;
 
 entity Pgp2bGtx7VarLatWrapper is
    generic (
-      TPD_G              : time                    := 1 ns;
+      TPD_G                 : time                    := 1 ns;
+      SIM_GTRESET_SPEEDUP_G : string                  := "FALSE";
+      SIM_VERSION_G         : string                  := "4.0";
       -- MMCM Configurations (Defaults: gtClkP = 125 MHz Configuration)
       -- See page 40 of https://www.xilinx.com/support/documentation/user_guides/ug362.pdf
       -- CLKIN_PERIOD_G (ns) is 1/2 of the reference rate because the MMCM gets a div/2 copy
       -- MMCM internal frequency is set by:
       --    FVCO = 1000 * CLKFBOUT_MULT_F_G/(CLKIN1_PERIOD_G * DIVCLK_DIVIDE_G)
       -- And must be within the specified operating range of the PLL (around 1Ghz)
-      CLKIN_PERIOD_G     : real                    := 16.0;   -- gtClkP/2
-      DIVCLK_DIVIDE_G    : natural range 1 to 106  := 2;
-      CLKFBOUT_MULT_F_G  : real range 1.0 to 64.0  := 31.875;
-      CLKOUT0_DIVIDE_F_G : real range 1.0 to 128.0 := 6.375;
+      USE_REFCLK_G          : boolean                 := false;
+      CLKIN_PERIOD_G        : real                    := 16.0;   -- gtClkP/2
+      DIVCLK_DIVIDE_G       : natural range 1 to 106  := 2;
+      CLKFBOUT_MULT_F_G     : real range 1.0 to 64.0  := 31.875;
+      CLKOUT0_DIVIDE_F_G    : real range 1.0 to 128.0 := 6.375;
+      FB_BUFG_G             : boolean                 := false;  -- Simulation might have trouble locking with false
       -- CPLL Configurations (Defaults: gtClkP = 125 MHz Configuration)
       -- See page 48 of https://www.xilinx.com/support/documentation/user_guides/ug476_7Series_Transceivers.pdf
       -- fPllClkOut = fPLLClkIn * ( CPLL_FBDIV_G * CPLL_FBDIV_45_G ) / CPLL_REFCLK_DIV_G
@@ -49,30 +53,30 @@ entity Pgp2bGtx7VarLatWrapper is
       --    CPPL_FBDIV_45_G   = 4,5
       --    CPLL_REFCLK_DIV_G = 1,2
       -- fPllClkOut must bet between 1.6Ghz - 3.3Ghz
-      CPLL_REFCLK_SEL_G  : bit_vector              := "001";
-      CPLL_FBDIV_G       : natural                 := 5;
-      CPLL_FBDIV_45_G    : natural                 := 5;
-      CPLL_REFCLK_DIV_G  : natural                 := 1;
+      CPLL_REFCLK_SEL_G     : bit_vector              := "001";
+      CPLL_FBDIV_G          : natural                 := 5;
+      CPLL_FBDIV_45_G       : natural                 := 5;
+      CPLL_REFCLK_DIV_G     : natural                 := 1;
       -- MGT Configurations (Defaults: gtClkP = 125 MHz Configuration)
       -- Rx Line rate = (fPllClkOut * 2) / RXOUT_DIV_G (1,2,4,6,16)
       -- Tx Line rate = (fPllClkOut * 2) / TXOUT_DIV_G (1,2,4,6,16)
       -- Set RX_CLK25_DIV and TX_CLK25_DIV so that the input reference clock / setting is close to 25Mhz
-      RXOUT_DIV_G        : natural                 := 2;
-      TXOUT_DIV_G        : natural                 := 2;
-      RX_CLK25_DIV_G     : natural                 := 5;
-      TX_CLK25_DIV_G     : natural                 := 5;
-      RX_OS_CFG_G        : bit_vector              := "0000010000000";
-      RXCDR_CFG_G        : bit_vector              := x"03000023ff40200020";
-      RXDFEXYDEN_G       : sl                      := '1';
-      RX_DFE_KL_CFG2_G   : bit_vector              := x"301148AC";
+      RXOUT_DIV_G           : natural                 := 2;
+      TXOUT_DIV_G           : natural                 := 2;
+      RX_CLK25_DIV_G        : natural                 := 5;
+      TX_CLK25_DIV_G        : natural                 := 5;
+      RX_OS_CFG_G           : bit_vector              := "0000010000000";
+      RXCDR_CFG_G           : bit_vector              := x"03000023ff40200020";
+      RXDFEXYDEN_G          : sl                      := '1';
+      RX_DFE_KL_CFG2_G      : bit_vector              := x"301148AC";
       -- PGP Settings
-      VC_INTERLEAVE_G    : integer                 := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G  : integer                 := 7;      -- Top bit for payload counter
-      NUM_VC_EN_G        : integer range 1 to 4    := 4;
-      TX_POLARITY_G      : sl                      := '0';
-      RX_POLARITY_G      : sl                      := '0';
-      TX_ENABLE_G        : boolean                 := true;   -- Enable TX direction
-      RX_ENABLE_G        : boolean                 := true);  -- Enable RX direction
+      VC_INTERLEAVE_G       : integer                 := 0;      -- No interleave Frames
+      PAYLOAD_CNT_TOP_G     : integer                 := 7;      -- Top bit for payload counter
+      NUM_VC_EN_G           : integer range 1 to 4    := 4;
+      TX_POLARITY_G         : sl                      := '0';
+      RX_POLARITY_G         : sl                      := '0';
+      TX_ENABLE_G           : boolean                 := true;   -- Enable TX direction
+      RX_ENABLE_G           : boolean                 := true);  -- Enable RX direction
    port (
       -- Manual Reset
       extRst          : in  sl;
@@ -93,8 +97,10 @@ entity Pgp2bGtx7VarLatWrapper is
       pgpRxMasters    : out AxiStreamMasterArray(3 downto 0);
       pgpRxCtrl       : in  AxiStreamCtrlArray(3 downto 0);
       -- GT Pins
-      gtClkP          : in  sl;
-      gtClkN          : in  sl;
+      gtClkP          : in  sl                     := '0';
+      gtClkN          : in  sl                     := '1';
+      gtRefClk        : in  sl                     := '0';
+      gtRefClkBufg    : in  sl                     := '0';
       gtTxP           : out sl;
       gtTxN           : out sl;
       gtRxP           : in  sl;
@@ -115,7 +121,7 @@ end Pgp2bGtx7VarLatWrapper;
 architecture mapping of Pgp2bGtx7VarLatWrapper is
 
    signal refClk      : sl;
-   signal refClkDiv2  : sl;
+   signal refClkDiv2  : sl := '0';
    signal stableClock : sl;
    signal extRstSync  : sl;
 
@@ -128,18 +134,27 @@ begin
    pgpRst    <= pgpReset;
    stableClk <= stableClock;
 
-   IBUFDS_GTE2_Inst : IBUFDS_GTE2
-      port map (
-         I     => gtClkP,
-         IB    => gtClkN,
-         CEB   => '0',
-         ODIV2 => refClkDiv2,
-         O     => refClk);
+   IBUFDS_GEN : if (not USE_REFCLK_G) generate
+      IBUFDS_GTE2_Inst : IBUFDS_GTE2
+         port map (
+            I     => gtClkP,
+            IB    => gtClkN,
+            CEB   => '0',
+            ODIV2 => refClkDiv2,
+            O     => refClk);
 
-   BUFG_Inst : BUFG
-      port map (
-         I => refClkDiv2,
-         O => stableClock);
+      BUFG_Inst : BUFG
+         port map (
+            I => refClkDiv2,
+            O => stableClock);
+
+   end generate;
+
+   REFCLK_BUF : if (USE_REFCLK_G) generate
+      stableClock <= gtRefClkBufg;
+      refClk      <= gtRefClk;
+   end generate REFCLK_BUF;
+
 
    RstSync_Inst : entity surf.RstSync
       generic map(
@@ -154,7 +169,7 @@ begin
          TPD_G              => TPD_G,
          TYPE_G             => "MMCM",
          INPUT_BUFG_G       => false,
-         FB_BUFG_G          => false,
+         FB_BUFG_G          => FB_BUFG_G,
          RST_IN_POLARITY_G  => '1',
          NUM_CLOCKS_G       => 1,
          -- MMCM attributes
@@ -171,31 +186,33 @@ begin
 
    Pgp2bGtx7VarLat_Inst : entity surf.Pgp2bGtx7VarLat
       generic map (
-         TPD_G             => TPD_G,
+         TPD_G                 => TPD_G,
+         SIM_GTRESET_SPEEDUP_G => SIM_GTRESET_SPEEDUP_G,
+         SIM_VERSION_G         => SIM_VERSION_G,
          -- CPLL Configurations
-         TX_PLL_G          => "CPLL",
-         RX_PLL_G          => "CPLL",
-         CPLL_REFCLK_SEL_G => CPLL_REFCLK_SEL_G,
-         CPLL_FBDIV_G      => CPLL_FBDIV_G,
-         CPLL_FBDIV_45_G   => CPLL_FBDIV_45_G,
-         CPLL_REFCLK_DIV_G => CPLL_REFCLK_DIV_G,
+         TX_PLL_G              => "CPLL",
+         RX_PLL_G              => "CPLL",
+         CPLL_REFCLK_SEL_G     => CPLL_REFCLK_SEL_G,
+         CPLL_FBDIV_G          => CPLL_FBDIV_G,
+         CPLL_FBDIV_45_G       => CPLL_FBDIV_45_G,
+         CPLL_REFCLK_DIV_G     => CPLL_REFCLK_DIV_G,
          -- MGT Configurations
-         RXOUT_DIV_G       => RXOUT_DIV_G,
-         TXOUT_DIV_G       => TXOUT_DIV_G,
-         RX_CLK25_DIV_G    => RX_CLK25_DIV_G,
-         TX_CLK25_DIV_G    => TX_CLK25_DIV_G,
-         RX_OS_CFG_G       => RX_OS_CFG_G,
-         RXCDR_CFG_G       => RXCDR_CFG_G,
-         RXDFEXYDEN_G      => RXDFEXYDEN_G,
-         RX_DFE_KL_CFG2_G  => RX_DFE_KL_CFG2_G,
+         RXOUT_DIV_G           => RXOUT_DIV_G,
+         TXOUT_DIV_G           => TXOUT_DIV_G,
+         RX_CLK25_DIV_G        => RX_CLK25_DIV_G,
+         TX_CLK25_DIV_G        => TX_CLK25_DIV_G,
+         RX_OS_CFG_G           => RX_OS_CFG_G,
+         RXCDR_CFG_G           => RXCDR_CFG_G,
+         RXDFEXYDEN_G          => RXDFEXYDEN_G,
+         RX_DFE_KL_CFG2_G      => RX_DFE_KL_CFG2_G,
          -- VC Configuration
-         VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
-         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
-         NUM_VC_EN_G       => NUM_VC_EN_G,
-         TX_POLARITY_G     => TX_POLARITY_G,
-         RX_POLARITY_G     => RX_POLARITY_G,
-         TX_ENABLE_G       => TX_ENABLE_G,
-         RX_ENABLE_G       => RX_ENABLE_G)
+         VC_INTERLEAVE_G       => VC_INTERLEAVE_G,
+         PAYLOAD_CNT_TOP_G     => PAYLOAD_CNT_TOP_G,
+         NUM_VC_EN_G           => NUM_VC_EN_G,
+         TX_POLARITY_G         => TX_POLARITY_G,
+         RX_POLARITY_G         => RX_POLARITY_G,
+         TX_ENABLE_G           => TX_ENABLE_G,
+         RX_ENABLE_G           => RX_ENABLE_G)
       port map (
          -- GT Clocking
          stableClk        => stableClock,

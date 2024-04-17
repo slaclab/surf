@@ -24,10 +24,11 @@ use surf.AxiLitePkg.all;
 
 entity AxiStreamMonAxiL is
    generic (
-      TPD_G            : time                := 1 ns;
-      COMMON_CLK_G     : boolean             := false;  -- true if axisClk = statusClk
-      AXIS_CLK_FREQ_G  : real                := 156.25E+6;  -- units of Hz
-      AXIS_NUM_SLOTS_G : positive            := 1;
+      TPD_G            : time     := 1 ns;
+      RST_ASYNC_G      : boolean  := false;
+      COMMON_CLK_G     : boolean  := false;  -- true if axisClk = axilClk
+      AXIS_CLK_FREQ_G  : real     := 156.25E+6;  -- units of Hz
+      AXIS_NUM_SLOTS_G : positive := 1;
       AXIS_CONFIG_G    : AxiStreamConfigType);
    port (
       -- AXIS Stream Interface
@@ -36,8 +37,8 @@ entity AxiStreamMonAxiL is
       axisMasters      : in  AxiStreamMasterArray(AXIS_NUM_SLOTS_G-1 downto 0);
       axisSlaves       : in  AxiStreamSlaveArray(AXIS_NUM_SLOTS_G-1 downto 0);
       -- AXI lite slave port for register access
-      axilClk          : in  std_logic;
-      axilRst          : in  std_logic;
+      axilClk          : in  sl;
+      axilRst          : in  sl;
       sAxilWriteMaster : in  AxiLiteWriteMasterType;
       sAxilWriteSlave  : out AxiLiteWriteSlaveType;
       sAxilReadMaster  : in  AxiLiteReadMasterType;
@@ -121,6 +122,7 @@ begin
       U_AxiStreamMon : entity surf.AxiStreamMon
          generic map(
             TPD_G           => TPD_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
             COMMON_CLK_G    => true,             -- true if axisClk = statusClk
             AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G,  -- units of Hz
             AXIS_CONFIG_G   => AXIS_CONFIG_G)
@@ -153,9 +155,10 @@ begin
    U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SYNTH_MODE_G   => "inferred",
          MEMORY_TYPE_G  => ite(ADDR_WIDTH_C > 5, "block", "distributed"),
-         READ_LATENCY_G => 3,
+         READ_LATENCY_G => ite(ADDR_WIDTH_C > 5, 2, 1),
          AXI_WR_EN_G    => false,
          SYS_WR_EN_G    => true,
          COMMON_CLK_G   => false,
@@ -270,7 +273,7 @@ begin
       end if;
 
       -- Synchronous Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -279,9 +282,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

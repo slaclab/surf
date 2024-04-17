@@ -3,6 +3,8 @@
 -------------------------------------------------------------------------------
 -- Description: splits a "wide" AXI stream bus into multiple "narrower" buses
 -------------------------------------------------------------------------------
+-- Note: This module does NOT support interleaving of TDEST
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -16,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -26,6 +27,7 @@ use surf.SsiPkg.all;
 entity AxiStreamSplitter is
    generic (
       TPD_G               : time     := 1 ns;
+      RST_ASYNC_G         : boolean  := false;
       LANES_G             : positive := 4;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
@@ -101,6 +103,7 @@ begin
                   v.masters(i).tData(SEQ_C'range)  := SEQ_C;
                   v.masters(i).tData(r.tSeq'range) := r.tSeq;
                   v.masters(i).tKeep               := genTKeep(MASTER_AXI_CONFIG_G.TDATA_BYTES_C);
+                  v.masters(i).tDest               := sAxisMaster.tDest;
                   v.tSeq                           := r.tSeq+1;
                end loop;
 
@@ -136,7 +139,7 @@ begin
       mAxisMasters <= r.masters;
 
       -- Synchronous Reset
-      if axisRst = '1' then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -145,9 +148,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if rising_edge(axisClk) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

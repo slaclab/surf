@@ -283,7 +283,9 @@ begin
             -- Align shift and address to transfer size
             if (DATA_BYTES_C /= 1) then
                v.dmaReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
-               v.shift(ADDR_LSB_C-1 downto 0)          := dmaReq.address(ADDR_LSB_C-1 downto 0);
+               if (BYP_SHIFT_G = false) then
+                  v.shift(ADDR_LSB_C-1 downto 0) := dmaReq.address(ADDR_LSB_C-1 downto 0);
+               end if;
             end if;
             -- Check for DMA request
             if (dmaReq.request = '1') then

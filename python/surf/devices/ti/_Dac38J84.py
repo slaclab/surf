@@ -38,7 +38,7 @@ class Dac38J84(pr.Device):
             mode         = "RW",
             number       = 126,
             stride       = 4,
-            hidden       = not(debug),
+            hidden       = not (debug),
             verify       = False, # DO NOT Verify all registers by default
             overlapEn    = True,
         )
@@ -373,6 +373,21 @@ class Dac38J84(pr.Device):
             self.DacReg[107].set(0)
             self.DacReg[108].set(0)
             self.DacReg[109].set(0)
+
+        @self.command(name="NcoSync", description="Special DAC Init procedure to sync NCO",)
+        def NcoSync():
+            self.EnableTx.set(0x0)
+            time.sleep(0.010)
+            self.InitJesd.set(0x1)
+            time.sleep(0.010)
+            self.JesdRstN.set(0x0)
+            time.sleep(0.010)
+            self.JesdRstN.set(0x1)
+            time.sleep(0.010)
+            self.InitJesd.set(0x0)
+            time.sleep(0.010)
+            self.EnableTx.set(0x1)
+            time.sleep(0.010)
 
         @self.command(name="Init", description="Initialization sequence for the DAC JESD core",)
         def Init():

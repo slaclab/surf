@@ -20,6 +20,8 @@ from surf.devices.ti._Lmk048Base        import *
 from surf.devices.ti._Lmk04828          import *
 from surf.devices.ti._Lmk04832          import *
 from surf.devices.ti._Lmk61e2           import *
+from surf.devices.ti._Lmx2594           import *
 from surf.devices.ti._Lmx2615           import *
 from surf.devices.ti._Pca9535           import *
+from surf.devices.ti._Tmp461            import *
 from surf.devices.ti._UCD92xx           import *

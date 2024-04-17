@@ -336,7 +336,6 @@ begin
 
       -- Read
       if (axiStatus.readEnable = '1') then
-         v.axiReadSlave.rdata := (others => '0');
 
          case intReadMasters(0).araddr(7 downto 0) is
             when x"00" =>

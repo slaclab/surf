@@ -377,9 +377,6 @@ begin
 
       --------------------------------------------------------------------------------
 
-      -- Zero out the read data bus
-      v.axilReadSlave.rdata := (others => '0');
-
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 

@@ -23,7 +23,7 @@ entity MmcmEmulation is
    generic (
       CLKIN_PERIOD_G         : real                       := 10.0;
       DIVCLK_DIVIDE_G        : integer range 1 to 106     := 2;
-      CLKFBOUT_MULT_F_G      : real range 1.0 to 64.0     := 20.0;
+      CLKFBOUT_MULT_F_G      : real range 1.0 to 128.0    := 20.0;
       CLKOUT0_DIVIDE_F_G     : real range 1.0 to 128.0    := 1.0;
       CLKOUT1_DIVIDE_G       : integer range 1 to 128     := 2;
       CLKOUT2_DIVIDE_G       : integer range 1 to 128     := 3;

@@ -58,18 +58,18 @@ entity RssiCore is
       RETRANSMIT_ENABLE_G : boolean := true;  -- Enable/Disable retransmissions in tx module
 
       WINDOW_ADDR_SIZE_G  : positive range 1 to 10 := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
-      SEGMENT_ADDR_SIZE_G : positive := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      SEGMENT_ADDR_SIZE_G : positive               := 7;  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
 
       -- AXIS Configurations
-      APP_AXIS_CONFIG_G        : AxiStreamConfigType;
-      TSP_AXIS_CONFIG_G        : AxiStreamConfigType;
+      APP_AXIS_CONFIG_G : AxiStreamConfigType;
+      TSP_AXIS_CONFIG_G : AxiStreamConfigType;
 
       -- Generic RSSI parameters
       BYP_TX_BUFFER_G : boolean := false;
       BYP_RX_BUFFER_G : boolean := false;
 
-      SYNTH_MODE_G   : string := "inferred";
-      MEMORY_TYPE_G  : string := "block";
+      SYNTH_MODE_G  : string := "inferred";
+      MEMORY_TYPE_G : string := "block";
 
       -- Version and connection ID
       INIT_SEQ_N_G       : natural  := 16#80#;
@@ -78,17 +78,17 @@ entity RssiCore is
       HEADER_CHKSUM_EN_G : boolean  := true;
 
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8; -- <=(2**WINDOW_ADDR_SIZE_G)
-      MAX_SEG_SIZE_G     : positive := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
+      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8;     -- <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_SEG_SIZE_G     : positive                 := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
 
       -- RSSI Timeouts
-      ACK_TOUT_G     : positive := 25;   -- unit depends on TIMEOUT_UNIT_G
-      RETRANS_TOUT_G : positive := 50;   -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
+      ACK_TOUT_G     : positive := 25;  -- unit depends on TIMEOUT_UNIT_G
+      RETRANS_TOUT_G : positive := 50;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= MAX_NUM_OUTS_SEG_G*Data segment transmission time)
       NULL_TOUT_G    : positive := 200;  -- unit depends on TIMEOUT_UNIT_G  (Recommended >= 4*RETRANS_TOUT_G)
 
       -- Counters
-      MAX_RETRANS_CNT_G     : positive := 2;
-      MAX_CUM_ACK_CNT_G     : positive := 3
+      MAX_RETRANS_CNT_G : positive := 2;
+      MAX_CUM_ACK_CNT_G : positive := 3
       );
    port (
       clk_i : in sl;
@@ -120,9 +120,9 @@ entity RssiCore is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Internal statuses
-      statusReg_o     : out slv(6 downto 0);
+      statusReg_o : out slv(6 downto 0);
 
-      maxSegSize_o    : out slv(15 downto 0));
+      maxSegSize_o : out slv(15 downto 0));
 end entity RssiCore;
 
 architecture rtl of RssiCore is
@@ -266,9 +266,9 @@ architecture rtl of RssiCore is
    signal s_initSeqNReg     : slv(7 downto 0);
    signal s_appRssiParamReg : RssiParamType;
 
-   signal s_statusReg   : slv(statusReg_o'range);
-   signal s_dropCntReg  : slv(31 downto 0);
-   signal s_validCntReg : slv(31 downto 0);
+   signal s_statusReg    : slv(statusReg_o'range);
+   signal s_dropCntReg   : slv(31 downto 0);
+   signal s_validCntReg  : slv(31 downto 0);
    signal s_reconCntReg  : slv(31 downto 0);
    signal s_resendCntReg : slv(31 downto 0);
 
@@ -285,8 +285,8 @@ architecture rtl of RssiCore is
 ----------------------------------------------------------------------
 begin
    -- Assertions to check generics
-   assert (1 <= MAX_NUM_OUTS_SEG_G and MAX_NUM_OUTS_SEG_G <=(2**WINDOW_ADDR_SIZE_G)) report "MAX_NUM_OUTS_SEG_G should be less or equal to 2**WINDOW_ADDR_SIZE_G" severity failure;
-   assert (8 <= MAX_SEG_SIZE_G and  MAX_SEG_SIZE_G <=(2**SEGMENT_ADDR_SIZE_G)*8) report "MAX_SEG_SIZE_G should be less or equal to (2**SEGMENT_ADDR_SIZE_G)*8" severity failure;
+   assert (1 <= MAX_NUM_OUTS_SEG_G and MAX_NUM_OUTS_SEG_G <= (2**WINDOW_ADDR_SIZE_G)) report "MAX_NUM_OUTS_SEG_G should be less or equal to 2**WINDOW_ADDR_SIZE_G" severity failure;
+   assert (8 <= MAX_SEG_SIZE_G and MAX_SEG_SIZE_G <= (2**SEGMENT_ADDR_SIZE_G)*8) report "MAX_SEG_SIZE_G should be less or equal to (2**SEGMENT_ADDR_SIZE_G)*8" severity failure;
 
 
    -- /////////////////////////////////////////////////////////
@@ -340,7 +340,7 @@ begin
          validCnt_i  => s_validCntReg,
          resendCnt_i => s_resendCntReg,
          reconCnt_i  => s_reconCntReg
-      );
+         );
 
    s_injectFault <= s_injectFaultReg or inject_i;
 
@@ -528,7 +528,7 @@ begin
          validCnt_o      => s_validCntReg,
          resendCnt_o     => s_resendCntReg,
          reconCnt_o      => s_reconCntReg
-      );
+         );
 
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
@@ -877,12 +877,13 @@ begin
    AppFifoOut_INST : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false, -- Using pause
+         SLAVE_READY_EN_G    => false,  -- Using pause
          GEN_SYNC_FIFO_G     => true,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
-         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1, -- Enough to store 2 segments
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,          -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16, -- Threshold at 1 segment minus padding
+         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
@@ -907,12 +908,13 @@ begin
    TspFifoOut_INST : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
-         SLAVE_READY_EN_G    => false, -- Using pause
+         SLAVE_READY_EN_G    => false,  -- Using pause
          GEN_SYNC_FIFO_G     => true,
+         SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
-         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1, -- Enough to store 2 segments
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,          -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16, -- Threshold at 1 segment minus padding
+         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
@@ -937,7 +939,7 @@ begin
    for i in 1 downto 0 generate
       U_AxiStreamMon : entity surf.AxiStreamMon
          generic map (
-            TPD_G            => TPD_G,
+            TPD_G           => TPD_G,
             AXIS_CLK_FREQ_G => CLK_FREQUENCY_G,
             AXIS_CONFIG_G   => APP_AXIS_CONFIG_G)
          port map (

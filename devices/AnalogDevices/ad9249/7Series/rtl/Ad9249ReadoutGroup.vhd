@@ -427,7 +427,7 @@ begin
          if (adcR.locked = '1' and adcFrame = "11111110000000") then
             -- Locked, output adc data
             if invertSync = '1' then
-               v.fifoWrData(i) := "00" & (x"3FFF" - adcData(i));
+               v.fifoWrData(i) := "00" & ("11111111111111" - adcData(i));
             else
                v.fifoWrData(i) := "00" & adcData(i);
             end if;

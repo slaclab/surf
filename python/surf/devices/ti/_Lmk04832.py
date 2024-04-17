@@ -12,7 +12,23 @@ import pyrogue         as pr
 from surf.devices import ti
 
 class Lmk04832(ti.Lmk048Base):
-    def __init__(self, **kwargs):
+    def __init__(self,
+            simpleViewList = [
+                'enable',
+                'SYNC_MODE',
+                'EnableSysRef',
+                'RB_PLL1_LD_LOST',
+                'RB_PLL1_LD',
+                'RB_PLL2_LD_LOST',
+                'RB_PLL2_LD',
+                'ID_VNDR_LOWER',
+                'ID_VNDR_UPPER',
+                'ID_MASKREV',
+                'ID_PROD_LOWER',
+                'ID_PROD_UPPER',
+                'ID_DEVICE_TYPE',
+            ],
+            **kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
@@ -72,9 +88,44 @@ class Lmk04832(ti.Lmk048Base):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x0145',
+            description  = 'PLL1R_SYNC_EN, PLL1R_SYNC_SRC, PLL2R_SYNC_EN, FIN0_DIV2_EN, FIN0_INPUT_TYPE',
+            offset       = (0x0145 << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x016D',
+            description  = '',
+            offset       = (0x016D << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x016E',
+            description  = 'PLL2_LD_MUX, PLL2_LD_TYPE',
+            offset       = (0x016E << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x0177',
+            description  = 'PLL1R_RST',
+            offset       = (0x0177 << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0555',
             description  = 'SPI_LOCK',
             offset       = (0x555 << 2),
             bitSize      = 8,
             mode         = 'WO',
         ))
+
+        # Default to simple view
+        self.simpleView(simpleViewList)

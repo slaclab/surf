@@ -29,7 +29,7 @@ entity UartRx is
    port (
       clk         : in  sl;
       rst         : in  sl;
-      clkEn       : in  sl;
+      baudClkEn   : in  sl;
       rdData      : out slv(DATA_WIDTH_G-1 downto 0);
       rdValid     : out sl;
       parityError : out sl;
@@ -43,27 +43,27 @@ architecture rtl of UartRx is
 
    type RegType is
    record
-      rdValid      : sl;
-      rdData       : slv(DATA_WIDTH_G-1 downto 0);
-      rxState      : StateType;
-      waitState    : StateType;
-      rxShiftReg   : slv(DATA_WIDTH_G-1 downto 0);
-      rxShiftCount : slv(3 downto 0);
-      clkEnCount   : slv(3 downto 0);
-      parity       : sl;
-      parityError  : sl;
+      rdValid        : sl;
+      rdData         : slv(DATA_WIDTH_G-1 downto 0);
+      rxState        : StateType;
+      waitState      : StateType;
+      rxShiftReg     : slv(DATA_WIDTH_G-1 downto 0);
+      rxShiftCount   : slv(3 downto 0);
+      baudClkEnCount : slv(3 downto 0);
+      parity         : sl;
+      parityError    : sl;
    end record regType;
 
    constant REG_INIT_C : RegType := (
-      rdValid      => '0',
-      rdData       => (others => '0'),
-      rxState      => WAIT_START_BIT_S,
-      waitState    => SAMPLE_RX_S,
-      rxShiftReg   => (others => '0'),
-      rxShiftCount => (others => '0'),
-      clkEnCount   => (others => '0'),
-      parity       => '0',
-      parityError  => '0');
+      rdValid        => '0',
+      rdData         => (others => '0'),
+      rxState        => WAIT_START_BIT_S,
+      waitState      => SAMPLE_RX_S,
+      rxShiftReg     => (others => '0'),
+      rxShiftCount   => (others => '0'),
+      baudClkEnCount => (others => '0'),
+      parity         => '0',
+      parityError    => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -87,7 +87,7 @@ begin
          risingEdge  => open,           -- [out]
          fallingEdge => rxFall);        -- [out]
 
-   comb : process (clkEn, r, rdReady, rst, rxFall, rxSync) is
+   comb : process (baudClkEn, r, rdReady, rst, rxFall, rxSync) is
       variable v : RegType;
    begin
       v := r;
@@ -110,53 +110,57 @@ begin
          -- Wait for RX to drop to indicate start bit
          when WAIT_START_BIT_S =>
             if (rxFall = '1') then
-               v.rxState      := WAIT_HALF_S;
-               v.clkEnCount   := (others=>'0');
-               v.rxShiftCount := (others=>'0');
+               v.rxState        := WAIT_HALF_S;
+               v.baudClkEnCount := (others => '0');
+               v.rxShiftCount   := (others => '0');
             end if;
 
-         -- Wait BAUD_MULT_G/2 clkEn counts to find center of start bit
-         -- Every rx bit is BAUD_MULT_G clkEn pulses apart
+         -- Wait BAUD_MULT_G/2 baudClkEn counts to find center of start bit
+         -- Every rx bit is BAUD_MULT_G baudClkEn pulses apart
          when WAIT_HALF_S =>
-            if (clkEn = '1') then
-               v.clkEnCount := r.clkEnCount + 1;
-               if (r.clkEnCount = (BAUD_MULT_G/2-1)) then
-                  v.clkEnCount := (others=>'0');
-                  v.rxState    := WAIT_FULL_S;
+            if (baudClkEn = '1') then
+               v.baudClkEnCount := r.baudClkEnCount + 1;
+               if (r.baudClkEnCount = (BAUD_MULT_G/2-1)) then
+                  v.baudClkEnCount := (others => '0');
+                  v.rxState        := WAIT_FULL_S;
                end if;
             end if;
 
-         -- Wait BAUD_MULT_G clkEn counts (center of next bit)
+         -- Wait BAUD_MULT_G baudClkEn counts (center of next bit)
          when WAIT_FULL_S =>
-            if (clkEn = '1') then
-               v.clkEnCount := r.clkEnCount + 1;
-               if (r.clkEnCount = (BAUD_MULT_G-2)) then
-                  v.clkEnCount := (others=>'0');
-                  v.rxState    := r.waitState;
+            if (baudClkEn = '1') then
+               v.baudClkEnCount := r.baudClkEnCount + 1;
+               if (r.baudClkEnCount = (BAUD_MULT_G-2)) then
+                  v.baudClkEnCount := (others => '0');
+                  v.rxState        := r.waitState;
                end if;
             end if;
 
          -- Sample the rx line and shift it in.
          -- Go back and wait 16 for the next bit unless last bit
          when SAMPLE_RX_S =>
-            v.rxShiftReg   := rxSync & r.rxShiftReg(DATA_WIDTH_G-1 downto 1);
-            v.rxShiftCount := r.rxShiftCount + 1;
-            v.rxState      := WAIT_FULL_S;
-            v.waitState    := SAMPLE_RX_S;
-            if (r.rxShiftCount = DATA_WIDTH_G-1) then
-               if(PARITY_G /= "NONE") then
-                  v.waitState := PARITY_S;
-               else
-                  v.waitState := WAIT_STOP_S;
+            if (baudClkEn = '1') then
+               v.rxShiftReg   := rxSync & r.rxShiftReg(DATA_WIDTH_G-1 downto 1);
+               v.rxShiftCount := r.rxShiftCount + 1;
+               v.rxState      := WAIT_FULL_S;
+               v.waitState    := SAMPLE_RX_S;
+               if (r.rxShiftCount = DATA_WIDTH_G-1) then
+                  if(PARITY_G /= "NONE") then
+                     v.waitState := PARITY_S;
+                  else
+                     v.waitState := WAIT_STOP_S;
+                  end if;
                end if;
             end if;
 
          -- Samples parity bit on rx line and compare it to the calculated parity
          -- raises a parityError flag if it does not match
          when PARITY_S =>
-            v.rxState     := WAIT_FULL_S;
-            v.waitState   := WAIT_STOP_S;
-            v.parityError := toSl(r.parity = rxSync);
+            if (baudClkEn = '1') then
+               v.rxState     := WAIT_FULL_S;
+               v.waitState   := WAIT_STOP_S;
+               v.parityError := toSl(r.parity = rxSync);
+            end if;
 
          -- Wait for the stop bit
          when WAIT_STOP_S =>

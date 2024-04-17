@@ -259,12 +259,11 @@ begin
             when others =>
                axilWriteResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveWriteResponse(v.axilWriteSlave);
+         axiSlaveWriteResponse(v.axilWriteSlave, axilWriteResp);
       end if;
 
       if (axilStatus.readEnable = '1') then
          axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         v.axilReadSlave.rdata := (others => '0');
          case (s_RdAddr) is
             when 16#00# =>              -- ADDR (0x0)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableTx;
@@ -321,7 +320,7 @@ begin
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;
-         axiSlaveReadResponse(v.axilReadSlave);
+         axiSlaveReadResponse(v.axilReadSlave, axilReadResp);
       end if;
 
       -- Reset

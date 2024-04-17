@@ -21,14 +21,17 @@ import datetime
 class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
     def __init__(self,
                  description = "Container for Cypress S25FL PROM device",
-                 addrMode    = False, # False = 24-bit Address mode, True = 32-bit Address Mode
+                 addrMode    = True, # False = 24-bit Address mode, True = 32-bit Address Mode
+                 hidden      = True,
                  **kwargs):
 
-        super().__init__(description = description, **kwargs)
+        super().__init__(description=description, hidden=hidden, addrMode=addrMode, **kwargs)
 
         ########################################
         # Overwrite with Cypress S25FL Constants
         ########################################
+        self.ERASE_4BYTE_CMD = (0xDC << 16)
+        self.WRITE_4BYTE_CMD = (0x12 << 16)
         self.FLAG_STATUS_REG = (0x05 << 16)
         self.FLAG_STATUS_RDY = (0x01)
         self.BRAC_CMD        = (0xB9 << 16)

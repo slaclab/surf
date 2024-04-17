@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Description: A Proxy module for sending transactions on an AXI-Lite bus.
 --
--- Usefull for situations with long transactions times, such as when the
+-- Useful for situations with long transactions times, such as when the
 -- AXI-Lite bus is bridged to I2C. In this case, the AXI-Lite bus Master
 -- could be locked out for some time while waiting for the I2C transaction to
 -- complete. This module allows the transaction to be kicked off and then the
@@ -22,17 +22,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity AxiLiteMasterProxy is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false);
    port (
       -- Clocks and Resets
       axiClk          : in    sl;
@@ -136,7 +133,7 @@ begin
       end case;
 
       -- Reset
-      if (axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -149,14 +146,19 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiRst) is
    begin
-      if rising_edge(axiClk) then
+      if (RST_ASYNC_G and axiRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
    U_AxiLiteMaster : entity surf.AxiLiteMaster
+      generic map (
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          req             => r.req,
          ack             => ack,

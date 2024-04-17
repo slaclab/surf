@@ -117,7 +117,7 @@ begin
    adcSck <= '1' when (r.debug = '0') else r.sck;  -- '1' = Double Data Rate LVDS Output Mode
    adcSdi <= '0' when (r.debug = '0') else r.sdi;  -- '0' = Normal Operation
 
-   IOBUF_INST : IOBUF
+   IOBUF_INST : entity surf.IoBufWrapper
       port map (
          O  => sdo,                     -- Buffer output
          IO => adcSdo,                  -- Buffer inout port (connect directly to top-level port)
@@ -264,8 +264,6 @@ begin
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
          axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
-         -- Reset the register
-         v.axiReadSlave.rdata := (others => '0');
          if (axiReadMaster.araddr(9 downto 2) < 5) then
             v.serReg(15)           := '1';  -- Read
             v.serReg(14 downto 13) := "00";

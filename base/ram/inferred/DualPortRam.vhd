@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -24,6 +23,7 @@ entity DualPortRam is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G          : time                       := 1 ns;
+      RST_ASYNC_G    : boolean                    := false;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       MEMORY_TYPE_G  : string                     := "block";
       REG_EN_G       : boolean                    := true;   -- This generic only with BRAM
@@ -65,6 +65,7 @@ begin
       TrueDualPortRam_Inst : entity surf.TrueDualPortRam
          generic map (
             TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => RST_POLARITY_G,
             DOA_REG_G      => DOA_REG_G,
             DOB_REG_G      => DOB_REG_G,
@@ -97,9 +98,10 @@ begin
    end generate;
 
    GEN_LUTRAM : if (MEMORY_TYPE_G="distributed") generate
-      QuadPortRam_Inst : entity surf.QuadPortRam
+      LutRam_Inst : entity surf.LutRam
          generic map (
             TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => RST_POLARITY_G,
             REG_EN_G       => REG_EN_G,
             MODE_G         => MODE_G,
@@ -107,6 +109,7 @@ begin
             DATA_WIDTH_G   => DATA_WIDTH_G,
             BYTE_WIDTH_G   => BYTE_WIDTH_G,
             ADDR_WIDTH_G   => ADDR_WIDTH_G,
+            NUM_PORTS_G    => 2,
             INIT_G         => INIT_G)
          port map (
             -- Port A
@@ -123,19 +126,7 @@ begin
             en_b    => enb,
             rstb    => rstb,
             addrb   => addrb,
-            doutb   => doutb,
-            -- Port C
-            clkc    => '0',
-            en_c    => '0',
-            rstc    => FORCE_RST_C,
-            addrc   => (others => '0'),
-            doutc   => open,
-            -- Port C
-            clkd    => '0',
-            en_d    => '0',
-            rstd    => FORCE_RST_C,
-            addrd   => (others => '0'),
-            doutd   => open);
+            doutb   => doutb);
    end generate;
 
 end mapping;

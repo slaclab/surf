@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -222,7 +221,7 @@ begin
       rdRin <= v;
 
       if (RD_DATA_WIDTH_G < WR_DATA_WIDTH_G) then
-         fifo_rd_en <= toSl(rdR.count = (RD_SIZE_C-1));
+         fifo_rd_en <= rd_en and toSl(rdR.count = (RD_SIZE_C-1));
          dout       <= rdData(to_integer(rdR.count));
          valid      <= fifo_valid;
          empty      <= fifo_empty;

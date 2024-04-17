@@ -60,30 +60,42 @@ package AxiStreamPacketizer2Pkg is
    constant PACKETIZER2_AXIS_CFG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => 8,
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 8,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    type Packetizer2DebugType is record
-      initDone    : sl;
-      sof         : sl;
-      eof         : sl;
-      eofe        : sl;
-      sop         : sl;
-      eop         : sl;
-      packetError : sl;
+      initDone     : sl;
+      sof          : sl;
+      eof          : sl;
+      eofe         : sl;
+      sop          : sl;
+      eop          : sl;
+      packetError  : sl;
+      sofError     : sl;
+      seqError     : sl;
+      versionError : sl;
+      crcModeError : sl;
+      eofeError    : sl;
+      crcError     : sl;
    end record Packetizer2DebugType;
    type Packetizer2DebugArray is array (natural range<>) of Packetizer2DebugType;
    constant PACKETIZER2_DEBUG_INIT_C : Packetizer2DebugType := (
-      initDone    => '0',
-      sof         => '0',
-      eof         => '0',
-      eofe        => '0',
-      sop         => '0',
-      eop         => '0',
-      packetError => '0');
+      initDone     => '0',
+      sof          => '0',
+      eof          => '0',
+      eofe         => '0',
+      sop          => '0',
+      eop          => '0',
+      packetError  => '0',
+      sofError     => '0',
+      seqError     => '0',
+      versionError => '0',
+      crcModeError => '0',
+      eofeError    => '0',
+      crcError     => '0');
 
    function crcStrToSlv (CRC_MODE_C : string) return slv;
 

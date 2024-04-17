@@ -118,6 +118,12 @@ begin
       if (inv_i = '1') then
       -- Invert sample data
          v.sampleDataInv :=  invData(r.sampleDataReg, F_G, GT_WORD_SIZE_C);
+
+         -- +1 correction (https://jira.slac.stanford.edu/browse/ESLMPS-94)
+         for i in F_G-1 downto 0 loop
+            v.sampleDataInv(i*8*F_G+8*F_G-1 downto i*8*F_G) := v.sampleDataInv(i*8*F_G+8*F_G-1 downto i*8*F_G) - 1;
+         end loop;
+
       else
          v.sampleDataInv :=  r.sampleDataReg;
       end if;

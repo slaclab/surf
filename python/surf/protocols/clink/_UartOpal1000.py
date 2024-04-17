@@ -17,8 +17,8 @@ import pyrogue as pr
 import surf.protocols.clink as clink
 
 class UartOpal1000Rx(clink.ClinkSerialRx):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, path,**kwargs):
+        super().__init__(path=path,**kwargs)
 
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
@@ -28,17 +28,17 @@ class UartOpal1000Rx(clink.ClinkSerialRx):
             c = chr(ba[i])
 
             if c == '\n':
-                print("Got NL Response" )
+                print(self._path+": Got NL Response" )
                 self._cur = []
             elif ba[i] == 0x6:
-                print("Got ACK Response" )
+                print(self._path+": Got ACK Response" )
                 self._cur = []
             elif ba[i] == 0x25:
-                print("Got NAK Response" )
+                print(self._path+": Got NAK Response" )
                 self._cur = []
             elif c == '\r':
                 self._last = ''.join(self._cur)
-                print("recvString: {}".format(self._last))
+                print(self._path+": recvString: {}".format(self._last))
             elif c != '':
                 self._cur.append(c)
 
@@ -51,10 +51,10 @@ class UartOpal1000(pr.Device):
         super().__init__(name=name, description=description, **kwargs)
 
         # Attach the serial devices
-        self._rx = UartOpal1000Rx()
+        self._rx = UartOpal1000Rx(self.path)
         pr.streamConnect(serial,self._rx)
 
-        self._tx = clink.ClinkSerialTx()
+        self._tx = clink.ClinkSerialTx(self.path)
         pr.streamConnect(self._tx,serial)
 
         @self.command(value='', name='SendString', description='Send a command string')
@@ -71,7 +71,7 @@ class UartOpal1000(pr.Device):
             description  = 'Retrieves the camera model and serial number',
             mode         = 'RW',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'@ID?')
+            localSet     = lambda value: self._tx.sendString('@ID?')
         ))
 
         self.add(pr.LocalVariable(
@@ -79,7 +79,7 @@ class UartOpal1000(pr.Device):
             description  = 'Build string',
             mode         = 'RW',
             value        = '',
-            localSet     = lambda value: self._tx.sendString(f'@BS?')
+            localSet     = lambda value: self._tx.sendString('@BS?')
         ))
 
         self.add(pr.LocalVariable(
@@ -277,3 +277,8 @@ class UartOpal1000(pr.Device):
             value        = '',
             localSet     = lambda value: self._tx.sendString(f'@FSP{value}') if value!='' else ''
         ))
+
+    def _rootAttached(self,parent,root):
+        super()._rootAttached(parent,root)
+        self._rx._path = self.path
+        self._tx._path = self.path

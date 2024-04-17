@@ -19,17 +19,22 @@ class Axi24LC64FT(pr.Device):
     def __init__(self,
                  nelms       = 0x800,
                  instantiate = True,
+                 hidden      = True,
                  **kwargs):
 
-        super().__init__(**kwargs)
+        super().__init__(hidden=hidden,**kwargs)
 
         ##############################
         # Variables
         ##############################
         if (instantiate):
-            pr.MemoryDevice(
+            self.add(pr.RemoteVariable(
                 name        = "Mem",
                 description = "Memory Array",
-                size        = (4*nelms),
-                # nelms     = nelms,
-            )
+                offset      = 0x0000,
+                numValues   = nelms,
+                valueBits   = 32,
+                valueStride = 32,
+                bitSize     = 32 * nelms,
+                bulkOpEn    = False, # FALSE for large variables,
+            ))

@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -28,7 +27,7 @@ package SsiCmdMasterPkg is
    type SsiCmdMasterType is record
       valid   : sl;                     -- Command Opcode is valid (formerly cmdEn)
       opCode  : slv(7 downto 0);        -- Command OpCode
-      context : slv(23 downto 0);       -- Command Context
+      ctx     : slv(23 downto 0);       -- Command Context
    end record;
 
    type SsiCmdMasterArray is array (natural range <>) of SsiCmdMasterType;
@@ -36,6 +35,6 @@ package SsiCmdMasterPkg is
    constant SSI_CMD_MASTER_INIT_C : SsiCmdMasterType := (
       valid   => '0',
       opCode  => (others => '0'),
-      context => (others => '0'));
+      ctx     => (others => '0'));
 
 end SsiCmdMasterPkg;

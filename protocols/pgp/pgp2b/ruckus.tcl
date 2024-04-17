@@ -1,11 +1,11 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 # Load the Core
 loadRuckusTcl "$::DIR_PATH/core"
 
 # Get the family type
-set family [getFpgaFamily]
+set family [getFpgaArch]
 
 if { ${family} eq {artix7} } {
    loadRuckusTcl "$::DIR_PATH/gtp7"
@@ -27,19 +27,19 @@ if { ${family} eq {virtex7} } {
    loadRuckusTcl "$::DIR_PATH/gth7"
 }
 
-if { ${family} eq {kintexu} } {
+if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
 }
 
 if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplus} ||
-     ${family} eq {zynquplusRFSOC} ||
-     ${family} eq {qzynquplusRFSOC} } {
+     ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
-   # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
+   loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
 }
 
-# if { ${family} eq {virtexuplus} ||
-     # ${family} eq {virtexuplusHBM} } {
-   # loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
-# }
+if { ${family} eq {virtexuplus} ||
+     ${family} eq {virtexuplusHBM} } {
+   loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
+}

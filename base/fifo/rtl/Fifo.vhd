@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -80,6 +79,7 @@ begin
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
             FWFT_EN_G       => FWFT_EN_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,
@@ -117,6 +117,7 @@ begin
          generic map (
             TPD_G           => TPD_G,
             RST_POLARITY_G  => RST_POLARITY_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
             FWFT_EN_G       => FWFT_EN_G,
             GEN_SYNC_FIFO_G => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G   => MEMORY_TYPE_G,
@@ -155,6 +156,7 @@ begin
          FifoAsync_Inst : entity surf.FifoAsync
             generic map (
                TPD_G          => TPD_G,
+               RST_ASYNC_G    => RST_ASYNC_G,
                RST_POLARITY_G => RST_POLARITY_G,
                MEMORY_TYPE_G  => MEMORY_TYPE_G,
                FWFT_EN_G      => FWFT_EN_G,

@@ -16,7 +16,6 @@ library IEEE;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -28,13 +27,13 @@ entity UartTx is
       BAUD_MULT_G  : integer range 2 to 16 := 16;
       DATA_WIDTH_G : integer range 5 to 8  := 8);
    port (
-      clk      : in  sl;
-      rst      : in  sl;
-      clkEn    : in  sl;
-      wrData   : in  slv(DATA_WIDTH_G-1 downto 0);
-      wrValid  : in  sl;
-      wrReady  : out sl;
-      tx       : out sl);
+      clk       : in  sl;
+      rst       : in  sl;
+      baudClkEn : in  sl;
+      wrData    : in  slv(DATA_WIDTH_G-1 downto 0);
+      wrValid   : in  sl;
+      wrReady   : out sl;
+      tx        : out sl);
 end entity UartTx;
 
 architecture RTL of UartTx is
@@ -45,23 +44,23 @@ architecture RTL of UartTx is
    type StateType is (WAIT_DATA_S, SYNC_EN_S, WAIT_S, TX_BIT_S);
 
    type RegType is record
-      wrReady    : sl;
-      holdReg    : slv(DATA_WIDTH_G-1 downto 0);
-      parity     : sl;
-      txState    : StateType;
-      clkEnCount : slv(3 downto 0);
-      shiftReg   : slv(SHIFT_REG_WIDTH_C-1 downto 0);
-      shiftCount : slv(3 downto 0);
+      wrReady        : sl;
+      holdReg        : slv(DATA_WIDTH_G-1 downto 0);
+      parity         : sl;
+      txState        : StateType;
+      baudClkEnCount : slv(3 downto 0);
+      shiftReg       : slv(SHIFT_REG_WIDTH_C-1 downto 0);
+      shiftCount     : slv(3 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      wrReady    => '0',
-      holdReg    => (others => '0'),
-      parity     => '0',
-      txState    => WAIT_DATA_S,
-      clkEnCount => (others => '0'),
-      shiftReg   => (others => '1'),
-      shiftCount => (others => '0'));
+      wrReady        => '0',
+      holdReg        => (others => '0'),
+      parity         => '0',
+      txState        => WAIT_DATA_S,
+      baudClkEnCount => (others => '0'),
+      shiftReg       => (others => '1'),
+      shiftCount     => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -69,7 +68,7 @@ architecture RTL of UartTx is
 begin  -- architecture RTL
 
 
-   comb : process (clkEn, r, rst, wrData, wrValid) is
+   comb : process (baudClkEn, r, rst, wrData, wrValid) is
       variable v : RegType;
    begin
       v := r;
@@ -85,11 +84,11 @@ begin  -- architecture RTL
                v.parity  := oddParity(wrData);  -- returns 1 if wrData is odd, 0 if even
             end if;
 
-            -- Wait for next clkEn to synchronize
-            -- Then load the shift reg
-            -- LSB is the start bit, MSB is stop bit, MSB-1 is parity/stop
+         -- Wait for next baudClkEn to synchronize
+         -- Then load the shift reg
+         -- LSB is the start bit, MSB is stop bit, MSB-1 is parity/stop
          when SYNC_EN_S =>
-            if (clkEn = '1') then
+            if (baudClkEn = '1') then
                if(STOP_BITS_G = 1 and PARITY_G = "NONE") then
                   v.shiftReg := '1' & r.holdReg & '0';
                elsif(STOP_BITS_G = 1 and PARITY_G = "EVEN") then
@@ -103,30 +102,32 @@ begin  -- architecture RTL
                      report "Invalid stopbit:parity combination" severity failure;
                end if;
 
-               v.clkEnCount := (others => '0');
-               v.shiftCount    := (others => '0');
-               v.txState       := WAIT_S;
+               v.baudClkEnCount := (others => '0');
+               v.shiftCount     := (others => '0');
+               v.txState        := WAIT_S;
             end if;
 
-            -- Wait BAUD_MULT_G-1 counts (the baud rate)
-            -- When shifted all bits, wait for next tx data
+         -- Wait BAUD_MULT_G-1 counts (the baud rate)
+         -- When shifted all bits, wait for next tx data
          when WAIT_S =>
-            if (clkEn = '1') then
-               v.clkEnCount := r.clkEnCount + 1;
-               if (r.clkEnCount = (BAUD_MULT_G-2)) then
-                  v.clkEnCount := (others => '0');
-                  v.txState := TX_BIT_S;
+            if (baudClkEn = '1') then
+               v.baudClkEnCount := r.baudClkEnCount + 1;
+               if (r.baudClkEnCount = (BAUD_MULT_G-2)) then
+                  v.baudClkEnCount := (others => '0');
+                  v.txState        := TX_BIT_S;
                   if (r.shiftCount = SHIFT_REG_WIDTH_C-1) then
                      v.txState := WAIT_DATA_S;
                   end if;
                end if;
             end if;
 
-            -- Shift to TX next bit, increment shift count
+         -- Shift to TX next bit, increment shift count
          when TX_BIT_S =>
-            v.shiftReg   := '0' & r.shiftReg(SHIFT_REG_WIDTH_C-1 downto 1);
-            v.shiftCount := r.shiftCount + 1;
-            v.txState    := WAIT_S;
+            if (baudClkEn = '1') then
+               v.shiftReg   := '0' & r.shiftReg(SHIFT_REG_WIDTH_C-1 downto 1);
+               v.shiftCount := r.shiftCount + 1;
+               v.txState    := WAIT_S;
+            end if;
 
       end case;
 

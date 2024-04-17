@@ -42,7 +42,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -50,6 +49,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteSequencerRam is
    generic (
       TPD_G               : time                 := 1 ns;
+      RST_ASYNC_G         : boolean              := false;
       SYNTH_MODE_G        : string               := "inferred";
       MEMORY_TYPE_G       : string               := "block";
       MEMORY_INIT_FILE_G  : string               := "none";  -- Used for MEMORY_TYPE_G="XPM only
@@ -139,7 +139,8 @@ begin
 
    U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
-         TPD_G => TPD_G)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
       port map (
          req             => r.req,
          ack             => ack,
@@ -204,6 +205,7 @@ begin
       U_RAM : entity surf.TrueDualPortRam
          generic map (
             TPD_G        => TPD_G,
+            RST_ASYNC_G  => RST_ASYNC_G,
             BYTE_WR_EN_G => true,
             DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
             DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
@@ -477,7 +479,7 @@ begin
       extDone         <= v.extDone;
 
       -- Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -486,9 +488,11 @@ begin
 
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G and axilRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

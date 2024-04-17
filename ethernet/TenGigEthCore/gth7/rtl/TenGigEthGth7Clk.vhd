@@ -66,7 +66,7 @@ begin
    PwrUpRst_Inst : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => 15625000)        -- 100 ms
+         DURATION_G => 156250000)       -- 1000 ms
       port map (
          arst   => extRst,
          clk    => phyClock,
@@ -110,14 +110,14 @@ begin
          QPLL_CFG_G          => x"04801C7",
          QPLL_REFCLK_SEL_G   => QPLL_REFCLK_SEL_C,
          QPLL_FBDIV_G        => "0101000000",  -- 64B/66B Encoding
-         QPLL_FBDIV_RATIO_G  => '0',           -- 64B/66B Encoding
+         QPLL_FBDIV_RATIO_G  => '0',    -- 64B/66B Encoding
          QPLL_REFCLK_DIV_G   => 1)
       port map (
-         qPllRefClk     => refClk,             -- 156.25 MHz
+         qPllRefClk     => refClk,      -- 156.25 MHz
          qPllOutClk     => qPllOutClk,
          qPllOutRefClk  => qPllOutRefClk,
          qPllLock       => qPllLock,
-         qPllLockDetClk => '0',                -- IP Core ties this to GND (see note below)
+         qPllLockDetClk => '0',  -- IP Core ties this to GND (see note below)
          qPllRefClkLost => open,
          qPllPowerDown  => '0',
          qPllReset      => qpllReset);

@@ -68,7 +68,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
         self.add(pr.LinkVariable(
             name         = 'DUTY_CYCLE',
             mode         = 'RO',
-            units        = 'kHz',
+            units        = '%',
             disp         = '{:1.3f}',
             linkedGet    = literalDataFormat,
             dependencies = [self.READ_DUTY_CYCLE],

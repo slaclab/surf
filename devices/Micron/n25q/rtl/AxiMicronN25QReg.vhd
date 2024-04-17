@@ -221,8 +221,6 @@ begin
                   -- Next state
                   v.state := WORD_READ_S;
                elsif (busyIn = '0') then
-                  -- Reset the register
-                  v.axiReadSlave.rdata := (others => '0');
                   -- Decode address and assign read data
                   case (axiReadMaster.araddr(7 downto 0)) is
                      when x"00" =>
@@ -443,6 +441,7 @@ begin
          dina  => r.ramDin,
          -- Port B
          clkb  => axiClk,
+         rstb  => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
          addrb => r.raddr,
          doutb => ramDout);
 

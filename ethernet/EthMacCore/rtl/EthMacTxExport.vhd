@@ -24,8 +24,9 @@ use surf.StdRtlPkg.all;
 
 entity EthMacTxExport is
    generic (
-      TPD_G      : time   := 1 ns;
-      PHY_TYPE_G : string := "XGMII");
+      TPD_G        : time   := 1 ns;
+      PHY_TYPE_G   : string := "XGMII";
+      SYNTH_MODE_G : string := "inferred");
    port (
       -- Clock and Reset
       ethClkEn       : in  sl;
@@ -87,7 +88,8 @@ begin
    U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity surf.EthMacTxExportXgmii
          generic map (
-            TPD_G => TPD_G)
+            TPD_G        => TPD_G,
+            SYNTH_MODE_G => SYNTH_MODE_G)
          port map (
             -- Clock and Reset
             ethClk         => ethClk,

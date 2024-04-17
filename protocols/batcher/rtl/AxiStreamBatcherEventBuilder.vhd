@@ -48,8 +48,8 @@ entity AxiStreamBatcherEventBuilder is
       TRANS_TDEST_G : slv(7 downto 0) := x"FF";
 
       AXIS_CONFIG_G        : AxiStreamConfigType;
-      INPUT_PIPE_STAGES_G  : natural             := 0;
-      OUTPUT_PIPE_STAGES_G : natural             := 0);
+      INPUT_PIPE_STAGES_G  : natural := 0;
+      OUTPUT_PIPE_STAGES_G : natural := 0);
    port (
       -- Clock and Reset
       axisClk         : in  sl;
@@ -202,8 +202,8 @@ begin
          bin  => r.timeout,
          gtEq => timeoutEvent);         -- greater than or equal to (a >= b)
 
-   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle, blowoffExt, r, rxMasters,
-                   timeoutEvent, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, axisRst, batcherIdle,
+                   blowoffExt, r, rxMasters, timeoutEvent, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
       variable i      : natural;
@@ -236,9 +236,11 @@ begin
          v.timeout    := r.timeout;
          v.blowoffReg := r.blowoffReg;
 
+         -- Preserve the state of AXI-Lite
+         v.axilWriteSlave := r.axilWriteSlave;
+         v.axilReadSlave  := r.axilReadSlave;
+
       end if;
-
-
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -272,7 +274,9 @@ begin
          -- Reset the timer
          v.timer := (others => '0');
       end if;
-      if (r.bypass /= v.bypass) or (r.blowoff /= v.blowoff) then
+
+      -- Check for any change to bypass or blowoff 1->0 transition
+      if (r.bypass /= v.bypass) or ((r.blowoff = '1') and (v.blowoff = '0')) then
          -- Perform a soft-reset
          v.softRst := '1';
       end if;
@@ -535,6 +539,7 @@ begin
          axisClk      => axisClk,
          axisRst      => axisReset,
          -- External Control Interface
+         forceTerm    => r.blowoff,
          maxSubFrames => r.maxSubFrames,
          idle         => batcherIdle,
          -- AXIS Interfaces

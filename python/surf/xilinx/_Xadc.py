@@ -22,8 +22,17 @@ class Xadc(pr.Device):
                  description = "AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)",
                  auxChannels = 0,
                  zynq        = False,
+                 simpleViewList = ["Temperature", "VccInt", "VccAux", "VccBram"],
+                 pollInterval = 5,
                  **kwargs):
         super().__init__(description=description, **kwargs)
+
+        if isinstance(auxChannels, int):
+            auxChannels = list(range(auxChannels))
+
+        if simpleViewList is not None:
+            self.simpleViewList = simpleViewList[:]
+            self.simpleViewList.append('enable')
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
@@ -53,7 +62,7 @@ class Xadc(pr.Device):
             bitOffset    = 4,
             units        = "degC",
             function     = self.convTemp,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = """
                 The result of the on-chip temperature sensor measurement is
                 stored in this location. The data is MSB justified in the
@@ -113,7 +122,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description = """
                 The result of the on-chip VccInt supply monitor measurement
                 is stored at this location. The data is MSB justified in the
@@ -161,7 +170,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description = """
                 The result of the on-chip VccAux supply monitor measurement
                 is stored at this location. The data is MSB justified in the
@@ -211,7 +220,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description = """
                 The result of the on-chip VccBram supply monitor measurement
                 is stored at this location. The data is MSB justified in the
@@ -303,32 +312,32 @@ class Xadc(pr.Device):
                 the 16-bit register.      """,
         )
 
-        self.addRemoteVariables(
-            name         = "AuxRaw",
-            offset       =  0x240,
-            bitSize      =  12,
-            bitOffset    =  4,
-            base         = pr.UInt,
-            mode         = "RO",
-            number       =  auxChannels,
-            stride       =  4,
-            description = """
+        for ch in auxChannels:
+            self.add(pr.RemoteVariable(
+                name         = f'AuxRaw[{ch}]',
+                offset       =  0x240 + ch*4,
+                bitSize      =  12,
+                bitOffset    =  4,
+                base         = pr.UInt,
+                mode         = "RO",
+                description = """
                 The results of the conversions on auxiliary analog input
                 channels are stored in this register. The data is MSB
                 justified in the 16-bit register (Read Only). The 12 MSBs correspond to
                 the transfer function shown in Figure 2-1, page 24 or
                 Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode
                 settings.""",
-        )
+            ))
 
-        for i in range(auxChannels):
             self.add(pr.LinkVariable(
-                name=f'Aux[{i}]',
+                name=f'Aux[{ch}]',
                 units='V',
                 disp='{:1.3f}',
                 mode='RO',
-                variable=self.AuxRaw[i],
+                variable=self.AuxRaw[ch],
                 linkedGet=self.convAuxVoltage))
+
+            self.simpleViewList.append(f'Aux[{ch}]')
 
         if (zynq):
             addPair(
@@ -564,8 +573,8 @@ class Xadc(pr.Device):
         )
 
         # Default to simple view
-        self.simpleView()
-
+        if simpleViewList is not None:
+            self.simpleView()
 
     @staticmethod
     def convTemp(dev, var):
@@ -609,5 +618,5 @@ class Xadc(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ["enable", "Temperature", "VccInt", "VccAux", "VccBram"]
+        vars = self.simpleViewList
         self.hideVariables(hidden=False, variables=vars)

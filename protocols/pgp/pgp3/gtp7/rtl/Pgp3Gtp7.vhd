@@ -56,6 +56,8 @@ entity Pgp3Gtp7 is
       EN_PGP_MON_G                : boolean               := false;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)      := (others => '0');
       AXIL_CLK_FREQ_G             : real                  := 156.25E+6);
    port (
@@ -94,10 +96,6 @@ entity Pgp3Gtp7 is
       -- Frame Receive Interface
       pgpRxMasters    : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
       pgpRxCtrl       : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-      -- Debug Interface
-      txPreCursor     : in  slv(4 downto 0)        := "00111";
-      txPostCursor    : in  slv(4 downto 0)        := "00111";
-      txDiffCtrl      : in  slv(3 downto 0)        := "1111";
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -150,7 +148,10 @@ architecture rtl of Pgp3Gtp7 is
    signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
 
-   signal loopback : slv(2 downto 0) := (others => '0');
+   signal loopback     : slv(2 downto 0) := (others => '0');
+   signal txDiffCtrl   : slv(4 downto 0);
+   signal txPreCursor  : slv(4 downto 0);
+   signal txPostCursor : slv(4 downto 0);
 
    -- attribute dont_touch                 : string;
    -- attribute dont_touch of phyRxClk     : signal is "TRUE";
@@ -229,6 +230,8 @@ begin
          TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
          TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
          EN_PGP_MON_G                => EN_PGP_MON_G,
+         STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+         ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
@@ -263,6 +266,9 @@ begin
          phyRxSlip       => phyRxSlip,                           -- [out]
          -- Debug Interface
          loopback        => loopback,                            -- [out]
+         txDiffCtrl      => txDiffCtrl,                          -- [out]
+         txPreCursor     => txPreCursor,                         -- [out]
+         txPostCursor    => txPostCursor,                        -- [out]
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]

@@ -9,19 +9,33 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import re
-import ast
-import time
 
 class Lmk048Base(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, allowHexFileRst=True,**kwargs):
         super().__init__(**kwargs)
 
-        self.sysrefMode = 2 # 2 pulse sysref mode, 3 continuous sysref mode
+        self.sysrefMode      = 2 # 2 pulse sysref mode, 3 continuous sysref mode
+        self.allowHexFileRst = allowHexFileRst
 
         ##############################
         # Variables
         ##############################
+
+        self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x0000',
+            offset       = (0x0000 << 2),
+            bitSize      = 8,
+            mode         = 'WO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'LmkReg_0x0002',
+            offset       = (0x0002 << 2),
+            bitSize      = 1,
+            mode         = 'RW',
+            overlapEn    = True,
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0100',
@@ -524,32 +538,6 @@ class Lmk048Base(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x0145',
-            description  = 'Always program to 127 (0x7F)',
-            offset       = (0x0145 << 2),
-            bitSize      = 8,
-            mode         = 'WO',
-            value        = 0x7F,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x0171',
-            description  = 'Always program to 170 (0xAA)',
-            offset       = (0x0171 << 2),
-            bitSize      = 8,
-            mode         = 'WO',
-            value        = 0xAA,
-        ))
-        self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x0172',
-            description  = 'Always program to 2 (0x02)',
-            offset       = (0x0172 << 2),
-            bitSize      = 8,
-            mode         = 'WO',
-            value        = 0x02,
-        ))
-
-        self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0146',
             description  = 'CLKin2_EN, CLKin1_EN, CLKin0_EN, CLKin2_TYPE, CLKin1_TYPE, CLKin0_TYPE',
             offset       = (0x0146 << 2),
@@ -871,18 +859,78 @@ class Lmk048Base(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0182',
-            description  = 'RB_PLL1_LD_LOST, RB_PLL1_LD, CLR_PLL1_LD_LOST',
+            description  = 'CLR_PLL1_LD_LOST, CLR_PLL2_LD_LOST',
             offset       = (0x0182 << 2),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'WO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name      = 'CLR_PLL1_LD_LOST',
+            offset    = (0x0182 << 2),
+            bitSize   = 1,
+            bitOffset = 1,
+            overlapEn = True,
+            function  = pr.RemoteCommand.toggle
+        ))
+
+        self.add(pr.RemoteCommand(
+            name      = 'CLR_PLL2_LD_LOST',
+            offset    = (0x0182 << 2),
+            bitSize   = 1,
+            bitOffset = 0,
+            overlapEn = True,
+            function  = pr.RemoteCommand.toggle
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0183',
-            description  = 'RB_PLL2_LD_LOST, RB_PLL2_LD, CLR_PLL2_LD_LOST',
+            description  = 'RB_PLL1_LD_LOST, RB_PLL1_LD, RB_PLL2_LD_LOST, RB_PLL2_LD',
             offset       = (0x0183 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RB_PLL1_LD_LOST',
+            description  = 'This is set when PLL1 DLD edge falls. Does not set if cleared while PLL1 DLD is low.',
+            offset       = (0x0183 << 2),
+            bitSize      = 1,
+            bitOffset    = 3,
+            mode         = 'RO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RB_PLL1_LD',
+            description  = 'Read back 0: PLL1 DLD is low., Read back 1: PLL1 DLD is high.',
+            offset       = (0x0183 << 2),
+            bitSize      = 1,
+            bitOffset    = 2,
+            mode         = 'RO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RB_PLL2_LD_LOST',
+            description  = 'This is set when PLL2 DLD edge falls. Does not set if cleared while PLL2 DLD is low.',
+            offset       = (0x0183 << 2),
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RB_PLL2_LD',
+            description  = 'Read back 0: PLL2 DLD is low., Read back 1: PLL2 DLD is high.',
+            offset       = (0x0183 << 2),
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RO',
+            overlapEn    = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -1008,6 +1056,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x000D << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1016,6 +1065,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x000C << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1024,6 +1074,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0006 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1032,6 +1083,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0005 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1040,6 +1092,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0004 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1048,6 +1101,7 @@ class Lmk048Base(pr.Device):
             offset       = (0x0003 << 2),
             bitSize      = 8,
             mode         = 'RO',
+            disp         = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -1056,111 +1110,112 @@ class Lmk048Base(pr.Device):
             offset       = (0x0002 << 2),
             bitSize      = 1,
             mode         = 'RW',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RESET',
+            description  = 'RESET',
+            offset       = (0x0000 << 2),
+            bitSize      = 1,
+            bitOffset    = 7,
+            mode         = 'WO',
+            overlapEn    = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = '3WIREDIS',
+            description  = 'DISABLE 3 WIRE MODE',
+            offset       = (0x0000 << 2),
+            bitSize      = 1,
+            bitOffset    = 4,
+            mode         = 'WO',
+            overlapEn    = True,
         ))
 
         ##############################
         # Commands
         ##############################
-        @self.command(description='Load the CodeLoader .MAC file',value='',)
-        def LoadCodeLoaderMacFile(arg):
-            addr = 0
-            # Open the input file
+        @self.command(description='Load the CodeLoader .HEX file',value='',)
+        def LoadCodeLoaderHexFile(arg):
             with open(arg, 'r') as ifd:
                 for i, line in enumerate(ifd):
-                    line = line.strip()
-                    if (i<18):
-                        if (i==0) and ( line != '[SETUP]'):
-                            print ('invalid file detected at line#1')
-                            break
-                        elif (i==5) and ( line != 'PART=LMK04828B'):
-                            print ('invalid file detected at line#6')
-                            break
-                        elif (i==11) and ( line != '[MODES]'):
-                            print ('invalid file detected at line#12')
-                            break
-                        elif (i==12) and ( line != 'NAME00=R0 (INIT)'):
-                            print ('invalid file detected at line#13')
-                            break
-                    elif (i<232):
-                        if(i%2):
-                            pat = re.compile('[=]')
-                            fields=pat.split(line)
-                            data = (ast.literal_eval(fields[1])&0xFF)
-                            v = getattr(self, 'LmkReg_0x%04X'%addr)
-                            v.set(data)
-                            if(addr==357):
-                                self.LmkReg_0x0171.set(0xAA)
-                                self.LmkReg_0x0172.set(0x02)
-                                self.LmkReg_0x0173.set(0x00)
-                                self.LmkReg_0x0174.set(0x00)
-                        else:
-                            pat = re.compile('[R\t\n]')
-                            fields=pat.split(line)
-                            addr = ast.literal_eval(fields[1])
+                    s = str.split(line)
+                    addr = int(s[0][1:], 0)
+                    if len(s) == 3:
+                        data = int("0x" + s[2][-2:], 0)
                     else:
-                        pass
-            ifd.close()
+                        data = int("0x" + s[1][-2:], 0)
+                    if addr == 0:
+                        if self.allowHexFileRst:
+                            self.LmkReg_0x0000.set(data)
+                    elif addr == 3:
+                        v = getattr(self, 'ID_DEVICE_TYPE')
+                        if (v.get() != data):
+                            print(f'ID_DEVICE_TYPE mismatch: {v.get()} != {data}')
+                    elif addr == 4:
+                        v = getattr(self, 'ID_PROD_LOWER')
+                        if (v.get() != data):
+                            print(f'ID_PROD_LOWER mismatch: {v.get()} != {data}')
+                    elif addr == 5:
+                        v = getattr(self, 'ID_PROD_UPPER')
+                        if (v.get() != data):
+                            print(f'ID_PROD_UPPER mismatch: {v.get()} != {data}')
+                    elif addr == 6:
+                        v = getattr(self, 'ID_MASKREV')
+                        if (v.get() != data):
+                            print(f'ID_MASKREV mismatch: {v.get()} != {data}')
+                    elif addr == 12:
+                        v = getattr(self, 'ID_VNDR_UPPER')
+                        if (v.get() != data):
+                            print(f'ID_VNDR_UPPER mismatch: {v.get()} != {data}')
+                    elif addr == 13:
+                        v = getattr(self, 'ID_VNDR_LOWER')
+                        if (v.get() != data):
+                            print(f'ID_VNDR_LOWER mismatch: {v.get()} != {data}')
+                    else:
+                        v = getattr(self, 'LmkReg_0x%04X'%addr)
+                        v.set(data)
 
         @self.command(description='Powerdown the sysref lines',)
         def PwrDwnSysRef():
+            self.sysrefMode = self.EnableSysRef.get()
             self.EnableSysRef.set(0)
-            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='Powerup the sysref lines',)
         def PwrUpSysRef():
             self.EnableSysRef.set(self.sysrefMode)
-            self.LmkReg_0x0143.set(0x12)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x32)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x12)
-            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='1: Powerdown',)
         def PwrDwnLmkChip():
             self.POWER_DOWN.set(1)
-            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='0: Normal Operation',)
         def PwrUpLmkChip():
             self.POWER_DOWN.set(0)
-            time.sleep(0.010) # TODO: Optimize this timeout
 
         @self.command(description='Synchronize LMK internal counters. Warning this function will power off and power on all the system clocks',)
         def Init():
+            # Cache the current value
             self.sysrefMode = self.EnableSysRef.get()
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0139.set(0x0)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x11)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0140.set(0x0)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0144.set(0x74)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x11)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x31)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x11)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0144.set(0xFF)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0139.set(0x2)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x013E.set(0x3)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x12)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x32)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0143.set(0x12)
-            time.sleep(0.010) # TODO: Optimize this timeout
 
-            # Fixed Register:
-            self.LmkReg_0x0145.set(0x7F) # Always program this register to value 127 (0x7F)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0171.set(0xAA) # Always program to 170 (0xAA)
-            time.sleep(0.010) # TODO: Optimize this timeout
-            self.LmkReg_0x0172.set(0x02) # Always program to 2 (0x02)
-            time.sleep(0.010) # TODO: Optimize this timeout
+            # Preparing for SYNC
+            self.LmkReg_0x0139.set(self.sysrefMode)
+            self.LmkReg_0x013E.set(0x3)
+            self.LmkReg_0x0140.set(0x0)
+            self.LmkReg_0x0144.set(0x0)
+
+            # Force a SYNC
+            self.LmkReg_0x0143.set(0x11)
+            self.LmkReg_0x0143.set(0x31)
+            self.LmkReg_0x0143.set(0x11)
+
+            # Disable additional SYNCs
+            self.LmkReg_0x0143.set(0x01)
+            self.LmkReg_0x0144.set(0xFF)
+
+    def simpleView(self, simpleViewList):
+        # Hide all the variable
+        self.hideVariables(hidden=True)
+        # Then unhide the most interesting ones
+        self.hideVariables(hidden=False, variables=simpleViewList)

@@ -159,7 +159,7 @@ class AxiStreamMonChannel(pr.Device):
         return var.dependencies[0].value() * 8e-6
 
 class AxiStreamMonAxiL(pr.Device):
-    def __init__(self, numberLanes=1, **kwargs):
+    def __init__(self, numberLanes=1, hideConfig=True, chName=None, **kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteCommand(
@@ -179,6 +179,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -189,6 +190,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -199,6 +201,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             disp         = '{:d}',
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -208,6 +211,7 @@ class AxiStreamMonAxiL(pr.Device):
             bitOffset    = 12,
             mode         = 'RO',
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -224,6 +228,7 @@ class AxiStreamMonAxiL(pr.Device):
                 0xF: 'UNDEFINED',
             },
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -240,6 +245,7 @@ class AxiStreamMonAxiL(pr.Device):
                 0xF: 'UNDEFINED',
             },
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -250,6 +256,7 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             base         = pr.Bool,
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -260,11 +267,17 @@ class AxiStreamMonAxiL(pr.Device):
             mode         = 'RO',
             base         = pr.Bool,
             overlapEn    = True,
+            hidden       = hideConfig,
         ))
+
+        if chName is None:
+            self.chName = [f'Ch[{i}]' for i in range(numberLanes)]
+        else:
+            self.chName = chName
 
         for i in range(numberLanes):
             self.add(AxiStreamMonChannel(
-                name        = f'Ch[{i}]',
+                name        = self.chName[i],
                 offset      = (i*0x40),
                 expand      = True,
             ))

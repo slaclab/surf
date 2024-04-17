@@ -5,87 +5,6 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- AXI-Lite block to manage the PGP interface.
---
--- Address map (offset from base):
---    0x00 = Read/Write
---       Bits 0 = Count Reset
---    0x04 = Read/Write
---       Bits 0 = Reset Rx
---    0x08 = Read/Write
---       Bits 0 = Flush
---    0x0C = Read/Write
---       Bits 1:0 = Loop Back
---    0x10 = Read/Write
---       Bits 7:0 = Sideband data to transmit
---       Bits 8   = Sideband data enable
---    0x14 = Read/Write
---       Bits 0 = Auto Status Send Enable (PPI)
---    0x18 = Read/Write
---       Bits 0 = Disable Flow Control
---    0x20 = Read Only
---       Bits 0     = Rx Phy Ready
---       Bits 1     = Tx Phy Ready
---       Bits 2     = Local Link Ready
---       Bits 3     = Remote Link Ready
---       Bits 4     = Transmit Ready
---       Bits 9:8   = Receive Link Polarity
---       Bits 15:12 = Remote Pause Status
---       Bits 19:16 = Local Pause Status
---       Bits 23:20 = Remote Overflow Status
---       Bits 27:24 = Local Overflow Status
---    0x24 = Read Only
---       Bits 7:0 = Remote Link Data
---    0x28 = Read Only
---       Bits ?:0 = Cell Error Count
---    0x2C = Read Only
---       Bits ?:0 = Link Down Count
---    0x30 = Read Only
---       Bits ?:0 = Link Error Count
---    0x34 = Read Only
---       Bits ?:0 = Remote Overflow VC 0 Count
---    0x38 = Read Only
---       Bits ?:0 = Remote Overflow VC 1 Count
---    0x3C = Read Only
---       Bits ?:0 = Remote Overflow VC 2 Count
---    0x40 = Read Only
---       Bits ?:0 = Remote Overflow VC 3 Count
---    0x44 = Read Only
---       Bits ?:0 = Receive Frame Error Count
---    0x48 = Read Only
---       Bits ?:0 = Receive Frame Count
---    0x4C = Read Only
---       Bits ?:0 = Local Overflow VC 0 Count
---    0x50 = Read Only
---       Bits ?:0 = Local Overflow VC 1 Count
---    0x54 = Read Only
---       Bits ?:0 = Local Overflow VC 2 Count
---    0x58 = Read Only
---       Bits ?:0 = Local Overflow VC 3 Count
---    0x5C = Read Only
---       Bits ?:0 = Transmit Frame Error Count
---    0x60 = Read Only
---       Bits ?:0 = Transmit Frame Count
---    0x64 = Read Only
---       Bits 31:0 = Receive Clock Frequency
---    0x68 = Read Only
---       Bits 31:0 = Transmit Clock Frequency
---    0x70 = Read Only
---       Bits 7:0 = Last OpCode Transmitted
---    0x74 = Read Only
---       Bits 7:0 = Last OpCode Received
---    0x78 = Read Only
---       Bits ?:0 = OpCode Transmit count
---    0x7C = Read Only
---       Bits ?:0 = OpCode Received count
---
--- Status vector:
---       Bits 31:24 = Rx Link Down Count
---       Bits 23:16 = Rx Frame Error Count
---       Bits 15:8  = Rx Cell Error Count
---       Bits  7:6  = Zeros
---       Bits    5  = Remote Link Ready
---       Bits    4  = Local Link Ready
---       Bits  3:0  = Remote Overflow Status
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -136,6 +55,11 @@ entity Pgp2bAxi is
       statusWord : out slv(63 downto 0);
       statusSend : out sl;
 
+      -- Debug Interface (axilClk domain)
+      txDiffCtrl      : out slv(4 downto 0);
+      txPreCursor     : out slv(4 downto 0);
+      txPostCursor    : out slv(4 downto 0);
+
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -171,6 +95,9 @@ architecture structure of Pgp2bAxi is
    signal syncFlowCntlDis : sl;
 
    type RegType is record
+      txDiffCtrl     : slv(4 downto 0);
+      txPreCursor    : slv(4 downto 0);
+      txPostCursor   : slv(4 downto 0);
       flush          : sl;
       resetTx        : sl;
       resetRx        : sl;
@@ -186,6 +113,9 @@ architecture structure of Pgp2bAxi is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txDiffCtrl     => "11111",
+      txPreCursor    => "00111",
+      txPostCursor   => "01111",
       flush          => '0',
       resetTx        => '0',
       resetRx        => '0',
@@ -647,6 +577,12 @@ begin
                v.autoStatus := axilWriteMaster.wdata(0);
             when X"18" =>
                v.flowCntlDis := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
+            when X"1C" =>
+               if WRITE_EN_G then
+                  v.txDiffCtrl   := axilWriteMaster.wdata(4 downto 0);
+                  v.txPreCursor  := axilWriteMaster.wdata(9 downto 5);
+                  v.txPostCursor := axilWriteMaster.wdata(14 downto 10);
+               end if;
             when others => null;
          end case;
 
@@ -656,7 +592,6 @@ begin
 
       -- Read
       if (axiStatus.readEnable = '1') then
-         v.axilReadSlave.rdata := (others => '0');
 
          -- Decode address and assign read data
          case axilReadMaster.araddr(7 downto 0) is
@@ -677,6 +612,10 @@ begin
                v.axilReadSlave.rdata(0) := r.autoStatus;
             when X"18" =>
                v.axilReadSlave.rdata(0) := r.flowCntlDis;
+            when X"1C" =>
+               v.axilReadSlave.rdata(4 downto 0)   := r.txDiffCtrl;
+               v.axilReadSlave.rdata(9 downto 5)   := r.txPreCursor;
+               v.axilReadSlave.rdata(14 downto 10) := r.txPostCursor;
             when X"20" =>
                v.axilReadSlave.rdata(0)            := rxStatusSync.phyRxReady;
                v.axilReadSlave.rdata(1)            := txStatusSync.phyTxReady;
@@ -753,6 +692,9 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      txDiffCtrl     <= r.txDiffCtrl;
+      txPreCursor    <= r.txPreCursor;
+      txPostCursor   <= r.txPostCursor;
 
    end process;
 

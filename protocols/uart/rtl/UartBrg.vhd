@@ -26,9 +26,9 @@ entity UartBrg is
       BAUD_RATE_G  : integer := 115200;   -- Default 115.2 kbps
       MULTIPLIER_G : integer := 16);
    port (
-      clk   : in  sl;
-      rst   : in  sl;
-      clkEn : out sl);
+      clk       : in  sl;
+      rst       : in  sl;
+      baudClkEn : out sl);
 
 end entity UartBrg;
 
@@ -36,16 +36,16 @@ architecture rtl of UartBrg is
 
    constant CLK_DIV_C : integer := integer(CLK_FREQ_G / real(BAUD_RATE_G * MULTIPLIER_G)) - 1;
 
-   type RegType is   record
-      count : integer;
-      clkEn : sl;
+   type RegType is record
+      count     : integer;
+      baudClkEn : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      count => 0,
-      clkEn => '0');
+      count     => 0,
+      baudClkEn => '0');
 
-   signal r : RegType := REG_INIT_C;
+   signal r   : RegType := REG_INIT_C;
    signal rin : Regtype;
 
 begin
@@ -55,19 +55,19 @@ begin
    begin
       v := r;
 
-      v.count := r.count + 1;
-      v.clkEn := '0';
+      v.count     := r.count + 1;
+      v.baudClkEn := '0';
       if (r.count = CLK_DIV_C) then
-         v.count := 0;
-         v.clkEn := '1';
+         v.count     := 0;
+         v.baudClkEn := '1';
       end if;
 
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
 
-      rin   <= v;
-      clkEn <= r.clkEn;
+      rin       <= v;
+      baudClkEn <= r.baudClkEn;
    end process;
 
    seq : process (clk) is

@@ -32,7 +32,8 @@ entity EthMacTxFifo is
       VLAN_EN_G         : boolean             := false;
       VLAN_SIZE_G       : positive            := 1;
       VLAN_COMMON_CLK_G : boolean             := false;
-      VLAN_CONFIG_G     : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C);
+      VLAN_CONFIG_G     : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      SYNTH_MODE_G      : string              := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Master Clock and Reset
       mClk         : in  sl;
@@ -79,6 +80,7 @@ begin
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,
             -- FIFO configurations
+            SYNTH_MODE_G        => SYNTH_MODE_G,
             MEMORY_TYPE_G       => "distributed",
             GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
             CASCADE_SIZE_G      => 1,
@@ -119,6 +121,7 @@ begin
                SLAVE_READY_EN_G    => true,
                VALID_THOLD_G       => 1,
                -- FIFO configurations
+               SYNTH_MODE_G        => SYNTH_MODE_G,
                MEMORY_TYPE_G       => "distributed",
                GEN_SYNC_FIFO_G     => BYP_COMMON_CLK_G,
                CASCADE_SIZE_G      => 1,
@@ -161,6 +164,7 @@ begin
                   SLAVE_READY_EN_G    => true,
                   VALID_THOLD_G       => 1,
                   -- FIFO configurations
+                  SYNTH_MODE_G        => SYNTH_MODE_G,
                   MEMORY_TYPE_G       => "distributed",
                   GEN_SYNC_FIFO_G     => VLAN_COMMON_CLK_G,
                   CASCADE_SIZE_G      => 1,

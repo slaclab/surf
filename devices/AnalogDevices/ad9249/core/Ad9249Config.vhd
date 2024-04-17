@@ -155,7 +155,6 @@ begin
                   v.axilWriteSlave := axilEp.axiWriteSlave;
                else
                   -- Finish read
-                  axilEp.axiReadSlave.rdata             := (others => '0');
                   axilEp.axiReadSlave.rdata(7 downto 0) := rdData(7 downto 0);
                   axiSlaveReadResponse(axilEp.axiReadSlave);
                   v.axilReadSlave                       := axilEp.axiReadSlave;
@@ -221,7 +220,7 @@ begin
 
    -- Allow input when doing a read and in the data segment of the shift operation
    sdioDir <= '1' when shiftCount >= 16 and r.wrData(23) = '1' else '0';
-   SDIO_IOBUFT : IOBUF
+   SDIO_IOBUFT : entity surf.IoBufWrapper
       port map (
          I  => coreSDout,
          O  => coreSDin,

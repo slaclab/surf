@@ -69,7 +69,7 @@ class AxiVersion(pr.Device):
         ))
 
         def parseUpTime(var,read):
-            seconds=var.dependencies[0].get(read)
+            seconds=var.dependencies[0].get(read=read)
             if seconds == 0xFFFFFFFF:
                 click.secho(f'Invalid {var.path} detected', fg='red')
                 return 'Invalid'
@@ -105,7 +105,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             function     = lambda cmd: cmd.post(1),
-            hidden       = False,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -127,6 +127,7 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'UserReset',
             description  = 'Optional User Reset',
+            hidden       = True,
             offset       = 0x10C,
             bitSize      = 1,
             bitOffset    = 0x00,
@@ -189,7 +190,7 @@ class AxiVersion(pr.Device):
             name         = 'GitHashShort',
             mode         = 'RO',
             dependencies = [self.GitHash],
-            linkedGet    = lambda read: f'{(self.GitHash.get(read) >> 132):07x}',
+            linkedGet    = lambda read: f'{(self.GitHash.value() >> 132):07x}' if self.GitHash.get(read=read) != 0 else 'dirty (uncommitted code)',
         ))
 
         self.add(pr.RemoteVariable(
@@ -214,11 +215,17 @@ class AxiVersion(pr.Device):
         ))
 
         def parseBuildStamp(var,read):
-            buildStamp = var.dependencies[0].get(read)
+            buildStamp = var.dependencies[0].get(read=read)
             if buildStamp is None:
                 return ''
             else:
+                # Strip away the whitespace padding
+                buildStamp = buildStamp.strip()
+
+                # Parse the string
                 p = parse.parse("{ImageName}: {BuildEnv}, {BuildServer}, Built {BuildDate} by {Builder}", buildStamp)
+
+                # Check if failed
                 if p is None:
                     return ''
                 else:

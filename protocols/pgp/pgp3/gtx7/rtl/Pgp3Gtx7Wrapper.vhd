@@ -33,11 +33,12 @@ entity Pgp3Gtx7Wrapper is
    generic (
       TPD_G                       : time                        := 1 ns;
       ROGUE_SIM_EN_G              : boolean                     := false;
+      ROGUE_SIM_SIDEBAND_G        : boolean                     := true;
       ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
       NUM_LANES_G                 : positive range 1 to 4       := 1;
       NUM_VC_G                    : positive range 1 to 16      := 4;
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
-      REFCLK_TYPE_G               : Pgp3RefClkType              := PGP3_REFCLK_312_C;
+      REFCLK_FREQ_G               : real                        := 312.5E+6;
       REFCLK_G                    : boolean                     := false;  --  FALSE: use pgpRefClkP/N,  TRUE: use pgpRefClkIn
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
@@ -52,10 +53,12 @@ entity Pgp3Gtx7Wrapper is
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := true;
       EN_PGP_MON_G                : boolean                     := false;
-      EN_GTH_DRP_G                : boolean                     := false;
+      EN_GT_DRP_G                 : boolean                     := false;
       EN_QPLL_DRP_G               : boolean                     := false;
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
       RX_POLARITY_G               : slv(3 downto 0)             := x"0";
+      STATUS_CNT_WIDTH_G          : natural range 1 to 32       := 16;
+      ERROR_CNT_WIDTH_G           : natural range 1 to 32       := 8;
       AXIL_BASE_ADDR_G            : slv(31 downto 0)            := (others => '0');
       AXIL_CLK_FREQ_G             : real                        := 156.25E+6);
    port (
@@ -89,10 +92,6 @@ entity Pgp3Gtx7Wrapper is
       pgpRxMasters      : out AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
       pgpRxCtrl         : in  AxiStreamCtrlArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);  -- Used in implementation only
       pgpRxSlaves       : in  AxiStreamSlaveArray((NUM_LANES_G*NUM_VC_G)-1 downto 0) := (others => AXI_STREAM_SLAVE_FORCE_C);  -- Used in simulation only
-      -- Debug Interface
-      txPreCursor       : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txPostCursor      : in  Slv5Array(NUM_LANES_G-1 downto 0)                      := (others => "00111");
-      txDiffCtrl        : in  Slv4Array(NUM_LANES_G-1 downto 0)                      := (others => "1111");
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk           : in  sl                                                     := '0';  -- Stable Clock
       axilRst           : in  sl                                                     := '0';
@@ -185,7 +184,7 @@ begin
          generic map (
             TPD_G         => TPD_G,
             EN_DRP_G      => EN_QPLL_DRP_G,
-            REFCLK_TYPE_G => REFCLK_TYPE_G,
+            REFCLK_FREQ_G => REFCLK_FREQ_G,
             RATE_G        => RATE_G)
          port map (
             -- Stable Clock and Reset
@@ -227,10 +226,12 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
-               EN_DRP_G                    => EN_GTH_DRP_G,
+               EN_DRP_G                    => EN_GT_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),
                RX_POLARITY_G               => RX_POLARITY_G(i),
                AXIL_BASE_ADDR_G            => XBAR_CONFIG_C(i).baseAddr,
+               STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
+               ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
                AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
             port map (
                -- Stable Clock and Reset
@@ -268,10 +269,6 @@ begin
                -- Frame Receive Interface
                pgpRxMasters    => pgpRxMasters(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
                pgpRxCtrl       => pgpRxCtrl(((i+1)*NUM_VC_G)-1 downto (i*NUM_VC_G)),
-               -- Debug Interface
-               txPreCursor     => txPreCursor(i),
-               txPostCursor    => txPostCursor(i),
-               txDiffCtrl      => txDiffCtrl(i),
                -- AXI-Lite Register Interface (axilClk domain)
                axilClk         => axilClk,
                axilRst         => axilRst,
@@ -326,9 +323,10 @@ begin
       GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
          U_Rogue : entity surf.RoguePgp3Sim
             generic map(
-               TPD_G      => TPD_G,
-               PORT_NUM_G => (ROGUE_SIM_PORT_NUM_G+(i*34)),
-               NUM_VC_G   => NUM_VC_G)
+               TPD_G         => TPD_G,
+               PORT_NUM_G    => (ROGUE_SIM_PORT_NUM_G+(i*34)),
+               EN_SIDEBAND_G => ROGUE_SIM_SIDEBAND_G,
+               NUM_VC_G      => NUM_VC_G)
             port map(
                -- GT Ports
                pgpRefClk       => pgpRefClk,

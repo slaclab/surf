@@ -18,8 +18,10 @@ class Si5345Lite(pr.Device):
     def __init__(self,
             simpleDisplay = True,
             advanceUser   = False,
+            liteVersion   = True,
             **kwargs):
-        super().__init__(size=(0x1000<<2), **kwargs)
+
+        super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
             name         = "CsvFilePath",
@@ -48,7 +50,7 @@ class Si5345Lite(pr.Device):
                 return
 
             # Power down during the configuration load
-            self.Page0.PDN.set(True)
+            self.Page0.PDN.set(0x1)
 
             # Open the .CSV file
             with open(path) as csvfile:
@@ -56,7 +58,7 @@ class Si5345Lite(pr.Device):
                 # Loop through the rows in the CSV file
                 for row in reader:
                     if (row[0]!='Address'):
-                        self._rawWrite(
+                        self._setValue(
                             offset = (int(row[0],16)<<2),
                             data   = int(row[1],16),
                         )
@@ -66,19 +68,37 @@ class Si5345Lite(pr.Device):
             self.checkBlocks(recurse=True)
 
             # Execute the Page5.BW_UPDATE_PLL command
-            self._rawWrite((0x500<<2)|(0x14 << 2),0x1)
-            self._rawWrite((0x500<<2)|(0x14 << 2),0x0)
+            self.Page5.BW_UPDATE_PLL.set(0x1)
+            self.Page5.BW_UPDATE_PLL.set(0x0)
 
             # Power Up after the configuration load
-            self.Page0.PDN.set(False)
+            self.Page0.PDN.set(0x0)
 
             # Clear the internal error flags
-            self.Page0.ClearIntErrFlag()
+            self.Page0.ClearIntErrFlag.set(0x1)
+            self.Page0.ClearIntErrFlag.set(0x0)
 
         ##############################
-        # Devices
+        # Pages
         ##############################
-        self.add(silabs.Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False))
+        self._pages = {
+            0:  silabs.Si5345Page0(offset=(0x000<<2),simpleDisplay=simpleDisplay,expand=False), # 0x0000 - 0x03FF
+            1:  silabs.Si5345PageBase(name='Page1',offset=(0x100<<2),expand=False,hidden=not (advanceUser)),  # 0x0400 - 0x07FF
+            2:  silabs.Si5345PageBase(name='Page2',offset=(0x200<<2),expand=False,hidden=not (advanceUser)),  # 0x0800 - 0x0BFF
+            3:  silabs.Si5345PageBase(name='Page3',offset=(0x300<<2),expand=False,hidden=not (advanceUser)),  # 0x0C00 - 0x0FFF
+            4:  silabs.Si5345PageBase(name='Page4',offset=(0x400<<2),expand=False,hidden=not (advanceUser)),  # 0x1000 - 0x13FF
+            5:  silabs.Si5345Page5(offset=(0x500<<2),simpleDisplay=simpleDisplay,expand=False), # 0x1400 - 0x17FF
+            6:  silabs.Si5345PageBase(name='Page6',offset=(0x600<<2),expand=False,hidden=not (advanceUser)),  # 0x1800 - 0x1BFF
+            7:  silabs.Si5345PageBase(name='Page7',offset=(0x700<<2),expand=False,hidden=not (advanceUser)),  # 0x1C00 - 0x1FFF
+            8:  silabs.Si5345PageBase(name='Page8',offset=(0x800<<2),expand=False,hidden=not (advanceUser)),  # 0x2000 - 0x23FF
+            9:  silabs.Si5345PageBase(name='Page9',offset=(0x900<<2),expand=False,hidden=not (advanceUser)),  # 0x2400 - 0x27FF
+            10: silabs.Si5345PageBase(name='PageA',offset=(0xA00<<2),expand=False,hidden=not (advanceUser)),  # 0x2800 - 0x2BFF
+            11: silabs.Si5345PageBase(name='PageB',offset=(0xB00<<2),expand=False,hidden=not (advanceUser)),  # 0x2C00 - 0x2FFF
+        }
+
+        # Add Pages
+        for k,v in self._pages.items():
+            self.add(v)
 
         self.add(pr.LinkVariable(
             name         = 'Locked',
@@ -87,3 +107,7 @@ class Si5345Lite(pr.Device):
             dependencies = [self.Page0.LOL],
             linkedGet    = lambda: (False if self.Page0.LOL.value() else True)
         ))
+
+    def _setValue(self,offset,data):
+        # Note: index is byte index (not word index)
+        self._pages[offset // 0x400].DataBlock.set(value=data,index=(offset%0x400)>>2)
