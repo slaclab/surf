@@ -128,10 +128,10 @@ class Adc32Rf45Channel(pr.Device):
         # Main Digital Page
         ###################
         self.add(pr.RemoteVariable(name='MainDigital',
-                                   offset       = mainDigital, # 0x0C000 - 0x0C1FF, 512 Bytes
+                                   offset       = mainDigital, # 0x0C000 - 0x0C3FF, 1024 Bytes
                                    base         = pr.UInt,
                                    bitOffset    = 0,
-                                   numValues    = 0x80,
+                                   numValues    = 0x100,
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
