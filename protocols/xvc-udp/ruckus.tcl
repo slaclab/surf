@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 if { [isVersal] == true } {
    set versalType true
@@ -21,6 +21,7 @@ if { [isVersal] == true } {
    }
 
    if { ${family} eq {kintexu} ||
+        ${family} eq {virtexu} ||
         ${family} eq {kintexuplus} ||
         ${family} eq {virtexuplus} ||
         ${family} eq {virtexuplusHBM} ||
@@ -43,5 +44,8 @@ if { [isVersal] == true } {
    }
 
 } else {
-   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2018.3 (or later)\n\n"
+   # Check for non-zero Vivado version (in-case non-Vivado project)
+   if {  $::env(VIVADO_VERSION) > 0.0} {
+      puts "\n\nWARNING: $::DIR_PATH requires Vivado 2018.3 (or later)\n\n"
+   }
 }

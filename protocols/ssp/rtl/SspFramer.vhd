@@ -145,6 +145,11 @@ begin
 
                end if;
             end if;
+
+            -- Allow exit to EOF_S for auto frame mode
+            if (AUTO_FRAME_G and validIn = '0') then
+               v.state := EOF_S;
+            end if;
          ----------------------------------------------------------------------
          when EOF_S =>
             -- Check if we are ready to move data

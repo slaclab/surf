@@ -139,24 +139,28 @@ begin
          -- Sample the rx line and shift it in.
          -- Go back and wait 16 for the next bit unless last bit
          when SAMPLE_RX_S =>
-            v.rxShiftReg   := rxSync & r.rxShiftReg(DATA_WIDTH_G-1 downto 1);
-            v.rxShiftCount := r.rxShiftCount + 1;
-            v.rxState      := WAIT_FULL_S;
-            v.waitState    := SAMPLE_RX_S;
-            if (r.rxShiftCount = DATA_WIDTH_G-1) then
-               if(PARITY_G /= "NONE") then
-                  v.waitState := PARITY_S;
-               else
-                  v.waitState := WAIT_STOP_S;
+            if (baudClkEn = '1') then
+               v.rxShiftReg   := rxSync & r.rxShiftReg(DATA_WIDTH_G-1 downto 1);
+               v.rxShiftCount := r.rxShiftCount + 1;
+               v.rxState      := WAIT_FULL_S;
+               v.waitState    := SAMPLE_RX_S;
+               if (r.rxShiftCount = DATA_WIDTH_G-1) then
+                  if(PARITY_G /= "NONE") then
+                     v.waitState := PARITY_S;
+                  else
+                     v.waitState := WAIT_STOP_S;
+                  end if;
                end if;
             end if;
 
          -- Samples parity bit on rx line and compare it to the calculated parity
          -- raises a parityError flag if it does not match
          when PARITY_S =>
-            v.rxState     := WAIT_FULL_S;
-            v.waitState   := WAIT_STOP_S;
-            v.parityError := toSl(r.parity = rxSync);
+            if (baudClkEn = '1') then
+               v.rxState     := WAIT_FULL_S;
+               v.waitState   := WAIT_STOP_S;
+               v.parityError := toSl(r.parity = rxSync);
+            end if;
 
          -- Wait for the stop bit
          when WAIT_STOP_S =>

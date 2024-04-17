@@ -15,8 +15,10 @@ import time
 import queue
 
 class _Regs(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, pollPeriod=0.0, **kwargs):
         super().__init__(**kwargs)
+
+        self._pollPeriod = pollPeriod
 
         self._queue = queue.Queue()
         self._pollThread = threading.Thread(target=self._pollWorker)
@@ -76,6 +78,8 @@ class _Regs(pr.Device):
         while True:
             #print('Main thread loop start')
             transaction = self._queue.get()
+            if transaction is None:
+                return
             with self._memLock, transaction.lock():
                 #tranId = transaction.id()
                 #print(f'Woke the pollWorker with id: {tranId}')
@@ -88,8 +92,9 @@ class _Regs(pr.Device):
 
                 if transaction.type() == rogue.interfaces.memory.Write:
                     # Convert data bytes to int and write data to proxy register
-                    transaction.getData(self._dataBa, 0)
-                    data = int.from_bytes(self._dataBa, 'little', signed=False)
+                    dataBa = bytearray(4)
+                    transaction.getData(dataBa, 0)
+                    data = int.from_bytes(dataBa, 'little', signed=False)
                     self.Data.set(data, write=True)
                     #print(f'Wrote data {data:x}')
 
@@ -114,7 +119,7 @@ class _Regs(pr.Device):
                 while done is False:
                     done = self.Done.get(read=True)
                     #print(f'Polled done: {done}')
-                    time.sleep(.1)
+                    time.sleep(self._pollPeriod)
 
                 # Check for error flags
                 resp = self.Resp.get(read=True)
@@ -133,6 +138,12 @@ class _Regs(pr.Device):
                     transaction.setData(dataBa, 0)
                     transaction.done()
 
+
+    def _stop(self):
+        self._queue.put(None)
+        self._pollThread.join()
+
+
 class _ProxySlave(rogue.interfaces.memory.Slave):
 
     def __init__(self, regs):
@@ -145,14 +156,15 @@ class _ProxySlave(rogue.interfaces.memory.Slave):
 
 class AxiLiteMasterProxy(pr.Device):
 
-    def __init__(self, hidden=True,**kwargs):
-        super().__init__(hidden=hidden,**kwargs)
+    def __init__(self, hidden=True, pollPeriod=0.0, **kwargs):
+        super().__init__(hidden=hidden, **kwargs)
 
         self.add(_Regs(
             name    = 'Regs',
             memBase = self,
             offset  = 0x0000,
             hidden  = hidden,
+            pollPeriod = pollPeriod,
         ))
         self.proxy = _ProxySlave(self.Regs)
 

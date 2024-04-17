@@ -67,7 +67,7 @@ architecture rtl of Encoder12b14b is
 
 begin
 
-   comb : process (dataIn, dataKIn, dispIn, r, rst) is
+   comb : process (dataIn, dataKIn, dispIn, r, readyOut, rst, validIn) is
       variable v         : RegType;
       variable dispInTmp : slv(1 downto 0);
       variable invalidK  : sl;
@@ -85,7 +85,7 @@ begin
          v.validOut := '0';
       end if;
 
-      if (v.validOut = '0' or FLOW_CTRL_EN_G = false) then
+      if ((v.validOut = '0') and (validIn = '1')) or (FLOW_CTRL_EN_G = false) then
          v.validOut := '1';
          encode12b14b(
             CODES_C  => ENCODE_TABLE_C,

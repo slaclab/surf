@@ -67,6 +67,7 @@ architecture mapping of SspLowSpeedDecoder10b12bWrapper is
    signal polarity       : slv(NUM_LANE_G-1 downto 0);
    signal errorDet       : slv(NUM_LANE_G-1 downto 0);
    signal bitSlip        : slv(NUM_LANE_G-1 downto 0);
+   signal eyeWidth       : Slv9Array(NUM_LANE_G-1 downto 0);
    signal locked         : slv(NUM_LANE_G-1 downto 0);
    signal idleCode       : slv(NUM_LANE_G-1 downto 0);
 
@@ -103,6 +104,7 @@ begin
             lockOnIdle     => lockOnIdle,
             errorDet       => errorDet(i),
             bitSlip        => bitSlip(i),
+            eyeWidth       => eyeWidth(i),
             locked         => locked(i),
             idleCode       => idleCode(i),
             -- SSP Frame Output
@@ -128,6 +130,7 @@ begin
          dlyConfig       => dlyConfig,
          errorDet        => errorDet,
          bitSlip         => bitSlip,
+         eyeWidth        => eyeWidth,
          locked          => locked,
          idleCode        => idleCode,
          enUsrDlyCfg     => enUsrDlyCfg,

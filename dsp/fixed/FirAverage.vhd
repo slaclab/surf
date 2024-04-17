@@ -85,7 +85,6 @@ architecture rtl of FirAverage is
    signal filtDly : sfixed(din'high + BIT_GROWTH_C downto din'low);
    signal filtOutShift : sfixed(din'high downto din'low - BIT_GROWTH_C);
 
-
    -- add 1 bit so we can delay valid and user together
    signal userDelayIn  : slv(userIn'length downto 0);
    signal userDelayOut : slv(userIn'length downto 0);

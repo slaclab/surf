@@ -93,7 +93,7 @@ begin
          coreSDout      => lmkSDout,
          coreCsb        => lmkCsL);
 
-   U_lmkSdio : IOBUF
+   U_lmkSdio : entity surf.IoBufWrapper
       port map (
          I  => '0',
          O  => lmkSDin,

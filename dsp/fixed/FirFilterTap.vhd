@@ -21,23 +21,28 @@ use surf.StdRtlPkg.all;
 
 entity FirFilterTap is
    generic (
-      TPD_G   : time     := 1 ns;
-      WIDTH_G : positive := 12);
+      TPD_G         : time      := 1 ns;
+      DATA_WIDTH_G  : positive  := 12;
+      COEFF_WIDTH_G : positive  := 12;
+      CASC_WIDTH_G  : positive  := 25);
    port (
       -- Clock Only (Infer into DSP)
       clk     : in  sl;
+      en      : in  sl := '1';
       -- Data and tap coefficient Interface
-      datain  : in  slv(WIDTH_G-1 downto 0);
-      coeffin : in  slv(WIDTH_G-1 downto 0);
+      datain  : in  slv(DATA_WIDTH_G-1 downto 0);
+      coeffin : in  slv(COEFF_WIDTH_G-1 downto 0);
       -- Cascade Interface
-      cascin  : in  slv(2*WIDTH_G downto 0);
-      cascout : out slv(2*WIDTH_G downto 0));
+      cascin  : in  slv(CASC_WIDTH_G-1 downto 0);
+      cascout : out slv(CASC_WIDTH_G-1 downto 0));
 end FirFilterTap;
 
 architecture rtl of FirFilterTap is
 
+   constant PROD_WIDTH_C : integer := DATA_WIDTH_G + COEFF_WIDTH_G;
+
    type RegType is record
-      accum : signed(2*WIDTH_G downto 0);
+      accum : signed(CASC_WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
       accum => (others => '0'));
@@ -49,10 +54,10 @@ begin
 
    comb : process (cascin, coeffin, datain, r) is
       variable v       : RegType;
-      variable din     : signed(WIDTH_G-1 downto 0);
-      variable coeff   : signed(WIDTH_G-1 downto 0);
-      variable product : signed(2*WIDTH_G-1 downto 0);
-      variable cascade : signed(2*WIDTH_G downto 0);
+      variable din     : signed(DATA_WIDTH_G-1 downto 0);
+      variable coeff   : signed(COEFF_WIDTH_G-1 downto 0);
+      variable product : signed(PROD_WIDTH_C-1 downto 0);
+      variable cascade : signed(CASC_WIDTH_G-1 downto 0);
    begin
       -- Latch the current value
       v := r;
@@ -66,7 +71,7 @@ begin
       product := din * coeff;
 
       -- Accumulator
-      v.accum := resize(product, 2*WIDTH_G) + cascade;
+      v.accum := resize(product, PROD_WIDTH_C) + cascade;
 
       -- Register the variable for next clock cycle
       rin <= v;
@@ -79,7 +84,9 @@ begin
    seq : process (clk) is
    begin
       if rising_edge(clk) then
-         r <= rin after TPD_G;
+         if (en = '1') then
+            r <= rin after TPD_G;
+         end if;
       end if;
    end process seq;
 

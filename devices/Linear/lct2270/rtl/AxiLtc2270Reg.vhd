@@ -117,7 +117,7 @@ begin
    adcSck <= '1' when (r.debug = '0') else r.sck;  -- '1' = Double Data Rate LVDS Output Mode
    adcSdi <= '0' when (r.debug = '0') else r.sdi;  -- '0' = Normal Operation
 
-   IOBUF_INST : IOBUF
+   IOBUF_INST : entity surf.IoBufWrapper
       port map (
          O  => sdo,                     -- Buffer output
          IO => adcSdo,                  -- Buffer inout port (connect directly to top-level port)

@@ -67,7 +67,7 @@ begin
    adcSck    <= sck;
    adcSpiOut <= r;
 
-   IOBUF_inst : IOBUF
+   IOBUF_inst : entity surf.IoBufWrapper
       port map (
          O  => sdo,                     -- Buffer output
          IO => adcSdio,                 -- Buffer inout port (connect directly to top-level port)

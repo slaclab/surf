@@ -19,10 +19,10 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-
 entity BoxcarIntegrator is
    generic (
       TPD_G        : time     := 1 ns;
+      RST_ASYNC_G  : boolean  := false;
       SIGNED_G     : boolean  := false;  -- Treat data as unsigned by default
       DOB_REG_G    : boolean  := false;  -- Extra reg on doutb (folded into BRAM)
       DATA_WIDTH_G : positive := 16;
@@ -41,7 +41,6 @@ entity BoxcarIntegrator is
       obData   : out slv(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto 0);
       obFull   : out sl;
       obPeriod : out sl);
-
 end BoxcarIntegrator;
 
 architecture rtl of BoxcarIntegrator is
@@ -115,6 +114,7 @@ begin
          dina  => r.ibData,
          -- Port B
          clkb  => clk,
+         rstb  => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
          addrb => rAddr,
          doutb => ramDout);
 
@@ -126,8 +126,9 @@ begin
 
       -- Clear the output valid and period latches
       if obAck = '1' then
-         v.obValid  := '0';
-         v.obPeriod := '0';
+         v.obValid   := '0';
+         v.obPeriod  := '0';
+         v.obPeriodD := '0';
       end if;
 
       -- Input stage, setup addresses
@@ -170,7 +171,7 @@ begin
             v.obData := r.obData + r.ibDataE;
 
             -- Check if full
-            if r.obFullD = '1' then
+            if r.obFull = '1' then
                v.obData := v.obData - ramDoutE;
             end if;
 
@@ -209,7 +210,7 @@ begin
       wAddr    <= std_logic_vector(r.wAddr);
 
       -- Reset
-      if rst = '1' or r.intCount /= unsigned(intCount) then
+      if (RST_ASYNC_G = false and rst = '1') or (r.intCount /= unsigned(intCount)) then
          v          := REG_INIT_C;
          v.intCount := unsigned(intCount);
       end if;
@@ -219,9 +220,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

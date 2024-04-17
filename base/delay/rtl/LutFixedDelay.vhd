@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Manual instantation of RAM64X1S, RAM128X1S or RAM256X1S for
+-- Description: Manual instantiation of RAM64X1S, RAM128X1S or RAM256X1S for
 --              LUT based delays
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -18,22 +18,19 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
-library UNISIM;
-use UNISIM.VComponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity LutFixedDelay is
    generic (
-      TPD_G          : time     := 1 ns;
-      XIL_DEVICE_G   : string   := "ULTRASCALE_PLUS";
-      DELAY_G        : natural  range 33 to 513 := 256; -- default number of clock cycle delays
-      WIDTH_G        : positive := 16);
+      TPD_G        : time                    := 1 ns;
+      XIL_DEVICE_G : string                  := "ULTRASCALE_PLUS";
+      DELAY_G      : natural range 33 to 513 := 256;  -- default number of clock cycle delays
+      WIDTH_G      : positive                := 16);
    port (
-      clk   : in  sl;
-      din   : in  slv(WIDTH_G-1 downto 0);
-      dout  : out slv(WIDTH_G-1 downto 0));
+      clk  : in  sl;
+      din  : in  slv(WIDTH_G-1 downto 0);
+      dout : out slv(WIDTH_G-1 downto 0));
 end entity LutFixedDelay;
 
 architecture rtl of LutFixedDelay is
@@ -42,16 +39,16 @@ architecture rtl of LutFixedDelay is
    constant ADDR_BITS_C : integer := log2(DELAY_C);
 
    type RegType is record
-       addr     : unsigned(ADDR_BITS_C - 1 downto 0);
+      addr : unsigned(ADDR_BITS_C - 1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      addr     => (others => '0'));
+      addr => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal q   : slv(WIDTH_G - 1 downto 0) := (others => '0');
+   signal q : slv(WIDTH_G - 1 downto 0) := (others => '0');
 
    signal addra : slv(ADDR_BITS_C - 1 downto 0);
 
@@ -64,31 +61,31 @@ begin
          DEPTH_G      => DELAY_C,
          WIDTH_G      => WIDTH_G)
       port map (
-         clk          => clk,
-         we           => '1',
-         addr         => std_logic_vector(r.addr),
-         din          => din,
-         dout         => dout);
+         clk  => clk,
+         we   => '1',
+         addr => std_logic_vector(r.addr),
+         din  => din,
+         dout => dout);
 
-   comb : process(q, r) is
-       variable v : RegType;
+   comb : process(r) is
+      variable v : RegType;
    begin
-       v   := r;
+      v := r;
 
-       if r.addr = (DELAY_C - 1) then
-           v.addr := (others => '0');
-       else
-           v.addr := r.addr + 1;
-       end if;
+      if r.addr = (DELAY_C - 1) then
+         v.addr := (others => '0');
+      else
+         v.addr := r.addr + 1;
+      end if;
 
-       rin  <= v;
+      rin <= v;
 
    end process comb;
 
    seq : process(clk)
    begin
       if rising_edge(clk) then
-            r <= rin after TPD_G;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 

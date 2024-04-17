@@ -27,6 +27,8 @@ architecture testbed of BoxcarIntegratorTb is
 
    constant TPD_G : time := 2.5 ns;
 
+   constant DOB_REG_C : boolean := true;
+
    signal clk : sl := '0';
    signal rst : sl := '0';
 
@@ -40,6 +42,7 @@ architecture testbed of BoxcarIntegratorTb is
    signal dataIn   : slv(15 downto 0);
    signal expData0 : slv(25 downto 0);
    signal expData1 : slv(25 downto 0);
+   signal expData2 : slv(25 downto 0);
    signal expError : sl;
    signal spacing  : slv(15 downto 0);
 
@@ -145,6 +148,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          SIGNED_G     => false,
+         DOB_REG_G    => DOB_REG_C,
          DATA_WIDTH_G => 16,
          ADDR_WIDTH_G => 10)
       port map (
@@ -166,6 +170,7 @@ begin
          if rst = '1' then
             expData0 <= (others => '0') after TPD_G;
             expData1 <= (others => '0') after TPD_G;
+            expData2 <= (others => '0') after TPD_G;
             expError <= '0'             after TPD_G;
          else
             if validEn = '1' then
@@ -179,8 +184,14 @@ begin
 
             expData1 <= expData0 after TPD_G;
 
+            if DOB_REG_C then
+               expData2 <= expData1 after TPD_G;
+            else
+               expData2 <= expData0 after TPD_G;
+            end if;
+
             if obValid = '1' then
-               if obFull = '0' or expData1 = obData then
+               if obFull = '0' or expData2 = obData then
                   expError <= '0' after TPD_G;
                else
                   expError <= '1' after TPD_G;

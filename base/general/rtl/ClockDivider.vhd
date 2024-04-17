@@ -21,9 +21,9 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity ClockDivider is
-
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_ASYNC_G    : boolean               := false;
       LEADING_EDGE_G : sl                    := '1';
       COUNT_WIDTH_G  : integer range 1 to 32 := 16);
    port (
@@ -35,7 +35,6 @@ entity ClockDivider is
       divClk     : out sl;
       preRise    : out sl;
       preFall    : out sl);
-
 end entity ClockDivider;
 
 architecture rtl of ClockDivider is
@@ -101,7 +100,7 @@ begin
             end if;
       end case;
 
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -112,12 +111,13 @@ begin
       preFall <= r.preFall;
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
-
 
 end architecture rtl;

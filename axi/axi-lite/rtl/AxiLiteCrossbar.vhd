@@ -24,9 +24,9 @@ use surf.ArbiterPkg.all;
 use surf.TextUtilPkg.all;
 
 entity AxiLiteCrossbar is
-
    generic (
       TPD_G              : time                             := 1 ns;
+      RST_ASYNC_G        : boolean                          := false;
       NUM_SLAVE_SLOTS_G  : natural range 1 to 16            := 4;
       NUM_MASTER_SLOTS_G : natural range 1 to 64            := 4;
       DEC_ERROR_RESP_G   : slv(1 downto 0)                  := AXI_RESP_DECERR_C;
@@ -125,6 +125,7 @@ architecture rtl of AxiLiteCrossbar is
 
 begin
 
+-- synopsys translate_off
    assert (NUM_MASTER_SLOTS_G = MASTERS_CONFIG_G'length)
       report "Mismatch between NUM_MASTER_SLOTS_G and MASTERS_CONFIG_G'length"
       severity error;
@@ -141,8 +142,10 @@ begin
             "  addrBits: " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
             "  connectivity: " & hstr(MASTERS_CONFIG_G(i).connectivity));
    end generate printCfg;
+-- synopsys translate_on
 
-   comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r, sAxiReadMasters, sAxiWriteMasters) is
+   comb : process (axiClkRst, mAxiReadSlaves, mAxiWriteSlaves, r,
+                   sAxiReadMasters, sAxiWriteMasters) is
       variable v            : RegType;
       variable sAxiStatuses : AxiStatusArray(NUM_SLAVE_SLOTS_G-1 downto 0);
       variable mRdReqs      : slv(NUM_SLAVE_SLOTS_G-1 downto 0);
@@ -171,14 +174,14 @@ begin
          case (r.slave(s).wrState) is
             when S_WAIT_AXI_TXN_S =>
 
-               -- Incomming write
+               -- Incoming write
                if (sAxiWriteMasters(s).awvalid = '1' and sAxiWriteMasters(s).wvalid = '1') then
 
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
                      if ((MASTERS_CONFIG_G(m).addrBits = 32)
                          or (
-                            StdMatch(   -- Use std_match to allow dontcares ('-')
+                            StdMatch(  -- Use std_match to allow dontcares ('-')
                                sAxiWriteMasters(s).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                                MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                             and (MASTERS_CONFIG_G(m).connectivity(s) = '1')))
@@ -244,13 +247,13 @@ begin
          case (r.slave(s).rdState) is
             when S_WAIT_AXI_TXN_S =>
 
-               -- Incomming read
+               -- Incoming read
                if (sAxiReadMasters(s).arvalid = '1') then
                   for m in MASTERS_CONFIG_G'range loop
                      -- Check for address match
                      if ((MASTERS_CONFIG_G(m).addrBits = 32)
                          or (
-                            StdMatch(   -- Use std_match to allow dontcares ('-')
+                            StdMatch(  -- Use std_match to allow dontcares ('-')
                                sAxiReadMasters(s).araddr(31 downto MASTERS_CONFIG_G(m).addrBits),
                                MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits))
                             and (MASTERS_CONFIG_G(m).connectivity(s) = '1')))
@@ -336,7 +339,7 @@ begin
                end if;
 
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
-               -- busses to this master's outputs.
+               -- buses to this master's outputs.
                if (r.master(m).wrValid = '1') then
                   v.master(m).wrAcks    := r.master(m).wrAcks;
                   v.mAxiWriteMasters(m) := sAxiWriteMasters(conv_integer(r.master(m).wrAckNum));
@@ -373,8 +376,10 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         if (MASTERS_CONFIG_G(m).addrBits /= 32) then
+            v.mAxiWriteMasters(m).awaddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         end if;
 
 
          -- Read path processing
@@ -391,7 +396,7 @@ begin
                end if;
 
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
-               -- busses to this master's outputs.
+               -- buses to this master's outputs.
                if (r.master(m).rdValid = '1') then
                   v.master(m).rdAcks   := r.master(m).rdAcks;
                   v.mAxiReadMasters(m) := sAxiReadMasters(conv_integer(r.master(m).rdAckNum));
@@ -425,12 +430,14 @@ begin
          -- Don't allow baseAddr bits to be overwritten
          -- They can't be anyway based on the logic above, but Vivado can't figure that out.
          -- This helps optimization happen properly
-         v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
-            MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         if (MASTERS_CONFIG_G(m).addrBits /= 32) then
+            v.mAxiReadMasters(m).araddr(31 downto MASTERS_CONFIG_G(m).addrBits) :=
+               MASTERS_CONFIG_G(m).baseAddr(31 downto MASTERS_CONFIG_G(m).addrBits);
+         end if;
 
       end loop;
 
-      if (axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -443,9 +450,11 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiClkRst) is
    begin
-      if (rising_edge(axiClk)) then
+      if (RST_ASYNC_G and axiClkRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

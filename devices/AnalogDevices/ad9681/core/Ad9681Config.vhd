@@ -220,7 +220,7 @@ begin
 
    -- Allow input when doing a read and in the data segment of the shift operation
    sdioDir <= '1' when shiftCount >= 16 and r.wrData(23) = '1' else '0';
-   SDIO_IOBUFT : IOBUF
+   SDIO_IOBUFT : entity surf.IoBufWrapper
       port map (
          I  => coreSDout,
          O  => coreSDin,

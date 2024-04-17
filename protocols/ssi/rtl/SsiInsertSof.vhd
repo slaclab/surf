@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -29,6 +28,7 @@ entity SsiInsertSof is
    generic (
       -- General Configurations
       TPD_G               : time                                         := 1 ns;
+      RST_ASYNC_G         : boolean                                      := false;
       TUSER_MASK_G        : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '1');  -- '1' = masked off bit
       INSERT_USER_HDR_G   : boolean                                      := false;  -- If True the module adds one user header word (mUserHdr = user header data)
       -- FIFO configurations
@@ -90,6 +90,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,
@@ -193,7 +194,7 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (mAxisRst = '1') then
+      if (RST_ASYNC_G = false and mAxisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -205,9 +206,11 @@ begin
 
    end process comb;
 
-   seq : process (mAxisClk) is
+   seq : process (mAxisClk, mAxisRst) is
    begin
-      if rising_edge(mAxisClk) then
+      if (RST_ASYNC_G) and (mAxisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(mAxisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -222,6 +225,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => true,

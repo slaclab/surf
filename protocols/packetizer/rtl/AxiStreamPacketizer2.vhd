@@ -29,6 +29,7 @@ use surf.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamPacketizer2 is
    generic (
       TPD_G                : time                   := 1 ns;
+      RST_ASYNC_G          : boolean                := false;
       MEMORY_TYPE_G        : string                 := "distributed";
       REG_EN_G             : boolean                := false;
       CRC_MODE_G           : string                 := "DATA";  -- or "NONE" or "FULL"
@@ -36,6 +37,8 @@ entity AxiStreamPacketizer2 is
       MAX_PACKET_BYTES_G   : positive               := 256*8;   -- Must be a multiple of 8
       SEQ_CNT_SIZE_G       : positive range 4 to 16 := 16;
       TDEST_BITS_G         : natural                := 8;
+      OUTPUT_TDEST_G       : slv(7 downto 0)        := (others => '0');
+      OUTPUT_TID_G         : slv(7 downto 0)        := (others => '0');
       INPUT_PIPE_STAGES_G  : natural                := 0;
       OUTPUT_PIPE_STAGES_G : natural                := 0);
    port (
@@ -178,6 +181,7 @@ begin
    U_Input : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
@@ -201,6 +205,7 @@ begin
    U_DualPortRam_1 : entity surf.DualPortRam
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          MEMORY_TYPE_G => MEMORY_TYPE_G,
          REG_EN_G      => REG_EN_G,
          DOA_REG_G     => REG_EN_G,
@@ -227,10 +232,12 @@ begin
          U_Crc32 : entity surf.Crc32Parallel
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF")
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -245,11 +252,13 @@ begin
          U_Crc32 : entity surf.Crc32
             generic map (
                TPD_G            => TPD_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
                CRC_INIT_G       => X"FFFFFFFF",
                CRC_POLY_G       => CRC_POLY_G)
             port map (
+               crcPwrOnRst  => axisRst,
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
@@ -377,8 +386,8 @@ begin
                -- Send data through
                v.outputAxisMaster       := inputAxisMaster;
                v.outputAxisMaster.tUser := (others => '0');
-               v.outputAxisMaster.tDest := (others => '0');
-               v.outputAxisMaster.tId   := (others => '0');
+               v.outputAxisMaster.tDest := OUTPUT_TDEST_G;
+               v.outputAxisMaster.tId   := OUTPUT_TID_G;
 
                -- Increment word count with each txn
                v.wordCount := r.wordCount + 1;
@@ -492,10 +501,12 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
-         if (axisRst = '1') then
+      if (RST_ASYNC_G and axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif (rising_edge(axisClk)) then
+         if (RST_ASYNC_G = false and axisRst = '1') then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -509,6 +520,7 @@ begin
    U_Output : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

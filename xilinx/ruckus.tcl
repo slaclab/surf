@@ -1,8 +1,14 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
-# Load the Core
-loadRuckusTcl "$::DIR_PATH/general"
+# Check for non-zero Vivado version (in-case non-Vivado project)
+if {  $::env(VIVADO_VERSION) > 0.0} {
+   # Load the Core
+   loadRuckusTcl "$::DIR_PATH/general"
+} else {
+   loadSource -lib surf -path "$::DIR_PATH/general/rtl/SelectIoRxGearboxAligner.vhd"
+   loadSource -lib surf -dir  "$::DIR_PATH/dummy"
+}
 
 # Get the family type
 set family [getFpgaArch]
@@ -14,7 +20,8 @@ if { ${family} eq {artix7}  ||
    loadRuckusTcl "$::DIR_PATH/7Series"
 }
 
-if { ${family} eq {kintexu} } {
+if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale"
 }
 

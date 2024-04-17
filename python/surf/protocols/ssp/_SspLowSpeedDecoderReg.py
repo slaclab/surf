@@ -16,6 +16,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.addRemoteVariables(
             name         = 'LockedCnt',
+            description  = 'status count that increases per locked detection event',
             offset       = 0*(numberLanes<<2),
             bitSize      = 16,
             mode         = 'RO',
@@ -26,6 +27,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.addRemoteVariables(
             name         = 'BitSlipCnt',
+            description  = 'status count that increases per bitslip detection event',
             offset       = 1*(numberLanes<<2),
             bitSize      = 16,
             mode         = 'RO',
@@ -36,6 +38,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.addRemoteVariables(
             name         = 'ErrorDetCnt',
+            description  = 'status count that increases per error detection event',
             offset       = 2*(numberLanes<<2),
             bitSize      = 16,
             mode         = 'RO',
@@ -44,8 +47,20 @@ class SspLowSpeedDecoderReg(pr.Device):
             pollInterval = 1,
         )
 
+        self.addRemoteVariables(
+            name         = 'EyeWidth',
+            description  = 'Measured eye width after locking completed',
+            offset       = 0x200,
+            bitSize      = 9,
+            mode         = 'RO',
+            number       = numberLanes,
+            stride       = 4,
+            pollInterval = 1,
+        )
+
         self.add(pr.RemoteVariable(
             name         = 'Locked',
+            description  = 'auto aligner locked status',
             offset       = 0x400,
             bitSize      = numberLanes,
             mode         = 'RO',
@@ -54,6 +69,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.addRemoteVariables(
             name         = 'UsrDlyCfg',
+            description  = 'manual user delay value when EnUsrDlyCfg = 0x1',
             offset       = 0x500,
             bitSize      = 9,
             mode         = 'RW',
@@ -63,6 +79,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.addRemoteVariables(
             name         = 'DlyConfig',
+            description  = 'Current IDELAY value',
             offset       = 0x600,
             bitSize      = 9,
             mode         = 'RO',
@@ -73,6 +90,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DATA_WIDTH_G',
+            description  = 'DATA_WIDTH_G VHDL genenic value',
             offset       = 0x7FC,
             bitSize      = 8,
             bitOffset    = 0,
@@ -82,6 +100,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'NUM_LANE_G',
+            description  = 'NUM_LANE_G VHDL genenic value',
             offset       = 0x7FC,
             bitSize      = 8,
             bitOffset    = 8,
@@ -91,7 +110,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EnUsrDlyCfg',
-            description  = 'Enable User delay config',
+            description  = 'Enables User delay config (UsrDlyCfg)',
             offset       = 0x800,
             bitSize      = 1,
             mode         = 'RW',
@@ -142,7 +161,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'GearboxSlaveBitOrder',
-            description  = '1: reserve, 0: normal',
+            description  = '1: reverse gearbox input bit ordering, 0: normal bit ordering',
             offset       = 0x818,
             bitSize      = 1,
             bitOffset    = 0,
@@ -151,7 +170,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'GearboxMasterBitOrder',
-            description  = '1: reserve, 0: normal',
+            description  = '1: reverse gearbox output bit ordering, 0: normal',
             offset       = 0x818,
             bitSize      = 1,
             bitOffset    = 1,
@@ -187,6 +206,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'IdleCode',
+            description  = 'IDLE code detected (1 bit per lane)',
             offset       = 0x900,
             bitSize      = numberLanes,
             mode         = 'RO',

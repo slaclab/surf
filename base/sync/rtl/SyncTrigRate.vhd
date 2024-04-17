@@ -17,13 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SyncTrigRate is
    generic (
       TPD_G          : time     := 1 ns;   -- Simulation FF output delay
+      RST_ASYNC_G    : boolean  := false;
       COMMON_CLK_G   : boolean  := false;  -- true if locClk & refClk are the same clock
       ONE_SHOT_G     : boolean  := false;
       IN_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
@@ -163,6 +163,7 @@ begin
    U_Sync : entity surf.SyncMinMax
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          WIDTH_G      => CNT_WIDTH_G)
       port map (

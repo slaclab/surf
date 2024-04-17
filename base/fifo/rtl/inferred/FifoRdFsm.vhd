@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -299,11 +298,10 @@ begin
    ASYNC_RST : if (RST_ASYNC_G) generate
       seq : process (rd_clk, rst) is
       begin
-         if (rising_edge(rd_clk)) then
-            r <= rin after TPD_G;
-         end if;
          if (rst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
+         elsif (rising_edge(rd_clk)) then
+            r <= rin after TPD_G;
          end if;
       end process seq;
    end generate ASYNC_RST;

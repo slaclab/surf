@@ -50,7 +50,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -60,7 +59,8 @@ use surf.AxiLitePkg.all;
 entity SsiAxiLiteMaster is
    generic (
       -- General Config
-      TPD_G : time := 1 ns;
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false;
 
       -- FIFO Config
       RESP_THOLD_G        : integer range 0 to (2**24) := 1;  -- =1 = normal operation
@@ -163,6 +163,7 @@ begin
    SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
@@ -183,8 +184,6 @@ begin
          mAxisRst    => axiLiteRst,
          mAxisMaster => sFifoAxisMaster,
          mAxisSlave  => sFifoAxisSlave);
-
-
 
    -------------------------------------
    -- Master State Machine
@@ -414,7 +413,7 @@ begin
       sFifoAxisSlave <= v.sFifoAxisSlave;
 
       -- Reset
-      if (axiLiteRst = '1') then
+      if (RST_ASYNC_G = false and axiLiteRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -428,13 +427,14 @@ begin
 
    end process comb;
 
-   seq : process (axiLiteClk) is
+   seq : process (axiLiteClk, axiLiteRst) is
    begin
-      if (rising_edge(axiLiteClk)) then
+      if (RST_ASYNC_G) and (axiLiteRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiLiteClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
-
 
    ----------------------------------
    -- Output FIFO
@@ -442,6 +442,7 @@ begin
    MasterAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => 0,
          VALID_THOLD_G       => RESP_THOLD_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
@@ -464,4 +465,3 @@ begin
          mAxisSlave  => mAxisSlave);
 
 end rtl;
-

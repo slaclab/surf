@@ -29,6 +29,7 @@ use unisim.vcomponents.all;
 entity XauiGth7Wrapper is
    generic (
       TPD_G           : time                := 1 ns;
+      JUMBO_G         : boolean             := true;
       PAUSE_EN_G      : boolean             := true;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G  : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
@@ -95,6 +96,7 @@ begin
    XauiGth7_Inst : entity surf.XauiGth7
       generic map (
          TPD_G           => TPD_G,
+         JUMBO_G         => JUMBO_G,
          PAUSE_EN_G      => PAUSE_EN_G,
          -- AXI-Lite Configurations
          EN_AXI_REG_G    => EN_AXI_REG_G,

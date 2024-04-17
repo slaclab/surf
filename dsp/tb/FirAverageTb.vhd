@@ -119,7 +119,7 @@ begin
          rst  => rst,
          rstL => open);
 
-   U_DUT : entity work.FirAverage
+   U_DUT : entity surf.FirAverage
       generic map (
          TPD_G         => TPD_C,
          FIR_LEN_G     => FILT_LEN_C,

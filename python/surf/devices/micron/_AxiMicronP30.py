@@ -19,7 +19,6 @@ import click
 import time
 import datetime
 import math
-import rogue
 
 class AxiMicronP30(pr.Device):
     def __init__(self,
@@ -28,16 +27,8 @@ class AxiMicronP30(pr.Device):
             hidden      = True,
             **kwargs):
 
-        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
-
-        if self._useVars:
-            size = 0
-        else:
-            size = (0x1 << 12)
-
         super().__init__(
             description = description,
-            size        = size,
             hidden      = hidden,
             **kwargs)
 
@@ -48,119 +39,135 @@ class AxiMicronP30(pr.Device):
         ##############################
         # Setup variables
         ##############################
-        if self._useVars:
+        self.add(pr.RemoteVariable(
+            name         = 'DataWrBus',
+            offset       = 0x0,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-            self.add(pr.RemoteVariable(name='DataWrBus',
-                                       offset=0x0,
-                                       base=pr.UInt,
-                                       bitSize=32,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'AddrBus',
+            offset       = 0x4,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-            self.add(pr.RemoteVariable(name='AddrBus',
-                                       offset=0x4,
-                                       base=pr.UInt,
-                                       bitSize=32,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'DataRdBus',
+            offset       = 0x8,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-            self.add(pr.RemoteVariable(name='DataRdBus',
-                                       offset=0x8,
-                                       base=pr.UInt,
-                                       bitSize=32,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'TranSize',
+            offset       = 0x80,
+            base         = pr.UInt,
+            bitSize      = 8,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-            self.add(pr.RemoteVariable(name='TranSize',
-                                       offset=0x80,
-                                       base=pr.UInt,
-                                       bitSize=8,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'BurstTran',
+            offset       = 0x84,
+            base         = pr.UInt,
+            bitSize      = 32,
+            bitOffset    = 0,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-            self.add(pr.RemoteVariable(name='BurstTran',
-                                       offset=0x84,
-                                       base=pr.UInt,
-                                       bitSize=32,
-                                       bitOffset=0,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+        self.add(pr.RemoteVariable(
+            name         = 'BurstData',
+            offset       = 0x400,
+            base         = pr.UInt,
+            bitSize      = 32*256,
+            bitOffset    = 0,
+            numValues    = 256,
+            valueBits    = 32,
+            valueStride  = 32,
+            retryCount   = tryCount,
+            updateNotify = False,
+            bulkOpEn     = False,
+            hidden       = True,
+            verify       = False,
+        ))
 
-            self.add(pr.RemoteVariable(name='BurstData',
-                                       offset=0x400,
-                                       base=pr.UInt,
-                                       bitSize=32*256,
-                                       bitOffset=0,
-                                       numValues=256,
-                                       valueBits=32,
-                                       valueStride=32,
-                                       retryCount=tryCount,
-                                       updateNotify=False,
-                                       bulkOpEn=False,
-                                       hidden=True,
-                                       verify=False))
+        self.add(pr.LocalCommand(
+            name        = 'LoadMcsFile',
+            function    = self._LoadMcsFile,
+            description = 'Load the .MCS into PROM',
+            value       = '',
+        ))
 
-        @self.command(value='',description="Load the .MCS into PROM",)
-        def LoadMcsFile(arg):
+    def _LoadMcsFile(self,arg):
 
-            click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
-            self._progDone = False
+        click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
+        self._progDone = False
 
-            # Start time measurement for profiling
-            start = time.time()
+        # Start time measurement for profiling
+        start = time.time()
 
-            # Configuration: Force default configurations
-            self._writeToFlash(0xFD4F,0x60,0x03)
+        # Configuration: Force default configurations
+        self._writeToFlash(0xFD4F,0x60,0x03)
 
-            # Open the MCS file
-            self._mcs.open(arg)
+        # Open the MCS file
+        self._mcs.open(arg)
 
-            # Erase the PROM
-            self.eraseProm()
+        # Erase the PROM
+        self.eraseProm()
 
-            # Write to the PROM
-            self.writeProm()
+        # Write to the PROM
+        self.writeProm()
 
-            # Verify the PROM
-            self.verifyProm()
+        # Verify the PROM
+        self.verifyProm()
 
-            # End time measurement for profiling
-            end = time.time()
-            elapsed = end - start
-            click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
+        # End time measurement for profiling
+        end = time.time()
+        elapsed = end - start
+        click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
 
-            # Add a power cycle reminder
-            self._progDone = True
-            click.secho(
-                "\n\n\
-                ***************************************************\n\
-                ***************************************************\n\
-                The MCS data has been written into the PROM.       \n\
-                To reprogram the FPGA with the new PROM data,      \n\
-                a IPROG CMD or power cycle is be required.\n\
-                ***************************************************\n\
-                ***************************************************\n\n"
-                , bg='green',
-            )
+        # Add a power cycle reminder
+        self._progDone = True
+        click.secho(
+            "\n\n\
+            ***************************************************\n\
+            ***************************************************\n\
+            The MCS data has been written into the PROM.       \n\
+            To reprogram the FPGA with the new PROM data,      \n\
+            a IPROG CMD or power cycle is be required.\n\
+            ***************************************************\n\
+            ***************************************************\n\n"
+            , bg='green',
+        )
 
     def eraseProm(self):
         # Set the starting address index
@@ -193,30 +200,24 @@ class AxiMicronP30(pr.Device):
             # Get the status register
             status = self._readFromFlash(address,0x70)
             # Check for erasing failure
-            if( (status&0x20) != 0 ):
+            if ( (status&0x20) != 0 ):
                 # Unlock the Block
                 self._writeToFlash(address,0x60,0xD0)
                 # Reset the status register
                 self._writeToFlash(address,0x50,0x50)
                 # Send the erase command
                 self._writeToFlash(address,0x20,0xD0)
-            elif( (status&0x80) != 0 ):
+            elif ( (status&0x80) != 0 ):
                 break
         # Lock the Block
         self._writeToFlash(address,0x60,0x01)
 
     def writeProm(self):
         # Create a burst data array
-        if self._useVars:
-            dataArray = self.BurstData.get(read=False)
-        else:
-            dataArray = [0] * 256
+        dataArray = self.BurstData.get(read=False)
 
         # Set the block transfer size
-        if self._useVars:
-            self.TranSize.set(0xFF)
-        else:
-            self._rawWrite(0x80,0xFF,tryCount=self._tryCount) # Deprecated
+        self.TranSize.set(0xFF)
 
         # Setup the status bar
         with click.progressbar(
@@ -242,50 +243,30 @@ class AxiMicronP30(pr.Device):
                     # Check for the last byte
                     if ( cnt == 256 ):
 
-                        if self._useVars:
-                            # Write burst data
-                            self.BurstData.set(dataArray)
-                            # Start a burst transfer
-                            self.BurstTran.set(0x7FFFFFFF&addr)
-
-                        else:
-                            # Write burst data
-                            self._rawWrite(offset=0x400, data=dataArray,tryCount=self._tryCount) # Deprecated
-                            # Start a burst transfer
-                            self._rawWrite(offset=0x84, data=0x7FFFFFFF&addr,tryCount=self._tryCount) # Deprecated
+                        # Write burst data
+                        self.BurstData.set(dataArray)
+                        # Start a burst transfer
+                        self.BurstTran.set(0x7FFFFFFF&addr)
 
             if (cnt != 256):
                 # Fill the rest of the data array with ones
                 for i in range(cnt, 256):
                     dataArray[i] = 0xFFFF
 
-                if self._useVars:
-                    # Write burst data
-                    self.BurstData.set(dataArray)
-                    # Start a burst transfer
-                    self.BurstTran.set(0x7FFFFFFF&addr)
-
-                else:
-                    # Write burst data
-                    self._rawWrite(offset=0x400, data=dataArray,tryCount=self._tryCount) # Deprecated
-                    # Start a burst transfer
-                    self._rawWrite(offset=0x84, data=0x7FFFFFFF&addr,tryCount=self._tryCount) # Deprecated
+                # Write burst data
+                self.BurstData.set(dataArray)
+                # Start a burst transfer
+                self.BurstTran.set(0x7FFFFFFF&addr)
 
             # Close the status bar
             bar.update(self._mcs.size)
 
     def verifyProm(self):
 
-        if self._useVars:
-            # Set the data bus
-            self.DataWrBus.set(0xFFFFFFFF)
-            # Set the block transfer size
-            self.TranSize.set(0xFF)
-        else:
-            # Set the data bus
-            self._rawWrite(offset=0x0, data=0xFFFFFFFF,tryCount=self._tryCount) # Deprecated
-            # Set the block transfer size
-            self._rawWrite(offset=0x80, data=0xFF,tryCount=self._tryCount) # Deprecated
+        # Set the data bus
+        self.DataWrBus.set(0xFFFFFFFF)
+        # Set the block transfer size
+        self.TranSize.set(0xFF)
 
         # Setup the status bar
         with click.progressbar(
@@ -302,18 +283,11 @@ class AxiMicronP30(pr.Device):
                         # Throttle down printf rate
                         bar.update(0x1FF)
 
-                        if self._useVars:
-                            # Start a burst transfer
-                            self.BurstTran.set(0x80000000|addr)
+                        # Start a burst transfer
+                        self.BurstTran.set(0x80000000|addr)
 
-                            # Get the data
-                            dataArray = self.BurstData.get()
-
-                        else:
-                            # Start a burst transfer
-                            self._rawWrite(offset=0x84, data=0x80000000|addr,tryCount=self._tryCount)  # Deprecated
-                            # Get the data
-                            dataArray = self._rawRead(offset=0x400,numWords=256,tryCount=self._tryCount)  # Deprecated
+                        # Get the data
+                        dataArray = self.BurstData.get()
 
                 else:
                     # Get the data for MCS file
@@ -329,30 +303,16 @@ class AxiMicronP30(pr.Device):
 
     # Generic FLASH write Command
     def _writeToFlash(self, addr, cmd, data):
-        if self._useVars:
-            # Set the data bus
-            self.DataWrBus.set(((cmd&0xFFFF)<< 16) | (data&0xFFFF))
-            # Set the address bus and initiate the transfer
-            self.AddrBus.set(addr&0x7FFFFFFF)
-        else:
-            # Set the data bus
-            self._rawWrite(offset=0x0, data=((cmd&0xFFFF)<< 16) | (data&0xFFFF),tryCount=self._tryCount) # Deprecated
-            # Set the address bus and initiate the transfer
-            self._rawWrite(offset=0x4,data=addr&0x7FFFFFFF,tryCount=self._tryCount) # Deprecated
+        # Set the data bus
+        self.DataWrBus.set(((cmd&0xFFFF)<< 16) | (data&0xFFFF))
+        # Set the address bus and initiate the transfer
+        self.AddrBus.set(addr&0x7FFFFFFF)
 
     # Generic FLASH read Command
     def _readFromFlash(self, addr, cmd):
-        if self._useVars:
-            # Set the data bus
-            self.DataWrBus.set(((cmd&0xFFFF)<< 16) | 0xFF)
-            # Set the address
-            self.AddrBus.set(addr|0x80000000)
-            # Get the read data
-            return self.DataRdBus.get()&0xFFFF
-        else:
-            # Set the data bus
-            self._rawWrite(offset=0x0, data=((cmd&0xFFFF)<< 16) | 0xFF,tryCount=self._tryCount)  # Deprecated
-            # Set the address
-            self._rawWrite(offset=0x4, data=addr|0x80000000,tryCount=self._tryCount)   # Deprecated
-            # Get the read data
-            return (self._rawRead(offset=0x8,tryCount=self._tryCount)&0xFFFF)  # Deprecated
+        # Set the data bus
+        self.DataWrBus.set(((cmd&0xFFFF)<< 16) | 0xFF)
+        # Set the address
+        self.AddrBus.set(addr|0x80000000)
+        # Get the read data
+        return self.DataRdBus.get()&0xFFFF

@@ -130,7 +130,7 @@ package body HammingEccPkg is
    begin
       -- Init
       bitPtr   := 0;
-      data     := (others => '0');
+      data     := toSlv(0, data'length);
       errSbit  := '0';
       errDbit  := '0';
       syndrome := (others => '0');

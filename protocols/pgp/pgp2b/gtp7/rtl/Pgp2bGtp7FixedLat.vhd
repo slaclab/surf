@@ -229,9 +229,9 @@ begin
          OUT_POLARITY_G => '1',
          PULSE_WIDTH_G  => 100)
       port map (
-         clk     => stableClk,           -- [in]
-         dataIn  => phyRxInit,           -- [in]
-         dataOut => gtRxUserReset);      -- [out]
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => gtRxUserReset);     -- [out]
 
    --------------------------------------------------------------------------------------------------
    -- Rx Data Path
@@ -359,7 +359,7 @@ begin
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
          rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
-         rxDataValidIn    => '1',       -- From 8b10b
+         rxDataValidIn    => '1',   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
          rxCharIsKOut     => open,      -- Not using gt rx 8b10b

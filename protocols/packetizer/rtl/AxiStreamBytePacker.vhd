@@ -30,7 +30,8 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamBytePacker is
    generic (
-      TPD_G           : time                := 1 ns;
+      TPD_G           : time    := 1 ns;
+      RST_ASYNC_G     : boolean := false;
       SLAVE_CONFIG_G  : AxiStreamConfigType;
       MASTER_CONFIG_G : AxiStreamConfigType);
    port (
@@ -44,6 +45,8 @@ entity AxiStreamBytePacker is
 end AxiStreamBytePacker;
 
 architecture rtl of AxiStreamBytePacker is
+
+   constant SLV_TUSER_BITS_C : natural := ite(SLAVE_CONFIG_G.TUSER_BITS_C/=0,SLAVE_CONFIG_G.TUSER_BITS_C,1);
 
    constant MAX_IN_BYTE_C  : integer := SLAVE_CONFIG_G.TDATA_BYTES_C-1;
    constant MAX_OUT_BYTE_C : integer := MASTER_CONFIG_G.TDATA_BYTES_C-1;
@@ -77,7 +80,7 @@ begin
       variable v     : RegType;
       variable valid : sl;
       variable last  : sl;
-      variable user  : slv(SLAVE_CONFIG_G.TUSER_BITS_C-1 downto 0);
+      variable user  : slv(SLV_TUSER_BITS_C-1 downto 0);
       variable data  : slv(7 downto 0);
    begin
       v := r;
@@ -143,7 +146,7 @@ begin
       end if;
 
       -- Reset
-      if (axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = '1') then
          v := REG_INIT_C;
          v.curMaster.tKeep := (others=>'0');
          v.nxtMaster.tKeep := (others=>'0');
@@ -155,12 +158,13 @@ begin
 
    end process;
 
-   seq : process (axiClk) is
+   seq : process (axiClk, axiRst) is
    begin
-      if (rising_edge(axiClk)) then
-         r <= rin;
+      if (RST_ASYNC_G and axiRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axiClk) then
+         r <= rin after TPD_G;
       end if;
-   end process;
+   end process seq;
 
 end architecture rtl;
-

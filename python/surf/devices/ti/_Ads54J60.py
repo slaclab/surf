@@ -80,7 +80,7 @@ class Ads54J60(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PDN_ADC_CHB",
+            name         = "PDN_ADC_CHB_0",
             description  = "",
             offset       = (masterPage + (4*0x20)),
             bitSize      = 4,
@@ -92,7 +92,7 @@ class Ads54J60(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "PDN_BUFFER_CHB_0",
             description  = "",
-            offset       = (masterPage + (4*0x20)),
+            offset       = (masterPage + (4*0x21)),
             bitSize      = 2,
             bitOffset    = 6,
             base         = pr.UInt,
@@ -102,7 +102,7 @@ class Ads54J60(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "PDN_BUFFER_CHA_0",
             description  = "",
-            offset       = (masterPage + (4*0x20)),
+            offset       = (masterPage + (4*0x21)),
             bitSize      = 2,
             bitOffset    = 4,
             base         = pr.UInt,

@@ -132,7 +132,7 @@ begin
       end if;
    end process p_cnt;
 
-   U_DUT : entity work.cfixedMultAdd
+   U_DUT : entity surf.cfixedMultAdd
       generic map (
          CIN_REG_G => 2)
       port map (

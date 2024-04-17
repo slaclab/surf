@@ -25,13 +25,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity CRC32Rtl is
    generic (
-      CRC_INIT : slv(31 downto 0) := x"FFFFFFFF");
+      TPD_G       : time             := 1 ns;
+      RST_ASYNC_G : boolean          := false;
+      CRC_INIT    : slv(31 downto 0) := x"FFFFFFFF");
    port (
       CRCOUT       : out slv(31 downto 0);         -- CRC output
       CRCCLK       : in  sl;     -- system clock
@@ -53,9 +54,6 @@ architecture rtl of CRC32Rtl is
    constant Polyval        : slv(31 downto 0) := X"04C11DB7";
    type fb_array is array (32 downto 0) of slv(31 downto 0);
    signal MSBVect, TempXOR : fb_array;
-
-   -- Register delay for simulation
-   constant tpd : time := 0.5 ns;
 
 begin
    TempXOR(0) <= crc xor data;
@@ -104,26 +102,28 @@ begin
       end if;
    end process;
 
-   CRCP : process (CRCCLK)
+   CRCP : process (CRCCLK, CRCRESET)
    begin
-      if rising_edge(CRCCLK) then
-         if (CRCRESET = '1') then
-            crc <= CRCINIT;
+      if (RST_ASYNC_G and CRCRESET = '1') then
+         crc <= CRCINIT after TPD_G;
+      elsif rising_edge(CRCCLK) then
+         if (RST_ASYNC_G = false and CRCRESET = '1') then
+            crc <= CRCINIT after TPD_G;
          elsif (CRCDATAVALID_d = '1') and (CRCCLKEN = '1') then
             if (CRCDATAWIDTH_d = "000") then
-               crc <= TempXOR(8);
+               crc <= TempXOR(8) after TPD_G;
             elsif (CRCDATAWIDTH_d = "001") then
-               crc <= TempXOR(16);
+               crc <= TempXOR(16) after TPD_G;
             elsif (CRCDATAWIDTH_d = "010") then
-               crc <= TempXOR(24);
+               crc <= TempXOR(24) after TPD_G;
             elsif (CRCDATAWIDTH_d = "011") then
-               crc <= TempXOR(32);
+               crc <= TempXOR(32) after TPD_G;
             end if;
          end if;
       end if;
    end process;
 
-   -- Trasposing CRC bytes
+   -- Transposing CRC bytes
    CRCOUT <= not(crc(24) & crc(25) & crc(26) & crc(27) & crc(28) & crc(29) & crc(30) & crc(31)
                  & crc(16) & crc(17) & crc(18) & crc(19) & crc(20) & crc(21) & crc(22) & crc(23)
                  & crc(8) & crc(9) & crc(10) & crc(11) & crc(12) & crc(13) & crc(14) & crc(15)

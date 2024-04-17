@@ -57,13 +57,13 @@ SsiPrbsRx: &SsiPrbsRx
       mode: RO
       description: Number of word errors
     #########################################################
-    BitStrbErrCnt:
-      at:
-        offset: 0x14
-      class: IntField
-      name: BitStrbErrCnt
-      mode: RO
-      description: Number of bit errors
+#    BitStrbErrCnt:
+#      at:
+#        offset: 0x14
+#      class: IntField
+#      name: BitStrbErrCnt
+#      mode: RO
+#      description: Number of bit errors
     #########################################################
     RxFifoOverflowCnt:
       at:
@@ -107,7 +107,7 @@ SsiPrbsRx: &SsiPrbsRx
     #########################################################
     Status:
       at:
-        offset: 0x1C0
+        offset: 0x70
       class: IntField
       name: Status
       mode: RO
@@ -115,7 +115,7 @@ SsiPrbsRx: &SsiPrbsRx
     #########################################################
     PacketLength:
       at:
-        offset: 0x1C4
+        offset: 0x74
       class: IntField
       name: PacketLength
       mode: RO
@@ -123,23 +123,23 @@ SsiPrbsRx: &SsiPrbsRx
     #########################################################
     PacketRate:
       at:
-        offset: 0x1C8
+        offset: 0x78
       class: IntField
       name: PacketRate
       mode: RO
       description: ''
     #########################################################
-    BitErrCnt:
-      at:
-        offset: 0x1CC
-      class: IntField
-      name: BitErrCnt
-      mode: RO
-      description: ''
+#    BitErrCnt:
+#      at:
+#        offset: 0x1CC
+#      class: IntField
+#      name: BitErrCnt
+#      mode: RO
+#      description: ''
     #########################################################
     WordErrCnt:
       at:
-        offset: 0x1D0
+        offset: 0x80
       class: IntField
       name: WordErrCnt
       mode: RO
@@ -147,7 +147,7 @@ SsiPrbsRx: &SsiPrbsRx
     #########################################################
     RolloverEnable:
       at:
-        offset: 0x3C0
+        offset: 0xF0
       class: IntField
       name: RolloverEnable
       mode: RW
@@ -155,7 +155,7 @@ SsiPrbsRx: &SsiPrbsRx
     #########################################################
     CntRst:
       at:
-        offset: 0x3FC
+        offset: 0xFC
       class: IntField
       name: CntRst
       sizeBits: 1
