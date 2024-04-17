@@ -14,10 +14,10 @@ var classSynchronizerEdge_1_1rtl =
     [ "r", "classSynchronizerEdge_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classSynchronizerEdge_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "syncData", "classSynchronizerEdge_1_1rtl.html#a8fc18dbbcb23aefb32e6941f85fe6eec", null ],
-    [ "syncDataDly~3223", "classSynchronizerEdge_1_1rtl.html#a3614861653738ed711684a84a8b4d8c8", null ],
-    [ "dataOut~3224", "classSynchronizerEdge_1_1rtl.html#a83827b544cc22061eb1846178178491e", null ],
-    [ "risingEdge~3225", "classSynchronizerEdge_1_1rtl.html#ae77c4c44545bcb29c777f6889f70fd0e", null ],
-    [ "fallingEdge~3226", "classSynchronizerEdge_1_1rtl.html#ae85681cd26f1c02938123cb42facf63c", null ],
+    [ "syncDataDly~3226", "classSynchronizerEdge_1_1rtl.html#af52551a9a87cc755286172b50f69f573", null ],
+    [ "dataOut~3227", "classSynchronizerEdge_1_1rtl.html#aaba7fcaaa359dcd68e43679a0ba55d2f", null ],
+    [ "risingEdge~3228", "classSynchronizerEdge_1_1rtl.html#ad32f0f936e5f3d1b2ae6fe0b259b45cb", null ],
+    [ "fallingEdge~3229", "classSynchronizerEdge_1_1rtl.html#a6a78ecf827699a81351d7347fa6b1c20", null ],
     [ "synchronizer_inst", "classSynchronizerEdge_1_1rtl.html#a96fcde2cda9091c31deef41b00baa3ed", null ],
     [ "synchronizer_inst", "classSynchronizerEdge_1_1rtl.html#a96fcde2cda9091c31deef41b00baa3ed", null ]
 ];

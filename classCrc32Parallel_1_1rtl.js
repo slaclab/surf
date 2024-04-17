@@ -13,9 +13,9 @@ var classCrc32Parallel_1_1rtl =
     [ "REG_INIT_C", "classCrc32Parallel_1_1rtl.html#a2e671875ccf01893f73528e005b94e55", null ],
     [ "r", "classCrc32Parallel_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classCrc32Parallel_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "crc~1986", "classCrc32Parallel_1_1rtl.html#a87515db34380e1af70f288614007485b", null ],
-    [ "data~1987", "classCrc32Parallel_1_1rtl.html#a165ea9d6102daa4d2dcbe279fc8e9632", null ],
-    [ "valid~1988", "classCrc32Parallel_1_1rtl.html#a709ef7d4fea957cdbf757b3cb765b74a", null ],
-    [ "reset~1989", "classCrc32Parallel_1_1rtl.html#a5d843b5054c0fa5db089975189bfa7a5", null ],
-    [ "byteWidth~1990", "classCrc32Parallel_1_1rtl.html#ab0680e201d20f26294b791bf00eab204", null ]
+    [ "crc~1988", "classCrc32Parallel_1_1rtl.html#ad9660198c49da9ff90f4a8e6278e5396", null ],
+    [ "data~1989", "classCrc32Parallel_1_1rtl.html#a8e0d9b11c9acbd9678b1ffec0fb0554e", null ],
+    [ "valid~1990", "classCrc32Parallel_1_1rtl.html#ae43fd0f659c62963049d4e1fdf690133", null ],
+    [ "reset~1991", "classCrc32Parallel_1_1rtl.html#a8256eb8dc53f3cb384030d200f411955", null ],
+    [ "byteWidth~1992", "classCrc32Parallel_1_1rtl.html#a3209c93e59be3f8fdf443aa88b6a3517", null ]
 ];

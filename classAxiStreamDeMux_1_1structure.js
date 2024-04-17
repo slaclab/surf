@@ -12,8 +12,8 @@ var classAxiStreamDeMux_1_1structure =
     [ "pipeAxisSlaves", "classAxiStreamDeMux_1_1structure.html#ac7eb0ca1b4fbf6f6e9ee55b39e16f37f", null ],
     [ "r", "classAxiStreamDeMux_1_1structure.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiStreamDeMux_1_1structure.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "slave~1469", "classAxiStreamDeMux_1_1structure.html#a6e3a8d6d4669f4bbe33fedf03e49e0b3", null ],
-    [ "masters~1470", "classAxiStreamDeMux_1_1structure.html#a4b94c610953cb5a1a706ab6a553c1121", null ],
+    [ "slave~1471", "classAxiStreamDeMux_1_1structure.html#ab749f7683d71e132cb38d84174095f71", null ],
+    [ "masters~1472", "classAxiStreamDeMux_1_1structure.html#aeeada9ce6000b67d8684149808eaa892", null ],
     [ "u_pipeline", "classAxiStreamDeMux_1_1structure.html#a53b621cbd03c7fec8ec2d51a635ca31f", null ],
     [ "u_pipeline", "classAxiStreamDeMux_1_1structure.html#a53b621cbd03c7fec8ec2d51a635ca31f", null ]
 ];

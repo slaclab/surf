@@ -1,5 +1,13 @@
 var NAVTREEINDEX104 =
 {
+"classPgp2bGtx7VarLat.html#a5fc8bb52f5ab001c5dd3c310728ac1d4":[1,0,472,70],
+"classPgp2bGtx7VarLat.html#a6154771667c0bd6bc9ce112310a13634":[1,0,472,55],
+"classPgp2bGtx7VarLat.html#a62c11b2d5b5d05dd886fc20385c478cd":[1,0,472,63],
+"classPgp2bGtx7VarLat.html#a66071ec772f300ae1e1198686a61ba66":[1,0,472,39],
+"classPgp2bGtx7VarLat.html#a666820c26ac6efc034589a136e76e496":[1,0,472,31],
+"classPgp2bGtx7VarLat.html#a6815ed96b5ef8a4fc16a3b5ce7b60a57":[1,0,472,10],
+"classPgp2bGtx7VarLat.html#a6dbc253b30469e6ab8a3645a8dcbc743":[1,0,472,61],
+"classPgp2bGtx7VarLat.html#a76f290a48e16f22382b0ae7c9d76c933":[1,0,472,52],
 "classPgp2bGtx7VarLat.html#a776f7d1c3e4102d6af8db8ec00c215ce":[1,0,472,77],
 "classPgp2bGtx7VarLat.html#a78554bc6d7e733f03c398be30b649509":[1,0,472,72],
 "classPgp2bGtx7VarLat.html#a7b84f8b23c31c07886d8153675de4d44":[1,0,472,48],
@@ -241,13 +249,5 @@ var NAVTREEINDEX104 =
 "classPgp2bGtyUltra_1_1mapping.html#a5101b94a32f04c856c78375ea18c8cd3":[1,0,475,0,16],
 "classPgp2bGtyUltra_1_1mapping.html#a5324ae938427f111ccb79219c13235be":[1,0,475,0,6],
 "classPgp2bGtyUltra_1_1mapping.html#a778388601e7573611a54eca68f51ff8d":[1,0,475,0,1],
-"classPgp2bGtyUltra_1_1mapping.html#a8578c0bee87b2715ebbde1f636f1ae47":[1,0,475,0,11],
-"classPgp2bGtyUltra_1_1mapping.html#a917ff32c1bc06f99f0ecd7953a0e9e7a":[1,0,475,0,7],
-"classPgp2bGtyUltra_1_1mapping.html#aa25702a4c34392eedb783d3981740ca3":[1,0,475,0,9],
-"classPgp2bGtyUltra_1_1mapping.html#ab6205b43ab496ef88426336cebc081e1":[1,0,475,0,10],
-"classPgp2bGtyUltra_1_1mapping.html#ac779f8602cde14ad7bc79e24909e4480":[1,0,475,0,5],
-"classPgp2bGtyUltra_1_1mapping.html#aca1cc5678f0d213ee2e715b95505a3dc":[1,0,475,0,3],
-"classPgp2bGtyUltra_1_1mapping.html#acf87e4966a588f240955f56ade7d7035":[1,0,475,0,12],
-"classPgp2bGtyUltra_1_1mapping.html#ad1206df20a506aebedc7355805ecc286":[1,0,475,0,15],
-"classPgp2bGtyUltra_1_1mapping.html#ad6ed888aef5884ed237ce77c9d35a3e2":[1,0,475,0,13]
+"classPgp2bGtyUltra_1_1mapping.html#a8578c0bee87b2715ebbde1f636f1ae47":[1,0,475,0,11]
 };

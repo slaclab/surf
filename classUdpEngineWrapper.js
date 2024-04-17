@@ -21,6 +21,8 @@ var classUdpEngineWrapper =
     [ "SYNTH_MODE_G", "classUdpEngineWrapper.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
     [ "localMac", "classUdpEngineWrapper.html#aad5e2025a9973e3d747252fcd095b146", null ],
     [ "localIp", "classUdpEngineWrapper.html#adcce9b0c7e05c5185590ccd9c56bd2a7", null ],
+    [ "softMac", "classUdpEngineWrapper.html#a5601059ebda29f5a6bb8c1f3151b1ddb", null ],
+    [ "softIp", "classUdpEngineWrapper.html#a4e76f8d5b192cd0963b97ab70a00f9ba", null ],
     [ "clientRemotePort", "classUdpEngineWrapper.html#ae226bed7da6bf40aca0bab8f244b1710", null ],
     [ "clientRemoteIp", "classUdpEngineWrapper.html#af15eb943b7a970b502b8c2b36eca4668", null ],
     [ "obMacMaster", "classUdpEngineWrapper.html#a7b21f53ba0d41e7ace52e59c4d0c2411", null ],

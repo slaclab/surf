@@ -5,7 +5,7 @@ var classUdpDebugBridgeWrapper_1_1rtl =
     [ "P_SOF_SPLICE", "classUdpDebugBridgeWrapper_1_1rtl.html#af7f97afee81816178a20f9990d898331", null ],
     [ "UdpDebugBridge", "classUdpDebugBridgeWrapper_1_1rtl.html#a91e937a8f1ca671000a64a95a1b0ddeb", null ],
     [ "SofRegType", "classUdpDebugBridgeWrapper_1_1rtl.html#a4caeba0cedfff591e648f0c1c8c621a4", null ],
-    [ "sof~6373", "classUdpDebugBridgeWrapper_1_1rtl.html#a58d8eb417259d8e6b4aed53b74f09c68", null ],
+    [ "sof~6381", "classUdpDebugBridgeWrapper_1_1rtl.html#a30c8be0ff7bb3b21df0f0e1f8dd7fc5a", null ],
     [ "SOF_REG_INIT_C", "classUdpDebugBridgeWrapper_1_1rtl.html#adbfe9c9a36037f60f260cbdf9a2e4e30", null ],
     [ "rSof", "classUdpDebugBridgeWrapper_1_1rtl.html#a209ea4e42d5d866967390425da28df9b", null ],
     [ "rinSof", "classUdpDebugBridgeWrapper_1_1rtl.html#a4a586039880d1f9479c1b4c64ea9d6cc", null ],

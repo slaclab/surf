@@ -8,6 +8,7 @@ var classI2cRegSlave =
     [ "FILTER_G", "classI2cRegSlave.html#a77e1f8d74b9f9b45168296a707edf886", null ],
     [ "ADDR_SIZE_G", "classI2cRegSlave.html#a7a96682c7351c838bb3f60be235fa2dc", null ],
     [ "DATA_SIZE_G", "classI2cRegSlave.html#aa240946abb66036762944c01da75eb15", null ],
+    [ "ADDR_AUTO_INC_G", "classI2cRegSlave.html#a57f0108606ad9151da9e6bab29ec4980", null ],
     [ "ENDIANNESS_G", "classI2cRegSlave.html#a4e91c5cd615a8e628c7e89f1059a603c", null ],
     [ "sRst", "classI2cRegSlave.html#aeb0e150eeedaec672c2efa8e89b96f3c", null ],
     [ "aRst", "classI2cRegSlave.html#a8bf8652137d6328d50f6c6e4233b5467", null ],
