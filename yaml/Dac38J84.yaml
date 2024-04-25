@@ -16,7 +16,7 @@ Dac38J84: &Dac38J84
   class: MMIODev
   configPrio: 1
   metadata:
-    numTxLanes: &numTxLanes 2
+    numTxLanes: &numTxLanes 8
   children:
     #########################################################
     DacReg:
@@ -28,6 +28,14 @@ Dac38J84: &Dac38J84
       sizeBits:     16
       mode:         RW
       description:  DAC Registers[125:0]
+    #########################################################
+    LaneEnable:
+      at:
+        offset:     0x129
+      class:        IntField
+      sizeBits:     8
+      mode:         RO
+      description:  Lane Enable
     #########################################################
     LaneBufferDelay:
       at:
