@@ -161,6 +161,32 @@ class SsiPrbsTx(pr.Device):
             mode         = "RW",
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = "PRBS_SEED_SIZE_G",
+            description  = "",
+            offset       =  0x20,
+            bitSize      =  32,
+            mode         = "RO",
+            hidden       = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "FrameCnt",
+            description  = "",
+            offset       =  0x24,
+            bitSize      =  32,
+            mode         = "RO",
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name         = "CountReset",
+            description  = "Status counter reset",
+            offset       =  0xFC,
+            bitSize      =  1,
+            function     = pr.BaseCommand.touchOne
+        ))
+
         def get_conv(read):
             return clock_freq / (self.TrigDly.get(read=read)+1)
 
@@ -179,3 +205,6 @@ class SsiPrbsTx(pr.Device):
             mode = 'RW',
             linkedGet = get_conv,
             linkedSet = set_conv))
+
+    def countReset(self):
+        self.CountReset()
