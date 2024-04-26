@@ -220,15 +220,6 @@ class SsiPrbsRx(pr.Device):
             mode         = "RW",
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = "PRBS_SEED_SIZE_G",
-            description  = "",
-            offset       =  0xF8,
-            bitSize      =  32,
-            mode         = "RO",
-            hidden       = True,
-        ))
-
         self.add(pr.RemoteCommand(
             name         = "CountReset",
             description  = "Status counter reset",

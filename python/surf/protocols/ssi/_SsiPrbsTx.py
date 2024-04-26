@@ -162,15 +162,6 @@ class SsiPrbsTx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PRBS_SEED_SIZE_G",
-            description  = "",
-            offset       =  0x20,
-            bitSize      =  32,
-            mode         = "RO",
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
             name         = "FrameCnt",
             description  = "",
             offset       =  0x24,
