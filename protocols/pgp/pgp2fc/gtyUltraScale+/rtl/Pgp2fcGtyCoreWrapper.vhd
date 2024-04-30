@@ -108,6 +108,9 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          gtwiz_reset_rx_done_out            : out std_logic_vector (0 downto 0);
          gtwiz_userdata_tx_in               : in  std_logic_vector (15 downto 0);
          gtwiz_userdata_rx_out              : out std_logic_vector (15 downto 0);
+         gtrefclk00_in                      : in  std_logic_vector (0 downto 0);
+         qpll0outclk_out                    : out std_logic_vector (0 downto 0);
+         qpll0outrefclk_out                 : out std_logic_vector (0 downto 0);
          cpllrefclksel_in                   : in  std_logic_vector (2 downto 0);
          cplllockdetclk_in                  : in  std_logic_vector (0 downto 0);
          cplllocken_in                      : in  std_logic_vector (0 downto 0);
@@ -274,6 +277,9 @@ begin
          gtwiz_reset_rx_done_out               => open,
          gtwiz_userdata_tx_in                  => txData,
          gtwiz_userdata_rx_out                 => rxData,
+         gtrefclk00_in(0)                      => gtRefClk,
+         qpll0outclk_out(0)                    => open,
+         qpll0outrefclk_out(0)                 => open,
          cpllrefclksel_in                      => cPllRefClkSel,
          cplllockdetclk_in(0)                  => stableClk,
          cplllocken_in(0)                      => '1',
@@ -344,19 +350,15 @@ begin
             DIV     => "000",
             O       => rxOutClkB);
 
-   -- Cant seem to use txoutclk to drive txusrclk without placement errors
-      -- if one does not use the userRefClk for the txOutClk, placement errors occur
---       TXOUTCLK_BUFG_GT : BUFG_GT
---          port map (
---             I       => txOutClkGt,
---             CE      => '1',
---             CEMASK  => '1',
---             CLR     => '0',
---             CLRMASK => '1',
---             DIV     => "000",
---             O       => txOutClkB);
-
-      txOutClkB <= gtUserRefClk;
+       TXOUTCLK_BUFG_GT : BUFG_GT
+          port map (
+             I       => txOutClkGt,
+             CE      => '1',
+             CEMASK  => '1',
+             CLR     => '0',
+             CLRMASK => '1',
+             DIV     => "000",
+             O       => txOutClkB);
 
    U_XBAR : entity surf.AxiLiteCrossbar
       generic map (
@@ -451,7 +453,7 @@ begin
 
    U_RstSyncTx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtUserRefClk,
+      port map (clk      => txUsrClk,
                 asyncRst => txReset,
                 syncRst  => buffBypassTxReset);
 
