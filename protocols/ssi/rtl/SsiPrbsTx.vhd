@@ -93,8 +93,10 @@ architecture rtl of SsiPrbsTx is
       DATA_S);
 
    type RegType is record
+      cntRst         : sl;
       busy           : sl;
       overflow       : sl;
+      frameCnt       : slv(31 downto 0);
       length         : slv(31 downto 0);
       packetLength   : slv(31 downto 0);
       dataCnt        : slv(31 downto 0);
@@ -116,8 +118,10 @@ architecture rtl of SsiPrbsTx is
    end record;
 
    constant REG_INIT_C : RegType := (
+      cntRst         => '1',
       busy           => '1',
       overflow       => '0',
+      frameCnt       => (others => '0'),
       length         => (others => '0'),
       packetLength   => AXI_DEFAULT_PKT_LEN_G,
       dataCnt        => (others => '0'),
@@ -155,6 +159,9 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset strobes
+      v.cntRst := '0';
+
       ----------------------------------------------------------------------------------------------
       -- Axi-Lite Registers
       ----------------------------------------------------------------------------------------------
@@ -178,6 +185,9 @@ begin
       axiSlaveRegisterR(axilEp, X"1C", 0, r.trigDly);
 
       axiSlaveRegisterR(axilEp, X"20", 0, toSlv(PRBS_SEED_SIZE_G, 32));
+      axiSlaveRegisterR(axilEp, X"24", 0, r.frameCnt);
+
+      axiWrDetect(axilEp, X"FC", v.cntRst);
 
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
@@ -266,6 +276,8 @@ begin
                v.dataCnt                                         := r.dataCnt + 1;
                -- Set the SOF bit
                ssiSetUserSof(PRBS_SSI_CONFIG_C, v.txAxisMaster, '1');
+               -- Count the frame
+               v.frameCnt                                        := r.frameCnt + 1;
                -- Next State
                v.state                                           := LENGTH_S;
             end if;
@@ -319,6 +331,11 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Check for counter reset
+      if (r.cntRst = '1') then
+         v.frameCnt := (others=>'0');
+      end if;
 
       -- Reset
       if (RST_ASYNC_G = false and locRst = '1') then

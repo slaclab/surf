@@ -158,7 +158,7 @@ architecture rtl of SsiPrbsRx is
 
    signal axisCtrl : AxiStreamCtrlArray(1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
 
-   constant STATUS_SIZE_C : positive := 10;
+   constant STATUS_SIZE_C : positive := 11;
 
    type LocRegType is record
       cntRst        : sl;
@@ -180,6 +180,7 @@ architecture rtl of SsiPrbsRx is
    signal rAxiLite   : LocRegType := LOC_REG_INIT_C;
    signal rinAxiLite : LocRegType;
 
+   signal updatedResultsSync  : sl;
    signal errBitStrbSync      : sl;
    signal errWordStrbSync     : sl;
    signal errDataBusSync      : sl;
@@ -196,6 +197,7 @@ architecture rtl of SsiPrbsRx is
    signal packetRateSync   : slv(31 downto 0);
    signal errWordCntSync   : slv(31 downto 0);
 
+   signal frameCnt           : slv(STATUS_CNT_WIDTH_G-1 downto 0);
    signal pause1Cnt          : slv(STATUS_CNT_WIDTH_G-1 downto 0);
    signal overflow1Cnt       : slv(STATUS_CNT_WIDTH_G-1 downto 0);
    signal pause0Cnt          : slv(STATUS_CNT_WIDTH_G-1 downto 0);
@@ -551,35 +553,38 @@ begin
          WIDTH_G        => STATUS_SIZE_C)
       port map (
          -- Input Status bit Signals (wrClk domain)
-         statusIn(9)  => axisCtrl(1).pause,
-         statusIn(8)  => axisCtrl(1).overflow,
-         statusIn(7)  => axisCtrl(0).pause,
-         statusIn(6)  => axisCtrl(0).overflow,
-         statusIn(5)  => '0',           -- Legacy
-         statusIn(4)  => r.errWordStrb,
-         statusIn(3)  => r.errDataBus,
-         statusIn(2)  => r.eofe,
-         statusIn(1)  => r.errLength,
-         statusIn(0)  => r.errMissedPacket,
+         statusIn(10)  => r.updatedResults,
+         statusIn(9)   => axisCtrl(1).pause,
+         statusIn(8)   => axisCtrl(1).overflow,
+         statusIn(7)   => axisCtrl(0).pause,
+         statusIn(6)   => axisCtrl(0).overflow,
+         statusIn(5)   => '0',          -- Legacy
+         statusIn(4)   => r.errWordStrb,
+         statusIn(3)   => r.errDataBus,
+         statusIn(2)   => r.eofe,
+         statusIn(1)   => r.errLength,
+         statusIn(0)   => r.errMissedPacket,
          -- Output Status bit Signals (rdClk domain)
-         statusOut(9) => pause(1),
-         statusOut(8) => overflow(1),
-         statusOut(7) => pause(0),
-         statusOut(6) => overflow(0),
-         statusOut(5) => errBitStrbSync,
-         statusOut(4) => errWordStrbSync,
-         statusOut(3) => errDataBusSync,
-         statusOut(2) => errEofeSync,
-         statusOut(1) => errLengthSync,
-         statusOut(0) => errMissedPacketSync,
+         statusOut(10) => updatedResultsSync,
+         statusOut(9)  => pause(1),
+         statusOut(8)  => overflow(1),
+         statusOut(7)  => pause(0),
+         statusOut(6)  => overflow(0),
+         statusOut(5)  => errBitStrbSync,
+         statusOut(4)  => errWordStrbSync,
+         statusOut(3)  => errDataBusSync,
+         statusOut(2)  => errEofeSync,
+         statusOut(1)  => errLengthSync,
+         statusOut(0)  => errMissedPacketSync,
          -- Status Bit Counters Signals (rdClk domain)
-         cntRstIn     => rAxiLite.cntRst,
-         rollOverEnIn => rAxiLite.rollOverEn,
-         cntOut       => cntOut,
+         cntRstIn      => rAxiLite.cntRst,
+         rollOverEnIn  => rAxiLite.rollOverEn,
+         cntOut        => cntOut,
          -- Clocks and Reset Ports
-         wrClk        => sAxisClk,
-         rdClk        => axiClk);
+         wrClk         => sAxisClk,
+         rdClk         => axiClk);
 
+   frameCnt           <= muxSlVectorArray(cntOut, 10);
    pause1Cnt          <= muxSlVectorArray(cntOut, 9);
    overflow1Cnt       <= muxSlVectorArray(cntOut, 8);
    pause0Cnt          <= muxSlVectorArray(cntOut, 7);
@@ -598,7 +603,7 @@ begin
                           errDataBusSync, errEofeCnt, errEofeSync,
                           errLengthCnt, errLengthSync, errMissedPacketCnt,
                           errMissedPacketSync, errWordCntSync, errWordStrbCnt,
-                          errWordStrbSync, overflow, overflow0Cnt,
+                          errWordStrbSync, frameCnt, overflow, overflow0Cnt,
                           overflow1Cnt, packetLengthSync, packetRateSync,
                           pause, pause0Cnt, pause1Cnt, rAxiLite) is
       variable v      : LocRegType;
@@ -629,7 +634,7 @@ begin
       axiSlaveRegisterR(axilEp, X"70", 2, errEofeSync);
       axiSlaveRegisterR(axilEp, X"70", 3, errDataBusSync);
       axiSlaveRegisterR(axilEp, X"70", 4, errWordStrbSync);
-      axiSlaveRegisterR(axilEp, X"70", 5, '0');          -- legacy errBitStrbSync
+      axiSlaveRegisterR(axilEp, X"70", 5, '0');  -- legacy errBitStrbSync
       axiSlaveRegisterR(axilEp, X"70", 6, overflow(0));
       axiSlaveRegisterR(axilEp, X"70", 7, pause(0));
       axiSlaveRegisterR(axilEp, X"70", 8, overflow(1));
@@ -638,6 +643,7 @@ begin
       axiSlaveRegisterR(axilEp, X"78", 0, packetRateSync);
       axiSlaveRegisterR(axilEp, X"7C", 0, X"00000000");  -- legacy errBitCntSync
       axiSlaveRegisterR(axilEp, X"80", 0, errWordCntSync);
+      axiSlaveRegisterR(axilEp, X"84", 0, frameCnt);
       axiSlaveRegister(axilEp, X"F0", 0, v.rollOverEn);
       axiSlaveRegister(axilEp, X"F4", 0, v.bypCheck);
       axiSlaveRegisterR(axilEp, X"F8", 0, toSlv(PRBS_SEED_SIZE_G, 32));
