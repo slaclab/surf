@@ -14,8 +14,8 @@ var classSsiCmdMaster_1_1rtl =
     [ "r", "classSsiCmdMaster_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classSsiCmdMaster_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "INT_CONFIG_C", "classSsiCmdMaster_1_1rtl.html#affd10cc6609806acfc4b52cf7a70202a", null ],
-    [ "txnNumber~6127", "classSsiCmdMaster_1_1rtl.html#a330854e7f843b07fd88d8e1bcc5659f1", null ],
-    [ "cmdMaster~6128", "classSsiCmdMaster_1_1rtl.html#a069a968331cd983b855a6c5be016f645", null ],
+    [ "txnNumber~6129", "classSsiCmdMaster_1_1rtl.html#a9479b1f8b39fabf96e4396a3f04048ca", null ],
+    [ "cmdMaster~6130", "classSsiCmdMaster_1_1rtl.html#a4f36873fa63e5aab0041d479a57e02c6", null ],
     [ "slaveaxistreamfifo", "classSsiCmdMaster_1_1rtl.html#a19da603659cfc22d317a4a72c5a07776", null ],
     [ "slaveaxistreamfifo", "classSsiCmdMaster_1_1rtl.html#a19da603659cfc22d317a4a72c5a07776", null ]
 ];

@@ -12,8 +12,8 @@ var classEncoder10b12b_1_1rtl =
     [ "REG_INIT_C", "classEncoder10b12b_1_1rtl.html#a07b71b2a6523f15aef9a94519726d898", null ],
     [ "r", "classEncoder10b12b_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classEncoder10b12b_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "validOut~5077", "classEncoder10b12b_1_1rtl.html#aee70e4ddaadbc524e7a72b837fa27480", null ],
-    [ "readyIn~5078", "classEncoder10b12b_1_1rtl.html#a23e4816561bcc44e893d399f73f5f39c", null ],
-    [ "dispOut~5079", "classEncoder10b12b_1_1rtl.html#a737cb302c25e561307e49d096d887fe0", null ],
-    [ "dataOut~5080", "classEncoder10b12b_1_1rtl.html#a07d362a8ad72bb2ef26d90ce7ee92744", null ]
+    [ "validOut~5079", "classEncoder10b12b_1_1rtl.html#a6ec2a406550fd57201b22f8e5fe60bec", null ],
+    [ "readyIn~5080", "classEncoder10b12b_1_1rtl.html#ab59a4dc24b6d89d6d5613a8685fec3ff", null ],
+    [ "dispOut~5081", "classEncoder10b12b_1_1rtl.html#a852f08c54d3d5b87efee27555fae4ee9", null ],
+    [ "dataOut~5082", "classEncoder10b12b_1_1rtl.html#ab1748b4e61f54bc5d93a05806d005b1b", null ]
 ];

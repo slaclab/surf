@@ -14,9 +14,9 @@ var classHammingEccDecoder_1_1rtl =
     [ "REG_INIT_C", "classHammingEccDecoder_1_1rtl.html#aeb0be46b28a057fdb09fd7c118ed2613", null ],
     [ "r", "classHammingEccDecoder_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classHammingEccDecoder_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "ibReady~4651", "classHammingEccDecoder_1_1rtl.html#a7d4a0174fe089f759d86fbbe1151e9d0", null ],
-    [ "obValid~4652", "classHammingEccDecoder_1_1rtl.html#a372a86cb738e8d1a0e8c1e6c4bd57f98", null ],
-    [ "obData~4653", "classHammingEccDecoder_1_1rtl.html#afba3dbdce148fc2168ee6a6566bc3913", null ],
-    [ "obErrSbit~4654", "classHammingEccDecoder_1_1rtl.html#ad990ad746da601c3e7aa1eedfb1673bc", null ],
-    [ "obErrDbit~4655", "classHammingEccDecoder_1_1rtl.html#a85a411f1ec23d3a0127e353f6bbca76a", null ]
+    [ "ibReady~4653", "classHammingEccDecoder_1_1rtl.html#afe8f03020fb35527470c01dc371e6fd9", null ],
+    [ "obValid~4654", "classHammingEccDecoder_1_1rtl.html#af07d90feab42c9d110785c56b6f9d660", null ],
+    [ "obData~4655", "classHammingEccDecoder_1_1rtl.html#a28c6f18d6375b09153e0d0feb70cda6f", null ],
+    [ "obErrSbit~4656", "classHammingEccDecoder_1_1rtl.html#a809b2ac936955544fead8d86c1c5c621", null ],
+    [ "obErrDbit~4657", "classHammingEccDecoder_1_1rtl.html#adaf90566e5e83c93ad0b847d670016ee", null ]
 ];
