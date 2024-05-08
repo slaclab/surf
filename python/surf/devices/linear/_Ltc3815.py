@@ -22,7 +22,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
             units        = 'V',
             typeStr      = "Float32",
             disp         = '{:1.3f}',
-            linkedGet    = lambda: self.READ_VIN.value()*4.0E-3, # Conversion factor: 4mV/Bit
+            linkedGet    = lambda read: self.READ_VIN.get(read=read)*4.0E-3, # Conversion factor: 4mV/Bit
             dependencies = [self.READ_VIN],
         ))
 
@@ -32,7 +32,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
             units        = 'A',
             typeStr      = "Float32",
             disp         = '{:1.3f}',
-            linkedGet    = lambda: self.READ_IIN.value()*10.0E-3, # Conversion factor: 10mA/Bit
+            linkedGet    = lambda read: self.READ_IIN.get(read=read)*10.0E-3, # Conversion factor: 10mA/Bit
             dependencies = [self.READ_IIN],
         ))
 
@@ -42,7 +42,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
             units        = 'V',
             typeStr      = "Float32",
             disp         = '{:1.3f}',
-            linkedGet    = lambda: self.READ_VOUT.value()*0.5E-3, # Conversion factor: 0.5mV/Bit
+            linkedGet    = lambda read: self.READ_VOUT.get(read=read)*0.5E-3, # Conversion factor: 0.5mV/Bit
             dependencies = [self.READ_VOUT],
         ))
 
@@ -52,14 +52,14 @@ class Ltc3815(surf.protocols.i2c.PMBus):
             units        = 'A',
             typeStr      = "Float32",
             disp         = '{:1.3f}',
-            linkedGet    = lambda: self.READ_IOUT.value()*10.0E-3, # Conversion factor: 10mA/Bit
+            linkedGet    = lambda read: self.READ_IOUT.get(read=read)*10.0E-3, # Conversion factor: 10mA/Bit
             dependencies = [self.READ_IOUT],
         ))
 
         self.add(pr.LinkVariable(
             name         = "DieTempature",
             mode         = 'RO',
-            linkedGet    = lambda: self.READ_TEMPERATURE_1.value()*1.0, # Conversion factor: 1 degC/Bit
+            linkedGet    = lambda read: self.READ_TEMPERATURE_1.get(read=read)*1.0, # Conversion factor: 1 degC/Bit
             typeStr      = "Float32",
             disp         = '{:1.3f}',
             units        = 'degC',
@@ -70,7 +70,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
             name         = 'Pin',
             description  = 'Power Measurement',
             mode         = 'RO',
-            linkedGet    = lambda: (self.Vin.value())*(self.Iin.value()),
+            linkedGet    = lambda read: (self.Vin.get(read=read))*(self.Iin.get(read=read)),
             typeStr      = "Float32",
             disp         = '{:1.3f}',
             units        = 'W',
@@ -81,7 +81,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
             name         = 'Pout',
             description  = 'Power Measurement',
             mode         = 'RO',
-            linkedGet    = lambda: (self.Vout.value())*(self.Iout.value()),
+            linkedGet    = lambda read: (self.Vout.get(read=read))*(self.Iout.get(read=read)),
             typeStr      = "Float32",
             disp         = '{:1.3f}',
             units        = 'W',
@@ -92,7 +92,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
             name         = 'Peff',
             description  = 'Power Conversion Efficiency',
             mode         = 'RO',
-            linkedGet    = lambda: 100.0*(self.Pout.value())/(self.Pin.value()) if self.Pin.value()>0.0 else 0.0,
+            linkedGet    = lambda read: 100.0*(self.Pout.get(read=read))/(self.Pin.get(read=read)) if self.Pin.get(read=read)>0.0 else 0.0,
             typeStr      = "Float32",
             disp         = '{:1.1f}',
             units        = '%',
