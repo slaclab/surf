@@ -237,13 +237,12 @@ class Ina237(pr.Device):
             dependencies = [self.DIETEMP],
         ))
 
-    def convCurrent(self, dev, var, read):
-        with self.root.updateGroup():
-            adcRange = var.dependencies[0].get(read=read)
-            if adcRange == 0:
-                lsbScale = 5.0E-6 # 5 uV/LSB
-            else:
-                lsbScale = 1.23E-6 # 1.25 uV/LSB
-            value   = var.dependencies[1].get(read=read)
-            fpValue = value*lsbScale
-            return (fpValue/var.dependencies[2].get(read=read))
+    def convCurrent(self, read): # Don't need dev and var since not used
+        adcRange = self.ADCRANGE.value() # Doesn't change in HW so shadow value is preferred
+        if adcRange == 0:
+            lsbScale = 5.0E-6 # 5 uV/LSB
+        else:
+            lsbScale = 1.23E-6 # 1.25 uV/LSB
+        value   = self.VSHUNT.get(read=read) # Read the ADC value
+        fpValue = value*lsbScale
+        return (fpValue/self.SenseRes.value()) # SenseRes is LocalVariable
