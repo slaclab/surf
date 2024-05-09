@@ -295,7 +295,7 @@ class AxiPciePhy(pr.Device):
     
                 # Capabilities Express Endpoint offset
                 linkCap    = self.DevSpecRegion.value(offset=ptrOffset+0x0C) | (self.DevSpecRegion.value(offset=ptrOffset+0x0D) << 8)
-                linkStatus = self.DevSpecRegion.value(offset=ptrOffset+0x12] | (self.DevSpecRegion.value(offset=ptrOffset+0x13) << 8)
+                linkStatus = self.DevSpecRegion.value(offset=ptrOffset+0x12) | (self.DevSpecRegion.value(offset=ptrOffset+0x13) << 8)
     
                 # Set the link speed and width capabilities
                 self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
