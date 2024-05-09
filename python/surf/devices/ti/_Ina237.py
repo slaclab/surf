@@ -198,7 +198,7 @@ class Ina237(pr.Device):
             name         = 'Vin',
             description  = 'Voltage Measurement',
             mode         = 'RO',
-            linkedGet    = lambda: self.VBUS.value()*3.125E-3, # Conversion factor: 3.125 mV/LSB
+            linkedGet    = lambda read: self.VBUS.get(read=read)*3.125E-3, # Conversion factor: 3.125 mV/LSB
             typeStr      = "Float32",
             disp         = '{:1.3f}',
             units        = 'V',
@@ -220,7 +220,7 @@ class Ina237(pr.Device):
             name         = 'Pin',
             description  = 'Power Measurement',
             mode         = 'RO',
-            linkedGet    = lambda: (self.Vin.value())*(self.Iin.value()),
+            linkedGet    = lambda read: (self.Vin.get(read=read))*(self.Iin.get(read=read)),
             typeStr      = "Float32",
             disp         = '{:1.3f}',
             units        = 'W',
@@ -230,7 +230,7 @@ class Ina237(pr.Device):
         self.add(pr.LinkVariable(
             name         = "DieTempature",
             mode         = 'RO',
-            linkedGet    = lambda: self.DIETEMP.value()*0.125, # Conversion factor: 0.125 degC/LSB
+            linkedGet    = lambda read: self.DIETEMP.get(read=read)*0.125, # Conversion factor: 0.125 degC/LSB
             typeStr      = "Float32",
             disp         = '{:1.3f}',
             units        = 'degC',
