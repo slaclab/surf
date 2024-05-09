@@ -134,14 +134,15 @@ class LeapXcvrLowerPage(pr.Device):
             hidden      = True,
         ))
 
+
         if isTx:
             self.add(pr.LinkVariable(
                 name         = 'LosTx',
                 mode         = 'RO',
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.LosTxLsb.value()+256*self.LosTxMsb.value(),
-                dependencies = [self.LosTxLsb,self.LosTxMsb],
+                linkedGet    = self._getLsbMsb,
+                dependencies = [self.LosTxLsb, self.LosTxMsb],
             ))
         else:
             self.add(pr.LinkVariable(
@@ -149,8 +150,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.LosRxLsb.value()+256*self.LosRxMsb.value(),
-                dependencies = [self.LosRxLsb,self.LosRxMsb],
+                linkedGet    = self._getLsbMsb,
+                dependencies = [self.LosRxLsb, self.LosRxMsb],
             ))
 
         self.add(pr.RemoteVariable(
@@ -177,8 +178,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.FaultTxLsb.value()+256*self.FaultTxMsb.value(),
-                dependencies = [self.FaultTxLsb,self.FaultTxMsb],
+                linkedGet    = self._getLsbMsb,
+                dependencies = [self.FaultTxLsb, self.FaultTxMsb],
             ))
         else:
             self.add(pr.LinkVariable(
@@ -186,8 +187,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.FaultRxLsb.value()+256*self.FaultRxMsb.value(),
-                dependencies = [self.FaultRxLsb,self.FaultRxMsb],
+                linkedGet    = self._getLsbMsb,
+                dependencies = [self.FaultRxLsb, self.FaultRxMsb],
             ))
 
             self.add(pr.RemoteVariable(
@@ -213,8 +214,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.LolRxLsb.value()+256*self.LolRxMsb.value(),
-                dependencies = [self.LolRxLsb,self.LolRxMsb],
+                linkedGet    = self._getLsbMsb,
+                dependencies = [self.LolRxLsb, self.LolRxMsb],
             ))
 
         if isTx:
@@ -241,8 +242,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.LolTxLsb.value()+256*self.LolTxMsb.value(),
-                dependencies = [self.LolTxLsb,self.LolTxMsb],
+                linkedGet    = self._getLsbMsb,
+                dependencies = [self.LolTxLsb, self.LolTxMsb],
             ))
 
             self.add(pr.RemoteVariable(
@@ -264,12 +265,12 @@ class LeapXcvrLowerPage(pr.Device):
             ))
 
             self.add(pr.LinkVariable(
-                name         = 'TxTemp',
+                name         = 'TxTempR',
                 mode         = 'RO',
                 disp         = '{:1.1f}',
                 units        = 'degC',
-                linkedGet    = lambda: float(self.TxTempMsb.value())+float(self.TxTempLsb.value())/256.0,
-                dependencies = [self.TxTempMsb,self.TxTempLsb],
+                linkedGet    = lambda read: float(self.TxTempMsb.value())+float(self.TxTempLsb.value())/256.0,
+                dependencies = [self.TxTempMsb, self.TxTempLsb],
             ))
 
         self.add(pr.RemoteVariable(
@@ -296,8 +297,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '{:1.3f}',
                 units        = 'V',
-                linkedGet    = lambda: float(self.TxVcc3p3Lsb.value()+256*self.TxVcc3p3Msb.value())*100.0E-6,
-                dependencies = [self.TxVcc3p3Lsb,self.TxVcc3p3Msb],
+                linkedGet    = lambda var, read: self._getLsbMsb(var, read) * 100.0E-6,
+                dependencies = [self.TxVcc3p3Lsb, self.TxVcc3p3Msb],
             ))
         else:
             self.add(pr.LinkVariable(
@@ -305,8 +306,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '{:1.3f}',
                 units        = 'V',
-                linkedGet    = lambda: float(self.RxVcc3p3Lsb.value()+256*self.RxVcc3p3Msb.value())*100.0E-6,
-                dependencies = [self.RxVcc3p3Lsb,self.RxVcc3p3Msb],
+                linkedGet    = lambda var, read: self._getLsbMsb(var, read) * 100.0E-6,
+                dependencies = [self.RxVcc3p3Lsb, self.RxVcc3p3Msb],
             ))
 
         if isTx:
@@ -333,8 +334,8 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '{:1.3f}',
                 units        = 'V',
-                linkedGet    = lambda: float(self.TxVccHiLsb.value()+256*self.TxVccHiMsb.value())*100.0E-6,
-                dependencies = [self.TxVccHiLsb,self.TxVccHiMsb],
+                linkedGet    = lambda var, read: self._getLsbMsb(var, read) * 100.0E-6,
+                dependencies = [self.TxVccHiLsb, self.TxVccHiMsb],
             ))
 
         else:
@@ -406,9 +407,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.RxChDisableLsb.value()+256*self.RxChDisableMsb.value(),
-                linkedSet    = lambda value, write: self.RxChDisableLsb.set(value&0xFF) or self.RxChDisableMsb.set(value>>8),
-                dependencies = [self.RxChDisableLsb,self.RxChDisableMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.RxChDisableLsb, self.RxChDisableMsb],
             ))
 
         self.add(pr.RemoteVariable(
@@ -435,9 +436,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.TxCdrBypassLsb.value()+256*self.TxCdrBypassMsb.value(),
-                linkedSet    = lambda value, write: self.TxCdrBypassLsb.set(value&0xFF) or self.TxCdrBypassMsb.set(value>>8),
-                dependencies = [self.TxCdrBypassLsb,self.TxCdrBypassMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.TxCdrBypassLsb, self.TxCdrBypassMsb],
             ))
         else:
             self.add(pr.LinkVariable(
@@ -445,9 +446,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.RxCdrBypassLsb.value()+256*self.RxCdrBypassMsb.value(),
-                linkedSet    = lambda value, write: self.RxCdrBypassLsb.set(value&0xFF) or self.RxCdrBypassMsb.set(value>>8),
-                dependencies = [self.RxCdrBypassLsb,self.RxCdrBypassMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.RxCdrBypassLsb, self.RxCdrBypassMsb],
             ))
 
         self.add(pr.RemoteVariable(
@@ -474,9 +475,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.TxSquelchDisableLsb.value()+256*self.TxSquelchDisableMsb.value(),
-                linkedSet    = lambda value, write: self.TxSquelchDisableLsb.set(value&0xFF) or self.TxSquelchDisableMsb.set(value>>8),
-                dependencies = [self.TxSquelchDisableLsb,self.TxSquelchDisableMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.TxSquelchDisableLsb, self.TxSquelchDisableMsb],
             ))
         else:
             self.add(pr.LinkVariable(
@@ -484,9 +485,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.RxSquelchDisableLsb.value()+256*self.RxSquelchDisableMsb.value(),
-                linkedSet    = lambda value, write: self.RxSquelchDisableLsb.set(value&0xFF) or self.RxSquelchDisableMsb.set(value>>8),
-                dependencies = [self.RxSquelchDisableLsb,self.RxSquelchDisableMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.RxSquelchDisableLsb, self.RxSquelchDisableMsb],
             ))
 
         self.add(pr.RemoteVariable(
@@ -513,9 +514,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.TxPolarityLsb.value()+256*self.TxPolarityMsb.value(),
-                linkedSet    = lambda value, write: self.TxPolarityLsb.set(value&0xFF) or self.TxPolarityMsb.set(value>>8),
-                dependencies = [self.TxPolarityLsb,self.TxPolarityMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.TxPolarityLsb, self.TxPolarityMsb],
             ))
         else:
             self.add(pr.LinkVariable(
@@ -523,9 +524,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.RxPolarityLsb.value()+256*self.RxPolarityMsb.value(),
-                linkedSet    = lambda value, write: self.RxPolarityLsb.set(value&0xFF) or self.RxPolarityMsb.set(value>>8),
-                dependencies = [self.RxPolarityLsb,self.RxPolarityMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.RxPolarityLsb, self.RxPolarityMsb],
             ))
 
         for i in range(6):
@@ -587,9 +588,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.TxSquelchHysteresisDisableLsb.value()+256*self.TxSquelchHysteresisDisableMsb.value(),
-                linkedSet    = lambda value, write: self.TxSquelchHysteresisDisableLsb.set(value&0xFF) or self.TxSquelchHysteresisDisableMsb.set(value>>8),
-                dependencies = [self.TxSquelchHysteresisDisableLsb,self.TxSquelchHysteresisDisableMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.TxSquelchHysteresisDisableLsb, self.TxSquelchHysteresisDisableMsb],
             ))
 
             self.add(pr.RemoteVariable(
@@ -625,9 +626,9 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.TxOutputDisableLsb.value()+256*self.TxOutputDisableMsb.value(),
-                linkedSet    = lambda value, write: self.TxOutputDisableLsb.set(value&0xFF) or self.TxOutputDisableMsb.set(value>>8),
-                dependencies = [self.TxOutputDisableLsb,self.TxOutputDisableMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.TxOutputDisableLsb, self.TxOutputDisableMsb],
             ))
         else:
             self.add(pr.LinkVariable(
@@ -635,7 +636,19 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = rwType,
                 disp         = '0x{:x}',
                 typeStr      = 'UInt12',
-                linkedGet    = lambda: self.RxOutputDisableLsb.value()+256*self.RxOutputDisableMsb.value(),
-                linkedSet    = lambda value, write: self.RxOutputDisableLsb.set(value&0xFF) or self.RxOutputDisableMsb.set(value>>8),
-                dependencies = [self.RxOutputDisableLsb,self.RxOutputDisableMsb],
+                linkedGet    = self._getLsbMsb,
+                linkedSet    = self._setLsbMsb,
+                dependencies = [self.RxOutputDisableLsb, self.RxOutputDisableMsb],
             ))
+
+
+    def _getLsbMsb(self, var, read):
+        with self.root.updateGroup():
+            lsb = var.dependencies[0].get(read=read)
+            msb = var.dependencies[1].get(read=read)
+            return lsb + 256 * msb
+
+    def _setLsbMsb(self, var, value, write):
+        with self.root.updateGroup():
+            var.dependencies[0].set(value & 0xff, write=write)
+            var.dependencies[1].set((value >> 8) & 0xff, write=write)
