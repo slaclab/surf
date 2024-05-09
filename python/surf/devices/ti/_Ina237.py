@@ -237,13 +237,13 @@ class Ina237(pr.Device):
             dependencies = [self.DIETEMP],
         ))
 
-    @staticmethod
-    def convCurrent(dev, var):
-        adcRange = var.dependencies[0].get(read=False)
-        if adcRange == 0:
-            lsbScale = 5.0E-6 # 5 uV/LSB
-        else:
-            lsbScale = 1.23E-6 # 1.25 uV/LSB
-        value   = var.dependencies[1].get(read=False)
-        fpValue = value*lsbScale
-        return (fpValue/var.dependencies[2].get(read=False))
+    def convCurrent(self, dev, var, read):
+        with self.root.updateGroup():
+            adcRange = var.dependencies[0].get(read=read)
+            if adcRange == 0:
+                lsbScale = 5.0E-6 # 5 uV/LSB
+            else:
+                lsbScale = 1.23E-6 # 1.25 uV/LSB
+            value   = var.dependencies[1].get(read=read)
+            fpValue = value*lsbScale
+            return (fpValue/var.dependencies[2].get(read=read))
