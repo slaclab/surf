@@ -19,7 +19,7 @@ class Ina237(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
-            name   = 'senseRes',
+            name   = 'SenseRes',
             mode   = 'RW',
             value  = senseRes,
             hidden = True,
@@ -213,7 +213,7 @@ class Ina237(pr.Device):
             typeStr      = "Float32",
             disp         = '{:1.3f}',
             units        = 'A',
-            dependencies = [self.ADCRANGE,self.VSHUNT,self.senseRes],
+            dependencies = [self.ADCRANGE,self.VSHUNT,self.SenseRes],
         ))
 
         self.add(pr.LinkVariable(
