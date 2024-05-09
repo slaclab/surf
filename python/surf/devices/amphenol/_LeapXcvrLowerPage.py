@@ -269,7 +269,7 @@ class LeapXcvrLowerPage(pr.Device):
                 mode         = 'RO',
                 disp         = '{:1.1f}',
                 units        = 'degC',
-                linkedGet    = lambda read: float(self.TxTempMsb.value())+float(self.TxTempLsb.value())/256.0,
+                linkedGet    = lambda var, read: self._getLsbMsb(var, read)/256.0,
                 dependencies = [self.TxTempMsb, self.TxTempLsb],
             ))
 

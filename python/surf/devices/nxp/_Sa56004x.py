@@ -23,8 +23,8 @@ class Sa56004x(pr.Device):
 
         ############################################################################
 
-        def getTempReg(var):
-            x    = var.dependencies[0].value()
+        def getTempReg(var, read):
+            x    = var.dependencies[0].get(read=read)
             sign = x >> 7  # Get the sign bit
             x   &= 0x7F    # mask off sign bit
             x    = float(x)# Covert to degC
@@ -40,7 +40,7 @@ class Sa56004x(pr.Device):
                     sign = 0x00
                 x = int(abs(value))
                 rawVal = (x&0xFF) | sign
-                deps[0].set(rawVal,write)
+                deps[0].set(rawVal, write=write)
             return setTempValues
 
         def addBoolPair(name,description,rdOffset,wrOffset,bitOffset):
@@ -72,8 +72,8 @@ class Sa56004x(pr.Device):
                 name         = name,
                 description  = description,
                 mode         = 'RW',
-                linkedGet    = lambda: rdVar.value(),
-                linkedSet    = lambda value, write: wrVar.set(value),
+                linkedGet    = lambda read: rdVar.get(read=read),
+                linkedSet    = lambda value, write: wrVar.set(value, write=write),
                 dependencies = [rdVar],
                 enum        = {
                     False: 'False',
@@ -315,8 +315,8 @@ class Sa56004x(pr.Device):
             name         = 'ConvertRate',
             description  = 'Conversion rate',
             mode         = 'RW',
-            linkedGet    = lambda: self.ConvertRateRead.value(),
-            linkedSet    = lambda value, write: self.ConvertRateWrite.set(value),
+            linkedGet    = lambda read: self.ConvertRateRead.get(read=read),
+            linkedSet    = lambda value, write: self.ConvertRateWrite.set(value, write=write),
             dependencies = [self.ConvertRateRead],
             units       = 'Hz',
             enum        = {

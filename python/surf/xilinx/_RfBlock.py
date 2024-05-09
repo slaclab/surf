@@ -178,26 +178,29 @@ class RfBlock(pr.Device):
 
         ba = regFreq.to_bytes(6, byteorder='little', signed=True)
 
-        # Set The Values get the register values
-        self.ncoFqwdLow.set(value=int.from_bytes(ba[0:2], byteorder='little', signed=False), write=write, verify=verify, check=check)
-        self.ncoFqwdMid.set(value=int.from_bytes(ba[2:4], byteorder='little', signed=False), write=write, verify=verify, check=check)
-        self.ncoFqwdUp.set (value=int.from_bytes(ba[4:6], byteorder='little', signed=False), write=write, verify=verify, check=check)
+        with self.root.updateGroup():
 
-        # Reset the tile after changing the NCO value
+            # Set The Values get the register values
+            self.ncoFqwdLow.set(value=int.from_bytes(ba[0:2], byteorder='little', signed=False), write=write, verify=verify, check=check)
+            self.ncoFqwdMid.set(value=int.from_bytes(ba[2:4], byteorder='little', signed=False), write=write, verify=verify, check=check)
+            self.ncoFqwdUp.set (value=int.from_bytes(ba[4:6], byteorder='little', signed=False), write=write, verify=verify, check=check)
+
+            # Reset the tile after changing the NCO value
         self.RestartSM.set(value=0x1, write=write, verify=False, check=False)
 
     def _ncoFreqGet(self, read, check):
-        samplingRate = self.samplingRate.value()
-        #nyquistZone = self.nyquistZone.value()
+        with self.root.updateGroup():        
+            samplingRate = self.samplingRate.get(read=read)
+            #nyquistZone = self.nyquistZone.value()
 
-        if samplingRate == 0:
-            return 0.0
+            if samplingRate == 0:
+                return 0.0
 
-        # First get the register values
-        ba = bytearray(6)
-        ba[0:2] = self.ncoFqwdLow.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
-        ba[2:4] = self.ncoFqwdMid.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
-        ba[4:6] = self.ncoFqwdUp.get (read=read, check=check).to_bytes(2, byteorder='little', signed=False)
+            # First get the register values
+            ba = bytearray(6)
+            ba[0:2] = self.ncoFqwdLow.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
+            ba[2:4] = self.ncoFqwdMid.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
+            ba[4:6] = self.ncoFqwdUp.get(read=read, check=check).to_bytes(2, byteorder='little', signed=False)
 
         regFreq = int.from_bytes(ba,  byteorder='little', signed=True)
 

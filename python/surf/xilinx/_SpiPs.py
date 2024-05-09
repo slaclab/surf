@@ -54,6 +54,7 @@ class _Regs(pr.Device):
             bitOffset   = 15,
             bitSize     = 1,
             mode        = 'RW',
+            groups      = ['NoStream'],                        
             enum        = {
                 0: "auto mode",
                 1: "enables manual start",
@@ -67,6 +68,7 @@ class _Regs(pr.Device):
             bitOffset   = 14,
             bitSize     = 1,
             mode        = 'RW',
+            groups      = ['NoStream'],                                    
             enum        = {
                 0: "auto mode",
                 1: "manual CS mode",
@@ -87,6 +89,7 @@ class _Regs(pr.Device):
             bitOffset   = 10,
             bitSize     = 4,
             mode        = 'RW',
+            groups      = ['NoStream'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -121,6 +124,7 @@ class _Regs(pr.Device):
             offset      = 0x00,
             bitOffset   = 6,
             bitSize     = 2,
+            groups      = ['NoStream'],                                    
             mode        = 'RO',
         ))
 
@@ -176,6 +180,7 @@ class _Regs(pr.Device):
             bitOffset   = 0,
             bitSize     = 1,
             mode        = 'RW',
+            groups      = ['NoStream'],                                    
             enum        = {
                 0: "slave",
                 1: "master",
@@ -190,53 +195,54 @@ class _Regs(pr.Device):
             bitSize     = 7,
             mode        = 'RW',
             verify      = False, # Readable, write 1 to clear
+            groups      = ['NoStream'],            
         ))
 
         self.add(pr.LinkVariable(
             name         = 'TX_FIFO_underflow',
-            linkedGet    = lambda: 'True' if (self.SR.value()>>6)&0x1==1 else 'False',
+            linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>6)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
         ))
 
         self.add(pr.LinkVariable(
             name         = 'RX_FIFO_full',
-            linkedGet    = lambda: 'True' if (self.SR.value()>>5)&0x1==1 else 'False',
+            linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>5)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
         ))
 
         self.add(pr.LinkVariable(
             name         = 'RX_FIFO_not_empty',
-            linkedGet    = lambda: 'True' if (self.SR.value()>>4)&0x1==1 else 'False',
+            linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>4)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
         ))
 
         self.add(pr.LinkVariable(
             name         = 'TX_FIFO_full',
-            linkedGet    = lambda: 'True' if (self.SR.value()>>3)&0x1==1 else 'False',
+            linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>3)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
         ))
 
         self.add(pr.LinkVariable(
             name         = 'TX_FIFO_not_full',
-            linkedGet    = lambda: 'True' if (self.SR.value()>>2)&0x1==1 else 'False',
+            linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>2)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
         ))
 
         self.add(pr.LinkVariable(
             name         = 'MODE_FAIL',
-            linkedGet    = lambda: 'True' if (self.SR.value()>>1)&0x1==1 else 'False',
+            linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>1)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
         ))
 
         self.add(pr.LinkVariable(
             name         = 'RX_OVERFLOW',
-            linkedGet    = lambda: 'True' if (self.SR.value()>>0)&0x1==1 else 'False',
+            linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>0)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
         ))
@@ -255,6 +261,7 @@ class _Regs(pr.Device):
             offset      = 0x0C,
             bitSize     = 7,
             mode        = 'WO',
+            groups      = ['NoStream'],            
         ))
 
         self.add(pr.RemoteVariable(
@@ -270,6 +277,7 @@ class _Regs(pr.Device):
             offset      = 0x14,
             bitSize     = 1,
             mode        = 'RW',
+            groups      = ['NoStream'],            
             # base        = pr.Bool,
         ))
 
@@ -296,6 +304,7 @@ class _Regs(pr.Device):
             offset      = 0x20,
             bitSize     = 8,
             mode        = 'RO',
+            groups      = ['NoStream'],            
         ))
 
         self.add(pr.RemoteVariable(
@@ -312,6 +321,7 @@ class _Regs(pr.Device):
             offset      = 0x28,
             bitSize     = 7,
             mode        = 'RW',
+            groups      = ['NoStream'],            
         ))
 
         self.add(pr.RemoteVariable(
@@ -320,6 +330,7 @@ class _Regs(pr.Device):
             offset      = 0x2C,
             bitSize     = 7,
             mode        = 'RW',
+            groups      = ['NoStream'],            
         ))
 
         self.add(pr.RemoteVariable(
