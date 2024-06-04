@@ -67,6 +67,7 @@ entity Pgp2fcGtyUltra is
       -- Rx clocking
       pgpRxReset       : in  sl;
       pgpRxResetDone   : out sl;
+      pgpRxPmaResetDone : out sl;
       pgpRxOutClk      : out sl;                        -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmLocked  : in  sl;
@@ -105,7 +106,7 @@ architecture mapping of Pgp2fcGtyUltra is
    signal phyRxInit     : sl;
 
    -- PgpTx Signals
-   signal gtTxUserReset : sl;
+   signal gtTxUserReset : sl := '0';
    signal phyTxLaneOut  : Pgp2fcTxPhyLaneOutType;
    signal phyTxReady    : sl;
 
@@ -126,6 +127,7 @@ begin
          rstOut => resetGtSync);                             -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
+   gtHardReset <= stableRst;   
 
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
@@ -207,6 +209,7 @@ begin
          rxReset         => gtRxUserReset,
          rxUsrClkActive  => pgpRxMmcmLocked,
          rxResetDone     => phyRxReady,
+         rxPmaResetDone  => pgpRxPmaResetDone,
          rxUsrClk        => pgpRxClk,
          rxData          => phyRxLaneIn.data,
          rxDataK         => phyRxLaneIn.dataK,
