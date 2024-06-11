@@ -405,13 +405,14 @@ begin
          when ARMED_S =>
             -- Check if armed
             if (armed = '1') then
+               -- Set the trigger
+               v.softTrig  := '1';
                -- Next state
                v.trigState := WAIT_S;
             end if;
          ----------------------------------------------------------------------
          when WAIT_S =>
-            -- Hold the trigger until cleared by (axilR.dataState = IDLE_S)
-            v.softTrig := '1';
+            null;
       ----------------------------------------------------------------------
       end case;
 
@@ -437,16 +438,14 @@ begin
 
             -- Check for trigger event
             if (readReq = '1') then
-
-               -- Reset the flag
-               v.softTrig := '0';
-
                -- Next state
                v.dataState := MOVE_S;
-
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
+            -- Reset the flag
+            v.softTrig := '0';
+
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') and (axilR.rdEn = 0) then
 
@@ -482,6 +481,9 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CLEARED_S =>
+            -- Reset the flag
+            v.softTrig := '0';
+
             -- Check if armed de-asserted
             if (armed = '0') then
                -- Next states

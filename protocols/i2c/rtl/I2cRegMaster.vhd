@@ -209,7 +209,7 @@ begin
             v.i2cMasterIn.txnReq := '1';
             v.i2cMasterIn.op     := '0';
             v.i2cMasterIn.stop   := '1';  -- i2c stop after all bytes are read
-            v.byteCount := (others => '0');                        
+            v.byteCount := (others => '0');
             v.state              := READ_S;
 
          when READ_S =>

@@ -148,6 +148,7 @@ tests_module = 'AxiStreamFifoV2IpIntegrator'
 ##############################################################################
 
 paramSweep = []
+# Sweep through different master/slave data sizes
 for sTdataByte in ['2','5','6']:
     for mTdataByte in ['2','5','6']:
         tmpDict = {
@@ -155,6 +156,12 @@ for sTdataByte in ['2','5','6']:
           "S_TDATA_NUM_BYTES": sTdataByte,
         }
         paramSweep.append(tmpDict)
+# Check for the case where the (VALID_THOLD_G=0) and AXI stream frame is buffer than the FIFO
+tmpDict = {
+  "VALID_THOLD": '0',
+  "FIFO_ADDR_WIDTH": '4',
+}
+paramSweep.append(tmpDict)
 
 ##############################################################################
 

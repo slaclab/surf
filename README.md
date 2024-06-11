@@ -14,9 +14,17 @@ $ git lfs install
 
 <!--- ########################################################################################### -->
 
-# Documentation
+# Presentations
 
 [An Introduction to SURF Presentation](https://docs.google.com/presentation/d/1kvzXiByE8WISo40Xd573DdR7dQU4BpDQGwEgNyeJjTI/edit?usp=sharing)
+
+[IEEE RT 2024: SURF Workshop Presentation](https://docs.google.com/presentation/d/1pPfELOniJzBMBpp1lE9Xmid71ckkBH4wsoWzUGZyyy4/edit?usp=sharing)
+
+<!--- ########################################################################################### -->
+
+# Misc
+
+[Tutorial](https://github.com/slaclab/surf-tutorial)
 
 [Doxygen Homepage](https://slaclab.github.io/surf/index.html)
 

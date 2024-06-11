@@ -18,8 +18,13 @@ import pyrogue as pr
 class Sa56004x(pr.Device):
     def __init__(self,
             pollInterval = 1,
+            simpleViewList = ['enable', 'LocalTemperature', 'RemoteTemperature', 'RemoteTcritSetpoint'],
             **kwargs):
         super().__init__(**kwargs)
+
+        if simpleViewList is not None:
+            self.simpleViewList = simpleViewList[:]
+            self.simpleViewList.append('enable')
 
         ############################################################################
 
@@ -560,5 +565,5 @@ class Sa56004x(pr.Device):
         # Hide all the variable
         self.hideVariables(hidden=True)
         # Then unhide the most interesting ones
-        vars = ['enable', 'LocalTemperature', 'RemoteTemperature']
+        vars = self.simpleViewList
         self.hideVariables(hidden=False, variables=vars)
