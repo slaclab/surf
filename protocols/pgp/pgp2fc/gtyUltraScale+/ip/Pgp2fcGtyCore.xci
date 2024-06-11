@@ -821,21 +821,6 @@
         "C_TX_USRCLK_FREQUENCY": [ { "value": "185.7142850", "resolve_type": "generated", "format": "float", "usage": "all" } ],
         "C_TX_USRCLK2_FREQUENCY": [ { "value": "185.7142850", "resolve_type": "generated", "format": "float", "usage": "all" } ]
       },
-      "project_parameters": {
-        "ARCHITECTURE": [ { "value": "virtexuplus" } ],
-        "BASE_BOARD_PART": [ { "value": "" } ],
-        "BOARD_CONNECTIONS": [ { "value": "" } ],
-        "DEVICE": [ { "value": "xcvu9p" } ],
-        "PACKAGE": [ { "value": "fsgd2104" } ],
-        "PREFHDL": [ { "value": "VHDL" } ],
-        "SILICON_REVISION": [ { "value": "" } ],
-        "SIMULATOR_LANGUAGE": [ { "value": "MIXED" } ],
-        "SPEEDGRADE": [ { "value": "-2" } ],
-        "STATIC_POWER": [ { "value": "" } ],
-        "TEMPERATURE_GRADE": [ { "value": "E" } ],
-        "USE_RDI_CUSTOMIZATION": [ { "value": "TRUE" } ],
-        "USE_RDI_GENERATION": [ { "value": "TRUE" } ]
-      },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "16" } ],
