@@ -32,6 +32,7 @@ class Si5324(pr.Device):
             hidden       = True,
             base         = pr.UInt,
             mode         = "RW",
+            groups       = ['NoStream','NoState','NoConfig'], # Not saving config/state to YAML
         ))
 
         self.add(pr.LocalVariable(

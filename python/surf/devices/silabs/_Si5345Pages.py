@@ -37,6 +37,7 @@ class Si5345PageBase(pr.Device):
             hidden       = True,
             base         = pr.UInt,
             mode         = "RW",
+            groups       = ['NoStream','NoState','NoConfig'], # Not saving config/state to YAML
         ))
 
     def MyLinkVariable(self, name, description, offset, bitSize, mode, bitOffset=0, pollInterval=0, value=None, hidden=False):
