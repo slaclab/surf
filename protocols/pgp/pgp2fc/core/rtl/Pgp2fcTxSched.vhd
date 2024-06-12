@@ -33,40 +33,40 @@ entity Pgp2fcTxSched is
    port (
 
       -- System clock, reset & control
-      pgpTxClkEn       : in  sl := '1';        -- Master clock Enable
-      pgpTxClk         : in  sl;               -- Master clock
-      pgpTxClkRst      : in  sl;               -- Synchronous reset input
+      pgpTxClkEn  : in sl := '1';       -- Master clock Enable
+      pgpTxClk    : in sl;              -- Master clock
+      pgpTxClkRst : in sl;              -- Synchronous reset input
 
       -- Link flush
-      pgpTxFlush       : in  sl;               -- Flush the link
+      pgpTxFlush : in sl;               -- Flush the link
 
       -- Link is ready
-      pgpTxLinkReady   : in  sl;               -- Local side has link
+      pgpTxLinkReady : in sl;           -- Local side has link
 
       -- Phy is busy
-      pgpTxBusy        : in  sl;
+      pgpTxBusy : in sl;
 
       -- Cell Transmit Interface
-      schTxSOF         : in  sl;               -- Cell contained SOF
-      schTxEOF         : in  sl;               -- Cell contained EOF
-      schTxIdle        : out sl;               -- Force IDLE transmit
-      schTxReq         : out sl;               -- Cell transmit request
-      schTxAck         : in  sl;               -- Cell transmit acknowledge
-      schTxTimeout     : out sl;               -- Cell transmit timeout
-      schTxDataVc      : out slv(1 downto 0);  -- Cell transmit virtual channel
+      schTxSOF     : in  sl;               -- Cell contained SOF
+      schTxEOF     : in  sl;               -- Cell contained EOF
+      schTxIdle    : out sl;               -- Force IDLE transmit
+      schTxReq     : out sl;               -- Cell transmit request
+      schTxAck     : in  sl;               -- Cell transmit acknowledge
+      schTxTimeout : out sl;               -- Cell transmit timeout
+      schTxDataVc  : out slv(1 downto 0);  -- Cell transmit virtual channel
 
       -- VC Data Valid Signals
-      vc0FrameTxValid  : in sl;                -- User frame data is valid
-      vc1FrameTxValid  : in sl;                -- User frame data is valid
-      vc2FrameTxValid  : in sl;                -- User frame data is valid
-      vc3FrameTxValid  : in sl;                -- User frame data is valid
+      vc0FrameTxValid : in sl;          -- User frame data is valid
+      vc1FrameTxValid : in sl;          -- User frame data is valid
+      vc2FrameTxValid : in sl;          -- User frame data is valid
+      vc3FrameTxValid : in sl;          -- User frame data is valid
 
       -- VC Flow Control Signals
-      vc0RemAlmostFull : in sl;                -- Remote flow control
-      vc1RemAlmostFull : in sl;                -- Remote flow control
-      vc2RemAlmostFull : in sl;                -- Remote flow control
-      vc3RemAlmostFull : in sl                 -- Remote flow control
-   );
+      vc0RemAlmostFull : in sl;         -- Remote flow control
+      vc1RemAlmostFull : in sl;         -- Remote flow control
+      vc2RemAlmostFull : in sl;         -- Remote flow control
+      vc3RemAlmostFull : in sl          -- Remote flow control
+      );
 
 end Pgp2fcTxSched;
 
@@ -76,22 +76,22 @@ architecture Pgp2fcTxSched of Pgp2fcTxSched is
 
    -- Local Signals
    signal currValid    : sl;
-   signal currVc       : slv(1 downto 0);
+   signal currVc       : slv(1 downto 0)  := "00";
    signal nextVc       : slv(1 downto 0);
    signal arbVc        : slv(1 downto 0);
    signal arbValid     : sl;
-   signal vcInFrame    : slv(3 downto 0);
-   signal intTxReq     : sl;
-   signal intTxIdle    : sl;
+   signal vcInFrame    : slv(3 downto 0)  := (others => '0');
+   signal intTxReq     : sl               := '0';
+   signal intTxIdle    : sl               := '0';
    signal nxtTxReq     : sl;
    signal nxtTxIdle    : sl;
    signal nxtTxTimeout : sl;
-   signal intTxTimeout : sl;
-   signal vcTimerA     : slv(23 downto 0);
-   signal vcTimerB     : slv(23 downto 0);
-   signal vcTimerC     : slv(23 downto 0);
-   signal vcTimerD     : slv(23 downto 0);
-   signal vcTimeout    : slv(3 downto 0);
+   signal intTxTimeout : sl               := '0';
+   signal vcTimerA     : slv(23 downto 0) := (others => '0');
+   signal vcTimerB     : slv(23 downto 0) := (others => '0');
+   signal vcTimerC     : slv(23 downto 0) := (others => '0');
+   signal vcTimerD     : slv(23 downto 0) := (others => '0');
+   signal vcTimeout    : slv(3 downto 0)  := (others => '0');
    signal gateTxValid  : slv(3 downto 0);
 
    -- Schedular state
@@ -101,8 +101,8 @@ architecture Pgp2fcTxSched of Pgp2fcTxSched is
    constant ST_GAP_A_C : slv(2 downto 0) := "100";
    constant ST_GAP_B_C : slv(2 downto 0) := "101";
    constant ST_GAP_C_C : slv(2 downto 0) := "110";
-   signal   curState   : slv(2 downto 0);
-   signal   nxtState   : slv(2 downto 0);
+   signal curState     : slv(2 downto 0) := ST_ARB_C;
+   signal nxtState     : slv(2 downto 0);
 
 begin
 
@@ -268,25 +268,25 @@ begin
    begin
       case currVc is
          when "00" =>
-            if    gateTxValid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
+            if gateTxValid(1) = '1' and NUM_VC_EN_G > 1 then arbVc    <= "01"; arbValid <= '1';
             elsif gateTxValid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
             elsif gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
             elsif gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
             else arbVc                                                <= "00"; arbValid <= '0'; end if;
          when "01" =>
-            if    gateTxValid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
+            if gateTxValid(2) = '1' and NUM_VC_EN_G > 2 then arbVc    <= "10"; arbValid <= '1';
             elsif gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
             elsif gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
             elsif gateTxValid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
             else arbVc                                                <= "01"; arbValid <= '0'; end if;
          when "10" =>
-            if    gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';
+            if gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc    <= "11"; arbValid <= '1';
             elsif gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
             elsif gateTxvalid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
             elsif gateTxvalid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
             else arbVc                                                <= "10"; arbValid <= '0'; end if;
          when "11" =>
-            if    gateTxValid(0) = '1' then arbVc                     <= "00"; arbValid <= '1';
+            if gateTxValid(0) = '1' then arbVc                        <= "00"; arbValid <= '1';
             elsif gateTxValid(1) = '1' and NUM_VC_EN_G > 1 then arbVc <= "01"; arbValid <= '1';
             elsif gateTxValid(2) = '1' and NUM_VC_EN_G > 2 then arbVc <= "10"; arbValid <= '1';
             elsif gateTxValid(3) = '1' and NUM_VC_EN_G > 3 then arbVc <= "11"; arbValid <= '1';

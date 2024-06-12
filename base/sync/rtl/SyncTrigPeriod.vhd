@@ -113,10 +113,10 @@ begin
                v.periodMin := v.cnt;
             end if;
 
-            -- Reset the counter
-            v.cnt := (others => '0');
-
          end if;
+
+         -- Reset the counter
+         v.cnt := (others => '0');
 
       end if;
 

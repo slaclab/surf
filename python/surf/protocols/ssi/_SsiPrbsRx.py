@@ -196,6 +196,15 @@ class SsiPrbsRx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = "FrameCnt",
+            description  = "",
+            offset       =  0x84,
+            bitSize      =  32,
+            mode         = "RO",
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "RolloverEnable",
             description  = "",
             offset       =  0xF0,

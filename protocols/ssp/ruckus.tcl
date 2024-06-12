@@ -11,6 +11,7 @@ loadSource -lib surf -dir "$::DIR_PATH/rtl"
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
 
 if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||

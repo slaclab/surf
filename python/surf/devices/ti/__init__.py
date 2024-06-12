@@ -16,6 +16,7 @@ from surf.devices.ti._Ads54J60Channel   import *
 from surf.devices.ti._AxiCdcm6208       import *
 from surf.devices.ti._Dac38J84          import *
 from surf.devices.ti._Ds32Ev400         import *
+from surf.devices.ti._Ina237            import *
 from surf.devices.ti._Lmk048Base        import *
 from surf.devices.ti._Lmk04828          import *
 from surf.devices.ti._Lmk04832          import *

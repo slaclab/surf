@@ -27,7 +27,8 @@ if { ${family} eq {virtex7} } {
    loadRuckusTcl "$::DIR_PATH/gth7"
 }
 
-if { ${family} eq {kintexu} } {
+if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale"
 }
 
