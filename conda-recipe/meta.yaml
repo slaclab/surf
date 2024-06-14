@@ -18,7 +18,7 @@ requirements:
 
    run:
      - python>=3.7
-     - rogue
+     - rogue>=6.2
      - numpy
 
 about:
