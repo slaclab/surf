@@ -137,7 +137,7 @@ architecture rtl of Ad9249ReadoutGroup2 is
 
    signal debugDataValid : sl;
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
-   signal debugDataTmp   : slv16Array(7 downto 0);
+   signal debugDataTmp   : slv16Array(7 downto 0) := (others => (others => '0'));
 
    signal invertSync      : sl;
    signal bitSlip         : sl;

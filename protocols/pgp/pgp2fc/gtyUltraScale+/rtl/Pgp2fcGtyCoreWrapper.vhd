@@ -34,6 +34,8 @@ entity Pgp2fcGtyCoreWrapper is
       AXI_CLK_FREQ_G      : real             := 125.0e6;
       AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0'));
    port (
+      -- Could use gtUserRefClk instead of stableClk
+      -- Then change stableRst to extRst
       stableClk      : in  sl;
       stableRst      : in  sl;
 
@@ -50,6 +52,7 @@ entity Pgp2fcGtyCoreWrapper is
       rxReset        : in  sl;
       rxUsrClkActive : in  sl;
       rxResetDone    : out sl;
+      rxPmaResetDone : out sl;
       rxUsrClk       : in  sl;
       rxData         : out slv(15 downto 0);
       rxDataK        : out slv(1 downto 0);
@@ -208,7 +211,7 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
    signal rxPmaReset        : sl := '0';
    signal txPcsReset        : sl := '0';
    signal txPmaReset        : sl := '0';
-   signal rxPmaResetDone    : sl := '0';
+   signal rxPmaResetDoneInt    : sl := '0';
    signal txPmaResetDone    : sl := '0';
    signal rxByteIsAligned   : sl := '0';
    signal rxByteReAlign     : sl := '0';
@@ -253,7 +256,7 @@ begin
          gtwiz_userclk_tx_active_in(0)         => txUsrActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrActive,
          gtwiz_reset_clk_freerun_in(0)         => stableClk,
-         gtwiz_reset_all_in(0)                 => stableRst,
+         gtwiz_reset_all_in(0)                 => '0',
          gtwiz_buffbypass_tx_reset_in(0)       => buffBypassTxReset,
          gtwiz_buffbypass_tx_start_user_in(0)  => buffBypassTxStart,
          gtwiz_buffbypass_tx_done_out(0)       => buffBypassTxDone,
@@ -326,13 +329,13 @@ begin
          rxoutclk_out(0)                       => rxOutClkGt,
          rxrecclkout_out(0)                    => rxRecClk,
          txoutclk_out(0)                       => txOutClkGt, -- unused
-         rxpmaresetdone_out(0)                 => rxPmaResetDone,
+         rxpmaresetdone_out(0)                 => rxPmaResetDoneInt,
          rxresetdone_out(0)                    => rxResetDone,
          rxsyncdone_out(0)                     => rxSyncDone,
          txpmaresetdone_out(0)                 => txPmaResetDone,
          txresetdone_out(0)                    => txResetDone);
 
-      TIMING_RECCLK_BUFG_GT : BUFG_GT
+      RXOUTCLK_BUFG_GT : BUFG_GT
          port map (
             I       => rxOutClkGt,
             CE      => '1',
@@ -342,7 +345,18 @@ begin
             DIV     => "000",
             O       => rxOutClkB);
 
+   -- Cant seem to use txoutclk to drive txusrclk without placement errors
       -- if one does not use the userRefClk for the txOutClk, placement errors occur
+--       TXOUTCLK_BUFG_GT : BUFG_GT
+--          port map (
+--             I       => txOutClkGt,
+--             CE      => '1',
+--             CEMASK  => '1',
+--             CLR     => '0',
+--             CLRMASK => '1',
+--             DIV     => "000",
+--             O       => txOutClkB);
+
       txOutClkB <= gtUserRefClk;
 
    U_XBAR : entity surf.AxiLiteCrossbar
@@ -425,12 +439,15 @@ begin
 
    txctrl2           <= "000000" & txDataK;
    txUsrActive       <= txUsrClkActive and txPmaResetDone;
-   rxUsrActive       <= rxUsrClkActive and rxPmaResetDone;
+   rxUsrActive       <= rxUsrClkActive and rxPmaResetDoneInt;
+
+   rxPmaResetDone <= rxPmaResetDoneInt;
 
    cPllRefClkSel     <= ite(SEL_FABRIC_REFCLK_G, "111", "001");
 
-   rstSyncRxIn       <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
-   rxResetGt         <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
+   rstSyncRxIn       <= rxResetAlignCheck or rxReset;
+   rxResetGt         <= rxResetAlignCheck or rxReset;
+
 
    txOutClk          <= txOutClkB;
    rxOutClk          <= rxOutClkB;
@@ -443,7 +460,7 @@ begin
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtUserRefClk,
+      port map (clk      => rxUsrClk,
                 asyncRst => rstSyncRxIn,
                 syncRst  => buffBypassRxReset);
 

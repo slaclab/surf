@@ -40,11 +40,11 @@ entity Pgp2fcAxi is
    port (
 
       -- TX PGP Interface (pgpTxClk domain)
-      pgpTxClk     : in  sl;
-      pgpTxClkRst  : in  sl;
-      pgpTxIn      : out Pgp2fcTxInType;
-      pgpTxOut     : in  Pgp2fcTxOutType;
-      locTxIn      : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
+      pgpTxClk    : in  sl;
+      pgpTxClkRst : in  sl;
+      pgpTxIn     : out Pgp2fcTxInType;
+      pgpTxOut    : in  Pgp2fcTxOutType;
+      locTxIn     : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
 
       -- RX PGP Interface (pgpRxClk domain)
       pgpRxClk    : in  sl;
@@ -518,6 +518,8 @@ begin
    pgpTxIn.flowCntlDis <= locTxIn.flowCntlDis or syncFlowCntlDis;
    pgpTxIn.resetTx     <= locTxIn.resetTx or txReset;
    pgpTxIn.resetGt     <= r.resetGt;
+   pgpTxIn.fcValid     <= locTxIn.fcValid;
+   pgpTxIn.fcWord      <= locTxIn.fcWord;
 
 
    -------------------------------------
