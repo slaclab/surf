@@ -1,5 +1,12 @@
 var NAVTREEINDEX84 =
 {
+"classI2cSlave_1_1rtl.html#aaa405ad98f29f4542eb551c9ce71b12b":[1,0,385,0,32],
+"classI2cSlave_1_1rtl.html#aaaa789b6c1cf4da94018f4642bbee8c7":[1,0,385,0,42],
+"classI2cSlave_1_1rtl.html#aacbaf1f7cc0a813463246cebdb709f6d":[1,0,385,0,18],
+"classI2cSlave_1_1rtl.html#ab2660f6d22ddefbf7ab5cb332797bf0f":[1,0,385,0,3],
+"classI2cSlave_1_1rtl.html#ab2660f6d22ddefbf7ab5cb332797bf0f":[1,0,385,0,7],
+"classI2cSlave_1_1rtl.html#ab450a27534de7da2845001ccd4e9043f":[1,0,385,0,39],
+"classI2cSlave_1_1rtl.html#ab73a4fea91e621a1656181f14ca94789":[1,0,385,0,11],
 "classI2cSlave_1_1rtl.html#abac2827f6a244d401acb6f0800ab08cd":[1,0,385,0,31],
 "classI2cSlave_1_1rtl.html#ac591d78ad4d9b85dca3139703f38878c":[1,0,385,0,28],
 "classI2cSlave_1_1rtl.html#ac6c96a2c544212eba5e3eeafa30da9c1":[1,0,385,0,8],
@@ -242,12 +249,5 @@ var NAVTREEINDEX84 =
 "classInputBufferReg.html#ab11b653948d655a44c9dc33b54e37ea0":[1,0,391,6],
 "classInputBufferReg.html#abcfde7afd04df913e9bc8cfba07f23a8":[1,0,391,4],
 "classInputBufferReg.html#acabf3ea45bb9ea54f778c194fc238b6d":[1,0,391,19],
-"classInputBufferReg.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,391,16],
-"classInputBufferReg.html#add4d28b6a3d5e8a1051283d1289e3bd0":[1,0,391,7],
-"classInputBufferReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba":[1,0,391,20],
-"classInputBufferReg_1_1rtl.html":[1,0,391,0],
-"classInputBufferReg_1_1rtl.html#a3d14ea1121df34b02699d20758ea8755":[1,0,391,0,1],
-"classInputBufferReg_1_1rtl.html#a49cfeb917851c20326153d0b0913726c":[1,0,391,0,0],
-"classInputBufferReg_1_1rtl.html#a7cb7cf7ae0c473f4f53e67e72a419300":[1,0,391,0,2],
-"classInputBufferReg_1_1rtl.html#a7cb7cf7ae0c473f4f53e67e72a419300":[1,0,391,0,3]
+"classInputBufferReg.html#acd03516902501cd1c7296a98e22c6fcb":[1,0,391,16]
 };

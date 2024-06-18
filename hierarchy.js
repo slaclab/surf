@@ -477,6 +477,7 @@ var hierarchy =
         [ "SimpleDualPortRamAlteraMf", "classSimpleDualPortRamAlteraMf.html", null ],
         [ "SimpleDualPortRam", "classSimpleDualPortRam.html", null ],
         [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+        [ "RstSync", "classRstSync.html", null ],
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
       ] ],
