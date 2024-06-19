@@ -282,7 +282,7 @@ class AxiPciePhy(pr.Device):
             units  = 'lanes',
             disp   = '{:d}',
         ))
-                 
+
 
     def updateLinkStatus(self):
         with self.root.updateGroup():
@@ -292,15 +292,15 @@ class AxiPciePhy(pr.Device):
 
                 # Go to the Capabilities Pointer offset and get the Capabilities Express Endpoint offset
                 ptrOffset = self.DevSpecRegion.value(offset=ptr-0x40+1) - 0x40
-    
+
                 # Capabilities Express Endpoint offset
                 linkCap    = self.DevSpecRegion.value(offset=ptrOffset+0x0C) | (self.DevSpecRegion.value(offset=ptrOffset+0x0D) << 8)
                 linkStatus = self.DevSpecRegion.value(offset=ptrOffset+0x12) | (self.DevSpecRegion.value(offset=ptrOffset+0x13) << 8)
-    
+
                 # Set the link speed and width capabilities
                 self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
                 self.LnkCapWidth.set( (linkCap>>4) & 0xFF )
-    
+
                 # Set the link speed and width status
                 self.LnkStaSpeed.set( (linkStatus>>0) & 0xF )
                 self.LnkStaWidth.set( (linkStatus>>4) & 0xFF )

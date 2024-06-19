@@ -564,4 +564,4 @@ class LeapXcvrUpperPage00(pr.Device):
         with self.root.updateGroup():
             var.dependencies[0].set(value & 0xff, write=write)
             var.dependencies[1].set((value >> 8) & 0xff, write=write)
-        
+

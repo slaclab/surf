@@ -54,7 +54,7 @@ class _Regs(pr.Device):
             bitOffset   = 15,
             bitSize     = 1,
             mode        = 'RW',
-            groups      = ['NoStream'],                        
+            groups      = ['NoStream'],
             enum        = {
                 0: "auto mode",
                 1: "enables manual start",
@@ -68,7 +68,7 @@ class _Regs(pr.Device):
             bitOffset   = 14,
             bitSize     = 1,
             mode        = 'RW',
-            groups      = ['NoStream'],                                    
+            groups      = ['NoStream'],
             enum        = {
                 0: "auto mode",
                 1: "manual CS mode",
@@ -124,7 +124,7 @@ class _Regs(pr.Device):
             offset      = 0x00,
             bitOffset   = 6,
             bitSize     = 2,
-            groups      = ['NoStream'],                                    
+            groups      = ['NoStream'],
             mode        = 'RO',
         ))
 
@@ -180,7 +180,7 @@ class _Regs(pr.Device):
             bitOffset   = 0,
             bitSize     = 1,
             mode        = 'RW',
-            groups      = ['NoStream'],                                    
+            groups      = ['NoStream'],
             enum        = {
                 0: "slave",
                 1: "master",
@@ -195,7 +195,7 @@ class _Regs(pr.Device):
             bitSize     = 7,
             mode        = 'RW',
             verify      = False, # Readable, write 1 to clear
-            groups      = ['NoStream'],            
+            groups      = ['NoStream'],
         ))
 
         self.add(pr.LinkVariable(
@@ -261,7 +261,7 @@ class _Regs(pr.Device):
             offset      = 0x0C,
             bitSize     = 7,
             mode        = 'WO',
-            groups      = ['NoStream'],            
+            groups      = ['NoStream'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -277,7 +277,7 @@ class _Regs(pr.Device):
             offset      = 0x14,
             bitSize     = 1,
             mode        = 'RW',
-            groups      = ['NoStream'],            
+            groups      = ['NoStream'],
             # base        = pr.Bool,
         ))
 
@@ -304,7 +304,7 @@ class _Regs(pr.Device):
             offset      = 0x20,
             bitSize     = 8,
             mode        = 'RO',
-            groups      = ['NoStream'],            
+            groups      = ['NoStream'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -321,7 +321,7 @@ class _Regs(pr.Device):
             offset      = 0x28,
             bitSize     = 7,
             mode        = 'RW',
-            groups      = ['NoStream'],            
+            groups      = ['NoStream'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -330,7 +330,7 @@ class _Regs(pr.Device):
             offset      = 0x2C,
             bitSize     = 7,
             mode        = 'RW',
-            groups      = ['NoStream'],            
+            groups      = ['NoStream'],
         ))
 
         self.add(pr.RemoteVariable(

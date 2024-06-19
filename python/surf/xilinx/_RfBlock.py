@@ -189,7 +189,7 @@ class RfBlock(pr.Device):
         self.RestartSM.set(value=0x1, write=write, verify=False, check=False)
 
     def _ncoFreqGet(self, read, check):
-        with self.root.updateGroup():        
+        with self.root.updateGroup():
             samplingRate = self.samplingRate.get(read=read)
             #nyquistZone = self.nyquistZone.value()
 

@@ -32,7 +32,7 @@ def getDate(dev, var, read):
             return f'{month}/{day}/{year}'
 
 def getTemp(dev, var, read):
-    with dev.root.updateGroup():    
+    with dev.root.updateGroup():
         msb = var.dependencies[0].get(read=read)
         lsb = var.dependencies[1].get(read=read)
         raw = (msb << 8) | lsb
@@ -40,7 +40,7 @@ def getTemp(dev, var, read):
         return float(raw)/256.0
 
 def getVolt(dev, var, read):
-    with dev.root.updateGroup():    
+    with dev.root.updateGroup():
         msb = var.dependencies[0].get(read=read)
         lsb = var.dependencies[1].get(read=read)
         raw = (msb << 8) | lsb
@@ -48,7 +48,7 @@ def getVolt(dev, var, read):
         return float(raw)*100.0E-6
 
 def getTxBias(dev, var, read):
-    with dev.root.updateGroup():    
+    with dev.root.updateGroup():
         msb = var.dependencies[0].get(read=read)
         lsb = var.dependencies[1].get(read=read)
         raw = (msb << 8) | lsb
@@ -56,7 +56,7 @@ def getTxBias(dev, var, read):
         return float(raw)*0.002
 
 def getOpticalPwr(dev, var, read):
-    with dev.root.updateGroup():    
+    with dev.root.updateGroup():
         msb = var.dependencies[0].get(read=read)
         lsb = var.dependencies[1].get(read=read)
         raw = (msb << 8) | lsb
@@ -68,7 +68,7 @@ def getOpticalPwr(dev, var, read):
         return 10.0*math.log10(pwr)
 
 def getTec(dev, var, read):
-    with dev.root.updateGroup():    
+    with dev.root.updateGroup():
         msb = var.dependencies[0].get(read=read)
         lsb = var.dependencies[1].get(read=read)
         raw = (msb << 8) | lsb
