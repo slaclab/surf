@@ -29,6 +29,7 @@ class _Regs(pr.Device):
             offset    = 0x00,
             bitOffset = 0,
             bitSize   = 1,
+            groups    = ['NoStream','NoState','NoConfig'],
             enum      = {
                 0: "Write",
                 1: "Read",
@@ -42,6 +43,7 @@ class _Regs(pr.Device):
             bitOffset = 0,
             bitSize   = 1,
             base      = pr.Bool,
+            groups    = ['NoStream','NoState','NoConfig'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -49,6 +51,7 @@ class _Regs(pr.Device):
             offset    = 0x04,
             bitOffset = 1,
             bitSize   = 2,
+            groups    = ['NoStream','NoState','NoConfig'],
             enum      = {
                 0 : 'OK',
                 1 : 'EXOK',
@@ -62,6 +65,7 @@ class _Regs(pr.Device):
             offset    = 0x08,
             bitOffset = 0,
             bitSize   = 32,
+            groups    = ['NoStream','NoState','NoConfig'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -69,6 +73,7 @@ class _Regs(pr.Device):
             offset    = 0x0C,
             bitOffset = 0,
             bitSize   = 32,
+            groups    = ['NoStream','NoState','NoConfig'],
         ))
 
     def proxyTransaction(self, transaction):

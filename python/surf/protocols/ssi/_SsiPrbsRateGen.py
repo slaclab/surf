@@ -77,8 +77,8 @@ class SsiPrbsRateGen(pr.Device):
             mode         = "RW",
         ))
 
-        def get_conv(var):
-            return clock_freq / (self.RawPeriod.value()+1)
+        def get_conv(var, read):
+            return clock_freq / (self.RawPeriod.get(read=read)+1)
 
         def set_conv(value, write):
             if value <= 0:
@@ -216,5 +216,5 @@ class SsiPrbsRateGen(pr.Device):
         ))
 
     @staticmethod
-    def convMbps(var):
-        return var.dependencies[0].value() * 8e-6
+    def convMbps(var, read):
+        return var.dependencies[0].get(read=read) * 8e-6

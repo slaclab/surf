@@ -220,24 +220,23 @@ class AxiPciePhy(pr.Device):
             hidden       =  True,
         ))
 
-        self.addRemoteVariables(
+        self.add(pr.RemoteVariable(
             name         = "DevSpecRegion",
             description  = "The memory range from offset 0x40 to 0xFF in the PCI configuration header is referred to as the 'Device Specific Region'. This area is reserved for use by the device vendor and can contain any vendor-specific configuration or control registers.",
             offset       =  0x40,
-            bitSize      =  8,
-            bitOffset    =  0,
+            valueBits      =  8,
+            valueStride    =  8,
             base         = pr.UInt,
             mode         = "RO",
-            number       =  192,
-            stride       =  1,
+            numValues       =  192,
             hidden       =  True,
-        )
+        ))
 
         self.add(pr.LinkVariable(
             name         = 'LinkStatus',
             mode         = 'RO',
             linkedGet    = self.updateLinkStatus,
-            dependencies = [self.CapabilitiesPointer],
+            dependencies = [self.CapabilitiesPointer, self.DevSpecRegion],
             hidden       =  True,
         ))
 
@@ -284,21 +283,27 @@ class AxiPciePhy(pr.Device):
             disp   = '{:d}',
         ))
 
+
     def updateLinkStatus(self):
-        # Check if value points to the Device Specific Region
-        if (self.CapabilitiesPointer.value() >= 0x40):
+        with self.root.updateGroup():
+            # Check if value points to the Device Specific Region
+            ptr = self.CapabilitiesPointer.value()
+            if ptr >= 0x40:
+                # Adjust the pointer to the start of the Device Specific Region
+                adjusted_ptr = ptr - 0x40
 
-            # Go to the Capabilities Pointer offset and get the Capabilities Express Endpoint offset
-            offset = self.DevSpecRegion[(self.CapabilitiesPointer.value()-0x40) + 1].get()
+                # Go to the Capabilities Pointer offset and get the Capabilities Express Endpoint offset
+                ptrOffset = self.DevSpecRegion.value()[adjusted_ptr + 1] - 0x40
 
-            # Capabilities Express Endpoint offset
-            linkCap    = self.DevSpecRegion[(offset-0x40) + 0x0C].get() | (self.DevSpecRegion[(offset-0x40) + 0x0D].get() << 8)
-            linkStatus = self.DevSpecRegion[(offset-0x40) + 0x12].get() | (self.DevSpecRegion[(offset-0x40) + 0x13].get() << 8)
+                # Capabilities Express Endpoint offset
+                dev_spec_values = self.DevSpecRegion.value()
+                linkCap = dev_spec_values[ptrOffset + 0x0C] | (dev_spec_values[ptrOffset + 0x0D] << 8)
+                linkStatus = dev_spec_values[ptrOffset + 0x12] | (dev_spec_values[ptrOffset + 0x13] << 8)
 
-            # Set the link speed and width capabilities
-            self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
-            self.LnkCapWidth.set( (linkCap>>4) & 0xFF )
+                # Set the link speed and width capabilities
+                self.LnkCapSpeed.set((linkCap >> 0) & 0xF)
+                self.LnkCapWidth.set((linkCap >> 4) & 0xFF)
 
-            # Set the link speed and width status
-            self.LnkStaSpeed.set( (linkStatus>>0) & 0xF )
-            self.LnkStaWidth.set( (linkStatus>>4) & 0xFF )
+                # Set the link speed and width status
+                self.LnkStaSpeed.set((linkStatus >> 0) & 0xF)
+                self.LnkStaWidth.set((linkStatus >> 4) & 0xFF)

@@ -18,8 +18,8 @@ class LeapXcvrUpperRxPage01(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        def getOpticalPwr(var):
-            raw = var.dependencies[0].value() # Units of 0.1 uW
+        def getOpticalPwr(var, read):
+            raw = var.dependencies[0].get(read=read) # Units of 0.1 uW
             if raw == 0:
                 pwr = 0.0001 # Prevent log10(zero) case
             else:
@@ -132,8 +132,8 @@ class LeapXcvrUpperPage00(pr.Device):
             mode         = 'RO',
             disp         = '0x{:x}',
             typeStr      = 'UInt16',
-            linkedGet    = lambda: self.LaserWavelengthLsb.value()+256*self.LaserWavelengthMsb.value(),
-            dependencies = [self.LaserWavelengthLsb,self.LaserWavelengthMsb],
+            linkedGet    = self._getLsbMsb,
+            dependencies = [self.LaserWavelengthLsb, self.LaserWavelengthMsb],
         ))
 
         self.add(pr.RemoteVariable(
@@ -159,8 +159,8 @@ class LeapXcvrUpperPage00(pr.Device):
             mode         = 'RO',
             disp         = '0x{:x}',
             typeStr      = 'UInt16',
-            linkedGet    = lambda: self.MaxWavelengthDeviationLsb.value()+256*self.MaxWavelengthDeviationMsb.value(),
-            dependencies = [self.MaxWavelengthDeviationLsb,self.MaxWavelengthDeviationMsb],
+            linkedGet    = self._getLsbMsb,
+            dependencies = [self.MaxWavelengthDeviationLsb, self.MaxWavelengthDeviationMsb],
         ))
 
         name = [
@@ -422,8 +422,8 @@ class LeapXcvrUpperPage00(pr.Device):
             disp         = '0x{:x}',
             units        = '0.5m',
             typeStr      = 'UInt16',
-            linkedGet    = lambda: self.CableLengthLsb.value()+256*self.CableLengthMsb.value(),
-            dependencies = [self.CableLengthLsb,self.CableLengthMsb],
+            linkedGet    = self._getLsbMsb,
+            dependencies = [self.CableLengthLsb, self.CableLengthMsb],
         ))
 
         self.addRemoteVariables(
@@ -459,7 +459,7 @@ class LeapXcvrUpperPage00(pr.Device):
             mode         = 'RO',
             disp         = '0x{:x}',
             typeStr      = 'UInt12',
-            linkedGet    = lambda: self.VendorOuiRaw[2].value()+(2**8)*self.VendorOuiRaw[1].value()+(2**16)*self.VendorOuiRaw[0].value(),
+            linkedGet    = lambda read: self.VendorOuiRaw[2].get(read=read)()+(2**8)*self.VendorOuiRaw[1].get(read=read)()+(2**16)*self.VendorOuiRaw[0].get(read=read)(),
             dependencies = [self.VendorOuiRaw[x] for x in range(3)],
         ))
 
@@ -552,3 +552,15 @@ class LeapXcvrUpperPage00(pr.Device):
             linkedGet    = transceivers.parseStrArrayByte,
             dependencies = [self.LotCodeRaw[x] for x in range(10)],
         ))
+
+
+    def _getLsbMsb(self, var, read):
+        with self.root.updateGroup():
+            lsb = var.dependencies[0].get(read=read)
+            msb = var.dependencies[1].get(read=read)
+            return lsb + 256 * msb
+
+    def _setLsbMsb(self, var, value, write):
+        with self.root.updateGroup():
+            var.dependencies[0].set(value=((value >> 0) & 0xff), write=write)
+            var.dependencies[1].set(value=((value >> 8) & 0xff), write=write)

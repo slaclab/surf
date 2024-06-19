@@ -14,7 +14,6 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import rogue
 import pyrogue as pr
 
 class Xadc(pr.Device):
@@ -577,42 +576,33 @@ class Xadc(pr.Device):
             self.simpleView()
 
     @staticmethod
-    def convTemp(dev, var):
-        value   = var.dependencies[0].get(read=False)
+    def convTemp(dev, var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
         return (fpValue)
 
     @staticmethod
-    def getTemp(var):
-        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            value = var.depdendencies[0].get(read=False)
-        else:
-            value = var._block.getUInt(var.bitOffset, var.bitSize)
-
+    def getTemp(var, read):
+        value = var.depdendencies[0].get(read=read)
         fpValue = value*(503.975/4096.0)
         fpValue -= 273.15
         return (fpValue)
 
     @staticmethod
-    def setTemp(var, value):
+    def setTemp(var, value, write):
         ivalue = int((int(value) + 273.15)*(4096/503.975))
-        print( 'Setting Temp thresh to {:x}'.format(ivalue) )
-
-        if hasattr(rogue,'Version') and rogue.Version.greaterThanEqual('2.0.0'):
-            var.depdendencies[0].set(ivalue)
-        else:
-            var._block.setUInt(var.bitOffset, var.bitSize, ivalue)
+        var.depdendencies[0].set(ivalue, write=write)
 
     @staticmethod
-    def convCoreVoltage(var):
-        value   = var.dependencies[0].value()
+    def convCoreVoltage(var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(732.0E-6)
         return fpValue
 
     @staticmethod
-    def convAuxVoltage(var):
-        return var.dependencies[0].value() * 244e-6
+    def convAuxVoltage(var, read):
+        return var.dependencies[0].get(read=read) * 244e-6
 
     def simpleView(self):
         # Hide all the variable
