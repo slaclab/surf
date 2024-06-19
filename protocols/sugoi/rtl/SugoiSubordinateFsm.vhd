@@ -30,7 +30,7 @@ entity SugoiSubordinateFsm is
       RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean := false);
    port (
-      pwrOnRst        : in  sl := not(RST_POLARITY_G);
+      pwrOnRst        : in  sl;
       -- Clock and Reset
       clk             : in  sl;
       rst             : out sl;
