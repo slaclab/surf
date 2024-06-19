@@ -132,7 +132,7 @@ class LeapXcvrUpperPage00(pr.Device):
             mode         = 'RO',
             disp         = '0x{:x}',
             typeStr      = 'UInt16',
-            linkedGet    = self,_getLsbMsb,
+            linkedGet    = self._getLsbMsb,
             dependencies = [self.LaserWavelengthLsb, self.LaserWavelengthMsb],
         ))
 
@@ -562,6 +562,5 @@ class LeapXcvrUpperPage00(pr.Device):
 
     def _setLsbMsb(self, var, value, write):
         with self.root.updateGroup():
-            var.dependencies[0].set(value & 0xff, write=write)
-            var.dependencies[1].set((value >> 8) & 0xff, write=write)
-
+            var.dependencies[0].set(value=((value >> 0) & 0xff), write=write)
+            var.dependencies[1].set(value=((value >> 8) & 0xff), write=write)

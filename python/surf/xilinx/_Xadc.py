@@ -14,7 +14,6 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import rogue
 import pyrogue as pr
 
 class Xadc(pr.Device):

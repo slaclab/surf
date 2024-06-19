@@ -11,7 +11,7 @@
 import pyrogue as pr
 
 class LeapXcvrLowerPage(pr.Device):
-    def __init__(self, isTx = True, writeEn=False, **kwargs):
+    def __init__(self, isTx=True, writeEn=False, **kwargs):
         super().__init__(**kwargs)
 
         rwType = 'RW' if writeEn else 'RO'

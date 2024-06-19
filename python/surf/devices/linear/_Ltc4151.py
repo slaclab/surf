@@ -152,4 +152,4 @@ class Ltc4151(pr.Device):
         with self.root.updateGroup():
             lsb = var.dependencies[0].get(read=read)
             msb = var.dependencies[1].get(read=read)
-            return (msb << 4) | (lsb 0xf)
+            return (msb << 4) | (lsb & 0xf)

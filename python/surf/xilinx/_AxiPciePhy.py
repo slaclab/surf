@@ -304,4 +304,3 @@ class AxiPciePhy(pr.Device):
                 # Set the link speed and width status
                 self.LnkStaSpeed.set( (linkStatus>>0) & 0xF )
                 self.LnkStaWidth.set( (linkStatus>>4) & 0xFF )
-
