@@ -288,19 +288,22 @@ class AxiPciePhy(pr.Device):
         with self.root.updateGroup():
             # Check if value points to the Device Specific Region
             ptr = self.CapabilitiesPointer.value()
-            if (ptr >= 0x40):
+            if ptr >= 0x40:
+                # Adjust the pointer to the start of the Device Specific Region
+                adjusted_ptr = ptr - 0x40
 
                 # Go to the Capabilities Pointer offset and get the Capabilities Express Endpoint offset
-                ptrOffset = self.DevSpecRegion.value(offset=ptr-0x40+1) - 0x40
+                ptrOffset = self.DevSpecRegion.value()[adjusted_ptr + 1] - 0x40
 
                 # Capabilities Express Endpoint offset
-                linkCap    = self.DevSpecRegion.value(offset=ptrOffset+0x0C) | (self.DevSpecRegion.value(offset=ptrOffset+0x0D) << 8)
-                linkStatus = self.DevSpecRegion.value(offset=ptrOffset+0x12) | (self.DevSpecRegion.value(offset=ptrOffset+0x13) << 8)
+                dev_spec_values = self.DevSpecRegion.value()
+                linkCap = dev_spec_values[ptrOffset + 0x0C] | (dev_spec_values[ptrOffset + 0x0D] << 8)
+                linkStatus = dev_spec_values[ptrOffset + 0x12] | (dev_spec_values[ptrOffset + 0x13] << 8)
 
                 # Set the link speed and width capabilities
-                self.LnkCapSpeed.set( (linkCap>>0) & 0xF )
-                self.LnkCapWidth.set( (linkCap>>4) & 0xFF )
+                self.LnkCapSpeed.set((linkCap >> 0) & 0xF)
+                self.LnkCapWidth.set((linkCap >> 4) & 0xFF)
 
                 # Set the link speed and width status
-                self.LnkStaSpeed.set( (linkStatus>>0) & 0xF )
-                self.LnkStaWidth.set( (linkStatus>>4) & 0xFF )
+                self.LnkStaSpeed.set((linkStatus >> 0) & 0xF)
+                self.LnkStaWidth.set((linkStatus >> 4) & 0xFF)
