@@ -4,7 +4,7 @@ var classSugoiSubordinateFsm =
     [ "TPD_G", "classSugoiSubordinateFsm.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "RST_POLARITY_G", "classSugoiSubordinateFsm.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classSugoiSubordinateFsm.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "pwrOnRst", "classSugoiSubordinateFsm.html#a069a79a9728f8fc7ffe94211548f68b3", null ],
+    [ "pwrOnRst", "classSugoiSubordinateFsm.html#aa834bf496e6cdb38e706b5a5b0cffaa2", null ],
     [ "clk", "classSugoiSubordinateFsm.html#adeb222493482dfe91c36a7a02710329c", null ],
     [ "rst", "classSugoiSubordinateFsm.html#a3afe5767d75fdc30f671cbf40dcb4e1a", null ],
     [ "rstL", "classSugoiSubordinateFsm.html#a038c0ecbf078e731cba620b65be8a9d9", null ],
