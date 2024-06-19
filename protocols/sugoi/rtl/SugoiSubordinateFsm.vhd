@@ -513,6 +513,9 @@ begin
                v.state := RX_SOF_S;
 
             end if;
+         ----------------------------------------------------------------------
+         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to INIT_S state
+            v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 
