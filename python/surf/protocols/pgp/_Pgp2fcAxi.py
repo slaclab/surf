@@ -418,8 +418,8 @@ class Pgp2fcAxi(pr.Device):
             pollInterval = 1,
         ))
 
-        def convtMHz(var):
-            return var.dependencies[0].value() * 1.0E-6
+        def convtMHz(var, read):
+            return var.dependencies[0].get(read=read) * 1.0E-6
 
         self.add(pr.LinkVariable(
             name         = "RxClkFreq",
