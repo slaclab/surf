@@ -24,9 +24,12 @@ use surf.AxiLitePkg.all;
 
 entity GtRxAlignCheck is
    generic (
-      TPD_G          : time   := 1 ns;
-      GT_TYPE_G      : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
-      AXI_CLK_FREQ_G : real   := 156.25e6;
+      TPD_G          : time    := 1 ns;
+      SIMULATION_G   : boolean := false;
+      LOCK_VALUE_G   : integer := 16;
+      MASK_VALUE_G   : integer := 126;
+      GT_TYPE_G      : string  := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
+      AXI_CLK_FREQ_G : real    := 156.25e6;
       DRP_ADDR_G     : slv(31 downto 0));
    port (
       -- Clock Monitoring
@@ -65,9 +68,6 @@ architecture rtl of GtRxAlignCheck is
    constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite((GT_TYPE_G = "GTHE3"), x"0000_0540", x"0000_0940");
    constant COMMA_ALIGN_LATENCY_ADDR_C   : slv(31 downto 0) := (DRP_ADDR_G + COMMA_ALIGN_LATENCY_OFFSET_C);
 
-   constant LOCK_VALUE_C : integer := 16;
-   constant MASK_VALUE_C : integer := 126;
-
    type StateType is (
       RESET_S,
       READ_S,
@@ -95,12 +95,12 @@ architecture rtl of GtRxAlignCheck is
       locked          => '0',
       rst             => '1',
       rstRetryCnt     => '0',
-      override        => '0',
+      override        => toSl(SIMULATION_G),
       rstlen          => toSlv(3, 4),
       rstcnt          => toSlv(0, 4),
       retryCnt        => toSlv(0, 16),
-      tgt             => toSlv(LOCK_VALUE_C, 7),
-      mask            => toSlv(MASK_VALUE_C, 7),
+      tgt             => toSlv(LOCK_VALUE_G, 7),
+      mask            => toSlv(MASK_VALUE_G, 7),
       last            => toSlv(0, 16),
       sample          => (others => (others => '0')),
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
