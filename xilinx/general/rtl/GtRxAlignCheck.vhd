@@ -26,7 +26,7 @@ entity GtRxAlignCheck is
    generic (
       TPD_G          : time   := 1 ns;
       GT_TYPE_G      : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
-      AXI_CLK_FREQ_G : real   := 125.0e6;
+      AXI_CLK_FREQ_G : real   := 156.25e6;
       DRP_ADDR_G     : slv(31 downto 0));
    port (
       -- Clock Monitoring
