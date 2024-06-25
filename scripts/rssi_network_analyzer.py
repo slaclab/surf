@@ -283,4 +283,3 @@ if __name__ == "__main__":
              RssiLink(server='10.1.1.106', port=8194)]
 
     analyzeRssiDump(sys.argv[1], links, False)
-
