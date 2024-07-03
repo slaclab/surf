@@ -124,6 +124,13 @@ class Qsfp(pr.Device):
                 dependencies = [self.TxPwrRaw[2*i+0],self.TxPwrRaw[2*i+1]],
             ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'TXdisable',
+            description  = 'enable/disable laser transmitters',
+            offset       = (86 << 2),
+            bitSize      = 8,
+            mode         = 'RW',
+        ))
         ################
         # Upper Page 00h
         ################
