@@ -18,10 +18,11 @@ import pyrogue as pr
 
 class Ad5541(pr.Device):
     def __init__(self,
-        name        = 'AD5541',
-        description = 'AD5541 DAC',
-        maximum     = 0, # Sets the limit for the maximum allowed voltage from software
-        **kwargs):
+                 name        = 'AD5541',
+                 description = 'AD5541 DAC',
+                 maximum     = 0, # Sets the limit for the maximum allowed voltage from software
+                 **kwargs):
+
         super().__init__(name=name, description=description, **kwargs)
 
         self.add(pr.RemoteVariable(
