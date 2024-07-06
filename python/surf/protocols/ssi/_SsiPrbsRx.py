@@ -168,7 +168,7 @@ class SsiPrbsRx(pr.Device):
             dependencies = [self.PacketRate, self.PacketLength],
             units = 'Words/sec',
             disp = '{:0.1f}',
-            linkedGet = lambda read: self.PacketRate.read(read=read) * self.PacketLength.get(read=read)))
+            linkedGet = lambda read: self.PacketRate.get(read=read) * self.PacketLength.get(read=read)))
 
         self.add(pr.LinkVariable(
             name = 'BitRate',
