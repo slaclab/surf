@@ -35,17 +35,16 @@
 // 7   /* weak 1 */
 // 8   /* don't care */
 
-#include "VhpiGeneric.h"
-#include <vhpi_user.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "VhpiGeneric.h"
+#include <vhpi_user.h>
 
 // Convert input values from enum to int
-void VhpiGenericConvertIn( portDataT *portData ) {
-
+void VhpiGenericConvertIn(portDataT *portData) {
    // Go through each port
-   int x,y,bit;
+   int x, y, bit;
    for (x=0; x < portData->portCount; x++) {
       if ( portData->portDir[x] != vhpiOut ) {
          if ( portData->portWidth[x] == 1 ) {
@@ -68,10 +67,10 @@ void VhpiGenericConvertIn( portDataT *portData ) {
 
 
 // Convert output values from int to enum
-void VhpiGenericConvertOut( portDataT *portData ) {
+void VhpiGenericConvertOut(portDataT *portData) {
 
    // Go through each port
-   int x,y,bit,temp;
+   int x, y, bit, temp;
    for (x=0; x < portData->portCount; x++) {
       if ( portData->portDir[x] != vhpiIn ) {
          if ( portData->portWidth[x] == 1 ) {
@@ -106,8 +105,7 @@ void VhpiGenericConvertOut( portDataT *portData ) {
 
 // Function that is called when the inputs have changed state
 // Copy values over and call user function for further handling
-void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
-
+void VhpiGenericCallBack(vhpiCbDataT *cbData) {
    int x;
 
    // Get user data
@@ -118,17 +116,17 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
 
       // Get the inital input values
       if ( portData->portDir[x] != vhpiOut )
-         vhpi_get_value(portData->portHandle[x],portData->portValue[x]);
+         vhpi_get_value(portData->portHandle[x], portData->portValue[x]);
    }
 
    // Convert Input values
    VhpiGenericConvertIn(portData);
 
    // Get simulation time
-   vhpi_get_time(&(portData->simTime),NULL);
+   vhpi_get_time(&(portData->simTime), NULL);
 
    // Call the user function to update state
-   portData->stateUpdate ( portData );
+   portData->stateUpdate(portData);
 
    // Convert Output values
    VhpiGenericConvertOut(portData);
@@ -140,19 +138,16 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
    }
 }
 
-
 // Error handling function
-void VhpiGenericErrors ( vhpiCbDataT *cb ) {
+void VhpiGenericErrors(vhpiCbDataT *cb) {
    vhpiErrorInfoT g_error;
    while (vhpi_chk_error(&g_error))
-      vhpi_printf("\tError: %s: %s\n",g_error.str,g_error.message);
+      vhpi_printf("\tError: %s: %s\n", g_error.str, g_error.message);
 }
-
 
 // Function that is called as the module is elaborated.
 // Here we will simply register an error handling callback function.
 void VhpiGenericElab(vhpiHandleT compInst) {
-
    // Create callback structure, setup callback function
    vhpiCbDataT* pCbData = (vhpiCbDataT*) malloc(sizeof(vhpiCbDataT));
    pCbData->cbf    = VhpiGenericErrors;
@@ -161,11 +156,9 @@ void VhpiGenericElab(vhpiHandleT compInst) {
    vhpi_register_cb(pCbData);
 }
 
-
 // Function that is called as the module is initialized.
 // Check ports and setup functions to handle clock changes
-void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
-
+void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData) {
    vhpiCbDataT *cbData;
    int width;
    int x, y;
@@ -182,13 +175,12 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
    // Copy block name
    temp = vhpi_get_str(vhpiFullNameP, compInst);
    portData->blockName = (char *) malloc(strlen(temp)+1);
-   strcpy(portData->blockName,temp);
+   strcpy(portData->blockName, temp);
 
    // Get each port and verify width and direction, get initial value
    for (x=0; x < portData->portCount; x++) {
-
       // Get ID
-      portData->portHandle[x] = vhpi_handle_by_index(vhpiPortDecls,compInst,x);
+      portData->portHandle[x] = vhpi_handle_by_index(vhpiPortDecls, compInst, x);
 
       // Setup value types
       if ( portData->portWidth[x] == 1 ) {
@@ -214,7 +206,7 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
 
       // Get the inital input values
       if ( portData->portDir[x] != vhpiOut )
-         vhpi_get_value(portData->portHandle[x],portData->portValue[x]);
+         vhpi_get_value(portData->portHandle[x], portData->portValue[x]);
 
       // Set the inital output values
       if ( portData->portDir[x] != vhpiIn )

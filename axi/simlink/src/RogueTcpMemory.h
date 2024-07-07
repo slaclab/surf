@@ -107,16 +107,15 @@ typedef struct {
 void RogueTcpMemoryInit(vhpiHandleT compInst);
 
 // Callback function for updating
-void RogueTcpMemoryUpdate ( void *userPtr );
+void RogueTcpMemoryUpdate(void *userPtr);
 
 // Start/resetart zeromq server
 void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData);
 
 // Send a message
-void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData );
+void RogueTcpMemorySend(RogueTcpMemoryData *data, portDataT *portData);
 
 // Receive data if it is available
-int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData );
+int RogueTcpMemoryRecv(RogueTcpMemoryData *data, portDataT *portData);
 
 #endif
-

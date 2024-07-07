@@ -1,15 +1,4 @@
-//-----------------------------------------------------------------------------
-// Title         : Pretty Good Protocol, VHPI Library Generic Interface
-// Project       : General Purpose Core
-//-----------------------------------------------------------------------------
-// File          : VhpiGeneric.h
-// Author        : Ryan Herbst, rherbst@slac.stanford.edu
-// Created       : 04/03/2007
-//-----------------------------------------------------------------------------
-// Description:
-// This is a generic block of code to handle the low level interface to the
-// VHDL simulator.
-//-----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
 // It is subject to the license terms in the LICENSE.txt file found in the
 // top-level directory of this distribution and at:
@@ -17,11 +6,7 @@
 // No part of 'SLAC Firmware Standard Library', including this file,
 // may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
-//-----------------------------------------------------------------------------
-// Modification history:
-// 04/03/2007: created.
-// 05/11/2007: Added ability to tri-state outputs.
-//-----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 
 #ifndef __VHPI_GENERIC_H__
 #define __VHPI_GENERIC_H__
@@ -71,10 +56,8 @@ typedef struct portDataS {
 
 } portDataT;
 
-
 // Function that is called as the module is initialized.
 // Check ports and setup functions to handle clock changes
-void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData );
-
+void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData);
 
 #endif

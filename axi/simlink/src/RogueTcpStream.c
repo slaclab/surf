@@ -8,8 +8,6 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#include "VhpiGeneric.h"
-#include "RogueTcpStream.h"
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
@@ -23,6 +21,9 @@
 #include <zmq.h>
 #include <time.h>
 #include <errno.h>
+
+#include "VhpiGeneric.h"
+#include "RogueTcpStream.h"
 
 // Start/resetart zeromq server
 void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData) {
@@ -55,9 +56,8 @@ void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData) {
    }
 }
 
-
 // Send a message
-void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
+void RogueTcpStreamSend(RogueTcpStreamData *data, portDataT *portData) {
    zmq_msg_t msg[4];
    uint16_t  flags;
    uint8_t   chan;
@@ -68,12 +68,12 @@ void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
    if ( (zmq_msg_init_size(&(msg[0]),2) < 0) ||  // Flags
         (zmq_msg_init_size(&(msg[1]),1) < 0) ||  // Channel
         (zmq_msg_init_size(&(msg[2]),1) < 0) ) { // Error
-      vhpi_assert("RogueTcpStream: Failed to init message header",vhpiFatal);
+      vhpi_assert("RogueTcpStream: Failed to init message header", vhpiFatal);
       return;
    }
 
-   if ( zmq_msg_init_size (&(msg[3]), data->ibSize) < 0 ) {
-      vhpi_assert("RogueTcpStream: Failed to init message",vhpiFatal);
+   if (zmq_msg_init_size(&(msg[3]), data->ibSize) < 0) {
+      vhpi_assert("RogueTcpStream: Failed to init message", vhpiFatal);
       return;
    }
 
@@ -107,9 +107,8 @@ void RogueTcpStreamSend ( RogueTcpStreamData *data, portDataT *portData ) {
    data->ibSize = 0;
 }
 
-
 // Receive data if it is available
-int RogueTcpStreamRecv ( RogueTcpStreamData *data, portDataT *portData ) {
+int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
    int64_t   more;
    size_t    moreSize;
    uint32_t  size;
@@ -177,7 +176,6 @@ int RogueTcpStreamRecv ( RogueTcpStreamData *data, portDataT *portData ) {
 
    return(size);
 }
-
 
 // Init function
 void RogueTcpStreamInit(vhpiHandleT compInst) {
@@ -251,9 +249,8 @@ void RogueTcpStreamInit(vhpiHandleT compInst) {
    VhpiGenericInit(compInst,portData);
 }
 
-
 // User function to update state based upon a signal change
-void RogueTcpStreamUpdate ( void *userPtr ) {
+void RogueTcpStreamUpdate(void *userPtr) {
    uint32_t x;
    uint32_t keep;
    uint32_t dLow;
@@ -388,4 +385,3 @@ void RogueTcpStreamUpdate ( void *userPtr ) {
       }
    }
 }
-

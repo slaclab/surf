@@ -74,7 +74,7 @@ typedef struct portDataS {
 
 // Function that is called as the module is initialized.
 // Check ports and setup functions to handle clock changes
-void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData );
+void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData);
 
 
 #endif

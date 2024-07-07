@@ -1,16 +1,4 @@
-//-----------------------------------------------------------------------------
-// Title         : Pretty Good Protocol, VHPI Library Generic Interface
-// Project       : General Purpose Core
-//-----------------------------------------------------------------------------
-// File          : VhpiGeneric.c
-// Author        : Ryan Herbst, rherbst@slac.stanford.edu
-// Created       : 04/03/2007
-//-----------------------------------------------------------------------------
-// Description:
-// This is a generic block of code to handle the low level interface to the
-// VHDL simulator. The user code can access all bits through bit variables
-// and only has to set the width and the in/out types for each port.
-//-----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
 // It is subject to the license terms in the LICENSE.txt file found in the
 // top-level directory of this distribution and at:
@@ -18,11 +6,7 @@
 // No part of 'SLAC Firmware Standard Library', including this file,
 // may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
-//-----------------------------------------------------------------------------
-// Modification history:
-// 04/03/2007: created.
-// 05/11/2007: Added ability to tri-state outputs.
-//-----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 
 //ENUM Types
 // 0   /* uninitialized */
@@ -35,13 +19,14 @@
 // 7   /* weak 1 */
 // 8   /* don't care */
 
-#include "VhpiGeneric.h"
-#include <vhpi_user.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vhpi_user.h>
+
+#include "VhpiGeneric.h"
 
 // Convert input values from enum to int
-void VhpiGenericConvertIn( portDataT *portData ) {
+void VhpiGenericConvertIn(portDataT *portData) {
 
    // Go through each port
    int x,y,bit;
@@ -65,9 +50,8 @@ void VhpiGenericConvertIn( portDataT *portData ) {
    }
 }
 
-
 // Convert output values from int to enum
-void VhpiGenericConvertOut( portDataT *portData ) {
+void VhpiGenericConvertOut(portDataT *portData) {
 
    // Go through each port
    int x,y,bit,temp;
@@ -102,11 +86,9 @@ void VhpiGenericConvertOut( portDataT *portData ) {
    }
 }
 
-
 // Function that is called when the inputs have changed state
 // Copy values over and call user function for further handling
-void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
-
+void VhpiGenericCallBack(vhpiCbDataT *cbData) {
    int x;
    int ret;
 
@@ -129,7 +111,7 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
    vhpi_get_time(&(portData->simTime),NULL);
 
    // Call the user function to update state
-   portData->stateUpdate ( portData );
+   portData->stateUpdate(portData);
 
    // Convert Output values
    VhpiGenericConvertOut(portData);
@@ -142,19 +124,16 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData ) {
    }
 }
 
-
 // Error handling function
-void VhpiGenericErrors ( vhpiCbDataT *cb ) {
+void VhpiGenericErrors(vhpiCbDataT *cb) {
    vhpiErrorInfoT g_error;
    while (vhpi_chk_error(&g_error))
       vhpi_printf("\tError: %s: %s\n",g_error.str,g_error.message);
 }
 
-
 // Function that is called as the module is elaborated.
 // Here we will simply register an error handling callback function.
 void VhpiGenericElab(vhpiHandleT compInst) {
-
    // Create callback structure, setup callback function
    vhpiCbDataT* pCbData = (vhpiCbDataT*) malloc(sizeof(vhpiCbDataT));
    pCbData->cbf    = VhpiGenericErrors;
@@ -168,11 +147,9 @@ void VhpiGenericElab(vhpiHandleT compInst) {
 #endif
 }
 
-
 // Function that is called as the module is initialized.
 // Check ports and setup functions to handle clock changes
-void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData ) {
-
+void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData) {
    vhpiCbDataT *cbData;
    int width;
    int x, y;

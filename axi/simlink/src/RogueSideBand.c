@@ -8,8 +8,6 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#include "VhpiGeneric.h"
-#include "RogueSideBand.h"
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
@@ -22,6 +20,9 @@
 #include <sys/mman.h>
 #include <zmq.h>
 #include <time.h>
+
+#include "VhpiGeneric.h"
+#include "RogueSideBand.h"
 
 // Start/resetart zeromq server
 void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
@@ -56,7 +57,7 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
 }
 
 // Send a message
-void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
+void RogueSideBandSend(RogueSideBandData *data, portDataT *portData) {
    zmq_msg_t msg;
    uint8_t  ba[4];
    char buffer[200];
@@ -87,7 +88,7 @@ void RogueSideBandSend ( RogueSideBandData *data, portDataT *portData ) {
 }
 
 // Receive side data if it is available
-int RogueSideBandRecv ( RogueSideBandData *data, portDataT *portData ) {
+int RogueSideBandRecv(RogueSideBandData *data, portDataT *portData) {
    uint8_t * rd;
    uint32_t  rsize;
    zmq_msg_t rMsg;
@@ -169,7 +170,7 @@ void RogueSideBandInit(vhpiHandleT compInst) {
 
 
 // User function to update state based upon a signal change
-void RogueSideBandUpdate ( void *userPtr ) {
+void RogueSideBandUpdate(void *userPtr) {
 
    portDataT *portData = (portDataT*) userPtr;
    RogueSideBandData *data = (RogueSideBandData*)(portData->stateData);
@@ -233,4 +234,3 @@ void RogueSideBandUpdate ( void *userPtr ) {
       }
    }
 }
-

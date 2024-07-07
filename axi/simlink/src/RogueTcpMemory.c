@@ -8,8 +8,6 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-#include "VhpiGeneric.h"
-#include "RogueTcpMemory.h"
 #include <vhpi_user.h>
 #include <stdlib.h>
 #include <time.h>
@@ -22,6 +20,9 @@
 #include <sys/mman.h>
 #include <zmq.h>
 #include <time.h>
+
+#include "VhpiGeneric.h"
+#include "RogueTcpMemory.h"
 
 // Start/resetart zeromq server
 void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData) {
@@ -56,7 +57,7 @@ void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData) {
 
 
 // Send a message
-void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData ) {
+void RogueTcpMemorySend(RogueTcpMemoryData *data, portDataT *portData) {
    uint32_t  x;
    zmq_msg_t msg[6];
 
@@ -69,7 +70,7 @@ void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData ) {
       return;
    }
 
-   if ( zmq_msg_init_size (&(msg[4]), data->size) < 0 ) {
+   if (zmq_msg_init_size(&(msg[4]), data->size) < 0) {
       vhpi_assert("RogueTcpMemory: Failed to init message",vhpiFatal);
       return;
    }
@@ -96,7 +97,7 @@ void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData ) {
 }
 
 // Receive data if it is available
-int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData ) {
+int RogueTcpMemoryRecv(RogueTcpMemoryData *data, portDataT *portData) {
    uint64_t  more;
    size_t    moreSize;
    uint32_t  x;
@@ -111,7 +112,7 @@ int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData ) {
    do {
 
       // Get the message
-      if ( zmq_recvmsg(data->zmqPull,&(msg[x]),ZMQ_DONTWAIT) > 0 ) {
+      if (zmq_recvmsg(data->zmqPull,&(msg[x]), ZMQ_DONTWAIT) > 0) {
          if ( x != 4 ) x++;
          msgCnt++;
 
@@ -123,7 +124,7 @@ int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData ) {
    } while ( more );
 
    // Proper message received
-   if ( msgCnt == 4 || msgCnt == 5) {
+   if (msgCnt == 4 || msgCnt == 5) {
 
       // Check sizes
       if ( (zmq_msg_size(&(msg[0])) != 4) || (zmq_msg_size(&(msg[1])) != 8) ||
@@ -141,7 +142,7 @@ int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData ) {
 
       // Write data is expected
       if ( (data->type == T_WRITE) || (data->type == T_POST) ) {
-         if ((msgCnt != 5) || (zmq_msg_size(&(msg[4])) != data->size) ) {
+         if ( (msgCnt != 5) || (zmq_msg_size(&(msg[4])) != data->size) ) {
             vhpi_assert("RogueTcpMemory: Transaction write data error",vhpiFatal);
             for (x=0; x < msgCnt; x++) zmq_msg_close(&(msg[x]));
             return 0;
@@ -242,7 +243,7 @@ void RogueTcpMemoryInit(vhpiHandleT compInst) {
 
 
 // User function to update state based upon a signal change
-void RogueTcpMemoryUpdate ( void *userPtr ) {
+void RogueTcpMemoryUpdate(void *userPtr) {
    uint32_t data32;
 
    portDataT *portData = (portDataT*) userPtr;
@@ -368,4 +369,3 @@ void RogueTcpMemoryUpdate ( void *userPtr ) {
       }
    }
 }
-

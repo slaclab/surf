@@ -26,7 +26,7 @@ struct ssi_printf_type {
    uint32_t buffWord;
 };
 
-void ssi_putc ( void* p, const char c);
+void ssi_putc(void* p, const char c);
 void ssi_printf_init(uint32_t buffBase, uint16_t buffSize);
 
 #define ssi_printf(...) tfp_printf (__VA_ARGS__)

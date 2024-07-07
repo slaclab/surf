@@ -15,7 +15,7 @@
 
 static struct ssi_printf_type ssi_printf_data;
 
-void ssi_putc ( void* p, char c) {
+void ssi_putc(void* p, char c) {
    struct ssi_printf_type * pp = (struct ssi_printf_type *)p;
 
    // pack into 32-bits
