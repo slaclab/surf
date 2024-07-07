@@ -37,7 +37,7 @@ static void* stdout_putp;
 
 #ifdef PRINTF_LONG_SUPPORT
 
-static void uli2a(unsigned long int num, unsigned int base, int uc, char * bf) {
+static void uli2a(unsigned long int num, unsigned int base, int uc, char * bf) {//NOLINT
     int n = 0;
     unsigned int d = 1;
     while (num/d >= base)
@@ -54,7 +54,7 @@ static void uli2a(unsigned long int num, unsigned int base, int uc, char * bf) {
     *bf = 0;
 }
 
-static void li2a(long num, char * bf) {
+static void li2a(long num, char * bf) {//NOLINT
     if (num < 0) {
         num =- num;
         *bf++ = '-';
@@ -159,7 +159,7 @@ void tfp_format(void* putp, putcf putf, const char *fmt, va_list va) {
                 case 'u' : {
 #ifdef     PRINTF_LONG_SUPPORT
                     if (lng)
-                        uli2a(va_arg(va, unsigned long int), 10 , 0, bf);
+                        uli2a(va_arg(va, unsigned long int), 10 , 0, bf);//NOLINT
                     else
 #endif
                     ui2a(va_arg(va, unsigned int), 10, 0, bf);
@@ -169,7 +169,7 @@ void tfp_format(void* putp, putcf putf, const char *fmt, va_list va) {
                 case 'd' :  {
 #ifdef     PRINTF_LONG_SUPPORT
                     if (lng)
-                        li2a(va_arg(va, unsigned long int), bf);
+                        li2a(va_arg(va, unsigned long int), bf);//NOLINT
                     else
 #endif
                     i2a(va_arg(va, int), bf);
@@ -179,7 +179,7 @@ void tfp_format(void* putp, putcf putf, const char *fmt, va_list va) {
                 case 'x': case 'X' :
 #ifdef     PRINTF_LONG_SUPPORT
                     if (lng)
-                        uli2a(va_arg(va, unsigned long int), 16, (ch == 'X'), bf);
+                        uli2a(va_arg(va, unsigned long int), 16, (ch == 'X'), bf);//NOLINT
                     else
 #endif
                     ui2a(va_arg(va, unsigned int), 16, (ch == 'X'), bf);
