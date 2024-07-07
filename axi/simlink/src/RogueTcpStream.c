@@ -65,9 +65,9 @@ void RogueTcpStreamSend(RogueTcpStreamData *data, portDataT *portData) {
    uint32_t  x;
    int error;
 
-   if ( (zmq_msg_init_size(&(msg[0]), 2) < 0) ||  // Flags
-        (zmq_msg_init_size(&(msg[1]), 1) < 0) ||  // Channel
-        (zmq_msg_init_size(&(msg[2]), 1) < 0) ) { // Error
+   if ( (zmq_msg_init_size(&(msg[0]), 2) < 0) ||   // Flags
+        (zmq_msg_init_size(&(msg[1]), 1) < 0) ||   // Channel
+        (zmq_msg_init_size(&(msg[2]), 1) < 0) ) {  // Error
       vhpi_assert("RogueTcpStream: Failed to init message header", vhpiFatal);
       return;
    }

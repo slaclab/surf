@@ -213,7 +213,7 @@ void RogueSideBandUpdate(void *userPtr) {
               send = 1;
             }
 
-            //TX RemData
+            // TX RemData
             if (getInt(s_txRemData) != data->txRemData) {
               data->txRemData = getInt(s_txRemData);
               data->txRemDataChanged = 1;
@@ -229,7 +229,7 @@ void RogueSideBandUpdate(void *userPtr) {
             setInt(s_rxRemData, data->rxRemData);
             setInt(s_rxOpCode, data->rxOpCode);
             setInt(s_rxOpCodeEn, data->rxOpCodeEn);
-            data->rxOpCodeEn = 0; // Only for one clock
+            data->rxOpCodeEn = 0;  // Only for one clock
          }
       }
    }

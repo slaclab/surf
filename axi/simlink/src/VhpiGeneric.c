@@ -8,7 +8,9 @@
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
-//ENUM Types
+//////////////////////////
+// ENUM Types
+//////////////////////////
 // 0   /* uninitialized */
 // 1   /* unknown */
 // 2   /* forcing 0 */
@@ -64,7 +66,7 @@ void VhpiGenericConvertOut(portDataT *portData) {
                else
                   portData->portValue[x]->value.enumval = 3;
             }
-            else portData->portValue[x]->value.enumval = 4; // Tri-state
+            else portData->portValue[x]->value.enumval = 4;  // Tri-state
          }
          else {
             if ( portData->outEnable[x] == 1 ) {
@@ -79,7 +81,7 @@ void VhpiGenericConvertOut(portDataT *portData) {
             }
             else
                for (y=0; y < portData->portWidth[x]; y++) {
-                  portData->portValue[x]->value.enums[y] = 4; // Tri-state
+                  portData->portValue[x]->value.enums[y] = 4;  // Tri-state
                }
          }
       }

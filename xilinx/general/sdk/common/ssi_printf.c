@@ -35,7 +35,7 @@ void ssi_putc(void* p, char c) {
 
     // Dual port ram buffer if enabled
     if ( pp->buffSize > 0 ) {
-        //Xil_Out8(pp->buffBase+4+pp->buffPtr, c);
+        // Xil_Out8(pp->buffBase+4+pp->buffPtr, c);
         if (pp->buffPtr%4 == 0)
             pp->buffWord = c;
         else

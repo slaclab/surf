@@ -61,11 +61,11 @@ void RogueTcpMemorySend(RogueTcpMemoryData *data, portDataT *portData) {
    uint32_t  x;
    zmq_msg_t msg[6];
 
-   if ( (zmq_msg_init_size(&(msg[0]), 4) < 0) ||  // ID
-        (zmq_msg_init_size(&(msg[1]), 8) < 0) ||  // Addr
-        (zmq_msg_init_size(&(msg[2]), 4) < 0) ||  // Size
-        (zmq_msg_init_size(&(msg[3]), 4) < 0) ||  // type
-        (zmq_msg_init_size(&(msg[5]), 4) < 0) ) { // result
+   if ( (zmq_msg_init_size(&(msg[0]), 4) < 0) ||   // ID
+        (zmq_msg_init_size(&(msg[1]), 8) < 0) ||   // Addr
+        (zmq_msg_init_size(&(msg[2]), 4) < 0) ||   // Size
+        (zmq_msg_init_size(&(msg[3]), 4) < 0) ||   // type
+        (zmq_msg_init_size(&(msg[5]), 4) < 0) ) {  // result
       vhpi_assert("RogueTcpMemory: Failed to init message header", vhpiFatal);
       return;
    }
@@ -319,11 +319,11 @@ void RogueTcpMemoryUpdate(void *userPtr) {
                   if ( getInt(s_wready)  ) setInt(s_wvalid, 0);
 
                   if ( getInt(s_bvalid) ) {
-                    //setInt(s_bready,0);
+                    // setInt(s_bready,0);
                      data->result = getInt(s_bresp);
 
                      if (data->curr == data->size) {
-                        RogueTcpMemorySend(data, portData); // state goes to idle
+                        RogueTcpMemorySend(data, portData);  // state goes to idle
                      }
                      else data->state = ST_PAUSE;
                   }
@@ -349,10 +349,10 @@ void RogueTcpMemoryUpdate(void *userPtr) {
                      data->data[data->curr++] = (data32 >> 16) & 0xFF;
                      data->data[data->curr++] = (data32 >> 24) & 0xFF;
 
-                     //setInt(s_rready,0);
+                     // setInt(s_rready,0);
 
                      if (data->curr == data->size) {
-                        RogueTcpMemorySend(data, portData); // state goes to idle
+                        RogueTcpMemorySend(data, portData);  // state goes to idle
                      }
                      else data->state = ST_PAUSE;
                   }
