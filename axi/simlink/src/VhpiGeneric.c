@@ -170,7 +170,7 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData) {
    // Copy block name
    temp = vhpi_get_str(vhpiFullNameP, compInst);
    portData->blockName = (char *) malloc(strlen(temp)+1);
-   strcpy(portData->blockName, temp);
+   strcpy(portData->blockName, temp);//NOLINT
 
    // Get each port and verify width and direction, get initial value
    for (x=0; x < portData->portCount; x++) {

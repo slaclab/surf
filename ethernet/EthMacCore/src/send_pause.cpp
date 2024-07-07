@@ -40,9 +40,9 @@ int main(int argc, char *argv[]) {
 
     /* Get interface name */
     if (argc > 1)
-        strcpy(ifName, argv[1]);
+        strcpy(ifName, argv[1]);//NOLINT
     else
-        strcpy(ifName, DEFAULT_IF);
+        strcpy(ifName, DEFAULT_IF);//NOLINT
 
     /* Open RAW socket to send on */
     if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1) {
