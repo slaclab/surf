@@ -28,8 +28,7 @@
 #define DEFAULT_IF    "eth0"
 #define BUF_SIZ        1024
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int sockfd;
     struct ifreq if_idx;
     struct ifreq if_mac;
