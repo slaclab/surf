@@ -96,7 +96,8 @@ static int a2d(char ch) {
         return ch-'a'+10;
     else if (ch >= 'A' && ch <= 'F')
         return ch-'A'+10;
-    else return -1;
+    else
+        return -1;
 }
 
 static char a2i(char ch, const char** src, int base, int* nump) {

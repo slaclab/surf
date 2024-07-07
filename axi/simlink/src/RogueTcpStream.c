@@ -330,8 +330,11 @@ void RogueTcpStreamUpdate(void *userPtr) {
             // Valid not asserted and data is ready
             if ( data->obValid == 0 && data->obSize > 0 ) {
                // First user
-               if ( data->obCount == 0 ) setInt(s_obUserLow, data->obFuser);
-               else setInt(s_obUserLow, 0);
+               if ( data->obCount == 0 ) {
+                   setInt(s_obUserLow, data->obFuser);
+               } else {
+                   setInt(s_obUserLow, 0);
+               }
                setInt(s_obUserHigh, 0);
 
                // Get data

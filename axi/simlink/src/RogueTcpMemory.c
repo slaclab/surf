@@ -316,8 +316,9 @@ void RogueTcpMemoryUpdate(void *userPtr) {
 
                      if (data->curr == data->size) {
                         RogueTcpMemorySend(data, portData);  // state goes to idle
+                     } else {
+                         data->state = ST_PAUSE;
                      }
-                     else data->state = ST_PAUSE;
                   }
                   break;
 
@@ -345,8 +346,9 @@ void RogueTcpMemoryUpdate(void *userPtr) {
 
                      if (data->curr == data->size) {
                         RogueTcpMemorySend(data, portData);  // state goes to idle
+                     } else {
+                         data->state = ST_PAUSE;
                      }
-                     else data->state = ST_PAUSE;
                   }
                   break;
 
