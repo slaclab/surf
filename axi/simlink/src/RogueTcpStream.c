@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <zmq.h>
-#include <time.h>
 #include <errno.h>
 
 #include "VhpiGeneric.h"
