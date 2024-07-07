@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     sendbuf[tx_len++] = 0x01;
     sendbuf[tx_len++] = 0x00;
     sendbuf[tx_len++] = 0xFF;
-    for (int n=0; n<42; n++) {
+    for (int n=0; n < 42; n++) {
         sendbuf[tx_len++] = 0x00;
     }
 

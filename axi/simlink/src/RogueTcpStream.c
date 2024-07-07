@@ -96,7 +96,7 @@ void RogueTcpStreamSend(RogueTcpStreamData *data, portDataT *portData) {
 
    // Send data
    for (x=0; x < 4; x++) {
-     if ( zmq_msg_send(&(msg[x]), data->zmqPush, (x==3)?0:ZMQ_SNDMORE) < 0 ) {
+     if ( zmq_msg_send(&(msg[x]), data->zmqPush, (x == 3)?0:ZMQ_SNDMORE) < 0 ) {
        error = errno;
        vhpi_printf("Failed to send message on port %i - x: %i - err: %i\n", data->port+1, x, error);
        vhpi_printf("Error: %s\n", strerror(error));

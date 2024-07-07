@@ -86,7 +86,7 @@ void RogueTcpMemorySend(RogueTcpMemoryData *data, portDataT *portData) {
 
    // Send data
    for (x=0; x < 6; x++) {
-      if ( zmq_sendmsg(data->zmqPush, &(msg[x]), (x==5)?0:ZMQ_SNDMORE) < 0 )
+      if ( zmq_sendmsg(data->zmqPush, &(msg[x]), (x == 5)?0:ZMQ_SNDMORE) < 0 )
          vhpi_assert("RogueTcpMemory: Failed to send message", vhpiFatal);
    }
    data->state = 0;

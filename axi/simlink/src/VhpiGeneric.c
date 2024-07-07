@@ -44,7 +44,7 @@ void VhpiGenericConvertIn(portDataT *portData) {
             for (y=0; y < portData->portWidth[x]; y++) {
                bit = (portData->portWidth[x] - 1) - y;
                if ( portData->portValue[x]->value.enums[y] == 3 )
-                  portData->intValue[x] += 1<<bit;
+                  portData->intValue[x] += 1 << bit;
             }
          }
       }
@@ -70,7 +70,7 @@ void VhpiGenericConvertOut(portDataT *portData) {
             if ( portData->outEnable[x] == 1 ) {
                for (y=0; y < portData->portWidth[x]; y++) {
                   bit = (portData->portWidth[x] - 1) - y;
-                  temp = 1<<bit;
+                  temp = 1 << bit;
                   if ( (portData->intValue[x] & temp) != 0 )
                      portData->portValue[x]->value.enums[y] = 3;
                   else
