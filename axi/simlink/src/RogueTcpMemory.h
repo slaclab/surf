@@ -62,44 +62,44 @@
 // Structure to track state
 typedef struct {
 
-   uint32_t   araddr;
-   uint8_t    arprot;
-   uint8_t    arvalid;
-   uint8_t    rready;
+    uint32_t   araddr;
+    uint8_t    arprot;
+    uint8_t    arvalid;
+    uint8_t    rready;
 
-   uint8_t    arready;
-   uint32_t   rdata;
-   uint8_t    rresp;
-   uint8_t    rvalid;
+    uint8_t    arready;
+    uint32_t   rdata;
+    uint8_t    rresp;
+    uint8_t    rvalid;
 
-   uint32_t   awaddr;
-   uint8_t    awprot;
-   uint8_t    awvalid;
-   uint32_t   wdata;
-   uint8_t    wstrb;
-   uint8_t    wvalid;
-   uint8_t    bready;
+    uint32_t   awaddr;
+    uint8_t    awprot;
+    uint8_t    awvalid;
+    uint32_t   wdata;
+    uint8_t    wstrb;
+    uint8_t    wvalid;
+    uint8_t    bready;
 
-   uint8_t    awready;
-   uint8_t    wready;
-   uint8_t    bresp;
-   uint8_t    bvalid;
+    uint8_t    awready;
+    uint8_t    wready;
+    uint8_t    bresp;
+    uint8_t    bvalid;
 
-   uint16_t   port;
-   uint8_t    state;
-   uint32_t   id;
-   uint64_t   addr;
-   uint8_t    data[MAX_DATA];
-   uint32_t   size;
-   uint32_t   curr;
-   uint32_t   type;
-   uint32_t   result;
+    uint16_t   port;
+    uint8_t    state;
+    uint32_t   id;
+    uint64_t   addr;
+    uint8_t    data[MAX_DATA];
+    uint32_t   size;
+    uint32_t   curr;
+    uint32_t   type;
+    uint32_t   result;
 
-   uint8_t    currClk;
+    uint8_t    currClk;
 
-   void *     zmqCtx;
-   void *     zmqPull;
-   void *     zmqPush;
+    void *     zmqCtx;
+    void *     zmqPull;
+    void *     zmqPush;
 
 } RogueTcpMemoryData;
 

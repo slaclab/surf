@@ -92,9 +92,9 @@ int main(int argc, char *argv[])
     sendbuf[tx_len++] = 0x01;
     sendbuf[tx_len++] = 0x00;
     sendbuf[tx_len++] = 0xFF;
-   for (int n=0; n<42; n++) {
-      sendbuf[tx_len++] = 0x00;
-   }
+    for (int n=0; n<42; n++) {
+        sendbuf[tx_len++] = 0x00;
+    }
 
     /* Index of the network device */
     socket_address.sll_ifindex = if_idx.ifr_ifindex;

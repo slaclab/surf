@@ -46,26 +46,26 @@
 // Structure to track state
 typedef struct {
 
-   uint8_t   obFuser;
-   uint8_t   obLuser;
-   uint32_t  obSize;
-   uint32_t  obCount;
-   uint8_t   obData[MAX_FRAME];
-   uint32_t  obValid;
+    uint8_t   obFuser;
+    uint8_t   obLuser;
+    uint32_t  obSize;
+    uint32_t  obCount;
+    uint8_t   obData[MAX_FRAME];
+    uint32_t  obValid;
 
-   uint8_t   ibFuser;
-   uint8_t   ibLuser;
-   uint32_t  ibSize;
-   uint8_t   ibData[MAX_FRAME];
+    uint8_t   ibFuser;
+    uint8_t   ibLuser;
+    uint32_t  ibSize;
+    uint8_t   ibData[MAX_FRAME];
 
-   uint32_t  currClk;
-   uint16_t  port;
-   uint8_t   ssi;
-   time_t    ltime;
+    uint32_t  currClk;
+    uint16_t  port;
+    uint8_t   ssi;
+    time_t    ltime;
 
-   void *    zmqCtx;
-   void *    zmqPush;
-   void *    zmqPull;
+    void *    zmqCtx;
+    void *    zmqPush;
+    void *    zmqPull;
 
 } RogueTcpStreamData;
 

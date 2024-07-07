@@ -23,36 +23,36 @@
 // Structure to hold data related to signal interface
 typedef struct portDataS {
 
-   // Number of ports
-   int portCount;
+    // Number of ports
+    int portCount;
 
-   // Array to hold port handles
-   vhpiHandleT portHandle[MAX_PORT_COUNT];
+    // Array to hold port handles
+    vhpiHandleT portHandle[MAX_PORT_COUNT];
 
-   // Array to hold port values
-   vhpiValueT *portValue[MAX_PORT_COUNT];
+    // Array to hold port values
+    vhpiValueT *portValue[MAX_PORT_COUNT];
 
-   // Array to hold value converted to int, -1 for tri-state
-   unsigned int intValue[MAX_PORT_COUNT];
-   unsigned int outEnable[MAX_PORT_COUNT];
+    // Array to hold value converted to int, -1 for tri-state
+    unsigned int intValue[MAX_PORT_COUNT];
+    unsigned int outEnable[MAX_PORT_COUNT];
 
-   // Array to hold port directions
-   vhpiIntT portDir[MAX_PORT_COUNT];
+    // Array to hold port directions
+    vhpiIntT portDir[MAX_PORT_COUNT];
 
-   // Array to hold port width
-   vhpiIntT portWidth[MAX_PORT_COUNT];
+    // Array to hold port width
+    vhpiIntT portWidth[MAX_PORT_COUNT];
 
-   // Current simulation time
-   vhpiTimeT simTime;
+    // Current simulation time
+    vhpiTimeT simTime;
 
-   // Name of block
-   char *blockName;
+    // Name of block
+    char *blockName;
 
-   // State update function
-   void (*stateUpdate)(void *);
+    // State update function
+    void (*stateUpdate)(void *);
 
-   // Pointer to hold state information
-   void *stateData;
+    // Pointer to hold state information
+    void *stateData;
 
 } portDataT;
 
