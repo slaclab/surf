@@ -53,7 +53,6 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
       vhpi_assert("RogueSideBand: Failed to bind push port", vhpiFatal);
       return;
    }
-
 }
 
 // Send a message
@@ -103,7 +102,6 @@ int RogueSideBandRecv(RogueSideBandData *data, portDataT *portData) {
    rsize = zmq_msg_size(&rMsg);
 
    if ( rsize == 4 ) {
-
       if ( rd[0] == 0x01 ) {
          data->rxOpCode   = rd[1];
          data->rxOpCodeEn = 1;
@@ -113,7 +111,6 @@ int RogueSideBandRecv(RogueSideBandData *data, portDataT *portData) {
          data->rxRemData = rd[3];
          vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x on port %i\n", portData->simTime, data->rxRemData, data->port+1);
       }
-
    }
    zmq_msg_close(&rMsg);
    return(rsize);
@@ -121,7 +118,6 @@ int RogueSideBandRecv(RogueSideBandData *data, portDataT *portData) {
 
 // Init function
 void RogueSideBandInit(vhpiHandleT compInst) {
-
    // Create new port data structure
    portDataT         *portData  = (portDataT *)         malloc(sizeof(portDataT));
    RogueSideBandData *data      = (RogueSideBandData *) malloc(sizeof(RogueSideBandData));
@@ -171,7 +167,6 @@ void RogueSideBandInit(vhpiHandleT compInst) {
 
 // User function to update state based upon a signal change
 void RogueSideBandUpdate(void *userPtr) {
-
    portDataT *portData = (portDataT*) userPtr;
    RogueSideBandData *data = (RogueSideBandData*)(portData->stateData);
    uint8_t send = 0;
@@ -182,7 +177,6 @@ void RogueSideBandUpdate(void *userPtr) {
 
       // Rising edge
       if ( data->currClk ) {
-
          // Reset is asserted
          if ( getInt(s_reset) == 1 ) {
             data->rxRemData  = 0x00;
@@ -199,7 +193,6 @@ void RogueSideBandUpdate(void *userPtr) {
 
          // Out of reset
          else {
-
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);

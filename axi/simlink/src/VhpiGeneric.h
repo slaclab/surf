@@ -22,7 +22,6 @@
 
 // Structure to hold data related to signal interface
 typedef struct portDataS {
-
     // Number of ports
     int portCount;
 
@@ -53,7 +52,6 @@ typedef struct portDataS {
 
     // Pointer to hold state information
     void *stateData;
-
 } portDataT;
 
 // Function that is called as the module is initialized.

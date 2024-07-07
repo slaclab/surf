@@ -29,7 +29,6 @@
 
 // Convert input values from enum to int
 void VhpiGenericConvertIn(portDataT *portData) {
-
    // Go through each port
    int x, y, bit;
    for (x=0; x < portData->portCount; x++) {
@@ -54,7 +53,6 @@ void VhpiGenericConvertIn(portDataT *portData) {
 
 // Convert output values from int to enum
 void VhpiGenericConvertOut(portDataT *portData) {
-
    // Go through each port
    int x, y, bit, temp;
    for (x=0; x < portData->portCount; x++) {
@@ -99,7 +97,6 @@ void VhpiGenericCallBack(vhpiCbDataT *cbData) {
 
    // Get current state of all ports
    for (x=0; x < portData->portCount; x++) {
-
       // Get the inital input values
       if ( portData->portDir[x] != vhpiOut )
          if ( ( ret = vhpi_get_value(portData->portHandle[x], portData->portValue[x])) )
@@ -174,7 +171,6 @@ void VhpiGenericInit(vhpiHandleT compInst, portDataT *portData) {
 
    // Get each port and verify width and direction, get initial value
    for (x=0; x < portData->portCount; x++) {
-
       // Get ID
       portData->portHandle[x] = vhpi_handle_by_index(vhpiPortDecls, compInst, x);
 

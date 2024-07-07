@@ -93,7 +93,6 @@ void RogueTcpMemorySend(RogueTcpMemoryData *data, portDataT *portData) {
    data->curr  = 0;
 
    vhpi_printf("%lu RogueTcpMemory: Send Tran: Id %i, Addr 0x%x, Size %i, Type %i, Resp 0x%x\n", portData->simTime, data->id, data->addr, data->size, data->type, data->result);
-
 }
 
 // Receive data if it is available
@@ -110,7 +109,6 @@ int RogueTcpMemoryRecv(RogueTcpMemoryData *data, portDataT *portData) {
 
    // Get message
    do {
-
       // Get the message
       if (zmq_recvmsg(data->zmqPull, &(msg[x]), ZMQ_DONTWAIT) > 0) {
          if ( x != 4 ) x++;
@@ -125,7 +123,6 @@ int RogueTcpMemoryRecv(RogueTcpMemoryData *data, portDataT *portData) {
 
    // Proper message received
    if (msgCnt == 4 || msgCnt == 5) {
-
       // Check sizes
       if ( (zmq_msg_size(&(msg[0])) != 4) || (zmq_msg_size(&(msg[1])) != 8) ||
            (zmq_msg_size(&(msg[2])) != 4) || (zmq_msg_size(&(msg[3])) != 4) ) {
@@ -164,7 +161,6 @@ int RogueTcpMemoryRecv(RogueTcpMemoryData *data, portDataT *portData) {
 
 // Init function
 void RogueTcpMemoryInit(vhpiHandleT compInst) {
-
    // Create new port data structure
    portDataT             *portData  = (portDataT *)             malloc(sizeof(portDataT));
    RogueTcpMemoryData *data      = (RogueTcpMemoryData *) malloc(sizeof(RogueTcpMemoryData));
@@ -255,7 +251,6 @@ void RogueTcpMemoryUpdate(void *userPtr) {
 
       // Rising edge
       if ( data->currClk ) {
-
          // Reset is asserted
          if ( getInt(s_reset) == 1 ) {
             data->state = ST_IDLE;
@@ -267,7 +262,6 @@ void RogueTcpMemoryUpdate(void *userPtr) {
 
          // Data movement
          else {
-
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
@@ -275,7 +269,6 @@ void RogueTcpMemoryUpdate(void *userPtr) {
             }
 
             switch (data->state) {
-
                // Idle get new data
                case ST_IDLE:
                   RogueTcpMemoryRecv(data, portData);

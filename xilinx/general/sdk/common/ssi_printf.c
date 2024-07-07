@@ -24,7 +24,6 @@ void ssi_putc(void* p, char c) {
 
     // 32-bit value ready or newline
     if ( pp->tmpCnt == 4 || c == '\n' ) {
-
         // Axi-stream, send tlast if newline
         putfsl(pp->tmp, 0);
         if ( c == '\n' ) cputfsl(0, 0);
@@ -54,7 +53,6 @@ void ssi_putc(void* p, char c) {
         // Update tracking
         Xil_Out32(pp->buffBase, pp->buffTot << 16 | pp->buffPtr);
     }
-
 }
 
 void ssi_printf_init(uint32_t buffBase, uint16_t buffSize) {

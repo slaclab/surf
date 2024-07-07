@@ -45,7 +45,6 @@
 
 // Structure to track state
 typedef struct {
-
     uint8_t   obFuser;
     uint8_t   obLuser;
     uint32_t  obSize;
@@ -66,7 +65,6 @@ typedef struct {
     void *    zmqCtx;
     void *    zmqPush;
     void *    zmqPull;
-
 } RogueTcpStreamData;
 
 // Init function

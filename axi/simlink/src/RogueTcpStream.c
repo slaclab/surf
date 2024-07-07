@@ -125,7 +125,6 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
 
    // Get message
    do {
-
       // Get the message
       if ( zmq_recvmsg(data->zmqPull, &(msg[x]), ZMQ_DONTWAIT) > 0 ) {
          if ( x != 3 ) x++;
@@ -140,7 +139,6 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
 
    // Proper message received
    if ( msgCnt == 4 ) {
-
       // Check sizes
       if ( (zmq_msg_size(&(msg[0])) != 2) || (zmq_msg_size(&(msg[1])) != 1) ||
            (zmq_msg_size(&(msg[2])) != 1) ) {
@@ -179,7 +177,6 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
 
 // Init function
 void RogueTcpStreamInit(vhpiHandleT compInst) {
-
    // Create new port data structure
    portDataT             *portData  = (portDataT *)             malloc(sizeof(portDataT));
    RogueTcpStreamData *data      = (RogueTcpStreamData *) malloc(sizeof(RogueTcpStreamData));
@@ -267,7 +264,6 @@ void RogueTcpStreamUpdate(void *userPtr) {
 
       // Rising edge
       if ( data->currClk ) {
-
          // Reset is asserted
          if ( getInt(s_reset) == 1 ) {
             data->obCount = 0;
@@ -286,7 +282,6 @@ void RogueTcpStreamUpdate(void *userPtr) {
 
          // Data movement
          else {
-
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
@@ -333,7 +328,6 @@ void RogueTcpStreamUpdate(void *userPtr) {
 
             // Valid not asserted and data is ready
             if ( data->obValid == 0 && data->obSize > 0 ) {
-
                // First user
                if ( data->obCount == 0 ) setInt(s_obUserLow, data->obFuser);
                else setInt(s_obUserLow, 0);

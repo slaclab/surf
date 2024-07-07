@@ -61,7 +61,6 @@
 
 // Structure to track state
 typedef struct {
-
     uint32_t   araddr;
     uint8_t    arprot;
     uint8_t    arvalid;
@@ -100,7 +99,6 @@ typedef struct {
     void *     zmqCtx;
     void *     zmqPull;
     void *     zmqPush;
-
 } RogueTcpMemoryData;
 
 // Init function

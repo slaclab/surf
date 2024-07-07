@@ -32,7 +32,6 @@
 
 // Structure to track state
 typedef struct {
-
     uint32_t  currClk;
     uint16_t  port;
 
@@ -48,7 +47,6 @@ typedef struct {
     void *    zmqCtx;
     void *    zmqPull;
     void *    zmqPush;
-
 } RogueSideBandData;
 
 // Init function
