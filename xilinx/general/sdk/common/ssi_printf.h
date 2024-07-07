@@ -11,9 +11,10 @@
 #ifndef __SSI_PRINTF__
 #define __SSI_PRINTF__
 
-#include "printf.h"
 #include <stdarg.h>
 #include <stdint.h>
+
+#include "printf.h"
 
 struct ssi_printf_type {
    uint8_t  tmpCnt;
