@@ -37,20 +37,20 @@ void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData) {
    data->zmqPull = NULL;
 
    data->zmqCtx = zmq_ctx_new();
-   data->zmqPull = zmq_socket(data->zmqCtx,ZMQ_PULL);
-   data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
+   data->zmqPull = zmq_socket(data->zmqCtx, ZMQ_PULL);
+   data->zmqPush  = zmq_socket(data->zmqCtx, ZMQ_PUSH);
 
-   vhpi_printf("RogueSideBand: Listening on ports %i & %i\n",data->port, data->port+1);
+   vhpi_printf("RogueSideBand: Listening on ports %i & %i\n", data->port, data->port+1);
 
-   sprintf(buffer,"tcp://127.0.0.1:%i",data->port+1);
-   if ( zmq_bind(data->zmqPull,buffer) ) {
-      vhpi_assert("RogueSideBand: Failed to bind sideband port",vhpiFatal);
+   sprintf(buffer, "tcp://127.0.0.1:%i", data->port+1);
+   if ( zmq_bind(data->zmqPull, buffer) ) {
+      vhpi_assert("RogueSideBand: Failed to bind sideband port", vhpiFatal);
       return;
    }
 
-   sprintf(buffer,"tcp://127.0.0.1:%i",data->port);
-   if ( zmq_bind(data->zmqPush,buffer) ) {
-      vhpi_assert("RogueSideBand: Failed to bind push port",vhpiFatal);
+   sprintf(buffer, "tcp://127.0.0.1:%i", data->port);
+   if ( zmq_bind(data->zmqPush, buffer) ) {
+      vhpi_assert("RogueSideBand: Failed to bind push port", vhpiFatal);
       return;
    }
 
@@ -62,8 +62,8 @@ void RogueSideBandSend(RogueSideBandData *data, portDataT *portData) {
    uint8_t  ba[4];
    char buffer[200];
 
-   if ( (zmq_msg_init_size(&msg,4) < 0) ) {
-      vhpi_assert("RogueSideBand: Failed to init message",vhpiFatal);
+   if ( (zmq_msg_init_size(&msg, 4) < 0) ) {
+      vhpi_assert("RogueSideBand: Failed to init message", vhpiFatal);
       return;
    }
 
@@ -75,7 +75,7 @@ void RogueSideBandSend(RogueSideBandData *data, portDataT *portData) {
    memcpy(zmq_msg_data(&msg), ba, 4);
 
    // Send data
-   if ( zmq_msg_send(&msg,data->zmqPush, 0) < 0 ) {
+   if ( zmq_msg_send(&msg, data->zmqPush, 0) < 0 ) {
          sprintf(buffer, "RogueSideBand: Failed to send opcode: %x, remData: %x, on port %i\n", data->txOpCode, data->txRemData, data->port);
          vhpi_assert(buffer, vhpiFatal);
    }
@@ -94,7 +94,7 @@ int RogueSideBandRecv(RogueSideBandData *data, portDataT *portData) {
    zmq_msg_t rMsg;
 
    zmq_msg_init(&rMsg);
-   if ( zmq_msg_recv(&rMsg,data->zmqPull,ZMQ_DONTWAIT) <= 0 ) {
+   if ( zmq_msg_recv(&rMsg, data->zmqPull, ZMQ_DONTWAIT) <= 0 ) {
       zmq_msg_close(&rMsg);
       return(0);
    }
@@ -107,11 +107,11 @@ int RogueSideBandRecv(RogueSideBandData *data, portDataT *portData) {
       if ( rd[0] == 0x01 ) {
          data->rxOpCode   = rd[1];
          data->rxOpCodeEn = 1;
-         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x on port %i\n",portData->simTime,data->rxOpCode, data->port+1);
+         vhpi_printf("%lu RogueSideBand: Got opcode 0x%0.2x on port %i\n", portData->simTime, data->rxOpCode, data->port+1);
       }
       if ( rd[2] == 0x01 ) {
          data->rxRemData = rd[3];
-         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x on port %i\n",portData->simTime,data->rxRemData, data->port+1);
+         vhpi_printf("%lu RogueSideBand: Got data 0x%0.2x on port %i\n", portData->simTime, data->rxRemData, data->port+1);
       }
 
    }
@@ -162,10 +162,10 @@ void RogueSideBandInit(vhpiHandleT compInst) {
    portData->stateUpdate = *RogueSideBandUpdate;
 
    // Init
-   memset(data,0, sizeof(RogueSideBandData));
+   memset(data, 0, sizeof(RogueSideBandData));
 
    // Call generic Init
-   VhpiGenericInit(compInst,portData);
+   VhpiGenericInit(compInst, portData);
 }
 
 
@@ -192,7 +192,7 @@ void RogueSideBandUpdate(void *userPtr) {
             data->txRemDataChanged  = 0x00;
             data->txOpCode   = 0x00;
             data->txOpCodeEn = 0;
-            setInt(s_rxOpCodeEn,0);
+            setInt(s_rxOpCodeEn, 0);
             setInt(s_rxOpCode, 0);
             setInt(s_rxRemData, 0);
          }
@@ -203,7 +203,7 @@ void RogueSideBandUpdate(void *userPtr) {
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
-               RogueSideBandRestart(data,portData);
+               RogueSideBandRestart(data, portData);
             }
 
             // TX OpCode
@@ -225,10 +225,10 @@ void RogueSideBandUpdate(void *userPtr) {
             }
 
             // Rx Data
-            RogueSideBandRecv(data,portData);
-            setInt(s_rxRemData,data->rxRemData);
-            setInt(s_rxOpCode,data->rxOpCode);
-            setInt(s_rxOpCodeEn,data->rxOpCodeEn);
+            RogueSideBandRecv(data, portData);
+            setInt(s_rxRemData, data->rxRemData);
+            setInt(s_rxOpCode, data->rxOpCode);
+            setInt(s_rxOpCodeEn, data->rxOpCodeEn);
             data->rxOpCodeEn = 0; // Only for one clock
          }
       }

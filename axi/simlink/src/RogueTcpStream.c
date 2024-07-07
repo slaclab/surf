@@ -38,20 +38,20 @@ void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData) {
    data->zmqPull  = NULL;
 
    data->zmqCtx = zmq_ctx_new();
-   data->zmqPull  = zmq_socket(data->zmqCtx,ZMQ_PULL);
-   data->zmqPush  = zmq_socket(data->zmqCtx,ZMQ_PUSH);
+   data->zmqPull  = zmq_socket(data->zmqCtx, ZMQ_PULL);
+   data->zmqPush  = zmq_socket(data->zmqCtx, ZMQ_PUSH);
 
-   vhpi_printf("RogueTcpStream: Listening on ports %i & %i\n",data->port,data->port+1);
+   vhpi_printf("RogueTcpStream: Listening on ports %i & %i\n", data->port, data->port+1);
 
-   sprintf(buffer,"tcp://127.0.0.1:%i",data->port);
-   if ( zmq_bind(data->zmqPull,buffer) ) {
-      vhpi_assert("RogueTcpStream: Failed to bind pull port",vhpiFatal);
+   sprintf(buffer, "tcp://127.0.0.1:%i", data->port);
+   if ( zmq_bind(data->zmqPull, buffer) ) {
+      vhpi_assert("RogueTcpStream: Failed to bind pull port", vhpiFatal);
       return;
    }
 
-   sprintf(buffer,"tcp://127.0.0.1:%i",data->port+1);
-   if ( zmq_bind(data->zmqPush,buffer) ) {
-      vhpi_assert("RogueTcpStream: Failed to bind push port",vhpiFatal);
+   sprintf(buffer, "tcp://127.0.0.1:%i", data->port+1);
+   if ( zmq_bind(data->zmqPush, buffer) ) {
+      vhpi_assert("RogueTcpStream: Failed to bind push port", vhpiFatal);
       return;
    }
 }
@@ -65,9 +65,9 @@ void RogueTcpStreamSend(RogueTcpStreamData *data, portDataT *portData) {
    uint32_t  x;
    int error;
 
-   if ( (zmq_msg_init_size(&(msg[0]),2) < 0) ||  // Flags
-        (zmq_msg_init_size(&(msg[1]),1) < 0) ||  // Channel
-        (zmq_msg_init_size(&(msg[2]),1) < 0) ) { // Error
+   if ( (zmq_msg_init_size(&(msg[0]), 2) < 0) ||  // Flags
+        (zmq_msg_init_size(&(msg[1]), 1) < 0) ||  // Channel
+        (zmq_msg_init_size(&(msg[2]), 1) < 0) ) { // Error
       vhpi_assert("RogueTcpStream: Failed to init message header", vhpiFatal);
       return;
    }
@@ -92,7 +92,7 @@ void RogueTcpStreamSend(RogueTcpStreamData *data, portDataT *portData) {
    memcpy(zmq_msg_data(&(msg[2])), &err,   1);
 
    // Copy data
-   memcpy(zmq_msg_data(&(msg[3])),data->ibData,data->ibSize);
+   memcpy(zmq_msg_data(&(msg[3])), data->ibData, data->ibSize);
 
    // Send data
    for (x=0; x < 4; x++) {
@@ -100,7 +100,7 @@ void RogueTcpStreamSend(RogueTcpStreamData *data, portDataT *portData) {
        error = errno;
        vhpi_printf("Failed to send message on port %i - x: %i - err: %i\n", data->port+1, x, error);
        vhpi_printf("Error: %s\n", strerror(error));
-       vhpi_assert("RogueTcpStream: Failed to send message",vhpiFatal);
+       vhpi_assert("RogueTcpStream: Failed to send message", vhpiFatal);
      }
    }
    vhpi_printf("%lu RogueTcpStream: Send data: Size: %i, flags: %x, chan: %x, err: %x, port: %i\n", portData->simTime, data->ibSize, flags, chan, err, data->port+1);
@@ -127,7 +127,7 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
    do {
 
       // Get the message
-      if ( zmq_recvmsg(data->zmqPull,&(msg[x]),ZMQ_DONTWAIT) > 0 ) {
+      if ( zmq_recvmsg(data->zmqPull, &(msg[x]), ZMQ_DONTWAIT) > 0 ) {
          if ( x != 3 ) x++;
          msgCnt++;
 
@@ -144,7 +144,7 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
       // Check sizes
       if ( (zmq_msg_size(&(msg[0])) != 2) || (zmq_msg_size(&(msg[1])) != 1) ||
            (zmq_msg_size(&(msg[2])) != 1) ) {
-         vhpi_assert("RogueTcpStream: Bad message sizes",vhpiFatal);
+         vhpi_assert("RogueTcpStream: Bad message sizes", vhpiFatal);
          for (x=0; x < msgCnt; x++) zmq_msg_close(&(msg[x]));
          return 0;
       }
@@ -158,7 +158,7 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
       size = zmq_msg_size(&(msg[3]));
 
       // Set data
-      memcpy(data->obData,zmq_msg_data(&(msg[3])), size);
+      memcpy(data->obData, zmq_msg_data(&(msg[3])), size);
       data->obSize  = size;
       data->obFuser = flags & 0xFF;
       data->obLuser = (flags >> 8) & 0xFF;
@@ -242,11 +242,11 @@ void RogueTcpStreamInit(vhpiHandleT compInst) {
    portData->stateUpdate = *RogueTcpStreamUpdate;
 
    // Init
-   memset(data,0, sizeof(RogueTcpStreamData));
+   memset(data, 0, sizeof(RogueTcpStreamData));
    time(&(data->ltime));
 
    // Call generic Init
-   VhpiGenericInit(compInst,portData);
+   VhpiGenericInit(compInst, portData);
 }
 
 // User function to update state based upon a signal change
@@ -274,14 +274,14 @@ void RogueTcpStreamUpdate(void *userPtr) {
             data->obSize  = 0;
             data->ibSize  = 0;
             data->obValid = 0;
-            setInt(s_obValid,0);
-            setInt(s_ibReady,1);
-            setInt(s_obDataLow,0);
-            setInt(s_obDataHigh,0);
-            setInt(s_obUserLow,0);
-            setInt(s_obUserHigh,0);
-            setInt(s_obKeep,0);
-            setInt(s_obLast,0);
+            setInt(s_obValid, 0);
+            setInt(s_ibReady, 1);
+            setInt(s_obDataLow, 0);
+            setInt(s_obDataHigh, 0);
+            setInt(s_obUserLow, 0);
+            setInt(s_obUserHigh, 0);
+            setInt(s_obKeep, 0);
+            setInt(s_obLast, 0);
          }
 
          // Data movement
@@ -291,7 +291,7 @@ void RogueTcpStreamUpdate(void *userPtr) {
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
                data->ssi  = getInt(s_ssi);
-               RogueTcpStreamRestart(data,portData);
+               RogueTcpStreamRestart(data, portData);
             }
 
             // Inbound
@@ -319,25 +319,25 @@ void RogueTcpStreamUpdate(void *userPtr) {
                }
 
                // Last
-               if ( getInt(s_ibLast) ) RogueTcpStreamSend(data,portData);
+               if ( getInt(s_ibLast) ) RogueTcpStreamSend(data, portData);
             }
 
             // Not in frame
-            if ( data->obSize == 0 ) RogueTcpStreamRecv(data,portData);
+            if ( data->obSize == 0 ) RogueTcpStreamRecv(data, portData);
 
             // Data accepted
             if ( getInt(s_obReady) ) {
                data->obValid = 0;
-               setInt(s_obLast,0);
+               setInt(s_obLast, 0);
             }
 
             // Valid not asserted and data is ready
             if ( data->obValid == 0 && data->obSize > 0 ) {
 
                // First user
-               if ( data->obCount == 0 ) setInt(s_obUserLow,data->obFuser);
-               else setInt(s_obUserLow,0);
-               setInt(s_obUserHigh,0);
+               if ( data->obCount == 0 ) setInt(s_obUserLow, data->obFuser);
+               else setInt(s_obUserLow, 0);
+               setInt(s_obUserHigh, 0);
 
                // Get data
                dHigh = 0;
@@ -350,37 +350,37 @@ void RogueTcpStreamUpdate(void *userPtr) {
                      dLow |= (data->obData[data->obCount] << (x*8));
                      if ( (data->obCount+1) == data->obSize ) {
                        if (data->obCount < 4) {
-                         setInt(s_obUserLow,(data->obLuser << (x*8))|(data->obFuser));
+                         setInt(s_obUserLow, (data->obLuser << (x*8))|(data->obFuser));
                        }
                        else {
-                         setInt(s_obUserLow,(data->obLuser << (x*8)));
+                         setInt(s_obUserLow, (data->obLuser << (x*8)));
                        }
                      }
                   }
                   else {
                      dHigh |= (data->obData[data->obCount] << ((x-4)*8));
                      if ( (data->obCount+1) == data->obSize )
-                         setInt(s_obUserHigh,(data->obLuser << ((x-4)*8)));
+                         setInt(s_obUserHigh, (data->obLuser << ((x-4)*8)));
                   }
 
                   data->obCount++;
                   if ( data->obCount <= data->obSize ) keep |= (1 << x);
                }
-               setInt(s_obDataLow,dLow);
-               setInt(s_obDataHigh,dHigh);
-               setInt(s_obKeep,keep);
+               setInt(s_obDataLow, dLow);
+               setInt(s_obDataHigh, dHigh);
+               setInt(s_obKeep, keep);
                data->obValid = 1;
 
                // Done
                if ( data->obCount >= data->obSize ) {
-                  setInt(s_obLast,1);
+                  setInt(s_obLast, 1);
                   data->obSize  = 0;
                   data->obCount = 0;
                }
             }
 
             // Output valid
-            setInt(s_obValid,data->obValid);
+            setInt(s_obValid, data->obValid);
          }
       }
    }

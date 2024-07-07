@@ -17,8 +17,8 @@
 #define MAX_PORT_COUNT 48
 
 // Macros for set/get ints
-#define getInt(idx)     (portData->intValue[idx])
-#define setInt(idx,val) (portData->intValue[idx] = val)
+#define getInt(idx)      (portData->intValue[idx])
+#define setInt(idx, val) (portData->intValue[idx] = val)
 
 // Structure to hold data related to signal interface
 typedef struct portDataS {

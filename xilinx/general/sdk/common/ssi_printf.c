@@ -26,8 +26,8 @@ void ssi_putc(void* p, char c) {
     if ( pp->tmpCnt == 4 || c == '\n' ) {
 
         // Axi-stream, send tlast if newline
-        putfsl(pp->tmp,0);
-        if ( c == '\n' ) cputfsl(0,0);
+        putfsl(pp->tmp, 0);
+        if ( c == '\n' ) cputfsl(0, 0);
 
         pp->tmp = 0;
         pp->tmpCnt = 0;
@@ -65,12 +65,12 @@ void ssi_printf_init(uint32_t buffBase, uint16_t buffSize) {
     ssi_printf_data.buffPtr  = 0;
     ssi_printf_data.buffTot  = 0;
 
-    cputfsl(0,0);
+    cputfsl(0, 0);
 
     if ( buffSize > 0 ) {
         Xil_Out32(buffBase, 0);
         memset((void*)buffBase, 0, buffSize);
     }
 
-    init_printf(&ssi_printf_data,ssi_putc);
+    init_printf(&ssi_printf_data, ssi_putc);
 }
