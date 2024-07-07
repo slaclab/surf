@@ -34,17 +34,18 @@ void VhpiGenericConvertIn(portDataT *portData) {
    for (x=0; x < portData->portCount; x++) {
       if ( portData->portDir[x] != vhpiOut ) {
          if ( portData->portWidth[x] == 1 ) {
-            if ( portData->portValue[x]->value.enumval == 3 )
-               portData->intValue[x] = 1;
-            else
+            if ( portData->portValue[x]->value.enumval == 3 ) {
+                portData->intValue[x] = 1;
+            } else {
                portData->intValue[x] = 0;
-         }
-         else {
+            }
+         } else {
             portData->intValue[x] = 0;
             for (y=0; y < portData->portWidth[x]; y++) {
                bit = (portData->portWidth[x] - 1) - y;
-               if ( portData->portValue[x]->value.enums[y] == 3 )
+               if ( portData->portValue[x]->value.enums[y] == 3 ) {
                   portData->intValue[x] += 1 << bit;
+               }
             }
          }
       }
@@ -59,28 +60,30 @@ void VhpiGenericConvertOut(portDataT *portData) {
       if ( portData->portDir[x] != vhpiIn ) {
          if ( portData->portWidth[x] == 1 ) {
             if ( portData->outEnable[x] == 1 ) {
-               if ( portData->intValue[x] == 0 )
+               if ( portData->intValue[x] == 0 ) {
                   portData->portValue[x]->value.enumval = 2;
-               else
+               } else {
                   portData->portValue[x]->value.enumval = 3;
+               }
+            } else {
+                portData->portValue[x]->value.enumval = 4;  // Tri-state
             }
-            else portData->portValue[x]->value.enumval = 4;  // Tri-state
-         }
-         else {
+         } else {
             if ( portData->outEnable[x] == 1 ) {
                for (y=0; y < portData->portWidth[x]; y++) {
                   bit = (portData->portWidth[x] - 1) - y;
                   temp = 1 << bit;
-                  if ( (portData->intValue[x] & temp) != 0 )
+                  if ( (portData->intValue[x] & temp) != 0 ) {
                      portData->portValue[x]->value.enums[y] = 3;
-                  else
+                  } else {
                      portData->portValue[x]->value.enums[y] = 2;
+                  }
                }
-            }
-            else
+            } else {
                for (y=0; y < portData->portWidth[x]; y++) {
                   portData->portValue[x]->value.enums[y] = 4;  // Tri-state
                }
+            }
          }
       }
    }

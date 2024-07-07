@@ -189,10 +189,9 @@ void RogueSideBandUpdate(void *userPtr) {
             setInt(s_rxOpCodeEn, 0);
             setInt(s_rxOpCode, 0);
             setInt(s_rxRemData, 0);
-         }
 
          // Out of reset
-         else {
+         } else {
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);

@@ -118,7 +118,9 @@ int RogueTcpMemoryRecv(RogueTcpMemoryData *data, portDataT *portData) {
          more = 0;
          moreSize = 8;
          zmq_getsockopt(data->zmqPull, ZMQ_RCVMORE, &more, &moreSize);
-      } else more = 0;
+      } else {
+          more = 0;
+      }
    } while ( more );
 
    // Proper message received
@@ -258,10 +260,9 @@ void RogueTcpMemoryUpdate(void *userPtr) {
             setInt(s_rready, 1);
             setInt(s_awvalid, 0);
             setInt(s_bready, 1);
-         }
 
          // Data movement
-         else {
+         } else {
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
@@ -293,10 +294,9 @@ void RogueTcpMemoryUpdate(void *userPtr) {
                      setInt(s_wstrb, 0xF);
                      setInt(s_wvalid, 1);
                      data->state = ST_WRESP;
-                  }
 
                   // Read
-                  else {
+                  } else {
                      setInt(s_araddr, (data->addr+data->curr));
                      setInt(s_arprot, 0);
                      setInt(s_arvalid, 1);

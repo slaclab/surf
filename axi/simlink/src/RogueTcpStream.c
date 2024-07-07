@@ -134,7 +134,9 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
          more = 0;
          moreSize = 8;
          zmq_getsockopt(data->zmqPull, ZMQ_RCVMORE, &more, &moreSize);
-      } else more = 0;
+      } else {
+          more = 0;
+      }
    } while ( more );
 
    // Proper message received
@@ -168,7 +170,9 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData) {
 
       vhpi_printf("%lu RogueTcpStream: Recv data: Size: %i, flags: %x, chan: %i, err: %i, port: %i\n", portData->simTime, data->obSize, flags, chan, err, data->port);
 
-   } else size = 0;
+   } else {
+       size = 0;
+   }
 
    for (x=0; x < 4; x++) zmq_msg_close(&(msg[x]));
 
@@ -278,10 +282,9 @@ void RogueTcpStreamUpdate(void *userPtr) {
             setInt(s_obUserHigh, 0);
             setInt(s_obKeep, 0);
             setInt(s_obLast, 0);
-         }
 
          // Data movement
-         else {
+         } else {
             // Port not yet assigned
             if ( data->port == 0 ) {
                data->port = getInt(s_port);
@@ -305,8 +308,7 @@ void RogueTcpStreamUpdate(void *userPtr) {
                   if ( x < 4 ) {
                      data->ibData[data->ibSize] = (dLow >> (x*8)) & 0xFF;
                      if ( (keep >> x) && 1 ) data->ibLuser = (uLow >> (x*8)) & 0xFF;
-                  }
-                  else {
+                  } else {
                      data->ibData[data->ibSize] = (dHigh >> ((x-4)*8)) & 0xFF;
                      if ( (keep >> x) && 1 ) data->ibLuser = (uHigh >> ((x-4)*8)) & 0xFF;
                   }
@@ -345,13 +347,11 @@ void RogueTcpStreamUpdate(void *userPtr) {
                      if ( (data->obCount+1) == data->obSize ) {
                        if (data->obCount < 4) {
                          setInt(s_obUserLow, (data->obLuser << (x*8))|(data->obFuser));
-                       }
-                       else {
+                       } else {
                          setInt(s_obUserLow, (data->obLuser << (x*8)));
                        }
                      }
-                  }
-                  else {
+                  } else {
                      dHigh |= (data->obData[data->obCount] << ((x-4)*8));
                      if ( (data->obCount+1) == data->obSize )
                          setInt(s_obUserHigh, (data->obLuser << ((x-4)*8)));
