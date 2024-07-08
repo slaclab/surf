@@ -61,4 +61,3 @@ class Ads1217(pr.Device):
                 mode            = 'RW',
                 hidden          = pga_hidden,
             ))
-
