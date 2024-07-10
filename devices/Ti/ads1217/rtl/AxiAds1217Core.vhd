@@ -30,9 +30,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
-
-library xil_defaultlib;
-use xil_defaultlib.AxiAds1217Pkg.all;
+use surf.AxiAds1217Pkg.all;
 
 entity AxiAds1217Core is
   generic (
