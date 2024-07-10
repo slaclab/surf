@@ -6,3 +6,4 @@ coverage
 #codecov
 pytest
 pytest-cov
+cpplint
