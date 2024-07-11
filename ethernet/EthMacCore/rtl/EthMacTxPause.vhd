@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -29,9 +28,7 @@ entity EthMacTxPause is
    generic (
       TPD_G           : time                    := 1 ns;
       PAUSE_EN_G      : boolean                 := true;
-      PAUSE_512BITS_G : natural range 1 to 1024 := 8;
-      VLAN_EN_G       : boolean                 := false;
-      VLAN_SIZE_G     : positive range 1 to 8   := 1);
+      PAUSE_512BITS_G : natural range 1 to 1024 := 8);
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -39,8 +36,6 @@ entity EthMacTxPause is
       -- Incoming data from client
       sAxisMaster  : in  AxiStreamMasterType;
       sAxisSlave   : out AxiStreamSlaveType;
-      sAxisMasters : in  AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      sAxisSlaves  : out AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0);
       -- Outgoing data to MAC
       mAxisMaster  : out AxiStreamMasterType;
       mAxisSlave   : in  AxiStreamSlaveType;
@@ -60,7 +55,6 @@ end EthMacTxPause;
 architecture rtl of EthMacTxPause is
 
    constant CNT_BITS_C : integer := bitSize(PAUSE_512BITS_G-1);
-   constant SIZE_C     : natural := ite(VLAN_EN_G, (VLAN_SIZE_G+1), 1);
 
    type StateType is (
       IDLE_S,
@@ -75,7 +69,7 @@ architecture rtl of EthMacTxPause is
       remPreCnt   : slv(CNT_BITS_C-1 downto 0);
       pauseTx     : sl;
       mAxisMaster : AxiStreamMasterType;
-      rxSlave     : AxiStreamSlaveType;
+      sAxisSlave  : AxiStreamSlaveType;
       state       : StateType;
    end record RegType;
 
@@ -87,71 +81,29 @@ architecture rtl of EthMacTxPause is
       remPreCnt   => (others => '0'),
       pauseTx     => '0',
       mAxisMaster => AXI_STREAM_MASTER_INIT_C,
-      rxSlave     => AXI_STREAM_SLAVE_INIT_C,
+      sAxisSlave  => AXI_STREAM_SLAVE_INIT_C,
       state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
-   signal rxMasters : AxiStreamMasterArray(SIZE_C-1 downto 0);
-   signal rxSlaves  : AxiStreamSlaveArray(SIZE_C-1 downto 0);
-
-   signal rxMaster : AxiStreamMasterType;
-   signal rxSlave  : AxiStreamSlaveType;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "true";
 
 begin
 
-   rxMasters(0) <= sAxisMaster;
-   sAxisSlave   <= rxSlaves(0);
-
-   U_NoVlanGen : if (VLAN_EN_G = false) generate
-
-      rxMaster    <= rxMasters(0);
-      rxSlaves(0) <= rxSlave;
-      sAxisSlaves <= (others => AXI_STREAM_SLAVE_FORCE_C);
-
-   end generate;
-
-   U_VlanGen : if (VLAN_EN_G = true) generate
-
-      GEN_VEC :
-      for i in (VLAN_SIZE_G-1) downto 0 generate
-         rxMasters(i+1) <= sAxisMasters(i);
-         sAxisSlaves(i) <= rxSlaves(i+1);
-      end generate GEN_VEC;
-
-      U_AxiStreamMux : entity surf.AxiStreamMux
-         generic map (
-            TPD_G        => TPD_G,
-            NUM_SLAVES_G => SIZE_C)
-         port map (
-            -- Clock and reset
-            axisClk      => ethClk,
-            axisRst      => ethRst,
-            -- Slaves
-            sAxisMasters => rxMasters,
-            sAxisSlaves  => rxSlaves,
-            -- Master
-            mAxisMaster  => rxMaster,
-            mAxisSlave   => rxSlave);
-
-   end generate;
-
    U_TxPauseGen : if (PAUSE_EN_G = true) generate
 
       comb : process (clientPause, ethRst, mAxisSlave, pauseEnable, pauseTime,
-                      phyReady, r, rxMaster, rxPauseReq, rxPauseValue) is
+                      phyReady, r, rxPauseReq, rxPauseValue, sAxisMaster) is
          variable v : RegType;
       begin
          -- Latch the current value
          v := r;
 
          -- Reset the flags
-         v.pauseTx := '0';
-         v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
+         v.pauseTx    := '0';
+         v.sAxisSlave := AXI_STREAM_SLAVE_INIT_C;
          if (mAxisSlave.tReady = '1') then
             v.mAxisMaster.tValid := '0';
          end if;
@@ -184,7 +136,7 @@ begin
                   -- Next state
                   v.state := PAUSE_S;
                -- Transmit required and not paused by received pause count
-               elsif (rxMaster.tValid = '1') and (r.locPauseCnt = 0) then
+               elsif (sAxisMaster.tValid = '1') and (r.locPauseCnt = 0) then
                   -- Next state
                   v.state := PASS_S;
                end if;
@@ -240,13 +192,13 @@ begin
             ----------------------------------------------------------------------
             when PASS_S =>
                -- Check if ready to move data
-               if (v.mAxisMaster.tValid = '0') and (rxMaster.tValid = '1') then
+               if (v.mAxisMaster.tValid = '0') and (sAxisMaster.tValid = '1') then
                   -- Accept the data
-                  v.rxSlave.tReady := '1';
+                  v.sAxisSlave.tReady := '1';
                   -- Move the data
-                  v.mAxisMaster    := rxMaster;
+                  v.mAxisMaster       := sAxisMaster;
                   -- Check for EOF
-                  if (rxMaster.tLast = '1') then
+                  if (sAxisMaster.tLast = '1') then
                      -- Next state
                      v.state := IDLE_S;
                   end if;
@@ -255,7 +207,7 @@ begin
          end case;
 
          -- Combinatorial outputs before the reset
-         rxSlave <= v.rxSlave;
+         sAxisSlave <= v.sAxisSlave;
 
          -- Reset
          if (ethRst = '1') then
@@ -281,8 +233,8 @@ begin
    end generate;
 
    U_BypTxPause : if (PAUSE_EN_G = false) generate
-      mAxisMaster <= rxMaster;
-      rxSlave     <= mAxisSlave;
+      mAxisMaster <= sAxisMaster;
+      sAxisSlave  <= mAxisSlave;
       pauseTx     <= '0';
    end generate;
 
