@@ -57,12 +57,6 @@ entity AxiAds1217Core is
     sAxilWriteMaster  : in  AxiLiteWriteMasterType;
     sAxilWriteSlave   : out AxiLiteWriteSlaveType;
 
-    ---- AXI stream output, NOT USED YET
-    --axisClk           : in  sl;
-    --axisRst           : in  sl;
-    --mAxisMaster       : out AxiStreamMasterType;
-    --mAxisSlave        : in  AxiStreamSlaveType;
-
     -- ADC initialization
     adcAinValues      : in  Slv4Array(NUM_CHANNELS_G-1 downto 0)  := AXI_ADS1217_AIN_PINS_DEFAULT_C;  -- Default using only the AIN pins
     adcDirValues      : in  slv(7 downto 0)                       := (others => '1');                 -- Default all DIO as inputs
@@ -166,15 +160,6 @@ architecture rtl of AxiAds1217Core is
   signal adcData      : Slv24Array(NUM_CHANNELS_G-1 downto 0);
   signal adcDataSync  : Slv24Array(NUM_CHANNELS_G-1 downto 0);
 
-  --signal streamPeriodSync : slv(31 downto 0);
-  --signal streamEnSync : sl;
-
-  --signal monitorTrig  : sl;
-  --signal monTrigCnt   : integer;
-
-  --signal mAxisMasterFifo  : AxiStreamMasterType;
-  --signal mAxisSlaveFifo   : AxiStreamSlaveType;
-
   type RegType is record
     streamEn          : sl;
     streamPeriod      : slv(31 downto 0);
@@ -200,8 +185,8 @@ begin
   ----------------------------------------------------------------------
   --                AXI-Lite Register Logic
   ----------------------------------------------------------------------
-  DSync_G : for i in 0 to NUM_CHANNELS_G-1 generate
-    U_DaSync: entity surf.SynchronizerVector
+  G_adcDataSync : for i in 0 to NUM_CHANNELS_G-1 generate
+    U_SynchronizerVector: entity surf.SynchronizerVector
       generic map (
         WIDTH_G  => 24
       )
@@ -212,25 +197,6 @@ begin
         dataOut => adcDataSync(i)
       );
   end generate;
-
-  --U_EnSync: entity surf.Synchronizer
-  --  port map (
-  --    clk     => sysClk,
-  --    rst     => sysRst,
-  --    dataIn  => r.streamEn,
-  --    dataOut => streamEnSync
-  --  );
-
-  --U_SpSync: entity surf.SynchronizerVector
-  --  generic map (
-  --    WIDTH_G  => 32
-  --  )
-  --  port map (
-  --    clk     => sysClk,
-  --    rst     => sysRst,
-  --    dataIn  => r.streamPeriod,
-  --    dataOut => streamPeriodSync
-  --  );
 
   -- Combinatorial process for AXI-lite registers
   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, r, adcDataSync) is
@@ -246,11 +212,7 @@ begin
     -- Determine the transaction type
     axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
-    -- Map the registers, arguments: endpoint, address, offset, register
-    -- TODO: Stream not used yet
-    --axiSlaveRegister(regCon, x"000", 0, v.streamEn);
-    --axiSlaveRegister(regCon, x"004", 0, v.streamPeriod);
-
+    -- Manual control of start
     axiSlaveRegister(regCon, x"010", 0, v.adcStartEnManual);
 
     -- Raw ADC data registers
@@ -581,49 +543,5 @@ begin
         nextState <= RESET_S;
     end case;
   end process;
-
-  -- TODO: Need to adapt the SlowAdcStream module to work with the generic number of channels
-  ---- ADC data stream
-  --U_SlowAdcStream: entity epix_hr_core.SlowAdcStream
-  --  port map (
-  --    sysClk               => sysClk,
-  --    sysRst               => sysRst,
-  --    acqCount             => (others => '0'),
-  --    seqCount             => (others => '0'),
-  --    trig                 => monitorTrig,
-  --    dataIn               => adcData,
-  --    mAxisMaster          => mAxisMasterFifo,
-  --    mAxisSlave           => mAxisSlaveFifo
-  --  );
-
-  ---- trigger monitor data stream at settable rate
-  --MonStrTrig_p : process (sysClk)
-  --begin
-  --  if rising_edge(sysClk) then
-  --    if sysRst = '1' or monitorTrig = '1' then
-  --      monTrigCnt <= 0;
-  --    elsif streamEnSync = '1' then
-  --      monTrigCnt <= monTrigCnt + 1;
-  --    end if;
-  --  end if;
-  --end process;
-  --monitorTrig <= '1' when monTrigCnt >= streamPeriodSync and streamEnSync = '1' and streamPeriodSync /= 0 else '0';
-
-  ---- Stream sync FIFO
-  --U_AxiStreamFifo: entity surf.AxiStreamFifoV2
-  --  generic map (
-  --    SLAVE_AXI_CONFIG_G   => ssiAxiStreamConfig(4),
-  --    MASTER_AXI_CONFIG_G  => ssiAxiStreamConfig(4)
-  --  )
-  --  port map (
-  --    sAxisClk    => sysClk,
-  --    sAxisRst    => sysRst,
-  --    sAxisMaster => mAxisMasterFifo,
-  --    sAxisSlave  => mAxisSlaveFifo,
-  --    mAxisClk    => axisClk,
-  --    mAxisRst    => axisRst,
-  --    mAxisMaster => mAxisMaster,
-  --    mAxisSlave  => mAxisSlave
-  --  );
 
 end rtl;
