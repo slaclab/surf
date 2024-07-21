@@ -3,6 +3,7 @@
 
 # Compiled source files
 *.o
+*.so
 *.pyc
 *.db
 *.swp
