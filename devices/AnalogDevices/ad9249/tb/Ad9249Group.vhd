@@ -532,7 +532,7 @@ begin
       end if;
    end process seq;
 
-   adcComb : process (adcR) is
+   adcComb : process (adcR, r, vin) is
       variable v : AdcRegType := ADC_REG_INIT_C;
    begin
       v        := adcR;
