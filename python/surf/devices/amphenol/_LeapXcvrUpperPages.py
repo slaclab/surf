@@ -459,7 +459,7 @@ class LeapXcvrUpperPage00(pr.Device):
             mode         = 'RO',
             disp         = '0x{:x}',
             typeStr      = 'UInt12',
-            linkedGet    = lambda read: self.VendorOuiRaw[2].get(read=read)()+(2**8)*self.VendorOuiRaw[1].get(read=read)()+(2**16)*self.VendorOuiRaw[0].get(read=read)(),
+            linkedGet    = lambda read: self.VendorOuiRaw[2].get(read=read)+(2**8)*self.VendorOuiRaw[1].get(read=read)+(2**16)*self.VendorOuiRaw[0].get(read=read),
             dependencies = [self.VendorOuiRaw[x] for x in range(3)],
         ))
 
