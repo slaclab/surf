@@ -75,6 +75,13 @@ var hierarchy =
       [ "Ad9681Deserializer", "classAd9681Deserializer.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
+      [ "AxiSpiMaster", "classAxiSpiMaster.html", [
+        [ "DualPortRam", "classDualPortRam.html", [
+          [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
+          [ "LutRam", "classLutRam.html", null ]
+        ] ],
+        [ "SpiMaster", "classSpiMaster.html", null ]
+      ] ],
       [ "AxiAd5780Reg", "classAxiAd5780Reg.html", [
         [ "SyncTrigRate", "classSyncTrigRate.html", [
           [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
@@ -128,10 +135,7 @@ var hierarchy =
       [ "AxiDualPortRam", "classAxiDualPortRam.html", [
         [ "TrueDualPortRamXpm", "classTrueDualPortRamXpm.html", null ],
         [ "TrueDualPortRamAlteraMf", "classTrueDualPortRamAlteraMf.html", null ],
-        [ "DualPortRam", "classDualPortRam.html", [
-          [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
-          [ "LutRam", "classLutRam.html", null ]
-        ] ],
+        [ "DualPortRam", "classDualPortRam.html", null ],
         [ "TrueDualPortRam", "classTrueDualPortRam.html", null ],
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
       ] ],
@@ -646,12 +650,12 @@ var hierarchy =
         ] ]
       ] ],
       [ "AxiStreamDmaRead", "classAxiStreamDmaRead.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "UdpDebugBridgeWrapper", "classUdpDebugBridgeWrapper.html", [
         [ "UdpDebugBridge", "classUdpDebugBridge.html", [
           [ "AxisJtagDebugBridge", "classAxisJtagDebugBridge.html", null ]
         ] ]
       ] ],
-      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "DspAddSub", "classDspAddSub.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
@@ -1038,10 +1042,7 @@ var hierarchy =
       [ "Decoder12b14b", "classDecoder12b14b.html", null ],
       [ "Encoder8b10b", "classEncoder8b10b.html", null ],
       [ "Decoder8b10b", "classDecoder8b10b.html", null ],
-      [ "AxiSpiMaster", "classAxiSpiMaster.html", [
-        [ "DualPortRam", "classDualPortRam.html", null ],
-        [ "SpiMaster", "classSpiMaster.html", null ]
-      ] ],
+      [ "AxiSpiMaster", "classAxiSpiMaster.html", null ],
       [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "RstSync", "classRstSync.html", null ],
       [ "RstSync", "classRstSync.html", null ],

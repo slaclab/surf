@@ -6,7 +6,7 @@ var classPgpRxVcFifo =
     [ "ROGUE_SIM_EN_G", "classPgpRxVcFifo.html#a0d6e319aefedfa2b930045ffa19daee0", null ],
     [ "INT_PIPE_STAGES_G", "classPgpRxVcFifo.html#a4766e71fdf4eafe307b8564eea2172b4", null ],
     [ "PIPE_STAGES_G", "classPgpRxVcFifo.html#ac99fcdad56f9c1f5292d5b1acda42a7a", null ],
-    [ "VALID_THOLD_G", "classPgpRxVcFifo.html#a6f1b7a363bbb9aed53b630557cbab0ee", null ],
+    [ "VALID_THOLD_G", "classPgpRxVcFifo.html#a2698f3eae525e8133feffbb7f03fed64", null ],
     [ "VALID_BURST_MODE_G", "classPgpRxVcFifo.html#aace07238f9b86205fef0e385f2065eb7", null ],
     [ "SYNTH_MODE_G", "classPgpRxVcFifo.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
     [ "MEMORY_TYPE_G", "classPgpRxVcFifo.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],

@@ -1,6 +1,7 @@
 <map id="AxiSpiMaster" name="AxiSpiMaster">
 <area shape="rect" id="node1" title=" " alt="" coords="143,155,251,181"/>
-<area shape="rect" id="node6" href="$classLmk048Base.html" title=" " alt="" coords="143,229,250,256"/>
+<area shape="rect" id="node6" href="$classAxiAd5541Core.html" title=" " alt="" coords="66,229,189,256"/>
+<area shape="rect" id="node7" href="$classLmk048Base.html" title=" " alt="" coords="213,229,319,256"/>
 <area shape="rect" id="node2" href="$classDualPortRam.html" title=" " alt="" coords="83,80,191,107"/>
 <area shape="rect" id="node3" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,5,140,32"/>
 <area shape="rect" id="node4" href="$classLutRam.html" title=" " alt="" coords="165,5,237,32"/>

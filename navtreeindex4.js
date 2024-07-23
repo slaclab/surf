@@ -245,9 +245,9 @@ var NAVTREEINDEX4 =
 "classAsyncGearbox_1_1mapping.html#ae0fc74ce63e6a9631dda7a50102bea25":[1,0,20,0,7],
 "classAsyncGearbox_1_1mapping.html#ae7b4d58a48617eb5c4c887c706d73f82":[1,0,20,0,17],
 "classAsyncGearbox_1_1mapping.html#ae7b4d58a48617eb5c4c887c706d73f82":[1,0,20,0,25],
-"classAxiAd5780Core.html":[1,0,21],
-"classAxiAd5780Core.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,21,14],
-"classAxiAd5780Core.html#a1d63971a652e14fcce650dc83a10748b":[1,0,21,8],
-"classAxiAd5780Core.html#a29a66ee414044ef2c97ea2f797a9810f":[1,0,21,5],
-"classAxiAd5780Core.html#a32ecafc2c76c2f2b6b4acf7491053c0c":[1,0,21,10]
+"classAxiAd5541Core.html":[1,0,21],
+"classAxiAd5541Core.html#a0a6af6eef40212dbaf130d57ce711256":[1,0,21,14],
+"classAxiAd5541Core.html#a17fa2743687bb8b117e29c7141cdc583":[1,0,21,7],
+"classAxiAd5541Core.html#a1d63971a652e14fcce650dc83a10748b":[1,0,21,10],
+"classAxiAd5541Core.html#a28b46602192e49380a090aa18642b1ed":[1,0,21,4]
 };

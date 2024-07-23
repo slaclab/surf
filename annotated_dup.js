@@ -21,6 +21,7 @@ var annotated_dup =
     [ "Arbiter", "classArbiter.html", "classArbiter" ],
     [ "ArpEngine", "classArpEngine.html", "classArpEngine" ],
     [ "AsyncGearbox", "classAsyncGearbox.html", "classAsyncGearbox" ],
+    [ "AxiAd5541Core", "classAxiAd5541Core.html", "classAxiAd5541Core" ],
     [ "AxiAd5780Core", "classAxiAd5780Core.html", "classAxiAd5780Core" ],
     [ "AxiAd5780Reg", "classAxiAd5780Reg.html", "classAxiAd5780Reg" ],
     [ "AxiAd5780Ser", "classAxiAd5780Ser.html", "classAxiAd5780Ser" ],
