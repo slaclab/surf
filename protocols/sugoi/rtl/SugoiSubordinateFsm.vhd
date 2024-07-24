@@ -30,7 +30,7 @@ entity SugoiSubordinateFsm is
       RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean := false);
    port (
-      pwrOnRst        : in  sl := not(RST_POLARITY_G);
+      pwrOnRst        : in  sl;
       -- Clock and Reset
       clk             : in  sl;
       rst             : out sl;
@@ -513,6 +513,9 @@ begin
                v.state := RX_SOF_S;
 
             end if;
+         ----------------------------------------------------------------------
+         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to INIT_S state
+            v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 

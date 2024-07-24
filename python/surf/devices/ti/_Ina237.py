@@ -14,6 +14,7 @@ class Ina237(pr.Device):
     def __init__(self,
                  pollInterval = 1,
                  senseRes     = 20.E-3, # Units of Ohms
+                 hideConfig   = True,
                  **kwargs):
 
         super().__init__(**kwargs)
@@ -22,21 +23,21 @@ class Ina237(pr.Device):
             name   = 'SenseRes',
             mode   = 'RW',
             value  = senseRes,
-            hidden = True,
+            hidden = hideConfig,
         ))
 
         ##############
         # 0h CONFIG
         ##############
 
-        self.add(pr.RemoteVariable(
+        self.add(pr.RemoteCommand(
             name         = 'RST',
             description  = 'Reset Bit. Setting this bit to 1 generates a system reset that is the same as power-on reset.',
             offset       = (0x0 << 2),
             bitSize      = 1,
             bitOffset    = 15,
-            mode         = 'WO',
-            hidden       = True,
+            function     = lambda cmd: (cmd.post(1), self.readBlocks(checkEach=True))[0],
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -47,7 +48,7 @@ class Ina237(pr.Device):
             bitOffset    = 6,
             mode         = 'RW',
             units        = '2ms',
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -61,7 +62,7 @@ class Ina237(pr.Device):
                 0 : '+/-163.84mV',
                 1 : '+/-40.96mV',
             },
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         ##############
@@ -75,7 +76,7 @@ class Ina237(pr.Device):
             bitSize      = 4,
             bitOffset    = 12,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -85,7 +86,7 @@ class Ina237(pr.Device):
             bitSize      = 3,
             bitOffset    = 9,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -95,7 +96,7 @@ class Ina237(pr.Device):
             bitSize      = 3,
             bitOffset    = 6,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -105,7 +106,7 @@ class Ina237(pr.Device):
             bitSize      = 3,
             bitOffset    = 3,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
@@ -115,7 +116,7 @@ class Ina237(pr.Device):
             bitSize      = 3,
             bitOffset    = 0,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         ##############
@@ -129,7 +130,7 @@ class Ina237(pr.Device):
             bitSize      = 15,
             bitOffset    = 0,
             mode         = 'RW',
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
 
@@ -146,7 +147,7 @@ class Ina237(pr.Device):
             base         = pr.Int,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         ##############
@@ -162,7 +163,7 @@ class Ina237(pr.Device):
             base         = pr.Int,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         ##############
@@ -178,7 +179,7 @@ class Ina237(pr.Device):
             base         = pr.Int,
             mode         = 'RO',
             pollInterval = pollInterval,
-            hidden       = True,
+            hidden       = hideConfig,
         ))
 
         ###############################################################################

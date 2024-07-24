@@ -11,4 +11,5 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    # Load ruckus files
    loadRuckusTcl "$::DIR_PATH/pgp2b"
    loadRuckusTcl "$::DIR_PATH/pgp2fc"
+   loadSource -lib surf -dir "$::DIR_PATH/shared/xilinx"
 }

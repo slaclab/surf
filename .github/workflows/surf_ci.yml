@@ -49,6 +49,10 @@ jobs:
           python -m compileall -f python/ scripts/ tests/
           flake8 --count python/ scripts/ tests/
 
+      - name: C/C++ Linter
+        run: |
+          find . -name '*.h' -o -name '*.cpp' -o -name '*.c' | xargs cpplint
+
       - name: VHDL Regression Testing
         run: |
           ./ghdl-build.sh > /dev/null 2>&1
