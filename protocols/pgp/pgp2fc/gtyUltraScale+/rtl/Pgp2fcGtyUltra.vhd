@@ -126,8 +126,8 @@ begin
          clk    => stableClk,                                -- [in]
          rstOut => resetGtSync);                             -- [out]
 
-   --gtHardReset <= resetGtSync or stableRst;
-   gtHardReset <= stableRst;   
+   gtHardReset <= resetGtSync or stableRst;
+   --gtHardReset <= stableRst;   
 
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
