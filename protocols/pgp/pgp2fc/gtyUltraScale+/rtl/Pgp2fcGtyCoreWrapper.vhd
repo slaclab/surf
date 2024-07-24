@@ -257,7 +257,7 @@ begin
          gtwiz_userclk_tx_active_in(0)         => txUsrActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrActive,
          gtwiz_reset_clk_freerun_in(0)         => stableClk,
-         gtwiz_reset_all_in(0)                 => '0',
+         gtwiz_reset_all_in(0)                 => stableRst,
          gtwiz_buffbypass_tx_reset_in(0)       => buffBypassTxReset,
          gtwiz_buffbypass_tx_start_user_in(0)  => buffBypassTxStart,
          gtwiz_buffbypass_tx_done_out(0)       => buffBypassTxDone,
