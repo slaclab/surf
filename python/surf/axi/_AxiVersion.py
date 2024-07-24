@@ -289,3 +289,11 @@ class AxiVersion(pr.Device):
             print("Builder      = {}".format(self.Builder.value()))
         except Exception:
             print("Failed to get %s status" % self)
+
+
+    def _start(self):
+        super()._start()
+
+        # Check for dirty githash
+        if ( self.GitHash.get() == 0 ):
+            click.secho(f'WARNING:{self.path} - Dirty GitHash detected!!!', bg='cyan')
