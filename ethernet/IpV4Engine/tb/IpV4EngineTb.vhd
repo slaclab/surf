@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -34,9 +33,6 @@ architecture testbed of IpV4EngineTb is
    constant LOCAL_IP_C   : slv(31 downto 0) := x"12345678";
    constant REMOTE_MAC_C : slv(47 downto 0) := x"DEADBEEFCAFE";
    constant REMOTE_IP_C  : slv(31 downto 0) := x"ABCDEFFF";
-
-   constant VLAN_C : boolean          := false;
-   constant VID_C  : slv(15 downto 0) := x"0000";
 
    constant PROTOCOL_C       : Slv8Array(0 downto 0) := (0 => UDP_C);
    constant MAX_CNT_C        : natural               := 256;
@@ -65,7 +61,7 @@ begin
    ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk,
@@ -80,8 +76,7 @@ begin
          PROTOCOL_SIZE_G  => 1,
          PROTOCOL_G       => PROTOCOL_C,
          CLIENT_SIZE_G    => 1,
-         ARP_TIMEOUT_G    => 156250000,
-         VLAN_G           => VLAN_C)
+         ARP_TIMEOUT_G    => 156250000)
       port map (
          -- Local Configurations
          localMac             => LOCAL_MAC_C,
@@ -166,8 +161,7 @@ begin
          PROTOCOL_SIZE_G  => 1,
          PROTOCOL_G       => PROTOCOL_C,
          CLIENT_SIZE_G    => 1,
-         ARP_TIMEOUT_G    => 156250000,
-         VLAN_G           => VLAN_C)
+         ARP_TIMEOUT_G    => 156250000)
       port map (
          -- Local Configurations
          localMac             => REMOTE_MAC_C,
@@ -216,8 +210,6 @@ begin
          LOCAL_IP_G   => LOCAL_IP_C,
          REMOTE_MAC_G => REMOTE_MAC_C,
          REMOTE_IP_G  => REMOTE_IP_C,
-         VLAN_G       => VLAN_C,
-         VID_G        => VID_C,
          MAX_CNT_G    => MAX_CNT_C,
          UDP_LEN_G    => UDP_LEN_C)
       port map (

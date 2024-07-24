@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -33,12 +32,8 @@ entity EthMacTx is
       PHY_TYPE_G      : string                   := "XGMII";
       DROP_ERR_PKT_G  : boolean                  := true;
       JUMBO_G         : boolean                  := true;
-      -- Non-VLAN Configurations
+      -- Misc. Configurations
       BYP_EN_G        : boolean                  := false;
-      -- VLAN Configurations
-      VLAN_EN_G       : boolean                  := false;
-      VLAN_SIZE_G     : positive range 1 to 8    := 1;
-      VLAN_VID_G      : Slv12Array               := (0 => x"001");
       -- RAM Synthesis mode
       SYNTH_MODE_G    : string                   := "inferred");
    port (
@@ -52,9 +47,6 @@ entity EthMacTx is
       -- Bypass interface
       sBypMaster     : in  AxiStreamMasterType;
       sBypSlave      : out AxiStreamSlaveType;
-      -- VLAN Interfaces
-      sVlanMasters   : in  AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      sVlanSlaves    : out AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0);
       -- XLGMII PHY Interface
       xlgmiiTxd      : out slv(127 downto 0);
       xlgmiiTxc      : out slv(15 downto 0);
@@ -82,12 +74,12 @@ architecture mapping of EthMacTx is
 
    signal bypassMaster : AxiStreamMasterType;
    signal bypassSlave  : AxiStreamSlaveType;
-   signal csumMaster   : AxiStreamMasterType;
-   signal csumSlave    : AxiStreamSlaveType;
-   signal csumMasters  : AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-   signal csumSlaves   : AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0);
-   signal macObMaster  : AxiStreamMasterType;
-   signal macObSlave   : AxiStreamSlaveType;
+
+   signal csumMaster : AxiStreamMasterType;
+   signal csumSlave  : AxiStreamSlaveType;
+
+   signal macObMaster : AxiStreamMasterType;
+   signal macObSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -112,16 +104,14 @@ begin
          mAxisMaster => bypassMaster,
          mAxisSlave  => bypassSlave);
 
-   ------------------------------
-   -- TX Non-VLAN Checksum Module
-   ------------------------------
+   ---------------------
+   -- TX Checksum Module
+   ---------------------
    U_Csum : entity surf.EthMacTxCsum
       generic map (
          TPD_G          => TPD_G,
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
-         JUMBO_G        => JUMBO_G,
-         VLAN_G         => false,
-         VID_G          => x"001")
+         JUMBO_G        => JUMBO_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -136,41 +126,6 @@ begin
          mAxisMaster => csumMaster,
          mAxisSlave  => csumSlave);
 
-   --------------------------
-   -- TX VLAN Checksum Module
-   --------------------------
-   GEN_VLAN : if (VLAN_EN_G = true) generate
-      GEN_VEC :
-      for i in (VLAN_SIZE_G-1) downto 0 generate
-         U_Csum : entity surf.EthMacTxCsum
-            generic map (
-               TPD_G          => TPD_G,
-               DROP_ERR_PKT_G => DROP_ERR_PKT_G,
-               JUMBO_G        => JUMBO_G,
-               VLAN_G         => true,
-               VID_G          => VLAN_VID_G(i))
-            port map (
-               -- Clock and Reset
-               ethClk      => ethClk,
-               ethRst      => ethRst,
-               -- Configurations
-               ipCsumEn    => '1',
-               tcpCsumEn   => '1',
-               udpCsumEn   => '1',
-               -- Outbound data to MAC
-               sAxisMaster => sVlanMasters(i),
-               sAxisSlave  => sVlanSlaves(i),
-               mAxisMaster => csumMasters(i),
-               mAxisSlave  => csumSlaves(i));
-      end generate GEN_VEC;
-   end generate;
-
-   BYPASS_VLAN : if (VLAN_EN_G = false) generate
-      -- Terminate Unused buses
-      sVlanSlaves <= (others => AXI_STREAM_SLAVE_FORCE_C);
-      csumMasters <= (others => AXI_STREAM_MASTER_INIT_C);
-   end generate;
-
    ------------------
    -- TX Pause Module
    ------------------
@@ -178,9 +133,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G,
-         VLAN_EN_G       => VLAN_EN_G,
-         VLAN_SIZE_G     => VLAN_SIZE_G)
+         PAUSE_512BITS_G => PAUSE_512BITS_G)
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -188,8 +141,6 @@ begin
          -- Incoming data from client
          sAxisMaster  => csumMaster,
          sAxisSlave   => csumSlave,
-         sAxisMasters => csumMasters,
-         sAxisSlaves  => csumSlaves,
          -- Outgoing data to MAC
          mAxisMaster  => macObMaster,
          mAxisSlave   => macObSlave,

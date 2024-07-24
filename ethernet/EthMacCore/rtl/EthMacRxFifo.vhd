@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -36,40 +35,29 @@ entity EthMacRxFifo is
       PRIM_CONFIG_G     : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
       BYP_EN_G          : boolean                := false;
       BYP_COMMON_CLK_G  : boolean                := false;
-      BYP_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
-      VLAN_EN_G         : boolean                := false;
-      VLAN_SIZE_G       : positive               := 1;
-      VLAN_COMMON_CLK_G : boolean                := false;
-      VLAN_CONFIG_G     : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C);
+      BYP_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C);
    port (
       -- Clock and Reset
-      sClk         : in  sl;
-      sRst         : in  sl;
+      sClk        : in  sl;
+      sRst        : in  sl;
       -- Status/Config (sClk domain)
-      phyReady     : in  sl;
-      rxFifoDrop   : out sl;
-      pauseThresh  : in  slv(15 downto 0);
+      phyReady    : in  sl;
+      rxFifoDrop  : out sl;
+      pauseThresh : in  slv(15 downto 0);
       -- Primary Interface
-      mPrimClk     : in  sl;
-      mPrimRst     : in  sl;
-      sPrimMaster  : in  AxiStreamMasterType;
-      sPrimCtrl    : out AxiStreamCtrlType;
-      mPrimMaster  : out AxiStreamMasterType;
-      mPrimSlave   : in  AxiStreamSlaveType;
+      mPrimClk    : in  sl;
+      mPrimRst    : in  sl;
+      sPrimMaster : in  AxiStreamMasterType;
+      sPrimCtrl   : out AxiStreamCtrlType;
+      mPrimMaster : out AxiStreamMasterType;
+      mPrimSlave  : in  AxiStreamSlaveType;
       -- Bypass interface
-      mBypClk      : in  sl;
-      mBypRst      : in  sl;
-      sBypMaster   : in  AxiStreamMasterType;
-      sBypCtrl     : out AxiStreamCtrlType;
-      mBypMaster   : out AxiStreamMasterType;
-      mBypSlave    : in  AxiStreamSlaveType;
-      -- VLAN Interfaces
-      mVlanClk     : in  sl;
-      mVlanRst     : in  sl;
-      sVlanMasters : in  AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      sVlanCtrl    : out AxiStreamCtrlArray(VLAN_SIZE_G-1 downto 0);
-      mVlanMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0));
+      mBypClk     : in  sl;
+      mBypRst     : in  sl;
+      sBypMaster  : in  AxiStreamMasterType;
+      sBypCtrl    : out AxiStreamCtrlType;
+      mBypMaster  : out AxiStreamMasterType;
+      mBypSlave   : in  AxiStreamSlaveType);
 end EthMacRxFifo;
 
 architecture rtl of EthMacRxFifo is
@@ -89,9 +77,8 @@ architecture rtl of EthMacRxFifo is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal primDrop  : sl                          := '0';
-   signal bypDrop   : sl                          := '0';
-   signal vlanDrops : slv(VLAN_SIZE_G-1 downto 0) := (others => '0');
+   signal primDrop : sl := '0';
+   signal bypDrop  : sl := '0';
 
 --   attribute dont_touch      : string;
 --   attribute dont_touch of r : signal is "TRUE";
@@ -163,46 +150,7 @@ begin
             mAxisSlave      => mBypSlave);
    end generate;
 
-   VLAN_DISABLED : if (VLAN_EN_G = false) generate
-      sVlanCtrl    <= (others => AXI_STREAM_CTRL_UNUSED_C);
-      mVlanMasters <= (others => AXI_STREAM_MASTER_INIT_C);
-   end generate;
-
-   VLAN_ENABLED : if (VLAN_EN_G = true) generate
-      GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
-         U_Fifo : entity surf.SsiFifo
-            generic map (
-               -- General Configurations
-               TPD_G               => TPD_G,
-               INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
-               PIPE_STAGES_G       => PIPE_STAGES_G,
-               SLAVE_READY_EN_G    => false,
-               VALID_THOLD_G       => VALID_THOLD_C,
-               -- FIFO configurations
-               SYNTH_MODE_G        => SYNTH_MODE_G,
-               MEMORY_TYPE_G       => MEMORY_TYPE_G,
-               GEN_SYNC_FIFO_G     => PRIM_COMMON_CLK_G,
-               FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-               FIFO_FIXED_THRESH_G => false,
-               -- AXI Stream Port Configurations
-               SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
-               MASTER_AXI_CONFIG_G => VLAN_CONFIG_G)
-            port map (
-               sAxisClk        => sClk,
-               sAxisRst        => sRst,
-               sAxisMaster     => sVlanMasters(i),
-               sAxisCtrl       => sVlanCtrl(i),
-               sAxisDropFrame  => vlanDrops(i),
-               fifoPauseThresh => r.fifoPauseThresh,
-               mAxisClk        => mVlanClk,
-               mAxisRst        => mVlanRst,
-               mAxisMaster     => mVlanMasters(i),
-               mAxisSlave      => mVlanSlaves(i));
-      end generate GEN_VEC;
-   end generate;
-
-   comb : process (bypDrop, pauseThresh, phyReady, primDrop, r, sRst,
-                   vlanDrops) is
+   comb : process (bypDrop, pauseThresh, phyReady, primDrop, r, sRst) is
       variable v    : RegType;
       variable drop : sl;
    begin
@@ -210,7 +158,7 @@ begin
       v := r;
 
       -- OR-ing drop flags together
-      v.rxFifoDrop := primDrop or bypDrop or uOr(vlanDrops);
+      v.rxFifoDrop := primDrop or bypDrop;
 
       -- Check the programmable threshold
       if pauseThresh >= (2**FIFO_ADDR_WIDTH_G)-1 then

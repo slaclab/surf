@@ -17,17 +17,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
 entity EthMacFlowCtrl is
    generic (
-      TPD_G       : time                  := 1 ns;
-      BYP_EN_G    : boolean               := false;
-      VLAN_EN_G   : boolean               := false;
-      VLAN_SIZE_G : positive range 1 to 8 := 1);
+      TPD_G    : time    := 1 ns;
+      BYP_EN_G : boolean := false);
    port (
       -- Clock and Reset
       ethClk   : in  sl;
@@ -35,7 +32,6 @@ entity EthMacFlowCtrl is
       -- Inputs
       primCtrl : in  AxiStreamCtrlType;
       bypCtrl  : in  AxiStreamCtrlType;
-      vlanCtrl : in  AxiStreamCtrlArray(VLAN_SIZE_G-1 downto 0);
       -- Output
       flowCtrl : out AxiStreamCtrlType);
 end EthMacFlowCtrl;
@@ -56,7 +52,7 @@ architecture rtl of EthMacFlowCtrl is
 
 begin
 
-   comb : process (bypCtrl, ethRst, primCtrl, r, vlanCtrl) is
+   comb : process (bypCtrl, ethRst, primCtrl, r) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -78,21 +74,6 @@ begin
          if (bypCtrl.overflow = '1') then
             v.flowCtrl.overflow := '1';
          end if;
-      end if;
-
-      -- Check if VLAN interface is enabled
-      if (VLAN_EN_G) then
-         -- Loop through the channels
-         for i in (VLAN_SIZE_G-1) downto 0 loop
-            -- Sample the VLAN pause
-            if (vlanCtrl(i).pause = '1') then
-               v.flowCtrl.pause := '1';
-            end if;
-            -- Sample the VLAN overflow
-            if (vlanCtrl(i).overflow = '1') then
-               v.flowCtrl.overflow := '1';
-            end if;
-         end loop;
       end if;
 
       -- Reset

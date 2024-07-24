@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -30,8 +29,7 @@ entity IpV4EngineTx is
       TPD_G           : time            := 1 ns;
       PROTOCOL_SIZE_G : positive        := 1;
       PROTOCOL_G      : Slv8Array       := (0 => UDP_C);
-      TTL_G           : slv(7 downto 0) := x"20";
-      VLAN_G          : boolean         := false);
+      TTL_G           : slv(7 downto 0) := x"20");
    port (
       -- Local Configurations
       localMac          : in  slv(47 downto 0);  --  big-Endian configuration
@@ -152,23 +150,15 @@ begin
                      v.txMaster.tDest := x"00";
                   end if;
                   -- Set the DST MAC and SRC MAC
-                  v.txMaster.tData(47 downto 0)  := rxMaster.tData(47 downto 0);
-                  v.txMaster.tData(95 downto 48) := localMac;
-                  -- Check for non-VLAN
-                  if (VLAN_G = false) then
-                     v.txMaster.tData(111 downto 96)  := IPV4_TYPE_C;
-                     v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
-                     v.txMaster.tData(127 downto 120) := x"00";  --- DSCP and ECN
-                  else
-                     -- Set the EtherType = VLAN Type
-                     v.txMaster.tData(111 downto 96)  := VLAN_TYPE_C;
-                     -- VID = 0x0 here because it gets overwritten in the MAC
-                     v.txMaster.tData(127 downto 112) := (others => '0');
-                  end if;
+                  v.txMaster.tData(47 downto 0)    := rxMaster.tData(47 downto 0);
+                  v.txMaster.tData(95 downto 48)   := localMac;
+                  v.txMaster.tData(111 downto 96)  := IPV4_TYPE_C;
+                  v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
+                  v.txMaster.tData(127 downto 120) := x"00";  --- DSCP and ECN
                   -- Track the leftovers
-                  v.tData(63 downto 0) := rxMaster.tData(127 downto 64);
+                  v.tData(63 downto 0)             := rxMaster.tData(127 downto 64);
                   -- Next state
-                  v.state              := IPV4_HDR0_S;
+                  v.state                          := IPV4_HDR0_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -176,105 +166,52 @@ begin
             -- Check for data
             if (v.txMaster.tValid = '0') then
                -- Send the IPV4 header
-               v.txMaster.tValid := '1';
-               -- Check for non-VLAN
-               if (VLAN_G = false) then
-                  v.txMaster.tData(7 downto 0)     := x"00";  -- IPV4_Length(15 downto 8) Note: Calculated in EthMac core
-                  v.txMaster.tData(15 downto 8)    := x"00";  -- IPV4_Length(7 downto 0)  Note: Calculated in EthMac core
-                  v.txMaster.tData(23 downto 16)   := r.id(15 downto 8);     -- IPV4_ID(15 downto 8)
-                  v.txMaster.tData(31 downto 24)   := r.id(7 downto 0);      -- IPV4_ID(7 downto 0)
-                  v.txMaster.tData(39 downto 32)   := x"40";  -- Flags(2 downto 0) =  Don't Fragment (DF) and Fragment_Offsets(12 downto 8) = 0x0
-                  v.txMaster.tData(47 downto 40)   := x"00";  -- Fragment_Offsets(7 downto 0) = 0x0
-                  v.txMaster.tData(55 downto 48)   := TTL_G;  -- Time-To-Live (number of hops before packet is discarded)
-                  v.txMaster.tData(63 downto 56)   := PROTOCOL_G(conv_integer(r.tDest));  -- Protocol
-                  v.txMaster.tData(71 downto 64)   := x"00";  -- IPV4_Checksum(15 downto 8)  Note: Filled in next state
-                  v.txMaster.tData(79 downto 72)   := x"00";  -- IPV4_Checksum(7 downto 0)   Note: Filled in next state
-                  v.txMaster.tData(111 downto 80)  := r.tData(31 downto 0);  -- Source IP Address(31 downto 0)
-                  v.txMaster.tData(127 downto 112) := r.tData(47 downto 32);  -- Destination IP Address(31 downto 16)
-               else
-                  v.txMaster.tData(15 downto 0)    := IPV4_TYPE_C;
-                  v.txMaster.tData(23 downto 16)   := x"45";  -- IPVersion = 4,Header length = 5
-                  v.txMaster.tData(31 downto 24)   := x"00";  -- DSCP and ECN
-                  v.txMaster.tData(39 downto 32)   := x"00";  -- IPV4_Length(15 downto 8) Note: Calculated in EthMac core
-                  v.txMaster.tData(47 downto 40)   := x"00";  -- IPV4_Length(7 downto 0)  Note: Calculated in EthMac core
-                  v.txMaster.tData(55 downto 48)   := r.id(15 downto 8);     -- IPV4_ID(15 downto 8)
-                  v.txMaster.tData(63 downto 56)   := r.id(7 downto 0);      -- IPV4_ID(7 downto 0)
-                  v.txMaster.tData(71 downto 64)   := x"40";  -- Flags(2 downto 0) =  Don't Fragment (DF) and Fragment_Offsets(12 downto 8) = 0x0
-                  v.txMaster.tData(79 downto 72)   := x"00";  -- Fragment_Offsets(7 downto 0) = 0x0
-                  v.txMaster.tData(87 downto 80)   := TTL_G;  -- Time-To-Live (number of hops before packet is discarded)
-                  v.txMaster.tData(95 downto 88)   := PROTOCOL_G(conv_integer(r.tDest));  -- Protocol
-                  v.txMaster.tData(103 downto 96)  := x"00";  -- IPV4_Checksum(15 downto 8)  Note: Calculated in EthMac core
-                  v.txMaster.tData(111 downto 104) := x"00";  -- IPV4_Checksum(7 downto 0)   Note: Calculated in EthMac core
-                  v.txMaster.tData(127 downto 112) := r.tData(15 downto 0);  -- Source IP Address(31 downto 16)
-               end if;
+               v.txMaster.tValid                := '1';
+               v.txMaster.tData(7 downto 0)     := x"00";  -- IPV4_Length(15 downto 8) Note: Calculated in EthMac core
+               v.txMaster.tData(15 downto 8)    := x"00";  -- IPV4_Length(7 downto 0)  Note: Calculated in EthMac core
+               v.txMaster.tData(23 downto 16)   := r.id(15 downto 8);  -- IPV4_ID(15 downto 8)
+               v.txMaster.tData(31 downto 24)   := r.id(7 downto 0);  -- IPV4_ID(7 downto 0)
+               v.txMaster.tData(39 downto 32)   := x"40";  -- Flags(2 downto 0) =  Don't Fragment (DF) and Fragment_Offsets(12 downto 8) = 0x0
+               v.txMaster.tData(47 downto 40)   := x"00";  -- Fragment_Offsets(7 downto 0) = 0x0
+               v.txMaster.tData(55 downto 48)   := TTL_G;  -- Time-To-Live (number of hops before packet is discarded)
+               v.txMaster.tData(63 downto 56)   := PROTOCOL_G(conv_integer(r.tDest));  -- Protocol
+               v.txMaster.tData(71 downto 64)   := x"00";  -- IPV4_Checksum(15 downto 8)  Note: Filled in next state
+               v.txMaster.tData(79 downto 72)   := x"00";  -- IPV4_Checksum(7 downto 0)   Note: Filled in next state
+               v.txMaster.tData(111 downto 80)  := r.tData(31 downto 0);  -- Source IP Address(31 downto 0)
+               v.txMaster.tData(127 downto 112) := r.tData(47 downto 32);  -- Destination IP Address(31 downto 16)
                -- Increment the counter
-               v.id    := r.id + 1;
+               v.id                             := r.id + 1;
                -- Next state
-               v.state := IPV4_HDR1_S;
+               v.state                          := IPV4_HDR1_S;
             end if;
          ----------------------------------------------------------------------
          when IPV4_HDR1_S =>
             -- Check if ready to move data
             if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') then
                -- Accept the data
-               v.rxSlave.tReady := '1';
-               -- Check for non-VLAN
-               if (VLAN_G = false) then
-                  -- Update the tData bus
-                  v.txMaster.tData(15 downto 0)   := r.tData(63 downto 48);  -- Destination IP Address(15 downto 0)
-                  v.txMaster.tData(111 downto 16) := rxMaster.tData(127 downto 32);
-                  -- Update the tKeep bus
-                  v.txMaster.tKeep(1 downto 0)    := (others => '1');
-                  v.txMaster.tKeep(13 downto 2)   := rxMaster.tKeep(15 downto 4);
-                  v.txMaster.tKeep(15 downto 14)  := (others => '0');
-                  -- Get the EOFE
-                  v.eofe                          := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
-                  -- Check for tLast
-                  if (rxMaster.tLast = '1') then
-                     -- Move the data
-                     v.txMaster.tValid := '1';
-                     -- Set the tLast flag
-                     v.txMaster.tLast  := '1';
-                     -- Set the EOFE
-                     ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, v.eofe);
-                     -- Next state
-                     v.state           := IDLE_S;
-                  else
-                     -- Next state
-                     v.state := IPV4_HDR2_S;
-                  end if;
-               else
+               v.rxSlave.tReady                := '1';
+               -- Update the tData bus
+               v.txMaster.tData(15 downto 0)   := r.tData(63 downto 48);  -- Destination IP Address(15 downto 0)
+               v.txMaster.tData(111 downto 16) := rxMaster.tData(127 downto 32);
+               -- Update the tKeep bus
+               v.txMaster.tKeep(1 downto 0)    := (others => '1');
+               v.txMaster.tKeep(13 downto 2)   := rxMaster.tKeep(15 downto 4);
+               v.txMaster.tKeep(15 downto 14)  := (others => '0');
+               -- Get the EOFE
+               v.eofe                          := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
+               -- Check for tLast
+               if (rxMaster.tLast = '1') then
                   -- Move the data
-                  v.txMaster.tValid               := '1';
-                  -- Update the tData bus
-                  v.txMaster.tData(15 downto 0)   := r.tData(31 downto 16);  -- Source IP Address(15 downto 0)
-                  v.txMaster.tData(47 downto 16)  := r.tData(63 downto 32);  -- Destination IP Address(31 downto 0)
-                  v.txMaster.tData(127 downto 48) := rxMaster.tData(111 downto 32);
-                  -- Update the tKeep bus
-                  v.txMaster.tKeep(5 downto 0)    := (others => '1');
-                  v.txMaster.tKeep(15 downto 6)   := rxMaster.tKeep(13 downto 4);
-                  -- Track the leftovers
-                  v.tData(15 downto 0)            := rxMaster.tData(127 downto 112);
-                  v.tKeep(1 downto 0)             := rxMaster.tKeep(15 downto 14);
-                  -- Get the EOFE
-                  v.eofe                          := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
-                  -- Check for tLast
-                  if (rxMaster.tLast = '1') then
-                     -- Check the leftover tKeep is not empty
-                     if (v.tKeep /= 0) then
-                        -- Next state
-                        v.state := LAST_S;
-                     else
-                        -- Set the EOF/EOFE
-                        v.txMaster.tLast := '1';
-                        ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, v.eofe);
-                        -- Next state
-                        v.state          := IDLE_S;
-                     end if;
-                  else
-                     -- Next state
-                     v.state := MOVE_S;
-                  end if;
+                  v.txMaster.tValid := '1';
+                  -- Set the tLast flag
+                  v.txMaster.tLast  := '1';
+                  -- Set the EOFE
+                  ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, v.eofe);
+                  -- Next state
+                  v.state           := IDLE_S;
+               else
+                  -- Next state
+                  v.state := IPV4_HDR2_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -316,59 +253,31 @@ begin
             -- Check for data
             if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') then
                -- Accept the data
-               v.rxSlave.tReady  := '1';
+               v.rxSlave.tReady                 := '1';
                -- Move the data
-               v.txMaster.tValid := '1';
-               -- Check for non-VLAN
-               if (VLAN_G = false) then
-                  -- Move the data
-                  v.txMaster.tData(111 downto 0)   := r.tData(111 downto 0);
-                  v.txMaster.tData(127 downto 112) := rxMaster.tData(15 downto 0);
-                  v.txMaster.tKeep(13 downto 0)    := r.tKeep(13 downto 0);
-                  v.txMaster.tKeep(15 downto 14)   := rxMaster.tKeep(1 downto 0);
-                  -- Track the leftovers
-                  v.tData(111 downto 0)            := rxMaster.tData(127 downto 16);
-                  v.tKeep(13 downto 0)             := rxMaster.tKeep(15 downto 2);
-                  -- Get the EOFE
-                  v.eofe                           := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
-                  -- Check for tLast
-                  if (rxMaster.tLast = '1') then
-                     -- Check the leftover tKeep is not empty
-                     if (v.tKeep /= 0) then
-                        -- Next state
-                        v.state := LAST_S;
-                     else
-                        -- Set the EOF/EOFE
-                        v.txMaster.tLast := '1';
-                        ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, v.eofe);
-                        -- Next state
-                        v.state          := IDLE_S;
-                     end if;
-                  end if;
-               else
-                  -- Move the data
-                  v.txMaster.tData(15 downto 0)   := r.tData(15 downto 0);
-                  v.txMaster.tData(127 downto 16) := rxMaster.tData(111 downto 0);
-                  v.txMaster.tKeep(1 downto 0)    := r.tKeep(1 downto 0);
-                  v.txMaster.tKeep(15 downto 2)   := rxMaster.tKeep(13 downto 0);
-                  -- Track the leftovers
-                  v.tData(15 downto 0)            := rxMaster.tData(127 downto 112);
-                  v.tKeep(1 downto 0)             := rxMaster.tKeep(15 downto 14);
-                  -- Get the EOFE
-                  v.eofe                          := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
-                  -- Check for tLast
-                  if (rxMaster.tLast = '1') then
-                     -- Check the leftover tKeep is not empty
-                     if (v.tKeep /= 0) then
-                        -- Next state
-                        v.state := LAST_S;
-                     else
-                        -- Set the EOF/EOFE
-                        v.txMaster.tLast := '1';
-                        ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, v.eofe);
-                        -- Next state
-                        v.state          := IDLE_S;
-                     end if;
+               v.txMaster.tValid                := '1';
+               -- Move the data
+               v.txMaster.tData(111 downto 0)   := r.tData(111 downto 0);
+               v.txMaster.tData(127 downto 112) := rxMaster.tData(15 downto 0);
+               v.txMaster.tKeep(13 downto 0)    := r.tKeep(13 downto 0);
+               v.txMaster.tKeep(15 downto 14)   := rxMaster.tKeep(1 downto 0);
+               -- Track the leftovers
+               v.tData(111 downto 0)            := rxMaster.tData(127 downto 16);
+               v.tKeep(13 downto 0)             := rxMaster.tKeep(15 downto 2);
+               -- Get the EOFE
+               v.eofe                           := ssiGetUserEofe(EMAC_AXIS_CONFIG_C, rxMaster);
+               -- Check for tLast
+               if (rxMaster.tLast = '1') then
+                  -- Check the leftover tKeep is not empty
+                  if (v.tKeep /= 0) then
+                     -- Next state
+                     v.state := LAST_S;
+                  else
+                     -- Set the EOF/EOFE
+                     v.txMaster.tLast := '1';
+                     ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, v.eofe);
+                     -- Next state
+                     v.state          := IDLE_S;
                   end if;
                end if;
             end if;
@@ -383,7 +292,7 @@ begin
                v.txMaster.tLast               := '1';
                ssiSetUserEofe(EMAC_AXIS_CONFIG_C, v.txMaster, r.eofe);
                -- Next state
-               v.state           := IDLE_S;
+               v.state                        := IDLE_S;
             end if;
       ----------------------------------------------------------------------
       end case;

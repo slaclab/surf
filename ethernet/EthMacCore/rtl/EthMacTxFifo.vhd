@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -29,36 +28,25 @@ entity EthMacTxFifo is
       BYP_EN_G          : boolean             := false;
       BYP_COMMON_CLK_G  : boolean             := false;
       BYP_CONFIG_G      : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
-      VLAN_EN_G         : boolean             := false;
-      VLAN_SIZE_G       : positive            := 1;
-      VLAN_COMMON_CLK_G : boolean             := false;
-      VLAN_CONFIG_G     : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
       SYNTH_MODE_G      : string              := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Master Clock and Reset
-      mClk         : in  sl;
-      mRst         : in  sl;
+      mClk        : in  sl;
+      mRst        : in  sl;
       -- Primary Interface
-      sPrimClk     : in  sl;
-      sPrimRst     : in  sl;
-      sPrimMaster  : in  AxiStreamMasterType;
-      sPrimSlave   : out AxiStreamSlaveType;
-      mPrimMaster  : out AxiStreamMasterType;
-      mPrimSlave   : in  AxiStreamSlaveType;
+      sPrimClk    : in  sl;
+      sPrimRst    : in  sl;
+      sPrimMaster : in  AxiStreamMasterType;
+      sPrimSlave  : out AxiStreamSlaveType;
+      mPrimMaster : out AxiStreamMasterType;
+      mPrimSlave  : in  AxiStreamSlaveType;
       -- Bypass interface
-      sBypClk      : in  sl;
-      sBypRst      : in  sl;
-      sBypMaster   : in  AxiStreamMasterType;
-      sBypSlave    : out AxiStreamSlaveType;
-      mBypMaster   : out AxiStreamMasterType;
-      mBypSlave    : in  AxiStreamSlaveType;
-      -- VLAN Interfaces
-      sVlanClk     : in  sl;
-      sVlanRst     : in  sl;
-      sVlanMasters : in  AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      sVlanSlaves  : out AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0);
-      mVlanMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      mVlanSlaves  : in  AxiStreamSlaveArray(VLAN_SIZE_G-1 downto 0));
+      sBypClk     : in  sl;
+      sBypRst     : in  sl;
+      sBypMaster  : in  AxiStreamMasterType;
+      sBypSlave   : out AxiStreamSlaveType;
+      mBypMaster  : out AxiStreamMasterType;
+      mBypSlave   : in  AxiStreamSlaveType);
 end EthMacTxFifo;
 
 architecture mapping of EthMacTxFifo is
@@ -140,49 +128,6 @@ begin
                mAxisSlave  => mBypSlave);
       end generate;
 
-   end generate;
-
-   VLAN_DISABLED : if (VLAN_EN_G = false) generate
-      sVlanSlaves  <= (others => AXI_STREAM_SLAVE_FORCE_C);
-      mVlanMasters <= (others => AXI_STREAM_MASTER_INIT_C);
-   end generate;
-
-   VLAN_ENABLED : if (VLAN_EN_G = true) generate
-      VLAN_FIFO_BYPASS : if ((VLAN_COMMON_CLK_G = true) and (VLAN_CONFIG_G = INT_EMAC_AXIS_CONFIG_C)) generate
-         mVlanMasters <= sVlanMasters;
-         sVlanSlaves  <= mVlanSlaves;
-      end generate;
-
-      VLAN_FIFO : if ((VLAN_COMMON_CLK_G = false) or (VLAN_CONFIG_G /= INT_EMAC_AXIS_CONFIG_C)) generate
-         GEN_VEC : for i in (VLAN_SIZE_G-1) downto 0 generate
-            U_Fifo : entity surf.AxiStreamFifoV2
-               generic map (
-                  -- General Configurations
-                  TPD_G               => TPD_G,
-                  INT_PIPE_STAGES_G   => 0,
-                  PIPE_STAGES_G       => 1,
-                  SLAVE_READY_EN_G    => true,
-                  VALID_THOLD_G       => 1,
-                  -- FIFO configurations
-                  SYNTH_MODE_G        => SYNTH_MODE_G,
-                  MEMORY_TYPE_G       => "distributed",
-                  GEN_SYNC_FIFO_G     => VLAN_COMMON_CLK_G,
-                  CASCADE_SIZE_G      => 1,
-                  FIFO_ADDR_WIDTH_G   => 4,
-                  -- AXI Stream Port Configurations
-                  SLAVE_AXI_CONFIG_G  => VLAN_CONFIG_G,
-                  MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
-               port map (
-                  sAxisClk    => sVlanClk,
-                  sAxisRst    => sVlanRst,
-                  sAxisMaster => sVlanMasters(i),
-                  sAxisSlave  => sVlanSlaves(i),
-                  mAxisClk    => mClk,
-                  mAxisRst    => mRst,
-                  mAxisMaster => mVlanMasters(i),
-                  mAxisSlave  => mVlanSlaves(i));
-         end generate GEN_VEC;
-      end generate;
    end generate;
 
 end mapping;
