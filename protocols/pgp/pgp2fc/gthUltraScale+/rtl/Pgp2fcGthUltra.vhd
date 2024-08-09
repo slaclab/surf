@@ -193,6 +193,7 @@ begin
    PgpGthCoreWrapper_1 : entity surf.Pgp2fcGthCoreWrapper
       generic map (
          TPD_G               => TPD_G,
+         SIMULATION_G        => SIMULATION_G,
          SEL_FABRIC_REFCLK_G => SEL_FABRIC_REFCLK_G,
          AXI_CLK_FREQ_G      => AXI_CLK_FREQ_G,
          AXI_BASE_ADDR_G     => AXI_BASE_ADDR_G)

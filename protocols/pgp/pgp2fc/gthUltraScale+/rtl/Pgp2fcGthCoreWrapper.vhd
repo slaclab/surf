@@ -29,6 +29,7 @@ use unisim.vcomponents.all;
 entity Pgp2fcGthCoreWrapper is
    generic (
       TPD_G               : time    := 1 ns;
+      SIMULATION_G        : boolean := false;
       SEL_FABRIC_REFCLK_G : boolean := false;
       USE_ALIGN_CHECK_G   : boolean := true;
       AXI_CLK_FREQ_G      : real             := 125.0e6;
@@ -384,6 +385,7 @@ begin
    U_AlignCheck : entity surf.GtRxAlignCheck
       generic map (
          TPD_G          => TPD_G,
+         SIMULATION_G   => SIMULATION_G,
          GT_TYPE_G      => "GTHE4",
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G,
          DRP_ADDR_G     => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
