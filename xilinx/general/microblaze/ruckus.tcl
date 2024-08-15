@@ -19,13 +19,15 @@ if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
       loadSource -lib surf -path "$::DIR_PATH/generate/MicroblazeBasicCoreWrapper.vhd"
 
       # Load the .bd file
-      if { $::env(VIVADO_VERSION) == 2023.2 ||
-           $::env(VIVADO_VERSION) == 2023.1 ||
-           $::env(VIVADO_VERSION) == 2022.2 } {
-         puts "\nVivado v$::env(VIVADO_VERSION) not supported for general/microblaze\n"
-         exit -1
-      } elseif  { $::env(VIVADO_VERSION) >= 2021.1 } {
+      if { $::env(VIVADO_VERSION) >= 2021.1 } {
          loadBlockDesign -path "$::DIR_PATH/bd/2021.1/MicroblazeBasicCore.bd"
+
+         # Word around for the locked IPs
+         open_bd_design [get_bd_designs MicroblazeBasicCore]
+         upgrade_ip [get_ips {MicroblazeBasicCore_rst_clk_wiz_1_100M_0 MicroblazeBasicCore_axi_gpio_0_0}] -log ip_upgrade.log
+         export_ip_user_files -of_objects [get_ips {MicroblazeBasicCore_rst_clk_wiz_1_100M_0 MicroblazeBasicCore_axi_gpio_0_0}] -no_script -sync -force -quiet
+         close_bd_design [get_bd_designs MicroblazeBasicCore]
+
       } else {
          loadBlockDesign -path "$::DIR_PATH/bd/2020.1/MicroblazeBasicCore.bd"
       }
