@@ -87,6 +87,7 @@ architecture Pgp2fcRx of Pgp2fcRx is
    signal overflow         : slv(3 downto 0);
    signal intFcValid       : sl;
    signal intFcError       : sl;
+   signal phyRxRst         : sl;
 
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of
@@ -101,6 +102,7 @@ begin
    pgpRxOut.phyRxReady  <= phyRxReady;
    pgpRxOut.remOverflow <= overflow;
    pgpRxOut.remPause    <= pause;
+   phyRxRst             <= '0';
 
    -- Interface connection
    intPhyRxData    <= phyRxLaneIn.data;
@@ -117,7 +119,7 @@ begin
          ) port map (
             pgpRxClkEn      => pgpRxClkEn,
             pgpRxClk        => pgpRxClk,
-            pgpRxClkRst     => pgpRxClkRst,
+            pgpRxClkRst     => phyRxRst,
             pgpRxLinkReady  => intRxLinkReady,
             pgpRxLinkDown   => pgpRxOut.linkDown,
             pgpRxLinkError  => pgpRxOut.linkError,

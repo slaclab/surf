@@ -127,7 +127,6 @@ begin
          rstOut => resetGtSync);                             -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
-   --gtHardReset <= stableRst;   
 
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
@@ -207,9 +206,10 @@ begin
          gtRxN           => pgpGtRxN,
          gtTxP           => pgpGtTxP,
          gtTxN           => pgpGtTxN,
+         phyRxReady      => phyRxReady,
          rxReset         => gtRxUserReset,
          rxUsrClkActive  => pgpRxMmcmLocked,
-         rxResetDone     => phyRxReady,
+         rxResetDone     => pgpRxResetDone,
          rxPmaResetDone  => pgpRxPmaResetDone,
          rxUsrClk        => pgpRxClk,
          rxData          => phyRxLaneIn.data,
