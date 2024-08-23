@@ -115,7 +115,6 @@ architecture mapping of Pgp2fcGtyUltra is
 begin
 
    pgpTxResetDone <= phyTxReady;
-   pgpRxResetDone <= phyRxReady;
 
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
