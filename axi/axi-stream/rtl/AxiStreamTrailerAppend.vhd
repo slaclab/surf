@@ -70,7 +70,7 @@ begin  -- architecture rtl
    assert (MASTER_SLAVE_AXI_CONFIG_G.TDATA_BYTES_C >= TRAILER_AXI_CONFIG_G.TDATA_BYTES_C)
       report "Trailer data widths must be less or equal than axi-stream" severity failure;
 
-   comb : process (pipeAxisSlave, r, sAxisMaster, sAxisTrailerMaster) is
+   comb : process (axisRst, pipeAxisSlave, r, sAxisMaster, sAxisTrailerMaster) is
       variable v   : RegType;
       variable ibM : AxiStreamMasterType;
    begin  -- process comb
@@ -115,10 +115,17 @@ begin  -- architecture rtl
 
       end if;
 
+      -- Outputs
       sAxisSlave        <= v.ibSlaves(0);
       sAxisTrailerSlave <= v.ibSlaves(1);
       pipeAxisMaster    <= r.obMaster;
 
+      -- Reset
+      if (RST_ASYNC_G = false and axisRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;
@@ -127,12 +134,8 @@ begin  -- architecture rtl
    begin
       if (RST_ASYNC_G) and (axisRst = '1') then
          r <= REG_INIT_C after TPD_G;
-      elsif (rising_edge(axisClk)) then
-         if (RST_ASYNC_G = false) and (axisRst = '1') then
-            r <= REG_INIT_C after TPD_G;
-         else
-            r <= rin after TPD_G;
-         end if;
+      elsif rising_edge(axisClk) then
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
