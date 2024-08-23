@@ -32,10 +32,9 @@ entity AxiStreamCompact is
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
+      -- Clock and Reset
       axisClk     : in  sl;
       axisRst     : in  sl;
-      -- is it a RoCE transmission?
-      isRoCE      : in  sl;
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
@@ -115,7 +114,7 @@ begin  -- architecture rtl
    assert (MST_BYTES_C >= SLV_BYTES_C)
       report "Master data widths must be greater or equal than slave" severity failure;
 
-   comb : process (pipeAxisSlave, r, sAxisMaster) is
+   comb : process (axisRst, pipeAxisSlave, r, sAxisMaster) is
       variable v          : RegType;
       variable tKeepMin   : natural;
       variable tKeepWidth : natural;
@@ -217,6 +216,7 @@ begin  -- architecture rtl
          v.tUserSet := false;
       end if;
 
+      -- Outputs
       sAxisSlave                                                               <= v.ibSlave;
       pipeAxisMaster.tData(pipeAxisMaster.tData'length-1 downto MST_BYTES_C*8) <= (others => '0');
       pipeAxisMaster.tData((MST_BYTES_C*8)-1 downto 0)                         <= r.obMaster.tData((MST_BYTES_C*8)-1 downto 0);
@@ -226,8 +226,13 @@ begin  -- architecture rtl
       pipeAxisMaster.tUser                                                     <= r.obMaster.tUser;
       pipeAxisMaster.tLast                                                     <= r.obMaster.tLast;
 
-      rin <= v;
+      -- Reset
+      if (RST_ASYNC_G = false and axisRst = '1') then
+         v := REG_INIT_C;
+      end if;
 
+      -- Register the variable for next clock cycle
+      rin <= v;
 
    end process comb;
 
@@ -235,12 +240,8 @@ begin  -- architecture rtl
    begin
       if (RST_ASYNC_G) and (axisRst = '1') then
          r <= REG_INIT_C after TPD_G;
-      elsif (rising_edge(axisClk)) then
-         if ((RST_ASYNC_G = false) and (axisRst = '1')) or (isRoCE = '0') then
-            r <= REG_INIT_C after TPD_G;
-         else
-            r <= rin after TPD_G;
-         end if;
+      elsif rising_edge(axisClk) then
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
