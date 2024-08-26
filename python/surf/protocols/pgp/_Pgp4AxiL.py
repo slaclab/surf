@@ -268,7 +268,7 @@ class Pgp4AxiLRxStatus(pr.Device):
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.RxClockFreqRaw],
-            linkedGet    = lambda: self.RxClockFreqRaw.value() * 1.0e-6,
+            linkedGet    = lambda read: self.RxClockFreqRaw.get(read=read) * 1.0e-6,
             disp         = '{:0.3f}',
         ))
 

@@ -107,6 +107,7 @@ class AxiMicronN25Q(pr.Device):
             bulkOpEn    = False,
             hidden      = True,
             verify      = False,
+            groups      = ['NoStream','NoState','NoConfig'], # Not saving config/state to YAML
         ))
 
         ##############################

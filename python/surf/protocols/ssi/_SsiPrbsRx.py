@@ -161,21 +161,21 @@ class SsiPrbsRx(pr.Device):
             dependencies = [self.PacketRateRaw],
             units = 'Frames/sec',
             disp = '{:0.1f}',
-            linkedGet = lambda: 1.0/((self.PacketRateRaw.value()+1) * rxClkPeriod)))
+            linkedGet = lambda read: 1.0/((self.PacketRateRaw.get(read=read)+1) * rxClkPeriod)))
 
         self.add(pr.LinkVariable(
             name = 'WordRate',
             dependencies = [self.PacketRate, self.PacketLength],
             units = 'Words/sec',
             disp = '{:0.1f}',
-            linkedGet = lambda: self.PacketRate.value() * self.PacketLength.value()))
+            linkedGet = lambda read: self.PacketRate.get(read=read) * self.PacketLength.get(read=read)))
 
         self.add(pr.LinkVariable(
             name = 'BitRate',
             dependencies = [self.WordRate, self.WordSize],
             units = 'MBits/sec',
             disp = '{:0.1f}',
-            linkedGet = lambda: self.WordRate.value() * self.WordSize.value() * 1e-6))
+            linkedGet = lambda read: self.WordRate.get(read=read) * self.WordSize.get(read=read) * 1e-6))
 
         # self.add(pr.RemoteVariable(
             # name         = "BitErrCnt",

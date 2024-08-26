@@ -30,9 +30,9 @@ import pyrogue as pr
 #       An 11 bit, two’s complement mantissa
 #       A 5 bit, two’s complement exponent (scaling factor)
 ##############################################################################
-def getPMbusLiteralDataFormat(var):
+def getPMbusLiteralDataFormat(var, read):
     # Get the 16-bt RAW value
-    raw = var.dependencies[0].value()
+    raw = var.dependencies[0].get(read=read)
 
     # 11 bit, two's complement mantissa
     Y  = pr.twosComplement( int( (raw >> 0)  & 0x7FF), 11)
@@ -50,10 +50,10 @@ def getPMbusLiteralDataFormat(var):
 # 8.3.1. Linear Mode:
 # The data bytes for the VOUT_MODE and VOUT_COMMAND when using the Linear
 # voltage data format.
-def getPMbusLinearDataFormat(var):
+def getPMbusLinearDataFormat(var, read):
     # Get the VOUT_MODE and VOUT_COMMAND
-    voutMode = var.dependencies[0].value()
-    voutCmd  = var.dependencies[1].value()
+    voutMode = var.dependencies[0].get(read=read)
+    voutCmd  = var.dependencies[1].get(read=read)
 
     # 11 bit, two's complement mantissa
     Y  = pr.twosComplement( int(voutCmd  & 0xFFFF), 11)

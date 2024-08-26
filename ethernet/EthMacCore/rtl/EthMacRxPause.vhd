@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -27,11 +26,8 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxPause is
    generic (
-      TPD_G       : time                  := 1 ns;
-      PAUSE_EN_G  : boolean               := true;
-      VLAN_EN_G   : boolean               := false;
-      VLAN_SIZE_G : positive range 1 to 8 := 1;
-      VLAN_VID_G  : Slv12Array            := (0 => x"001"));
+      TPD_G      : time    := 1 ns;
+      PAUSE_EN_G : boolean := true);
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -40,7 +36,6 @@ entity EthMacRxPause is
       sAxisMaster  : in  AxiStreamMasterType;
       -- Outgoing data
       mAxisMaster  : out AxiStreamMasterType;
-      mAxisMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
       -- Pause Values
       rxPauseReq   : out sl;
       rxPauseValue : out slv(15 downto 0));
@@ -52,25 +47,20 @@ architecture rtl of EthMacRxPause is
       IDLE_S,
       PAUSE_S,
       DUMP_S,
-      PASS_S,
-      VLAN_S);
+      PASS_S);
 
    type RegType is record
-      idx          : natural range 0 to VLAN_SIZE_G-1;
-      pauseEn      : sl;
-      pauseValue   : slv(15 downto 0);
-      mAxisMaster  : AxiStreamMasterType;
-      mAxisMasters : AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      state        : StateType;
+      pauseEn     : sl;
+      pauseValue  : slv(15 downto 0);
+      mAxisMaster : AxiStreamMasterType;
+      state       : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      idx          => 0,
-      pauseEn      => '0',
-      pauseValue   => (others => '0'),
-      mAxisMaster  => AXI_STREAM_MASTER_INIT_C,
-      mAxisMasters => (others => AXI_STREAM_MASTER_INIT_C),
-      state        => IDLE_S);
+      pauseEn     => '0',
+      pauseValue  => (others => '0'),
+      mAxisMaster => AXI_STREAM_MASTER_INIT_C,
+      state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -80,13 +70,11 @@ architecture rtl of EthMacRxPause is
 
 begin
 
-   U_RxPauseGen : if ((PAUSE_EN_G = true) or (VLAN_EN_G = true)) generate
+   U_RxPauseGen : if (PAUSE_EN_G = true) generate
 
       comb : process (ethRst, r, sAxisMaster) is
-         variable v      : RegType;
-         variable i      : natural;
-         variable vidDet : boolean;
-         variable vid    : slv(11 downto 0);
+         variable v : RegType;
+         variable i : natural;
       begin
          -- Latch the current value
          v := r;
@@ -94,14 +82,6 @@ begin
          -- Reset flags
          v.pauseEn            := '0';
          v.mAxisMaster.tValid := '0';
-         for i in (VLAN_SIZE_G-1) downto 0 loop
-            v.mAxisMasters(i).tValid := '0';
-         end loop;
-
-         -- Update the variable
-         vidDet           := false;
-         vid(11 downto 8) := sAxisMaster.tData(115 downto 112);
-         vid(7 downto 0)  := sAxisMaster.tData(127 downto 120);
 
          -- State Machine
          case r.state is
@@ -110,56 +90,28 @@ begin
                -- Check for data
                if (sAxisMaster.tValid = '1') then
                   -- Check for pause frame
-                  if (PAUSE_EN_G = true) and
-                     (sAxisMaster.tData(47 downto 0) = x"01_00_00_C2_80_01") and  -- DST MAC (Pause MAC Address)
-                     (sAxisMaster.tData(127 downto 96) = x"01_00_08_88") then   -- Mac Type, Mac OpCode
+                  if (sAxisMaster.tData(47 downto 0) = x"01_00_00_C2_80_01") and  -- DST MAC (Pause MAC Address)
+                     (sAxisMaster.tData(127 downto 96) = x"01_00_08_88") then  -- Mac Type, Mac OpCode
                      -- Check for no EOF
                      if (sAxisMaster.tLast = '0') then
                         -- Next State
                         v.state := PAUSE_S;
                      end if;
                   else
-                     if (VLAN_EN_G = false) then
-                        -- Move the data
-                        v.mAxisMaster := sAxisMaster;
-                        -- Check for no EOF
-                        if (sAxisMaster.tLast = '0') then
-                           -- Next State
-                           v.state := PASS_S;
-                        end if;
-                     else
-                        -- Check for VLAN
-                        if (sAxisMaster.tData(111 downto 96) = VLAN_TYPE_C) then
-                           for i in (VLAN_SIZE_G-1) downto 0 loop
-                              if (vidDet = false) and (vid = VLAN_VID_G(i)) then
-                                 vidDet            := true;
-                                 v.idx             := i;
-                                 -- Move the data
-                                 v.mAxisMasters(i) := sAxisMaster;
-                                 -- Check for no EOF
-                                 if (sAxisMaster.tLast = '0') then
-                                    -- Next State
-                                    v.state := VLAN_S;
-                                 end if;
-                              end if;
-                           end loop;
-                        else
-                           -- Move the data
-                           v.mAxisMaster := sAxisMaster;
-                           -- Check for no EOF
-                           if (sAxisMaster.tLast = '0') then
-                              -- Next State
-                              v.state := PASS_S;
-                           end if;
-                        end if;
+                     -- Move the data
+                     v.mAxisMaster := sAxisMaster;
+                     -- Check for no EOF
+                     if (sAxisMaster.tLast = '0') then
+                        -- Next State
+                        v.state := PASS_S;
                      end if;
                   end if;
                end if;
             ----------------------------------------------------------------------
             when PAUSE_S =>
-            --------------------------------------------------------------------------------------------------------------------
-            -- Refer to https://hasanmansur1.files.wordpress.com/2012/12/ethernet-flow-control-pause-frame-framing-structure.png
-            --------------------------------------------------------------------------------------------------------------------
+               --------------------------------------------------------------------------------------------------------------------
+               -- Refer to https://hasanmansur1.files.wordpress.com/2012/12/ethernet-flow-control-pause-frame-framing-structure.png
+               --------------------------------------------------------------------------------------------------------------------
                -- Check for data
                if (sAxisMaster.tValid = '1') then
                   -- Latch the pause data
@@ -194,15 +146,6 @@ begin
                   -- Next State
                   v.state := IDLE_S;
                end if;
-            ----------------------------------------------------------------------
-            when VLAN_S =>
-               -- Move the data
-               v.mAxisMasters(r.idx) := sAxisMaster;
-               -- Check for a valid EOF
-               if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
-                  -- Next State
-                  v.state := IDLE_S;
-               end if;
          ----------------------------------------------------------------------
          end case;
 
@@ -216,7 +159,6 @@ begin
 
          -- Outputs
          mAxisMaster  <= r.mAxisMaster;
-         mAxisMasters <= r.mAxisMasters;
          rxPauseReq   <= r.pauseEn;
          rxPauseValue <= r.pauseValue;
 
@@ -231,9 +173,8 @@ begin
 
    end generate;
 
-   U_BypRxPause : if ((PAUSE_EN_G = false) and (VLAN_EN_G = false)) generate
+   U_BypRxPause : if (PAUSE_EN_G = false) generate
       mAxisMaster  <= sAxisMaster;
-      mAxisMasters <= (others => AXI_STREAM_MASTER_INIT_C);
       rxPauseReq   <= '0';
       rxPauseValue <= (others => '0');
    end generate;
