@@ -28,7 +28,7 @@ entity PgpRxVcFifo is
       ROGUE_SIM_EN_G      : boolean  := false;
       INT_PIPE_STAGES_G   : natural  := 0;
       PIPE_STAGES_G       : natural  := 1;
-      VALID_THOLD_G       : positive := 1;
+      VALID_THOLD_G       : natural  := 1;
       VALID_BURST_MODE_G  : boolean  := false;
       SYNTH_MODE_G        : string   := "inferred";
       MEMORY_TYPE_G       : string   := "block";

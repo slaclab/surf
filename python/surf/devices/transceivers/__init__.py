@@ -14,59 +14,66 @@ import math
 
 # Can't use SparseString + bulk memory read if there is a AXI-Lite Proxy
 # So recoded using 4 byte transactions + this get function
-def parseStrArrayByte(var):
-    retVar = ''
-    for x in range(len(var.dependencies)):
-        retVar += var.dependencies[x].value()
+def parseStrArrayByte(dev, var, read):
+    with dev.root.updateGroup():
+        retVar = ''
+        for x in range(len(var.dependencies)):
+            retVar += var.dependencies[x].get(read=read)
     return retVar
 
 # Used to decode the "dateCode" variable
-def getDate(var):
-    year  = '20' + var.dependencies[0].value() + var.dependencies[1].value()
-    month = var.dependencies[2].value() + var.dependencies[3].value()
-    day   = var.dependencies[4].value() + var.dependencies[5].value()
-    # Check if not empty or blank string
-    if month.strip() and day.strip():
-        return f'{month}/{day}/{year}'
+def getDate(dev, var, read):
+    with dev.root.updateGroup():
+        year  = '20' + var.dependencies[0].get(read=read) + var.dependencies[1].get(read=read)
+        month = var.dependencies[2].get(read=read) + var.dependencies[3].get(read=read)
+        day   = var.dependencies[4].get(read=read) + var.dependencies[5].get(read=read)
+        # Check if not empty or blank string
+        if month.strip() and day.strip():
+            return f'{month}/{day}/{year}'
 
-def getTemp(var):
-    msb = var.dependencies[0].value()
-    lsb = var.dependencies[1].value()
-    raw = (msb << 8) | lsb
-    # Return value in units of degC
-    return float(raw)/256.0
+def getTemp(dev, var, read):
+    with dev.root.updateGroup():
+        msb = var.dependencies[0].get(read=read)
+        lsb = var.dependencies[1].get(read=read)
+        raw = (msb << 8) | lsb
+        # Return value in units of degC
+        return float(raw)/256.0
 
-def getVolt(var):
-    msb = var.dependencies[0].value()
-    lsb = var.dependencies[1].value()
-    raw = (msb << 8) | lsb
-    # Return value in units of Volts
-    return float(raw)*100.0E-6
+def getVolt(dev, var, read):
+    with dev.root.updateGroup():
+        msb = var.dependencies[0].get(read=read)
+        lsb = var.dependencies[1].get(read=read)
+        raw = (msb << 8) | lsb
+        # Return value in units of Volts
+        return float(raw)*100.0E-6
 
-def getTxBias(var):
-    msb = var.dependencies[0].value()
-    lsb = var.dependencies[1].value()
-    raw = (msb << 8) | lsb
-    # Return value in units of mA
-    return float(raw)*0.002
+def getTxBias(dev, var, read):
+    with dev.root.updateGroup():
+        msb = var.dependencies[0].get(read=read)
+        lsb = var.dependencies[1].get(read=read)
+        raw = (msb << 8) | lsb
+        # Return value in units of mA
+        return float(raw)*0.002
 
-def getOpticalPwr(var):
-    msb = var.dependencies[0].value()
-    lsb = var.dependencies[1].value()
-    raw = (msb << 8) | lsb
-    if raw == 0:
-        pwr = 0.0001 # Prevent log10(zero) case
-    else:
-        pwr = float(raw)*0.0001 # units of mW
-    # Return value in units of dBm
-    return 10.0*math.log10(pwr)
+def getOpticalPwr(dev, var, read):
+    with dev.root.updateGroup():
+        msb = var.dependencies[0].get(read=read)
+        lsb = var.dependencies[1].get(read=read)
+        raw = (msb << 8) | lsb
+        if raw == 0:
+            pwr = 0.0001 # Prevent log10(zero) case
+        else:
+            pwr = float(raw)*0.0001 # units of mW
+        # Return value in units of dBm
+        return 10.0*math.log10(pwr)
 
-def getTec(var):
-    msb = var.dependencies[0].value()
-    lsb = var.dependencies[1].value()
-    raw = (msb << 8) | lsb
-    # Return value in units of mA
-    return float(raw)*0.1
+def getTec(dev, var, read):
+    with dev.root.updateGroup():
+        msb = var.dependencies[0].get(read=read)
+        lsb = var.dependencies[1].get(read=read)
+        raw = (msb << 8) | lsb
+        # Return value in units of mA
+        return float(raw)*0.1
 
 ##############################################################################
 # Dictionaries based on SFF-8024 Rev 4.9 (24MAY2021)

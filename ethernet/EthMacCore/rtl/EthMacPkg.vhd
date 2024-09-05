@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -30,7 +29,6 @@ package EthMacPkg is
    -- EtherTypes
    constant ARP_TYPE_C  : slv(15 downto 0) := x"0608";  -- EtherType = ARP = 0x0806
    constant IPV4_TYPE_C : slv(15 downto 0) := x"0008";  -- EtherType = IPV4 = 0x0800
-   constant VLAN_TYPE_C : slv(15 downto 0) := x"0081";  -- EtherType = VLAN = 0x8100
 
    -- IPV4 Protocol Constants
    constant UDP_C  : slv(7 downto 0) := x"11";  -- Protocol = UDP  = 0x11
@@ -68,7 +66,7 @@ package EthMacPkg is
       -- TDEST_INTERLEAVE_C => EMAC_AXIS_CONFIG_C.TDEST_INTERLEAVE_C,
       TSTRB_EN_C    => EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
       TDATA_BYTES_C => EMAC_AXIS_CONFIG_C.TDATA_BYTES_C,
-      TDEST_BITS_C  => 0, -- TDEST not used internally of EthMacTop.vhd
+      TDEST_BITS_C  => 0,  -- TDEST not used internally of EthMacTop.vhd
       TID_BITS_C    => EMAC_AXIS_CONFIG_C.TID_BITS_C,
       TKEEP_MODE_C  => EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
       TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
