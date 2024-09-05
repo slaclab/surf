@@ -119,8 +119,9 @@ begin
       generic map (
          TPD_G              => 1 ns,
          AXIL_CLK_PERIOD_G  => 125.0e6,
---         AXIL_TIMEOUT_G     => AXIL_TIMEOUT_G,
-         SACI_CLK_PERIOD_G  => 1.0e6,
+         AXIL_TIMEOUT_G     => AXIL_TIMEOUT_G,
+         AXIL_TIMEOUT_G     => 1.0e-3,
+         SACI_CLK_PERIOD_G  => 1.0e-6,
          SACI_CLK_FREERUN_G => false,
          SACI_NUM_CHIPS_G   => 1,
          SACI_RSP_BUSSED_G  => false)
