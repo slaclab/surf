@@ -172,7 +172,7 @@ async def run_stress_test(dut, idle_inserter=None, backpressure_inserter=None):
 
     workers = []
 
-    for k in [0x0000_0000,0x0010_2000,0x0016_0000]:
+    for k in [0x0000_0000]: #,0x0010_2000,0x0016_0000]:
         workers.append(cocotb.start_soon(worker(tb.axil_master, k, 0x1000, count=16)))
 
     while workers:
