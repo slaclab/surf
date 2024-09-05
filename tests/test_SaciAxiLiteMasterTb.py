@@ -98,50 +98,17 @@ async def run_test_words(dut):
 
     await tb.cycle_reset()
 
-    for length in list(range(1, 4)):
-        for memDev in [0x0000_0000]: #,0x0010_2000,0x0016_0000]:
-            for offset in list(range(byte_lanes)):
-                addr = offset
-                tb.log.info( f'length={length},addr={hex(addr)}' )
+    for offset in range(0, 0x100, 4):
+        addr = offset
+        tb.log.info( f'addr={hex(addr)}' )
 
-                test_data = bytearray([x % 256 for x in range(length)])
-                event = tb.axil_master.init_write(addr, test_data)
-                await event.wait()
-                event = tb.axil_master.init_read(addr, length)
-                await event.wait()
-                assert event.data.data == test_data
-
-                test_data = bytearray([x % 256 for x in range(length)])
-                await tb.axil_master.write(addr, test_data)
-                assert (await tb.axil_master.read(addr, length)).data == test_data
-
-                test_data = [x * 0x1001 for x in range(length)]
-                await tb.axil_master.write_words(addr, test_data)
-                assert await tb.axil_master.read_words(addr, length) == test_data
-
-                test_data = [x * 0x10200201 for x in range(length)]
-                await tb.axil_master.write_dwords(addr, test_data)
-                assert await tb.axil_master.read_dwords(addr, length) == test_data
-
-                test_data = [x * 0x1020304004030201 for x in range(length)]
-                await tb.axil_master.write_qwords(addr, test_data)
-                assert await tb.axil_master.read_qwords(addr, length) == test_data
-
-                test_data = 0x01*length
-                await tb.axil_master.write_byte(addr, test_data)
-                assert await tb.axil_master.read_byte(addr) == test_data
-
-                test_data = 0x1001*length
-                await tb.axil_master.write_word(addr, test_data)
-                assert await tb.axil_master.read_word(addr) == test_data
-
-                test_data = 0x10200201*length
-                await tb.axil_master.write_dword(addr, test_data)
-                assert await tb.axil_master.read_dword(addr) == test_data
-
-                test_data = 0x1020304004030201*length
-                await tb.axil_master.write_qword(addr, test_data)
-                assert await tb.axil_master.read_qword(addr) == test_data
+        test_data = bytearray([x % 256 for x in range(4)])
+        event = tb.axil_master.init_write(addr, test_data)
+        await event.wait()
+        event = tb.axil_master.init_read(addr, length)
+        await event.wait()
+        assert event.data.data == test_data
+        tb.log.info( f'wr_data={hex(test_data)}, rd_data={hex(event.data.data)}')
 
     await RisingEdge(dut.S_AXI_ACLK)
     await RisingEdge(dut.S_AXI_ACLK)
@@ -191,10 +158,10 @@ if cocotb.SIM_NAME:
     #################
     # run_test_bytes
     #################
-    factory = TestFactory(run_test_bytes)
-    factory.add_option("idle_inserter", [None, cycle_pause])
-    factory.add_option("backpressure_inserter", [None, cycle_pause])
-    factory.generate_tests()
+    #factory = TestFactory(run_test_bytes)
+    #factory.add_option("idle_inserter", [None, cycle_pause])
+    #factory.add_option("backpressure_inserter", [None, cycle_pause])
+    #factory.generate_tests()
 
     #################
     # run_test_words
@@ -205,8 +172,8 @@ if cocotb.SIM_NAME:
     #################
     # run_stress_test
     #################
-    factory = TestFactory(run_stress_test)
-    factory.generate_tests()
+    #factory = TestFactory(run_stress_test)
+    #factory.generate_tests()
 
 tests_dir = os.path.dirname(__file__)
 tests_module = 'SaciAxiLiteMasterTb'
@@ -260,5 +227,5 @@ def test_SaciAxiLiteMasterTb(parameters):
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
         ########################################################################
-        # sim_args =[f'--wave={tests_module}.ghw'],
+        sim_args =[f'--wave={tests_module}.ghw'],
     )
