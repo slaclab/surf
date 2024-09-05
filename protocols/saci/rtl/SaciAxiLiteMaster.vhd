@@ -29,6 +29,8 @@ entity SaciAxiLiteMaster is
    generic (
       TPD_G : time := 1 ns);
    port (
+      -- Global Reset
+      rstL            : in  sl;
       -- SACI Slave interface
       saciClk         : in  sl;
       saciCmd         : in  sl;
@@ -37,10 +39,10 @@ entity SaciAxiLiteMaster is
       -- AXI-Lite Register Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilReadMaster  : out AxiLiteReadMasterType;
+      axilReadSlave   : in  AxiLiteReadSlaveType;
+      axilWriteMaster : out AxiLiteWriteMasterType;
+      axilWriteSlave  : in  AxiLiteWriteSlaveType);
 end SaciAxiLiteMaster;
 
 architecture rtl of SaciAxiLiteMaster is
@@ -48,6 +50,11 @@ architecture rtl of SaciAxiLiteMaster is
    -- AXI-Lite Master Interface
    signal axilReq : AxiLiteReqType;
    signal axilAck : AxiLiteAckType;
+
+   -- SACI resets
+   signal rstOutL : sl;
+   signal rstInL  : sl;
+
 
    -- SACI Slave parallel interface
    signal exec   : sl;
@@ -63,6 +70,8 @@ architecture rtl of SaciAxiLiteMaster is
    -- attribute dont_touch of r : signal is "true";
 
 begin
+
+   rstInL <= rstOutL;
 
    U_SaciSlave_1 : entity surf.SaciSlave
       generic map (
@@ -83,14 +92,56 @@ begin
          wrData   => wrData,            -- [out]
          rdData   => rdData);           -- [in]
 
-   axilReq.request               <= exec;
+   ------------------------------------------------------
+   -- Synchronize exec to axilReq.request
+   ------------------------------------------------------
+   U_Synchronizer_1 : entity surf.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         OUT_POLARITY_G => '1',
+         RST_ASYNC_G    => true,
+         STAGES_G       => 2,
+         BYPASS_SYNC_G  => false,
+         INIT_G         => "0")
+      port map (
+         clk     => axilClk,            -- [in]
+         rst     => axilRst,            -- [in]
+         dataIn  => exec,               -- [in]
+         dataOut => axilReq.request);   -- [out]
+
+   ------------------------------------------------------
+   -- These should have settled to be sampled by axilClk
+   -- By the time exec gets synced to axilReq
+   ------------------------------------------------------
    axilReq.rnw                   <= not readL;
    axilReq.address(1 downto 0)   <= "00";
    axilReq.address(13 downto 2)  <= addr;
    axilReq.address(20 downto 14) <= cmd;
    axilReq.wrData                <= wrData;
 
-   ack    <= axilAck.done;
+   ------------------------------------------------------
+   -- Synchronize axilAck.done to saciClk
+   ------------------------------------------------------
+   U_Synchronizer_2 : entity surf.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => '1',
+         OUT_POLARITY_G => '1',
+         RST_ASYNC_G    => true,
+         STAGES_G       => 2,
+         BYPASS_SYNC_G  => false,
+         INIT_G         => "0")
+      port map (
+         clk     => saciClk,            -- [in]
+         rst     => '0',                -- [in]
+         dataIn  => axilAck.done,       -- [in]
+         dataOut => ack);               -- [out]
+
+   ------------------------------------------------------
+   -- This should have settled to be sampled by saciClk
+   -- By the time axilAck.done gets synced to ack
+   ------------------------------------------------------
    rdData <= axilAck.rdData;
 
    U_AxiLiteMaster_1 : entity surf.AxiLiteMaster

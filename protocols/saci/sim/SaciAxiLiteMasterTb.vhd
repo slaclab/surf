@@ -21,7 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity AxiLiteCrossbarTb is
+entity SaciAxiLiteMasterTb is
    port (
       -- AXI-Lite Interface
       S_AXI_ACLK    : in  std_logic;
@@ -45,9 +45,9 @@ entity AxiLiteCrossbarTb is
       S_AXI_RRESP   : out std_logic_vector(1 downto 0);
       S_AXI_RVALID  : out std_logic;
       S_AXI_RREADY  : in  std_logic);
-end AxiLiteCrossbarTb;
+end SaciAxiLiteMasterTb;
 
-architecture mapping of AxiLiteCrossbarTb is
+architecture mapping of SaciAxiLiteMasterTb is
 
    signal fpgaAxilClk : sl;
    signal fpgaAxilRst : sl;
@@ -64,6 +64,8 @@ architecture mapping of AxiLiteCrossbarTb is
    signal asicAxilReadSlave   : AxiLiteReadSlaveType;
    signal asicAxilWriteMaster : AxiLiteWriteMasterType;
    signal asicAxilWriteSlave  : AxiLiteWriteSlaveType;
+
+   signal rstL : sl;
 
    signal saciClk    : sl;
    signal saciCmd    : sl;
@@ -115,7 +117,7 @@ begin
    -------------------------------------------------------------------------------------------------
    U_AxiLiteSaciMaster_1 : entity surf.AxiLiteSaciMaster
       generic map (
-         TPD_G              => TPD_G,
+         TPD_G              => 1 ns,
          AXIL_CLK_PERIOD_G  => 125.0e6,
 --         AXIL_TIMEOUT_G     => AXIL_TIMEOUT_G,
          SACI_CLK_PERIOD_G  => 1.0e6,
@@ -144,15 +146,17 @@ begin
          CLK_PERIOD_G => 8.0 ns)
       port map (
          clkP => asicAxilClk,           -- [out]
-         rst  => asicAxilRst)           -- [out]
+         rst  => asicAxilRst,           -- [out]
+         rstL => rstL);                 -- [out]
 
-      U_SaciAxiLiteMaster_1 : entity surf.SaciAxiLiteMaster
+   U_SaciAxiLiteMaster_1 : entity surf.SaciAxiLiteMaster
       generic map (
-         TPD_G => TPD_G)
+         TPD_G => 1 ns)
       port map (
+         rstL            => rstL,                 -- [in]
          saciClk         => saciClk,              -- [in]
          saciCmd         => saciCmd,              -- [in]
-         saciSelL        => saciSelL,             -- [in]
+         saciSelL        => saciSelL(0),          -- [in]
          saciRsp         => saciRsp(0),           -- [out]
          axilClk         => asicAxilClk,          -- [in]
          axilRst         => asicAxilRst,          -- [in]
@@ -170,10 +174,10 @@ begin
          -- Axi Port
          axiClk         => asicAxilClk,
          axiRst         => asicAxilRst,
-         axiReadMaster  => asicAxilReadMasters,
-         axiReadSlave   => asicAxilReadSlaves,
-         axiWriteMaster => asicAxilWriteMasters,
-         axiWriteSlave  => asicAxilWriteSlaves);
+         axiReadMaster  => asicAxilReadMaster,
+         axiReadSlave   => asicAxilReadSlave,
+         axiWriteMaster => asicAxilWriteMaster,
+         axiWriteSlave  => asicAxilWriteSlave);
 
 
 end mapping;

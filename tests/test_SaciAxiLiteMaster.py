@@ -217,7 +217,7 @@ tests_module = 'SaciAxiLiteMasterTb'
     "parameters", [
         None
     ])
-def test_AxiLiteCrossbarTb(parameters):
+def test_SaciAxiLiteMasterTb(parameters):
 
     # https://github.com/themperek/cocotb-test#arguments-for-simulatorrun
     # https://github.com/themperek/cocotb-test/blob/master/cocotb_test/simulator.py
