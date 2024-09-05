@@ -15,7 +15,7 @@ from cocotb.regression import TestFactory
 
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
-# test_AxiLiteCrossbarTb
+# test_SaciAxiLiteMasterTb
 from cocotb_test.simulator import run
 import pytest
 import glob
