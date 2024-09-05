@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SaciMasterPkg.all;
 
-entity AxiLiteSaciMaster is
+entity SaciAxiLiteMaster is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -41,9 +41,9 @@ entity AxiLiteSaciMaster is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end AxiLiteSaciMaster;
+end SaciAxiLiteMaster;
 
-architecture rtl of AxiLiteSaciMaster is
+architecture rtl of SaciAxiLiteMaster is
 
    -- AXI-Lite Master Interface
    signal axilReq : AxiLiteReqType;
