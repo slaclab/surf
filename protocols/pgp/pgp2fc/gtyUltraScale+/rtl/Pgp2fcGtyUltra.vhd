@@ -176,6 +176,7 @@ begin
          phyTxReady       => phyTxReady,
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => pgpRxReset,
+         pgpRxPhyRst      => gtRxUserReset,
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,

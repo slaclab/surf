@@ -38,6 +38,7 @@ entity Pgp2fcRx is
       pgpRxClkEn  : in sl := '1';       -- Master clock enable
       pgpRxClk    : in sl;              -- Master clock
       pgpRxClkRst : in sl;              -- Synchronous reset input
+      pgpRxPhyRst : in sl := '0';
 
       -- Non-VC related IO
       pgpRxIn  : in  Pgp2fcRxInType;
@@ -102,7 +103,7 @@ begin
    pgpRxOut.phyRxReady  <= phyRxReady;
    pgpRxOut.remOverflow <= overflow;
    pgpRxOut.remPause    <= pause;
-   phyRxRst             <= '0';
+   phyRxRst             <= pgpRxPhyRst;
 
    -- Interface connection
    intPhyRxData    <= phyRxLaneIn.data;
