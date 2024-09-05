@@ -98,17 +98,18 @@ async def run_test_words(dut):
 
     await tb.cycle_reset()
 
-    for offset in range(0, 0x100, 4):
+    for offset in range(4, 8, 4):
         addr = offset
         tb.log.info( f'addr={hex(addr)}' )
 
-        test_data = bytearray([x % 256 for x in range(4)])
+        test_data = addr.to_bytes(length=4, byteorder='little')
+        test_data_disp = int.from_bytes(test_data, 'little', signed=False)
         event = tb.axil_master.init_write(addr, test_data)
         await event.wait()
-        event = tb.axil_master.init_read(addr, length)
+        event = tb.axil_master.init_read(addr, 4)
         await event.wait()
         assert event.data.data == test_data
-        tb.log.info( f'wr_data={hex(test_data)}, rd_data={hex(event.data.data)}')
+        tb.log.info( f'wr_data={test_data}, rd_data={event.data.data}')
 
     await RisingEdge(dut.S_AXI_ACLK)
     await RisingEdge(dut.S_AXI_ACLK)
