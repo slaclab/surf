@@ -118,6 +118,7 @@ begin
    axilReq.address(1 downto 0)   <= "00";
    axilReq.address(13 downto 2)  <= addr;
    axilReq.address(20 downto 14) <= cmd;
+   axilReq.address(31 downto 21) <= (others => '0');
    axilReq.wrData                <= wrData;
 
    ------------------------------------------------------
