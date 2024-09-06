@@ -22,7 +22,6 @@ import glob
 import os
 import itertools
 import logging
-import random
 
 class TB:
     def __init__(self, dut):
@@ -69,8 +68,6 @@ class TB:
 async def run_test_words(dut):
 
     tb = TB(dut)
-
-    byte_lanes = tb.axil_master.write_if.byte_lanes
 
     await tb.cycle_reset()
 
