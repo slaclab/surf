@@ -120,7 +120,7 @@ begin
          TPD_G              => 1 ns,
          AXIL_CLK_PERIOD_G  => 8.0e-9,
          AXIL_TIMEOUT_G     => 1.0e-3,
-         SACI_CLK_PERIOD_G  => 0.1e-7,
+         SACI_CLK_PERIOD_G  => 50.0e-9,
          SACI_CLK_FREERUN_G => false,
          SACI_NUM_CHIPS_G   => 1,
          SACI_RSP_BUSSED_G  => false)

@@ -44,14 +44,14 @@ begin
          S_AXI_AWADDR  => axilWriteMaster.awaddr,   -- [in]
          S_AXI_AWPROT  => axilWriteMaster.awprot,   -- [in]
          S_AXI_AWVALID => axilWriteMaster.awvalid,  -- [in]
-         S_AXI_AWREADY => axilWriteSlave.AWREADY,   -- [out]
-         S_AXI_WDATA   => axilWriteMaster.WDATA,    -- [in]
-         S_AXI_WSTRB   => axilWriteMaster.WSTRB,    -- [in]
-         S_AXI_WVALID  => axilWriteMaster.WVALID,   -- [in]
+         S_AXI_AWREADY => axilWriteSlave.awready,   -- [out]
+         S_AXI_WDATA   => axilWriteMaster.wdata,    -- [in]
+         S_AXI_WSTRB   => axilWriteMaster.wstrb,    -- [in]
+         S_AXI_WVALID  => axilWriteMaster.wvalid,   -- [in]
          S_AXI_WREADY  => axilWriteSlave.WREADY,    -- [out]
          S_AXI_BRESP   => axilWriteSlave.BRESP,     -- [out]
          S_AXI_BVALID  => axilWriteSlave.BVALID,    -- [out]
-         S_AXI_BREADY  => axilReadMaster.BREADY,    -- [in]
+         S_AXI_BREADY  => axilWriteMaster.BREADY,   -- [in]
          S_AXI_ARADDR  => axilReadMaster.ARADDR,    -- [in]
          S_AXI_ARPROT  => axilReadMaster.ARPROT,    -- [in]
          S_AXI_ARVALID => axilReadMaster.ARVALID,   -- [in]
@@ -66,30 +66,30 @@ begin
          CLK_PERIOD_G => 8.0 ns,
          CLK_DELAY_G  => 3.2 ns)
       port map (
-         clkP => axilClk,           -- [out]
-         rstL  => axilRstL);          -- [out]
+         clkP => axilClk,               -- [out]
+         rstL => axilRstL);             -- [out]
 
    process is
       variable wrData : slv(31 downto 0);
       variable rdData : slv(31 downto 0);
    begin
       wait for 10 us;
-      wait until fpgaAxilClk = '1';
-      wait until fpgaAxilClk = '1';
-      wait until fpgaAxilClk = '1';
+      wait until axilClk = '1';
+      wait until axilClk = '1';
+      wait until axilClk = '1';
 
       wrData := X"12345678";
       axiLiteBusSimWrite(
-         fpgaAxilClk,
-         fpgaAxilWriteMaster,
-         fpgaAxilWriteSlave,
+         axilClk,
+         axilWriteMaster,
+         axilWriteSlave,
          X"00000000",
          wrData);
 
       axiLiteBusSimRead(
-         fpgaAxilClk,
-         fpgaAxilReadMaster,
-         fpgaAxilReadSlave,
+         axilClk,
+         axilReadMaster,
+         axilReadSlave,
          X"00000000",
          rdData);
 
@@ -97,16 +97,16 @@ begin
 
       wrData := X"9abcdef0";
       axiLiteBusSimWrite(
-         fpgaAxilClk,
-         fpgaAxilWriteMaster,
-         fpgaAxilWriteSlave,
+         axilClk,
+         axilWriteMaster,
+         axilWriteSlave,
          X"00000004",
          wrData);
 
       axiLiteBusSimRead(
-         fpgaAxilClk,
-         fpgaAxilReadMaster,
-         fpgaAxilReadSlave,
+         axilClk,
+         axilReadMaster,
+         axilReadSlave,
          X"00000004",
          rdData);
 
@@ -115,16 +115,16 @@ begin
 
       wrData := X"deadbeef";
       axiLiteBusSimWrite(
-         fpgaAxilClk,
-         fpgaAxilWriteMaster,
-         fpgaAxilWriteSlave,
+         axilClk,
+         axilWriteMaster,
+         axilWriteSlave,
          X"00100008",
          wrData);
 
       axiLiteBusSimRead(
-         fpgaAxilClk,
-         fpgaAxilReadMaster,
-         fpgaAxilReadSlave,
+         axilClk,
+         axilReadMaster,
+         axilReadSlave,
          X"00100008",
          rdData);
 
@@ -132,7 +132,7 @@ begin
 
 
 
-      wait until fpgaAxilClk = '1';
+      wait until axilClk = '1';
       wait;
 
    end process;
