@@ -30,10 +30,13 @@ entity AxiStreamTrailerRemove is
       BYTES_TO_RM_G : integer := 4;
       AXI_CONFIG_G  : AxiStreamConfigType);
    port (
+      -- Clock and Reset
       axisClk     : in  sl;
       axisRst     : in  sl;
+      -- Inbound AXI Stream
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
+      -- Inbound AXI Stream
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
 end entity AxiStreamTrailerRemove;
@@ -89,7 +92,7 @@ begin
          -- mSideBand   => mSideBand,
          mAxisSlave  => axisSlavePipe);
 
-   comb : process (axisMasterPipe, axisSlaveToPipe, pipeAxisSlave, r,
+   comb : process (axisMasterPipe, axisRst, axisSlaveToPipe, pipeAxisSlave, r,
                    sAxisMaster) is
       variable v     : RegType;
       variable ibM   : AxiStreamMasterType;
@@ -133,10 +136,17 @@ begin
          end if;
       end if;
 
+      -- Outputs
       sAxisSlave     <= v.ibSlave;
       axisSlavePipe  <= pipeAxisSlave;
       pipeAxisMaster <= r.obMaster;
 
+      -- Reset
+      if (RST_ASYNC_G = false and axisRst = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      -- Register the variable for next clock cycle
       rin <= v;
 
    end process comb;
@@ -145,12 +155,8 @@ begin
    begin
       if (RST_ASYNC_G) and (axisRst = '1') then
          r <= REG_INIT_C after TPD_G;
-      elsif (rising_edge(axisClk)) then
-         if (RST_ASYNC_G = false) and (axisRst = '1') then
-            r <= REG_INIT_C after TPD_G;
-         else
-            r <= rin after TPD_G;
-         end if;
+      elsif rising_edge(axisClk) then
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
@@ -159,16 +165,13 @@ begin
       generic map (
          TPD_G         => TPD_G,
          RST_ASYNC_G   => RST_ASYNC_G,
-         -- SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
          sAxisMaster => pipeAxisMaster,
-         -- sSideBand   => pipeSideBand,
          sAxisSlave  => pipeAxisSlave,
          mAxisMaster => mAxisMaster,
-         -- mSideBand   => mSideBand,
          mAxisSlave  => mAxisSlave);
 
 end architecture rtl;
