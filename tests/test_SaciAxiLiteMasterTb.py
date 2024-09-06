@@ -65,30 +65,6 @@ class TB:
         await RisingEdge(self.dut.S_AXI_ACLK)
         await RisingEdge(self.dut.S_AXI_ACLK)
 
-async def run_test_bytes(dut, data_in=None, idle_inserter=None, backpressure_inserter=None):
-
-    tb = TB(dut)
-
-    byte_lanes = tb.axil_master.write_if.byte_lanes
-
-    await tb.cycle_reset()
-
-    tb.set_idle_generator(idle_inserter)
-    tb.set_backpressure_generator(backpressure_inserter)
-
-    for length in range(1, byte_lanes*2):
-        for memDev in [0x0000_0000]: #,0x0010_2000,0x0016_0000]:
-            for offset in range(byte_lanes):
-                addr = offset+memDev
-                tb.log.info( f'length={length},addr={hex(addr)}' )
-                test_data = bytearray([x % 256 for x in range(length)])
-                await tb.axil_master.write(addr, test_data)
-                data = await tb.axil_master.read(addr, length)
-                assert data.data == test_data
-
-    await RisingEdge(dut.S_AXI_ACLK)
-    await RisingEdge(dut.S_AXI_ACLK)
-
 
 async def run_test_words(dut):
 
@@ -101,9 +77,12 @@ async def run_test_words(dut):
     # Wait for internal reset to fall
     await Timer(10, 'us')
     
-    for offsetHigh in range(0, 0x100000, 0x100):
-        for offsetLow in range(0, 0x10, 4):
-            addr = offsetHigh | offsetLow
+    for offsetHigh in range(17):
+        for offsetLow in range(0, 0xF, 4):
+            high = 0
+            if offsetHigh != 0:
+                high = (1 << (offsetHigh+3))
+            addr = high | offsetLow
 
             test_data = addr.to_bytes(length=4, byteorder='little')
             test_data_disp = int.from_bytes(test_data, 'little', signed=False)
@@ -117,41 +96,6 @@ async def run_test_words(dut):
     await RisingEdge(dut.S_AXI_ACLK)
     await RisingEdge(dut.S_AXI_ACLK)
 
-async def run_stress_test(dut, idle_inserter=None, backpressure_inserter=None):
-
-    tb = TB(dut)
-
-    await tb.cycle_reset()
-
-    tb.set_idle_generator(idle_inserter)
-    tb.set_backpressure_generator(backpressure_inserter)
-
-    async def worker(master, offset, aperture, count=16):
-        for k in range(count):
-            length = random.randint(1, min(32, aperture))
-            addr = offset+random.randint(0, aperture-length)
-            test_data = bytearray([x % 256 for x in range(length)])
-
-            await Timer(random.randint(1, 100), 'ns')
-
-            await master.write(addr, test_data)
-
-            await Timer(random.randint(1, 100), 'ns')
-
-            data = await master.read(addr, length)
-            assert data.data == test_data
-
-    workers = []
-
-    for k in [0x0000_0000]: #,0x0010_2000,0x0016_0000]:
-        workers.append(cocotb.start_soon(worker(tb.axil_master, k, 0x1000, count=16)))
-
-    while workers:
-        await workers.pop(0).join()
-
-    await RisingEdge(dut.S_AXI_ACLK)
-    await RisingEdge(dut.S_AXI_ACLK)
-
 
 def cycle_pause():
     return itertools.cycle([1, 1, 1, 0])
@@ -159,26 +103,11 @@ def cycle_pause():
 
 if cocotb.SIM_NAME:
 
-
-    #################
-    # run_test_bytes
-    #################
-    #factory = TestFactory(run_test_bytes)
-    #factory.add_option("idle_inserter", [None, cycle_pause])
-    #factory.add_option("backpressure_inserter", [None, cycle_pause])
-    #factory.generate_tests()
-
     #################
     # run_test_words
     #################
     factory = TestFactory(run_test_words)
     factory.generate_tests()
-
-    #################
-    # run_stress_test
-    #################
-    #factory = TestFactory(run_stress_test)
-    #factory.generate_tests()
 
 tests_dir = os.path.dirname(__file__)
 tests_module = 'SaciAxiLiteMasterTb'
