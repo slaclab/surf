@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Block to resize AXI Streams. Re-sizing is always little endian.
+-- Block to resize AXI Streams
 -- Resizer should not be used when interleaving tDests
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -26,11 +26,13 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamResize is
    generic (
       -- General Configurations
-      TPD_G             : time     := 1 ns;
-      RST_ASYNC_G       : boolean  := false;
-      READY_EN_G        : boolean  := true;
-      PIPE_STAGES_G     : natural  := 0;
-      SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
+      TPD_G                 : time     := 1 ns;
+      RST_ASYNC_G           : boolean  := false;
+      READY_EN_G            : boolean  := true;
+      PIPE_STAGES_G         : natural  := 0;
+      SIDE_BAND_WIDTH_G     : positive := 1;  -- General purpose sideband
+      SLAVE_LITTLE_ENDIAN_G : boolean  := true;  -- True if SLAVE port is little endian else FALSE (big endian)
+      SWAP_ENDIAN_G         : boolean  := false; -- Swap the endianness from SLAVE to MASTER port
 
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
@@ -158,10 +160,31 @@ begin
                v.obMaster.tStrb := (others => '0');
             end if;
 
-            v.obMaster.tData((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ibM.tData((SLV_BYTES_C*8)-1 downto 0);
-            v.obMaster.tUser((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ibM.tUser((SLV_BYTES_C*8)-1 downto 0);
-            v.obMaster.tStrb((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := ibM.tStrb(SLV_BYTES_C-1 downto 0);
-            v.obMaster.tKeep((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := ibM.tKeep(SLV_BYTES_C-1 downto 0);
+           if SWAP_ENDIAN_G then
+             if SLAVE_LITTLE_ENDIAN_G then
+               v.obMaster.tData((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := endianSwap(ibM.tData((SLV_BYTES_C*8)-1 downto 0));
+               v.obMaster.tUser((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := endianSwap(ibM.tUser((SLV_BYTES_C*8)-1 downto 0));
+               v.obMaster.tStrb((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := bitReverse(ibM.tStrb(SLV_BYTES_C-1 downto 0));
+               v.obMaster.tKeep((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := bitReverse(ibM.tKeep(SLV_BYTES_C-1 downto 0));
+             else
+               v.obMaster.tData((SLV_BYTES_C*8*idx_resize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx_resize)) := endianSwap(ibM.tData((SLV_BYTES_C*8)-1 downto 0));
+               v.obMaster.tUser((SLV_BYTES_C*8*idx_resize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx_resize)) := endianSwap(ibM.tUser((SLV_BYTES_C*8)-1 downto 0));
+               v.obMaster.tStrb((SLV_BYTES_C*idx_resize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx_resize))         := bitReverse(ibM.tStrb(SLV_BYTES_C-1 downto 0));
+               v.obMaster.tKeep((SLV_BYTES_C*idx_resize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx_resize))         := bitReverse(ibM.tKeep(SLV_BYTES_C-1 downto 0));
+             end if;
+           else
+             if SLAVE_LITTLE_ENDIAN_G then
+               v.obMaster.tData((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ibM.tData((SLV_BYTES_C*8)-1 downto 0);
+               v.obMaster.tUser((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ibM.tUser((SLV_BYTES_C*8)-1 downto 0);
+               v.obMaster.tStrb((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := ibM.tStrb(SLV_BYTES_C-1 downto 0);
+               v.obMaster.tKeep((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := ibM.tKeep(SLV_BYTES_C-1 downto 0);
+             else
+               v.obMaster.tData((SLV_BYTES_C*8*idx_resize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx_resize)) := ibM.tData((SLV_BYTES_C*8)-1 downto 0);
+               v.obMaster.tUser((SLV_BYTES_C*8*idx_resize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx_resize)) := ibM.tUser((SLV_BYTES_C*8)-1 downto 0);
+               v.obMaster.tStrb((SLV_BYTES_C*idx_resize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx_resize))         := ibM.tStrb(SLV_BYTES_C-1 downto 0);
+               v.obMaster.tKeep((SLV_BYTES_C*idx_resize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx_resize))         := ibM.tKeep(SLV_BYTES_C-1 downto 0);
+             end if;
+           end if;
 
             v.obMaster.tId   := ibM.tId;
             v.obMaster.tDest := ibM.tDest;
@@ -183,10 +206,31 @@ begin
 
             v.obMaster := axiStreamMasterInit(MASTER_AXI_CONFIG_G);
 
-            v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ibM.tData((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx));
-            v.obMaster.tUser((MST_BYTES_C*8)-1 downto 0) := ibM.tUser((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx));
-            v.obMaster.tStrb(MST_BYTES_C-1 downto 0)     := ibM.tStrb((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx));
-            v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ibM.tKeep((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx));
+           if SWAP_ENDIAN_G then
+             if SLAVE_LITTLE_ENDIAN_G then
+               v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := endianSwap(ibM.tData((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx)));
+               v.obMaster.tUser((MST_BYTES_C*8)-1 downto 0) := endianSwap(ibM.tUser((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx)));
+               v.obMaster.tStrb(MST_BYTES_C-1 downto 0)     := bitReverse(ibM.tStrb((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx)));
+               v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := bitReverse(ibM.tKeep((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx)));
+             else
+               v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := endianSwap(ibM.tData((MST_BYTES_C*8*idx_resize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx_resize)));
+               v.obMaster.tUser((MST_BYTES_C*8)-1 downto 0) := endianSwap(ibM.tUser((MST_BYTES_C*8*idx_resize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx_resize)));
+               v.obMaster.tStrb(MST_BYTES_C-1 downto 0)     := bitReverse(ibM.tStrb((MST_BYTES_C*idx_resize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx_resize)));
+               v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := bitReverse(ibM.tKeep((MST_BYTES_C*idx_resize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx_resize)));
+             end if;
+           else
+             if SLAVE_LITTLE_ENDIAN_G then
+               v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ibM.tData((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx));
+               v.obMaster.tUser((MST_BYTES_C*8)-1 downto 0) := ibM.tUser((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx));
+               v.obMaster.tStrb(MST_BYTES_C-1 downto 0)     := ibM.tStrb((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx));
+               v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ibM.tKeep((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx));
+             else
+               v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ibM.tData((MST_BYTES_C*8*idx_resize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx_resize));
+               v.obMaster.tUser((MST_BYTES_C*8)-1 downto 0) := ibM.tUser((MST_BYTES_C*8*idx_resize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx_resize));
+               v.obMaster.tStrb(MST_BYTES_C-1 downto 0)     := ibM.tStrb((MST_BYTES_C*idx_resize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx_resize));
+               v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ibM.tKeep((MST_BYTES_C*idx_resize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx_resize));
+             end if;
+           end if;
 
             v.obMaster.tId   := ibM.tId;
             v.obMaster.tDest := ibM.tDest;
