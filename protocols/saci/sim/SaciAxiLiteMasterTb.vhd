@@ -112,83 +112,6 @@ begin
          axilWriteMaster => fpgaAxilWriteMaster,
          axilWriteSlave  => fpgaAxilWriteSlave);
 
---    U_ClkRst_2 : entity surf.ClkRst
---       generic map (
---          CLK_PERIOD_G => 8.0 ns,
---          CLK_DELAY_G  => 3.2 ns)
---       port map (
---          clkP => fpgaAxilClk,           -- [out]
---          rst  => fpgaAxilRst);          -- [out]
-
---    process is
---       variable wrData : slv(31 downto 0);      
---       variable rdData : slv(31 downto 0);
---    begin
---       wait for 10 us;
---       wait until fpgaAxilClk = '1';
---       wait until fpgaAxilClk = '1';
---       wait until fpgaAxilClk = '1';
-
---       wrData := X"12345678";
---       axiLiteBusSimWrite(
---          fpgaAxilClk,
---          fpgaAxilWriteMaster,
---          fpgaAxilWriteSlave,
---          X"00000000",
---          wrData);
-
---       axiLiteBusSimRead(
---          fpgaAxilClk,
---          fpgaAxilReadMaster,
---          fpgaAxilReadSlave,
---          X"00000000",
---          rdData);
-
---       assert (wrData = rdData) report "Data Mismatch" severity error;
-
---       wrData := X"9abcdef0";
---       axiLiteBusSimWrite(
---          fpgaAxilClk,
---          fpgaAxilWriteMaster,
---          fpgaAxilWriteSlave,
---          X"00000004",
---          wrData);
-
---       axiLiteBusSimRead(
---          fpgaAxilClk,
---          fpgaAxilReadMaster,
---          fpgaAxilReadSlave,
---          X"00000004",
---          rdData);
-
---       assert (wrData = rdData) report "Data Mismatch" severity error;
-
-
---       wrData := X"deadbeef";
---       axiLiteBusSimWrite(
---          fpgaAxilClk,
---          fpgaAxilWriteMaster,
---          fpgaAxilWriteSlave,
---          X"00100008",
---          wrData);
-
---       axiLiteBusSimRead(
---          fpgaAxilClk,
---          fpgaAxilReadMaster,
---          fpgaAxilReadSlave,
---          X"00100008",
---          rdData);
-
---       assert (wrData = rdData) report "Data Mismatch" severity error;
-      
-      
-
---       wait until fpgaAxilClk = '1';
---       wait;
-         
---    end process;
-
-
    -------------------------------------------------------------------------------------------------
    -- FPGA Side
    -------------------------------------------------------------------------------------------------
@@ -197,7 +120,7 @@ begin
          TPD_G              => 1 ns,
          AXIL_CLK_PERIOD_G  => 8.0e-9,
          AXIL_TIMEOUT_G     => 1.0e-3,
-         SACI_CLK_PERIOD_G  => 1.0e-6,
+         SACI_CLK_PERIOD_G  => 0.1e-7,
          SACI_CLK_FREERUN_G => false,
          SACI_NUM_CHIPS_G   => 1,
          SACI_RSP_BUSSED_G  => false)

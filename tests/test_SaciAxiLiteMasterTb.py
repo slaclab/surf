@@ -98,18 +98,21 @@ async def run_test_words(dut):
 
     await tb.cycle_reset()
 
-    for offset in range(4, 8, 4):
-        addr = offset
-        tb.log.info( f'addr={hex(addr)}' )
+    # Wait for internal reset to fall
+    await Timer(10, 'us')
+    
+    for offsetHigh in range(0, 0x100000, 0x100):
+        for offsetLow in range(0, 0x10, 4):
+            addr = offsetHigh | offsetLow
 
-        test_data = addr.to_bytes(length=4, byteorder='little')
-        test_data_disp = int.from_bytes(test_data, 'little', signed=False)
-        event = tb.axil_master.init_write(addr, test_data)
-        await event.wait()
-        event = tb.axil_master.init_read(addr, 4)
-        await event.wait()
-        assert event.data.data == test_data
-        tb.log.info( f'wr_data={test_data}, rd_data={event.data.data}')
+            test_data = addr.to_bytes(length=4, byteorder='little')
+            test_data_disp = int.from_bytes(test_data, 'little', signed=False)
+            event = tb.axil_master.init_write(addr, test_data)
+            await event.wait()
+            event = tb.axil_master.init_read(addr, 4)
+            await event.wait()
+            assert event.data.data == test_data
+            tb.log.info( f'addr={hex(addr)}, wr_data={test_data}, rd_data={event.data.data}')
 
     await RisingEdge(dut.S_AXI_ACLK)
     await RisingEdge(dut.S_AXI_ACLK)
@@ -155,6 +158,7 @@ def cycle_pause():
 
 
 if cocotb.SIM_NAME:
+
 
     #################
     # run_test_bytes
