@@ -24,7 +24,7 @@ use surf.AxiLitePkg.all;
 entity SaciAxiLiteMasterTbWrapper is
 end SaciAxiLiteMasterTbWrapper;
 
-architecture mapping of SaciAxiLiteMasterTb is
+architecture mapping of SaciAxiLiteMasterTbWrapper is
 
    signal axilClk  : sl;
    signal axilRstL : sl;
