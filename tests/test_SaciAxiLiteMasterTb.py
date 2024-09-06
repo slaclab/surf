@@ -76,7 +76,7 @@ async def run_test_words(dut):
 
     # Wait for internal reset to fall
     await Timer(10, 'us')
-    
+
     for offsetHigh in range(17):
         for offsetLow in range(0, 0xF, 4):
             high = 0
