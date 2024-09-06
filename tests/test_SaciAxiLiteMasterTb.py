@@ -85,13 +85,11 @@ async def run_test_words(dut):
             addr = high | offsetLow
 
             test_data = addr.to_bytes(length=4, byteorder='little')
-            test_data_disp = int.from_bytes(test_data, 'little', signed=False)
             event = tb.axil_master.init_write(addr, test_data)
             await event.wait()
             event = tb.axil_master.init_read(addr, 4)
             await event.wait()
             assert event.data.data == test_data
-            tb.log.info( f'addr={hex(addr)}, wr_data={test_data}, rd_data={event.data.data}')
 
     await RisingEdge(dut.S_AXI_ACLK)
     await RisingEdge(dut.S_AXI_ACLK)
