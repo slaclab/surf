@@ -156,5 +156,5 @@ def test_SaciAxiLiteMasterTb(parameters):
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
         ########################################################################
-        sim_args =[f'--wave={tests_module}.ghw'],
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )
