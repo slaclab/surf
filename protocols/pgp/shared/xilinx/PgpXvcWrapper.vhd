@@ -76,6 +76,7 @@ begin
       U_VC_RX : entity surf.PgpRxVcFifo
          generic map (
             TPD_G            => TPD_G,
+            VALID_THOLD_G    => 0,      -- 0 = only when frame ready
             PHY_AXI_CONFIG_G => PHY_AXI_CONFIG_G,
             APP_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
          port map (

@@ -206,7 +206,7 @@ class AxiStreamDmaFifo(pr.Device):
             mode         = 'RO',
             disp         = '0x{:0x}',
             dependencies = [self.AXI_BUFFER_WIDTH_G,self.MAX_FRAME_WIDTH_G],
-            linkedGet    = lambda: 2**( int(self.AXI_BUFFER_WIDTH_G.value()) - int(self.MAX_FRAME_WIDTH_G.value()) )
+            linkedGet    = lambda read: 2**( int(self.AXI_BUFFER_WIDTH_G.get(read=read)) - int(self.MAX_FRAME_WIDTH_G.get(read=read)) )
         ))
 
         self.add(pr.RemoteVariable(

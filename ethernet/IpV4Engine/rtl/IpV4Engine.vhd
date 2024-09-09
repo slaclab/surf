@@ -29,8 +29,7 @@ entity IpV4Engine is
       CLK_FREQ_G      : real            := 156.25E+06;    -- In units of Hz
       TTL_G           : slv(7 downto 0) := x"20";
       IGMP_G          : boolean         := false;
-      IGMP_GRP_SIZE   : positive        := 1;
-      VLAN_G          : boolean         := false);  -- true = VLAN support
+      IGMP_GRP_SIZE   : positive        := 1);
    port (
       -- Local Configurations
       localMac          : in  slv(47 downto 0);   --  big-Endian configuration
@@ -97,8 +96,7 @@ begin
 
    U_EthFrameDeMux : entity surf.IpV4EngineDeMux
       generic map (
-         TPD_G  => TPD_G,
-         VLAN_G => VLAN_G)
+         TPD_G => TPD_G)
       port map (
          -- Local Configurations
          localMac     => localMac,
@@ -135,8 +133,7 @@ begin
       generic map (
          TPD_G         => TPD_G,
          CLIENT_SIZE_G => CLIENT_SIZE_G,
-         CLK_FREQ_G    => CLK_FREQ_G,
-         VLAN_G        => VLAN_G)
+         CLK_FREQ_G    => CLK_FREQ_G)
       port map (
          -- Local Configurations
          localMac      => localMac,
@@ -159,8 +156,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          PROTOCOL_SIZE_G => PROTOCOL_SIZE_C,
-         PROTOCOL_G      => PROTOCOL_C,
-         VLAN_G          => VLAN_G)
+         PROTOCOL_G      => PROTOCOL_C)
       port map (
          -- Interface to Ethernet Frame MUX/DEMUX
          ibIpv4Master      => ibIpv4Master,
@@ -179,8 +175,7 @@ begin
          TPD_G           => TPD_G,
          PROTOCOL_SIZE_G => PROTOCOL_SIZE_C,
          PROTOCOL_G      => PROTOCOL_C,
-         TTL_G           => TTL_G,
-         VLAN_G          => VLAN_G)
+         TTL_G           => TTL_G)
       port map (
          -- Local Configurations
          localMac          => localMac,

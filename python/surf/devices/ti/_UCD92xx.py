@@ -107,9 +107,9 @@ class UCD92xx(surf.protocols.i2c.PMBus):
         ))
 
     @staticmethod
-    def getPMbusLinearDataFormat11Bit(var):
+    def getPMbusLinearDataFormat11Bit(var, read):
         # Get the 16-bt RAW value
-        raw = var.dependencies[0].value()
+        raw = var.dependencies[0].get(read=read)
 
         # V is a 16-bit unsigned binary integer mantissa,
         V  = 1.0*raw

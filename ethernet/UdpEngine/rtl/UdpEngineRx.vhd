@@ -263,6 +263,10 @@ begin
                v.byteCnt(7 downto 0)  := rxMaster.tData(79 downto 72);
                -- Remove the 8 byte UDP header
                v.byteCnt              := v.byteCnt - 8;
+               -- Remove the RoCEv2 iCRC
+               if rxMaster.tData(63 downto 48) = x"B712" then
+                 v.byteCnt := v.byteCnt - 4;
+               end if;
                -- Track the leftovers
                v.tData(31 downto 0)   := rxMaster.tData(127 downto 96);
                -- Set the flag

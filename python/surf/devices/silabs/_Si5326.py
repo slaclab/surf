@@ -32,6 +32,7 @@ class Si5326(pr.Device):
             hidden       = True,
             base         = pr.UInt,
             mode         = "RW",
+            groups       = ['NoStream','NoState','NoConfig'], # Not saving config/state to YAML
         ))
 
         self.add(pr.LocalVariable(
@@ -1200,7 +1201,7 @@ class Si5326(pr.Device):
             description  = 'Inverse of LOL',
             mode         = 'RO',
             dependencies = [self.LOL_INT],
-            linkedGet    = lambda: (False if self.LOL_INT.value() else True)
+            linkedGet    = lambda read: (False if self.LOL_INT.get(read=read) else True)
         ))
 
     def _setValue(self,offset,data):

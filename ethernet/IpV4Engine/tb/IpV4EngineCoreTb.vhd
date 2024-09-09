@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -31,8 +30,6 @@ entity IpV4EngineCoreTb is
       LOCAL_IP_G   : slv(31 downto 0);
       REMOTE_MAC_G : slv(47 downto 0);
       REMOTE_IP_G  : slv(31 downto 0);
-      VLAN_G       : boolean;
-      VID_G        : slv(15 downto 0);
       MAX_CNT_G    : natural;
       UDP_LEN_G    : natural);
    port (
@@ -115,7 +112,8 @@ architecture rtl of IpV4EngineCoreTb is
 
 begin
 
-   comb : process (arpAckMaster, arpReqSlave, ibProtocolMaster, obProtocolSlave, r, rst) is
+   comb : process (arpAckMaster, arpReqSlave, ibProtocolMaster,
+                   obProtocolSlave, r, rst) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -188,15 +186,15 @@ begin
                   v.txCnt                                 := r.txCnt + 1;
                   ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.obProtocolMaster, '1');
                   v.obProtocolMaster.tdata(47 downto 0)   := r.remoteMac;  -- Remote IP address
-                  v.obProtocolMaster.tdata(63 downto 48)  := VID_G;        -- VLAN's ID
-                  v.obProtocolMaster.tdata(95 downto 64)  := LOCAL_IP_G;   -- Source IPv4 Address
+                  v.obProtocolMaster.tdata(63 downto 48)  := (others => '0');
+                  v.obProtocolMaster.tdata(95 downto 64)  := LOCAL_IP_G;  -- Source IPv4 Address
                   v.obProtocolMaster.tdata(127 downto 96) := REMOTE_IP_G;  -- Destination IPv4 Address
                elsif r.txCnt = 1 then
                   v.txCnt                                 := r.txCnt + 1;
-                  v.obProtocolMaster.tdata(7 downto 0)    := x"00";        -- Zeros
-                  v.obProtocolMaster.tdata(15 downto 8)   := UDP_C;        -- Protocol
+                  v.obProtocolMaster.tdata(7 downto 0)    := x"00";  -- Zeros
+                  v.obProtocolMaster.tdata(15 downto 8)   := UDP_C;  -- Protocol
                   v.obProtocolMaster.tdata(23 downto 16)  := r.len(15 downto 8);  -- Datagram Length
-                  v.obProtocolMaster.tdata(31 downto 24)  := r.len(7 downto 0);   -- Datagram Length
+                  v.obProtocolMaster.tdata(31 downto 24)  := r.len(7 downto 0);  -- Datagram Length
                   v.obProtocolMaster.tdata(127 downto 32) := (others => '0');
                else
                   -- Send data
@@ -244,7 +242,7 @@ begin
                   v.rxCnt := r.rxCnt + 1;
                   -- Check for errors
                   if (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibProtocolMaster) = '0')
-                     or (ibProtocolMaster.tdata(47 downto 0) /= r.remoteMac)   -- Remote IP address
+                     or (ibProtocolMaster.tdata(47 downto 0) /= r.remoteMac)  -- Remote IP address
                      or (ibProtocolMaster.tdata(95 downto 64) /= REMOTE_IP_G)  -- Source IPv4 Address
                      or (ibProtocolMaster.tdata(127 downto 96) /= LOCAL_IP_G) then  -- Destination IPv4 Address
                      v.failed(1) := '1';
@@ -253,7 +251,7 @@ begin
                   -- Increment the counter
                   v.rxCnt := r.rxCnt + 1;
                   -- Check for errors
-                  if (ibProtocolMaster.tdata(7 downto 0) /= x"00")         -- Zeros
+                  if (ibProtocolMaster.tdata(7 downto 0) /= x"00")   -- Zeros
                                     or (ibProtocolMaster.tdata(15 downto 8) /= UDP_C)  -- Protocol
                                     or (ibProtocolMaster.tdata(23 downto 16) /= r.len(15 downto 8))  -- Datagram Length
                                     or (ibProtocolMaster.tdata(31 downto 24) /= r.len(7 downto 0)) then  -- Datagram Length
