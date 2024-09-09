@@ -9,4 +9,5 @@
 ##############################################################################
 from surf.devices.linear._Ltc2270 import *
 from surf.devices.linear._Ltc2945 import *
+from surf.devices.linear._Ltc3815 import *
 from surf.devices.linear._Ltc4151 import *

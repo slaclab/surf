@@ -105,7 +105,7 @@ class Si5345Lite(pr.Device):
             description  = 'Inverse of LOL',
             mode         = 'RO',
             dependencies = [self.Page0.LOL],
-            linkedGet    = lambda: (False if self.Page0.LOL.value() else True)
+            linkedGet    = lambda read: (False if self.Page0.LOL.get(read=read) else True)
         ))
 
     def _setValue(self,offset,data):

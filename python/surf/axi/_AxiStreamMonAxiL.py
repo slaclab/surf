@@ -155,8 +155,8 @@ class AxiStreamMonChannel(pr.Device):
         ))
 
     @staticmethod
-    def convMbps(var):
-        return var.dependencies[0].value() * 8e-6
+    def convMbps(var, read):
+        return var.dependencies[0].get(read=read) * 8e-6
 
 class AxiStreamMonAxiL(pr.Device):
     def __init__(self, numberLanes=1, hideConfig=True, chName=None, **kwargs):
