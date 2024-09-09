@@ -68,6 +68,7 @@ entity Pgp2fcLane is
       pgpRxClkEn  : in sl := '1';
       pgpRxClk    : in sl := '0';
       pgpRxClkRst : in sl := '0';
+      pgpRxPhyRst : in sl := '0';
 
       -- Non-VC related IO
       pgpRxIn  : in  Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
@@ -152,6 +153,7 @@ begin
                pgpRxClkEn    => pgpRxClkEn,
                pgpRxClk      => pgpRxClk,
                pgpRxClkRst   => pgpRxClkRst,
+               pgpRxPhyRst   => pgpRxPhyRst,
                pgpRxIn       => pgpRxIn,
                pgpRxOut      => intRxOut,
                pgpRxMaster   => intRxMaster,

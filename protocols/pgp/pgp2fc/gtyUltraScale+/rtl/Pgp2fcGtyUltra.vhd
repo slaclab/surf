@@ -115,7 +115,6 @@ architecture mapping of Pgp2fcGtyUltra is
 begin
 
    pgpTxResetDone <= phyTxReady;
-   pgpRxResetDone <= phyRxReady;
 
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
@@ -126,8 +125,7 @@ begin
          clk    => stableClk,                                -- [in]
          rstOut => resetGtSync);                             -- [out]
 
-   --gtHardReset <= resetGtSync or stableRst;
-   gtHardReset <= stableRst;   
+   gtHardReset <= resetGtSync or stableRst;
 
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
@@ -178,6 +176,7 @@ begin
          phyTxReady       => phyTxReady,
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => pgpRxReset,
+         pgpRxPhyRst      => gtRxUserReset,
          pgpRxIn          => pgpRxIn,
          pgpRxOut         => pgpRxOut,
          pgpRxMasters     => pgpRxMasters,
@@ -207,9 +206,10 @@ begin
          gtRxN           => pgpGtRxN,
          gtTxP           => pgpGtTxP,
          gtTxN           => pgpGtTxN,
+         phyRxReady      => phyRxReady,
          rxReset         => gtRxUserReset,
          rxUsrClkActive  => pgpRxMmcmLocked,
-         rxResetDone     => phyRxReady,
+         rxResetDone     => pgpRxResetDone,
          rxPmaResetDone  => pgpRxPmaResetDone,
          rxUsrClk        => pgpRxClk,
          rxData          => phyRxLaneIn.data,
