@@ -89,6 +89,7 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'FpgaReloadHalt',
             description  = 'Used to halt automatic reloads via AxiVersion',
+            groups       = ['NoConfig'],
             offset       = 0x100,
             bitSize      = 1,
             bitOffset    = 0x00,
@@ -129,6 +130,7 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'UserReset',
             description  = 'Optional User Reset',
+            groups       = ['NoConfig'],
             hidden       = True,
             offset       = 0x10C,
             bitSize      = 1,
