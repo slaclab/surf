@@ -12,12 +12,12 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 -- use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
+
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -81,7 +81,6 @@ architecture rtl of AxiStreamCompact is
    constant MST_BYTES_C : positive := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
 
    type RegType is record
-      -- count            : slv(bitSize(MST_BYTES_C)-1 downto 0);
       count       : natural;
       obMaster    : AxiStreamMasterType;
       ibSlave     : AxiStreamSlaveType;
@@ -92,7 +91,6 @@ architecture rtl of AxiStreamCompact is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      -- count            => (others => '0'),
       count       => 0,
       obMaster    => axiStreamMasterInit(MASTER_AXI_CONFIG_G),
       ibSlave     => AXI_STREAM_SLAVE_INIT_C,
@@ -128,7 +126,6 @@ begin  -- architecture rtl
 
       -- Init ready
       v.ibSlave.tReady := '0';
-      v.fullBus        := false;
       v.tLastDet       := false;
       v.tLastOnNext    := false;
 
@@ -146,6 +143,9 @@ begin  -- architecture rtl
          -- Input data is valid
          if sAxisMaster.tValid = '1' then
 
+            -- Reset full flags
+            v.fullBus := false;
+
             -- get tKeet boundaries
             tKeepMin   := getTKeepMin(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G);
             tKeepWidth := getTKeep(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G);
@@ -160,7 +160,6 @@ begin  -- architecture rtl
             end if;
             -- -- tLast
             v.tLastDet := false;
-            -- v.tLastDet := r.tLastOnNext;
             if sAxisMaster.tLast = '1' then
                v.tLastDet := true;
                if tKeepWidth + r.count > MST_BYTES_C then
@@ -188,35 +187,35 @@ begin  -- architecture rtl
             -- Update counter
             v.count := r.count + tKeepWidth;
 
+            -- Bus is full
+            if v.fullBus or v.tLastDet or r.tLastOnNext then
+               -- Set tValid
+               v.obMaster.tValid := '1';
+               -- Update bit counter and shift data
+               if v.fullBus then
+                  v.count := r.count + tKeepWidth - MST_BYTES_C;
+               else
+                  v.count := 0;
+               end if;
+               -- Set tLast
+               if v.tLastDet and not v.tLastOnNext then
+                  v.obMaster.tLast := '1';
+               else
+                  v.obMaster.tLast := '0';
+               end if;
+               -- Set tData in case of forced tLast
+               if r.tLastOnNext then
+                  v.obMaster.tData := std_logic_vector(shift_right(unsigned(r.obMaster.tData), MST_BYTES_C*8));
+                  v.obMaster.tKeep := std_logic_vector(shift_right(unsigned(r.obMaster.tKeep), MST_BYTES_C));
+                  v.obMaster.tLast := '1';
+               end if;
+               v.tUserSet := false;
+            end if;
+
          end if;
       end if;
 
-      -- Bus is full
-      if v.fullBus or v.tLastDet or r.tLastOnNext then
-         -- Set tValid
-         v.obMaster.tValid := '1';
-         -- Update bit counter and shift data
-         if v.fullBus then
-            v.count := r.count + tKeepWidth - MST_BYTES_C;
-         else
-            v.count := 0;
-         end if;
-         -- Set tLast
-         if v.tLastDet and not v.tLastOnNext then
-            v.obMaster.tLast := '1';
-         else
-            v.obMaster.tLast := '0';
-         end if;
-         -- Set tData in case of forced tLast
-         if r.tLastOnNext then
-            v.obMaster.tData := std_logic_vector(shift_right(unsigned(r.obMaster.tData), MST_BYTES_C*8));
-            v.obMaster.tKeep := std_logic_vector(shift_right(unsigned(r.obMaster.tKeep), MST_BYTES_C));
-            v.obMaster.tLast := '1';
-         end if;
-         v.tUserSet := false;
-      end if;
 
-      -- Outputs
       sAxisSlave                                                               <= v.ibSlave;
       pipeAxisMaster.tData(pipeAxisMaster.tData'length-1 downto MST_BYTES_C*8) <= (others => '0');
       pipeAxisMaster.tData((MST_BYTES_C*8)-1 downto 0)                         <= r.obMaster.tData((MST_BYTES_C*8)-1 downto 0);
@@ -233,6 +232,7 @@ begin  -- architecture rtl
 
       -- Register the variable for next clock cycle
       rin <= v;
+
 
    end process comb;
 
@@ -261,5 +261,6 @@ begin  -- architecture rtl
          mAxisMaster => mAxisMaster,
          -- mSideBand   => mSideBand,
          mAxisSlave  => mAxisSlave);
+
 
 end architecture rtl;
