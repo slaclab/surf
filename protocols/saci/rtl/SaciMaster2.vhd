@@ -105,6 +105,8 @@ architecture rtl of SaciMaster2 is
 
 begin
 
+   assert (SACI_CLK_HALF_PERIOD_C >= 2) report "SACI_CLK_PERIOD_G is too fast for SYS_CLK_PERIOD_G" severity failure;
+
    -------------------------------------------------------------------------------------------------
    -- Synchronize saciRsp to sysClk
    -------------------------------------------------------------------------------------------------

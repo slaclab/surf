@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -27,8 +26,7 @@ use surf.EthMacPkg.all;
 entity EthMacRxCsum is
    generic (
       TPD_G   : time    := 1 ns;
-      JUMBO_G : boolean := true;
-      VLAN_G  : boolean := false);
+      JUMBO_G : boolean := true);
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -193,19 +191,16 @@ begin
                v.mAxisMaster := sAxisMaster;
                -- Check for no EOF
                if (sAxisMaster.tLast = '0') then
-                  -- Check if NON-VLAN
-                  if (VLAN_G = false) then
-                     -- Check for EtherType = IPV4 = 0x0800
-                     if (sAxisMaster.tData(111 downto 96) = IPV4_TYPE_C) then
-                        -- Set the flag
-                        v.ipv4Det(0) := '1';
-                     end if;
-                     -- Fill in the IPv4 header checksum
-                     v.ipv4Hdr(0) := sAxisMaster.tData(119 downto 112);  -- IPVersion + Header length
-                     v.ipv4Hdr(1) := sAxisMaster.tData(127 downto 120);  -- DSCP and ECN
+                  -- Check for EtherType = IPV4 = 0x0800
+                  if (sAxisMaster.tData(111 downto 96) = IPV4_TYPE_C) then
+                     -- Set the flag
+                     v.ipv4Det(0) := '1';
                   end if;
+                  -- Fill in the IPv4 header checksum
+                  v.ipv4Hdr(0) := sAxisMaster.tData(119 downto 112);  -- IPVersion + Header length
+                  v.ipv4Hdr(1) := sAxisMaster.tData(127 downto 120);  -- DSCP and ECN
                   -- Next state
-                  v.state := IPV4_HDR0_S;
+                  v.state      := IPV4_HDR0_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -221,53 +216,27 @@ begin
                   -- Next state
                   v.state := IDLE_S;
                else
-                  -- Check if NON-VLAN
-                  if (VLAN_G = false) then
-                     -- Fill in the IPv4 header checksum
-                     v.ipv4Hdr(2)         := sAxisMaster.tData(7 downto 0);  -- IPV4_Length(15 downto 8)
-                     v.ipv4Hdr(3)         := sAxisMaster.tData(15 downto 8);  -- IPV4_Length(7 downto 0)
-                     v.ipv4Hdr(4)         := sAxisMaster.tData(23 downto 16);  -- IPV4_ID(15 downto 8)
-                     v.ipv4Hdr(5)         := sAxisMaster.tData(31 downto 24);  -- IPV4_ID(7 downto 0)
-                     v.ipv4Hdr(6)         := sAxisMaster.tData(39 downto 32);  -- Flags(2 downto 0) and Fragment Offsets(12 downto 8)
-                     v.ipv4Hdr(7)         := sAxisMaster.tData(47 downto 40);  -- Fragment Offsets(7 downto 0)
-                     v.ipv4Hdr(8)         := sAxisMaster.tData(55 downto 48);  -- Time-To-Live
-                     v.ipv4Hdr(9)         := sAxisMaster.tData(63 downto 56);  -- Protocol
-                     v.ipv4Hdr(10)        := sAxisMaster.tData(71 downto 64);  -- IPV4_Checksum(15 downto 8)
-                     v.ipv4Hdr(11)        := sAxisMaster.tData(79 downto 72);  -- IPV4_Checksum(7 downto 0)
-                     v.ipv4Hdr(12)        := sAxisMaster.tData(87 downto 80);  -- Source IP Address
-                     v.ipv4Hdr(13)        := sAxisMaster.tData(95 downto 88);  -- Source IP Address
-                     v.ipv4Hdr(14)        := sAxisMaster.tData(103 downto 96);  -- Source IP Address
-                     v.ipv4Hdr(15)        := sAxisMaster.tData(111 downto 104);  -- Source IP Address
-                     v.ipv4Hdr(16)        := sAxisMaster.tData(119 downto 112);  -- Destination IP Address
-                     v.ipv4Hdr(17)        := sAxisMaster.tData(127 downto 120);  -- Destination IP Address
-                     -- Fill in the TCP/UDP checksum
-                     v.tData(63 downto 0) := sAxisMaster.tData(127 downto 80) & sAxisMaster.tData(63 downto 56) & x"00";
-                     v.tKeep(7 downto 0)  := (others => '1');
-                  else
-                     -- Check for EtherType = IPV4 = 0x0800
-                     if (sAxisMaster.tData(15 downto 0) = IPV4_TYPE_C) then
-                        -- Set the flag
-                        v.ipv4Det(0) := '1';
-                     end if;
-                     -- Fill in the IPv4 header checksum
-                     v.ipv4Hdr(0)         := sAxisMaster.tData(23 downto 16);  -- IPVersion + Header length
-                     v.ipv4Hdr(1)         := sAxisMaster.tData(31 downto 24);  -- DSCP and ECN
-                     v.ipv4Hdr(2)         := sAxisMaster.tData(39 downto 32);  -- IPV4_Length(15 downto 8)
-                     v.ipv4Hdr(3)         := sAxisMaster.tData(47 downto 40);  -- IPV4_Length(7 downto 0)
-                     v.ipv4Hdr(4)         := sAxisMaster.tData(55 downto 48);  -- IPV4_ID(15 downto 8)
-                     v.ipv4Hdr(5)         := sAxisMaster.tData(63 downto 56);  -- IPV4_ID(7 downto 0)
-                     v.ipv4Hdr(6)         := sAxisMaster.tData(71 downto 64);  -- Flags(2 downto 0) and Fragment Offsets(12 downto 8)
-                     v.ipv4Hdr(7)         := sAxisMaster.tData(79 downto 72);  -- Fragment Offsets(7 downto 0)
-                     v.ipv4Hdr(8)         := sAxisMaster.tData(87 downto 80);  -- Time-To-Live
-                     v.ipv4Hdr(9)         := sAxisMaster.tData(95 downto 88);  -- Protocol
-                     v.ipv4Hdr(10)        := sAxisMaster.tData(103 downto 96);  -- IPV4_Checksum(15 downto 8)
-                     v.ipv4Hdr(11)        := sAxisMaster.tData(111 downto 104);  -- IPV4_Checksum(7 downto 0)
-                     v.ipv4Hdr(12)        := sAxisMaster.tData(119 downto 112);  -- Source IP Address
-                     v.ipv4Hdr(13)        := sAxisMaster.tData(127 downto 120);  -- Source IP Address
-                     -- Fill in the TCP/UDP checksum
-                     v.tData(31 downto 0) := sAxisMaster.tData(127 downto 112) & sAxisMaster.tData(95 downto 88) & x"00";
-                     v.tKeep(3 downto 0)  := (others => '1');
-                  end if;
+                  -- Fill in the IPv4 header checksum
+                  v.ipv4Hdr(2)         := sAxisMaster.tData(7 downto 0);  -- IPV4_Length(15 downto 8)
+                  v.ipv4Hdr(3)         := sAxisMaster.tData(15 downto 8);  -- IPV4_Length(7 downto 0)
+                  v.ipv4Hdr(4)         := sAxisMaster.tData(23 downto 16);  -- IPV4_ID(15 downto 8)
+                  v.ipv4Hdr(5)         := sAxisMaster.tData(31 downto 24);  -- IPV4_ID(7 downto 0)
+                  v.ipv4Hdr(6)         := sAxisMaster.tData(39 downto 32);  -- Flags(2 downto 0) and Fragment Offsets(12 downto 8)
+                  v.ipv4Hdr(7)         := sAxisMaster.tData(47 downto 40);  -- Fragment Offsets(7 downto 0)
+                  v.ipv4Hdr(8)         := sAxisMaster.tData(55 downto 48);  -- Time-To-Live
+                  v.ipv4Hdr(9)         := sAxisMaster.tData(63 downto 56);  -- Protocol
+                  v.ipv4Hdr(10)        := sAxisMaster.tData(71 downto 64);  -- IPV4_Checksum(15 downto 8)
+                  v.ipv4Hdr(11)        := sAxisMaster.tData(79 downto 72);  -- IPV4_Checksum(7 downto 0)
+                  v.ipv4Hdr(12)        := sAxisMaster.tData(87 downto 80);  -- Source IP Address
+                  v.ipv4Hdr(13)        := sAxisMaster.tData(95 downto 88);  -- Source IP Address
+                  v.ipv4Hdr(14)        := sAxisMaster.tData(103 downto 96);  -- Source IP Address
+                  v.ipv4Hdr(15)        := sAxisMaster.tData(111 downto 104);  -- Source IP Address
+                  v.ipv4Hdr(16)        := sAxisMaster.tData(119 downto 112);  -- Destination IP Address
+                  v.ipv4Hdr(17)        := sAxisMaster.tData(127 downto 120);  -- Destination IP Address
+                  -- Fill in the TCP/UDP checksum
+                  v.tData(63 downto 0) := sAxisMaster.tData(127 downto 80) & sAxisMaster.tData(63 downto 56) & x"00";
+                  v.tKeep(7 downto 0)  := (others => '1');
+
                   -- Latch the IPv4 length value
                   v.ipv4Len(0)(15 downto 8) := v.ipv4Hdr(2);
                   v.ipv4Len(0)(7 downto 0)  := v.ipv4Hdr(3);
@@ -297,46 +266,22 @@ begin
                -- Fill in the TCP/UDP checksum
                v.tKeep       := sAxisMaster.tKeep(15 downto 0);
                v.tData       := sAxisMaster.tData(127 downto 0);
-               -- Check if NON-VLAN
-               if (VLAN_G = false) then
-                  -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(18) := sAxisMaster.tData(7 downto 0);  -- Destination IP Address
-                  v.ipv4Hdr(19) := sAxisMaster.tData(15 downto 8);  -- Destination IP Address
-                  -- Check for UDP data with inbound checksum
-                  if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
-                     -- Mask off inbound UDP checksum
-                     v.tData                    := sAxisMaster.tData(127 downto 80) & x"0000" & sAxisMaster.tData(63 downto 0);
-                     -- Latch the inbound UDP checksum
-                     v.protCsum(0)(15 downto 8) := sAxisMaster.tData(71 downto 64);
-                     v.protCsum(0)(7 downto 0)  := sAxisMaster.tData(79 downto 72);
-                     -- Latch the inbound UDP length
-                     v.protLen(0)(15 downto 8)  := sAxisMaster.tData(55 downto 48);
-                     v.protLen(0)(7 downto 0)   := sAxisMaster.tData(63 downto 56);
-                  end if;
-                  -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) + 18;
-               else
-                  -- Fill in the IPv4 header checksum
-                  v.ipv4Hdr(14) := sAxisMaster.tData(7 downto 0);  -- Source IP Address
-                  v.ipv4Hdr(15) := sAxisMaster.tData(15 downto 8);  -- Source IP Address
-                  v.ipv4Hdr(16) := sAxisMaster.tData(23 downto 16);  -- Destination IP Address
-                  v.ipv4Hdr(17) := sAxisMaster.tData(31 downto 24);  -- Destination IP Address
-                  v.ipv4Hdr(18) := sAxisMaster.tData(39 downto 32);  -- Destination IP Address
-                  v.ipv4Hdr(19) := sAxisMaster.tData(47 downto 40);  -- Destination IP Address
-                  -- Check for UDP data with inbound checksum
-                  if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
-                     -- Mask off inbound UDP checksum
-                     v.tData                    := sAxisMaster.tData(127 downto 112) & x"0000" & sAxisMaster.tData(95 downto 0);
-                     -- Latch the inbound UDP checksum
-                     v.protCsum(0)(15 downto 8) := sAxisMaster.tData(103 downto 96);
-                     v.protCsum(0)(7 downto 0)  := sAxisMaster.tData(111 downto 104);
-                     -- Latch the inbound UDP length
-                     v.protLen(0)(15 downto 8)  := sAxisMaster.tData(87 downto 80);
-                     v.protLen(0)(7 downto 0)   := sAxisMaster.tData(95 downto 88);
-                  end if;
-                  -- Track the number of bytes (include IPv4 header offset from previous state)
-                  v.byteCnt := getTKeep(sAxisMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) + 14;
+               -- Fill in the IPv4 header checksum
+               v.ipv4Hdr(18) := sAxisMaster.tData(7 downto 0);  -- Destination IP Address
+               v.ipv4Hdr(19) := sAxisMaster.tData(15 downto 8);  -- Destination IP Address
+               -- Check for UDP data with inbound checksum
+               if (r.ipv4Det(0) = '1') and (r.udpDet(0) = '1') then
+                  -- Mask off inbound UDP checksum
+                  v.tData                    := sAxisMaster.tData(127 downto 80) & x"0000" & sAxisMaster.tData(63 downto 0);
+                  -- Latch the inbound UDP checksum
+                  v.protCsum(0)(15 downto 8) := sAxisMaster.tData(71 downto 64);
+                  v.protCsum(0)(7 downto 0)  := sAxisMaster.tData(79 downto 72);
+                  -- Latch the inbound UDP length
+                  v.protLen(0)(15 downto 8)  := sAxisMaster.tData(55 downto 48);
+                  v.protLen(0)(7 downto 0)   := sAxisMaster.tData(63 downto 56);
                end if;
+               -- Track the number of bytes (include IPv4 header offset from previous state)
+               v.byteCnt := getTKeep(sAxisMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) + 18;
                -- Check for EOF
                if (sAxisMaster.tLast = '1') then
                   -- Next state
@@ -358,23 +303,14 @@ begin
                -- Check for TCP data with inbound checksum
                if (r.ipv4Det(0) = '1') and (r.tcpDet(0) = '1') and (r.tcpFlag = '0') then
                   -- Set the flag
-                  v.tcpFlag    := '1';
+                  v.tcpFlag                  := '1';
                   -- Calculate TCP length from IPv4 length
-                  v.protLen(0) := r.ipv4Len(0) - 20;
-                  -- Check if NON-VLAN
-                  if (VLAN_G = false) then
-                     -- Mask off inbound TCP checksum
-                     v.tData                    := sAxisMaster.tData(127 downto 32) & x"0000" & sAxisMaster.tData(15 downto 0);
-                     -- Latch the inbound TCP checksum
-                     v.protCsum(0)(15 downto 8) := sAxisMaster.tData(23 downto 16);
-                     v.protCsum(0)(7 downto 0)  := sAxisMaster.tData(31 downto 24);
-                  else
-                     -- Mask off inbound TCP checksum
-                     v.tData                    := sAxisMaster.tData(127 downto 64) & x"0000" & sAxisMaster.tData(47 downto 0);
-                     -- Latch the inbound TCP checksum
-                     v.protCsum(0)(15 downto 8) := sAxisMaster.tData(55 downto 48);
-                     v.protCsum(0)(7 downto 0)  := sAxisMaster.tData(63 downto 56);
-                  end if;
+                  v.protLen(0)               := r.ipv4Len(0) - 20;
+                  -- Mask off inbound TCP checksum
+                  v.tData                    := sAxisMaster.tData(127 downto 32) & x"0000" & sAxisMaster.tData(15 downto 0);
+                  -- Latch the inbound TCP checksum
+                  v.protCsum(0)(15 downto 8) := sAxisMaster.tData(23 downto 16);
+                  v.protCsum(0)(7 downto 0)  := sAxisMaster.tData(31 downto 24);
                end if;
                -- Track the number of bytes
                v.byteCnt := r.byteCnt + getTKeep(sAxisMaster.tKeep, INT_EMAC_AXIS_CONFIG_C);
@@ -390,7 +326,7 @@ begin
                      v.state             := BLOWOFF_S;
                   else
                      -- Next state
-                     v.state := IDLE_S;
+                     v.state     := IDLE_S;
                      -- Flush the AXIS pipeline
                      v.pipeFlush := '1';
                   end if;
