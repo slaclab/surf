@@ -4,7 +4,6 @@ var classArpEngine =
     [ "TPD_G", "classArpEngine.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "CLIENT_SIZE_G", "classArpEngine.html#abf32a8f9430f10d2203ac2e14bf18251", null ],
     [ "CLK_FREQ_G", "classArpEngine.html#ade6130685a17f7461d4ed42d8b6f897a", null ],
-    [ "VLAN_G", "classArpEngine.html#a81b9a1deae284a93cd3619eb51fc45cf", null ],
     [ "localMac", "classArpEngine.html#aad5e2025a9973e3d747252fcd095b146", null ],
     [ "localIp", "classArpEngine.html#adcce9b0c7e05c5185590ccd9c56bd2a7", null ],
     [ "arpReqMasters", "classArpEngine.html#aceb5bae0c0980d54fffc295962e1ffc3", null ],

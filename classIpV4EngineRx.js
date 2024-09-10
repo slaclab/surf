@@ -5,7 +5,6 @@ var classIpV4EngineRx =
     [ "SIM_ERROR_HALT_G", "classIpV4EngineRx.html#aa1c95e66c80e10800e760cb0e0fbda90", null ],
     [ "PROTOCOL_SIZE_G", "classIpV4EngineRx.html#aba7b29578566326ab9286a15dbab328a", null ],
     [ "PROTOCOL_G", "classIpV4EngineRx.html#a2fedbab1fefcdc157da92cff2cea1726", null ],
-    [ "VLAN_G", "classIpV4EngineRx.html#a81b9a1deae284a93cd3619eb51fc45cf", null ],
     [ "ibIpv4Master", "classIpV4EngineRx.html#ac83e5af429f71eb883f9ecbc79ab2c8b", null ],
     [ "ibIpv4Slave", "classIpV4EngineRx.html#aa00d6e77e395258c2d37353c5d1e8d8d", null ],
     [ "localhostMaster", "classIpV4EngineRx.html#afc6afe2ca3aa1912c541e5f70fee129d", null ],

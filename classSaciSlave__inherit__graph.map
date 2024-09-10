@@ -1,4 +1,7 @@
 <map id="SaciSlave" name="SaciSlave">
-<area shape="rect" id="node1" title=" " alt="" coords="33,5,118,32"/>
-<area shape="rect" id="node2" href="$classSaciSlaveWrapper.html" title=" " alt="" coords="5,80,145,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="149,5,235,32"/>
+<area shape="rect" id="node2" href="$classSaciAxiLiteMaster.html" title=" " alt="" coords="41,80,180,107"/>
+<area shape="rect" id="node5" href="$classSaciSlaveWrapper.html" title=" " alt="" coords="205,80,345,107"/>
+<area shape="rect" id="node3" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="33,155,188,181"/>
+<area shape="rect" id="node4" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="5,229,216,256"/>
 </map>

@@ -17,7 +17,6 @@ var classUdpEngineWrapper =
     [ "CLK_FREQ_G", "classUdpEngineWrapper.html#ade6130685a17f7461d4ed42d8b6f897a", null ],
     [ "COMM_TIMEOUT_G", "classUdpEngineWrapper.html#a5d0ed0e38b1b2b463ba7b1fb87122164", null ],
     [ "TTL_G", "classUdpEngineWrapper.html#a46c73d85a64389a37215460a5a5588a0", null ],
-    [ "VLAN_G", "classUdpEngineWrapper.html#a81b9a1deae284a93cd3619eb51fc45cf", null ],
     [ "SYNTH_MODE_G", "classUdpEngineWrapper.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
     [ "localMac", "classUdpEngineWrapper.html#aad5e2025a9973e3d747252fcd095b146", null ],
     [ "localIp", "classUdpEngineWrapper.html#adcce9b0c7e05c5185590ccd9c56bd2a7", null ],

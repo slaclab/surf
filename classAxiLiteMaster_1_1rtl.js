@@ -13,8 +13,8 @@ var classAxiLiteMaster_1_1rtl =
     [ "REG_INIT_C", "classAxiLiteMaster_1_1rtl.html#a17d25ca7f4837b5f72d847247131e1b3", null ],
     [ "r", "classAxiLiteMaster_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiLiteMaster_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "ack~1062", "classAxiLiteMaster_1_1rtl.html#a93166e449c6be8b2b559c0331838d9de", null ],
-    [ "state~1063", "classAxiLiteMaster_1_1rtl.html#a19171d432d858ea96ad3713806a40103", null ],
-    [ "axilWriteMaster~1064", "classAxiLiteMaster_1_1rtl.html#a1d227801062e62588ac3a4d525622952", null ],
-    [ "axilReadMaster~1065", "classAxiLiteMaster_1_1rtl.html#a49e2c97e1492d7bf2ea276ed77463a17", null ]
+    [ "ack~1075", "classAxiLiteMaster_1_1rtl.html#adcb108b615b1e622abad6e9a1f344663", null ],
+    [ "state~1076", "classAxiLiteMaster_1_1rtl.html#a3ea4b744c234e537b0c9427dfa7ad970", null ],
+    [ "axilWriteMaster~1077", "classAxiLiteMaster_1_1rtl.html#a8ff58f53106ec07a51f5076515fb5d43", null ],
+    [ "axilReadMaster~1078", "classAxiLiteMaster_1_1rtl.html#a2ec7db745317733a182abb92fc24b5bf", null ]
 ];

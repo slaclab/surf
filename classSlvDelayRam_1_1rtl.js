@@ -11,9 +11,9 @@ var classSlvDelayRam_1_1rtl =
     [ "mem_type", "classSlvDelayRam_1_1rtl.html#ad3cbfff64742d74b143ebbe2a033899e", null ],
     [ "mem", "classSlvDelayRam_1_1rtl.html#a6a5044ad706d244322ec511aed83aceb", null ],
     [ "RegType", "classSlvDelayRam_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
-    [ "addr~820", "classSlvDelayRam_1_1rtl.html#a99910f2ba4c96374f33170bb226cd184", null ],
-    [ "maxCount~821", "classSlvDelayRam_1_1rtl.html#acffd17d0b88bc078dee5662161179628", null ],
-    [ "doutReg~822", "classSlvDelayRam_1_1rtl.html#a88984f22c80a7c8037f28b8be065a1ee", null ],
+    [ "addr~833", "classSlvDelayRam_1_1rtl.html#ab7562a77913230401201181ac79df1b5", null ],
+    [ "maxCount~834", "classSlvDelayRam_1_1rtl.html#a1860cf07ab1e82f71db45f64d5ebf255", null ],
+    [ "doutReg~835", "classSlvDelayRam_1_1rtl.html#a64e5b1a6f61047ca6d78bb8bbc4ba0ce", null ],
     [ "REG_INIT_C", "classSlvDelayRam_1_1rtl.html#ae1578ac90b35ebef746a79b567a5ed59", null ],
     [ "r", "classSlvDelayRam_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classSlvDelayRam_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
@@ -26,7 +26,7 @@ var classSlvDelayRam_1_1rtl =
     [ "syn_ramstyle", "classSlvDelayRam_1_1rtl.html#a84cf7ffd82964a50f4032f48ccb8e928", null ],
     [ "syn_keep", "classSlvDelayRam_1_1rtl.html#ab30f3a7afa6ff0567c5213d20205c9e5", null ],
     [ "syn_keep", "classSlvDelayRam_1_1rtl.html#aaa76f65744479aeccf9bc7638c503fc1", null ],
-    [ "addr~2890", "classSlvDelayRam_1_1rtl.html#a794e2633a8d5b3077dc72333b1570a36", null ],
-    [ "maxCount~2891", "classSlvDelayRam_1_1rtl.html#a085fdff53fa943530629412842ee1bb6", null ],
-    [ "doutReg~2892", "classSlvDelayRam_1_1rtl.html#a6a831301572e1cac2dc2a47e2e0cb70d", null ]
+    [ "addr~2916", "classSlvDelayRam_1_1rtl.html#a10edf82c30048e3b6787a1b68a215b07", null ],
+    [ "maxCount~2917", "classSlvDelayRam_1_1rtl.html#a7ddd0dbabfa753be8afb76e5e4f7a091", null ],
+    [ "doutReg~2918", "classSlvDelayRam_1_1rtl.html#a8a513f839b9157d8edaa5f8640921926", null ]
 ];

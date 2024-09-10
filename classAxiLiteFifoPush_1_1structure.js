@@ -18,10 +18,10 @@ var classAxiLiteFifoPush_1_1structure =
     [ "REG_INIT_C", "classAxiLiteFifoPush_1_1structure.html#af4ec6ee4570b1c65a871e449880ca158", null ],
     [ "r", "classAxiLiteFifoPush_1_1structure.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiLiteFifoPush_1_1structure.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "pushFifoWrite~1050", "classAxiLiteFifoPush_1_1structure.html#a32fc9dbd94ea9ec69918119729ddf02b", null ],
-    [ "pushFifoDin~1051", "classAxiLiteFifoPush_1_1structure.html#aeb36694117627dfc42e8ccaf4549ba4d", null ],
-    [ "axiReadSlave~1052", "classAxiLiteFifoPush_1_1structure.html#aca79a5865c7f1e1298af2abb216dea67", null ],
-    [ "axiWriteSlave~1053", "classAxiLiteFifoPush_1_1structure.html#ab099ef8d44d94e2fd6e5b9acf3c137a0", null ],
+    [ "pushFifoWrite~1063", "classAxiLiteFifoPush_1_1structure.html#aacfc0810448679d1392092c5ae544bcc", null ],
+    [ "pushFifoDin~1064", "classAxiLiteFifoPush_1_1structure.html#a65adbddc4ce23878624e255afc7bcc69", null ],
+    [ "axiReadSlave~1065", "classAxiLiteFifoPush_1_1structure.html#a25fd7b5336475b53fd5f6ede04ef0ed2", null ],
+    [ "axiWriteSlave~1066", "classAxiLiteFifoPush_1_1structure.html#ac83636f0d752a907b0ba3400f7f1183e", null ],
     [ "u_fifo", "classAxiLiteFifoPush_1_1structure.html#ae73b6dbad70cfa71621ba63334c4eaca", null ],
     [ "u_fifo", "classAxiLiteFifoPush_1_1structure.html#ae73b6dbad70cfa71621ba63334c4eaca", null ]
 ];

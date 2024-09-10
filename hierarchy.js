@@ -395,6 +395,7 @@ var hierarchy =
       [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
       [ "AxiStreamBytePackerTbRx", "classAxiStreamBytePackerTbRx.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
         [ "RstSync", "classRstSync.html", null ]
       ] ],
@@ -489,6 +490,8 @@ var hierarchy =
       [ "AxiStreamSelector", "classAxiStreamSelector.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "AxiSy56040Reg", "classAxiSy56040Reg.html", null ],
       [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
       [ "AxiVersion", "classAxiVersion.html", null ],
@@ -674,9 +677,7 @@ var hierarchy =
             [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
             [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
           ] ],
-          [ "EthMacTxPause", "classEthMacTxPause.html", [
-            [ "AxiStreamMux", "classAxiStreamMux.html", null ]
-          ] ],
+          [ "EthMacTxPause", "classEthMacTxPause.html", null ],
           [ "EthMacTxExport", "classEthMacTxExport.html", [
             [ "EthMacTxExportXlgmii", "classEthMacTxExportXlgmii.html", null ],
             [ "EthMacTxExportXgmii", "classEthMacTxExportXgmii.html", [
@@ -1498,6 +1499,17 @@ var hierarchy =
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "RssiCoreWrapper", "classRssiCoreWrapper.html", null ],
+      [ "SaciAxiLiteMasterTb", "classSaciAxiLiteMasterTb.html", [
+        [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
+        [ "AxiLiteSaciMaster", "classAxiLiteSaciMaster.html", null ],
+        [ "ClkRst", "classClkRst.html", null ],
+        [ "SaciAxiLiteMaster", "classSaciAxiLiteMaster.html", [
+          [ "SaciSlave", "classSaciSlave.html", null ],
+          [ "Synchronizer", "classSynchronizer.html", null ],
+          [ "AxiLiteMaster", "classAxiLiteMaster.html", null ]
+        ] ],
+        [ "AxiDualPortRam", "classAxiDualPortRam.html", null ]
+      ] ],
       [ "SaciSlave", "classSaciSlave.html", null ],
       [ "SaciSlaveRam", "classSaciSlaveRam.html", null ],
       [ "ClkRst", "classClkRst.html", null ],

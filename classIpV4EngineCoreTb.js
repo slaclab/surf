@@ -6,8 +6,6 @@ var classIpV4EngineCoreTb =
     [ "LOCAL_IP_G", "classIpV4EngineCoreTb.html#af2a9309c77dc9981d875fbf57483d34d", null ],
     [ "REMOTE_MAC_G", "classIpV4EngineCoreTb.html#ae2f5f3192e0c96e821b1748d6ae51299", null ],
     [ "REMOTE_IP_G", "classIpV4EngineCoreTb.html#ad6f39ee3792f850cfedc2fa1f5a953d7", null ],
-    [ "VLAN_G", "classIpV4EngineCoreTb.html#a65528f839d3d7a24630676d97f9e852e", null ],
-    [ "VID_G", "classIpV4EngineCoreTb.html#ad29a0a96852b7e05a3c0ae52c814dc1b", null ],
     [ "MAX_CNT_G", "classIpV4EngineCoreTb.html#a1d91fcb062ffc7f60d4cf342df168d1d", null ],
     [ "UDP_LEN_G", "classIpV4EngineCoreTb.html#a8e2c60655a717ec57448b095d4461213", null ],
     [ "obProtocolMaster", "classIpV4EngineCoreTb.html#af08adef42f1955dd726f13141c3b0cc0", null ],

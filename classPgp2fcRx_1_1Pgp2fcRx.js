@@ -1,7 +1,7 @@
 var classPgp2fcRx_1_1Pgp2fcRx =
 [
-    [ "PROCESS_309", "classPgp2fcRx_1_1Pgp2fcRx.html#aa69feb9ddd20e46329965b862c7060c9", null ],
-    [ "PROCESS_310", "classPgp2fcRx_1_1Pgp2fcRx.html#ae3d888a1e6e2e444a2f2fbc148d4b208", null ],
+    [ "PROCESS_310", "classPgp2fcRx_1_1Pgp2fcRx.html#ac8abe435cd6a39c19a64a0f4187209ce", null ],
+    [ "PROCESS_311", "classPgp2fcRx_1_1Pgp2fcRx.html#a86cf714ac040360d306856fed85ec2fc", null ],
     [ "cellRxPause", "classPgp2fcRx_1_1Pgp2fcRx.html#a3444281276a7e7e3f856294594488af1", null ],
     [ "cellRxSOC", "classPgp2fcRx_1_1Pgp2fcRx.html#a9c29cb7341263c6243bd12280966c723", null ],
     [ "cellRxSOF", "classPgp2fcRx_1_1Pgp2fcRx.html#a9eb83bbde49445fe4c709e0751ddeadc", null ],

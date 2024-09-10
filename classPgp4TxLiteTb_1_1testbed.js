@@ -2,8 +2,8 @@ var classPgp4TxLiteTb_1_1testbed =
 [
     [ "PROCESS_142", "classPgp4TxLiteTb_1_1testbed.html#a77d5785e4c68dd62b6abc72812253a62", null ],
     [ "PROCESS_143", "classPgp4TxLiteTb_1_1testbed.html#abdcdc7487217772905d59cdc10dcdb91", null ],
-    [ "PROCESS_353", "classPgp4TxLiteTb_1_1testbed.html#abdab35a6fab34a207301b44fc142f16d", null ],
-    [ "PROCESS_354", "classPgp4TxLiteTb_1_1testbed.html#a78321895dd365f8cbe2fb6abf9d1344b", null ],
+    [ "PROCESS_354", "classPgp4TxLiteTb_1_1testbed.html#a18c78ee1eeff86fd52eaa774edb24af8", null ],
+    [ "PROCESS_355", "classPgp4TxLiteTb_1_1testbed.html#a8ec80c4a0f43393e6b40bf9cf4ae0989", null ],
     [ "TPD_C", "classPgp4TxLiteTb_1_1testbed.html#ac7664d101065072896431f6494fa2a56", null ],
     [ "PGP_CLK_PERIOD_C", "classPgp4TxLiteTb_1_1testbed.html#a11d9c3767de142e3f8b7e3e84b01b677", null ],
     [ "LOC_CLK_PERIOD_C", "classPgp4TxLiteTb_1_1testbed.html#a4f7b9882892c888e6276c460e0cdf72e", null ],

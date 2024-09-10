@@ -9,7 +9,6 @@ var classIpV4Engine =
     [ "TTL_G", "classIpV4Engine.html#a46c73d85a64389a37215460a5a5588a0", null ],
     [ "IGMP_G", "classIpV4Engine.html#a945388cc95d08e2e3fe82126cefda0d0", null ],
     [ "IGMP_GRP_SIZE", "classIpV4Engine.html#aeaef14724e543e5e18f448ed5c676acb", null ],
-    [ "VLAN_G", "classIpV4Engine.html#a81b9a1deae284a93cd3619eb51fc45cf", null ],
     [ "localMac", "classIpV4Engine.html#aad5e2025a9973e3d747252fcd095b146", null ],
     [ "localIp", "classIpV4Engine.html#adcce9b0c7e05c5185590ccd9c56bd2a7", null ],
     [ "igmpIp", "classIpV4Engine.html#abd1228c8c1cd893c22cbee39b1cd5697", null ],

@@ -5,7 +5,6 @@ var classIpV4EngineTx =
     [ "PROTOCOL_SIZE_G", "classIpV4EngineTx.html#aba7b29578566326ab9286a15dbab328a", null ],
     [ "PROTOCOL_G", "classIpV4EngineTx.html#a2fedbab1fefcdc157da92cff2cea1726", null ],
     [ "TTL_G", "classIpV4EngineTx.html#a46c73d85a64389a37215460a5a5588a0", null ],
-    [ "VLAN_G", "classIpV4EngineTx.html#a81b9a1deae284a93cd3619eb51fc45cf", null ],
     [ "localMac", "classIpV4EngineTx.html#aad5e2025a9973e3d747252fcd095b146", null ],
     [ "obIpv4Master", "classIpV4EngineTx.html#a38539b2f5b6c75e2da128e832b3e533b", null ],
     [ "obIpv4Slave", "classIpV4EngineTx.html#aea2394e910bc8025d59779756cbd59c7", null ],
