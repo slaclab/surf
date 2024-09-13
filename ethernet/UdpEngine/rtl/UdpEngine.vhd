@@ -206,7 +206,7 @@ begin
 
    GEN_CLIENT : if (CLIENT_EN_G = true) generate
 
-      U_UdpEngineArp : entity surf.UdpEngineArp
+      U_UdpEngineArp : entity surf.UdpEngineArpV2
          generic map (
             TPD_G          => TPD_G,
             CLIENT_SIZE_G  => CLIENT_SIZE_G,
