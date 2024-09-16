@@ -234,7 +234,7 @@ begin
           macWrAddr => arpTabMacAddrW(i));
     end generate GEN_ARP_TABLES;
 
-    U_UdpEngineArp : entity surf.UdpEngineArpV2
+    U_UdpEngineArp : entity surf.UdpEngineArp
       generic map (
         TPD_G          => TPD_G,
         CLIENT_SIZE_G  => CLIENT_SIZE_G,

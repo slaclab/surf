@@ -22,6 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
+use surf.AxiLitePkg.all;
 
 entity UdpEngineTb is
 end UdpEngineTb;
@@ -88,8 +89,13 @@ architecture testbed of UdpEngineTb is
   signal txBusy         : sl;
 
   signal remoteIpAddr : slv(31 downto 0);
+  signal tDest        : slv(7 downto 0);
 
-  signal sel_phy : natural;
+  signal sel_phy         : natural;
+  signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+  signal axilReadSlave   : AxiLiteReadSlaveType;
+  signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+  signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
 begin
 
@@ -114,16 +120,22 @@ begin
       MASTER_AXI_STREAM_CONFIG_G => EMAC_AXIS_CONFIG_C)
     port map (
       -- Master Port (mAxisClk)
-      mAxisClk     => clk,
-      mAxisRst     => rst,
-      mAxisMaster  => txMaster,
-      mAxisSlave   => txSlave,
+      mAxisClk        => clk,
+      mAxisRst        => rst,
+      mAxisMaster     => txMaster,
+      mAxisSlave      => txSlave,
+      -- AxiLite
+      axilReadMaster  => axilReadMaster,
+      axilReadSlave   => axilReadSlave,
+      axilWriteMaster => axilWriteMaster,
+      axilWriteSlave  => axilWriteSlave,
       -- Trigger Signal (locClk domain)
-      locClk       => clk,
-      locRst       => rst,
-      packetLength => r.packetLength,
-      trig         => r.trig,
-      busy         => txBusy);
+      locClk          => clk,
+      locRst          => rst,
+      packetLength    => r.packetLength,
+      tDest           => tDest,
+      trig            => r.trig,
+      busy            => txBusy);
 
   ----------------------------------------------------------------------------
   -- Set Remote IP addr
@@ -142,11 +154,14 @@ begin
     sel_phy      <= 2;
     wait for 4 us;
     wait until rising_edge(clk);
-    remoteIpAddr <= IP_ADDR_C(3);
-    sel_phy      <= 3;
-    wait for 4 us;
-    wait until rising_edge(clk);
-    remoteIpAddr <= IP_ADDR_C(1);
+    -- remoteIpAddr <= IP_ADDR_C(3);
+    -- sel_phy      <= 3;
+    -- wait for 4 us;
+    -- wait until rising_edge(clk);
+    -- remoteIpAddr <= IP_ADDR_C(1);
+    -- tDest = 1
+    -- axiLiteBusSimWrite(clk, axilWriteMaster, axilWriteSlave, x"00000008", x"01");
+    tDest        <= x"01";
     sel_phy      <= 1;
     wait;
   end process;
