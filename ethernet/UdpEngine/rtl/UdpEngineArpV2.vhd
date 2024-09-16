@@ -37,6 +37,12 @@ entity UdpEngineArpV2 is
     arpReqSlaves    : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
     arpAckMasters   : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Respond with MAC address
     arpAckSlaves    : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+    -- Interface to ARP Table
+    arpTabFound     : in  slv(CLIENT_SIZE_G-1 downto 0);
+    arpTabMacAddr   : in  Slv48Array(CLIENT_SIZE_G-1 downto 0);
+    arpTabIpWe      : out slv(CLIENT_SIZE_G-1 downto 0);
+    arpTabMacWe     : out slv(CLIENT_SIZE_G-1 downto 0);
+    arpTabMacAddrW  : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
     -- Interface to UDP Client engine(s)
     clientRemoteDet : in  slv(CLIENT_SIZE_G-1 downto 0);
     clientRemoteIp  : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);
@@ -85,32 +91,12 @@ architecture rtl of UdpEngineArpV2 is
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
 
-  signal arpIpFound : slv(CLIENT_SIZE_G-1 downto 0);
-  signal arpMacAddr : Slv48Array(CLIENT_SIZE_G-1 downto 0);
-
 begin
 
   -----------------------------------------------------------------------------
   -- ARP Tables
   -----------------------------------------------------------------------------
-  GEN_ARP_TABLES : for i in 0 to CLIENT_SIZE_G-1 generate
-    ArpIpTable_1 : entity surf.ArpIpTable
-      generic map (
-        ENTRIES_G => 2)
-      port map (
-        clk       => clk,
-        rst       => rst,
-        ipAddr    => clientRemoteIp(i),
-        pos       => open,
-        found     => arpIpFound(i),
-        macAddr   => arpMacAddr(i),
-        ipWrEn    => r.clientRemoteIpWrEn(i),
-        IpWrAddr  => clientRemoteIp(i),
-        macWrEn   => r.clientRemoteMacWrEn(i),
-        macWrAddr => r.clientRemoteMac(i));
-  end generate GEN_ARP_TABLES;
-
-  comb : process (arpAckMasters, arpReqSlaves, arpIpFound, arpMacAddr, clientRemoteDet, clientRemoteIp, r, rst) is
+  comb : process (arpAckMasters, arpReqSlaves, arpTabFound, arpTabMacAddr, clientRemoteDet, clientRemoteIp, r, rst) is
     variable v : RegType;
     variable i : natural;
   begin
@@ -174,9 +160,9 @@ begin
         case r.state(i) is
           ----------------------------------------------------------------------
           when CHECK_S =>
-            if arpIpFound(i) = '1' then
+            if arpTabFound(i) = '1' then
               -- Set found MAC addr
-              v.clientRemoteMac(i) := arpMacAddr(i);
+              v.clientRemoteMac(i) := arpTabMacAddr(i);
               -- Preset the timer
               v.arpTimers(i)       := COMM_TIMEOUT_G;
               -- Next state
@@ -248,6 +234,9 @@ begin
     -- Registered Outputs
     arpReqMasters   <= r.arpReqMasters;
     clientRemoteMac <= r.clientRemoteMac;
+    arpTabIpWe      <= r.clientRemoteIpWrEn;
+    arpTabMacWe     <= r.clientRemoteMacWrEn;
+    arpTabMacAddrW  <= r.clientRemoteMac;
 
   end process comb;
 

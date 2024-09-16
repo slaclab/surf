@@ -10,17 +10,18 @@ use surf.StdRtlPkg.all;
 entity ArpIpTable is
 
   generic (
-    TPD_G     : time     := 1 ns;
-    ENTRIES_G : positive := 4);
+    TPD_G     : time                    := 1 ns;
+    ENTRIES_G : positive range 1 to 255 := 4);
   port (
     -- Clock and Reset
     clk       : in  sl;
     rst       : in  sl;
     -- Read LUT
-    ipAddr    : in  slv(31 downto 0);
-    pos       : out slv(31 downto 0);
+    ipAddrIn  : in  slv(31 downto 0);
+    pos       : in  slv(7 downto 0);
     found     : out sl;
     macAddr   : out slv(47 downto 0);
+    ipAddrOut : out slv(31 downto 0);
     -- Write LUT
     ipWrEn    : in  sl;
     IpWrAddr  : in  slv(31 downto 0);
@@ -33,14 +34,12 @@ architecture rtl of ArpIpTable is
   type wRegType is record
     ipLutTable  : Slv32Array(ENTRIES_G-1 downto 0);
     macLutTable : Slv48Array(ENTRIES_G-1 downto 0);
-    entryCount  : slv(15 downto 0);
+    entryCount  : slv(7 downto 0);
   end record wRegType;
 
   constant W_REG_INIT_C : wRegType := (
     ipLutTable  => (others => (others => '0')),
-    -- ipLutTable  => (0 => x"0B02A8C0", 1 => (others => '1')),
     macLutTable => (others => (others => '0')),
-    -- macLutTable => (0 => x"020300564400", 1 => (others => '1')),
     entryCount  => (others => '0')
     );
 
@@ -65,13 +64,6 @@ begin  -- architecture rtl
       if wrAddInt < ENTRIES_G then
         v.ipLutTable(wrAddInt) := ipWrAddr;
       end if;
-
-      -- Update write LUT pointer
-      if wr.entryCount < ENTRIES_G - 1 then
-        v.entryCount := wr.entryCount + 1;
-      else
-        v.entryCount := (others => '0');
-      end if;
     end if;
 
     -- Write MAC to LUT
@@ -79,6 +71,13 @@ begin  -- architecture rtl
       wrAddInt := conv_integer(wR.entryCount);
       if wrAddInt < ENTRIES_G then
         v.macLutTable(wrAddInt) := macWrAddr;
+      end if;
+
+      -- Update write LUT pointer
+      if wr.entryCount < ENTRIES_G - 1 then
+        v.entryCount := wr.entryCount + 1;
+      else
+        v.entryCount := (others => '0');
       end if;
     end if;
 
@@ -102,26 +101,40 @@ begin  -- architecture rtl
   -- Read process
   -- Check for a match
   gen_compare : for i in 0 to ENTRIES_G-1 generate
-    matchArray(i) <= '1' when (wR.ipLutTable(i) = ipAddr) else '0';
+    matchArray(i) <= '1' when (wR.ipLutTable(i) = ipAddrIn) else '0';
   end generate;
 
   -- Encode the position based on the match_array
-  process(matchArray, wR.macLutTable)
-    variable posI    : integer;
-    variable ipFound : sl := '0';
+  process(matchArray, pos, wr.macLutTable)
+    variable ipFound      : sl := '0';
+    variable posI         : integer;
+    variable foundMacAddr : slv(47 downto 0);
+    variable foundIpAddr  : slv(31 downto 0);
   begin
-    ipFound := '0';
-    posI    := 0;                       -- Default value if no match is found
-    for i in 0 to ENTRIES_G-1 loop
-      if matchArray(i) = '1' then
-        posI    := i;
+    ipFound      := '0';
+    foundMacAddr := (others => '0');
+    foundIpAddr  := (others => '0');
+    if pos > 0 then
+      posI         := conv_integer(pos-1);
+      foundMacAddr := wr.macLutTable(posI);
+      foundIpAddr  := wr.ipLutTable(posI);
+      if foundMacAddr = x"000000000000" or foundIpAddr = x"00000000" then
+        ipFound := '0';
+      else
         ipFound := '1';
-        exit;                           -- Exit as soon as a match is found
       end if;
-    end loop;
-    found   <= ipFound;
-    pos     <= conv_std_logic_vector(posI, 32);
-    macAddr <= wR.macLutTable(posI);
+    else
+      for i in 0 to ENTRIES_G-1 loop
+        if matchArray(i) = '1' then
+          foundMacAddr := wr.macLutTable(i);
+          ipFound      := '1';
+          exit;                         -- Exit as soon as a match is found
+        end if;
+      end loop;
+    end if;
+    found     <= ipFound;
+    macAddr   <= foundMacAddr;
+    ipAddrOut <= foundIpAddr;
   end process;
 
 end architecture rtl;
