@@ -115,13 +115,20 @@ begin  -- architecture rtl
     foundMacAddr := (others => '0');
     foundIpAddr  := (others => '0');
     if pos > 0 then
-      posI         := conv_integer(pos-1);
-      foundMacAddr := wr.macLutTable(posI);
-      foundIpAddr  := wr.ipLutTable(posI);
-      if foundMacAddr = x"000000000000" or foundIpAddr = x"00000000" then
-        ipFound := '0';
+      posI := conv_integer(pos-1);
+      if posI < ENTRIES_G then
+        foundMacAddr := wr.macLutTable(posI);
+        foundIpAddr  := wr.ipLutTable(posI);
+        if foundMacAddr = x"000000000000" or foundIpAddr = x"00000000" then
+          ipFound := '0';
+        else
+          ipFound := '1';
+        end if;
       else
-        ipFound := '1';
+        ipFound      := '0';
+        foundMacAddr := (others => '0');
+        foundIpAddr  := (others => '0');
+        assert false report "Position in the LUT outside of bounds" severity error;
       end if;
     else
       for i in 0 to ENTRIES_G-1 loop
