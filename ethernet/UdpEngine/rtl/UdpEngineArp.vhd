@@ -93,9 +93,6 @@ architecture rtl of UdpEngineArp is
 
 begin
 
-  -----------------------------------------------------------------------------
-  -- ARP Tables
-  -----------------------------------------------------------------------------
   comb : process (arpAckMasters, arpReqSlaves, arpTabFound, arpTabMacAddr, clientRemoteDet, clientRemoteIp, r, rst) is
     variable v : RegType;
     variable i : natural;
