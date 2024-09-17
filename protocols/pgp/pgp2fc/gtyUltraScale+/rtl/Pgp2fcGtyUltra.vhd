@@ -52,7 +52,6 @@ entity Pgp2fcGtyUltra is
       gtRefClk         : in  sl;
       gtFabricRefClk   : in  sl;
       gtUserRefClk     : in  sl;
-      rxRecClk         : out sl;
       -- Gt Serial IO
       pgpGtTxP         : out sl;
       pgpGtTxN         : out sl;
@@ -218,7 +217,6 @@ begin
          rxDecErr        => phyRxLaneIn.decErr,
          rxPolarity      => RX_POLARITY_G,
          rxOutClk        => pgpRxOutClk,
-         rxRecClk        => rxRecClk,
          txReset         => gtTxUserReset,
          txUsrClk        => pgpTxClk,
          txUsrClkActive  => pgpTxMmcmLocked,

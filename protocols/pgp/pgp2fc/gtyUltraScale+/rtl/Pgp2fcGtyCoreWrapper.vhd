@@ -62,7 +62,6 @@ entity Pgp2fcGtyCoreWrapper is
       rxDecErr       : out slv(1 downto 0);
       rxPolarity     : in  sl;
       rxOutClk       : out sl;
-      rxRecClk       : out sl; -- raw recovered clock
 
       -- Tx Ports
       txReset        : in  sl;
@@ -160,7 +159,6 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          rxctrl3_out                        : out std_logic_vector (7 downto 0);
          rxdlysresetdone_out                : out std_logic_vector (0 downto 0);
          rxoutclk_out                       : out std_logic_vector (0 downto 0);
-         rxrecclkout_out                    : out std_logic_vector (0 downto 0);
          rxphaligndone_out                  : out std_logic_vector (0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector (0 downto 0);
          rxresetdone_out                    : out std_logic_vector (0 downto 0);
@@ -330,7 +328,6 @@ begin
          rxdlysresetdone_out(0)                => rxDlysResetDone,
          rxphaligndone_out(0)                  => rxPhyAlignDone,
          rxoutclk_out(0)                       => rxOutClkGt,
-         rxrecclkout_out(0)                    => rxRecClk,
          txoutclk_out(0)                       => txOutClkGt, -- unused
          rxpmaresetdone_out(0)                 => rxPmaResetDoneInt,
          rxresetdone_out(0)                    => rxResetDoneInt,
