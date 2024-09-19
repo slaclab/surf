@@ -33,6 +33,7 @@ entity EthMacTx is
       DROP_ERR_PKT_G  : boolean                  := true;
       JUMBO_G         : boolean                  := true;
       -- Misc. Configurations
+      ROCEV2_EN_G     : boolean                  := false;
       BYP_EN_G        : boolean                  := false;
       -- RAM Synthesis mode
       SYNTH_MODE_G    : string                   := "inferred");
@@ -114,7 +115,9 @@ begin
       generic map (
          TPD_G          => TPD_G,
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
-         JUMBO_G        => JUMBO_G)
+         JUMBO_G        => JUMBO_G,
+         ROCEV2_EN_G    => ROCEV2_EN_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -132,19 +135,26 @@ begin
    ---------------------------------
    -- RoCEv2 Protocol iCRC insertion
    ---------------------------------
-   U_RoCEv2 : entity surf.EthMacTxRoCEv2
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Clock and Reset
-         ethClk        => ethClk,
-         ethRst        => ethRst,
-         -- Checksum Interface
-         obCsumMaster  => obCsumMaster,
-         obCsumSlave   => obCsumSlave,
-         -- Pause Interface
-         ibPauseMaster => ibPauseMaster,
-         ibPauseSlave  => ibPauseSlave);
+   GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
+      U_RoCEv2 : entity surf.EthMacTxRoCEv2
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Clock and Reset
+            ethClk        => ethClk,
+            ethRst        => ethRst,
+            -- Checksum Interface
+            obCsumMaster  => obCsumMaster,
+            obCsumSlave   => obCsumSlave,
+            -- Pause Interface
+            ibPauseMaster => ibPauseMaster,
+            ibPauseSlave  => ibPauseSlave);
+   end generate;
+
+   BYPASS_RoCEv2 : if (ROCEV2_EN_G = false) generate
+      ibPauseMaster <= obCsumMaster;
+      obCsumSlave   <= ibPauseSlave;
+   end generate;
 
    ------------------
    -- TX Pause Module

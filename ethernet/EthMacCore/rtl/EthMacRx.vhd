@@ -31,6 +31,7 @@ entity EthMacRx is
       PHY_TYPE_G     : string           := "XGMII";
       JUMBO_G        : boolean          := true;
       -- Misc. Configurations
+      ROCEV2_EN_G    : boolean          := false;
       FILT_EN_G      : boolean          := false;
       BYP_EN_G       : boolean          := false;
       BYP_ETH_TYPE_G : slv(15 downto 0) := x"0000";
@@ -131,8 +132,9 @@ begin
    ---------------------
    U_Csum : entity surf.EthMacRxCsum
       generic map (
-         TPD_G   => TPD_G,
-         JUMBO_G => JUMBO_G)
+         TPD_G       => TPD_G,
+         JUMBO_G     => JUMBO_G,
+         ROCEV2_EN_G => ROCEV2_EN_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -148,17 +150,23 @@ begin
    --------------------------------
    -- RoCEv2 Protocol iCRC Checking
    --------------------------------
-   U_RoCEv2 : entity surf.EthMacRxRoCEv2
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         -- Clock and Reset
-         ethClk         => ethClk,
-         ethRst         => ethRst,
-         -- Checksum Interface
-         obCsumMaster   => obCsumMaster,
-         -- Bypass Interface
-         ibBypassMaster => ibBypassMaster);
+   GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
+      U_RoCEv2 : entity surf.EthMacRxRoCEv2
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Clock and Reset
+            ethClk         => ethClk,
+            ethRst         => ethRst,
+            -- Checksum Interface
+            obCsumMaster   => obCsumMaster,
+            -- Bypass Interface
+            ibBypassMaster => ibBypassMaster);
+   end generate;
+
+   BYPASS_RoCEv2 : if (ROCEV2_EN_G = false) generate
+      ibBypassMaster <= obCsumMaster;
+   end generate;
 
    -------------------
    -- RX Bypass Module

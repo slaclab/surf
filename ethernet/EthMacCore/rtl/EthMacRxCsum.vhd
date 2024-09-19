@@ -25,8 +25,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxCsum is
    generic (
-      TPD_G   : time    := 1 ns;
-      JUMBO_G : boolean := true);
+      TPD_G       : time    := 1 ns;
+      JUMBO_G     : boolean := true;
+      ROCEV2_EN_G : boolean := false);
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -283,7 +284,7 @@ begin
                   v.protLen(0)(15 downto 8)  := sAxisMaster.tData(55 downto 48);
                   v.protLen(0)(7 downto 0)   := sAxisMaster.tData(63 downto 56);
                end if;
-               if sAxisMaster.tData(47 downto 32) = x"B712" then
+               if ROCEV2_EN_G and (sAxisMaster.tData(47 downto 32) = x"B712") then
                   v.roce(0) := '1';
                else
                   v.roce(0) := '0';
@@ -356,6 +357,11 @@ begin
          axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragDet(EMAC_CSUM_PIPELINE_C), 0);
       end if;
 
+      -- Outputs
+      mAxisMaster          <= r.mAxisMasters(EMAC_CSUM_PIPELINE_C+1);
+      mAxisMaster.tDest(0) <= r.roce(EMAC_CSUM_PIPELINE_C);
+      dbg                  <= dummy;
+
       -- Reset
       if (ethRst = '1') then
          v := REG_INIT_C;
@@ -363,11 +369,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      mAxisMaster          <= r.mAxisMasters(EMAC_CSUM_PIPELINE_C+1);
-      mAxisMaster.tDest(0) <= r.roce(EMAC_CSUM_PIPELINE_C);
-      dbg                  <= dummy;
 
    end process comb;
 

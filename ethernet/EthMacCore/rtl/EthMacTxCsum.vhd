@@ -28,6 +28,7 @@ entity EthMacTxCsum is
       TPD_G          : time    := 1 ns;
       DROP_ERR_PKT_G : boolean := true;
       JUMBO_G        : boolean := true;
+      ROCEV2_EN_G    : boolean := false;
       SYNTH_MODE_G   : string  := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
@@ -335,7 +336,7 @@ begin
                   v.tData := rxMaster.tData(127 downto 80) & x"00000000" & rxMaster.tData(47 downto 0);
                end if;
                -- Track the number of bytes and check if its a RoCE transmission (UDP dst port = 4791)
-               if rxMaster.tData(47 downto 32) = x"B712" then
+               if ROCEV2_EN_G and (rxMaster.tData(47 downto 32) = x"B712") then
                   v.roce(0)    := '1';
                   v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
                   v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
@@ -425,7 +426,7 @@ begin
             v.mSlave.tReady := '1';
             -- Move data
             v.txMaster      := mMaster;
-            if roce = '1' then
+            if ROCEV2_EN_G and (roce = '1') then
                v.txMaster.tDest(0) := '1';
             else
                v.txMaster.tDest(0) := '0';
@@ -468,7 +469,7 @@ begin
                   -- Overwrite the data field
                   v.txMaster.tData(55 downto 48) := protLen(15 downto 8);
                   v.txMaster.tData(63 downto 56) := protLen(7 downto 0);
-                  if roce = '1' then
+                  if ROCEV2_EN_G and (roce = '1') then
                      v.txMaster.tData(71 downto 64) := (others => '0');
                      v.txMaster.tData(79 downto 72) := (others => '0');
                   else
@@ -514,9 +515,11 @@ begin
          end if;
       end if;
 
-      -- Combinatorial outputs before the reset
-      rxSlave <= v.rxSlave;
-      mSlave  <= v.mSlave;
+      -- Outputs
+      sMaster  <= r.sMaster;
+      txMaster <= r.txMaster;
+      rxSlave  <= v.rxSlave;
+      mSlave   <= v.mSlave;
 
       -- Reset
       if (ethRst = '1') then
@@ -525,10 +528,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Registered Outputs
-      sMaster  <= r.sMaster;
-      txMaster <= r.txMaster;
 
    end process comb;
 
