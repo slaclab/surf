@@ -32,7 +32,7 @@ entity AxiLiteSaciMaster is
       AXIL_TIMEOUT_G     : real                  := 1.0E-3;  -- In units of seconds
       SACI_CLK_PERIOD_G  : real                  := 1.0e-6;  -- In units of seconds
       SACI_CLK_FREERUN_G : boolean               := false;
-      SACI_NUM_CHIPS_G   : positive range 1 to 4 := 1;
+      SACI_NUM_CHIPS_G   : positive range 1 to 6 := 1;
       SACI_RSP_BUSSED_G  : boolean               := false);
    port (
       -- SACI interface
