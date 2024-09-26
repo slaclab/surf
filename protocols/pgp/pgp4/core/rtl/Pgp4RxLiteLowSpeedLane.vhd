@@ -30,7 +30,7 @@ entity Pgp4RxLiteLowSpeedLane is
       DLY_STEP_SIZE_G    : positive range 1 to 255 := 1;
       STATUS_CNT_WIDTH_G : natural range 1 to 32   := 16;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32   := 8;
-      AXIL_CLK_FREQ_G    : real                    := 125.0E+6);
+      AXIL_CLK_FREQ_G    : real); -- In units of HZ
    port (
       -- Deserialization Interface (deserClk domain)
       deserClk        : in  sl;
