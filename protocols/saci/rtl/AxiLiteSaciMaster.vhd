@@ -43,6 +43,8 @@ entity AxiLiteSaciMaster is
       -- Optional SACI bus arbitration
       saciBusReq      : out sl;
       saciBusGr       : in  sl := '1';
+      -- Optional ASIC Global Reset
+      asicRstL        : in  sl := '1';
       -- AXI-Lite Register Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -128,6 +130,7 @@ begin
       port map (
          sysClk   => axilClk,           -- [in]
          sysRst   => r.saciRst,         -- [in]
+         asicRstL => asicRstL,          -- [in]
          req      => r.req,             -- [in]
          ack      => ack,               -- [out]
          fail     => fail,              -- [out]
@@ -142,7 +145,7 @@ begin
          saciCmd  => saciCmd,           -- [out]
          saciRsp  => saciRsp);          -- [in]
 
-   comb : process (ack, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData, saciBusGr) is
+   comb : process (ack, asicRstL, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData, saciBusGr) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable resp       : slv(1 downto 0);
@@ -170,7 +173,7 @@ begin
             v.saciRst := '0';
             v.timer   := 0;
             v.saciBusReq := '0';
-            if (saciBusGr = '1') then
+            if (saciBusGr = '1') and (asicRstL = '1') then
                -- Check for a write request
                if (axilStatus.writeEnable = '1') then
                   v.saciBusReq := '1';
