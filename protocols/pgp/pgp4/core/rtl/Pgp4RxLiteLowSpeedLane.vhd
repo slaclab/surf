@@ -30,7 +30,7 @@ entity Pgp4RxLiteLowSpeedLane is
       DLY_STEP_SIZE_G    : positive range 1 to 255 := 1;
       STATUS_CNT_WIDTH_G : natural range 1 to 32   := 16;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32   := 8;
-      AXIL_CLK_FREQ_G    : real); -- In units of HZ
+      AXIL_CLK_FREQ_G    : real);       -- In units of HZ
    port (
       -- Deserialization Interface (deserClk domain)
       deserClk        : in  sl;
@@ -71,6 +71,8 @@ architecture mapping of Pgp4RxLiteLowSpeedLane is
 
    signal phyRxValid : sl := '0';
    signal phyRxData  : slv(65 downto 0);
+
+   signal phyRxValidMask : sl := '0';
 
 begin
 
@@ -151,6 +153,9 @@ begin
          eyeWidth        => eyeWidth,
          locked          => gearboxAligned);
 
+   -- Mask off the Valid until the gearbox is locked
+   phyRxValidMask <= phyRxValid and gearboxAligned;
+
    ------------------
    -- PGPv4 Core Lite
    ------------------
@@ -186,7 +191,7 @@ begin
          phyRxRst        => deserReset,
          phyRxActive     => gearboxAligned,
          phyRxStartSeq   => '0',
-         phyRxValid      => phyRxValid,
+         phyRxValid      => phyRxValidMask,
          phyRxData       => phyRxData(63 downto 0),
          phyRxHeader     => phyRxData(65 downto 64),
          -- AXI-Lite Register Interface (axilClk domain)
