@@ -90,6 +90,7 @@ package I2cPkg is
       busReq      : sl;
       endianness  : sl;
       repeatStart : sl;
+      wrDataOnRd  : sl;
    end record;
 
    constant I2C_REG_MASTER_IN_INIT_C : I2cRegMasterInType := (
@@ -104,7 +105,8 @@ package I2cPkg is
       regReq      => '0',
       busReq      => '0',
       endianness  => '0',
-      repeatStart => '0');
+      repeatStart => '0',
+      wrDataOnRd  => '0');
 
    type I2cRegMasterInArray is array (natural range <>) of I2cRegMasterInType;
 

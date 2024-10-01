@@ -75,12 +75,12 @@ architecture Pgp2fcLane_tb of Pgp2fcLane_tb is
    signal pgpTxOut          : Pgp2fcTxOutType;
    signal pgpRxIn           : Pgp2fcRxInType;
    signal pgpRxOut          : Pgp2fcRxOutType;
-   
+
    signal fcTxSend          : sl := '0';
    signal fcTxWord          : slv(FC_WORDS*16-1 downto 0) := (others => '0');
    signal fcRxRecv          : sl;
    signal fcRxWord          : slv(FC_WORDS*16-1 downto 0);
-   
+
    signal fcInterval        : integer range 0 to FC_INTERVAL-1 := FC_START_VAL;
    signal fcCounter         : unsigned(FC_WORDS*16-1 downto 0) := (others => '0');
 
@@ -130,21 +130,21 @@ begin
       enable <= '1';
       wait;
    end process;
-   
+
    process (locClk) begin
       if rising_edge(locClk) then
          fcTxSend <= '0';
          fcTxWord <= (others => '0');
          fcInterval <= FC_START_VAL;
          fcCounter <= fcCounter;
-      
+
          if enable = '1' and FC_ENABLE = true then
             if fcInterval = FC_INTERVAL-1 then
                fcInterval <= 0;
             else
                fcInterval <= fcInterval + 1;
             end if;
-            
+
             if fcInterval = 0 then
                fcTxSend <= '1';
                fcTxWord <= slv(fcCounter);
@@ -227,7 +227,7 @@ begin
                FIFO_FIXED_THRESH_G => true,
                FIFO_PAUSE_THRESH_G => 255,
                SLAVE_AXI_CONFIG_G  => RCEG3_AXIS_DMA_CONFIG_G,
-               MASTER_AXI_CONFIG_G => SSI_PGP2FC_CONFIG_C)
+               MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C)
             port map (
                sAxisClk        => locClk,
                sAxisRst        => locClkRst,
@@ -323,8 +323,8 @@ begin
             FIFO_FIXED_THRESH_G => true,
             FIFO_PAUSE_THRESH_G => 511,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => SSI_PGP2FC_CONFIG_C,
-            MASTER_AXI_CONFIG_G => SSI_PGP2FC_CONFIG_C
+            SLAVE_AXI_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => PGP2FC_AXIS_CONFIG_C
          ) port map (
             -- Slave Port
             sAxisClk    => locClk,
@@ -349,7 +349,7 @@ begin
             PRBS_TAPS_G                => (0 => 16),
             FIFO_ADDR_WIDTH_G          => 9,
             FIFO_PAUSE_THRESH_G        => 256,    -- Almost full at 1/2 capacity
-            SLAVE_AXI_STREAM_CONFIG_G  => SSI_PGP2FC_CONFIG_C,
+            SLAVE_AXI_STREAM_CONFIG_G  => PGP2FC_AXIS_CONFIG_C,
             SLAVE_AXI_PIPE_STAGES_G    => 0
          ) port map (
             sAxisClk        => slowClk,

@@ -78,6 +78,7 @@ entity TenGigEthGtyUltraScaleWrapper is
     gtTxN                : out slv(NUM_LANE_G-1 downto 0);
     gtRxP                : in  slv(NUM_LANE_G-1 downto 0);
     gtRxN                : in  slv(NUM_LANE_G-1 downto 0));
+
 end TenGigEthGtyUltraScaleWrapper;
 
 architecture mapping of TenGigEthGtyUltraScaleWrapper is
@@ -191,5 +192,6 @@ begin
         gtRxN                => gtRxN(i));
 
   end generate GEN_LANE;
+
 
 end mapping;

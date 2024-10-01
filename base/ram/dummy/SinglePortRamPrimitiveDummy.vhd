@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Manual instantation of RAM32X1S, RAM64X1S, RAM128X1S,
+-- Description: Manual instantiation of RAM32X1S, RAM64X1S, RAM128X1S,
 --                 RAM256X1S, or RAM512X1S.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.

@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 # Load Source Code
 loadSource -lib surf -dir "$::DIR_PATH/core"
@@ -16,6 +16,7 @@ if { ${family} eq {artix7}  ||
 }
 
 # if { ${family} eq {kintexu} ||
+     # ${family} eq {virtexu} ||
      # ${family} eq {kintexuplus} ||
      # ${family} eq {virtexuplus} ||
      # ${family} eq {virtexuplusHBM} ||

@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -28,6 +27,7 @@ use surf.SsiPkg.all;
 entity SsiFrameLimiter is
    generic (
       TPD_G               : time                := 1 ns;
+      RST_ASYNC_G         : boolean             := false;
       EN_TIMEOUT_G        : boolean             := true;
       MAXIS_CLK_FREQ_G    : real                := 156.25E+06;  -- In units of Hz
       TIMEOUT_G           : real                := 1.0E-3;  -- In units of seconds
@@ -90,6 +90,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             READY_EN_G          => true,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
@@ -111,6 +112,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             PIPE_STAGES_G       => 0,
             SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
             VALID_THOLD_G       => 1,
@@ -235,7 +237,7 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (mAxisRst = '1') then
+      if (RST_ASYNC_G = false and mAxisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -247,9 +249,11 @@ begin
 
    end process comb;
 
-   seq : process (mAxisClk) is
+   seq : process (mAxisClk, mAxisRst) is
    begin
-      if rising_edge(mAxisClk) then
+      if (RST_ASYNC_G) and (mAxisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(mAxisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -264,6 +268,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             PIPE_STAGES_G       => 0,
             SLAVE_READY_EN_G    => true,
             VALID_THOLD_G       => 1,

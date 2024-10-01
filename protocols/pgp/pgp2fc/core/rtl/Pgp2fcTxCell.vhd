@@ -38,7 +38,7 @@ entity Pgp2fcTxCell is
 
       -- Link is ready
       pgpTxLinkReady    : in  sl;                               -- Local side has link
-      
+
       -- Phy is busy
       pgpTxBusy         : in  sl;
 
@@ -117,48 +117,48 @@ end Pgp2fcTxCell;
 architecture Pgp2fcTxCell of Pgp2fcTxCell is
 
    -- Local Signals
-   signal muxFrameTxValid    : sl;
-   signal muxFrameTxSOF      : sl;
-   signal muxFrameTxEOF      : sl;
-   signal muxFrameTxEOFE     : sl;
-   signal muxFrameTxData     : slv(15 downto 0);
-   signal muxRemAlmostFull   : sl;
-   signal cellCnt            : slv(PAYLOAD_CNT_TOP_G downto 0);
-   signal cellCntRst         : sl;
-   signal nxtFrameTxReady    : sl;
-   signal nxtType            : slv(2 downto 0);
-   signal nxtTypeLast        : slv(2 downto 0);
-   signal curTypeLast        : slv(2 downto 0);
-   signal nxtTxSOF           : sl;
-   signal nxtTxEOF           : sl;
-   signal nxtTxAck           : sl;
-   signal nxtData            : slv(15 downto 0);
-   signal eocWord            : slv(15 downto 0);
-   signal socWord            : slv(15 downto 0);
-   signal crcWordA           : slv(15 downto 0);
-   signal crcWordB           : slv(15 downto 0);
-   signal serialCntEn        : sl;
-   signal vc0Serial          : slv(5 downto 0);
-   signal vc1Serial          : slv(5 downto 0);
-   signal vc2Serial          : slv(5 downto 0);
-   signal vc3Serial          : slv(5 downto 0);
-   signal muxSerial          : slv(5 downto 0);
-   signal dly0Data           : slv(15 downto 0);
-   signal dly0Type           : slv(2 downto 0);
-   signal dly1Data           : slv(15 downto 0);
-   signal dly1Type           : slv(2 downto 0);
-   signal dly2Data           : slv(15 downto 0);
-   signal dly2Type           : slv(2 downto 0);
-   signal dly3Data           : slv(15 downto 0);
-   signal dly3Type           : slv(2 downto 0);
-   signal dly4Data           : slv(15 downto 0);
-   signal dly4Type           : slv(2 downto 0);
-   signal int0FrameTxReady   : sl;
-   signal int1FrameTxReady   : sl;
-   signal int2FrameTxReady   : sl;
-   signal int3FrameTxReady   : sl;
-   signal intTimeout         : sl;
-   signal intOverflow        : slv(3 downto 0);
+   signal muxFrameTxValid  : sl;
+   signal muxFrameTxSOF    : sl;
+   signal muxFrameTxEOF    : sl;
+   signal muxFrameTxEOFE   : sl;
+   signal muxFrameTxData   : slv(15 downto 0);
+   signal muxRemAlmostFull : sl;
+   signal cellCnt          : slv(PAYLOAD_CNT_TOP_G downto 0);
+   signal cellCntRst       : sl;
+   signal nxtFrameTxReady  : sl;
+   signal nxtType          : slv(2 downto 0);
+   signal nxtTypeLast      : slv(2 downto 0);
+   signal curTypeLast      : slv(2 downto 0);
+   signal nxtTxSOF         : sl;
+   signal nxtTxEOF         : sl;
+   signal nxtTxAck         : sl;
+   signal nxtData          : slv(15 downto 0);
+   signal eocWord          : slv(15 downto 0);
+   signal socWord          : slv(15 downto 0);
+   signal crcWordA         : slv(15 downto 0);
+   signal crcWordB         : slv(15 downto 0);
+   signal serialCntEn      : sl;
+   signal vc0Serial        : slv(5 downto 0);
+   signal vc1Serial        : slv(5 downto 0);
+   signal vc2Serial        : slv(5 downto 0);
+   signal vc3Serial        : slv(5 downto 0);
+   signal muxSerial        : slv(5 downto 0);
+   signal dly0Data         : slv(15 downto 0) := (others => '0');
+   signal dly0Type         : slv(2 downto 0)  := (others => '0');
+   signal dly1Data         : slv(15 downto 0) := (others => '0');
+   signal dly1Type         : slv(2 downto 0)  := (others => '0');
+   signal dly2Data         : slv(15 downto 0) := (others => '0');
+   signal dly2Type         : slv(2 downto 0)  := (others => '0');
+   signal dly3Data         : slv(15 downto 0) := (others => '0');
+   signal dly3Type         : slv(2 downto 0)  := (others => '0');
+   signal dly4Data         : slv(15 downto 0) := (others => '0');
+   signal dly4Type         : slv(2 downto 0)  := (others => '0');
+   signal int0FrameTxReady : sl               := '0';
+   signal int1FrameTxReady : sl               := '0';
+   signal int2FrameTxReady : sl               := '0';
+   signal int3FrameTxReady : sl               := '0';
+   signal intTimeout       : sl               := '0';
+   signal intOverflow      : slv(3 downto 0)  := (others => '0');
 
    -- Transmit Data Marker
    constant TX_DATA_C   : slv(2 downto 0) := "000";

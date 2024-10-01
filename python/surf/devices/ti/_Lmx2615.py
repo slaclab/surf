@@ -12,12 +12,31 @@ import pyrogue as pr
 
 class Lmx2615(pr.Device):
     def __init__(self, **kwargs):
-        super().__init__(size = (1 << 12), **kwargs)
 
         #####################################################################
         # Address = 0x00 (R0)
         # Write only because MUXOUT_LD_SEL's default is not readback SPI mode
         #####################################################################
+        super().__init__(**kwargs)
+
+        self.add(pr.RemoteVariable(
+            name         = "DataBlock",
+            description  = "",
+            offset       = 0,
+            bitSize      = 32 * 1024,
+            bitOffset    = 0,
+            numValues    = 1024,
+            valueBits    = 32,
+            valueStride  = 32,
+            updateNotify = True,
+            bulkOpEn     = False, # FALSE for large variables
+            overlapEn    = True,
+            verify       = False, # FALSE due to a mix of RO/WO/RW variables
+            hidden       = True,
+            base         = pr.UInt,
+            mode         = "RW",
+            groups       = ['NoStream','NoState','NoConfig'], # Not saving config/state to YAML
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'VCO_PHASE_SYNC',
@@ -736,7 +755,6 @@ class Lmx2615(pr.Device):
                     else:
                         data = int("0x" + s[1][-4:], 0)
                     print(f'writing {addr:#04x}: {data:#06x}')
-                    self._rawWrite( 4 * addr, data)
+                    self.DataBlock.set(value=data, index=addr, write=True)
+
             self.MUXOUT_LD_SEL.set(0x0)
-            self.readBlocks(recurse=True)
-            self.checkBlocks(recurse=True)

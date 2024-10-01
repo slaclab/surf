@@ -26,8 +26,8 @@ use surf.Pgp2fcPkg.all;
 
 entity Pgp2fcRxPhy is
    generic (
-      TPD_G         : time                 := 1 ns;
-      FC_WORDS_G    : integer range 1 to 4 := 1
+      TPD_G      : time                 := 1 ns;
+      FC_WORDS_G : integer range 1 to 8 := 1
       );
    port (
 
@@ -44,30 +44,30 @@ entity Pgp2fcRxPhy is
       pgpRxLinkError : out sl := '0';   -- A link error has occured
 
       -- Fast control interface
-      fcRecv         : out sl := '0';
-      fcWord         : out slv(16*FC_WORDS_G-1 downto 0);
-      fcErr          : out sl := '0';
+      fcValid : out sl := '0';
+      fcWord  : out slv(16*FC_WORDS_G-1 downto 0);
+      fcError : out sl := '0';
 
       -- Sideband data
       pgpRemLinkReady : out sl              := '0';              -- Far end side has link
       pgpRemData      : out slv(7 downto 0) := (others => '0');  -- Far end side User Data
 
       -- Cell Receive Interface
-      cellRxPause : out sl;                                -- Cell data pause
-      cellRxSOC   : out sl;                                -- Cell data start of cell
-      cellRxSOF   : out sl;                                -- Cell data start of frame
-      cellRxEOC   : out sl;                                -- Cell data end of cell
-      cellRxEOF   : out sl;                                -- Cell data end of frame
-      cellRxEOFE  : out sl;                                -- Cell data end of frame error
-      cellRxData  : out slv(15 downto 0);                  -- Cell data data
+      cellRxPause : out sl;                -- Cell data pause
+      cellRxSOC   : out sl;                -- Cell data start of cell
+      cellRxSOF   : out sl;                -- Cell data start of frame
+      cellRxEOC   : out sl;                -- Cell data end of cell
+      cellRxEOF   : out sl;                -- Cell data end of frame
+      cellRxEOFE  : out sl;                -- Cell data end of frame error
+      cellRxData  : out slv(15 downto 0);  -- Cell data data
 
       -- Physical Interface Signals
-      phyRxData     : in  slv(15 downto 0);                -- PHY receive data
-      phyRxDataK    : in  slv(1 downto 0);                 -- PHY receive data is K character
-      phyRxDispErr  : in  slv(1 downto 0);                 -- PHY receive data has disparity error
-      phyRxDecErr   : in  slv(1 downto 0);                 -- PHY receive data not in table
-      phyRxReady    : in  sl;                              -- PHY receive interface is ready
-      phyRxInit     : out sl                               -- PHY receive interface init;
+      phyRxData    : in  slv(15 downto 0);  -- PHY receive data
+      phyRxDataK   : in  slv(1 downto 0);   -- PHY receive data is K character
+      phyRxDispErr : in  slv(1 downto 0);   -- PHY receive data has disparity error
+      phyRxDecErr  : in  slv(1 downto 0);   -- PHY receive data not in table
+      phyRxReady   : in  sl;                -- PHY receive interface is ready
+      phyRxInit    : out sl                 -- PHY receive interface init;
       );
 
 end Pgp2fcRxPhy;
@@ -85,47 +85,47 @@ architecture Pgp2fcRxPhy of Pgp2fcRxPhy is
    signal dly1RxDataK         : slv(1 downto 0)  := (others => '0');
    signal dly1RxDispErr       : slv(1 downto 0)  := (others => '0');
    signal dly1RxDecErr        : slv(1 downto 0)  := (others => '0');
-   signal rxDetectLts         : sl                               := '0';
-   signal rxDetectLtsOk       : sl                               := '0';
+   signal rxDetectLts         : sl               := '0';
+   signal rxDetectLtsOk       : sl               := '0';
    signal rxDetectLtsRaw      : sl;
-   signal rxDetectInvert      : sl                               := '0';
+   signal rxDetectInvert      : sl               := '0';
    signal rxDetectInvertRaw   : sl;
-   signal rxDetectRemLink     : sl                               := '0';
-   signal rxDetectRemData     : slv(7 downto 0)                  := (others => '0');
+   signal rxDetectRemLink     : sl               := '0';
+   signal rxDetectRemData     : slv(7 downto 0)  := (others => '0');
    signal rxDetectFcWordEnRaw : sl;
-   signal rxDetectSOC         : sl                               := '0';
+   signal rxDetectSOC         : sl               := '0';
    signal rxDetectSOCRaw      : sl;
-   signal rxDetectSOF         : sl                               := '0';
+   signal rxDetectSOF         : sl               := '0';
    signal rxDetectSOFRaw      : sl;
-   signal rxDetectEOC         : sl                               := '0';
+   signal rxDetectEOC         : sl               := '0';
    signal rxDetectEOCRaw      : sl;
-   signal rxDetectEOF         : sl                               := '0';
+   signal rxDetectEOF         : sl               := '0';
    signal rxDetectEOFRaw      : sl;
-   signal rxDetectEOFE        : sl                               := '0';
+   signal rxDetectEOFE        : sl               := '0';
    signal rxDetectEOFERaw     : sl;
    signal nxtRxLinkReady      : sl;
    signal stateCntRst         : sl;
-   signal stateCnt            : slv(19 downto 0)                 := (others => '0');
+   signal stateCnt            : slv(19 downto 0) := (others => '0');
    signal ltsCntRst           : sl;
    signal ltsCntEn            : sl;
-   signal ltsCnt              : slv(7 downto 0)                  := (others => '0');
-   signal intRxLinkReady      : sl                               := '0';
-   signal dlyRxLinkDown       : sl                               := '0';
-   signal intRxLinkError      : sl                               := '0';
-   signal dlyRxLinkError      : sl                               := '0';
-   signal intRxInit           : sl                               := '0';
+   signal ltsCnt              : slv(7 downto 0)  := (others => '0');
+   signal intRxLinkReady      : sl               := '0';
+   signal dlyRxLinkDown       : sl               := '0';
+   signal intRxLinkError      : sl               := '0';
+   signal dlyRxLinkError      : sl               := '0';
+   signal intRxInit           : sl               := '0';
    signal nxtRxInit           : sl;
-   
-   signal intFcRecv           : sl                               := '0';
-   signal intFcBusy           : sl                               := '0';
-   signal intFcErr            : sl                               := '0';
-   signal fcWordCounter       : integer range 0 to FC_WORDS_G    := 0;
-   signal fcWordBuffer        : slv(16*FC_WORDS_G-1 downto 0)    := (others => '0');
-   
-   signal crcRst              : sl;
-   signal crcEn               : sl;
-   signal crcDataIn           : slv(15 downto 0);
-   signal crcOut              : slv(7 downto 0);
+
+   signal intFcValid    : sl                            := '0';
+   signal intFcBusy     : sl                            := '0';
+   signal intFcError    : sl                            := '0';
+   signal fcWordCounter : integer range 0 to FC_WORDS_G := 0;
+   signal fcWordBuffer  : slv(16*FC_WORDS_G-1 downto 0) := (others => '0');
+
+   signal crcRst    : sl;
+   signal crcEn     : sl;
+   signal crcDataIn : slv(15 downto 0);
+   signal crcOut    : slv(7 downto 0);
 
    -- Physical Link State
    type FSM_STATE is (
@@ -134,9 +134,9 @@ architecture Pgp2fcRxPhy of Pgp2fcRxPhy is
       ST_WAIT_C,
       ST_INVRT_C,
       ST_READY_C
-   );
-   signal curState     : FSM_STATE := ST_LOCK_C;
-   signal nxtState     : FSM_STATE;
+      );
+   signal curState : FSM_STATE := ST_LOCK_C;
+   signal nxtState : FSM_STATE;
 
 begin
 
@@ -145,11 +145,11 @@ begin
 
    -- RX Interface Init
    phyRxInit <= intRxInit;
-   
+
    -- Fast Control Receiver Interface
-   fcRecv <= intFcRecv;
-   fcWord <= fcWordBuffer when intFcRecv = '1' else (others => '0'); -- Zeroing can be removed to improve routing if required
-   fcErr  <= intFcErr;
+   fcValid <= intFcValid;
+   fcWord  <= fcWordBuffer when intFcValid = '1' else (others => '0');  -- Zeroing can be removed to improve routing if required
+   fcError <= intFcError;
 
    -- Cell Receive Interface
    cellRxPause <= intFcBusy;
@@ -280,17 +280,17 @@ begin
 
             -- Lock is lost
             if phyRxReady = '0' then
-               stateCntRst   <= '1';
-               ltsCntEn      <= '0';
-               ltsCntRst     <= '0';
-               nxtState      <= ST_RESET_C;
+               stateCntRst <= '1';
+               ltsCntEn    <= '0';
+               ltsCntRst   <= '0';
+               nxtState    <= ST_RESET_C;
 
             -- Decode or disparity error, clear lts count
             elsif phyRxReady = '0' or dly1RxDispErr /= 0 or dly1RxDecErr /= 0 then
-               stateCntRst   <= '0';
-               ltsCntEn      <= '0';
-               ltsCntRst     <= '1';
-               nxtState      <= curState;
+               stateCntRst <= '0';
+               ltsCntEn    <= '0';
+               ltsCntRst   <= '1';
+               nxtState    <= curState;
 
             -- Training pattern seen
             elsif rxDetectLts = '1' then
@@ -298,7 +298,7 @@ begin
 
                -- No Inversion
                if rxDetectInvert = '0' then
-                  nxtState      <= curState;
+                  nxtState <= curState;
 
                   -- ID & Lane Count Ok
                   if rxDetectLtsOk = '1' then
@@ -311,32 +311,32 @@ begin
 
                -- Inverted
                else
-                  ltsCntEn      <= '0';
-                  ltsCntRst     <= '1';
-                  nxtState      <= ST_INVRT_C;
+                  ltsCntEn  <= '0';
+                  ltsCntRst <= '1';
+                  nxtState  <= ST_INVRT_C;
                end if;
 
             -- Run after we have seen 256 non-inverted training sequences
             -- without any disparity or decode errors.
             elsif ltsCnt = 255 then
-               stateCntRst   <= '1';
-               ltsCntEn      <= '0';
-               ltsCntRst     <= '1';
-               nxtState      <= ST_READY_C;
+               stateCntRst <= '1';
+               ltsCntEn    <= '0';
+               ltsCntRst   <= '1';
+               nxtState    <= ST_READY_C;
 
             -- Terminal count without seeing a valid LTS
             elsif stateCnt = x"FFFFF" then
-               stateCntRst   <= '1';
-               ltsCntEn      <= '0';
-               ltsCntRst     <= '1';
-               nxtState      <= ST_RESET_C;
+               stateCntRst <= '1';
+               ltsCntEn    <= '0';
+               ltsCntRst   <= '1';
+               nxtState    <= ST_RESET_C;
 
             -- Count cycles without LTS
             else
-               stateCntRst   <= '0';
-               ltsCntEn      <= '0';
-               ltsCntRst     <= '0';
-               nxtState      <= curState;
+               stateCntRst <= '0';
+               ltsCntEn    <= '0';
+               ltsCntRst   <= '0';
+               nxtState    <= curState;
             end if;
 
          -- Wait a few clocks after inverting receive interface
@@ -436,20 +436,21 @@ begin
    end process;
 
    -- Fast Control logic
-   process (pgpRxClk, pgpRxClkRst) begin
+   process (pgpRxClk, pgpRxClkRst)
+   begin
       if pgpRxClkRst = '1' then
-         intFcRecv     <= '0'             after TPD_G;
+         intFcValid    <= '0'             after TPD_G;
          intFcBusy     <= '0'             after TPD_G;
-         intFcErr      <= '0'             after TPD_G;
+         intFcError    <= '0'             after TPD_G;
          fcWordCounter <= 0               after TPD_G;
          fcWordBuffer  <= (others => '0') after TPD_G;
       elsif rising_edge(pgpRxClk) then
          -- Defaults
-         intFcRecv <= '0';
-         intFcBusy <= '0';
-         intFcErr  <= '0';
+         intFcValid    <= '0';
+         intFcBusy     <= '0';
+         intFcError    <= '0';
          fcWordCounter <= 0;
-         fcWordBuffer <= fcWordBuffer;
+         fcWordBuffer  <= fcWordBuffer;
 
          if rxDetectFcWordEnRaw = '1' or fcWordCounter /= 0 then
             if fcWordCounter = FC_WORDS_G then
@@ -464,46 +465,46 @@ begin
             fcWordBuffer(7 downto 0) <= dly0RxData(15 downto 8);
          elsif fcWordCounter = FC_WORDS_G then
             fcWordBuffer(FC_WORDS_G*16-1 downto (FC_WORDS_G-1)*16+8) <= dly0RxData(7 downto 0);
-            
+
             -- Check CRC too
             if (crcOut = dly0RxData(15 downto 8)) then
-               intFcRecv <= '1';
+               intFcValid <= '1';
             else
-               intFcErr <= '1';
+               intFcError <= '1';
             end if;
          else
             fcWordBuffer(fcWordCounter*16+7 downto (fcWordCounter-1)*16+8) <= dly0RxData;
          end if;
       end if;
    end process;
-   
-   crcRst <= '1' when fcWordCounter = FC_WORDS_G else '0';
-   crcEn <= '1' when rxDetectFcWordEnRaw = '1' or fcWordCounter /= 0 else '0';
-   crcDataIn <= dly0RxData when fcWordCounter /= FC_WORDS_G else x"00" & dly0RxData(7 downto 0);
-   
+
+   crcRst    <= '1'        when fcWordCounter = FC_WORDS_G                      else '0';
+   crcEn     <= '1'        when rxDetectFcWordEnRaw = '1' or fcWordCounter /= 0 else '0';
+   crcDataIn <= dly0RxData when fcWordCounter /= FC_WORDS_G                     else x"00" & dly0RxData(7 downto 0);
+
    U_Crc7 : entity surf.CRC7Rtl
-   port map (
-      rst     => crcRst,
-      clk     => pgpRxClk,
-      data_in => crcDataIn,
-      crc_en  => crcEn,
-      crc_out => crcOut
-   );
+      port map (
+         rst     => crcRst,
+         clk     => pgpRxClk,
+         data_in => crcDataIn,
+         crc_en  => crcEn,
+         crc_out => crcOut
+         );
 
    -- Link init ordered set detect
    process (pgpRxClk, pgpRxClkRst)
    begin
       if pgpRxClkRst = '1' then
-         rxDetectLts      <= '0'             after TPD_G;
-         rxDetectLtsOk    <= '0'             after TPD_G;
-         rxDetectInvert   <= '0'             after TPD_G;
-         rxDetectRemLink  <= '0'             after TPD_G;
-         rxDetectRemData  <= (others => '0') after TPD_G;
-         rxDetectSOC      <= '0'             after TPD_G;
-         rxDetectSOF      <= '0'             after TPD_G;
-         rxDetectEOC      <= '0'             after TPD_G;
-         rxDetectEOF      <= '0'             after TPD_G;
-         rxDetectEOFE     <= '0'             after TPD_G;
+         rxDetectLts     <= '0'             after TPD_G;
+         rxDetectLtsOk   <= '0'             after TPD_G;
+         rxDetectInvert  <= '0'             after TPD_G;
+         rxDetectRemLink <= '0'             after TPD_G;
+         rxDetectRemData <= (others => '0') after TPD_G;
+         rxDetectSOC     <= '0'             after TPD_G;
+         rxDetectSOF     <= '0'             after TPD_G;
+         rxDetectEOC     <= '0'             after TPD_G;
+         rxDetectEOF     <= '0'             after TPD_G;
+         rxDetectEOFE    <= '0'             after TPD_G;
       elsif rising_edge(pgpRxClk) then
          if pgpRxClkEn = '1' then
             -- LTS is detected when phy is ready
@@ -515,7 +516,7 @@ begin
                   rxDetectLts    <= '1'               after TPD_G;
 
                   -- Fast control word count and ID must match
-                  if dly0RxData(14 downto 12) = conv_std_logic_vector(FC_WORDS_G-1,3) and
+                  if dly0RxData(14 downto 12) = conv_std_logic_vector(FC_WORDS_G-1, 3) and
                      dly0RxData(11 downto 8) = PGP2FC_ID_C then
                      rxDetectLtsOk   <= '1'                    after TPD_G;
                      rxDetectRemLink <= dly0RxData(15)         after TPD_G;
@@ -576,11 +577,11 @@ begin
                end if;
             else
 --               rxDetectOpCodeEn <= '0' after TPD_G;
-               rxDetectSOC      <= '0' after TPD_G;
-               rxDetectSOF      <= '0' after TPD_G;
-               rxDetectEOC      <= '0' after TPD_G;
-               rxDetectEOF      <= '0' after TPD_G;
-               rxDetectEOFE     <= '0' after TPD_G;
+               rxDetectSOC  <= '0' after TPD_G;
+               rxDetectSOF  <= '0' after TPD_G;
+               rxDetectEOC  <= '0' after TPD_G;
+               rxDetectEOF  <= '0' after TPD_G;
+               rxDetectEOFE <= '0' after TPD_G;
             end if;
          end if;
       end if;
@@ -620,7 +621,7 @@ begin
          else
             rxDetectFcWordEnRaw <= '0';
          end if;
-         
+
          -- SOC Detect
          if (dly0RxDataK = "01" and dly0RxData(7 downto 0) = K_SOC_C) then
             rxDetectSOCRaw <= '1';

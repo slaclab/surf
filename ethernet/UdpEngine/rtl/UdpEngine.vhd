@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -32,18 +31,21 @@ entity UdpEngine is
       CLIENT_EN_G    : boolean       := true;
       CLIENT_SIZE_G  : positive      := 1;
       CLIENT_PORTS_G : PositiveArray := (0 => 8193);
-      -- General UDP/ARP/DHCP Generics
+      -- General UDP/IGMP/ARP/DHCP Generics
       TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
       DHCP_G         : boolean       := false;
+      IGMP_G         : boolean       := false;
+      IGMP_GRP_SIZE  : positive      := 1;
       CLK_FREQ_G     : real          := 156.25E+06;   -- In units of Hz
       COMM_TIMEOUT_G : positive      := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
       SYNTH_MODE_G   : string        := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
-      localMac         : in  slv(47 downto 0);        --  big-Endian configuration
-      broadcastIp      : in  slv(31 downto 0);        --  big-Endian configuration
-      localIpIn        : in  slv(31 downto 0);        --  big-Endian configuration
-      dhcpIpOut        : out slv(31 downto 0);        --  big-Endian configuration
+      localMac         : in  slv(47 downto 0);  --  big-Endian configuration
+      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration
+      igmpIp           : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
+      localIpIn        : in  slv(31 downto 0);  --  big-Endian configuration
+      dhcpIpOut        : out slv(31 downto 0);  --  big-Endian configuration
       -- Interface to IPV4 Engine
       obUdpMaster      : out AxiStreamMasterType;
       obUdpSlave       : in  AxiStreamSlaveType;
@@ -106,6 +108,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          DHCP_G         => DHCP_G,
+         IGMP_G         => IGMP_G,
+         IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
          SERVER_EN_G    => SERVER_EN_G,
          SERVER_SIZE_G  => SERVER_SIZE_G,
          SERVER_PORTS_G => SERVER_PORTS_G,
@@ -116,6 +120,7 @@ begin
          -- Local Configurations
          localIp          => localIp,
          broadcastIp      => broadcastIp,
+         igmpIp           => igmpIp,
          -- Interface to IPV4 Engine
          ibUdpMaster      => ibUdpMaster,
          ibUdpSlave       => ibUdpSlave,

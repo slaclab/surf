@@ -27,6 +27,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamMux is
    generic (
       TPD_G                : time                    := 1 ns;
+      RST_ASYNC_G          : boolean                 := false;
       PIPE_STAGES_G        : integer range 0 to 16   := 0;
       NUM_SLAVES_G         : integer range 1 to 256  := 4;
       -- In INDEXED mode, the output TDEST is set based on the selected slave index (default)
@@ -42,6 +43,10 @@ entity AxiStreamMux is
       TID_MODE_G           : string                  := "PASSTHROUGH";
       -- In ROUTED mode, an array mapping how TID should be assigned for each slave port
       TID_ROUTES_G         : Slv8Array               := (0 => "--------");
+      -- Assign a priority for each input stream index.
+      -- Higher priority streams will be selected over those with lower priority of both are active.
+      -- Format is (index => priority)
+      -- Leave unchanged for equal priority round-robbin
       PRIORITY_G           : IntegerArray            := (0 => 0);
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G          : integer range 0 to 7    := 0;
@@ -288,7 +293,7 @@ begin
          end if;
       end if;
 
-      -- v.valid = 0 indicates rearbitration, so reset arbCnt
+      -- v.valid = 0 indicates re-arbitration, so reset arbCnt
       if (v.valid = '0') then
          v.arbCnt := (others => '0');
       end if;
@@ -303,7 +308,7 @@ begin
       sAxisSlaves <= v.slaves;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -315,9 +320,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -326,6 +333,7 @@ begin
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
          TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
          PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,

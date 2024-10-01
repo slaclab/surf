@@ -47,6 +47,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  16,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -55,6 +56,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  16,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -63,6 +65,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -71,6 +74,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  8,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -79,6 +83,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -87,6 +92,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  24,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -95,6 +101,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -103,6 +110,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  8,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -111,6 +119,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -119,6 +128,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  24,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         for i in range(6):
@@ -128,6 +138,7 @@ class AxiPciePhy(pr.Device):
                 bitSize      =  32,
                 bitOffset    =  0,
                 mode         = 'RO',
+                hidden       = (i!=0),
             ))
 
         self.add(pr.RemoteVariable(
@@ -136,6 +147,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -160,6 +172,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  32,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -168,6 +181,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -176,6 +190,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -184,6 +199,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  8,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -192,6 +208,7 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  16,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -200,109 +217,93 @@ class AxiPciePhy(pr.Device):
             bitSize      =  8,
             bitOffset    =  24,
             mode         = 'RO',
+            hidden       =  True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'Gen2Capable',
-            description  = 'If set, underlying integrated block supports PCIe Gen2 speed.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  0,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'Gen3Capable',
-            description  = 'If set, underlying integrated block supports PCIe Gen3 speed.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  3,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'RootPortPresent',
-            description  = 'Indicates the underlying integrated block is a Root Port when this bit is set. If set, Root Port registers are present in this interface.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  1,
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'UpConfigCapable',
-            description  = 'Indicates the underlying integrated block is upconfig capable when this bit is set.',
-            offset       =  0x130,
-            bitSize      =  1,
-            bitOffset    =  2,
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LinkRateGen2',
-            description  = '0b = 2.5 GT/s (if bit[12] = 0), or 8.0GT/s (if bit[12] = 1), 1b = 5.0 GT/s',
-            offset       =  0x144,
-            bitSize      =  1,
-            bitOffset    =  0,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LinkRateGen3',
-            description  = 'Reports the current link rate. 0b = see bit[0]. 1b = 8.0 GT/s',
-            offset       =  0x144,
-            bitSize      =  1,
-            bitOffset    =  12,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LinkWidth16',
-            description  = 'Reports the current link width. 0b = See bit[2:1]. 1b = x16.',
-            offset       =  0x144,
-            bitSize      =  1,
-            bitOffset    =  13,
-            mode         = 'RO',
-            hidden       = True,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LinkWidth',
-            description  = 'Reports the current link width. 00b = x1, 01b = x2, 10b = x4, 11b = x8.',
-            offset       =  0x144,
-            bitSize      =  2,
-            bitOffset    =  1,
-            mode         = 'RO',
-            hidden       = True,
+            name         = "DevSpecRegion",
+            description  = "The memory range from offset 0x40 to 0xFF in the PCI configuration header is referred to as the 'Device Specific Region'. This area is reserved for use by the device vendor and can contain any vendor-specific configuration or control registers.",
+            offset       =  0x40,
+            valueBits      =  8,
+            valueStride    =  8,
+            base         = pr.UInt,
+            mode         = "RO",
+            numValues       =  192,
+            hidden       =  True,
         ))
 
         self.add(pr.LinkVariable(
-            name         = 'LnkCapSpeed',
-            description  = 'LnkCapSpeed',
+            name         = 'LinkStatus',
             mode         = 'RO',
-            linkedGet    = lambda: '8.0' if self.Gen3Capable.value() else ( '5.0' if self.Gen2Capable.value() else '2.5'),
-            dependencies = [self.Gen3Capable,self.Gen2Capable],
-            units        = 'GT/s',
+            linkedGet    = self.updateLinkStatus,
+            dependencies = [self.CapabilitiesPointer, self.DevSpecRegion],
+            hidden       =  True,
         ))
 
-        self.add(pr.LinkVariable(
-            name         = 'LnkStaSpeed',
-            description  = 'LnkStaSpeed',
-            mode         = 'RO',
-            linkedGet    = lambda: '8.0' if self.LinkRateGen3.value() else ( '5.0' if self.LinkRateGen2.value() else '2.5'),
-            dependencies = [self.LinkRateGen3,self.LinkRateGen2],
-            units        = 'GT/s',
+        speedEnum = {
+            0: 'UNDEFINED',
+            1: '2.5',
+            2: '5',
+            3: '8',
+            4: '16',
+            5: '32',
+            6: '64',
+            7: '128',
+        }
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkCapSpeed',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'GT/s',
+            enum   = speedEnum
         ))
 
-        self.add(pr.LinkVariable(
-            name         = 'LnkStaWidth',
-            description  = 'LnkStaWidth',
-            mode         = 'RO',
-            linkedGet    = lambda: 16 if self.LinkWidth16.value() else 2**self.LinkWidth.value(),
-            dependencies = [self.LinkWidth16,self.LinkWidth],
-            units        = '# of lanes',
+        self.add(pr.LocalVariable(
+            name   = 'LnkCapWidth',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'lanes',
+            disp   = '{:d}',
         ))
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkStaSpeed',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'GT/s',
+            enum   = speedEnum
+        ))
+
+        self.add(pr.LocalVariable(
+            name   = 'LnkStaWidth',
+            mode   = 'RO',
+            value  = 0,
+            units  = 'lanes',
+            disp   = '{:d}',
+        ))
+
+
+    def updateLinkStatus(self):
+        with self.root.updateGroup():
+            # Check if value points to the Device Specific Region
+            ptr = self.CapabilitiesPointer.value()
+            if ptr >= 0x40:
+                # Adjust the pointer to the start of the Device Specific Region
+                adjusted_ptr = ptr - 0x40
+
+                # Go to the Capabilities Pointer offset and get the Capabilities Express Endpoint offset
+                ptrOffset = self.DevSpecRegion.value()[adjusted_ptr + 1] - 0x40
+
+                # Capabilities Express Endpoint offset
+                dev_spec_values = self.DevSpecRegion.value()
+                linkCap = dev_spec_values[ptrOffset + 0x0C] | (dev_spec_values[ptrOffset + 0x0D] << 8)
+                linkStatus = dev_spec_values[ptrOffset + 0x12] | (dev_spec_values[ptrOffset + 0x13] << 8)
+
+                # Set the link speed and width capabilities
+                self.LnkCapSpeed.set((linkCap >> 0) & 0xF)
+                self.LnkCapWidth.set((linkCap >> 4) & 0xFF)
+
+                # Set the link speed and width status
+                self.LnkStaSpeed.set((linkStatus >> 0) & 0xF)
+                self.LnkStaWidth.set((linkStatus >> 4) & 0xFF)

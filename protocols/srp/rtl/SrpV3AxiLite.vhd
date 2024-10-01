@@ -38,10 +38,12 @@ entity SrpV3AxiLite is
       PIPE_STAGES_G         : natural range 0 to 16   := 1;
       FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
       FIFO_SYNTH_MODE_G     : string                  := "inferred";
+      FIFO_ADDR_WIDTH_G     : integer range 9 to 48   := 9;  -- Need at least 9 to avoid logjams on large txns
       TX_VALID_THOLD_G      : positive range 1 to 511 := 500;  -- >1 = only when frame ready or # entries
       TX_VALID_BURST_MODE_G : boolean                 := true;       -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
+      ENABLE_TIMER_G        : boolean                 := true;
       AXIL_CLK_FREQ_G       : real                    := 156.25E+6;  -- units of Hz
       AXI_STREAM_CONFIG_G   : AxiStreamConfigType);
    port (
@@ -140,7 +142,7 @@ architecture rtl of SrpV3AxiLite is
       verMismatch      => '0',
       reqSizeError     => '0',
       ignoreMemResp    => '0',
-      rxRst            => '0',
+      rxRst            => '1',
       overflowDet      => '0',
       skip             => '0',
       mAxilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
@@ -162,9 +164,11 @@ architecture rtl of SrpV3AxiLite is
    signal rxCtrl       : AxiStreamCtrlType;
    signal rxTLastTUser : slv(7 downto 0);
    signal txSlave      : AxiStreamSlaveType;
-   signal rst          : sl;
+   signal sAxisRxRst   : sl;
+   signal sRstTmp      : sl;
    signal sRst         : sl;
-   signal rxRst        : sl;
+--    signal rxRstTmp     : sl;
+--    signal rxRst        : sl;
 
    -- attribute dont_touch                 : string;
    -- attribute dont_touch of r            : signal is "TRUE";
@@ -183,7 +187,15 @@ architecture rtl of SrpV3AxiLite is
 begin
 
    sAxisCtrl <= sCtrl;
-   sRst      <= rst or sAxisRst;
+
+--    Sync_Rst_2 : entity surf.RstSync
+--       generic map (
+--          TPD_G => TPD_G)
+--       port map (
+--          clk      => axilClk,
+--          asyncRst => rxRstTmp,
+--          syncRst  => rxRst);
+
 
    U_Limiter : entity surf.SsiFrameLimiter
       generic map (
@@ -215,14 +227,14 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         VALID_THOLD_G       => 0,      -- = 0 = only when frame ready
+         VALID_THOLD_G       => 0,                  -- = 0 = only when frame ready
          -- FIFO configurations
          SYNTH_MODE_G        => FIFO_SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,     -- 128-bit
-         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
+         INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,  -- 8kB/FIFO = 128-bits x 512 entries
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
          -- AXI Stream Port Configurations
@@ -237,14 +249,14 @@ begin
          sAxisCtrl   => sCtrl,
          -- Master Port
          mAxisClk    => axilClk,
-         mAxisRst    => rxRst,
+         mAxisRst    => r.rxRst,
          mAxisMaster => rxMaster,
          mAxisSlave  => rxSlave,
          mTLastTUser => rxTLastTUser);
 
    GEN_SYNC_SLAVE : if (GEN_SYNC_FIFO_G = true) generate
-      rxCtrl <= sCtrl;
-      rst    <= rxRst;
+      rxCtrl     <= sCtrl;
+      sAxisRxRst <= r.rxRst;
    end generate;
 
    GEN_ASYNC_SLAVE : if (GEN_SYNC_FIFO_G = false) generate
@@ -273,9 +285,20 @@ begin
             TPD_G => TPD_G)
          port map (
             clk      => sAxisClk,
-            asyncRst => rxRst,
-            syncRst  => rst);
+            asyncRst => r.rxRst,
+            syncRst  => sAxisRxRst);
    end generate;
+
+   sRstTmp <= sAxisRxRst or sAxisRst;
+
+   Sync_Rst_1 : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => sAxisClk,
+         asyncRst => sRstTmp,
+         syncRst  => sRst);
+
 
    comb : process (axilRst, mAxilReadSlave, mAxilWriteSlave, r, rxCtrl,
                    rxMaster, rxTLastTUser, txSlave) is
@@ -635,7 +658,7 @@ begin
                end if;
             end if;
             -- Check if timer enabled
-            if r.timeoutSize /= 0 then
+            if (r.timeoutSize /= 0) and ENABLE_TIMER_G then
                -- Check 100 ms timer
                if r.timer = TIMEOUT_C then
                   -- Increment counter
@@ -735,7 +758,7 @@ begin
                end if;
             end if;
             -- Check if timer enabled
-            if r.timeoutSize /= 0 then
+            if (r.timeoutSize /= 0) and ENABLE_TIMER_G then
                -- Check 100 ms timer
                if r.timer = TIMEOUT_C then
                   -- Increment counter
@@ -771,7 +794,7 @@ begin
       -- Registered Outputs
       mAxilWriteMaster <= r.mAxilWriteMaster;
       mAxilReadMaster  <= r.mAxilReadMaster;
-      rxRst            <= r.rxRst or axilRst;
+--      rxRstTmp         <= r.rxRst or axilRst;
 
    end process comb;
 
@@ -796,8 +819,8 @@ begin
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,     -- 128-bit
-         FIFO_ADDR_WIDTH_G   => 9,      -- 8kB/FIFO = 128-bits x 512 entries
+         INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+         FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,  -- 8kB/FIFO = 128-bits x 512 entries
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)

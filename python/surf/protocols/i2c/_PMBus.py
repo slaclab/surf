@@ -11,7 +11,7 @@
 import pyrogue as pr
 
 class PMBus(pr.Device):
-    def __init__(self, simpleDisplay = True, **kwargs):
+    def __init__(self, simpleDisplay = True, dynamicAddr=False, **kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
@@ -19,7 +19,8 @@ class PMBus(pr.Device):
             offset       =  0x400,
             bitSize      =  10,
             bitOffset    =  0,
-            mode         = 'RW',
+            mode         = 'RW' if dynamicAddr else 'RO',
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -27,7 +28,8 @@ class PMBus(pr.Device):
             offset       =  0x400,
             bitSize      =  1,
             bitOffset    =  10,
-            mode         = 'RW',
+            mode         = 'RW' if dynamicAddr else 'RO',
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -44,6 +46,7 @@ class PMBus(pr.Device):
             offset       = (4*0x00),
             bitSize      = 8,
             mode         = 'RW',
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(

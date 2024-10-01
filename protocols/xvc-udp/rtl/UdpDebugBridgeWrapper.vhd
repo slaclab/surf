@@ -26,7 +26,8 @@ use surf.EthMacPkg.all;
 
 entity UdpDebugBridgeWrapper is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G           : time := 1 ns;
+      AXIS_CLK_FREQ_G : real := 156.25e6);
    port (
       -- Clock and Reset
       clk            : in  sl;
@@ -41,6 +42,8 @@ end UdpDebugBridgeWrapper;
 architecture rtl of UdpDebugBridgeWrapper is
 
    component UdpDebugBridge is
+--      generic (
+--         AXIS_CLK_FREQ_G : real);
       port (
          axisClk            : in  std_logic;
          axisRst            : in  std_logic;
@@ -78,6 +81,10 @@ architecture rtl of UdpDebugBridgeWrapper is
 
 begin
 
+   assert (AXIS_CLK_FREQ_G = 156.25E+6)
+      report "AXIS_CLK_FREQ_G: Must be 156.25E+6"
+      severity error;
+
    ----------------------------
    -- 'XVC' Server @2542 (modified protocol to work over UDP)
    ----------------------------
@@ -112,6 +119,8 @@ begin
    end process P_SOF_SPLICE;
 
    U_XvcServer : component UdpDebugBridge
+--      generic map (
+--         AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G)
       port map (
          axisClk => clk,
          axisRst => rst,

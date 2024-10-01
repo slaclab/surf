@@ -14,7 +14,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue   as pr
-import rogue
 import surf.misc
 import click
 import time
@@ -29,16 +28,8 @@ class AxiMicronN25Q(pr.Device):
             hidden      = True,
             **kwargs):
 
-        self._useVars = rogue.Version.greaterThanEqual('5.4.0')
-
-        if self._useVars:
-            size = 0
-        else:
-            size = (0x1 << 10)
-
         super().__init__(
             description = description,
-            size        = size,
             hidden      = hidden,
             **kwargs)
 
@@ -50,75 +41,74 @@ class AxiMicronN25Q(pr.Device):
         ##############################
         # Setup variables
         ##############################
-        if self._useVars:
+        self.add(pr.RemoteVariable(
+            name        = 'PasswordLock',
+            offset      = 0x00,
+            base        = pr.UInt,
+            bitSize     = 32,
+            bitOffset   = 0,
+            retryCount  = tryCount,
+            updateNotify= False,
+            bulkOpEn    = False,
+            hidden      = True,
+            verify      = False,
+        ))
 
-            self.add(pr.RemoteVariable(
-                name        = 'PasswordLock',
-                offset      = 0x00,
-                base        = pr.UInt,
-                bitSize     = 32,
-                bitOffset   = 0,
-                retryCount  = tryCount,
-                updateNotify= False,
-                bulkOpEn    = False,
-                hidden      = True,
-                verify      = False,
-            ))
+        self.add(pr.RemoteVariable(
+            name        = 'ModeReg',
+            offset      = 0x04,
+            base        = pr.UInt,
+            bitSize     = 32,
+            bitOffset   = 0,
+            retryCount  = tryCount,
+            updateNotify= False,
+            bulkOpEn    = False,
+            hidden      = True,
+            verify      = False,
+        ))
 
-            self.add(pr.RemoteVariable(
-                name        = 'ModeReg',
-                offset      = 0x04,
-                base        = pr.UInt,
-                bitSize     = 32,
-                bitOffset   = 0,
-                retryCount  = tryCount,
-                updateNotify= False,
-                bulkOpEn    = False,
-                hidden      = True,
-                verify      = False,
-            ))
+        self.add(pr.RemoteVariable(
+            name        = 'AddrReg',
+            offset      = 0x08,
+            base        = pr.UInt,
+            bitSize     = 32,
+            bitOffset   = 0,
+            retryCount  = tryCount,
+            updateNotify= False,
+            bulkOpEn    = False,
+            hidden      = True,
+            verify      = False,
+        ))
 
-            self.add(pr.RemoteVariable(
-                name        = 'AddrReg',
-                offset      = 0x08,
-                base        = pr.UInt,
-                bitSize     = 32,
-                bitOffset   = 0,
-                retryCount  = tryCount,
-                updateNotify= False,
-                bulkOpEn    = False,
-                hidden      = True,
-                verify      = False,
-            ))
+        self.add(pr.RemoteVariable(
+            name        = 'CmdReg',
+            offset      = 0x0C,
+            base        = pr.UInt,
+            bitSize     = 32,
+            bitOffset   = 0,
+            retryCount  = tryCount,
+            updateNotify= False,
+            bulkOpEn    = False,
+            hidden      = True,
+            verify      = False,
+        ))
 
-            self.add(pr.RemoteVariable(
-                name        = 'CmdReg',
-                offset      = 0x0C,
-                base        = pr.UInt,
-                bitSize     = 32,
-                bitOffset   = 0,
-                retryCount  = tryCount,
-                updateNotify= False,
-                bulkOpEn    = False,
-                hidden      = True,
-                verify      = False,
-            ))
-
-            self.add(pr.RemoteVariable(
-                name        = 'DataReg',
-                offset      = 0x200,
-                base        = pr.UInt,
-                bitSize     = 32*64,
-                bitOffset   = 0,
-                numValues   = 64,
-                valueBits   = 32,
-                valueStride = 32,
-                retryCount  = tryCount,
-                updateNotify= False,
-                bulkOpEn    = False,
-                hidden      = True,
-                verify      = False,
-            ))
+        self.add(pr.RemoteVariable(
+            name        = 'DataReg',
+            offset      = 0x200,
+            base        = pr.UInt,
+            bitSize     = 32*64,
+            bitOffset   = 0,
+            numValues   = 64,
+            valueBits   = 32,
+            valueStride = 32,
+            retryCount  = tryCount,
+            updateNotify= False,
+            bulkOpEn    = False,
+            hidden      = True,
+            verify      = False,
+            groups      = ['NoStream','NoState','NoConfig'], # Not saving config/state to YAML
+        ))
 
         ##############################
         # Constants
@@ -253,10 +243,7 @@ class AxiMicronN25Q(pr.Device):
         wordCnt = 0
         byteCnt = 0
         # Create a burst data array
-        if self._useVars:
-            dataArray = self.getDataReg(read=False)
-        else:
-            dataArray = [0] * 64
+        dataArray = self.getDataReg(read=False)
         # Setup the status bar
         with click.progressbar(
             length   = self._mcs.size,
@@ -291,7 +278,7 @@ class AxiMicronN25Q(pr.Device):
 
         # Check for leftover data
         if ( (wordCnt != 0) or (byteCnt != 0) ):
-            while(wordCnt != 64):
+            while (wordCnt != 64):
                 # Pack the bytes into a 32-bit word
                 if ( byteCnt==0 ):
                     wrd = (0xFF) << (8*(3-byteCnt))
@@ -373,7 +360,7 @@ class AxiMicronN25Q(pr.Device):
             self.setCmd(self.READ_MASK|self.READ_3BYTE_CMD|0x103)
 
     def setPromStatusReg(self, value):
-        if(self._addrMode):
+        if (self._addrMode):
             self.setAddrReg((value&0xFF)<<24)
             self.setCmd(self.WRITE_MASK|self.STATUS_REG_WR_CMD|0x1)
         else:
@@ -441,46 +428,25 @@ class AxiMicronN25Q(pr.Device):
                 break
 
     #########################################
-    # All the rawWrite and rawRead commands #
+    # Command wrappers
     #########################################
     def setModeReg(self):
-        if self._useVars:
-            if (self._addrMode):
-                self.ModeReg.set(value=0x1)
-            else:
-                self.ModeReg.set(value=0x0)
+        if (self._addrMode):
+            self.ModeReg.set(value=0x1)
         else:
-            if (self._addrMode):
-                self._rawWrite(offset=0x04,data=0x1,tryCount=self._tryCount) # Deprecated
-            else:
-                self._rawWrite(offset=0x04,data=0x0,tryCount=self._tryCount) # Deprecated
+            self.ModeReg.set(value=0x0)
 
     def setAddrReg(self,value):
-        if self._useVars:
-            self.AddrReg.set(value=value)
-        else:
-            self._rawWrite(offset=0x08,data=value,tryCount=self._tryCount) # Deprecated
+        self.AddrReg.set(value=value)
 
     def setCmdReg(self,value):
-        if self._useVars:
-            self.CmdReg.set(value=value)
-        else:
-            self._rawWrite(offset=0x0C,data=value,tryCount=self._tryCount) # Deprecated
+        self.CmdReg.set(value=value)
 
     def getCmdReg(self):
-        if self._useVars:
-            return self.CmdReg.get()
-        else:
-            return (self._rawRead(offset=0x0C,tryCount=self._tryCount)) # Deprecated
+        return self.CmdReg.get()
 
     def setDataReg(self,values):
-        if self._useVars:
-            self.DataReg.set(values)
-        else:
-            self._rawWrite(offset=0x200,data=values,tryCount=self._tryCount) # Deprecated
+        self.DataReg.set(values)
 
     def getDataReg(self,read=True):
-        if self._useVars:
-            return self.DataReg.get(read=read)
-        else:
-            return (self._rawRead(offset=0x200,numWords=64,tryCount=self._tryCount)) # Deprecated
+        return self.DataReg.get(read=read)

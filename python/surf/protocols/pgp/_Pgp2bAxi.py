@@ -73,6 +73,30 @@ class Pgp2bAxi(pr.Device):
                 base        = pr.Bool,
             ))
 
+            self.add(pr.RemoteVariable(
+                name        = "TxDiffCtrl",
+                offset      = 0x1C,
+                bitSize     = 5,
+                bitOffset   = 0,
+                mode        = "RW",
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = "TxPreCursor",
+                offset      = 0x1C,
+                bitSize     = 5,
+                bitOffset   = 5,
+                mode        = "RW",
+            ))
+
+            self.add(pr.RemoteVariable(
+                name        = "TxPostCursor",
+                offset      = 0x1C,
+                bitSize     = 5,
+                bitOffset   = 10,
+                mode        = "RW",
+            ))
+
         self.add(pr.RemoteVariable(
             name        = "RxPhyReady",
             offset      = 0x20,
@@ -355,8 +379,8 @@ class Pgp2bAxi(pr.Device):
             pollInterval = 1,
         ))
 
-        def convtMHz(var):
-            return var.dependencies[0].value() * 1.0E-6
+        def convtMHz(var, read):
+            return var.dependencies[0].get(read=read) * 1.0E-6
 
         self.add(pr.LinkVariable(
             name         = "RxClkFreq",

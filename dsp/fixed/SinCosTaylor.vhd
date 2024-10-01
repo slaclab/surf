@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Taylor series corrected SinCosLut, stores 1/4 cos in
---              INT_PHASE_WIDTH_G - 2 bits LUT and does 1st order taylor series
+--              INT_PHASE_WIDTH_G - 2 bits LUT and does 1st order Taylor series
 --              correction on ouput (3 real multipliers)
 --              dout.re <= cos
 --              dout.im <= sin
@@ -25,7 +25,6 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 use ieee.fixed_pkg.all;
 use ieee.fixed_float_types.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;

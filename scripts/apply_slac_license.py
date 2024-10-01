@@ -8,7 +8,9 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-import os,sys,shutil
+import os
+import sys
+import shutil
 
 # Read in a file into a string
 def readFile(src):
@@ -98,17 +100,27 @@ def updateFile(path,module,comment,log,script):
 
 # Check args
 if len(sys.argv) < 3:
-    print ("Usage: apply_license.py root_dir module_name")
+    print ("Usage: apply_slac_license.py root_dir module_name [optional path_to_license]")
     exit()
 
 module = sys.argv[2]
 path   = sys.argv[1]
+# Path to license is an optional argument
+license_path = ""
+if len(sys.argv) == 4:
+    license_path = sys.argv[3]
 
 logFile = open (path + "/apply_license_log.txt","w")
 
 # Copy license file
-baseDir = os.path.realpath(__file__).split('surf')[0]
-shutil.copy(baseDir+"surf/LICENSE.txt",path + "/LICENSE.txt")
+if license_path != "":
+    # Use user defined directory
+    baseDir = os.path.realpath(license_path)
+    shutil.copy(baseDir + "/LICENSE.txt", path + "/LICENSE.txt")
+else:
+    # Use surf default directory
+    baseDir = os.path.realpath(__file__).split('surf')[0]
+    shutil.copy(baseDir + "surf/LICENSE.txt", path + "/LICENSE.txt")
 
 # Walk directories recursively
 for root,dirs,files in os.walk(path):
@@ -116,30 +128,30 @@ for root,dirs,files in os.walk(path):
         src = "%s/%s" % (root,f)
         ret = None
 
-    # Skip .svn sub-directories
-    if f.find(".svn") > 0:
-        logFile.write("Ignored:  %s\n" % (src))
+        # Skip .svn sub-directories
+        if f.find(".svn") > 0:
+            logFile.write("Ignored:  %s\n" % (src))
 
-    # VHDL
-    elif f.endswith(".vhd"):
-        updateFile(src,module,"--",logFile,False)
+        # VHDL
+        elif f.endswith(".vhd"):
+            updateFile(src,module,"--",logFile,False)
 
-    # C files
-    elif f.endswith(".h") or f.endswith(".hh") or f.endswith(".c") or f.endswith(".cc") or f.endswith(".cpp"):
-        updateFile(src,module,"//",logFile,False)
+        # C files
+        elif f.endswith(".h") or f.endswith(".hh") or f.endswith(".c") or f.endswith(".cc") or f.endswith(".cpp"):
+            updateFile(src,module,"//",logFile,False)
 
-    # Verilog, Verilog, or System Verilog
-    elif f.endswith(".v") or f.endswith(".vh") or f.endswith(".sv"):
-        updateFile(src,module,"//",logFile,False)
+        # Verilog, Verilog, or System Verilog
+        elif f.endswith(".v") or f.endswith(".vh") or f.endswith(".sv"):
+            updateFile(src,module,"//",logFile,False)
 
-    # TCL / XDC
-    elif f.endswith(".tcl") or f.endswith(".xdc"):
-        updateFile(src,module,"##",logFile,False)
+        # TCL / XDC
+        elif f.endswith(".tcl") or f.endswith(".xdc"):
+            updateFile(src,module,"##",logFile,False)
 
-    # Python
-    elif f.endswith(".py"):
-        updateFile(src,module,"##",logFile,True)
+        # Python
+        elif f.endswith(".py"):
+            updateFile(src,module,"##",logFile,True)
 
-    # Unknown
-    else:
-        logFile.write("Unknown:  %s\n" % (src))
+        # Unknown
+        else:
+            logFile.write("Unknown:  %s\n" % (src))

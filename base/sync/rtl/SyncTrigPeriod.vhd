@@ -17,13 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SyncTrigPeriod is
    generic (
       TPD_G         : time     := 1 ns;   -- Simulation FF output delay
+      RST_ASYNC_G   : boolean  := false;
       COMMON_CLK_G  : boolean  := false;  -- true if trigClk & locClk are the same clock
       IN_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
       CNT_WIDTH_G   : positive := 32);  -- Counters' width
@@ -78,7 +78,6 @@ begin
          dataIn  => trigIn,
          dataOut => trig);
 
-
    comb : process (locRst, r, resetStat, trig) is
       variable v : RegType;
    begin
@@ -114,10 +113,10 @@ begin
                v.periodMin := v.cnt;
             end if;
 
-            -- Reset the counter
-            v.cnt := (others => '0');
-
          end if;
+
+         -- Reset the counter
+         v.cnt := (others => '0');
 
       end if;
 
@@ -127,7 +126,7 @@ begin
       periodMin <= r.periodMin;
 
       -- Reset
-      if (locRst = '1') or (resetStat = '1') then
+      if (RST_ASYNC_G = false and locRst = '1') or (resetStat = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -136,9 +135,11 @@ begin
 
    end process comb;
 
-   seq : process (locClk) is
+   seq : process (locClk, locRst) is
    begin
-      if rising_edge(locClk) then
+      if (RST_ASYNC_G) and (locRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(locClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

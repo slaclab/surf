@@ -74,6 +74,7 @@ entity TenGigEthGthUltraScale is
     gtTxN              : out sl;
     gtRxP              : in  sl;
     gtRxN              : in  sl);
+
 end TenGigEthGthUltraScale;
 
 architecture mapping of TenGigEthGthUltraScale is

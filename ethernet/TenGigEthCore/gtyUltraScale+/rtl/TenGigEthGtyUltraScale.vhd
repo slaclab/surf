@@ -23,6 +23,7 @@ use surf.TenGigEthPkg.all;
 use surf.EthMacPkg.all;
 
 entity TenGigEthGtyUltraScale is
+
   generic (
     TPD_G         : time                := 1 ns;
     PAUSE_EN_G    : boolean             := true;
@@ -72,6 +73,7 @@ entity TenGigEthGtyUltraScale is
     gtTxN                : out sl;
     gtRxP                : in  sl;
     gtRxN                : in  sl);
+ 
 end TenGigEthGtyUltraScale;
 
 architecture mapping of TenGigEthGtyUltraScale is
@@ -244,6 +246,7 @@ begin
       mAxiReadSlave   => mAxiReadSlave,
       mAxiWriteMaster => mAxiWriteMaster,
       mAxiWriteSlave  => mAxiWriteSlave);
+
 
   --------------------
   -- Ethernet MAC core

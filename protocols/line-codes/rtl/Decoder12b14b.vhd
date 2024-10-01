@@ -57,7 +57,7 @@ architecture rtl of Decoder12b14b is
 
    constant REG_INIT_C : RegType := (
       validOut  => '0',
-      dispOut   => "01",
+      dispOut   => "00",
       dataOut   => (others => '0'),
       dataKOut  => '0',
       codeError => '0',

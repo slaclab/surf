@@ -38,7 +38,6 @@ entity SlvFixedDelay is
       dout     : out slv(WIDTH_G - 1 downto 0));
 end entity SlvFixedDelay;
 
-
 architecture rtl of SlvFixedDelay is
 
    type VectorArray is array (DELAY_G downto 0) of slv(WIDTH_G-1 downto 0);

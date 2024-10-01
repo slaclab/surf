@@ -15,8 +15,8 @@ from surf.axi._AxiStreamMonAxiL             import *
 from surf.axi._AxiMonAxiL                   import *
 from surf.axi._AxiRateGen                   import *
 from surf.axi._AxiVersion                   import *
-from surf.axi._AxiVersionLegacy             import *
 from surf.axi._AxiStreamDmaFifo             import *
+from surf.axi._AxiStreamDmaV2Fifo           import *
 from surf.axi._AxiStreamDmaV2               import *
 from surf.axi._AxiStreamFrameRateLimiter    import *
 from surf.axi._AxiStreamRingBuffer          import *

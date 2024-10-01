@@ -29,6 +29,7 @@ class _Regs(pr.Device):
             offset    = 0x00,
             bitOffset = 0,
             bitSize   = 1,
+            groups    = ['NoStream','NoState','NoConfig'],
             enum      = {
                 0: "Write",
                 1: "Read",
@@ -42,6 +43,7 @@ class _Regs(pr.Device):
             bitOffset = 0,
             bitSize   = 1,
             base      = pr.Bool,
+            groups    = ['NoStream','NoState','NoConfig'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -49,6 +51,7 @@ class _Regs(pr.Device):
             offset    = 0x04,
             bitOffset = 1,
             bitSize   = 2,
+            groups    = ['NoStream','NoState','NoConfig'],
             enum      = {
                 0 : 'OK',
                 1 : 'EXOK',
@@ -62,6 +65,7 @@ class _Regs(pr.Device):
             offset    = 0x08,
             bitOffset = 0,
             bitSize   = 32,
+            groups    = ['NoStream','NoState','NoConfig'],
         ))
 
         self.add(pr.RemoteVariable(
@@ -69,6 +73,7 @@ class _Regs(pr.Device):
             offset    = 0x0C,
             bitOffset = 0,
             bitSize   = 32,
+            groups    = ['NoStream','NoState','NoConfig'],
         ))
 
     def proxyTransaction(self, transaction):
@@ -78,6 +83,8 @@ class _Regs(pr.Device):
         while True:
             #print('Main thread loop start')
             transaction = self._queue.get()
+            if transaction is None:
+                return
             with self._memLock, transaction.lock():
                 #tranId = transaction.id()
                 #print(f'Woke the pollWorker with id: {tranId}')
@@ -90,8 +97,9 @@ class _Regs(pr.Device):
 
                 if transaction.type() == rogue.interfaces.memory.Write:
                     # Convert data bytes to int and write data to proxy register
-                    transaction.getData(self._dataBa, 0)
-                    data = int.from_bytes(self._dataBa, 'little', signed=False)
+                    dataBa = bytearray(4)
+                    transaction.getData(dataBa, 0)
+                    data = int.from_bytes(dataBa, 'little', signed=False)
                     self.Data.set(data, write=True)
                     #print(f'Wrote data {data:x}')
 
@@ -134,6 +142,12 @@ class _Regs(pr.Device):
                     #print(dataBa)
                     transaction.setData(dataBa, 0)
                     transaction.done()
+
+
+    def _stop(self):
+        self._queue.put(None)
+        self._pollThread.join()
+
 
 class _ProxySlave(rogue.interfaces.memory.Slave):
 

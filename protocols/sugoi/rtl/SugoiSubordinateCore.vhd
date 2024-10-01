@@ -25,15 +25,18 @@ use surf.AxiLitePkg.all;
 
 entity SugoiSubordinateCore is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean := false);
    port (
+      pwrOnRst        : in  sl;
       -- Clock and Reset
       clk             : in  sl;
-      rst             : out sl;               -- Active HIGH global reset
-      rstL            : out sl;               -- Active LOW global reset
+      rst             : out sl;         -- Active HIGH global reset
+      rstL            : out sl;         -- Active LOW global reset
       -- SUGOI Serial Ports
-      rx              : in  sl;               -- serial rate = clk frequency
-      tx              : out sl;               -- serial rate = clk frequency
+      rx              : in  sl;         -- serial rate = clk frequency
+      tx              : out sl;         -- serial rate = clk frequency
       -- Link Status
       linkup          : out sl;
       -- Trigger/Timing Command Bus
@@ -73,19 +76,23 @@ begin
    U_Deserializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 1,
          MASTER_WIDTH_G => 10)
       port map (
          -- Clock and Reset
-         clk          => clk,
-         rst          => '0',           -- Never reset on global reset command
+         clk            => clk,
+         rst            => pwrOnRst,
          -- Slip Interface
-         slip         => rxSlip,
+         slip           => rxSlip,
          -- Slave Interface
-         slaveData(0) => rx,
+         slaveData(0)   => rx,
+         slaveBitOrder  => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
          -- Master Interface
-         masterValid  => rxEncodeValid,
-         masterData   => rxEncodeData);
+         masterBitOrder => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
+         masterValid    => rxEncodeValid,
+         masterData     => rxEncodeData);
 
    ----------------
    -- 8B10B Decoder
@@ -93,14 +100,13 @@ begin
    U_Decode : entity surf.Decoder8b10b
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',         -- active HIGH reset
-         -- FLOW_CTRL_EN_G => true, -- placeholder incase FLOW_CTRL_EN_G is added in the future
-         RST_ASYNC_G    => false,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk         => clk,
-         rst         => '0',            -- Never reset on global reset command
+         rst         => pwrOnRst,
          -- Encoded Interface
          validIn     => rxEncodeValid,
          dataIn      => rxEncodeData,
@@ -118,8 +124,11 @@ begin
    -------------
    U_Fsm : entity surf.SugoiSubordinateFsm
       generic map (
-         TPD_G => TPD_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
+         pwrOnRst        => pwrOnRst,
          -- Clock and Reset
          clk             => clk,
          rst             => rst,
@@ -150,14 +159,14 @@ begin
    U_Encode : entity surf.Encoder8b10b
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => '1',         -- active HIGH reset
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          FLOW_CTRL_EN_G => true,
-         RST_ASYNC_G    => false,
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset
          clk        => clk,
-         rst        => '0',             -- Never reset on global reset command
+         rst        => pwrOnRst,
          -- Decoded Interface
          validIn    => txDecodeValid,
          dataIn     => txDecodeData,
@@ -172,16 +181,20 @@ begin
    U_Serializer : entity surf.Gearbox
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          SLAVE_WIDTH_G  => 10,
          MASTER_WIDTH_G => 1)
       port map (
          -- Clock and Reset
-         clk           => clk,
-         rst           => '0',          -- Never reset on global reset command
+         clk            => clk,
+         rst            => pwrOnRst,
          -- Slave Interface
-         slaveValid    => txEncodeValid,
-         slaveData     => txEncodeData,
+         slaveValid     => txEncodeValid,
+         slaveData      => txEncodeData,
+         slaveBitOrder  => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
          -- Master Interface
-         masterData(0) => tx);
+         masterBitOrder => '0',  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
+         masterData(0)  => tx);
 
 end mapping;

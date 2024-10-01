@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -76,12 +75,14 @@ begin
       "INIT_G must either be ""0"" or the same length as DATA_WIDTH_G" severity failure;
 
 
+
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
 
       FIFO_ASYNC_Gen : if (GEN_SYNC_FIFO_G = false) generate
          FifoAsync_Inst : entity surf.FifoAsync
             generic map (
                TPD_G          => TPD_G,
+               RST_ASYNC_G    => RST_ASYNC_G,
                RST_POLARITY_G => RST_POLARITY_G,
                MEMORY_TYPE_G  => MEMORY_TYPE_G,
                FWFT_EN_G      => FWFT_EN_G,

@@ -15,11 +15,14 @@ class AxiSysMonUltraScale(pr.Device):
             self,
             description    = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
             XIL_DEVICE_G   = "ULTRASCALE",
-            simpleViewList = ["Temperature", "VccInt", "VccAux", "VccBram"],
+            simpleViewList = None,
+            pollInterval   = 5,
             **kwargs):
         super().__init__(description=description, **kwargs)
 
-        self.simpleViewList = simpleViewList
+        if simpleViewList is not None:
+            self.simpleViewList = simpleViewList[:]
+            self.simpleViewList.append('enable')
 
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
@@ -133,7 +136,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "degC",
             function     = self.convTemp,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "Temperature's ADC value",
         )
 
@@ -144,7 +147,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "VCCINT's ADC value",
         )
 
@@ -155,7 +158,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "VCCAUX's ADC value",
         )
 
@@ -166,7 +169,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convAuxVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "VP/VN's ADC value",
         )
 
@@ -177,7 +180,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "VREFP's ADC value",
         )
 
@@ -188,7 +191,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "VREFN's ADC value",
         )
 
@@ -199,7 +202,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "VBRAM's ADC value",
         )
 
@@ -210,7 +213,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "Supply Offset",
         )
 
@@ -221,7 +224,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset   = 4,
             units       = "V",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "ADC Offset",
         )
 
@@ -232,20 +235,21 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset   = 4,
             units       = "",
             function    = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "Gain Offset",
         )
 
-        addPair(
-            name         = 'VauxpVauxn',
-            offset       = 0x440,
-            bitSize      = 12,
-            bitOffset    = 4,
-            units        = "V",
-            function     = self.convAuxVoltage,
-            pollInterval = 5,
-            description  = "VAUXP_VAUXN's ADC values",
-        )
+        for i in range(16):
+            addPair(
+                name         = f'VauxpVauxn[{i}]',
+                offset       = 0x440+(4*i),
+                bitSize      = 12,
+                bitOffset    = 4,
+                units        = "V",
+                function     = self.convAuxVoltage,
+                pollInterval = pollInterval,
+                description  = "VAUXP_VAUXN's ADC values",
+            )
 
         addPair(
             name         = 'MaxTemperature',
@@ -254,7 +258,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "degC",
             function     = self.convTemp,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "maximum temperature measurement",
         )
 
@@ -265,7 +269,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "maximum VCCINT measurement",
         )
 
@@ -276,7 +280,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "maximum VCCAUX measurement",
         )
 
@@ -287,7 +291,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "maximum VBRAM measurement",
         )
 
@@ -298,7 +302,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "degC",
             function     = self.convTemp,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "minimum temperature measurement",
         )
 
@@ -309,7 +313,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "minimum VCCINT measurement",
         )
 
@@ -320,7 +324,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "minimum VCCAUX measurement",
         )
 
@@ -331,7 +335,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    = 4,
             units        = "V",
             function     = self.convCoreVoltage,
-            pollInterval = 5,
+            pollInterval = pollInterval,
             description  = "minimum VBRAM measurement",
         )
 
@@ -526,44 +530,44 @@ class AxiSysMonUltraScale(pr.Device):
         )
 
         # Default to simple view
-        self.simpleView()
-
+        if simpleViewList is not None:
+            self.simpleView()
 
     @staticmethod
-    def convTempSYSMONE1(dev, var):
-        value   = var.dependencies[0].get(read=False)
+    def convTempSYSMONE1(dev, var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(501.3743/4096.0)
         fpValue -= 273.6777
         return round(fpValue,3)
 
     @staticmethod
-    def convSetTempSYSMONE1(dev, var, value):
+    def convSetTempSYSMONE1(dev, var, value, write):
         fpValue = (value + 273.6777)*(4096.0/501.3743)
         intValue = round(fpValue)
-        var.dependencies[0].set(intValue, write=True)
+        var.dependencies[0].set(intValue, write=write)
 
     @staticmethod
-    def convTempSYSMONE4(dev, var):
-        value   = var.dependencies[0].get(read=False)
+    def convTempSYSMONE4(dev, var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(509.3140064/4096.0)
         fpValue -= 280.23087870
         return round(fpValue,3)
 
     @staticmethod
-    def convSetTempSYSMONE4(dev, var, value):
+    def convSetTempSYSMONE4(dev, var, value, write):
         fpValue = (value + 280.23087870)*(4096.0/509.3140064)
         intValue = round(fpValue)
-        var.dependencies[0].set(intValue, write=True)
+        var.dependencies[0].set(intValue, write=write)
 
     @staticmethod
-    def convCoreVoltage(var):
-        value   = var.dependencies[0].value()
+    def convCoreVoltage(var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(732.0E-6)
         return round(fpValue,3)
 
     @staticmethod
-    def convAuxVoltage(var):
-        return round(var.dependencies[0].value() * 244e-6,3)
+    def convAuxVoltage(var, read):
+        return round(var.dependencies[0].get(read=read) * 244e-6,3)
 
     def simpleView(self):
         # Hide all the variable

@@ -11,7 +11,6 @@
 # ----------------------------------------------------------------------------
 # The following environment variables are required for this process:
 # secrets.GH_TOKEN
-# secrets.CONDA_UPLOAD_TOKEN_DEV
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: SURF Integration
@@ -19,38 +18,56 @@ on: [push]
 
 jobs:
 
+# ----------------------------------------------------------------------------
+
   test_and_document:
     name: Test And Generate Documentation
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
 
       # This step checks out a copy of your repository.
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.11
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz ghdl
+          sudo apt-get install make python3 python3-pip tclsh
+          sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
           python -m pip install --upgrade pip
-          pip install flake8
+          pip install -r pip_requirements.txt
+          git clone https://github.com/slaclab/ruckus.git
+          pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: VHDL Syntax Check
+      - name: Python Syntax and Linter Checking
         run: |
-          make
+          python -m compileall -f python/ scripts/ tests/
+          flake8 --count python/ scripts/ tests/
+
+      - name: C/C++ Linter
+        run: |
+          find . -name '*.h' -o -name '*.cpp' -o -name '*.c' | xargs cpplint
+
+      - name: VHDL Regression Testing
+        run: |
+          ./ghdl-build.sh > /dev/null 2>&1
+          make MODULES=$PWD
+          python -m pytest --cov -v tests/
           rm -rf ghdl-build
 
-      - name: Python Syntax Check
-        run: |
-          python -m compileall -f python/
-          flake8 --count python/
+#      # Code Coverage
+#      - name: Code Coverage
+#        run: |
+#          codecov
+#          coverage report -m
 
       - name: Generate Documentation
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'
         run: |
           doxygen Doxyfile
 
@@ -61,121 +78,24 @@ jobs:
           github_token: ${{ secrets.GH_TOKEN }}
           publish_dir: doxygen/html
 
+# ----------------------------------------------------------------------------
+
   gen_release:
-    name: Generate Release
-    runs-on: ubuntu-20.04
     needs: [test_and_document]
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
+    uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
+    with:
+      version: '1.0.0'
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+# ----------------------------------------------------------------------------
 
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Get Image Information
-        id: get_image_info
-        run: |
-          echo ::set-output name=tag::`git describe --tags`
-
-      - name: Get Ruckus
-        run: |
-          git clone https://github.com/slaclab/ruckus.git
-          python -m pip install --upgrade pip
-          pip install -r ruckus/scripts/pip_requirements.txt
-
-      - name: Gen Release
-        env:
-          TRAVIS_REPO_SLUG: ${{ github.repository }}
-          TRAVIS_TAG: ${{ steps.get_image_info.outputs.tag }}
-          GH_REPO_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          python ruckus/scripts/releaseGen.py
-
-  conda_build:
-    name: Anaconda Build
+  conda_build_lib:
     needs: [test_and_document]
-    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'
-    strategy:
-      matrix:
-        os:
-          - ubuntu-20.04
-          - macos-10.15
-    runs-on: ${{ matrix.os }}
-    steps:
+    uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
+    with:
+      version: '1.0.0'
+    secrets:
+      CONDA_UPLOAD_TOKEN_TAG: ${{ secrets.CONDA_UPLOAD_TOKEN_TAG }}
 
-      # This step checks out a copy of your repository.
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Setup anaconda
-        env:
-          OS_NAME: ${{ matrix.os }}
-        run: |
-          cd ${HOME}
-          if [ $OS_NAME == "macos-10.15" ]
-          then
-            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-          else
-            wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-          fi
-          bash miniconda.sh -b -p ${HOME}/miniconda
-          export PATH="${HOME}/miniconda/bin:$PATH"
-          source ${HOME}/miniconda/etc/profile.d/conda.sh
-          conda config --set always_yes yes
-          conda install conda-build anaconda-client conda-verify
-          if [ $OS_NAME == "macos-10.15" ]
-          then
-            conda install libiconv libarchive -c conda-forge
-          fi
-          conda update -q conda conda-build
-          conda update --all
-
-      - name: Setup MacOS
-        if: matrix.os == 'macos-10.15'
-        run: |
-          cd ${HOME}
-          wget https://github.com/phracker/MacOSX-SDKs/releases/download/10.15/MacOSX10.15.sdk.tar.xz
-          tar xzf MacOSX10.15.sdk.tar.xz
-          sudo mkdir -p /opt/
-          sudo mv MacOSX10.15.sdk /opt/
-          CONDA_BUILD_SYSROOT=/opt/MacOSX10.15.sdk
-          CONDA_BUILD=1
-          echo "CONDA_BUILD_SYSROOT=$CONDA_BUILD_SYSROOT" >> $GITHUB_ENV
-          echo "CONDA_BUILD=$CONDA_BUILD" >> $GITHUB_ENV
-
-      - name: Get Image Information
-        id: get_image_info
-        env:
-          CONDA_UPLOAD_TOKEN_DEV: ${{ secrets.CONDA_UPLOAD_TOKEN_DEV }}
-          CONDA_UPLOAD_TOKEN_TAG: ${{ secrets.CONDA_UPLOAD_TOKEN_TAG }}
-          OS_NAME: ${{ matrix.os }}
-        run: |
-          if [ ${GITHUB_REF} == "refs/heads/pre-release" ]
-          then
-              echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_DEV
-          else
-              echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_TAG
-          fi
-          if [ ${OS_NAME} == "macos-10.15" ]
-          then
-              echo ::set-output name=os::osx-64
-          else
-              echo ::set-output name=os::linux-64
-          fi
-
-      - name: Build And Upload
-        run: |
-          export PATH="${HOME}/miniconda/bin:$PATH"
-          source ${HOME}/miniconda/etc/profile.d/conda.sh
-          conda build --debug conda-recipe --output-folder bld-dir -c tidair-tag -c tidair-packages -c conda-forge
-          anaconda -t ${{ steps.get_image_info.outputs.token }} upload --force bld-dir/${{ steps.get_image_info.outputs.os }}/*.tar.bz2
-
+# ----------------------------------------------------------------------------

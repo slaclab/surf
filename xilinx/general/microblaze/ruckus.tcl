@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 # Check if Microblaze source code path defined
 if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
@@ -20,7 +20,7 @@ if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
 
       # Load the .bd file
       if { $::env(VIVADO_VERSION) >= 2021.1 } {
-         loadBlockDesign -path "$::DIR_PATH/bd/2021.1/MicroblazeBasicCore.bd"
+         loadBlockDesign -path "$::DIR_PATH/bd/2021.1/MicroblazeBasicCore.tcl"
       } else {
          loadBlockDesign -path "$::DIR_PATH/bd/2020.1/MicroblazeBasicCore.bd"
       }

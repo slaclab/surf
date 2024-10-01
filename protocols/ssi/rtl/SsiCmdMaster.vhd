@@ -28,7 +28,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -37,7 +36,8 @@ use surf.SsiCmdMasterPkg.all;
 
 entity SsiCmdMaster is
    generic (
-      TPD_G : time := 1 ns;
+      TPD_G       : time    := 1 ns;
+      RST_ASYNC_G : boolean := false;
 
       -- AXI Stream FIFO Config
       SLAVE_READY_EN_G    : boolean                    := false;
@@ -51,7 +51,6 @@ entity SsiCmdMaster is
       -- AXI Stream Configuration
       AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
-
       -- Streaming Data Interface
       axisClk     : in  sl;
       axisRst     : in  sl := '0';
@@ -62,8 +61,7 @@ entity SsiCmdMaster is
       -- Command signals
       cmdClk    : in  sl;
       cmdRst    : in  sl;
-      cmdMaster : out SsiCmdMasterType
-      );
+      cmdMaster : out SsiCmdMasterType);
 end SsiCmdMaster;
 
 architecture rtl of SsiCmdMaster is
@@ -80,8 +78,7 @@ architecture rtl of SsiCmdMaster is
 
    constant REG_INIT_C : RegType := (
       txnNumber => (others => '0'),
-      cmdMaster => SSI_CMD_MASTER_INIT_C
-      );
+      cmdMaster => SSI_CMD_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -91,11 +88,12 @@ architecture rtl of SsiCmdMaster is
 begin
 
    ----------------------------------
-   -- Fifo
+   -- FIFO
    ----------------------------------
    SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
@@ -164,7 +162,7 @@ begin
 
       end if;
 
-      if (cmdRst = '1') then
+      if (RST_ASYNC_G = false and cmdRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -174,9 +172,11 @@ begin
 
    end process comb;
 
-   seq : process (cmdClk) is
+   seq : process (cmdClk, cmdRst) is
    begin
-      if (rising_edge(cmdClk)) then
+      if (RST_ASYNC_G) and (cmdRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(cmdClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

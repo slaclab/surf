@@ -1,0 +1,9 @@
+flake8
+cocotb
+cocotbext-axi
+cocotb-test
+coverage
+#codecov
+pytest
+pytest-cov
+cpplint

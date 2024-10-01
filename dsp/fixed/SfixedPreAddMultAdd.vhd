@@ -4,7 +4,7 @@
 -- Description: signed fixed point preAdd mult add module using VHDL2008 fixed_pkg.
 --              (D + A)*B + C (ADD_A_G = true)
 --              (D - A)*B + C (ADD_A_G = false)
---              lantecy >= 4
+--              latency >= 4
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -48,7 +48,6 @@ entity sfixedPreAddMultAdd is
 end entity sfixedPreAddMultAdd;
 
 architecture rtl of sfixedPreAddMultAdd is
-
 
    -- 1 bit growth for pre adder
    constant PRE_ADD_HIGH_C : integer := maximum(a'high, d'high) + 1;

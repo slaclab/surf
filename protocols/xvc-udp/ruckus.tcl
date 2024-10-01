@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 if { [isVersal] == true } {
    set versalType true
@@ -21,6 +21,7 @@ if { [isVersal] == true } {
    }
 
    if { ${family} eq {kintexu} ||
+        ${family} eq {virtexu} ||
         ${family} eq {kintexuplus} ||
         ${family} eq {virtexuplus} ||
         ${family} eq {virtexu} ||

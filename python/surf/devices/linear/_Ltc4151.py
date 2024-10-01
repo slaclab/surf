@@ -55,8 +55,8 @@ class Ltc4151(pr.Device):
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
-            dependencies = [self.SenseMsb,self.SenseLsb],
-            linkedGet    = lambda: (int(self.SenseMsb.value()<<4)|int(self.SenseLsb.value()&0xF))*20.0E-6/self.senseRes
+            dependencies = [self.SenseLsb, self.SenseMsb],
+            linkedGet    = lambda var, read: self._getLsbMsb(var, read) * 20e-6 / self.senseRes
         ))
 
         self.add(pr.RemoteVariable(
@@ -89,8 +89,8 @@ class Ltc4151(pr.Device):
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
-            dependencies = [self.VinMsb,self.VinLsb],
-            linkedGet    = lambda: (int(self.VinMsb.value()<<4)|int(self.VinLsb.value()&0xF))*25.0E-3
+            dependencies = [self.VinLsb, self.VinMsb],
+            linkedGet    = lambda var, read: self._getLsbMsb(var, read) * 25.0E-3
         ))
 
         self.add(pr.LinkVariable(
@@ -99,8 +99,8 @@ class Ltc4151(pr.Device):
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',
-            dependencies = [self.Vin,self.Iin],
-            linkedGet    = lambda: (self.Vin.value())*(self.Iin.value())
+            dependencies = [self.Vin, self.Iin],
+            linkedGet    = lambda read: (self.Vin.get(read=read))*(self.Iin.get(read=read))
         ))
 
         self.add(pr.RemoteVariable(
@@ -133,8 +133,8 @@ class Ltc4151(pr.Device):
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
-            dependencies = [self.AdinMsb,self.AdinLsb],
-            linkedGet    = lambda: (int(self.AdinMsb.value()<<4)|int(self.AdinLsb.value()&0xF))*500.0E-6
+            dependencies = [self.AdinLsb, self.AdinMsb],
+            linkedGet    = lambda var, read: self._getLsbMsb(var, read) * 500.0E-6
         ))
 
         self.add(pr.RemoteVariable(
@@ -147,3 +147,9 @@ class Ltc4151(pr.Device):
             mode        = 'RW',
             hidden       = True,
         ))
+
+    def _getLsbMsb(self, var, read):
+        with self.root.updateGroup():
+            lsb = var.dependencies[0].get(read=read)
+            msb = var.dependencies[1].get(read=read)
+            return (msb << 4) | (lsb & 0xf)

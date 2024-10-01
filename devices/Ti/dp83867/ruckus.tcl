@@ -1,5 +1,5 @@
 # Load RUCKUS environment and library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 # Load the source code
 loadSource -lib surf -dir "$::DIR_PATH/core"
@@ -8,6 +8,7 @@ loadSource -lib surf -dir "$::DIR_PATH/core"
 set family [getFpgaArch]
 
 if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||

@@ -97,6 +97,33 @@ Pgp2bAxi: &Pgp2bAxi
       mode: RW
       description: "Auto Status Send Enable (PPI)"
     #########################################################
+    TxDiffCtrl:
+      at:
+        offset: 0x1C
+      class: IntField
+      sizeBits: 5
+      lsBit: 0
+      mode: RW
+      description: "GT Tx Diff Voltage Control"
+    #########################################################
+    TxPreCursor:
+      at:
+        offset: 0x1C
+      class: IntField
+      sizeBits: 5
+      lsBit: 5
+      mode: RW
+      description: "GT Tx Pre Cursor Control"
+    #########################################################
+    TxPostCursor:
+      at:
+        offset: 0x1D
+      class: IntField
+      sizeBits: 5
+      lsBit: 2
+      mode: RW
+      description: "GT Tx Pre Cursor Control"
+    #########################################################
     RxPhyReady:
       at:
         offset: 0x20

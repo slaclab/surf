@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -26,6 +25,7 @@ entity DspSquareDiffMult is
    generic (
       TPD_G          : time                 := 1 ns;
       RST_POLARITY_G : sl                   := '1';  -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G    : boolean              := false;
       USE_DSP_G      : string               := "yes";
       PIPE_STAGES_G  : natural range 0 to 1 := 0;
       WIDTH_G        : positive             := 16);
@@ -127,7 +127,7 @@ begin
       tReady(0) <= v.tReady;
 
       -- Reset
-      if (rst = RST_POLARITY_G) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -139,9 +139,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -149,6 +151,7 @@ begin
    U_Pipe : entity surf.FifoOutputPipeline
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          RST_POLARITY_G => RST_POLARITY_G,
          DATA_WIDTH_G   => (2 * WIDTH_G + 2),
          PIPE_STAGES_G  => PIPE_STAGES_G)

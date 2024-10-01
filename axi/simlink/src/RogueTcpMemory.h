@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // This file is part of 'SLAC Firmware Standard Library'.
-// It is subject to the license terms in the LICENSE.txt file found in the 
-// top-level directory of this distribution and at: 
-//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html. 
-// No part of 'SLAC Firmware Standard Library', including this file, 
-// may be copied, modified, propagated, or distributed except according to 
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
 // the terms contained in the LICENSE.txt file.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -61,62 +61,59 @@
 
 // Structure to track state
 typedef struct {
+    uint32_t   araddr;
+    uint8_t    arprot;
+    uint8_t    arvalid;
+    uint8_t    rready;
 
-   uint32_t   araddr;
-   uint8_t    arprot;
-   uint8_t    arvalid;
-   uint8_t    rready;
-   
-   uint8_t    arready;
-   uint32_t   rdata;
-   uint8_t    rresp;
-   uint8_t    rvalid;
-   
-   uint32_t   awaddr;
-   uint8_t    awprot;
-   uint8_t    awvalid;
-   uint32_t   wdata;
-   uint8_t    wstrb;
-   uint8_t    wvalid;
-   uint8_t    bready;
-   
-   uint8_t    awready;
-   uint8_t    wready;
-   uint8_t    bresp;
-   uint8_t    bvalid;
+    uint8_t    arready;
+    uint32_t   rdata;
+    uint8_t    rresp;
+    uint8_t    rvalid;
 
-   uint16_t   port;
-   uint8_t    state;
-   uint32_t   id;
-   uint64_t   addr;
-   uint8_t    data[MAX_DATA];
-   uint32_t   size;
-   uint32_t   curr;
-   uint32_t   type;
-   uint32_t   result;
+    uint32_t   awaddr;
+    uint8_t    awprot;
+    uint8_t    awvalid;
+    uint32_t   wdata;
+    uint8_t    wstrb;
+    uint8_t    wvalid;
+    uint8_t    bready;
 
-   uint8_t    currClk;
+    uint8_t    awready;
+    uint8_t    wready;
+    uint8_t    bresp;
+    uint8_t    bvalid;
 
-   void *     zmqCtx;
-   void *     zmqPull;
-   void *     zmqPush;
-  
+    uint16_t   port;
+    uint8_t    state;
+    uint32_t   id;
+    uint64_t   addr;
+    uint8_t    data[MAX_DATA];
+    uint32_t   size;
+    uint32_t   curr;
+    uint32_t   type;
+    uint32_t   result;
+
+    uint8_t    currClk;
+
+    void *     zmqCtx;
+    void *     zmqPull;
+    void *     zmqPush;
 } RogueTcpMemoryData;
 
 // Init function
 void RogueTcpMemoryInit(vhpiHandleT compInst);
 
 // Callback function for updating
-void RogueTcpMemoryUpdate ( void *userPtr );
+void RogueTcpMemoryUpdate(void *userPtr);
 
 // Start/resetart zeromq server
 void RogueTcpMemoryRestart(RogueTcpMemoryData *data, portDataT *portData);
 
 // Send a message
-void RogueTcpMemorySend ( RogueTcpMemoryData *data, portDataT *portData );
+void RogueTcpMemorySend(RogueTcpMemoryData *data, portDataT *portData);
 
 // Receive data if it is available
-int RogueTcpMemoryRecv ( RogueTcpMemoryData *data, portDataT *portData );
+int RogueTcpMemoryRecv(RogueTcpMemoryData *data, portDataT *portData);
 
 #endif
-

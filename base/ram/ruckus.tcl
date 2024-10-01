@@ -1,11 +1,11 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 # Load Source Code
 loadSource -lib surf -dir "$::DIR_PATH/inferred"
 
 # Check for min. Vivado version with XPM support
-if {  $::env(VIVADO_VERSION) > 2019.1} {
+if {  $::env(VIVADO_VERSION) >= 2019.1} {
    loadSource -lib surf  -dir "$::DIR_PATH/xilinx"
    loadSource -lib surf -path "$::DIR_PATH/dummy/SimpleDualPortRamAlteraMfDummy.vhd"
    loadSource -lib surf -path "$::DIR_PATH/dummy/TrueDualPortRamXpmAlteraMfDummy.vhd"

@@ -6,96 +6,6 @@
 -- Description:
 -- AXI-Lite block to manage the PGP (fc) interface.
 --
--- Address map (offset from base):
---    0x00 = Read/Write
---       Bits 0 = Count Reset
---    0x04 = Read/Write
---       Bits 0 = Reset Rx
---    0x08 = Read/Write
---       Bits 0 = Flush
---    0x0C = Read/Write
---       Bits 1:0 = Loop Back
---    0x10 = Read/Write
---       Bits 7:0 = Sideband data to transmit
---       Bits 8   = Sideband data enable
---    0x14 = Read/Write
---       Bits 0 = Auto Status Send Enable (PPI)
---    0x18 = Read/Write
---       Bits 0 = Disable Flow Control
---    0x20 = Read Only
---       Bits 0     = Rx Phy Ready
---       Bits 1     = Tx Phy Ready
---       Bits 2     = Local Link Ready
---       Bits 3     = Remote Link Ready
---       Bits 4     = Transmit Ready
---       Bits 9:8   = Receive Link Polarity
---       Bits 15:12 = Remote Pause Status
---       Bits 19:16 = Local Pause Status
---       Bits 23:20 = Remote Overflow Status
---       Bits 27:24 = Local Overflow Status
---    0x24 = Read Only
---       Bits 7:0 = Remote Link Data
---    0x28 = Read Only
---       Bits ?:0 = Cell Error Count
---    0x2C = Read Only
---       Bits ?:0 = Link Down Count
---    0x30 = Read Only
---       Bits ?:0 = Link Error Count
---    0x34 = Read Only
---       Bits ?:0 = Remote Overflow VC 0 Count
---    0x38 = Read Only
---       Bits ?:0 = Remote Overflow VC 1 Count
---    0x3C = Read Only
---       Bits ?:0 = Remote Overflow VC 2 Count
---    0x40 = Read Only
---       Bits ?:0 = Remote Overflow VC 3 Count
---    0x44 = Read Only
---       Bits ?:0 = Receive Frame Error Count
---    0x48 = Read Only
---       Bits ?:0 = Receive Frame Count
---    0x4C = Read Only
---       Bits ?:0 = Local Overflow VC 0 Count
---    0x50 = Read Only
---       Bits ?:0 = Local Overflow VC 1 Count
---    0x54 = Read Only
---       Bits ?:0 = Local Overflow VC 2 Count
---    0x58 = Read Only
---       Bits ?:0 = Local Overflow VC 3 Count
---    0x5C = Read Only
---       Bits ?:0 = Transmit Frame Error Count
---    0x60 = Read Only
---       Bits ?:0 = Transmit Frame Count
---    0x64 = Read Only
---       Bits 31:0 = Receive Clock Frequency
---    0x68 = Read Only
---       Bits 31:0 = Transmit Clock Frequency
---    0x70 = Read Only
---       Bits ?:0 = Fast Control Sent Count
---    0x74 = Read Only
---       Bits ?:0 = Fast Control Received Count
---    0x78 = Read Only
---       Bits ?:0 = Fast Control Received Error Count
---    0xA0 = Read/Write
---       Bits 0     = Reset link alignment block
---       Bits 1     = Place link alignment block in manual mode
---    0xA4 = Write Only
---       Bits ?     = Issue an RXSLIDE, automatically cleared
---    0xA8 = Read Only
---       Bits 0     = Alignment status
---       Bits 1     = Asserted when RXSLIDE is done
---       Bits 2     = Alignment Latency (0 or 1)
---       Bits 3     = Alignment Latency Valid
---    0xAC = Write Only
---       Bits ?     = Issue a request to get the phase latency
---
--- Status vector:
---       Bits 31:24 = Rx Link Down Count
---       Bits 23:16 = Rx Frame Error Count
---       Bits 15:8  = Rx Cell Error Count
---       Bits  7:6  = Zeros
---       Bits    5  = Remote Link Ready
---       Bits    4  = Local Link Ready
---       Bits  3:0  = Remote Overflow Status
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -124,36 +34,24 @@ entity Pgp2fcAxi is
       COMMON_RX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpRxClk are the same clock
       WRITE_EN_G         : boolean               := false;  -- Set to false when on remote end of a link
       AXI_CLK_FREQ_G     : real                  := 125.0E+6;
+      FC_WORDS_G         : natural range 1 to 8  := 1;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4);
    port (
 
       -- TX PGP Interface (pgpTxClk domain)
-      pgpTxClk    : in  sl;
-      pgpTxClkRst : in  sl;
-      pgpTxIn     : out Pgp2fcTxCtrlInType;
-      pgpTxOut    : in  Pgp2fcTxStatusOutType;
-      locTxIn     : in  Pgp2fcTxCtrlInType := PGP2FC_TX_CTRL_IN_INIT_C;
+      pgpTxClk     : in  sl;
+      pgpTxClkRst  : in  sl;
+      pgpTxIn      : out Pgp2fcTxInType;
+      pgpTxOut     : in  Pgp2fcTxOutType;
+      locTxIn      : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
 
       -- RX PGP Interface (pgpRxClk domain)
       pgpRxClk    : in  sl;
       pgpRxClkRst : in  sl;
-      pgpRxIn     : out Pgp2fcRxCtrlInType;
-      pgpRxOut    : in  Pgp2fcRxStatusOutType;
-      locRxIn     : in  Pgp2fcRxCtrlInType := PGP2FC_RX_CTRL_IN_INIT_C;
-      
-      -- RX PGP Link Alignment Control (axilClk domain)
-      linkAlignRst        : out sl;
-      linkAligned         : in sl := '0';
-      linkAlignOverride   : out sl;
-      linkAlignSlide      : out sl;
-      linkAlignSlideDone  : in sl := '0';
-      linkAlignPhaseReq   : out sl;
-      linkAlignPhase      : in sl := '0';
-      linkAlignPhaseValid : in sl := '0';
-      
-      -- Protocol error for error tracking (pgpRxClk domain)
-      protocolError       : in sl := '0';
+      pgpRxIn     : out Pgp2fcRxInType;
+      pgpRxOut    : in  Pgp2fcRxOutType;
+      locRxIn     : in  Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
 
       -- Status Bus (axilClk domain)
       statusWord : out slv(63 downto 0);
@@ -176,15 +74,15 @@ architecture structure of Pgp2fcAxi is
    -- Local signals
    signal rxStatusSend : sl;
 
-   signal rxErrorOut     : slv(17 downto 0);
-   signal rxErrorCntOut  : SlVectorArray(17 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
+   signal rxErrorOut     : slv(16 downto 0);
+   signal rxErrorCntOut  : SlVectorArray(16 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal rxStatusCntOut : SlVectorArray(0 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
    signal txErrorOut     : slv(11 downto 0);
    signal txErrorCntOut  : SlVectorArray(11 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
    signal txStatusCntOut : SlVectorArray(0 downto 0, STATUS_CNT_WIDTH_G-1 downto 0);
 
-   signal rxErrorIrqEn    : slv(17 downto 0);
+   signal rxErrorIrqEn    : slv(16 downto 0);
    signal locTxDataEn     : sl;
    signal locTxData       : slv(7 downto 0);
    signal txFlush         : sl;
@@ -243,7 +141,6 @@ architecture structure of Pgp2fcAxi is
       cellErrorCount  : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       linkDownCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       linkErrorCount  : slv(ERROR_CNT_WIDTH_G-1 downto 0);
-
       remOverflow     : slv(3 downto 0);
       remOverflow0Cnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       remOverflow1Cnt : slv(ERROR_CNT_WIDTH_G-1 downto 0);
@@ -253,13 +150,7 @@ architecture structure of Pgp2fcAxi is
       frameCount      : slv(STATUS_CNT_WIDTH_G-1 downto 0);
       remPause        : slv(3 downto 0);
       rxClkFreq       : slv(31 downto 0);
-      
-      aligned         : sl;
-      alignSlideDone  : sl;
-      alignPhase      : sl;
-      alignPhaseValid : sl;
-      protocolErrorCount : slv(ERROR_CNT_WIDTH_G-1 downto 0);
-      
+      rxFcWordLast    : slv(FC_WORDS_G*16-1 downto 0);
       rxFcRecvCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       rxFcErrCount    : slv(ERROR_CNT_WIDTH_G-1 downto 0);
    end record RxStatusType;
@@ -278,7 +169,7 @@ architecture structure of Pgp2fcAxi is
       frameErrCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
       frameCount      : slv(STATUS_CNT_WIDTH_G-1 downto 0);
       txClkFreq       : slv(31 downto 0);
-      
+      txFcWordLast    : slv(FC_WORDS_G*16-1 downto 0);
       txFcSentCount   : slv(ERROR_CNT_WIDTH_G-1 downto 0);
    end record TxStatusType;
 
@@ -287,9 +178,31 @@ architecture structure of Pgp2fcAxi is
 begin
 
 
+
+
    ---------------------------------------
    -- Receive Status
    ---------------------------------------
+
+   -- OpCode Capture
+   U_RxFcWordSync : entity surf.SynchronizerFifo
+      generic map (
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         SYNC_STAGES_G => 3,
+         DATA_WIDTH_G  => FC_WORDS_G*16,
+         ADDR_WIDTH_G  => 2,
+         INIT_G        => "0")
+      port map (
+         rst    => r.countReset,
+         wr_clk => pgpRxClk,
+         wr_en  => pgpRxOut.fcValid,
+         din    => pgpRxOut.fcWord(FC_WORDS_G*16-1 downto 0),
+         rd_clk => axilClk,
+         rd_en  => '1',
+         valid  => open,
+         dout   => rxStatusSync.rxFcWordLast);
+
 
    -- Sync remote data
    U_RxDataSyncEn : if COMMON_RX_CLK_G = false generate
@@ -315,7 +228,7 @@ begin
    U_RxDataSyncDis : if COMMON_RX_CLK_G generate
       rxStatusSync.remLinkData <= pgpRxOut.remLinkData;
    end generate;
-   
+
    -- Errror counters and non counted values
    U_RxError : entity surf.SyncStatusVector
       generic map (
@@ -325,10 +238,10 @@ begin
          SYNC_STAGES_G  => 3,
          IN_POLARITY_G  => "1",
          OUT_POLARITY_G => '1',
-         SYNTH_CNT_G    => "111111100001111100",
+         SYNTH_CNT_G    => "11111100001111100",
          CNT_RST_EDGE_G => false,
          CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
-         WIDTH_G        => 18)
+         WIDTH_G        => 17)
       port map (
          statusIn(0)           => pgpRxOut.phyRxReady,
          statusIn(1)           => pgpRxOut.linkReady,
@@ -339,9 +252,8 @@ begin
          statusIn(12)          => pgpRxOut.linkDown,
          statusIn(13)          => pgpRxOut.linkError,
          statusIn(14)          => pgpRxOut.frameRxErr,
-         statusIn(15)          => pgpRxOut.fcRecv,
-         statusIn(16)          => pgpRxOut.fcRecvErr,
-         statusIn(17)          => protocolError,
+         statusIn(15)          => pgpRxOut.fcValid,
+         statusIn(16)          => pgpRxOut.fcError,
          statusOut             => rxErrorOut,
          cntRstIn              => r.countReset,
          rollOverEnIn          => (others => '0'),
@@ -365,7 +277,6 @@ begin
       rxErrorIrqEn(13) <= r.autoStatus;
       rxErrorIrqEn(14) <= r.autoStatus;
       rxErrorIrqEn(16) <= r.autoStatus;
-      rxErrorIrqEn(17) <= r.autoStatus;
    end process;
 
    -- map status
@@ -387,12 +298,6 @@ begin
    rxStatusSync.frameErrCount   <= muxSlVectorArray(rxErrorCntOut, 14);
    rxStatusSync.rxFcRecvCount   <= muxSlVectorArray(rxErrorCntOut, 15);
    rxStatusSync.rxFcErrCount    <= muxSlVectorArray(rxErrorCntOut, 16);
-   rxStatusSync.protocolErrorCount <= muxSlVectorArray(rxErrorCntOut, 17);
-   
-   rxStatusSync.aligned         <= linkAligned;
-   rxStatusSync.alignSlideDone  <= linkAlignSlideDone;
-   rxStatusSync.alignPhase      <= linkAlignPhase;
-   rxStatusSync.alignPhaseValid <= linkAlignPhaseValid;
 
    -- Status counters
    U_RxStatus : entity surf.SyncStatusVector
@@ -444,6 +349,25 @@ begin
    ---------------------------------------
    -- Transmit Status
    ---------------------------------------
+   -- FC Word Capture
+   U_TxFcWordSync : entity surf.SynchronizerFifo
+      generic map (
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         SYNC_STAGES_G => 3,
+         DATA_WIDTH_G  => FC_WORDS_G*16,
+         ADDR_WIDTH_G  => 2,
+         INIT_G        => "0")
+      port map (
+         rst    => r.countReset,
+         wr_clk => pgpTxClk,
+         wr_en  => locTxIn.fcValid,
+         din    => locTxIn.fcWord(FC_WORDS_G*16-1 downto 0),
+         rd_clk => axilClk,
+         rd_en  => '1',
+         valid  => open,
+         dout   => txStatusSync.txFcWordLast);
+
 
    -- Errror counters and non counted values
    U_TxError : entity surf.SyncStatusVector
@@ -606,11 +530,11 @@ begin
    pgpRxIn.flush    <= locRxIn.flush or rxFlush;
    pgpRxIn.resetRx  <= locRxIn.resetRx or rxReset;
    pgpRxIn.loopback <= locRxIn.loopback or r.loopBack;
-   
-   linkAlignRst      <= r.alignRst;
-   linkAlignOverride <= r.alignOverride;
-   linkAlignSlide    <= r.alignSlide;
-   linkAlignPhaseReq <= r.alignPhaseReq;
+
+--    linkAlignRst      <= r.alignRst;
+--    linkAlignOverride <= r.alignOverride;
+--    linkAlignSlide    <= r.alignSlide;
+--    linkAlignPhaseReq <= r.alignPhaseReq;
 
 
 
@@ -628,147 +552,65 @@ begin
 
    -- Async
    process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
-      variable v         : RegType;
-      variable axiStatus : AxiLiteStatusType;
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndpointType;
    begin
       v := r;
-      
+
       -- Automatic clear
-      v.alignSlide := '0';
+      v.alignSlide    := '0';
       v.alignPhaseReq := '0';
 
-      axiSlaveWaitTxn(axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave, axiStatus);
+      axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      -- Write
-      if (axiStatus.writeEnable = '1') then
-
-         -- Decode address and perform write
-         case (axilWriteMaster.awaddr(7 downto 0)) is
-            when X"00" =>
-               v.countReset := axilWriteMaster.wdata(0);
-            when X"04" =>
-               v.resetRx := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
-               v.resetTx := ite(WRITE_EN_G, axilWriteMaster.wdata(1), '0');
-               v.resetGt := ite(WRITE_EN_G, axilWriteMaster.wdata(2), '0');
-            when X"08" =>
-               v.flush := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
-            when X"0C" =>
-               v.loopBack := ite(WRITE_EN_G, axilWriteMaster.wdata(2 downto 0), "000");
-            when X"10" =>
-               v.locDataEn := axilWriteMaster.wdata(8);
-               v.locData   := axilWriteMaster.wdata(7 downto 0);
-            when X"14" =>
-               v.autoStatus := axilWriteMaster.wdata(0);
-            when X"18" =>
-               v.flowCntlDis := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
-            when X"A0" =>
-               v.alignRst := ite(WRITE_EN_G, axilWriteMaster.wdata(0), '0');
-               v.alignOverride  := ite(WRITE_EN_G, axilWriteMaster.wdata(1), '0');
-            when X"A4" =>
-               v.alignSlide := ite(WRITE_EN_G, '1', '0');
-            when X"AC" =>
-               v.alignPhaseReq := ite(WRITE_EN_G, '1', '0');
-            when others => null;
-         end case;
-
-         -- Send Axi response
-         axiSlaveWriteResponse(v.axilWriteSlave);
+      axiSlaveRegister(axilEp, X"00", 0, v.countReset);
+      if (WRITE_EN_G) then
+         axiSlaveRegister(axilEp, X"04", 0, v.resetRx);
+         axiSlaveRegister(axilEp, X"04", 1, v.resetTx);
+         axiSlaveRegister(axilEp, X"04", 2, v.resetGt);
+         axiSlaveRegister(axilEp, X"08", 0, v.flush);
+         axiSlaveRegister(axilEp, X"0C", 0, v.loopback);
+         axiSlaveRegister(axilEp, X"18", 0, v.flowCntlDis);
       end if;
+      axiSlaveRegister(axilEp, X"10", 0, v.locData);
+      axiSlaveRegister(axilEp, X"10", 8, v.locDataEn);
+      axiSlaveRegister(axilEp, X"14", 0, v.autoStatus);
 
-      -- Read
-      if (axiStatus.readEnable = '1') then
+      axiSlaveRegisterR(axilEp, X"20", 0, rxStatusSync.phyRxReady);
+      axiSlaveRegisterR(axilEp, X"20", 1, txStatusSync.phyTxReady);
+      axiSlaveRegisterR(axilEp, X"20", 2, rxStatusSync.locLinkReady);
+      axiSlaveRegisterR(axilEp, X"20", 3, rxStatusSync.remLinkReady);
+      axiSlaveRegisterR(axilEp, X"20", 4, txStatusSync.txLinkReady);
+      axiSlaveRegisterR(axilEp, X"20", 12, rxStatusSync.remPause);
+      axiSlaveRegisterR(axilEp, X"20", 16, txStatusSync.locPause);
+      axiSlaveRegisterR(axilEp, X"20", 20, rxStatusSync.remOverflow);
+      axiSlaveRegisterR(axilEp, X"20", 24, txStatusSync.locOverflow);
+      axiSlaveRegisterR(axilEp, X"24", 0, rxStatusSync.remLinkData);
+      axiSlaveRegisterR(axilEp, X"28", 0, rxStatusSync.cellErrorCount);
+      axiSlaveRegisterR(axilEp, X"2C", 0, rxStatusSync.linkDownCount);
+      axiSlaveRegisterR(axilEp, X"30", 0, rxStatusSync.linkErrorCount);
+      axiSlaveRegisterR(axilEp, X"34", 0, rxStatusSync.remOverflow0Cnt);
+      axiSlaveRegisterR(axilEp, X"38", 0, rxStatusSync.remOverflow1Cnt);
+      axiSlaveRegisterR(axilEp, X"3C", 0, rxStatusSync.remOverflow2Cnt);
+      axiSlaveRegisterR(axilEp, X"40", 0, rxStatusSync.remOverflow3Cnt);
+      axiSlaveRegisterR(axilEp, X"44", 0, rxStatusSync.frameErrCount);
+      axiSlaveRegisterR(axilEp, X"48", 0, rxStatusSync.frameCount);
+      axiSlaveRegisterR(axilEp, X"4C", 0, txStatusSync.locOverflow0Cnt);
+      axiSlaveRegisterR(axilEp, X"50", 0, txStatusSync.locOverflow1Cnt);
+      axiSlaveRegisterR(axilEp, X"54", 0, txStatusSync.locOverflow2Cnt);
+      axiSlaveRegisterR(axilEp, X"58", 0, txStatusSync.locOverflow3Cnt);
+      axiSlaveRegisterR(axilEp, X"5C", 0, txStatusSync.frameErrCount);
+      axiSlaveRegisterR(axilEp, X"60", 0, txStatusSync.frameCount);
+      axiSlaveRegisterR(axilEp, X"64", 0, rxStatusSync.rxClkFreq);
+      axiSlaveRegisterR(axilEp, X"68", 0, txStatusSync.txClkFreq);
+      axiSlaveRegisterR(axilEp, X"70", 0, txStatusSync.txFcSentCount);
+      axiSlaveRegisterR(axilEp, X"74", 0, rxStatusSync.rxFcRecvCount);
+      axiSlaveRegisterR(axilEp, X"78", 0, rxStatusSync.rxFcErrCount);
+      axiSlaveRegisterR(axilEp, X"7C", 0, rxStatusSync.remLinkReadyCnt);
+      axiSlaveRegisterR(axilEp, X"80", 0, txStatusSync.txFcWordLast);  -- up to 128 bit word
+      axiSlaveRegisterR(axilEp, X"90", 0, rxStatusSync.rxFcWordLast);  -- up to 128 bit word
 
-         -- Decode address and assign read data
-         case axilReadMaster.araddr(7 downto 0) is
-            when X"00" =>
-               v.axilReadSlave.rdata(0) := r.countReset;
-            when X"04" =>
-               v.axilReadSlave.rdata(0) := r.resetRx;
-               v.axilReadSlave.rdata(1) := r.resetTx;
-               v.axilReadSlave.rdata(2) := r.resetGt;
-            when X"08" =>
-               v.axilReadSlave.rdata(0) := r.flush;
-            when X"0C" =>
-               v.axilReadSlave.rdata(2 downto 0) := r.loopBack;
-            when X"10" =>
-               v.axilReadSlave.rdata(8)          := r.locDataEn;
-               v.axilReadSlave.rdata(7 downto 0) := r.locData;
-            when X"14" =>
-               v.axilReadSlave.rdata(0) := r.autoStatus;
-            when X"18" =>
-               v.axilReadSlave.rdata(0) := r.flowCntlDis;
-            when X"20" =>
-               v.axilReadSlave.rdata(0)            := rxStatusSync.phyRxReady;
-               v.axilReadSlave.rdata(1)            := txStatusSync.phyTxReady;
-               v.axilReadSlave.rdata(2)            := rxStatusSync.locLinkReady;
-               v.axilReadSlave.rdata(3)            := rxStatusSync.remLinkReady;
-               v.axilReadSlave.rdata(4)            := txStatusSync.txLinkReady;
-               v.axilReadSlave.rdata(9 downto 8)   := "00";
-               v.axilReadSlave.rdata(15 downto 12) := rxStatusSync.remPause;
-               v.axilReadSlave.rdata(19 downto 16) := txStatusSync.locPause;
-               v.axilReadSlave.rdata(23 downto 20) := rxStatusSync.remOverflow;
-               v.axilReadSlave.rdata(27 downto 24) := txStatusSync.locOverflow;
-            when X"24" =>
-               v.axilReadSlave.rdata(7 downto 0) := rxStatusSync.remLinkData;
-            when X"28" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.cellErrorCount;
-            when X"2C" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.linkDownCount;
-            when X"30" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.linkErrorCount;
-            when X"34" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.remOverflow0Cnt;
-            when X"38" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.remOverflow1Cnt;
-            when X"3C" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.remOverflow2Cnt;
-            when X"40" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.remOverflow3Cnt;
-            when X"44" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.frameErrCount;
-            when X"48" =>
-               v.axilReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := rxStatusSync.frameCount;
-            when X"4C" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.locOverflow0Cnt;
-            when X"50" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.locOverflow1Cnt;
-            when X"54" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.locOverflow2Cnt;
-            when X"58" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.locOverflow3Cnt;
-            when X"5C" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.frameErrCount;
-            when X"60" =>
-               v.axilReadSlave.rdata(STATUS_CNT_WIDTH_G-1 downto 0) := txStatusSync.frameCount;
-            when X"64" =>
-               v.axilReadSlave.rdata := rxStatusSync.rxClkFreq;
-            when X"68" =>
-               v.axilReadSlave.rdata := txStatusSync.txClkFreq;
-            when X"70" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := txStatusSync.txFcSentCount;
-            when X"74" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.rxFcRecvCount;
-            when X"78" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.rxFcErrCount;
-            when X"7C" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.remLinkReadyCnt;
-            when X"A0" =>
-               v.axilReadSlave.rdata(0) := r.alignRst;
-               v.axilReadSlave.rdata(1) := r.alignOverride;
-            when X"A8" =>
-               v.axilReadSlave.rdata(0) := rxStatusSync.aligned;
-               v.axilReadSlave.rdata(1) := rxStatusSync.alignSlideDone;
-               v.axilReadSlave.rdata(2) := rxStatusSync.alignPhase;
-               v.axilReadSlave.rdata(3) := rxStatusSync.alignPhaseValid;
-            when X"B0" =>
-               v.axilReadSlave.rdata(ERROR_CNT_WIDTH_G-1 downto 0) := rxStatusSync.protocolErrorCount;
-
-            when others => null;
-         end case;
-
-         -- Send Axi Response
-         axiSlaveReadResponse(v.axilReadSlave);
-      end if;
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       -- Reset
       if (axilRst = '1') then

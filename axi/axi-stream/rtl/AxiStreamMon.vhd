@@ -23,9 +23,10 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamMon is
    generic (
-      TPD_G           : time                := 1 ns;
-      COMMON_CLK_G    : boolean             := false;  -- true if axisClk = statusClk
-      AXIS_CLK_FREQ_G : real                := 156.25E+6;  -- units of Hz
+      TPD_G           : time    := 1 ns;
+      RST_ASYNC_G     : boolean := false;
+      COMMON_CLK_G    : boolean := false;  -- true if axisClk = statusClk
+      AXIS_CLK_FREQ_G : real    := 156.25E+6;  -- units of Hz
       AXIS_CONFIG_G   : AxiStreamConfigType);
    port (
       -- AXIS Stream Interface
@@ -89,6 +90,7 @@ architecture rtl of AxiStreamMon is
    signal bwMax : slv(39 downto 0);
    signal bwMin : slv(39 downto 0);
 
+   signal frameRateReset   : sl;
    signal frameRateUpdate  : sl;
    signal frameRateSync    : slv(31 downto 0);
    signal frameRateMaxSync : slv(31 downto 0);
@@ -99,9 +101,18 @@ architecture rtl of AxiStreamMon is
 
 begin
 
+   U_RstSync : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => axisClk,
+         asyncRst => statusRst,
+         syncRst  => frameRateReset);
+
    U_packetRate : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          COMMON_CLK_G   => true,
          REF_CLK_FREQ_G => AXIS_CLK_FREQ_G,  -- units of Hz
          REFRESH_RATE_G => 1.0,              -- units of Hz
@@ -116,13 +127,14 @@ begin
          trigRateOutMin  => frameRateMinSync,
          -- Clocks
          locClk          => axisClk,
-         locRst          => axisRst,
+         locRst          => frameRateReset,
          refClk          => axisClk,
          refRst          => axisRst);
 
    SyncOut_frameRate : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => 32)
       port map (
@@ -135,6 +147,7 @@ begin
    SyncOut_frameRateMax : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => 32)
       port map (
@@ -147,6 +160,7 @@ begin
    SyncOut_frameRateMin : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => 32)
       port map (
@@ -159,6 +173,7 @@ begin
    SyncOut_frameCnt : entity surf.SynchronizerFifo
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          DATA_WIDTH_G => 64)
       port map (
@@ -242,7 +257,7 @@ begin
       end if;
 
       -- Reset
-      if axisRst = '1' then
+      if (RST_ASYNC_G = false and axisRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -251,9 +266,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if rising_edge(axisClk) then
+      if (RST_ASYNC_G) and (axisRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -261,11 +278,12 @@ begin
    Sync_frameSize : entity surf.SyncMinMax
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          WIDTH_G      => 32)
       port map (
          -- ASYNC statistics reset
-         rstStat => axisRst,
+         rstStat => statusRst,
          -- Write Interface (wrClk domain)
          wrClk   => axisClk,
          wrEn    => r.sizeValid,
@@ -279,11 +297,12 @@ begin
    Sync_bandwidth : entity surf.SyncMinMax
       generic map (
          TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
          COMMON_CLK_G => COMMON_CLK_G,
          WIDTH_G      => 40)
       port map (
          -- ASYNC statistics reset
-         rstStat => axisRst,
+         rstStat => statusRst,
          -- Write Interface (wrClk domain)
          wrClk   => axisClk,
          wrEn    => r.updated,

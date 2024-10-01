@@ -32,6 +32,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4TxProtocol is
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_ASYNC_G    : boolean               := false;
       NUM_VC_G       : integer range 1 to 16 := 4;
       STARTUP_HOLD_G : integer               := 1000);
    port (
@@ -363,7 +364,7 @@ begin
       end loop;
 
       -- Reset
-      if (pgpTxRst = '1') then
+      if (RST_ASYNC_G = false and pgpTxRst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -372,9 +373,11 @@ begin
 
    end process comb;
 
-   seq : process (pgpTxClk) is
+   seq : process (pgpTxClk, pgpTxRst) is
    begin
-      if (rising_edge(pgpTxClk)) then
+      if (RST_ASYNC_G) and (pgpTxRst = '1') then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(pgpTxClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

@@ -89,6 +89,7 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'FpgaReloadHalt',
             description  = 'Used to halt automatic reloads via AxiVersion',
+            groups       = ['NoConfig'],
             offset       = 0x100,
             bitSize      = 1,
             bitOffset    = 0x00,
@@ -105,7 +106,7 @@ class AxiVersion(pr.Device):
             bitOffset    = 0x00,
             base         = pr.UInt,
             function     = lambda cmd: cmd.post(1),
-            hidden       = False,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -127,6 +128,8 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'UserReset',
             description  = 'Optional User Reset',
+            groups       = ['NoConfig'],
+            hidden       = True,
             offset       = 0x10C,
             bitSize      = 1,
             bitOffset    = 0x00,
@@ -189,7 +192,7 @@ class AxiVersion(pr.Device):
             name         = 'GitHashShort',
             mode         = 'RO',
             dependencies = [self.GitHash],
-            linkedGet    = lambda read: f'{(self.GitHash.get(read=read) >> 132):07x}',
+            linkedGet    = lambda read: f'{(self.GitHash.value() >> 132):07x}' if self.GitHash.get(read=read) != 0 else 'dirty (uncommitted code)',
         ))
 
         self.add(pr.RemoteVariable(

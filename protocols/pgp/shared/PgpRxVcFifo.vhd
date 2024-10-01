@@ -24,10 +24,11 @@ use surf.AxiStreamPkg.all;
 entity PgpRxVcFifo is
    generic (
       TPD_G               : time     := 1 ns;
+      RST_ASYNC_G         : boolean  := false;
       ROGUE_SIM_EN_G      : boolean  := false;
       INT_PIPE_STAGES_G   : natural  := 0;
       PIPE_STAGES_G       : natural  := 1;
-      VALID_THOLD_G       : positive := 1;
+      VALID_THOLD_G       : natural  := 1;
       VALID_BURST_MODE_G  : boolean  := false;
       SYNTH_MODE_G        : string   := "inferred";
       MEMORY_TYPE_G       : string   := "block";
@@ -90,6 +91,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          VALID_THOLD_G       => VALID_THOLD_G,

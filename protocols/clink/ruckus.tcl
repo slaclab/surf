@@ -1,5 +1,5 @@
 # Load RUCKUS library
-source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
+source $::env(RUCKUS_PROC_TCL)
 
 # Get the family type
 set family [getFpgaArch]
@@ -18,6 +18,7 @@ if {  ${family} == "artix7" ||
 }
 
 if { ${family} eq {kintexu} ||
+     ${family} eq {virtexu} ||
      ${family} eq {kintexuplus} ||
      ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} ||
