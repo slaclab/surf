@@ -67,7 +67,7 @@ entity AxiStreamMux is
    port (
       -- Clock and reset
       axisClk      : in  sl;
-      axisRst      : in  sl := not RST_POLARITY_G;
+      axisRst      : in  sl;
       -- Slaves
       disableSel   : in  slv(NUM_SLAVES_G-1 downto 0) := (others => '0');
       rearbitrate  : in  sl                           := '0';

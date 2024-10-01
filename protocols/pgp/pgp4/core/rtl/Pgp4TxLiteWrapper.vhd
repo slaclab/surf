@@ -30,7 +30,7 @@ entity Pgp4TxLiteWrapper is
    port (
       -- Clock and Reset
       clk        : in  sl;
-      rst        : in  sl := not RST_POLARITY_G;
+      rst        : in  sl;
       -- 64-bit Input Framing Interface
       txValid    : in  sl;                 -- tValid
       txReady    : out sl;                 -- tReady

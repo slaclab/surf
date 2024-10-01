@@ -43,7 +43,7 @@ entity AxiStreamDepacketizer2 is
    port (
       -- Clock and Reset
       axisClk     : in  sl;
-      axisRst     : in  sl := not RST_POLARITY_G;
+      axisRst     : in  sl;
       -- Link Status monitoring and debug interfaces
       linkGood    : in  sl;
       debug       : out Packetizer2DebugType;

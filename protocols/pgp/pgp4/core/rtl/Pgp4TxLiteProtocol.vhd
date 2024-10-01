@@ -41,7 +41,7 @@ entity Pgp4TxLiteProtocol is
    port (
       -- User Transmit interface
       pgpTxClk       : in  sl;
-      pgpTxRst       : in  sl := not RST_POLARITY_G;
+      pgpTxRst       : in  sl;
       pgpTxIn        : in  Pgp4TxInType                            := PGP4_TX_IN_INIT_C;
       pgpTxOut       : out Pgp4TxOutType;
       pgpTxActive    : in  sl                                      := '1';

@@ -35,7 +35,7 @@ entity Scrambler is
       TAPS_G            : IntegerArray := (0 => 39, 1 => 58));
    port (
       clk            : in  sl;
-      rst            : in  sl := not RST_POLARITY_G;
+      rst            : in  sl;
       inputValid     : in  sl := '1';
       inputReady     : out sl;
       inputData      : in  slv(DATA_WIDTH_G-1 downto 0);

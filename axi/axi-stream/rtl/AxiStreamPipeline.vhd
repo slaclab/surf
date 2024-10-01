@@ -30,7 +30,7 @@ entity AxiStreamPipeline is
    port (
       -- Clock and Reset
       axisClk     : in  sl;
-      axisRst     : in  sl := not RST_POLARITY_G;
+      axisRst     : in  sl;
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sSideBand   : in  slv(SIDE_BAND_WIDTH_G-1 downto 0) := (others => '0');

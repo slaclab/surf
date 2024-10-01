@@ -33,7 +33,7 @@ entity Pgp3RxGearboxAligner is
       SLIP_WAIT_G    : integer := 32);
    port (
       clk           : in  sl;
-      rst           : in  sl := not RST_POLARITY_G;
+      rst           : in  sl;
       rxHeader      : in  slv(1 downto 0);
       rxHeaderValid : in  sl;
       slip          : out sl;

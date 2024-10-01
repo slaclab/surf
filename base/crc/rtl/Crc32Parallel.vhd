@@ -46,7 +46,7 @@ entity Crc32Parallel is
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF");
    port (
-      crcPwrOnRst  : in  sl := not RST_POLARITY_G;
+      crcPwrOnRst  : in  sl;
       crcOut       : out slv(31 downto 0);  -- CRC output
       crcRem       : out slv(31 downto 0);  -- CRC interim remainder
       crcClk       : in  sl;            -- system clock

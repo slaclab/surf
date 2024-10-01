@@ -30,13 +30,13 @@ entity Pgp4RxEb is
       RST_ASYNC_G    : boolean := false);
    port (
       phyRxClk    : in sl;
-      phyRxRst    : in sl := not RST_POLARITY_G;
+      phyRxRst    : in sl;
       phyRxValid  : in sl;
       phyRxData   : in slv(63 downto 0);  -- Unscrambled data from the PHY
       phyRxHeader : in slv(1 downto 0);
       -- User Transmit interface
       pgpRxClk    : in  sl;
-      pgpRxRst    : in  sl := not RST_POLARITY_G;
+      pgpRxRst    : in  sl;
       pgpRxValid  : out sl;
       pgpRxData   : out slv(63 downto 0);
       pgpRxHeader : out slv(1 downto 0);

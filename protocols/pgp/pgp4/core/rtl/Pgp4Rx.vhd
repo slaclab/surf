@@ -31,7 +31,6 @@ entity Pgp4Rx is
       TPD_G              : time                  := 1 ns;
       RST_POLARITY_G     : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G        : boolean               := false;
-      SIMULATION_G       : boolean               := false;  -- bypasses elastic buffer
       NUM_VC_G           : integer range 1 to 16 := 4;
       SKIP_EN_G          : boolean               := true;  -- TRUE for Elastic Buffer
       LITE_EN_G          : boolean               := false; -- TRUE: Lite does NOT support SOC/EOC
@@ -39,7 +38,7 @@ entity Pgp4Rx is
    port (
       -- User Transmit interface
       pgpRxClk     : in  sl;
-      pgpRxRst     : in  sl           := not RST_POLARITY_G;
+      pgpRxRst     : in  sl;
       pgpRxIn      : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
       pgpRxOut     : out Pgp4RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
@@ -134,7 +133,7 @@ begin
          outputData     => unscrambledData,     -- [out]
          outputSideband => unscrambledHeader);  -- [out]
 
-   GEN_EB : if (SKIP_EN_G = true and SIMULATION_G = false) generate
+   GEN_EB : if (SKIP_EN_G = true) generate
       -- Elastic Buffer
       U_Pgp4RxEb_1 : entity surf.Pgp4RxEb
          generic map (
@@ -157,7 +156,7 @@ begin
             linkError   => linkError,          -- [out]
             status      => ebStatus);          -- [out]
    end generate GEN_EB;
-   NO_EB : if (SKIP_EN_G = false or SIMULATION_G = true) generate
+   NO_EB : if (SKIP_EN_G = false) generate
       ebValid  <= unscrambledValid;
       ebHeader <= unscrambledHeader;
       ebData   <= unscrambledData;

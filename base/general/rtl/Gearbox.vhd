@@ -34,7 +34,7 @@ entity Gearbox is
    port (
       -- Clock and Reset
       clk            : in  sl;
-      rst            : in  sl := not RST_POLARITY_G;
+      rst            : in  sl;
       -- input side data and flow control
       slaveData      : in  slv(SLAVE_WIDTH_G-1 downto 0);
       slaveValid     : in  sl := '1';

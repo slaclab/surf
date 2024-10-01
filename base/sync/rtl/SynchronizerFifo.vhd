@@ -34,7 +34,7 @@ entity SynchronizerFifo is
       INIT_G         : slv                        := "0");
    port (
       -- Asynchronous Reset
-      rst    : in  sl := not RST_POLARITY_G;
+      rst    : in  sl;
       -- Write Ports (wr_clk domain)
       wr_clk : in  sl;
       wr_en  : in  sl := '1';

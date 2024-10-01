@@ -38,7 +38,7 @@ entity Pgp4RxProtocol is
    port (
       -- User Transmit interface
       pgpRxClk       : in  sl;
-      pgpRxRst       : in  sl := not RST_POLARITY_G;
+      pgpRxRst       : in  sl;
       pgpRxIn        : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
       pgpRxOut       : out Pgp4RxOutType;
       pgpRxMaster    : out AxiStreamMasterType;

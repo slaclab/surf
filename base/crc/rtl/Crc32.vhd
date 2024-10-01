@@ -41,7 +41,7 @@ entity Crc32 is
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF";
       CRC_POLY_G       : slv(31 downto 0) := x"04C11DB7");
    port (
-      crcPwrOnRst  : in  sl := not RST_POLARITY_G;
+      crcPwrOnRst  : in  sl;
       crcOut       : out slv(31 downto 0);  -- CRC output
       crcRem       : out slv(31 downto 0);  -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
