@@ -24,12 +24,13 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4TxLiteWrapper is
    generic (
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false);
    port (
       -- Clock and Reset
       clk        : in  sl;
-      rst        : in  sl;                 -- Active HIGH reset
+      rst        : in  sl := not RST_POLARITY_G;
       -- 64-bit Input Framing Interface
       txValid    : in  sl;                 -- tValid
       txReady    : out sl;                 -- tReady
@@ -71,8 +72,9 @@ begin
    U_Pgp4TxLite : entity surf.Pgp4TxLite
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         NUM_VC_G       => 1,           -- Only 1 VC per PGPv4 link
+         NUM_VC_G       => 1,      -- Only 1 VC per PGPv4 link
          SKIP_EN_G      => false,  -- No skips (assumes clock source synchronous system)
          FLOW_CTRL_EN_G => false)  -- no pause flow control from PGPv4.RX side
       port map (
@@ -97,6 +99,7 @@ begin
          phyTxData       => phyTxData(63 downto 0),
          phyTxHeader     => phyTxData(65 downto 64));
 
-   rstL <= not(rst);
+   -- not using ite to prevent errors in ASIC synth flow
+   rstL <= not(rst) when RST_POLARITY_G = '1' else rst;
 
 end architecture mapping;

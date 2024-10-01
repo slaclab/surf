@@ -27,6 +27,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamMux is
    generic (
       TPD_G                : time                    := 1 ns;
+      RST_POLARITY_G       : sl                      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean                 := false;
       PIPE_STAGES_G        : integer range 0 to 16   := 0;
       NUM_SLAVES_G         : integer range 1 to 256  := 4;
@@ -66,7 +67,7 @@ entity AxiStreamMux is
    port (
       -- Clock and reset
       axisClk      : in  sl;
-      axisRst      : in  sl;
+      axisRst      : in  sl := not RST_POLARITY_G;
       -- Slaves
       disableSel   : in  slv(NUM_SLAVES_G-1 downto 0) := (others => '0');
       rearbitrate  : in  sl                           := '0';
@@ -308,7 +309,7 @@ begin
       sAxisSlaves <= v.slaves;
 
       -- Reset
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -322,7 +323,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1') then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
@@ -332,9 +333,10 @@ begin
    -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

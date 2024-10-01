@@ -25,17 +25,18 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4RxEb is
    generic (
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false);
    port (
       phyRxClk    : in sl;
-      phyRxRst    : in sl;
+      phyRxRst    : in sl := not RST_POLARITY_G;
       phyRxValid  : in sl;
       phyRxData   : in slv(63 downto 0);  -- Unscrambled data from the PHY
       phyRxHeader : in slv(1 downto 0);
       -- User Transmit interface
       pgpRxClk    : in  sl;
-      pgpRxRst    : in  sl;
+      pgpRxRst    : in  sl := not RST_POLARITY_G;
       pgpRxValid  : out sl;
       pgpRxData   : out slv(63 downto 0);
       pgpRxHeader : out slv(1 downto 0);
@@ -112,7 +113,7 @@ begin
       end if;
 
       -- Reset
-      if (RST_ASYNC_G = false and phyRxRst = '1') then
+      if (RST_ASYNC_G = false and phyRxRst = RST_POLARITY_G) then
          -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
       end if;
@@ -124,7 +125,7 @@ begin
 
    seq : process (phyRxClk, phyRxRst) is
    begin
-      if (RST_ASYNC_G) and (phyRxRst = '1') then
+      if (RST_ASYNC_G) and (phyRxRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(phyRxClk) then
          r <= rin after TPD_G;
@@ -133,9 +134,10 @@ begin
 
    U_remLinkData : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         DATA_WIDTH_G => 48)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DATA_WIDTH_G   => 48)
       port map (
          rst    => phyRxRst,
          wr_clk => phyRxClk,
@@ -146,13 +148,14 @@ begin
 
    U_FifoAsync_1 : entity surf.FifoAsync
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         MEMORY_TYPE_G => "block",
-         FWFT_EN_G     => true,
-         PIPE_STAGES_G => 0,
-         DATA_WIDTH_G  => 66,
-         ADDR_WIDTH_G  => 9)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         MEMORY_TYPE_G  => "block",
+         FWFT_EN_G      => true,
+         PIPE_STAGES_G  => 0,
+         DATA_WIDTH_G   => 66,
+         ADDR_WIDTH_G   => 9)
       port map (
          rst                => phyRxRst,
          -- Write Interface

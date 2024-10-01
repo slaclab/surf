@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 entity Scrambler is
    generic (
       TPD_G             : time         := 1 ns;
+      RST_POLARITY_G    : sl           := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G       : boolean      := false;
       DIRECTION_G       : string       := "SCRAMBLER";  -- or DESCRAMBLER
       DATA_WIDTH_G      : integer      := 64;
@@ -34,7 +35,7 @@ entity Scrambler is
       TAPS_G            : IntegerArray := (0 => 39, 1 => 58));
    port (
       clk            : in  sl;
-      rst            : in  sl;
+      rst            : in  sl := not RST_POLARITY_G;
       inputValid     : in  sl := '1';
       inputReady     : out sl;
       inputData      : in  slv(DATA_WIDTH_G-1 downto 0);
@@ -129,7 +130,7 @@ begin
       inputReady <= v.inputReady;
 
       -- Reset
-      if (RST_ASYNC_G = false and rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -150,7 +151,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (RST_ASYNC_G and rst = '1') then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;

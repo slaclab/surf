@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamDeMux is
    generic (
       TPD_G          : time                   := 1 ns;
+      RST_POLARITY_G : sl                     := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean                := false;
       NUM_MASTERS_G  : integer range 1 to 256 := 12;
       MODE_G         : string                 := "INDEXED";  -- Or "ROUTED" Or "DYNAMIC"
@@ -36,10 +37,10 @@ entity AxiStreamDeMux is
    port (
       -- Clock and reset
       axisClk           : in  sl;
-      axisRst           : in  sl;
+      axisRst           : in  sl := not RST_POLARITY_G;
       -- Dynamic Route Table (only used when MODE_G = "DYNAMIC")
       dynamicRouteMasks : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
-      dynamicRouteDests  : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
+      dynamicRouteDests : in  slv8Array(NUM_MASTERS_G-1 downto 0) := (others => "00000000");
       -- Slave
       sAxisMaster       : in  AxiStreamMasterType;
       sAxisSlave        : out AxiStreamSlaveType;
@@ -139,7 +140,7 @@ begin
       sAxisSlave <= v.slave;
 
       -- Reset
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -151,14 +152,14 @@ begin
 
    end process comb;
 
-   GEN_VEC :
-   for i in (NUM_MASTERS_G-1) downto 0 generate
+   GEN_VEC : for i in (NUM_MASTERS_G-1) downto 0 generate
 
       U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            PIPE_STAGES_G => PIPE_STAGES_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G)
          port map (
             axisClk     => axisClk,
             axisRst     => axisRst,
@@ -171,7 +172,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G and axisRst = '1') then
+      if (RST_ASYNC_G and axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;

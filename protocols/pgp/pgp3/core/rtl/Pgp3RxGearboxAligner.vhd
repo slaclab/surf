@@ -27,12 +27,13 @@ use surf.StdRtlPkg.all;
 
 entity Pgp3RxGearboxAligner is
    generic (
-      TPD_G        : time    := 1 ns;
-      RST_ASYNC_G  : boolean := false;
-      SLIP_WAIT_G  : integer := 32);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false;
+      SLIP_WAIT_G    : integer := 32);
    port (
       clk           : in  sl;
-      rst           : in  sl;
+      rst           : in  sl := not RST_POLARITY_G;
       rxHeader      : in  slv(1 downto 0);
       rxHeaderValid : in  sl;
       slip          : out sl;
@@ -119,7 +120,7 @@ begin
          when others => null;
       end case;
 
-      if (RST_ASYNC_G = false and rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -132,7 +133,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (RST_ASYNC_G) and (rst = '1') then
+      if (RST_ASYNC_G) and (rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;

@@ -32,6 +32,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4TxLiteProtocol is
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_POLARITY_G : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean               := false;
       NUM_VC_G       : integer range 1 to 16 := 1;
       SKIP_EN_G      : boolean               := false;
@@ -40,7 +41,7 @@ entity Pgp4TxLiteProtocol is
    port (
       -- User Transmit interface
       pgpTxClk       : in  sl;
-      pgpTxRst       : in  sl;
+      pgpTxRst       : in  sl := not RST_POLARITY_G;
       pgpTxIn        : in  Pgp4TxInType                            := PGP4_TX_IN_INIT_C;
       pgpTxOut       : out Pgp4TxOutType;
       pgpTxActive    : in  sl                                      := '1';
@@ -127,6 +128,7 @@ begin
    U_Crc32 : entity surf.Crc32Parallel
       generic map (
          TPD_G            => TPD_G,
+         RST_POLARITY_G   => RST_POLARITY_G,
          RST_ASYNC_G      => RST_ASYNC_G,
          INPUT_REGISTER_G => false,
          BYTE_WIDTH_G     => 8,
@@ -453,7 +455,7 @@ begin
       end loop;
 
       -- Reset
-      if (RST_ASYNC_G = false and pgpTxRst = '1') then
+      if (RST_ASYNC_G = false and pgpTxRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -464,7 +466,7 @@ begin
 
    seq : process (pgpTxClk, pgpTxRst) is
    begin
-      if (RST_ASYNC_G) and (pgpTxRst = '1') then
+      if (RST_ASYNC_G) and (pgpTxRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(pgpTxClk) then
          r <= rin after TPD_G;

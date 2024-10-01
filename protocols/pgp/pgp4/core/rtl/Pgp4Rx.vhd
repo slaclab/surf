@@ -29,7 +29,9 @@ use surf.AxiStreamPacketizer2Pkg.all;
 entity Pgp4Rx is
    generic (
       TPD_G              : time                  := 1 ns;
+      RST_POLARITY_G     : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G        : boolean               := false;
+      SIMULATION_G       : boolean               := false;  -- bypasses elastic buffer
       NUM_VC_G           : integer range 1 to 16 := 4;
       SKIP_EN_G          : boolean               := true;  -- TRUE for Elastic Buffer
       LITE_EN_G          : boolean               := false; -- TRUE: Lite does NOT support SOC/EOC
@@ -37,7 +39,7 @@ entity Pgp4Rx is
    port (
       -- User Transmit interface
       pgpRxClk     : in  sl;
-      pgpRxRst     : in  sl;
+      pgpRxRst     : in  sl           := not RST_POLARITY_G;
       pgpRxIn      : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
       pgpRxOut     : out Pgp4RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
@@ -99,9 +101,10 @@ begin
    -- Gearbox aligner
    U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner -- Same RX gearbox aligner as PGPv3
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         SLIP_WAIT_G    => ALIGN_SLIP_WAIT_G)
       port map (
          clk           => phyRxClk,         -- [in]
          rst           => phyRxRst,         -- [in]
@@ -115,6 +118,7 @@ begin
    U_Scrambler_1 : entity surf.Scrambler
       generic map (
          TPD_G            => TPD_G,
+         RST_POLARITY_G   => RST_POLARITY_G,
          RST_ASYNC_G      => RST_ASYNC_G,
          DIRECTION_G      => "DESCRAMBLER",
          DATA_WIDTH_G     => 64,
@@ -130,12 +134,13 @@ begin
          outputData     => unscrambledData,     -- [out]
          outputSideband => unscrambledHeader);  -- [out]
 
-   GEN_EB : if (SKIP_EN_G = true) generate
+   GEN_EB : if (SKIP_EN_G = true and SIMULATION_G = false) generate
       -- Elastic Buffer
       U_Pgp4RxEb_1 : entity surf.Pgp4RxEb
          generic map (
-            TPD_G       => TPD_G,
-            RST_ASYNC_G => RST_ASYNC_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G)
          port map (
             phyRxClk    => phyRxClk,           -- [in]
             phyRxRst    => phyRxRst,           -- [in]
@@ -152,7 +157,7 @@ begin
             linkError   => linkError,          -- [out]
             status      => ebStatus);          -- [out]
    end generate GEN_EB;
-   NO_EB : if (SKIP_EN_G = false) generate
+   NO_EB : if (SKIP_EN_G = false or SIMULATION_G = true) generate
       ebValid  <= unscrambledValid;
       ebHeader <= unscrambledHeader;
       ebData   <= unscrambledData;
@@ -161,9 +166,10 @@ begin
    -- Main RX protocol logic
    U_Pgp4RxProtocol_1 : entity surf.Pgp4RxProtocol
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         NUM_VC_G    => NUM_VC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         NUM_VC_G       => NUM_VC_G)
       port map (
          pgpRxClk       => pgpRxClk,           -- [in]
          pgpRxRst       => pgpRxRst,           -- [in]
@@ -185,6 +191,7 @@ begin
    U_AxiStreamDepacketizer2_1 : entity surf.AxiStreamDepacketizer2
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          MEMORY_TYPE_G       => "distributed",
          CRC_MODE_G          => "DATA",
@@ -206,13 +213,14 @@ begin
       -- Demultiplex the depacketized streams
       U_AxiStreamDeMux_1 : entity surf.AxiStreamDeMux
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            NUM_MASTERS_G => NUM_VC_G,
-            MODE_G        => "INDEXED",
-            PIPE_STAGES_G => 0,
-            TDEST_HIGH_G  => 7,
-            TDEST_LOW_G   => 0)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            NUM_MASTERS_G  => NUM_VC_G,
+            MODE_G         => "INDEXED",
+            PIPE_STAGES_G  => 0,
+            TDEST_HIGH_G   => 7,
+            TDEST_LOW_G    => 0)
          port map (
             axisClk      => pgpRxClk,                               -- [in]
             axisRst      => pgpRxRst,                               -- [in]
