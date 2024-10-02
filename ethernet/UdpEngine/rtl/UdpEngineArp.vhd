@@ -133,11 +133,7 @@ begin
             v.respTimers(i) := r.respTimers(i) - 1;
          end if;
 
-         -- Update the IP address
-         v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
-
          -- Check for dynamic change in IP address
-         -- if (r.arpReqMasters(i).tData(31 downto 0) /= clientRemoteIp(i)) or (clientRemoteIp(i) = 0) then
          if (clientRemoteIp(i) = 0) then
             -- Stop any outstanding requests
             v.arpReqMasters(i).tValid := '0';
@@ -146,6 +142,8 @@ begin
             -- Next state
             v.state(i)                := IDLE_S;
          elsif (r.arpReqMasters(i).tData(31 downto 0) /= clientRemoteIp(i)) then
+            -- Update the IP address
+            v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
             -- Stop any outstanding requests
             v.arpReqMasters(i).tValid := '0';
             -- Reset the remote MAC address
