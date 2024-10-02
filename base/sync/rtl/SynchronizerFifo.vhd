@@ -22,18 +22,19 @@ use surf.StdRtlPkg.all;
 
 entity SynchronizerFifo is
    generic (
-      TPD_G         : time                       := 1 ns;
-      RST_ASYNC_G   : boolean                    := false;
-      COMMON_CLK_G  : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
-      MEMORY_TYPE_G : string                     := "distributed";
-      SYNC_STAGES_G : integer range 3 to (2**24) := 3;
-      PIPE_STAGES_G : natural range 0 to 16      := 0;
-      DATA_WIDTH_G  : integer range 1 to (2**24) := 16;
-      ADDR_WIDTH_G  : integer range 2 to 48      := 4;
-      INIT_G        : slv                        := "0");
+      TPD_G          : time                       := 1 ns;
+      RST_POLARITY_G : sl                         := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean                    := false;
+      COMMON_CLK_G   : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
+      MEMORY_TYPE_G  : string                     := "distributed";
+      SYNC_STAGES_G  : integer range 3 to (2**24) := 3;
+      PIPE_STAGES_G  : natural range 0 to 16      := 0;
+      DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
+      ADDR_WIDTH_G   : integer range 2 to 48      := 4;
+      INIT_G         : slv                        := "0");
    port (
       -- Asynchronous Reset
-      rst    : in  sl := '0';
+      rst    : in sl := not RST_POLARITY_G;
       -- Write Ports (wr_clk domain)
       wr_clk : in  sl;
       wr_en  : in  sl := '1';
@@ -58,15 +59,16 @@ begin
 
       FifoAsync_1 : entity surf.FifoAsync
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            MEMORY_TYPE_G => MEMORY_TYPE_G,
-            FWFT_EN_G     => true,
-            SYNC_STAGES_G => SYNC_STAGES_G,
-            PIPE_STAGES_G => PIPE_STAGES_G,
-            DATA_WIDTH_G  => DATA_WIDTH_G,
-            ADDR_WIDTH_G  => ADDR_WIDTH_G,
-            INIT_G        => INIT_C)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            MEMORY_TYPE_G  => MEMORY_TYPE_G,
+            FWFT_EN_G      => true,
+            SYNC_STAGES_G  => SYNC_STAGES_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G,
+            DATA_WIDTH_G   => DATA_WIDTH_G,
+            ADDR_WIDTH_G   => ADDR_WIDTH_G,
+            INIT_G         => INIT_C)
          port map (
             rst           => rst,
             wr_clk        => wr_clk,

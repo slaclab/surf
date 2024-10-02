@@ -34,13 +34,14 @@ use surf.CrcPkg.all;
 entity Crc32 is
    generic (
       TPD_G            : time             := 1 ns;
+      RST_POLARITY_G   : sl               := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G      : boolean          := false;
       BYTE_WIDTH_G     : positive         := 4;
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF";
       CRC_POLY_G       : slv(31 downto 0) := x"04C11DB7");
    port (
-      crcPwrOnRst  : in  sl := '0';
+      crcPwrOnRst  : in  sl;
       crcOut       : out slv(31 downto 0);  -- CRC output
       crcRem       : out slv(31 downto 0);  -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
@@ -146,10 +147,10 @@ begin
 
    seq : process (crcClk, crcPwrOnRst) is
    begin
-      if (RST_ASYNC_G and crcPwrOnRst = '1') then
+      if (RST_ASYNC_G and crcPwrOnRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif  (rising_edge(crcClk)) then
-         if (RST_ASYNC_G = false and crcPwrOnRst = '1') then
+         if (RST_ASYNC_G = false and crcPwrOnRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
