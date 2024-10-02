@@ -23,7 +23,7 @@ use surf.StdRtlPkg.all;
 entity SynchronizerFifo is
    generic (
       TPD_G          : time                       := 1 ns;
-      RST_POLARITY_G : sl                         := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean                    := false;
       COMMON_CLK_G   : boolean                    := false;  -- Bypass FifoAsync module for synchronous data configuration
       MEMORY_TYPE_G  : string                     := "distributed";
@@ -34,7 +34,7 @@ entity SynchronizerFifo is
       INIT_G         : slv                        := "0");
    port (
       -- Asynchronous Reset
-      rst    : in sl := not RST_POLARITY_G;
+      rst    : in  sl := not RST_POLARITY_G;
       -- Write Ports (wr_clk domain)
       wr_clk : in  sl;
       wr_en  : in  sl := '1';

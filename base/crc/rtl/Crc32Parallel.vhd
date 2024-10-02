@@ -40,21 +40,21 @@ use surf.CrcPkg.all;
 entity Crc32Parallel is
    generic (
       TPD_G            : time             := 1 ns;
-      RST_POLARITY_G   : sl               := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G   : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G      : boolean          := false;
       BYTE_WIDTH_G     : positive         := 4;
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF");
    port (
-      crcPwrOnRst  : in sl := not RST_POLARITY_G;
-      crcOut       : out slv(31 downto 0);  -- CRC output
-      crcRem       : out slv(31 downto 0);  -- CRC interim remainder
+      crcPwrOnRst  : in  sl               := not RST_POLARITY_G;
+      crcOut       : out slv(31 downto 0);         -- CRC output
+      crcRem       : out slv(31 downto 0);         -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
       crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
       crcIn        : in  slv((BYTE_WIDTH_G*8-1) downto 0);  -- input data for CRC calculation
       crcInit      : in  slv(31 downto 0) := CRC_INIT_G;  -- optional override of CRC_INIT_G
-      crcReset     : in  sl);  -- initializes CRC logic to crcInit
+      crcReset     : in  sl);           -- initializes CRC logic to crcInit
 end Crc32Parallel;
 
 architecture rtl of Crc32Parallel is
@@ -191,7 +191,7 @@ begin
    begin
       if (RST_ASYNC_G and crcPwrOnRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
-      elsif  (rising_edge(crcClk)) then
+      elsif (rising_edge(crcClk)) then
          if (RST_ASYNC_G = false and crcPwrOnRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          else

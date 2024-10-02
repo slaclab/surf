@@ -34,16 +34,16 @@ use surf.CrcPkg.all;
 entity Crc32 is
    generic (
       TPD_G            : time             := 1 ns;
-      RST_POLARITY_G   : sl               := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G   : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G      : boolean          := false;
       BYTE_WIDTH_G     : positive         := 4;
       INPUT_REGISTER_G : boolean          := true;
       CRC_INIT_G       : slv(31 downto 0) := x"FFFFFFFF";
       CRC_POLY_G       : slv(31 downto 0) := x"04C11DB7");
    port (
-      crcPwrOnRst  : in sl := not RST_POLARITY_G;
-      crcOut       : out slv(31 downto 0);  -- CRC output
-      crcRem       : out slv(31 downto 0);  -- CRC interim remainder
+      crcPwrOnRst  : in  sl               := not RST_POLARITY_G;
+      crcOut       : out slv(31 downto 0);         -- CRC output
+      crcRem       : out slv(31 downto 0);         -- CRC interim remainder
       crcClk       : in  sl;            -- system clock
       crcDataValid : in  sl;  -- indicate that new data arrived and CRC can be computed
       crcDataWidth : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes ... , 7 - 8 bytes
@@ -149,7 +149,7 @@ begin
    begin
       if (RST_ASYNC_G and crcPwrOnRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
-      elsif  (rising_edge(crcClk)) then
+      elsif (rising_edge(crcClk)) then
          if (RST_ASYNC_G = false and crcPwrOnRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          else
