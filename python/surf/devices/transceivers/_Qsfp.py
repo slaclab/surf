@@ -137,7 +137,7 @@ class Qsfp(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PowerOverride',
-            description  = '1: allows setting power mode with hardware, 0: allows setting power mode with software',
+            description  = '0: allows setting power mode with hardware, 1: allows setting power mode with software',
             offset       = (93 << 2),
             bitSize      = 1,
             bitOffset    = 0,
@@ -147,7 +147,7 @@ class Qsfp(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PowerMode',
-            description  = 'Power set to low power mode: 1 sets to LP mode if PowerOverride is 0',
+            description  = 'Power set to low power mode: 1 sets to LP mode if PowerOverride is 1',
             offset       = (93 << 2),
             bitSize      = 1,
             bitOffset    = 1,
