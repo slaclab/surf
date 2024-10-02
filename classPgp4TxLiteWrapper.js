@@ -2,6 +2,7 @@ var classPgp4TxLiteWrapper =
 [
     [ "Pgp4TxLiteWrapper.mapping", "classPgp4TxLiteWrapper_1_1mapping.html", "classPgp4TxLiteWrapper_1_1mapping" ],
     [ "TPD_G", "classPgp4TxLiteWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classPgp4TxLiteWrapper.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classPgp4TxLiteWrapper.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "clk", "classPgp4TxLiteWrapper.html#adeb222493482dfe91c36a7a02710329c", null ],
     [ "rst", "classPgp4TxLiteWrapper.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],

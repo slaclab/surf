@@ -2,6 +2,7 @@ var classAxiStreamMux =
 [
     [ "rtl", "classAxiStreamMux_1_1rtl.html", "classAxiStreamMux_1_1rtl" ],
     [ "TPD_G", "classAxiStreamMux.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classAxiStreamMux.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classAxiStreamMux.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "PIPE_STAGES_G", "classAxiStreamMux.html#aba25570b613e4e69e4b7e46decb11428", null ],
     [ "NUM_SLAVES_G", "classAxiStreamMux.html#ab38ac6045b1c6be87648cb2e416f92da", null ],

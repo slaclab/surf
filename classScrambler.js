@@ -2,6 +2,7 @@ var classScrambler =
 [
     [ "Scrambler.rtl", "classScrambler_1_1rtl.html", "classScrambler_1_1rtl" ],
     [ "TPD_G", "classScrambler.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classScrambler.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classScrambler.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "DIRECTION_G", "classScrambler.html#a07829facdd7c03eec254e6a55f8a8384", null ],
     [ "DATA_WIDTH_G", "classScrambler.html#a5d7f2c77832c98fc4e610e7612809c42", null ],

@@ -2,8 +2,8 @@ var classRstSync =
 [
     [ "rtl", "classRstSync_1_1rtl.html", "classRstSync_1_1rtl" ],
     [ "TPD_G", "classRstSync.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "IN_POLARITY_G", "classRstSync.html#abe82041548cc7ccaddbdc18e5d2723ae", null ],
-    [ "OUT_POLARITY_G", "classRstSync.html#a71e0757e63fa8248b02a7563e528ce17", null ],
+    [ "IN_POLARITY_G", "classRstSync.html#a1fc75a25f9f6b9269fce718eb5d22042", null ],
+    [ "OUT_POLARITY_G", "classRstSync.html#a52993542201eaa9a41ca003d83c6c017", null ],
     [ "BYPASS_SYNC_G", "classRstSync.html#a9aa7c778a1a657c06c84e8beefcb8762", null ],
     [ "RELEASE_DELAY_G", "classRstSync.html#a33c6def1ffc41fb825df54a8e2b34484", null ],
     [ "OUT_REG_RST_G", "classRstSync.html#a31deb0e9b66fafb18e8089927949cc36", null ],

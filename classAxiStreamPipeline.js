@@ -2,6 +2,7 @@ var classAxiStreamPipeline =
 [
     [ "rtl", "classAxiStreamPipeline_1_1rtl.html", "classAxiStreamPipeline_1_1rtl" ],
     [ "TPD_G", "classAxiStreamPipeline.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classAxiStreamPipeline.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classAxiStreamPipeline.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "SIDE_BAND_WIDTH_G", "classAxiStreamPipeline.html#a368c3e289369467e23ca8d70fe6ef62e", null ],
     [ "PIPE_STAGES_G", "classAxiStreamPipeline.html#a25370c8855bee371deadbd826124b128", null ],

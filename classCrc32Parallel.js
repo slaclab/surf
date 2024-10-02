@@ -2,11 +2,12 @@ var classCrc32Parallel =
 [
     [ "rtl", "classCrc32Parallel_1_1rtl.html", "classCrc32Parallel_1_1rtl" ],
     [ "TPD_G", "classCrc32Parallel.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classCrc32Parallel.html#a46d1006c1413fe187e8cb55c46be83f4", null ],
     [ "RST_ASYNC_G", "classCrc32Parallel.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "BYTE_WIDTH_G", "classCrc32Parallel.html#a71fcc761b8cbee9a9bea46ce40155ca7", null ],
     [ "INPUT_REGISTER_G", "classCrc32Parallel.html#ace9f0cde3ade35accc13a629e0deb0eb", null ],
     [ "CRC_INIT_G", "classCrc32Parallel.html#a2463287e2f11ee67ed65844e240454f4", null ],
-    [ "crcPwrOnRst", "classCrc32Parallel.html#acaac82db27f6e5221899dca26bae52e1", null ],
+    [ "crcPwrOnRst", "classCrc32Parallel.html#a5b4cc776537ccd15a65ca85b3e129a30", null ],
     [ "crcOut", "classCrc32Parallel.html#ac714dc88dd560f83722b652e4dddc9a3", null ],
     [ "crcRem", "classCrc32Parallel.html#a0447822758d983d9c9d0b939f20f4017", null ],
     [ "crcClk", "classCrc32Parallel.html#afc87f2ca58d0fbe199856552ebc0fa98", null ],

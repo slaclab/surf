@@ -9,6 +9,7 @@ var classSaciMaster2 =
     [ "SACI_RSP_BUSSED_G", "classSaciMaster2.html#a727dff760a094b5c1002e9ff6f69b579", null ],
     [ "sysClk", "classSaciMaster2.html#a7028e9fe43f6271f9b6b9e8f2fd18d13", null ],
     [ "sysRst", "classSaciMaster2.html#a235cf53fc875dad9ecb58b19110ecf21", null ],
+    [ "asicRstL", "classSaciMaster2.html#a4f12c5105d6435283ef8b283172fe495", null ],
     [ "req", "classSaciMaster2.html#a991cefaa4dad316b205ae203c921c642", null ],
     [ "ack", "classSaciMaster2.html#a78270bf5e63a1e4bf6795f6bb6fa32bb", null ],
     [ "fail", "classSaciMaster2.html#a39f0135754035e66e5247180008c41aa", null ],

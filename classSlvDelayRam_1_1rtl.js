@@ -26,7 +26,7 @@ var classSlvDelayRam_1_1rtl =
     [ "syn_ramstyle", "classSlvDelayRam_1_1rtl.html#a84cf7ffd82964a50f4032f48ccb8e928", null ],
     [ "syn_keep", "classSlvDelayRam_1_1rtl.html#ab30f3a7afa6ff0567c5213d20205c9e5", null ],
     [ "syn_keep", "classSlvDelayRam_1_1rtl.html#aaa76f65744479aeccf9bc7638c503fc1", null ],
-    [ "addr~2916", "classSlvDelayRam_1_1rtl.html#a10edf82c30048e3b6787a1b68a215b07", null ],
-    [ "maxCount~2917", "classSlvDelayRam_1_1rtl.html#a7ddd0dbabfa753be8afb76e5e4f7a091", null ],
-    [ "doutReg~2918", "classSlvDelayRam_1_1rtl.html#a8a513f839b9157d8edaa5f8640921926", null ]
+    [ "addr~2928", "classSlvDelayRam_1_1rtl.html#addb54aa8c2ea68b53834ae6b03ceb253", null ],
+    [ "maxCount~2929", "classSlvDelayRam_1_1rtl.html#a9d4709e000ae19cdfcb753dc75b5de29", null ],
+    [ "doutReg~2930", "classSlvDelayRam_1_1rtl.html#a0d056def41605e1ca980b504b89990ae", null ]
 ];

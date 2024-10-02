@@ -1,16 +1,18 @@
 <map id="SelectIoRxGearboxAligner" name="SelectIoRxGearboxAligner">
-<area shape="rect" id="node1" title=" " alt="" coords="5,129,197,155"/>
-<area shape="rect" id="node2" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="245,78,441,105"/>
-<area shape="rect" id="node8" href="$classSugoiManagerCore.html" title=" " alt="" coords="271,129,416,155"/>
-<area shape="rect" id="node10" href="$classAd9249ReadoutGroup2.html" title=" " alt="" coords="257,179,429,206"/>
-<area shape="rect" id="node11" href="$classAd9681Readout.html" title=" " alt="" coords="281,230,406,257"/>
-<area shape="rect" id="node12" href="$classSaltRxLvds.html" title=" " alt="" coords="296,281,391,307"/>
-<area shape="rect" id="node3" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="513,5,726,47"/>
-<area shape="rect" id="node4" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="513,71,726,112"/>
-<area shape="rect" id="node5" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="489,137,749,163"/>
-<area shape="rect" id="node6" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="797,111,1073,138"/>
-<area shape="rect" id="node7" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="838,162,1033,189"/>
-<area shape="rect" id="node9" href="$classSugoiTopTb.html" title=" " alt="" coords="571,187,667,214"/>
-<area shape="rect" id="node13" href="$classSaltCore.html" title=" " alt="" coords="581,281,658,307"/>
-<area shape="rect" id="node14" href="$classSaltCoreTb.html" title=" " alt="" coords="889,281,982,307"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,180,197,207"/>
+<area shape="rect" id="node2" href="$classPgp4RxLiteLowSpeedLane.html" title=" " alt="" coords="247,79,439,105"/>
+<area shape="rect" id="node4" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="245,129,441,156"/>
+<area shape="rect" id="node10" href="$classSugoiManagerCore.html" title=" " alt="" coords="271,180,416,207"/>
+<area shape="rect" id="node12" href="$classAd9249ReadoutGroup2.html" title=" " alt="" coords="257,231,429,257"/>
+<area shape="rect" id="node13" href="$classAd9681Readout.html" title=" " alt="" coords="281,281,406,308"/>
+<area shape="rect" id="node14" href="$classSaltRxLvds.html" title=" " alt="" coords="296,332,391,359"/>
+<area shape="rect" id="node3" href="$classPgp4LiteRxLowSpeed.html" title=" " alt="" coords="539,5,700,32"/>
+<area shape="rect" id="node5" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="513,57,726,98"/>
+<area shape="rect" id="node6" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="513,122,726,163"/>
+<area shape="rect" id="node7" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="489,188,749,215"/>
+<area shape="rect" id="node8" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="797,163,1073,189"/>
+<area shape="rect" id="node9" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="838,213,1033,240"/>
+<area shape="rect" id="node11" href="$classSugoiTopTb.html" title=" " alt="" coords="571,239,667,265"/>
+<area shape="rect" id="node15" href="$classSaltCore.html" title=" " alt="" coords="581,332,658,359"/>
+<area shape="rect" id="node16" href="$classSaltCoreTb.html" title=" " alt="" coords="889,332,982,359"/>
 </map>

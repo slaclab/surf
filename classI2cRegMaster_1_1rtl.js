@@ -17,10 +17,10 @@ var classI2cRegMaster_1_1rtl =
     [ "rin", "classI2cRegMaster_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "i2cMasterIn", "classI2cRegMaster_1_1rtl.html#a114ba643fcb8922a6ee14959a2146f49", null ],
     [ "i2cMasterOut", "classI2cRegMaster_1_1rtl.html#a3443ab19ffdb86e30ea0a7eef45846f0", null ],
-    [ "state~4845", "classI2cRegMaster_1_1rtl.html#a650e86cd16f07daa489c7aecb7b33531", null ],
-    [ "byteCount~4846", "classI2cRegMaster_1_1rtl.html#a14529cf253cd2f37e4e9f7bafa5fd04f", null ],
-    [ "regOut~4847", "classI2cRegMaster_1_1rtl.html#a4c2ebb6668df9a94c685732962aaa8c7", null ],
-    [ "i2cMasterIn~4848", "classI2cRegMaster_1_1rtl.html#a4861db0aa0dcbfaf86ffc980b55a9b4f", null ],
+    [ "state~4857", "classI2cRegMaster_1_1rtl.html#ad717793dd3d302c03438fb9ebc9fdc39", null ],
+    [ "byteCount~4858", "classI2cRegMaster_1_1rtl.html#a6ce30b9c2f99efd030191442d37d7cc5", null ],
+    [ "regOut~4859", "classI2cRegMaster_1_1rtl.html#a2b3c909ed9959927239f4b2cdee5bfbe", null ],
+    [ "i2cMasterIn~4860", "classI2cRegMaster_1_1rtl.html#a5bcdb5a3b0820ebf8b08c985af8cabdf", null ],
     [ "i2cmaster_1", "classI2cRegMaster_1_1rtl.html#aaa1cad2f7ae83600152c70801b472fab", null ],
     [ "i2cmaster_1", "classI2cRegMaster_1_1rtl.html#aaa1cad2f7ae83600152c70801b472fab", null ]
 ];

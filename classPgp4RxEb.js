@@ -2,6 +2,7 @@ var classPgp4RxEb =
 [
     [ "rtl", "classPgp4RxEb_1_1rtl.html", "classPgp4RxEb_1_1rtl" ],
     [ "TPD_G", "classPgp4RxEb.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classPgp4RxEb.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classPgp4RxEb.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "phyRxClk", "classPgp4RxEb.html#a043dd7baee6177622c8cd5e962945fd9", null ],
     [ "phyRxRst", "classPgp4RxEb.html#a1d5f3e33b8af4148427bd89ffdf100f1", null ],

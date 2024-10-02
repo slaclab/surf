@@ -2,6 +2,7 @@ var classPgp4TxLite =
 [
     [ "rtl", "classPgp4TxLite_1_1rtl.html", "classPgp4TxLite_1_1rtl" ],
     [ "TPD_G", "classPgp4TxLite.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classPgp4TxLite.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classPgp4TxLite.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "NUM_VC_G", "classPgp4TxLite.html#a65dd8320bf9c1c41b83fdcc46c253f71", null ],
     [ "SKIP_EN_G", "classPgp4TxLite.html#a584a31ed97b608c8528a68978e58765f", null ],

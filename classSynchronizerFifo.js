@@ -2,6 +2,7 @@ var classSynchronizerFifo =
 [
     [ "SynchronizerFifo.rtl", "classSynchronizerFifo_1_1rtl.html", "classSynchronizerFifo_1_1rtl" ],
     [ "TPD_G", "classSynchronizerFifo.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classSynchronizerFifo.html#a89955abd3e2a5ef68de9af430df1844b", null ],
     [ "RST_ASYNC_G", "classSynchronizerFifo.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "COMMON_CLK_G", "classSynchronizerFifo.html#a059e39587aed6e8045b14097e92edc3f", null ],
     [ "MEMORY_TYPE_G", "classSynchronizerFifo.html#a789b3d1367f7c2431d32ea8d8fbda01d", null ],
@@ -10,7 +11,7 @@ var classSynchronizerFifo =
     [ "DATA_WIDTH_G", "classSynchronizerFifo.html#a9afd81e12ef933fe4e0e9a174a149828", null ],
     [ "ADDR_WIDTH_G", "classSynchronizerFifo.html#a9a38b994d923661b9dda783d1149f55a", null ],
     [ "INIT_G", "classSynchronizerFifo.html#aae638acecf0cdad86bbdbb92c8821846", null ],
-    [ "rst", "classSynchronizerFifo.html#a8921738510fc3eaa5567eecb772dfe99", null ],
+    [ "rst", "classSynchronizerFifo.html#af69f1276a326b65c0cd7077ad4715cdf", null ],
     [ "wr_clk", "classSynchronizerFifo.html#afd6a5ab9619fcec4e23567d2e7d0a011", null ],
     [ "wr_en", "classSynchronizerFifo.html#a79f9366a282aceea252e543a24564607", null ],
     [ "din", "classSynchronizerFifo.html#a23738e766fa55094f4cf6def6f3477c3", null ],

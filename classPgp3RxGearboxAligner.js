@@ -2,6 +2,7 @@ var classPgp3RxGearboxAligner =
 [
     [ "rtl", "classPgp3RxGearboxAligner_1_1rtl.html", "classPgp3RxGearboxAligner_1_1rtl" ],
     [ "TPD_G", "classPgp3RxGearboxAligner.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classPgp3RxGearboxAligner.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classPgp3RxGearboxAligner.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "SLIP_WAIT_G", "classPgp3RxGearboxAligner.html#a0ed0e55c9216b588b1c2ebefaaa793bf", null ],
     [ "clk", "classPgp3RxGearboxAligner.html#adeb222493482dfe91c36a7a02710329c", null ],

@@ -1,6 +1,6 @@
 var classHtspCaui4Gty_1_1mapping =
 [
-    [ "PROCESS_246", "classHtspCaui4Gty_1_1mapping.html#a4b9e5eb44cd7ffedbbf425c43e37bcd7", null ],
+    [ "PROCESS_247", "classHtspCaui4Gty_1_1mapping.html#adeff0049ddb5475489e7d6c96015c6a7", null ],
     [ "RX_POLARITY_C", "classHtspCaui4Gty_1_1mapping.html#a8f6eef411005306deced023649a2a3c8", null ],
     [ "TX_POLARITY_C", "classHtspCaui4Gty_1_1mapping.html#a3b1bbc5dcdd651d585c3e6585c3d98d2", null ],
     [ "TX_DIFF_CTRL_C", "classHtspCaui4Gty_1_1mapping.html#aa11358f3bb220e30dcef0a9cc8de0d75", null ],

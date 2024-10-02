@@ -2,6 +2,7 @@ var classAxiStreamDepacketizer2 =
 [
     [ "rtl", "classAxiStreamDepacketizer2_1_1rtl.html", "classAxiStreamDepacketizer2_1_1rtl" ],
     [ "TPD_G", "classAxiStreamDepacketizer2.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classAxiStreamDepacketizer2.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classAxiStreamDepacketizer2.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "MEMORY_TYPE_G", "classAxiStreamDepacketizer2.html#a789b3d1367f7c2431d32ea8d8fbda01d", null ],
     [ "REG_EN_G", "classAxiStreamDepacketizer2.html#a77a10409c4bbb33f9d33d5da4ce892f2", null ],

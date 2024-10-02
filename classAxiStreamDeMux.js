@@ -2,6 +2,7 @@ var classAxiStreamDeMux =
 [
     [ "structure", "classAxiStreamDeMux_1_1structure.html", "classAxiStreamDeMux_1_1structure" ],
     [ "TPD_G", "classAxiStreamDeMux.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classAxiStreamDeMux.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classAxiStreamDeMux.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "NUM_MASTERS_G", "classAxiStreamDeMux.html#a092fe0c048f52ee15fdcb4db731cec58", null ],
     [ "MODE_G", "classAxiStreamDeMux.html#afb970f8f084418c99040ceff5775be0e", null ],

@@ -1419,6 +1419,18 @@ var hierarchy =
         [ "Pgp3GtyUsIpWrapper", "classPgp3GtyUsIpWrapper.html", null ]
       ] ],
       [ "RoguePgp4Sim", "classRoguePgp4Sim.html", null ],
+      [ "RstPipeline", "classRstPipeline.html", null ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "Pgp4RxLiteLowSpeedReg", "classPgp4RxLiteLowSpeedReg.html", [
+        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+        [ "SyncStatusVector", "classSyncStatusVector.html", null ]
+      ] ],
+      [ "Pgp4RxLiteLowSpeedLane", "classPgp4RxLiteLowSpeedLane.html", [
+        [ "RstPipeline", "classRstPipeline.html", null ],
+        [ "Gearbox", "classGearbox.html", null ],
+        [ "SelectIoRxGearboxAligner", "classSelectIoRxGearboxAligner.html", null ],
+        [ "Pgp4CoreLite", "classPgp4CoreLite.html", null ]
+      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "Pgp4Tx", "classPgp4Tx.html", null ],
