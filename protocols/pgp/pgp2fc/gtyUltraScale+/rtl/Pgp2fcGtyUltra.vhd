@@ -129,7 +129,7 @@ begin
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
-         PULSE_WIDTH_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
+         PULSE_WIDTH_G => 12500)  -- 100us in sim and silicon; otherwise it takes forever to lock
       port map (
          clk     => stableClk,                                  -- [in]
          dataIn  => phyRxInit,                                  -- [in]

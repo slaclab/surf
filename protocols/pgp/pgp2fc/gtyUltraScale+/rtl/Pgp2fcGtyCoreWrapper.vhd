@@ -449,9 +449,8 @@ begin
 
    cPllRefClkSel     <= ite(SEL_FABRIC_REFCLK_G, "111", "001");
 
-   rstSyncRxIn       <= rxResetAlignCheck or rxReset;
-   rxResetGt         <= rxResetAlignCheck or rxReset;
-
+   rstSyncRxIn       <= rxResetAlignCheck;
+   rxResetGt         <= rxResetAlignCheck;
 
    txOutClk          <= txOutClkB;
    rxOutClk          <= rxOutClkB;
