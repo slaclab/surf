@@ -185,12 +185,12 @@ begin
       axiSlaveWaitTxn(axilEp, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
       for i in 0 to r.sample'length-1 loop
-         axiSlaveRegister(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), v.sample(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), r.sample(i));
       end loop;
       axiSlaveRegister (axilEp, x"100", 0,  v.tgt);
       axiSlaveRegister (axilEp, x"100", 8,  v.mask);
       axiSlaveRegister (axilEp, x"100", 16, v.rstlen);
-      axiSlaveRegister (axilEp, x"104", 0,  v.last);
+      axiSlaveRegisterR(axilEp, x"104", 0,  r.last);
       axiSlaveRegisterR(axilEp, x"108", 0,  txClkFreq);
       axiSlaveRegisterR(axilEp, x"10C", 0,  rxClkFreq);
       axiSlaveRegisterR(axilEp, x"110", 0,  r.locked);
