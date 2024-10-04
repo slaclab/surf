@@ -78,8 +78,9 @@ end UdpEngine;
 
 architecture mapping of UdpEngine is
 
-   signal clientRemoteDet : slv(CLIENT_SIZE_G-1 downto 0);
-   signal clientRemoteMac : Slv48Array(CLIENT_SIZE_G-1 downto 0);
+   signal clientRemoteDetValid : slv(CLIENT_SIZE_G-1 downto 0);
+   signal clientRemoteDetIp    : Slv32Array(CLIENT_SIZE_G-1 downto 0);
+   signal clientRemoteMac      : Slv48Array(CLIENT_SIZE_G-1 downto 0);
 
    signal remotePort      : Slv16Array(SERVER_SIZE_G-1 downto 0);
    signal remoteIp        : Slv32Array(SERVER_SIZE_G-1 downto 0);
@@ -127,28 +128,29 @@ begin
          CLIENT_PORTS_G => CLIENT_PORTS_G)
       port map (
          -- Local Configurations
-         localIp          => localIp,
-         broadcastIp      => broadcastIp,
-         igmpIp           => igmpIp,
+         localIp              => localIp,
+         broadcastIp          => broadcastIp,
+         igmpIp               => igmpIp,
          -- Interface to IPV4 Engine
-         ibUdpMaster      => ibUdpMaster,
-         ibUdpSlave       => ibUdpSlave,
+         ibUdpMaster          => ibUdpMaster,
+         ibUdpSlave           => ibUdpSlave,
          -- Interface to UDP Server engine(s)
-         serverRemotePort => remotePort,
-         serverRemoteIp   => remoteIp,
-         serverRemoteMac  => serverRemoteMac,
-         obServerMasters  => obServerMasters,
-         obServerSlaves   => obServerSlaves,
+         serverRemotePort     => remotePort,
+         serverRemoteIp       => remoteIp,
+         serverRemoteMac      => serverRemoteMac,
+         obServerMasters      => obServerMasters,
+         obServerSlaves       => obServerSlaves,
          -- Interface to UDP Client engine(s)
-         clientRemoteDet  => clientRemoteDet,
-         obClientMasters  => obClientMasters,
-         obClientSlaves   => obClientSlaves,
+         clientRemoteDetValid => clientRemoteDetValid,
+         clientRemoteDetIp    => clientRemoteDetIp,
+         obClientMasters      => obClientMasters,
+         obClientSlaves       => obClientSlaves,
          -- Interface to DHCP Engine
-         ibDhcpMaster     => ibDhcpMaster,
-         ibDhcpSlave      => ibDhcpSlave,
+         ibDhcpMaster         => ibDhcpMaster,
+         ibDhcpSlave          => ibDhcpSlave,
          -- Clock and Reset
-         clk              => clk,
-         rst              => rst);
+         clk                  => clk,
+         rst                  => rst);
 
    GEN_DHCP : if (DHCP_G = true) generate
 
@@ -218,20 +220,28 @@ begin
       GEN_ARP_TABLES : for i in 0 to CLIENT_SIZE_G-1 generate
          ArpIpTable_1 : entity surf.ArpIpTable
             generic map (
-               TPD_G     => TPD_G,
-               ENTRIES_G => ARP_TAB_ENTRIES_G)
+               TPD_G          => TPD_G,
+               CLK_FREQ_G     => CLK_FREQ_G,
+               COMM_TIMEOUT_G => COMM_TIMEOUT_G,
+               ENTRIES_G      => ARP_TAB_ENTRIES_G)
             port map (
-               clk       => clk,
-               rst       => rst,
-               ipAddrIn  => clientRemoteIp(i),
-               pos       => arpTabPos(i),
-               found     => arpTabFound(i),
-               macAddr   => arpTabMacAddr(i),
-               ipAddrOut => arpTabIpAddr(i),
-               ipWrEn    => arpTabIpWe(i),
-               IpWrAddr  => clientRemoteIp(i),
-               macWrEn   => arpTabMacWe(i),
-               macWrAddr => arpTabMacAddrW(i));
+               -- Clock and Reset
+               clk                  => clk,
+               rst                  => rst,
+               -- Read LUT
+               ipAddrIn             => clientRemoteIp(i),
+               pos                  => arpTabPos(i),
+               found                => arpTabFound(i),
+               macAddr              => arpTabMacAddr(i),
+               ipAddrOut            => arpTabIpAddr(i),
+               -- Refresh LUT
+               clientRemoteDetValid => clientRemoteDetValid(i),
+               clientRemoteDetIp    => clientRemoteDetIp(i),
+               -- Write LUT
+               ipWrEn               => arpTabIpWe(i),
+               IpWrAddr             => clientRemoteIp(i),
+               macWrEn              => arpTabMacWe(i),
+               macWrAddr            => arpTabMacAddrW(i));
       end generate GEN_ARP_TABLES;
 
       U_UdpEngineArp : entity surf.UdpEngineArp
@@ -242,25 +252,26 @@ begin
             COMM_TIMEOUT_G => COMM_TIMEOUT_G)
          port map (
             -- Local Configurations
-            localIp         => localIp,
+            localIp              => localIp,
             -- Interface to ARP Engine
-            arpReqMasters   => arpReqMasters,
-            arpReqSlaves    => arpReqSlaves,
-            arpAckMasters   => arpAckMasters,
-            arpAckSlaves    => arpAckSlaves,
+            arpReqMasters        => arpReqMasters,
+            arpReqSlaves         => arpReqSlaves,
+            arpAckMasters        => arpAckMasters,
+            arpAckSlaves         => arpAckSlaves,
             -- Interface to ARP Table
-            arpTabFound     => arpTabFound,
-            arpTabMacAddr   => arpTabMacAddr,
-            arpTabIpWe      => arpTabIpWe,
-            arpTabMacWe     => arpTabMacWe,
-            arpTabMacAddrW  => arpTabMacAddrW,
+            arpTabFound          => arpTabFound,
+            arpTabMacAddr        => arpTabMacAddr,
+            arpTabIpWe           => arpTabIpWe,
+            arpTabMacWe          => arpTabMacWe,
+            arpTabMacAddrW       => arpTabMacAddrW,
             -- Interface to UDP Client engine(s)
-            clientRemoteDet => clientRemoteDet,
-            clientRemoteIp  => clientRemoteIp,
-            clientRemoteMac => clientRemoteMac,
+            clientRemoteDetValid => clientRemoteDetValid,
+            clientRemoteDetIp    => clientRemoteDetIp,
+            clientRemoteIp       => clientRemoteIp,
+            clientRemoteMac      => clientRemoteMac,
             -- Clock and Reset
-            clk             => clk,
-            rst             => rst);
+            clk                  => clk,
+            rst                  => rst);
 
       U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (

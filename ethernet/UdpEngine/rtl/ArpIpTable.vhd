@@ -27,7 +27,6 @@ entity ArpIpTable is
       TPD_G          : time                    := 1 ns;
       CLK_FREQ_G     : real                    := 156.25E+06;
       COMM_TIMEOUT_G : positive                := 30;
-      -- COMM_TIMEOUT_G : positive                := 3;
       ENTRIES_G      : positive range 1 to 255 := 4);
    port (
       -- Clock and Reset
@@ -40,8 +39,8 @@ entity ArpIpTable is
       macAddr              : out slv(47 downto 0);
       ipAddrOut            : out slv(31 downto 0);
       -- Refresh LUT
-      clientRemoteDetIp    : in  slv(31 downto 0) := (others => '0');
-      clientRemoteDetValid : in  sl               := '0';
+      clientRemoteDetIp    : in  slv(31 downto 0);
+      clientRemoteDetValid : in  sl;
       -- Write LUT
       ipWrEn               : in  sl;
       IpWrAddr             : in  slv(31 downto 0);
@@ -76,7 +75,6 @@ architecture rtl of ArpIpTable is
 
    -- Expire stuff
    constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);
-   -- constant TIMER_1_SEC_C : natural := 100;
    type TimerArray is array (natural range <>) of natural range 0 to COMM_TIMEOUT_G;
    type ExpStateType is (
       IDLE_S,

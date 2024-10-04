@@ -31,25 +31,26 @@ entity UdpEngineArp is
       RESP_TIMEOUT_G : positive := 5);
    port (
       -- Local Configurations
-      localIp         : in  slv(31 downto 0);  --  big-Endian configuration
+      localIp              : in  slv(31 downto 0);  --  big-Endian configuration
       -- Interface to ARP Engine
-      arpReqMasters   : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Request via IP address
-      arpReqSlaves    : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-      arpAckMasters   : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Respond with MAC address
-      arpAckSlaves    : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      arpReqMasters        : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Request via IP address
+      arpReqSlaves         : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      arpAckMasters        : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Respond with MAC address
+      arpAckSlaves         : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       -- Interface to ARP Table
-      arpTabFound     : in  slv(CLIENT_SIZE_G-1 downto 0);
-      arpTabMacAddr   : in  Slv48Array(CLIENT_SIZE_G-1 downto 0);
-      arpTabIpWe      : out slv(CLIENT_SIZE_G-1 downto 0);
-      arpTabMacWe     : out slv(CLIENT_SIZE_G-1 downto 0);
-      arpTabMacAddrW  : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
+      arpTabFound          : in  slv(CLIENT_SIZE_G-1 downto 0);
+      arpTabMacAddr        : in  Slv48Array(CLIENT_SIZE_G-1 downto 0);
+      arpTabIpWe           : out slv(CLIENT_SIZE_G-1 downto 0);
+      arpTabMacWe          : out slv(CLIENT_SIZE_G-1 downto 0);
+      arpTabMacAddrW       : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
       -- Interface to UDP Client engine(s)
-      clientRemoteDet : in  slv(CLIENT_SIZE_G-1 downto 0);
-      clientRemoteIp  : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);
-      clientRemoteMac : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteDetValid : in  slv(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteDetIp    : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteIp       : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteMac      : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
       -- Clock and Reset
-      clk             : in  sl;
-      rst             : in  sl);
+      clk                  : in  sl;
+      rst                  : in  sl);
 end UdpEngineArp;
 
 architecture rtl of UdpEngineArp is
@@ -93,7 +94,9 @@ architecture rtl of UdpEngineArp is
 
 begin
 
-   comb : process (arpAckMasters, arpReqSlaves, arpTabFound, arpTabMacAddr, clientRemoteDet, clientRemoteIp, r, rst) is
+   comb : process (arpAckMasters, arpReqSlaves, arpTabFound, arpTabMacAddr,
+                   clientRemoteDetIp, clientRemoteDetValid, clientRemoteIp, r,
+                   rst) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -145,11 +148,11 @@ begin
             -- Update the IP address
             v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
             -- Stop any outstanding requests
-            v.arpReqMasters(i).tValid := '0';
+            v.arpReqMasters(i).tValid             := '0';
             -- Reset the remote MAC address
-            v.clientRemoteMac(i)      := (others => '0');
+            v.clientRemoteMac(i)                  := (others => '0');
             -- Next state
-            v.state(i)                := CHECK_S;
+            v.state(i)                            := CHECK_S;
          else
             -- State Machine
             case r.state(i) is
@@ -203,7 +206,7 @@ begin
                ----------------------------------------------------------------------
                when COMM_MONITOR_S =>
                   -- Check for inbound client communication
-                  if clientRemoteDet(i) = '1' then
+                  if clientRemoteDetValid(i) = '1' and clientRemoteDetIp(i) = clientRemoteIp(i) then
                      -- Preset the timer
                      v.arpTimers(i) := COMM_TIMEOUT_G;
                   elsif r.arpTimers(i) = 0 then
