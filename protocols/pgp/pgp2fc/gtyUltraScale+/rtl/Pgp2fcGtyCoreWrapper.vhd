@@ -35,8 +35,6 @@ entity Pgp2fcGtyCoreWrapper is
       AXI_CLK_FREQ_G      : real             := 125.0e6;
       AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0'));
    port (
-      -- Could use gtUserRefClk instead of stableClk
-      -- Then change stableRst to extRst
       stableClk      : in  sl;
       stableRst      : in  sl;
 
@@ -449,8 +447,8 @@ begin
 
    cPllRefClkSel     <= ite(SEL_FABRIC_REFCLK_G, "111", "001");
 
-   rstSyncRxIn       <= rxResetAlignCheck;
-   rxResetGt         <= rxResetAlignCheck;
+   rstSyncRxIn       <= rxResetAlignCheck or rxReset;
+   rxResetGt         <= rxResetAlignCheck or rxReset;
 
    txOutClk          <= txOutClkB;
    rxOutClk          <= rxOutClkB;

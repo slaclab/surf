@@ -115,10 +115,11 @@ begin
 
    pgpTxResetDone <= phyTxReady;
 
+   -- assuming a 78.125MHz stableClk
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetGt,                          -- [in]
          clk    => stableClk,                                -- [in]
@@ -129,7 +130,7 @@ begin
    U_RstSync_4 : entity surf.SynchronizerOneShot
       generic map (
          TPD_G         => TPD_G,
-         PULSE_WIDTH_G => 12500)  -- 100us in sim and silicon; otherwise it takes forever to lock
+         PULSE_WIDTH_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
       port map (
          clk     => stableClk,                                  -- [in]
          dataIn  => phyRxInit,                                  -- [in]
@@ -139,7 +140,7 @@ begin
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpRxIn.resetRx,                          -- [in]
          clk    => stableClk,                                -- [in]
@@ -150,7 +151,7 @@ begin
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 12500, 125000000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetTx,                          -- [in]
          clk    => stableClk,                                -- [in]
