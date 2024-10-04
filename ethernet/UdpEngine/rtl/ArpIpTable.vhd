@@ -26,8 +26,8 @@ entity ArpIpTable is
    generic (
       TPD_G          : time                    := 1 ns;
       CLK_FREQ_G     : real                    := 156.25E+06;
-      -- COMM_TIMEOUT_G : positive                := 30;
-      COMM_TIMEOUT_G : positive                := 3;
+      COMM_TIMEOUT_G : positive                := 30;
+      -- COMM_TIMEOUT_G : positive                := 3;
       ENTRIES_G      : positive range 1 to 255 := 4);
    port (
       -- Clock and Reset
@@ -56,6 +56,7 @@ architecture rtl of ArpIpTable is
       ipLutTable  : Slv32Array(ENTRIES_G-1 downto 0);
       macLutTable : Slv48Array(ENTRIES_G-1 downto 0);
       fifoRdEn    : sl;
+      overwrite   : boolean;
       entryCount  : slv(7 downto 0);
    end record wRegType;
 
@@ -63,6 +64,7 @@ architecture rtl of ArpIpTable is
       ipLutTable  => (others => (others => '0')),
       macLutTable => (others => (others => '0')),
       fifoRdEn    => '0',
+      overwrite   => false,
       entryCount  => (others => '0')
       );
 
@@ -73,8 +75,8 @@ architecture rtl of ArpIpTable is
    signal matchArray : slv(ENTRIES_G-1 downto 0);
 
    -- Expire stuff
-   -- constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);
-   constant TIMER_1_SEC_C : natural := 100;
+   constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);
+   -- constant TIMER_1_SEC_C : natural := 100;
    type TimerArray is array (natural range <>) of natural range 0 to COMM_TIMEOUT_G;
    type ExpStateType is (
       IDLE_S,
@@ -116,17 +118,25 @@ architecture rtl of ArpIpTable is
 begin  -- architecture rtl
 
    -- Write process comb
-   wrComb : process (ipWrAddr, ipWrEn, macWrAddr, macWrEn, rst, wR) is
+   wrComb : process (arbSelected, arbValid, fifoData, fifoEmpty, fifoValid,
+                     ipWrAddr, ipWrEn, macWrAddr, macWrEn, rst, wR) is
       variable v        : wRegType;
       variable wrAddInt : integer;
    begin
       -- Latch the current value
       v := wR;
 
+      -- Update flags
+      v.overwrite := false;
+
       -- Write IP to LUT
-      if ipWrEn = '1' then
+      if ipWrEn = '1' or wR.overwrite then
          wrAddInt := conv_integer(wR.entryCount);
-         if wrAddInt < ENTRIES_G then
+         if fifoEmpty = '0' then
+            v.fifoRdEn  := '1';
+            v.overwrite := true;
+         end if;
+         if wrAddInt < ENTRIES_G and (not v.overwrite) then
             v.ipLutTable(wrAddInt) := ipWrAddr;
          end if;
       end if;
@@ -139,20 +149,24 @@ begin  -- architecture rtl
          end if;
 
          -- Update write LUT pointer
-         if fifoEmpty = '0' then
-            v.fifoRdEn := '1';
-            if fifoValid = '1' then
-               v.entryCount := fifoData;
-               v.fifoRdEn   := '0';
-            end if;
+         if wr.entryCount < ENTRIES_G - 1 then
+            v.entryCount := wr.entryCount + 1;
          else
-            if wr.entryCount < ENTRIES_G - 1 then
-               v.entryCount := wr.entryCount + 1;
-            else
-               v.entryCount := (others => '0');
-            end if;
+            v.entryCount := (others => '0');
          end if;
+      end if;
 
+      -- Overwrite LUT pointer if there are empty spaces
+      if fifoValid = '1' then
+         v.entryCount := fifoData;
+         v.fifoRdEn   := '0';
+      end if;
+
+      -- Remove entry from LUT
+      if arbValid = '1' then
+         wrAddInt                := conv_integer(arbSelected);
+         v.macLutTable(wrAddInt) := (others => '0');
+         v.ipLutTable(wrAddInt)  := (others => '0');
       end if;
 
       -- Reset
@@ -263,6 +277,10 @@ begin  -- architecture rtl
                elsif eR.arpTimers(i) = 0 then
                   -- Next state
                   v.state(i) := EXPIRE_S;
+               end if;
+               if (uOr(wR.ipLutTable(i)) = '0' and uOr(wR.macLutTable(i)) = '0') then
+                  -- Next state
+                  v.state(i) := IDLE_S;
                end if;
             ----------------------------------------------------------------
             when EXPIRE_S =>
