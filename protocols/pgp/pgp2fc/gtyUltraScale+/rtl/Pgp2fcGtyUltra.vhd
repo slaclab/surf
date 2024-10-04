@@ -127,14 +127,13 @@ begin
 
    gtHardReset <= resetGtSync or stableRst;
 
-   U_RstSync_4 : entity surf.SynchronizerOneShot
+   U_RstSync_4 : entity surf.Synchronizer
       generic map (
-         TPD_G         => TPD_G,
-         PULSE_WIDTH_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
+         TPD_G => TPD_G)
       port map (
-         clk     => stableClk,                                  -- [in]
-         dataIn  => phyRxInit,                                  -- [in]
-         dataOut => phyRxInitSync);                             -- [out]
+         clk     => stableClk,                               -- [in]
+         dataIn  => phyRxInit,                               -- [in]
+         dataOut => phyRxInitSync);                          -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
