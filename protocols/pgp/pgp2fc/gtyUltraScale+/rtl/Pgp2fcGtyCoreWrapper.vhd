@@ -46,6 +46,7 @@ entity Pgp2fcGtyCoreWrapper is
       gtRxN          : in  sl;
       gtTxP          : out sl;
       gtTxN          : out sl;
+      gtRxRecClk     : out sl;
 
       -- Rx ports
       phyRxReady     : out sl;
@@ -159,6 +160,7 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          rxoutclk_out                       : out std_logic_vector (0 downto 0);
          rxphaligndone_out                  : out std_logic_vector (0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector (0 downto 0);
+         rxrecclkout_out                    : out std_logic_vector (0 downto 0);
          rxresetdone_out                    : out std_logic_vector (0 downto 0);
          rxsyncdone_out                     : out std_logic_vector (0 downto 0);
          txoutclk_out                       : out std_logic_vector (0 downto 0);
@@ -328,6 +330,7 @@ begin
          rxoutclk_out(0)                       => rxOutClkGt,
          txoutclk_out(0)                       => txOutClkGt, -- unused
          rxpmaresetdone_out(0)                 => rxPmaResetDoneInt,
+         rxrecclkout_out(0)                    => gtRxRecClk,
          rxresetdone_out(0)                    => rxResetDoneInt,
          rxsyncdone_out(0)                     => rxSyncDone,
          txpmaresetdone_out(0)                 => txPmaResetDone,

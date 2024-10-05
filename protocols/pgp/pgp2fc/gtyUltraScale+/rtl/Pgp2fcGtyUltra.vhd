@@ -52,6 +52,7 @@ entity Pgp2fcGtyUltra is
       gtRefClk         : in  sl;
       gtFabricRefClk   : in  sl;
       gtUserRefClk     : in  sl;
+      gtRxRecClk       : out sl;
       -- Gt Serial IO
       pgpGtTxP         : out sl;
       pgpGtTxN         : out sl;
@@ -201,6 +202,7 @@ begin
          gtRefClk        => gtRefClk,
          gtFabricRefClk  => gtFabricRefClk,
          gtUserRefClk    => gtUserRefClk,
+         gtRxRecClk      => gtRxRecClk,
          gtRxP           => pgpGtRxP,
          gtRxN           => pgpGtRxN,
          gtTxP           => pgpGtTxP,
