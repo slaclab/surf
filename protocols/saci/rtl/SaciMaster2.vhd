@@ -19,7 +19,6 @@ use IEEE.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -33,8 +32,12 @@ entity SaciMaster2 is
       SACI_NUM_CHIPS_G   : positive := 1;
       SACI_RSP_BUSSED_G  : boolean  := false);
    port (
-      sysClk : in sl;                   -- Main clock
+      -- Clock and Reset
+      sysClk : in sl;
       sysRst : in sl;
+
+      -- Optional ASIC Global Reset
+      asicRstL : in  sl := '1';
 
       -- Request interface
       req    : in  sl;
@@ -67,6 +70,7 @@ architecture rtl of SaciMaster2 is
       state      : StateType;
       shiftReg   : slv(52 downto 0);
       shiftCount : slv(5 downto 0);
+      asicRstL   : slv(31 downto 0);
 
       --Saci clk gen
       clkCount       : slv(SACI_CLK_COUNTER_SIZE_C downto 0);
@@ -88,6 +92,7 @@ architecture rtl of SaciMaster2 is
       state          => IDLE_S,
       shiftReg       => (others => '0'),
       shiftCount     => (others => '0'),
+      asicRstL       => (others => '1'),
       clkCount       => (others => '0'),
       saciClkRising  => '0',
       saciClkFalling => '0',
@@ -104,6 +109,8 @@ architecture rtl of SaciMaster2 is
    signal saciRspSync : slv(saciRsp'range);
 
 begin
+
+   assert (SACI_CLK_HALF_PERIOD_C >= 2) report "SACI_CLK_PERIOD_G is too fast for SYS_CLK_PERIOD_G" severity failure;
 
    -------------------------------------------------------------------------------------------------
    -- Synchronize saciRsp to sysClk
@@ -122,7 +129,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Main logic
    -------------------------------------------------------------------------------------------------
-   comb : process (addr, chip, cmd, op, r, req, saciRspSync, sysRst, wrData) is
+   comb : process (addr, asicRstL, chip, cmd, op, r, req, saciRspSync, sysRst, wrData) is
       variable v        : RegType;
       variable rspIndex : integer;
    begin
@@ -137,6 +144,7 @@ begin
       if (r.clkCount = SACI_CLK_HALF_PERIOD_C) then
          v.saciClk  := not r.saciClk;
          v.clkCount := (others => '0');
+         v.asicRstL := r.asicRstL(30 downto 0) & '1';
       end if;
 
       -- Create saciClk edge strobes
@@ -151,15 +159,20 @@ begin
          end if;
       end if;
 
+      -- Check for ASIC reset condition
+      if (asicRstL = '0') then
+         -- Reset the bus
+         v.asicRstL := (others => '0');
+      end if;
+
       case (r.state) is
          when IDLE_S =>
             v.fail       := '0';
             v.shiftReg   := (others => '0');
             v.shiftCount := (others => '0');
             v.saciSelL   := (others => '1');
-            -- Hold clock inactive while idle
-            -- Make this configurable?
-            if (not SACI_CLK_FREERUN_G) then
+            -- Hold clock inactive while idle else there is a ASIC reset
+            if (not SACI_CLK_FREERUN_G) and (r.asicRstL(31)='1') then
                v.saciClk  := '0';
                v.clkCount := (others => '0');
             end if;
