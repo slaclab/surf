@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <zmq.h>
+#include <cstdio>
 
 #include "VhpiGeneric.h"
 #include "RogueTcpMemory.h"

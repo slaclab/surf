@@ -20,6 +20,7 @@
 #include <sys/mman.h>
 #include <zmq.h>
 #include <errno.h>
+#include <cstdio>
 
 #include "VhpiGeneric.h"
 #include "RogueTcpStream.h"
