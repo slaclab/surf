@@ -4,7 +4,7 @@
     "xci_name": "Pgp2fcGthCore",
     "component_reference": "xilinx.com:ip:gtwizard_ultrascale:1.7",
     "ip_revision": "18",
-    "gen_directory": "../../../../zCCM_kria_project.gen/sources_1/ip/Pgp2fcGthCore",
+    "gen_directory": ".",
     "parameters": {
       "component_parameters": {
         "GT_TYPE": [ { "value": "GTH", "resolve_type": "user", "usage": "all" } ],
