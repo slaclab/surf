@@ -6,7 +6,14 @@ if { $::env(VIVADO_VERSION) >= 2020.1 } {
 
    loadSource -lib surf   -dir "$::DIR_PATH/rtl"
 
-   loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGthCore.dcp"
+   if { [info exists ::env(PGP2FC_XCI)] != 0 && $::env(PGP2FC_XCI) == 1 } {
+       loadIpCore -path "$::DIR_PATH/ip/Pgp2fcGthCore.xci"
+       puts "Loading XCI file for PGP2FC"
+   } else {
+       loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGthCore.dcp"
+   }   
+
+   #loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGthCore.dcp"
    #loadIpCore  -path "$::DIR_PATH/ip/Pgp2fcGthCore.xci"
 
 } else {
