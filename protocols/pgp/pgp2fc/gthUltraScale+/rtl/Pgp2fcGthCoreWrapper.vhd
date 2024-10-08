@@ -35,8 +35,6 @@ entity Pgp2fcGthCoreWrapper is
       AXI_CLK_FREQ_G      : real             := 125.0e6;
       AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0'));
    port (
-      -- Could use gtUserRefClk instead of stableClk
-      -- Then change stableRst to extRst
       stableClk      : in  sl;
       stableRst      : in  sl;
 
@@ -50,6 +48,7 @@ entity Pgp2fcGthCoreWrapper is
       gtTxN          : out sl;
 
       -- Rx ports
+      phyRxReady     : out sl;
       rxReset        : in  sl;
       rxUsrClkActive : in  sl;
       rxResetDone    : out sl;
@@ -210,7 +209,8 @@ architecture mapping of Pgp2fcGthCoreWrapper is
    signal rxPmaReset        : sl := '0';
    signal txPcsReset        : sl := '0';
    signal txPmaReset        : sl := '0';
-   signal rxPmaResetDoneInt    : sl := '0';
+   signal rxPmaResetDoneInt : sl := '0';
+   signal rxResetDoneInt    : sl := '0';
    signal txPmaResetDone    : sl := '0';
    signal rxByteIsAligned   : sl := '0';
    signal rxByteReAlign     : sl := '0';
@@ -255,7 +255,7 @@ begin
          gtwiz_userclk_tx_active_in(0)         => txUsrActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrActive,
          gtwiz_reset_clk_freerun_in(0)         => stableClk,
-         gtwiz_reset_all_in(0)                 => '0',
+         gtwiz_reset_all_in(0)                 => stableRst,
          gtwiz_buffbypass_tx_reset_in(0)       => buffBypassTxReset,
          gtwiz_buffbypass_tx_start_user_in(0)  => buffBypassTxStart,
          gtwiz_buffbypass_tx_done_out(0)       => buffBypassTxDone,
@@ -328,7 +328,7 @@ begin
          rxoutclk_out(0)                       => rxOutClkGt,
          txoutclk_out(0)                       => txOutClkGt, -- unused
          rxpmaresetdone_out(0)                 => rxPmaResetDoneInt,
-         rxresetdone_out(0)                    => rxResetDone,
+         rxresetdone_out(0)                    => rxResetDoneInt,
          rxsyncdone_out(0)                     => rxSyncDone,
          txpmaresetdone_out(0)                 => txPmaResetDone,
          txresetdone_out(0)                    => txResetDone);
@@ -440,13 +440,15 @@ begin
    txUsrActive       <= txUsrClkActive and txPmaResetDone;
    rxUsrActive       <= rxUsrClkActive and rxPmaResetDoneInt;
 
-   rxPmaResetDone <= rxPmaResetDoneInt;
+   rxPmaResetDone    <= rxPmaResetDoneInt;
+
+   rxResetDone       <= rxResetDoneInt and buffBypassRxDone;
+   phyRxReady        <= rxResetDoneInt;
 
    cPllRefClkSel     <= ite(SEL_FABRIC_REFCLK_G, "111", "001");
 
    rstSyncRxIn       <= rxResetAlignCheck or rxReset;
    rxResetGt         <= rxResetAlignCheck or rxReset;
-
 
    txOutClk          <= txOutClkB;
    rxOutClk          <= rxOutClkB;
