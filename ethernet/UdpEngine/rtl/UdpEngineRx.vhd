@@ -253,7 +253,7 @@ begin
                            v.route                   := CLIENT_S;
                            v.tDestClient             := toSlv(i, 8);
                            v.clientRemoteDetValid(i) := '1';
-                           v.clientRemoteDetIp(i)    := rxMaster.tData(95 downto 64);
+                           v.clientRemoteDetIp(i)    := r.tData(95 downto 64);
                         end if;
                      end loop;
                   end if;
