@@ -26,26 +26,28 @@ use surf.EthMacPkg.all;
 entity UdpEngineWrapper is
    generic (
       -- Simulation Generics
-      TPD_G               : time                  := 1 ns;
+      TPD_G                  : time                    := 1 ns;
       -- UDP Server Generics
-      SERVER_EN_G         : boolean               := true;
-      SERVER_SIZE_G       : positive              := 1;
-      SERVER_PORTS_G      : PositiveArray         := (0 => 8192);
+      SERVER_EN_G            : boolean                 := true;
+      SERVER_SIZE_G          : positive                := 1;
+      SERVER_PORTS_G         : PositiveArray           := (0 => 8192);
       -- UDP Client Generics
-      CLIENT_EN_G         : boolean               := true;
-      CLIENT_SIZE_G       : positive              := 1;
-      CLIENT_PORTS_G      : PositiveArray         := (0 => 8193);
-      CLIENT_EXT_CONFIG_G : boolean               := false;
+      CLIENT_EN_G            : boolean                 := true;
+      CLIENT_TAG_IP_IN_TUSER : boolean                 := false;
+      CLIENT_SIZE_G          : positive                := 1;
+      CLIENT_PORTS_G         : PositiveArray           := (0 => 8193);
+      CLIENT_EXT_CONFIG_G    : boolean                 := false;
+      ARP_TAB_ENTRIES_G      : positive range 1 to 255 := 4;
       -- General IPv4/IGMP/ICMP/ARP/DHCP Generics
-      TX_FLOW_CTRL_G      : boolean               := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
-      DHCP_G              : boolean               := false;
-      IGMP_G              : boolean               := false;
-      IGMP_GRP_SIZE       : positive range 1 to 8 := 1;
-      IGMP_INIT_G         : Slv32Array            := (0 => x"0000_0000");
-      CLK_FREQ_G          : real                  := 156.25E+06;  -- In units of Hz
-      COMM_TIMEOUT_G      : positive              := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
-      TTL_G               : slv(7 downto 0)       := x"20";  -- IPv4's Time-To-Live (TTL)
-      SYNTH_MODE_G        : string                := "inferred");  -- Synthesis mode for internal RAMs
+      TX_FLOW_CTRL_G         : boolean                 := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      DHCP_G                 : boolean                 := false;
+      IGMP_G                 : boolean                 := false;
+      IGMP_GRP_SIZE          : positive range 1 to 8   := 1;
+      IGMP_INIT_G            : Slv32Array              := (0 => x"0000_0000");
+      CLK_FREQ_G             : real                    := 156.25E+06;  -- In units of Hz
+      COMM_TIMEOUT_G         : positive                := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      TTL_G                  : slv(7 downto 0)         := x"20";  -- IPv4's Time-To-Live (TTL)
+      SYNTH_MODE_G           : string                  := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
@@ -164,23 +166,25 @@ begin
    UdpEngine_Inst : entity surf.UdpEngine
       generic map (
          -- Simulation Generics
-         TPD_G          => TPD_G,
-         IGMP_G         => IGMP_G,
-         IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
+         TPD_G                  => TPD_G,
+         IGMP_G                 => IGMP_G,
+         IGMP_GRP_SIZE          => IGMP_GRP_SIZE,
          -- UDP Server Generics
-         SERVER_EN_G    => SERVER_EN_G,
-         SERVER_SIZE_G  => SERVER_SIZE_G,
-         SERVER_PORTS_G => SERVER_PORTS_G,
+         SERVER_EN_G            => SERVER_EN_G,
+         SERVER_SIZE_G          => SERVER_SIZE_G,
+         SERVER_PORTS_G         => SERVER_PORTS_G,
          -- UDP Client Generics
-         CLIENT_EN_G    => CLIENT_EN_G,
-         CLIENT_SIZE_G  => CLIENT_SIZE_G,
-         CLIENT_PORTS_G => CLIENT_PORTS_G,
+         CLIENT_EN_G            => CLIENT_EN_G,
+         CLIENT_TAG_IP_IN_TUSER => CLIENT_TAG_IP_IN_TUSER,
+         CLIENT_SIZE_G          => CLIENT_SIZE_G,
+         CLIENT_PORTS_G         => CLIENT_PORTS_G,
+         ARP_TAB_ENTRIES_G      => ARP_TAB_ENTRIES_G,
          -- UDP ARP/DHCP Generics
-         TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
-         DHCP_G         => DHCP_G,
-         CLK_FREQ_G     => CLK_FREQ_G,
-         COMM_TIMEOUT_G => COMM_TIMEOUT_G,
-         SYNTH_MODE_G   => SYNTH_MODE_G)
+         TX_FLOW_CTRL_G         => TX_FLOW_CTRL_G,
+         DHCP_G                 => DHCP_G,
+         CLK_FREQ_G             => CLK_FREQ_G,
+         COMM_TIMEOUT_G         => COMM_TIMEOUT_G,
+         SYNTH_MODE_G           => SYNTH_MODE_G)
       port map (
          -- Local Configurations
          localMac         => localMac,
