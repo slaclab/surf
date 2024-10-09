@@ -27,19 +27,20 @@ use surf.EthMacPkg.all;
 entity UdpEngineRx is
    generic (
       -- Simulation Generics
-      TPD_G          : time          := 1 ns;
+      TPD_G                  : time          := 1 ns;
       -- UDP General Generic
-      DHCP_G         : boolean       := false;
-      IGMP_G         : boolean       := false;
-      IGMP_GRP_SIZE  : positive      := 1;
+      DHCP_G                 : boolean       := false;
+      IGMP_G                 : boolean       := false;
+      IGMP_GRP_SIZE          : positive      := 1;
       -- UDP Server Generics
-      SERVER_EN_G    : boolean       := true;
-      SERVER_SIZE_G  : positive      := 1;
-      SERVER_PORTS_G : PositiveArray := (0 => 8192);
+      SERVER_EN_G            : boolean       := true;
+      SERVER_SIZE_G          : positive      := 1;
+      SERVER_PORTS_G         : PositiveArray := (0 => 8192);
       -- UDP Client Generics
-      CLIENT_EN_G    : boolean       := true;
-      CLIENT_SIZE_G  : positive      := 1;
-      CLIENT_PORTS_G : PositiveArray := (0 => 8193));
+      CLIENT_EN_G            : boolean       := true;
+      CLIENT_TAG_IP_IN_TUSER : boolean       := false;
+      CLIENT_SIZE_G          : positive      := 1;
+      CLIENT_PORTS_G         : PositiveArray := (0 => 8193));
    port (
       -- Local Configurations
       localIp              : in  slv(31 downto 0);  --  big-Endian configuration
@@ -254,6 +255,9 @@ begin
                            v.tDestClient             := toSlv(i, 8);
                            v.clientRemoteDetValid(i) := '1';
                            v.clientRemoteDetIp(i)    := r.tData(95 downto 64);
+                           if CLIENT_TAG_IP_IN_TUSER then
+                              v.clientMaster.tUser(39 downto 8) := r.tData(95 downto 64);
+                           end if;
                         end if;
                      end loop;
                   end if;

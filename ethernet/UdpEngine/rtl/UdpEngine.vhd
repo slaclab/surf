@@ -22,24 +22,25 @@ use surf.AxiStreamPkg.all;
 entity UdpEngine is
    generic (
       -- Simulation Generics
-      TPD_G             : time                    := 1 ns;
+      TPD_G                  : time                    := 1 ns;
       -- UDP Server Generics
-      SERVER_EN_G       : boolean                 := true;
-      SERVER_SIZE_G     : positive                := 1;
-      SERVER_PORTS_G    : PositiveArray           := (0 => 8192);
+      SERVER_EN_G            : boolean                 := true;
+      SERVER_SIZE_G          : positive                := 1;
+      SERVER_PORTS_G         : PositiveArray           := (0 => 8192);
       -- UDP Client Generics
-      CLIENT_EN_G       : boolean                 := true;
-      CLIENT_SIZE_G     : positive                := 1;
-      CLIENT_PORTS_G    : PositiveArray           := (0 => 8193);
-      ARP_TAB_ENTRIES_G : positive range 1 to 255 := 4;
+      CLIENT_EN_G            : boolean                 := true;
+      CLIENT_TAG_IP_IN_TUSER : boolean                 := false;
+      CLIENT_SIZE_G          : positive                := 1;
+      CLIENT_PORTS_G         : PositiveArray           := (0 => 8193);
+      ARP_TAB_ENTRIES_G      : positive range 1 to 255 := 4;
       -- General UDP/IGMP/ARP/DHCP Generics
-      TX_FLOW_CTRL_G    : boolean                 := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
-      DHCP_G            : boolean                 := false;
-      IGMP_G            : boolean                 := false;
-      IGMP_GRP_SIZE     : positive                := 1;
-      CLK_FREQ_G        : real                    := 156.25E+06;  -- In units of Hz
-      COMM_TIMEOUT_G    : positive                := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
-      SYNTH_MODE_G      : string                  := "inferred");  -- Synthesis mode for internal RAMs
+      TX_FLOW_CTRL_G         : boolean                 := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      DHCP_G                 : boolean                 := false;
+      IGMP_G                 : boolean                 := false;
+      IGMP_GRP_SIZE          : positive                := 1;
+      CLK_FREQ_G             : real                    := 156.25E+06;  -- In units of Hz
+      COMM_TIMEOUT_G         : positive                := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      SYNTH_MODE_G           : string                  := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
@@ -116,16 +117,17 @@ begin
 
    U_UdpEngineRx : entity surf.UdpEngineRx
       generic map (
-         TPD_G          => TPD_G,
-         DHCP_G         => DHCP_G,
-         IGMP_G         => IGMP_G,
-         IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
-         SERVER_EN_G    => SERVER_EN_G,
-         SERVER_SIZE_G  => SERVER_SIZE_G,
-         SERVER_PORTS_G => SERVER_PORTS_G,
-         CLIENT_EN_G    => CLIENT_EN_G,
-         CLIENT_SIZE_G  => CLIENT_SIZE_G,
-         CLIENT_PORTS_G => CLIENT_PORTS_G)
+         TPD_G                  => TPD_G,
+         DHCP_G                 => DHCP_G,
+         IGMP_G                 => IGMP_G,
+         IGMP_GRP_SIZE          => IGMP_GRP_SIZE,
+         SERVER_EN_G            => SERVER_EN_G,
+         SERVER_SIZE_G          => SERVER_SIZE_G,
+         SERVER_PORTS_G         => SERVER_PORTS_G,
+         CLIENT_EN_G            => CLIENT_EN_G,
+         CLIENT_TAG_IP_IN_TUSER => CLIENT_TAG_IP_IN_TUSER,
+         CLIENT_SIZE_G          => CLIENT_SIZE_G,
+         CLIENT_PORTS_G         => CLIENT_PORTS_G)
       port map (
          -- Local Configurations
          localIp              => localIp,
