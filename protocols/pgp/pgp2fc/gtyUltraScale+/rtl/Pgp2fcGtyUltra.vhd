@@ -115,11 +115,11 @@ begin
 
    pgpTxResetDone <= phyTxReady;
 
-   -- assuming a 78.125MHz stableClk
+   -- assuming a 185.714/2 = 92.857 MHz stableClk
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetGt,                          -- [in]
          clk    => stableClk,                                -- [in]
@@ -139,7 +139,7 @@ begin
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpRxIn.resetRx,                          -- [in]
          clk    => stableClk,                                -- [in]
@@ -150,7 +150,7 @@ begin
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetTx,                          -- [in]
          clk    => stableClk,                                -- [in]
