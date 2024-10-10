@@ -124,6 +124,37 @@ class Qsfp(pr.Device):
                 dependencies = [self.TxPwrRaw[2*i+0],self.TxPwrRaw[2*i+1]],
             ))
 
+        for i in range(4):
+            self.add(pr.RemoteVariable(
+                name         = f'TxDisable[{i}]',
+                description  = 'Tx_Disable bit that allows software disable of transmitters, Writing 1 disables the laser of the channel',
+                offset       = (86 << 2),
+                bitSize      = 1,
+                bitOffset    = i,
+                mode         = 'RW',
+                base         = pr.Bool,
+            ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'PowerOverride',
+            description  = '0: allows setting power mode with hardware, 1: allows setting power mode with software',
+            offset       = (93 << 2),
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RW',
+            base         = pr.Bool,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'PowerMode',
+            description  = 'Power set to low power mode: 1 sets to LP mode if PowerOverride is 1',
+            offset       = (93 << 2),
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RW',
+            base         = pr.Bool,
+        ))
+
         ################
         # Upper Page 00h
         ################
