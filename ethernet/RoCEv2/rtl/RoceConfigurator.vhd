@@ -49,12 +49,12 @@ architecture rtl of RoceConfigurator is
    type RegType is record
       -- AXI-Lite Interface
       metaDataIsSet   : sl;
-      metaData        : slv(302 downto 0);
+      metaDataTx      : slv(302 downto 0);
       axilReadSlave   : AxiLiteReadSlaveType;
       axilWriteSlave  : AxiLiteWriteSlaveType;
       -- RoCE Metadata AXI stream Interface
-      metaData        : slv(275 downto 0);
       metaDataIsReady : sl;
+      metaDataRx      : slv(275 downto 0);
       txMaster        : AxiStreamMasterType;
       rxSlave         : AxiStreamSlaveType;
       state           : StateType;
@@ -63,12 +63,12 @@ architecture rtl of RoceConfigurator is
    constant REG_INIT_C : RegType := (
       -- AXI-Lite Interface
       metaDataIsSet   => '0',
-      metaData        => (others => '0'),
+      metaDataTx      => (others => '0'),
       axilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
       -- RoCE Metadata AXI stream Interface
-      metaData        => (others => '0'),
       metaDataIsReady => '0',
+      metaDataRx      => (others => '0'),
       txMaster        => AXI_STREAM_MASTER_INIT_C,
       rxSlave         => AXI_STREAM_SLAVE_INIT_C,
       state           => IDLE_S);
@@ -80,7 +80,7 @@ begin
 
    comb : process (axilReadMaster, axilWriteMaster, mAxisMetaDataReqSlave, r,
                    rst, sAxisMetaDataRespMaster) is
-      variable v      : AxilRegType;
+      variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
       -- Latch the current value
@@ -95,9 +95,9 @@ begin
 
       -- Gen registers
       axiSlaveRegister (axilEp, x"F00", 0, v.metaDataIsSet);
-      axiSlaveRegister (axilEp, x"F04", 0, v.metaData);
-      axiSlaveRegisterR(axilEp, x"F00", 1, confR.metaDataIsReady);
-      axiSlaveRegisterR(axilEp, x"F2C", 0, confR.metaData);
+      axiSlaveRegister (axilEp, x"F04", 0, v.metaDataTx);
+      axiSlaveRegisterR(axilEp, x"F00", 1, r.metaDataIsReady);
+      axiSlaveRegisterR(axilEp, x"F2C", 0, r.metaDataRx);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -112,7 +112,7 @@ begin
          v.txMaster.tValid := '0';
       end if;
 
-      case confR.state is
+      case r.state is
          -------------------------------------------------------------------------
          when IDLE_S =>
             -- Check for rising edge event
@@ -122,16 +122,16 @@ begin
             end if;
          -----------------------------------------------------------------------
          when DUMP_CONFIG_S =>
-            v.txMaster.tData(302 downto 0) := regR.metaData;
+            v.txMaster.tData(302 downto 0) := r.metaDataTx;
             v.txMaster.tValid              := '1';
             if mAxisMetaDataReqSlave.tReady = '1' then
                v.state := GET_RESPONSE_S;
             end if;
          -----------------------------------------------------------------------
          when GET_RESPONSE_S =>
-            if sAxisMetaDataRespMaster_i.tValid = '1' then
+            if sAxisMetaDataRespMaster.tValid = '1' then
                v.rxSlave.tReady  := '1';
-               v.metaData        := sAxisMetaDataRespMaster.tData(275 downto 0);
+               v.metaDataRx      := sAxisMetaDataRespMaster.tData(275 downto 0);
                v.metaDataIsReady := '1';
                v.state           := IDLE_S;
             end if;

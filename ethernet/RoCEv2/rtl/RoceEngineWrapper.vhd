@@ -314,16 +314,16 @@ begin
          generic map (
             TPD_G => TPD_G)
          port map (
-            clk                       => clk,
-            rst                       => rst,
-            mAxisMetaDataReqMaster_o  => s_axisMetaDataReqMaster,
-            mAxisMetaDataReqSlave_i   => s_axisMetaDataReqSlave,
-            sAxisMetaDataRespMaster_i => s_axisMetaDataRespMaster,
-            sAxisMetaDataRespSlave_o  => s_axisMetaDataRespSlave,
-            axilReadMaster            => axilReadMaster,
-            axilReadSlave             => axilReadSlave,
-            axilWriteMaster           => axilWriteMaster,
-            axilWriteSlave            => axilWriteSlave);
+            clk                     => clk,
+            rst                     => rst,
+            mAxisMetaDataReqMaster  => s_axisMetaDataReqMaster,
+            mAxisMetaDataReqSlave   => s_axisMetaDataReqSlave,
+            sAxisMetaDataRespMaster => s_axisMetaDataRespMaster,
+            sAxisMetaDataRespSlave  => s_axisMetaDataRespSlave,
+            axilReadMaster          => axilReadMaster,
+            axilReadSlave           => axilReadSlave,
+            axilWriteMaster         => axilWriteMaster,
+            axilWriteSlave          => axilWriteSlave);
    end generate ROCE_INT_CONFIG_GEN;
 
    -----------------------------------------------------------------------------

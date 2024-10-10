@@ -1,4 +1,4 @@
-// Copied from https://github.com/B-Lang-org/bsc/blob/2024.07/src/Verilog/FIFO2.v
+
 `ifdef BSV_ASSIGNMENT_DELAY
 `else
   `define BSV_ASSIGNMENT_DELAY
@@ -25,7 +25,7 @@
 `endif
 
 // Depth 2 FIFO
-module BluespecFifo2(CLK,
+module FIFO2(CLK,
              RST,
              D_IN,
              ENQ,
@@ -139,12 +139,12 @@ module BluespecFifo2(CLK,
              if ( ! empty_reg && DEQ )
                begin
                   deqerror =  1;
-                  $display( "Warning: BluespecFifo2: %m -- Dequeuing from empty fifo" ) ;
+                  $display( "Warning: FIFO2: %m -- Dequeuing from empty fifo" ) ;
                end
              if ( ! full_reg && ENQ && (!DEQ || guarded) )
                begin
                   enqerror = 1;
-                  $display( "Warning: BluespecFifo2: %m -- Enqueuing to a full fifo" ) ;
+                  $display( "Warning: FIFO2: %m -- Enqueuing to a full fifo" ) ;
                end
           end
      end // always@ (posedge CLK)

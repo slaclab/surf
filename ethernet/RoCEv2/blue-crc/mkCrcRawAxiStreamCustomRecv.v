@@ -687,7 +687,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
   assign m_crc_stream_valid = crc_rawBusMaster_fifo_EMPTY_N ;
 
   // submodule crc_crcAxiStream_crcReqBuf
-  BluespecFifo2 #(.width(32'd290),
+  FIFO2 #(.width(32'd290),
 	  .guarded(1'd1)) crc_crcAxiStream_crcReqBuf(.RST(RST_N),
 						     .CLK(CLK),
 						     .D_IN(crc_crcAxiStream_crcReqBuf_D_IN),
@@ -699,7 +699,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 						     .EMPTY_N(crc_crcAxiStream_crcReqBuf_EMPTY_N));
 
   // submodule crc_crcAxiStream_crcRespFifoOut_accuCrcResBuf
-  BluespecFifo2 #(.width(32'd72),
+  FIFO2 #(.width(32'd72),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_accuCrcResBuf(.RST(RST_N),
 									.CLK(CLK),
 									.D_IN(crc_crcAxiStream_crcRespFifoOut_accuCrcResBuf_D_IN),
@@ -1359,7 +1359,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 													.D_OUT_5());
 
   // submodule crc_crcAxiStream_crcRespFifoOut_finalCrcResBuf
-  BluespecFifo2 #(.width(32'd32),
+  FIFO2 #(.width(32'd32),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_finalCrcResBuf(.RST(RST_N),
 									 .CLK(CLK),
 									 .D_IN(crc_crcAxiStream_crcRespFifoOut_finalCrcResBuf_D_IN),
@@ -1371,7 +1371,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 									 .EMPTY_N(crc_crcAxiStream_crcRespFifoOut_finalCrcResBuf_EMPTY_N));
 
   // submodule crc_crcAxiStream_crcRespFifoOut_preProcessResBuf
-  BluespecFifo2 #(.width(32'd264),
+  FIFO2 #(.width(32'd264),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_preProcessResBuf(.RST(RST_N),
 									   .CLK(CLK),
 									   .D_IN(crc_crcAxiStream_crcRespFifoOut_preProcessResBuf_D_IN),
@@ -1383,7 +1383,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 									   .EMPTY_N(crc_crcAxiStream_crcRespFifoOut_preProcessResBuf_EMPTY_N));
 
   // submodule crc_crcAxiStream_crcRespFifoOut_readCrcTabResBuf
-  BluespecFifo2 #(.width(32'd1032),
+  FIFO2 #(.width(32'd1032),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_readCrcTabResBuf(.RST(RST_N),
 									   .CLK(CLK),
 									   .D_IN(crc_crcAxiStream_crcRespFifoOut_readCrcTabResBuf_D_IN),
@@ -1395,7 +1395,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 									   .EMPTY_N(crc_crcAxiStream_crcRespFifoOut_readCrcTabResBuf_EMPTY_N));
 
   // submodule crc_crcAxiStream_crcRespFifoOut_readInterCrcTabResBuf
-  BluespecFifo2 #(.width(32'd1184),
+  FIFO2 #(.width(32'd1184),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_readInterCrcTabResBuf(.RST(RST_N),
 										.CLK(CLK),
 										.D_IN(crc_crcAxiStream_crcRespFifoOut_readInterCrcTabResBuf_D_IN),
@@ -1407,7 +1407,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 										.EMPTY_N(crc_crcAxiStream_crcRespFifoOut_readInterCrcTabResBuf_EMPTY_N));
 
   // submodule crc_crcAxiStream_crcRespFifoOut_reduceCrcResBuf
-  BluespecFifo2 #(.width(32'd40),
+  FIFO2 #(.width(32'd40),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_reduceCrcResBuf(.RST(RST_N),
 									  .CLK(CLK),
 									  .D_IN(crc_crcAxiStream_crcRespFifoOut_reduceCrcResBuf_D_IN),
@@ -1419,7 +1419,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 									  .EMPTY_N(crc_crcAxiStream_crcRespFifoOut_reduceCrcResBuf_EMPTY_N));
 
   // submodule crc_crcAxiStream_crcRespFifoOut_shiftInputResBuf
-  BluespecFifo2 #(.width(32'd264),
+  FIFO2 #(.width(32'd264),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_shiftInputResBuf(.RST(RST_N),
 									   .CLK(CLK),
 									   .D_IN(crc_crcAxiStream_crcRespFifoOut_shiftInputResBuf_D_IN),
@@ -1431,7 +1431,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 									   .EMPTY_N(crc_crcAxiStream_crcRespFifoOut_shiftInputResBuf_EMPTY_N));
 
   // submodule crc_crcAxiStream_crcRespFifoOut_shiftInterCrcResBuf
-  BluespecFifo2 #(.width(32'd320),
+  FIFO2 #(.width(32'd320),
 	  .guarded(1'd1)) crc_crcAxiStream_crcRespFifoOut_shiftInterCrcResBuf(.RST(RST_N),
 									      .CLK(CLK),
 									      .D_IN(crc_crcAxiStream_crcRespFifoOut_shiftInterCrcResBuf_D_IN),
@@ -1443,7 +1443,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 									      .EMPTY_N(crc_crcAxiStream_crcRespFifoOut_shiftInterCrcResBuf_EMPTY_N));
 
   // submodule crc_rawAxiStreamSlave_rawBus_fifo
-  BluespecFifo2 #(.width(32'd290),
+  FIFO2 #(.width(32'd290),
 	  .guarded(1'd1)) crc_rawAxiStreamSlave_rawBus_fifo(.RST(RST_N),
 							    .CLK(CLK),
 							    .D_IN(crc_rawAxiStreamSlave_rawBus_fifo_D_IN),
@@ -1455,7 +1455,7 @@ module mkCrcRawAxiStreamCustomRecv(CLK,
 							    .EMPTY_N(crc_rawAxiStreamSlave_rawBus_fifo_EMPTY_N));
 
   // submodule crc_rawBusMaster_fifo
-  BluespecFifo2 #(.width(32'd32), .guarded(1'd1)) crc_rawBusMaster_fifo(.RST(RST_N),
+  FIFO2 #(.width(32'd32), .guarded(1'd1)) crc_rawBusMaster_fifo(.RST(RST_N),
 								.CLK(CLK),
 								.D_IN(crc_rawBusMaster_fifo_D_IN),
 								.ENQ(crc_rawBusMaster_fifo_ENQ),
