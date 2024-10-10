@@ -39,6 +39,7 @@ entity EthMacTop is
       SYNTH_MODE_G      : string                   := "inferred";
       MEMORY_TYPE_G     : string                   := "block";
       -- Misc. Configurations
+      ROCEV2_EN_G       : boolean                  := false;
       FILT_EN_G         : boolean                  := false;
       PRIM_COMMON_CLK_G : boolean                  := false;
       PRIM_CONFIG_G     : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
@@ -159,6 +160,7 @@ begin
          DROP_ERR_PKT_G  => DROP_ERR_PKT_G,
          JUMBO_G         => JUMBO_G,
          -- Misc. Configurations
+         ROCEV2_EN_G     => ROCEV2_EN_G,
          BYP_EN_G        => BYP_EN_G,
          -- RAM sythesis Mode
          SYNTH_MODE_G    => SYNTH_MODE_G)
@@ -224,6 +226,7 @@ begin
          PHY_TYPE_G     => PHY_TYPE_G,
          JUMBO_G        => JUMBO_G,
          -- Misc. Configurations
+         ROCEV2_EN_G    => ROCEV2_EN_G,
          FILT_EN_G      => FILT_EN_G,
          BYP_EN_G       => BYP_EN_G,
          BYP_ETH_TYPE_G => BYP_ETH_TYPE_G,

@@ -33,6 +33,7 @@ entity EthMacTx is
       DROP_ERR_PKT_G  : boolean                  := true;
       JUMBO_G         : boolean                  := true;
       -- Misc. Configurations
+      ROCEV2_EN_G     : boolean                  := false;
       BYP_EN_G        : boolean                  := false;
       -- RAM Synthesis mode
       SYNTH_MODE_G    : string                   := "inferred");
@@ -75,8 +76,11 @@ architecture mapping of EthMacTx is
    signal bypassMaster : AxiStreamMasterType;
    signal bypassSlave  : AxiStreamSlaveType;
 
-   signal csumMaster : AxiStreamMasterType;
-   signal csumSlave  : AxiStreamSlaveType;
+   signal obCsumMaster : AxiStreamMasterType;
+   signal obCsumSlave  : AxiStreamSlaveType;
+
+   signal ibPauseMaster : AxiStreamMasterType;
+   signal ibPauseSlave  : AxiStreamSlaveType;
 
    signal macObMaster : AxiStreamMasterType;
    signal macObSlave  : AxiStreamSlaveType;
@@ -111,7 +115,9 @@ begin
       generic map (
          TPD_G          => TPD_G,
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
-         JUMBO_G        => JUMBO_G)
+         JUMBO_G        => JUMBO_G,
+         ROCEV2_EN_G    => ROCEV2_EN_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -123,8 +129,32 @@ begin
          -- Outbound data to MAC
          sAxisMaster => bypassMaster,
          sAxisSlave  => bypassSlave,
-         mAxisMaster => csumMaster,
-         mAxisSlave  => csumSlave);
+         mAxisMaster => obCsumMaster,
+         mAxisSlave  => obCsumSlave);
+
+   ---------------------------------
+   -- RoCEv2 Protocol iCRC insertion
+   ---------------------------------
+   GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
+      U_RoCEv2 : entity surf.EthMacTxRoCEv2
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Clock and Reset
+            ethClk        => ethClk,
+            ethRst        => ethRst,
+            -- Checksum Interface
+            obCsumMaster  => obCsumMaster,
+            obCsumSlave   => obCsumSlave,
+            -- Pause Interface
+            ibPauseMaster => ibPauseMaster,
+            ibPauseSlave  => ibPauseSlave);
+   end generate;
+
+   BYPASS_RoCEv2 : if (ROCEV2_EN_G = false) generate
+      ibPauseMaster <= obCsumMaster;
+      obCsumSlave   <= ibPauseSlave;
+   end generate;
 
    ------------------
    -- TX Pause Module
@@ -139,8 +169,8 @@ begin
          ethClk       => ethClk,
          ethRst       => ethRst,
          -- Incoming data from client
-         sAxisMaster  => csumMaster,
-         sAxisSlave   => csumSlave,
+         sAxisMaster  => ibPauseMaster,
+         sAxisSlave   => ibPauseSlave,
          -- Outgoing data to MAC
          mAxisMaster  => macObMaster,
          mAxisSlave   => macObSlave,

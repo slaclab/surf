@@ -28,6 +28,7 @@ entity EthMacTxCsum is
       TPD_G          : time    := 1 ns;
       DROP_ERR_PKT_G : boolean := true;
       JUMBO_G        : boolean := true;
+      ROCEV2_EN_G    : boolean := false;
       SYNTH_MODE_G   : string  := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
@@ -46,7 +47,8 @@ end EthMacTxCsum;
 
 architecture rtl of EthMacTxCsum is
 
-   constant MAX_FRAME_SIZE_C : natural := ite(JUMBO_G, 9000, 1500);
+   constant MAX_FRAME_SIZE_C          : natural := ite(JUMBO_G, 9000, 1500);
+   constant ROCEV2_CRC32_BYTE_WIDTH_C : natural := 4;
 
    type StateType is (
       IDLE_S,
@@ -75,6 +77,7 @@ architecture rtl of EthMacTxCsum is
       tranRd   : sl;
       mvCnt    : natural range 0 to 4;
       dbg      : slv(5 downto 0);
+      roce     : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       rxSlave  : AxiStreamSlaveType;
       txMaster : AxiStreamMasterType;
       mSlave   : AxiStreamSlaveType;
@@ -101,6 +104,7 @@ architecture rtl of EthMacTxCsum is
       tranRd   => '0',
       mvCnt    => 0,
       dbg      => (others => '0'),
+      roce     => (others => '0'),
       rxSlave  => AXI_STREAM_SLAVE_INIT_C,
       txMaster => AXI_STREAM_MASTER_INIT_C,
       mSlave   => AXI_STREAM_SLAVE_INIT_C,
@@ -119,6 +123,7 @@ architecture rtl of EthMacTxCsum is
    signal txMaster : AxiStreamMasterType;
    signal txSlave  : AxiStreamSlaveType;
 
+   signal roce      : sl;
    signal tranPause : sl;
    signal fragDet   : sl;
    signal eofeDet   : sl;
@@ -161,9 +166,9 @@ begin
          mAxisSlave  => rxSlave);
 
    comb : process (eofeDet, ethRst, fragDet, ipCsumEn, ipv4Csum, ipv4Det,
-                   ipv4Len, mMaster, protCsum, protLen, r, rxMaster, sSlave,
-                   tcpCsumEn, tcpDet, tranPause, tranValid, txSlave, udpCsumEn,
-                   udpDet) is
+                   ipv4Len, mMaster, protCsum, protLen, r, roce, rxMaster,
+                   sSlave, tcpCsumEn, tcpDet, tranPause, tranValid, txSlave,
+                   udpCsumEn, udpDet) is
       variable v     : RegType;
       variable dummy : slv(1 downto 0);
    begin
@@ -207,6 +212,7 @@ begin
       v.tcpDet  := r.tcpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.tcpDet(0);
       v.ipv4Len := r.ipv4Len(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Len(0);
       v.protLen := r.protLen(EMAC_CSUM_PIPELINE_C downto 0) & r.protLen(0);
+      v.roce    := r.roce(EMAC_CSUM_PIPELINE_C downto 0) & r.roce(0);
 
       -- Check for UDP frame
       if (r.udpDet(EMAC_CSUM_PIPELINE_C-1) = '1') then
@@ -228,6 +234,7 @@ begin
             v.udpDet(0)  := '0';
             v.tcpDet(0)  := '0';
             v.tcpFlag    := '0';
+            v.roce(0)    := '0';
             -- Reset accumulators
             v.ipv4Len(0) := toSlv(20, 16);
             v.protLen(0) := (others => '0');
@@ -328,9 +335,16 @@ begin
                   -- Mask off inbound UDP length/checksum
                   v.tData := rxMaster.tData(127 downto 80) & x"00000000" & rxMaster.tData(47 downto 0);
                end if;
-               -- Track the number of bytes
-               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
-               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
+               -- Track the number of bytes and check if its a RoCE transmission (UDP dst port = 4791)
+               if ROCEV2_EN_G and (rxMaster.tData(47 downto 32) = x"B712") then
+                  v.roce(0)    := '1';
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
+               else
+                  v.roce(0)    := '0';
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
+               end if;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
@@ -412,6 +426,11 @@ begin
             v.mSlave.tReady := '1';
             -- Move data
             v.txMaster      := mMaster;
+            if ROCEV2_EN_G and (roce = '1') then
+               v.txMaster.tDest(0) := '1';
+            else
+               v.txMaster.tDest(0) := '0';
+            end if;
             -- Check if not forwarding EOFE frames
             if (DROP_ERR_PKT_G = true) and (eofeDet = '1') then
                -- Do NOT move data
@@ -450,8 +469,13 @@ begin
                   -- Overwrite the data field
                   v.txMaster.tData(55 downto 48) := protLen(15 downto 8);
                   v.txMaster.tData(63 downto 56) := protLen(7 downto 0);
-                  v.txMaster.tData(71 downto 64) := protCsum(15 downto 8);
-                  v.txMaster.tData(79 downto 72) := protCsum(7 downto 0);
+                  if ROCEV2_EN_G and (roce = '1') then
+                     v.txMaster.tData(71 downto 64) := (others => '0');
+                     v.txMaster.tData(79 downto 72) := (others => '0');
+                  else
+                     v.txMaster.tData(71 downto 64) := protCsum(15 downto 8);
+                     v.txMaster.tData(79 downto 72) := protCsum(7 downto 0);
+                  end if;
                end if;
                -- Check for mismatch between firmware/software UDP length
                if (protLen(15 downto 8) /= mMaster.tData(55 downto 48)) or (protLen(7 downto 0) /= mMaster.tData(63 downto 56)) then
@@ -491,9 +515,11 @@ begin
          end if;
       end if;
 
-      -- Combinatorial outputs before the reset
-      rxSlave <= v.rxSlave;
-      mSlave  <= v.mSlave;
+      -- Outputs
+      sMaster  <= r.sMaster;
+      txMaster <= r.txMaster;
+      rxSlave  <= v.rxSlave;
+      mSlave   <= v.mSlave;
 
       -- Reset
       if (ethRst = '1') then
@@ -502,10 +528,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Registered Outputs
-      sMaster  <= r.sMaster;
-      txMaster <= r.txMaster;
 
    end process comb;
 
@@ -552,7 +574,7 @@ begin
          SYNTH_MODE_G    => SYNTH_MODE_G,
          MEMORY_TYPE_G   => "distributed",
          FWFT_EN_G       => true,
-         DATA_WIDTH_G    => 69,
+         DATA_WIDTH_G    => 70,
          ADDR_WIDTH_G    => 4,
          FULL_THRES_G    => 8)
       port map (
@@ -560,6 +582,7 @@ begin
          wr_clk             => ethClk,
          --Write Ports (wr_clk domain)
          wr_en              => r.calc(0).step(EMAC_CSUM_PIPELINE_C),
+         din(69)            => r.roce(EMAC_CSUM_PIPELINE_C+1),
          din(68)            => r.fragDet(EMAC_CSUM_PIPELINE_C+1),
          din(67)            => r.eofeDet(EMAC_CSUM_PIPELINE_C+1),
          din(66)            => r.ipv4Det(EMAC_CSUM_PIPELINE_C+1),
@@ -573,6 +596,7 @@ begin
          --Read Ports (rd_clk domain)
          rd_clk             => ethClk,
          rd_en              => r.tranRd,
+         dout(69)           => roce,
          dout(68)           => fragDet,
          dout(67)           => eofeDet,
          dout(66)           => ipv4Det,
