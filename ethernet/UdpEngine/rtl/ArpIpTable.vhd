@@ -52,19 +52,23 @@ architecture rtl of ArpIpTable is
 
    -- Write stuff
    type wRegType is record
-      ipLutTable  : Slv32Array(ENTRIES_G-1 downto 0);
-      macLutTable : Slv48Array(ENTRIES_G-1 downto 0);
-      fifoRdEn    : sl;
-      overwrite   : boolean;
-      entryCount  : slv(7 downto 0);
+      ipLutTable   : Slv32Array(ENTRIES_G-1 downto 0);
+      macLutTable  : Slv48Array(ENTRIES_G-1 downto 0);
+      fifoRdEn     : sl;
+      fifoValid    : sl;
+      overwrite    : boolean;
+      writingNewIp : boolean;
+      entryCount   : slv(7 downto 0);
    end record wRegType;
 
    constant W_REG_INIT_C : wRegType := (
-      ipLutTable  => (others => (others => '0')),
-      macLutTable => (others => (others => '0')),
-      fifoRdEn    => '0',
-      overwrite   => false,
-      entryCount  => (others => '0')
+      ipLutTable   => (others => (others => '0')),
+      macLutTable  => (others => (others => '0')),
+      fifoRdEn     => '0',
+      fifoValid    => '0',
+      overwrite    => false,
+      writingNewIp => false,
+      entryCount   => (others => '0')
       );
 
    signal wR   : wRegType := W_REG_INIT_C;
@@ -74,7 +78,8 @@ architecture rtl of ArpIpTable is
    signal matchArray : slv(ENTRIES_G-1 downto 0);
 
    -- Expire stuff
-   constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);
+   --constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);
+   constant TIMER_1_SEC_C : natural := 238;
    type TimerArray is array (natural range <>) of natural range 0 to COMM_TIMEOUT_G;
    type ExpStateType is (
       IDLE_S,
@@ -118,36 +123,39 @@ begin  -- architecture rtl
    -- Write process comb
    wrComb : process (arbSelected, arbValid, fifoData, fifoEmpty, fifoValid,
                      ipWrAddr, ipWrEn, macWrAddr, macWrEn, rst, wR) is
-      variable v        : wRegType;
-      variable wrAddInt : integer;
+      variable v           : wRegType;
+      variable wrAddInt    : integer;
+      variable wrAddIntMac : integer;
    begin
       -- Latch the current value
       v := wR;
 
       -- Update flags
-      v.overwrite := false;
+      v.overwrite    := false;
+      v.fifoValid    := '0';
+      v.writingNewIp := false;
 
       -- Write IP to LUT
       if ipWrEn = '1' or wR.overwrite then
          wrAddInt := conv_integer(wR.entryCount);
-         if fifoEmpty = '0' then
-            v.fifoRdEn  := '1';
-            v.overwrite := true;
-         end if;
-         if wrAddInt < ENTRIES_G and (not v.overwrite) then
+         if fifoEmpty = '0' and (not wR.overwrite) then
+            v.fifoRdEn := '1';
+         elsif wrAddInt < ENTRIES_G then
             v.ipLutTable(wrAddInt) := ipWrAddr;
+            v.writingNewIp         := true;
+            wrAddIntMac            := wrAddInt;
          end if;
       end if;
 
       -- Write MAC to LUT
       if macWrEn = '1' then
-         wrAddInt := conv_integer(wR.entryCount);
-         if wrAddInt < ENTRIES_G then
-            v.macLutTable(wrAddInt) := macWrAddr;
-         end if;
+         -- wrAddInt := conv_integer(wR.entryCount);
+         -- if wrAddInt < ENTRIES_G then
+         v.macLutTable(wrAddIntMac) := macWrAddr;
+         -- end if;
 
          -- Update write LUT pointer
-         if wr.entryCount < ENTRIES_G - 1 then
+         if wR.entryCount < ENTRIES_G - 1 then
             v.entryCount := wr.entryCount + 1;
          else
             v.entryCount := (others => '0');
@@ -156,8 +164,13 @@ begin  -- architecture rtl
 
       -- Overwrite LUT pointer if there are empty spaces
       if fifoValid = '1' then
+         v.fifoValid := '1';
+         v.fifoRdEn  := '0';
+      end if;
+
+      if wR.fifoValid = '1' then
          v.entryCount := fifoData;
-         v.fifoRdEn   := '0';
+         v.overwrite  := true;
       end if;
 
       -- Remove entry from LUT
@@ -272,6 +285,9 @@ begin  -- architecture rtl
                if clientRemoteDetValid = '1' and clientRemoteDetIp = wR.ipLutTable(i) then
                   -- Preset the timer
                   v.arpTimers(i) := COMM_TIMEOUT_G;
+               elsif wR.writingNewIp and conv_integer(wR.entryCount) = i then
+                  -- Preset the timer
+                  v.arpTimers(i) := COMM_TIMEOUT_G;
                elsif eR.arpTimers(i) = 0 then
                   -- Next state
                   v.state(i) := EXPIRE_S;
@@ -324,7 +340,7 @@ begin  -- architecture rtl
       port map (
          clk      => clk,
          rst      => rst,
-         req      => eR.arbRequest,
+         req      => eRin.arbRequest,
          selected => arbSelected,
          valid    => arbValid,
          ack      => open);
