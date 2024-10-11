@@ -78,8 +78,7 @@ architecture rtl of ArpIpTable is
    signal matchArray : slv(ENTRIES_G-1 downto 0);
 
    -- Expire stuff
-   --constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);
-   constant TIMER_1_SEC_C : natural := 238;
+   constant TIMER_1_SEC_C : natural := getTimeRatio(CLK_FREQ_G, 1.0);
    type TimerArray is array (natural range <>) of natural range 0 to COMM_TIMEOUT_G;
    type ExpStateType is (
       IDLE_S,
