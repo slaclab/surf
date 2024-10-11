@@ -425,7 +425,7 @@ class Pgp2fcAxi(pr.Device):
             name         = "RxClkFreq",
             mode         = "RO",
             units        = "MHz",
-            disp         = '{:0.2f}',
+            disp         = '{:0.6f}',
             dependencies = [self.RxClkFreqRaw],
             linkedGet    = convtMHz,
         ))
@@ -434,7 +434,7 @@ class Pgp2fcAxi(pr.Device):
             name         = "TxClkFreq",
             mode         = "RO",
             units        = "MHz",
-            disp         = '{:0.2f}',
+            disp         = '{:0.6f}',
             dependencies = [self.TxClkFreqRaw],
             linkedGet    = convtMHz,
         ))
