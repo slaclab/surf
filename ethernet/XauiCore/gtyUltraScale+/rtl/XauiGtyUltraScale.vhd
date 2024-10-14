@@ -30,6 +30,7 @@ entity XauiGtyUltraScale is
       TPD_G          : time                := 1 ns;
       JUMBO_G        : boolean             := true;
       PAUSE_EN_G     : boolean             := true;
+      ROCEV2_EN_G    : boolean             := false;
       -- XAUI Configurations
       REF_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
       -- AXI-Lite Configurations
@@ -205,6 +206,7 @@ begin
          TPD_G             => TPD_G,
          JUMBO_G           => JUMBO_G,
          PAUSE_EN_G        => PAUSE_EN_G,
+         ROCEV2_EN_G       => ROCEV2_EN_G,
          FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
          SYNTH_MODE_G      => "xpm",
          MEMORY_TYPE_G     => "ultra",
