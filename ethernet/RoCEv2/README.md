@@ -1,5 +1,3 @@
-@FilMarini: Please write up some text about how these modules were auto-generated from BlueRdma
-
 # Hardware Implementation of RoCEv2 Engine
 This folder contains files generated from Bluespec SystemVerilog (BSV) source code located in different repositories: [blue-rdma](https://github.com/datenlord/blue-rdma), [blue-crc](https://github.com/datenlord/blue-crc)
 
