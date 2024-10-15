@@ -11,6 +11,8 @@ The modifications consists in:
 
 * **Resource Optimization**: By removing the receiving path, the core now consumes fewer hardware resources, allowing it to fit on smaller FPGAs.
 
+* **Fixed settings**: the generated verilog has support for 1 PD, 1 QP, 2 CQ and 2 MR, in order to be as light as possible. To change these settings, the core needs to be re-generated from its original or modified repo
+
 ## License information
 The BSV-generated files follow the licensing terms from the original repositories. A copy of the original license can be found in the folders.
 
