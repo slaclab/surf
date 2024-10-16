@@ -156,7 +156,7 @@ class GtRxAlignCheck(pr.Device):
             mode         = 'RO',
             dependencies = [self.RefClkFreqRaw],
             linkedGet    = lambda read: self.RefClkFreqRaw.get(read=read) * 1.0e-6,
-            disp         = '{:0.3f}',
+            disp         = '{:0.6f}',
         ))
 
         self.add(pr.RemoteVariable(
