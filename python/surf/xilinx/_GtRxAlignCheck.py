@@ -26,32 +26,6 @@ class GtRxAlignCheck(pr.Device):
         # Variables
         ##############################
 
-        # self.addRemoteVariables(
-            # name         = "PhaseCount",
-            # description  = "Timing frame phase",
-            # offset       =  0x00,
-            # bitSize      =  16,
-            # bitOffset    =  0,
-            # mode         = "RO",
-            # pollInterval = 1,
-            # number       =  128,
-            # stride       =  2,
-            # hidden       =  True,
-        # )
-
-        self.addRemoteVariables(
-            name         = "PhaseCount",
-            description  = "Timing frame phase",
-            offset       =  0x00,
-            bitSize      =  32,
-            bitOffset    =  0,
-            mode         = "RO",
-            pollInterval = 1,
-            number       =  64,
-            stride       =  4,
-            hidden       =  True,
-        )
-
         self.add(pr.RemoteVariable(
             name         = "PhaseTarget",
             description  = "Timing frame phase lock target",
@@ -105,7 +79,7 @@ class GtRxAlignCheck(pr.Device):
             mode         = 'RO',
             dependencies = [self.TxClkFreqRaw],
             linkedGet    = lambda read: self.TxClkFreqRaw.get(read=read) * 1.0e-6,
-            disp         = '{:0.3f}',
+            disp         = '{:0.6f}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -124,7 +98,7 @@ class GtRxAlignCheck(pr.Device):
             mode         = 'RO',
             dependencies = [self.RxClkFreqRaw],
             linkedGet    = lambda read: self.RxClkFreqRaw.get(read=read) * 1.0e-6,
-            disp         = '{:0.3f}',
+            disp         = '{:0.6f}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -182,5 +156,26 @@ class GtRxAlignCheck(pr.Device):
             mode         = 'RO',
             dependencies = [self.RefClkFreqRaw],
             linkedGet    = lambda read: self.RefClkFreqRaw.get(read=read) * 1.0e-6,
-            disp         = '{:0.3f}',
+            disp         = '{:0.6f}',
         ))
+
+        self.add(pr.RemoteVariable(
+            name         = "PhaseCount",
+            description  = "Timing frame phase",
+            offset       =  0x00,
+            valueBits    = 8,
+            valueStride  = 8,
+            numValues    = 40,
+            mode         = "RO",
+            pollInterval = 1,
+            hidden       =  False,
+        ))
+
+        for i in range(40):
+            self.add(pr.LinkVariable(
+                name = f'PhaseHist[{i}]',
+                guiGroup='Hist',
+                disp = '{:d}',
+                mode = 'RO',
+                dependencies = [self.PhaseCount],
+                linkedGet = lambda read, x=i: self.PhaseCount.get(read=read, index=x)))

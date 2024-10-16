@@ -24,9 +24,12 @@ use surf.AxiLitePkg.all;
 
 entity GtRxAlignCheck is
    generic (
-      TPD_G          : time   := 1 ns;
-      GT_TYPE_G      : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
-      AXI_CLK_FREQ_G : real   := 125.0e6;
+      TPD_G          : time    := 1 ns;
+      SIMULATION_G   : boolean := false;
+      LOCK_VALUE_G   : integer := 16;
+      MASK_VALUE_G   : integer := 126;
+      GT_TYPE_G      : string  := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
+      AXI_CLK_FREQ_G : real    := 156.25e6;
       DRP_ADDR_G     : slv(31 downto 0));
    port (
       -- Clock Monitoring
@@ -65,9 +68,6 @@ architecture rtl of GtRxAlignCheck is
    constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite((GT_TYPE_G = "GTHE3"), x"0000_0540", x"0000_0940");
    constant COMMA_ALIGN_LATENCY_ADDR_C   : slv(31 downto 0) := (DRP_ADDR_G + COMMA_ALIGN_LATENCY_OFFSET_C);
 
-   constant LOCK_VALUE_C : integer := 16;
-   constant MASK_VALUE_C : integer := 126;
-
    type StateType is (
       RESET_S,
       READ_S,
@@ -95,12 +95,12 @@ architecture rtl of GtRxAlignCheck is
       locked          => '0',
       rst             => '1',
       rstRetryCnt     => '0',
-      override        => '0',
+      override        => toSl(SIMULATION_G),
       rstlen          => toSlv(3, 4),
       rstcnt          => toSlv(0, 4),
       retryCnt        => toSlv(0, 16),
-      tgt             => toSlv(LOCK_VALUE_C, 7),
-      mask            => toSlv(MASK_VALUE_C, 7),
+      tgt             => toSlv(LOCK_VALUE_G, 7),
+      mask            => toSlv(MASK_VALUE_G, 7),
       last            => toSlv(0, 16),
       sample          => (others => (others => '0')),
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -117,12 +117,6 @@ architecture rtl of GtRxAlignCheck is
    signal txClkFreq  : slv(31 downto 0);
    signal rxClkFreq  : slv(31 downto 0);
    signal refClkFreq : slv(31 downto 0);
-
-  -- attribute dont_touch              : string;
-  -- attribute dont_touch of r         : signal is "TRUE";
-  -- attribute dont_touch of ack       : signal is "TRUE";
-  -- attribute dont_touch of txClkFreq : signal is "TRUE";
-  -- attribute dont_touch of rxClkFreq : signal is "TRUE";
 
 begin
 
@@ -179,6 +173,7 @@ begin
 
       -- Reset the flags
       v.rst         := '0';
+      v.locked      := '0';
       -- Reset the strobes
       v.rstRetryCnt := '0';
 
@@ -190,18 +185,18 @@ begin
       axiSlaveWaitTxn(axilEp, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
       for i in 0 to r.sample'length-1 loop
-         axiSlaveRegister(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), v.sample(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), r.sample(i));
       end loop;
       axiSlaveRegister (axilEp, x"100", 0,  v.tgt);
       axiSlaveRegister (axilEp, x"100", 8,  v.mask);
       axiSlaveRegister (axilEp, x"100", 16, v.rstlen);
-      axiSlaveRegister (axilEp, x"104", 0,  v.last);
+      axiSlaveRegisterR(axilEp, x"104", 0,  r.last);
       axiSlaveRegisterR(axilEp, x"108", 0,  txClkFreq);
       axiSlaveRegisterR(axilEp, x"10C", 0,  rxClkFreq);
-      axiSlaveRegisterR(axilEp, x"110", 0,  v.locked);
+      axiSlaveRegisterR(axilEp, x"110", 0,  r.locked);
       axiSlaveRegister (axilEp, x"114", 0,  v.override);
       axiSlaveRegister (axilEp, x"118", 0,  v.rstRetryCnt);
-      axiSlaveRegisterR(axilEp, x"11C", 0,  v.retryCnt);
+      axiSlaveRegisterR(axilEp, x"11C", 0,  r.retryCnt);
       axiSlaveRegisterR(axilEp, x"120", 0,  refClkFreq);
 
 
@@ -212,9 +207,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when RESET_S =>
-            -- Set the flags
+            -- Set the flag
             v.rst    := '1';
-            v.locked := '0';
             -- Check the counter
             if (r.rstcnt = r.rstlen) then
                -- Wait for the reset transition
@@ -230,8 +224,6 @@ begin
             end if;
          ----------------------------------------------------------------------
          when READ_S =>
-            -- Reset the flag
-            v.locked := '0';
             -- Wait for the reset transition and check state of master AXI-Lite
             if (resetDone = '1') and (ack.done = '0') then
                -- Start the master AXI-Lite transaction
@@ -267,7 +259,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when LOCKED_S =>
-            -- Set the flag (can now be reset only by an external resetIn/resetErr)
+            -- Set the flag
             v.locked := '1';
       ----------------------------------------------------------------------
       end case;
@@ -278,7 +270,7 @@ begin
       end if;
 
       -- Check for user reset
-      if (resetIn = '1') or (resetErr = '1') then
+      if (resetIn = '1') or (resetErr = '1' and resetDone = '1') then
          -- Setup flags for reset state
          v.rst         := '1';
          v.req.request := '0';
