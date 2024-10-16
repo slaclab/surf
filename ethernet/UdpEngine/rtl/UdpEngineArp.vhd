@@ -31,19 +31,26 @@ entity UdpEngineArp is
       RESP_TIMEOUT_G : positive := 5);
    port (
       -- Local Configurations
-      localIp         : in  slv(31 downto 0);  --  big-Endian configuration
+      localIp              : in  slv(31 downto 0);  --  big-Endian configuration
       -- Interface to ARP Engine
-      arpReqMasters   : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Request via IP address
-      arpReqSlaves    : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-      arpAckMasters   : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Respond with MAC address
-      arpAckSlaves    : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      arpReqMasters        : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Request via IP address
+      arpReqSlaves         : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      arpAckMasters        : in  AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);  -- Respond with MAC address
+      arpAckSlaves         : out AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      -- Interface to ARP Table
+      arpTabFound          : in  slv(CLIENT_SIZE_G-1 downto 0);
+      arpTabMacAddr        : in  Slv48Array(CLIENT_SIZE_G-1 downto 0);
+      arpTabIpWe           : out slv(CLIENT_SIZE_G-1 downto 0);
+      arpTabMacWe          : out slv(CLIENT_SIZE_G-1 downto 0);
+      arpTabMacAddrW       : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
       -- Interface to UDP Client engine(s)
-      clientRemoteDet : in  slv(CLIENT_SIZE_G-1 downto 0);
-      clientRemoteIp  : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);
-      clientRemoteMac : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteDetValid : in  slv(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteDetIp    : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteIp       : in  Slv32Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteMac      : out Slv48Array(CLIENT_SIZE_G-1 downto 0);
       -- Clock and Reset
-      clk             : in  sl;
-      rst             : in  sl);
+      clk                  : in  sl;
+      rst                  : in  sl);
 end UdpEngineArp;
 
 architecture rtl of UdpEngineArp is
@@ -52,37 +59,44 @@ architecture rtl of UdpEngineArp is
    type TimerArray is array (natural range <>) of natural range 0 to COMM_TIMEOUT_G;
 
    type StateType is (
+      CHECK_S,
       IDLE_S,
       WAIT_S,
       COMM_MONITOR_S);
    type StateArray is array (natural range <>) of StateType;
 
    type RegType is record
-      clientRemoteMac  : Slv48Array(CLIENT_SIZE_G-1 downto 0);
-      arpAckSlaves     : AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
-      arpReqMasters    : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      timerEn          : sl;
-      timer            : natural range 0 to (TIMER_1_SEC_C-1);
-      arpTimers        : TimerArray(CLIENT_SIZE_G-1 downto 0);
-      respTimers       : TimerArray(CLIENT_SIZE_G-1 downto 0);
-      state            : StateArray(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteMac     : Slv48Array(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteMacWrEn : slv(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteIpWrEn  : slv(CLIENT_SIZE_G-1 downto 0);
+      arpAckSlaves        : AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      arpReqMasters       : AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
+      timerEn             : sl;
+      timer               : natural range 0 to (TIMER_1_SEC_C-1);
+      arpTimers           : TimerArray(CLIENT_SIZE_G-1 downto 0);
+      respTimers          : TimerArray(CLIENT_SIZE_G-1 downto 0);
+      state               : StateArray(CLIENT_SIZE_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      clientRemoteMac  => (others => (others => '0')),
-      arpAckSlaves     => (others => AXI_STREAM_SLAVE_INIT_C),
-      arpReqMasters    => (others => AXI_STREAM_MASTER_INIT_C),
-      timerEn          => '0',
-      timer            => 0,
-      arpTimers        => (others => 0),
-      respTimers       => (others => 0),
-      state            => (others => IDLE_S));
+      clientRemoteMac     => (others => (others => '0')),
+      clientRemoteMacWrEn => (others => '0'),
+      clientRemoteIpWrEn  => (others => '0'),
+      arpAckSlaves        => (others => AXI_STREAM_SLAVE_INIT_C),
+      arpReqMasters       => (others => AXI_STREAM_MASTER_INIT_C),
+      timerEn             => '0',
+      timer               => 0,
+      arpTimers           => (others => 0),
+      respTimers          => (others => 0),
+      state               => (others => IDLE_S));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (arpAckMasters, arpReqSlaves, clientRemoteDet, clientRemoteIp, r, rst) is
+   comb : process (arpAckMasters, arpReqSlaves, arpTabFound, arpTabMacAddr,
+                   clientRemoteDetIp, clientRemoteDetValid, clientRemoteIp, r,
+                   rst) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -90,7 +104,9 @@ begin
       v := r;
 
       -- Reset the flags
-      v.timerEn := '0';
+      v.timerEn             := '0';
+      v.clientRemoteMacWrEn := (others => '0');
+      v.clientRemoteIpWrEn  := (others => '0');
       for i in CLIENT_SIZE_G-1 downto 0 loop
          v.arpAckSlaves(i) := AXI_STREAM_SLAVE_INIT_C;
          if arpReqSlaves(i).tReady = '1' then
@@ -120,24 +136,45 @@ begin
             v.respTimers(i) := r.respTimers(i) - 1;
          end if;
 
-         -- Update the IP address
-         v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
-
          -- Check for dynamic change in IP address
-         if (r.arpReqMasters(i).tData(31 downto 0) /= clientRemoteIp(i)) or (clientRemoteIp(i) = 0) then
+         if (clientRemoteIp(i) = 0) then
             -- Stop any outstanding requests
             v.arpReqMasters(i).tValid := '0';
             -- Reset the remote MAC address
             v.clientRemoteMac(i)      := (others => '0');
             -- Next state
             v.state(i)                := IDLE_S;
+         elsif (r.arpReqMasters(i).tData(31 downto 0) /= clientRemoteIp(i)) then
+            -- Update the IP address
+            v.arpReqMasters(i).tData(31 downto 0) := clientRemoteIp(i);
+            -- Stop any outstanding requests
+            v.arpReqMasters(i).tValid             := '0';
+            -- Reset the remote MAC address
+            v.clientRemoteMac(i)                  := (others => '0');
+            -- Next state
+            v.state(i)                            := CHECK_S;
          else
             -- State Machine
             case r.state(i) is
                ----------------------------------------------------------------------
+               when CHECK_S =>
+                  if arpTabFound(i) = '1' then
+                     -- Set found MAC addr
+                     v.clientRemoteMac(i) := arpTabMacAddr(i);
+                     -- Preset the timer
+                     v.arpTimers(i)       := COMM_TIMEOUT_G;
+                     -- Next state
+                     v.state(i)           := COMM_MONITOR_S;
+                  else
+                     -- Write IP to ARP table
+                     v.clientRemoteIpWrEn(i) := '1';
+                     -- Next state
+                     v.state(i)              := IDLE_S;
+                  end if;
+               ----------------------------------------------------------------------
                when IDLE_S =>
                   -- Reset the counter
-                  v.arpTimers(i)       := 0;
+                  v.arpTimers(i) := 0;
                   -- Check if we have a non-zero IP address to request
                   if clientRemoteIp(i) /= 0 then
                      -- Make an ARP request
@@ -159,6 +196,8 @@ begin
                      v.arpAckSlaves(i).tReady := '1';
                      -- Latch the MAC address value
                      v.clientRemoteMac(i)     := arpAckMasters(i).tData(47 downto 0);
+                     -- Write to ARP table
+                     v.clientRemoteMacWrEn(i) := '1';
                      -- Preset the timer
                      v.arpTimers(i)           := COMM_TIMEOUT_G;
                      -- Next state
@@ -167,7 +206,7 @@ begin
                ----------------------------------------------------------------------
                when COMM_MONITOR_S =>
                   -- Check for inbound client communication
-                  if clientRemoteDet(i) = '1' then
+                  if clientRemoteDetValid(i) = '1' and clientRemoteDetIp(i) = clientRemoteIp(i) then
                      -- Preset the timer
                      v.arpTimers(i) := COMM_TIMEOUT_G;
                   elsif r.arpTimers(i) = 0 then
@@ -193,6 +232,9 @@ begin
       -- Registered Outputs
       arpReqMasters   <= r.arpReqMasters;
       clientRemoteMac <= r.clientRemoteMac;
+      arpTabIpWe      <= r.clientRemoteIpWrEn;
+      arpTabMacWe     <= r.clientRemoteMacWrEn;
+      arpTabMacAddrW  <= r.clientRemoteMac;
 
    end process comb;
 
