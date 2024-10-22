@@ -97,6 +97,10 @@ entity RssiRxFsm is
       -- Parameters received from peer SYN packet
       rxParam_o    : out RssiParamType;
 
+      -- Debug
+      rxTspState_o : out slv(3 downto 0);
+      rxAppState_o : out slv(3 downto 0);
+
       -- Checksum control
       chksumValid_i  : in   sl;
       chksumOk_i     : in   sl;
@@ -190,6 +194,7 @@ architecture rtl of RssiRxFsm is
 
       -- State Machine
       tspState       : TspStateType;
+      rxTspState     : slv(3 downto 0);
 
       -- Application side FSM (Send segments when next in order received)
       -----------------------------------------------------------
@@ -203,6 +208,7 @@ architecture rtl of RssiRxFsm is
 
       -- State Machine
       appState       : AppStateType;
+      rxAppState     : slv(3 downto 0);
 
    end record RegType;
 
@@ -247,7 +253,8 @@ architecture rtl of RssiRxFsm is
       tspSsiSlave  => SSI_SLAVE_NOTRDY_C,
 
       -- Transport side state
-      tspState => WAIT_SOF_S,
+      tspState   => WAIT_SOF_S,
+      rxTspState => (others => '0'),
 
       -- Application side FSM (Send segments when received next in odrer received)
       -----------------------------------------------------------
@@ -260,8 +267,8 @@ architecture rtl of RssiRxFsm is
       appSsiSlave  => SSI_SLAVE_NOTRDY_C,
 
       -- Application side state
-      appState => CHECK_BUFFER_S
-
+      appState   => CHECK_BUFFER_S,
+      rxAppState => (others => '0')
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -298,6 +305,7 @@ begin
       case r.tspState is
          ----------------------------------------------------------------------
          when WAIT_SOF_S =>
+            v.rxTspState := x"0";
 
             -- Counters to 0
             v.rxHeaderAddr  := (others => '0');
@@ -336,7 +344,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CHECK_S =>
-            --
+            v.rxTspState := x"1";
+
             v.segValid   := '0';
             v.segDrop    := '0';
             v.rxSegmentAddr := (others => '1');
@@ -430,7 +439,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SYN_CHECK_S =>
-            --
+            v.rxTspState := x"2";
+
             v.segValid      := '0';
             v.segDrop       := '0';
             v.rxSegmentAddr := (others => '1');
@@ -501,7 +511,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
-            --
+            v.rxTspState := x"3";
+
             v.segValid   := '0';
             v.segDrop    := '0';
             --
@@ -542,7 +553,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when VALID_S =>
-            --
+            v.rxTspState := x"4";
+
             v.segValid   := '1';
             v.segDrop    := '0';
             --
@@ -600,7 +612,8 @@ begin
 
          ----------------------------------------------------------------------
          when DROP_S =>
-            --
+            v.rxTspState := x"5";
+
             v.segValid   := '0';
             v.segDrop    := '1';
             --
@@ -637,6 +650,7 @@ begin
       case r.appState is
          ----------------------------------------------------------------------
          when CHECK_BUFFER_S =>
+            v.rxAppState := x"0";
 
             -- Counters to 0
             v.txSegmentAddr := (others => '0');
@@ -702,6 +716,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
+            v.rxAppState := x"1";
 
             -- Counters
             v.txBufferAddr  := r.txBufferAddr;
@@ -742,6 +757,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SENT_S =>
+            v.rxAppState := x"2";
 
             -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
             v.rxLastSeqN    := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
@@ -815,6 +831,8 @@ begin
 
       -- Application side SSI output
       appSsiMaster_o <= r.appSsiMaster;
+      rxTspState_o   <= r.rxTspState;
+      rxAppState_o   <= r.rxAppState;
    -----------------------------------------------------------
    end process comb;
 
