@@ -451,6 +451,50 @@ class RssiCore(pr.Device):
             },
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'TxLastAckN',
+            description  = 'Last acknowledged Sequence number connected to TX module',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 0,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxSeqN',
+            description  = 'Current received seqN',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 8,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxAckN',
+            description  = 'Current received ackN',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 16,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxLastSeqN',
+            description  = 'Last seqN received and sent to application (this is the ackN transmitted)',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 24,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
         ##############################
         # Commands
         ##############################

@@ -123,6 +123,10 @@ entity RssiAxiLiteRegItf is
       negRssiParam_i : in  RssiParamType;
 
       -- Status (RO)
+      txLastAckN_i : in slv(7 downto 0);
+      rxSeqN_i     : in slv(7 downto 0);
+      rxAckN_i     : in slv(7 downto 0);
+      rxLastSeqN_i : in slv(7 downto 0);
       txTspState_i : in slv(7 downto 0);
       txAppState_i : in slv(3 downto 0);
       txAckState_i : in slv(3 downto 0);
@@ -335,6 +339,11 @@ begin
                v.axilReadSlave.rdata(19 downto 16) := rxTspState_i;
                v.axilReadSlave.rdata(23 downto 20) := rxAppState_i;
                v.axilReadSlave.rdata(27 downto 24) := connState_i;
+            when 16#1C# =>
+               v.axilReadSlave.rdata(7 downto 0)   := txLastAckN_i;
+               v.axilReadSlave.rdata(15 downto 8)  := rxSeqN_i;
+               v.axilReadSlave.rdata(23 downto 16) := rxAckN_i;
+               v.axilReadSlave.rdata(31 downto 24) := rxLastSeqN_i;
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;

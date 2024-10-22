@@ -340,6 +340,10 @@ begin
          injectFault_o  => s_injectFaultReg,
 
          -- Status (RO)
+         txLastAckN_i => s_rxLastAckN,
+         rxSeqN_i     => s_rxLastSeqN,
+         rxAckN_i     => s_rxAckN,
+         rxLastSeqN_i => s_rxLastSeqN,
          txTspState_i => s_txTspState,
          txAppState_i => s_txAppState,
          txAckState_i => s_txAckState,
