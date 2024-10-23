@@ -22,6 +22,9 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 
+library UNISIM;
+use UNISIM.vcomponents.all;
+
 entity SgmiiDp83867LvdsUltraScale is
    generic (
       TPD_G             : time                  := 1 ns;
@@ -29,7 +32,7 @@ entity SgmiiDp83867LvdsUltraScale is
       PAUSE_EN_G        : boolean               := true;
       JUMBO_G           : boolean               := true;
       EN_AXIL_REG_G     : boolean               := false;
-      PHY_G             : natural range 0 to 31 := 7;
+      PHY_G             : natural range 0 to 15 := 3;
       AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
    port (
       -- clock and reset
@@ -74,16 +77,14 @@ end entity SgmiiDp83867LvdsUltraScale;
 
 architecture mapping of SgmiiDp83867LvdsUltraScale is
 
-   signal phyClock : sl;
-   signal phyReset : sl;
-
    signal phyInitRst : sl;
    signal phyIrq     : sl;
+   signal phyTri     : sl;
    signal phyMdi     : sl;
+   signal phyMdiSync : sl;
    signal phyMdo     : sl := '1';
 
-   signal extPhyRstN  : sl := '0';
-   signal extPhyReady : sl := '0';
+   signal extPhyRstN : sl := '0';
 
    signal sp10_100 : sl := '0';
    signal sp100    : sl := '0';
@@ -91,29 +92,49 @@ architecture mapping of SgmiiDp83867LvdsUltraScale is
 
 begin
 
-   phyClk <= phyClock;
-   phyRst <= phyReset;
-
    speed10   <= sp10_100 and not sp100;
    speed100  <= sp10_100 and not sp100;
    speed1000 <= not sp10_100 and not sp100;
 
    -- Tri-state driver for phyMdio
-   phyMdio <= 'Z' when phyMdo = '1' else '0';
+   U_phyMdio : IOBUF
+      port map (
+         I  => phyMdo,                  -- 1-bit input: Buffer input
+         O  => phyMdi,                  -- 1-bit output: Buffer output
+         IO => phyMdio,                 -- 1-bit inout: Buffer inout
+         T  => phyTri);                 -- 1-bit input: 3-state enable input
 
    -- Reset line of the external phy
    phyRstN <= extPhyRstN;
 
+   U_SyncIrq : entity surf.Synchronizer
+      generic map (
+         TPD_G          => TPD_G,
+         OUT_POLARITY_G => '0',
+         INIT_G         => "11")
+      port map (
+         clk     => stableClk,
+         dataIn  => phyIrqN,
+         dataOut => phyIrq);
+
+   U_SyncMdi : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => stableClk,
+         dataIn  => phyMdi,
+         dataOut => phyMdiSync);
+
    --------------------------------------------------------------------------
    -- We must hold reset for >10ms and then wait >5ms until we may talk
-   -- to it (we actually wait also >10ms) which is indicated by 'extPhyReady'
+   -- to it (we actually wait also >10ms) which is indicated by 'phyInitRst'
    --------------------------------------------------------------------------
    U_PwrUpRst0 : entity surf.PwrUpRst
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '0',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
+         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 2.0))  -- 500 ms reset
       port map (
          arst   => extRst,
          clk    => stableClk,
@@ -123,70 +144,30 @@ begin
       generic map(
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '0',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
+         OUT_POLARITY_G => '1',
+         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 2.0))  -- 500 ms reset
       port map (
          arst   => extPhyRstN,
          clk    => stableClk,
-         rstOut => extPhyReady);
+         rstOut => phyInitRst);
 
-   ----------------------------------------------------------------------
-   -- The MDIO controller which talks to the external PHY must be held
-   -- in reset until extPhyReady; it works in a different clock domain...
-   ----------------------------------------------------------------------
-   U_PhyInitRstSync : entity surf.RstSync
-      generic map (
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1')
-      port map (
-         clk      => phyClock,
-         asyncRst => extPhyReady,
-         syncRst  => phyInitRst);
-
-   -----------------------------------------------------------------------
-   -- The SaltCore does not support auto-negotiation on the SGMII link
-   -- (mac<->phy) - however, the DP83867ISRGZ PHY (by default) assumes it does.
-   -- We need to disable auto-negotiation in the PHY on the SGMII side
-   -- and handle link changes (aneg still enabled on copper) flagged
-   -- by the PHY...
-   -----------------------------------------------------------------------
    U_PhyCtrl : entity surf.SgmiiDp83867Mdio
       generic map (
          TPD_G => TPD_G,
          PHY_G => PHY_G,
          DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*1.0E+6))  -- phyMdc = 1.0 MHz
       port map (
-         clk             => phyClock,
+         clk             => stableClk,
          rst             => phyInitRst,
          initDone        => initDone,
          speed_is_10_100 => sp10_100,
          speed_is_100    => sp100,
          linkIsUp        => linkUp,
-         mdi             => phyMdi,
+         mdi             => phyMdiSync,
          mdc             => phyMdc,
+         mdTri           => phyTri,
          mdo             => phyMdo,
          linkIrq         => phyIrq);
-
-   ----------------------------------------------------
-   -- synchronize MDI and IRQ signals into 'clk' domain
-   ----------------------------------------------------
-   U_SyncMdi : entity surf.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => phyClock,
-         dataIn  => phyMdio,
-         dataOut => phyMdi);
-
-   U_SyncIrq : entity surf.Synchronizer
-      generic map (
-         TPD_G          => TPD_G,
-         OUT_POLARITY_G => '0',
-         INIT_G         => "11")
-      port map (
-         clk     => phyClock,
-         dataIn  => phyIrqN,
-         dataOut => phyIrq);
 
    U_1GigE : entity surf.GigEthLvdsUltraScale
       generic map (
@@ -216,9 +197,9 @@ begin
          speed_is_10_100 => sp10_100,
          speed_is_100    => sp100,
          -- PHY + MAC signals
-         extRst          => extRst,
-         ethClk          => phyClock,
-         ethRst          => phyReset,
+         extRst          => phyInitRst,
+         ethClk          => phyClk,
+         ethRst          => phyRst,
          phyReady        => phyReady,
          -- SGMII / LVDS Ports
          sgmiiClkP       => phyClkP,    -- 625 MHz

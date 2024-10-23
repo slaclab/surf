@@ -26,7 +26,7 @@ entity SgmiiDp83867Mdio is
       TPD_G : time                            := 1 ns;
       -- half-period of MDC in clk cycles
       DIV_G : natural range 1 to natural'high := 1;
-      PHY_G : natural range 0 to 31           := 3);
+      PHY_G : natural range 0 to 15           := 3);
    port (
       -- clock and reset
       clk             : in  sl;
@@ -38,6 +38,7 @@ entity SgmiiDp83867Mdio is
       linkIsUp        : out sl;
       -- MDIO interface
       mdc             : out sl;
+      mdTri           : out sl;
       mdo             : out sl;
       mdi             : in  sl;
       -- link status change interrupt
@@ -47,25 +48,27 @@ end entity SgmiiDp83867Mdio;
 architecture rtl of SgmiiDp83867Mdio is
 
    constant P_INIT_C : MdioProgramArray := (
-      mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x000D: Setup for extended address
-      mdioWriteInst(PHY_G, 16#0E#, x"00D3", false),  -- Address 0x000E: Set extended address = 0x00D3
-      mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x000D: Setup for extended data write
-      mdioWriteInst(PHY_G, 16#0E#, x"4000", false),  -- Address 0x000E: Enable SGMII clock
+      mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x0D: Setup for extended address
+      mdioWriteInst(PHY_G, 16#0E#, x"00D3", false),  -- Address 0x0E: Set extended address = 0xD3 (more than 5-bit address)
+      mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x0D: Setup for extended data write
+      mdioWriteInst(PHY_G, 16#0E#, x"4000", false),  -- Address 0x0E: Enable SGMII clock
 
-      mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x000D: Setup for extended address
-      mdioWriteInst(PHY_G, 16#0E#, x"0032", false),  -- Address 0x000E: Set extended address = 0x0032
-      mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x000D: Setup for extended data write
-      mdioWriteInst(PHY_G, 16#0E#, x"0000", false),  -- Address 0x000E: RGMII must be disabled
+      mdioWriteInst(PHY_G, 16#0D#, x"001F", false),  -- Address 0x0D: Setup for extended address
+      mdioWriteInst(PHY_G, 16#0E#, x"0032", false),  -- Address 0x0E: Set extended address = 0x32 (more than 5-bit address)
+      mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x0D: Setup for extended data write
+      mdioWriteInst(PHY_G, 16#0E#, x"0000", false),  -- Address 0x0E: RGMII must be disabled
 
-      mdioWriteInst(PHY_G, 16#1E#, x"0082", false),  -- Address 0x001E: INTN/PWDNN Pad is an Interrupt Output.
-      mdioWriteInst(PHY_G, 16#14#, x"29C7", false),  -- Address 0x0014: Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
-      mdioWriteInst(PHY_G, 16#12#, X"0c00", false),  -- Address 0x0012: Interrupt of link and autoneg changes
-      mdioWriteInst(PHY_G, 16#10#, x"5868", false),  -- Address 0x0010: Enable SGMII
-      -- mdioWriteInst(PHY_G, 16#09#, X"0200", false),  -- Address 0x0009: Advertise 1000   FD only
-      -- mdioWriteInst(PHY_G, 16#04#, X"0140", false),  -- Address 0x0004: Advertise 10/100 FD only
-      mdioWriteInst(PHY_G, 16#00#, x"1140", false),  -- Address 0x0000: Enable autoneg and full duplex
+      mdioWriteInst(PHY_G, 16#1E#, x"0082", false),  -- Address 0x1E: INTN/PWDNN Pad is an Interrupt Output.
+      mdioWriteInst(PHY_G, 16#14#, x"29C7", false),  -- Address 0x14: Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
+      mdioWriteInst(PHY_G, 16#12#, X"0c00", false),  -- Address 0x12: Interrupt of link and autoneg changes
+      mdioWriteInst(PHY_G, 16#10#, x"5848", false),  -- Address 0x10: Enable SGMII
 
-      mdioWriteInst(PHY_G, 16#1F#, x"4000", true));  -- Address 0x001F: Initiate the soft restart.
+      -- mdioWriteInst(PHY_G, 16#10#, x"5868", false),  -- Address 0x10: Enable SGMII
+      -- mdioWriteInst(PHY_G, 16#09#, X"0200", false),  -- Address 0x09: Advertise 1000   FD only
+      -- mdioWriteInst(PHY_G, 16#04#, X"0140", false),  -- Address 0x04: Advertise 10/100 FD only
+      mdioWriteInst(PHY_G, 16#00#, x"1140", false),  -- Address 0x00: Enable autoneg and full duplex
+
+      mdioWriteInst(PHY_G, 16#1F#, x"4000", true));  -- Address 0x1F: Initiate the soft restart.
 
    constant REG0x13_IDX_C : natural := 0;
    constant REG0x11_IDX_C : natural := 1;
@@ -118,8 +121,10 @@ begin
          hdlrDone => hdlrDone,
          args     => args,
          mdc      => mdc,
+         mdTri    => mdTri,
          mdi      => mdi,
-         mdo      => mdo, phyIrq => linkIrq);
+         mdo      => mdo,
+         phyIrq   => linkIrq);
 
    COMB : process(args, hdlrDone, r)
       variable v       : RegType;
