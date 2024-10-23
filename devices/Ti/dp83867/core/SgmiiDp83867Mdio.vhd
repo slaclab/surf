@@ -26,7 +26,7 @@ entity SgmiiDp83867Mdio is
       TPD_G : time                            := 1 ns;
       -- half-period of MDC in clk cycles
       DIV_G : natural range 1 to natural'high := 1;
-      PHY_G : natural range 0 to 15           := 3);
+      PHY_G : natural range 0 to 31           := 3);
    port (
       -- clock and reset
       clk             : in  sl;

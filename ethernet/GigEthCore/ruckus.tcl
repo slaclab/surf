@@ -38,11 +38,11 @@ if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/gthUltraScale+"
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
-   loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
+   loadRuckusTcl "$::DIR_PATH/lvdsUltraScale+"
 }
 
 if { ${family} eq {virtexuplus} ||
      ${family} eq {virtexuplusHBM} } {
    loadRuckusTcl "$::DIR_PATH/gtyUltraScale+"
-   loadRuckusTcl "$::DIR_PATH/lvdsUltraScale"
+   loadRuckusTcl "$::DIR_PATH/lvdsUltraScale+"
 }
