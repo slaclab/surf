@@ -58,15 +58,9 @@ architecture rtl of SgmiiDp83867Mdio is
       mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x0D: Setup for extended data write
       mdioWriteInst(PHY_G, 16#0E#, x"0000", false),  -- Address 0x0E: RGMII must be disabled
 
-      mdioWriteInst(PHY_G, 16#1E#, x"0082", false),  -- Address 0x1E: INTN/PWDNN Pad is an Interrupt Output.
-      mdioWriteInst(PHY_G, 16#14#, x"29C7", false),  -- Address 0x14: Configure interrupt polarity, enable auto negotiation, Enable Speed Optimization
-      mdioWriteInst(PHY_G, 16#12#, X"0c00", false),  -- Address 0x12: Interrupt of link and autoneg changes
+      mdioWriteInst(PHY_G, 16#00#, x"0140", false),  -- Address 0x00: disable autoneg, 1000Mbps, and full duplex
       mdioWriteInst(PHY_G, 16#10#, x"5848", false),  -- Address 0x10: Enable SGMII
-
-      -- mdioWriteInst(PHY_G, 16#10#, x"5868", false),  -- Address 0x10: Enable SGMII
-      -- mdioWriteInst(PHY_G, 16#09#, X"0200", false),  -- Address 0x09: Advertise 1000   FD only
-      -- mdioWriteInst(PHY_G, 16#04#, X"0140", false),  -- Address 0x04: Advertise 10/100 FD only
-      mdioWriteInst(PHY_G, 16#00#, x"1140", false),  -- Address 0x00: Enable autoneg and full duplex
+      mdioWriteInst(PHY_G, 16#14#, x"2907", false),  -- Address 0x14: disable SGMII autoneg and interrupt polarity
 
       mdioWriteInst(PHY_G, 16#1F#, x"4000", true));  -- Address 0x1F: Initiate the soft restart.
 
