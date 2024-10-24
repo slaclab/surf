@@ -58,9 +58,9 @@ architecture rtl of SgmiiDp83867Mdio is
       mdioWriteInst(PHY_G, 16#0D#, x"401F", false),  -- Address 0x0D: Setup for extended data write
       mdioWriteInst(PHY_G, 16#0E#, x"0000", false),  -- Address 0x0E: RGMII must be disabled
 
-      mdioWriteInst(PHY_G, 16#00#, x"0140", false),  -- Address 0x00: disable autoneg, 1000Mbps, and full duplex
+      mdioWriteInst(PHY_G, 16#00#, x"1140", false),  -- Address 0x00: enable autoneg on copper side
       mdioWriteInst(PHY_G, 16#10#, x"5848", false),  -- Address 0x10: Enable SGMII
-      mdioWriteInst(PHY_G, 16#14#, x"2907", false),  -- Address 0x14: disable SGMII autoneg and interrupt polarity
+      mdioWriteInst(PHY_G, 16#14#, x"2907", false),  -- Address 0x14: disable ANEG on SMII side
 
       mdioWriteInst(PHY_G, 16#1F#, x"4000", true));  -- Address 0x1F: Initiate the soft restart.
 
