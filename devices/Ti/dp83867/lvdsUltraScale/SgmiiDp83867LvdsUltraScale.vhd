@@ -134,7 +134,7 @@ begin
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '1',
          OUT_POLARITY_G => '0',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 2.0))  -- 500 ms reset
+         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
       port map (
          arst   => extRst,
          clk    => stableClk,
@@ -145,7 +145,7 @@ begin
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
          OUT_POLARITY_G => '1',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 2.0))  -- 500 ms reset
+         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
       port map (
          arst   => extPhyRstN,
          clk    => stableClk,
@@ -155,7 +155,7 @@ begin
       generic map (
          TPD_G => TPD_G,
          PHY_G => PHY_G,
-         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*1.0E+6))  -- phyMdc = 1.0 MHz
+         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*2.5E+6))  -- phyMdc = 2.5 MHz (nominal)
       port map (
          clk             => stableClk,
          rst             => phyInitRst,
