@@ -107,8 +107,8 @@ architecture rtl of ClockManagerUltraScale is
    signal rstInLoc   : sl;
    signal clkInLoc   : sl;
    signal lockedLoc  : sl;
-   signal clkOutMmcm : slv(6 downto 0);
-   signal clkOutLoc  : slv(6 downto 0);
+   signal clkOutMmcm : slv(6 downto 0) := (others => '0');
+   signal clkOutLoc  : slv(6 downto 0) := (others => '0');
    signal clkFbOut   : sl;
    signal clkFbIn    : sl;
 
@@ -117,7 +117,8 @@ architecture rtl of ClockManagerUltraScale is
    signal drpWe   : sl;
    signal drpAddr : slv(6 downto 0);
    signal drpDi   : slv(15 downto 0);
-   signal drpDo   : slv(15 downto 0);
+   signal drpDo   : slv(15 downto 0) := (others => '0');
+   signal drpDo01 : slv(15 downto 0) := (others => '0');
 
    attribute keep_hierarchy        : string;
    attribute keep_hierarchy of rtl : architecture is "yes";
@@ -156,7 +157,9 @@ begin
          drpWe           => drpWe,
          drpAddr         => drpAddr,
          drpDi           => drpDi,
-         drpDo           => drpDo);
+         drpDo           => drpDo01);
+
+   drpDo01 <= to_stdLogicVector(to_bitvector(drpDo));
 
    MmcmGen : if (TYPE_G = "MMCM") and (SIMULATION_G = false) generate
       U_Mmcm : MMCME4_ADV

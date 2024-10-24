@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
+-------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: GTH RX Byte Alignment Controller

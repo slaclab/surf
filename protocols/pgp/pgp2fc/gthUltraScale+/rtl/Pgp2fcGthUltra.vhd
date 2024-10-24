@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv2b GTY Ultrascale Core Module
+-- Description: PGPv2b GTH Ultrascale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -28,7 +28,7 @@ use surf.Pgp2fcPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity Pgp2fcGtyUltra is
+entity Pgp2fcGthUltra is
    generic (
       TPD_G               : time                 := 1 ns;
       SIMULATION_G        : boolean              := false;
@@ -90,9 +90,9 @@ entity Pgp2fcGtyUltra is
       axilReadSlave    : out AxiLiteReadSlaveType;
       axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave   : out AxiLiteWriteSlaveType);
-end Pgp2fcGtyUltra;
+end Pgp2fcGthUltra;
 
-architecture mapping of Pgp2fcGtyUltra is
+architecture mapping of Pgp2fcGthUltra is
 
    signal resetGtSync : sl;
    signal gtHardReset : sl;
@@ -115,11 +115,10 @@ begin
 
    pgpTxResetDone <= phyTxReady;
 
-   -- assuming a 185.714/2 = 92.857 MHz stableClk
    U_RstSync_1 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetGt,                          -- [in]
          clk    => stableClk,                                -- [in]
@@ -134,12 +133,12 @@ begin
          clk     => stableClk,                               -- [in]
          dataIn  => phyRxInit,                               -- [in]
          dataOut => phyRxInitSync);                          -- [out]
-
+   
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpRxIn.resetRx,                          -- [in]
          clk    => stableClk,                                -- [in]
@@ -150,7 +149,7 @@ begin
    U_RstSync_3 : entity surf.PwrUpRst
       generic map (
          TPD_G      => TPD_G,
-         DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
+         DURATION_G => ite(SIMULATION_G, 7813, 78130000))  -- 100us in sim; 1s in silicon
       port map (
          arst   => pgpTxIn.resetTx,                          -- [in]
          clk    => stableClk,                                -- [in]
@@ -186,9 +185,9 @@ begin
          phyRxInit        => phyRxInit);
 
    --------------------------
-   -- Wrapper for GTY IP core
+   -- Wrapper for GTH IP core
    --------------------------
-   PgpGtyCoreWrapper_1 : entity surf.Pgp2fcGtyCoreWrapper
+   PgpGthCoreWrapper_1 : entity surf.Pgp2fcGthCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          SIMULATION_G        => SIMULATION_G,
