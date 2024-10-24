@@ -62,6 +62,9 @@ architecture rtl of SgmiiDp83867Mdio is
       mdioWriteInst(PHY_G, 16#10#, x"5848", false),  -- Address 0x10: Enable SGMII
       mdioWriteInst(PHY_G, 16#14#, x"2907", false),  -- Address 0x14: disable ANEG on SMII side
 
+      mdioWriteInst(PHY_G, 16#09#, X"0200", false),  -- Address 0x09: Advertise 1000   FD only
+      mdioWriteInst(PHY_G, 16#04#, X"0001", false),  -- Address 0x04: Don't advertise 10/100
+
       mdioWriteInst(PHY_G, 16#1F#, x"4000", true));  -- Address 0x1F: Initiate the soft restart.
 
    constant REG0x13_IDX_C : natural := 0;
