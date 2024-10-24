@@ -27,6 +27,7 @@ entity Sgmii88E1111LvdsUltraScale is
       TPD_G             : time                  := 1 ns;
       STABLE_CLK_FREQ_G : real                  := 156.25E+6;
       PAUSE_EN_G        : boolean               := true;
+      JUMBO_G           : boolean               := true;
       EN_AXIL_REG_G     : boolean               := false;
       PHY_G             : natural range 0 to 31 := 7;
       AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
@@ -191,6 +192,7 @@ begin
       generic map (
          TPD_G         => TPD_G,
          PAUSE_EN_G    => PAUSE_EN_G,
+         JUMBO_G       => JUMBO_G,
          EN_AXIL_REG_G => EN_AXIL_REG_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (

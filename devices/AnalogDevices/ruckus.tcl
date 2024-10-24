@@ -2,6 +2,7 @@
 source $::env(RUCKUS_PROC_TCL)
 
 # Load ruckus files
+loadRuckusTcl "$::DIR_PATH/ad5541"
 loadRuckusTcl "$::DIR_PATH/ad5780"
 loadRuckusTcl "$::DIR_PATH/general"
 

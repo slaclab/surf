@@ -43,6 +43,7 @@ entity MdioCore is
       -- MDIO interface
       mdc                 : out   sl;
       mdo                 : out   sl;
+      mdTri               : out   sl;
       mdi                 : in    sl
    );
 end entity MdioCore;
@@ -58,6 +59,7 @@ architecture MdioCoreImpl of MdioCore is
      din     : slv(15 downto 0);
      count   : slv( 5 downto 0);
      div     : slv(DIV_BITS_C - 1 downto 0);
+     tri     : sl;
      mdc     : sl;
      don     : sl;
      state   : State;
@@ -68,6 +70,7 @@ architecture MdioCoreImpl of MdioCore is
      din     => ( others => '0' ),
      count   => ( others => '1' ),
      div     => ( others => '0' ),
+     tri     => '1',
      mdc     => '0',
      don     => '0',
      state   => IDLE
@@ -76,10 +79,14 @@ architecture MdioCoreImpl of MdioCore is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- attribute dont_touch      : string;
+   -- attribute dont_touch of r : signal is "TRUE";
+
 begin
 
    mdo    <= r.dataOut(32);
    mdc    <= r.mdc;
+   mdTri  <= r.tri;
 
    don    <= r.don;
    din    <= r.din;
@@ -93,6 +100,7 @@ begin
       v.div    := slv( unsigned(r.div) - 1 );
 
       if ( r.state = IDLE ) then
+         v.tri := '1';
          if ( trg /= '0' ) then
             v.state                 := RUN;
             v.dataOut(31 downto 30) := "01";                                  -- start
@@ -103,6 +111,7 @@ begin
             v.dataOut(16)           := cmd.rdNotWr;
             v.dataOut(15 downto  0) := cmd.dataOut;
             v.div                   := toSlv(DIV_G - 1, DIV_BITS_C);
+            v.tri                   := '0';
          end if;
       else
          if ( unsigned(r.div) = 0 ) then
@@ -118,6 +127,9 @@ begin
                if ( v.count(5) = '0' or v.state = IDLE ) then -- count < 32 or last iteration
                   v.dataOut( 32 downto 1 ) := r.dataOut(31 downto 0);
                   v.dataOut( 0 )           := '1';
+               end if;
+               if r.count = b"01_0010" then
+                  v.tri := cmd.rdNotWr;
                end if;
             else
                v.din( 15 downto 1 ) := r.din (14 downto 0);

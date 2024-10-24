@@ -39,6 +39,7 @@ entity GigEthGthUltraScaleWrapper is
       MEMORY_TYPE_G      : string                           := "ultra";
       JUMBO_G            : boolean                          := true;
       PAUSE_EN_G         : boolean                          := true;
+      ROCEV2_EN_G        : boolean                          := false;
       -- Clocking Configurations
       EXT_PLL_G          : boolean                          := false;
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
@@ -208,6 +209,7 @@ begin
             MEMORY_TYPE_G     => MEMORY_TYPE_G,
             JUMBO_G           => JUMBO_G,
             PAUSE_EN_G        => PAUSE_EN_G,
+            ROCEV2_EN_G       => ROCEV2_EN_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G      => EN_AXI_REG_G,
             -- AXI Streaming Configurations

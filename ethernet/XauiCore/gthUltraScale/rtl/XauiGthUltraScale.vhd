@@ -31,6 +31,7 @@ entity XauiGthUltraScale is
       TPD_G           : time                := 1 ns;
       JUMBO_G         : boolean             := true;
       PAUSE_EN_G      : boolean             := true;
+      ROCEV2_EN_G     : boolean             := false;
       -- AXI-Lite Configurations
       EN_AXI_REG_G    : boolean             := false;
       -- AXI Streaming Configurations
@@ -198,6 +199,7 @@ begin
          TPD_G           => TPD_G,
          JUMBO_G         => JUMBO_G,
          PAUSE_EN_G      => PAUSE_EN_G,
+         ROCEV2_EN_G     => ROCEV2_EN_G,
          PHY_TYPE_G      => "XGMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (

@@ -62,6 +62,7 @@ entity MdioLinkIrqHandler is
 
       -- MDIO interface
       mdc                 : out   sl;
+      mdTri               : out   sl;
       mdo                 : out   sl;
       mdi                 : in    sl;
 
@@ -113,6 +114,12 @@ architecture MdioLinkIrqHandlerImpl of MdioLinkIrqHandler is
    signal mdioDone  : sl;
    signal mdioData  : slv(15 downto 0);
 
+   -- attribute dont_touch             : string;
+   -- attribute dont_touch of r        : signal is "TRUE";
+   -- attribute dont_touch of mdioRead : signal is "TRUE";
+   -- attribute dont_touch of mdioDone : signal is "TRUE";
+   -- attribute dont_touch of mdioData : signal is "TRUE";
+
 begin
 
    initDone        <= r.initDone;
@@ -136,6 +143,7 @@ begin
          don         => mdioDone,
 
          mdc         => mdc,
+         mdTri       => mdTri,
          mdi         => mdi,
          mdo         => mdo
       );

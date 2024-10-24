@@ -31,6 +31,7 @@ entity XauiGthUltraScaleWrapper is
       TPD_G             : time                := 1 ns;
       JUMBO_G           : boolean             := true;
       PAUSE_EN_G        : boolean             := true;
+      ROCEV2_EN_G       : boolean             := false;
       EN_WDT_G          : boolean             := false;
       EXT_REF_G         : boolean             := false;
       STABLE_CLK_FREQ_G : real                := 156.25E+6;  -- Support 156.25MHz or 312.5MHz
@@ -142,6 +143,7 @@ begin
          TPD_G         => TPD_G,
          JUMBO_G       => JUMBO_G,
          PAUSE_EN_G    => PAUSE_EN_G,
+         ROCEV2_EN_G   => ROCEV2_EN_G,
          -- AXI-Lite Configurations
          EN_AXI_REG_G  => EN_AXI_REG_G,
          -- AXI Streaming Configurations
