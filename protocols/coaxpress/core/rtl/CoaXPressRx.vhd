@@ -29,7 +29,7 @@ entity CoaXPressRx is
    generic (
       TPD_G              : time                   := 1 ns;
       NUM_LANES_G        : positive               := 1;
-      RX_FSM_CNT_WIDTH_C : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
+      RX_FSM_CNT_WIDTH_G : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
       AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
       -- Data Interface (dataClk domain)
@@ -180,7 +180,7 @@ begin
    U_Fsm : entity surf.CoaXPressRxHsFsm
       generic map (
          TPD_G              => TPD_G,
-         RX_FSM_CNT_WIDTH_C => RX_FSM_CNT_WIDTH_C,
+         RX_FSM_CNT_WIDTH_G => RX_FSM_CNT_WIDTH_G,
          NUM_LANES_G        => NUM_LANES_G)
       port map (
          -- Clock and Reset

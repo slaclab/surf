@@ -30,7 +30,7 @@ entity CoaXPressAxiL is
       TPD_G              : time                   := 1 ns;
       NUM_LANES_G        : positive               := 1;
       STATUS_CNT_WIDTH_G : positive range 1 to 32 := 12;
-      RX_FSM_CNT_WIDTH_C : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
+      RX_FSM_CNT_WIDTH_G : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
       AXIL_CLK_FREQ_G    : real                   := 156.25E+6;  -- axilClk frequency (units of Hz)
       AXIS_CLK_FREQ_G    : real                   := 156.25E+6;  -- dataClk frequency (units of Hz)
       AXIS_CONFIG_G      : AxiStreamConfigType);
@@ -212,7 +212,7 @@ begin
 
       axiSlaveRegisterR(axilEp, x"FE0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FE0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
-      axiSlaveRegisterR(axilEp, x"FE0", 16, toSlv(RX_FSM_CNT_WIDTH_C, 8));
+      axiSlaveRegisterR(axilEp, x"FE0", 16, toSlv(RX_FSM_CNT_WIDTH_G, 8));
 
       axiSlaveRegister (axilEp, X"FE8", 0, v.rxFsmRst);
       axiSlaveRegister (axilEp, X"FEC", 0, v.txPulseWidth);
