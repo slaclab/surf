@@ -193,7 +193,7 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RX_FSM_CNT_WIDTH_C',
+            name         = 'RX_FSM_CNT_WIDTH_G',
             offset       = 0xFE0,
             bitSize      = 8,
             bitOffset    = 16,
