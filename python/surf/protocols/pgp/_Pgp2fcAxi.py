@@ -181,7 +181,6 @@ class Pgp2fcAxi(pr.Device):
             mode        = "RO",
             base        = pr.UInt,
             description = "",
-            pollInterval = 1,
         ))
 
         countVars = [

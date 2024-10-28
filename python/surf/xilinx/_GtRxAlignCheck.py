@@ -60,7 +60,6 @@ class GtRxAlignCheck(pr.Device):
             bitSize      =  7,
             bitOffset    =  0,
             mode         = "RO",
-            pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
@@ -167,7 +166,6 @@ class GtRxAlignCheck(pr.Device):
             valueStride  = 8,
             numValues    = 40,
             mode         = "RO",
-            pollInterval = 1,
             hidden       =  False,
         ))
 
