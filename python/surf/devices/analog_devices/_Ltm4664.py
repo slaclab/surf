@@ -508,7 +508,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
             units        = 'V',
             disp         = '{:1.3f}',
             linkedGet    = getLinear16uDataFormat,
-            dependencies = [self.VOUT_MODE, self.READ_VOUT],
+            dependencies = [self.VOUT_MODE, self.MFR_VOUT_PEAK],
             pollInterval = 1,
         ))
 
@@ -518,7 +518,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
             units        = 'V',
             disp         = '{:1.3f}',
             linkedGet    = getLinear16uDataFormat,
-            dependencies = [self.VOUT_MODE, self.READ_VOUT],
+            dependencies = [self.VOUT_MODE, self.MFR_VOUT_MAX],
             pollInterval = 1,
         ))
 
