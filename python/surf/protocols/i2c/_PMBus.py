@@ -693,7 +693,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_BYTE',
             offset       = (4*0x78),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
@@ -702,7 +702,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_WORD',
             offset       = (4*0x79),
             bitSize      = 16,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
