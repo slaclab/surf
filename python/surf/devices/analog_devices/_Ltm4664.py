@@ -49,61 +49,64 @@ class Ltm4664(surf.protocols.i2c.PMBus):
             return X
 
         # ---------------------------
-        # Hide PMBus registers that are not supported by LTM4664, see datasheet
+        # Hide and delete PMBus registers that are not supported by LTM4664, see datasheet
         # ---------------------------
-        self.PHASE.hidden = True
-        self.STORE_DEFAULT_ALL.hidden = True
-        self.RESTORE_DEFAULT_ALL.hidden = True
-        self.STORE_DEFAULT_CODE.hidden = True
-        self.RESTORE_DEFAULT_CODE.hidden = True
-        self.STORE_USER_CODE.hidden = True
-        self.RESTORE_USER_CODE.hidden = True
-        self.VOUT_TRIM.hidden = True
-        self.VOUT_CAL_OFFSET.hidden = True
-        self.VOUT_DROOP.hidden = True
-        self.VOUT_SCALE_LOOP.hidden = True
-        self.VOUT_SCALE_MONITOR.hidden = True
-        self.POUT_MAX.hidden = True
-        self.MAX_DUTY.hidden = True
-        self.INTERLEAVE.hidden = True
-        self.IOUT_CAL_GAIN.hidden = True
-        self.IOUT_CAL_OFFSET.hidden = True
-        self.FAN_CONFIG_1_2.hidden = True
-        self.FAN_COMMAND_1.hidden = True
-        self.FAN_COMMAND_2.hidden = True
-        self.FAN_CONFIG_3_4.hidden = True
-        self.FAN_COMMAND_3.hidden = True
-        self.FAN_COMMAND_4.hidden = True
-        self.IOUT_OC_LV_FAULT_LIMIT.hidden = True
-        self.IOUT_OC_LV_FAULT_RESPONSE.hidden = True
-        self.IOUT_UC_FAULT_LIMIT.hidden = True
-        self.IOUT_UC_FAULT_RESPONSE.hidden = True
-        self.UT_WARN_LIMIT.hidden = True
-        self.VIN_OV_WARN_LIMIT.hidden = True
-        self.VIN_UV_FAULT_LIMIT.hidden = True
-        self.VIN_UV_FAULT_RESPONSE.hidden = True
-        self.IIN_OC_FAULT_LIMIT.hidden = True
-        self.IIN_OC_FAULT_RESPONSE.hidden = True
-        self.POWER_GOOD_ON.hidden = True
-        self.POWER_GOOD_OFF.hidden = True
-        self.POUT_OP_FAULT_LIMIT.hidden = True
-        self.POUT_OP_FAULT_RESPONSE.hidden = True
-        self.POUT_OP_WARN_LIMIT.hidden = True
-        self.PIN_OP_WARN_LIMIT.hidden = True
-        self.STATUS_OTHER.hidden = True
-        self.STATUS_FANS_1_2.hidden = True
-        self.STATUS_FANS_3_4.hidden = True
-        self.READ_VCAP.hidden = True
-        self.READ_TEMPERATURE_3.hidden = True
-        self.READ_FAN_SPEED_1.hidden = True
-        self.READ_FAN_SPEED_2.hidden = True
-        self.READ_FAN_SPEED_3.hidden = True
-        self.READ_FAN_SPEED_4.hidden = True
-        self.READ_DUTY_CYCLE.hidden = True
-        self.MFR_REVISION.hidden = True
-        self.MFR_LOCATION.hidden = True
-        self.MFR_DATE.hidden = True
-        self.MFR_SERIAL.hidden = True
+        self.tenbit.hidden = True
+        self.ignoreResp.hidden = True
+
+        del self._nodes['PHASE']
+        del self._nodes['STORE_DEFAULT_ALL']
+        del self._nodes['RESTORE_DEFAULT_ALL']
+        del self._nodes['STORE_DEFAULT_CODE']
+        del self._nodes['RESTORE_DEFAULT_CODE']
+        del self._nodes['STORE_USER_CODE']
+        del self._nodes['RESTORE_USER_CODE']
+        del self._nodes['VOUT_TRIM']
+        del self._nodes['VOUT_CAL_OFFSET']
+        del self._nodes['VOUT_DROOP']
+        del self._nodes['VOUT_SCALE_LOOP']
+        del self._nodes['VOUT_SCALE_MONITOR']
+        del self._nodes['POUT_MAX']
+        del self._nodes['MAX_DUTY']
+        del self._nodes['INTERLEAVE']
+        del self._nodes['IOUT_CAL_GAIN']
+        del self._nodes['IOUT_CAL_OFFSET']
+        del self._nodes['FAN_CONFIG_1_2']
+        del self._nodes['FAN_COMMAND_1']
+        del self._nodes['FAN_COMMAND_2']
+        del self._nodes['FAN_CONFIG_3_4']
+        del self._nodes['FAN_COMMAND_3']
+        del self._nodes['FAN_COMMAND_4']
+        del self._nodes['IOUT_OC_LV_FAULT_LIMIT']
+        del self._nodes['IOUT_OC_LV_FAULT_RESPONSE']
+        del self._nodes['IOUT_UC_FAULT_LIMIT']
+        del self._nodes['IOUT_UC_FAULT_RESPONSE']
+        del self._nodes['UT_WARN_LIMIT']
+        del self._nodes['VIN_OV_WARN_LIMIT']
+        del self._nodes['VIN_UV_FAULT_LIMIT']
+        del self._nodes['VIN_UV_FAULT_RESPONSE']
+        del self._nodes['IIN_OC_FAULT_LIMIT']
+        del self._nodes['IIN_OC_FAULT_RESPONSE']
+        del self._nodes['POWER_GOOD_ON']
+        del self._nodes['POWER_GOOD_OFF']
+        del self._nodes['POUT_OP_FAULT_LIMIT']
+        del self._nodes['POUT_OP_FAULT_RESPONSE']
+        del self._nodes['POUT_OP_WARN_LIMIT']
+        del self._nodes['PIN_OP_WARN_LIMIT']
+        del self._nodes['STATUS_OTHER']
+        del self._nodes['STATUS_FANS_1_2']
+        del self._nodes['STATUS_FANS_3_4']
+        del self._nodes['READ_VCAP']
+        del self._nodes['READ_TEMPERATURE_3']
+        del self._nodes['READ_FAN_SPEED_1']
+        del self._nodes['READ_FAN_SPEED_2']
+        del self._nodes['READ_FAN_SPEED_3']
+        del self._nodes['READ_FAN_SPEED_4']
+        del self._nodes['READ_DUTY_CYCLE']
+        del self._nodes['MFR_REVISION']
+        del self._nodes['MFR_LOCATION']
+        del self._nodes['MFR_DATE']
+        del self._nodes['MFR_SERIAL']
 
         # NOTE: string commands MFR_ID and MFR_MODEL do not work correctly
 
@@ -634,3 +637,33 @@ class Ltm4664(surf.protocols.i2c.PMBus):
             linkedGet    = lambda read: self.MFR_PIN_ACCURACY.get(read=read)*0.1, # Conversion factor: 0.1%/Bit
             dependencies = [self.MFR_PIN_ACCURACY],
         ))
+
+        # Status bits
+        def addStatusBit(registerVar, name, bitOffset):
+            self.add(pr.LinkVariable(
+                name         = name,
+                linkedGet    = lambda read: bool((registerVar.get(read=read) >> bitOffset) & 0x1),
+                dependencies = [registerVar],
+                pollInterval = 1,
+            ))
+        addStatusBit(self.STATUS_WORD, 'statusCML', 1)
+        addStatusBit(self.STATUS_WORD, 'statusTEMPERATURE', 2)
+        addStatusBit(self.STATUS_WORD, 'statusVIN_UV', 3)
+        addStatusBit(self.STATUS_WORD, 'statusIOUT_OC', 4)
+        addStatusBit(self.STATUS_WORD, 'statusVOUT_OV', 5)
+        addStatusBit(self.STATUS_WORD, 'statusOFF', 6)
+        addStatusBit(self.STATUS_WORD, 'statusBUSY', 7)
+        addStatusBit(self.STATUS_WORD, 'statusPOWER_GOOD', 11)
+        addStatusBit(self.STATUS_WORD, 'statusMFR_SPECIFIC', 12)
+        addStatusBit(self.STATUS_WORD, 'statusINPUT', 13)
+        addStatusBit(self.STATUS_WORD, 'statusIout', 14)
+        addStatusBit(self.STATUS_WORD, 'statusVout', 15)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusFaultPin', 0)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusShortCycle', 1)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusVDD33_UV_OV', 2)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusFaultLogPresent', 3)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusPllUnlocked', 4)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusNvmCrcFault', 5)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusInternalTempWarning', 6)
+        addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusInternalTempFault', 7)
+
