@@ -711,7 +711,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_VOUT',
             offset       = (4*0x7A),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
@@ -720,7 +720,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_IOUT',
             offset       = (4*0x7B),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
@@ -729,7 +729,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_INPUT',
             offset       = (4*0x7C),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
@@ -738,7 +738,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_TEMPERATURE',
             offset       = (4*0x7D),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
@@ -747,7 +747,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_CML',
             offset       = (4*0x7E),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
@@ -765,7 +765,7 @@ class PMBus(pr.Device):
             name         = 'STATUS_MFR_SPECIFIC',
             offset       = (4*0x80),
             bitSize      = 8,
-            mode         = 'RO',
+            mode         = 'RW',
             hidden       = simpleDisplay,
             pollInterval = 1,
         ))
