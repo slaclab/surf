@@ -11,7 +11,7 @@
 import pyrogue as pr
 
 class PMBus(pr.Device):
-    def __init__(self, simpleDisplay = True, dynamicAddr=False, **kwargs):
+    def __init__(self, simpleDisplay = True, includePhase = True, dynamicAddr=False, **kwargs):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
@@ -73,13 +73,14 @@ class PMBus(pr.Device):
             hidden       = simpleDisplay,
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'PHASE',
-            offset       = (4*0x04),
-            bitSize      = 8,
-            mode         = 'RW',
-            hidden       = simpleDisplay,
-        ))
+        if includePhase:
+            self.add(pr.RemoteVariable(
+                name         = 'PHASE',
+                offset       = (4*0x04),
+                bitSize      = 8,
+                mode         = 'RW',
+                hidden       = simpleDisplay,
+            ))
 
         self.add(pr.RemoteVariable(
             name         = 'WRITE_PROTECT',
