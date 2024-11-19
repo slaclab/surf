@@ -159,14 +159,14 @@ class GtRxAlignCheck(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PhaseCount",
+            name         = "PhaseHistRaw",
             description  = "Timing frame phase",
             offset       =  0x00,
             valueBits    = 8,
             valueStride  = 8,
             numValues    = 40,
             mode         = "RO",
-            hidden       =  False,
+            hidden       =  True,
         ))
 
         for i in range(40):
@@ -175,5 +175,5 @@ class GtRxAlignCheck(pr.Device):
                 guiGroup='Hist',
                 disp = '{:d}',
                 mode = 'RO',
-                dependencies = [self.PhaseCount],
-                linkedGet = lambda read, x=i: self.PhaseCount.get(read=read, index=x)))
+                dependencies = [self.PhaseHistRaw],
+                linkedGet = lambda read, x=i: self.PhaseHistRaw.value(index=x)))
