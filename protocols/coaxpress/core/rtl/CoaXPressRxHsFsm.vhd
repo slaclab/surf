@@ -28,7 +28,7 @@ use surf.CoaXPressPkg.all;
 entity CoaXPressRxHsFsm is
    generic (
       TPD_G              : time                   := 1 ns;
-      RX_FSM_CNT_WIDTH_C : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
+      RX_FSM_CNT_WIDTH_G : positive range 1 to 24 := 16;  -- Optimize this down w.r.t camera to help make timing in CoaXPressRxHsFsm.vhd
       NUM_LANES_G        : positive               := 1);
    port (
       -- Clock and Reset
@@ -93,8 +93,8 @@ architecture rtl of CoaXPressRxHsFsm is
 
    type RegType is record
       endOfLine   : sl;
-      yCnt        : slv(RX_FSM_CNT_WIDTH_C-1 downto 0);
-      dCnt        : slv(RX_FSM_CNT_WIDTH_C-1 downto 0);
+      yCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
+      dCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       hdrCnt      : natural range 0 to 25;
       hdr         : ImageHdrType;
       dbg         : DebugType;
@@ -194,7 +194,7 @@ begin
                   v.yCnt := (others => '0');
 
                   -- Check for out of sync header
-                  if (r.yCnt /= r.hdr.ySize(RX_FSM_CNT_WIDTH_C-1 downto 0)) then
+                  if (r.yCnt /= r.hdr.ySize(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
                      -- Set the flag
                      v.dbg.errDet := '1';
                   end if;
@@ -273,7 +273,7 @@ begin
                      v.dCnt := v.dCnt + 1;
 
                      -- Check for max count
-                     if (v.dCnt = r.hdr.dsizeL(RX_FSM_CNT_WIDTH_C-1 downto 0)) then
+                     if (v.dCnt = r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
 
                         -- Set the "end of line" flag
                         v.endOfLine := '1';
@@ -350,7 +350,7 @@ begin
          v.yCnt := v.yCnt + 1;
 
          -- Check for max count
-         if (v.yCnt = r.hdr.ySize(RX_FSM_CNT_WIDTH_C-1 downto 0)) then
+         if (v.yCnt = r.hdr.ySize(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
             -- Terminate the frame
             v.dataMasters(1).tLast := '1';
          end if;

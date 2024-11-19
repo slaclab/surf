@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 
 entity RstSync is
    generic (
-      TPD_G           : time                             := 1 ns;   -- Simulation FF output delay
+      TPD_G           : time                             := 1 ns;  -- Simulation FF output delay
       IN_POLARITY_G   : std_logic                        := '1';  -- 0 for active low rst, 1 for high
       OUT_POLARITY_G  : std_logic                        := '1';
       BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration
@@ -60,7 +60,7 @@ begin
          dataOut => syncInt);
 
    -- Final stage does not have async constraints applied, can be duplicated to ease timing
-   OUT_REG : process (clk, asyncRst) is
+   OUT_REG : process (asyncRst, clk) is
    begin
       if (asyncRst = IN_POLARITY_G and OUT_REG_RST_G) then
          syncRst <= OUT_POLARITY_G after TPD_G;

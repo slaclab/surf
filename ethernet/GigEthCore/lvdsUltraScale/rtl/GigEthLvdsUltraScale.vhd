@@ -27,6 +27,7 @@ entity GigEthLvdsUltraScale is
       TPD_G         : time                := 1 ns;
       JUMBO_G       : boolean             := true;
       PAUSE_EN_G    : boolean             := true;
+      ROCEV2_EN_G   : boolean             := false;
       -- AXI-Lite Configurations
       EN_AXIL_REG_G : boolean             := false;
       -- AXI Streaming Configurations
@@ -160,6 +161,7 @@ begin
          JUMBO_G         => JUMBO_G,
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_C,
+         ROCEV2_EN_G     => ROCEV2_EN_G,
          PHY_TYPE_G      => "GMII",
          PRIM_CONFIG_G   => AXIS_CONFIG_G)
       port map (

@@ -25,8 +25,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxCsum is
    generic (
-      TPD_G   : time    := 1 ns;
-      JUMBO_G : boolean := true);
+      TPD_G       : time    := 1 ns;
+      JUMBO_G     : boolean := true;
+      ROCEV2_EN_G : boolean := false);
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -65,6 +66,7 @@ architecture rtl of EthMacRxCsum is
       ipv4Len      : Slv16Array(EMAC_CSUM_PIPELINE_C+1 downto 0);
       protLen      : Slv16Array(EMAC_CSUM_PIPELINE_C+1 downto 0);
       protCsum     : Slv16Array(EMAC_CSUM_PIPELINE_C+1 downto 0);
+      roce         : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       calc         : EthMacCsumAccumArray(1 downto 0);
       tKeep        : slv(15 downto 0);
       tData        : slv(127 downto 0);
@@ -86,6 +88,7 @@ architecture rtl of EthMacRxCsum is
       ipv4Len      => (others => (others => '0')),
       protLen      => (others => (others => '0')),
       protCsum     => (others => (others => '0')),
+      roce         => (others => '0'),
       calc         => (others => ETH_MAC_CSUM_ACCUM_INIT_C),
       tKeep        => (others => '0'),
       tData        => (others => '0'),
@@ -142,6 +145,7 @@ begin
          v.ipv4Len      := r.ipv4Len(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Len(0);
          v.protLen      := r.protLen(EMAC_CSUM_PIPELINE_C downto 0) & r.protLen(0);
          v.protCsum     := r.protCsum(EMAC_CSUM_PIPELINE_C downto 0) & r.protCsum(0);
+         v.roce         := r.roce(EMAC_CSUM_PIPELINE_C downto 0) & r.roce(0);
       end if;
 
       -- Check for tLast in pipeline
@@ -280,6 +284,11 @@ begin
                   v.protLen(0)(15 downto 8)  := sAxisMaster.tData(55 downto 48);
                   v.protLen(0)(7 downto 0)   := sAxisMaster.tData(63 downto 56);
                end if;
+               if ROCEV2_EN_G and (sAxisMaster.tData(47 downto 32) = x"B712") then
+                  v.roce(0) := '1';
+               else
+                  v.roce(0) := '0';
+               end if;
                -- Track the number of bytes (include IPv4 header offset from previous state)
                v.byteCnt := getTKeep(sAxisMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) + 18;
                -- Check for EOF
@@ -348,6 +357,11 @@ begin
          axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragDet(EMAC_CSUM_PIPELINE_C), 0);
       end if;
 
+      -- Outputs
+      mAxisMaster          <= r.mAxisMasters(EMAC_CSUM_PIPELINE_C+1);
+      mAxisMaster.tDest(0) <= r.roce(EMAC_CSUM_PIPELINE_C);
+      dbg                  <= dummy;
+
       -- Reset
       if (ethRst = '1') then
          v := REG_INIT_C;
@@ -355,10 +369,6 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
-
-      -- Outputs
-      mAxisMaster <= r.mAxisMasters(EMAC_CSUM_PIPELINE_C+1);
-      dbg         <= dummy;
 
    end process comb;
 
