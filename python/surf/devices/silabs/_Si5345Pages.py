@@ -34,7 +34,7 @@ class Si5345PageBase(pr.Device):
             bulkOpEn     = False, # FALSE for large variables
             overlapEn    = False,
             verify       = False, # FALSE due to a mix of RO/WO/RW variables
-            hidden       = True,
+            hidden       = False,
             base         = pr.UInt,
             mode         = "RW",
             groups       = ['NoStream','NoState','NoConfig'], # Not saving config/state to YAML
@@ -432,7 +432,7 @@ class Si5345Page0(Si5345PageBase):
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'WO',
-            hidden      = simpleDisplay,
+            #hidden      = simpleDisplay,
         )
 
         self.MyLinkVariable(
@@ -442,7 +442,7 @@ class Si5345Page0(Si5345PageBase):
             bitSize     = 1,
             bitOffset   = 2,
             mode        = 'WO',
-            hidden      = simpleDisplay,
+            #hidden      = simpleDisplay,
         )
 
         self.MyLinkVariable(
@@ -1060,6 +1060,95 @@ class Si5345Page0(Si5345PageBase):
             bitOffset   = 0,
             mode        = 'RO',
             hidden      = simpleDisplay,
+        )
+
+
+class Si5345Page2(Si5345PageBase):
+    def __init__(self,
+            name         = "Page2",
+            description  = "",
+            simpleDisplay = True,
+            liteVersion   = True,
+            **kwargs):
+        super().__init__(name=name, description=description, **kwargs)
+
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[0]",
+            description = "",
+            offset      = (0x6B << 2),
+            bitSize     = 64,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
+        )
+
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[1]",
+            description = "",
+            offset      = (0x6C << 2),
+            bitSize     = 8,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
+        )
+
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[2]",
+            description = "",
+            offset      = (0x6D << 2),
+            bitSize     = 8,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
+        )
+
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[3]",
+            description = "",
+            offset      = (0x6E << 2),
+            bitSize     = 64,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
+        )
+
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[4]",
+            description = "",
+            offset      = (0x6F << 2),
+            bitSize     = 8,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
+        )
+
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[5]",
+            description = "",
+            offset      = (0x70 << 2),
+            bitSize     = 8,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
+        )
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[6]",
+            description = "",
+            offset      = (0x71 << 2),
+            bitSize     = 8,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
+        )
+
+        self.MyLinkVariable(
+            name        = "DESIGN_ID[7]",
+            description = "",
+            offset      = (0x72 << 2),
+            bitSize     = 8,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = False,
         )
 
 
