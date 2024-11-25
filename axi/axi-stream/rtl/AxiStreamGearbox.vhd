@@ -231,21 +231,26 @@ begin
             -- Assign incoming sideband
             v.sideBand := sSideBand;
 
+            -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            -- bit-by-bit assignment to appease ASIC synthesis flow tools
+            -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             -- Assign incoming TDATA
-            v.tData(8*v.writeIndex+8*SLV_BYTES_C-1 downto 8*v.writeIndex) := sAxisMaster.tData(8*SLV_BYTES_C-1 downto 0);
+            for i in (SLV_BYTES_C*8)-1 downto 0 loop
+               v.tData((8*v.writeIndex)+i) := sAxisMaster.tData(i);
+            end loop;
 
             -- Check if TSTRB enabled
-            if(TSTRB_EN_C) then
-               -- Assign incoming TSTRB
-               v.tStrb(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tStrb(1*SLV_BYTES_C-1 downto 0);
+            if TSTRB_EN_C then
+               for i in (SLV_BYTES_C)-1 downto 0 loop
+                  v.tStrb(v.writeIndex+i) := sAxisMaster.tStrb(i);
+               end loop;
             end if;
 
             -- Assign incoming TKEEP
-            if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-               v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := genTKeep(conv_integer(sAxisMaster.tKeep(bitSize(SLV_BYTES_C)-1 downto 0)));
-            else
-               v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tKeep(1*SLV_BYTES_C-1 downto 0);
-            end if;
+            for i in (SLV_BYTES_C)-1 downto 0 loop
+               v.tKeep(v.writeIndex+i) := sAxisMaster.tKeep(i);
+            end loop;
+            -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             -- Check if TDEST enabled
             if(TDEST_EN_C) then
