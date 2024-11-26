@@ -666,4 +666,3 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusNvmCrcFault', 5)
         addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusInternalTempWarning', 6)
         addStatusBit(self.STATUS_MFR_SPECIFIC, 'statusInternalTempFault', 7)
-
