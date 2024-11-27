@@ -80,6 +80,7 @@ architecture rtl of AxiStreamGearbox is
       tData      : slv(8*SHIFT_WIDTH_C-1 downto 0);
       tStrb      : slv(1*SHIFT_WIDTH_C-1 downto 0);
       tKeep      : slv(1*SHIFT_WIDTH_C-1 downto 0);
+      tKeepSlv   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       tLast      : sl;
       tLastDly   : sl;
       tDest      : slv(TDEST_BITS_C-1 downto 0);
@@ -95,6 +96,7 @@ architecture rtl of AxiStreamGearbox is
       tData      => (others => '0'),
       tStrb      => (others => '0'),
       tKeep      => (others => '0'),
+      tKeepSlv   => (others => '0'),
       tLast      => '0',
       tLastDly   => '0',
       tDest      => (others => '0'),
@@ -246,9 +248,15 @@ begin
                end loop;
             end if;
 
+            -- helper variable
+            v.tKeepSlv := genTKeep(conv_integer(sAxisMaster.tKeep(bitSize(SLV_BYTES_C)-1 downto 0)));
             -- Assign incoming TKEEP
             for i in (SLV_BYTES_C)-1 downto 0 loop
-               v.tKeep(v.writeIndex+i) := sAxisMaster.tKeep(i);
+               if SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C then
+                  v.tKeep(v.writeIndex+i) := v.tKeepSlv(i);
+               else
+                  v.tKeep(v.writeIndex+i) := sAxisMaster.tKeep(i);
+               end if;
             end loop;
             -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
