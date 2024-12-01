@@ -119,7 +119,10 @@ package TextUtilPkg is
    procedure print(file out_file :    text;
                    char          : in character);
 
-
+   -- appends contents of a string to a file until line feed occurs
+   -- (LF is considered to be the end of the string)
+   procedure strWrite(file out_file :    text;
+                      new_string    : in string);
 
 end TextUtilPkg;
 
