@@ -2,6 +2,7 @@ var classAxiStreamGearbox =
 [
     [ "rtl", "classAxiStreamGearbox_1_1rtl.html", "classAxiStreamGearbox_1_1rtl" ],
     [ "TPD_G", "classAxiStreamGearbox.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "RST_POLARITY_G", "classAxiStreamGearbox.html#a3d301a13733d1d4ba2f381139f040901", null ],
     [ "RST_ASYNC_G", "classAxiStreamGearbox.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
     [ "READY_EN_G", "classAxiStreamGearbox.html#a14d1897c183834891fdbddfb4ea52e7c", null ],
     [ "PIPE_STAGES_G", "classAxiStreamGearbox.html#a25370c8855bee371deadbd826124b128", null ],

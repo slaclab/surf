@@ -9,6 +9,7 @@ var classGigEthGtyUltraScale =
     [ "MEMORY_TYPE_G", "classGigEthGtyUltraScale.html#a2064247817b25d68d6b195d2d2974fc0", null ],
     [ "JUMBO_G", "classGigEthGtyUltraScale.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classGigEthGtyUltraScale.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
+    [ "ROCEV2_EN_G", "classGigEthGtyUltraScale.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "EN_AXI_REG_G", "classGigEthGtyUltraScale.html#a468e183b4552fb08d7a893a3f4a855cd", null ],
     [ "AXIS_CONFIG_G", "classGigEthGtyUltraScale.html#a3726296c17c0feab8786da0c296296c5", null ],
     [ "localMac", "classGigEthGtyUltraScale.html#a7ef0d443ecb278704abdbc78db2066c8", null ],

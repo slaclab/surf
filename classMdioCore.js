@@ -11,6 +11,7 @@ var classMdioCore =
     [ "don", "classMdioCore.html#a0d8a99ab17b2345d4c9f6f1e2bfff729", null ],
     [ "mdc", "classMdioCore.html#a8d3f0b0907369c315320b80c2a494152", null ],
     [ "mdo", "classMdioCore.html#addf551c06cd42a5f92aed1b261330d2b", null ],
+    [ "mdTri", "classMdioCore.html#a695a807b7c8c03a27c0d8d50acb9c8c7", null ],
     [ "mdi", "classMdioCore.html#ae4c4bc6a18fa868abc3065b3fcc7cd70", null ],
     [ "ieee", "classMdioCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
     [ "std_logic_1164", "classMdioCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],

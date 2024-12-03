@@ -12,6 +12,7 @@ var classMdioSeqCore =
     [ "din", "classMdioSeqCore.html#a7573cb69dbe5ddda24fb97202bc48284", null ],
     [ "don", "classMdioSeqCore.html#a0d8a99ab17b2345d4c9f6f1e2bfff729", null ],
     [ "mdc", "classMdioSeqCore.html#a8d3f0b0907369c315320b80c2a494152", null ],
+    [ "mdTri", "classMdioSeqCore.html#a695a807b7c8c03a27c0d8d50acb9c8c7", null ],
     [ "mdo", "classMdioSeqCore.html#addf551c06cd42a5f92aed1b261330d2b", null ],
     [ "mdi", "classMdioSeqCore.html#ae4c4bc6a18fa868abc3065b3fcc7cd70", null ],
     [ "ieee", "classMdioSeqCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],

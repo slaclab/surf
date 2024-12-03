@@ -4,6 +4,7 @@ var classXauiGthUltraScale =
     [ "TPD_G", "classXauiGthUltraScale.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "JUMBO_G", "classXauiGthUltraScale.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classXauiGthUltraScale.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
+    [ "ROCEV2_EN_G", "classXauiGthUltraScale.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "EN_AXI_REG_G", "classXauiGthUltraScale.html#a468e183b4552fb08d7a893a3f4a855cd", null ],
     [ "AXIS_CONFIG_G", "classXauiGthUltraScale.html#a3726296c17c0feab8786da0c296296c5", null ],
     [ "localMac", "classXauiGthUltraScale.html#a7ef0d443ecb278704abdbc78db2066c8", null ],

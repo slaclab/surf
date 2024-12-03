@@ -12,6 +12,7 @@ var classMdioLinkIrqHandler =
     [ "hdlrDone", "classMdioLinkIrqHandler.html#a16789975513cdf5d92ee7d70630fb4d8", null ],
     [ "args", "classMdioLinkIrqHandler.html#a0e1dbe06441d511482e9a99e2b9e62ef", null ],
     [ "mdc", "classMdioLinkIrqHandler.html#a8d3f0b0907369c315320b80c2a494152", null ],
+    [ "mdTri", "classMdioLinkIrqHandler.html#a695a807b7c8c03a27c0d8d50acb9c8c7", null ],
     [ "mdo", "classMdioLinkIrqHandler.html#addf551c06cd42a5f92aed1b261330d2b", null ],
     [ "mdi", "classMdioLinkIrqHandler.html#ae4c4bc6a18fa868abc3065b3fcc7cd70", null ],
     [ "phyIrq", "classMdioLinkIrqHandler.html#a679836e3964a02b594d5d08f3d923a74", null ],

@@ -3,7 +3,7 @@ var classCoaXPressRx =
     [ "mapping", "classCoaXPressRx_1_1mapping.html", "classCoaXPressRx_1_1mapping" ],
     [ "TPD_G", "classCoaXPressRx.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "NUM_LANES_G", "classCoaXPressRx.html#a8799977976db667cee3b3333f8f3540e", null ],
-    [ "RX_FSM_CNT_WIDTH_C", "classCoaXPressRx.html#ae4ed3dfeca276fbe5b3431ffbd63e87a", null ],
+    [ "RX_FSM_CNT_WIDTH_G", "classCoaXPressRx.html#aeb2780429b5dd5111a94b8e5b0697b2d", null ],
     [ "AXIS_CONFIG_G", "classCoaXPressRx.html#a29c5c047e0de09ffebe006d6fc30bb35", null ],
     [ "dataClk", "classCoaXPressRx.html#a4b73e841636f79023d9d874a1face24a", null ],
     [ "dataRst", "classCoaXPressRx.html#a9556d187d03df138f516daf9a028e918", null ],

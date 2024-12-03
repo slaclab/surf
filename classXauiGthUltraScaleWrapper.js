@@ -4,6 +4,7 @@ var classXauiGthUltraScaleWrapper =
     [ "TPD_G", "classXauiGthUltraScaleWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "JUMBO_G", "classXauiGthUltraScaleWrapper.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classXauiGthUltraScaleWrapper.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
+    [ "ROCEV2_EN_G", "classXauiGthUltraScaleWrapper.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "EN_WDT_G", "classXauiGthUltraScaleWrapper.html#a88dd525972f3f4877045b50ca9441caf", null ],
     [ "EXT_REF_G", "classXauiGthUltraScaleWrapper.html#a25cb6c65f9b581c7fc921ac2f412c12b", null ],
     [ "STABLE_CLK_FREQ_G", "classXauiGthUltraScaleWrapper.html#a41cf9cbe914780e505ec0b476d25a1b8", null ],

@@ -395,7 +395,6 @@ var hierarchy =
       [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
       [ "AxiStreamBytePackerTbRx", "classAxiStreamBytePackerTbRx.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", [
         [ "RstSync", "classRstSync.html", null ]
       ] ],
@@ -468,7 +467,6 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
-      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
@@ -490,8 +488,6 @@ var hierarchy =
       [ "AxiStreamSelector", "classAxiStreamSelector.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
-      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "AxiSy56040Reg", "classAxiSy56040Reg.html", null ],
       [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
       [ "AxiVersion", "classAxiVersion.html", null ],
@@ -677,6 +673,25 @@ var hierarchy =
             [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
             [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
           ] ],
+          [ "EthMacTxRoCEv2", "classEthMacTxRoCEv2.html", [
+            [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
+            [ "AxiStreamRepeater", "classAxiStreamRepeater.html", [
+              [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+            ] ],
+            [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+            [ "EthMacPrepareForICrc", "classEthMacPrepareForICrc.html", null ],
+            [ "AxiStreamCompact", "classAxiStreamCompact.html", [
+              [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+            ] ],
+            [ "EthMacCrcAxiStreamWrapperSend", "classEthMacCrcAxiStreamWrapperSend.html", [
+              [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
+              [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ]
+            ] ],
+            [ "AxiStreamTrailerAppend", "classAxiStreamTrailerAppend.html", [
+              [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+            ] ],
+            [ "AxiStreamMux", "classAxiStreamMux.html", null ]
+          ] ],
           [ "EthMacTxPause", "classEthMacTxPause.html", null ],
           [ "EthMacTxExport", "classEthMacTxExport.html", [
             [ "EthMacTxExportXlgmii", "classEthMacTxExportXlgmii.html", null ],
@@ -706,6 +721,23 @@ var hierarchy =
           ] ],
           [ "EthMacRxPause", "classEthMacRxPause.html", null ],
           [ "EthMacRxCsum", "classEthMacRxCsum.html", null ],
+          [ "EthMacRxRoCEv2", "classEthMacRxRoCEv2.html", [
+            [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
+            [ "AxiStreamRepeater", "classAxiStreamRepeater.html", null ],
+            [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+            [ "AxiStreamTrailerRemove", "classAxiStreamTrailerRemove.html", [
+              [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+            ] ],
+            [ "EthMacPrepareForICrc", "classEthMacPrepareForICrc.html", null ],
+            [ "AxiStreamCompact", "classAxiStreamCompact.html", null ],
+            [ "EthMacCrcAxiStreamWrapperRecv", "classEthMacCrcAxiStreamWrapperRecv.html", [
+              [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
+              [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ]
+            ] ],
+            [ "EthMacRxCheckICrc", "classEthMacRxCheckICrc.html", null ],
+            [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
+            [ "AxiStreamMux", "classAxiStreamMux.html", null ]
+          ] ],
           [ "EthMacRxBypass", "classEthMacRxBypass.html", null ],
           [ "EthMacRxFilter", "classEthMacRxFilter.html", null ]
         ] ],
@@ -1498,6 +1530,12 @@ var hierarchy =
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "RawEthFramer", "classRawEthFramer.html", null ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
+      [ "RoceResizeAndSwap", "classRoceResizeAndSwap.html", [
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+      ] ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
+      [ "RoceConfigurator", "classRoceConfigurator.html", null ],
       [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", null ],
       [ "RogueSideBandWrap", "classRogueSideBandWrap.html", null ],
       [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", null ],
@@ -1621,11 +1659,12 @@ var hierarchy =
         [ "EthMacTop", "classEthMacTop.html", null ],
         [ "GigEthReg", "classGigEthReg.html", null ]
       ] ],
+      [ "Synchronizer", "classSynchronizer.html", null ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
       [ "SgmiiDp83867Mdio", "classSgmiiDp83867Mdio.html", [
         [ "MdioLinkIrqHandler", "classMdioLinkIrqHandler.html", null ]
       ] ],
-      [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+      [ "GigEthLvdsUltraScale", "classGigEthLvdsUltraScale.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
       [ "SpiMaster", "classSpiMaster.html", null ],
       [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],

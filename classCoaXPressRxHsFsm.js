@@ -2,7 +2,7 @@ var classCoaXPressRxHsFsm =
 [
     [ "rtl", "classCoaXPressRxHsFsm_1_1rtl.html", "classCoaXPressRxHsFsm_1_1rtl" ],
     [ "TPD_G", "classCoaXPressRxHsFsm.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RX_FSM_CNT_WIDTH_C", "classCoaXPressRxHsFsm.html#ae4ed3dfeca276fbe5b3431ffbd63e87a", null ],
+    [ "RX_FSM_CNT_WIDTH_G", "classCoaXPressRxHsFsm.html#aeb2780429b5dd5111a94b8e5b0697b2d", null ],
     [ "NUM_LANES_G", "classCoaXPressRxHsFsm.html#a8799977976db667cee3b3333f8f3540e", null ],
     [ "rxClk", "classCoaXPressRxHsFsm.html#a7ad1fb6f1de446f6cf3fa44665b2250d", null ],
     [ "rxRst", "classCoaXPressRxHsFsm.html#a412f9f6209499003131f288a0e898f82", null ],

@@ -15,6 +15,7 @@ var classAxiStreamFrameRateLimiter =
     [ "sAxisSlave", "classAxiStreamFrameRateLimiter.html#afbb043b74a7f8cbca93ff3d11a715e6f", null ],
     [ "mAxisMaster", "classAxiStreamFrameRateLimiter.html#ab0b1799978ac7ea47ecb67ad6e5bb413", null ],
     [ "mAxisSlave", "classAxiStreamFrameRateLimiter.html#a3522ef3ee8a7e64d95785f540e794c63", null ],
+    [ "mAxisCtrl", "classAxiStreamFrameRateLimiter.html#ac11ada22e64ef221a193fbf97d53c484", null ],
     [ "axilClk", "classAxiStreamFrameRateLimiter.html#a3939d5941a3408455473e04d23afd164", null ],
     [ "axilRst", "classAxiStreamFrameRateLimiter.html#acd5f9dcaa6c76b054c2bc78a78cf3488", null ],
     [ "axilReadMaster", "classAxiStreamFrameRateLimiter.html#a236cd83189e3eba93d235dd06dde4d63", null ],

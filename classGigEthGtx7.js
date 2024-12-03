@@ -4,6 +4,7 @@ var classGigEthGtx7 =
     [ "TPD_G", "classGigEthGtx7.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "JUMBO_G", "classGigEthGtx7.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classGigEthGtx7.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
+    [ "ROCEV2_EN_G", "classGigEthGtx7.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "SYNTH_MODE_G", "classGigEthGtx7.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
     [ "EN_AXI_REG_G", "classGigEthGtx7.html#a468e183b4552fb08d7a893a3f4a855cd", null ],
     [ "AXIL_BASE_ADDR_G", "classGigEthGtx7.html#ab4c3c280cec1195e6bf3434c8491875a", null ],

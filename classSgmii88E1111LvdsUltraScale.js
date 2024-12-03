@@ -4,6 +4,7 @@ var classSgmii88E1111LvdsUltraScale =
     [ "TPD_G", "classSgmii88E1111LvdsUltraScale.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "STABLE_CLK_FREQ_G", "classSgmii88E1111LvdsUltraScale.html#a41cf9cbe914780e505ec0b476d25a1b8", null ],
     [ "PAUSE_EN_G", "classSgmii88E1111LvdsUltraScale.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
+    [ "JUMBO_G", "classSgmii88E1111LvdsUltraScale.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "EN_AXIL_REG_G", "classSgmii88E1111LvdsUltraScale.html#af06eb37aa317765fb105406134641bd8", null ],
     [ "PHY_G", "classSgmii88E1111LvdsUltraScale.html#a011159e2adef50cf92d537d7a540df22", null ],
     [ "AXIS_CONFIG_G", "classSgmii88E1111LvdsUltraScale.html#a3726296c17c0feab8786da0c296296c5", null ],

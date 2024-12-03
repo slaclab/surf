@@ -12,6 +12,7 @@ var classEthMacTop =
     [ "FIFO_ADDR_WIDTH_G", "classEthMacTop.html#aaddb29080fa23cea6b7f6f5eb03e3d6f", null ],
     [ "SYNTH_MODE_G", "classEthMacTop.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
     [ "MEMORY_TYPE_G", "classEthMacTop.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],
+    [ "ROCEV2_EN_G", "classEthMacTop.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "FILT_EN_G", "classEthMacTop.html#ac6e4bdcc4fda8fc259e2e4e4d859a0a4", null ],
     [ "PRIM_COMMON_CLK_G", "classEthMacTop.html#a6a80086f3e18bdc658b1bfe2b55a1238", null ],
     [ "PRIM_CONFIG_G", "classEthMacTop.html#a48006e28e87e64be3971aa159d8e1875", null ],

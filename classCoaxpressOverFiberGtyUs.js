@@ -4,7 +4,7 @@ var classCoaxpressOverFiberGtyUs =
     [ "TPD_G", "classCoaxpressOverFiberGtyUs.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "NUM_LANES_G", "classCoaxpressOverFiberGtyUs.html#a8799977976db667cee3b3333f8f3540e", null ],
     [ "STATUS_CNT_WIDTH_G", "classCoaxpressOverFiberGtyUs.html#a070984061fcae516c820d432280e953c", null ],
-    [ "RX_FSM_CNT_WIDTH_C", "classCoaxpressOverFiberGtyUs.html#ae4ed3dfeca276fbe5b3431ffbd63e87a", null ],
+    [ "RX_FSM_CNT_WIDTH_G", "classCoaxpressOverFiberGtyUs.html#aeb2780429b5dd5111a94b8e5b0697b2d", null ],
     [ "AXIL_BASE_ADDR_G", "classCoaxpressOverFiberGtyUs.html#a7dfb121e532926a3f1cb7474b411a125", null ],
     [ "AXIL_CLK_FREQ_G", "classCoaxpressOverFiberGtyUs.html#a456034961675417e2db0b60220e2e011", null ],
     [ "AXIS_CLK_FREQ_G", "classCoaxpressOverFiberGtyUs.html#aa0750b56adcd80bda6c6795f9262e43a", null ],

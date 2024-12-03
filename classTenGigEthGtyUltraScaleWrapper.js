@@ -5,6 +5,7 @@ var classTenGigEthGtyUltraScaleWrapper =
     [ "NUM_LANE_G", "classTenGigEthGtyUltraScaleWrapper.html#a24c981bba12b9b2a049e9ca0afa05c1a", null ],
     [ "JUMBO_G", "classTenGigEthGtyUltraScaleWrapper.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classTenGigEthGtyUltraScaleWrapper.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
+    [ "ROCEV2_EN_G", "classTenGigEthGtyUltraScaleWrapper.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "QPLL_REFCLK_SEL_G", "classTenGigEthGtyUltraScaleWrapper.html#aa3adb937d2ef86c71c139a85394b7d46", null ],
     [ "EN_AXI_REG_G", "classTenGigEthGtyUltraScaleWrapper.html#a468e183b4552fb08d7a893a3f4a855cd", null ],
     [ "AXIS_CONFIG_G", "classTenGigEthGtyUltraScaleWrapper.html#a0699a36670e62d958b9ef494cfc68d37", null ],

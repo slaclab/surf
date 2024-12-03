@@ -1,8 +1,8 @@
 var classAxiStreamFrameRateLimiter_1_1rtl =
 [
-    [ "comb", "classAxiStreamFrameRateLimiter_1_1rtl.html#a02949af23e964b6da78c7ac6e30859c2", null ],
+    [ "comb", "classAxiStreamFrameRateLimiter_1_1rtl.html#a51310a169284f7c913503cbf398e446e", null ],
     [ "seq", "classAxiStreamFrameRateLimiter_1_1rtl.html#aa00987e9a28f3cf98e5573e242f13e94", null ],
-    [ "comb", "classAxiStreamFrameRateLimiter_1_1rtl.html#a02949af23e964b6da78c7ac6e30859c2", null ],
+    [ "comb", "classAxiStreamFrameRateLimiter_1_1rtl.html#a51310a169284f7c913503cbf398e446e", null ],
     [ "seq", "classAxiStreamFrameRateLimiter_1_1rtl.html#aa00987e9a28f3cf98e5573e242f13e94", null ],
     [ "TIMEOUT_C", "classAxiStreamFrameRateLimiter_1_1rtl.html#a9125a8eeb027d07b9d8fc7e1fa4ce405", null ],
     [ "BACKPRESSURE_C", "classAxiStreamFrameRateLimiter_1_1rtl.html#aa9eca7e56b9da4ab5bddd48b525f8c9c", null ],

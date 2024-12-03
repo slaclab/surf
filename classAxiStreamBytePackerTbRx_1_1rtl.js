@@ -11,7 +11,7 @@ var classAxiStreamBytePackerTbRx_1_1rtl =
     [ "REG_INIT_C", "classAxiStreamBytePackerTbRx_1_1rtl.html#a6cda65d102d978bf889ec0f8f84fef9f", null ],
     [ "r", "classAxiStreamBytePackerTbRx_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiStreamBytePackerTbRx_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "byteCount~5223", "classAxiStreamBytePackerTbRx_1_1rtl.html#ac8646bc0fa4ed796a6281be4510e5bd9", null ],
-    [ "frameCount~5224", "classAxiStreamBytePackerTbRx_1_1rtl.html#a6d0a4880f70e0f611a2304cae755d9a2", null ],
-    [ "fail~5225", "classAxiStreamBytePackerTbRx_1_1rtl.html#a03ffbb84a60723417fa29521691c9260", null ]
+    [ "byteCount~5292", "classAxiStreamBytePackerTbRx_1_1rtl.html#a0d5ec56b40efe68c0ddd78467f96c109", null ],
+    [ "frameCount~5293", "classAxiStreamBytePackerTbRx_1_1rtl.html#adf9faaf7853d4d05ca94443fea2ed9b8", null ],
+    [ "fail~5294", "classAxiStreamBytePackerTbRx_1_1rtl.html#a3ef2801caeafcd6159bf5b2255f2629f", null ]
 ];

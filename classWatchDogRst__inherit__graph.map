@@ -1,8 +1,8 @@
 <map id="WatchDogRst" name="WatchDogRst">
 <area shape="rect" id="node1" title=" " alt="" coords="160,183,269,209"/>
 <area shape="rect" id="node3" href="$classGigEthReg.html" title=" " alt="" coords="370,132,461,159"/>
-<area shape="rect" id="node16" href="$classXauiGthUltraScaleWrapper.html" title=" " alt="" coords="317,183,513,209"/>
-<area shape="rect" id="node17" href="$classXauiGtyUltraScaleWrapper.html" title=" " alt="" coords="317,233,513,260"/>
+<area shape="rect" id="node17" href="$classXauiGthUltraScaleWrapper.html" title=" " alt="" coords="317,183,513,209"/>
+<area shape="rect" id="node18" href="$classXauiGtyUltraScaleWrapper.html" title=" " alt="" coords="317,233,513,260"/>
 <area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="5,183,112,209"/>
 <area shape="rect" id="node4" href="$classGigEthGth7.html" title=" " alt="" coords="595,5,691,32"/>
 <area shape="rect" id="node6" href="$classGigEthGthUltraScale.html" title=" " alt="" coords="565,56,720,83"/>
@@ -10,10 +10,11 @@
 <area shape="rect" id="node10" href="$classGigEthGtx7.html" title=" " alt="" coords="595,157,691,184"/>
 <area shape="rect" id="node12" href="$classGigEthGtyUltraScale.html" title=" " alt="" coords="565,208,720,235"/>
 <area shape="rect" id="node14" href="$classGigEthLvdsUltraScale.html" title=" " alt="" coords="561,259,724,285"/>
-<area shape="rect" id="node5" href="$classGigEthGth7Wrapper.html" title=" " alt="" coords="803,5,953,32"/>
-<area shape="rect" id="node7" href="$classGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="773,56,983,83"/>
-<area shape="rect" id="node9" href="$classGigEthGtp7Wrapper.html" title=" " alt="" coords="803,107,953,133"/>
-<area shape="rect" id="node11" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="803,157,953,184"/>
-<area shape="rect" id="node13" href="$classGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="773,208,983,235"/>
-<area shape="rect" id="node15" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="772,259,984,285"/>
+<area shape="rect" id="node5" href="$classGigEthGth7Wrapper.html" title=" " alt="" coords="804,5,955,32"/>
+<area shape="rect" id="node7" href="$classGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="774,56,985,83"/>
+<area shape="rect" id="node9" href="$classGigEthGtp7Wrapper.html" title=" " alt="" coords="804,107,955,133"/>
+<area shape="rect" id="node11" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="804,157,955,184"/>
+<area shape="rect" id="node13" href="$classGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="774,208,985,235"/>
+<area shape="rect" id="node15" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="773,259,985,285"/>
+<area shape="rect" id="node16" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="772,309,987,336"/>
 </map>

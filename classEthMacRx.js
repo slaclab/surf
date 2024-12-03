@@ -5,6 +5,7 @@ var classEthMacRx =
     [ "PAUSE_EN_G", "classEthMacRx.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
     [ "PHY_TYPE_G", "classEthMacRx.html#ac1251506933d37295930b277251b70db", null ],
     [ "JUMBO_G", "classEthMacRx.html#a7089a8327825fe115543f2a0670f06af", null ],
+    [ "ROCEV2_EN_G", "classEthMacRx.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "FILT_EN_G", "classEthMacRx.html#ac6e4bdcc4fda8fc259e2e4e4d859a0a4", null ],
     [ "BYP_EN_G", "classEthMacRx.html#a5ea3a22380ef00f4f026018fefa26ad6", null ],
     [ "BYP_ETH_TYPE_G", "classEthMacRx.html#a208ff19f4cdc79ede36db5c87739dacc", null ],

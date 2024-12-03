@@ -11,6 +11,7 @@ var classSgmiiDp83867Mdio =
     [ "speed_is_100", "classSgmiiDp83867Mdio.html#a5e2ad45c0b4a23236ba5ebfca7e89ba9", null ],
     [ "linkIsUp", "classSgmiiDp83867Mdio.html#aa374b6cbe40ddf7209f70a33769aa532", null ],
     [ "mdc", "classSgmiiDp83867Mdio.html#a8d3f0b0907369c315320b80c2a494152", null ],
+    [ "mdTri", "classSgmiiDp83867Mdio.html#a695a807b7c8c03a27c0d8d50acb9c8c7", null ],
     [ "mdo", "classSgmiiDp83867Mdio.html#addf551c06cd42a5f92aed1b261330d2b", null ],
     [ "mdi", "classSgmiiDp83867Mdio.html#ae4c4bc6a18fa868abc3065b3fcc7cd70", null ],
     [ "linkIrq", "classSgmiiDp83867Mdio.html#a6dd433708a9a99f043fdb0716b7abbc1", null ],

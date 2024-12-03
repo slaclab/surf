@@ -1,8 +1,49 @@
 <map id="SlaveAxiStreamIpIntegrator" name="SlaveAxiStreamIpIntegrator">
-<area shape="rect" id="node1" title=" " alt="" coords="283,64,485,91"/>
-<area shape="rect" id="node4" href="$classAxiStreamFifoV2IpIntegrator.html" title=" " alt="" coords="533,5,740,32"/>
-<area shape="rect" id="node5" href="$classSlaveAxiStreamTerminateIpIntegrator.html" title=" " alt="" coords="535,57,738,98"/>
-<area shape="rect" id="node6" href="$classAxiStreamDemuxMuxTb.html" title=" " alt="" coords="546,123,727,149"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="160,64,235,91"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,64,112,91"/>
+<area shape="rect" id="node1" title=" " alt="" coords="283,331,485,357"/>
+<area shape="rect" id="node4" href="$classAxiStreamFifoV2IpIntegrator.html" title=" " alt="" coords="553,243,760,269"/>
+<area shape="rect" id="node5" href="$classSlaveAxiStreamTerminateIpIntegrator.html" title=" " alt="" coords="555,294,758,335"/>
+<area shape="rect" id="node6" href="$classAxiStreamDemuxMuxTb.html" title=" " alt="" coords="566,360,747,387"/>
+<area shape="rect" id="node7" href="$classEthMacCrcAxiStreamWrapperRecv.html" title=" " alt="" coords="533,411,780,437"/>
+<area shape="rect" id="node44" href="$classEthMacCrcAxiStreamWrapperSend.html" title=" " alt="" coords="533,461,780,488"/>
+<area shape="rect" id="node47" href="$classRoceEngineWrapper.html" title=" " alt="" coords="580,512,733,539"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="160,331,235,357"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,331,112,357"/>
+<area shape="rect" id="node8" href="$classEthMacRxRoCEv2.html" title=" " alt="" coords="828,411,965,437"/>
+<area shape="rect" id="node9" href="$classEthMacRx.html" title=" " alt="" coords="1013,411,1100,437"/>
+<area shape="rect" id="node10" href="$classEthMacTop.html" title=" " alt="" coords="1148,436,1240,463"/>
+<area shape="rect" id="node11" href="$classEthMacFastTb.html" title=" " alt="" coords="1321,5,1433,32"/>
+<area shape="rect" id="node12" href="$classEthMacPauseTb.html" title=" " alt="" coords="1315,56,1439,83"/>
+<area shape="rect" id="node13" href="$classEthMacTb.html" title=" " alt="" coords="1333,107,1420,133"/>
+<area shape="rect" id="node14" href="$classGigEthGth7.html" title=" " alt="" coords="1329,157,1425,184"/>
+<area shape="rect" id="node16" href="$classGigEthGthUltraScale.html" title=" " alt="" coords="1299,208,1454,235"/>
+<area shape="rect" id="node18" href="$classGigEthGtp7.html" title=" " alt="" coords="1329,259,1425,285"/>
+<area shape="rect" id="node20" href="$classGigEthGtx7.html" title=" " alt="" coords="1329,309,1425,336"/>
+<area shape="rect" id="node22" href="$classGigEthGtyUltraScale.html" title=" " alt="" coords="1299,360,1454,387"/>
+<area shape="rect" id="node24" href="$classGigEthLvdsUltraScale.html" title=" " alt="" coords="1295,411,1458,437"/>
+<area shape="rect" id="node27" href="$classTenGigEthGth7.html" title=" " alt="" coords="1317,461,1436,488"/>
+<area shape="rect" id="node29" href="$classTenGigEthGthUltraScale.html" title=" " alt="" coords="1288,512,1465,539"/>
+<area shape="rect" id="node31" href="$classTenGigEthGtx7.html" title=" " alt="" coords="1317,563,1436,589"/>
+<area shape="rect" id="node33" href="$classTenGigEthGtyUltraScale.html" title=" " alt="" coords="1288,613,1465,640"/>
+<area shape="rect" id="node35" href="$classUdpEngineTb.html" title=" " alt="" coords="1323,664,1431,691"/>
+<area shape="rect" id="node36" href="$classXauiGth7.html" title=" " alt="" coords="1335,715,1418,741"/>
+<area shape="rect" id="node38" href="$classXauiGthUltraScale.html" title=" " alt="" coords="1306,765,1447,792"/>
+<area shape="rect" id="node40" href="$classXauiGtx7.html" title=" " alt="" coords="1335,816,1418,843"/>
+<area shape="rect" id="node42" href="$classXauiGtyUltraScale.html" title=" " alt="" coords="1306,867,1447,893"/>
+<area shape="rect" id="node15" href="$classGigEthGth7Wrapper.html" title=" " alt="" coords="1554,157,1705,184"/>
+<area shape="rect" id="node17" href="$classGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="1524,208,1735,235"/>
+<area shape="rect" id="node19" href="$classGigEthGtp7Wrapper.html" title=" " alt="" coords="1554,259,1705,285"/>
+<area shape="rect" id="node21" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="1554,309,1705,336"/>
+<area shape="rect" id="node23" href="$classGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="1524,360,1735,387"/>
+<area shape="rect" id="node25" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="1523,411,1735,437"/>
+<area shape="rect" id="node26" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="1522,461,1737,488"/>
+<area shape="rect" id="node28" href="$classTenGigEthGth7Wrapper.html" title=" " alt="" coords="1543,512,1716,539"/>
+<area shape="rect" id="node30" href="$classTenGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="1513,563,1745,589"/>
+<area shape="rect" id="node32" href="$classTenGigEthGtx7Wrapper.html" title=" " alt="" coords="1543,613,1716,640"/>
+<area shape="rect" id="node34" href="$classTenGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="1513,664,1745,691"/>
+<area shape="rect" id="node37" href="$classXauiGth7Wrapper.html" title=" " alt="" coords="1561,715,1698,741"/>
+<area shape="rect" id="node39" href="$classXauiGthUltraScaleWrapper.html" title=" " alt="" coords="1531,765,1727,792"/>
+<area shape="rect" id="node41" href="$classXauiGtx7Wrapper.html" title=" " alt="" coords="1561,816,1698,843"/>
+<area shape="rect" id="node43" href="$classXauiGtyUltraScaleWrapper.html" title=" " alt="" coords="1531,867,1727,893"/>
+<area shape="rect" id="node45" href="$classEthMacTxRoCEv2.html" title=" " alt="" coords="829,461,965,488"/>
+<area shape="rect" id="node46" href="$classEthMacTx.html" title=" " alt="" coords="1013,461,1100,488"/>
 </map>

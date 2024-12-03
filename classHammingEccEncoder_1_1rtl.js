@@ -12,7 +12,7 @@ var classHammingEccEncoder_1_1rtl =
     [ "REG_INIT_C", "classHammingEccEncoder_1_1rtl.html#a62a27a1f630651c59846148c9a91b9c4", null ],
     [ "r", "classHammingEccEncoder_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classHammingEccEncoder_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "ibReady~4693", "classHammingEccEncoder_1_1rtl.html#a1785a80d1da1adf28789fa32b94df588", null ],
-    [ "obValid~4694", "classHammingEccEncoder_1_1rtl.html#a7e196084b547e40fc71506c2b87318db", null ],
-    [ "obData~4695", "classHammingEccEncoder_1_1rtl.html#ac2a0ec133ce7548357986c497047449f", null ]
+    [ "ibReady~4761", "classHammingEccEncoder_1_1rtl.html#aa2ae7c419e3b4aa706e4f24d45fb9902", null ],
+    [ "obValid~4762", "classHammingEccEncoder_1_1rtl.html#a69d658e399d0ec3c3d851323b8a01b5f", null ],
+    [ "obData~4763", "classHammingEccEncoder_1_1rtl.html#ac7bdf13ddd6efa1813d52478264e722e", null ]
 ];

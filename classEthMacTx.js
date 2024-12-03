@@ -7,6 +7,7 @@ var classEthMacTx =
     [ "PHY_TYPE_G", "classEthMacTx.html#ac1251506933d37295930b277251b70db", null ],
     [ "DROP_ERR_PKT_G", "classEthMacTx.html#aa8a22d39d3a8735ccdf2e33413385134", null ],
     [ "JUMBO_G", "classEthMacTx.html#a7089a8327825fe115543f2a0670f06af", null ],
+    [ "ROCEV2_EN_G", "classEthMacTx.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "BYP_EN_G", "classEthMacTx.html#a5ea3a22380ef00f4f026018fefa26ad6", null ],
     [ "SYNTH_MODE_G", "classEthMacTx.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
     [ "ethClkEn", "classEthMacTx.html#a9241186ba4787420f5df51c67938e958", null ],

@@ -6,6 +6,7 @@ var classGigEthGtp7Wrapper =
     [ "NUM_LANE_G", "classGigEthGtp7Wrapper.html#a24c981bba12b9b2a049e9ca0afa05c1a", null ],
     [ "JUMBO_G", "classGigEthGtp7Wrapper.html#a7089a8327825fe115543f2a0670f06af", null ],
     [ "PAUSE_EN_G", "classGigEthGtp7Wrapper.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
+    [ "ROCEV2_EN_G", "classGigEthGtp7Wrapper.html#a5e4db2a95aa112c633d4f76080522cdc", null ],
     [ "USE_GTREFCLK_G", "classGigEthGtp7Wrapper.html#a9fc3d37e9ce4e5689fc503a6fab2685a", null ],
     [ "USE_REFCLK_DIV2_G", "classGigEthGtp7Wrapper.html#add89304f0c396ccf085fb504688c7ae7", null ],
     [ "CLKIN_PERIOD_G", "classGigEthGtp7Wrapper.html#a9f34f2e2b5d20168411491c15260b6f7", null ],

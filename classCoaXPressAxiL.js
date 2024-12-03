@@ -4,7 +4,7 @@ var classCoaXPressAxiL =
     [ "TPD_G", "classCoaXPressAxiL.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
     [ "NUM_LANES_G", "classCoaXPressAxiL.html#a8799977976db667cee3b3333f8f3540e", null ],
     [ "STATUS_CNT_WIDTH_G", "classCoaXPressAxiL.html#a070984061fcae516c820d432280e953c", null ],
-    [ "RX_FSM_CNT_WIDTH_C", "classCoaXPressAxiL.html#ae4ed3dfeca276fbe5b3431ffbd63e87a", null ],
+    [ "RX_FSM_CNT_WIDTH_G", "classCoaXPressAxiL.html#aeb2780429b5dd5111a94b8e5b0697b2d", null ],
     [ "AXIL_CLK_FREQ_G", "classCoaXPressAxiL.html#a1b61d1e484610b74c52c5083abea426f", null ],
     [ "AXIS_CLK_FREQ_G", "classCoaXPressAxiL.html#a18c1ac1741b9b3cf506ddd0f287f38a8", null ],
     [ "AXIS_CONFIG_G", "classCoaXPressAxiL.html#a29c5c047e0de09ffebe006d6fc30bb35", null ],
