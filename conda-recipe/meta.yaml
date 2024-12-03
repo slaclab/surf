@@ -10,11 +10,12 @@ build:
    noarch: python
 
 requirements:
-
-   host:
+   build:
      - python>=3.7
+     - rogue
      - git
      - gitpython
+     - numpy
 
    run:
      - python>=3.7
@@ -26,4 +27,3 @@ about:
    license: SLAC Open License
    license_file: LICENSE.txt
    summary: SLAC Ultimate RTL Framework
-
