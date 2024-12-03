@@ -75,6 +75,7 @@ entity MdioSeqCore is
 
       -- MDIO interface
       mdc                 : out   sl;
+      mdTri               : out   sl;
       mdo                 : out   sl;
       mdi                 : in    sl
    );
@@ -123,6 +124,7 @@ begin
          don        => oneDone,
 
          mdc        => mdc,
+         mdTri      => mdTri,
          mdi        => mdi,
          mdo        => mdo
       );
