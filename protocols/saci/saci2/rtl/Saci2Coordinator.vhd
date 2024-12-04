@@ -245,7 +245,7 @@ begin
             if (r.saciClkFalling = '1') then
                v.shiftCount := r.shiftCount + 1;
                v.shiftReg   := r.shiftReg(r.shiftReg'high-1 downto r.shiftReg'low) & saciRspSync(rspIndex);
-               if (r.shiftCount = 64) then
+               if (r.shiftCount = 62) then
                   v.state := ACK_S;
                end if;
             end if;
