@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-- Title      : SACI Version 2 Protocol: https://confluence.slac.stanford.edu/x/y3TDHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -19,13 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use surf.Saci2CoordinatorPkg.all;
 
-entity AxiLiteSaci2Coordinator is
+entity AxiLiteToSaci2 is
    generic (
       TPD_G              : time                  := 1 ns;
       AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;  -- In units of seconds
@@ -53,9 +51,9 @@ entity AxiLiteSaci2Coordinator is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-end AxiLiteSaci2Coordinator;
+end AxiLiteToSaci2;
 
-architecture rtl of AxiLiteSaci2Coordinator is
+architecture rtl of AxiLiteToSaci2 is
 
    constant CHIP_BITS_C : integer := log2(SACI_NUM_CHIPS_G);
    constant TIMEOUT_C   : integer := integer(AXIL_TIMEOUT_G/AXIL_CLK_PERIOD_G)-1;
@@ -77,7 +75,6 @@ architecture rtl of AxiLiteSaci2Coordinator is
       timer          : integer range 0 to TIMEOUT_C;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -143,7 +140,8 @@ begin
          saciCmd  => saciCmd,           -- [out]
          saciRsp  => saciRsp);          -- [in]
 
-   comb : process (ack, asicRstL, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData, saciBusGr) is
+   comb : process (ack, asicRstL, axilReadMaster, axilRst, axilWriteMaster,
+                   fail, r, rdData, saciBusGr) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable resp       : slv(1 downto 0);
@@ -196,10 +194,10 @@ begin
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
-                  v.addr   := axilReadMaster.araddr(SACI_ADDR_BITS_G+1 downto 2);
-                  v.wrData := (others => '0');
+                  v.addr(SACI_ADDR_BITS_G-1 downto 0) := axilReadMaster.araddr(SACI_ADDR_BITS_G+1 downto 2);
+                  v.wrData                            := (others => '0');
                   -- Next state
-                  v.state  := SACI_REQ_S;
+                  v.state                             := SACI_REQ_S;
                end if;
             else
                if (axilStatus.writeEnable = '1') then

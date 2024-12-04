@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-- Title      : SACI Version 2 Protocol: https://confluence.slac.stanford.edu/x/y3TDHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI-Lite master bridge for SACI bus slave
+-- Description: AXI-Lite master bridge for SACI Subordinate
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -19,13 +19,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-use surf.SaciMasterPkg.all;
 
-entity SaciAxiLiteMaster is
+entity Saci2ToAxiLite is
    generic (
       TPD_G : time := 1 ns);
    port (
@@ -43,9 +41,9 @@ entity SaciAxiLiteMaster is
       axilReadSlave   : in  AxiLiteReadSlaveType;
       axilWriteMaster : out AxiLiteWriteMasterType;
       axilWriteSlave  : in  AxiLiteWriteSlaveType);
-end SaciAxiLiteMaster;
+end Saci2ToAxiLite;
 
-architecture rtl of SaciAxiLiteMaster is
+architecture mapping of Saci2ToAxiLite is
 
    -- AXI-Lite Master Interface
    signal axilReq : AxiLiteReqType;
@@ -55,7 +53,6 @@ architecture rtl of SaciAxiLiteMaster is
    signal rstOutL : sl;
    signal rstInL  : sl;
 
-
    -- SACI Slave parallel interface
    signal exec   : sl;
    signal ack    : sl;
@@ -63,10 +60,6 @@ architecture rtl of SaciAxiLiteMaster is
    signal addr   : slv(29 downto 0);
    signal wrData : slv(31 downto 0);
    signal rdData : slv(31 downto 0);
-
-
-   -- attribute dont_touch      : string;
-   -- attribute dont_touch of r : signal is "true";
 
 begin
 
@@ -113,10 +106,10 @@ begin
    -- These should have settled to be sampled by axilClk
    -- By the time exec gets synced to axilReq
    ------------------------------------------------------
-   axilReq.rnw                   <= not readL;
-   axilReq.address(1 downto 0)   <= "00";
-   axilReq.address(31 downto 2)  <= addr;
-   axilReq.wrData                <= wrData;
+   axilReq.rnw                  <= not readL;
+   axilReq.address(1 downto 0)  <= "00";
+   axilReq.address(31 downto 2) <= addr;
+   axilReq.wrData               <= wrData;
 
    ------------------------------------------------------
    -- Synchronize axilAck.done to saciClk
@@ -156,5 +149,4 @@ begin
          axilReadMaster  => axilReadMaster,   -- [out]
          axilReadSlave   => axilReadSlave);   -- [in]
 
-
-end rtl;
+end mapping;

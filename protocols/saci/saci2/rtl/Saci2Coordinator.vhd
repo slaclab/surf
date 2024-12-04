@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : SACI Protocol: https://confluence.slac.stanford.edu/x/YYcRDQ
+-- Title      : SACI Version 2 Protocol: https://confluence.slac.stanford.edu/x/y3TDHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
