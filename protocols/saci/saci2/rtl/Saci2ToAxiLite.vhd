@@ -79,7 +79,6 @@ begin
          exec     => exec,              -- [out]
          ack      => ack,               -- [in]
          readL    => readL,             -- [out]
-         cmd      => cmd,               -- [out]
          addr     => addr,              -- [out]
          wrData   => wrData,            -- [out]
          rdData   => rdData);           -- [in]

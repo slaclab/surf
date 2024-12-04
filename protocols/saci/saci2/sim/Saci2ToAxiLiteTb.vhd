@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: surf.SaciAxiLiteMaster cocoTB testbed
+-- Description: surf.Saci2ToAxiLite cocoTB testbed
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -21,7 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity SaciAxiLiteMasterTb is
+entity Saci2ToAxiLiteTb is
    port (
       -- AXI-Lite Interface
       S_AXI_ACLK    : in  std_logic;
@@ -45,9 +45,9 @@ entity SaciAxiLiteMasterTb is
       S_AXI_RRESP   : out std_logic_vector(1 downto 0);
       S_AXI_RVALID  : out std_logic;
       S_AXI_RREADY  : in  std_logic);
-end SaciAxiLiteMasterTb;
+end Saci2ToAxiLiteTb;
 
-architecture mapping of SaciAxiLiteMasterTb is
+architecture mapping of Saci2ToAxiLiteTb is
 
    signal fpgaAxilClk : sl;
    signal fpgaAxilRst : sl;
@@ -115,7 +115,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- FPGA Side
    -------------------------------------------------------------------------------------------------
-   U_AxiLiteSaciMaster_1 : entity surf.AxiLiteSaciMaster
+   U_AxiLiteToSaci2 : entity surf.AxiLiteToSaci2
       generic map (
          TPD_G              => 1 ns,
          AXIL_CLK_PERIOD_G  => 8.0e-9,
@@ -149,7 +149,7 @@ begin
          rst  => asicAxilRst,           -- [out]
          rstL => rstL);                 -- [out]
 
-   U_SaciAxiLiteMaster_1 : entity surf.SaciAxiLiteMaster
+   U_Saci2ToAxiLite : entity surf.Saci2ToAxiLite
       generic map (
          TPD_G => 1 ns)
       port map (
