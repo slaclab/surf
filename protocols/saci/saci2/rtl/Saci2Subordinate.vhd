@@ -47,9 +47,9 @@ entity Saci2Subordinate is
       wrData : out slv(31 downto 0);
       rdData : in  slv(31 downto 0));
 
-end entity SaciSubordinate;
+end entity Saci2Subordinate;
 
-architecture rtl of SaciSubordinate is
+architecture rtl of Saci2Subordinate is
 
    type StateType is (WAIT_START_S, SHIFT_IN_S);
 
