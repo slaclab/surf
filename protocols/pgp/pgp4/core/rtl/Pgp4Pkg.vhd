@@ -74,6 +74,9 @@ package Pgp4Pkg is
    subtype PGP4_EOFC_BYTES_LAST_FIELD_C is natural range 15 downto 12;
    subtype PGP4_EOFC_CRC_FIELD_C is natural range 47 downto 16;
 
+   -- IEEE 802.3; CRC-32
+   -- G(X) = x^32 +x^26 +x^23 +x^22 +x^16 +x^12 +x^11 +x^10 +x^8 +x^7 +x^5 +x^4 +x^2 +x +1
+   -- https://users.ece.cmu.edu/~koopman/crc/c32/0x82608edb.txt
    constant PGP4_CRC_POLY_C : slv(31 downto 0) := X"04C11DB7";
 
    function pgp4MakeLinkInfo (
@@ -223,6 +226,8 @@ package body Pgp4Pkg is
       kCodeWord : slv(63 downto 0))
       return slv
    is
+      -- G(X) = x^8 + x^3 + x^2 + x^1 + 1
+      -- https://users.ece.cmu.edu/~koopman/crc/c08/0x83.txt
       constant CRC_POLY_C : slv(7 downto 0) := X"07";
 
       variable data : slv(55 downto 0);
