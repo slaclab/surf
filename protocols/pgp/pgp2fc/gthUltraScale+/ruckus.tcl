@@ -2,7 +2,7 @@
 source $::env(RUCKUS_QUIET_FLAG) $::env(RUCKUS_PROC_TCL)
 
 # Load local source Code and constraints
-if { $::env(VIVADO_VERSION) >= 2020.1 } {
+if { $::env(VIVADO_VERSION) >= 2024.1 } {
 
    loadSource -lib surf   -dir "$::DIR_PATH/rtl"
 
@@ -11,11 +11,11 @@ if { $::env(VIVADO_VERSION) >= 2020.1 } {
        puts "Loading XCI file for PGP2FC"
    } else {
        loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGthCore.dcp"
-   }   
+   }
 
    #loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGthCore.dcp"
    #loadIpCore  -path "$::DIR_PATH/ip/Pgp2fcGthCore.xci"
 
 } else {
-   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2020.1 (or later)\n\n"
+   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2024.1 (or later)\n\n"
 }
