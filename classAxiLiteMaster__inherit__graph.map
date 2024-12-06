@@ -1,24 +1,28 @@
 <map id="AxiLiteMaster" name="AxiLiteMaster">
-<area shape="rect" id="node1" title=" " alt="" coords="5,279,117,305"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,329,117,356"/>
 <area shape="rect" id="node2" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="189,52,339,79"/>
 <area shape="rect" id="node7" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="413,109,583,136"/>
 <area shape="rect" id="node8" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="181,177,347,204"/>
 <area shape="rect" id="node9" href="$classIpBusToAxiLite.html" title=" " alt="" coords="205,228,323,255"/>
 <area shape="rect" id="node11" href="$classSlvArraytoAxiLite.html" title=" " alt="" coords="197,279,331,305"/>
 <area shape="rect" id="node12" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="173,329,355,356"/>
-<area shape="rect" id="node13" href="$classSaciAxiLiteMaster.html" title=" " alt="" coords="195,380,333,407"/>
-<area shape="rect" id="node16" href="$classUartAxiLiteMasterFsm.html" title=" " alt="" coords="180,431,348,457"/>
-<area shape="rect" id="node19" href="$classPgp2fcAlignmentController.html" title=" " alt="" coords="165,481,363,508"/>
-<area shape="rect" id="node20" href="$classGtRxAlignCheck.html" title=" " alt="" coords="201,532,327,559"/>
+<area shape="rect" id="node13" href="$classSaci2ToAxiLite.html" title=" " alt="" coords="206,380,322,407"/>
+<area shape="rect" id="node15" href="$classSaciAxiLiteMaster.html" title=" " alt="" coords="195,431,333,457"/>
+<area shape="rect" id="node18" href="$classUartAxiLiteMasterFsm.html" title=" " alt="" coords="180,481,348,508"/>
+<area shape="rect" id="node21" href="$classPgp2fcAlignmentController.html" title=" " alt="" coords="165,532,363,559"/>
+<area shape="rect" id="node22" href="$classGtRxAlignCheck.html" title=" " alt="" coords="201,583,327,609"/>
 <area shape="rect" id="node3" href="$classAxiI2cEeprom.html" title=" " alt="" coords="442,5,554,32"/>
 <area shape="rect" id="node4" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="417,56,579,83"/>
 <area shape="rect" id="node5" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="673,56,805,83"/>
 <area shape="rect" id="node6" href="$classSff8472.html" title=" " alt="" coords="892,56,963,83"/>
 <area shape="rect" id="node10" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="417,228,579,255"/>
-<area shape="rect" id="node14" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="421,380,575,407"/>
-<area shape="rect" id="node15" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="633,380,844,407"/>
-<area shape="rect" id="node17" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="428,431,568,457"/>
-<area shape="rect" id="node18" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="661,431,817,457"/>
-<area shape="rect" id="node21" href="$classPgp2fcGtyCoreWrapper.html" title=" " alt="" coords="411,532,585,559"/>
-<area shape="rect" id="node22" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="678,532,799,559"/>
+<area shape="rect" id="node14" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="432,380,564,407"/>
+<area shape="rect" id="node16" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="421,431,575,457"/>
+<area shape="rect" id="node17" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="633,431,844,457"/>
+<area shape="rect" id="node19" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="428,481,568,508"/>
+<area shape="rect" id="node20" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="661,481,817,508"/>
+<area shape="rect" id="node23" href="$classPgp2fcGthCoreWrapper.html" title=" " alt="" coords="411,557,585,584"/>
+<area shape="rect" id="node25" href="$classPgp2fcGtyCoreWrapper.html" title=" " alt="" coords="411,608,585,635"/>
+<area shape="rect" id="node24" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="678,557,799,584"/>
+<area shape="rect" id="node26" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="678,608,799,635"/>
 </map>

@@ -21,17 +21,32 @@
 <!-- Node13 -->
 <g id="node13" class="node">
 <title>Node13</title>
-<g id="a_node13"><a xlink:href="classPgp2fcGtyCoreWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="756,-95.5 756,-114.5 887,-114.5 887,-95.5 756,-95.5"/>
-<text text-anchor="middle" x="821.5" y="-102.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp2fcGtyCoreWrapper</text>
+<g id="a_node13"><a xlink:href="classPgp2fcGthCoreWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="756,-114.5 756,-133.5 887,-133.5 887,-114.5 756,-114.5"/>
+<text text-anchor="middle" x="821.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp2fcGthCoreWrapper</text>
 </a>
 </g>
 </g>
 <!-- Node1&#45;&gt;Node13 -->
 <g id="edge13" class="edge">
 <title>Node1&#45;&gt;Node13</title>
-<path fill="none" stroke="midnightblue" d="M730.08,-105C738.48,-105 747.2,-105 755.76,-105"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="730.01,-101.5 720.01,-105 730.01,-108.5 730.01,-101.5"/>
+<path fill="none" stroke="midnightblue" d="M730.08,-112.31C738.48,-113.4 747.2,-114.53 755.76,-115.63"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="730.38,-108.82 720.01,-111.01 729.48,-115.76 730.38,-108.82"/>
+</g>
+<!-- Node15 -->
+<g id="node15" class="node">
+<title>Node15</title>
+<g id="a_node15"><a xlink:href="classPgp2fcGtyCoreWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="756,-76.5 756,-95.5 887,-95.5 887,-76.5 756,-76.5"/>
+<text text-anchor="middle" x="821.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp2fcGtyCoreWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node15 -->
+<g id="edge15" class="edge">
+<title>Node1&#45;&gt;Node15</title>
+<path fill="none" stroke="midnightblue" d="M730.08,-97.69C738.48,-96.6 747.2,-95.47 755.76,-94.37"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="729.48,-94.24 720.01,-98.99 730.38,-101.18 729.48,-94.24"/>
 </g>
 <!-- Node2 -->
 <g id="node2" class="node">
@@ -207,17 +222,32 @@
 <!-- Node14 -->
 <g id="node14" class="node">
 <title>Node14</title>
-<g id="a_node14"><a xlink:href="classPgp2fcGtyUltra.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="black" points="923,-95.5 923,-114.5 1014,-114.5 1014,-95.5 923,-95.5"/>
-<text text-anchor="middle" x="968.5" y="-102.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp2fcGtyUltra</text>
+<g id="a_node14"><a xlink:href="classPgp2fcGthUltra.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="923,-114.5 923,-133.5 1014,-133.5 1014,-114.5 923,-114.5"/>
+<text text-anchor="middle" x="968.5" y="-121.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp2fcGthUltra</text>
 </a>
 </g>
 </g>
 <!-- Node13&#45;&gt;Node14 -->
 <g id="edge14" class="edge">
 <title>Node13&#45;&gt;Node14</title>
-<path fill="none" stroke="midnightblue" d="M897.46,-105C906.06,-105 914.61,-105 922.64,-105"/>
-<polygon fill="midnightblue" stroke="midnightblue" points="897.37,-101.5 887.37,-105 897.37,-108.5 897.37,-101.5"/>
+<path fill="none" stroke="midnightblue" d="M897.46,-124C906.06,-124 914.61,-124 922.64,-124"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="897.37,-120.5 887.37,-124 897.37,-127.5 897.37,-120.5"/>
+</g>
+<!-- Node16 -->
+<g id="node16" class="node">
+<title>Node16</title>
+<g id="a_node16"><a xlink:href="classPgp2fcGtyUltra.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="black" points="923,-76.5 923,-95.5 1014,-95.5 1014,-76.5 923,-76.5"/>
+<text text-anchor="middle" x="968.5" y="-83.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp2fcGtyUltra</text>
+</a>
+</g>
+</g>
+<!-- Node15&#45;&gt;Node16 -->
+<g id="edge16" class="edge">
+<title>Node15&#45;&gt;Node16</title>
+<path fill="none" stroke="midnightblue" d="M897.46,-86C906.06,-86 914.61,-86 922.64,-86"/>
+<polygon fill="midnightblue" stroke="midnightblue" points="897.37,-82.5 887.37,-86 897.37,-89.5 897.37,-82.5"/>
 </g>
 </g>
 </svg>

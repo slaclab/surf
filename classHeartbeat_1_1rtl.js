@@ -14,6 +14,6 @@ var classHeartbeat_1_1rtl =
     [ "rin", "classHeartbeat_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "use_dsp", "classHeartbeat_1_1rtl.html#a98184ec445d3ef9f26bcaac687fba14d", null ],
     [ "use_dsp", "classHeartbeat_1_1rtl.html#a37102861e124b3d978dc4769e3bfeed8", null ],
-    [ "cnt~2144", "classHeartbeat_1_1rtl.html#a22800a6d7facea867bf7bf3ff35149f6", null ],
-    [ "o~2145", "classHeartbeat_1_1rtl.html#a8a7cf659f58229ed92ad257c7435b52c", null ]
+    [ "cnt~2155", "classHeartbeat_1_1rtl.html#ad591803ff444bc1e8e389976a2778be2", null ],
+    [ "o~2156", "classHeartbeat_1_1rtl.html#a335d704e1d22ab20c5d1e2cdb99a784a", null ]
 ];

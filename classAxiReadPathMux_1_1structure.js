@@ -17,10 +17,10 @@ var classAxiReadPathMux_1_1structure =
     [ "REG_INIT_C", "classAxiReadPathMux_1_1structure.html#abd52118be2a6d7e71eb7e5155fb2991c", null ],
     [ "r", "classAxiReadPathMux_1_1structure.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiReadPathMux_1_1structure.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "addrState~1316", "classAxiReadPathMux_1_1structure.html#aba438734fc74e921475e68ec25213c48", null ],
-    [ "addrAcks~1317", "classAxiReadPathMux_1_1structure.html#a161d3dc2ab21b94da1773c299467b02e", null ],
-    [ "addrAckNum~1318", "classAxiReadPathMux_1_1structure.html#abed7bb1e9ac330e0653f0c01d239a351", null ],
-    [ "addrValid~1319", "classAxiReadPathMux_1_1structure.html#a7cedf706d8661c40a25f96845db853e8", null ],
-    [ "slaves~1320", "classAxiReadPathMux_1_1structure.html#a907bfcb6425910bbe1b362c760f8faec", null ],
-    [ "master~1321", "classAxiReadPathMux_1_1structure.html#ae2a008ab22a4bd3380e022244b2ed291", null ]
+    [ "addrState~1327", "classAxiReadPathMux_1_1structure.html#a56f4c26f9f067cb8f587edf38efbe03c", null ],
+    [ "addrAcks~1328", "classAxiReadPathMux_1_1structure.html#a667fc8ee2fff3a6d71b982d6b9a444e7", null ],
+    [ "addrAckNum~1329", "classAxiReadPathMux_1_1structure.html#a8c57eb23fc210a4c3e206e1e4931d783", null ],
+    [ "addrValid~1330", "classAxiReadPathMux_1_1structure.html#a53a3aad5f9f2f06337a3155e4c9d3c23", null ],
+    [ "slaves~1331", "classAxiReadPathMux_1_1structure.html#ac85f4d3cfd462465aedf5a294b62a469", null ],
+    [ "master~1332", "classAxiReadPathMux_1_1structure.html#adf2c5c16a65ba760d5e59fc443bd63f8", null ]
 ];

@@ -1,10 +1,11 @@
 <map id="SlaveAxiLiteIpIntegrator" name="SlaveAxiLiteIpIntegrator">
-<area shape="rect" id="node1" title=" " alt="" coords="283,56,461,83"/>
+<area shape="rect" id="node1" title=" " alt="" coords="283,107,461,133"/>
 <area shape="rect" id="node4" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="509,5,715,32"/>
 <area shape="rect" id="node5" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="529,56,695,83"/>
 <area shape="rect" id="node6" href="$classAxiLiteCrossbarTb.html" title=" " alt="" coords="542,107,682,133"/>
-<area shape="rect" id="node7" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="535,157,689,184"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="160,56,235,83"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
-<area shape="rect" id="node8" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="763,157,973,184"/>
+<area shape="rect" id="node7" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="546,157,678,184"/>
+<area shape="rect" id="node8" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="535,208,689,235"/>
+<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="160,107,235,133"/>
+<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,107,112,133"/>
+<area shape="rect" id="node9" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="763,208,973,235"/>
 </map>

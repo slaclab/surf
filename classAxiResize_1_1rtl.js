@@ -20,10 +20,10 @@ var classAxiResize_1_1rtl =
     [ "REG_INIT_C", "classAxiResize_1_1rtl.html#ae80fcfa940788f910277847b50d9e354", null ],
     [ "r", "classAxiResize_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiResize_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "rdCount~1322", "classAxiResize_1_1rtl.html#a3b23771f9d5c4c9e37246d5618cfde42", null ],
-    [ "rdMaster~1323", "classAxiResize_1_1rtl.html#a2c7f35a1a015dd6742f72508aa8d98d6", null ],
-    [ "rdSlave~1324", "classAxiResize_1_1rtl.html#a412a5ac4a90d4c68f295b1570b0840b9", null ],
-    [ "wrCount~1325", "classAxiResize_1_1rtl.html#a4e8c1891231a20d209f7416dcc6dcc54", null ],
-    [ "wrMaster~1326", "classAxiResize_1_1rtl.html#a8c8299e6be9506b4825d287831a68193", null ],
-    [ "wrSlave~1327", "classAxiResize_1_1rtl.html#ae80af913cc0e2e4b2140e4220e554890", null ]
+    [ "rdCount~1333", "classAxiResize_1_1rtl.html#ac18367975d35c53ad8527471588b3965", null ],
+    [ "rdMaster~1334", "classAxiResize_1_1rtl.html#a5b81830a166895425a63750b4202d606", null ],
+    [ "rdSlave~1335", "classAxiResize_1_1rtl.html#a4c77094c4c38fbd529273a6ea2af82fa", null ],
+    [ "wrCount~1336", "classAxiResize_1_1rtl.html#a8a9dab82a4a99d74216dcc2dab77ec33", null ],
+    [ "wrMaster~1337", "classAxiResize_1_1rtl.html#a7d0c8e1ad2db9643c4db45779dddc723", null ],
+    [ "wrSlave~1338", "classAxiResize_1_1rtl.html#aabf910b59db89544c11eee5f3bd0dec9", null ]
 ];

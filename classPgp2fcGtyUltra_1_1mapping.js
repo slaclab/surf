@@ -7,7 +7,7 @@ var classPgp2fcGtyUltra_1_1mapping =
     [ "phyRxLaneIn", "classPgp2fcGtyUltra_1_1mapping.html#a2f979c38ac3bf8503fe0f94d47cb1aee", null ],
     [ "phyRxReady", "classPgp2fcGtyUltra_1_1mapping.html#a5324ae938427f111ccb79219c13235be", null ],
     [ "phyRxInit", "classPgp2fcGtyUltra_1_1mapping.html#a917ff32c1bc06f99f0ecd7953a0e9e7a", null ],
-    [ "gtTxUserReset", "classPgp2fcGtyUltra_1_1mapping.html#a2b4e6755a0ca3ae98e40510074fb103e", null ],
+    [ "gtTxUserReset", "classPgp2fcGtyUltra_1_1mapping.html#a609fec56481299677cf035ff9b07308b", null ],
     [ "phyTxLaneOut", "classPgp2fcGtyUltra_1_1mapping.html#a655b8704cc9a860f342a2a1590cfdd23", null ],
     [ "phyTxReady", "classPgp2fcGtyUltra_1_1mapping.html#ab6205b43ab496ef88426336cebc081e1", null ],
     [ "phyRxInitSync", "classPgp2fcGtyUltra_1_1mapping.html#a8578c0bee87b2715ebbde1f636f1ae47", null ],

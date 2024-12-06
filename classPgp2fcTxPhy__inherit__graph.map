@@ -1,10 +1,11 @@
 <map id="Pgp2fcTxPhy" name="Pgp2fcTxPhy">
-<area shape="rect" id="node1" title=" " alt="" coords="143,80,249,107"/>
-<area shape="rect" id="node3" href="$classPgp2fcTx.html" title=" " alt="" coords="155,155,237,181"/>
-<area shape="rect" id="node2" href="$classCRC7Rtl.html" title=" " alt="" coords="159,5,233,32"/>
-<area shape="rect" id="node4" href="$classPgp2fcLane.html" title=" " alt="" coords="147,229,245,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="221,80,328,107"/>
+<area shape="rect" id="node3" href="$classPgp2fcTx.html" title=" " alt="" coords="233,155,316,181"/>
+<area shape="rect" id="node2" href="$classCRC7Rtl.html" title=" " alt="" coords="237,5,312,32"/>
+<area shape="rect" id="node4" href="$classPgp2fcLane.html" title=" " alt="" coords="226,229,323,256"/>
 <area shape="rect" id="node5" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="5,304,123,331"/>
-<area shape="rect" id="node6" href="$classPgp2fcGtp7.html" title=" " alt="" coords="147,304,245,331"/>
-<area shape="rect" id="node8" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="269,304,390,331"/>
-<area shape="rect" id="node7" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="120,379,272,405"/>
+<area shape="rect" id="node6" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="147,304,269,331"/>
+<area shape="rect" id="node7" href="$classPgp2fcGtp7.html" title=" " alt="" coords="293,304,390,331"/>
+<area shape="rect" id="node9" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="414,304,535,331"/>
+<area shape="rect" id="node8" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="265,379,417,405"/>
 </map>

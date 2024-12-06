@@ -7,6 +7,7 @@ var classPgp2fcRx =
     [ "pgpRxClkEn", "classPgp2fcRx.html#a9969ec960c15b7f6f6a956455d98b0f6", null ],
     [ "pgpRxClk", "classPgp2fcRx.html#a76f290a48e16f22382b0ae7c9d76c933", null ],
     [ "pgpRxClkRst", "classPgp2fcRx.html#addedad5e4f50bb37fd72642ad5368cc0", null ],
+    [ "pgpRxPhyRst", "classPgp2fcRx.html#a15cd1bcbe2146d941b58aa191ce2fd33", null ],
     [ "pgpRxIn", "classPgp2fcRx.html#aa1c0c796aeb9c115912d7e8c8ec2fac9", null ],
     [ "pgpRxOut", "classPgp2fcRx.html#a18cb4ca0cd7cc66095193d30b51e4e29", null ],
     [ "pgpRxMaster", "classPgp2fcRx.html#ae640d53c878601c4f9550c377b5d6a6b", null ],

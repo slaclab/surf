@@ -16,11 +16,11 @@ var classAxiReadEmulate_1_1structure =
     [ "rin", "classAxiReadEmulate_1_1structure.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "intReadMaster", "classAxiReadEmulate_1_1structure.html#a39219f5b3f14250688ccb27aac6d370e", null ],
     [ "intReadSlave", "classAxiReadEmulate_1_1structure.html#a2ab263f734cc10208a5640d43cb3927a", null ],
-    [ "latency~1311", "classAxiReadEmulate_1_1structure.html#a979373f3dad67e8d1ecc8b74d6bc5036", null ],
-    [ "state~1312", "classAxiReadEmulate_1_1structure.html#a53e9146c8049e1aebafbd79c4b319964", null ],
-    [ "cnt~1313", "classAxiReadEmulate_1_1structure.html#a1fe609acc741c8a7efd1b6153d03b51f", null ],
-    [ "iMaster~1314", "classAxiReadEmulate_1_1structure.html#a1b0f560ef09279545659826c7878535f", null ],
-    [ "iSlave~1315", "classAxiReadEmulate_1_1structure.html#a44ab6b7a3e6e65d3e726218c98b379a5", null ],
+    [ "latency~1322", "classAxiReadEmulate_1_1structure.html#a93336de7e0dd3f3a36a26fc02ea5b3d3", null ],
+    [ "state~1323", "classAxiReadEmulate_1_1structure.html#ac98b5d47177df33218eb9398be98ce3d", null ],
+    [ "cnt~1324", "classAxiReadEmulate_1_1structure.html#aefe603822f9b0c339ea075be5fc66a52", null ],
+    [ "iMaster~1325", "classAxiReadEmulate_1_1structure.html#a5c63570870ccce47077a8ec2498eb474", null ],
+    [ "iSlave~1326", "classAxiReadEmulate_1_1structure.html#ae7f4174458427004cdae25dd739b3616", null ],
     [ "u_axireadpathfifo", "classAxiReadEmulate_1_1structure.html#a8189d7136e1c4bbc63fed32736a872b7", null ],
     [ "u_axireadpathfifo", "classAxiReadEmulate_1_1structure.html#a8189d7136e1c4bbc63fed32736a872b7", null ]
 ];

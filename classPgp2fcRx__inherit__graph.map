@@ -1,12 +1,13 @@
 <map id="Pgp2fcRx" name="Pgp2fcRx">
-<area shape="rect" id="node1" title=" " alt="" coords="155,155,237,181"/>
-<area shape="rect" id="node6" href="$classPgp2fcLane.html" title=" " alt="" coords="147,229,245,256"/>
-<area shape="rect" id="node2" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="11,80,117,107"/>
-<area shape="rect" id="node3" href="$classCRC7Rtl.html" title=" " alt="" coords="27,5,101,32"/>
-<area shape="rect" id="node4" href="$classPgp2fcRxCell.html" title=" " alt="" coords="142,80,250,107"/>
-<area shape="rect" id="node5" href="$classCRC32Rtl.html" title=" " alt="" coords="275,80,357,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="233,155,316,181"/>
+<area shape="rect" id="node6" href="$classPgp2fcLane.html" title=" " alt="" coords="226,229,323,256"/>
+<area shape="rect" id="node2" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="89,80,196,107"/>
+<area shape="rect" id="node3" href="$classCRC7Rtl.html" title=" " alt="" coords="105,5,180,32"/>
+<area shape="rect" id="node4" href="$classPgp2fcRxCell.html" title=" " alt="" coords="221,80,329,107"/>
+<area shape="rect" id="node5" href="$classCRC32Rtl.html" title=" " alt="" coords="353,80,436,107"/>
 <area shape="rect" id="node7" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="5,304,123,331"/>
-<area shape="rect" id="node8" href="$classPgp2fcGtp7.html" title=" " alt="" coords="147,304,245,331"/>
-<area shape="rect" id="node10" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="269,304,390,331"/>
-<area shape="rect" id="node9" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="120,379,272,405"/>
+<area shape="rect" id="node8" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="147,304,269,331"/>
+<area shape="rect" id="node9" href="$classPgp2fcGtp7.html" title=" " alt="" coords="293,304,390,331"/>
+<area shape="rect" id="node11" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="414,304,535,331"/>
+<area shape="rect" id="node10" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="265,379,417,405"/>
 </map>

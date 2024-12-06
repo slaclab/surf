@@ -1,0 +1,6 @@
+<map id="Saci2Coordinator" name="Saci2Coordinator">
+<area shape="rect" id="node1" title=" " alt="" coords="5,80,139,107"/>
+<area shape="rect" id="node3" href="$classAxiLiteToSaci2.html" title=" " alt="" coords="14,155,130,181"/>
+<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="19,5,125,32"/>
+<area shape="rect" id="node4" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="6,229,138,256"/>
+</map>

@@ -31,6 +31,7 @@ var classPgp2fcRx_1_1Pgp2fcRx =
     [ "overflow", "classPgp2fcRx_1_1Pgp2fcRx.html#ae52e468af32dcc97ba200c8dc35e2bb2", null ],
     [ "intFcValid", "classPgp2fcRx_1_1Pgp2fcRx.html#af49f9df1ba28ff0568ad52fd7deaac99", null ],
     [ "intFcError", "classPgp2fcRx_1_1Pgp2fcRx.html#a480f91b9214f51af9a603f85f2e1db61", null ],
+    [ "phyRxRst", "classPgp2fcRx_1_1Pgp2fcRx.html#aeee95eba89edb8c0e791224c51ba9505", null ],
     [ "KEEP_HIERARCHY", "classPgp2fcRx_1_1Pgp2fcRx.html#a068564424adf39fd0048aab4cbbdfdb6", null ],
     [ "KEEP_HIERARCHY", "classPgp2fcRx_1_1Pgp2fcRx.html#aa2f3aaee10f2968859d29ba596a7f3ba", null ],
     [ "u_pgp2fcrxphy", "classPgp2fcRx_1_1Pgp2fcRx.html#ae9e23666bffcc2ef5ebf531021adf2c7", null ],

@@ -20,6 +20,7 @@ var classPgp2fcLane =
     [ "pgpRxClkEn", "classPgp2fcLane.html#a9969ec960c15b7f6f6a956455d98b0f6", null ],
     [ "pgpRxClk", "classPgp2fcLane.html#a34328c016036b6e6d7cfa95bd4f18bbc", null ],
     [ "pgpRxClkRst", "classPgp2fcLane.html#a6735d612e2aac41c8757675e1e709654", null ],
+    [ "pgpRxPhyRst", "classPgp2fcLane.html#a15cd1bcbe2146d941b58aa191ce2fd33", null ],
     [ "pgpRxIn", "classPgp2fcLane.html#a63282ac79f3fa46b9f2a47a8a950a84d", null ],
     [ "pgpRxOut", "classPgp2fcLane.html#a9a618c9c12d5057fbf2aef609d9b41e3", null ],
     [ "pgpRxMasters", "classPgp2fcLane.html#a6dbc253b30469e6ab8a3645a8dcbc743", null ],

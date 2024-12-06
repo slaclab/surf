@@ -2,8 +2,11 @@ var classGtRxAlignCheck =
 [
     [ "rtl", "classGtRxAlignCheck_1_1rtl.html", "classGtRxAlignCheck_1_1rtl" ],
     [ "TPD_G", "classGtRxAlignCheck.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
+    [ "SIMULATION_G", "classGtRxAlignCheck.html#a6ebe009af632144d5bad445bf5a6a699", null ],
+    [ "LOCK_VALUE_G", "classGtRxAlignCheck.html#a7b155a3e92b7a970cfa57212cbdf40b0", null ],
+    [ "MASK_VALUE_G", "classGtRxAlignCheck.html#a5cf357caf3989c8ba1e7f181e250dc97", null ],
     [ "GT_TYPE_G", "classGtRxAlignCheck.html#a6276cf9e9926304713bb1c249b36fb4a", null ],
-    [ "AXI_CLK_FREQ_G", "classGtRxAlignCheck.html#ab07b6deb23c99a7c1b7c6ee0a5762f9a", null ],
+    [ "AXI_CLK_FREQ_G", "classGtRxAlignCheck.html#a0000f8a760400cefd0739913654cb169", null ],
     [ "DRP_ADDR_G", "classGtRxAlignCheck.html#adca8dc1de4ebbaa85e99f3bd4658a95f", null ],
     [ "txClk", "classGtRxAlignCheck.html#ade5a7692a38f8c7bb3c2309c35fa9885", null ],
     [ "rxClk", "classGtRxAlignCheck.html#a7ad1fb6f1de446f6cf3fa44665b2250d", null ],

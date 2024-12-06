@@ -1,8 +1,9 @@
 <map id="Pgp2fcLane" name="Pgp2fcLane">
 <area shape="rect" id="node1" title=" " alt="" coords="507,259,604,285"/>
-<area shape="rect" id="node15" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="654,208,771,235"/>
-<area shape="rect" id="node16" href="$classPgp2fcGtp7.html" title=" " alt="" coords="664,259,761,285"/>
-<area shape="rect" id="node18" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="652,309,773,336"/>
+<area shape="rect" id="node15" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="654,183,771,209"/>
+<area shape="rect" id="node16" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="652,233,773,260"/>
+<area shape="rect" id="node17" href="$classPgp2fcGtp7.html" title=" " alt="" coords="664,284,761,311"/>
+<area shape="rect" id="node19" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="652,335,773,361"/>
 <area shape="rect" id="node2" href="$classPgp2fcTx.html" title=" " alt="" coords="349,183,432,209"/>
 <area shape="rect" id="node3" href="$classSynchronizerVector.html" title=" " alt="" coords="128,56,275,83"/>
 <area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="148,107,255,133"/>
@@ -16,5 +17,5 @@
 <area shape="rect" id="node10" href="$classCRC32Rtl.html" title=" " alt="" coords="160,309,243,336"/>
 <area shape="rect" id="node11" href="$classPgp2fcRx.html" title=" " alt="" coords="349,335,432,361"/>
 <area shape="rect" id="node13" href="$classPgp2fcRxCell.html" title=" " alt="" coords="147,360,255,387"/>
-<area shape="rect" id="node17" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="821,259,973,285"/>
+<area shape="rect" id="node18" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="821,284,973,311"/>
 </map>
