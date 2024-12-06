@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv2b GTY Ultrascale IP Core Wrapper
+-- Description: PGPv2b GTH Ultrascale IP Core Wrapper
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -26,7 +26,7 @@ use surf.AxiLitePkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity Pgp2fcGtyCoreWrapper is
+entity Pgp2fcGthCoreWrapper is
    generic (
       TPD_G               : time    := 1 ns;
       SIMULATION_G        : boolean := false;
@@ -38,7 +38,7 @@ entity Pgp2fcGtyCoreWrapper is
       stableClk      : in  sl;
       stableRst      : in  sl;
 
-      -- GTY FPGA IO
+      -- GTH FPGA IO
       gtRefClk       : in  sl;
       gtFabricRefClk : in  sl;
       gtUserRefClk   : in  sl;
@@ -80,11 +80,11 @@ entity Pgp2fcGtyCoreWrapper is
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 
-end entity Pgp2fcGtyCoreWrapper;
+end entity Pgp2fcGthCoreWrapper;
 
-architecture mapping of Pgp2fcGtyCoreWrapper is
+architecture mapping of Pgp2fcGthCoreWrapper is
 
-   component Pgp2fcGtyCore
+   component Pgp2fcGthCore
       port (
          gtwiz_userclk_tx_reset_in          : in  std_logic_vector (0 downto 0);
          gtwiz_userclk_tx_active_in         : in  std_logic_vector (0 downto 0);
@@ -118,8 +118,8 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          drpwe_in                           : in  std_logic_vector (0 downto 0);
          gtgrefclk_in                       : in  std_logic_vector (0 downto 0);
          gtrefclk0_in                       : in  std_logic_vector (0 downto 0);
-         gtyrxn_in                          : in  std_logic_vector (0 downto 0);
-         gtyrxp_in                          : in  std_logic_vector (0 downto 0);
+         gthrxn_in                          : in  std_logic_vector (0 downto 0);
+         gthrxp_in                          : in  std_logic_vector (0 downto 0);
          loopback_in                        : in  std_logic_vector (2 downto 0);
          rx8b10ben_in                       : in  std_logic_vector (0 downto 0);
          rxcdrreset_in                      : in  std_logic_vector (0 downto 0);
@@ -146,8 +146,8 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          drpdo_out                          : out std_logic_vector (15 downto 0);
          drprdy_out                         : out std_logic_vector (0 downto 0);
          gtpowergood_out                    : out std_logic_vector (0 downto 0);
-         gtytxn_out                         : out std_logic_vector (0 downto 0);
-         gtytxp_out                         : out std_logic_vector (0 downto 0);
+         gthtxn_out                         : out std_logic_vector (0 downto 0);
+         gthtxp_out                         : out std_logic_vector (0 downto 0);
          rxbyteisaligned_out                : out std_logic_vector (0 downto 0);
          rxbyterealign_out                  : out std_logic_vector (0 downto 0);
          rxcommadet_out                     : out std_logic_vector (0 downto 0);
@@ -250,7 +250,7 @@ begin
    -- to a fabric-generated clock (idea stolen from LCLS-II timing repo).
    -- This will only work if the fabric clock is 185.714MHz, and if
    -- the associated generic is set to true.
-   U_Pgp2fcGtyCore : Pgp2fcGtyCore
+   U_Pgp2fcGthCore : Pgp2fcGthCore
       port map (
          gtwiz_userclk_tx_active_in(0)         => txUsrActive,
          gtwiz_userclk_rx_active_in(0)         => rxUsrActive,
@@ -287,8 +287,8 @@ begin
          drpwe_in(0)                           => drpWe,
          drpdo_out                             => drpDo,
          drprdy_out(0)                         => drpRdy,
-         gtyrxn_in(0)                          => gtRxN,
-         gtyrxp_in(0)                          => gtRxP,
+         gthrxn_in(0)                          => gtRxN,
+         gthrxp_in(0)                          => gtRxP,
          gtgrefclk_in(0)                       => gtFabricRefClk,
          gtrefclk0_in(0)                       => gtRefClk,
          loopback_in                           => loopback,
@@ -311,8 +311,8 @@ begin
          txpolarity_in(0)                      => txPolarity,
          txusrclk_in(0)                        => txUsrClk,
          txusrclk2_in(0)                       => txUsrClk,
-         gtytxn_out(0)                         => gtTxN,
-         gtytxp_out(0)                         => gtTxP,
+         gthtxn_out(0)                         => gtTxN,
+         gthtxp_out(0)                         => gtTxP,
          rxbyteisaligned_out(0)                => rxByteIsAligned,
          rxbyterealign_out(0)                  => rxByteReAlign,
          rxcommadet_out(0)                     => rxCommaDet,
@@ -383,7 +383,7 @@ begin
       generic map (
          TPD_G          => TPD_G,
          SIMULATION_G   => SIMULATION_G,
-         GT_TYPE_G      => "GTYE4",
+         GT_TYPE_G      => "GTHE4",
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G,
          DRP_ADDR_G     => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
       port map (

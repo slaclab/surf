@@ -89,7 +89,10 @@ begin
    -- Make sure data widths are appropriate.
    assert ((SLV_BYTES_C >= MST_BYTES_C and SLV_BYTES_C mod MST_BYTES_C = 0) or
            (MST_BYTES_C >= SLV_BYTES_C and MST_BYTES_C mod SLV_BYTES_C = 0))
-      report "Data widths must be even number multiples of each other" severity failure;
+      report "Data widths must be even number multiples of each other" & LF &
+      "SLV_BYTES_C= " & integer'image(SLV_BYTES_C) & LF &
+      "MST_BYTES_C= " & integer'image(MST_BYTES_C)
+      severity failure;
 
    -- When going from a large bus to a small bus, ready is necessary
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)

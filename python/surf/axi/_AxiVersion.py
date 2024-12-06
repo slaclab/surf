@@ -118,6 +118,7 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
             hidden       = True,
+            groups       = 'NoConfig',
         ))
 
         @self.command(hidden=True)

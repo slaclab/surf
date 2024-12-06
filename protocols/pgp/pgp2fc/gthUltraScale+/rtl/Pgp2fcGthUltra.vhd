@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PGPv2b GTY Ultrascale Core Module
+-- Description: PGPv2b GTH Ultrascale Core Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -28,7 +28,7 @@ use surf.Pgp2fcPkg.all;
 library UNISIM;
 use UNISIM.VCOMPONENTS.all;
 
-entity Pgp2fcGtyUltra is
+entity Pgp2fcGthUltra is
    generic (
       TPD_G               : time                 := 1 ns;
       SIMULATION_G        : boolean              := false;
@@ -90,9 +90,9 @@ entity Pgp2fcGtyUltra is
       axilReadSlave    : out AxiLiteReadSlaveType;
       axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave   : out AxiLiteWriteSlaveType);
-end Pgp2fcGtyUltra;
+end Pgp2fcGthUltra;
 
-architecture mapping of Pgp2fcGtyUltra is
+architecture mapping of Pgp2fcGthUltra is
 
    signal resetGtSync : sl;
    signal gtHardReset : sl;
@@ -186,9 +186,9 @@ begin
          phyRxInit        => phyRxInit);
 
    --------------------------
-   -- Wrapper for GTY IP core
+   -- Wrapper for GTH IP core
    --------------------------
-   PgpGtyCoreWrapper_1 : entity surf.Pgp2fcGtyCoreWrapper
+   PgpGthCoreWrapper_1 : entity surf.Pgp2fcGthCoreWrapper
       generic map (
          TPD_G               => TPD_G,
          SIMULATION_G        => SIMULATION_G,

@@ -26,9 +26,12 @@ entity CRC7Rtl is
 end CRC7Rtl;
 
 architecture imp_crc of CRC7Rtl is
-   signal lfsr_q: std_logic_vector (7 downto 0);
-   signal lfsr_c: std_logic_vector (7 downto 0);
+
+   signal lfsr_q: std_logic_vector (7 downto 0) := (others => '0');
+   signal lfsr_c: std_logic_vector (7 downto 0) := (others => '0');
+
 begin
+
    crc_out <= lfsr_c when crc_en = '1' else lfsr_q;
    crc_out_r <= lfsr_q;
 
