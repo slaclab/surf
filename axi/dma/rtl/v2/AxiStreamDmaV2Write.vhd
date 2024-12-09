@@ -443,7 +443,7 @@ begin
                v.wMaster.wdata(23 downto 16)   := r.lastUser;
                v.wMaster.wdata(15 downto 4)    := (others => '0');
                v.wMaster.wdata(3)              := r.continue;
-               v.wMaster.wdata(2)              := '0';
+               v.wMaster.wdata(2)              := r.dmaWrTrack.overflow;
                v.wMaster.wdata(1 downto 0)     := r.result;
 
                v.wMaster.wstrb := resize(x"FF", 128);
