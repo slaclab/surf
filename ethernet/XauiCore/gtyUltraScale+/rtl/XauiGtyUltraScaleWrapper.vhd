@@ -70,6 +70,7 @@ entity XauiGtyUltraScaleWrapper is
       -- MGT Clock Port (156.25MHz or 312.5MHz)
       gtClkP             : in  sl;
       gtClkN             : in  sl;
+      refClkOut          : out  sl;
       -- MGT Ports
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
@@ -88,6 +89,7 @@ architecture mapping of XauiGtyUltraScaleWrapper is
 begin
 
    phyReady <= linkUp;
+   gtClkOut <= refClk;
 
    U_refClk : IBUFDS_GTE4
       port map (
