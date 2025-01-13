@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
--- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/hCRXI
+-- Title      : Event Frame Sequencer Protocol: https://confluence.slac.stanford.edu/x/hCRXI
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper on AxiStreamBatcher for multi-AXI stream event building
+-- Description: Event Frame Sequencer MUX
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -394,11 +394,11 @@ begin
 
                   -- HEADER context
                   v.txMaster.tData(7 downto 0)   := x"01";     -- Version Field
-                  v.txMaster.tData(15 downto 8)  := rxMasters(r.index).tUser(7 downto 0);  -- TUSER_FIRST
-                  v.txMaster.tData(23 downto 16) := rxMasters(r.index).tDest;  -- TDEST
-                  v.txMaster.tData(31 downto 24) := rxMasters(r.index).tId;  -- TID
-                  v.txMaster.tData(39 downto 32) := r.frameCnt;  -- Event frame index
-                  v.txMaster.tData(47 downto 40) := r.numFrames;  -- Event frame Size (zero inclusive)
+                  v.txMaster.tData(15 downto 8)  := toSlv(r.index, 8); -- MUX Index
+                  v.txMaster.tData(23 downto 16) := r.frameCnt;  -- Event frame index
+                  v.txMaster.tData(31 downto 24) := r.numFrames;  -- Event frame Size (zero inclusive)
+                  v.txMaster.tData(39 downto 32) := rxMasters(r.index).tUser(7 downto 0);  -- TUSER_FIRST
+                  v.txMaster.tData(47 downto 40) := rxMasters(r.index).tDest;  -- TDEST
                   v.txMaster.tData(63 downto 48) := r.seqCnt;  -- Sequence Counter
 
                   -- Increment frame counter
