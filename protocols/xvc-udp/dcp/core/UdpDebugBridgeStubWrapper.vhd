@@ -47,7 +47,7 @@ begin
 
    U_AxisJtagDebugBridge : entity surf.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
       generic map (
-         AXIS_FREQ_G         => AXIS_CLK_FREQ_C,
+         AXIS_FREQ_G         => AXIS_CLK_FREQ_G,
          CLK_DIV2_G          => XVC_TCLK_DIV2_C,
          AXIS_WIDTH_G        => XVC_AXIS_WIDTH_C,
          MEM_DEPTH_G         => XVC_MEM_DEPTH_C,

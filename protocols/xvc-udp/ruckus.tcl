@@ -4,6 +4,9 @@ source $::env(RUCKUS_PROC_TCL)
 if { [isVersal] == true } {
    set versalType true
 
+} elseif { [info exists ::env(BYPASS_XVC_DEBUG)] == 1 && $::env(BYPASS_XVC_DEBUG) == 1 } {
+   puts "Note: BYPASS_XVC_DEBUG = 1"
+
 # Check for version 2018.3 of Vivado (or later)
 } elseif { $::env(VIVADO_VERSION) >= 2018.3 } {
 
