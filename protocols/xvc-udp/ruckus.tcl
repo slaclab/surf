@@ -10,8 +10,8 @@ if { [isVersal] == true } {
 # Check for version 2018.3 of Vivado (or later)
 } elseif { $::env(VIVADO_VERSION) >= 2018.3 } {
 
-   # Load the wrapper source code
-   loadSource -lib surf -dir "$::DIR_PATH/rtl"
+   # Load the DMA wrapper source code
+   loadSource -lib surf -path "$::DIR_PATH/rtl/DmaXvcWrapper.vhd"
 
    # Get the family type
    set family [getFpgaArch]
@@ -34,6 +34,7 @@ if { [isVersal] == true } {
    }
 
    if { [info exists ::env(USE_XVC_DEBUG)] != 1 || $::env(USE_XVC_DEBUG) == 0 } {
+      loadSource -lib surf -path "$::DIR_PATH/rtl/UdpDebugBridgeWrapper.vhd"
       loadSource -lib surf -path "$::DIR_PATH/dcp/${dirType}/Stub/images/UdpDebugBridge.dcp"
 
    } elseif { $::env(USE_XVC_DEBUG) == -1 } {
@@ -42,8 +43,18 @@ if { [isVersal] == true } {
       puts "and it is the application's responsibility"
       puts "to define a suitable implementation."
 
-   } else {
+   } elseif { [info exists ::env(USE_XVC_DEBUG_IP_CORE)] != 1 || $::env(USE_XVC_DEBUG_IP_CORE) == 0 } {
+
+      loadSource -lib surf -path "$::DIR_PATH/rtl/UdpDebugBridgeWrapper.vhd"
       loadSource -lib surf -path "$::DIR_PATH/dcp/${dirType}/Impl/images/UdpDebugBridge.dcp"
+
+   } else {
+
+      loadRuckusTcl $::DIR_PATH/jtag
+      loadSource -lib surf -path "$::DIR_PATH/dcp/core/UdpDebugBridgePkg.vhd"
+      loadSource -lib surf -path "$::DIR_PATH/dcp/core/UdpDebugBridgeImplWrapper.vhd"
+      loadSource -lib surf -path "$::DIR_PATH/dcp/core/UdpDebugBridgeWrapper.vhd"
+
    }
 
 } else {

@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -41,33 +40,6 @@ end UdpDebugBridgeWrapper;
 
 architecture rtl of UdpDebugBridgeWrapper is
 
-   component UdpDebugBridge is
---      generic (
---         AXIS_CLK_FREQ_G : real);
-      port (
-         axisClk            : in  std_logic;
-         axisRst            : in  std_logic;
-         \mAxisReq[tValid]\ : in  std_logic;
-         \mAxisReq[tData]\  : in  std_logic_vector (511 downto 0);
-         \mAxisReq[tStrb]\  : in  std_logic_vector (63 downto 0);
-         \mAxisReq[tKeep]\  : in  std_logic_vector (63 downto 0);
-         \mAxisReq[tLast]\  : in  std_logic;
-         \mAxisReq[tDest]\  : in  std_logic_vector (7 downto 0);
-         \mAxisReq[tId]\    : in  std_logic_vector (7 downto 0);
-         \mAxisReq[tUser]\  : in  std_logic_vector (511 downto 0);
-         \sAxisReq[tReady]\ : out std_logic;
-         \mAxisTdo[tValid]\ : out std_logic;
-         \mAxisTdo[tData]\  : out std_logic_vector (511 downto 0);
-         \mAxisTdo[tStrb]\  : out std_logic_vector (63 downto 0);
-         \mAxisTdo[tKeep]\  : out std_logic_vector (63 downto 0);
-         \mAxisTdo[tLast]\  : out std_logic;
-         \mAxisTdo[tDest]\  : out std_logic_vector (7 downto 0);
-         \mAxisTdo[tId]\    : out std_logic_vector (7 downto 0);
-         \mAxisTdo[tUser]\  : out std_logic_vector (511 downto 0);
-         \sAxisTdo[tReady]\ : in  std_logic
-         );
-   end component UdpDebugBridge;
-
    type SofRegType is record
       sof : sl;
    end record SofRegType;
@@ -80,10 +52,6 @@ architecture rtl of UdpDebugBridgeWrapper is
    signal mXvcServerTdo : AxiStreamMasterType;
 
 begin
-
-   assert (AXIS_CLK_FREQ_G = 156.25E+6)
-      report "AXIS_CLK_FREQ_G: Must be 156.25E+6"
-      severity error;
 
    ----------------------------
    -- 'XVC' Server @2542 (modified protocol to work over UDP)
@@ -118,30 +86,15 @@ begin
       ibServerMaster <= v;
    end process P_SOF_SPLICE;
 
-   U_XvcServer : component UdpDebugBridge
---      generic map (
---         AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G)
+   U_XvcServer : entity surf.UdpDebugBridge
+      generic map (
+         AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G)
       port map (
-         axisClk => clk,
-         axisRst => rst,
-
-         \mAxisReq[tValid]\ => obServerMaster.tValid,
-         \mAxisReq[tData]\  => obServerMaster.tData,
-         \mAxisReq[tStrb]\  => obServerMaster.tStrb,
-         \mAxisReq[tKeep]\  => obServerMaster.tKeep,
-         \mAxisReq[tLast]\  => obServerMaster.tLast,
-         \mAxisReq[tDest]\  => obServerMaster.tDest,
-         \mAxisReq[tId]\    => obServerMaster.tId,
-         \mAxisReq[tUser]\  => obServerMaster.tUser,
-         \sAxisReq[tReady]\ => obServerSlave.tReady,
-         \mAxisTdo[tValid]\ => mXvcServerTdo.tValid,
-         \mAxisTdo[tData]\  => mXvcServerTdo.tData,
-         \mAxisTdo[tStrb]\  => mXvcServerTdo.tStrb,
-         \mAxisTdo[tKeep]\  => mXvcServerTdo.tKeep,
-         \mAxisTdo[tLast]\  => mXvcServerTdo.tLast,
-         \mAxisTdo[tDest]\  => mXvcServerTdo.tDest,
-         \mAxisTdo[tId]\    => mXvcServerTdo.tId,
-         \mAxisTdo[tUser]\  => mXvcServerTdo.tUser,
-         \sAxisTdo[tReady]\ => ibServerSlave.tReady);
+         axisClk  => clk,
+         axisRst  => rst,
+         mAxisReq => obServerMaster,
+         sAxisReq => obServerSlave,
+         mAxisTdo => mXvcServerTdo,
+         sAxisTdo => ibServerSlave);
 
 end rtl;
