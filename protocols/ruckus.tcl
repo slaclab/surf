@@ -28,5 +28,4 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/pmbus"
    loadRuckusTcl "$::DIR_PATH/salt"
    loadRuckusTcl "$::DIR_PATH/spi"
-   loadRuckusTcl "$::DIR_PATH/xvc-udp"
 }
