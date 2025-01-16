@@ -52,6 +52,8 @@ end entity EventFrameSequencerDemux;
 
 architecture rtl of EventFrameSequencerDemux is
 
+   constant LOG2_WIDTH_C : slv(3 downto 0) := toSlv(log2(AXIS_CONFIG_G.TDATA_BYTES_C), 4);
+
    type StateType is (
       IDLE_S,
       MOVE_S);
@@ -65,10 +67,10 @@ architecture rtl of EventFrameSequencerDemux is
       sof            : sl;
       frameCnt       : slv(7 downto 0);
       numFrames      : slv(7 downto 0);
-      seqCnt         : slv(15 downto 0);
+      seqCnt         : slv(7 downto 0);
       dataCnt        : Slv32Array(NUM_MASTERS_G-1 downto 0);
       dropCnt        : slv(31 downto 0);
-      simDebug       : slv(7 downto 0);
+      hdrError       : slv(7 downto 0);
       index          : natural range 0 to NUM_MASTERS_G-1;
       tUserFirst     : slv(7 downto 0);
       tDest          : slv(7 downto 0);
@@ -91,7 +93,7 @@ architecture rtl of EventFrameSequencerDemux is
       seqCnt         => (others => '0'),
       dataCnt        => (others => (others => '0')),
       dropCnt        => (others => '0'),
-      simDebug       => (others => '0'),
+      hdrError       => (others => '0'),
       index          => 0,
       tUserFirst     => (others => '0'),
       tDest          => (others => '0'),
@@ -131,18 +133,16 @@ begin
 
    comb : process (axilReadMaster, axilWriteMaster, axisRst, blowoffExt, r,
                    rxMaster, txSlaves) is
-      variable v        : RegType;
-      variable axilEp   : AxiLiteEndPointType;
-      variable validHdr : sl;
-      variable sofDet   : sl;
-      variable dbg      : slv(7 downto 0);
+      variable v      : RegType;
+      variable axilEp : AxiLiteEndPointType;
+      variable dbg    : slv(7 downto 0);
+      variable sofDet : sl;
    begin
       -- Latch the current value
       v := r;
 
       -- Update the local variable
-      v.simDebug := (others => '0');
-      dbg        := (others => '0');
+      dbg := (others => '0');
       if (v.state = IDLE_S) then
          dbg(0) := '0';
       else
@@ -180,6 +180,7 @@ begin
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_MASTERS_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
       axiSlaveRegisterR(axilEp, X"FF4", 16, blowoffExt);
+      axiSlaveRegisterR(axilEp, x"FF4", 24, r.hdrError);
       axiSlaveRegister (axilEp, x"FF8", 0, v.blowoffReg);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 2, v.hardRst);
@@ -197,6 +198,52 @@ begin
          v.softRst := '1';
       end if;
 
+      ----------------------------------------------------------------------
+      -- Check for valid SOF
+      sofDet := ssiGetUserSof(AXIS_CONFIG_G, rxMaster);
+      if (rxMaster.tValid = '1') and (sofDet = '1') then
+
+         -- Reset the flag
+         v.hdrError := (others => '0');
+
+         -- Check for EOF
+         if (rxMaster.tLast = '1') then
+            v.hdrError(0) := '1';
+         end if;
+
+         -- Check for valid version field
+         if (rxMaster.tData(3 downto 0) /= x"1") then
+            v.hdrError(1) := '1';
+         end if;
+
+         -- Check for valid log2(TDATA_BYTES_C)
+         if (rxMaster.tData(7 downto 4) /= LOG2_WIDTH_C) then
+            v.hdrError(2) := '1';
+         end if;
+
+         -- Check for valid event frame index
+         if (rxMaster.tData(15 downto 8) /= r.seqCnt) then
+            v.hdrError(3) := '1';
+         end if;
+
+         -- Check for valid number of streams (zero inclusive)
+         if (rxMaster.tData(39 downto 32) /= NUM_MASTERS_G) then
+            v.hdrError(4) := '1';
+         end if;
+
+         -- Check that index in valid range
+         if (rxMaster.tData(47 downto 40) >= NUM_MASTERS_G) then
+            v.hdrError(5) := '1';
+         end if;
+
+         -- Check for valid event frame index
+         if (rxMaster.tData(55 downto 48) /= r.frameCnt) then
+            v.hdrError(6) := '1';
+         end if;
+
+      end if;
+      ----------------------------------------------------------------------
+
       -- AXIS flow control
       v.rxSlave.tReady := r.blowoff;
       for i in (NUM_MASTERS_G-1) downto 0 loop
@@ -204,39 +251,6 @@ begin
             v.txMasters(i).tValid := '0';
          end if;
       end loop;
-
-      -- Check for SOF
-      validHdr := ssiGetUserSof(AXIS_CONFIG_G, rxMaster);
-      sofDet   := ssiGetUserSof(AXIS_CONFIG_G, rxMaster);
-
-      -- Check for EOF
-      if (rxMaster.tLast = '1') then
-         validHdr      := '0';
-         v.simDebug(0) := ite(r.state = IDLE_S, sofDet, '0');
-      end if;
-
-      -- Check for valid version field
-      if (rxMaster.tData(7 downto 0) /= x"01") then
-         validHdr      := '0';
-         v.simDebug(1) := ite(r.state = IDLE_S, sofDet, '0');
-      end if;
-
-      if (rxMaster.tData(15 downto 8) >= NUM_MASTERS_G) then
-         validHdr      := '0';
-         v.simDebug(2) := ite(r.state = IDLE_S, sofDet, '0');
-      end if;
-
-      -- Check for valid event frame index
-      if (rxMaster.tData(23 downto 16) /= r.frameCnt) then
-         validHdr      := '0';
-         v.simDebug(3) := ite(r.state = IDLE_S, sofDet, '0');
-      end if;
-
-      -- Check for valid event frame index
-      if (rxMaster.tData(63 downto 48) /= r.seqCnt) then
-         validHdr      := '0';
-         v.simDebug(4) := ite(r.state = IDLE_S, sofDet, '0');
-      end if;
 
       -- State machine
       case r.state is
@@ -257,14 +271,14 @@ begin
                -- Accept the data
                v.rxSlave.tReady := '1';
 
-               -- Check for valid header
-               if (validHdr = '1') then
+               -- Check for valid header and SOF
+               if (v.hdrError = 0) and (sofDet = '1') then
 
                   -- Save the meta-data
-                  v.index      := conv_integer(rxMaster.tData(15 downto 8));
-                  v.numFrames  := rxMaster.tData(31 downto 24);
-                  v.tUserFirst := rxMaster.tData(39 downto 32);
-                  v.tDest      := rxMaster.tData(47 downto 40);
+                  v.index      := conv_integer(rxMaster.tData(47 downto 40));
+                  v.numFrames  := rxMaster.tData(63 downto 56);
+                  v.tUserFirst := rxMaster.tData(23 downto 16);
+                  v.tDest      := rxMaster.tData(31 downto 24);
 
                   -- Next state
                   v.state := MOVE_S;

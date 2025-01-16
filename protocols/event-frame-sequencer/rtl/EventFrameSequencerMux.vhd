@@ -69,6 +69,8 @@ end entity EventFrameSequencerMux;
 
 architecture rtl of EventFrameSequencerMux is
 
+   constant LOG2_WIDTH_C : slv(3 downto 0) := toSlv(log2(AXIS_CONFIG_G.TDATA_BYTES_C), 4);
+
    constant DEST_SIZE_C : integer := bitSize(NUM_SLAVES_G-1);
 
    type StateType is (
@@ -85,7 +87,7 @@ architecture rtl of EventFrameSequencerMux is
       sof            : sl;
       frameCnt       : slv(7 downto 0);
       numFrames      : slv(7 downto 0);
-      seqCnt         : slv(15 downto 0);
+      seqCnt         : slv(7 downto 0);
       bypass         : slv(NUM_SLAVES_G-1 downto 0);
       dataCnt        : Slv32Array(NUM_SLAVES_G-1 downto 0);
       transCnt       : slv(31 downto 0);
@@ -393,13 +395,15 @@ begin
                   ssiSetUserSof(AXIS_CONFIG_G, v.txMaster, '1');
 
                   -- HEADER context
-                  v.txMaster.tData(7 downto 0)   := x"01";     -- Version Field
-                  v.txMaster.tData(15 downto 8)  := toSlv(r.index, 8);  -- MUX Index
-                  v.txMaster.tData(23 downto 16) := r.frameCnt;  -- Event frame index
-                  v.txMaster.tData(31 downto 24) := r.numFrames;  -- Event frame Size (zero inclusive)
-                  v.txMaster.tData(39 downto 32) := rxMasters(r.index).tUser(7 downto 0);  -- TUSER_FIRST
-                  v.txMaster.tData(47 downto 40) := rxMasters(r.index).tDest;  -- TDEST
-                  v.txMaster.tData(63 downto 48) := r.seqCnt;  -- Sequence Counter
+                  v.txMaster.tData(3 downto 0)   := x"1";      -- Version Field
+                  v.txMaster.tData(7 downto 4)   := LOG2_WIDTH_C;  -- log2(TDATA_BYTES_C)
+                  v.txMaster.tData(15 downto 8)  := r.seqCnt;  -- Sequence Counter
+                  v.txMaster.tData(23 downto 16) := rxMasters(r.index).tUser(7 downto 0);  -- TUSER_FIRST
+                  v.txMaster.tData(31 downto 24) := rxMasters(r.index).tDest;  -- TDEST
+                  v.txMaster.tData(39 downto 32) := toSlv(NUM_SLAVES_G, 8);  -- Number of streams
+                  v.txMaster.tData(47 downto 40) := toSlv(r.index, 8);  -- MUX Index
+                  v.txMaster.tData(55 downto 48) := r.frameCnt;  -- Event frame index
+                  v.txMaster.tData(63 downto 56) := r.numFrames;  -- Event frame Size (zero inclusive)
 
                -- Check for the last transfer
                elsif (rxMasters(r.index).tLast = '1') then
