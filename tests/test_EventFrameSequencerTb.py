@@ -9,7 +9,6 @@
 ##############################################################################
 
 # dut_tb
-import itertools
 import logging
 import cocotb
 from cocotb.clock      import Clock
