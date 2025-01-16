@@ -394,23 +394,23 @@ begin
 
                   -- HEADER context
                   v.txMaster.tData(7 downto 0)   := x"01";     -- Version Field
-                  v.txMaster.tData(15 downto 8)  := toSlv(r.index, 8); -- MUX Index
+                  v.txMaster.tData(15 downto 8)  := toSlv(r.index, 8);  -- MUX Index
                   v.txMaster.tData(23 downto 16) := r.frameCnt;  -- Event frame index
                   v.txMaster.tData(31 downto 24) := r.numFrames;  -- Event frame Size (zero inclusive)
                   v.txMaster.tData(39 downto 32) := rxMasters(r.index).tUser(7 downto 0);  -- TUSER_FIRST
                   v.txMaster.tData(47 downto 40) := rxMasters(r.index).tDest;  -- TDEST
                   v.txMaster.tData(63 downto 48) := r.seqCnt;  -- Sequence Counter
 
-                  -- Increment frame counter
-                  if (r.accept(r.index) = '1') then
-                     v.frameCnt := r.frameCnt + 1;
-                  end if;
-
                -- Check for the last transfer
                elsif (rxMasters(r.index).tLast = '1') then
 
                   -- Rearm the flag
                   v.sof := '1';
+
+                  -- Increment frame counter
+                  if (r.accept(r.index) = '1') then
+                     v.frameCnt := r.frameCnt + 1;
+                  end if;
 
                   -- Check for last channel
                   if (r.index = NUM_SLAVES_G-1) then

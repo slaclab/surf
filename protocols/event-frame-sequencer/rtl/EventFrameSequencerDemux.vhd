@@ -68,6 +68,7 @@ architecture rtl of EventFrameSequencerDemux is
       seqCnt         : slv(15 downto 0);
       dataCnt        : Slv32Array(NUM_MASTERS_G-1 downto 0);
       dropCnt        : slv(31 downto 0);
+      simDebug       : slv(7 downto 0);
       index          : natural range 0 to NUM_MASTERS_G-1;
       tUserFirst     : slv(7 downto 0);
       tDest          : slv(7 downto 0);
@@ -90,6 +91,7 @@ architecture rtl of EventFrameSequencerDemux is
       seqCnt         => (others => '0'),
       dataCnt        => (others => (others => '0')),
       dropCnt        => (others => '0'),
+      simDebug       => (others => '0'),
       index          => 0,
       tUserFirst     => (others => '0'),
       tDest          => (others => '0'),
@@ -132,13 +134,15 @@ begin
       variable v        : RegType;
       variable axilEp   : AxiLiteEndPointType;
       variable validHdr : sl;
-      variable dbg    : slv(7 downto 0);
+      variable sofDet   : sl;
+      variable dbg      : slv(7 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Update the local variable
-      dbg := x"00";
+      v.simDebug := (others => '0');
+      dbg        := (others => '0');
       if (v.state = IDLE_S) then
          dbg(0) := '0';
       else
@@ -203,29 +207,35 @@ begin
 
       -- Check for SOF
       validHdr := ssiGetUserSof(AXIS_CONFIG_G, rxMaster);
+      sofDet   := ssiGetUserSof(AXIS_CONFIG_G, rxMaster);
 
       -- Check for EOF
       if (rxMaster.tLast = '1') then
-         validHdr := '0';
+         validHdr      := '0';
+         v.simDebug(0) := ite(r.state = IDLE_S, sofDet, '0');
       end if;
 
       -- Check for valid version field
       if (rxMaster.tData(7 downto 0) /= x"01") then
-         validHdr := '0';
+         validHdr      := '0';
+         v.simDebug(1) := ite(r.state = IDLE_S, sofDet, '0');
       end if;
 
       if (rxMaster.tData(15 downto 8) >= NUM_MASTERS_G) then
-         validHdr := '0';
+         validHdr      := '0';
+         v.simDebug(2) := ite(r.state = IDLE_S, sofDet, '0');
       end if;
 
       -- Check for valid event frame index
-      if (rxMaster.tData(24 downto 16) /= r.frameCnt) then
-         validHdr := '0';
+      if (rxMaster.tData(23 downto 16) /= r.frameCnt) then
+         validHdr      := '0';
+         v.simDebug(3) := ite(r.state = IDLE_S, sofDet, '0');
       end if;
 
       -- Check for valid event frame index
       if (rxMaster.tData(63 downto 48) /= r.seqCnt) then
-         validHdr := '0';
+         validHdr      := '0';
+         v.simDebug(4) := ite(r.state = IDLE_S, sofDet, '0');
       end if;
 
       -- State machine
@@ -309,14 +319,19 @@ begin
       -- Check for state transitioning from MOVE_S to IDLE_S
       if (r.state = MOVE_S) and (v.state = IDLE_S) then
 
-         -- Increment frame counter
+         -- Increment counters
          v.frameCnt         := r.frameCnt + 1;
-         v.seqCnt           := r.seqCnt + 1;
          v.dataCnt(r.index) := r.dataCnt(r.index) + 1;
 
          -- Check if reseting frame counters
          if (r.numFrames = r.frameCnt) then
+
+            -- Increment counter
+            v.seqCnt := r.seqCnt + 1;
+
+            -- Reset the counter
             v.frameCnt := (others => '0');
+
          end if;
 
       end if;
