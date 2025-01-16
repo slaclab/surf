@@ -116,6 +116,9 @@ begin
    assert (AXIS_CONFIG_G.TDATA_BYTES_C >= 8)
       report "AXIS_CONFIG_G.TDATA_BYTES_C must be >= 8" severity error;
 
+   assert (isPowerOf2(AXIS_CONFIG_G.TDATA_BYTES_C) = true)
+      report "AXIS_CONFIG_G.TDATA_BYTES_C must be power of 2" severity failure;
+
    -----------------
    -- Input pipeline
    -----------------

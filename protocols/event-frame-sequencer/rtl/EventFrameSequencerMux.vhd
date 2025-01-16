@@ -140,6 +140,9 @@ begin
    assert (AXIS_CONFIG_G.TDATA_BYTES_C >= 8)
       report "AXIS_CONFIG_G.TDATA_BYTES_C must be >= 8" severity error;
 
+   assert (isPowerOf2(AXIS_CONFIG_G.TDATA_BYTES_C) = true)
+      report "AXIS_CONFIG_G.TDATA_BYTES_C must be power of 2" severity failure;
+
    -------------------------
    -- Override Inbound TDEST
    -------------------------
@@ -402,7 +405,7 @@ begin
                   v.txMaster.tData(31 downto 24) := rxMasters(r.index).tDest;  -- TDEST
                   v.txMaster.tData(39 downto 32) := toSlv(NUM_SLAVES_G, 8);  -- Number of streams
                   v.txMaster.tData(47 downto 40) := toSlv(r.index, 8);  -- MUX Index
-                  v.txMaster.tData(55 downto 48) := r.frameCnt;  -- Event frame index
+                  v.txMaster.tData(55 downto 48) := r.frameCnt;  -- Event frame count
                   v.txMaster.tData(63 downto 56) := r.numFrames;  -- Event frame Size (zero inclusive)
 
                -- Check for the last transfer
