@@ -32,6 +32,7 @@ entity UdpEngineTx is
       -- UDP General Generic
       SIZE_G         : positive      := 1;
       TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      IS_CLIENT_G    : boolean       := false;
       PORT_G         : PositiveArray := (0 => 8192));
    port (
       -- Interface to IPV4 Engine
@@ -177,7 +178,7 @@ begin
             -- Check for data and remote MAC is non-zero
             elsif (ibMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
                -- Check if need to access ARP Table
-               if ibMasters(r.index).tDest = x"00" then
+               if ibMasters(r.index).tDest = x"00" or IS_CLIENT_G = false then
                   -- Check if link down and blowing off the data
                   if (r.linkUp(r.index) = '0') and TX_FLOW_CTRL_G then
                      -- Blow off the data

@@ -278,6 +278,7 @@ begin
             TPD_G          => TPD_G,
             SIZE_G         => CLIENT_SIZE_G,
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
+            IS_CLIENT_G    => true,
             PORT_G         => CLIENT_PORTS_G)
          port map (
             -- Interface to IPV4 Engine
