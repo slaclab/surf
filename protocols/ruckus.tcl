@@ -3,6 +3,7 @@ source $::env(RUCKUS_PROC_TCL)
 
 # Load ruckus files
 loadRuckusTcl "$::DIR_PATH/batcher"
+loadRuckusTcl "$::DIR_PATH/event-frame-sequencer"
 loadRuckusTcl "$::DIR_PATH/hamming-ecc"
 loadRuckusTcl "$::DIR_PATH/i2c"
 loadRuckusTcl "$::DIR_PATH/jesd204b"

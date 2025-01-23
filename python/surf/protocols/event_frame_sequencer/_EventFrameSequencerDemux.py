@@ -1,9 +1,4 @@
 #-----------------------------------------------------------------------------
-# Title      : PyRogue AXI-Lite Version Module
-#-----------------------------------------------------------------------------
-# Description:
-# PyRogue AXI-Lite Version Module
-#-----------------------------------------------------------------------------
 # This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
 # of this distribution and at:
@@ -15,11 +10,10 @@
 
 import pyrogue as pr
 
-class AxiStreamBatcherEventBuilder(pr.Device):
+class EventFrameSequencerDemux(pr.Device):
     def __init__(
             self,
             numberSlaves = 1,
-            tickUnit     = 'TBD',
             **kwargs):
         super().__init__(**kwargs)
 
@@ -34,31 +28,18 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             pollInterval = 1,
         )
 
-        self.addRemoteVariables(
-            name         = 'NullCnt',
-            description  = 'Increments every time a null frame is received',
-            offset       = 0x100,
-            bitSize      = 32,
+        self.add(pr.RemoteVariable(
+            name         = 'SeqCnt',
+            description  = 'Increments every time there is a frame sent',
+            offset       = 0xFBC,
+            bitSize      = 8,
             mode         = 'RO',
-            number       = numberSlaves,
-            stride       = 4,
             pollInterval = 1,
-        )
-
-        self.addRemoteVariables(
-            name         = 'TimeoutDropCnt',
-            description  = 'Increments every time a timeout slave channel drop event happens',
-            offset       = 0x200,
-            bitSize      = 32,
-            mode         = 'RO',
-            number       = numberSlaves,
-            stride       = 4,
-            pollInterval = 1,
-        )
+        ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TransactionCnt',
-            description  = 'Increments every time a transition frame is received',
+            name         = 'DropCnt',
+            description  = 'Increments every time a frame is dropped',
             offset       = 0xFC0,
             bitSize      = 32,
             mode         = 'RO',
@@ -66,33 +47,8 @@ class AxiStreamBatcherEventBuilder(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TRANS_TDEST_G',
-            description  = 'TRANS_TDEST_G generic value',
-            offset       = 0xFC4,
-            bitSize      = 8,
-            mode         = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'Bypass',
-            description  = 'Mask to bypass a channel',
-            offset       = 0xFD0,
-            bitSize      = numberSlaves,
-            mode         = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'Timeout',
-            description  = 'Sets the timer\'s timeout duration.  Setting to 0x0 (default) bypasses the timeout feature',
-            offset       = 0xFF0,
-            bitSize      = 32,
-            mode         = 'RW',
-            units        = tickUnit,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'NUM_SLAVES_G',
-            description  = 'NUM_SLAVES_G generic value',
+            name         = 'NUM_MASTERS_G',
+            description  = 'NUM_MASTERS_G generic value',
             offset       = 0xFF4,
             bitSize      = 8,
             mode         = 'RO',
@@ -120,6 +76,16 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             bitSize      =  1,
             bitOffset    =  16,
             base         = pr.Bool,
+            mode         = "RO",
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "HdrError",
+            description  = "Header error code when last frame dropped",
+            offset       =  0xFF4,
+            bitSize      =  8,
+            bitOffset    =  24,
             mode         = "RO",
             pollInterval = 1,
         ))
