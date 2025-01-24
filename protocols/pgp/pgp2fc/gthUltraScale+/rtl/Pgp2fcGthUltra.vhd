@@ -16,7 +16,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 
 library surf;
@@ -47,49 +48,49 @@ entity Pgp2fcGthUltra is
       NUM_VC_EN_G         : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk        : in  sl;                        -- GT needs a stable clock to "boot up"
-      stableRst        : in  sl;
-      gtRefClk         : in  sl;
-      gtFabricRefClk   : in  sl;
-      gtUserRefClk     : in  sl;
+      stableClk         : in  sl;                       -- GT needs a stable clock to "boot up"
+      stableRst         : in  sl;
+      gtRefClk          : in  sl;
+      gtFabricRefClk    : in  sl;
+      gtUserRefClk      : in  sl;
       -- Gt Serial IO
-      pgpGtTxP         : out sl;
-      pgpGtTxN         : out sl;
-      pgpGtRxP         : in  sl;
-      pgpGtRxN         : in  sl;
+      pgpGtTxP          : out sl;
+      pgpGtTxN          : out sl;
+      pgpGtRxP          : in  sl;
+      pgpGtRxN          : in  sl;
       -- Tx Clocking
-      pgpTxReset       : in  sl;
-      pgpTxResetDone   : out sl;
-      pgpTxOutClk      : out sl;                        -- recovered clock
-      pgpTxClk         : in  sl;
-      pgpTxMmcmLocked  : in  sl;
+      pgpTxReset        : in  sl;
+      pgpTxResetDone    : out sl;
+      pgpTxOutClk       : out sl;                       -- recovered clock
+      pgpTxClk          : in  sl;
+      pgpTxMmcmLocked   : in  sl;
       -- Rx clocking
-      pgpRxReset       : in  sl;
-      pgpRxResetDone   : out sl;
+      pgpRxReset        : in  sl;
+      pgpRxResetDone    : out sl;
       pgpRxPmaResetDone : out sl;
-      pgpRxOutClk      : out sl;                        -- recovered clock
-      pgpRxClk         : in  sl;
-      pgpRxMmcmLocked  : in  sl;
+      pgpRxOutClk       : out sl;                       -- recovered clock
+      pgpRxClk          : in  sl;
+      pgpRxMmcmLocked   : in  sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  Pgp2fcRxInType;
-      pgpRxOut         : out Pgp2fcRxOutType;
+      pgpRxIn           : in  Pgp2fcRxInType;
+      pgpRxOut          : out Pgp2fcRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  Pgp2fcTxInType;
-      pgpTxOut         : out Pgp2fcTxOutType;
+      pgpTxIn           : in  Pgp2fcTxInType;
+      pgpTxOut          : out Pgp2fcTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
+      pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
-      pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
+      pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed  : out AxiStreamMasterType;
+      pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
       -- AXI-Lite DRP interface
-      axilClk          : in  sl                               := '0';
-      axilRst          : in  sl                               := '0';
-      axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave    : out AxiLiteReadSlaveType;
-      axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave   : out AxiLiteWriteSlaveType);
+      axilClk           : in  sl                               := '0';
+      axilRst           : in  sl                               := '0';
+      axilReadMaster    : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave     : out AxiLiteReadSlaveType;
+      axilWriteMaster   : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave    : out AxiLiteWriteSlaveType);
 end Pgp2fcGthUltra;
 
 architecture mapping of Pgp2fcGthUltra is
@@ -111,7 +112,59 @@ architecture mapping of Pgp2fcGthUltra is
 
    signal phyRxInitSync : sl;
 
+   -------------------------------------------------------------------------------------------------
+   -- AXI Lite
+   -------------------------------------------------------------------------------------------------
+   constant NUM_AXIL_C      : natural := 2;
+   constant AXIL_GT_C       : natural := 0;
+   constant AXIL_RING_BUF_C : natural := 1;
+
+   constant AXIL_XBAR_CFG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_C-1 downto 0) := (
+      AXIL_GT_C       => (
+         baseAddr     => AXI_BASE_ADDR_G + X"0000",
+         addrBits     => 13,
+         connectivity => X"FFFF"),
+      AXIL_RING_BUF_C => (
+         baseAddr     => AXI_BASE_ADDR_G + X"2000",
+         addrBits     => 12,
+         connectivity => X"FFFF"));
+
+
+   signal locAxilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_C-1 downto 0);
+   signal locAxilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal locAxilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_C-1 downto 0);
+   signal locAxilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+
+   signal ringDataValue : slv(21 downto 0);
+   signal ringDataValid : sl;
+
+   signal pgpRxOutClkInt : sl;
+
 begin
+
+   pgpRxOutClk <= pgpRxOutClkInt;
+
+   -------------------------------------------------------------------------------------------------
+   -- AXIL Crossbar
+   -------------------------------------------------------------------------------------------------
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_C,
+         MASTERS_CONFIG_G   => AXIL_XBAR_CFG_C)
+      port map (
+         axiClk              => axilClk,
+         axiClkRst           => axilRst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => locAxilWriteMasters,
+         mAxiWriteSlaves     => locAxilWriteSlaves,
+         mAxiReadMasters     => locAxilReadMasters,
+         mAxiReadSlaves      => locAxilReadSlaves);
+
 
    pgpTxResetDone <= phyTxReady;
 
@@ -121,9 +174,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetGt,                          -- [in]
-         clk    => stableClk,                                -- [in]
-         rstOut => resetGtSync);                             -- [out]
+         arst   => pgpTxIn.resetGt,                        -- [in]
+         clk    => stableClk,                              -- [in]
+         rstOut => resetGtSync);                           -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
 
@@ -131,9 +184,9 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => stableClk,                               -- [in]
-         dataIn  => phyRxInit,                               -- [in]
-         dataOut => phyRxInitSync);                          -- [out]
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => phyRxInitSync);     -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
@@ -141,9 +194,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpRxIn.resetRx,                          -- [in]
-         clk    => stableClk,                                -- [in]
-         rstOut => resetRxSync);                             -- [out]
+         arst   => pgpRxIn.resetRx,                        -- [in]
+         clk    => stableClk,                              -- [in]
+         rstOut => resetRxSync);                           -- [out]
 
    gtRxUserReset <= phyRxInitSync or resetRxSync;
 
@@ -152,9 +205,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetTx,                          -- [in]
-         clk    => stableClk,                                -- [in]
-         rstOut => gtTxUserReset);                           -- [out]
+         arst   => pgpTxIn.resetTx,                        -- [in]
+         clk    => stableClk,                              -- [in]
+         rstOut => gtTxUserReset);                         -- [out]
 
    U_Pgp2fcLane : entity surf.Pgp2fcLane
       generic map (
@@ -216,7 +269,7 @@ begin
          rxDispErr       => phyRxLaneIn.dispErr,
          rxDecErr        => phyRxLaneIn.decErr,
          rxPolarity      => RX_POLARITY_G,
-         rxOutClk        => pgpRxOutClk,
+         rxOutClk        => pgpRxOutClkInt,
          txReset         => gtTxUserReset,
          txUsrClk        => pgpTxClk,
          txUsrClkActive  => pgpTxMmcmLocked,
@@ -228,9 +281,31 @@ begin
          loopback        => pgpRxIn.loopback,
          axilClk         => axilClk,
          axilRst         => axilRst,
-         axilReadMaster  => axilReadMaster,
-         axilReadSlave   => axilReadSlave,
-         axilWriteMaster => axilWriteMaster,
-         axilWriteSlave  => axilWriteSlave);
+         axilReadMaster  => locAxilReadMasters(AXIL_GT_C),
+         axilReadSlave   => locAxilReadSlaves(AXIL_GT_C),
+         axilWriteMaster => locAxilWriteMasters(AXIL_GT_C),
+         axilWriteSlave  => locAxilWriteSlaves(AXIL_GT_C));
 
+   ringDataValue <= phyRxLaneIn.decErr & phyRxLaneIn.dispErr & phyRxLaneIn.dataK & phyRxLaneIn.data;
+   ringDataValid <= phyRxReady;
+
+   U_AxiLiteRingBuffer_1 : entity surf.AxiLiteRingBuffer
+      generic map (
+         TPD_G            => TPD_G,
+         REG_EN_G         => true,
+         DATA_WIDTH_G     => 22,
+         RAM_ADDR_WIDTH_G => 10)
+      port map (
+         dataClk         => pgpRxOutClkInt,                        -- [in]
+         dataRst         => gtRxUserReset,                         -- [in]
+         dataValid       => ringDataValid,                         -- [in]
+         dataValue       => ringDataValue,                         -- [in]
+--          bufferEnable    => bufferEnable,     -- [in]
+--          bufferClear     => bufferClear,      -- [in]
+         axilClk         => axilClk,                               -- [in]
+         axilRst         => axilRst,                               -- [in]
+         axilReadMaster  => locAxilReadMasters(AXIL_RING_BUF_C),   -- [in]
+         axilReadSlave   => locAxilReadSlaves(AXIL_RING_BUF_C),    -- [out]
+         axilWriteMaster => locAxilWriteMasters(AXIL_RING_BUF_C),  -- [in]
+         axilWriteSlave  => locAxilWriteSlaves(AXIL_RING_BUF_C));  -- [out]
 end mapping;
