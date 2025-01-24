@@ -790,6 +790,16 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "EthMacTop", "classEthMacTop.html", null ],
       [ "AxiStreamShift", "classAxiStreamShift.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
+      [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "EventFrameSequencerMux", "classEventFrameSequencerMux.html", [
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+      ] ],
+      [ "EventFrameSequencerDemux", "classEventFrameSequencerDemux.html", [
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+      ] ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],

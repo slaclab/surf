@@ -2,8 +2,8 @@ var classSspLowSpeedDecoderLane_1_1mapping =
 [
     [ "PROCESS_164", "classSspLowSpeedDecoderLane_1_1mapping.html#acc08f58734d2daa64582a4ae41167753", null ],
     [ "PROCESS_165", "classSspLowSpeedDecoderLane_1_1mapping.html#a68634c212a047845ff0d3639c451341e", null ],
-    [ "PROCESS_374", "classSspLowSpeedDecoderLane_1_1mapping.html#a201c360c51244fa57f4473250019d522", null ],
-    [ "PROCESS_375", "classSspLowSpeedDecoderLane_1_1mapping.html#aa8619be81cefad02e429644309da35c1", null ],
+    [ "PROCESS_370", "classSspLowSpeedDecoderLane_1_1mapping.html#aa12ef5c81cf35ca666318fa3069e8b7d", null ],
+    [ "PROCESS_371", "classSspLowSpeedDecoderLane_1_1mapping.html#a6dfe3a6c92a8cc98c0b1910bc1ec02a4", null ],
     [ "ENCODE_WIDTH_C", "classSspLowSpeedDecoderLane_1_1mapping.html#a16290ab083988f6a91076955bf2fe022", null ],
     [ "deserDataMask", "classSspLowSpeedDecoderLane_1_1mapping.html#a148567c1b1a6f85b20d7f25042de823d", null ],
     [ "reset", "classSspLowSpeedDecoderLane_1_1mapping.html#ad34e37e385c9a1525d46086ac910da3e", null ],

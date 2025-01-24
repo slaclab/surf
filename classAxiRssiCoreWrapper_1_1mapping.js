@@ -1,7 +1,7 @@
 var classAxiRssiCoreWrapper_1_1mapping =
 [
     [ "PROCESS_79", "classAxiRssiCoreWrapper_1_1mapping.html#a4b46ca11df0819d7539c6d75d426474c", null ],
-    [ "PROCESS_362", "classAxiRssiCoreWrapper_1_1mapping.html#af6d17f36bd8a5acc48f54fd9606d05c5", null ],
+    [ "PROCESS_358", "classAxiRssiCoreWrapper_1_1mapping.html#ab81de9747160ae4c4d1945f73c9b9c7b", null ],
     [ "PACKETIZER_AXIS_CONFIG_C", "classAxiRssiCoreWrapper_1_1mapping.html#a84e1187da093f0a77b0feae34bcf7926", null ],
     [ "MAX_SEG_SIZE_C", "classAxiRssiCoreWrapper_1_1mapping.html#aa0901fa089c9ff33b980caab482666f3", null ],
     [ "MAX_SEGS_BITS_C", "classAxiRssiCoreWrapper_1_1mapping.html#a677c5274ebf1322c38e95acad7c03b45", null ],

@@ -34,6 +34,7 @@ var classXauiGtyUltraScaleWrapper =
     [ "gtTxPolarity", "classXauiGtyUltraScaleWrapper.html#acbcb9102f2e0595fcde0bcbe46831cae", null ],
     [ "gtClkP", "classXauiGtyUltraScaleWrapper.html#a883d0ff553fdee22931deee4f1afda39", null ],
     [ "gtClkN", "classXauiGtyUltraScaleWrapper.html#afa7be557217c729e7a8b41e438f94aa7", null ],
+    [ "gtClkOut", "classXauiGtyUltraScaleWrapper.html#a44b31b23b69e1e1d960f2887083eb528", null ],
     [ "gtTxP", "classXauiGtyUltraScaleWrapper.html#ae9964683c13c00f8d5d4a8357cb16c18", null ],
     [ "gtTxN", "classXauiGtyUltraScaleWrapper.html#a80613ee256ad54b6117548c8ea95b993", null ],
     [ "gtRxP", "classXauiGtyUltraScaleWrapper.html#a60b9e05521a239ae51ae4d1db6257512", null ],

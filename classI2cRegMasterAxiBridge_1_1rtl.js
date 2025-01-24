@@ -17,15 +17,15 @@ var classI2cRegMasterAxiBridge_1_1rtl =
     [ "I2C_DEV_AXI_ADDR_HIGH_C", "classI2cRegMasterAxiBridge_1_1rtl.html#a9766e710cc5c914c4915b0229ca88999", null ],
     [ "I2C_DEV_AXI_ADDR_RANGE_C", "classI2cRegMasterAxiBridge_1_1rtl.html#a224a4991fb81c28173f230d302428f79", null ],
     [ "RegType", "classI2cRegMasterAxiBridge_1_1rtl.html#a35f0a6888bd1c2e56754f97c77a534b9", null ],
-    [ "axiReadSlave~2235", "classI2cRegMasterAxiBridge_1_1rtl.html#aeb5945b1b62b6cef459ef6662b316102", null ],
-    [ "axiWriteSlave~2236", "classI2cRegMasterAxiBridge_1_1rtl.html#ae1d9f60da1fbb52dd4325dbf03aa9dc4", null ],
-    [ "i2cSelectOut~2237", "classI2cRegMasterAxiBridge_1_1rtl.html#a16a170533836ca3c6a50c757edb4fda1", null ],
-    [ "i2cRegMasterIn~2238", "classI2cRegMasterAxiBridge_1_1rtl.html#a8668e97518729f7b48cae04807d9284f", null ],
+    [ "axiReadSlave~2277", "classI2cRegMasterAxiBridge_1_1rtl.html#a4420961aaebd2c9d047f6b272b862e05", null ],
+    [ "axiWriteSlave~2278", "classI2cRegMasterAxiBridge_1_1rtl.html#a1279e7e4518a8ba04387e6b98071d8a2", null ],
+    [ "i2cSelectOut~2279", "classI2cRegMasterAxiBridge_1_1rtl.html#a24016028ec7cafe790f102621108bfcf", null ],
+    [ "i2cRegMasterIn~2280", "classI2cRegMasterAxiBridge_1_1rtl.html#acabd60d0d11003de2d48796c535e5d7e", null ],
     [ "REG_INIT_C", "classI2cRegMasterAxiBridge_1_1rtl.html#a2ac0303c03cdefda41790529a1869efa", null ],
     [ "r", "classI2cRegMasterAxiBridge_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classI2cRegMasterAxiBridge_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "axiReadSlave~4957", "classI2cRegMasterAxiBridge_1_1rtl.html#ace3587f05eff2154ba49fbf9795f77e4", null ],
-    [ "axiWriteSlave~4958", "classI2cRegMasterAxiBridge_1_1rtl.html#afc58528cc9b43f50c26a65e531208c19", null ],
-    [ "i2cSelectOut~4959", "classI2cRegMasterAxiBridge_1_1rtl.html#a9ed3a229f54939e4a0d40e7b573f0411", null ],
-    [ "i2cRegMasterIn~4960", "classI2cRegMasterAxiBridge_1_1rtl.html#a414c800d0f713359331603b0412e7954", null ]
+    [ "axiReadSlave~5041", "classI2cRegMasterAxiBridge_1_1rtl.html#a23b22cfc1a61b81cb9fccdbd5a5a62b0", null ],
+    [ "axiWriteSlave~5042", "classI2cRegMasterAxiBridge_1_1rtl.html#a1382f5b95af9410d8d5ff9e3966bd31f", null ],
+    [ "i2cSelectOut~5043", "classI2cRegMasterAxiBridge_1_1rtl.html#ae0a796860e5b7120ac2e2ca48ec1a1a4", null ],
+    [ "i2cRegMasterIn~5044", "classI2cRegMasterAxiBridge_1_1rtl.html#adf5ad3c0c9af50b39740e3af3b752710", null ]
 ];

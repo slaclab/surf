@@ -1,7 +1,7 @@
 var classAxiRssiCore_1_1rtl =
 [
     [ "PROCESS_78", "classAxiRssiCore_1_1rtl.html#a6f9000e798b29d0402c3a870544548c2", null ],
-    [ "PROCESS_361", "classAxiRssiCore_1_1rtl.html#a4e51d29b42828a3dd7da8f85504161cb", null ],
+    [ "PROCESS_357", "classAxiRssiCore_1_1rtl.html#abf4ce543237b8e92973af88cd63128b0", null ],
     [ "MAX_SEGS_BITS_C", "classAxiRssiCore_1_1rtl.html#ab8653e6296f3988728b20e0ccb2a4692", null ],
     [ "SEGMENT_ADDR_SIZE_C", "classAxiRssiCore_1_1rtl.html#acacfd20fd73fcbfa96ba262944e5f079", null ],
     [ "WINDOW_ADDR_SIZE_C", "classAxiRssiCore_1_1rtl.html#ab01518325091ec39f377f878e3e7d37a", null ],

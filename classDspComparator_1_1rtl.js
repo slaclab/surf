@@ -25,11 +25,11 @@ var classDspComparator_1_1rtl =
     [ "mData", "classDspComparator_1_1rtl.html#a14d4be0a1d218d565f4fb72d35ca96a4", null ],
     [ "use_dsp", "classDspComparator_1_1rtl.html#a98184ec445d3ef9f26bcaac687fba14d", null ],
     [ "use_dsp", "classDspComparator_1_1rtl.html#a37102861e124b3d978dc4769e3bfeed8", null ],
-    [ "ibReady~3969", "classDspComparator_1_1rtl.html#a49befdb91e79204795347f20bdf9aeb4", null ],
-    [ "tValid~3970", "classDspComparator_1_1rtl.html#a0e598689df1e1680d31449260b362ec7", null ],
-    [ "aout~3971", "classDspComparator_1_1rtl.html#a50162ea15231894e0a6f76d344976c5c", null ],
-    [ "bout~3972", "classDspComparator_1_1rtl.html#aadd0ac1236bba4360fcb2a6d7093d959", null ],
-    [ "diff~3973", "classDspComparator_1_1rtl.html#ac29e855cb9efc740bb5c9d7e798fb83c", null ],
+    [ "ibReady~4011", "classDspComparator_1_1rtl.html#ab7223a41efa12c2aab387f05b01308cd", null ],
+    [ "tValid~4012", "classDspComparator_1_1rtl.html#ac88f1758a2ab848416c76adeb5b6b8f8", null ],
+    [ "aout~4013", "classDspComparator_1_1rtl.html#a4db3e1a22a448dd1bf44729bd8e8d23e", null ],
+    [ "bout~4014", "classDspComparator_1_1rtl.html#a6ff31fdb947f511016d7ee894b3ea8c3", null ],
+    [ "diff~4015", "classDspComparator_1_1rtl.html#a4a5033b8aa7f4c3db8ab21b89946aa27", null ],
     [ "u_pipe", "classDspComparator_1_1rtl.html#a5b07930e2c90a4bca6f2b39abc6c9051", null ],
     [ "u_pipe", "classDspComparator_1_1rtl.html#a5b07930e2c90a4bca6f2b39abc6c9051", null ]
 ];

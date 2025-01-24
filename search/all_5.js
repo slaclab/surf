@@ -39,5 +39,8 @@ var searchData=
   ['ethmactxfifo_379',['EthMacTxFifo',['../classEthMacTxFifo.html',1,'']]],
   ['ethmactxpause_380',['EthMacTxPause',['../classEthMacTxPause.html',1,'']]],
   ['ethmactxrocev2_381',['EthMacTxRoCEv2',['../classEthMacTxRoCEv2.html',1,'']]],
-  ['ethmactxshift_382',['EthMacTxShift',['../classEthMacTxShift.html',1,'']]]
+  ['ethmactxshift_382',['EthMacTxShift',['../classEthMacTxShift.html',1,'']]],
+  ['eventframesequencerdemux_383',['EventFrameSequencerDemux',['../classEventFrameSequencerDemux.html',1,'']]],
+  ['eventframesequencermux_384',['EventFrameSequencerMux',['../classEventFrameSequencerMux.html',1,'']]],
+  ['eventframesequencertb_385',['EventFrameSequencerTb',['../classEventFrameSequencerTb.html',1,'']]]
 ];

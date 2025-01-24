@@ -1,7 +1,7 @@
 var classGth7AutoPhaseAligner_1_1RTL =
 [
-    [ "PROCESS_379", "classGth7AutoPhaseAligner_1_1RTL.html#adf0688d6d0d565b6f701819025208c43", null ],
-    [ "PROCESS_380", "classGth7AutoPhaseAligner_1_1RTL.html#a8d9568372b82f054fac093487415deb7", null ],
+    [ "PROCESS_375", "classGth7AutoPhaseAligner_1_1RTL.html#aae334e31d612c3d2ee03d49ec22cd3f3", null ],
+    [ "PROCESS_376", "classGth7AutoPhaseAligner_1_1RTL.html#af9037a50386f5270edf4b77e2ed726f9", null ],
     [ "phase_align_auto_fsm", "classGth7AutoPhaseAligner_1_1RTL.html#a902a7c3c44a55da79b02c5ee83513152", null ],
     [ "phalign_state", "classGth7AutoPhaseAligner_1_1RTL.html#af6da43176d04e43db604f5cb37a5364b", null ],
     [ "phaligndone_prev", "classGth7AutoPhaseAligner_1_1RTL.html#a611fdfc8342b2d63c7781bf46a32564d", null ],

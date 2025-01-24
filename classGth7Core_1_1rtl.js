@@ -3,7 +3,7 @@ var classGth7Core_1_1rtl =
     [ "getOutClkSelVal", "classGth7Core_1_1rtl.html#a78233e76fe73d5af6fb225a15bea6091", null ],
     [ "getDataWidth", "classGth7Core_1_1rtl.html#a80402db163e69be912011ec2b12fd37f", null ],
     [ "RX_DATA_8B10B_GLUE", "classGth7Core_1_1rtl.html#ac514028077313bb8fb19fd4507b109d9", null ],
-    [ "PROCESS_381", "classGth7Core_1_1rtl.html#a4aca6e850d80d841810e20ea47c432f2", null ],
+    [ "PROCESS_377", "classGth7Core_1_1rtl.html#a44cbe0eff38d38ee184198c70b7d5efb", null ],
     [ "TX_DATA_8B10B_GLUE", "classGth7Core_1_1rtl.html#a11dfcaefea39787c33b64c20fc0abae1", null ],
     [ "RX_SYSCLK_SEL_C", "classGth7Core_1_1rtl.html#a889499be69448ecf0060f42b7d3dd667", null ],
     [ "TX_SYSCLK_SEL_C", "classGth7Core_1_1rtl.html#a275613e21d0f2068a2cf997d143d6cad", null ],

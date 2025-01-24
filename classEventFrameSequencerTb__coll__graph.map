@@ -1,0 +1,12 @@
+<map id="EventFrameSequencerTb" name="EventFrameSequencerTb">
+<area shape="rect" id="node1" title=" " alt="" coords="613,132,797,159"/>
+<area shape="rect" id="node2" href="$classSlaveAxiStreamIpIntegrator.html" title=" " alt="" coords="357,5,559,32"/>
+<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="194,56,269,83"/>
+<area shape="rect" id="node5" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="353,56,563,83"/>
+<area shape="rect" id="node6" href="$classSlaveAxiLiteIpIntegrator.html" title=" " alt="" coords="369,107,547,133"/>
+<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
+<area shape="rect" id="node7" href="$classAxiLiteCrossbar.html" title=" " alt="" coords="396,157,520,184"/>
+<area shape="rect" id="node8" href="$classEventFrameSequencerMux.html" title=" " alt="" coords="360,208,556,235"/>
+<area shape="rect" id="node9" href="$classAxiStreamPipeline.html" title=" " alt="" coords="160,233,303,260"/>
+<area shape="rect" id="node10" href="$classEventFrameSequencerDemux.html" title=" " alt="" coords="351,259,565,285"/>
+</map>

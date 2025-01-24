@@ -1,12 +1,12 @@
 <map id="AxisJtagDebugBridge" name="AxisJtagDebugBridge">
-<area shape="rect" id="node1" title=" " alt="" coords="75,229,233,256"/>
-<area shape="rect" id="node6" href="$classAxisToJtagStubTb.html" title=" " alt="" coords="8,304,143,331"/>
-<area shape="rect" id="node7" href="$classUdpDebugBridge.html" title=" " alt="" coords="167,304,299,331"/>
-<area shape="rect" id="node2" href="$classAxisToJtag.html" title=" " alt="" coords="109,155,199,181"/>
-<area shape="rect" id="node3" href="$classAxiStreamSelector.html" title=" " alt="" coords="5,80,148,107"/>
-<area shape="rect" id="node4" href="$classAxisToJtagCore.html" title=" " alt="" coords="172,80,291,107"/>
-<area shape="rect" id="node5" href="$classJtagSerDesCore.html" title=" " alt="" coords="170,5,293,32"/>
-<area shape="rect" id="node8" href="$classUdpDebugBridgeWrapper.html" title=" " alt="" coords="139,379,326,405"/>
-<area shape="rect" id="node9" href="$classPgpXvcWrapper.html" title=" " alt="" coords="94,453,219,480"/>
-<area shape="rect" id="node10" href="$classDmaXvcWrapper.html" title=" " alt="" coords="244,453,376,480"/>
+<area shape="rect" id="node1" title=" " alt="" coords="143,229,302,256"/>
+<area shape="rect" id="node6" href="$classUdpDebugBridge.html" title=" " alt="" coords="78,304,210,331"/>
+<area shape="rect" id="node10" href="$classAxisToJtagStubTb.html" title=" " alt="" coords="234,304,369,331"/>
+<area shape="rect" id="node2" href="$classAxisToJtag.html" title=" " alt="" coords="178,155,267,181"/>
+<area shape="rect" id="node3" href="$classAxiStreamSelector.html" title=" " alt="" coords="74,80,217,107"/>
+<area shape="rect" id="node4" href="$classAxisToJtagCore.html" title=" " alt="" coords="241,80,359,107"/>
+<area shape="rect" id="node5" href="$classJtagSerDesCore.html" title=" " alt="" coords="239,5,361,32"/>
+<area shape="rect" id="node7" href="$classUdpDebugBridgeWrapper.html" title=" " alt="" coords="51,379,237,405"/>
+<area shape="rect" id="node8" href="$classPgpXvcWrapper.html" title=" " alt="" coords="5,453,131,480"/>
+<area shape="rect" id="node9" href="$classDmaXvcWrapper.html" title=" " alt="" coords="155,453,287,480"/>
 </map>

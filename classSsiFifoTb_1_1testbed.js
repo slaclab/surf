@@ -7,7 +7,7 @@ var classSsiFifoTb_1_1testbed =
     [ "trig", "classSsiFifoTb_1_1testbed.html#ad7bb349001e6296eb6d52701d9fe34c1", null ],
     [ "error_checking", "classSsiFifoTb_1_1testbed.html#ae9bc153c1c3a12be32f413ff3aebd977", null ],
     [ "results", "classSsiFifoTb_1_1testbed.html#a46cd0e1a5cf5d28d8a9911c1a999e66c", null ],
-    [ "PROCESS_368", "classSsiFifoTb_1_1testbed.html#ae5462f25564e1368e20b4b132718b2cd", null ],
+    [ "PROCESS_364", "classSsiFifoTb_1_1testbed.html#a0c0ea9319dac0034efdf5eeed7adaac0", null ],
     [ "CLK_PERIOD_C", "classSsiFifoTb_1_1testbed.html#a7fc59b87649ef252e1a1ecde846954fa", null ],
     [ "TPD_C", "classSsiFifoTb_1_1testbed.html#a05942d49cd262f52d913f55506e7ece3", null ],
     [ "TX_PACKET_LENGTH_C", "classSsiFifoTb_1_1testbed.html#a27381f54b00f0e62705665809d68f7a2", null ],
