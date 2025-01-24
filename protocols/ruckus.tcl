@@ -7,7 +7,6 @@ loadRuckusTcl "$::DIR_PATH/event-frame-sequencer"
 loadRuckusTcl "$::DIR_PATH/hamming-ecc"
 loadRuckusTcl "$::DIR_PATH/i2c"
 loadRuckusTcl "$::DIR_PATH/jesd204b"
-loadRuckusTcl "$::DIR_PATH/jtag"
 loadRuckusTcl "$::DIR_PATH/line-codes"
 loadRuckusTcl "$::DIR_PATH/mdio"
 loadRuckusTcl "$::DIR_PATH/packetizer"
@@ -30,5 +29,4 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/pmbus"
    loadRuckusTcl "$::DIR_PATH/salt"
    loadRuckusTcl "$::DIR_PATH/spi"
-   loadRuckusTcl "$::DIR_PATH/xvc-udp"
 }
