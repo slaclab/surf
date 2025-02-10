@@ -281,7 +281,7 @@ class AxiVersion(pr.Device):
             print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
             print("UpTime       = {}".format(self.UpTime.get()))
             if (gitHash != 0):
-                print("GitHash      = {}".format(hex(self.GitHash.get())))
+                print("GitHash      = {:040x}".format(self.GitHash.get()))
             else:
                 print("GitHash      = dirty (uncommitted code)")
             print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
