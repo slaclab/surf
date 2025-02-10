@@ -75,13 +75,13 @@ module CRegN5
    wire   [width - 1 : 0]  Q_OUT_3 ;
    wire   [width - 1 : 0]  Q_OUT_4 ;
    wire   [width - 1 : 0]  Q_OUT_5 ;
-   
+
    assign Q_OUT_1 = EN_0 ? D_IN_0 : Q_OUT_0 ;
    assign Q_OUT_2 = EN_1 ? D_IN_1 : Q_OUT_1 ;
    assign Q_OUT_3 = EN_2 ? D_IN_2 : Q_OUT_2 ;
    assign Q_OUT_4 = EN_3 ? D_IN_3 : Q_OUT_3 ;
    assign Q_OUT_5 = EN_4 ? D_IN_4 : Q_OUT_4 ;
-   
+
    always@(posedge CLK)
      begin
         if (RST == `BSV_RESET_VALUE)

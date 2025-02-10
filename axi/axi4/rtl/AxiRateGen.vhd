@@ -26,7 +26,7 @@ entity AxiRateGen is
    generic (
       TPD_G        : time    := 1 ns;
       COMMON_CLK_G : boolean := false;
-      AXI_CONFIG_G : AxiConfigType); 
+      AXI_CONFIG_G : AxiConfigType);
    port (
       -- AXI4 Memory Interface
       axiClk           : in  sl;
