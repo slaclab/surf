@@ -460,7 +460,7 @@ begin
       axiSlaveRegister(regCon, x"048", 0, v.fifoDin);
       axiWrDetect(regCon, x"048", v.wrFifoWr(0));
 
-      axiSlaveRegister(regCon, x"04C", 0, v.intAckCount(15 downto 0)); 
+      axiSlaveRegister(regCon, x"04C", 0, v.intAckCount(15 downto 0));
       axiSlaveRegister(regCon, x"04C", 17, v.intEnable);
       axiWrDetect(regCon, x"04C", v.intSwAckReq);
 
