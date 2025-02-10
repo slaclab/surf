@@ -2,8 +2,8 @@ var classFifoTbSubModule_1_1mapping =
 [
     [ "PROCESS_32", "classFifoTbSubModule_1_1mapping.html#aa54dd0b33ea67a2db0eac7b5a54d4a54", null ],
     [ "PROCESS_33", "classFifoTbSubModule_1_1mapping.html#a12b6ca47ba74a1bb353ffa42e22c7bf8", null ],
-    [ "PROCESS_107", "classFifoTbSubModule_1_1mapping.html#aea8d4ec3026b23369ffd9787f0f884ec", null ],
-    [ "PROCESS_108", "classFifoTbSubModule_1_1mapping.html#a8ff49484ebb8d761c2447b4b690efba3", null ],
+    [ "PROCESS_105", "classFifoTbSubModule_1_1mapping.html#a0f47043b79eccf21e45b18d0cbaa0309", null ],
+    [ "PROCESS_106", "classFifoTbSubModule_1_1mapping.html#a9295a4a4dc1305829e89fbb4e666344b", null ],
     [ "wrEn", "classFifoTbSubModule_1_1mapping.html#a2b183a5345440fbc5780e2525ab2b9a3", null ],
     [ "aFull", "classFifoTbSubModule_1_1mapping.html#a7ee584323d85ddbc7f10fccca3833df2", null ],
     [ "valid", "classFifoTbSubModule_1_1mapping.html#ab5592ae8c359e0a92f0a92e1fa036245", null ],

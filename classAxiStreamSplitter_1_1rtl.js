@@ -14,9 +14,9 @@ var classAxiStreamSplitter_1_1rtl =
     [ "REG_INIT_C", "classAxiStreamSplitter_1_1rtl.html#a4797da148c0dc6bb6429fd87c97ad49a", null ],
     [ "r", "classAxiStreamSplitter_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiStreamSplitter_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "masters~1948", "classAxiStreamSplitter_1_1rtl.html#ac82c33b87d467c90ae6524ec8b976554", null ],
-    [ "nready~1949", "classAxiStreamSplitter_1_1rtl.html#ab39378b46b870218ae9c303f21697775", null ],
-    [ "tSeq~1950", "classAxiStreamSplitter_1_1rtl.html#aa8002cc68ce419c3bcbab7014e202798", null ],
-    [ "first~1951", "classAxiStreamSplitter_1_1rtl.html#a73c500db0360c955257bb228d4ae6757", null ],
-    [ "slave~1952", "classAxiStreamSplitter_1_1rtl.html#a68a5592c86b0c6819284da7f7e4d0f5d", null ]
+    [ "masters~1879", "classAxiStreamSplitter_1_1rtl.html#ac4fd424c8430c741d714e7aa153e94d4", null ],
+    [ "nready~1880", "classAxiStreamSplitter_1_1rtl.html#aed42522dd857d6c7e422e51bc7d9fc3b", null ],
+    [ "tSeq~1881", "classAxiStreamSplitter_1_1rtl.html#afcee6e795c928eefe034bda5becda52d", null ],
+    [ "first~1882", "classAxiStreamSplitter_1_1rtl.html#ab7d4ce278e13519eaae1f42b8fce1006", null ],
+    [ "slave~1883", "classAxiStreamSplitter_1_1rtl.html#ac729a84e521848adc25022f55410395a", null ]
 ];

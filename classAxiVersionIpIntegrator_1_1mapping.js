@@ -1,7 +1,7 @@
 var classAxiVersionIpIntegrator_1_1mapping =
 [
     [ "PROCESS_0", "classAxiVersionIpIntegrator_1_1mapping.html#a2e5d2e6746ee01e9ec75454ae117359b", null ],
-    [ "PROCESS_98", "classAxiVersionIpIntegrator_1_1mapping.html#a880145a41645fc58302b1b37c0aa4575", null ],
+    [ "PROCESS_96", "classAxiVersionIpIntegrator_1_1mapping.html#a67d57986bcecd0cf50ccf40dd0389a49", null ],
     [ "ADDR_WIDTH_C", "classAxiVersionIpIntegrator_1_1mapping.html#a72f2bc7c06caf43dcb24a32b8d53242c", null ],
     [ "CLK_PERIOD_C", "classAxiVersionIpIntegrator_1_1mapping.html#ab872b639a4d4a674c64ea5ad3fdadf59", null ],
     [ "axilClk", "classAxiVersionIpIntegrator_1_1mapping.html#acd97a1862aa67d995d692dca4d8f0290", null ],

@@ -31,6 +31,7 @@ var classRssiConnFsm =
     [ "rxWindowSize_o", "classRssiConnFsm.html#aaa50ba2ed1f7200b70eb79934f030312", null ],
     [ "txBufferSize_o", "classRssiConnFsm.html#a4acb5ce1709986155063c107d6079211", null ],
     [ "txWindowSize_o", "classRssiConnFsm.html#a188acafb762410ead125a8f97ac14b1b", null ],
+    [ "connState_o", "classRssiConnFsm.html#acc9b093cebb005cd07d7d4c09b362413", null ],
     [ "peerTout_o", "classRssiConnFsm.html#ade967ce9636a089089787d4b647d05c6", null ],
     [ "paramReject_o", "classRssiConnFsm.html#a10fdce3ccc795002c1b132314bcc234a", null ],
     [ "ieee", "classRssiConnFsm.html#a0a6af6eef40212dbaf130d57ce711256", null ],

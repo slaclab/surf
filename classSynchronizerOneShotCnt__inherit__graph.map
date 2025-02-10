@@ -43,9 +43,9 @@
 <area shape="rect" id="node30" href="$classAxiStreamMuxTb.html" title=" " alt="" coords="1707,435,1841,461"/>
 <area shape="rect" id="node31" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="1699,485,1849,512"/>
 <area shape="rect" id="node32" href="$classfifo__tb.html" title=" " alt="" coords="1743,536,1805,563"/>
-<area shape="rect" id="node33" href="$classAxiRssiCoreTb.html" title=" " alt="" coords="1716,587,1832,613"/>
-<area shape="rect" id="node34" href="$classPgp4TxLiteTb.html" title=" " alt="" coords="1719,637,1829,664"/>
-<area shape="rect" id="node35" href="$classRssiInterleaveTb.html" title=" " alt="" coords="1709,688,1839,715"/>
-<area shape="rect" id="node36" href="$classSsiFifoTb.html" title=" " alt="" coords="1733,739,1815,765"/>
-<area shape="rect" id="node37" href="$classSsiPrbsTb.html" title=" " alt="" coords="1731,789,1817,816"/>
+<area shape="rect" id="node33" href="$classPgp4TxLiteTb.html" title=" " alt="" coords="1719,587,1829,613"/>
+<area shape="rect" id="node34" href="$classRssiInterleaveTb.html" title=" " alt="" coords="1709,637,1839,664"/>
+<area shape="rect" id="node35" href="$classSsiFifoTb.html" title=" " alt="" coords="1733,688,1815,715"/>
+<area shape="rect" id="node36" href="$classSsiPrbsTb.html" title=" " alt="" coords="1731,739,1817,765"/>
+<area shape="rect" id="node37" href="$classEthMacPauseTb.html" title=" " alt="" coords="1712,789,1836,816"/>
 </map>

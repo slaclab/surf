@@ -1,13 +1,10 @@
 <map id="RssiParamSync" name="RssiParamSync">
-<area shape="rect" id="node1" title=" " alt="" coords="79,80,200,107"/>
-<area shape="rect" id="node3" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="73,155,206,181"/>
-<area shape="rect" id="node2" href="$classSynchronizerVector.html" title=" " alt="" coords="66,5,213,32"/>
-<area shape="rect" id="node4" href="$classAxiRssiCore.html" title=" " alt="" coords="89,229,189,256"/>
-<area shape="rect" id="node7" href="$classRssiCore.html" title=" " alt="" coords="239,229,317,256"/>
-<area shape="rect" id="node5" href="$classAxiRssiCoreWrapper.html" title=" " alt="" coords="34,304,189,331"/>
-<area shape="rect" id="node6" href="$classAxiRssiCoreTb.html" title=" " alt="" coords="5,379,121,405"/>
-<area shape="rect" id="node8" href="$classRssiCoreWrapper.html" title=" " alt="" coords="237,304,372,331"/>
-<area shape="rect" id="node9" href="$classRssiCoreTb.html" title=" " alt="" coords="145,379,240,405"/>
-<area shape="rect" id="node10" href="$classRssiInterleaveTb.html" title=" " alt="" coords="265,379,395,405"/>
-<area shape="rect" id="node11" href="$classRawEthFramerTb.html" title=" " alt="" coords="419,379,553,405"/>
+<area shape="rect" id="node1" title=" " alt="" coords="129,80,251,107"/>
+<area shape="rect" id="node3" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="123,155,257,181"/>
+<area shape="rect" id="node2" href="$classSynchronizerVector.html" title=" " alt="" coords="117,5,263,32"/>
+<area shape="rect" id="node4" href="$classRssiCore.html" title=" " alt="" coords="151,229,229,256"/>
+<area shape="rect" id="node5" href="$classRssiCoreWrapper.html" title=" " alt="" coords="123,304,257,331"/>
+<area shape="rect" id="node6" href="$classRssiCoreTb.html" title=" " alt="" coords="5,379,100,405"/>
+<area shape="rect" id="node7" href="$classRssiInterleaveTb.html" title=" " alt="" coords="125,379,255,405"/>
+<area shape="rect" id="node8" href="$classRawEthFramerTb.html" title=" " alt="" coords="279,379,413,405"/>
 </map>

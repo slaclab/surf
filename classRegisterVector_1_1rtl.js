@@ -10,5 +10,5 @@ var classRegisterVector_1_1rtl =
     [ "REG_INIT_C", "classRegisterVector_1_1rtl.html#ae950f3e46dec0e536c101a782ba14a02", null ],
     [ "r", "classRegisterVector_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classRegisterVector_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "reg~2711", "classRegisterVector_1_1rtl.html#a26846512c7a32b53ffbcddb89f0007fb", null ]
+    [ "reg~2642", "classRegisterVector_1_1rtl.html#a8b3e610bd80c22104422afee8fb13b4f", null ]
 ];

@@ -1,6 +1,7 @@
 var classUdpEngine_1_1mapping =
 [
-    [ "clientRemoteDet", "classUdpEngine_1_1mapping.html#a0d94771b466b472a000f21e15ea5dfa6", null ],
+    [ "clientRemoteDetValid", "classUdpEngine_1_1mapping.html#a8d5ba7e02ee0e394aadd4b3768f4a00b", null ],
+    [ "clientRemoteDetIp", "classUdpEngine_1_1mapping.html#a6a94930f77d82f89f26462f8873a5178", null ],
     [ "clientRemoteMac", "classUdpEngine_1_1mapping.html#adc8d7b5759cd3975793d56cff84b5845", null ],
     [ "remotePort", "classUdpEngine_1_1mapping.html#ae8e1d6418f3adff7610a7333f166b06d", null ],
     [ "remoteIp", "classUdpEngine_1_1mapping.html#a07db72b54ec9254e10a1c80745765375", null ],
@@ -12,9 +13,17 @@ var classUdpEngine_1_1mapping =
     [ "obDhcpMaster", "classUdpEngine_1_1mapping.html#a2f5334b0fff1df6f472f082e5d91626e", null ],
     [ "obDhcpSlave", "classUdpEngine_1_1mapping.html#a475a7cd87cd9e3d50793a6b8a02d91be", null ],
     [ "localIp", "classUdpEngine_1_1mapping.html#adce9a4ebac3383383a80a778001948a6", null ],
+    [ "arpTabFound", "classUdpEngine_1_1mapping.html#adf4cadef11edd1af6677472fb0bcab64", null ],
+    [ "arpTabMacAddr", "classUdpEngine_1_1mapping.html#a19e013b3ddf65cc6f8e9982ef6768b3f", null ],
+    [ "arpTabIpAddr", "classUdpEngine_1_1mapping.html#ad0c8da6c49aaa3493887922cec1416de", null ],
+    [ "arpTabIpWe", "classUdpEngine_1_1mapping.html#a579e0e30639a5e17a840bc2a6180f4d8", null ],
+    [ "arpTabMacWe", "classUdpEngine_1_1mapping.html#a548683af3e57e34e4f7b99e86c2b4f18", null ],
+    [ "arpTabMacAddrW", "classUdpEngine_1_1mapping.html#aa5921a041f31dfe3ea86141ae5296bff", null ],
+    [ "arpTabPos", "classUdpEngine_1_1mapping.html#a68a837da0f392a37f686019d57837c86", null ],
     [ "u_udpenginerx", "classUdpEngine_1_1mapping.html#accfcd2cae78a93e5bbc77a6c5ba95149", null ],
     [ "u_udpenginedhcp", "classUdpEngine_1_1mapping.html#a10f4788e7433726e6cb6674579b0a807", null ],
     [ "u_udpenginetx", "classUdpEngine_1_1mapping.html#a6dad3609959517f2d4431c1034734612", null ],
+    [ "arpiptable_1", "classUdpEngine_1_1mapping.html#a38bef785dc5e2e460311155a38be1eb9", null ],
     [ "u_udpenginearp", "classUdpEngine_1_1mapping.html#afe2898eb307598a93b2572dddba86958", null ],
     [ "u_udpenginetx", "classUdpEngine_1_1mapping.html#a6dad3609959517f2d4431c1034734612", null ],
     [ "u_axistreammux", "classUdpEngine_1_1mapping.html#a754c0f40482e4caa804e164b23d52002", null ]

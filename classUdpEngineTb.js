@@ -9,5 +9,6 @@ var classUdpEngineTb =
     [ "StdRtlPkg", "classUdpEngineTb.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
     [ "AxiStreamPkg", "classUdpEngineTb.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
     [ "SsiPkg", "classUdpEngineTb.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "EthMacPkg", "classUdpEngineTb.html#ac1625414338993fe184c68bfdbb48894", null ]
+    [ "EthMacPkg", "classUdpEngineTb.html#ac1625414338993fe184c68bfdbb48894", null ],
+    [ "AxiLitePkg", "classUdpEngineTb.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
 ];

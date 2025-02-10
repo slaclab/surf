@@ -8,6 +8,7 @@ var classUdpEngine =
     [ "CLIENT_EN_G", "classUdpEngine.html#a3e853c8a199c76e19a71f79a5c2e2236", null ],
     [ "CLIENT_SIZE_G", "classUdpEngine.html#abf32a8f9430f10d2203ac2e14bf18251", null ],
     [ "CLIENT_PORTS_G", "classUdpEngine.html#a3a67940978cab2287ea02f4427242ab5", null ],
+    [ "ARP_TAB_ENTRIES_G", "classUdpEngine.html#ad9714ee5d0bd400238547e8a39741a5b", null ],
     [ "TX_FLOW_CTRL_G", "classUdpEngine.html#acc14b698dbfeb35ae8ad3602a0438cb5", null ],
     [ "DHCP_G", "classUdpEngine.html#a3115057ad7f7d7edb18c029269b4aa5a", null ],
     [ "IGMP_G", "classUdpEngine.html#a945388cc95d08e2e3fe82126cefda0d0", null ],

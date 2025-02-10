@@ -13,9 +13,9 @@ var classAxiStreamTrailerAppend_1_1rtl =
     [ "rin", "classAxiStreamTrailerAppend_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
     [ "pipeAxisMaster", "classAxiStreamTrailerAppend_1_1rtl.html#a97c9364528b895be56cde665ba2630e5", null ],
     [ "pipeAxisSlave", "classAxiStreamTrailerAppend_1_1rtl.html#a0f16d9b9212e56adf85dd6e1db5d7459", null ],
-    [ "obMaster~1953", "classAxiStreamTrailerAppend_1_1rtl.html#a97d43cf7b09a01ce881f804579208fb2", null ],
-    [ "ibSlaves~1954", "classAxiStreamTrailerAppend_1_1rtl.html#ab3e6a07cf144af086b1b19370866d34d", null ],
-    [ "sel~1955", "classAxiStreamTrailerAppend_1_1rtl.html#a7f508da53397093336f11d30d4a1c691", null ],
+    [ "obMaster~1884", "classAxiStreamTrailerAppend_1_1rtl.html#a691a8a13ebd8a8a81c8a7747d8c6eee4", null ],
+    [ "ibSlaves~1885", "classAxiStreamTrailerAppend_1_1rtl.html#ae87c9209eb234ecc39a1f8fa05f7c829", null ],
+    [ "sel~1886", "classAxiStreamTrailerAppend_1_1rtl.html#afb9e8dcadbc08f2b60298f533e799fe5", null ],
     [ "axistreampipeline_1", "classAxiStreamTrailerAppend_1_1rtl.html#ae8edc0156a44c2b4c251337348698ca9", null ],
     [ "axistreampipeline_1", "classAxiStreamTrailerAppend_1_1rtl.html#ae8edc0156a44c2b4c251337348698ca9", null ]
 ];

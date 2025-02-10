@@ -20,6 +20,8 @@ var classRssiRxFsm =
     [ "rxDropSeg_o", "classRssiRxFsm.html#ae16b439bf2fb823e4ed84936f56ae9ff", null ],
     [ "rxFlags_o", "classRssiRxFsm.html#a2d89f1c400a87bbe2167227c61ca6778", null ],
     [ "rxParam_o", "classRssiRxFsm.html#adec0228a18ffcd4e3a08a87b73103729", null ],
+    [ "rxTspState_o", "classRssiRxFsm.html#a53d1ee2f26683f988cb265d78e19e4dc", null ],
+    [ "rxAppState_o", "classRssiRxFsm.html#a55e936c19754fa5002d7f400bd534e61", null ],
     [ "chksumValid_i", "classRssiRxFsm.html#a43760840cce33e8e01a316e27d612a70", null ],
     [ "chksumOk_i", "classRssiRxFsm.html#afeadfb62ece082708acdd8170d72d08c", null ],
     [ "chksumEnable_o", "classRssiRxFsm.html#a54d26e4ea00db6212d4f256c9aa6cdcc", null ],

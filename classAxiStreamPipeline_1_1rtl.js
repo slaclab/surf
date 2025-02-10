@@ -13,7 +13,7 @@ var classAxiStreamPipeline_1_1rtl =
     [ "REG_INIT_C", "classAxiStreamPipeline_1_1rtl.html#af246671556c8ee8b62555f42aade59c0", null ],
     [ "r", "classAxiStreamPipeline_1_1rtl.html#a002ccf41e57c40fb0b07dcc8b2ce85a9", null ],
     [ "rin", "classAxiStreamPipeline_1_1rtl.html#ade4de2a008a5f96235206eb18081481c", null ],
-    [ "sAxisSlave~1845", "classAxiStreamPipeline_1_1rtl.html#af6ed7f2985c2e86c1c6ababf07c42384", null ],
-    [ "mAxisMaster~1846", "classAxiStreamPipeline_1_1rtl.html#a6a2ec6b587e865288a11aaf03423979e", null ],
-    [ "mSideBand~1847", "classAxiStreamPipeline_1_1rtl.html#a3d282cda6e4b73c1f8da816f50017ea6", null ]
+    [ "sAxisSlave~1776", "classAxiStreamPipeline_1_1rtl.html#abb8cb8882cd90e93a4658872d67a54ed", null ],
+    [ "mAxisMaster~1777", "classAxiStreamPipeline_1_1rtl.html#afb97d175f719ec040b47ca7fefe20b46", null ],
+    [ "mSideBand~1778", "classAxiStreamPipeline_1_1rtl.html#af8ae46dc0992d04cc929f87439e7f591", null ]
 ];

@@ -1,8 +1,7 @@
 <map id="AxiRam" name="AxiRam">
 <area shape="rect" id="node1" title=" " alt="" coords="280,80,353,107"/>
-<area shape="rect" id="node5" href="$classAxiRamTb.html" title=" " alt="" coords="145,155,235,181"/>
-<area shape="rect" id="node6" href="$classAxiRssiCoreTb.html" title=" " alt="" coords="259,155,375,181"/>
-<area shape="rect" id="node7" href="$classSrpV3AxiTb.html" title=" " alt="" coords="399,155,496,181"/>
+<area shape="rect" id="node5" href="$classAxiRamTb.html" title=" " alt="" coords="213,155,303,181"/>
+<area shape="rect" id="node6" href="$classSrpV3AxiTb.html" title=" " alt="" coords="327,155,424,181"/>
 <area shape="rect" id="node2" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,32"/>
 <area shape="rect" id="node3" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,32"/>
 <area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="445,5,599,32"/>

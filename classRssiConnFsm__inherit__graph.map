@@ -1,11 +1,8 @@
 <map id="RssiConnFsm" name="RssiConnFsm">
-<area shape="rect" id="node1" title=" " alt="" coords="84,5,195,32"/>
-<area shape="rect" id="node2" href="$classAxiRssiCore.html" title=" " alt="" coords="89,80,189,107"/>
-<area shape="rect" id="node5" href="$classRssiCore.html" title=" " alt="" coords="227,80,305,107"/>
-<area shape="rect" id="node3" href="$classAxiRssiCoreWrapper.html" title=" " alt="" coords="34,155,189,181"/>
-<area shape="rect" id="node4" href="$classAxiRssiCoreTb.html" title=" " alt="" coords="5,229,121,256"/>
-<area shape="rect" id="node6" href="$classRssiCoreWrapper.html" title=" " alt="" coords="237,155,372,181"/>
-<area shape="rect" id="node7" href="$classRssiCoreTb.html" title=" " alt="" coords="145,229,240,256"/>
-<area shape="rect" id="node8" href="$classRssiInterleaveTb.html" title=" " alt="" coords="265,229,395,256"/>
-<area shape="rect" id="node9" href="$classRawEthFramerTb.html" title=" " alt="" coords="419,229,553,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="135,5,245,32"/>
+<area shape="rect" id="node2" href="$classRssiCore.html" title=" " alt="" coords="151,80,229,107"/>
+<area shape="rect" id="node3" href="$classRssiCoreWrapper.html" title=" " alt="" coords="123,155,257,181"/>
+<area shape="rect" id="node4" href="$classRssiCoreTb.html" title=" " alt="" coords="5,229,100,256"/>
+<area shape="rect" id="node5" href="$classRssiInterleaveTb.html" title=" " alt="" coords="125,229,255,256"/>
+<area shape="rect" id="node6" href="$classRawEthFramerTb.html" title=" " alt="" coords="279,229,413,256"/>
 </map>
