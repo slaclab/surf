@@ -153,7 +153,7 @@ architecture rtl of AxiRingBuffer is
       wrdOffset      : slv(AXI_BURST_RANGE_C);
       -- AXI/State Signals
       axiWriteMaster : AxiWriteMasterType;
-      axiReadMaster  : AxiReadMasterType;
+      mAxiReadMaster : AxiReadMasterType;
       txMaster       : AxiStreamMasterType;
       readSlave      : AxiLiteReadSlaveType;
       writeSlave     : AxiLiteWriteSlaveType;
@@ -186,7 +186,7 @@ architecture rtl of AxiRingBuffer is
       wrdOffset      => (others => '0'),
       -- AXI/State Signals
       axiWriteMaster => AXI_WR_MST_INIT_C,
-      axiReadMaster  => AXI_RD_MST_INIT_C,
+      mAxiReadMaster => AXI_RD_MST_INIT_C,
       txMaster       => axiStreamMasterInit(AXIS_CONFIG_C),
       readSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave     => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -197,8 +197,6 @@ architecture rtl of AxiRingBuffer is
 
    signal axiWriteMaster : AxiWriteMasterType;
    signal axiWriteSlave  : AxiWriteSlaveType;
-   signal axiReadMaster  : AxiReadMasterType;
-   signal axiReadSlave   : AxiReadSlaveType;
 
    signal readMaster  : AxiLiteReadMasterType;
    signal writeMaster : AxiLiteWriteMasterType;
@@ -214,8 +212,6 @@ begin
 
    assert (isPowerOf2(BURST_BYTES_G) = true)
       report "BURST_BYTES_G must be power of 2" severity failure;
-
-   axiReadSlave <= mAxiReadSlave;
 
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
@@ -238,8 +234,8 @@ begin
          mAxiWriteMaster => writeMaster,
          mAxiWriteSlave  => r.writeSlave);
 
-   comb : process (axiReadSlave, axiWriteSlave, bramData, dataRst, dataValid,
-                   dataValue, extTrig, r, readMaster, txSlave, writeMaster) is
+   comb : process (axiWriteSlave, bramData, dataRst, dataValid, dataValue,
+                   extTrig, mAxiReadSlave, r, readMaster, txSlave, writeMaster) is
       variable v       : RegType;
       variable axilEp  : AxiLiteEndPointType;
       variable trigger : sl;
@@ -310,9 +306,9 @@ begin
       end if;
 
       -- Read AXI Flow Control
-      v.axiReadMaster.rready := '0';
-      if axiReadSlave.arready = '1' then
-         v.axiReadMaster.arvalid := '0';
+      v.mAxiReadMaster.rready := '0';
+      if mAxiReadSlave.arready = '1' then
+         v.mAxiReadMaster.arvalid := '0';
       end if;
 
       -- AXI Stream Flow Control
@@ -430,11 +426,11 @@ begin
             v.bramAddr := (others => '0');
 
             -- Check if ready
-            if (v.axiReadMaster.arvalid = '0') then
+            if (v.mAxiReadMaster.arvalid = '0') then
 
                -- Write Address channel
-               v.axiReadMaster.arvalid                 := '1';
-               v.axiReadMaster.araddr(AXI_BUF_RANGE_C) := r.memIdx;
+               v.mAxiReadMaster.arvalid                 := '1';
+               v.mAxiReadMaster.araddr(AXI_BUF_RANGE_C) := r.memIdx;
 
                -- Next State
                v.state := RD_AXI_DATA_S;
@@ -443,16 +439,16 @@ begin
          ----------------------------------------------------------------------
          when RD_AXI_DATA_S =>
             -- Check for new data
-            if (axiReadSlave.rvalid = '1') and (v.txMaster.tValid = '0') then
+            if (mAxiReadSlave.rvalid = '1') and (v.txMaster.tValid = '0') then
 
                -- Accept the data
-               v.axiReadMaster.rready := '1';
+               v.mAxiReadMaster.rready := '1';
 
                -- Increment the counter
                v.memIdx := r.memIdx + DATA_BYTES_G;
 
                -- Set the data bus
-               v.txMaster.tData(8*DATA_BYTES_G-1 downto 0) := axiReadSlave.rdata(8*DATA_BYTES_G-1 downto 0);
+               v.txMaster.tData(8*DATA_BYTES_G-1 downto 0) := mAxiReadSlave.rdata(8*DATA_BYTES_G-1 downto 0);
 
                -- Check word offset
                if (r.wrdOffset = 0) then
@@ -488,7 +484,7 @@ begin
                      v.state := RD_BRAM_S;
 
                   -- Check for last transfer
-                  elsif (axiReadSlave.rlast = '1') then
+                  elsif (mAxiReadSlave.rlast = '1') then
 
                      -- Next State
                      v.state := RD_AXI_ADDR_S;
@@ -501,7 +497,7 @@ begin
                   v.wrdOffset := r.wrdOffset - 1;
 
                   -- Check for last transfer
-                  if (axiReadSlave.rlast = '1') then
+                  if (mAxiReadSlave.rlast = '1') then
                      -- Next State
                      v.state := RD_AXI_ADDR_S;
                   end if;
@@ -573,8 +569,8 @@ begin
       axiWriteMaster.bready <= v.axiWriteMaster.bready;
 
       -- AXI4 Read Outputs
-      axiReadMaster        <= r.axiReadMaster;
-      axiReadMaster.rready <= v.axiReadMaster.rready;
+      mAxiReadMaster        <= r.mAxiReadMaster;
+      mAxiReadMaster.rready <= v.mAxiReadMaster.rready;
 
       -- Reset
       if (dataRst = '1') then
@@ -640,15 +636,6 @@ begin
          TPD_G                  => TPD_G,
          -- General FIFO configurations
          GEN_SYNC_FIFO_G        => true,
-         -- Bit Optimizations
-         ADDR_LSB_G             => BURST_BITSIZE_C,
-         ID_FIXED_EN_G          => true,
-         SIZE_FIXED_EN_G        => true,
-         BURST_FIXED_EN_G       => true,
-         LEN_FIXED_EN_G         => true,
-         LOCK_FIXED_EN_G        => true,
-         PROT_FIXED_EN_G        => true,
-         CACHE_FIXED_EN_G       => true,
          -- Address FIFO Config
          ADDR_MEMORY_TYPE_G     => "distributed",
          ADDR_FIFO_ADDR_WIDTH_G => 4,
