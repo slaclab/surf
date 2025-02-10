@@ -132,7 +132,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       maxSize     : slv(31 downto 0);
       contEn      : sl;
       dropEn      : sl;
-      metaEnable  : sl;
       enable      : sl;
       forceInt    : sl;
       intEnable   : sl;
@@ -210,7 +209,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       maxSize         => (others => '0'),
       contEn          => '0',
       dropEn          => '0',
-      metaEnable      => '0',
       enable          => '0',
       forceInt        => '0',
       intEnable       => '0',
@@ -462,7 +460,7 @@ begin
       axiSlaveRegister(regCon, x"048", 0, v.fifoDin);
       axiWrDetect(regCon, x"048", v.wrFifoWr(0));
 
-      axiSlaveRegister(regCon, x"04C", 0, v.intAckCount(15 downto 0));
+      axiSlaveRegister(regCon, x"04C", 0, v.intAckCount(15 downto 0)); 
       axiSlaveRegister(regCon, x"04C", 17, v.intEnable);
       axiWrDetect(regCon, x"04C", v.intSwAckReq);
 
@@ -484,8 +482,6 @@ begin
       axiSlaveRegister(regCon, x"080", 0, v.forceInt);
 
       axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
-
-      axiSlaveRegister(regCon, x"088", 0, v.metaEnable);
 
       for i in 0 to 7 loop
          axiSlaveRegister(regCon, toSlv(144 + i*4, 12), 0, v.idBuffThold(i));  -- 0x090 - 0xAC
@@ -583,7 +579,6 @@ begin
 
             v.dmaWrDescAck(i).dropEn  := r.dropEn;
             v.dmaWrDescAck(i).contEn  := r.contEn;
-            v.dmaWrDescAck(i).metaEnable  := r.metaEnable;
             v.dmaWrDescAck(i).maxSize := r.maxSize;
 
             v.dmaWrDescAck(i).buffId(27 downto 0) := wrFifoDout(27 downto 0);
