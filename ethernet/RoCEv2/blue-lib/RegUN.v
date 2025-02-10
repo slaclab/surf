@@ -25,7 +25,7 @@ module RegUN(CLK, EN, D_IN, Q_OUT);
    // synopsys translate_on
 `endif // BSV_NO_INITIAL_BLOCKS
 
-   
+
    always@(posedge CLK)
      begin
         if (EN)

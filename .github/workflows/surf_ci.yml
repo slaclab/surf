@@ -44,6 +44,13 @@ jobs:
           git clone https://github.com/slaclab/ruckus.git
           pip install -r ruckus/scripts/pip_requirements.txt
 
+      - name: Check for trailing whitespace
+        run: |
+          if grep -rnI '[[:blank:]]$' --include=\*.{vhd,v,tcl,py} .; then
+            echo "Error: Trailing whitespace found in the repository!"
+            exit 1
+          fi
+
       - name: Python Syntax and Linter Checking
         run: |
           python -m compileall -f python/ scripts/ tests/

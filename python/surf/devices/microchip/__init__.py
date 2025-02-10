@@ -10,3 +10,4 @@
 from surf.devices.microchip._Axi24LC64FT import *
 from surf.devices.microchip._AxiSy56040 import *
 from surf.devices.microchip._Tcn75a import *
+from surf.devices.microchip._Sy89297 import *
