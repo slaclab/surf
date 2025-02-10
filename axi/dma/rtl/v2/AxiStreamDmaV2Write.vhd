@@ -500,7 +500,11 @@ begin
                   -- -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      v.dmaWrTrack.inUse := '0';
-                     v.state := META_S;
+                     if r.dmaWrTrack.metaEnable = '1' then
+                        v.state := META_S;
+                     else
+                        v.state := RETURN_S;
+                     end if;
                   end if;
                end if;
             end if;
