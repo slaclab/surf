@@ -262,8 +262,8 @@ begin
       axiSlaveRegisterR(axilEp, x"00", 0, AXI_BASE_ADDR_G);  -- 64-bits
 
       axiSlaveRegisterR(axilEp, x"08", 0, toSlv(DATA_BYTES_G, 8));
-      axiSlaveRegisterR(axilEp, x"08", 8, toSlv(BURST_BYTES_G, 8));
-      axiSlaveRegisterR(axilEp, x"08", 16, toSlv(RING_BUFF_ADDR_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"08", 8, toSlv(BURST_BYTES_G, 16));
+      axiSlaveRegisterR(axilEp, x"08", 24, toSlv(RING_BUFF_ADDR_WIDTH_G, 8));
 
       axiSlaveRegisterR(axilEp, x"0C", 0, toSlv(DATA_BITSIZE_C, 8));
       axiSlaveRegisterR(axilEp, x"0C", 8, toSlv(BURST_BITSIZE_C, 8));
