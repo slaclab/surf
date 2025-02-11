@@ -29,14 +29,15 @@ entity AxiRingBuffer is
       TPD_G                  : time                     := 1 ns;
       SYNTH_MODE_G           : string                   := "inferred";
       MEMORY_TYPE_G          : string                   := "block";
+      CONTINUOUS_DEFAULT_G   : sl                       := '0';
       -- Ring buffer Configurations
       DATA_BYTES_G           : positive                 := 8;  -- Units of bits
-      RING_BUFF_ADDR_WIDTH_G : positive                 := 9;  -- Units of data words
+      RING_BUFF_ADDR_WIDTH_G : positive                 := 9;  -- Units of 2^(data words)
       -- AXI4 Configurations
       AXI_BASE_ADDR_G        : slv(63 downto 0)         := (others => '0');
       BURST_BYTES_G          : positive range 1 to 4096 := 4096;
       -- AXI Stream Configurations
-      AXI_STREAM_CONFIG_G    : AxiStreamConfigType      := AXI_STREAM_CONFIG_INIT_C);
+      AXI_STREAM_CONFIG_G    : AxiStreamConfigType);
    port (
       -- Data to store in ring buffer (dataClk domain)
       dataClk         : in  sl;
@@ -137,7 +138,7 @@ architecture rtl of AxiRingBuffer is
       dataValue      : slv(8*DATA_BYTES_G-1 downto 0);
       extTrig        : sl;
       softTrig       : sl;
-      continousMode  : sl;
+      continuousMode : sl;
       -- BRAM signals
       bramWe         : sl;
       bramWrCnt      : slv(BURST_BITSIZE_C-1 downto 0);
@@ -170,7 +171,7 @@ architecture rtl of AxiRingBuffer is
       dataValue      => (others => '0'),
       extTrig        => '0',
       softTrig       => '0',
-      continousMode  => '0',
+      continuousMode => CONTINUOUS_DEFAULT_G,
       -- BRAM signals
       bramWe         => '0',
       bramWrCnt      => (others => '0'),
@@ -195,8 +196,8 @@ architecture rtl of AxiRingBuffer is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal axiWriteMaster : AxiWriteMasterType;
-   signal axiWriteSlave  : AxiWriteSlaveType;
+   signal axiWriteMaster : AxiWriteMasterType := AXI_WRITE_MASTER_INIT_C;
+   signal axiWriteSlave  : AxiWriteSlaveType  := AXI_WRITE_SLAVE_INIT_C;
 
    signal readMaster  : AxiLiteReadMasterType;
    signal writeMaster : AxiLiteWriteMasterType;
@@ -273,7 +274,7 @@ begin
       axiSlaveRegisterR(axilEp, x"14", 0, r.dropTrigCnt);
       axiSlaveRegisterR(axilEp, x"18", 0, r.wrErrCnt);
 
-      axiSlaveRegister (axilEp, x"80", 0, v.continousMode);
+      axiSlaveRegister (axilEp, x"80", 0, v.continuousMode);
       axiSlaveRegister (axilEp, x"F8", 0, v.softTrig);
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
 
@@ -291,7 +292,7 @@ begin
 
       -- Update the trigger
       trigger := r.extTrig or r.softTrig;
-      if (r.continousMode = '1') and (r.ready = '1') and (r.armed = '0') then
+      if (r.continuousMode = '1') and (r.ready = '1') and (r.armed = '0') then
          trigger := '1';
       end if;
 
@@ -494,7 +495,7 @@ begin
                else
 
                   -- Decrement the counter
-                  v.wrdOffset := r.wrdOffset - 1;
+                  v.wrdOffset := r.wrdOffset - DATA_BYTES_G;
 
                   -- Check for last transfer
                   if (mAxiReadSlave.rlast = '1') then
