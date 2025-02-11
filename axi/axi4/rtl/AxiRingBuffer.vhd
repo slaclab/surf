@@ -29,7 +29,6 @@ entity AxiRingBuffer is
       TPD_G                  : time                     := 1 ns;
       SYNTH_MODE_G           : string                   := "inferred";
       MEMORY_TYPE_G          : string                   := "block";
-      CONTINUOUS_DEFAULT_G   : sl                       := '0';
       -- Ring buffer Configurations
       DATA_BYTES_G           : positive                 := 8;  -- Units of bits
       RING_BUFF_ADDR_WIDTH_G : positive                 := 9;  -- Units of 2^(data words)
@@ -144,7 +143,7 @@ architecture rtl of AxiRingBuffer is
       bramWrCnt      : slv(BURST_BITSIZE_C-1 downto 0);
       bramAddr       : slv(BURST_BITSIZE_C-1 downto 0);
       bramWrDat      : slv(8*DATA_BYTES_G-1 downto 0);
-      bramLat        : slv(3 downto 0);
+      bramLat        : slv(1 downto 0);
       -- Ring buffer controls
       ready          : sl;
       armed          : sl;
@@ -171,7 +170,7 @@ architecture rtl of AxiRingBuffer is
       dataValue      => (others => '0'),
       extTrig        => '0',
       softTrig       => '0',
-      continuousMode => CONTINUOUS_DEFAULT_G,
+      continuousMode => '0',
       -- BRAM signals
       bramWe         => '0',
       bramWrCnt      => (others => '0'),
@@ -250,7 +249,7 @@ begin
       v.softTrig := '0';
 
       -- Update shift register
-      v.bramLat := '0' & r.bramLat(3 downto 1);
+      v.bramLat := '0' & r.bramLat(1);
 
       ----------------------------------------------------------------------
       --                AXI-Lite Register Logic
@@ -338,8 +337,8 @@ begin
                   -- Increment the counter
                   v.readoutCnt := r.readoutCnt + 1;
 
-                  -- Save the write index
-                  v.wrdOffset := r.memIdx(AXI_BURST_RANGE_C) + DATA_BYTES_G;
+                  -- Save the write index offset
+                  v.wrdOffset := r.memIdx(AXI_BURST_RANGE_C);
 
                else
                   -- Increment the counter

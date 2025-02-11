@@ -31,7 +31,8 @@ architecture testbed of AxiRingBufferTb is
    constant CLK_PERIOD_C : time := 10 ns;
    constant TPD_G        : time := CLK_PERIOD_C/4;
 
-   constant DATA_BYTES_C           : positive := 4;  -- Units of bytes
+   constant DATA_BYTES_C           : positive := 4;   -- Units of bytes
+   constant BURST_BYTES_C          : positive := 256;  -- Units of bytes
    constant RING_BUFF_ADDR_WIDTH_C : positive := 10;  -- Units of 2^(data words)
 
    constant DATA_BITSIZE_C : positive := log2(DATA_BYTES_C);
@@ -51,17 +52,28 @@ architecture testbed of AxiRingBufferTb is
       ID_BITS_C    => 1,
       LEN_BITS_C   => 8);
 
+   -- constant TRIG_INDEX_C : positive := 2000; -- wrdOffset=68
+   -- constant TRIG_INDEX_C : positive := 2044; -- wrdOffset=244
+   -- constant TRIG_INDEX_C : positive := 2045; -- wrdOffset=248
+   -- constant TRIG_INDEX_C : positive := 2046; -- wrdOffset=252
+   -- constant TRIG_INDEX_C : positive := 2047; -- wrdOffset=0
+   -- constant TRIG_INDEX_C : positive := 2048; -- wrdOffset=4
+   -- constant TRIG_INDEX_C : positive := 2049; -- wrdOffset=8
+   constant TRIG_INDEX_C : positive := 2100;  -- wrdOffset=212
+
    type RegType is record
       passed        : sl;
       failed        : sl;
+      extTrig       : sl;
       dataValue     : slv(8*DATA_BYTES_C-1 downto 0);
       expectedValue : slv(8*DATA_BYTES_C-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
       passed        => '0',
       failed        => '0',
+      extTrig       => '0',
       dataValue     => (others => '0'),
-      expectedValue => (others => '0'));
+      expectedValue => toSlv(TRIG_INDEX_C-959, 32));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -117,10 +129,11 @@ begin
    U_DUT : entity surf.AxiRingBuffer
       generic map (
          TPD_G                  => TPD_G,
-         CONTINUOUS_DEFAULT_G   => '1',
          -- Ring buffer Configurations
          DATA_BYTES_G           => DATA_BYTES_C,
          RING_BUFF_ADDR_WIDTH_G => RING_BUFF_ADDR_WIDTH_C,
+         -- AXI4 Configurations
+         BURST_BYTES_G          => BURST_BYTES_C,
          -- AXI Stream Configurations
          AXI_STREAM_CONFIG_G    => AXIS_CONFIG_C)
       port map (
@@ -128,6 +141,7 @@ begin
          dataClk         => clk,
          dataRst         => rst,
          dataValue       => r.dataValue,
+         extTrig         => r.extTrig,
          -- AXI Ring Buffer Memory Interface (dataClk domain)
          mAxiWriteMaster => axiWriteMaster,
          mAxiWriteSlave  => axiWriteSlave,
@@ -155,8 +169,17 @@ begin
       -- Latch the current value
       v := r;
 
+      -- Reset the strobe
+      v.extTrig := '0';
+
       -- Increment the counter
       v.dataValue := r.dataValue + 1;
+
+      -- Generate the trigger
+      if (r.dataValue = TRIG_INDEX_C) then
+         -- Set the flag
+         v.extTrig := '1';
+      end if;
 
       -- Check for data
       if (axisMaster.tValid = '1') then
