@@ -135,7 +135,7 @@ begin
          -- AXI4 Configurations
          BURST_BYTES_G          => BURST_BYTES_C,
          -- AXI Stream Configurations
-         AXI_STREAM_CONFIG_G    => AXIS_CONFIG_C)
+         AXIS_CONFIG_G          => AXIS_CONFIG_C)
       port map (
          -- Data to store in ring buffer (dataClk domain)
          dataClk         => clk,
@@ -143,6 +143,8 @@ begin
          dataValue       => r.dataValue,
          extTrig         => r.extTrig,
          -- AXI Ring Buffer Memory Interface (dataClk domain)
+         axiClk          => clk,
+         axiRst          => rst,
          mAxiWriteMaster => axiWriteMaster,
          mAxiWriteSlave  => axiWriteSlave,
          mAxiReadMaster  => axiReadMaster,

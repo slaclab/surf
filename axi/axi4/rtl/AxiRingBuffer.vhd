@@ -27,16 +27,21 @@ use surf.SsiPkg.all;
 entity AxiRingBuffer is
    generic (
       TPD_G                  : time                     := 1 ns;
-      SYNTH_MODE_G           : string                   := "inferred";
-      MEMORY_TYPE_G          : string                   := "block";
       -- Ring buffer Configurations
       DATA_BYTES_G           : positive                 := 8;  -- Units of bits
       RING_BUFF_ADDR_WIDTH_G : positive                 := 9;  -- Units of 2^(data words)
+      SYNTH_MODE_G           : string                   := "inferred";
+      MEMORY_TYPE_G          : string                   := "block";
+      -- AXI-Lite Configurations
+      AXIL_CLK_IS_DATA_CLK_G : boolean                  := false;
       -- AXI4 Configurations
+      AXI_CLK_IS_DATA_CLK_G  : boolean                  := false;
       AXI_BASE_ADDR_G        : slv(63 downto 0)         := (others => '0');
       BURST_BYTES_G          : positive range 1 to 4096 := 4096;
       -- AXI Stream Configurations
-      AXI_STREAM_CONFIG_G    : AxiStreamConfigType);
+      AXIS_CLK_IS_DATA_CLK_G : boolean                  := false;
+      AXIS_TDEST_G           : slv(7 downto 0)          := x"00";
+      AXIS_CONFIG_G          : AxiStreamConfigType);
    port (
       -- Data to store in ring buffer (dataClk domain)
       dataClk         : in  sl;
@@ -44,7 +49,10 @@ entity AxiRingBuffer is
       dataValid       : in  sl := '1';
       dataValue       : in  slv(8*DATA_BYTES_G-1 downto 0);
       extTrig         : in  sl := '0';
-      -- AXI Ring Buffer Memory Interface (dataClk domain)
+      -- AXI Ring Buffer Memory Interface (axiClk domain)
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      axiReady        : in  sl := '1';
       mAxiWriteMaster : out AxiWriteMasterType;
       mAxiWriteSlave  : in  AxiWriteSlaveType;
       mAxiReadMaster  : out AxiReadMasterType;
@@ -153,7 +161,7 @@ architecture rtl of AxiRingBuffer is
       wrdOffset      : slv(AXI_BURST_RANGE_C);
       -- AXI/State Signals
       axiWriteMaster : AxiWriteMasterType;
-      mAxiReadMaster : AxiReadMasterType;
+      axiReadMaster  : AxiReadMasterType;
       txMaster       : AxiStreamMasterType;
       readSlave      : AxiLiteReadSlaveType;
       writeSlave     : AxiLiteWriteSlaveType;
@@ -186,7 +194,7 @@ architecture rtl of AxiRingBuffer is
       wrdOffset      => (others => '0'),
       -- AXI/State Signals
       axiWriteMaster => AXI_WR_MST_INIT_C,
-      mAxiReadMaster => AXI_RD_MST_INIT_C,
+      axiReadMaster  => AXI_RD_MST_INIT_C,
       txMaster       => axiStreamMasterInit(AXIS_CONFIG_C),
       readSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave     => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -198,12 +206,17 @@ architecture rtl of AxiRingBuffer is
    signal axiWriteMaster : AxiWriteMasterType := AXI_WRITE_MASTER_INIT_C;
    signal axiWriteSlave  : AxiWriteSlaveType  := AXI_WRITE_SLAVE_INIT_C;
 
+   signal axiReadMaster : AxiReadMasterType := AXI_READ_MASTER_INIT_C;
+   signal axiReadSlave  : AxiReadSlaveType  := AXI_READ_SLAVE_INIT_C;
+
    signal readMaster  : AxiLiteReadMasterType;
    signal writeMaster : AxiLiteWriteMasterType;
 
+   signal axiRdy   : sl;
    signal bramData : slv(8*DATA_BYTES_G-1 downto 0);
 
-   signal txSlave : AxiStreamSlaveType;
+   signal txMaster : AxiStreamMasterType;
+   signal txSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -216,7 +229,7 @@ begin
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
          TPD_G           => TPD_G,
-         COMMON_CLK_G    => false,
+         COMMON_CLK_G    => AXIL_CLK_IS_DATA_CLK_G,
          NUM_ADDR_BITS_G => 8)
       port map (
          -- Slave Interface
@@ -234,8 +247,18 @@ begin
          mAxiWriteMaster => writeMaster,
          mAxiWriteSlave  => r.writeSlave);
 
-   comb : process (axiWriteSlave, bramData, dataRst, dataValid, dataValue,
-                   extTrig, mAxiReadSlave, r, readMaster, txSlave, writeMaster) is
+   U_axiRdy : entity surf.Synchronizer
+      generic map(
+         TPD_G  => TPD_G,
+         INIT_G => "11")
+      port map (
+         clk     => dataClk,
+         dataIn  => axiReady,
+         dataOut => axiRdy);
+
+   comb : process (axiRdy, axiReadSlave, axiWriteSlave, bramData, dataRst,
+                   dataValid, dataValue, extTrig, r, readMaster, txSlave,
+                   writeMaster) is
       variable v       : RegType;
       variable axilEp  : AxiLiteEndPointType;
       variable trigger : sl;
@@ -285,7 +308,7 @@ begin
       ----------------------------------------------------------------------
 
       -- Register to help make timing
-      v.dataValid := dataValid;
+      v.dataValid := dataValid and axiRdy;
       v.dataValue := dataValue;
       v.extTrig   := extTrig;
 
@@ -306,9 +329,9 @@ begin
       end if;
 
       -- Read AXI Flow Control
-      v.mAxiReadMaster.rready := '0';
-      if mAxiReadSlave.arready = '1' then
-         v.mAxiReadMaster.arvalid := '0';
+      v.axiReadMaster.rready := '0';
+      if axiReadSlave.arready = '1' then
+         v.axiReadMaster.arvalid := '0';
       end if;
 
       -- AXI Stream Flow Control
@@ -426,11 +449,11 @@ begin
             v.bramAddr := (others => '0');
 
             -- Check if ready
-            if (v.mAxiReadMaster.arvalid = '0') then
+            if (v.axiReadMaster.arvalid = '0') then
 
                -- Write Address channel
-               v.mAxiReadMaster.arvalid                 := '1';
-               v.mAxiReadMaster.araddr(AXI_BUF_RANGE_C) := r.memIdx;
+               v.axiReadMaster.arvalid                 := '1';
+               v.axiReadMaster.araddr(AXI_BUF_RANGE_C) := r.memIdx;
 
                -- Next State
                v.state := RD_AXI_DATA_S;
@@ -439,16 +462,16 @@ begin
          ----------------------------------------------------------------------
          when RD_AXI_DATA_S =>
             -- Check for new data
-            if (mAxiReadSlave.rvalid = '1') and (v.txMaster.tValid = '0') then
+            if (axiReadSlave.rvalid = '1') and (v.txMaster.tValid = '0') then
 
                -- Accept the data
-               v.mAxiReadMaster.rready := '1';
+               v.axiReadMaster.rready := '1';
 
                -- Increment the counter
                v.memIdx := r.memIdx + DATA_BYTES_G;
 
                -- Set the data bus
-               v.txMaster.tData(8*DATA_BYTES_G-1 downto 0) := mAxiReadSlave.rdata(8*DATA_BYTES_G-1 downto 0);
+               v.txMaster.tData(8*DATA_BYTES_G-1 downto 0) := axiReadSlave.rdata(8*DATA_BYTES_G-1 downto 0);
 
                -- Check word offset
                if (r.wrdOffset = 0) then
@@ -484,7 +507,7 @@ begin
                      v.state := RD_BRAM_S;
 
                   -- Check for last transfer
-                  elsif (mAxiReadSlave.rlast = '1') then
+                  elsif (axiReadSlave.rlast = '1') then
 
                      -- Next State
                      v.state := RD_AXI_ADDR_S;
@@ -497,7 +520,7 @@ begin
                   v.wrdOffset := r.wrdOffset - DATA_BYTES_G;
 
                   -- Check for last transfer
-                  if (mAxiReadSlave.rlast = '1') then
+                  if (axiReadSlave.rlast = '1') then
                      -- Next State
                      v.state := RD_AXI_ADDR_S;
                   end if;
@@ -569,8 +592,12 @@ begin
       axiWriteMaster.bready <= v.axiWriteMaster.bready;
 
       -- AXI4 Read Outputs
-      mAxiReadMaster        <= r.mAxiReadMaster;
-      mAxiReadMaster.rready <= v.mAxiReadMaster.rready;
+      axiReadMaster        <= r.axiReadMaster;
+      axiReadMaster.rready <= v.axiReadMaster.rready;
+
+      -- AXI Stream Outputs
+      txMaster       <= r.txMaster;
+      txMaster.tDest <= AXIS_TDEST_G;
 
       -- Reset
       if (dataRst = '1') then
@@ -630,49 +657,89 @@ begin
             doutb => bramData);
    end generate;
 
-   AXI_TX_FIFO : entity surf.AxiWritePathFifo
-      generic map (
-         -- General Configurations
-         TPD_G                  => TPD_G,
-         -- General FIFO configurations
-         GEN_SYNC_FIFO_G        => true,
-         -- Address FIFO Config
-         ADDR_MEMORY_TYPE_G     => "distributed",
-         ADDR_FIFO_ADDR_WIDTH_G => 4,
-         -- Data FIFO Config
-         DATA_MEMORY_TYPE_G     => "block",
-         DATA_FIFO_ADDR_WIDTH_G => 9,
-         -- Response FIFO Config
-         RESP_MEMORY_TYPE_G     => "distributed",
-         RESP_FIFO_ADDR_WIDTH_G => 4,
-         -- BUS Config
-         AXI_CONFIG_G           => AXI_CONFIG_C)
-      port map (
-         -- Slave Port
-         sAxiClk         => dataClk,
-         sAxiRst         => dataRst,
-         sAxiWriteMaster => axiWriteMaster,
-         sAxiWriteSlave  => axiWriteSlave,
-         -- Master Port
-         mAxiClk         => dataClk,
-         mAxiRst         => dataRst,
-         mAxiWriteMaster => mAxiWriteMaster,
-         mAxiWriteSlave  => mAxiWriteSlave);
+   GEN_SYNC_AXI : if (AXI_CLK_IS_DATA_CLK_G = true) generate
+
+      mAxiWriteMaster <= axiWriteMaster;
+      axiWriteSlave   <= mAxiWriteSlave;
+
+      mAxiReadMaster <= axiReadMaster;
+      axiReadSlave   <= mAxiReadSlave;
+
+   end generate;
+
+   GEN_ASYNC_AXI : if (AXI_CLK_IS_DATA_CLK_G = false) generate
+
+      AXI_RX_FIFO : entity surf.AxiReadPathFifo
+         generic map (
+            -- General Configurations
+            TPD_G                  => TPD_G,
+            -- General FIFO configurations
+            GEN_SYNC_FIFO_G        => false,
+            -- Address FIFO Config
+            ADDR_MEMORY_TYPE_G     => "distributed",
+            ADDR_FIFO_ADDR_WIDTH_G => 4,
+            -- Data FIFO Config
+            DATA_MEMORY_TYPE_G     => "distributed",
+            DATA_FIFO_ADDR_WIDTH_G => 4,
+            -- BUS Config
+            AXI_CONFIG_G           => AXI_CONFIG_C)
+         port map (
+            -- Slave Port
+            sAxiClk        => dataClk,
+            sAxiRst        => dataRst,
+            sAxiReadMaster => axiReadMaster,
+            sAxiReadSlave  => axiReadSlave,
+            -- Master Port
+            mAxiClk        => axiClk,
+            mAxiRst        => axiRst,
+            mAxiReadMaster => mAxiReadMaster,
+            mAxiReadSlave  => mAxiReadSlave);
+
+      AXI_TX_FIFO : entity surf.AxiWritePathFifo
+         generic map (
+            -- General Configurations
+            TPD_G                    => TPD_G,
+            -- General FIFO configurations
+            GEN_SYNC_FIFO_G          => false,
+            -- Address FIFO Config
+            ADDR_MEMORY_TYPE_G       => "distributed",
+            ADDR_FIFO_ADDR_WIDTH_G   => 4,
+            -- Data FIFO Config
+            DATA_MEMORY_TYPE_G       => "block",
+            DATA_FIFO_ADDR_WIDTH_G   => 9,
+            -- Response FIFO Config
+            RESP_MEMORY_TYPE_G       => "distributed",
+            RESP_FIFO_ADDR_WIDTH_G   => 4,
+            -- BUS Config
+            AXI_CONFIG_G             => AXI_CONFIG_C)
+         port map (
+            -- Slave Port
+            sAxiClk         => dataClk,
+            sAxiRst         => dataRst,
+            sAxiWriteMaster => axiWriteMaster,
+            sAxiWriteSlave  => axiWriteSlave,
+            -- Master Port
+            mAxiClk         => axiClk,
+            mAxiRst         => axiRst,
+            mAxiWriteMaster => mAxiWriteMaster,
+            mAxiWriteSlave  => mAxiWriteSlave);
+
+   end generate;
 
    AXIS_TX_FIFO : entity surf.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
          -- FIFO configurations
-         GEN_SYNC_FIFO_G     => false,
+         GEN_SYNC_FIFO_G     => AXIS_CLK_IS_DATA_CLK_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => dataClk,
          sAxisRst    => dataRst,
-         sAxisMaster => r.txMaster,
+         sAxisMaster => txMaster,
          sAxisSlave  => txSlave,
          -- Master Port
          mAxisClk    => axisClk,
