@@ -119,9 +119,18 @@ class AxiRingBuffer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'EnableMode',
+            description  = 'Sets whether the ring buffer is enabled or not',
+            offset       = 0x80,
+            bitSize      = 1,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'ContinuousMode',
             description  = 'Sets local triggering into continuous trigger mode',
-            offset       = 0x80,
+            offset       = 0x84,
             bitSize      = 1,
             bitOffset    = 0,
             mode         = 'RW',

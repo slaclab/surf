@@ -27,6 +27,7 @@ use surf.SsiPkg.all;
 entity AxiRingBuffer is
    generic (
       TPD_G                  : time                     := 1 ns;
+      ENABLE_DEFAULT_G       : sl                       := '0';
       -- Ring buffer Configurations
       DATA_BYTES_G           : positive                 := 8;  -- Units of bits
       RING_BUFF_ADDR_WIDTH_G : positive                 := 9;  -- Units of 2^(data words)
@@ -128,6 +129,7 @@ architecture rtl of AxiRingBuffer is
       tIdBits   => 0);
 
    type StateType is (
+      IDLE_S,
       WR_AXI_S,
       WR_BRAM_S,
       RD_AXI_ADDR_S,
@@ -146,6 +148,7 @@ architecture rtl of AxiRingBuffer is
       extTrig        : sl;
       softTrig       : sl;
       continuousMode : sl;
+      enableMode     : sl;
       -- BRAM signals
       bramWe         : sl;
       bramWrCnt      : slv(BURST_BITSIZE_C-1 downto 0);
@@ -179,6 +182,7 @@ architecture rtl of AxiRingBuffer is
       extTrig        => '0',
       softTrig       => '0',
       continuousMode => '0',
+      enableMode     => ENABLE_DEFAULT_G,
       -- BRAM signals
       bramWe         => '0',
       bramWrCnt      => (others => '0'),
@@ -198,7 +202,7 @@ architecture rtl of AxiRingBuffer is
       txMaster       => axiStreamMasterInit(AXIS_CONFIG_C),
       readSlave      => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave     => AXI_LITE_WRITE_SLAVE_INIT_C,
-      state          => WR_AXI_S);
+      state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -296,7 +300,8 @@ begin
       axiSlaveRegisterR(axilEp, x"14", 0, r.dropTrigCnt);
       axiSlaveRegisterR(axilEp, x"18", 0, r.wrErrCnt);
 
-      axiSlaveRegister (axilEp, x"80", 0, v.continuousMode);
+      axiSlaveRegister (axilEp, x"80", 0, v.enableMode);
+      axiSlaveRegister (axilEp, x"84", 0, v.continuousMode);
       axiSlaveRegister (axilEp, x"F8", 0, v.softTrig);
       axiSlaveRegister (axilEp, x"FC", 0, v.cntRst);
 
@@ -343,11 +348,21 @@ begin
 
       case r.state is
          ----------------------------------------------------------------------
-         when WR_AXI_S =>
-            -- Reset signals
+         when IDLE_S =>
+            -- Reset signals.
+            v.ready     := '0';
+            v.armed     := '0';
             v.bramWrCnt := (others => '0');
             v.rdWrdCnt  := (others => '0');
+            v.memIdx    := (others => '0');
 
+            -- Check if enabled
+            if (r.enableMode = '1') then
+               -- Next state
+               v.state := WR_AXI_S;
+            end if;
+         ----------------------------------------------------------------------
+         when WR_AXI_S =>
             -- Check for trigger
             if (trigger = '1') then
 
@@ -396,8 +411,13 @@ begin
                      -- Terminate the frame
                      v.axiWriteMaster.wlast := '1';
 
-                     -- Check if we have received a trigger
-                     if (v.armed = '1') then
+                     -- Check if disabled
+                     if (r.enableMode = '0') then
+                        -- Next state
+                        v.state := IDLE_S;
+
+                     -- Else check if we have received a trigger
+                     elsif (v.armed = '1') then
                         -- Next state
                         v.state := WR_BRAM_S;
                      end if;
@@ -418,10 +438,6 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WR_BRAM_S =>
-            -- Reset signals
-            v.ready := '0';
-            v.armed := '0';
-
             -- Latch the read start address
             v.startIdx := r.memIdx;
 
@@ -494,11 +510,8 @@ begin
                      -- Terminate the frame
                      v.txMaster.tLast := '1';
 
-                     -- Reset the memory index
-                     v.memIdx := (others => '0');
-
                      -- Next state
-                     v.state := WR_AXI_S;
+                     v.state := IDLE_S;
 
                   -- Check if done reading the AXI4 memory interface
                   elsif (r.startIdx = v.memIdx) then
@@ -550,11 +563,8 @@ begin
                   -- Terminate the frame
                   v.txMaster.tLast := '1';
 
-                  -- Reset the memory index
-                  v.memIdx := (others => '0');
-
                   -- Next state
-                  v.state := WR_AXI_S;
+                  v.state := IDLE_S;
 
                end if;
 

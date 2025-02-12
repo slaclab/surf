@@ -129,6 +129,7 @@ begin
    U_DUT : entity surf.AxiRingBuffer
       generic map (
          TPD_G                  => TPD_G,
+         ENABLE_DEFAULT_G       => '1',
          -- Ring buffer Configurations
          DATA_BYTES_G           => DATA_BYTES_C,
          RING_BUFF_ADDR_WIDTH_G => RING_BUFF_ADDR_WIDTH_C,
