@@ -698,20 +698,20 @@ begin
       AXI_TX_FIFO : entity surf.AxiWritePathFifo
          generic map (
             -- General Configurations
-            TPD_G                    => TPD_G,
+            TPD_G                  => TPD_G,
             -- General FIFO configurations
-            GEN_SYNC_FIFO_G          => false,
+            GEN_SYNC_FIFO_G        => false,
             -- Address FIFO Config
-            ADDR_MEMORY_TYPE_G       => "distributed",
-            ADDR_FIFO_ADDR_WIDTH_G   => 4,
+            ADDR_MEMORY_TYPE_G     => "distributed",
+            ADDR_FIFO_ADDR_WIDTH_G => 4,
             -- Data FIFO Config
-            DATA_MEMORY_TYPE_G       => "block",
-            DATA_FIFO_ADDR_WIDTH_G   => 9,
+            DATA_MEMORY_TYPE_G     => "block",
+            DATA_FIFO_ADDR_WIDTH_G => 9,
             -- Response FIFO Config
-            RESP_MEMORY_TYPE_G       => "distributed",
-            RESP_FIFO_ADDR_WIDTH_G   => 4,
+            RESP_MEMORY_TYPE_G     => "distributed",
+            RESP_FIFO_ADDR_WIDTH_G => 4,
             -- BUS Config
-            AXI_CONFIG_G             => AXI_CONFIG_C)
+            AXI_CONFIG_G           => AXI_CONFIG_C)
          port map (
             -- Slave Port
             sAxiClk         => dataClk,
