@@ -11,7 +11,7 @@
 --//
 --//
 --  Description :     This module is the ppm monitor between the
---  		      GT RxRecClk and the reference clock
+--              GT RxRecClk and the reference clock
 --
 --                    This module will declare that the Rx RECCLK is stable if the
 --                    recovered clock is within +/-5000PPM of the reference clock.
@@ -135,16 +135,16 @@ ENTITY Gth7RecClkMonitor is
 
       );
    port (
-	GT_RST       : in std_logic;
-	REF_CLK      : in std_logic;
-	RX_REC_CLK0  : in std_logic;
-	SYSTEM_CLK   : in std_logic; -- This would be your System Clock;
-	PLL_LK_DET   : in std_logic; -- This signal is verified in the Rx-FSM,
+   GT_RST       : in std_logic;
+   REF_CLK      : in std_logic;
+   RX_REC_CLK0  : in std_logic;
+   SYSTEM_CLK   : in std_logic; -- This would be your System Clock;
+   PLL_LK_DET   : in std_logic; -- This signal is verified in the Rx-FSM,
                                      -- it can be tied high as the PLL-LK has already been
                                      -- verified in the previous state.
-	RECCLK_STABLE : out std_logic;
+   RECCLK_STABLE : out std_logic;
         EXEC_RESTART  : out std_logic
-	);
+   );
 end ENTITY Gth7RecClkMonitor;
 
 
@@ -236,10 +236,10 @@ end process;
 process (RX_REC_CLK0) begin
    if rising_edge(RX_REC_CLK0) then
         if (reset_logic_rec0_sync = '1') then
-	   rec_clk0_cnt <= (others => '0');
-	else
-	   rec_clk0_cnt <= rec_clk0_cnt +1;
-	end if;
+      rec_clk0_cnt <= (others => '0');
+   else
+      rec_clk0_cnt <= rec_clk0_cnt +1;
+   end if;
    end if;
 end process;
 
@@ -253,11 +253,11 @@ end process;
 
 process (REF_CLK) begin
    if rising_edge(REF_CLK) then
-	if (reset_logic_ref_sync = '1') then
-	   ref_clk_cnt <= (others => '0');
-	else
-	   ref_clk_cnt <= ref_clk_cnt +1;
-	end if;
+   if (reset_logic_ref_sync = '1') then
+      ref_clk_cnt <= (others => '0');
+   else
+      ref_clk_cnt <= ref_clk_cnt +1;
+   end if;
    end if;
 end process;
 
@@ -306,48 +306,48 @@ process (SYSTEM_CLK) begin
       else
           EXEC_RESTART <= '0';
           case (state) is
- 	     when WAIT_FOR_LOCK =>
-  	        if ( (gt_pll_locked= '1')) then
-		   if (ref_clk_edge_event = "01") then
-		      state <= REFCLK_EVENT;
-		   else
-		      state <= WAIT_FOR_LOCK;
-		   end if;
-		else
-		   state <= WAIT_FOR_LOCK;
-	        end if;
-	     when REFCLK_EVENT =>
+         when WAIT_FOR_LOCK =>
+             if ( (gt_pll_locked= '1')) then
+         if (ref_clk_edge_event = "01") then
+            state <= REFCLK_EVENT;
+         else
+            state <= WAIT_FOR_LOCK;
+         end if;
+      else
+         state <= WAIT_FOR_LOCK;
+           end if;
+        when REFCLK_EVENT =>
                  if (ref_clk_edge_event = "11") then -- two reference couter periods
-		    state <= CALC_PPM_DIFF;
-		 else
-		    state <= REFCLK_EVENT;
-		 end if;
-	      when CALC_PPM_DIFF =>
-	         if (rec_clk0_edge_event = '1') then
-		    ppm0 <= rec_clk0_compare_cnt_latch + ref_clk_compare_cnt_latch;
-		 end if;
-			 state <= CHECK_SIGN;
-	      when CHECK_SIGN =>
-		  --check the sign bit - if 1'b1, then convert to binary.
-		  if (ppm0(GCLK_COUNTER_UPPER_VALUE-1) = '1') then
-		     ppm0 <= not ppm0 + 1;
-		  end if;
-		  state <= COMP_CNTR;
-	       when COMP_CNTR =>
-	          if (ppm0 < CLOCK_PULSES) then
-	             recclk_stable0 <= '1';
-	          else
+          state <= CALC_PPM_DIFF;
+       else
+          state <= REFCLK_EVENT;
+       end if;
+         when CALC_PPM_DIFF =>
+            if (rec_clk0_edge_event = '1') then
+          ppm0 <= rec_clk0_compare_cnt_latch + ref_clk_compare_cnt_latch;
+       end if;
+          state <= CHECK_SIGN;
+         when CHECK_SIGN =>
+        --check the sign bit - if 1'b1, then convert to binary.
+        if (ppm0(GCLK_COUNTER_UPPER_VALUE-1) = '1') then
+           ppm0 <= not ppm0 + 1;
+        end if;
+        state <= COMP_CNTR;
+          when COMP_CNTR =>
+             if (ppm0 < CLOCK_PULSES) then
+                recclk_stable0 <= '1';
+             else
                recclk_stable0 <= '0';
             end if;
-	          state <= RESTART;
-	       when RESTART =>
+             state <= RESTART;
+          when RESTART =>
                   state <= WAIT_FOR_LOCK;
                   EXEC_RESTART <= '1';
-	       when others =>
-	          state     <= WAIT_FOR_LOCK;
-	          ppm0      <= (others => '1');
-	          recclk_stable0 <= '0';
-	   end case;
+          when others =>
+             state     <= WAIT_FOR_LOCK;
+             ppm0      <= (others => '1');
+             recclk_stable0 <= '0';
+      end case;
        end if;
    end if;
 end process;
@@ -358,27 +358,27 @@ end process;
 process (SYSTEM_CLK) begin
    if rising_edge(SYSTEM_CLK) then
       if (reset_logic(3) = '1') then
-	 rec_clk0_edge_event        <= '0';
-	 ref_clk_edge_event         <=  "00";
-	 rec_clk0_compare_cnt_latch <= (others => '0');
-	 ref_clk_compare_cnt_latch  <= (others => '0');
-	 ref_clk_edge_rt            <= "00";
+    rec_clk0_edge_event        <= '0';
+    ref_clk_edge_event         <=  "00";
+    rec_clk0_compare_cnt_latch <= (others => '0');
+    ref_clk_compare_cnt_latch  <= (others => '0');
+    ref_clk_edge_rt            <= "00";
       else
          if ((rec_clk0_edge='1') and(rec_clk0_edge_event='0')) then
-	    rec_clk0_edge_event        <= '1';
-	    rec_clk0_compare_cnt_latch <= sys_clk_counter;
-	 end if;
-	 if (ref_clk_edge='1') then
-	    ref_clk_edge_event <= ref_clk_edge_event(0)&'1';
-	    --only latch it the first time around
-	    if (ref_clk_edge_event(0)='0') then
-  	       ref_clk_compare_cnt_latch <= sys_clk_counter;
-	    end if;
+       rec_clk0_edge_event        <= '1';
+       rec_clk0_compare_cnt_latch <= sys_clk_counter;
+    end if;
+    if (ref_clk_edge='1') then
+       ref_clk_edge_event <= ref_clk_edge_event(0)&'1';
+       --only latch it the first time around
+       if (ref_clk_edge_event(0)='0') then
+            ref_clk_compare_cnt_latch <= sys_clk_counter;
+       end if;
             ref_clk_edge_rt <= ref_clk_edge_rt(0) &ref_clk_edge;
-	    --take the 2's complement number after we latched it
-	    if ((ref_clk_edge_event = "01") and (ref_clk_edge_rt= "01")) then
-	       ref_clk_compare_cnt_latch <= not ref_clk_compare_cnt_latch +1;
-	    end if;
+       --take the 2's complement number after we latched it
+       if ((ref_clk_edge_event = "01") and (ref_clk_edge_rt= "01")) then
+          ref_clk_compare_cnt_latch <= not ref_clk_compare_cnt_latch +1;
+       end if;
          end if;
       end if;
    end if;
@@ -390,7 +390,7 @@ process (SYSTEM_CLK) begin
       if (reset_logic(3) = '1') then
          sys_clk_counter <= (others => '0');
       else
- 	 sys_clk_counter <= sys_clk_counter + 1;
+     sys_clk_counter <= sys_clk_counter + 1;
       end if;
    end if;
 end process;
@@ -400,14 +400,14 @@ process (SYSTEM_CLK) begin
       if (reset_logic(3) = '1') then
            rec_clk_0_msb_meta <= '0';
            ref_clk_msb_meta   <= '0';
-	   rec_clk0_msb       <= "00";
-	   ref_clk_msb        <= "00";
+      rec_clk0_msb       <= "00";
+      ref_clk_msb        <= "00";
       else -- double flop msb count bit to system clock domain
-	   rec_clk_0_msb_meta <= rec_clk0_cnt(COUNTER_UPPER_VALUE-1);
-	   rec_clk0_msb       <= rec_clk0_msb(1)&rec_clk_0_msb_meta;
+      rec_clk_0_msb_meta <= rec_clk0_cnt(COUNTER_UPPER_VALUE-1);
+      rec_clk0_msb       <= rec_clk0_msb(1)&rec_clk_0_msb_meta;
 
-	   ref_clk_msb_meta <= ref_clk_cnt(COUNTER_UPPER_VALUE-1);
-	   ref_clk_msb      <= ref_clk_msb(1)&ref_clk_msb_meta;
+      ref_clk_msb_meta <= ref_clk_cnt(COUNTER_UPPER_VALUE-1);
+      ref_clk_msb      <= ref_clk_msb(1)&ref_clk_msb_meta;
       end if;
    end if;
 end process;
@@ -420,12 +420,12 @@ ref_clk_edge  <= '1' when ((ref_clk_msb(2)='1')and (ref_clk_msb(1)='0')) else '0
 process (SYSTEM_CLK) begin
    if rising_edge(SYSTEM_CLK) then
       if (g_clk_rst = '1') then
- 	 reset_logic <= "1111";
+     reset_logic <= "1111";
       else
-	 if (state = RESTART) then
-	    reset_logic <= "1111";
-	 else
-	    reset_logic <= reset_logic(2 downto 0) & '0';
+    if (state = RESTART) then
+       reset_logic <= "1111";
+    else
+       reset_logic <= reset_logic(2 downto 0) & '0';
          end if;
       end if;
    end if;
