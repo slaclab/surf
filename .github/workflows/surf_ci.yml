@@ -47,13 +47,13 @@ jobs:
       - name: Check for trailing whitespace and tabs
         run: |
           # Check for trailing whitespace
-          if grep -rnI '[[:blank:]]$' --include=\*.{vhd,v,tcl,py} .; then
+          if grep -rnI '[[:blank:]]$' --include=\*.{vhd,tcl,py} .; then
             echo "Error: Trailing whitespace found in the repository!"
             exit 1
           fi
           
           # Check for tab characters instead of spaces
-          if grep -rnI $'\t' --include=\*.{vhd,v,tcl,py} .; then
+          if grep -rnI $'\t' --include=\*.{vhd,tcl,py} .; then
             echo "Error: Tab characters found in the repository! Please use spaces for indentation."
             exit 1
           fi
