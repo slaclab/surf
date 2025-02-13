@@ -124,7 +124,7 @@ architecture rtl of AxiRingBuffer is
       dataBytes => DATA_BYTES_G,
       tKeepMode => TKEEP_FIXED_C,
       tUserMode => TUSER_FIRST_LAST_C,
-      tDestBits => 0,
+      tDestBits => 8,
       tUserBits => 2,
       tIdBits   => 0);
 
