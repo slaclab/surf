@@ -83,308 +83,308 @@ library surf;
 use surf.stdlib.all;
 
 entity i2c_master_byte_ctrl is
-  generic (filter : integer; dynfilt : integer);
-  port (
-		clk    : in std_logic;
-		rst    : in std_logic; -- synchronous active high reset (WISHBONE compatible)
-		nReset : in std_logic;	-- asynchornous active low reset (FPGA compatible)
-		ena    : in std_logic; -- core enable signal
+   generic (filter : integer; dynfilt : integer);
+   port (
+      clk    : in std_logic;
+      rst    : in std_logic;  -- synchronous active high reset (WISHBONE compatible)
+      nReset : in std_logic;  -- asynchornous active low reset (FPGA compatible)
+      ena    : in std_logic;            -- core enable signal
 
-		clk_cnt : in std_logic_vector(15 downto 0);	-- 4x SCL
+      clk_cnt : in std_logic_vector(15 downto 0);  -- 4x SCL
 
-		-- input signals
-		start  : in std_logic;
-		stop   : in std_logic;
-		read   : in std_logic;
-		write  : in std_logic;
-		ack_in : in std_logic;
-		din    : in std_logic_vector(7 downto 0);
+      -- input signals
+      start  : in std_logic;
+      stop   : in std_logic;
+      read   : in std_logic;
+      write  : in std_logic;
+      ack_in : in std_logic;
+      din    : in std_logic_vector(7 downto 0);
       filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
 
-		-- output signals
-		cmd_ack  : out std_logic; -- command done
-		ack_out  : out std_logic;
-		i2c_busy : out std_logic; -- arbitration lost
-		i2c_al   : out std_logic; -- i2c bus busy
-		dout     : out std_logic_vector(7 downto 0);
+      -- output signals
+      cmd_ack  : out std_logic;         -- command done
+      ack_out  : out std_logic;
+      i2c_busy : out std_logic;         -- arbitration lost
+      i2c_al   : out std_logic;         -- i2c bus busy
+      dout     : out std_logic_vector(7 downto 0);
 
-		-- i2c lines
-		scl_i   : in std_logic;  -- i2c clock line input
-		scl_o   : out std_logic; -- i2c clock line output
-		scl_oen : out std_logic; -- i2c clock line output enable, active low
-		sda_i   : in std_logic;  -- i2c data line input
-		sda_o   : out std_logic; -- i2c data line output
-		sda_oen : out std_logic  -- i2c data line output enable, active low
-	);
+      -- i2c lines
+      scl_i   : in  std_logic;          -- i2c clock line input
+      scl_o   : out std_logic;          -- i2c clock line output
+      scl_oen : out std_logic;  -- i2c clock line output enable, active low
+      sda_i   : in  std_logic;          -- i2c data line input
+      sda_o   : out std_logic;          -- i2c data line output
+      sda_oen : out std_logic   -- i2c data line output enable, active low
+      );
 end entity i2c_master_byte_ctrl;
 
 architecture structural of i2c_master_byte_ctrl is
-	component i2c_master_bit_ctrl is
-        generic (filter : integer; dynfilt : integer);
-	port (
-		clk    : in std_logic;
-		rst    : in std_logic;
-		nReset : in std_logic;
-		ena    : in std_logic;				-- core enable signal
+   component i2c_master_bit_ctrl is
+      generic (filter : integer; dynfilt : integer);
+      port (
+         clk    : in std_logic;
+         rst    : in std_logic;
+         nReset : in std_logic;
+         ena    : in std_logic;         -- core enable signal
 
-		clk_cnt : in std_logic_vector(15 downto 0);		-- clock prescale value
+         clk_cnt : in std_logic_vector(15 downto 0);  -- clock prescale value
 
-		cmd     : in std_logic_vector(3 downto 0);
-		cmd_ack : out std_logic; -- command done
-		busy    : out std_logic; -- i2c bus busy
-		al      : out std_logic; -- arbitration lost
+         cmd     : in  std_logic_vector(3 downto 0);
+         cmd_ack : out std_logic;       -- command done
+         busy    : out std_logic;       -- i2c bus busy
+         al      : out std_logic;       -- arbitration lost
 
-		din  : in std_logic;
-		dout : out std_logic;
+         din  : in  std_logic;
+         dout : out std_logic;
 
-                filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
+         filt : in std_logic_vector((filter-1)*dynfilt downto 0);
 
-		-- i2c lines
-		scl_i   : in std_logic;  -- i2c clock line input
-		scl_o   : out std_logic; -- i2c clock line output
-		scl_oen : out std_logic; -- i2c clock line output enable, active low
-		sda_i   : in std_logic;  -- i2c data line input
-		sda_o   : out std_logic; -- i2c data line output
-		sda_oen : out std_logic  -- i2c data line output enable, active low
-	);
-	end component i2c_master_bit_ctrl;
+         -- i2c lines
+         scl_i   : in  std_logic;       -- i2c clock line input
+         scl_o   : out std_logic;       -- i2c clock line output
+         scl_oen : out std_logic;  -- i2c clock line output enable, active low
+         sda_i   : in  std_logic;       -- i2c data line input
+         sda_o   : out std_logic;       -- i2c data line output
+         sda_oen : out std_logic   -- i2c data line output enable, active low
+         );
+   end component i2c_master_bit_ctrl;
 
-	-- commands for bit_controller block
-	constant I2C_CMD_NOP  	: std_logic_vector(3 downto 0) := "0000";
-	constant I2C_CMD_START	: std_logic_vector(3 downto 0) := "0001";
-	constant I2C_CMD_STOP	 : std_logic_vector(3 downto 0) := "0010";
-	constant I2C_CMD_READ	 : std_logic_vector(3 downto 0) := "0100";
-	constant I2C_CMD_WRITE	: std_logic_vector(3 downto 0) := "1000";
+   -- commands for bit_controller block
+   constant I2C_CMD_NOP   : std_logic_vector(3 downto 0) := "0000";
+   constant I2C_CMD_START : std_logic_vector(3 downto 0) := "0001";
+   constant I2C_CMD_STOP  : std_logic_vector(3 downto 0) := "0010";
+   constant I2C_CMD_READ  : std_logic_vector(3 downto 0) := "0100";
+   constant I2C_CMD_WRITE : std_logic_vector(3 downto 0) := "1000";
 
-	-- signals for bit_controller
-	signal core_cmd : std_logic_vector(3 downto 0);
-	signal core_ack, core_txd, core_rxd : std_logic;
-	signal al : std_logic;
+   -- signals for bit_controller
+   signal core_cmd                     : std_logic_vector(3 downto 0);
+   signal core_ack, core_txd, core_rxd : std_logic;
+   signal al                           : std_logic;
 
-	-- signals for shift register
-	signal sr : std_logic_vector(7 downto 0); -- 8bit shift register
-	signal shift, ld : std_logic;
+   -- signals for shift register
+   signal sr        : std_logic_vector(7 downto 0);  -- 8bit shift register
+   signal shift, ld : std_logic;
 
-	-- signals for state machine
-	signal go, host_ack : std_logic;
-        -- Added init value to dcnt to prevent simulation meta-value
-        -- - jan@gaisler.com
-	-- removed init value as it is not compatible with Formality
-        -- - jiri@gaisler.com
-        signal dcnt : std_logic_vector(2 downto 0)
+   -- signals for state machine
+   signal go, host_ack : std_logic;
+   -- Added init value to dcnt to prevent simulation meta-value
+   -- - jan@gaisler.com
+   -- removed init value as it is not compatible with Formality
+   -- - jiri@gaisler.com
+   signal dcnt         : std_logic_vector(2 downto 0)
 -- pragma translate_off
-		:= (others => '0')
+      := (others => '0')
 -- pragma translate_on
-	; -- data counter
-	signal cnt_done : std_logic;
+;                                       -- data counter
+   signal cnt_done : std_logic;
 
 begin
-	-- hookup bit_controller
-	bit_ctrl: i2c_master_bit_ctrl
-          generic map (filter, dynfilt)
-          port map(
-		clk     => clk,
-		rst     => rst,
-		nReset  => nReset,
-		ena     => ena,
-		clk_cnt => clk_cnt,
-		cmd     => core_cmd,
-		cmd_ack => core_ack,
-		busy    => i2c_busy,
-		al      => al,
-		din     => core_txd,
-		dout    => core_rxd,
-                filt    => filt,
-		scl_i   => scl_i,
-		scl_o   => scl_o,
-		scl_oen => scl_oen,
-		sda_i   => sda_i,
-		sda_o   => sda_o,
-		sda_oen => sda_oen
-	);
-	i2c_al <= al;
+   -- hookup bit_controller
+   bit_ctrl : i2c_master_bit_ctrl
+      generic map (filter, dynfilt)
+      port map(
+         clk     => clk,
+         rst     => rst,
+         nReset  => nReset,
+         ena     => ena,
+         clk_cnt => clk_cnt,
+         cmd     => core_cmd,
+         cmd_ack => core_ack,
+         busy    => i2c_busy,
+         al      => al,
+         din     => core_txd,
+         dout    => core_rxd,
+         filt    => filt,
+         scl_i   => scl_i,
+         scl_o   => scl_o,
+         scl_oen => scl_oen,
+         sda_i   => sda_i,
+         sda_o   => sda_o,
+         sda_oen => sda_oen
+         );
+   i2c_al <= al;
 
-	-- generate host-command-acknowledge
-	cmd_ack <= host_ack;
+   -- generate host-command-acknowledge
+   cmd_ack <= host_ack;
 
-	-- generate go-signal
-	go <= (read or write or stop) and not host_ack;
+   -- generate go-signal
+   go <= (read or write or stop) and not host_ack;
 
-	-- assign Dout output to shift-register
-	dout <= sr;
+   -- assign Dout output to shift-register
+   dout <= sr;
 
-	-- generate shift register
-	shift_register: process(clk, nReset)
-	begin
-	    if (nReset = '0') then
-	      sr <= (others => '0');
-	    elsif (clk'event and clk = '1') then
-	      if (rst = '1') then
-	        sr <= (others => '0');
-	      elsif (ld = '1') then
-	        sr <= din;
-	      elsif (shift = '1') then
-	        sr <= (sr(6 downto 0) & core_rxd);
-	      end if;
-	    end if;
-	end process shift_register;
+   -- generate shift register
+   shift_register : process(clk, nReset)
+   begin
+      if (nReset = '0') then
+         sr <= (others => '0');
+      elsif (clk'event and clk = '1') then
+         if (rst = '1') then
+            sr <= (others => '0');
+         elsif (ld = '1') then
+            sr <= din;
+         elsif (shift = '1') then
+            sr <= (sr(6 downto 0) & core_rxd);
+         end if;
+      end if;
+   end process shift_register;
 
-	-- generate data-counter
-	data_cnt: process(clk, nReset)
-	begin
-	    if (nReset = '0') then
-	      dcnt <= (others => '0');
-	    elsif (clk'event and clk = '1') then
-	      if (rst = '1') then
-	        dcnt <= (others => '0');
-	      elsif (ld = '1') then
-	        dcnt <= (others => '1');  -- load counter with 7
-	      elsif (shift = '1') then
-	        dcnt <= dcnt -1;
-	      end if;
-	    end if;
-	end process data_cnt;
+   -- generate data-counter
+   data_cnt : process(clk, nReset)
+   begin
+      if (nReset = '0') then
+         dcnt <= (others => '0');
+      elsif (clk'event and clk = '1') then
+         if (rst = '1') then
+            dcnt <= (others => '0');
+         elsif (ld = '1') then
+            dcnt <= (others => '1');    -- load counter with 7
+         elsif (shift = '1') then
+            dcnt <= dcnt -1;
+         end if;
+      end if;
+   end process data_cnt;
 
-	cnt_done <= '1' when (dcnt = "000") else '0';
+   cnt_done <= '1' when (dcnt = "000") else '0';
 
-	--
-	-- state machine
-	--
-	statemachine : block
-	    type states is (st_idle, st_start, st_read, st_write, st_ack, st_stop);
-	    signal c_state : states;
-	begin
-	    --
-	    -- command interpreter, translate complex commands into simpler I2C commands
-	    --
-	    nxt_state_decoder: process(clk, nReset)
-	    begin
-	        if (nReset = '0') then
-	          core_cmd <= I2C_CMD_NOP;
-	          core_txd <= '0';
-	          shift    <= '0';
-	          ld       <= '0';
-	          host_ack <= '0';
-	          c_state  <= st_idle;
-	          ack_out  <= '0';
-	        elsif (clk'event and clk = '1') then
-	          if (rst = '1' or al = '1') then
-	            core_cmd <= I2C_CMD_NOP;
-	            core_txd <= '0';
-	            shift    <= '0';
-	            ld       <= '0';
-	            host_ack <= '0';
-	            c_state  <= st_idle;
-	            ack_out  <= '0';
-	          else
-	            -- initialy reset all signal
-	            core_txd <= sr(7);
-	            shift    <= '0';
-	            ld       <= '0';
-	            host_ack <= '0';
+   --
+   -- state machine
+   --
+   statemachine : block
+      type states is (st_idle, st_start, st_read, st_write, st_ack, st_stop);
+      signal c_state : states;
+   begin
+      --
+      -- command interpreter, translate complex commands into simpler I2C commands
+      --
+      nxt_state_decoder : process(clk, nReset)
+      begin
+         if (nReset = '0') then
+            core_cmd <= I2C_CMD_NOP;
+            core_txd <= '0';
+            shift    <= '0';
+            ld       <= '0';
+            host_ack <= '0';
+            c_state  <= st_idle;
+            ack_out  <= '0';
+         elsif (clk'event and clk = '1') then
+            if (rst = '1' or al = '1') then
+               core_cmd <= I2C_CMD_NOP;
+               core_txd <= '0';
+               shift    <= '0';
+               ld       <= '0';
+               host_ack <= '0';
+               c_state  <= st_idle;
+               ack_out  <= '0';
+            else
+               -- initialy reset all signal
+               core_txd <= sr(7);
+               shift    <= '0';
+               ld       <= '0';
+               host_ack <= '0';
 
-	            case c_state is
-	              when st_idle =>
-	                 if (go = '1') then
-	                   if (start = '1') then
-	                     c_state  <= st_start;
-	                     core_cmd <= I2C_CMD_START;
-	                   elsif (read = '1') then
-	                     c_state  <= st_read;
-	                     core_cmd <= I2C_CMD_READ;
-	                   elsif (write = '1') then
-	                     c_state  <= st_write;
-	                     core_cmd <= I2C_CMD_WRITE;
-	                   else -- stop
-	                     c_state  <= st_stop;
-	                     core_cmd <= I2C_CMD_STOP;
-	                   end if;
+               case c_state is
+                  when st_idle =>
+                     if (go = '1') then
+                        if (start = '1') then
+                           c_state  <= st_start;
+                           core_cmd <= I2C_CMD_START;
+                        elsif (read = '1') then
+                           c_state  <= st_read;
+                           core_cmd <= I2C_CMD_READ;
+                        elsif (write = '1') then
+                           c_state  <= st_write;
+                           core_cmd <= I2C_CMD_WRITE;
+                        else            -- stop
+                           c_state  <= st_stop;
+                           core_cmd <= I2C_CMD_STOP;
+                        end if;
 
-	                   ld <= '1';
-	                 end if;
+                        ld <= '1';
+                     end if;
 
-	              when st_start =>
-	                 if (core_ack = '1') then
-	                   if (read = '1') then
-	                     c_state  <= st_read;
-	                     core_cmd <= I2C_CMD_READ;
-	                   else
-	                     c_state  <= st_write;
-	                     core_cmd <= I2C_CMD_WRITE;
-	                   end if;
+                  when st_start =>
+                     if (core_ack = '1') then
+                        if (read = '1') then
+                           c_state  <= st_read;
+                           core_cmd <= I2C_CMD_READ;
+                        else
+                           c_state  <= st_write;
+                           core_cmd <= I2C_CMD_WRITE;
+                        end if;
 
-	                   ld <= '1';
-	                 end if;
+                        ld <= '1';
+                     end if;
 
-	              when st_write =>
-	                 if (core_ack = '1') then
-	                   if (cnt_done = '1') then
-	                     c_state  <= st_ack;
-	                     core_cmd <= I2C_CMD_READ;
-	                   else
-	                     c_state  <= st_write;       -- stay in same state
-	                     core_cmd <= I2C_CMD_WRITE;  -- write next bit
-	                     shift    <= '1';
-	                   end if;
-	                 end if;
+                  when st_write =>
+                     if (core_ack = '1') then
+                        if (cnt_done = '1') then
+                           c_state  <= st_ack;
+                           core_cmd <= I2C_CMD_READ;
+                        else
+                           c_state  <= st_write;       -- stay in same state
+                           core_cmd <= I2C_CMD_WRITE;  -- write next bit
+                           shift    <= '1';
+                        end if;
+                     end if;
 
-	              when st_read =>
-	                 if (core_ack = '1') then
-	                   if (cnt_done = '1') then
-	                     c_state  <= st_ack;
-	                     core_cmd <= I2C_CMD_WRITE;
-	                   else
-	                     c_state  <= st_read;      -- stay in same state
-	                     core_cmd <= I2C_CMD_READ; -- read next bit
-	                   end if;
+                  when st_read =>
+                     if (core_ack = '1') then
+                        if (cnt_done = '1') then
+                           c_state  <= st_ack;
+                           core_cmd <= I2C_CMD_WRITE;
+                        else
+                           c_state  <= st_read;       -- stay in same state
+                           core_cmd <= I2C_CMD_READ;  -- read next bit
+                        end if;
 
-	                   shift    <= '1';
-	                   core_txd <= ack_in;
-	                 end if;
+                        shift    <= '1';
+                        core_txd <= ack_in;
+                     end if;
 
-	              when st_ack =>
-	                 if (core_ack = '1') then
-	                   -- check for stop; Should a STOP command be generated ?
-	                   if (stop = '1') then
-	                     c_state  <= st_stop;
-	                     core_cmd <= I2C_CMD_STOP;
-	                   else
-	                     c_state  <= st_idle;
-	                     core_cmd <= I2C_CMD_NOP;
+                  when st_ack =>
+                     if (core_ack = '1') then
+                        -- check for stop; Should a STOP command be generated ?
+                        if (stop = '1') then
+                           c_state  <= st_stop;
+                           core_cmd <= I2C_CMD_STOP;
+                        else
+                           c_state  <= st_idle;
+                           core_cmd <= I2C_CMD_NOP;
 
-	                     -- generate command acknowledge signal
-	                     host_ack <= '1';
-	                   end if;
+                           -- generate command acknowledge signal
+                           host_ack <= '1';
+                        end if;
 
-	                   -- assign ack_out output to core_rxd (contains last received bit)
-	                   ack_out  <= core_rxd;
+                        -- assign ack_out output to core_rxd (contains last received bit)
+                        ack_out <= core_rxd;
 
-	                   core_txd <= '1';
-	                 else
-	                   core_txd <= ack_in;
-	                 end if;
+                        core_txd <= '1';
+                     else
+                        core_txd <= ack_in;
+                     end if;
 
-	              when st_stop =>
-	                 if (core_ack = '1') then
-	                   c_state  <= st_idle;
-	                   core_cmd <= I2C_CMD_NOP;
+                  when st_stop =>
+                     if (core_ack = '1') then
+                        c_state  <= st_idle;
+                        core_cmd <= I2C_CMD_NOP;
 
-	                   -- generate command acknowledge signal
-	                   host_ack <= '1';
-	                 end if;
+                        -- generate command acknowledge signal
+                        host_ack <= '1';
+                     end if;
 
-	              when others => -- illegal states
-	                 c_state  <= st_idle;
-	                 core_cmd <= I2C_CMD_NOP;
-	                 --report ("Byte controller entered illegal state.");
+                  when others =>        -- illegal states
+                     c_state  <= st_idle;
+                     core_cmd <= I2C_CMD_NOP;
+                     --report ("Byte controller entered illegal state.");
 
-	            end case;
+               end case;
 
-	          end if;
-	        end if;
-	    end process nxt_state_decoder;
+            end if;
+         end if;
+      end process nxt_state_decoder;
 
-	end block statemachine;
+   end block statemachine;
 
 end architecture structural;
 
