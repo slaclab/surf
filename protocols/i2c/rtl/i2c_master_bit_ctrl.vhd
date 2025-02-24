@@ -136,24 +136,24 @@
 -- Each command has 5 states, A/B/C/D/idle
 --
 -- start:    SCL  ~~~~~~~~~~~~~~\____
---        SDA  XX/~~~~~~~\______
---             x | A | B | C | D | i
+--           SDA  XX/~~~~~~~\______
+--                x | A | B | C | D | i
 --
 -- repstart  SCL  ______/~~~~~~~\___
---        SDA  __/~~~~~~~\______
---             x | A | B | C | D | i
+--           SDA  __/~~~~~~~\______
+--                x | A | B | C | D | i
 --
 -- stop      SCL  _______/~~~~~~~~~~~
---        SDA  ==\___________/~~~~~
---             x | A | B | C | D | i
+--           SDA  ==\___________/~~~~~
+--                x | A | B | C | D | i
 --
 --- write    SCL  ______/~~~~~~~\____
---        SDA  XXX===============XX
---             x | A | B | C | D | i
+--           SDA  XXX===============XX
+--                x | A | B | C | D | i
 --
 --- read     SCL  ______/~~~~~~~\____
---        SDA  XXXXXXX=XXXXXXXXXXX
---             x | A | B | C | D | i
+--           SDA  XXXXXXX=XXXXXXXXXXX
+--                x | A | B | C | D | i
 --
 
 -- Timing:      Normal mode     Fast mode
