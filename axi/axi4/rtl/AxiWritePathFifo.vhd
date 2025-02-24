@@ -33,7 +33,7 @@ entity AxiWritePathFifo is
       GEN_SYNC_FIFO_G          : boolean := false;
 
       -- Bit Optimizations
-      ADDR_LSB_G               : natural range 0 to 31 := 0;
+      ADDR_LSB_G               : natural range 0 to 63 := 0;
       ID_FIXED_EN_G            : boolean := false;
       SIZE_FIXED_EN_G          : boolean := false;
       BURST_FIXED_EN_G         : boolean := false;
