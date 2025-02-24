@@ -15,7 +15,7 @@
 # Must disable the Linux SPI driver in the device tree for this to work.
 # Example:
 # &spi0 {
-# 	status = "disabled";
+#   status = "disabled";
 # };
 #-----------------------------------------------------------------------------
 # Virtual Address Decoding:
