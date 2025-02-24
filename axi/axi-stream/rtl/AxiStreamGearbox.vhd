@@ -27,6 +27,7 @@ entity AxiStreamGearbox is
    generic (
       -- General Configurations
       TPD_G               : time     := 1 ns;
+      RST_POLARITY_G      : sl       := '1'; -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G         : boolean  := false;
       READY_EN_G          : boolean  := true;
       PIPE_STAGES_G       : natural  := 0;
@@ -131,6 +132,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             RST_ASYNC_G         => RST_ASYNC_G,
             READY_EN_G          => READY_EN_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
@@ -156,7 +158,10 @@ begin
    GEN_GEARBOX : if (WORD_MULTIPLE_C = false) generate
 
       comb : process (axisRst, pipeAxisSlave, r, sAxisMaster, sSideBand) is
-         variable v : RegType;
+
+         variable tKeepTmp : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+         variable v        : RegType;
+
       begin
          -- Latch the current value
          v := r;
@@ -231,21 +236,32 @@ begin
             -- Assign incoming sideband
             v.sideBand := sSideBand;
 
+            -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            -- bit-by-bit assignment to appease ASIC synthesis flow tools
+            -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             -- Assign incoming TDATA
-            v.tData(8*v.writeIndex+8*SLV_BYTES_C-1 downto 8*v.writeIndex) := sAxisMaster.tData(8*SLV_BYTES_C-1 downto 0);
+            for i in (SLV_BYTES_C*8)-1 downto 0 loop
+               v.tData((8*v.writeIndex)+i) := sAxisMaster.tData(i);
+            end loop;
 
             -- Check if TSTRB enabled
-            if(TSTRB_EN_C) then
-               -- Assign incoming TSTRB
-               v.tStrb(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tStrb(1*SLV_BYTES_C-1 downto 0);
+            if TSTRB_EN_C then
+               for i in (SLV_BYTES_C)-1 downto 0 loop
+                  v.tStrb(v.writeIndex+i) := sAxisMaster.tStrb(i);
+               end loop;
             end if;
 
+            -- temporary variable
+            tKeepTmp := genTKeep(conv_integer(sAxisMaster.tKeep(bitSize(SLV_BYTES_C)-1 downto 0)));
             -- Assign incoming TKEEP
-            if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
-               v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := genTKeep(conv_integer(sAxisMaster.tKeep(bitSize(SLV_BYTES_C)-1 downto 0)));
-            else
-               v.tKeep(1*v.writeIndex+1*SLV_BYTES_C-1 downto 1*v.writeIndex) := sAxisMaster.tKeep(1*SLV_BYTES_C-1 downto 0);
-            end if;
+            for i in (SLV_BYTES_C)-1 downto 0 loop
+               if SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C then
+                  v.tKeep(v.writeIndex+i) := tKeepTmp(i);
+               else
+                  v.tKeep(v.writeIndex+i) := sAxisMaster.tKeep(i);
+               end if;
+            end loop;
+            -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             -- Check if TDEST enabled
             if(TDEST_EN_C) then
@@ -332,7 +348,7 @@ begin
          end if;
 
          -- Synchronous Reset
-         if (RST_ASYNC_G = false and axisRst = '1') then
+         if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
             v := REG_INIT_C;
          end if;
 
@@ -343,7 +359,7 @@ begin
 
       seq : process (axisClk, axisRst) is
       begin
-         if (RST_ASYNC_G) and (axisRst = '1') then
+         if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          elsif rising_edge(axisClk) then
             r <= rin after TPD_G;
@@ -356,6 +372,7 @@ begin
       U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
             TPD_G             => TPD_G,
+            RST_POLARITY_G    => RST_POLARITY_G,
             RST_ASYNC_G       => RST_ASYNC_G,
             SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
             PIPE_STAGES_G     => PIPE_STAGES_G)

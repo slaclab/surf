@@ -34,20 +34,23 @@ entity SelectioDeserUltraScale is
       CLKIN_PERIOD_G   : real     := 10.0;  -- 100 MHz
       DIVCLK_DIVIDE_G  : positive := 1;
       CLKFBOUT_MULT_G  : positive := 10;    -- 1 GHz = 100 MHz x 10 / 1
-      CLKOUT0_DIVIDE_G : positive := 2);    -- 500 MHz = 1 GHz/2
+      CLKOUT0_DIVIDE_G : positive := 2;     -- 500 MHz = 1 GHz/2
+      CLKOUT1_DIVIDE_G : positive := 32);   -- 31.25 MHz = 1 GHz/32
    port (
       -- SELECTIO Ports
       rxP             : in  slv(NUM_LANE_G-1 downto 0);
       rxN             : in  slv(NUM_LANE_G-1 downto 0);
-      pllClk          : out sl;
-      -- External PLL Interface
+      -- Optional Clock Outputs
+      pllClk          : out sl;             -- clkout0
+      userClk         : out sl;             -- clkout1
+      -- External PLL Interface (EXT_PLL_G = TRUE)
       extPllClkIn     : in  sl                     := '0';
       extPllRstIn     : in  sl                     := '1';
-      -- Reference Clock and Reset
+      -- Reference Clock and Reset (EXT_PLL_G = FALSE)
       refClk          : in  sl;
       refRst          : in  sl;
       -- Deserialization Interface (deserClk domain)
-      deserClk        : out sl;
+      deserClk        : out sl;             -- clkout0/4
       deserRst        : out sl;
       deserData       : out Slv8Array(NUM_LANE_G-1 downto 0);
       dlyLoad         : in  slv(NUM_LANE_G-1 downto 0);
@@ -73,6 +76,7 @@ architecture mapping of SelectioDeserUltraScale is
    signal locked  : sl := '0';
    signal clkFb   : sl := '0';
    signal clkout0 : sl := '0';
+   signal clkout1 : sl := '0';
 
    signal clkx4 : sl := '0';
    signal clkx1 : sl := '0';
@@ -122,7 +126,8 @@ begin
                CLKIN_PERIOD   => CLKIN_PERIOD_G,
                DIVCLK_DIVIDE  => DIVCLK_DIVIDE_G,
                CLKFBOUT_MULT  => CLKFBOUT_MULT_G,
-               CLKOUT0_DIVIDE => CLKOUT0_DIVIDE_G)
+               CLKOUT0_DIVIDE => CLKOUT0_DIVIDE_G,
+               CLKOUT1_DIVIDE => CLKOUT1_DIVIDE_G)
             port map (
                DCLK        => axilClk,
                DRDY        => drpRdy,
@@ -139,7 +144,7 @@ begin
                CLKFBIN     => clkFb,
                LOCKED      => locked,
                CLKOUT0     => clkout0,
-               CLKOUT1     => open);
+               CLKOUT1     => clkout1);
 
       end generate GEN_REAL;
 
@@ -148,7 +153,7 @@ begin
          axilReadSlave  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
          axilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
 
-         U_ClkRst : entity surf.ClkRst
+         U_clkout0 : entity surf.ClkRst
             generic map (
                CLK_PERIOD_G      => (CLKIN_PERIOD_G*DIVCLK_DIVIDE_G*CLKOUT0_DIVIDE_G/CLKFBOUT_MULT_G)*(1.0 ns),
                RST_START_DELAY_G => 0 ns,
@@ -156,6 +161,14 @@ begin
             port map (
                clkP => clkout0,
                rstL => locked);
+
+         U_clkout1 : entity surf.ClkRst
+            generic map (
+               CLK_PERIOD_G      => (CLKIN_PERIOD_G*DIVCLK_DIVIDE_G*CLKOUT1_DIVIDE_G/CLKFBOUT_MULT_G)*(1.0 ns),
+               RST_START_DELAY_G => 0 ns,
+               RST_HOLD_TIME_G   => 1000 ns)
+            port map (
+               clkP => clkout1);
 
       end generate GEN_SIM;
 
@@ -169,8 +182,14 @@ begin
    GEN_EXT_PLL : if (EXT_PLL_G = true) generate
       clkx4   <= extPllClkIn;
       clkout0 <= extPllClkIn;
+      clkout1 <= extPllClkIn;
       locked  <= not(extPllRstIn);
    end generate GEN_EXT_PLL;
+
+   U_UserClk : BUFG
+      port map (
+         I => clkout1,
+         O => userClk);
 
    ------------------------------------------------------------------------------------------------------
    -- clkx1 is the ISERDESE3/OSERDESE3's CLKDIV port

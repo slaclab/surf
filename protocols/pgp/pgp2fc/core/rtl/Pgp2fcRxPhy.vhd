@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2fc: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -436,9 +436,9 @@ begin
    end process;
 
    -- Fast Control logic
-   process (pgpRxClk, pgpRxClkRst)
+   process (intRxLinkReady, pgpRxClk, pgpRxClkRst)
    begin
-      if pgpRxClkRst = '1' then
+      if pgpRxClkRst = '1' or intRxLinkReady = '0' then
          intFcValid    <= '0'             after TPD_G;
          intFcBusy     <= '0'             after TPD_G;
          intFcError    <= '0'             after TPD_G;

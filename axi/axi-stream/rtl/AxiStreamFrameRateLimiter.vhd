@@ -40,6 +40,7 @@ entity AxiStreamFrameRateLimiter is
       sAxisSlave      : out AxiStreamSlaveType;
       mAxisMaster     : out AxiStreamMasterType;
       mAxisSlave      : in  AxiStreamSlaveType;
+      mAxisCtrl       : in  AxiStreamCtrlType      := AXI_STREAM_CTRL_UNUSED_C;
       -- Optional: AXI Lite Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -135,7 +136,8 @@ begin
          dataIn  => writeReg(1)(0),
          dataOut => backpressure);
 
-   comb : process (axisRst, backpressure, r, rateLimit, sAxisMaster, txSlave) is
+   comb : process (axisRst, backpressure, mAxisCtrl, r, rateLimit, sAxisMaster,
+                   txSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -157,8 +159,16 @@ begin
          when IDLE_S =>
             -- Update the variable
             if (r.rateLimit = 0) or (r.rateLimit /= r.frameCnt) then
-               v.tValid := '1';
+               -- Check if back pressure mode
+               if (backpressure = '0') then
+                  -- Accept data if not paused downstream
+                  v.tValid := not(mAxisCtrl.pause);
+               else
+                  -- Accept data
+                  v.tValid := '1';
+               end if;
             else
+               -- Blow off data
                v.tValid := '0';
             end if;
 

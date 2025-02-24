@@ -443,7 +443,7 @@ begin
                v.wMaster.wdata(23 downto 16)   := r.lastUser;
                v.wMaster.wdata(15 downto 4)    := (others => '0');
                v.wMaster.wdata(3)              := r.continue;
-               v.wMaster.wdata(2)              := '0';
+               v.wMaster.wdata(2)              := r.dmaWrTrack.overflow;
                v.wMaster.wdata(1 downto 0)     := r.result;
 
                v.wMaster.wstrb := resize(x"FF", 128);
@@ -500,7 +500,11 @@ begin
                   -- -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      v.dmaWrTrack.inUse := '0';
-                     v.state := RETURN_S;
+                     if r.dmaWrTrack.metaEnable = '1' then
+                        v.state := META_S;
+                     else
+                        v.state := RETURN_S;
+                     end if;
                   end if;
                end if;
             end if;

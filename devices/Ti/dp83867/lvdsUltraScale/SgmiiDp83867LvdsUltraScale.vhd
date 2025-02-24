@@ -16,151 +16,96 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 
+library UNISIM;
+use UNISIM.vcomponents.all;
+
 entity SgmiiDp83867LvdsUltraScale is
    generic (
       TPD_G             : time                  := 1 ns;
       STABLE_CLK_FREQ_G : real                  := 156.25E+6;
-      USE_BUFG_DIV_G    : boolean               := true;
-      CLKOUT1_PHASE_G   : real                  := 90.0;
+      PAUSE_EN_G        : boolean               := true;
+      JUMBO_G           : boolean               := true;
+      EN_AXIL_REG_G     : boolean               := false;
       PHY_G             : natural range 0 to 15 := 3;
       AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
    port (
       -- clock and reset
-      extRst      : in    sl;                -- active high
-      stableClk   : in    sl;                -- Stable clock reference
-      phyClk      : out   sl;
-      phyRst      : out   sl;
+      extRst          : in    sl;                -- active high
+      stableClk       : in    sl;                -- Stable clock reference
+      phyClk          : out   sl;
+      phyRst          : out   sl;
       -- Local Configurations/status
-      localMac    : in    slv(47 downto 0);  --  big-Endian configuration
-      phyReady    : out   sl;
-      linkUp      : out   sl;
-      speed10     : out   sl;
-      speed100    : out   sl;
-      speed1000   : out   sl;
-      mmcmLocked  : out   sl;
+      localMac        : in    slv(47 downto 0);  --  big-Endian configuration
+      phyReady        : out   sl;
+      linkUp          : out   sl;
+      speed10         : out   sl;
+      speed100        : out   sl;
+      speed1000       : out   sl;
       -- Interface to Ethernet Media Access Controller (MAC)
-      macClk      : in    sl;
-      macRst      : in    sl;
-      obMacMaster : out   AxiStreamMasterType;
-      obMacSlave  : in    AxiStreamSlaveType;
-      ibMacMaster : in    AxiStreamMasterType;
-      ibMacSlave  : out   AxiStreamSlaveType;
+      macClk          : in    sl;
+      macRst          : in    sl;
+      obMacMaster     : out   AxiStreamMasterType;
+      obMacSlave      : in    AxiStreamSlaveType;
+      ibMacMaster     : in    AxiStreamMasterType;
+      ibMacSlave      : out   AxiStreamSlaveType;
+      -- Slave AXI-Lite Interface
+      axilClk         : in    sl                     := '0';
+      axilRst         : in    sl                     := '0';
+      axilReadMaster  : in    AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave   : out   AxiLiteReadSlaveType;
+      axilWriteMaster : in    AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave  : out   AxiLiteWriteSlaveType;
       -- ETH external PHY Ports
-      phyClkP     : in    sl;                -- 625.0 MHz
-      phyClkN     : in    sl;
-      phyMdc      : out   sl;
-      phyMdio     : inout sl;
-      phyRstN     : out   sl;                -- active low
-      phyIrqN     : in    sl;                -- active low
+      phyClkP         : in    sl;                -- 625.0 MHz
+      phyClkN         : in    sl;
+      phyMdc          : out   sl;
+      phyMdio         : inout sl;
+      phyRstN         : out   sl;                -- active low
+      phyIrqN         : in    sl;                -- active low
       -- LVDS SGMII Ports
-      sgmiiRxP    : in    sl;
-      sgmiiRxN    : in    sl;
-      sgmiiTxP    : out   sl;
-      sgmiiTxN    : out   sl);
+      sgmiiRxP        : in    sl;
+      sgmiiRxN        : in    sl;
+      sgmiiTxP        : out   sl;
+      sgmiiTxN        : out   sl);
 end entity SgmiiDp83867LvdsUltraScale;
 
 architecture mapping of SgmiiDp83867LvdsUltraScale is
 
-   signal phyClock : sl;
-   signal phyReset : sl;
-
    signal phyInitRst : sl;
    signal phyIrq     : sl;
+   signal phyTri     : sl;
    signal phyMdi     : sl;
+   signal phyMdiSync : sl;
    signal phyMdo     : sl := '1';
 
    signal extPhyRstN : sl := '0';
 
    signal sp10_100 : sl := '0';
    signal sp100    : sl := '0';
-
-   signal sp10_100_sync : sl := '0';
-   signal sp100_sync    : sl := '0';
-
    signal initDone : sl := '0';
 
 begin
-
-   phyClk <= phyClock;
-   phyRst <= phyReset;
 
    speed10   <= sp10_100 and not sp100;
    speed100  <= sp10_100 and not sp100;
    speed1000 <= not sp10_100 and not sp100;
 
    -- Tri-state driver for phyMdio
-   phyMdio <= 'Z' when phyMdo = '1' else '0';
+   U_phyMdio : IOBUF
+      port map (
+         I  => phyMdo,                  -- 1-bit input: Buffer input
+         O  => phyMdi,                  -- 1-bit output: Buffer output
+         IO => phyMdio,                 -- 1-bit inout: Buffer inout
+         T  => phyTri);                 -- 1-bit input: 3-state enable input
 
    -- Reset line of the external phy
    phyRstN <= extPhyRstN;
-
-   --------------------------------------------------------------------------
-   -- We must hold reset for >10ms and then wait >5ms until we may talk
-   -- to it (we actually wait also >10ms) which is indicated by 'phyInitRst'
-   --------------------------------------------------------------------------
-   U_PwrUpRst0 : entity surf.PwrUpRst
-      generic map(
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '1',
-         OUT_POLARITY_G => '0',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
-      port map (
-         arst   => extRst,
-         clk    => stableClk,
-         rstOut => extPhyRstN);
-
-   U_PwrUpRst1 : entity surf.PwrUpRst
-      generic map(
-         TPD_G          => TPD_G,
-         IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1',
-         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 100.0))  -- 10 ms reset
-      port map (
-         arst   => extPhyRstN,
-         clk    => stableClk,
-         rstOut => phyInitRst);
-
-   -----------------------------------------------------------------------
-   -- The SaltCore does not support auto-negotiation on the SGMII link
-   -- (mac<->phy) - however, the DP83867ISRGZ PHY (by default) assumes it does.
-   -- We need to disable auto-negotiation in the PHY on the SGMII side
-   -- and handle link changes (aneg still enabled on copper) flagged
-   -- by the PHY...
-   -----------------------------------------------------------------------
-   U_PhyCtrl : entity surf.SgmiiDp83867Mdio
-      generic map (
-         TPD_G => TPD_G,
-         PHY_G => PHY_G,
-         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*1.0E+6))  -- phyMdc = 1.0 MHz
-      port map (
-         clk             => stableClk,
-         rst             => phyInitRst,
-         initDone        => initDone,
-         speed_is_10_100 => sp10_100,
-         speed_is_100    => sp100,
-         linkIsUp        => linkUp,
-         mdi             => phyMdi,
-         mdc             => phyMdc,
-         mdo             => phyMdo,
-         linkIrq         => phyIrq);
-
-   ----------------------------------------------------
-   -- synchronize MDI and IRQ signals into 'clk' domain
-   ----------------------------------------------------
-   U_SyncMdi : entity surf.Synchronizer
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk     => stableClk,
-         dataIn  => phyMdio,
-         dataOut => phyMdi);
 
    U_SyncIrq : entity surf.Synchronizer
       generic map (
@@ -172,48 +117,96 @@ begin
          dataIn  => phyIrqN,
          dataOut => phyIrq);
 
-   U_sync_speed : entity surf.SynchronizerVector
+   U_SyncMdi : entity surf.Synchronizer
       generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 2)
+         TPD_G => TPD_G)
       port map (
-         clk        => phyClock,
-         dataIn(0)  => sp10_100,
-         dataIn(1)  => sp100,
-         dataOut(0) => sp10_100_sync,
-         dataOut(1) => sp100_sync);
+         clk     => stableClk,
+         dataIn  => phyMdi,
+         dataOut => phyMdiSync);
 
-   U_1GigE : entity surf.GigEthLvdsUltraScaleWrapper
+   --------------------------------------------------------------------------
+   -- We must hold reset for >10ms and then wait >5ms until we may talk
+   -- to it (we actually wait also >10ms) which is indicated by 'phyInitRst'
+   --------------------------------------------------------------------------
+   U_PwrUpRst0 : entity surf.PwrUpRst
+      generic map(
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '1',
+         OUT_POLARITY_G => '0',
+         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 2.0))  -- 500 ms reset
+      port map (
+         arst   => extRst,
+         clk    => stableClk,
+         rstOut => extPhyRstN);
+
+   U_PwrUpRst1 : entity surf.PwrUpRst
+      generic map(
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => '0',
+         OUT_POLARITY_G => '1',
+         DURATION_G     => getTimeRatio(STABLE_CLK_FREQ_G, 2.0))  -- 500 ms reset
+      port map (
+         arst   => extPhyRstN,
+         clk    => stableClk,
+         rstOut => phyInitRst);
+
+   U_PhyCtrl : entity surf.SgmiiDp83867Mdio
       generic map (
-         TPD_G           => TPD_G,
-         USE_BUFG_DIV_G  => USE_BUFG_DIV_G,
-         CLKOUT1_PHASE_G => CLKOUT1_PHASE_G,
-         AXIS_CONFIG_G   => (others => AXIS_CONFIG_G))
+         TPD_G => TPD_G,
+         PHY_G => PHY_G,
+         DIV_G => getTimeRatio(STABLE_CLK_FREQ_G, 2*2.5E+6))  -- phyMdc = 2.5 MHz (nominal)
+      port map (
+         clk             => stableClk,
+         rst             => phyInitRst,
+         initDone        => initDone,
+         speed_is_10_100 => sp10_100,
+         speed_is_100    => sp100,
+         linkIsUp        => linkUp,
+         mdi             => phyMdiSync,
+         mdc             => phyMdc,
+         mdTri           => phyTri,
+         mdo             => phyMdo,
+         linkIrq         => phyIrq);
+
+   U_1GigE : entity surf.GigEthLvdsUltraScale
+      generic map (
+         TPD_G         => TPD_G,
+         PAUSE_EN_G    => PAUSE_EN_G,
+         JUMBO_G       => JUMBO_G,
+         EN_AXIL_REG_G => EN_AXIL_REG_G,
+         AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Local Configurations
-         localMac(0)        => localMac,
+         localMac        => localMac,
          -- Streaming DMA Interface
-         dmaClk(0)          => macClk,
-         dmaRst(0)          => macRst,
-         dmaIbMasters(0)    => obMacMaster,
-         dmaIbSlaves(0)     => obMacSlave,
-         dmaObMasters(0)    => ibMacMaster,
-         dmaObSlaves(0)     => ibMacSlave,
-         -- Misc. Signals
-         extRst             => extRst,
-         phyClk             => phyClock,
-         phyRst             => phyReset,
-         mmcmLocked         => mmcmLocked,
-         phyReady(0)        => phyReady,
-         speed_is_10_100(0) => sp10_100_sync,
-         speed_is_100(0)    => sp100_sync,
-         -- MGT Clock Port
-         sgmiiClkP          => phyClkP,
-         sgmiiClkN          => phyClkN,
-         -- MGT Ports
-         sgmiiTxP(0)        => sgmiiTxP,
-         sgmiiTxN(0)        => sgmiiTxN,
-         sgmiiRxP(0)        => sgmiiRxP,
-         sgmiiRxN(0)        => sgmiiRxN);
+         dmaClk          => macClk,
+         dmaRst          => macRst,
+         dmaIbMaster     => obMacMaster,
+         dmaIbSlave      => obMacSlave,
+         dmaObMaster     => ibMacMaster,
+         dmaObSlave      => ibMacSlave,
+         -- Slave AXI-Lite Interface
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave,
+         -- Speed selection
+         speed_is_10_100 => sp10_100,
+         speed_is_100    => sp100,
+         -- PHY + MAC signals
+         extRst          => phyInitRst,
+         ethClk          => phyClk,
+         ethRst          => phyRst,
+         phyReady        => phyReady,
+         -- SGMII / LVDS Ports
+         sgmiiClkP       => phyClkP,    -- 625 MHz
+         sgmiiClkN       => phyClkN,    -- 625 MHz
+         sgmiiTxP        => sgmiiTxP,
+         sgmiiTxN        => sgmiiTxN,
+         sgmiiRxP        => sgmiiRxP,
+         sgmiiRxN        => sgmiiRxN);
 
 end mapping;

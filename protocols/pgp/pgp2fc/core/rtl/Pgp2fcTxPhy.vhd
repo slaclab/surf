@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2fc: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ begin
    end process;
 
    crcRst <= '1' when fcWordCount = FC_WORDS_G else '0';
-   crcEn  <= '1' when curState = ST_FC_C       else '0';
+   crcEn  <= '1' when curState    = ST_FC_C    else '0';
 
    U_Crc7 : entity surf.CRC7Rtl
       port map (
