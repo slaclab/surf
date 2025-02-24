@@ -14,8 +14,8 @@ from surf.ethernet.udp._UdpEngine       import *
 
 import ipaddress
 
-def getPortValue(var):
-    x = var.dependencies[0].value()
+def getPortValue(var, read):
+    x = var.dependencies[0].get(read=read)
     newValue = int.from_bytes(x.to_bytes(2, byteorder='big'), byteorder='little', signed=False)
     return ( newValue )
 
@@ -23,8 +23,8 @@ def setPortValue(var, value, write):
     newValue = int.from_bytes(value.to_bytes(2, byteorder='little'), byteorder='big', signed=False)
     var.dependencies[0].set(newValue, write=write)
 
-def getIpValue(var):
-    x = var.dependencies[0].value()
+def getIpValue(var, read):
+    x = var.dependencies[0].get(read=read)
     return ( '%d.%d.%d.%d' % ( ((x>>0)&0xFF),((x>>8)&0xFF),((x>>16)&0xFF),((x>>24)&0xFF) ) )
 
 def setIpValue(var, value, write):
@@ -32,8 +32,8 @@ def setIpValue(var, value, write):
     newValue = int.from_bytes(x.to_bytes(4, byteorder='little'), byteorder='big', signed=False)
     var.dependencies[0].set(newValue, write=write)
 
-def getMacValue(var):
-    x = var.dependencies[0].value()
+def getMacValue(var, read):
+    x = var.dependencies[0].get(read=read)
     return ( '%02X:%02X:%02X:%02X:%02X:%02X' % ( ((x>>0)&0xFF),((x>>8)&0xFF),((x>>16)&0xFF),((x>>24)&0xFF),((x>>32)&0xFF),((x>>40)&0xFF) ) )
 
 def setMacValue(var, value, write):
@@ -42,3 +42,4 @@ def setMacValue(var, value, write):
         x = [int(i,16) for i in x]
         newValue = ( '0x%02x%02x%02x%02x%02x%02x' % (x[5],x[4],x[3],x[2],x[1],x[0]) )
         var.dependencies[0].set(int(newValue,16), write=write)
+

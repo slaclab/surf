@@ -22,7 +22,7 @@ jobs:
 
   test_and_document:
     name: Test And Generate Documentation
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
 
       # This step checks out a copy of your repository.
@@ -32,29 +32,38 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install make python3 python3-pip tclsh
+          sudo apt-get install make python3 python3-pip tclsh ghdl
           sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
           python -m pip install --upgrade pip
           pip install -r pip_requirements.txt
           git clone https://github.com/slaclab/ruckus.git
           pip install -r ruckus/scripts/pip_requirements.txt
 
+      - name: Check for trailing whitespace
+        run: |
+          if grep -rnI '[[:blank:]]$' --include=\*.{vhd,v,tcl,py} .; then
+            echo "Error: Trailing whitespace found in the repository!"
+            exit 1
+          fi
+
       - name: Python Syntax and Linter Checking
         run: |
           python -m compileall -f python/ scripts/ tests/
           flake8 --count python/ scripts/ tests/
 
+#      - name: C/C++ Linter
+#        run: |
+#          find . -name '*.h' -o -name '*.cpp' -o -name '*.c' | xargs cpplint
+
       - name: VHDL Regression Testing
         run: |
-          ./ghdl-build.sh > /dev/null 2>&1
           make MODULES=$PWD
           python -m pytest --cov -v tests/
-          rm -rf ghdl-build
 
 #      # Code Coverage
 #      - name: Code Coverage
@@ -77,92 +86,21 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    name: Generate Release
-    runs-on: ubuntu-20.04
     needs: [test_and_document]
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Get Image Information
-        id: get_image_info
-        run: |
-          echo ::set-output name=tag::`git describe --tags`
-
-      - name: Get Ruckus
-        run: |
-          git clone https://github.com/slaclab/ruckus.git
-          python -m pip install --upgrade pip
-          pip install -r ruckus/scripts/pip_requirements.txt
-
-      - name: Gen Release
-        env:
-          TRAVIS_REPO_SLUG: ${{ github.repository }}
-          TRAVIS_TAG: ${{ steps.get_image_info.outputs.tag }}
-          GH_REPO_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          python ruckus/scripts/releaseGen.py
+    uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
+    with:
+      version: '1.0.0'
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 # ----------------------------------------------------------------------------
 
-  conda_build:
-    name: Anaconda Build
+  conda_build_lib:
     needs: [test_and_document]
-    if: startsWith(github.ref, 'refs/tags/')
-    strategy:
-      matrix:
-        os:
-          - ubuntu-20.04
-    runs-on: ${{ matrix.os }}
-    steps:
-
-      # This step checks out a copy of your repository.
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Setup anaconda
-        env:
-          OS_NAME: ${{ matrix.os }}
-        run: |
-          cd ${HOME}
-          wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-          bash miniconda.sh -b -p ${HOME}/miniconda
-          export PATH="${HOME}/miniconda/bin:$PATH"
-          source ${HOME}/miniconda/etc/profile.d/conda.sh
-          conda config --set always_yes yes
-          conda config --set channel_priority strict
-          conda install -n base conda-libmamba-solver
-          conda config --set solver libmamba
-          conda install conda-build anaconda-client conda-verify
-          conda update -q conda conda-build
-          conda update --all
-
-      - name: Get Image Information
-        id: get_image_info
-        env:
-          CONDA_UPLOAD_TOKEN_TAG: ${{ secrets.CONDA_UPLOAD_TOKEN_TAG }}
-          OS_NAME: ${{ matrix.os }}
-        run: |
-          echo ::set-output name=token::$CONDA_UPLOAD_TOKEN_TAG
-          echo ::set-output name=os::linux-64
-
-      - name: Build And Upload
-        run: |
-          export PATH="${HOME}/miniconda/bin:$PATH"
-          source ${HOME}/miniconda/etc/profile.d/conda.sh
-          conda build --debug conda-recipe --output-folder bld-dir -c tidair-tag -c tidair-packages -c conda-forge
-          anaconda -t ${{ steps.get_image_info.outputs.token }} upload --force bld-dir/noarch/*.tar.bz2
+    uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
+    with:
+      version: '1.0.0'
+    secrets:
+      CONDA_UPLOAD_TOKEN_TAG: ${{ secrets.CONDA_UPLOAD_TOKEN_TAG }}
 
 # ----------------------------------------------------------------------------

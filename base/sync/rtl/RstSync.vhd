@@ -4,6 +4,9 @@
 -- Description: Synchronizes the trailing edge of an asynchronous reset to a
 --              given clock.
 -------------------------------------------------------------------------------
+-- Note: Using "std_logic" instead of "sl" for generics due to issues with
+--       SystemVerilog handling VHDL subtype on generics properly
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -21,9 +24,9 @@ use surf.StdRtlPkg.all;
 
 entity RstSync is
    generic (
-      TPD_G           : time                             := 1 ns;   -- Simulation FF output delay
-      IN_POLARITY_G   : sl                               := '1';  -- 0 for active low rst, 1 for high
-      OUT_POLARITY_G  : sl                               := '1';
+      TPD_G           : time                             := 1 ns;  -- Simulation FF output delay
+      IN_POLARITY_G   : std_logic                        := '1';  -- 0 for active low rst, 1 for high
+      OUT_POLARITY_G  : std_logic                        := '1';
       BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration
       RELEASE_DELAY_G : integer range 3 to positive'high := 3;  -- Delay between deassertion of async and sync resets
       OUT_REG_RST_G   : boolean                          := true);  -- Apply async reset to final reg stage
@@ -57,7 +60,7 @@ begin
          dataOut => syncInt);
 
    -- Final stage does not have async constraints applied, can be duplicated to ease timing
-   OUT_REG : process (clk, asyncRst) is
+   OUT_REG : process (asyncRst, clk) is
    begin
       if (asyncRst = IN_POLARITY_G and OUT_REG_RST_G) then
          syncRst <= OUT_POLARITY_G after TPD_G;

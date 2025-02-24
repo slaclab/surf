@@ -45,7 +45,6 @@ entity UdpEngineWrapper is
       CLK_FREQ_G          : real                  := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G      : positive              := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
       TTL_G               : slv(7 downto 0)       := x"20";  -- IPv4's Time-To-Live (TTL)
-      VLAN_G              : boolean               := false;  -- true = VLAN support
       SYNTH_MODE_G        : string                := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
@@ -135,7 +134,7 @@ begin
          CLK_FREQ_G      => CLK_FREQ_G,
          IGMP_G          => IGMP_G,
          IGMP_GRP_SIZE   => IGMP_GRP_SIZE,
-         VLAN_G          => VLAN_G)
+         TTL_G           => TTL_G)
       port map (
          -- Local Configurations
          localMac             => localMac,

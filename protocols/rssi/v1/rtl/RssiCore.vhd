@@ -277,6 +277,13 @@ architecture rtl of RssiCore is
    signal frameRate  : Slv32Array(1 downto 0);
    signal bandwidth  : Slv64Array(1 downto 0);
 
+   signal s_txTspState : slv(7 downto 0);
+   signal s_txAppState : slv(3 downto 0);
+   signal s_txAckState : slv(3 downto 0);
+   signal s_rxTspState : slv(3 downto 0);
+   signal s_rxAppState : slv(3 downto 0);
+   signal s_connState  : slv(3 downto 0);
+
    -- attribute dont_touch                   : string;
    -- attribute dont_touch of bandwidth      : signal is "TRUE";
    -- attribute dont_touch of s_mAppAxisCtrl : signal is "TRUE";
@@ -333,14 +340,23 @@ begin
          injectFault_o  => s_injectFaultReg,
 
          -- Status (RO)
-         frameRate_i => frameRate,
-         bandwidth_i => bandwidth,
-         status_i    => s_statusReg,
-         dropCnt_i   => s_dropCntReg,
-         validCnt_i  => s_validCntReg,
-         resendCnt_i => s_resendCntReg,
-         reconCnt_i  => s_reconCntReg
-         );
+         txLastAckN_i => s_rxLastAckN,
+         rxSeqN_i     => s_rxLastSeqN,
+         rxAckN_i     => s_rxAckN,
+         rxLastSeqN_i => s_rxLastSeqN,
+         txTspState_i => s_txTspState,
+         txAppState_i => s_txAppState,
+         txAckState_i => s_txAckState,
+         rxTspState_i => s_rxTspState,
+         rxAppState_i => s_rxAppState,
+         connState_i  => s_connState,
+         frameRate_i  => frameRate,
+         bandwidth_i  => bandwidth,
+         status_i     => s_statusReg,
+         dropCnt_i    => s_dropCntReg,
+         validCnt_i   => s_validCntReg,
+         resendCnt_i  => s_resendCntReg,
+         reconCnt_i   => s_reconCntReg);
 
    s_injectFault <= s_injectFaultReg or inject_i;
 
@@ -487,6 +503,7 @@ begin
          rxWindowSize_o => s_rxWindowSize,
          txBufferSize_o => s_txBufferSize,
          txWindowSize_o => s_txWindowSize,
+         connState_o    => s_connState,
          peerTout_o     => s_peerConnTout,
          paramReject_o  => s_paramReject);
 
@@ -627,6 +644,10 @@ begin
          rstHeadSt_o  => s_rstHeadSt,
          nullHeadSt_o => s_nullHeadSt,
 
+         txTspState_o => s_txTspState,
+         txAppState_o => s_txAppState,
+         txAckState_o => s_txAckState,
+
          lastAckN_o => s_rxLastAckN,
          ack_i      => s_rxAck,
          ackN_i     => s_rxAckN,
@@ -752,6 +773,8 @@ begin
          rxDropSeg_o    => s_rxDropSeg,
          rxFlags_o      => s_rxFlags,
          rxParam_o      => s_rxRssiParam,
+         rxTspState_o   => s_rxTspState,
+         rxAppState_o   => s_rxAppState,
          chksumValid_i  => s_rxChkValid,
          chksumOk_i     => s_rxChkCheck,
          chksumEnable_o => s_rxChkEnable,

@@ -66,7 +66,7 @@ class CoaXPressAxiL(pr.Device):
                 units        = "MHz",
                 mode         = 'RO',
                 dependencies = [self.RxClockFreqRaw[i]],
-                linkedGet    = lambda: self.RxClockFreqRaw[i].value() * 1.0e-6,
+                linkedGet    = lambda read, x=self.RxClockFreqRaw[i]: x.get(read=read) * 1.0e-6,
                 disp         = '{:0.3f}',
                 hidden       = True,
             ))
@@ -112,7 +112,7 @@ class CoaXPressAxiL(pr.Device):
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.TxClockFreqRaw],
-            linkedGet    = lambda: self.TxClockFreqRaw.value() * 1.0e-6,
+            linkedGet    = lambda read: self.TxClockFreqRaw.get(read=read) * 1.0e-6,
             disp         = '{:0.3f}',
             hidden       = True,
         ))
@@ -193,7 +193,7 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RX_FSM_CNT_WIDTH_C',
+            name         = 'RX_FSM_CNT_WIDTH_G',
             offset       = 0xFE0,
             bitSize      = 8,
             bitOffset    = 16,
@@ -227,8 +227,8 @@ class CoaXPressAxiL(pr.Device):
             units        = '\u03BCs',
             disp         = '{:0.3f}',
             dependencies = [self.TrigPulseWidthRaw],
-            linkedGet    = lambda: (float(self.TrigPulseWidthRaw.value()+1) * 0.0032),
-            linkedSet    = lambda value, write: self.TrigPulseWidthRaw.set(int(value/0.0032)-1),
+            linkedGet    = lambda read: (float(self.TrigPulseWidthRaw.get(read=read)+1) * 0.0032),
+            linkedSet    = lambda value, write: self.TrigPulseWidthRaw.set(int(value/0.0032)-1, write=write),
         ))
 
         self.add(pr.RemoteCommand(

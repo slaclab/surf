@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ use unisim.vcomponents.all;
 entity Pgp2fcGtyCoreWrapper is
    generic (
       TPD_G               : time    := 1 ns;
+      SIMULATION_G        : boolean := false;
       SEL_FABRIC_REFCLK_G : boolean := false;
       USE_ALIGN_CHECK_G   : boolean := true;
       AXI_CLK_FREQ_G      : real             := 125.0e6;
@@ -47,9 +48,11 @@ entity Pgp2fcGtyCoreWrapper is
       gtTxN          : out sl;
 
       -- Rx ports
+      phyRxReady     : out sl;
       rxReset        : in  sl;
       rxUsrClkActive : in  sl;
       rxResetDone    : out sl;
+      rxPmaResetDone : out sl;
       rxUsrClk       : in  sl;
       rxData         : out slv(15 downto 0);
       rxDataK        : out slv(1 downto 0);
@@ -57,7 +60,6 @@ entity Pgp2fcGtyCoreWrapper is
       rxDecErr       : out slv(1 downto 0);
       rxPolarity     : in  sl;
       rxOutClk       : out sl;
-      rxRecClk       : out sl; -- raw recovered clock
 
       -- Tx Ports
       txReset        : in  sl;
@@ -155,7 +157,6 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
          rxctrl3_out                        : out std_logic_vector (7 downto 0);
          rxdlysresetdone_out                : out std_logic_vector (0 downto 0);
          rxoutclk_out                       : out std_logic_vector (0 downto 0);
-         rxrecclkout_out                    : out std_logic_vector (0 downto 0);
          rxphaligndone_out                  : out std_logic_vector (0 downto 0);
          rxpmaresetdone_out                 : out std_logic_vector (0 downto 0);
          rxresetdone_out                    : out std_logic_vector (0 downto 0);
@@ -208,7 +209,8 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
    signal rxPmaReset        : sl := '0';
    signal txPcsReset        : sl := '0';
    signal txPmaReset        : sl := '0';
-   signal rxPmaResetDone    : sl := '0';
+   signal rxPmaResetDoneInt : sl := '0';
+   signal rxResetDoneInt    : sl := '0';
    signal txPmaResetDone    : sl := '0';
    signal rxByteIsAligned   : sl := '0';
    signal rxByteReAlign     : sl := '0';
@@ -324,15 +326,14 @@ begin
          rxdlysresetdone_out(0)                => rxDlysResetDone,
          rxphaligndone_out(0)                  => rxPhyAlignDone,
          rxoutclk_out(0)                       => rxOutClkGt,
-         rxrecclkout_out(0)                    => rxRecClk,
          txoutclk_out(0)                       => txOutClkGt, -- unused
-         rxpmaresetdone_out(0)                 => rxPmaResetDone,
-         rxresetdone_out(0)                    => rxResetDone,
+         rxpmaresetdone_out(0)                 => rxPmaResetDoneInt,
+         rxresetdone_out(0)                    => rxResetDoneInt,
          rxsyncdone_out(0)                     => rxSyncDone,
          txpmaresetdone_out(0)                 => txPmaResetDone,
          txresetdone_out(0)                    => txResetDone);
 
-      TIMING_RECCLK_BUFG_GT : BUFG_GT
+      RXOUTCLK_BUFG_GT : BUFG_GT
          port map (
             I       => rxOutClkGt,
             CE      => '1',
@@ -342,7 +343,18 @@ begin
             DIV     => "000",
             O       => rxOutClkB);
 
+   -- Cant seem to use txoutclk to drive txusrclk without placement errors
       -- if one does not use the userRefClk for the txOutClk, placement errors occur
+--       TXOUTCLK_BUFG_GT : BUFG_GT
+--          port map (
+--             I       => txOutClkGt,
+--             CE      => '1',
+--             CEMASK  => '1',
+--             CLR     => '0',
+--             CLRMASK => '1',
+--             DIV     => "000",
+--             O       => txOutClkB);
+
       txOutClkB <= gtUserRefClk;
 
    U_XBAR : entity surf.AxiLiteCrossbar
@@ -370,6 +382,7 @@ begin
    U_AlignCheck : entity surf.GtRxAlignCheck
       generic map (
          TPD_G          => TPD_G,
+         SIMULATION_G   => SIMULATION_G,
          GT_TYPE_G      => "GTYE4",
          AXI_CLK_FREQ_G => AXI_CLK_FREQ_G,
          DRP_ADDR_G     => AXI_CROSSBAR_MASTERS_CONFIG_C(1).baseAddr)
@@ -425,12 +438,17 @@ begin
 
    txctrl2           <= "000000" & txDataK;
    txUsrActive       <= txUsrClkActive and txPmaResetDone;
-   rxUsrActive       <= rxUsrClkActive and rxPmaResetDone;
+   rxUsrActive       <= rxUsrClkActive and rxPmaResetDoneInt;
+
+   rxPmaResetDone    <= rxPmaResetDoneInt;
+
+   rxResetDone       <= rxResetDoneInt and buffBypassRxDone;
+   phyRxReady        <= rxResetDoneInt;
 
    cPllRefClkSel     <= ite(SEL_FABRIC_REFCLK_G, "111", "001");
 
-   rstSyncRxIn       <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
-   rxResetGt         <= ite(USE_ALIGN_CHECK_G, rxResetAlignCheck, rxReset);
+   rstSyncRxIn       <= rxResetAlignCheck;
+   rxResetGt         <= rxResetAlignCheck;
 
    txOutClk          <= txOutClkB;
    rxOutClk          <= rxOutClkB;
@@ -443,7 +461,7 @@ begin
 
    U_RstSyncRx : entity surf.RstSync
       generic map (TPD_G => TPD_G)
-      port map (clk      => gtUserRefClk,
+      port map (clk      => rxUsrClk,
                 asyncRst => rstSyncRxIn,
                 syncRst  => buffBypassRxReset);
 

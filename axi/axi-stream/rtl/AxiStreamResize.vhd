@@ -27,6 +27,7 @@ entity AxiStreamResize is
    generic (
       -- General Configurations
       TPD_G             : time     := 1 ns;
+      RST_POLARITY_G    : sl       := '1'; -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G       : boolean  := false;
       READY_EN_G        : boolean  := true;
       PIPE_STAGES_G     : natural  := 0;
@@ -88,7 +89,10 @@ begin
    -- Make sure data widths are appropriate.
    assert ((SLV_BYTES_C >= MST_BYTES_C and SLV_BYTES_C mod MST_BYTES_C = 0) or
            (MST_BYTES_C >= SLV_BYTES_C and MST_BYTES_C mod SLV_BYTES_C = 0))
-      report "Data widths must be even number multiples of each other" severity failure;
+      report "Data widths must be even number multiples of each other" & LF &
+      "SLV_BYTES_C= " & integer'image(SLV_BYTES_C) & LF &
+      "MST_BYTES_C= " & integer'image(MST_BYTES_C)
+      severity failure;
 
    -- When going from a large bus to a small bus, ready is necessary
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)
@@ -266,10 +270,10 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G or (SLV_BYTES_C = MST_BYTES_C)) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(axisClk)) then
-         if (RST_ASYNC_G = false) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+         if (RST_ASYNC_G = false) and (axisRst = RST_POLARITY_G or (SLV_BYTES_C = MST_BYTES_C)) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -281,6 +285,7 @@ begin
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
          TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
          PIPE_STAGES_G     => PIPE_STAGES_G)

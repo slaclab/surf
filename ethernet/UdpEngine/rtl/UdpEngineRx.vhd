@@ -42,28 +42,29 @@ entity UdpEngineRx is
       CLIENT_PORTS_G : PositiveArray := (0 => 8193));
    port (
       -- Local Configurations
-      localIp          : in  slv(31 downto 0);  --  big-Endian configuration
-      broadcastIp      : in  slv(31 downto 0);  --  big-Endian configuration
-      igmpIp           : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
+      localIp              : in  slv(31 downto 0);  --  big-Endian configuration
+      broadcastIp          : in  slv(31 downto 0);  --  big-Endian configuration
+      igmpIp               : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
       -- Interface to IPV4 Engine
-      ibUdpMaster      : in  AxiStreamMasterType;
-      ibUdpSlave       : out AxiStreamSlaveType;
+      ibUdpMaster          : in  AxiStreamMasterType;
+      ibUdpSlave           : out AxiStreamSlaveType;
       -- Interface to UDP Server engine(s)
-      serverRemotePort : out Slv16Array(SERVER_SIZE_G-1 downto 0);
-      serverRemoteIp   : out Slv32Array(SERVER_SIZE_G-1 downto 0);
-      serverRemoteMac  : out Slv48Array(SERVER_SIZE_G-1 downto 0);
-      obServerMasters  : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
-      obServerSlaves   : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
+      serverRemotePort     : out Slv16Array(SERVER_SIZE_G-1 downto 0);
+      serverRemoteIp       : out Slv32Array(SERVER_SIZE_G-1 downto 0);
+      serverRemoteMac      : out Slv48Array(SERVER_SIZE_G-1 downto 0);
+      obServerMasters      : out AxiStreamMasterArray(SERVER_SIZE_G-1 downto 0);
+      obServerSlaves       : in  AxiStreamSlaveArray(SERVER_SIZE_G-1 downto 0);
       -- Interface to UDP Client engine(s)
-      clientRemoteDet  : out slv(CLIENT_SIZE_G-1 downto 0);
-      obClientMasters  : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
-      obClientSlaves   : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteDetValid : out slv(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteDetIp    : out Slv32Array(CLIENT_SIZE_G-1 downto 0);
+      obClientMasters      : out AxiStreamMasterArray(CLIENT_SIZE_G-1 downto 0);
+      obClientSlaves       : in  AxiStreamSlaveArray(CLIENT_SIZE_G-1 downto 0);
       -- Interface to DHCP Engine
-      ibDhcpMaster     : out AxiStreamMasterType;
-      ibDhcpSlave      : in  AxiStreamSlaveType;
+      ibDhcpMaster         : out AxiStreamMasterType;
+      ibDhcpSlave          : in  AxiStreamSlaveType;
       -- Clock and Reset
-      clk              : in  sl;
-      rst              : in  sl);
+      clk                  : in  sl;
+      rst                  : in  sl);
 end UdpEngineRx;
 
 architecture rtl of UdpEngineRx is
@@ -84,40 +85,42 @@ architecture rtl of UdpEngineRx is
       LAST_S);
 
    type RegType is record
-      tDestServer      : slv(7 downto 0);
-      tDestClient      : slv(7 downto 0);
-      serverRemotePort : Slv16Array(SERVER_SIZE_G-1 downto 0);
-      serverRemoteIp   : Slv32Array(SERVER_SIZE_G-1 downto 0);
-      serverRemoteMac  : Slv48Array(SERVER_SIZE_G-1 downto 0);
-      clientRemoteDet  : slv(CLIENT_SIZE_G-1 downto 0);
-      byteCnt          : slv(15 downto 0);
-      tData            : slv(127 downto 0);
-      sof              : sl;
-      localHost        : sl;
-      route            : RouteType;
-      rxSlave          : AxiStreamSlaveType;
-      dhcpMaster       : AxiStreamMasterType;
-      serverMaster     : AxiStreamMasterType;
-      clientMaster     : AxiStreamMasterType;
-      state            : StateType;
+      tDestServer          : slv(7 downto 0);
+      tDestClient          : slv(7 downto 0);
+      serverRemotePort     : Slv16Array(SERVER_SIZE_G-1 downto 0);
+      serverRemoteIp       : Slv32Array(SERVER_SIZE_G-1 downto 0);
+      serverRemoteMac      : Slv48Array(SERVER_SIZE_G-1 downto 0);
+      clientRemoteDetValid : slv(CLIENT_SIZE_G-1 downto 0);
+      clientRemoteDetIp    : Slv32Array(CLIENT_SIZE_G-1 downto 0);
+      byteCnt              : slv(15 downto 0);
+      tData                : slv(127 downto 0);
+      sof                  : sl;
+      localHost            : sl;
+      route                : RouteType;
+      rxSlave              : AxiStreamSlaveType;
+      dhcpMaster           : AxiStreamMasterType;
+      serverMaster         : AxiStreamMasterType;
+      clientMaster         : AxiStreamMasterType;
+      state                : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
-      tDestServer      => (others => '0'),
-      tDestClient      => (others => '0'),
-      serverRemotePort => (others => (others => '0')),
-      serverRemoteIp   => (others => (others => '0')),
-      serverRemoteMac  => (others => (others => '0')),
-      clientRemoteDet  => (others => '0'),
-      byteCnt          => (others => '0'),
-      tData            => (others => '0'),
-      sof              => '1',
-      localHost        => '0',
-      route            => NULL_S,
-      rxSlave          => AXI_STREAM_SLAVE_INIT_C,
-      dhcpMaster       => AXI_STREAM_MASTER_INIT_C,
-      serverMaster     => AXI_STREAM_MASTER_INIT_C,
-      clientMaster     => AXI_STREAM_MASTER_INIT_C,
-      state            => IDLE_S);
+      tDestServer          => (others => '0'),
+      tDestClient          => (others => '0'),
+      serverRemotePort     => (others => (others => '0')),
+      serverRemoteIp       => (others => (others => '0')),
+      serverRemoteMac      => (others => (others => '0')),
+      clientRemoteDetValid => (others => '0'),
+      clientRemoteDetIp    => (others => (others => '0')),
+      byteCnt              => (others => '0'),
+      tData                => (others => '0'),
+      sof                  => '1',
+      localHost            => '0',
+      route                => NULL_S,
+      rxSlave              => AXI_STREAM_SLAVE_INIT_C,
+      dhcpMaster           => AXI_STREAM_MASTER_INIT_C,
+      serverMaster         => AXI_STREAM_MASTER_INIT_C,
+      clientMaster         => AXI_STREAM_MASTER_INIT_C,
+      state                => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -156,8 +159,8 @@ begin
       v := r;
 
       -- Reset the flags
-      v.clientRemoteDet := (others => '0');
-      v.rxSlave         := AXI_STREAM_SLAVE_INIT_C;
+      v.clientRemoteDetValid := (others => '0');
+      v.rxSlave              := AXI_STREAM_SLAVE_INIT_C;
       if serverSlave.tReady = '1' then
          v.serverMaster.tValid := '0';
          v.serverMaster.tLast  := '0';
@@ -247,9 +250,10 @@ begin
                      for i in (CLIENT_SIZE_G-1) downto 0 loop
                         -- Check if port is defined
                         if (v.route = NULL_S) and (rxMaster.tData(63 downto 48) = CLIENT_PORTS_C(i)) then
-                           v.route              := CLIENT_S;
-                           v.tDestClient        := toSlv(i, 8);
-                           v.clientRemoteDet(i) := '1';
+                           v.route                   := CLIENT_S;
+                           v.tDestClient             := toSlv(i, 8);
+                           v.clientRemoteDetValid(i) := '1';
+                           v.clientRemoteDetIp(i)    := rxMaster.tData(95 downto 64);
                         end if;
                      end loop;
                   end if;
@@ -263,10 +267,14 @@ begin
                v.byteCnt(7 downto 0)  := rxMaster.tData(79 downto 72);
                -- Remove the 8 byte UDP header
                v.byteCnt              := v.byteCnt - 8;
+               -- Remove the RoCEv2 iCRC
+               if rxMaster.tData(63 downto 48) = x"B712" then
+                  v.byteCnt := v.byteCnt - 4;
+               end if;
                -- Track the leftovers
-               v.tData(31 downto 0)   := rxMaster.tData(127 downto 96);
+               v.tData(31 downto 0) := rxMaster.tData(127 downto 96);
                -- Set the flag
-               v.sof                  := '1';
+               v.sof                := '1';
                -- Check if localhost
                if (localIp = r.tData(95 downto 64)) then
                   v.localHost := '1';
@@ -492,10 +500,11 @@ begin
       rin <= v;
 
       -- Registered Outputs
-      serverRemotePort <= r.serverRemotePort;
-      serverRemoteIp   <= r.serverRemoteIp;
-      serverRemoteMac  <= r.serverRemoteMac;
-      clientRemoteDet  <= r.clientRemoteDet;
+      serverRemotePort     <= r.serverRemotePort;
+      serverRemoteIp       <= r.serverRemoteIp;
+      serverRemoteMac      <= r.serverRemoteMac;
+      clientRemoteDetValid <= r.clientRemoteDetValid;
+      clientRemoteDetIp    <= r.clientRemoteDetIp;
 
    end process comb;
 

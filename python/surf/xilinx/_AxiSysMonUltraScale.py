@@ -85,6 +85,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "WO",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
@@ -95,6 +96,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "WO",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
@@ -105,6 +107,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
@@ -125,6 +128,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         ###############################################
@@ -379,6 +383,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
@@ -389,6 +394,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         self.addRemoteVariables(
@@ -401,6 +407,7 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  8,
             stride       =  4,
             hidden       =  True,
+            groups       = "NoConfig",
         )
 
 #        self.addRemoteVariables(
@@ -440,6 +447,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitSize      =  12,
             bitOffset    =  0x4,
             mode         = "RW",
+            groups       = "NoConfig",
         ))
 
         self.add(pr.LinkVariable(
@@ -459,6 +467,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitSize      =  12,
             bitOffset    =  0x4,
             mode         = "RW",
+            groups       = "NoConfig",
         ))
 
         self.add(pr.LinkVariable(
@@ -479,6 +488,7 @@ class AxiSysMonUltraScale(pr.Device):
             bitOffset    =  0x00,
             mode         = "RW",
             hidden       =  True,
+            groups       = "NoConfig",
         ))
 
         self.addRemoteVariables(
@@ -491,6 +501,7 @@ class AxiSysMonUltraScale(pr.Device):
             number       =  8,
             stride       =  4,
             hidden       =  True,
+            groups       = "NoConfig",
         )
 
         self.addRemoteVariables(
@@ -534,40 +545,40 @@ class AxiSysMonUltraScale(pr.Device):
             self.simpleView()
 
     @staticmethod
-    def convTempSYSMONE1(dev, var):
-        value   = var.dependencies[0].get(read=False)
+    def convTempSYSMONE1(dev, var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(501.3743/4096.0)
         fpValue -= 273.6777
         return round(fpValue,3)
 
     @staticmethod
-    def convSetTempSYSMONE1(dev, var, value):
+    def convSetTempSYSMONE1(dev, var, value, write):
         fpValue = (value + 273.6777)*(4096.0/501.3743)
         intValue = round(fpValue)
-        var.dependencies[0].set(intValue, write=True)
+        var.dependencies[0].set(intValue, write=write)
 
     @staticmethod
-    def convTempSYSMONE4(dev, var):
-        value   = var.dependencies[0].get(read=False)
+    def convTempSYSMONE4(dev, var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(509.3140064/4096.0)
         fpValue -= 280.23087870
         return round(fpValue,3)
 
     @staticmethod
-    def convSetTempSYSMONE4(dev, var, value):
+    def convSetTempSYSMONE4(dev, var, value, write):
         fpValue = (value + 280.23087870)*(4096.0/509.3140064)
         intValue = round(fpValue)
-        var.dependencies[0].set(intValue, write=True)
+        var.dependencies[0].set(intValue, write=write)
 
     @staticmethod
-    def convCoreVoltage(var):
-        value   = var.dependencies[0].value()
+    def convCoreVoltage(var, read):
+        value   = var.dependencies[0].get(read=read)
         fpValue = value*(732.0E-6)
         return round(fpValue,3)
 
     @staticmethod
-    def convAuxVoltage(var):
-        return round(var.dependencies[0].value() * 244e-6,3)
+    def convAuxVoltage(var, read):
+        return round(var.dependencies[0].get(read=read) * 244e-6,3)
 
     def simpleView(self):
         # Hide all the variable

@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -26,21 +25,18 @@ use surf.EthMacPkg.all;
 entity EthMacRx is
    generic (
       -- Simulation Generics
-      TPD_G          : time                  := 1 ns;
+      TPD_G          : time             := 1 ns;
       -- MAC Configurations
-      PAUSE_EN_G     : boolean               := true;
-      PHY_TYPE_G     : string                := "XGMII";
-      JUMBO_G        : boolean               := true;
-      -- Non-VLAN Configurations
-      FILT_EN_G      : boolean               := false;
-      BYP_EN_G       : boolean               := false;
-      BYP_ETH_TYPE_G : slv(15 downto 0)      := x"0000";
-      -- VLAN Configurations
-      VLAN_EN_G      : boolean               := false;
-      VLAN_SIZE_G    : positive range 1 to 8 := 1;
-      VLAN_VID_G     : Slv12Array            := (0 => x"001");
-      -- Internal RAM sythesis mode
-      SYNTH_MODE_G   : string                := "inferred");
+      PAUSE_EN_G     : boolean          := true;
+      PHY_TYPE_G     : string           := "XGMII";
+      JUMBO_G        : boolean          := true;
+      -- Misc. Configurations
+      ROCEV2_EN_G    : boolean          := false;
+      FILT_EN_G      : boolean          := false;
+      BYP_EN_G       : boolean          := false;
+      BYP_ETH_TYPE_G : slv(15 downto 0) := x"0000";
+      -- Internal RAM synthesis mode
+      SYNTH_MODE_G   : string           := "inferred");
    port (
       -- Clock and Reset
       ethClkEn     : in  sl;
@@ -52,9 +48,6 @@ entity EthMacRx is
       -- Bypass Interface
       mBypMaster   : out AxiStreamMasterType;
       mBypCtrl     : in  AxiStreamCtrlType;
-      -- VLAN Interfaces
-      mVlanMasters : out AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-      mVlanCtrl    : in  AxiStreamCtrlArray(VLAN_SIZE_G-1 downto 0);
       -- XLGMII PHY Interface
       xlgmiiRxd    : in  slv(127 downto 0);
       xlgmiiRxc    : in  slv(15 downto 0);
@@ -77,11 +70,11 @@ end EthMacRx;
 
 architecture mapping of EthMacRx is
 
-   signal macIbMaster  : AxiStreamMasterType;
-   signal pauseMaster  : AxiStreamMasterType;
-   signal pauseMasters : AxiStreamMasterArray(VLAN_SIZE_G-1 downto 0);
-   signal csumMaster   : AxiStreamMasterType;
-   signal bypassMaster : AxiStreamMasterType;
+   signal macIbMaster    : AxiStreamMasterType;
+   signal pauseMaster    : AxiStreamMasterType;
+   signal obCsumMaster   : AxiStreamMasterType;
+   signal ibBypassMaster : AxiStreamMasterType;
+   signal obBypassMaster : AxiStreamMasterType;
 
 begin
 
@@ -120,11 +113,8 @@ begin
    ------------------
    U_Pause : entity surf.EthMacRxPause
       generic map (
-         TPD_G       => TPD_G,
-         PAUSE_EN_G  => PAUSE_EN_G,
-         VLAN_EN_G   => VLAN_EN_G,
-         VLAN_SIZE_G => VLAN_SIZE_G,
-         VLAN_VID_G  => VLAN_VID_G)
+         TPD_G      => TPD_G,
+         PAUSE_EN_G => PAUSE_EN_G)
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -133,19 +123,18 @@ begin
          sAxisMaster  => macIbMaster,
          -- Outgoing data
          mAxisMaster  => pauseMaster,
-         mAxisMasters => pauseMasters,
          -- Pause Values
          rxPauseReq   => rxPauseReq,
          rxPauseValue => rxPauseValue);
 
-   ------------------------------
-   -- RX Non-VLAN Checksum Module
-   ------------------------------
+   ---------------------
+   -- RX Checksum Module
+   ---------------------
    U_Csum : entity surf.EthMacRxCsum
       generic map (
-         TPD_G   => TPD_G,
-         JUMBO_G => JUMBO_G,
-         VLAN_G  => false)
+         TPD_G       => TPD_G,
+         JUMBO_G     => JUMBO_G,
+         ROCEV2_EN_G => ROCEV2_EN_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -156,36 +145,27 @@ begin
          udpCsumEn   => ethConfig.udpCsumEn,
          -- Outbound data to MAC
          sAxisMaster => pauseMaster,
-         mAxisMaster => csumMaster);
+         mAxisMaster => obCsumMaster);
 
-   --------------------------
-   -- RX VLAN Checksum Module
-   --------------------------
-   GEN_VLAN : if (VLAN_EN_G = true) generate
-      GEN_VEC :
-      for i in (VLAN_SIZE_G-1) downto 0 generate
-         U_Csum : entity surf.EthMacRxCsum
-            generic map (
-               TPD_G   => TPD_G,
-               JUMBO_G => JUMBO_G,
-               VLAN_G  => true)
-            port map (
-               -- Clock and Reset
-               ethClk      => ethClk,
-               ethRst      => ethRst,
-               -- Configurations
-               ipCsumEn    => '1',
-               tcpCsumEn   => '1',
-               udpCsumEn   => '1',
-               -- Outbound data to MAC
-               sAxisMaster => pauseMasters(i),
-               mAxisMaster => mVlanMasters(i));
-      end generate GEN_VEC;
+   --------------------------------
+   -- RoCEv2 Protocol iCRC Checking
+   --------------------------------
+   GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
+      U_RoCEv2 : entity surf.EthMacRxRoCEv2
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- Clock and Reset
+            ethClk         => ethClk,
+            ethRst         => ethRst,
+            -- Checksum Interface
+            obCsumMaster   => obCsumMaster,
+            -- Bypass Interface
+            ibBypassMaster => ibBypassMaster);
    end generate;
 
-   BYPASS_VLAN : if (VLAN_EN_G = false) generate
-      -- Terminate Unused buses
-      mVlanMasters <= (others => AXI_STREAM_MASTER_INIT_C);
+   BYPASS_RoCEv2 : if (ROCEV2_EN_G = false) generate
+      ibBypassMaster <= obCsumMaster;
    end generate;
 
    -------------------
@@ -201,9 +181,9 @@ begin
          ethClk      => ethClk,
          ethRst      => ethRst,
          -- Incoming data from MAC
-         sAxisMaster => csumMaster,
+         sAxisMaster => ibBypassMaster,
          -- Outgoing primary data
-         mPrimMaster => bypassMaster,
+         mPrimMaster => obBypassMaster,
          -- Outgoing bypass data
          mBypMaster  => mBypMaster);
 
@@ -219,7 +199,7 @@ begin
          ethClk      => ethClk,
          ethRst      => ethRst,
          -- Incoming data from MAC
-         sAxisMaster => bypassMaster,
+         sAxisMaster => obBypassMaster,
          -- Outgoing data
          mAxisMaster => mPrimMaster,
          mAxisCtrl   => mPrimCtrl,

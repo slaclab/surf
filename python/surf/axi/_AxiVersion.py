@@ -89,6 +89,7 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'FpgaReloadHalt',
             description  = 'Used to halt automatic reloads via AxiVersion',
+            groups       = ['NoConfig'],
             offset       = 0x100,
             bitSize      = 1,
             bitOffset    = 0x00,
@@ -117,6 +118,7 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
             hidden       = True,
+            groups       = 'NoConfig',
         ))
 
         @self.command(hidden=True)
@@ -127,6 +129,7 @@ class AxiVersion(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'UserReset',
             description  = 'Optional User Reset',
+            groups       = ['NoConfig'],
             hidden       = True,
             offset       = 0x10C,
             bitSize      = 1,
@@ -278,7 +281,7 @@ class AxiVersion(pr.Device):
             print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
             print("UpTime       = {}".format(self.UpTime.get()))
             if (gitHash != 0):
-                print("GitHash      = {}".format(hex(self.GitHash.get())))
+                print("GitHash      = {:040x}".format(self.GitHash.get()))
             else:
                 print("GitHash      = dirty (uncommitted code)")
             print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
