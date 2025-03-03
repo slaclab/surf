@@ -286,7 +286,7 @@ architecture rtl of AxiStreamDmaV2Desc is
 begin
 
    assert (AXI_CONFIG_G.ADDR_WIDTH_C <= 40)
-      report "AXI_CONFIG_G.ADDR_WIDTH_C must be <= 40" severity failure;
+      report "AXI_CONFIG_G.ADDR_WIDTH_C (" & str(AXI_CONFIG_G.ADDR_WIDTH_C) & ") must be <= 40" severity failure;
 
    -----------------------------------------
    -- Write Free List FIFOs
