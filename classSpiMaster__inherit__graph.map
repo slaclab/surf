@@ -1,12 +1,21 @@
 <map id="SpiMaster" name="SpiMaster">
-<area shape="rect" id="node1" title=" " alt="" coords="358,5,445,32"/>
-<area shape="rect" id="node2" href="$classAd9249Config.html" title=" " alt="" coords="5,80,117,107"/>
-<area shape="rect" id="node3" href="$classAd9681Config.html" title=" " alt="" coords="141,80,253,107"/>
-<area shape="rect" id="node4" href="$classSi5324.html" title=" " alt="" coords="277,80,344,107"/>
-<area shape="rect" id="node5" href="$classSi5345.html" title=" " alt="" coords="368,80,435,107"/>
-<area shape="rect" id="node6" href="$classadc32rf45.html" title=" " alt="" coords="459,80,546,107"/>
-<area shape="rect" id="node7" href="$classads54j60.html" title=" " alt="" coords="570,80,651,107"/>
-<area shape="rect" id="node8" href="$classAxiSpiMaster.html" title=" " alt="" coords="675,80,783,107"/>
-<area shape="rect" id="node9" href="$classAxiAd5541Core.html" title=" " alt="" coords="599,155,721,181"/>
-<area shape="rect" id="node10" href="$classLmk048Base.html" title=" " alt="" coords="745,155,852,181"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="358,5,445,31"/>
+<area shape="rect" id="Node000002" href="$classAd9249Config.html" title=" " alt="" coords="5,79,117,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="345,34,117,81,116,76,344,29"/>
+<area shape="rect" id="Node000003" href="$classAd9681Config.html" title=" " alt="" coords="141,79,253,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="357,38,231,81,229,76,355,33"/>
+<area shape="rect" id="Node000004" href="$classSi5324.html" title=" " alt="" coords="277,79,344,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="377,41,327,81,324,76,374,37"/>
+<area shape="rect" id="Node000005" href="$classSi5345.html" title=" " alt="" coords="368,79,435,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="404,44,404,79,399,79,399,44"/>
+<area shape="rect" id="Node000006" href="$classadc32rf45.html" title=" " alt="" coords="459,79,546,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="430,36,488,76,485,81,427,41"/>
+<area shape="rect" id="Node000007" href="$classads54j60.html" title=" " alt="" coords="570,79,651,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="449,33,578,76,576,81,447,38"/>
+<area shape="rect" id="Node000008" href="$classAxiSpiMaster.html" title=" " alt="" coords="675,79,783,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="459,29,677,76,676,81,458,34"/>
+<area shape="rect" id="Node000009" href="$classAxiAd5541Core.html" title=" " alt="" coords="599,152,721,177"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="710,116,673,154,669,150,707,112"/>
+<area shape="rect" id="Node000010" href="$classLmk048Base.html" title=" " alt="" coords="745,152,852,177"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="752,112,789,150,786,154,748,116"/>
 </map>

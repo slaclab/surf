@@ -1,8 +1,13 @@
 <map id="add3" name="add3">
-<area shape="rect" id="node1" title=" " alt="" coords="94,80,149,107"/>
-<area shape="rect" id="node3" href="$classFirAverage.html" title=" " alt="" coords="21,155,112,181"/>
-<area shape="rect" id="node5" href="$classIirSimple.html" title=" " alt="" coords="140,155,220,181"/>
-<area shape="rect" id="node2" href="$classcsa3.html" title=" " alt="" coords="95,5,147,32"/>
-<area shape="rect" id="node4" href="$classFirAverageTb.html" title=" " alt="" coords="5,229,112,256"/>
-<area shape="rect" id="node6" href="$classIirSimpleTb.html" title=" " alt="" coords="136,229,232,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="94,79,149,104"/>
+<area shape="rect" id="Node000003" href="$classFirAverage.html" title=" " alt="" coords="21,152,112,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="106,117,78,154,73,150,102,113"/>
+<area shape="rect" id="Node000005" href="$classIirSimple.html" title=" " alt="" coords="140,152,220,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="142,113,173,150,168,154,138,116"/>
+<area shape="rect" id="Node000002" href="$classcsa3.html" title=" " alt="" coords="95,5,147,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,44,124,79,119,79,119,44"/>
+<area shape="rect" id="Node000004" href="$classFirAverageTb.html" title=" " alt="" coords="5,225,112,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="66,191,63,226,57,225,61,191"/>
+<area shape="rect" id="Node000006" href="$classIirSimpleTb.html" title=" " alt="" coords="136,225,232,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="184,191,186,225,181,225,179,191"/>
 </map>

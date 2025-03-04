@@ -1,31 +1,4 @@
 var classSi5394I2c =
 [
-    [ "Si5394I2c.mapping", "classSi5394I2c_1_1mapping.html", "classSi5394I2c_1_1mapping" ],
-    [ "TPD_G", "classSi5394I2c.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "MEMORY_INIT_FILE_G", "classSi5394I2c.html#a10b2dabf4b027c2f5ab516b03ab44c65", null ],
-    [ "I2C_BASE_ADDR_G", "classSi5394I2c.html#ad74c7ab18c71dd0cf749581e041f52a3", null ],
-    [ "I2C_SCL_FREQ_G", "classSi5394I2c.html#aca6b9d0b4ebd6f11c0455b3b8c31060a", null ],
-    [ "I2C_MIN_PULSE_G", "classSi5394I2c.html#a99a13de643e08234d5db9127e1f5cfbd", null ],
-    [ "AXIL_CLK_FREQ_G", "classSi5394I2c.html#a1b61d1e484610b74c52c5083abea426f", null ],
-    [ "scl", "classSi5394I2c.html#ad0f6058bc598dfc48f51cd4710c2a1d3", null ],
-    [ "sda", "classSi5394I2c.html#a2d87ecb9d47ba11537e95f6c5af26358", null ],
-    [ "irqL", "classSi5394I2c.html#a1743c17f956de4a133ce65feff6113f3", null ],
-    [ "lolL", "classSi5394I2c.html#ac8d509020e6feac3b197331273829294", null ],
-    [ "losL", "classSi5394I2c.html#aef5b7f427d65dbf01a89e9358e672e00", null ],
-    [ "rstL", "classSi5394I2c.html#a038c0ecbf078e731cba620b65be8a9d9", null ],
-    [ "booting", "classSi5394I2c.html#aff15131b50c85b158ff6aa1055ec5d5a", null ],
-    [ "axilReadMaster", "classSi5394I2c.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classSi5394I2c.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classSi5394I2c.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classSi5394I2c.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "axilClk", "classSi5394I2c.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classSi5394I2c.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "ieee", "classSi5394I2c.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSi5394I2c.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "surf", "classSi5394I2c.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSi5394I2c.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classSi5394I2c.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "I2cPkg", "classSi5394I2c.html#a3345a70e845069bf678d5aa1733529b6", null ],
-    [ "unisim", "classSi5394I2c.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classSi5394I2c.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "Si5394I2c.mapping", "classSi5394I2c_1_1mapping.html", null ]
 ];

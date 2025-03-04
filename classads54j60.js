@@ -1,27 +1,4 @@
 var classads54j60 =
 [
-    [ "rtl", "classads54j60_1_1rtl.html", "classads54j60_1_1rtl" ],
-    [ "TPD_G", "classads54j60.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "CLK_PERIOD_G", "classads54j60.html#a0ad2f8ffe4b6d9470d89b747f9868720", null ],
-    [ "SPI_SCLK_PERIOD_G", "classads54j60.html#a17514cc329ac97b10570102d10ea5492", null ],
-    [ "axiClk", "classads54j60.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classads54j60.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiReadMaster", "classads54j60.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classads54j60.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classads54j60.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classads54j60.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "coreBusyIn", "classads54j60.html#a7f408c9219278d0dbd8b7e8d4ccf4046", null ],
-    [ "coreBusyOut", "classads54j60.html#aa4c8087e1d27e75c3f3e6354ed9fc6c5", null ],
-    [ "coreRst", "classads54j60.html#a932ae2a695d514062739302afb5ce00f", null ],
-    [ "coreSclk", "classads54j60.html#a79e2bb62c4ea6871269dfb2b7521310b", null ],
-    [ "coreSDin", "classads54j60.html#ab76050dd6725396dd7848656307a2f22", null ],
-    [ "coreSDout", "classads54j60.html#afffba77c4ec52c3a7aa2ab1f8fbea2b5", null ],
-    [ "coreCsb", "classads54j60.html#a554154da67002c00d2cd6f727a65fed4", null ],
-    [ "ieee", "classads54j60.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classads54j60.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classads54j60.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classads54j60.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classads54j60.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classads54j60.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classads54j60.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "ads54j60.rtl", "classads54j60_1_1rtl.html", null ]
 ];

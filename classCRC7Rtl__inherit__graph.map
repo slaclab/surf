@@ -1,13 +1,24 @@
 <map id="CRC7Rtl" name="CRC7Rtl">
-<area shape="rect" id="node1" title=" " alt="" coords="237,5,312,32"/>
-<area shape="rect" id="node2" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="156,80,263,107"/>
-<area shape="rect" id="node10" href="$classPgp2fcTxPhy.html" title=" " alt="" coords="287,80,393,107"/>
-<area shape="rect" id="node3" href="$classPgp2fcRx.html" title=" " alt="" coords="180,155,263,181"/>
-<area shape="rect" id="node4" href="$classPgp2fcLane.html" title=" " alt="" coords="226,229,323,256"/>
-<area shape="rect" id="node5" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="5,304,123,331"/>
-<area shape="rect" id="node6" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="147,304,269,331"/>
-<area shape="rect" id="node7" href="$classPgp2fcGtp7.html" title=" " alt="" coords="293,304,390,331"/>
-<area shape="rect" id="node9" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="414,304,535,331"/>
-<area shape="rect" id="node8" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="265,379,417,405"/>
-<area shape="rect" id="node11" href="$classPgp2fcTx.html" title=" " alt="" coords="292,155,375,181"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="237,5,312,31"/>
+<area shape="rect" id="Node000002" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="156,79,263,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="257,43,222,80,218,77,253,39"/>
+<area shape="rect" id="Node000010" href="$classPgp2fcTxPhy.html" title=" " alt="" coords="287,79,393,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="297,39,331,77,327,80,293,43"/>
+<area shape="rect" id="Node000003" href="$classPgp2fcRx.html" title=" " alt="" coords="180,152,263,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="216,117,222,151,217,152,211,118"/>
+<area shape="rect" id="Node000004" href="$classPgp2fcLane.html" title=" " alt="" coords="226,225,323,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="240,187,268,224,264,227,236,190"/>
+<area shape="rect" id="Node000005" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="5,299,123,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="229,257,99,301,97,296,227,252"/>
+<area shape="rect" id="Node000006" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="147,299,269,324"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="256,263,221,300,217,297,252,259"/>
+<area shape="rect" id="Node000007" href="$classPgp2fcGtp7.html" title=" " alt="" coords="293,299,390,324"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="297,259,332,297,329,300,293,263"/>
+<area shape="rect" id="Node000009" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="414,299,535,324"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="321,253,443,296,441,301,319,258"/>
+<area shape="rect" id="Node000008" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="265,372,417,397"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="344,338,344,372,339,372,339,338"/>
+<area shape="rect" id="Node000011" href="$classPgp2fcTx.html" title=" " alt="" coords="292,152,375,177"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="340,118,337,152,332,152,335,118"/>
+<area shape="poly" id="edge11_Node000011_Node000004" title=" " alt="" coords="317,190,286,227,282,224,313,186"/>
 </map>

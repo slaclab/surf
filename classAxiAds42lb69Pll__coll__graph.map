@@ -1,8 +1,14 @@
 <map id="AxiAds42lb69Pll" name="AxiAds42lb69Pll">
-<area shape="rect" id="node1" title=" " alt="" coords="77,229,204,256"/>
-<area shape="rect" id="node2" href="$classClkOutBufDiff.html" title=" " alt="" coords="5,155,116,181"/>
-<area shape="rect" id="node3" href="$classSynchronizerOneShot.html" title=" " alt="" coords="140,155,301,181"/>
-<area shape="rect" id="node4" href="$classRstSync.html" title=" " alt="" coords="118,80,193,107"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="167,5,274,32"/>
-<area shape="rect" id="node6" href="$classSynchronizerEdge.html" title=" " alt="" coords="217,80,355,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="77,225,204,251"/>
+<area shape="rect" id="Node000002" href="$classClkOutBufDiff.html" title=" " alt="" coords="5,152,116,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,184,129,223,126,227,82,188"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerOneShot.html" title=" " alt="" coords="140,152,301,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,188,156,227,152,223,196,184"/>
+<area shape="rect" id="Node000004" href="$classRstSync.html" title=" " alt="" coords="118,79,193,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="177,113,212,150,208,154,173,116"/>
+<area shape="rect" id="Node000005" href="$classSynchronizer.html" title=" " alt="" coords="167,5,274,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="203,43,168,80,164,77,199,39"/>
+<area shape="rect" id="Node000006" href="$classSynchronizerEdge.html" title=" " alt="" coords="217,79,355,104"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="243,39,277,77,273,80,239,43"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="268,116,233,154,229,150,264,113"/>
 </map>

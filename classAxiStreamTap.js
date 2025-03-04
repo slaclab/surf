@@ -1,27 +1,4 @@
 var classAxiStreamTap =
 [
-    [ "structure", "classAxiStreamTap_1_1structure.html", "classAxiStreamTap_1_1structure" ],
-    [ "TPD_G", "classAxiStreamTap.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classAxiStreamTap.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "TAP_DEST_G", "classAxiStreamTap.html#a33956af35244aa0685fcf56857064d53", null ],
-    [ "PIPE_STAGES_G", "classAxiStreamTap.html#ad9732931397239dce974f968ec2fbdc7", null ],
-    [ "ILEAVE_ON_NOTVALID_G", "classAxiStreamTap.html#abf4c0e5c1c51fd9b8ff500a52a517a4a", null ],
-    [ "ILEAVE_REARB_G", "classAxiStreamTap.html#a16aa2ea766ec92c7023ac7da60da2ae6", null ],
-    [ "sAxisMaster", "classAxiStreamTap.html#ab3957a6492b84f9bdb996a789151584e", null ],
-    [ "sAxisSlave", "classAxiStreamTap.html#afbb043b74a7f8cbca93ff3d11a715e6f", null ],
-    [ "mAxisMaster", "classAxiStreamTap.html#ab0b1799978ac7ea47ecb67ad6e5bb413", null ],
-    [ "mAxisSlave", "classAxiStreamTap.html#a3522ef3ee8a7e64d95785f540e794c63", null ],
-    [ "tmAxisMaster", "classAxiStreamTap.html#a6a7aaa935565f3163a46a49e7f8d1967", null ],
-    [ "tmAxisSlave", "classAxiStreamTap.html#a670eb13298dc238d64ceba036933b524", null ],
-    [ "tsAxisMaster", "classAxiStreamTap.html#aa2b85fa848b39ba8f5bff024924265da", null ],
-    [ "tsAxisSlave", "classAxiStreamTap.html#a34cbc322991aea85457defbf3a43b18e", null ],
-    [ "axisClk", "classAxiStreamTap.html#a349f7bd21af748e087092a89a5fdc1a9", null ],
-    [ "axisRst", "classAxiStreamTap.html#a0c45c75055aca2dd6e4257f94c0aac7e", null ],
-    [ "ieee", "classAxiStreamTap.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiStreamTap.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "NUMERIC_STD", "classAxiStreamTap.html#ae00f3f04545af57582ff10609eee23e2", null ],
-    [ "surf", "classAxiStreamTap.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiStreamTap.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "ArbiterPkg", "classAxiStreamTap.html#a9a2f725569a035bfe26ecc2121149741", null ],
-    [ "AxiStreamPkg", "classAxiStreamTap.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]
+    [ "AxiStreamTap.structure", "classAxiStreamTap_1_1structure.html", null ]
 ];

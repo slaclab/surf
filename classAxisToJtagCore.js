@@ -1,27 +1,4 @@
 var classAxisToJtagCore =
 [
-    [ "AxisToJtagCoreImpl", "classAxisToJtagCore_1_1AxisToJtagCoreImpl.html", "classAxisToJtagCore_1_1AxisToJtagCoreImpl" ],
-    [ "TPD_G", "classAxisToJtagCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "AXIS_WIDTH_G", "classAxisToJtagCore.html#a19fbfdc77a1f7f95562af0dc2c060cd8", null ],
-    [ "LEN_POS0_G", "classAxisToJtagCore.html#a3b31eff2ec6880e2b1ca0f2663c26091", null ],
-    [ "LEN_POSN_G", "classAxisToJtagCore.html#a1f94898b68ad66ba071b777798af13ee", null ],
-    [ "CLK_DIV2_G", "classAxisToJtagCore.html#aa3911ac262e4bac12c7358f081879105", null ],
-    [ "TLAST_IGNORE_G", "classAxisToJtagCore.html#a89a604293895cb7f80206699990bc4d6", null ],
-    [ "axisClk", "classAxisToJtagCore.html#a349f7bd21af748e087092a89a5fdc1a9", null ],
-    [ "axisRst", "classAxisToJtagCore.html#a0c45c75055aca2dd6e4257f94c0aac7e", null ],
-    [ "mAxisTmsTdi", "classAxisToJtagCore.html#a218e7f5795917af7f5e611a97e40426f", null ],
-    [ "sAxisTmsTdi", "classAxisToJtagCore.html#af5dcd56a3b6ae6819fb309565f2d7933", null ],
-    [ "mAxisTdo", "classAxisToJtagCore.html#a7c42f0b9eec5b5e32f61835da2830f49", null ],
-    [ "sAxisTdo", "classAxisToJtagCore.html#a6bed78ac0e861992df52f4b638aea48d", null ],
-    [ "running", "classAxisToJtagCore.html#a96f2de238fb4afc996986cde86871a45", null ],
-    [ "tck", "classAxisToJtagCore.html#aada0133b8f402d4a4a5e8aee43e9fbe0", null ],
-    [ "tdi", "classAxisToJtagCore.html#af1a8aecc8fcff49291dfa747d517ef18", null ],
-    [ "tms", "classAxisToJtagCore.html#a0aaeb13d8f18783df178447e7f00002f", null ],
-    [ "tdo", "classAxisToJtagCore.html#acc18698609a43c09840a66592194c8da", null ],
-    [ "ieee", "classAxisToJtagCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxisToJtagCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classAxisToJtagCore.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "surf", "classAxisToJtagCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxisToJtagCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classAxisToJtagCore.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]
+    [ "AxisToJtagCore.AxisToJtagCoreImpl", "classAxisToJtagCore_1_1AxisToJtagCoreImpl.html", null ]
 ];

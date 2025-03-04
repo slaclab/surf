@@ -1,12 +1,21 @@
 <map id="SlaveAxiLiteIpIntegrator" name="SlaveAxiLiteIpIntegrator">
-<area shape="rect" id="node1" title=" " alt="" coords="283,132,461,159"/>
-<area shape="rect" id="node4" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="509,5,715,32"/>
-<area shape="rect" id="node5" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="529,56,695,83"/>
-<area shape="rect" id="node6" href="$classAxiLiteCrossbarTb.html" title=" " alt="" coords="542,107,682,133"/>
-<area shape="rect" id="node7" href="$classEventFrameSequencerTb.html" title=" " alt="" coords="520,157,704,184"/>
-<area shape="rect" id="node8" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="546,208,678,235"/>
-<area shape="rect" id="node9" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="535,259,689,285"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="160,132,235,159"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,132,112,159"/>
-<area shape="rect" id="node10" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="763,259,973,285"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="283,129,461,155"/>
+<area shape="rect" id="Node000004" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="509,5,715,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="395,118,445,78,508,40,539,28,541,33,510,44,448,82,399,122"/>
+<area shape="rect" id="Node000005" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="529,55,695,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="416,122,509,89,551,77,552,83,510,94,418,127"/>
+<area shape="rect" id="Node000006" href="$classAxiLiteCrossbarTb.html" title=" " alt="" coords="542,104,682,129"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="475,128,541,121,542,127,475,134"/>
+<area shape="rect" id="Node000007" href="$classEventFrameSequencerTb.html" title=" " alt="" coords="520,153,704,179"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="475,150,520,154,520,159,475,155"/>
+<area shape="rect" id="Node000008" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="546,203,678,228"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="419,157,510,189,553,200,551,205,509,194,417,162"/>
+<area shape="rect" id="Node000009" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="535,252,689,277"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="399,162,448,201,510,238,542,249,540,254,508,243,445,205,395,166"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="160,129,235,155"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,139,283,139,283,145,248,145"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,129,112,155"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,139,160,139,160,145,126,145"/>
+<area shape="rect" id="Node000010" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="763,252,973,277"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="703,262,763,262,763,267,703,267"/>
 </map>

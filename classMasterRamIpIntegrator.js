@@ -1,26 +1,4 @@
 var classMasterRamIpIntegrator =
 [
-    [ "MasterRamIpIntegrator.mapping", "classMasterRamIpIntegrator_1_1mapping.html", "classMasterRamIpIntegrator_1_1mapping" ],
-    [ "INTERFACENAME", "classMasterRamIpIntegrator.html#a6777247214361afcb4a2dadb729542f7", null ],
-    [ "READ_LATENCY", "classMasterRamIpIntegrator.html#a6b4da5137574aeccdd0e9d148290bb52", null ],
-    [ "ADDR_WIDTH", "classMasterRamIpIntegrator.html#abab718d2141d5be7ff2400d114be2235", null ],
-    [ "DATA_WIDTH", "classMasterRamIpIntegrator.html#afed449a8868258853616b60de629a6e7", null ],
-    [ "M_RAM_CLK", "classMasterRamIpIntegrator.html#a691b313e1de84a88623766556e63db90", null ],
-    [ "M_RAM_EN", "classMasterRamIpIntegrator.html#a5f0dbe58ce65a570d27189dbe26644cf", null ],
-    [ "M_RAM_WE", "classMasterRamIpIntegrator.html#a4f32f3e7f4b4103764e30b236635e467", null ],
-    [ "M_RAM_RST", "classMasterRamIpIntegrator.html#af42f34791d7ab7167081b05b8bc42920", null ],
-    [ "M_RAM_ADDR", "classMasterRamIpIntegrator.html#a5084c314340816a4bc2f744094702406", null ],
-    [ "M_RAM_DIN", "classMasterRamIpIntegrator.html#a01e7fde33761094c1340ad94f178e316", null ],
-    [ "M_RAM_DOUT", "classMasterRamIpIntegrator.html#abf54f5b140cda3458a3b2185f828b31a", null ],
-    [ "clk", "classMasterRamIpIntegrator.html#aec3fb464350f4999866a4771531ecd24", null ],
-    [ "en", "classMasterRamIpIntegrator.html#aa450bedec298d61dc69abfd25a28e1b1", null ],
-    [ "we", "classMasterRamIpIntegrator.html#a7c36774be5f5d000404653fde88db863", null ],
-    [ "rst", "classMasterRamIpIntegrator.html#a0ebcfc65d6083066c6dd98dc8b3f093c", null ],
-    [ "addr", "classMasterRamIpIntegrator.html#aab34e2067176802b7ef26d0ec5e3ac0f", null ],
-    [ "din", "classMasterRamIpIntegrator.html#ae79ab69873000f27ae67df25baed3b62", null ],
-    [ "dout", "classMasterRamIpIntegrator.html#a5d603d98c4d51fc30e90f08591410df7", null ],
-    [ "ieee", "classMasterRamIpIntegrator.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classMasterRamIpIntegrator.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classMasterRamIpIntegrator.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classMasterRamIpIntegrator.html#a598da929e807d58939b47499e8bc9fa8", null ]
+    [ "MasterRamIpIntegrator.mapping", "classMasterRamIpIntegrator_1_1mapping.html", null ]
 ];

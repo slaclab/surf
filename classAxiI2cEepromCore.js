@@ -1,27 +1,4 @@
 var classAxiI2cEepromCore =
 [
-    [ "rtl", "classAxiI2cEepromCore_1_1rtl.html", "classAxiI2cEepromCore_1_1rtl" ],
-    [ "TPD_G", "classAxiI2cEepromCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "ADDR_WIDTH_G", "classAxiI2cEepromCore.html#a17a561164d15f5f88bf0a303322a66cf", null ],
-    [ "POLL_TIMEOUT_G", "classAxiI2cEepromCore.html#ab7408ef070f0330737975037038120ac", null ],
-    [ "I2C_ADDR_G", "classAxiI2cEepromCore.html#a526a7cba008e033712b30fa343a918ff", null ],
-    [ "I2C_SCL_FREQ_G", "classAxiI2cEepromCore.html#aca6b9d0b4ebd6f11c0455b3b8c31060a", null ],
-    [ "I2C_MIN_PULSE_G", "classAxiI2cEepromCore.html#a99a13de643e08234d5db9127e1f5cfbd", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiI2cEepromCore.html#a79f1a2665e15ca5f4f57a72bc50ed859", null ],
-    [ "i2ci", "classAxiI2cEepromCore.html#a208793c438355a4d1c72fb1ec6702091", null ],
-    [ "i2co", "classAxiI2cEepromCore.html#aec1b76c1945a1caf975ecf3346a3668d", null ],
-    [ "axilReadMaster", "classAxiI2cEepromCore.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classAxiI2cEepromCore.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classAxiI2cEepromCore.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classAxiI2cEepromCore.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "axilClk", "classAxiI2cEepromCore.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classAxiI2cEepromCore.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "ieee", "classAxiI2cEepromCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiI2cEepromCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiI2cEepromCore.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiI2cEepromCore.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiI2cEepromCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiI2cEepromCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiI2cEepromCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "I2cPkg", "classAxiI2cEepromCore.html#a3345a70e845069bf678d5aa1733529b6", null ]
+    [ "AxiI2cEepromCore.rtl", "classAxiI2cEepromCore_1_1rtl.html", null ]
 ];

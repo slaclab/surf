@@ -1,30 +1,4 @@
 var classPgp3RxProtocol =
 [
-    [ "rtl", "classPgp3RxProtocol_1_1rtl.html", "classPgp3RxProtocol_1_1rtl" ],
-    [ "TPD_G", "classPgp3RxProtocol.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NUM_VC_G", "classPgp3RxProtocol.html#af75ee502a44bb675f5d53b932fd1c5a6", null ],
-    [ "pgpRxClk", "classPgp3RxProtocol.html#a76f290a48e16f22382b0ae7c9d76c933", null ],
-    [ "pgpRxRst", "classPgp3RxProtocol.html#a8f0b7ca1d42199443d7c0c1a78c0201f", null ],
-    [ "pgpRxIn", "classPgp3RxProtocol.html#ad4395020e00f6886d5e3315cdccdeca3", null ],
-    [ "pgpRxOut", "classPgp3RxProtocol.html#ad6236e4b39e9538712342954f670fa0a", null ],
-    [ "pgpRxMaster", "classPgp3RxProtocol.html#ae640d53c878601c4f9550c377b5d6a6b", null ],
-    [ "pgpRxSlave", "classPgp3RxProtocol.html#ab5463bd9ad16f54043baef05a884f995", null ],
-    [ "remRxFifoCtrl", "classPgp3RxProtocol.html#a98007468f02bcefed4a47a03225eedbd", null ],
-    [ "remRxLinkReady", "classPgp3RxProtocol.html#a18d37a321034b28eba6b90b442891479", null ],
-    [ "locRxLinkReady", "classPgp3RxProtocol.html#a9bdff16edf3fea34ba2b553f6d09ccfe", null ],
-    [ "phyRxActive", "classPgp3RxProtocol.html#a3a142375d16c381e957aa047097de3df", null ],
-    [ "protRxValid", "classPgp3RxProtocol.html#a601ff6faaf1e088653412448bbf3763d", null ],
-    [ "protRxPhyInit", "classPgp3RxProtocol.html#ad00c60611f212312c23e00748df69c8d", null ],
-    [ "protRxData", "classPgp3RxProtocol.html#a1905625d5a3129c50957bd5469a3515a", null ],
-    [ "protRxHeader", "classPgp3RxProtocol.html#a0fa29ca5d8e2ea490c5258b0ab4e1796", null ],
-    [ "ieee", "classPgp3RxProtocol.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp3RxProtocol.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classPgp3RxProtocol.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classPgp3RxProtocol.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classPgp3RxProtocol.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp3RxProtocol.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classPgp3RxProtocol.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "AxiStreamPacketizer2Pkg", "classPgp3RxProtocol.html#ae0ae61e3126f95f4dee86d17919fb7f3", null ],
-    [ "SsiPkg", "classPgp3RxProtocol.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "Pgp3Pkg", "classPgp3RxProtocol.html#a8fe78bd162f190ddcf71d39850745a3a", null ]
+    [ "Pgp3RxProtocol.rtl", "classPgp3RxProtocol_1_1rtl.html", null ]
 ];

@@ -1,25 +1,4 @@
 var classAxiAds42lb69Pll =
 [
-    [ "mapping", "classAxiAds42lb69Pll_1_1mapping.html", "classAxiAds42lb69Pll_1_1mapping" ],
-    [ "TPD_G", "classAxiAds42lb69Pll.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "USE_PLL_G", "classAxiAds42lb69Pll.html#a020e8a30c58964d8d1ba3ea021dd3178", null ],
-    [ "USE_FBCLK_G", "classAxiAds42lb69Pll.html#a2f854ecae4e0615258f7981fbd863dcf", null ],
-    [ "ADC_CLK_FREQ_G", "classAxiAds42lb69Pll.html#a460928afa4bf22fd005a4e8aa38bd78c", null ],
-    [ "XIL_DEVICE_G", "classAxiAds42lb69Pll.html#a5d30ae5185f250d054ea828b7f3437d5", null ],
-    [ "adcClkP", "classAxiAds42lb69Pll.html#a7010e4bba6d5d30e2159d14b135c7181", null ],
-    [ "adcClkN", "classAxiAds42lb69Pll.html#aaa68b5ff8ecb1a6d7bd16e757f75f0fb", null ],
-    [ "adcSyncP", "classAxiAds42lb69Pll.html#ab034b173312a0cefac33fee11b9253e4", null ],
-    [ "adcSyncN", "classAxiAds42lb69Pll.html#a265c1ee82072c53cefacaaa397a1dacb", null ],
-    [ "adcClkFbP", "classAxiAds42lb69Pll.html#a0e66ac39e92f9a4b560f0b808e8d2f46", null ],
-    [ "adcClkFbN", "classAxiAds42lb69Pll.html#a329ab2af8e32e1a49afc93601683cbe7", null ],
-    [ "adcSync", "classAxiAds42lb69Pll.html#af9e28b14d087edc557a3e2319009b6de", null ],
-    [ "adcClk", "classAxiAds42lb69Pll.html#a614d64248936dbd67a599fc97225b306", null ],
-    [ "adcRst", "classAxiAds42lb69Pll.html#a42fd74e09574c28e5d55938243b1721d", null ],
-    [ "adcClock", "classAxiAds42lb69Pll.html#a64f9b359bbf364d2f6f9d52f54ef282f", null ],
-    [ "ieee", "classAxiAds42lb69Pll.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiAds42lb69Pll.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "surf", "classAxiAds42lb69Pll.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiAds42lb69Pll.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "unisim", "classAxiAds42lb69Pll.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classAxiAds42lb69Pll.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "AxiAds42lb69Pll.mapping", "classAxiAds42lb69Pll_1_1mapping.html", null ]
 ];

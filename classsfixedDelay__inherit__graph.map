@@ -1,11 +1,19 @@
 <map id="sfixedDelay" name="sfixedDelay">
-<area shape="rect" id="node1" title=" " alt="" coords="72,229,171,256"/>
-<area shape="rect" id="node6" href="$classFirAverage.html" title=" " alt="" coords="21,304,112,331"/>
-<area shape="rect" id="node8" href="$classIirSimple.html" title=" " alt="" coords="140,304,220,331"/>
-<area shape="rect" id="node2" href="$classSlvFixedDelay.html" title=" " alt="" coords="64,155,179,181"/>
-<area shape="rect" id="node3" href="$classSrl16Delay.html" title=" " alt="" coords="11,80,104,107"/>
-<area shape="rect" id="node4" href="$classLutFixedDelay.html" title=" " alt="" coords="128,80,243,107"/>
-<area shape="rect" id="node5" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="97,5,274,32"/>
-<area shape="rect" id="node7" href="$classFirAverageTb.html" title=" " alt="" coords="5,379,112,405"/>
-<area shape="rect" id="node9" href="$classIirSimpleTb.html" title=" " alt="" coords="136,379,232,405"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="72,225,171,251"/>
+<area shape="rect" id="Node000006" href="$classFirAverage.html" title=" " alt="" coords="21,299,112,324"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="106,263,78,300,73,297,102,260"/>
+<area shape="rect" id="Node000008" href="$classIirSimple.html" title=" " alt="" coords="140,299,220,324"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="142,260,173,297,168,300,138,263"/>
+<area shape="rect" id="Node000002" href="$classSlvFixedDelay.html" title=" " alt="" coords="64,152,179,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,191,124,225,119,225,119,191"/>
+<area shape="rect" id="Node000003" href="$classSrl16Delay.html" title=" " alt="" coords="11,79,104,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,113,113,150,109,154,75,116"/>
+<area shape="rect" id="Node000004" href="$classLutFixedDelay.html" title=" " alt="" coords="128,79,243,104"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="168,116,134,154,130,150,164,113"/>
+<area shape="rect" id="Node000005" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="97,5,274,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="188,44,188,79,183,79,183,44"/>
+<area shape="rect" id="Node000007" href="$classFirAverageTb.html" title=" " alt="" coords="5,372,112,397"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="66,338,63,372,57,372,61,337"/>
+<area shape="rect" id="Node000009" href="$classIirSimpleTb.html" title=" " alt="" coords="136,372,232,397"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="184,338,186,372,181,372,179,338"/>
 </map>

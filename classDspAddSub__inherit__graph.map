@@ -1,7 +1,11 @@
 <map id="DspAddSub" name="DspAddSub">
-<area shape="rect" id="node1" title=" " alt="" coords="125,80,221,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamDmaV2Desc.html" title=" " alt="" coords="5,155,176,181"/>
-<area shape="rect" id="node5" href="$classDspAddSubTb.html" title=" " alt="" coords="200,155,312,181"/>
-<area shape="rect" id="node2" href="$classFifoOutputPipeline.html" title=" " alt="" coords="102,5,245,32"/>
-<area shape="rect" id="node4" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="21,229,160,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="125,79,221,104"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamDmaV2Desc.html" title=" " alt="" coords="5,152,176,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,115,106,154,102,150,148,111"/>
+<area shape="rect" id="Node000005" href="$classDspAddSubTb.html" title=" " alt="" coords="200,152,312,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="199,111,244,150,241,154,195,115"/>
+<area shape="rect" id="Node000002" href="$classFifoOutputPipeline.html" title=" " alt="" coords="102,5,245,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,44,176,79,171,79,171,44"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="21,225,160,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="93,191,93,225,88,225,88,191"/>
 </map>

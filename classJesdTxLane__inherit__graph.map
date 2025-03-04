@@ -1,9 +1,15 @@
 <map id="JesdTxLane" name="JesdTxLane">
-<area shape="rect" id="node1" title=" " alt="" coords="155,80,251,107"/>
-<area shape="rect" id="node5" href="$classJesd204bTx.html" title=" " alt="" coords="92,155,189,181"/>
-<area shape="rect" id="node7" href="$classScramblerTb.html" title=" " alt="" coords="214,155,318,181"/>
-<area shape="rect" id="node2" href="$classJesdSyncFsmTx.html" title=" " alt="" coords="5,5,129,32"/>
-<area shape="rect" id="node3" href="$classJesdIlasGen.html" title=" " alt="" coords="154,5,253,32"/>
-<area shape="rect" id="node4" href="$classJesdAlignChGen.html" title=" " alt="" coords="277,5,402,32"/>
-<area shape="rect" id="node6" href="$classJesd204bTb.html" title=" " alt="" coords="92,229,189,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="155,79,251,104"/>
+<area shape="rect" id="Node000005" href="$classJesd204bTx.html" title=" " alt="" coords="92,152,189,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="186,116,153,154,149,150,182,113"/>
+<area shape="rect" id="Node000007" href="$classScramblerTb.html" title=" " alt="" coords="214,152,318,177"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="225,113,258,150,254,154,221,116"/>
+<area shape="rect" id="Node000002" href="$classJesdSyncFsmTx.html" title=" " alt="" coords="5,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,34,182,76,180,81,100,39"/>
+<area shape="rect" id="Node000003" href="$classJesdIlasGen.html" title=" " alt="" coords="154,5,253,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,44,206,79,201,79,201,44"/>
+<area shape="rect" id="Node000004" href="$classJesdAlignChGen.html" title=" " alt="" coords="277,5,402,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="307,39,227,81,224,76,304,34"/>
+<area shape="rect" id="Node000006" href="$classJesd204bTb.html" title=" " alt="" coords="92,225,189,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="143,191,143,225,138,225,138,191"/>
 </map>

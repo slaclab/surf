@@ -1,6 +1,9 @@
 <map id="BoxcarIntegratorTb" name="BoxcarIntegratorTb">
-<area shape="rect" id="node1" title=" " alt="" coords="24,155,171,181"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,80,69,107"/>
-<area shape="rect" id="node3" href="$classBoxcarIntegrator.html" title=" " alt="" coords="93,80,224,107"/>
-<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="82,5,235,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="24,152,171,177"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,79,69,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="58,113,90,150,86,154,54,116"/>
+<area shape="rect" id="Node000003" href="$classBoxcarIntegrator.html" title=" " alt="" coords="93,79,224,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="142,116,109,154,105,150,138,113"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="82,5,235,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="161,44,161,79,156,79,156,44"/>
 </map>

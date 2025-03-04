@@ -1,27 +1,4 @@
 var classPgp2fcRx =
 [
-    [ "Pgp2fcRx", "classPgp2fcRx_1_1Pgp2fcRx.html", "classPgp2fcRx_1_1Pgp2fcRx" ],
-    [ "TPD_G", "classPgp2fcRx.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "FC_WORDS_G", "classPgp2fcRx.html#a961008d53ab228e2dba130cf4047576f", null ],
-    [ "PAYLOAD_CNT_TOP_G", "classPgp2fcRx.html#ae515b74c8453344f8b4401b634aed80e", null ],
-    [ "pgpRxClkEn", "classPgp2fcRx.html#a9969ec960c15b7f6f6a956455d98b0f6", null ],
-    [ "pgpRxClk", "classPgp2fcRx.html#a76f290a48e16f22382b0ae7c9d76c933", null ],
-    [ "pgpRxClkRst", "classPgp2fcRx.html#addedad5e4f50bb37fd72642ad5368cc0", null ],
-    [ "pgpRxPhyRst", "classPgp2fcRx.html#a15cd1bcbe2146d941b58aa191ce2fd33", null ],
-    [ "pgpRxIn", "classPgp2fcRx.html#aa1c0c796aeb9c115912d7e8c8ec2fac9", null ],
-    [ "pgpRxOut", "classPgp2fcRx.html#a18cb4ca0cd7cc66095193d30b51e4e29", null ],
-    [ "pgpRxMaster", "classPgp2fcRx.html#ae640d53c878601c4f9550c377b5d6a6b", null ],
-    [ "remFifoStatus", "classPgp2fcRx.html#ae3b98728822c3dc1648146168f2971d2", null ],
-    [ "phyRxLaneIn", "classPgp2fcRx.html#a3d2a729832ebdc959485f6d0b2bd391e", null ],
-    [ "phyRxReady", "classPgp2fcRx.html#a61dc58f5a24efe10c1bafc4468da26d6", null ],
-    [ "phyRxInit", "classPgp2fcRx.html#a6f1d76f320070c545b1144a0be9bfae4", null ],
-    [ "ieee", "classPgp2fcRx.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp2fcRx.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classPgp2fcRx.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classPgp2fcRx.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classPgp2fcRx.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp2fcRx.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Pgp2fcPkg", "classPgp2fcRx.html#a2d63c91b7e4c00f91f5176b519be8415", null ],
-    [ "AxiStreamPkg", "classPgp2fcRx.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classPgp2fcRx.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]
+    [ "Pgp2fcRx.Pgp2fcRx", "classPgp2fcRx_1_1Pgp2fcRx.html", null ]
 ];

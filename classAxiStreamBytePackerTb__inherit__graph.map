@@ -1,7 +1,11 @@
 <map id="AxiStreamBytePackerTb" name="AxiStreamBytePackerTb">
-<area shape="rect" id="node1" title=" " alt="" coords="203,80,381,107"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,5,69,32"/>
-<area shape="rect" id="node3" href="$classAxiStreamBytePackerTbTx.html" title=" " alt="" coords="93,5,288,32"/>
-<area shape="rect" id="node4" href="$classAxiStreamBytePacker.html" title=" " alt="" coords="312,5,475,32"/>
-<area shape="rect" id="node5" href="$classAxiStreamBytePackerTbRx.html" title=" " alt="" coords="499,5,693,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="203,79,381,104"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,5,69,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,29,251,76,250,81,82,35"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamBytePackerTbTx.html" title=" " alt="" coords="93,5,288,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,36,277,76,274,81,217,41"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamBytePacker.html" title=" " alt="" coords="312,5,475,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="367,41,310,81,307,76,364,36"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamBytePackerTbRx.html" title=" " alt="" coords="499,5,693,31"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="535,36,342,81,341,76,533,31"/>
 </map>

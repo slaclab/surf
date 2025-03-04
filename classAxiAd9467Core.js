@@ -1,30 +1,4 @@
 var classAxiAd9467Core =
 [
-    [ "mapping", "classAxiAd9467Core_1_1mapping.html", "classAxiAd9467Core_1_1mapping" ],
-    [ "TPD_G", "classAxiAd9467Core.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "STATUS_CNT_WIDTH_G", "classAxiAd9467Core.html#a97c9475180efd2e99c23c2ce89b2bbe5", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiAd9467Core.html#a6b129fb741fa24b73da9d1b226099934", null ],
-    [ "ADC_CLK_FREQ_G", "classAxiAd9467Core.html#a460928afa4bf22fd005a4e8aa38bd78c", null ],
-    [ "DEMUX_INIT_G", "classAxiAd9467Core.html#aaefb524b591fc1f6214806e1685e7eb6", null ],
-    [ "DELAY_INIT_G", "classAxiAd9467Core.html#af83ef121c3ef2c5ed85c5fa547529806", null ],
-    [ "IODELAY_GROUP_G", "classAxiAd9467Core.html#a6900456d2e24d3aae7222e648160704d", null ],
-    [ "adcIn", "classAxiAd9467Core.html#aa047e8b8569f4d57c98199e4e4ceefa3", null ],
-    [ "adcInOut", "classAxiAd9467Core.html#a6ad379b9de903780f4ef1ca8e1e03f08", null ],
-    [ "adcOut", "classAxiAd9467Core.html#ad0312b01a42dbde9790e748fbd41db7b", null ],
-    [ "adcClk", "classAxiAd9467Core.html#a614d64248936dbd67a599fc97225b306", null ],
-    [ "adcRst", "classAxiAd9467Core.html#a42fd74e09574c28e5d55938243b1721d", null ],
-    [ "adcData", "classAxiAd9467Core.html#ad5edc67387ce56c69fcd95476bd64aa9", null ],
-    [ "refClk200Mhz", "classAxiAd9467Core.html#a75f625294ea9e85f9dbaddff6e7ca14a", null ],
-    [ "axiClk", "classAxiAd9467Core.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiAd9467Core.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiReadMaster", "classAxiAd9467Core.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiAd9467Core.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiAd9467Core.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiAd9467Core.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "ieee", "classAxiAd9467Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiAd9467Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "surf", "classAxiAd9467Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiAd9467Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiAd9467Core.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiAd9467Pkg", "classAxiAd9467Core.html#ac781ddb975155a24a80c03af77271170", null ]
+    [ "AxiAd9467Core.mapping", "classAxiAd9467Core_1_1mapping.html", null ]
 ];

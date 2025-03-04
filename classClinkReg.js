@@ -1,27 +1,4 @@
 var classClinkReg =
 [
-    [ "rtl", "classClinkReg_1_1rtl.html", "classClinkReg_1_1rtl" ],
-    [ "TPD_G", "classClinkReg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "CHAN_COUNT_G", "classClinkReg.html#afbfd8b65e87bea538783a4635cbe44c0", null ],
-    [ "chanStatus", "classClinkReg.html#af41bac3e5942b89eccec47d80bad505a", null ],
-    [ "linkStatus", "classClinkReg.html#a57dac8ece4def88c1789542456b9f514", null ],
-    [ "chanConfig", "classClinkReg.html#a7e68bb96e28624da73756ea5fa49d8fb", null ],
-    [ "linkConfig", "classClinkReg.html#afa14f5734cade5a183e040be97011fc7", null ],
-    [ "sysClk", "classClinkReg.html#a7028e9fe43f6271f9b6b9e8f2fd18d13", null ],
-    [ "sysRst", "classClinkReg.html#a235cf53fc875dad9ecb58b19110ecf21", null ],
-    [ "axilReadMaster", "classClinkReg.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classClinkReg.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classClinkReg.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classClinkReg.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "ieee", "classClinkReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classClinkReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classClinkReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classClinkReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classClinkReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classClinkReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "ClinkPkg", "classClinkReg.html#a2106e5227371675511e345dc63cbe3ef", null ],
-    [ "AxiLitePkg", "classClinkReg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiStreamPkg", "classClinkReg.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "unisim", "classClinkReg.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classClinkReg.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "ClinkReg.rtl", "classClinkReg_1_1rtl.html", null ]
 ];

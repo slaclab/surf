@@ -1,11 +1,20 @@
 <map id="SynchronizerOneShotVector" name="SynchronizerOneShotVector">
-<area shape="rect" id="node1" title=" " alt="" coords="109,229,311,256"/>
-<area shape="rect" id="node6" href="$classCoaXPressAxiL.html" title=" " alt="" coords="151,304,269,331"/>
-<area shape="rect" id="node2" href="$classSynchronizerOneShot.html" title=" " alt="" coords="129,155,291,181"/>
-<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="107,80,182,107"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="157,5,263,32"/>
-<area shape="rect" id="node5" href="$classSynchronizerEdge.html" title=" " alt="" coords="206,80,345,107"/>
-<area shape="rect" id="node7" href="$classCoaXPressCore.html" title=" " alt="" coords="149,379,271,405"/>
-<area shape="rect" id="node8" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,453,199,480"/>
-<area shape="rect" id="node9" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,453,416,480"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="109,225,311,251"/>
+<area shape="rect" id="Node000006" href="$classCoaXPressAxiL.html" title=" " alt="" coords="151,299,269,324"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="213,264,213,299,207,299,207,264"/>
+<area shape="rect" id="Node000002" href="$classSynchronizerOneShot.html" title=" " alt="" coords="129,152,291,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,191,213,225,207,225,207,191"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="107,79,182,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="167,113,201,150,197,154,163,116"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="157,5,263,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="192,43,157,80,153,77,188,39"/>
+<area shape="rect" id="Node000005" href="$classSynchronizerEdge.html" title=" " alt="" coords="206,79,345,104"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="232,39,267,77,263,80,228,43"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="257,116,223,154,219,150,253,113"/>
+<area shape="rect" id="Node000007" href="$classCoaXPressCore.html" title=" " alt="" coords="149,372,271,397"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="213,338,213,372,207,372,207,338"/>
+<area shape="rect" id="Node000008" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,445,199,471"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="183,407,121,447,118,443,180,403"/>
+<area shape="rect" id="Node000009" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,445,416,471"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="240,403,303,443,300,447,238,407"/>
 </map>

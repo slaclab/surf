@@ -1,9 +1,15 @@
 <map id="AxiStreamDepacketizer2" name="AxiStreamDepacketizer2">
-<area shape="rect" id="node1" title=" " alt="" coords="200,155,383,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,80,148,107"/>
-<area shape="rect" id="node3" href="$classDualPortRam.html" title=" " alt="" coords="172,80,280,107"/>
-<area shape="rect" id="node4" href="$classTrueDualPortRam.html" title=" " alt="" coords="95,5,229,32"/>
-<area shape="rect" id="node5" href="$classLutRam.html" title=" " alt="" coords="254,5,326,32"/>
-<area shape="rect" id="node6" href="$classCrc32Parallel.html" title=" " alt="" coords="305,80,411,107"/>
-<area shape="rect" id="node7" href="$classCrc32.html" title=" " alt="" coords="435,80,494,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="200,152,383,177"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,79,148,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,106,257,149,256,154,123,111"/>
+<area shape="rect" id="Node000003" href="$classDualPortRam.html" title=" " alt="" coords="172,79,280,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,113,283,150,279,154,244,116"/>
+<area shape="rect" id="Node000004" href="$classTrueDualPortRam.html" title=" " alt="" coords="95,5,229,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="184,39,218,77,214,80,180,43"/>
+<area shape="rect" id="Node000005" href="$classLutRam.html" title=" " alt="" coords="254,5,326,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="272,43,238,80,234,77,268,39"/>
+<area shape="rect" id="Node000006" href="$classCrc32Parallel.html" title=" " alt="" coords="305,79,411,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="339,116,304,154,300,150,336,113"/>
+<area shape="rect" id="Node000007" href="$classCrc32.html" title=" " alt="" coords="435,79,494,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="425,112,321,154,319,149,423,107"/>
 </map>

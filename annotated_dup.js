@@ -95,6 +95,8 @@ var annotated_dup =
     [ "AxiReadPathFifo", "classAxiReadPathFifo.html", "classAxiReadPathFifo" ],
     [ "AxiReadPathMux", "classAxiReadPathMux.html", "classAxiReadPathMux" ],
     [ "AxiResize", "classAxiResize.html", "classAxiResize" ],
+    [ "AxiRingBuffer", "classAxiRingBuffer.html", "classAxiRingBuffer" ],
+    [ "AxiRingBufferTb", "classAxiRingBufferTb.html", "classAxiRingBufferTb" ],
     [ "AxisJtagDebugBridge", "classAxisJtagDebugBridge.html", "classAxisJtagDebugBridge" ],
     [ "AxiSpiMaster", "classAxiSpiMaster.html", "classAxiSpiMaster" ],
     [ "AxisToJtag", "classAxisToJtag.html", "classAxisToJtag" ],

@@ -1,6 +1,9 @@
 <map id="AxiRam" name="AxiRam">
-<area shape="rect" id="node1" title=" " alt="" coords="280,80,353,107"/>
-<area shape="rect" id="node2" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,32"/>
-<area shape="rect" id="node3" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,32"/>
-<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="445,5,599,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="280,79,353,104"/>
+<area shape="rect" id="Node000002" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,32,282,76,280,81,144,37"/>
+<area shape="rect" id="Node000003" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="319,44,319,79,314,79,314,44"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="445,5,599,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="477,38,351,81,349,76,475,33"/>
 </map>

@@ -1,5 +1,7 @@
 <map id="SspEncoder8b10b" name="SspEncoder8b10b">
-<area shape="rect" id="node1" title=" " alt="" coords="45,80,182,107"/>
-<area shape="rect" id="node2" href="$classSspFramer.html" title=" " alt="" coords="5,5,96,32"/>
-<area shape="rect" id="node3" href="$classEncoder8b10b.html" title=" " alt="" coords="120,5,235,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="45,79,182,104"/>
+<area shape="rect" id="Node000002" href="$classSspFramer.html" title=" " alt="" coords="5,5,96,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,39,105,77,101,80,68,43"/>
+<area shape="rect" id="Node000003" href="$classEncoder8b10b.html" title=" " alt="" coords="120,5,235,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,43,126,80,122,77,156,39"/>
 </map>

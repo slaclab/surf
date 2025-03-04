@@ -1,31 +1,4 @@
 var classMasterAxiStreamTerminateIpIntegrator =
 [
-    [ "MasterAxiStreamTerminateIpIntegrator.mapping", "classMasterAxiStreamTerminateIpIntegrator_1_1mapping.html", "classMasterAxiStreamTerminateIpIntegrator_1_1mapping" ],
-    [ "INTERFACENAME", "classMasterAxiStreamTerminateIpIntegrator.html#a6adc312abeb7d680cfd0827298da6622", null ],
-    [ "HAS_TLAST", "classMasterAxiStreamTerminateIpIntegrator.html#afda76f557282972a0366dcdb2689dbfd", null ],
-    [ "HAS_TKEEP", "classMasterAxiStreamTerminateIpIntegrator.html#a2285e042c36a94f64214e0ad5d085ed8", null ],
-    [ "HAS_TSTRB", "classMasterAxiStreamTerminateIpIntegrator.html#a6f3024333c1f2f5225287ba156452c48", null ],
-    [ "HAS_TREADY", "classMasterAxiStreamTerminateIpIntegrator.html#a10e1407e0959f7abb04d34738dfec9b4", null ],
-    [ "TUSER_WIDTH", "classMasterAxiStreamTerminateIpIntegrator.html#a1ee5f71747ea310acb2e48d4e50a22d8", null ],
-    [ "TID_WIDTH", "classMasterAxiStreamTerminateIpIntegrator.html#a11c85f57e9129de63076c6f5eb9e9fd5", null ],
-    [ "TDEST_WIDTH", "classMasterAxiStreamTerminateIpIntegrator.html#ae91fddc897bef709fbfad8232cae5023", null ],
-    [ "TDATA_NUM_BYTES", "classMasterAxiStreamTerminateIpIntegrator.html#a2b1775a89899649b735bbd0c281f8fbc", null ],
-    [ "M_AXIS_ACLK", "classMasterAxiStreamTerminateIpIntegrator.html#abb63a6c2d0d2e2aea3c9a71d53550ac5", null ],
-    [ "M_AXIS_ARESETN", "classMasterAxiStreamTerminateIpIntegrator.html#aa2baee223f9b2f75039eb07c8297f738", null ],
-    [ "M_AXIS_TVALID", "classMasterAxiStreamTerminateIpIntegrator.html#afafc8137a624496f0498c812da177a09", null ],
-    [ "M_AXIS_TDATA", "classMasterAxiStreamTerminateIpIntegrator.html#a0bbf758720a6a564c0dee2741e637330", null ],
-    [ "M_AXIS_TSTRB", "classMasterAxiStreamTerminateIpIntegrator.html#a81b7f6d60028769efd40372e80f1e61a", null ],
-    [ "M_AXIS_TKEEP", "classMasterAxiStreamTerminateIpIntegrator.html#ad6940aa660919199550198b13353cc3e", null ],
-    [ "M_AXIS_TLAST", "classMasterAxiStreamTerminateIpIntegrator.html#a32498724143746dd0d904cdbdd34b3ad", null ],
-    [ "M_AXIS_TDEST", "classMasterAxiStreamTerminateIpIntegrator.html#a98895cdf3e5a81c09e3070de55ec958d", null ],
-    [ "M_AXIS_TID", "classMasterAxiStreamTerminateIpIntegrator.html#aab807603fcfd171ff3526cd276c215d8", null ],
-    [ "M_AXIS_TUSER", "classMasterAxiStreamTerminateIpIntegrator.html#af4430eeab40f6c2ac121e286f139d2f8", null ],
-    [ "M_AXIS_TREADY", "classMasterAxiStreamTerminateIpIntegrator.html#a1d6ec1d22d6cbf6774fac28542c36625", null ],
-    [ "ieee", "classMasterAxiStreamTerminateIpIntegrator.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classMasterAxiStreamTerminateIpIntegrator.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classMasterAxiStreamTerminateIpIntegrator.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classMasterAxiStreamTerminateIpIntegrator.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classMasterAxiStreamTerminateIpIntegrator.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classMasterAxiStreamTerminateIpIntegrator.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classMasterAxiStreamTerminateIpIntegrator.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]
+    [ "MasterAxiStreamTerminateIpIntegrator.mapping", "classMasterAxiStreamTerminateIpIntegrator_1_1mapping.html", null ]
 ];

@@ -1,25 +1,4 @@
 var classAxiLiteToIpBus =
 [
-    [ "rtl", "classAxiLiteToIpBus_1_1rtl.html", "classAxiLiteToIpBus_1_1rtl" ],
-    [ "TPD_G", "classAxiLiteToIpBus.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "clk", "classAxiLiteToIpBus.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classAxiLiteToIpBus.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "axilReadMaster", "classAxiLiteToIpBus.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classAxiLiteToIpBus.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classAxiLiteToIpBus.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classAxiLiteToIpBus.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "ipbRdata", "classAxiLiteToIpBus.html#a0d62aba9b3a8256aa27c501548085118", null ],
-    [ "ipbAck", "classAxiLiteToIpBus.html#af37337c8a8091c836f399b39b42a4847", null ],
-    [ "ipbErr", "classAxiLiteToIpBus.html#a450ad8e173f01634eaf4334f7b638b7d", null ],
-    [ "ipbAddr", "classAxiLiteToIpBus.html#a77f039aa6726e87c6a221bb9dc542abb", null ],
-    [ "ipbWdata", "classAxiLiteToIpBus.html#af7e48ebc1cd40c0a7606fd10c7ec9244", null ],
-    [ "ipbStrobe", "classAxiLiteToIpBus.html#a7591642d39d48f5d002c95e7fcb229f4", null ],
-    [ "ipbWrite", "classAxiLiteToIpBus.html#a7f1e044cf7e84bb157712b6048412f92", null ],
-    [ "ieee", "classAxiLiteToIpBus.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiLiteToIpBus.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classAxiLiteToIpBus.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classAxiLiteToIpBus.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classAxiLiteToIpBus.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiLiteToIpBus.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiLiteToIpBus.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "AxiLiteToIpBus.rtl", "classAxiLiteToIpBus_1_1rtl.html", null ]
 ];

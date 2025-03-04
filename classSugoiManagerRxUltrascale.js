@@ -1,25 +1,4 @@
 var classSugoiManagerRxUltrascale =
 [
-    [ "SugoiManagerRxUltrascale.mapping", "classSugoiManagerRxUltrascale_1_1mapping.html", "classSugoiManagerRxUltrascale_1_1mapping" ],
-    [ "TPD_G", "classSugoiManagerRxUltrascale.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DIFF_PAIR_G", "classSugoiManagerRxUltrascale.html#a5cd9e782e983a3ef1a3f5d1479fb22c5", null ],
-    [ "DEVICE_FAMILY_G", "classSugoiManagerRxUltrascale.html#a8d60e5cb508b8099ee23f48052e3f07d", null ],
-    [ "IODELAY_GROUP_G", "classSugoiManagerRxUltrascale.html#a8af78dcb8fff516ade6df9ab1ef9540f", null ],
-    [ "REF_FREQ_G", "classSugoiManagerRxUltrascale.html#a692ea4dce361060d845c41fae8e0dd8b", null ],
-    [ "clk", "classSugoiManagerRxUltrascale.html#a0cd28cd55f9faa2a5ce22cd0698e3988", null ],
-    [ "rst", "classSugoiManagerRxUltrascale.html#a89900f1f29baf966bfb1f479bff49ff7", null ],
-    [ "rxP", "classSugoiManagerRxUltrascale.html#ada96e618c861ace25b7d9e1c1cefaeef", null ],
-    [ "rxN", "classSugoiManagerRxUltrascale.html#a0bc001b4d0601dd27ccea712b47bea53", null ],
-    [ "dlyLoad", "classSugoiManagerRxUltrascale.html#a1cba5a5f0d75220e4d8a236b77b69ce5", null ],
-    [ "dlyCfg", "classSugoiManagerRxUltrascale.html#a57532b0a3861529fd7fb74dbd08c4562", null ],
-    [ "inv", "classSugoiManagerRxUltrascale.html#afe6aff94ae2d9cb341354a126720d766", null ],
-    [ "rx", "classSugoiManagerRxUltrascale.html#a64050c3dbfd0930b5f58e4234f5bf4d8", null ],
-    [ "ieee", "classSugoiManagerRxUltrascale.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSugoiManagerRxUltrascale.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSugoiManagerRxUltrascale.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSugoiManagerRxUltrascale.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSugoiManagerRxUltrascale.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSugoiManagerRxUltrascale.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "unisim", "classSugoiManagerRxUltrascale.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classSugoiManagerRxUltrascale.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "SugoiManagerRxUltrascale.mapping", "classSugoiManagerRxUltrascale_1_1mapping.html", null ]
 ];

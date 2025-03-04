@@ -1,9 +1,15 @@
 <map id="Arbiter" name="Arbiter">
-<area shape="rect" id="node1" title=" " alt="" coords="187,5,254,32"/>
-<area shape="rect" id="node2" href="$classArpIpTable.html" title=" " alt="" coords="175,80,266,107"/>
-<area shape="rect" id="node3" href="$classUdpEngine.html" title=" " alt="" coords="175,155,267,181"/>
-<area shape="rect" id="node4" href="$classUdpEngineWrapper.html" title=" " alt="" coords="147,229,294,256"/>
-<area shape="rect" id="node5" href="$classEthMacPauseTb.html" title=" " alt="" coords="5,304,129,331"/>
-<area shape="rect" id="node6" href="$classRawEthFramerTb.html" title=" " alt="" coords="154,304,287,331"/>
-<area shape="rect" id="node7" href="$classUdpEngineTb.html" title=" " alt="" coords="312,304,420,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="187,5,254,31"/>
+<area shape="rect" id="Node000002" href="$classArpIpTable.html" title=" " alt="" coords="175,79,266,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,44,223,79,218,79,218,44"/>
+<area shape="rect" id="Node000003" href="$classUdpEngine.html" title=" " alt="" coords="175,152,267,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="223,118,223,152,218,152,218,118"/>
+<area shape="rect" id="Node000004" href="$classUdpEngineWrapper.html" title=" " alt="" coords="147,225,294,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="223,191,223,225,218,225,218,191"/>
+<area shape="rect" id="Node000005" href="$classEthMacPauseTb.html" title=" " alt="" coords="5,299,129,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="185,259,94,301,91,296,183,254"/>
+<area shape="rect" id="Node000006" href="$classRawEthFramerTb.html" title=" " alt="" coords="154,299,287,324"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="223,264,223,299,218,299,218,264"/>
+<area shape="rect" id="Node000007" href="$classUdpEngineTb.html" title=" " alt="" coords="312,299,420,324"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="257,254,343,296,341,301,255,259"/>
 </map>

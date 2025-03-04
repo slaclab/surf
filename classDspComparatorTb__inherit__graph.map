@@ -1,6 +1,9 @@
 <map id="DspComparatorTb" name="DspComparatorTb">
-<area shape="rect" id="node1" title=" " alt="" coords="26,155,166,181"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,80,69,107"/>
-<area shape="rect" id="node3" href="$classDspComparator.html" title=" " alt="" coords="94,80,218,107"/>
-<area shape="rect" id="node4" href="$classFifoOutputPipeline.html" title=" " alt="" coords="85,5,227,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="26,152,166,177"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,79,69,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="58,113,89,150,84,154,54,116"/>
+<area shape="rect" id="Node000003" href="$classDspComparator.html" title=" " alt="" coords="94,79,218,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,116,108,154,104,150,135,113"/>
+<area shape="rect" id="Node000004" href="$classFifoOutputPipeline.html" title=" " alt="" coords="85,5,227,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="159,44,159,79,153,79,153,44"/>
 </map>

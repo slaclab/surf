@@ -1,8 +1,15 @@
 <map id="DeviceDna" name="DeviceDna">
-<area shape="rect" id="node1" title=" " alt="" coords="116,229,209,256"/>
-<area shape="rect" id="node2" href="$classDeviceDna7Series.html" title=" " alt="" coords="5,155,147,181"/>
-<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="59,80,133,107"/>
-<area shape="rect" id="node6" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="171,155,331,181"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="43,5,149,32"/>
-<area shape="rect" id="node5" href="$classSynchronizerVector.html" title=" " alt="" coords="167,80,313,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="116,225,209,251"/>
+<area shape="rect" id="Node000002" href="$classDeviceDna7Series.html" title=" " alt="" coords="5,152,147,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,184,150,223,147,227,99,188"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="59,79,133,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,118,82,153,77,151,86,117"/>
+<area shape="rect" id="Node000006" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="171,152,331,177"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="134,107,226,149,224,154,132,112"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="43,5,149,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="99,44,99,79,93,79,93,44"/>
+<area shape="rect" id="Node000005" href="$classSynchronizerVector.html" title=" " alt="" coords="167,79,313,104"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="202,112,104,154,102,149,200,107"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="246,117,252,151,246,152,241,118"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="228,188,179,227,175,223,224,184"/>
 </map>

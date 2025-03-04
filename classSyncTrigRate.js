@@ -1,29 +1,4 @@
 var classSyncTrigRate =
 [
-    [ "SyncTrigRate.rtl", "classSyncTrigRate_1_1rtl.html", "classSyncTrigRate_1_1rtl" ],
-    [ "TPD_G", "classSyncTrigRate.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classSyncTrigRate.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "COMMON_CLK_G", "classSyncTrigRate.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "ONE_SHOT_G", "classSyncTrigRate.html#a003bb07b1a77ec7a3fbf38818c954470", null ],
-    [ "IN_POLARITY_G", "classSyncTrigRate.html#abe82041548cc7ccaddbdc18e5d2723ae", null ],
-    [ "COUNT_EDGES_G", "classSyncTrigRate.html#a4da656c7755ddf1d0310dd82a8f42bd6", null ],
-    [ "REF_CLK_FREQ_G", "classSyncTrigRate.html#a4286f384fc564d604f41f18d8fad6d67", null ],
-    [ "REFRESH_RATE_G", "classSyncTrigRate.html#ac13a8202844ed6d291becef0c62bd27d", null ],
-    [ "CNT_WIDTH_G", "classSyncTrigRate.html#ac6c109d2d67e69d769b6b9cb0203277a", null ],
-    [ "trigIn", "classSyncTrigRate.html#a00bc612421f8182e06366584fb62dbb7", null ],
-    [ "trigRateUpdated", "classSyncTrigRate.html#a1601a8469e8e436371038a00be276b00", null ],
-    [ "trigRateOut", "classSyncTrigRate.html#a7b22921c0cd8645fac7c2ce17c58fc25", null ],
-    [ "trigRateOutMax", "classSyncTrigRate.html#adbcdf2e35c9466c576cb1eb3c15cb2d3", null ],
-    [ "trigRateOutMin", "classSyncTrigRate.html#ac033d83ff67f89b7f310e6e180d1068d", null ],
-    [ "locClkEn", "classSyncTrigRate.html#a6d285ac72e96a4d235bc9b5bd720b32f", null ],
-    [ "locClk", "classSyncTrigRate.html#aca3851fd6ccaec77c4e514a5bc208226", null ],
-    [ "locRst", "classSyncTrigRate.html#a1f6a785ccbefea6c8e9fa0a92ee627fb", null ],
-    [ "refClk", "classSyncTrigRate.html#a4ca6a821327795c5e458a946ae782a06", null ],
-    [ "refRst", "classSyncTrigRate.html#a1eaeef0d5730f92221986d25a9866ea2", null ],
-    [ "ieee", "classSyncTrigRate.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSyncTrigRate.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classSyncTrigRate.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classSyncTrigRate.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classSyncTrigRate.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSyncTrigRate.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "SyncTrigRate.rtl", "classSyncTrigRate_1_1rtl.html", null ]
 ];

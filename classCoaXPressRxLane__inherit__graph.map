@@ -1,7 +1,11 @@
 <map id="CoaXPressRxLane" name="CoaXPressRxLane">
-<area shape="rect" id="node1" title=" " alt="" coords="141,5,279,32"/>
-<area shape="rect" id="node2" href="$classCoaXPressRx.html" title=" " alt="" coords="156,80,264,107"/>
-<area shape="rect" id="node3" href="$classCoaXPressCore.html" title=" " alt="" coords="149,155,271,181"/>
-<area shape="rect" id="node4" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,229,199,256"/>
-<area shape="rect" id="node5" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,229,416,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="141,5,279,31"/>
+<area shape="rect" id="Node000002" href="$classCoaXPressRx.html" title=" " alt="" coords="156,79,264,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,44,213,79,207,79,207,44"/>
+<area shape="rect" id="Node000003" href="$classCoaXPressCore.html" title=" " alt="" coords="149,152,271,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="213,118,213,152,207,152,207,118"/>
+<area shape="rect" id="Node000004" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,225,199,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="183,187,121,227,118,223,180,183"/>
+<area shape="rect" id="Node000005" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,225,416,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="240,183,303,223,300,227,238,187"/>
 </map>

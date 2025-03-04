@@ -1,29 +1,4 @@
 var classSugoiSubordinateSimModel =
 [
-    [ "SugoiSubordinateSimModel.mapping", "classSugoiSubordinateSimModel_1_1mapping.html", "classSugoiSubordinateSimModel_1_1mapping" ],
-    [ "TPD_G", "classSugoiSubordinateSimModel.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NUM_ADDR_BITS_G", "classSugoiSubordinateSimModel.html#afa3e7dfcff1c8fd423abdd54a108bd56", null ],
-    [ "clkInP", "classSugoiSubordinateSimModel.html#ace470e1548c8074cd6c73e16c847ae4e", null ],
-    [ "clkInN", "classSugoiSubordinateSimModel.html#a5c1355153c9df7f2a335040419f35e68", null ],
-    [ "rxP", "classSugoiSubordinateSimModel.html#a017d0eb2d0c21e971c614ed7800c05d0", null ],
-    [ "rxN", "classSugoiSubordinateSimModel.html#aa05ba86ca970d3ad32eb7f27c5417808", null ],
-    [ "txP", "classSugoiSubordinateSimModel.html#a9ac9c6e45408675f82f8a8d511757060", null ],
-    [ "txN", "classSugoiSubordinateSimModel.html#a0dd497a79bde305f8ecd0b0fd56cbb7b", null ],
-    [ "clkOutP", "classSugoiSubordinateSimModel.html#ac5433254e3d1149aabb937de15e3e1ac", null ],
-    [ "clkOutN", "classSugoiSubordinateSimModel.html#a099506c60a8a3ce186f41869a6989418", null ],
-    [ "linkup", "classSugoiSubordinateSimModel.html#ad984ccf609187e928ec01a0cf182b2db", null ],
-    [ "rst", "classSugoiSubordinateSimModel.html#a3afe5767d75fdc30f671cbf40dcb4e1a", null ],
-    [ "rstL", "classSugoiSubordinateSimModel.html#a038c0ecbf078e731cba620b65be8a9d9", null ],
-    [ "opCode", "classSugoiSubordinateSimModel.html#a2b7ee52cda3c7225795fb2ec6d8002dd", null ],
-    [ "ieee", "classSugoiSubordinateSimModel.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSugoiSubordinateSimModel.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSugoiSubordinateSimModel.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSugoiSubordinateSimModel.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSugoiSubordinateSimModel.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSugoiSubordinateSimModel.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classSugoiSubordinateSimModel.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "ruckus", "classSugoiSubordinateSimModel.html#ad3a5a397d4c38e5284eee275881dde6d", null ],
-    [ "BuildInfoPkg", "classSugoiSubordinateSimModel.html#a825fcc35e3fa09e5902af523a76e1287", null ],
-    [ "UNISIM", "classSugoiSubordinateSimModel.html#afd13b50585152f6756d196bf3f1c52ac", null ],
-    [ "VCOMPONENTS", "classSugoiSubordinateSimModel.html#af7dabcc6b22cfac21d9188de6b952c14", null ]
+    [ "SugoiSubordinateSimModel.mapping", "classSugoiSubordinateSimModel_1_1mapping.html", null ]
 ];

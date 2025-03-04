@@ -1,28 +1,4 @@
 var classSaltRx =
 [
-    [ "SaltRx.rtl", "classSaltRx_1_1rtl.html", "classSaltRx_1_1rtl" ],
-    [ "TPD_G", "classSaltRx.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "COMMON_RX_CLK_G", "classSaltRx.html#ac38640a40aa2d806302cd3588f317012", null ],
-    [ "MASTER_AXI_CONFIG_G", "classSaltRx.html#acb32b29bba5639b73f5764e61b2450e6", null ],
-    [ "mAxisClk", "classSaltRx.html#ae0b70ef2412f74472e1f3d29a37df068", null ],
-    [ "mAxisRst", "classSaltRx.html#a291aba3da8fd969c97a3612c1d3cf019", null ],
-    [ "mAxisMaster", "classSaltRx.html#ab0b1799978ac7ea47ecb67ad6e5bb413", null ],
-    [ "mAxisSlave", "classSaltRx.html#a3522ef3ee8a7e64d95785f540e794c63", null ],
-    [ "rxLinkUp", "classSaltRx.html#a626f43539582c7ff20578f3e9d37d17d", null ],
-    [ "rxPktRcvd", "classSaltRx.html#a6fd3a5ccb2dd7208ac40d6779181cc3f", null ],
-    [ "rxErrDet", "classSaltRx.html#a2f3c8d0ea24573b926d32a56e487e673", null ],
-    [ "rxEn", "classSaltRx.html#a599a5b468b86e016668ddc6ce1e70ebf", null ],
-    [ "rxErr", "classSaltRx.html#a3132b3debe086eb34199ae455e700547", null ],
-    [ "rxData", "classSaltRx.html#aee354c96314e6505449df594f706f489", null ],
-    [ "clk", "classSaltRx.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSaltRx.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "ieee", "classSaltRx.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSaltRx.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classSaltRx.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classSaltRx.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classSaltRx.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSaltRx.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classSaltRx.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classSaltRx.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "SaltPkg", "classSaltRx.html#a7da58a4e21c110677517cfe3c9ac8542", null ]
+    [ "SaltRx.rtl", "classSaltRx_1_1rtl.html", null ]
 ];

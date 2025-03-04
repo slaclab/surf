@@ -1,29 +1,4 @@
 var classEthMacTxPause =
 [
-    [ "rtl", "classEthMacTxPause_1_1rtl.html", "classEthMacTxPause_1_1rtl" ],
-    [ "TPD_G", "classEthMacTxPause.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "PAUSE_EN_G", "classEthMacTxPause.html#ac45e2d17b622bb37f3028ae0fe8bbe0e", null ],
-    [ "PAUSE_512BITS_G", "classEthMacTxPause.html#a007a3ca21b834bdd55e8cb98da44f9c7", null ],
-    [ "ethClk", "classEthMacTxPause.html#a1f64c166d5579e3255eb9e3eb5a9f19f", null ],
-    [ "ethRst", "classEthMacTxPause.html#a91fccab24ec1aeecf9d5d17352950ce3", null ],
-    [ "sAxisMaster", "classEthMacTxPause.html#ab3957a6492b84f9bdb996a789151584e", null ],
-    [ "sAxisSlave", "classEthMacTxPause.html#afbb043b74a7f8cbca93ff3d11a715e6f", null ],
-    [ "mAxisMaster", "classEthMacTxPause.html#ab0b1799978ac7ea47ecb67ad6e5bb413", null ],
-    [ "mAxisSlave", "classEthMacTxPause.html#a3522ef3ee8a7e64d95785f540e794c63", null ],
-    [ "clientPause", "classEthMacTxPause.html#a68887421463a7f1b8a9ab97691159734", null ],
-    [ "rxPauseReq", "classEthMacTxPause.html#ac94a4d0aa842102e87d4c4534245a2b4", null ],
-    [ "rxPauseValue", "classEthMacTxPause.html#a931f61687e9750dddf26c63ed8073df5", null ],
-    [ "phyReady", "classEthMacTxPause.html#ae116f90a6e657dde10474424e5bf80ba", null ],
-    [ "pauseEnable", "classEthMacTxPause.html#a1c3fa58a3f67be3025b95d163db81090", null ],
-    [ "pauseTime", "classEthMacTxPause.html#a4e182bf39b5196da7b771638aa55d3a1", null ],
-    [ "macAddress", "classEthMacTxPause.html#ad0a8db227780ba1627fd3d1b28b3c447", null ],
-    [ "pauseTx", "classEthMacTxPause.html#a3d42d16f21a2ba5fe66056bc66b12020", null ],
-    [ "ieee", "classEthMacTxPause.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classEthMacTxPause.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classEthMacTxPause.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classEthMacTxPause.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classEthMacTxPause.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "AxiStreamPkg", "classEthMacTxPause.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "StdRtlPkg", "classEthMacTxPause.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "EthMacPkg", "classEthMacTxPause.html#ac1625414338993fe184c68bfdbb48894", null ]
+    [ "EthMacTxPause.rtl", "classEthMacTxPause_1_1rtl.html", null ]
 ];

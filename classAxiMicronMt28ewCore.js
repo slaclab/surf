@@ -1,25 +1,4 @@
 var classAxiMicronMt28ewCore =
 [
-    [ "mapping", "classAxiMicronMt28ewCore_1_1mapping.html", "classAxiMicronMt28ewCore_1_1mapping" ],
-    [ "TPD_G", "classAxiMicronMt28ewCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "EN_PASSWORD_LOCK_G", "classAxiMicronMt28ewCore.html#adb7476d1457cfbad5d0bff35f0179271", null ],
-    [ "PASSWORD_LOCK_G", "classAxiMicronMt28ewCore.html#ae92efd19e3775177e3bc6c06e13445a9", null ],
-    [ "MEM_ADDR_MASK_G", "classAxiMicronMt28ewCore.html#ab7fdcb79aa413e1b8bdb792174149351", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiMicronMt28ewCore.html#abd0127b375676c5662640a1b064b74d2", null ],
-    [ "flashInOut", "classAxiMicronMt28ewCore.html#a38c9dec0df44c6de4c0744407b55dd53", null ],
-    [ "flashOut", "classAxiMicronMt28ewCore.html#af452d100d36622dc33be1e2730469ee4", null ],
-    [ "axiReadMaster", "classAxiMicronMt28ewCore.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiMicronMt28ewCore.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiMicronMt28ewCore.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiMicronMt28ewCore.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "axiClk", "classAxiMicronMt28ewCore.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiMicronMt28ewCore.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "ieee", "classAxiMicronMt28ewCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiMicronMt28ewCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "surf", "classAxiMicronMt28ewCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiMicronMt28ewCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiMicronMt28ewCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiMicronMt28ewPkg", "classAxiMicronMt28ewCore.html#adce6f9bc63f8a834a5ae8766f55aea8a", null ],
-    [ "unisim", "classAxiMicronMt28ewCore.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classAxiMicronMt28ewCore.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "AxiMicronMt28ewCore.mapping", "classAxiMicronMt28ewCore_1_1mapping.html", null ]
 ];

@@ -1,8 +1,13 @@
 <map id="AxiStreamPacketizer" name="AxiStreamPacketizer">
-<area shape="rect" id="node1" title=" " alt="" coords="112,80,268,107"/>
-<area shape="rect" id="node3" href="$classRssiCoreWrapper.html" title=" " alt="" coords="123,155,257,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="119,5,261,32"/>
-<area shape="rect" id="node4" href="$classRssiCoreTb.html" title=" " alt="" coords="5,229,100,256"/>
-<area shape="rect" id="node5" href="$classRssiInterleaveTb.html" title=" " alt="" coords="125,229,255,256"/>
-<area shape="rect" id="node6" href="$classRawEthFramerTb.html" title=" " alt="" coords="279,229,413,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="112,79,268,104"/>
+<area shape="rect" id="Node000003" href="$classRssiCoreWrapper.html" title=" " alt="" coords="123,152,257,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,118,193,152,187,152,187,118"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="119,5,261,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,44,193,79,187,79,187,44"/>
+<area shape="rect" id="Node000004" href="$classRssiCoreTb.html" title=" " alt="" coords="5,225,100,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="157,186,76,227,74,223,155,181"/>
+<area shape="rect" id="Node000005" href="$classRssiInterleaveTb.html" title=" " alt="" coords="125,225,255,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="193,191,193,225,187,225,187,191"/>
+<area shape="rect" id="Node000006" href="$classRawEthFramerTb.html" title=" " alt="" coords="279,225,413,251"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="229,181,322,223,319,228,226,185"/>
 </map>

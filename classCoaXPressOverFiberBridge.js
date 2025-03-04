@@ -1,30 +1,4 @@
 var classCoaXPressOverFiberBridge =
 [
-    [ "mapping", "classCoaXPressOverFiberBridge_1_1mapping.html", "classCoaXPressOverFiberBridge_1_1mapping" ],
-    [ "TPD_G", "classCoaXPressOverFiberBridge.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "LANE0_G", "classCoaXPressOverFiberBridge.html#ae752a6be3b3686b06bb414d607589810", null ],
-    [ "txClk156", "classCoaXPressOverFiberBridge.html#ae633edb3c376447e36d6e78a3b351734", null ],
-    [ "xgmiiTxd", "classCoaXPressOverFiberBridge.html#a80a2d32bd2996620bbf358810957ee17", null ],
-    [ "xgmiiTxc", "classCoaXPressOverFiberBridge.html#ab999715334b52b7eb235cc3ec5cdcdc5", null ],
-    [ "rxClk156", "classCoaXPressOverFiberBridge.html#a7c513f5b48a35f6b9459022c137e375f", null ],
-    [ "xgmiiRxd", "classCoaXPressOverFiberBridge.html#a8f9ffa24858c7862caf3481bd511767f", null ],
-    [ "xgmiiRxc", "classCoaXPressOverFiberBridge.html#acc27c70d6deea5fdde7e846f4d7cb474", null ],
-    [ "txClk312", "classCoaXPressOverFiberBridge.html#aa4df853c8ba02535149a06f00ca2c160", null ],
-    [ "txRst312", "classCoaXPressOverFiberBridge.html#a6f1b53c11c0ef7c18700a8a549d0a2b8", null ],
-    [ "txLsValid", "classCoaXPressOverFiberBridge.html#ac2f991012d99315adf59b713735bdfd7", null ],
-    [ "txLsData", "classCoaXPressOverFiberBridge.html#a158ebd45462a6de005eb2433c6f45c28", null ],
-    [ "txLsDataK", "classCoaXPressOverFiberBridge.html#a18f6b7ac75e5ff90cd75b61be598048c", null ],
-    [ "txLsLaneEn", "classCoaXPressOverFiberBridge.html#afd22487653053a619c92add5ca5ee0c5", null ],
-    [ "txLsRate", "classCoaXPressOverFiberBridge.html#abd0e33d5418a236180f990a7c65c0092", null ],
-    [ "rxClk312", "classCoaXPressOverFiberBridge.html#a1b71ea192cfc98b277b6ad3467a37e69", null ],
-    [ "rxRst312", "classCoaXPressOverFiberBridge.html#aead6e3032a81bf849bdc093f8211df6a", null ],
-    [ "rxData", "classCoaXPressOverFiberBridge.html#aa3cfc3b5cac75d62844bb793bf64a007", null ],
-    [ "rxDataK", "classCoaXPressOverFiberBridge.html#a1f4c8bbcf682ba40526a259e28b0cdab", null ],
-    [ "ieee", "classCoaXPressOverFiberBridge.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classCoaXPressOverFiberBridge.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classCoaXPressOverFiberBridge.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classCoaXPressOverFiberBridge.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classCoaXPressOverFiberBridge.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classCoaXPressOverFiberBridge.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "CoaXPressPkg", "classCoaXPressOverFiberBridge.html#a957117c1affb5f9a6e76c60d86f21504", null ]
+    [ "CoaXPressOverFiberBridge.mapping", "classCoaXPressOverFiberBridge_1_1mapping.html", null ]
 ];

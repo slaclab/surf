@@ -1,4 +1,5 @@
 <map id="Max5443DacCntrl" name="Max5443DacCntrl">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,144,32"/>
-<area shape="rect" id="node2" href="$classMax5443.html" title=" " alt="" coords="33,80,116,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,144,31"/>
+<area shape="rect" id="Node000002" href="$classMax5443.html" title=" " alt="" coords="33,79,116,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,44,77,79,72,79,72,44"/>
 </map>

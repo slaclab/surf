@@ -1,28 +1,4 @@
 var classPgp4RxEb =
 [
-    [ "rtl", "classPgp4RxEb_1_1rtl.html", "classPgp4RxEb_1_1rtl" ],
-    [ "TPD_G", "classPgp4RxEb.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_POLARITY_G", "classPgp4RxEb.html#a3d301a13733d1d4ba2f381139f040901", null ],
-    [ "RST_ASYNC_G", "classPgp4RxEb.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "phyRxClk", "classPgp4RxEb.html#a043dd7baee6177622c8cd5e962945fd9", null ],
-    [ "phyRxRst", "classPgp4RxEb.html#a1d5f3e33b8af4148427bd89ffdf100f1", null ],
-    [ "phyRxValid", "classPgp4RxEb.html#af8b183dcc75e50648c36c2abdf78f80c", null ],
-    [ "phyRxData", "classPgp4RxEb.html#aa0ecf082f73e28b752dded549ef74087", null ],
-    [ "phyRxHeader", "classPgp4RxEb.html#a92ebcb663a398c65e28766ec385cddde", null ],
-    [ "pgpRxClk", "classPgp4RxEb.html#a76f290a48e16f22382b0ae7c9d76c933", null ],
-    [ "pgpRxRst", "classPgp4RxEb.html#a8f0b7ca1d42199443d7c0c1a78c0201f", null ],
-    [ "pgpRxValid", "classPgp4RxEb.html#addc07b486fd2701e5f358f7574d50e71", null ],
-    [ "pgpRxData", "classPgp4RxEb.html#a25bfa8c628c4ee9dcd9a6f3f57ebfe76", null ],
-    [ "pgpRxHeader", "classPgp4RxEb.html#ae11154f8f5ea2f3c19482f3de820f43d", null ],
-    [ "remLinkData", "classPgp4RxEb.html#a8ba259f407d9bb9c0589aeea5386c228", null ],
-    [ "overflow", "classPgp4RxEb.html#a1fae8419084c3c39ff57735efac168f6", null ],
-    [ "linkError", "classPgp4RxEb.html#a57c868f7a05ae8e28285f96aee661f13", null ],
-    [ "status", "classPgp4RxEb.html#aa07a6d2a0407c8be2167ccab041b3e30", null ],
-    [ "ieee", "classPgp4RxEb.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp4RxEb.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classPgp4RxEb.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classPgp4RxEb.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classPgp4RxEb.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp4RxEb.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Pgp4Pkg", "classPgp4RxEb.html#aee28df1db493733b76edaf17b8f33a62", null ]
+    [ "Pgp4RxEb.rtl", "classPgp4RxEb_1_1rtl.html", null ]
 ];

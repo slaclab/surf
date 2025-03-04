@@ -1,4 +1,5 @@
 <map id="HammingEccDecoder" name="HammingEccDecoder">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,168,32"/>
-<area shape="rect" id="node2" href="$classHammingEccTb.html" title=" " alt="" coords="25,80,149,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,168,31"/>
+<area shape="rect" id="Node000002" href="$classHammingEccTb.html" title=" " alt="" coords="25,79,149,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,44,89,79,84,79,84,44"/>
 </map>

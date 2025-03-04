@@ -1,32 +1,4 @@
 var classPgp2fcTxPhy =
 [
-    [ "Pgp2fcTxPhy", "classPgp2fcTxPhy_1_1Pgp2fcTxPhy.html", "classPgp2fcTxPhy_1_1Pgp2fcTxPhy" ],
-    [ "TPD_G", "classPgp2fcTxPhy.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "FC_WORDS_G", "classPgp2fcTxPhy.html#a961008d53ab228e2dba130cf4047576f", null ],
-    [ "pgpTxClkEn", "classPgp2fcTxPhy.html#a7a1212be3c540b077cfbaddd7b4f471f", null ],
-    [ "pgpTxClk", "classPgp2fcTxPhy.html#a13f62656d0009f976ba3373127963357", null ],
-    [ "pgpTxClkRst", "classPgp2fcTxPhy.html#a93851bbf1c087b1540566c97ad03b1e3", null ],
-    [ "pgpTxLinkReady", "classPgp2fcTxPhy.html#ad51891e72992926326959dea9c485433", null ],
-    [ "pgpBusy", "classPgp2fcTxPhy.html#aa4f6863fe10ced6eed0b4295b8f0ae04", null ],
-    [ "fcValid", "classPgp2fcTxPhy.html#a8535956c3f75ce00de9b59a231f676f8", null ],
-    [ "fcWord", "classPgp2fcTxPhy.html#af3ff80171dd218902ef9b68b2e6bd84a", null ],
-    [ "fcSent", "classPgp2fcTxPhy.html#a42df34a5bed1c16400b0855cfbaff4bd", null ],
-    [ "pgpLocLinkReady", "classPgp2fcTxPhy.html#a2468bcdf0a4d12918df60e6cb46f6511", null ],
-    [ "pgpLocData", "classPgp2fcTxPhy.html#a522857748b28c2a2e85eb51f5524208b", null ],
-    [ "cellTxSOC", "classPgp2fcTxPhy.html#ab987cad0cfc2e56376eb1790c87f23ca", null ],
-    [ "cellTxSOF", "classPgp2fcTxPhy.html#ad971c4850bc320e3d76a8fc37e292c21", null ],
-    [ "cellTxEOC", "classPgp2fcTxPhy.html#abff6c77ae25eab1dda686f5b49e84bcd", null ],
-    [ "cellTxEOF", "classPgp2fcTxPhy.html#a0e9a3cdafe401f255013f78e6ad2a49e", null ],
-    [ "cellTxEOFE", "classPgp2fcTxPhy.html#a9e95b4673d6f7ab512d4d294937b9193", null ],
-    [ "cellTxData", "classPgp2fcTxPhy.html#a872402ae81ae3eaaa6a33512c28d43d8", null ],
-    [ "phyTxData", "classPgp2fcTxPhy.html#a9f2e904b7b3579fca6cb42917b322ca3", null ],
-    [ "phyTxDataK", "classPgp2fcTxPhy.html#a31beba5ee8091c9712fd4fc2b77a046f", null ],
-    [ "phyTxReady", "classPgp2fcTxPhy.html#a86b61696c5f03d8f8faafcba280828e8", null ],
-    [ "ieee", "classPgp2fcTxPhy.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp2fcTxPhy.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classPgp2fcTxPhy.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classPgp2fcTxPhy.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classPgp2fcTxPhy.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp2fcTxPhy.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Pgp2fcPkg", "classPgp2fcTxPhy.html#a2d63c91b7e4c00f91f5176b519be8415", null ]
+    [ "Pgp2fcTxPhy.Pgp2fcTxPhy", "classPgp2fcTxPhy_1_1Pgp2fcTxPhy.html", null ]
 ];

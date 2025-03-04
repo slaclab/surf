@@ -1,32 +1,4 @@
 var classAxiMicronP30Reg =
 [
-    [ "rtl", "classAxiMicronP30Reg_1_1rtl.html", "classAxiMicronP30Reg_1_1rtl" ],
-    [ "TPD_G", "classAxiMicronP30Reg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "EN_PASSWORD_LOCK_G", "classAxiMicronP30Reg.html#adb7476d1457cfbad5d0bff35f0179271", null ],
-    [ "PASSWORD_LOCK_G", "classAxiMicronP30Reg.html#ae92efd19e3775177e3bc6c06e13445a9", null ],
-    [ "MEM_ADDR_MASK_G", "classAxiMicronP30Reg.html#ab7fdcb79aa413e1b8bdb792174149351", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiMicronP30Reg.html#abd0127b375676c5662640a1b064b74d2", null ],
-    [ "flashAddr", "classAxiMicronP30Reg.html#a25b4ef2530ed7c5f436ddb0a63071904", null ],
-    [ "flashAdv", "classAxiMicronP30Reg.html#a36c43bcc8bc8a3e3424a001015381c31", null ],
-    [ "flashClk", "classAxiMicronP30Reg.html#aa872a8295cb1a5b1ea7cded1cdbe9aa4", null ],
-    [ "flashRstL", "classAxiMicronP30Reg.html#a4b8670f5444daed372fef9cbb2c23c1b", null ],
-    [ "flashCeL", "classAxiMicronP30Reg.html#acbce9970a593141c1eb88c5e0ba28b24", null ],
-    [ "flashOeL", "classAxiMicronP30Reg.html#abbaa74fc5b0c39fadea019f8c26696bd", null ],
-    [ "flashWeL", "classAxiMicronP30Reg.html#aa8ec937bb4e1f3b6ded990f626813853", null ],
-    [ "flashTri", "classAxiMicronP30Reg.html#a48289d2dc6e935ffa26d1eba5bc7b38a", null ],
-    [ "flashDin", "classAxiMicronP30Reg.html#ac6ed51ccca36306e63fdcb69ef1c8851", null ],
-    [ "flashDout", "classAxiMicronP30Reg.html#a9ae0a6065155fa85f296e605383ea367", null ],
-    [ "axiReadMaster", "classAxiMicronP30Reg.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiMicronP30Reg.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiMicronP30Reg.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiMicronP30Reg.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "axiClk", "classAxiMicronP30Reg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiMicronP30Reg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "ieee", "classAxiMicronP30Reg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiMicronP30Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiMicronP30Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiMicronP30Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiMicronP30Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiMicronP30Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiMicronP30Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "AxiMicronP30Reg.rtl", "classAxiMicronP30Reg_1_1rtl.html", null ]
 ];

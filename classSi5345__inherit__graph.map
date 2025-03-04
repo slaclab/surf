@@ -1,5 +1,7 @@
 <map id="Si5345" name="Si5345">
-<area shape="rect" id="node1" title=" " alt="" coords="142,80,209,107"/>
-<area shape="rect" id="node2" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,32"/>
-<area shape="rect" id="node3" href="$classSpiMaster.html" title=" " alt="" coords="212,5,299,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="142,79,209,104"/>
+<area shape="rect" id="Node000002" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,38,164,76,161,80,118,42"/>
+<area shape="rect" id="Node000003" href="$classSpiMaster.html" title=" " alt="" coords="212,5,299,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,42,190,80,187,76,231,38"/>
 </map>

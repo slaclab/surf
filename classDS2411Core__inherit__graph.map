@@ -1,11 +1,19 @@
 <map id="DS2411Core" name="DS2411Core">
-<area shape="rect" id="node1" title=" " alt="" coords="164,56,267,83"/>
-<area shape="rect" id="node3" href="$classAxiVersion.html" title=" " alt="" coords="315,56,405,83"/>
-<area shape="rect" id="node2" href="$classIoBufWrapper.html" title=" " alt="" coords="5,56,116,83"/>
-<area shape="rect" id="node4" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="471,5,637,32"/>
-<area shape="rect" id="node5" href="$classAxiVersionTb.html" title=" " alt="" coords="501,56,607,83"/>
-<area shape="rect" id="node6" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="473,107,635,133"/>
-<area shape="rect" id="node7" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="493,157,615,184"/>
-<area shape="rect" id="node8" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="453,208,655,235"/>
-<area shape="rect" id="node9" href="$classSugoiTopTb.html" title=" " alt="" coords="703,208,799,235"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="164,104,267,129"/>
+<area shape="rect" id="Node000003" href="$classAxiVersion.html" title=" " alt="" coords="315,104,405,129"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="280,114,314,114,314,119,280,119"/>
+<area shape="rect" id="Node000002" href="$classIoBufWrapper.html" title=" " alt="" coords="5,104,116,129"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,114,164,114,164,119,129,119"/>
+<area shape="rect" id="Node000004" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="471,5,637,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="382,92,413,64,452,40,482,28,484,33,455,44,417,69,385,96"/>
+<area shape="rect" id="Node000005" href="$classAxiVersionTb.html" title=" " alt="" coords="501,55,607,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="418,98,453,89,500,77,501,82,454,94,420,103"/>
+<area shape="rect" id="Node000006" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="473,104,635,129"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="419,114,473,114,473,119,419,119"/>
+<area shape="rect" id="Node000007" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="493,153,615,179"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="420,130,454,139,499,151,498,156,453,145,418,135"/>
+<area shape="rect" id="Node000008" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="453,203,655,228"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="385,137,417,165,455,189,484,200,482,205,452,194,413,169,382,141"/>
+<area shape="rect" id="Node000009" href="$classSugoiTopTb.html" title=" " alt="" coords="703,203,799,228"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="669,213,703,213,703,218,669,218"/>
 </map>

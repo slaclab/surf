@@ -1,12 +1,22 @@
 <map id="UartTx" name="UartTx">
-<area shape="rect" id="node1" title=" " alt="" coords="205,5,271,32"/>
-<area shape="rect" id="node2" href="$classUartWrapper.html" title=" " alt="" coords="185,80,291,107"/>
-<area shape="rect" id="node6" href="$classClinkUart.html" title=" " alt="" coords="345,80,427,107"/>
-<area shape="rect" id="node3" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="5,155,145,181"/>
-<area shape="rect" id="node4" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="52,229,208,256"/>
-<area shape="rect" id="node5" href="$classUartSem.html" title=" " alt="" coords="221,155,300,181"/>
-<area shape="rect" id="node7" href="$classClinkCtrl.html" title=" " alt="" coords="324,155,403,181"/>
-<area shape="rect" id="node9" href="$classClinkFramerTb.html" title=" " alt="" coords="427,155,545,181"/>
-<area shape="rect" id="node10" href="$classClinkUartTb.html" title=" " alt="" coords="569,155,667,181"/>
-<area shape="rect" id="node8" href="$classClinkTop.html" title=" " alt="" coords="325,229,402,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="263,5,330,31"/>
+<area shape="rect" id="Node000002" href="$classUartWrapper.html" title=" " alt="" coords="185,79,291,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,43,250,80,245,77,276,40"/>
+<area shape="rect" id="Node000006" href="$classClinkUart.html" title=" " alt="" coords="345,79,427,104"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="323,37,373,76,370,81,320,41"/>
+<area shape="rect" id="Node000003" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="5,152,145,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="200,112,103,154,101,149,198,107"/>
+<area shape="rect" id="Node000004" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="52,225,208,251"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="223,117,141,227,137,224,219,114"/>
+<area shape="rect" id="Node000005" href="$classUartSem.html" title=" " alt="" coords="221,152,300,177"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="248,117,260,151,254,153,243,118"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="95,187,123,224,119,227,91,190"/>
+<area shape="rect" id="Node000007" href="$classClinkCtrl.html" title=" " alt="" coords="324,152,403,177"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="381,118,370,153,364,151,376,117"/>
+<area shape="rect" id="Node000009" href="$classClinkFramerTb.html" title=" " alt="" coords="427,152,545,177"/>
+<area shape="poly" id="edge9_Node000006_Node000009" title=" " alt="" coords="415,110,471,150,468,154,412,114"/>
+<area shape="rect" id="Node000010" href="$classClinkUartTb.html" title=" " alt="" coords="569,152,667,177"/>
+<area shape="poly" id="edge10_Node000006_Node000010" title=" " alt="" coords="437,105,581,149,580,154,435,110"/>
+<area shape="rect" id="Node000008" href="$classClinkTop.html" title=" " alt="" coords="325,225,402,251"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="366,191,366,225,361,225,361,191"/>
 </map>

@@ -1,32 +1,4 @@
 var classAxiLiteCrossbarTb =
 [
-    [ "mapping", "classAxiLiteCrossbarTb_1_1mapping.html", "classAxiLiteCrossbarTb_1_1mapping" ],
-    [ "S_AXI_ACLK", "classAxiLiteCrossbarTb.html#a625531bcd10117f233017027322b9457", null ],
-    [ "S_AXI_ARESETN", "classAxiLiteCrossbarTb.html#a9ed5fe5fb838fc82d41707f6d99237bc", null ],
-    [ "S_AXI_AWADDR", "classAxiLiteCrossbarTb.html#a3e41d843c685693250c062b4c56ee005", null ],
-    [ "S_AXI_AWPROT", "classAxiLiteCrossbarTb.html#a63ee2bebb6d4a23939a266d5e02034a9", null ],
-    [ "S_AXI_AWVALID", "classAxiLiteCrossbarTb.html#a2d59ed91b9c9a9365d41500b14a26721", null ],
-    [ "S_AXI_AWREADY", "classAxiLiteCrossbarTb.html#a39b06bec04a77cea56b2cb732b362051", null ],
-    [ "S_AXI_WDATA", "classAxiLiteCrossbarTb.html#a2c8b949ad58bdfb294d0ab9a8fb7ed00", null ],
-    [ "S_AXI_WSTRB", "classAxiLiteCrossbarTb.html#a04c102a2c7ec4b1f8d2b5376a812e069", null ],
-    [ "S_AXI_WVALID", "classAxiLiteCrossbarTb.html#aed7bbddc4015732b07149566bb699acd", null ],
-    [ "S_AXI_WREADY", "classAxiLiteCrossbarTb.html#a69f703197764b59de2b6a69c8df4697e", null ],
-    [ "S_AXI_BRESP", "classAxiLiteCrossbarTb.html#adaa733245fd891455ffd2a0aacaad2a5", null ],
-    [ "S_AXI_BVALID", "classAxiLiteCrossbarTb.html#af9d23d663fb22d7e331a061c180d2709", null ],
-    [ "S_AXI_BREADY", "classAxiLiteCrossbarTb.html#a8c4f8a2f64d1da2fa08300e5ca0df5ec", null ],
-    [ "S_AXI_ARADDR", "classAxiLiteCrossbarTb.html#a1d76e90f8bee678317ec1d44875662f9", null ],
-    [ "S_AXI_ARPROT", "classAxiLiteCrossbarTb.html#a813b9beffd965fc79f600b453ad02dc1", null ],
-    [ "S_AXI_ARVALID", "classAxiLiteCrossbarTb.html#a31c2269d04ed53893bb574dc73d0c7ec", null ],
-    [ "S_AXI_ARREADY", "classAxiLiteCrossbarTb.html#a614dff6f248a64780d19e9221b61ef39", null ],
-    [ "S_AXI_RDATA", "classAxiLiteCrossbarTb.html#a2e982c87e44ebc879f49d614831fb039", null ],
-    [ "S_AXI_RRESP", "classAxiLiteCrossbarTb.html#a75ae5933ec286d64b560e8eb146b8c3f", null ],
-    [ "S_AXI_RVALID", "classAxiLiteCrossbarTb.html#ad0c8b5db29673b646d634878edb17270", null ],
-    [ "S_AXI_RREADY", "classAxiLiteCrossbarTb.html#af9efd0fd030b1f5cf305f87b741e0ff7", null ],
-    [ "ieee", "classAxiLiteCrossbarTb.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiLiteCrossbarTb.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classAxiLiteCrossbarTb.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classAxiLiteCrossbarTb.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classAxiLiteCrossbarTb.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiLiteCrossbarTb.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiLiteCrossbarTb.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "AxiLiteCrossbarTb.mapping", "classAxiLiteCrossbarTb_1_1mapping.html", null ]
 ];

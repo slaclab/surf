@@ -1,8 +1,13 @@
 <map id="AxiStreamDmaV2Read" name="AxiStreamDmaV2Read">
-<area shape="rect" id="node1" title=" " alt="" coords="76,155,247,181"/>
-<area shape="rect" id="node5" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="5,229,144,256"/>
-<area shape="rect" id="node6" href="$classAxiStreamDmaV2Fifo.html" title=" " alt="" coords="168,229,331,256"/>
-<area shape="rect" id="node2" href="$classDspComparator.html" title=" " alt="" coords="21,80,145,107"/>
-<area shape="rect" id="node3" href="$classFifoOutputPipeline.html" title=" " alt="" coords="11,5,154,32"/>
-<area shape="rect" id="node4" href="$classAxiStreamPipeline.html" title=" " alt="" coords="169,80,311,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="76,152,247,177"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="5,225,144,251"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="139,188,91,227,87,223,135,184"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamDmaV2Fifo.html" title=" " alt="" coords="168,225,331,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="188,184,237,223,233,227,184,188"/>
+<area shape="rect" id="Node000002" href="$classDspComparator.html" title=" " alt="" coords="21,79,145,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,111,150,150,147,154,104,115"/>
+<area shape="rect" id="Node000003" href="$classFifoOutputPipeline.html" title=" " alt="" coords="11,5,154,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="85,44,85,79,80,79,80,44"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamPipeline.html" title=" " alt="" coords="169,79,311,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="219,115,176,154,172,150,215,111"/>
 </map>

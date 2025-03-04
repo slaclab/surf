@@ -1,9 +1,15 @@
 <map id="SspEncoder8b10b" name="SspEncoder8b10b">
-<area shape="rect" id="node1" title=" " alt="" coords="168,56,305,83"/>
-<area shape="rect" id="node4" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="414,5,569,32"/>
-<area shape="rect" id="node5" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="415,56,568,83"/>
-<area shape="rect" id="node6" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="353,107,629,133"/>
-<area shape="rect" id="node7" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="394,157,589,184"/>
-<area shape="rect" id="node2" href="$classSspFramer.html" title=" " alt="" coords="17,31,108,57"/>
-<area shape="rect" id="node3" href="$classEncoder8b10b.html" title=" " alt="" coords="5,81,120,108"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="168,80,305,105"/>
+<area shape="rect" id="Node000004" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="414,5,569,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="274,71,353,39,413,25,414,31,354,45,276,76"/>
+<area shape="rect" id="Node000005" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="415,55,568,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="319,82,414,72,415,78,319,87"/>
+<area shape="rect" id="Node000006" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="353,104,629,129"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="319,98,357,101,356,107,319,103"/>
+<area shape="rect" id="Node000007" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="394,153,589,179"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="276,109,354,139,401,151,400,156,353,145,274,114"/>
+<area shape="rect" id="Node000002" href="$classSspFramer.html" title=" " alt="" coords="17,55,108,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,73,168,80,167,85,121,79"/>
+<area shape="rect" id="Node000003" href="$classEncoder8b10b.html" title=" " alt="" coords="5,104,120,129"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,104,167,99,168,105,134,110"/>
 </map>

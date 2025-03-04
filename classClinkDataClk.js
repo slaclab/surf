@@ -1,27 +1,4 @@
 var classClinkDataClk =
 [
-    [ "rtl", "classClinkDataClk_1_1rtl.html", "classClinkDataClk_1_1rtl" ],
-    [ "TPD_G", "classClinkDataClk.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "REG_BUFF_EN_G", "classClinkDataClk.html#a0d0fad5d03a28482f941a2a6061aae64", null ],
-    [ "clkIn", "classClinkDataClk.html#a1d73c3aa604c918e42f6666c249657e7", null ],
-    [ "rstIn", "classClinkDataClk.html#a90d4a6b3d399aff5a2558d7793bf7142", null ],
-    [ "clinkClk7x", "classClinkDataClk.html#af6dea12d0e344284da9042a0978f22d6", null ],
-    [ "clinkClk", "classClinkDataClk.html#a7eb81e6ce864f7efa4bfdfe83ce48e03", null ],
-    [ "clinkRst", "classClinkDataClk.html#ae80c76e50613b6d76006b02f9a547a6f", null ],
-    [ "sysClk", "classClinkDataClk.html#a7028e9fe43f6271f9b6b9e8f2fd18d13", null ],
-    [ "sysRst", "classClinkDataClk.html#a235cf53fc875dad9ecb58b19110ecf21", null ],
-    [ "axilReadMaster", "classClinkDataClk.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classClinkDataClk.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classClinkDataClk.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classClinkDataClk.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "ieee", "classClinkDataClk.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classClinkDataClk.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classClinkDataClk.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classClinkDataClk.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "math_real", "classClinkDataClk.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
-    [ "unisim", "classClinkDataClk.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classClinkDataClk.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
-    [ "surf", "classClinkDataClk.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classClinkDataClk.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classClinkDataClk.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "ClinkDataClk.rtl", "classClinkDataClk_1_1rtl.html", null ]
 ];

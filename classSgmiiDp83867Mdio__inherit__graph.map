@@ -1,7 +1,11 @@
 <map id="SgmiiDp83867Mdio" name="SgmiiDp83867Mdio">
-<area shape="rect" id="node1" title=" " alt="" coords="38,229,187,256"/>
-<area shape="rect" id="node5" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="5,304,220,331"/>
-<area shape="rect" id="node2" href="$classMdioLinkIrqHandler.html" title=" " alt="" coords="38,155,187,181"/>
-<area shape="rect" id="node3" href="$classMdioSeqCore.html" title=" " alt="" coords="59,80,167,107"/>
-<area shape="rect" id="node4" href="$classMdioCore.html" title=" " alt="" coords="71,5,155,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="38,225,187,251"/>
+<area shape="rect" id="Node000005" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="5,299,220,324"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="115,264,115,299,110,299,110,264"/>
+<area shape="rect" id="Node000002" href="$classMdioLinkIrqHandler.html" title=" " alt="" coords="38,152,187,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,191,115,225,110,225,110,191"/>
+<area shape="rect" id="Node000003" href="$classMdioSeqCore.html" title=" " alt="" coords="59,79,167,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="115,118,115,152,110,152,110,118"/>
+<area shape="rect" id="Node000004" href="$classMdioCore.html" title=" " alt="" coords="71,5,155,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="115,44,115,79,110,79,110,44"/>
 </map>

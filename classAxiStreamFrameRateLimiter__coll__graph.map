@@ -1,7 +1,11 @@
 <map id="AxiStreamFrameRateLimiter" name="AxiStreamFrameRateLimiter">
-<area shape="rect" id="node1" title=" " alt="" coords="173,80,379,107"/>
-<area shape="rect" id="node2" href="$classAxiLiteRegs.html" title=" " alt="" coords="5,5,104,32"/>
-<area shape="rect" id="node3" href="$classSynchronizerVector.html" title=" " alt="" coords="128,5,275,32"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="299,5,405,32"/>
-<area shape="rect" id="node5" href="$classAxiStreamPipeline.html" title=" " alt="" coords="430,5,573,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="173,79,379,104"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteRegs.html" title=" " alt="" coords="5,5,104,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,32,241,76,239,81,102,37"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerVector.html" title=" " alt="" coords="128,5,275,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="225,38,266,77,262,80,221,42"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="299,5,405,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="332,42,290,80,287,76,328,38"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamPipeline.html" title=" " alt="" coords="430,5,573,31"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="453,37,313,81,312,76,451,32"/>
 </map>

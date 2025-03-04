@@ -1,7 +1,11 @@
 <map id="AxiLitePMbusMasterCore" name="AxiLitePMbusMasterCore">
-<area shape="rect" id="node1" title=" " alt="" coords="5,304,191,331"/>
-<area shape="rect" id="node2" href="$classI2cRegMaster.html" title=" " alt="" coords="43,229,153,256"/>
-<area shape="rect" id="node3" href="$classI2cMaster.html" title=" " alt="" coords="55,155,141,181"/>
-<area shape="rect" id="node4" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="19,80,177,107"/>
-<area shape="rect" id="node5" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="25,5,171,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,299,191,324"/>
+<area shape="rect" id="Node000002" href="$classI2cRegMaster.html" title=" " alt="" coords="43,225,153,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,264,101,299,95,299,95,264"/>
+<area shape="rect" id="Node000003" href="$classI2cMaster.html" title=" " alt="" coords="55,152,141,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,191,101,225,95,225,95,191"/>
+<area shape="rect" id="Node000004" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="19,79,177,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="101,118,101,152,95,152,95,118"/>
+<area shape="rect" id="Node000005" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="25,5,171,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="101,44,101,79,95,79,95,44"/>
 </map>

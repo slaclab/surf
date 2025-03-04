@@ -1,9 +1,15 @@
 <map id="IgmpV2Engine" name="IgmpV2Engine">
-<area shape="rect" id="node1" title=" " alt="" coords="85,5,201,32"/>
-<area shape="rect" id="node2" href="$classIpV4Engine.html" title=" " alt="" coords="96,80,191,107"/>
-<area shape="rect" id="node3" href="$classIpV4EngineTb.html" title=" " alt="" coords="12,155,123,181"/>
-<area shape="rect" id="node4" href="$classUdpEngineWrapper.html" title=" " alt="" coords="147,155,294,181"/>
-<area shape="rect" id="node5" href="$classEthMacPauseTb.html" title=" " alt="" coords="5,229,129,256"/>
-<area shape="rect" id="node6" href="$classRawEthFramerTb.html" title=" " alt="" coords="154,229,287,256"/>
-<area shape="rect" id="node7" href="$classUdpEngineTb.html" title=" " alt="" coords="312,229,420,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,201,31"/>
+<area shape="rect" id="Node000002" href="$classIpV4Engine.html" title=" " alt="" coords="96,79,191,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,44,146,79,141,79,141,44"/>
+<area shape="rect" id="Node000003" href="$classIpV4EngineTb.html" title=" " alt="" coords="12,152,123,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,115,82,154,78,150,119,111"/>
+<area shape="rect" id="Node000004" href="$classUdpEngineWrapper.html" title=" " alt="" coords="147,152,294,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="168,111,210,150,206,154,164,115"/>
+<area shape="rect" id="Node000005" href="$classEthMacPauseTb.html" title=" " alt="" coords="5,225,129,251"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="185,185,94,228,91,223,183,181"/>
+<area shape="rect" id="Node000006" href="$classRawEthFramerTb.html" title=" " alt="" coords="154,225,287,251"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="223,191,223,225,218,225,218,191"/>
+<area shape="rect" id="Node000007" href="$classUdpEngineTb.html" title=" " alt="" coords="312,225,420,251"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="257,181,343,223,341,228,255,186"/>
 </map>

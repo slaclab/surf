@@ -1,26 +1,4 @@
 var classSaciMultiPixel =
 [
-    [ "SaciMultiPixel.rtl", "classSaciMultiPixel_1_1rtl.html", "classSaciMultiPixel_1_1rtl" ],
-    [ "TPD_G", "classSaciMultiPixel.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "MASK_REG_ADDR_G", "classSaciMultiPixel.html#ac0a0ab3391b5abae61585e6bba6ff447", null ],
-    [ "SACI_BASE_ADDR_G", "classSaciMultiPixel.html#ac13499b07803171cd6d5e2ccf6f2dcf4", null ],
-    [ "SACI_NUM_CHIPS_G", "classSaciMultiPixel.html#aa36462c05063882f8bbe98530772b392", null ],
-    [ "axilClk", "classSaciMultiPixel.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classSaciMultiPixel.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "sAxilWriteMaster", "classSaciMultiPixel.html#a0d5e979080f135b0d0537a2d337b414b", null ],
-    [ "sAxilWriteSlave", "classSaciMultiPixel.html#a698648825e1bc380a9868ad8f9487062", null ],
-    [ "sAxilReadMaster", "classSaciMultiPixel.html#a48ba6b20ab8d354225b61179d7102e8b", null ],
-    [ "sAxilReadSlave", "classSaciMultiPixel.html#a785a6909860777c8c366fd47986b564e", null ],
-    [ "mAxilWriteMaster", "classSaciMultiPixel.html#a00cc0218fc099f8e07b69812f37233f6", null ],
-    [ "mAxilWriteSlave", "classSaciMultiPixel.html#a6a29fd53f7b8de8aa34ead5d691d5ead", null ],
-    [ "mAxilReadMaster", "classSaciMultiPixel.html#afbae09b2924292eb46a87e37d555f537", null ],
-    [ "mAxilReadSlave", "classSaciMultiPixel.html#a26b6921840031d10351a504e53d9c3b7", null ],
-    [ "ieee", "classSaciMultiPixel.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSaciMultiPixel.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSaciMultiPixel.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSaciMultiPixel.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSaciMultiPixel.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSaciMultiPixel.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classSaciMultiPixel.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "SaciMultiPixelPkg", "classSaciMultiPixel.html#aa48a3348968b1b34c9f871a7accefdc7", null ]
+    [ "SaciMultiPixel.rtl", "classSaciMultiPixel_1_1rtl.html", null ]
 ];

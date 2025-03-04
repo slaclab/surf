@@ -1,5 +1,7 @@
 <map id="Gtp7RxFixedLatPhaseAligner" name="Gtp7RxFixedLatPhaseAligner">
-<area shape="rect" id="node1" title=" " alt="" coords="5,155,215,181"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="73,80,147,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="57,5,163,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,215,177"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="73,79,147,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,118,113,152,107,152,107,118"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="57,5,163,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,44,113,79,107,79,107,44"/>
 </map>

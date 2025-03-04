@@ -1,5 +1,7 @@
 <map id="SspDecoder10b12b" name="SspDecoder10b12b">
-<area shape="rect" id="node1" title=" " alt="" coords="63,80,210,107"/>
-<area shape="rect" id="node2" href="$classDecoder10b12b.html" title=" " alt="" coords="5,5,129,32"/>
-<area shape="rect" id="node3" href="$classSspDeframer.html" title=" " alt="" coords="154,5,261,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="63,79,210,104"/>
+<area shape="rect" id="Node000002" href="$classDecoder10b12b.html" title=" " alt="" coords="5,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,39,127,77,124,80,86,43"/>
+<area shape="rect" id="Node000003" href="$classSspDeframer.html" title=" " alt="" coords="154,5,261,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,43,150,80,146,77,184,39"/>
 </map>

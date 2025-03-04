@@ -1,26 +1,4 @@
 var classAxiAd5780Ser =
 [
-    [ "rtl", "classAxiAd5780Ser_1_1rtl.html", "classAxiAd5780Ser_1_1rtl" ],
-    [ "TPD_G", "classAxiAd5780Ser.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiAd5780Ser.html#abd0127b375676c5662640a1b064b74d2", null ],
-    [ "dacIn", "classAxiAd5780Ser.html#a29a66ee414044ef2c97ea2f797a9810f", null ],
-    [ "dacOut", "classAxiAd5780Ser.html#af45ff550c863a9f1986e7c33c0449738", null ],
-    [ "halfSckPeriod", "classAxiAd5780Ser.html#a6aab4fcf3dca46bfda9c6af2c19a3980", null ],
-    [ "sdoDisable", "classAxiAd5780Ser.html#acb3d8028b5ae6e442a25189297e85db5", null ],
-    [ "binaryOffset", "classAxiAd5780Ser.html#a8bc603e149421c1ccf48ae6a74aa12d2", null ],
-    [ "dacTriState", "classAxiAd5780Ser.html#a7954acc51d527228dccf91d0f8397a2a", null ],
-    [ "opGnd", "classAxiAd5780Ser.html#aa14f59ecd91622bb1cbe41934766be30", null ],
-    [ "rbuf", "classAxiAd5780Ser.html#adda607e6e567adfd9bc7281b425496a5", null ],
-    [ "dacData", "classAxiAd5780Ser.html#affb262897ba400a3d5fb68fcaf27f575", null ],
-    [ "dacUpdated", "classAxiAd5780Ser.html#afc76d644afadc5aa654f20618ea669cb", null ],
-    [ "axiClk", "classAxiAd5780Ser.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiAd5780Ser.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "dacRst", "classAxiAd5780Ser.html#a3cfd8069c124d02bef09377726254ab7", null ],
-    [ "ieee", "classAxiAd5780Ser.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiAd5780Ser.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiAd5780Ser.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiAd5780Ser.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiAd5780Ser.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiAd5780Ser.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiAd5780Pkg", "classAxiAd5780Ser.html#ad91391f52fcf32e35973b88a753499cd", null ]
+    [ "AxiAd5780Ser.rtl", "classAxiAd5780Ser_1_1rtl.html", null ]
 ];

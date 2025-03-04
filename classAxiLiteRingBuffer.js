@@ -1,30 +1,4 @@
 var classAxiLiteRingBuffer =
 [
-    [ "rtl", "classAxiLiteRingBuffer_1_1rtl.html", "classAxiLiteRingBuffer_1_1rtl" ],
-    [ "TPD_G", "classAxiLiteRingBuffer.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classAxiLiteRingBuffer.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "EXT_CTRL_ONLY_G", "classAxiLiteRingBuffer.html#afec0dd3ffddd9600fc6f92a13cbd27f6", null ],
-    [ "MEMORY_TYPE_G", "classAxiLiteRingBuffer.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],
-    [ "REG_EN_G", "classAxiLiteRingBuffer.html#a6d1ffbfcf56a0788a4a97002f062ea3b", null ],
-    [ "DATA_WIDTH_G", "classAxiLiteRingBuffer.html#ad386d05fcf3bdf4679e4ca42aef5f67d", null ],
-    [ "RAM_ADDR_WIDTH_G", "classAxiLiteRingBuffer.html#a7c38ad2656d43ec9d465aab5869f2f47", null ],
-    [ "dataClk", "classAxiLiteRingBuffer.html#a4b73e841636f79023d9d874a1face24a", null ],
-    [ "dataRst", "classAxiLiteRingBuffer.html#a123258706bf787b71acc0d56776e747c", null ],
-    [ "dataValid", "classAxiLiteRingBuffer.html#af0716f3e58887330e18af1700c38fdd4", null ],
-    [ "dataValue", "classAxiLiteRingBuffer.html#acb02b643874043eb6c0c365cae8a82b4", null ],
-    [ "bufferEnable", "classAxiLiteRingBuffer.html#add4e07a0ba93d0ad3cf1ae41aac8783c", null ],
-    [ "bufferClear", "classAxiLiteRingBuffer.html#a15959718c0be1f6a5cc1e9876e6ed160", null ],
-    [ "axilClk", "classAxiLiteRingBuffer.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classAxiLiteRingBuffer.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "axilReadMaster", "classAxiLiteRingBuffer.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classAxiLiteRingBuffer.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classAxiLiteRingBuffer.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classAxiLiteRingBuffer.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "ieee", "classAxiLiteRingBuffer.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiLiteRingBuffer.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classAxiLiteRingBuffer.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classAxiLiteRingBuffer.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classAxiLiteRingBuffer.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiLiteRingBuffer.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiLiteRingBuffer.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "AxiLiteRingBuffer.rtl", "classAxiLiteRingBuffer_1_1rtl.html", null ]
 ];

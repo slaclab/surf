@@ -1,26 +1,4 @@
 var classSspEncoder8b10b =
 [
-    [ "SspEncoder8b10b.rtl", "classSspEncoder8b10b_1_1rtl.html", "classSspEncoder8b10b_1_1rtl" ],
-    [ "TPD_G", "classSspEncoder8b10b.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_POLARITY_G", "classSspEncoder8b10b.html#a7b640ec62d16a3d85e7b3acd99dccfe4", null ],
-    [ "RST_ASYNC_G", "classSspEncoder8b10b.html#ae8817c0f916c48f6139465bb25295269", null ],
-    [ "AUTO_FRAME_G", "classSspEncoder8b10b.html#af0ffc380dd623b76e74336e1d1c5f037", null ],
-    [ "FLOW_CTRL_EN_G", "classSspEncoder8b10b.html#a3e0661eed3c2bbb0692c488625b30259", null ],
-    [ "clk", "classSspEncoder8b10b.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSspEncoder8b10b.html#ac2534a1f3b8e6e34ba81e3ba59a9c097", null ],
-    [ "validIn", "classSspEncoder8b10b.html#ac7edc3e471242d7a340a8fe5cf0dca07", null ],
-    [ "readyIn", "classSspEncoder8b10b.html#a229bbeb55ade9b0a63177647d501aa85", null ],
-    [ "sof", "classSspEncoder8b10b.html#ac653d760586aef19888aef9b238acd14", null ],
-    [ "eof", "classSspEncoder8b10b.html#a60e4080e590a98259880b8f82e7bf371", null ],
-    [ "dataIn", "classSspEncoder8b10b.html#a5acde729663881a88f2ff5741e0fdefa", null ],
-    [ "validOut", "classSspEncoder8b10b.html#ad212deec02d3a320256bf0ed7481eb84", null ],
-    [ "readyOut", "classSspEncoder8b10b.html#aab6c29a2c73151692e595bc9b040c124", null ],
-    [ "dataOut", "classSspEncoder8b10b.html#a0a76364c5730e22bb7fbf683d4c3fb34", null ],
-    [ "ieee", "classSspEncoder8b10b.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSspEncoder8b10b.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "STD_LOGIC_UNSIGNED", "classSspEncoder8b10b.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
-    [ "STD_LOGIC_ARITH", "classSspEncoder8b10b.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
-    [ "surf", "classSspEncoder8b10b.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSspEncoder8b10b.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Code8b10bPkg", "classSspEncoder8b10b.html#a5bfd0b058753e03e50aee432e4c32909", null ]
+    [ "SspEncoder8b10b.rtl", "classSspEncoder8b10b_1_1rtl.html", null ]
 ];

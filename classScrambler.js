@@ -1,29 +1,4 @@
 var classScrambler =
 [
-    [ "Scrambler.rtl", "classScrambler_1_1rtl.html", "classScrambler_1_1rtl" ],
-    [ "TPD_G", "classScrambler.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_POLARITY_G", "classScrambler.html#a3d301a13733d1d4ba2f381139f040901", null ],
-    [ "RST_ASYNC_G", "classScrambler.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "DIRECTION_G", "classScrambler.html#a07829facdd7c03eec254e6a55f8a8384", null ],
-    [ "DATA_WIDTH_G", "classScrambler.html#a5d7f2c77832c98fc4e610e7612809c42", null ],
-    [ "SIDEBAND_WIDTH_G", "classScrambler.html#a22c2287f3f336f93134aec0fb74d0926", null ],
-    [ "BIT_REVERSE_IN_G", "classScrambler.html#a4910b4033dc36476472ad9febb404ec2", null ],
-    [ "BIT_REVERSE_OUT_G", "classScrambler.html#aca16b9210177f796e5ae0a701e9e49d0", null ],
-    [ "TAPS_G", "classScrambler.html#ac58181e940994bc1bcc5e3e161b2c4f0", null ],
-    [ "clk", "classScrambler.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classScrambler.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "inputValid", "classScrambler.html#a149fed61a81dec24a1a88348afc99b72", null ],
-    [ "inputReady", "classScrambler.html#ac88ddb0c63b9e0501db4faf9395f7ee1", null ],
-    [ "inputData", "classScrambler.html#ae2a2d6802250993e0047e9d855e15808", null ],
-    [ "inputSideband", "classScrambler.html#a5967999c92b75f3bdabe01f792af48bb", null ],
-    [ "outputValid", "classScrambler.html#a09d3920bc443160b5de6e00a278e7ef5", null ],
-    [ "outputReady", "classScrambler.html#a67ea599e3774b85f63c7c2dd156dcb7a", null ],
-    [ "outputData", "classScrambler.html#a5e1c7a5a8ce70bfb037a5a77f9ad8e90", null ],
-    [ "outputSideband", "classScrambler.html#adaf6b3e1c86353a063169fe47507911e", null ],
-    [ "ieee", "classScrambler.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classScrambler.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classScrambler.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classScrambler.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classScrambler.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classScrambler.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "Scrambler.rtl", "classScrambler_1_1rtl.html", null ]
 ];

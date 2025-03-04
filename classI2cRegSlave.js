@@ -1,29 +1,4 @@
 var classI2cRegSlave =
 [
-    [ "rtl", "classI2cRegSlave_1_1rtl.html", "classI2cRegSlave_1_1rtl" ],
-    [ "TPD_G", "classI2cRegSlave.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "TENBIT_G", "classI2cRegSlave.html#ac3b65a2950a36499a54c05a861399915", null ],
-    [ "I2C_ADDR_G", "classI2cRegSlave.html#af2be1351ed6fca9394e88bb609bb4286", null ],
-    [ "OUTPUT_EN_POLARITY_G", "classI2cRegSlave.html#ac8015a6a07be0933c14fd73f197adabb", null ],
-    [ "FILTER_G", "classI2cRegSlave.html#a77e1f8d74b9f9b45168296a707edf886", null ],
-    [ "ADDR_SIZE_G", "classI2cRegSlave.html#a7a96682c7351c838bb3f60be235fa2dc", null ],
-    [ "DATA_SIZE_G", "classI2cRegSlave.html#aa240946abb66036762944c01da75eb15", null ],
-    [ "ADDR_AUTO_INC_G", "classI2cRegSlave.html#a57f0108606ad9151da9e6bab29ec4980", null ],
-    [ "ENDIANNESS_G", "classI2cRegSlave.html#a4e91c5cd615a8e628c7e89f1059a603c", null ],
-    [ "sRst", "classI2cRegSlave.html#aeb0e150eeedaec672c2efa8e89b96f3c", null ],
-    [ "aRst", "classI2cRegSlave.html#a8bf8652137d6328d50f6c6e4233b5467", null ],
-    [ "clk", "classI2cRegSlave.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "addr", "classI2cRegSlave.html#afb41a591517b0e88cb203b0f32b98422", null ],
-    [ "wrEn", "classI2cRegSlave.html#a1ac680217f5d5570e247254c327af965", null ],
-    [ "wrData", "classI2cRegSlave.html#a667ca15708486f53097cc8559903f5cc", null ],
-    [ "rdEn", "classI2cRegSlave.html#a2e5858b7c30531c6c9b4c32e185c9724", null ],
-    [ "rdData", "classI2cRegSlave.html#a8421e9801b0433fa06d5f8aa6fb0714a", null ],
-    [ "i2ci", "classI2cRegSlave.html#a208793c438355a4d1c72fb1ec6702091", null ],
-    [ "i2co", "classI2cRegSlave.html#aec1b76c1945a1caf975ecf3346a3668d", null ],
-    [ "ieee", "classI2cRegSlave.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classI2cRegSlave.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classI2cRegSlave.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "surf", "classI2cRegSlave.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classI2cRegSlave.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "I2cPkg", "classI2cRegSlave.html#a3345a70e845069bf678d5aa1733529b6", null ]
+    [ "I2cRegSlave.rtl", "classI2cRegSlave_1_1rtl.html", null ]
 ];

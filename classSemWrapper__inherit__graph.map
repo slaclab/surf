@@ -1,9 +1,15 @@
 <map id="SemWrapper" name="SemWrapper">
-<area shape="rect" id="node1" title=" " alt="" coords="108,229,215,256"/>
-<area shape="rect" id="node6" href="$classSsiSem.html" title=" " alt="" coords="77,304,147,331"/>
-<area shape="rect" id="node7" href="$classUartSem.html" title=" " alt="" coords="171,304,250,331"/>
-<area shape="rect" id="node2" href="$classIprog7SeriesCore.html" title=" " alt="" coords="95,155,228,181"/>
-<area shape="rect" id="node3" href="$classSynchronizerVector.html" title=" " alt="" coords="5,80,152,107"/>
-<area shape="rect" id="node4" href="$classSynchronizerEdge.html" title=" " alt="" coords="176,80,315,107"/>
-<area shape="rect" id="node5" href="$classSynchronizer.html" title=" " alt="" coords="192,5,299,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="108,225,215,251"/>
+<area shape="rect" id="Node000006" href="$classSsiSem.html" title=" " alt="" coords="77,299,147,324"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="148,264,122,300,118,297,143,261"/>
+<area shape="rect" id="Node000007" href="$classUartSem.html" title=" " alt="" coords="171,299,250,324"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="179,261,205,297,200,300,175,264"/>
+<area shape="rect" id="Node000002" href="$classIprog7SeriesCore.html" title=" " alt="" coords="95,152,228,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,191,164,225,159,225,159,191"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerVector.html" title=" " alt="" coords="5,79,152,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,111,150,150,146,154,101,115"/>
+<area shape="rect" id="Node000004" href="$classSynchronizerEdge.html" title=" " alt="" coords="176,79,315,104"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="223,115,177,154,173,150,220,111"/>
+<area shape="rect" id="Node000005" href="$classSynchronizer.html" title=" " alt="" coords="192,5,299,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="248,44,248,79,243,79,243,44"/>
 </map>

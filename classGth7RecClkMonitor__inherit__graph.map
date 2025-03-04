@@ -1,9 +1,15 @@
 <map id="Gth7RecClkMonitor" name="Gth7RecClkMonitor">
-<area shape="rect" id="node1" title=" " alt="" coords="129,5,277,32"/>
-<area shape="rect" id="node2" href="$classGth7Core.html" title=" " alt="" coords="161,80,244,107"/>
-<area shape="rect" id="node3" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="44,155,188,181"/>
-<area shape="rect" id="node5" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="216,155,373,181"/>
-<area shape="rect" id="node4" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="5,229,208,256"/>
-<area shape="rect" id="node6" href="$classPgp2bGth7VarLat.html" title=" " alt="" coords="233,229,367,256"/>
-<area shape="rect" id="node7" href="$classPgp2bGth7VarLatWrapper.html" title=" " alt="" coords="205,304,395,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="129,5,277,31"/>
+<area shape="rect" id="Node000002" href="$classGth7Core.html" title=" " alt="" coords="161,79,244,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,44,205,79,200,79,200,44"/>
+<area shape="rect" id="Node000003" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="44,152,188,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="180,115,132,154,128,150,177,110"/>
+<area shape="rect" id="Node000005" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="216,152,373,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="230,110,281,150,278,154,226,114"/>
+<area shape="rect" id="Node000004" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="5,225,208,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="115,191,111,226,106,225,110,191"/>
+<area shape="rect" id="Node000006" href="$classPgp2bGth7VarLat.html" title=" " alt="" coords="233,225,367,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="299,191,302,225,296,225,294,191"/>
+<area shape="rect" id="Node000007" href="$classPgp2bGth7VarLatWrapper.html" title=" " alt="" coords="205,299,395,324"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="303,264,303,299,297,299,297,264"/>
 </map>

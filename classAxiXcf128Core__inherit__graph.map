@@ -1,5 +1,7 @@
 <map id="AxiXcf128Core" name="AxiXcf128Core">
-<area shape="rect" id="node1" title=" " alt="" coords="69,80,188,107"/>
-<area shape="rect" id="node2" href="$classIoBufWrapper.html" title=" " alt="" coords="5,5,116,32"/>
-<area shape="rect" id="node3" href="$classAxiXcf128Reg.html" title=" " alt="" coords="140,5,253,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="69,79,188,104"/>
+<area shape="rect" id="Node000002" href="$classIoBufWrapper.html" title=" " alt="" coords="5,5,116,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,39,120,77,116,80,79,42"/>
+<area shape="rect" id="Node000003" href="$classAxiXcf128Reg.html" title=" " alt="" coords="140,5,253,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,42,142,80,138,77,174,39"/>
 </map>

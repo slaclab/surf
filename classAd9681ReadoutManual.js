@@ -1,31 +1,4 @@
 var classAd9681ReadoutManual =
 [
-    [ "rtl", "classAd9681ReadoutManual_1_1rtl.html", "classAd9681ReadoutManual_1_1rtl" ],
-    [ "TPD_G", "classAd9681ReadoutManual.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "IODELAY_GROUP_G", "classAd9681ReadoutManual.html#a07daea412656c582f7de269680d4fdfa", null ],
-    [ "IDELAYCTRL_FREQ_G", "classAd9681ReadoutManual.html#a61e6b4806502817764c57493fd8d6f8c", null ],
-    [ "DEFAULT_DELAY_G", "classAd9681ReadoutManual.html#a09d78385431fea8d0656f692b7890b52", null ],
-    [ "INVERT_G", "classAd9681ReadoutManual.html#a6df87db6c29387dd8ce0d90e17e69c38", null ],
-    [ "NEGATE_G", "classAd9681ReadoutManual.html#a359db5602ab16e9b6d0c5a5d37d3becf", null ],
-    [ "axilClk", "classAd9681ReadoutManual.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classAd9681ReadoutManual.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "axilWriteMaster", "classAd9681ReadoutManual.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classAd9681ReadoutManual.html#a11de8b266425333834c8bca0ef3d722b", null ],
-    [ "axilReadMaster", "classAd9681ReadoutManual.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classAd9681ReadoutManual.html#ac119c854d261e215c3d2237ea6eab68e", null ],
-    [ "adcClkRst", "classAd9681ReadoutManual.html#abecf837a570f91dc49f77568c9d6126f", null ],
-    [ "adcSerial", "classAd9681ReadoutManual.html#ab0190f2ce70fe72e59bab9a793774283", null ],
-    [ "adcStreamClk", "classAd9681ReadoutManual.html#adf254b9741863b6a28113a63e8a81f6e", null ],
-    [ "adcStreams", "classAd9681ReadoutManual.html#a738e266873adf899e95105ced599fc93", null ],
-    [ "ieee", "classAd9681ReadoutManual.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAd9681ReadoutManual.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classAd9681ReadoutManual.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classAd9681ReadoutManual.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "UNISIM", "classAd9681ReadoutManual.html#afd13b50585152f6756d196bf3f1c52ac", null ],
-    [ "vcomponents", "classAd9681ReadoutManual.html#aa1cb22e959d47364391e5eb4ef86927c", null ],
-    [ "surf", "classAd9681ReadoutManual.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAd9681ReadoutManual.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAd9681ReadoutManual.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiStreamPkg", "classAd9681ReadoutManual.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "Ad9681Pkg", "classAd9681ReadoutManual.html#aebed2b86551e2079aadcfac20ad4d1ff", null ]
+    [ "Ad9681ReadoutManual.rtl", "classAd9681ReadoutManual_1_1rtl.html", null ]
 ];

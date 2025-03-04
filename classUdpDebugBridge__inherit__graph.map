@@ -1,11 +1,19 @@
 <map id="UdpDebugBridge" name="UdpDebugBridge">
-<area shape="rect" id="node1" title=" " alt="" coords="88,304,220,331"/>
-<area shape="rect" id="node7" href="$classUdpDebugBridgeWrapper.html" title=" " alt="" coords="61,379,247,405"/>
-<area shape="rect" id="node2" href="$classAxisJtagDebugBridge.html" title=" " alt="" coords="75,229,233,256"/>
-<area shape="rect" id="node3" href="$classAxisToJtag.html" title=" " alt="" coords="109,155,199,181"/>
-<area shape="rect" id="node4" href="$classAxiStreamSelector.html" title=" " alt="" coords="5,80,148,107"/>
-<area shape="rect" id="node5" href="$classAxisToJtagCore.html" title=" " alt="" coords="172,80,291,107"/>
-<area shape="rect" id="node6" href="$classJtagSerDesCore.html" title=" " alt="" coords="170,5,293,32"/>
-<area shape="rect" id="node8" href="$classPgpXvcWrapper.html" title=" " alt="" coords="15,453,141,480"/>
-<area shape="rect" id="node9" href="$classDmaXvcWrapper.html" title=" " alt="" coords="165,453,297,480"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="88,299,220,324"/>
+<area shape="rect" id="Node000007" href="$classUdpDebugBridgeWrapper.html" title=" " alt="" coords="61,372,247,397"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="157,338,157,372,151,372,151,338"/>
+<area shape="rect" id="Node000002" href="$classAxisJtagDebugBridge.html" title=" " alt="" coords="75,225,233,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,264,157,299,151,299,151,264"/>
+<area shape="rect" id="Node000003" href="$classAxisToJtag.html" title=" " alt="" coords="109,152,199,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="157,191,157,225,151,225,151,191"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamSelector.html" title=" " alt="" coords="5,79,148,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="101,111,143,150,140,154,97,115"/>
+<area shape="rect" id="Node000005" href="$classAxisToJtagCore.html" title=" " alt="" coords="172,79,291,104"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="211,115,168,154,165,150,207,111"/>
+<area shape="rect" id="Node000006" href="$classJtagSerDesCore.html" title=" " alt="" coords="170,5,293,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="234,44,234,79,229,79,229,44"/>
+<area shape="rect" id="Node000008" href="$classPgpXvcWrapper.html" title=" " alt="" coords="15,445,141,471"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="134,409,92,447,89,443,130,405"/>
+<area shape="rect" id="Node000009" href="$classDmaXvcWrapper.html" title=" " alt="" coords="165,445,297,471"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="178,405,220,443,217,447,175,409"/>
 </map>

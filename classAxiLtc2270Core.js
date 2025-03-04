@@ -1,30 +1,4 @@
 var classAxiLtc2270Core =
 [
-    [ "mapping", "classAxiLtc2270Core_1_1mapping.html", "classAxiLtc2270Core_1_1mapping" ],
-    [ "TPD_G", "classAxiLtc2270Core.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DMODE_INIT_G", "classAxiLtc2270Core.html#aa453e482f205003e2aed380da0c087d4", null ],
-    [ "DELAY_INIT_G", "classAxiLtc2270Core.html#ad1d7ad6e06a245033fdf6e111e8bed60", null ],
-    [ "IODELAY_GROUP_G", "classAxiLtc2270Core.html#a943c95fb2d175ee60b75d08aea94cad6", null ],
-    [ "STATUS_CNT_WIDTH_G", "classAxiLtc2270Core.html#a97c9475180efd2e99c23c2ce89b2bbe5", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiLtc2270Core.html#abd0127b375676c5662640a1b064b74d2", null ],
-    [ "adcIn", "classAxiLtc2270Core.html#ab0d5056e0be126516c894b6173a6adda", null ],
-    [ "adcOut", "classAxiLtc2270Core.html#a0cd85a8666746578d28ce074c94f3f91", null ],
-    [ "adcInOut", "classAxiLtc2270Core.html#a6a62f4241c6f0e41d7a120e718d45925", null ],
-    [ "adcValid", "classAxiLtc2270Core.html#a40649b9edfd6e0332b12fd2579277396", null ],
-    [ "adcData", "classAxiLtc2270Core.html#a3e7a39fd9bb3f9cf62e63f7f054bb75c", null ],
-    [ "axiReadMaster", "classAxiLtc2270Core.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiLtc2270Core.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiLtc2270Core.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiLtc2270Core.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "axiClk", "classAxiLtc2270Core.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiLtc2270Core.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "adcClk", "classAxiLtc2270Core.html#a614d64248936dbd67a599fc97225b306", null ],
-    [ "refclk200MHz", "classAxiLtc2270Core.html#a33a4bad9b07a2e0e8e8b3a3ebc4acadf", null ],
-    [ "ieee", "classAxiLtc2270Core.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiLtc2270Core.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classAxiLtc2270Core.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "surf", "classAxiLtc2270Core.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiLtc2270Core.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiLtc2270Core.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiLtc2270Pkg", "classAxiLtc2270Core.html#a8bd24b8e72ad7880e41098e9d905fa40", null ]
+    [ "AxiLtc2270Core.mapping", "classAxiLtc2270Core_1_1mapping.html", null ]
 ];

@@ -1,38 +1,73 @@
 <map id="EthMacTxPause" name="EthMacTxPause">
-<area shape="rect" id="node1" title=" " alt="" coords="5,436,129,463"/>
-<area shape="rect" id="node2" href="$classEthMacTx.html" title=" " alt="" coords="177,436,264,463"/>
-<area shape="rect" id="node3" href="$classEthMacTop.html" title=" " alt="" coords="312,436,404,463"/>
-<area shape="rect" id="node4" href="$classEthMacFastTb.html" title=" " alt="" coords="485,5,597,32"/>
-<area shape="rect" id="node5" href="$classEthMacPauseTb.html" title=" " alt="" coords="479,56,603,83"/>
-<area shape="rect" id="node6" href="$classEthMacTb.html" title=" " alt="" coords="497,107,584,133"/>
-<area shape="rect" id="node7" href="$classGigEthGth7.html" title=" " alt="" coords="493,157,589,184"/>
-<area shape="rect" id="node9" href="$classGigEthGthUltraScale.html" title=" " alt="" coords="463,208,618,235"/>
-<area shape="rect" id="node11" href="$classGigEthGtp7.html" title=" " alt="" coords="493,259,589,285"/>
-<area shape="rect" id="node13" href="$classGigEthGtx7.html" title=" " alt="" coords="493,309,589,336"/>
-<area shape="rect" id="node15" href="$classGigEthGtyUltraScale.html" title=" " alt="" coords="463,360,618,387"/>
-<area shape="rect" id="node17" href="$classGigEthLvdsUltraScale.html" title=" " alt="" coords="459,411,622,437"/>
-<area shape="rect" id="node20" href="$classTenGigEthGth7.html" title=" " alt="" coords="481,461,600,488"/>
-<area shape="rect" id="node22" href="$classTenGigEthGthUltraScale.html" title=" " alt="" coords="452,512,629,539"/>
-<area shape="rect" id="node24" href="$classTenGigEthGtx7.html" title=" " alt="" coords="481,563,600,589"/>
-<area shape="rect" id="node26" href="$classTenGigEthGtyUltraScale.html" title=" " alt="" coords="452,613,629,640"/>
-<area shape="rect" id="node28" href="$classUdpEngineTb.html" title=" " alt="" coords="487,664,595,691"/>
-<area shape="rect" id="node29" href="$classXauiGth7.html" title=" " alt="" coords="499,715,582,741"/>
-<area shape="rect" id="node31" href="$classXauiGthUltraScale.html" title=" " alt="" coords="470,765,611,792"/>
-<area shape="rect" id="node33" href="$classXauiGtx7.html" title=" " alt="" coords="499,816,582,843"/>
-<area shape="rect" id="node35" href="$classXauiGtyUltraScale.html" title=" " alt="" coords="470,867,611,893"/>
-<area shape="rect" id="node8" href="$classGigEthGth7Wrapper.html" title=" " alt="" coords="718,157,869,184"/>
-<area shape="rect" id="node10" href="$classGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="688,208,899,235"/>
-<area shape="rect" id="node12" href="$classGigEthGtp7Wrapper.html" title=" " alt="" coords="718,259,869,285"/>
-<area shape="rect" id="node14" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="718,309,869,336"/>
-<area shape="rect" id="node16" href="$classGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="688,360,899,387"/>
-<area shape="rect" id="node18" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="687,411,899,437"/>
-<area shape="rect" id="node19" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="686,461,901,488"/>
-<area shape="rect" id="node21" href="$classTenGigEthGth7Wrapper.html" title=" " alt="" coords="707,512,880,539"/>
-<area shape="rect" id="node23" href="$classTenGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="677,563,909,589"/>
-<area shape="rect" id="node25" href="$classTenGigEthGtx7Wrapper.html" title=" " alt="" coords="707,613,880,640"/>
-<area shape="rect" id="node27" href="$classTenGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="677,664,909,691"/>
-<area shape="rect" id="node30" href="$classXauiGth7Wrapper.html" title=" " alt="" coords="725,715,862,741"/>
-<area shape="rect" id="node32" href="$classXauiGthUltraScaleWrapper.html" title=" " alt="" coords="695,765,891,792"/>
-<area shape="rect" id="node34" href="$classXauiGtx7Wrapper.html" title=" " alt="" coords="725,816,862,843"/>
-<area shape="rect" id="node36" href="$classXauiGtyUltraScaleWrapper.html" title=" " alt="" coords="695,867,891,893"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,425,129,451"/>
+<area shape="rect" id="Node000002" href="$classEthMacTx.html" title=" " alt="" coords="177,425,264,451"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,435,177,435,177,441,143,441"/>
+<area shape="rect" id="Node000003" href="$classEthMacTop.html" title=" " alt="" coords="312,425,404,451"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="278,435,312,435,312,441,278,441"/>
+<area shape="rect" id="Node000004" href="$classEthMacFastTb.html" title=" " alt="" coords="485,5,597,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="359,412,370,328,388,217,415,111,431,69,450,40,466,28,484,21,486,26,468,33,454,44,436,71,420,112,393,218,375,329,365,412"/>
+<area shape="rect" id="Node000005" href="$classEthMacPauseTb.html" title=" " alt="" coords="479,55,603,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="355,412,357,347,368,261,380,215,397,169,420,127,450,89,477,73,480,77,454,93,424,130,402,171,385,216,374,262,362,347,361,412"/>
+<area shape="rect" id="Node000006" href="$classEthMacTb.html" title=" " alt="" coords="497,104,584,129"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="357,411,361,355,375,282,387,243,403,205,424,170,450,139,472,125,497,117,498,122,474,129,454,143,428,173,408,208,392,245,380,283,367,356,362,412"/>
+<area shape="rect" id="Node000007" href="$classGigEthGth7.html" title=" " alt="" coords="493,153,589,179"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="359,411,366,363,382,303,409,241,427,213,450,188,470,175,491,168,493,173,472,180,454,192,432,216,413,244,387,305,371,364,364,412"/>
+<area shape="rect" id="Node000009" href="$classGigEthGthUltraScale.html" title=" " alt="" coords="463,203,618,228"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="362,411,372,373,389,326,415,278,450,237,469,226,472,230,454,241,419,281,394,328,377,374,367,413"/>
+<area shape="rect" id="Node000011" href="$classGigEthGtp7.html" title=" " alt="" coords="493,252,589,277"/>
+<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="366,411,397,348,421,315,450,287,470,275,492,268,493,273,472,280,454,291,425,318,401,351,371,413"/>
+<area shape="rect" id="Node000013" href="$classGigEthGtx7.html" title=" " alt="" coords="493,301,589,327"/>
+<area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="374,412,406,373,427,353,451,336,492,319,493,324,453,340,431,357,410,376,378,415"/>
+<area shape="rect" id="Node000015" href="$classGigEthGtyUltraScale.html" title=" " alt="" coords="463,351,618,376"/>
+<area shape="poly" id="edge14_Node000003_Node000015" title=" " alt="" coords="390,416,451,385,484,374,486,379,453,390,392,421"/>
+<area shape="rect" id="Node000017" href="$classGigEthLvdsUltraScale.html" title=" " alt="" coords="459,400,622,425"/>
+<area shape="poly" id="edge16_Node000003_Node000017" title=" " alt="" coords="417,427,459,421,460,427,418,432"/>
+<area shape="rect" id="Node000020" href="$classTenGigEthGth7.html" title=" " alt="" coords="481,449,600,475"/>
+<area shape="poly" id="edge19_Node000003_Node000020" title=" " alt="" coords="418,443,481,452,481,457,418,448"/>
+<area shape="rect" id="Node000022" href="$classTenGigEthGthUltraScale.html" title=" " alt="" coords="452,499,629,524"/>
+<area shape="poly" id="edge21_Node000003_Node000022" title=" " alt="" coords="394,455,453,484,490,496,488,501,451,488,391,460"/>
+<area shape="rect" id="Node000024" href="$classTenGigEthGtx7.html" title=" " alt="" coords="481,548,600,573"/>
+<area shape="poly" id="edge23_Node000003_Node000024" title=" " alt="" coords="378,460,411,498,453,533,482,546,480,551,451,538,407,502,374,464"/>
+<area shape="rect" id="Node000026" href="$classTenGigEthGtyUltraScale.html" title=" " alt="" coords="452,597,629,623"/>
+<area shape="poly" id="edge25_Node000003_Node000026" title=" " alt="" coords="371,462,402,523,425,555,454,583,476,595,474,600,450,587,421,559,397,526,366,464"/>
+<area shape="rect" id="Node000028" href="$classUdpEngineTb.html" title=" " alt="" coords="487,647,595,672"/>
+<area shape="poly" id="edge27_Node000003_Node000028" title=" " alt="" coords="367,464,377,501,394,547,419,593,454,632,469,642,487,649,485,654,467,647,450,636,415,596,390,549,372,503,362,465"/>
+<area shape="rect" id="Node000029" href="$classXauiGth7.html" title=" " alt="" coords="499,696,582,721"/>
+<area shape="poly" id="edge28_Node000003_Node000029" title=" " alt="" coords="364,464,372,511,387,569,414,630,432,657,454,681,475,695,500,702,498,707,473,700,450,685,428,660,409,632,382,571,367,512,359,465"/>
+<area shape="rect" id="Node000031" href="$classXauiGthUltraScale.html" title=" " alt="" coords="470,745,611,771"/>
+<area shape="poly" id="edge30_Node000003_Node000031" title=" " alt="" coords="362,464,367,520,381,591,392,629,408,666,428,701,454,731,472,743,469,747,450,735,424,704,403,669,387,631,376,593,362,520,357,465"/>
+<area shape="rect" id="Node000033" href="$classXauiGtx7.html" title=" " alt="" coords="499,795,582,820"/>
+<area shape="poly" id="edge32_Node000003_Node000033" title=" " alt="" coords="361,464,363,528,374,613,386,658,403,702,425,744,454,780,475,794,500,802,499,807,473,799,450,784,420,747,398,705,381,660,369,614,357,529,356,464"/>
+<area shape="rect" id="Node000035" href="$classXauiGtyUltraScale.html" title=" " alt="" coords="470,844,611,869"/>
+<area shape="poly" id="edge34_Node000003_Node000035" title=" " alt="" coords="365,464,375,547,394,657,420,762,436,802,454,829,472,842,468,846,450,833,431,805,415,763,389,658,370,548,359,465"/>
+<area shape="rect" id="Node000008" href="$classGigEthGth7Wrapper.html" title=" " alt="" coords="718,153,869,179"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="603,163,718,163,718,169,603,169"/>
+<area shape="rect" id="Node000010" href="$classGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="688,203,899,228"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="632,213,688,213,688,218,632,218"/>
+<area shape="rect" id="Node000012" href="$classGigEthGtp7Wrapper.html" title=" " alt="" coords="718,252,869,277"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="603,262,718,262,718,267,603,267"/>
+<area shape="rect" id="Node000014" href="$classGigEthGtx7Wrapper.html" title=" " alt="" coords="718,301,869,327"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="603,311,718,311,718,317,603,317"/>
+<area shape="rect" id="Node000016" href="$classGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="688,351,899,376"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="632,361,688,361,688,366,632,366"/>
+<area shape="rect" id="Node000018" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="687,400,899,425"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="636,410,687,410,687,415,636,415"/>
+<area shape="rect" id="Node000019" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="686,449,901,475"/>
+<area shape="poly" id="edge18_Node000017_Node000019" title=" " alt="" coords="620,425,728,447,727,452,619,431"/>
+<area shape="rect" id="Node000021" href="$classTenGigEthGth7Wrapper.html" title=" " alt="" coords="707,499,880,524"/>
+<area shape="poly" id="edge20_Node000020_Node000021" title=" " alt="" coords="614,474,728,496,727,501,613,479"/>
+<area shape="rect" id="Node000023" href="$classTenGigEthGthUltraScaleWrapper.html" title=" " alt="" coords="677,548,909,573"/>
+<area shape="poly" id="edge22_Node000022_Node000023" title=" " alt="" coords="620,524,728,545,727,551,619,529"/>
+<area shape="rect" id="Node000025" href="$classTenGigEthGtx7Wrapper.html" title=" " alt="" coords="707,597,880,623"/>
+<area shape="poly" id="edge24_Node000024_Node000025" title=" " alt="" coords="614,572,728,595,727,600,613,577"/>
+<area shape="rect" id="Node000027" href="$classTenGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="677,647,909,672"/>
+<area shape="poly" id="edge26_Node000026_Node000027" title=" " alt="" coords="620,623,728,644,727,649,619,628"/>
+<area shape="rect" id="Node000030" href="$classXauiGth7Wrapper.html" title=" " alt="" coords="725,696,862,721"/>
+<area shape="poly" id="edge29_Node000029_Node000030" title=" " alt="" coords="596,706,725,706,725,711,596,711"/>
+<area shape="rect" id="Node000032" href="$classXauiGthUltraScaleWrapper.html" title=" " alt="" coords="695,745,891,771"/>
+<area shape="poly" id="edge31_Node000031_Node000032" title=" " alt="" coords="625,755,695,755,695,761,625,761"/>
+<area shape="rect" id="Node000034" href="$classXauiGtx7Wrapper.html" title=" " alt="" coords="725,795,862,820"/>
+<area shape="poly" id="edge33_Node000033_Node000034" title=" " alt="" coords="596,805,725,805,725,810,596,810"/>
+<area shape="rect" id="Node000036" href="$classXauiGtyUltraScaleWrapper.html" title=" " alt="" coords="695,844,891,869"/>
+<area shape="poly" id="edge35_Node000035_Node000036" title=" " alt="" coords="625,854,695,854,695,859,625,859"/>
 </map>

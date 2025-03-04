@@ -1,5 +1,8 @@
 <map id="Gth7TxManualPhaseAligner" name="Gth7TxManualPhaseAligner">
-<area shape="rect" id="node1" title=" " alt="" coords="5,155,208,181"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="53,5,160,32"/>
-<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="91,80,229,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,208,177"/>
+<area shape="rect" id="Node000002" href="$classSynchronizer.html" title=" " alt="" coords="53,5,160,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,44,83,73,80,88,81,103,90,129,102,150,97,153,85,131,76,105,75,88,77,71,89,42"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerEdge.html" title=" " alt="" coords="91,79,229,104"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="126,40,153,77,149,80,121,43"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="145,117,117,153,113,150,141,113"/>
 </map>

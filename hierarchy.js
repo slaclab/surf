@@ -1,6 +1,6 @@
 var hierarchy =
 [
-    [ "AxisJtagDebugBridge::AxisJtagDebugBridgeStub", "classAxisJtagDebugBridge_1_1AxisJtagDebugBridgeStub.html", [
+    [ "AxisJtagDebugBridgeStub", "classAxisJtagDebugBridge_1_1AxisJtagDebugBridgeStub.html", [
       [ "Ad9249Group", "classAd9249Group.html", [
         [ "ClkRst", "classClkRst.html", null ],
         [ "ClockManager7", "classClockManager7.html", [
@@ -305,6 +305,21 @@ var hierarchy =
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ]
       ] ],
       [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "AxiRam", "classAxiRam.html", null ],
+      [ "AxiRingBuffer", "classAxiRingBuffer.html", [
+        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
+        [ "Synchronizer", "classSynchronizer.html", null ],
+        [ "SimpleDualPortRamXpm", "classSimpleDualPortRamXpm.html", null ],
+        [ "SimpleDualPortRam", "classSimpleDualPortRam.html", null ],
+        [ "AxiReadPathFifo", "classAxiReadPathFifo.html", [
+          [ "FifoCascade", "classFifoCascade.html", null ]
+        ] ],
+        [ "AxiWritePathFifo", "classAxiWritePathFifo.html", [
+          [ "FifoCascade", "classFifoCascade.html", null ]
+        ] ],
+        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
+      ] ],
       [ "AxisToJtagCore", "classAxisToJtagCore.html", [
         [ "JtagSerDesCore", "classJtagSerDesCore.html", null ]
       ] ],
@@ -460,9 +475,7 @@ var hierarchy =
       [ "AxiVersion", "classAxiVersion.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiVersion", "classAxiVersion.html", null ],
-      [ "AxiWritePathFifo", "classAxiWritePathFifo.html", [
-        [ "FifoCascade", "classFifoCascade.html", null ]
-      ] ],
+      [ "AxiWritePathFifo", "classAxiWritePathFifo.html", null ],
       [ "IoBufWrapper", "classIoBufWrapper.html", null ],
       [ "AxiXcf128Reg", "classAxiXcf128Reg.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
@@ -611,9 +624,7 @@ var hierarchy =
       [ "DeviceDnaUltraScale", "classDeviceDnaUltraScale.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiReadEmulate", "classAxiReadEmulate.html", [
-        [ "AxiReadPathFifo", "classAxiReadPathFifo.html", [
-          [ "FifoCascade", "classFifoCascade.html", null ]
-        ] ]
+        [ "AxiReadPathFifo", "classAxiReadPathFifo.html", null ]
       ] ],
       [ "AxiStreamDmaRead", "classAxiStreamDmaRead.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
@@ -1826,9 +1837,8 @@ var hierarchy =
         [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
         [ "EthMacTop", "classEthMacTop.html", null ],
         [ "TenGigEthGthUltraScaleRst", "classTenGigEthGthUltraScaleRst.html", [
-          [ "RstPipeline", "classRstPipeline.html", null ],
-          [ "Synchronizer", "classSynchronizer.html", null ],
-          [ "RstSync", "classRstSync.html", null ]
+          [ "RstSync", "classRstSync.html", null ],
+          [ "RstPipeline", "classRstPipeline.html", null ]
         ] ],
         [ "TenGigEthReg", "classTenGigEthReg.html", null ]
       ] ],

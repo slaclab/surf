@@ -1,29 +1,4 @@
 var classAxiMicronN25QCore =
 [
-    [ "mapping", "classAxiMicronN25QCore_1_1mapping.html", "classAxiMicronN25QCore_1_1mapping" ],
-    [ "TPD_G", "classAxiMicronN25QCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "EN_PASSWORD_LOCK_G", "classAxiMicronN25QCore.html#adb7476d1457cfbad5d0bff35f0179271", null ],
-    [ "PASSWORD_LOCK_G", "classAxiMicronN25QCore.html#ae92efd19e3775177e3bc6c06e13445a9", null ],
-    [ "MEM_ADDR_MASK_G", "classAxiMicronN25QCore.html#ab7fdcb79aa413e1b8bdb792174149351", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiMicronN25QCore.html#abd0127b375676c5662640a1b064b74d2", null ],
-    [ "SPI_CLK_FREQ_G", "classAxiMicronN25QCore.html#a7de030f79d7dcd81743ea1d84a97dd8e", null ],
-    [ "csL", "classAxiMicronN25QCore.html#a27d45e2910fbff291c737d1798194d27", null ],
-    [ "sck", "classAxiMicronN25QCore.html#a6599b62d88de2d96e7af65d74fac08c1", null ],
-    [ "mosi", "classAxiMicronN25QCore.html#a3657b8338133de764202554d2afdc8a2", null ],
-    [ "miso", "classAxiMicronN25QCore.html#af48e00c7ad2e4165eee227699af4ddb4", null ],
-    [ "busyIn", "classAxiMicronN25QCore.html#acb0b5680a00d9ca6e347f1c63ad6a451", null ],
-    [ "busyOut", "classAxiMicronN25QCore.html#affeddf09bb489bcb3068d611ce934b95", null ],
-    [ "axiReadMaster", "classAxiMicronN25QCore.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiMicronN25QCore.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiMicronN25QCore.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiMicronN25QCore.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "axiClk", "classAxiMicronN25QCore.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiMicronN25QCore.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "ieee", "classAxiMicronN25QCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiMicronN25QCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "surf", "classAxiMicronN25QCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiMicronN25QCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiMicronN25QCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "unisim", "classAxiMicronN25QCore.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classAxiMicronN25QCore.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "AxiMicronN25QCore.mapping", "classAxiMicronN25QCore_1_1mapping.html", null ]
 ];

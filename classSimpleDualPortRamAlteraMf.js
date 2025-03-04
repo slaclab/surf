@@ -1,30 +1,4 @@
 var classSimpleDualPortRamAlteraMf =
 [
-    [ "SimpleDualPortRamAlteraMf.rtl", "classSimpleDualPortRamAlteraMf_1_1rtl.html", null ],
-    [ "TPD_G", "classSimpleDualPortRamAlteraMf.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "COMMON_CLK_G", "classSimpleDualPortRamAlteraMf.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "RST_POLARITY_G", "classSimpleDualPortRamAlteraMf.html#a3d301a13733d1d4ba2f381139f040901", null ],
-    [ "MEMORY_TYPE_G", "classSimpleDualPortRamAlteraMf.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],
-    [ "READ_LATENCY_G", "classSimpleDualPortRamAlteraMf.html#af0874761860ba8869ffeb98e478f359a", null ],
-    [ "DATA_WIDTH_G", "classSimpleDualPortRamAlteraMf.html#a9afd81e12ef933fe4e0e9a174a149828", null ],
-    [ "BYTE_WR_EN_G", "classSimpleDualPortRamAlteraMf.html#ae8321c4678ac3563412ca091a1ca6ce3", null ],
-    [ "BYTE_WIDTH_G", "classSimpleDualPortRamAlteraMf.html#adaf12c8b1f3817de434e7737fa1e83b6", null ],
-    [ "ADDR_WIDTH_G", "classSimpleDualPortRamAlteraMf.html#a36592424db1aab7bc5975e5bfae39364", null ],
-    [ "clka", "classSimpleDualPortRamAlteraMf.html#a5af2dad24987be5aa215d59e09960f30", null ],
-    [ "ena", "classSimpleDualPortRamAlteraMf.html#adc1fc8ed55d91baf3911d187df0ade2e", null ],
-    [ "wea", "classSimpleDualPortRamAlteraMf.html#a8c4d5f3a5283115b3d990b86a7532f93", null ],
-    [ "addra", "classSimpleDualPortRamAlteraMf.html#a78db7b7e1a4b91268cf2ea4105b8784f", null ],
-    [ "dina", "classSimpleDualPortRamAlteraMf.html#a720b917b9aed76dba3d8e191e866f319", null ],
-    [ "clkb", "classSimpleDualPortRamAlteraMf.html#aa866e9b9ecd68c0233a84946ff706fd2", null ],
-    [ "enb", "classSimpleDualPortRamAlteraMf.html#a5d75160e0d94de046a2e8fdd39a30a23", null ],
-    [ "regceb", "classSimpleDualPortRamAlteraMf.html#a0336af947b42ce28a3b6d8a494fe1ab5", null ],
-    [ "rstb", "classSimpleDualPortRamAlteraMf.html#a895ac51087f37cacb6b03a87b52b97e3", null ],
-    [ "addrb", "classSimpleDualPortRamAlteraMf.html#a15194d2587d514821ea1dd04173e1e05", null ],
-    [ "doutb", "classSimpleDualPortRamAlteraMf.html#ae0b2c65d865d8b593b1a4cce2eb7b283", null ],
-    [ "ieee", "classSimpleDualPortRamAlteraMf.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSimpleDualPortRamAlteraMf.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSimpleDualPortRamAlteraMf.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSimpleDualPortRamAlteraMf.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSimpleDualPortRamAlteraMf.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSimpleDualPortRamAlteraMf.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "SimpleDualPortRamAlteraMf.rtl", "classSimpleDualPortRamAlteraMf_1_1rtl.html", null ]
 ];

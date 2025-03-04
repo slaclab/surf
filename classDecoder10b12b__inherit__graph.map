@@ -1,12 +1,21 @@
 <map id="Decoder10b12b" name="Decoder10b12b">
-<area shape="rect" id="node1" title=" " alt="" coords="5,31,129,57"/>
-<area shape="rect" id="node2" href="$classLineCode10b12bTb.html" title=" " alt="" coords="177,5,324,32"/>
-<area shape="rect" id="node3" href="$classSspDecoder10b12b.html" title=" " alt="" coords="177,56,324,83"/>
-<area shape="rect" id="node4" href="$classSsp10b12bTb.html" title=" " alt="" coords="415,56,525,83"/>
-<area shape="rect" id="node5" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="372,107,568,133"/>
-<area shape="rect" id="node6" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="639,34,853,75"/>
-<area shape="rect" id="node7" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="639,99,853,141"/>
-<area shape="rect" id="node8" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="616,165,876,192"/>
-<area shape="rect" id="node9" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="924,140,1200,167"/>
-<area shape="rect" id="node10" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="965,191,1159,217"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,129,56"/>
+<area shape="rect" id="Node000002" href="$classLineCode10b12bTb.html" title=" " alt="" coords="177,5,324,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,30,177,26,177,31,144,36"/>
+<area shape="rect" id="Node000003" href="$classSspDecoder10b12b.html" title=" " alt="" coords="177,55,324,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="144,51,177,55,177,60,143,56"/>
+<area shape="rect" id="Node000004" href="$classSsp10b12bTb.html" title=" " alt="" coords="415,29,525,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="337,55,415,46,415,51,338,60"/>
+<area shape="rect" id="Node000005" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="372,79,568,104"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="338,74,372,78,371,83,337,79"/>
+<area shape="rect" id="Node000006" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="639,7,853,47"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="539,73,658,45,659,50,540,78"/>
+<area shape="rect" id="Node000007" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="639,71,853,111"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="582,89,639,89,639,94,582,94"/>
+<area shape="rect" id="Node000008" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="616,136,876,161"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="541,104,617,121,679,133,678,139,615,126,540,110"/>
+<area shape="rect" id="Node000009" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="924,111,1200,136"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="889,135,924,132,924,137,890,140"/>
+<area shape="rect" id="Node000010" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="965,160,1159,185"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="890,157,965,163,964,168,890,162"/>
 </map>

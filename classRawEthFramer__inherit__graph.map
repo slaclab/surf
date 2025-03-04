@@ -1,8 +1,13 @@
 <map id="RawEthFramer" name="RawEthFramer">
-<area shape="rect" id="node1" title=" " alt="" coords="121,155,238,181"/>
-<area shape="rect" id="node5" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="5,229,177,256"/>
-<area shape="rect" id="node6" href="$classRawEthFramerTb.html" title=" " alt="" coords="202,229,335,256"/>
-<area shape="rect" id="node2" href="$classRawEthFramerTx.html" title=" " alt="" coords="34,80,167,107"/>
-<area shape="rect" id="node3" href="$classLutRam.html" title=" " alt="" coords="65,5,137,32"/>
-<area shape="rect" id="node4" href="$classRawEthFramerRx.html" title=" " alt="" coords="192,80,327,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="121,152,238,177"/>
+<area shape="rect" id="Node000005" href="$classRawEthFramerWrapper.html" title=" " alt="" coords="5,225,177,251"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="156,188,107,227,104,223,153,184"/>
+<area shape="rect" id="Node000006" href="$classRawEthFramerTb.html" title=" " alt="" coords="202,225,335,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="206,184,256,223,252,227,203,188"/>
+<area shape="rect" id="Node000002" href="$classRawEthFramerTx.html" title=" " alt="" coords="34,79,167,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,111,168,150,165,154,122,115"/>
+<area shape="rect" id="Node000003" href="$classLutRam.html" title=" " alt="" coords="65,5,137,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,44,103,79,98,79,98,44"/>
+<area shape="rect" id="Node000004" href="$classRawEthFramerRx.html" title=" " alt="" coords="192,79,327,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="238,115,194,154,191,150,235,111"/>
 </map>

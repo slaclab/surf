@@ -1,26 +1,4 @@
 var classTenGigEthRst =
 [
-    [ "TenGigEthRst.rtl", "classTenGigEthRst_1_1rtl.html", "classTenGigEthRst_1_1rtl" ],
-    [ "TPD_G", "classTenGigEthRst.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "extRst", "classTenGigEthRst.html#a9fb3381b73ab5b9ecda0ec55e9602ef1", null ],
-    [ "gtPowerGood", "classTenGigEthRst.html#a9e222edff5435abd58eef45ab29c7c73", null ],
-    [ "phyClk", "classTenGigEthRst.html#a8cdaeb0b0eee4abc1661f89cf3549823", null ],
-    [ "phyRst", "classTenGigEthRst.html#a37b2e70d9ad3ea5f55fced317610c6b0", null ],
-    [ "txClk322", "classTenGigEthRst.html#af52765f482c3823822d9e7e7e05baaef", null ],
-    [ "txUsrClk", "classTenGigEthRst.html#af8747ceead23be99cb6b6aa0cd2f24b7", null ],
-    [ "txUsrClk2", "classTenGigEthRst.html#a05204a8b57878c287857cc680811b87e", null ],
-    [ "gtTxRst", "classTenGigEthRst.html#a3c27d23b9acd0e37f5e3930d64a7fe88", null ],
-    [ "gtRxRst", "classTenGigEthRst.html#ab026302b4893305e4039532c1e5b6183", null ],
-    [ "txUsrRdy", "classTenGigEthRst.html#a38232d3ba49bb3ae2ee7e449fdf2fba6", null ],
-    [ "rstCntDone", "classTenGigEthRst.html#a762ac6b39f3dea882bb952b0d6f3a240", null ],
-    [ "qplllock", "classTenGigEthRst.html#aa0a54f7d5de59a2f5b779800a0be8b66", null ],
-    [ "qpllRst", "classTenGigEthRst.html#aac939d4d3bdafad43cc298b92a46b017", null ],
-    [ "ieee", "classTenGigEthRst.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classTenGigEthRst.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classTenGigEthRst.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classTenGigEthRst.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classTenGigEthRst.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classTenGigEthRst.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "unisim", "classTenGigEthRst.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classTenGigEthRst.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "TenGigEthRst.rtl", "classTenGigEthRst_1_1rtl.html", null ]
 ];

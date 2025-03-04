@@ -1,28 +1,4 @@
 var classUartAxiLiteMaster =
 [
-    [ "UartAxiLiteMaster.mapping", "classUartAxiLiteMaster_1_1mapping.html", "classUartAxiLiteMaster_1_1mapping" ],
-    [ "TPD_G", "classUartAxiLiteMaster.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "AXIL_CLK_FREQ_G", "classUartAxiLiteMaster.html#a4dfbe27d7c1de5856a932a06b1906fd5", null ],
-    [ "BAUD_RATE_G", "classUartAxiLiteMaster.html#aaa40875d7446983b07e9353e38e772bc", null ],
-    [ "STOP_BITS_G", "classUartAxiLiteMaster.html#a3030e828bbdb4bde78af9461df6164bc", null ],
-    [ "PARITY_G", "classUartAxiLiteMaster.html#aefa4b3347b9929c93e5cfd25d4359750", null ],
-    [ "DATA_WIDTH_G", "classUartAxiLiteMaster.html#af3a2fec1a8901cac0d26ef6b7a4d283f", null ],
-    [ "MEMORY_TYPE_G", "classUartAxiLiteMaster.html#a789b3d1367f7c2431d32ea8d8fbda01d", null ],
-    [ "FIFO_ADDR_WIDTH_G", "classUartAxiLiteMaster.html#ae7b26856f669be80e8be35d1897b340d", null ],
-    [ "axilClk", "classUartAxiLiteMaster.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classUartAxiLiteMaster.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "mAxilWriteMaster", "classUartAxiLiteMaster.html#a00cc0218fc099f8e07b69812f37233f6", null ],
-    [ "mAxilWriteSlave", "classUartAxiLiteMaster.html#a6a29fd53f7b8de8aa34ead5d691d5ead", null ],
-    [ "mAxilReadMaster", "classUartAxiLiteMaster.html#afbae09b2924292eb46a87e37d555f537", null ],
-    [ "mAxilReadSlave", "classUartAxiLiteMaster.html#a26b6921840031d10351a504e53d9c3b7", null ],
-    [ "tx", "classUartAxiLiteMaster.html#adcf2fb09c1d1d21aebfc96d36600665c", null ],
-    [ "rx", "classUartAxiLiteMaster.html#ac976eff36db7c6391255910276834155", null ],
-    [ "ieee", "classUartAxiLiteMaster.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classUartAxiLiteMaster.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classUartAxiLiteMaster.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classUartAxiLiteMaster.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classUartAxiLiteMaster.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classUartAxiLiteMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "TextUtilPkg", "classUartAxiLiteMaster.html#aa9c868aa3ebeb0772295885509c0d4f2", null ],
-    [ "AxiLitePkg", "classUartAxiLiteMaster.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "UartAxiLiteMaster.mapping", "classUartAxiLiteMaster_1_1mapping.html", null ]
 ];

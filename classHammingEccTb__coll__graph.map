@@ -1,6 +1,9 @@
 <map id="HammingEccTb" name="HammingEccTb">
-<area shape="rect" id="node1" title=" " alt="" coords="111,80,235,107"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,5,69,32"/>
-<area shape="rect" id="node3" href="$classHammingEccEncoder.html" title=" " alt="" coords="93,5,253,32"/>
-<area shape="rect" id="node4" href="$classHammingEccDecoder.html" title=" " alt="" coords="277,5,440,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="111,79,235,104"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,5,69,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,34,152,76,150,81,70,39"/>
+<area shape="rect" id="Node000003" href="$classHammingEccEncoder.html" title=" " alt="" coords="93,5,253,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,44,176,79,171,79,171,44"/>
+<area shape="rect" id="Node000004" href="$classHammingEccDecoder.html" title=" " alt="" coords="277,5,440,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="317,38,205,81,203,76,315,33"/>
 </map>

@@ -1,30 +1,4 @@
 var classPgp2bTxPhy =
 [
-    [ "Pgp2bTxPhy", "classPgp2bTxPhy_1_1Pgp2bTxPhy.html", "classPgp2bTxPhy_1_1Pgp2bTxPhy" ],
-    [ "TPD_G", "classPgp2bTxPhy.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "TX_LANE_CNT_G", "classPgp2bTxPhy.html#a18d4958581eddba7599f956bd969597b", null ],
-    [ "pgpTxClkEn", "classPgp2bTxPhy.html#a7a1212be3c540b077cfbaddd7b4f471f", null ],
-    [ "pgpTxClk", "classPgp2bTxPhy.html#a13f62656d0009f976ba3373127963357", null ],
-    [ "pgpTxClkRst", "classPgp2bTxPhy.html#a93851bbf1c087b1540566c97ad03b1e3", null ],
-    [ "pgpTxLinkReady", "classPgp2bTxPhy.html#ad51891e72992926326959dea9c485433", null ],
-    [ "pgpTxOpCodeEn", "classPgp2bTxPhy.html#a7d5cf161e9c411bcd78e950da5796f02", null ],
-    [ "pgpTxOpCode", "classPgp2bTxPhy.html#a82c9ef41c9035b67c9bedb122dec4ed5", null ],
-    [ "pgpLocLinkReady", "classPgp2bTxPhy.html#a2468bcdf0a4d12918df60e6cb46f6511", null ],
-    [ "pgpLocData", "classPgp2bTxPhy.html#a522857748b28c2a2e85eb51f5524208b", null ],
-    [ "cellTxSOC", "classPgp2bTxPhy.html#ab987cad0cfc2e56376eb1790c87f23ca", null ],
-    [ "cellTxSOF", "classPgp2bTxPhy.html#ad971c4850bc320e3d76a8fc37e292c21", null ],
-    [ "cellTxEOC", "classPgp2bTxPhy.html#abff6c77ae25eab1dda686f5b49e84bcd", null ],
-    [ "cellTxEOF", "classPgp2bTxPhy.html#a0e9a3cdafe401f255013f78e6ad2a49e", null ],
-    [ "cellTxEOFE", "classPgp2bTxPhy.html#a9e95b4673d6f7ab512d4d294937b9193", null ],
-    [ "cellTxData", "classPgp2bTxPhy.html#a5fa0fd7ad26113aa77f0d072de148de4", null ],
-    [ "phyTxData", "classPgp2bTxPhy.html#a2c6e9b2e91c71c16bb8ff9fb8990a0e1", null ],
-    [ "phyTxDataK", "classPgp2bTxPhy.html#a8ec6a58f47d27967cd54d34a0d3c165b", null ],
-    [ "phyTxReady", "classPgp2bTxPhy.html#a86b61696c5f03d8f8faafcba280828e8", null ],
-    [ "ieee", "classPgp2bTxPhy.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp2bTxPhy.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classPgp2bTxPhy.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classPgp2bTxPhy.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classPgp2bTxPhy.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp2bTxPhy.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Pgp2bPkg", "classPgp2bTxPhy.html#af22dbf60bec6f633c7d35bf9c0940817", null ]
+    [ "Pgp2bTxPhy.Pgp2bTxPhy", "classPgp2bTxPhy_1_1Pgp2bTxPhy.html", null ]
 ];

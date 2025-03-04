@@ -1,26 +1,4 @@
 var classAxiAds42lb69Reg =
 [
-    [ "rtl", "classAxiAds42lb69Reg_1_1rtl.html", "classAxiAds42lb69Reg_1_1rtl" ],
-    [ "TPD_G", "classAxiAds42lb69Reg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "SIM_SPEEDUP_G", "classAxiAds42lb69Reg.html#a843b5b8e1f3be7ba615c7b200d38cd60", null ],
-    [ "ADC_CLK_FREQ_G", "classAxiAds42lb69Reg.html#a2751978c6eeca9a06fe5556b10622499", null ],
-    [ "DMODE_INIT_G", "classAxiAds42lb69Reg.html#aa453e482f205003e2aed380da0c087d4", null ],
-    [ "axiReadMaster", "classAxiAds42lb69Reg.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiAds42lb69Reg.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiAds42lb69Reg.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiAds42lb69Reg.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "status", "classAxiAds42lb69Reg.html#a1310cbb37970ba3cd9c3fcc4077a78dc", null ],
-    [ "config", "classAxiAds42lb69Reg.html#a41facda1cfc83d8f2ba97b74481b6069", null ],
-    [ "adcClk", "classAxiAds42lb69Reg.html#a614d64248936dbd67a599fc97225b306", null ],
-    [ "adcRst", "classAxiAds42lb69Reg.html#a42fd74e09574c28e5d55938243b1721d", null ],
-    [ "axiClk", "classAxiAds42lb69Reg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiAds42lb69Reg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "ieee", "classAxiAds42lb69Reg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiAds42lb69Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiAds42lb69Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiAds42lb69Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiAds42lb69Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiAds42lb69Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiAds42lb69Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiAds42lb69Pkg", "classAxiAds42lb69Reg.html#a070455d30f0e3f1b8ae6b2811ce175b1", null ]
+    [ "AxiAds42lb69Reg.rtl", "classAxiAds42lb69Reg_1_1rtl.html", null ]
 ];

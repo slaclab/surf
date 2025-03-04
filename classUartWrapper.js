@@ -1,29 +1,4 @@
 var classUartWrapper =
 [
-    [ "UartWrapper.rtl", "classUartWrapper_1_1rtl.html", "classUartWrapper_1_1rtl" ],
-    [ "TPD_G", "classUartWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "CLK_FREQ_G", "classUartWrapper.html#a3be521741f8c4bbc9e15286d750d8f57", null ],
-    [ "BAUD_RATE_G", "classUartWrapper.html#aaa40875d7446983b07e9353e38e772bc", null ],
-    [ "BAUD_MULT_G", "classUartWrapper.html#a428a88621adbd9c2df90b9141e084f65", null ],
-    [ "STOP_BITS_G", "classUartWrapper.html#a3030e828bbdb4bde78af9461df6164bc", null ],
-    [ "PARITY_G", "classUartWrapper.html#aefa4b3347b9929c93e5cfd25d4359750", null ],
-    [ "DATA_WIDTH_G", "classUartWrapper.html#af3a2fec1a8901cac0d26ef6b7a4d283f", null ],
-    [ "MEMORY_TYPE_G", "classUartWrapper.html#a789b3d1367f7c2431d32ea8d8fbda01d", null ],
-    [ "FIFO_ADDR_WIDTH_G", "classUartWrapper.html#acef1df33ef1abc720591aeb8ecbf76d3", null ],
-    [ "clk", "classUartWrapper.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classUartWrapper.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "wrData", "classUartWrapper.html#a594cdb96c1f18513e7624d5063bac8aa", null ],
-    [ "wrValid", "classUartWrapper.html#a6ca7bf4e23abb519a977c3635611f339", null ],
-    [ "wrReady", "classUartWrapper.html#a8d86d1c1afda7734a5d4d1ba2a5f1056", null ],
-    [ "rdData", "classUartWrapper.html#a2f46b31c89df3ad90c55b1bbaf11eff9", null ],
-    [ "rdValid", "classUartWrapper.html#ab354f90faeea79a32e6a8e559c2fd354", null ],
-    [ "rdReady", "classUartWrapper.html#ad63d8407b2daf95685b916a168ddca07", null ],
-    [ "tx", "classUartWrapper.html#adcf2fb09c1d1d21aebfc96d36600665c", null ],
-    [ "rx", "classUartWrapper.html#ac976eff36db7c6391255910276834155", null ],
-    [ "ieee", "classUartWrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classUartWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classUartWrapper.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classUartWrapper.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classUartWrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classUartWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "UartWrapper.rtl", "classUartWrapper_1_1rtl.html", null ]
 ];

@@ -1,25 +1,4 @@
 var classBoxcarIntegrator =
 [
-    [ "rtl", "classBoxcarIntegrator_1_1rtl.html", "classBoxcarIntegrator_1_1rtl" ],
-    [ "TPD_G", "classBoxcarIntegrator.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classBoxcarIntegrator.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "SIGNED_G", "classBoxcarIntegrator.html#a8be396f2b24ce1768bb4a792ea02a253", null ],
-    [ "DOB_REG_G", "classBoxcarIntegrator.html#ac5ab008033e3db60c4fe3978da8665bf", null ],
-    [ "DATA_WIDTH_G", "classBoxcarIntegrator.html#a2863a914bfaa8e1940957d69f0a5d5ae", null ],
-    [ "ADDR_WIDTH_G", "classBoxcarIntegrator.html#ab396fd4549cbde9c091f60c13e47f140", null ],
-    [ "clk", "classBoxcarIntegrator.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classBoxcarIntegrator.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "intCount", "classBoxcarIntegrator.html#ac668003d3e83ad9fbcab6dc5c451a93f", null ],
-    [ "ibValid", "classBoxcarIntegrator.html#a7d8b59266599cf28d78f15cd4653b38b", null ],
-    [ "ibData", "classBoxcarIntegrator.html#a4f62abce47f2986cf5dc496644954480", null ],
-    [ "obValid", "classBoxcarIntegrator.html#aa00f3ff3b8acecae53a260b4f66cb0d7", null ],
-    [ "obAck", "classBoxcarIntegrator.html#afa627a984f2f6e3c1d789fefd2e73351", null ],
-    [ "obData", "classBoxcarIntegrator.html#abd153601a3311b73be83514c28c2cb62", null ],
-    [ "obFull", "classBoxcarIntegrator.html#a892a850e3db099a9dc01533099951757", null ],
-    [ "obPeriod", "classBoxcarIntegrator.html#ac388fd401ec0f86d40a4d36c57e29c41", null ],
-    [ "ieee", "classBoxcarIntegrator.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classBoxcarIntegrator.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classBoxcarIntegrator.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "surf", "classBoxcarIntegrator.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classBoxcarIntegrator.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "BoxcarIntegrator.rtl", "classBoxcarIntegrator_1_1rtl.html", null ]
 ];

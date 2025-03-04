@@ -1,8 +1,13 @@
 <map id="SaciMaster2" name="SaciMaster2">
-<area shape="rect" id="node1" title=" " alt="" coords="121,80,223,107"/>
-<area shape="rect" id="node3" href="$classAxiLiteSaciMaster.html" title=" " alt="" coords="103,155,241,181"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="119,5,225,32"/>
-<area shape="rect" id="node4" href="$classAxiLiteSaciMasterTb.html" title=" " alt="" coords="5,229,160,256"/>
-<area shape="rect" id="node5" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="184,229,339,256"/>
-<area shape="rect" id="node6" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="156,304,367,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="121,79,223,104"/>
+<area shape="rect" id="Node000003" href="$classAxiLiteSaciMaster.html" title=" " alt="" coords="103,152,241,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,118,175,152,169,152,169,118"/>
+<area shape="rect" id="Node000002" href="$classSynchronizer.html" title=" " alt="" coords="119,5,225,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,44,175,79,169,79,169,44"/>
+<area shape="rect" id="Node000004" href="$classAxiLiteSaciMasterTb.html" title=" " alt="" coords="5,225,160,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="149,188,99,227,96,223,145,184"/>
+<area shape="rect" id="Node000005" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="184,225,339,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="199,184,248,223,245,227,195,188"/>
+<area shape="rect" id="Node000006" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="156,299,367,324"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="264,264,264,299,259,299,259,264"/>
 </map>

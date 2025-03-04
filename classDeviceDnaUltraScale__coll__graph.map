@@ -1,6 +1,9 @@
 <map id="DeviceDnaUltraScale" name="DeviceDnaUltraScale">
-<area shape="rect" id="node1" title=" " alt="" coords="45,155,205,181"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="21,80,96,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,32"/>
-<area shape="rect" id="node4" href="$classSynchronizerVector.html" title=" " alt="" coords="120,80,267,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="45,152,205,177"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,79,96,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,113,116,150,113,154,77,116"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
+<area shape="rect" id="Node000004" href="$classSynchronizerVector.html" title=" " alt="" coords="120,79,267,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="175,116,138,154,134,150,171,112"/>
 </map>

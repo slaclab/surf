@@ -1,8 +1,13 @@
 <map id="SelectioDeserLane7Series" name="SelectioDeserLane7Series">
-<area shape="rect" id="node1" title=" " alt="" coords="39,5,229,32"/>
-<area shape="rect" id="node2" href="$classSaltRxDeser.html" title=" " alt="" coords="5,80,108,107"/>
-<area shape="rect" id="node6" href="$classSelectioDeser7Series.html" title=" " alt="" coords="133,80,293,107"/>
-<area shape="rect" id="node3" href="$classSaltRxLvds.html" title=" " alt="" coords="9,155,104,181"/>
-<area shape="rect" id="node4" href="$classSaltCore.html" title=" " alt="" coords="18,229,95,256"/>
-<area shape="rect" id="node5" href="$classSaltCoreTb.html" title=" " alt="" coords="10,304,103,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="39,5,229,31"/>
+<area shape="rect" id="Node000002" href="$classSaltRxDeser.html" title=" " alt="" coords="5,79,108,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,42,71,80,68,76,110,38"/>
+<area shape="rect" id="Node000006" href="$classSelectioDeser7Series.html" title=" " alt="" coords="133,79,293,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="159,38,202,76,198,80,155,42"/>
+<area shape="rect" id="Node000003" href="$classSaltRxLvds.html" title=" " alt="" coords="9,152,104,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="59,118,59,152,54,152,54,118"/>
+<area shape="rect" id="Node000004" href="$classSaltCore.html" title=" " alt="" coords="18,225,95,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="59,191,59,225,54,225,54,191"/>
+<area shape="rect" id="Node000005" href="$classSaltCoreTb.html" title=" " alt="" coords="10,299,103,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="59,264,59,299,54,299,54,264"/>
 </map>

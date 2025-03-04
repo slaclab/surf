@@ -1,12 +1,21 @@
 <map id="AxiI2cRegMasterCore" name="AxiI2cRegMasterCore">
-<area shape="rect" id="node1" title=" " alt="" coords="185,304,348,331"/>
-<area shape="rect" id="node9" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="201,379,333,405"/>
-<area shape="rect" id="node2" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="5,229,155,256"/>
-<area shape="rect" id="node3" href="$classAxiLiteMaster.html" title=" " alt="" coords="24,155,136,181"/>
-<area shape="rect" id="node4" href="$classI2cRegMasterAxiBridge.html" title=" " alt="" coords="179,229,354,256"/>
-<area shape="rect" id="node5" href="$classI2cRegMaster.html" title=" " alt="" coords="378,229,489,256"/>
-<area shape="rect" id="node6" href="$classI2cMaster.html" title=" " alt="" coords="390,155,477,181"/>
-<area shape="rect" id="node7" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="354,80,513,107"/>
-<area shape="rect" id="node8" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="360,5,507,32"/>
-<area shape="rect" id="node10" href="$classSff8472.html" title=" " alt="" coords="231,453,302,480"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="185,299,348,324"/>
+<area shape="rect" id="Node000009" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="201,372,333,397"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="269,338,269,372,264,372,264,338"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="5,225,155,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,253,237,296,235,301,122,258"/>
+<area shape="rect" id="Node000003" href="$classAxiLiteMaster.html" title=" " alt="" coords="24,152,136,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="83,191,83,225,77,225,77,191"/>
+<area shape="rect" id="Node000004" href="$classI2cRegMasterAxiBridge.html" title=" " alt="" coords="179,225,354,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="269,264,269,299,264,299,264,264"/>
+<area shape="rect" id="Node000005" href="$classI2cRegMaster.html" title=" " alt="" coords="378,225,489,251"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="395,258,295,301,293,296,393,254"/>
+<area shape="rect" id="Node000006" href="$classI2cMaster.html" title=" " alt="" coords="390,152,477,177"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="436,191,436,225,431,225,431,191"/>
+<area shape="rect" id="Node000007" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="354,79,513,104"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="436,118,436,152,431,152,431,118"/>
+<area shape="rect" id="Node000008" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="360,5,507,31"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="436,44,436,79,431,79,431,44"/>
+<area shape="rect" id="Node000010" href="$classSff8472.html" title=" " alt="" coords="231,445,302,471"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="269,411,269,445,264,445,264,411"/>
 </map>

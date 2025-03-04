@@ -1,9 +1,15 @@
 <map id="Lmk048Base" name="Lmk048Base">
-<area shape="rect" id="node1" title=" " alt="" coords="210,229,317,256"/>
-<area shape="rect" id="node2" href="$classAxiSpiMaster.html" title=" " alt="" coords="143,155,251,181"/>
-<area shape="rect" id="node3" href="$classDualPortRam.html" title=" " alt="" coords="83,80,191,107"/>
-<area shape="rect" id="node4" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,5,140,32"/>
-<area shape="rect" id="node5" href="$classLutRam.html" title=" " alt="" coords="165,5,237,32"/>
-<area shape="rect" id="node6" href="$classSpiMaster.html" title=" " alt="" coords="215,80,301,107"/>
-<area shape="rect" id="node7" href="$classIoBufWrapper.html" title=" " alt="" coords="275,155,385,181"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="210,225,317,251"/>
+<area shape="rect" id="Node000002" href="$classAxiSpiMaster.html" title=" " alt="" coords="143,152,251,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,186,254,223,251,227,215,190"/>
+<area shape="rect" id="Node000003" href="$classDualPortRam.html" title=" " alt="" coords="83,79,191,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="157,113,189,150,185,154,153,116"/>
+<area shape="rect" id="Node000004" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,5,140,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,39,128,77,124,80,90,43"/>
+<area shape="rect" id="Node000005" href="$classLutRam.html" title=" " alt="" coords="165,5,237,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="183,43,149,80,145,77,179,39"/>
+<area shape="rect" id="Node000006" href="$classSpiMaster.html" title=" " alt="" coords="215,79,301,104"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="241,116,209,154,205,150,237,113"/>
+<area shape="rect" id="Node000007" href="$classIoBufWrapper.html" title=" " alt="" coords="275,152,385,177"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="311,190,276,227,272,223,308,186"/>
 </map>

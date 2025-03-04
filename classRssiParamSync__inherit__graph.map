@@ -1,10 +1,17 @@
 <map id="RssiParamSync" name="RssiParamSync">
-<area shape="rect" id="node1" title=" " alt="" coords="129,80,251,107"/>
-<area shape="rect" id="node3" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="123,155,257,181"/>
-<area shape="rect" id="node2" href="$classSynchronizerVector.html" title=" " alt="" coords="117,5,263,32"/>
-<area shape="rect" id="node4" href="$classRssiCore.html" title=" " alt="" coords="151,229,229,256"/>
-<area shape="rect" id="node5" href="$classRssiCoreWrapper.html" title=" " alt="" coords="123,304,257,331"/>
-<area shape="rect" id="node6" href="$classRssiCoreTb.html" title=" " alt="" coords="5,379,100,405"/>
-<area shape="rect" id="node7" href="$classRssiInterleaveTb.html" title=" " alt="" coords="125,379,255,405"/>
-<area shape="rect" id="node8" href="$classRawEthFramerTb.html" title=" " alt="" coords="279,379,413,405"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="129,79,251,104"/>
+<area shape="rect" id="Node000003" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="123,152,257,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,118,193,152,187,152,187,118"/>
+<area shape="rect" id="Node000002" href="$classSynchronizerVector.html" title=" " alt="" coords="117,5,263,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,44,193,79,187,79,187,44"/>
+<area shape="rect" id="Node000004" href="$classRssiCore.html" title=" " alt="" coords="151,225,229,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="193,191,193,225,187,225,187,191"/>
+<area shape="rect" id="Node000005" href="$classRssiCoreWrapper.html" title=" " alt="" coords="123,299,257,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="193,264,193,299,187,299,187,264"/>
+<area shape="rect" id="Node000006" href="$classRssiCoreTb.html" title=" " alt="" coords="5,372,100,397"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="157,333,76,374,74,369,155,328"/>
+<area shape="rect" id="Node000007" href="$classRssiInterleaveTb.html" title=" " alt="" coords="125,372,255,397"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="193,338,193,372,187,372,187,338"/>
+<area shape="rect" id="Node000008" href="$classRawEthFramerTb.html" title=" " alt="" coords="279,372,413,397"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="229,327,322,369,319,374,226,332"/>
 </map>

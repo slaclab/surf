@@ -1,26 +1,4 @@
 var classSaltTx =
 [
-    [ "SaltTx.rtl", "classSaltTx_1_1rtl.html", "classSaltTx_1_1rtl" ],
-    [ "TPD_G", "classSaltTx.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "COMMON_TX_CLK_G", "classSaltTx.html#a46786bb2245328a5c0644c7252333614", null ],
-    [ "SLAVE_AXI_CONFIG_G", "classSaltTx.html#a8012136b1c3cc20da6c0451e06c47701", null ],
-    [ "sAxisClk", "classSaltTx.html#a0f214248a2fbec9cce0f8491e571905e", null ],
-    [ "sAxisRst", "classSaltTx.html#a26406048f968fcf75d601b8954f81cce", null ],
-    [ "sAxisMaster", "classSaltTx.html#ab3957a6492b84f9bdb996a789151584e", null ],
-    [ "sAxisSlave", "classSaltTx.html#afbb043b74a7f8cbca93ff3d11a715e6f", null ],
-    [ "clk", "classSaltTx.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSaltTx.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "txPktSent", "classSaltTx.html#a5de5378a89e82aeae9098f68f0a7eaef", null ],
-    [ "txEofeSent", "classSaltTx.html#a993f3d3a28187734667302fab27ba0c9", null ],
-    [ "txEn", "classSaltTx.html#a48cb43dc2be9e6818b66d912f10ad77b", null ],
-    [ "txData", "classSaltTx.html#a30e4651d8d17e5c2f0c4afde9fb9416f", null ],
-    [ "ieee", "classSaltTx.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSaltTx.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classSaltTx.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classSaltTx.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classSaltTx.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSaltTx.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classSaltTx.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classSaltTx.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "SaltPkg", "classSaltTx.html#a7da58a4e21c110677517cfe3c9ac8542", null ]
+    [ "SaltTx.rtl", "classSaltTx_1_1rtl.html", null ]
 ];

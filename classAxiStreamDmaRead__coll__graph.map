@@ -1,5 +1,8 @@
 <map id="AxiStreamDmaRead" name="AxiStreamDmaRead">
-<area shape="rect" id="node1" title=" " alt="" coords="5,155,160,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="11,5,154,32"/>
-<area shape="rect" id="node3" href="$classAxiStreamShift.html" title=" " alt="" coords="73,80,191,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,160,177"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="11,5,154,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="74,44,64,79,63,99,67,119,79,151,74,153,62,120,58,99,59,78,69,43"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamShift.html" title=" " alt="" coords="73,79,191,104"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="101,41,126,77,122,80,96,44"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="118,117,93,153,88,150,114,114"/>
 </map>

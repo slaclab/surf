@@ -1,28 +1,4 @@
 var classGtx7TxRst =
 [
-    [ "RTL", "classGtx7TxRst_1_1RTL.html", "classGtx7TxRst_1_1RTL" ],
-    [ "TPD_G", "classGtx7TxRst.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "GT_TYPE", "classGtx7TxRst.html#a1220b97eefc52b82b85b1d32044f2219", null ],
-    [ "STABLE_CLOCK_PERIOD", "classGtx7TxRst.html#a66572459cc6b58d596317f5ed98f2022", null ],
-    [ "RETRY_COUNTER_BITWIDTH", "classGtx7TxRst.html#a52bd169c9b860e730a15a20dae5b441f", null ],
-    [ "STABLE_CLOCK", "classGtx7TxRst.html#a6216a9094f3fa60396c491ad15e14395", null ],
-    [ "TXUSERCLK", "classGtx7TxRst.html#a52f6a82b75f64eb97c2658a137278839", null ],
-    [ "SOFT_RESET", "classGtx7TxRst.html#a4c0fbf496ab3abf9ab529399cdeffc83", null ],
-    [ "PLLREFCLKLOST", "classGtx7TxRst.html#a0bf5310a0d13ae5745c1cadb009534e1", null ],
-    [ "PLLLOCK", "classGtx7TxRst.html#a2b0f49ce0838bbafd7089c8269db4c16", null ],
-    [ "TXRESETDONE", "classGtx7TxRst.html#a71e986009aa7df7e6dfaa663e5828071", null ],
-    [ "MMCM_LOCK", "classGtx7TxRst.html#a0c555006367eb1bd278160efe57ea502", null ],
-    [ "GTTXRESET", "classGtx7TxRst.html#a4681a1d4c42ff08535b898ab09a301cf", null ],
-    [ "MMCM_RESET", "classGtx7TxRst.html#ae587a5c85f011609f389bb9dfa412e67", null ],
-    [ "PLL_RESET", "classGtx7TxRst.html#a07fb7875f863fc9a2a904ebe229a1acf", null ],
-    [ "TX_FSM_RESET_DONE", "classGtx7TxRst.html#a3dc4fd5980cf9e6ddfd2763ca879c6d3", null ],
-    [ "TXUSERRDY", "classGtx7TxRst.html#ad4b540dfc5a1340eb207aee51f83802a", null ],
-    [ "RUN_PHALIGNMENT", "classGtx7TxRst.html#aa7d051ad68e62858dd53af01c097770a", null ],
-    [ "RESET_PHALIGNMENT", "classGtx7TxRst.html#a8af9ff2644794d70683a7bf5026313f0", null ],
-    [ "PHALIGNMENT_DONE", "classGtx7TxRst.html#af9e2581e7c4f0cca18caa692c744de1d", null ],
-    [ "RETRY_COUNTER", "classGtx7TxRst.html#a8fb840fc8f5e2230651b3430eea7e961", null ],
-    [ "IEEE", "classGtx7TxRst.html#ae4f03c286607f3181e16b9aa12d0c6d4", null ],
-    [ "STD_LOGIC_1164", "classGtx7TxRst.html#aa4b2b25246a821511120e3149b003563", null ],
-    [ "NUMERIC_STD", "classGtx7TxRst.html#ae00f3f04545af57582ff10609eee23e2", null ],
-    [ "surf", "classGtx7TxRst.html#acabf3ea45bb9ea54f778c194fc238b6d", null ]
+    [ "Gtx7TxRst.RTL", "classGtx7TxRst_1_1RTL.html", null ]
 ];

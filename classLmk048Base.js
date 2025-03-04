@@ -1,25 +1,4 @@
 var classLmk048Base =
 [
-    [ "mapping", "classLmk048Base_1_1mapping.html", "classLmk048Base_1_1mapping" ],
-    [ "TPD_G", "classLmk048Base.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "CLK_PERIOD_G", "classLmk048Base.html#a2a0607e77e663a2f94df4b16c8a73139", null ],
-    [ "SPI_SCLK_PERIOD_G", "classLmk048Base.html#a1d7842f6ad68eff8bac594e8fbc85c68", null ],
-    [ "lmkCsL", "classLmk048Base.html#a7f33b57e436f243097908cc3f21dac7b", null ],
-    [ "lmkSck", "classLmk048Base.html#a6a78bd038358a0eedc521ae6e1b7b4a8", null ],
-    [ "lmkSdio", "classLmk048Base.html#ad1dd74074e12d55626c77d4636cdf3a5", null ],
-    [ "axilClk", "classLmk048Base.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classLmk048Base.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "axilReadMaster", "classLmk048Base.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classLmk048Base.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classLmk048Base.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classLmk048Base.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "ieee", "classLmk048Base.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classLmk048Base.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classLmk048Base.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classLmk048Base.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classLmk048Base.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classLmk048Base.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classLmk048Base.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "unisim", "classLmk048Base.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classLmk048Base.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "Lmk048Base.mapping", "classLmk048Base_1_1mapping.html", null ]
 ];

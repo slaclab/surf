@@ -1,6 +1,10 @@
 <map id="IpV4EngineTx" name="IpV4EngineTx">
-<area shape="rect" id="node1" title=" " alt="" coords="84,155,195,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamMux.html" title=" " alt="" coords="5,80,124,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamPipeline.html" title=" " alt="" coords="68,5,211,32"/>
-<area shape="rect" id="node4" href="$classAxiStreamDeMux.html" title=" " alt="" coords="147,80,283,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="84,152,195,177"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamMux.html" title=" " alt="" coords="5,79,124,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,111,129,150,125,154,85,115"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="68,5,211,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="119,42,79,80,75,77,116,38"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamDeMux.html" title=" " alt="" coords="147,79,283,104"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="163,38,205,76,201,80,160,42"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="195,115,154,154,150,150,191,111"/>
 </map>

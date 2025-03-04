@@ -1,29 +1,4 @@
 var classCoaXPressConfig =
 [
-    [ "rtl", "classCoaXPressConfig_1_1rtl.html", "classCoaXPressConfig_1_1rtl" ],
-    [ "TPD_G", "classCoaXPressConfig.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "AXIS_CONFIG_G", "classCoaXPressConfig.html#a29c5c047e0de09ffebe006d6fc30bb35", null ],
-    [ "cfgClk", "classCoaXPressConfig.html#a8c256ed892253998b82dcfd00952a5b5", null ],
-    [ "cfgRst", "classCoaXPressConfig.html#a83ccf6c6456ab68c457952e890de3147", null ],
-    [ "configTimerSize", "classCoaXPressConfig.html#a35f3a4a8d8c36919ff70a3060a550c42", null ],
-    [ "configErrResp", "classCoaXPressConfig.html#a3d38dde362095e5e9f7c8c54b7451514", null ],
-    [ "configPktTag", "classCoaXPressConfig.html#a0f245bee99ed100ba7802be5b8eca113", null ],
-    [ "cfgIbMaster", "classCoaXPressConfig.html#a9f268bd684db516381014208e773b484", null ],
-    [ "cfgIbSlave", "classCoaXPressConfig.html#abc0f4d9ec253374c8562fe1d6e6541cb", null ],
-    [ "cfgObMaster", "classCoaXPressConfig.html#ab50422d4206fa8a57c848b943eff976d", null ],
-    [ "cfgObSlave", "classCoaXPressConfig.html#a3b6128baadf349c857340e3b67a0d931", null ],
-    [ "cfgTxMaster", "classCoaXPressConfig.html#a5d1ce29a571bdc7f97d8933360da66f6", null ],
-    [ "cfgTxSlave", "classCoaXPressConfig.html#ad0dd8c3e53733b511cf2fe287033c3ab", null ],
-    [ "cfgRxMaster", "classCoaXPressConfig.html#a717a8d0c99b019537e29271e474fc573", null ],
-    [ "ieee", "classCoaXPressConfig.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classCoaXPressConfig.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classCoaXPressConfig.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classCoaXPressConfig.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classCoaXPressConfig.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classCoaXPressConfig.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classCoaXPressConfig.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "AxiLitePkg", "classCoaXPressConfig.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "CoaXPressPkg", "classCoaXPressConfig.html#a957117c1affb5f9a6e76c60d86f21504", null ],
-    [ "Code8b10bPkg", "classCoaXPressConfig.html#a5bfd0b058753e03e50aee432e4c32909", null ],
-    [ "CrcPkg", "classCoaXPressConfig.html#a5cf570c5527dfb7d94a6144d6613dde6", null ]
+    [ "CoaXPressConfig.rtl", "classCoaXPressConfig_1_1rtl.html", null ]
 ];

@@ -1,25 +1,4 @@
 var classadc32rf45 =
 [
-    [ "rtl", "classadc32rf45_1_1rtl.html", "classadc32rf45_1_1rtl" ],
-    [ "TPD_G", "classadc32rf45.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "CLK_PERIOD_G", "classadc32rf45.html#a0ad2f8ffe4b6d9470d89b747f9868720", null ],
-    [ "SPI_SCLK_PERIOD_G", "classadc32rf45.html#a82fb89fd58b525456e122a61fcc2d390", null ],
-    [ "axiClk", "classadc32rf45.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classadc32rf45.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiReadMaster", "classadc32rf45.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classadc32rf45.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classadc32rf45.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classadc32rf45.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "coreRst", "classadc32rf45.html#a932ae2a695d514062739302afb5ce00f", null ],
-    [ "coreSclk", "classadc32rf45.html#a79e2bb62c4ea6871269dfb2b7521310b", null ],
-    [ "coreSDin", "classadc32rf45.html#ab76050dd6725396dd7848656307a2f22", null ],
-    [ "coreSDout", "classadc32rf45.html#afffba77c4ec52c3a7aa2ab1f8fbea2b5", null ],
-    [ "coreCsb", "classadc32rf45.html#a554154da67002c00d2cd6f727a65fed4", null ],
-    [ "ieee", "classadc32rf45.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classadc32rf45.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classadc32rf45.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classadc32rf45.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classadc32rf45.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classadc32rf45.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classadc32rf45.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "adc32rf45.rtl", "classadc32rf45_1_1rtl.html", null ]
 ];

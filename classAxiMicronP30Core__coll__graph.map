@@ -1,6 +1,9 @@
 <map id="AxiMicronP30Core" name="AxiMicronP30Core">
-<area shape="rect" id="node1" title=" " alt="" coords="63,155,205,181"/>
-<area shape="rect" id="node2" href="$classIoBufWrapper.html" title=" " alt="" coords="5,80,116,107"/>
-<area shape="rect" id="node3" href="$classAxiMicronP30Reg.html" title=" " alt="" coords="141,80,277,107"/>
-<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="132,5,285,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="63,152,205,177"/>
+<area shape="rect" id="Node000002" href="$classIoBufWrapper.html" title=" " alt="" coords="5,79,116,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,112,124,150,120,154,81,116"/>
+<area shape="rect" id="Node000003" href="$classAxiMicronP30Reg.html" title=" " alt="" coords="141,79,277,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,115,148,154,144,150,185,111"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="132,5,285,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="211,44,211,79,206,79,206,44"/>
 </map>

@@ -1,27 +1,51 @@
 <map id="IoBufWrapper" name="IoBufWrapper">
-<area shape="rect" id="node1" title=" " alt="" coords="5,284,116,311"/>
-<area shape="rect" id="node2" href="$classAxiI2cEeprom.html" title=" " alt="" coords="193,5,305,32"/>
-<area shape="rect" id="node3" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="183,56,315,83"/>
-<area shape="rect" id="node5" href="$classLeapXcvr.html" title=" " alt="" coords="207,107,290,133"/>
-<area shape="rect" id="node6" href="$classAd9249Config.html" title=" " alt="" coords="193,157,305,184"/>
-<area shape="rect" id="node7" href="$classAxiAd9467Spi.html" title=" " alt="" coords="193,208,305,235"/>
-<area shape="rect" id="node9" href="$classAd9681Config.html" title=" " alt="" coords="193,259,305,285"/>
-<area shape="rect" id="node10" href="$classAxiLtc2270Reg.html" title=" " alt="" coords="189,309,308,336"/>
-<area shape="rect" id="node12" href="$classDS2411Core.html" title=" " alt="" coords="197,360,300,387"/>
-<area shape="rect" id="node20" href="$classAxiMicronMt28ewCore.html" title=" " alt="" coords="164,411,333,437"/>
-<area shape="rect" id="node21" href="$classAxiMicronP30Core.html" title=" " alt="" coords="178,461,319,488"/>
-<area shape="rect" id="node22" href="$classSc18Is602.html" title=" " alt="" coords="205,512,293,539"/>
-<area shape="rect" id="node23" href="$classLmk048Base.html" title=" " alt="" coords="195,563,302,589"/>
-<area shape="rect" id="node24" href="$classAxiXcf128Core.html" title=" " alt="" coords="189,613,308,640"/>
-<area shape="rect" id="node25" href="$classAxiLitePMbusMaster.html" title=" " alt="" coords="171,664,326,691"/>
-<area shape="rect" id="node4" href="$classSff8472.html" title=" " alt="" coords="408,56,479,83"/>
-<area shape="rect" id="node8" href="$classAxiAd9467Core.html" title=" " alt="" coords="382,208,505,235"/>
-<area shape="rect" id="node11" href="$classAxiLtc2270Core.html" title=" " alt="" coords="381,309,505,336"/>
-<area shape="rect" id="node13" href="$classAxiVersion.html" title=" " alt="" coords="398,360,489,387"/>
-<area shape="rect" id="node14" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="571,309,737,336"/>
-<area shape="rect" id="node15" href="$classAxiVersionTb.html" title=" " alt="" coords="601,360,707,387"/>
-<area shape="rect" id="node16" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="573,411,735,437"/>
-<area shape="rect" id="node17" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="593,461,715,488"/>
-<area shape="rect" id="node18" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="553,512,755,539"/>
-<area shape="rect" id="node19" href="$classSugoiTopTb.html" title=" " alt="" coords="803,512,899,539"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,327,116,352"/>
+<area shape="rect" id="Node000002" href="$classAxiI2cEeprom.html" title=" " alt="" coords="193,5,305,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="61,313,67,256,83,183,96,144,113,107,135,71,162,40,191,23,194,28,166,44,139,74,118,109,101,146,88,185,72,257,66,313"/>
+<area shape="rect" id="Node000003" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="183,55,315,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="63,312,72,264,90,204,119,143,139,114,162,89,181,77,184,82,166,93,143,118,124,145,95,206,77,266,68,313"/>
+<area shape="rect" id="Node000005" href="$classLeapXcvr.html" title=" " alt="" coords="207,104,290,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="66,312,78,274,97,227,125,179,162,139,184,126,206,119,208,124,186,131,166,143,129,183,102,229,83,276,71,314"/>
+<area shape="rect" id="Node000006" href="$classAd9249Config.html" title=" " alt="" coords="193,153,305,179"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="70,313,105,250,131,217,162,188,191,174,194,178,166,192,135,220,109,253,75,315"/>
+<area shape="rect" id="Node000007" href="$classAxiAd9467Spi.html" title=" " alt="" coords="193,203,305,228"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="78,314,114,275,163,237,191,225,193,229,165,242,118,278,82,318"/>
+<area shape="rect" id="Node000009" href="$classAd9681Config.html" title=" " alt="" coords="193,252,305,277"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="95,318,163,286,197,275,198,280,165,291,98,323"/>
+<area shape="rect" id="Node000010" href="$classAxiLtc2270Reg.html" title=" " alt="" coords="189,301,308,327"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="129,327,189,319,189,325,130,333"/>
+<area shape="rect" id="Node000012" href="$classDS2411Core.html" title=" " alt="" coords="197,351,300,376"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="130,345,198,354,197,359,129,351"/>
+<area shape="rect" id="Node000020" href="$classAxiMicronMt28ewCore.html" title=" " alt="" coords="164,400,333,425"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="100,356,165,385,202,397,200,402,163,390,98,361"/>
+<area shape="rect" id="Node000021" href="$classAxiMicronP30Core.html" title=" " alt="" coords="178,449,319,475"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="83,361,119,399,165,434,194,447,191,452,163,439,115,402,79,364"/>
+<area shape="rect" id="Node000022" href="$classSc18Is602.html" title=" " alt="" coords="205,499,293,524"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="75,363,110,424,135,456,166,484,185,494,205,502,204,507,182,499,162,488,132,460,106,427,71,366"/>
+<area shape="rect" id="Node000023" href="$classLmk048Base.html" title=" " alt="" coords="195,548,302,573"/>
+<area shape="poly" id="edge22_Node000001_Node000023" title=" " alt="" coords="71,364,83,402,102,448,130,494,166,533,196,549,194,554,162,537,125,497,98,450,78,404,66,366"/>
+<area shape="rect" id="Node000024" href="$classAxiXcf128Core.html" title=" " alt="" coords="189,597,308,623"/>
+<area shape="poly" id="edge23_Node000001_Node000024" title=" " alt="" coords="68,365,78,412,96,471,124,531,143,558,166,583,190,597,188,602,162,587,139,562,120,534,91,473,72,413,63,366"/>
+<area shape="rect" id="Node000025" href="$classAxiLitePMbusMaster.html" title=" " alt="" coords="171,647,326,672"/>
+<area shape="poly" id="edge24_Node000001_Node000025" title=" " alt="" coords="66,365,73,421,89,493,102,530,119,567,140,602,166,632,184,644,181,649,162,636,135,605,114,570,97,532,84,494,67,422,61,366"/>
+<area shape="rect" id="Node000004" href="$classSff8472.html" title=" " alt="" coords="408,55,479,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="328,65,408,65,408,70,328,70"/>
+<area shape="rect" id="Node000008" href="$classAxiAd9467Core.html" title=" " alt="" coords="382,203,505,228"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="319,213,382,213,382,218,319,218"/>
+<area shape="rect" id="Node000011" href="$classAxiLtc2270Core.html" title=" " alt="" coords="381,301,505,327"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="322,311,381,311,381,317,322,317"/>
+<area shape="rect" id="Node000013" href="$classAxiVersion.html" title=" " alt="" coords="398,351,489,376"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="314,361,398,361,398,366,314,366"/>
+<area shape="rect" id="Node000014" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="571,252,737,277"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="493,343,504,336,518,323,527,311,536,298,552,286,578,275,580,280,555,291,540,302,531,314,522,327,507,340,495,347"/>
+<area shape="rect" id="Node000015" href="$classAxiVersionTb.html" title=" " alt="" coords="601,301,707,327"/>
+<area shape="poly" id="edge14_Node000013_Node000015" title=" " alt="" coords="501,347,600,324,601,329,503,352"/>
+<area shape="rect" id="Node000016" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="573,351,735,376"/>
+<area shape="poly" id="edge15_Node000013_Node000016" title=" " alt="" coords="503,361,573,361,573,366,503,366"/>
+<area shape="rect" id="Node000017" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="593,400,715,425"/>
+<area shape="poly" id="edge16_Node000013_Node000017" title=" " alt="" coords="502,374,600,397,598,403,501,379"/>
+<area shape="rect" id="Node000018" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="553,449,755,475"/>
+<area shape="poly" id="edge17_Node000013_Node000018" title=" " alt="" coords="472,382,510,409,554,434,590,447,588,452,552,439,507,414,469,387"/>
+<area shape="rect" id="Node000019" href="$classSugoiTopTb.html" title=" " alt="" coords="803,449,899,475"/>
+<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="769,459,803,459,803,465,769,465"/>
 </map>

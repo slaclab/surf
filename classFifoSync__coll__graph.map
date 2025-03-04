@@ -1,7 +1,11 @@
 <map id="FifoSync" name="FifoSync">
-<area shape="rect" id="node1" title=" " alt="" coords="202,80,279,107"/>
-<area shape="rect" id="node2" href="$classFifoWrFsm.html" title=" " alt="" coords="5,5,97,32"/>
-<area shape="rect" id="node3" href="$classFifoRdFsm.html" title=" " alt="" coords="122,5,213,32"/>
-<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="237,5,391,32"/>
-<area shape="rect" id="node5" href="$classFifoOutputPipeline.html" title=" " alt="" coords="415,5,557,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="202,79,279,104"/>
+<area shape="rect" id="Node000002" href="$classFifoWrFsm.html" title=" " alt="" coords="5,5,97,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,33,211,76,209,81,94,38"/>
+<area shape="rect" id="Node000003" href="$classFifoRdFsm.html" title=" " alt="" coords="122,5,213,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,38,231,77,227,80,187,42"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="237,5,391,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="294,42,254,80,251,77,290,38"/>
+<area shape="rect" id="Node000005" href="$classFifoOutputPipeline.html" title=" " alt="" coords="415,5,557,31"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="434,37,280,81,279,76,433,32"/>
 </map>

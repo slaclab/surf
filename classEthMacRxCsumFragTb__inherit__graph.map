@@ -1,5 +1,7 @@
 <map id="EthMacRxCsumFragTb" name="EthMacRxCsumFragTb">
-<area shape="rect" id="node1" title=" " alt="" coords="12,80,180,107"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,5,69,32"/>
-<area shape="rect" id="node3" href="$classEthMacRxCsum.html" title=" " alt="" coords="94,5,218,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="12,79,180,104"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,5,69,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="58,40,89,77,84,80,54,43"/>
+<area shape="rect" id="Node000003" href="$classEthMacRxCsum.html" title=" " alt="" coords="94,5,218,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,43,108,80,104,77,135,40"/>
 </map>

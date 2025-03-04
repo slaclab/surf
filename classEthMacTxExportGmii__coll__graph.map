@@ -1,6 +1,9 @@
 <map id="EthMacTxExportGmii" name="EthMacTxExportGmii">
-<area shape="rect" id="node1" title=" " alt="" coords="69,155,228,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamResize.html" title=" " alt="" coords="10,80,143,107"/>
-<area shape="rect" id="node3" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,5,148,32"/>
-<area shape="rect" id="node4" href="$classCrc32Parallel.html" title=" " alt="" coords="167,80,274,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="69,152,228,177"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamResize.html" title=" " alt="" coords="10,79,143,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,112,139,150,135,154,97,116"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,5,148,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,44,79,79,74,79,74,44"/>
+<area shape="rect" id="Node000004" href="$classCrc32Parallel.html" title=" " alt="" coords="167,79,274,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,116,162,154,158,150,197,112"/>
 </map>

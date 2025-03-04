@@ -1,25 +1,4 @@
 var classPgp3RxEb =
 [
-    [ "rtl", "classPgp3RxEb_1_1rtl.html", "classPgp3RxEb_1_1rtl" ],
-    [ "TPD_G", "classPgp3RxEb.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "phyRxClk", "classPgp3RxEb.html#a043dd7baee6177622c8cd5e962945fd9", null ],
-    [ "phyRxRst", "classPgp3RxEb.html#a1d5f3e33b8af4148427bd89ffdf100f1", null ],
-    [ "phyRxValid", "classPgp3RxEb.html#af8b183dcc75e50648c36c2abdf78f80c", null ],
-    [ "phyRxData", "classPgp3RxEb.html#aa0ecf082f73e28b752dded549ef74087", null ],
-    [ "phyRxHeader", "classPgp3RxEb.html#a92ebcb663a398c65e28766ec385cddde", null ],
-    [ "pgpRxClk", "classPgp3RxEb.html#a76f290a48e16f22382b0ae7c9d76c933", null ],
-    [ "pgpRxRst", "classPgp3RxEb.html#a8f0b7ca1d42199443d7c0c1a78c0201f", null ],
-    [ "pgpRxValid", "classPgp3RxEb.html#addc07b486fd2701e5f358f7574d50e71", null ],
-    [ "pgpRxData", "classPgp3RxEb.html#a25bfa8c628c4ee9dcd9a6f3f57ebfe76", null ],
-    [ "pgpRxHeader", "classPgp3RxEb.html#ae11154f8f5ea2f3c19482f3de820f43d", null ],
-    [ "remLinkData", "classPgp3RxEb.html#afcfae7ebd4e7794733e2922de989aa6b", null ],
-    [ "overflow", "classPgp3RxEb.html#a1fae8419084c3c39ff57735efac168f6", null ],
-    [ "status", "classPgp3RxEb.html#aa07a6d2a0407c8be2167ccab041b3e30", null ],
-    [ "ieee", "classPgp3RxEb.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp3RxEb.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classPgp3RxEb.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classPgp3RxEb.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classPgp3RxEb.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp3RxEb.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Pgp3Pkg", "classPgp3RxEb.html#a8fe78bd162f190ddcf71d39850745a3a", null ]
+    [ "Pgp3RxEb.rtl", "classPgp3RxEb_1_1rtl.html", null ]
 ];

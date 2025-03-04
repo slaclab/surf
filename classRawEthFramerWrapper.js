@@ -1,29 +1,4 @@
 var classRawEthFramerWrapper =
 [
-    [ "RawEthFramerWrapper.mapping", "classRawEthFramerWrapper_1_1mapping.html", "classRawEthFramerWrapper_1_1mapping" ],
-    [ "TPD_G", "classRawEthFramerWrapper.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "ETH_TYPE_G", "classRawEthFramerWrapper.html#a30ec7b3b9873ebcdf5947de26ccf173b", null ],
-    [ "localMac", "classRawEthFramerWrapper.html#aad5e2025a9973e3d747252fcd095b146", null ],
-    [ "obMacMaster", "classRawEthFramerWrapper.html#a7b21f53ba0d41e7ace52e59c4d0c2411", null ],
-    [ "obMacSlave", "classRawEthFramerWrapper.html#ae7c22b5d37ec11f4c2c3a54064ba94fc", null ],
-    [ "ibMacMaster", "classRawEthFramerWrapper.html#a81af859a65b99426bcdb45c4b7c7d1b9", null ],
-    [ "ibMacSlave", "classRawEthFramerWrapper.html#a38a1c7167e49c781648c56da81f91ed9", null ],
-    [ "ibAppMaster", "classRawEthFramerWrapper.html#ace94d08b05f9feb93e2fb4512d62b1dd", null ],
-    [ "ibAppSlave", "classRawEthFramerWrapper.html#a3483e5d4ad6e65a1c8f21494144a6740", null ],
-    [ "obAppMaster", "classRawEthFramerWrapper.html#ae27d4942a64f82ce8ff29ac73f4dd2d0", null ],
-    [ "obAppSlave", "classRawEthFramerWrapper.html#a5a8bfa5dcad5842f28948ccbcdb43227", null ],
-    [ "axilReadMaster", "classRawEthFramerWrapper.html#a236cd83189e3eba93d235dd06dde4d63", null ],
-    [ "axilReadSlave", "classRawEthFramerWrapper.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classRawEthFramerWrapper.html#a29bfc98550855435c54abc2cfb1e804e", null ],
-    [ "axilWriteSlave", "classRawEthFramerWrapper.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "clk", "classRawEthFramerWrapper.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classRawEthFramerWrapper.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "ieee", "classRawEthFramerWrapper.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classRawEthFramerWrapper.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classRawEthFramerWrapper.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classRawEthFramerWrapper.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classRawEthFramerWrapper.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classRawEthFramerWrapper.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classRawEthFramerWrapper.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiStreamPkg", "classRawEthFramerWrapper.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ]
+    [ "RawEthFramerWrapper.mapping", "classRawEthFramerWrapper_1_1mapping.html", null ]
 ];

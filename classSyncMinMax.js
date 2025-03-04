@@ -1,25 +1,4 @@
 var classSyncMinMax =
 [
-    [ "SyncMinMax.rtl", "classSyncMinMax_1_1rtl.html", "classSyncMinMax_1_1rtl" ],
-    [ "TPD_G", "classSyncMinMax.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classSyncMinMax.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "COMMON_CLK_G", "classSyncMinMax.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "WIDTH_G", "classSyncMinMax.html#a58f2f97044336c46a3161619320b6edf", null ],
-    [ "rstStat", "classSyncMinMax.html#ac19af2591fefb168b1c988fa14281bb1", null ],
-    [ "wrClk", "classSyncMinMax.html#af5f976c0de563f9c8b71697ded90a15b", null ],
-    [ "wrRst", "classSyncMinMax.html#ae40a7efded653de83822eee3b5f0d4ba", null ],
-    [ "wrEn", "classSyncMinMax.html#afe575c17a8743f78a077de00e95776c5", null ],
-    [ "dataIn", "classSyncMinMax.html#a8e07aa1ba250ed0bb472319df308e8f9", null ],
-    [ "rdClk", "classSyncMinMax.html#a8d58d95b5473cd43107c4f9c6aaf2d08", null ],
-    [ "rdEn", "classSyncMinMax.html#a4a7abafd18446b2408279200a4f9455e", null ],
-    [ "updated", "classSyncMinMax.html#a679428e1e0c777a25f8efb9e43d26cc0", null ],
-    [ "dataOut", "classSyncMinMax.html#abd25a76fa0f879befdf81694674516e9", null ],
-    [ "dataMin", "classSyncMinMax.html#a4118ae901ffb5d385e210eb0fa250814", null ],
-    [ "dataMax", "classSyncMinMax.html#aeb11ad52a503be516d08408410f130bf", null ],
-    [ "ieee", "classSyncMinMax.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSyncMinMax.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSyncMinMax.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSyncMinMax.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSyncMinMax.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSyncMinMax.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "SyncMinMax.rtl", "classSyncMinMax_1_1rtl.html", null ]
 ];

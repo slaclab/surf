@@ -1,6 +1,9 @@
 <map id="Pgp2bRx" name="Pgp2bRx">
-<area shape="rect" id="node1" title=" " alt="" coords="145,80,224,107"/>
-<area shape="rect" id="node2" href="$classPgp2bRxPhy.html" title=" " alt="" coords="5,5,108,32"/>
-<area shape="rect" id="node3" href="$classPgp2bRxCell.html" title=" " alt="" coords="133,5,237,32"/>
-<area shape="rect" id="node4" href="$classCRC32Rtl.html" title=" " alt="" coords="261,5,343,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="145,79,224,104"/>
+<area shape="rect" id="Node000002" href="$classPgp2bRxPhy.html" title=" " alt="" coords="5,5,108,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,35,165,76,162,81,88,40"/>
+<area shape="rect" id="Node000003" href="$classPgp2bRxCell.html" title=" " alt="" coords="133,5,237,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,44,187,79,182,79,182,44"/>
+<area shape="rect" id="Node000004" href="$classCRC32Rtl.html" title=" " alt="" coords="261,5,343,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="273,40,205,81,202,76,270,35"/>
 </map>

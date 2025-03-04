@@ -1,25 +1,4 @@
 var classAxiAd5780Reg =
 [
-    [ "rtl", "classAxiAd5780Reg_1_1rtl.html", "classAxiAd5780Reg_1_1rtl" ],
-    [ "TPD_G", "classAxiAd5780Reg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "STATUS_CNT_WIDTH_G", "classAxiAd5780Reg.html#a97c9475180efd2e99c23c2ce89b2bbe5", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiAd5780Reg.html#abd0127b375676c5662640a1b064b74d2", null ],
-    [ "SPI_CLK_FREQ_G", "classAxiAd5780Reg.html#a7de030f79d7dcd81743ea1d84a97dd8e", null ],
-    [ "axiReadMaster", "classAxiAd5780Reg.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiAd5780Reg.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiAd5780Reg.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiAd5780Reg.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "status", "classAxiAd5780Reg.html#af402b5961f5bfc5ae1782055e39faf97", null ],
-    [ "config", "classAxiAd5780Reg.html#a75e5e45570524a1ae6fec10f88165d49", null ],
-    [ "axiClk", "classAxiAd5780Reg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiAd5780Reg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "dacRst", "classAxiAd5780Reg.html#a7f88570c50e439b1e1d4f2793e5fa7d6", null ],
-    [ "ieee", "classAxiAd5780Reg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiAd5780Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiAd5780Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiAd5780Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiAd5780Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiAd5780Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiAd5780Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiAd5780Pkg", "classAxiAd5780Reg.html#ad91391f52fcf32e35973b88a753499cd", null ]
+    [ "AxiAd5780Reg.rtl", "classAxiAd5780Reg_1_1rtl.html", null ]
 ];

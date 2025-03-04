@@ -1,6 +1,9 @@
 <map id="BoxcarFilter" name="BoxcarFilter">
-<area shape="rect" id="node1" title=" " alt="" coords="32,155,132,181"/>
-<area shape="rect" id="node4" href="$classBoxcarFilterTb.html" title=" " alt="" coords="24,229,140,256"/>
-<area shape="rect" id="node2" href="$classBoxcarIntegrator.html" title=" " alt="" coords="17,80,147,107"/>
-<area shape="rect" id="node3" href="$classSimpleDualPortRam.html" title=" " alt="" coords="5,5,159,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="32,152,132,177"/>
+<area shape="rect" id="Node000004" href="$classBoxcarFilterTb.html" title=" " alt="" coords="24,225,140,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="85,191,85,225,79,225,79,191"/>
+<area shape="rect" id="Node000002" href="$classBoxcarIntegrator.html" title=" " alt="" coords="17,79,147,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,118,85,152,79,152,79,118"/>
+<area shape="rect" id="Node000003" href="$classSimpleDualPortRam.html" title=" " alt="" coords="5,5,159,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="85,44,85,79,79,79,79,44"/>
 </map>

@@ -1,6 +1,9 @@
 <map id="SaltTxSer" name="SaltTxSer">
-<area shape="rect" id="node1" title=" " alt="" coords="10,5,94,32"/>
-<area shape="rect" id="node2" href="$classSaltTxLvds.html" title=" " alt="" coords="5,80,99,107"/>
-<area shape="rect" id="node3" href="$classSaltCore.html" title=" " alt="" coords="13,155,91,181"/>
-<area shape="rect" id="node4" href="$classSaltCoreTb.html" title=" " alt="" coords="5,229,99,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="10,5,94,31"/>
+<area shape="rect" id="Node000002" href="$classSaltTxLvds.html" title=" " alt="" coords="5,79,99,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="55,44,55,79,49,79,49,44"/>
+<area shape="rect" id="Node000003" href="$classSaltCore.html" title=" " alt="" coords="13,152,91,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="55,118,55,152,49,152,49,118"/>
+<area shape="rect" id="Node000004" href="$classSaltCoreTb.html" title=" " alt="" coords="5,225,99,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="55,191,55,225,49,225,49,191"/>
 </map>

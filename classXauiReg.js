@@ -1,26 +1,4 @@
 var classXauiReg =
 [
-    [ "XauiReg.rtl", "classXauiReg_1_1rtl.html", "classXauiReg_1_1rtl" ],
-    [ "TPD_G", "classXauiReg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "EN_AXI_REG_G", "classXauiReg.html#a468e183b4552fb08d7a893a3f4a855cd", null ],
-    [ "localMac", "classXauiReg.html#a7ef0d443ecb278704abdbc78db2066c8", null ],
-    [ "axiClk", "classXauiReg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classXauiReg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiReadMaster", "classXauiReg.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classXauiReg.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classXauiReg.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classXauiReg.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "phyClk", "classXauiReg.html#a8cdaeb0b0eee4abc1661f89cf3549823", null ],
-    [ "phyRst", "classXauiReg.html#a37b2e70d9ad3ea5f55fced317610c6b0", null ],
-    [ "config", "classXauiReg.html#ab46066754549fdde08f3c20454802b5e", null ],
-    [ "status", "classXauiReg.html#ad3416f7d1ca848a9c8c1a7fa39d68129", null ],
-    [ "ieee", "classXauiReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classXauiReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classXauiReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classXauiReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classXauiReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classXauiReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classXauiReg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "EthMacPkg", "classXauiReg.html#ac1625414338993fe184c68bfdbb48894", null ],
-    [ "XauiPkg", "classXauiReg.html#a2fc0d738c0dc387c877a3798077312ec", null ]
+    [ "XauiReg.rtl", "classXauiReg_1_1rtl.html", null ]
 ];

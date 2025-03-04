@@ -1,32 +1,4 @@
 var classPgp3TxProtocol =
 [
-    [ "rtl", "classPgp3TxProtocol_1_1rtl.html", "classPgp3TxProtocol_1_1rtl" ],
-    [ "TPD_G", "classPgp3TxProtocol.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NUM_VC_G", "classPgp3TxProtocol.html#af75ee502a44bb675f5d53b932fd1c5a6", null ],
-    [ "STARTUP_HOLD_G", "classPgp3TxProtocol.html#aa320687d9ce46c90b6d654a7eadc50a5", null ],
-    [ "pgpTxClk", "classPgp3TxProtocol.html#a13f62656d0009f976ba3373127963357", null ],
-    [ "pgpTxRst", "classPgp3TxProtocol.html#ade35ae0e8c9a1a01cbb352508450bd65", null ],
-    [ "pgpTxIn", "classPgp3TxProtocol.html#a6a4359e6ce9d9d0699754e42861cf901", null ],
-    [ "pgpTxOut", "classPgp3TxProtocol.html#a1b5a44675de9407e6bdc0d4aa5424f5e", null ],
-    [ "pgpTxMaster", "classPgp3TxProtocol.html#a138bc0e6fd0dc4d926226cfac1d81d03", null ],
-    [ "pgpTxSlave", "classPgp3TxProtocol.html#a991d081c92158200ad458c4a7a4996d4", null ],
-    [ "locRxFifoCtrl", "classPgp3TxProtocol.html#a9df6663de705bd64c901ac6fca3e1a90", null ],
-    [ "locRxLinkReady", "classPgp3TxProtocol.html#a1353e2d848e9f1dce90581fd4b41a0f8", null ],
-    [ "remRxLinkReady", "classPgp3TxProtocol.html#a9c360ef6543572e154a363cc9de85759", null ],
-    [ "phyTxActive", "classPgp3TxProtocol.html#aee3051a5dab0a146524c699faf77947a", null ],
-    [ "protTxReady", "classPgp3TxProtocol.html#a95e84a547ae54c0b3fbbd450c24b3e93", null ],
-    [ "protTxValid", "classPgp3TxProtocol.html#ab9c6161f4ed8a9e1b21f7733d5f16829", null ],
-    [ "protTxStart", "classPgp3TxProtocol.html#aef05ebc9ecbcdf78369d43971bfa2363", null ],
-    [ "protTxData", "classPgp3TxProtocol.html#ad381c1af654855541621706f41a948e6", null ],
-    [ "protTxHeader", "classPgp3TxProtocol.html#aa5dc08209f927229f25c17ac6e2bb9e9", null ],
-    [ "ieee", "classPgp3TxProtocol.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp3TxProtocol.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classPgp3TxProtocol.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classPgp3TxProtocol.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classPgp3TxProtocol.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp3TxProtocol.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classPgp3TxProtocol.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "AxiStreamPacketizer2Pkg", "classPgp3TxProtocol.html#ae0ae61e3126f95f4dee86d17919fb7f3", null ],
-    [ "SsiPkg", "classPgp3TxProtocol.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "Pgp3Pkg", "classPgp3TxProtocol.html#a8fe78bd162f190ddcf71d39850745a3a", null ]
+    [ "Pgp3TxProtocol.rtl", "classPgp3TxProtocol_1_1rtl.html", null ]
 ];

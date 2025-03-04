@@ -1,6 +1,9 @@
 <map id="SaltTxResize" name="SaltTxResize">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,112,32"/>
-<area shape="rect" id="node2" href="$classSaltTx.html" title=" " alt="" coords="27,80,90,107"/>
-<area shape="rect" id="node3" href="$classSaltCore.html" title=" " alt="" coords="20,155,97,181"/>
-<area shape="rect" id="node4" href="$classSaltCoreTb.html" title=" " alt="" coords="12,229,105,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,112,31"/>
+<area shape="rect" id="Node000002" href="$classSaltTx.html" title=" " alt="" coords="27,79,90,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
+<area shape="rect" id="Node000003" href="$classSaltCore.html" title=" " alt="" coords="20,152,97,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,118,61,152,56,152,56,118"/>
+<area shape="rect" id="Node000004" href="$classSaltCoreTb.html" title=" " alt="" coords="12,225,105,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="61,191,61,225,56,225,56,191"/>
 </map>

@@ -1,11 +1,27 @@
 <map id="Gtx7Core" name="Gtx7Core">
-<area shape="rect" id="node1" title=" " alt="" coords="633,116,716,143"/>
-<area shape="rect" id="node2" href="$classGtx7RxRst.html" title=" " alt="" coords="435,141,526,168"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="5,167,112,193"/>
-<area shape="rect" id="node4" href="$classSynchronizerEdge.html" title=" " alt="" coords="175,192,313,219"/>
-<area shape="rect" id="node5" href="$classRstSync.html" title=" " alt="" coords="207,40,281,67"/>
-<area shape="rect" id="node6" href="$classGtx7AutoPhaseAligner.html" title=" " alt="" coords="160,91,328,117"/>
-<area shape="rect" id="node8" href="$classGtx7TxRst.html" title=" " alt="" coords="435,192,526,219"/>
-<area shape="rect" id="node9" href="$classGtx7TxManualPhaseAligner.html" title=" " alt="" coords="379,243,582,269"/>
-<area shape="rect" id="node7" href="$classGtx7RxFixedLatPhaseAligner.html" title=" " alt="" coords="376,40,585,67"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="633,115,716,141"/>
+<area shape="rect" id="Node000002" href="$classGtx7RxRst.html" title=" " alt="" coords="435,141,526,166"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="539,143,633,131,633,136,540,148"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,165,112,190"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,171,435,153,435,159,126,176"/>
+<area shape="rect" id="Node000004" href="$classSynchronizerEdge.html" title=" " alt="" coords="175,190,313,215"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="126,184,175,191,174,196,126,189"/>
+<area shape="rect" id="Node000005" href="$classRstSync.html" title=" " alt="" coords="207,39,281,65"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="76,152,111,113,159,75,182,64,206,56,207,62,184,69,161,80,115,117,80,156"/>
+<area shape="rect" id="Node000006" href="$classGtx7AutoPhaseAligner.html" title=" " alt="" coords="160,89,328,114"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="99,157,159,131,208,112,210,117,161,136,101,162"/>
+<area shape="rect" id="Node000008" href="$classGtx7TxRst.html" title=" " alt="" coords="435,190,526,215"/>
+<area shape="poly" id="edge12_Node000008_Node000003" title=" " alt="" coords="91,195,124,212,161,225,235,235,310,233,379,224,435,212,436,217,380,229,311,238,235,240,159,231,122,217,89,200"/>
+<area shape="rect" id="Node000009" href="$classGtx7TxManualPhaseAligner.html" title=" " alt="" coords="379,239,582,265"/>
+<area shape="poly" id="edge15_Node000009_Node000003" title=" " alt="" coords="86,197,120,221,161,240,216,253,272,260,379,260,379,265,272,265,215,258,159,245,118,226,83,201"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="318,185,435,160,436,165,319,190"/>
+<area shape="poly" id="edge13_Node000008_Node000004" title=" " alt="" coords="327,200,435,200,435,205,327,205"/>
+<area shape="poly" id="edge16_Node000009_Node000004" title=" " alt="" coords="320,216,419,237,418,242,318,221"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="292,33,353,16,428,4,468,3,509,5,548,12,587,26,615,44,639,68,669,114,665,117,634,72,612,48,584,30,547,17,508,10,468,8,428,10,354,21,293,38"/>
+<area shape="rect" id="Node000007" href="$classGtx7RxFixedLatPhaseAligner.html" title=" " alt="" coords="376,39,585,65"/>
+<area shape="poly" id="edge10_Node000007_Node000005" title=" " alt="" coords="295,49,376,49,376,55,295,55"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="342,105,633,123,633,128,342,110"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="543,66,586,82,651,113,649,118,584,86,541,71"/>
+<area shape="poly" id="edge11_Node000001_Node000008" title=" " alt="" coords="538,190,584,176,622,158,654,138,656,143,624,163,586,181,540,195"/>
+<area shape="poly" id="edge14_Node000001_Node000009" title=" " alt="" coords="572,232,584,226,610,206,633,182,664,139,668,142,637,186,614,210,587,230,575,237"/>
 </map>

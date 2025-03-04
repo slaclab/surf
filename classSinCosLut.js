@@ -1,28 +1,4 @@
 var classSinCosLut =
 [
-    [ "SinCosLut.rtl", "classSinCosLut_1_1rtl.html", "classSinCosLut_1_1rtl" ],
-    [ "TPD_G", "classSinCosLut.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "XIL_DEVICE_G", "classSinCosLut.html#a2d5ae27b1435832559ea71a9a2d1ecd5", null ],
-    [ "FULL_RANGE_G", "classSinCosLut.html#a76f07a773f9642f4871441480b3da001", null ],
-    [ "MEMORY_TYPE_G", "classSinCosLut.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],
-    [ "REG_IN_G", "classSinCosLut.html#a324ad1162f39060b4c61a55cdda2d6c2", null ],
-    [ "USER_WIDTH_G", "classSinCosLut.html#a6d30deffbb39398c10188a863a29649a", null ],
-    [ "PHASE_WIDTH_G", "classSinCosLut.html#ad251e58c6bd1221e4bb1049e90426816", null ],
-    [ "clk", "classSinCosLut.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSinCosLut.html#a8921738510fc3eaa5567eecb772dfe99", null ],
-    [ "validIn", "classSinCosLut.html#a3d2087cab82b7024f265adc3b4eb626f", null ],
-    [ "userIn", "classSinCosLut.html#a24c97410898cfa439fd633594dab3ba7", null ],
-    [ "phaseIn", "classSinCosLut.html#ae80f1b1d047ca72efc0600e7adb4a9dd", null ],
-    [ "validOut", "classSinCosLut.html#ad212deec02d3a320256bf0ed7481eb84", null ],
-    [ "userOut", "classSinCosLut.html#a0a3c6427de12a22aca3e0df94ad3d456", null ],
-    [ "sinCosOut", "classSinCosLut.html#afd50f5245570245e4eea32137a3918fe", null ],
-    [ "ieee", "classSinCosLut.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSinCosLut.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classSinCosLut.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "math_real", "classSinCosLut.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
-    [ "fixed_pkg", "classSinCosLut.html#aad86249c80e8c1e7ee1c4748aba748e3", null ],
-    [ "fixed_float_types", "classSinCosLut.html#a824691d871b9db6a0485012e2e32bd88", null ],
-    [ "surf", "classSinCosLut.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSinCosLut.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "ComplexFixedPkg", "classSinCosLut.html#ae50983f250d092f3dc06e91e3b7ffc41", null ]
+    [ "SinCosLut.rtl", "classSinCosLut_1_1rtl.html", null ]
 ];

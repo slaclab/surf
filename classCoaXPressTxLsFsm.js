@@ -1,27 +1,4 @@
 var classCoaXPressTxLsFsm =
 [
-    [ "rtl", "classCoaXPressTxLsFsm_1_1rtl.html", "classCoaXPressTxLsFsm_1_1rtl" ],
-    [ "TPD_G", "classCoaXPressTxLsFsm.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "txClk", "classCoaXPressTxLsFsm.html#ade5a7692a38f8c7bb3c2309c35fa9885", null ],
-    [ "txRst", "classCoaXPressTxLsFsm.html#a794fe32c223f97a9a79d0d72cfc2a99f", null ],
-    [ "cfgMaster", "classCoaXPressTxLsFsm.html#a8250580bef97718e107483e0a62e728f", null ],
-    [ "cfgSlave", "classCoaXPressTxLsFsm.html#a0011328c6cfe86818d7912a11d3054dc", null ],
-    [ "txTrig", "classCoaXPressTxLsFsm.html#aa740390f2b0477b75e1fb2a301ee3e53", null ],
-    [ "txTrigInv", "classCoaXPressTxLsFsm.html#ad2cc54c10220138ad211d9a6a09baa72", null ],
-    [ "txPulseWidth", "classCoaXPressTxLsFsm.html#a75f8e7e968fed677c2d274b742f122da", null ],
-    [ "txTrigDrop", "classCoaXPressTxLsFsm.html#a1b5387be9a2916c7e000afb0160d9a04", null ],
-    [ "txRate", "classCoaXPressTxLsFsm.html#a24d00601202b6fb4d97231740f427213", null ],
-    [ "txStrobe", "classCoaXPressTxLsFsm.html#a58ac8819bfb7ff4dbeb34da2194ee170", null ],
-    [ "txData", "classCoaXPressTxLsFsm.html#a30e4651d8d17e5c2f0c4afde9fb9416f", null ],
-    [ "txDataK", "classCoaXPressTxLsFsm.html#abc5f2accb57419b4cffe7d76b9b6f08a", null ],
-    [ "ieee", "classCoaXPressTxLsFsm.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classCoaXPressTxLsFsm.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classCoaXPressTxLsFsm.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classCoaXPressTxLsFsm.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classCoaXPressTxLsFsm.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classCoaXPressTxLsFsm.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classCoaXPressTxLsFsm.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classCoaXPressTxLsFsm.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "CoaXPressPkg", "classCoaXPressTxLsFsm.html#a957117c1affb5f9a6e76c60d86f21504", null ],
-    [ "Code8b10bPkg", "classCoaXPressTxLsFsm.html#a5bfd0b058753e03e50aee432e4c32909", null ]
+    [ "CoaXPressTxLsFsm.rtl", "classCoaXPressTxLsFsm_1_1rtl.html", null ]
 ];

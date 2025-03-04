@@ -1,28 +1,4 @@
 var classClinkUart =
 [
-    [ "rtl", "classClinkUart_1_1rtl.html", "classClinkUart_1_1rtl" ],
-    [ "TPD_G", "classClinkUart.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "UART_READY_EN_G", "classClinkUart.html#a966b116a38c99e59658d3e4eb6ff0705", null ],
-    [ "UART_AXIS_CONFIG_G", "classClinkUart.html#aab6fb3721787c3177185f9384470f314", null ],
-    [ "intClk", "classClinkUart.html#af1bcb1fa33920bd1a677e0abb42dc868", null ],
-    [ "intRst", "classClinkUart.html#a31450f8bec697b71f8c802ccf0705e57", null ],
-    [ "baud", "classClinkUart.html#a9b9d7ebe7a294e1d65e2d0d8c4d1282c", null ],
-    [ "throttle", "classClinkUart.html#a51d01c9412fd1fed6c43770b0d3b34c2", null ],
-    [ "uartClk", "classClinkUart.html#ad323462db31894872d9208f71cb3b22e", null ],
-    [ "uartRst", "classClinkUart.html#afb7a7108b577803b3df9be5edf4128f5", null ],
-    [ "sUartMaster", "classClinkUart.html#a47bb49faf4c30ce98a48af9b6987959b", null ],
-    [ "sUartSlave", "classClinkUart.html#ae1c2bbb69a884498b53eaaf8f28c17df", null ],
-    [ "sUartCtrl", "classClinkUart.html#aef547622438fcdb6c043bafd32eb6269", null ],
-    [ "mUartMaster", "classClinkUart.html#a999c3ab708661206264f6ed8f40807dd", null ],
-    [ "mUartSlave", "classClinkUart.html#aae47acbe72fddaad5a3e274a29a25dfe", null ],
-    [ "rxIn", "classClinkUart.html#a10f6880100b11e55181e30dc85f151ad", null ],
-    [ "txOut", "classClinkUart.html#aa745b5a25dce8e33049d6bc23d847817", null ],
-    [ "ieee", "classClinkUart.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classClinkUart.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classClinkUart.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classClinkUart.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classClinkUart.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classClinkUart.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classClinkUart.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classClinkUart.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]
+    [ "ClinkUart.rtl", "classClinkUart_1_1rtl.html", null ]
 ];

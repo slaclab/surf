@@ -1,8 +1,13 @@
 <map id="CoaXPressOverFiberBridgeRx" name="CoaXPressOverFiberBridgeRx">
-<area shape="rect" id="node1" title=" " alt="" coords="117,5,330,32"/>
-<area shape="rect" id="node2" href="$classCoaXPressOverFiberBridge.html" title=" " alt="" coords="125,80,321,107"/>
-<area shape="rect" id="node3" href="$classCoaXPressOverFiberGthUsIpWrapper.html" title=" " alt="" coords="5,155,212,196"/>
-<area shape="rect" id="node5" href="$classCoaXPressOverFiberGtyUsIpWrapper.html" title=" " alt="" coords="236,155,443,196"/>
-<area shape="rect" id="node4" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="12,244,205,271"/>
-<area shape="rect" id="node6" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="243,244,436,271"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="117,5,330,31"/>
+<area shape="rect" id="Node000002" href="$classCoaXPressOverFiberBridge.html" title=" " alt="" coords="125,79,321,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,44,226,79,221,79,221,44"/>
+<area shape="rect" id="Node000003" href="$classCoaXPressOverFiberGthUsIpWrapper.html" title=" " alt="" coords="5,152,212,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="196,114,138,154,135,150,193,110"/>
+<area shape="rect" id="Node000005" href="$classCoaXPressOverFiberGtyUsIpWrapper.html" title=" " alt="" coords="236,152,443,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="254,110,313,150,310,154,251,114"/>
+<area shape="rect" id="Node000004" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="12,240,205,265"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="111,206,111,240,106,240,106,206"/>
+<area shape="rect" id="Node000006" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="243,240,436,265"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="342,206,342,240,337,240,337,206"/>
 </map>

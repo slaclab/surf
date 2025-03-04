@@ -1,5 +1,7 @@
 <map id="SaltDelayCtrl" name="SaltDelayCtrl">
-<area shape="rect" id="node1" title=" " alt="" coords="5,155,113,181"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="22,80,97,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="6,5,113,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,113,177"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="22,79,97,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,118,62,152,57,152,57,118"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="6,5,113,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="62,44,62,79,57,79,57,44"/>
 </map>

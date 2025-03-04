@@ -1,5 +1,7 @@
 <map id="AxiStreamPipelineTb" name="AxiStreamPipelineTb">
-<area shape="rect" id="node1" title=" " alt="" coords="22,80,181,107"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,5,69,32"/>
-<area shape="rect" id="node3" href="$classAxiStreamPipeline.html" title=" " alt="" coords="94,5,237,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="22,79,181,104"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,5,69,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,39,93,77,89,80,55,43"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="94,5,237,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,43,114,80,110,77,144,39"/>
 </map>

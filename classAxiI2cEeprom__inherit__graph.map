@@ -1,11 +1,19 @@
 <map id="AxiI2cEeprom" name="AxiI2cEeprom">
-<area shape="rect" id="node1" title=" " alt="" coords="195,379,307,405"/>
-<area shape="rect" id="node2" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="5,304,155,331"/>
-<area shape="rect" id="node3" href="$classAxiLiteMaster.html" title=" " alt="" coords="24,229,136,256"/>
-<area shape="rect" id="node4" href="$classAxiI2cEepromCore.html" title=" " alt="" coords="179,304,322,331"/>
-<area shape="rect" id="node5" href="$classI2cRegMaster.html" title=" " alt="" coords="195,229,306,256"/>
-<area shape="rect" id="node6" href="$classI2cMaster.html" title=" " alt="" coords="207,155,294,181"/>
-<area shape="rect" id="node7" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="171,80,330,107"/>
-<area shape="rect" id="node8" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="177,5,324,32"/>
-<area shape="rect" id="node9" href="$classIoBufWrapper.html" title=" " alt="" coords="346,304,457,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="195,372,307,397"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="5,299,155,324"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,327,224,369,222,374,119,332"/>
+<area shape="rect" id="Node000003" href="$classAxiLiteMaster.html" title=" " alt="" coords="24,225,136,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="83,264,83,299,77,299,77,264"/>
+<area shape="rect" id="Node000004" href="$classAxiI2cEepromCore.html" title=" " alt="" coords="179,299,322,324"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="253,338,253,372,248,372,248,338"/>
+<area shape="rect" id="Node000005" href="$classI2cRegMaster.html" title=" " alt="" coords="195,225,306,251"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="253,264,253,299,248,299,248,264"/>
+<area shape="rect" id="Node000006" href="$classI2cMaster.html" title=" " alt="" coords="207,152,294,177"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="253,191,253,225,248,225,248,191"/>
+<area shape="rect" id="Node000007" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="171,79,330,104"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="253,118,253,152,248,152,248,118"/>
+<area shape="rect" id="Node000008" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="177,5,324,31"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="253,44,253,79,248,79,248,44"/>
+<area shape="rect" id="Node000009" href="$classIoBufWrapper.html" title=" " alt="" coords="346,299,457,324"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="366,332,276,374,274,369,364,327"/>
 </map>

@@ -1,6 +1,9 @@
 <map id="SugoiManagerRx7Series" name="SugoiManagerRx7Series">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,185,32"/>
-<area shape="rect" id="node2" href="$classSugoiManagerRx.html" title=" " alt="" coords="29,80,161,107"/>
-<area shape="rect" id="node3" href="$classSugoiManagerCore.html" title=" " alt="" coords="23,155,168,181"/>
-<area shape="rect" id="node4" href="$classSugoiTopTb.html" title=" " alt="" coords="47,229,143,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,185,31"/>
+<area shape="rect" id="Node000002" href="$classSugoiManagerRx.html" title=" " alt="" coords="29,79,161,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,44,98,79,93,79,93,44"/>
+<area shape="rect" id="Node000003" href="$classSugoiManagerCore.html" title=" " alt="" coords="23,152,168,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="98,118,98,152,93,152,93,118"/>
+<area shape="rect" id="Node000004" href="$classSugoiTopTb.html" title=" " alt="" coords="47,225,143,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="98,191,98,225,93,225,93,191"/>
 </map>

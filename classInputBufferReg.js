@@ -1,26 +1,4 @@
 var classInputBufferReg =
 [
-    [ "rtl", "classInputBufferReg_1_1rtl.html", "classInputBufferReg_1_1rtl" ],
-    [ "TPD_G", "classInputBufferReg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DIFF_PAIR_G", "classInputBufferReg.html#a63935a948693ea228d8e8377b0d53863", null ],
-    [ "DDR_CLK_EDGE_G", "classInputBufferReg.html#a0763b8f8f9959b6e22e505fab48cb16c", null ],
-    [ "INIT_Q1_G", "classInputBufferReg.html#abcfde7afd04df913e9bc8cfba07f23a8", null ],
-    [ "INIT_Q2_G", "classInputBufferReg.html#a891494243c109c16def42da77dee7bdd", null ],
-    [ "SRTYPE_G", "classInputBufferReg.html#ab11b653948d655a44c9dc33b54e37ea0", null ],
-    [ "I", "classInputBufferReg.html#add4d28b6a3d5e8a1051283d1289e3bd0", null ],
-    [ "IB", "classInputBufferReg.html#a10357e3202f60c23bdd44a0f4cc6a610", null ],
-    [ "C", "classInputBufferReg.html#a2c0df21deea40c272a4f7a04c4d31a5e", null ],
-    [ "CE", "classInputBufferReg.html#a47f55e3c75a40a8ed88a94bf354e6263", null ],
-    [ "R", "classInputBufferReg.html#aa8db885a768a0bf4b53cf107e912b924", null ],
-    [ "S", "classInputBufferReg.html#a8c98d41d3a9f1e02b9bdd2d152981c4f", null ],
-    [ "Q1", "classInputBufferReg.html#a37aa278bfe90cf7b4e70a2a310e7b8d0", null ],
-    [ "Q2", "classInputBufferReg.html#a1aaacf17856d3e4e886c26e89596f49b", null ],
-    [ "ieee", "classInputBufferReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classInputBufferReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classInputBufferReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classInputBufferReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classInputBufferReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classInputBufferReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "unisim", "classInputBufferReg.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classInputBufferReg.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "InputBufferReg.rtl", "classInputBufferReg_1_1rtl.html", null ]
 ];

@@ -1,29 +1,4 @@
 var classEthMacRxImport =
 [
-    [ "mapping", "classEthMacRxImport_1_1mapping.html", "classEthMacRxImport_1_1mapping" ],
-    [ "TPD_G", "classEthMacRxImport.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "PHY_TYPE_G", "classEthMacRxImport.html#ac1251506933d37295930b277251b70db", null ],
-    [ "SYNTH_MODE_G", "classEthMacRxImport.html#afcd34963a3c7ab959bb3d4ee93d06de1", null ],
-    [ "ethClkEn", "classEthMacRxImport.html#a9241186ba4787420f5df51c67938e958", null ],
-    [ "ethClk", "classEthMacRxImport.html#a1f64c166d5579e3255eb9e3eb5a9f19f", null ],
-    [ "ethRst", "classEthMacRxImport.html#a91fccab24ec1aeecf9d5d17352950ce3", null ],
-    [ "macIbMaster", "classEthMacRxImport.html#a49f066faa86523e06c2997575730285b", null ],
-    [ "xlgmiiRxd", "classEthMacRxImport.html#a74bbe0cc6ab31991a805d56e3a3532b0", null ],
-    [ "xlgmiiRxc", "classEthMacRxImport.html#a2ecf714e8b561a1dc169835356360285", null ],
-    [ "xgmiiRxd", "classEthMacRxImport.html#a8f9ffa24858c7862caf3481bd511767f", null ],
-    [ "xgmiiRxc", "classEthMacRxImport.html#acc27c70d6deea5fdde7e846f4d7cb474", null ],
-    [ "gmiiRxDv", "classEthMacRxImport.html#a484674bbadabdc4b3123d3b8834f5075", null ],
-    [ "gmiiRxEr", "classEthMacRxImport.html#ad189167db2ea5c864ab2747318aa1e78", null ],
-    [ "gmiiRxd", "classEthMacRxImport.html#a52d1382faeb6b30fb996465eb7c0105a", null ],
-    [ "phyReady", "classEthMacRxImport.html#ae116f90a6e657dde10474424e5bf80ba", null ],
-    [ "rxCountEn", "classEthMacRxImport.html#aac327ec5cfdf55bfeb8357cb3199ba26", null ],
-    [ "rxCrcError", "classEthMacRxImport.html#a45418bbb7075e239558d14bad68b8ea6", null ],
-    [ "ieee", "classEthMacRxImport.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classEthMacRxImport.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classEthMacRxImport.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classEthMacRxImport.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classEthMacRxImport.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "AxiStreamPkg", "classEthMacRxImport.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "StdRtlPkg", "classEthMacRxImport.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "EthMacPkg", "classEthMacRxImport.html#ac1625414338993fe184c68bfdbb48894", null ]
+    [ "EthMacRxImport.mapping", "classEthMacRxImport_1_1mapping.html", null ]
 ];

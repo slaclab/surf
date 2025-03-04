@@ -1,6 +1,9 @@
 <map id="Gtx7RecClkMonitor" name="Gtx7RecClkMonitor">
-<area shape="rect" id="node1" title=" " alt="" coords="11,5,159,32"/>
-<area shape="rect" id="node2" href="$classGLinkGtx7Core.html" title=" " alt="" coords="25,80,145,107"/>
-<area shape="rect" id="node3" href="$classGLinkGtx7FixedLat.html" title=" " alt="" coords="13,155,157,181"/>
-<area shape="rect" id="node4" href="$classGLinkGtx7FixedLatTb.html" title=" " alt="" coords="5,229,165,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="11,5,159,31"/>
+<area shape="rect" id="Node000002" href="$classGLinkGtx7Core.html" title=" " alt="" coords="25,79,145,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,44,88,79,83,79,83,44"/>
+<area shape="rect" id="Node000003" href="$classGLinkGtx7FixedLat.html" title=" " alt="" coords="13,152,157,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,118,88,152,83,152,83,118"/>
+<area shape="rect" id="Node000004" href="$classGLinkGtx7FixedLatTb.html" title=" " alt="" coords="5,225,165,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="88,191,88,225,83,225,83,191"/>
 </map>

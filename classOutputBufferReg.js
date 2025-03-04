@@ -1,29 +1,5 @@
 var classOutputBufferReg =
 [
     [ "OutputBufferReg.mapping", "classOutputBufferReg_1_1mapping.html", null ],
-    [ "rtl", "classOutputBufferReg_1_1rtl.html", "classOutputBufferReg_1_1rtl" ],
-    [ "TPD_G", "classOutputBufferReg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DIFF_PAIR_G", "classOutputBufferReg.html#a63935a948693ea228d8e8377b0d53863", null ],
-    [ "DDR_CLK_EDGE_G", "classOutputBufferReg.html#a42b3bd30d965c838865d201c5715781c", null ],
-    [ "INIT_G", "classOutputBufferReg.html#a2d0ec1825ff2a2c7b7050ad2c8f7adb1", null ],
-    [ "SRTYPE_G", "classOutputBufferReg.html#ab11b653948d655a44c9dc33b54e37ea0", null ],
-    [ "I", "classOutputBufferReg.html#a7e119be377b9456b434440fc45882625", null ],
-    [ "C", "classOutputBufferReg.html#a4e31448b3b0d355fe23520aa8d72af80", null ],
-    [ "CE", "classOutputBufferReg.html#a47f55e3c75a40a8ed88a94bf354e6263", null ],
-    [ "R", "classOutputBufferReg.html#aa8db885a768a0bf4b53cf107e912b924", null ],
-    [ "SR", "classOutputBufferReg.html#a47371d01258906572df1daefee114be0", null ],
-    [ "S", "classOutputBufferReg.html#a8c98d41d3a9f1e02b9bdd2d152981c4f", null ],
-    [ "T", "classOutputBufferReg.html#a4504d02a13d0936c0a1487a8327b8754", null ],
-    [ "inv", "classOutputBufferReg.html#a11efd68d236017d13edfe6d6ce201051", null ],
-    [ "dly", "classOutputBufferReg.html#a2131456b4873a6218e6c81b1f3e85d7b", null ],
-    [ "O", "classOutputBufferReg.html#a0adaefbd660f63473f7d027909053253", null ],
-    [ "OB", "classOutputBufferReg.html#ace9226e6080e30bcbb869f2193f6b1bd", null ],
-    [ "ieee", "classOutputBufferReg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classOutputBufferReg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classOutputBufferReg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classOutputBufferReg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classOutputBufferReg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classOutputBufferReg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "unisim", "classOutputBufferReg.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classOutputBufferReg.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "OutputBufferReg.rtl", "classOutputBufferReg_1_1rtl.html", null ]
 ];

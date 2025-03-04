@@ -1,27 +1,4 @@
 var classSyncClockFreq =
 [
-    [ "SyncClockFreq.rtl", "classSyncClockFreq_1_1rtl.html", "classSyncClockFreq_1_1rtl" ],
-    [ "TPD_G", "classSyncClockFreq.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classSyncClockFreq.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "USE_DSP_G", "classSyncClockFreq.html#a0b1b3ad9e69f3c8da17214f3f0894aea", null ],
-    [ "REF_CLK_FREQ_G", "classSyncClockFreq.html#a4286f384fc564d604f41f18d8fad6d67", null ],
-    [ "REFRESH_RATE_G", "classSyncClockFreq.html#a19e9318d0a16bd42724aa1c4129c0a21", null ],
-    [ "CLK_LOWER_LIMIT_G", "classSyncClockFreq.html#a94e577466dac9f38cb18835c81e85228", null ],
-    [ "CLK_UPPER_LIMIT_G", "classSyncClockFreq.html#a1dab62075004134b2312a3a6ae7d646c", null ],
-    [ "COMMON_CLK_G", "classSyncClockFreq.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "CNT_WIDTH_G", "classSyncClockFreq.html#ac6c109d2d67e69d769b6b9cb0203277a", null ],
-    [ "freqOut", "classSyncClockFreq.html#aefd6f722c854c31d722b0446b19e7200", null ],
-    [ "freqUpdated", "classSyncClockFreq.html#a3f29c6039f834d307e9560ff25e86f93", null ],
-    [ "locked", "classSyncClockFreq.html#a7539c9986fd4888f9437fe873683e205", null ],
-    [ "tooFast", "classSyncClockFreq.html#a46f6503fe9e357e1e1d03a597526c0f5", null ],
-    [ "tooSlow", "classSyncClockFreq.html#a030037b4520f7eca8704a93efc0bda5d", null ],
-    [ "clkIn", "classSyncClockFreq.html#a1d73c3aa604c918e42f6666c249657e7", null ],
-    [ "locClk", "classSyncClockFreq.html#aca3851fd6ccaec77c4e514a5bc208226", null ],
-    [ "refClk", "classSyncClockFreq.html#a4ca6a821327795c5e458a946ae782a06", null ],
-    [ "ieee", "classSyncClockFreq.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSyncClockFreq.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classSyncClockFreq.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classSyncClockFreq.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classSyncClockFreq.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSyncClockFreq.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "SyncClockFreq.rtl", "classSyncClockFreq_1_1rtl.html", null ]
 ];

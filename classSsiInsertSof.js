@@ -1,32 +1,4 @@
 var classSsiInsertSof =
 [
-    [ "SsiInsertSof.rtl", "classSsiInsertSof_1_1rtl.html", "classSsiInsertSof_1_1rtl" ],
-    [ "TPD_G", "classSsiInsertSof.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classSsiInsertSof.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "TUSER_MASK_G", "classSsiInsertSof.html#a6048ae851d178cc42317dd37f6891872", null ],
-    [ "INSERT_USER_HDR_G", "classSsiInsertSof.html#afe7c8e7d438f1e7c6c0653dc9999feef", null ],
-    [ "INT_PIPE_STAGES_G", "classSsiInsertSof.html#a4766e71fdf4eafe307b8564eea2172b4", null ],
-    [ "PIPE_STAGES_G", "classSsiInsertSof.html#ac99fcdad56f9c1f5292d5b1acda42a7a", null ],
-    [ "COMMON_CLK_G", "classSsiInsertSof.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "SLAVE_FIFO_G", "classSsiInsertSof.html#ae58329afcc86ad9b5663a0772a545f88", null ],
-    [ "MASTER_FIFO_G", "classSsiInsertSof.html#a8be0ffabe3d00691eaa9c537cb4664f3", null ],
-    [ "SLAVE_AXI_CONFIG_G", "classSsiInsertSof.html#a8012136b1c3cc20da6c0451e06c47701", null ],
-    [ "MASTER_AXI_CONFIG_G", "classSsiInsertSof.html#acb32b29bba5639b73f5764e61b2450e6", null ],
-    [ "sAxisClk", "classSsiInsertSof.html#a0f214248a2fbec9cce0f8491e571905e", null ],
-    [ "sAxisRst", "classSsiInsertSof.html#a26406048f968fcf75d601b8954f81cce", null ],
-    [ "sAxisMaster", "classSsiInsertSof.html#ab3957a6492b84f9bdb996a789151584e", null ],
-    [ "sAxisSlave", "classSsiInsertSof.html#afbb043b74a7f8cbca93ff3d11a715e6f", null ],
-    [ "mAxisClk", "classSsiInsertSof.html#ae0b70ef2412f74472e1f3d29a37df068", null ],
-    [ "mAxisRst", "classSsiInsertSof.html#a291aba3da8fd969c97a3612c1d3cf019", null ],
-    [ "mUserHdr", "classSsiInsertSof.html#a4a8e6c6a01b8073444934e33d61638db", null ],
-    [ "mAxisMaster", "classSsiInsertSof.html#ab0b1799978ac7ea47ecb67ad6e5bb413", null ],
-    [ "mAxisSlave", "classSsiInsertSof.html#a3522ef3ee8a7e64d95785f540e794c63", null ],
-    [ "ieee", "classSsiInsertSof.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSsiInsertSof.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classSsiInsertSof.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classSsiInsertSof.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classSsiInsertSof.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSsiInsertSof.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classSsiInsertSof.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classSsiInsertSof.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]
+    [ "SsiInsertSof.rtl", "classSsiInsertSof_1_1rtl.html", null ]
 ];

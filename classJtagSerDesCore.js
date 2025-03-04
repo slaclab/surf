@@ -1,25 +1,4 @@
 var classJtagSerDesCore =
 [
-    [ "JtagSerDesCoreImpl", "classJtagSerDesCore_1_1JtagSerDesCoreImpl.html", "classJtagSerDesCore_1_1JtagSerDesCoreImpl" ],
-    [ "TPD_G", "classJtagSerDesCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "WIDTH_G", "classJtagSerDesCore.html#ad28019513ebf4096803897544d7b9314", null ],
-    [ "CLK_DIV2_G", "classJtagSerDesCore.html#aa3911ac262e4bac12c7358f081879105", null ],
-    [ "clk", "classJtagSerDesCore.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classJtagSerDesCore.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "numBits", "classJtagSerDesCore.html#a8850cb3b21cf2a5a727bf926867c8e72", null ],
-    [ "dataInTms", "classJtagSerDesCore.html#a4336cc9002a19411c13aa3ef42b6a7c6", null ],
-    [ "dataInTdi", "classJtagSerDesCore.html#ab37cbaafdd132dff30f24c5647a34a9e", null ],
-    [ "dataInValid", "classJtagSerDesCore.html#a5b3995d5fdd3c5542f8c4374d9231e8f", null ],
-    [ "dataInReady", "classJtagSerDesCore.html#ae79e2612c5d9b44d8484894d868c5955", null ],
-    [ "dataOut", "classJtagSerDesCore.html#abd25a76fa0f879befdf81694674516e9", null ],
-    [ "dataOutValid", "classJtagSerDesCore.html#a3d23332f904ebe05338a91af820aa18b", null ],
-    [ "dataOutReady", "classJtagSerDesCore.html#a74db74c55afff208fbd70c78d47a1254", null ],
-    [ "tck", "classJtagSerDesCore.html#aada0133b8f402d4a4a5e8aee43e9fbe0", null ],
-    [ "tdi", "classJtagSerDesCore.html#af1a8aecc8fcff49291dfa747d517ef18", null ],
-    [ "tms", "classJtagSerDesCore.html#a0aaeb13d8f18783df178447e7f00002f", null ],
-    [ "tdo", "classJtagSerDesCore.html#acc18698609a43c09840a66592194c8da", null ],
-    [ "ieee", "classJtagSerDesCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classJtagSerDesCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "surf", "classJtagSerDesCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classJtagSerDesCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "JtagSerDesCore.JtagSerDesCoreImpl", "classJtagSerDesCore_1_1JtagSerDesCoreImpl.html", null ]
 ];

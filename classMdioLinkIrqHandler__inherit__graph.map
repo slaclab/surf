@@ -1,9 +1,15 @@
 <map id="MdioLinkIrqHandler" name="MdioLinkIrqHandler">
-<area shape="rect" id="node1" title=" " alt="" coords="154,155,303,181"/>
-<area shape="rect" id="node4" href="$classSgmii88E1111Mdio.html" title=" " alt="" coords="70,229,217,256"/>
-<area shape="rect" id="node6" href="$classSgmiiDp83867Mdio.html" title=" " alt="" coords="257,229,406,256"/>
-<area shape="rect" id="node2" href="$classMdioSeqCore.html" title=" " alt="" coords="175,80,283,107"/>
-<area shape="rect" id="node3" href="$classMdioCore.html" title=" " alt="" coords="187,5,271,32"/>
-<area shape="rect" id="node5" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="5,304,217,331"/>
-<area shape="rect" id="node7" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="241,304,456,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="154,152,303,177"/>
+<area shape="rect" id="Node000004" href="$classSgmii88E1111Mdio.html" title=" " alt="" coords="70,225,217,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,188,159,227,156,223,203,184"/>
+<area shape="rect" id="Node000006" href="$classSgmiiDp83867Mdio.html" title=" " alt="" coords="257,225,406,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="258,183,316,223,313,227,255,187"/>
+<area shape="rect" id="Node000002" href="$classMdioSeqCore.html" title=" " alt="" coords="175,79,283,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,118,231,152,226,152,226,118"/>
+<area shape="rect" id="Node000003" href="$classMdioCore.html" title=" " alt="" coords="187,5,271,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="231,44,231,79,226,79,226,44"/>
+<area shape="rect" id="Node000005" href="$classSgmii88E1111LvdsUltraScale.html" title=" " alt="" coords="5,299,217,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="135,264,119,300,114,297,130,262"/>
+<area shape="rect" id="Node000007" href="$classSgmiiDp83867LvdsUltraScale.html" title=" " alt="" coords="241,299,456,324"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="340,263,348,298,343,299,335,265"/>
 </map>

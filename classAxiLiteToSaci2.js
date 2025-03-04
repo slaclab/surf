@@ -1,32 +1,4 @@
 var classAxiLiteToSaci2 =
 [
-    [ "rtl", "classAxiLiteToSaci2_1_1rtl.html", "classAxiLiteToSaci2_1_1rtl" ],
-    [ "TPD_G", "classAxiLiteToSaci2.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "AXIL_CLK_PERIOD_G", "classAxiLiteToSaci2.html#a8939b8499fa3de5d99f0f57a89e779a6", null ],
-    [ "AXIL_TIMEOUT_G", "classAxiLiteToSaci2.html#a69bc54f98d79fe5dce073f145338a5e1", null ],
-    [ "SACI_CLK_PERIOD_G", "classAxiLiteToSaci2.html#a2b293eab2c34d18d4b8ea393c23be71c", null ],
-    [ "SACI_CLK_FREERUN_G", "classAxiLiteToSaci2.html#a502ed3287cc32e622de6603f862ca901", null ],
-    [ "SACI_ADDR_BITS_G", "classAxiLiteToSaci2.html#a1a708d6419df8c519b8cd7b4dfa5dce8", null ],
-    [ "SACI_NUM_CHIPS_G", "classAxiLiteToSaci2.html#a8300d2ec81232c4c0afcfb57a5d6f784", null ],
-    [ "SACI_RSP_BUSSED_G", "classAxiLiteToSaci2.html#a727dff760a094b5c1002e9ff6f69b579", null ],
-    [ "saciClk", "classAxiLiteToSaci2.html#aff9d3115f02ed67319b064e7e1a2980e", null ],
-    [ "saciCmd", "classAxiLiteToSaci2.html#a4d20bf9c23df515edae0c09c52c15129", null ],
-    [ "saciSelL", "classAxiLiteToSaci2.html#a98bace56fbba3949ef8bf75e5ec7750c", null ],
-    [ "saciRsp", "classAxiLiteToSaci2.html#acbde2a4ec0091326671e5f4f1f65b8e5", null ],
-    [ "saciBusReq", "classAxiLiteToSaci2.html#a42b7d0e34a16b5f5ca74188108161c38", null ],
-    [ "saciBusGr", "classAxiLiteToSaci2.html#a629ad5fc99619c149ae91438f15c3fca", null ],
-    [ "asicRstL", "classAxiLiteToSaci2.html#a4f12c5105d6435283ef8b283172fe495", null ],
-    [ "axilClk", "classAxiLiteToSaci2.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classAxiLiteToSaci2.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "axilReadMaster", "classAxiLiteToSaci2.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classAxiLiteToSaci2.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classAxiLiteToSaci2.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classAxiLiteToSaci2.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "ieee", "classAxiLiteToSaci2.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiLiteToSaci2.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiLiteToSaci2.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiLiteToSaci2.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiLiteToSaci2.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiLiteToSaci2.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiLiteToSaci2.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "AxiLiteToSaci2.rtl", "classAxiLiteToSaci2_1_1rtl.html", null ]
 ];

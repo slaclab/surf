@@ -1,5 +1,7 @@
 <map id="LineCode8b10bTb" name="LineCode8b10bTb">
-<area shape="rect" id="node1" title=" " alt="" coords="63,80,201,107"/>
-<area shape="rect" id="node2" href="$classEncoder8b10b.html" title=" " alt="" coords="5,5,120,32"/>
-<area shape="rect" id="node3" href="$classDecoder8b10b.html" title=" " alt="" coords="145,5,261,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="63,79,201,104"/>
+<area shape="rect" id="Node000002" href="$classEncoder8b10b.html" title=" " alt="" coords="5,5,120,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,39,123,77,119,80,82,43"/>
+<area shape="rect" id="Node000003" href="$classDecoder8b10b.html" title=" " alt="" coords="145,5,261,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,43,145,80,142,77,179,39"/>
 </map>

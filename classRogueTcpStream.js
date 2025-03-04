@@ -1,28 +1,4 @@
 var classRogueTcpStream =
 [
-    [ "RogueTcpStream", "classRogueTcpStream_1_1RogueTcpStream.html", "classRogueTcpStream_1_1RogueTcpStream" ],
-    [ "clock", "classRogueTcpStream.html#ac7d2714e799fc3b1af36d5ebbc3c3564", null ],
-    [ "reset", "classRogueTcpStream.html#a108f6801ba4104063b9d5f9286194302", null ],
-    [ "portNum", "classRogueTcpStream.html#a5938c9847041a8486d2643891a360bcc", null ],
-    [ "ssi", "classRogueTcpStream.html#a90f80abc0ed10256fd4e5d85b90615b1", null ],
-    [ "obValid", "classRogueTcpStream.html#ac828f3887f074bf38e5131db2d2701c1", null ],
-    [ "obReady", "classRogueTcpStream.html#a99b58f160afc474757128947c33ecab4", null ],
-    [ "obDataLow", "classRogueTcpStream.html#a25ebcefa6f67dd63dead4e3460723f17", null ],
-    [ "obDataHigh", "classRogueTcpStream.html#af954ab3a516e79278bd7eb0adb4e0838", null ],
-    [ "obUserLow", "classRogueTcpStream.html#a1dadda5ef02977040b94bafcbff22cbb", null ],
-    [ "obUserHigh", "classRogueTcpStream.html#af4a102527457a7c77b8a72a426d2c5c1", null ],
-    [ "obKeep", "classRogueTcpStream.html#ad92487637a95054b8997e92222021191", null ],
-    [ "obLast", "classRogueTcpStream.html#afb234023a87f56b24a4324297304eee5", null ],
-    [ "ibValid", "classRogueTcpStream.html#a99962cbfd5425b87fdadbd07b3a4b8ad", null ],
-    [ "ibReady", "classRogueTcpStream.html#a41e07187e820511951f97d0fceb830a1", null ],
-    [ "ibDataLow", "classRogueTcpStream.html#a99a1bba054ca844e2c0c222c0c7180c0", null ],
-    [ "ibDataHigh", "classRogueTcpStream.html#a4310350a4488bd533654f14cd0fb9d74", null ],
-    [ "ibUserLow", "classRogueTcpStream.html#a72cae3ed8ba73768282a7f3cb7aee723", null ],
-    [ "ibUserHigh", "classRogueTcpStream.html#a4486cb23d1f39d8ebe00d3e0a671b5ff", null ],
-    [ "ibKeep", "classRogueTcpStream.html#a2ffe7b3699de85858ef48e572c20f647", null ],
-    [ "ibLast", "classRogueTcpStream.html#a623d1b45063536f52387a7628f95fb87", null ],
-    [ "ieee", "classRogueTcpStream.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classRogueTcpStream.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classRogueTcpStream.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classRogueTcpStream.html#a598da929e807d58939b47499e8bc9fa8", null ]
+    [ "RogueTcpStream.RogueTcpStream", "classRogueTcpStream_1_1RogueTcpStream.html", null ]
 ];

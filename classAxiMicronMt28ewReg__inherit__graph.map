@@ -1,5 +1,7 @@
 <map id="AxiMicronMt28ewReg" name="AxiMicronMt28ewReg">
-<area shape="rect" id="node1" title=" " alt="" coords="8,80,172,107"/>
-<area shape="rect" id="node3" href="$classAxiMicronMt28ewCore.html" title=" " alt="" coords="5,155,175,181"/>
-<area shape="rect" id="node2" href="$classSimpleDualPortRam.html" title=" " alt="" coords="13,5,167,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="8,79,172,104"/>
+<area shape="rect" id="Node000003" href="$classAxiMicronMt28ewCore.html" title=" " alt="" coords="5,152,175,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="93,118,93,152,87,152,87,118"/>
+<area shape="rect" id="Node000002" href="$classSimpleDualPortRam.html" title=" " alt="" coords="13,5,167,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,44,93,79,87,79,87,44"/>
 </map>

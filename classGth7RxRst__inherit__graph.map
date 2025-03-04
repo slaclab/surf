@@ -1,11 +1,20 @@
 <map id="Gth7RxRst" name="Gth7RxRst">
-<area shape="rect" id="node1" title=" " alt="" coords="157,155,248,181"/>
-<area shape="rect" id="node4" href="$classGth7Core.html" title=" " alt="" coords="161,229,244,256"/>
-<area shape="rect" id="node2" href="$classSynchronizer.html" title=" " alt="" coords="149,5,256,32"/>
-<area shape="rect" id="node3" href="$classSynchronizerEdge.html" title=" " alt="" coords="187,80,325,107"/>
-<area shape="rect" id="node5" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="44,304,188,331"/>
-<area shape="rect" id="node7" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="216,304,373,331"/>
-<area shape="rect" id="node6" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="5,379,208,405"/>
-<area shape="rect" id="node8" href="$classPgp2bGth7VarLat.html" title=" " alt="" coords="233,379,367,405"/>
-<area shape="rect" id="node9" href="$classPgp2bGth7VarLatWrapper.html" title=" " alt="" coords="205,453,395,480"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="157,152,248,177"/>
+<area shape="rect" id="Node000004" href="$classGth7Core.html" title=" " alt="" coords="161,225,244,251"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="205,191,205,225,200,225,200,191"/>
+<area shape="rect" id="Node000002" href="$classSynchronizer.html" title=" " alt="" coords="149,5,256,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,44,177,79,176,99,181,118,197,150,192,153,176,120,171,99,172,78,186,42"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerEdge.html" title=" " alt="" coords="187,79,325,104"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="222,40,249,77,245,80,217,43"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="241,117,213,153,209,150,237,113"/>
+<area shape="rect" id="Node000005" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="44,299,188,324"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="180,261,132,301,128,296,177,257"/>
+<area shape="rect" id="Node000007" href="$classPgp2bGth7MultiLane.html" title=" " alt="" coords="216,299,373,324"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="230,257,281,296,278,301,226,261"/>
+<area shape="rect" id="Node000006" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="5,372,208,397"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="115,338,111,372,106,372,110,337"/>
+<area shape="rect" id="Node000008" href="$classPgp2bGth7VarLat.html" title=" " alt="" coords="233,372,367,397"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="299,338,302,372,296,372,294,338"/>
+<area shape="rect" id="Node000009" href="$classPgp2bGth7VarLatWrapper.html" title=" " alt="" coords="205,445,395,471"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="303,411,303,445,297,445,297,411"/>
 </map>

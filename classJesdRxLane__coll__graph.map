@@ -1,10 +1,17 @@
 <map id="JesdRxLane" name="JesdRxLane">
-<area shape="rect" id="node1" title=" " alt="" coords="317,155,415,181"/>
-<area shape="rect" id="node2" href="$classFifoSync.html" title=" " alt="" coords="202,80,279,107"/>
-<area shape="rect" id="node3" href="$classFifoWrFsm.html" title=" " alt="" coords="5,5,97,32"/>
-<area shape="rect" id="node4" href="$classFifoRdFsm.html" title=" " alt="" coords="122,5,213,32"/>
-<area shape="rect" id="node5" href="$classSimpleDualPortRam.html" title=" " alt="" coords="237,5,391,32"/>
-<area shape="rect" id="node6" href="$classFifoOutputPipeline.html" title=" " alt="" coords="415,5,557,32"/>
-<area shape="rect" id="node7" href="$classJesdSyncFsmRx.html" title=" " alt="" coords="303,80,429,107"/>
-<area shape="rect" id="node8" href="$classJesdAlignFrRepCh.html" title=" " alt="" coords="453,80,589,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="317,152,415,177"/>
+<area shape="rect" id="Node000002" href="$classFifoSync.html" title=" " alt="" coords="202,79,279,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,108,347,149,344,154,271,113"/>
+<area shape="rect" id="Node000003" href="$classFifoWrFsm.html" title=" " alt="" coords="5,5,97,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,33,211,76,209,81,94,38"/>
+<area shape="rect" id="Node000004" href="$classFifoRdFsm.html" title=" " alt="" coords="122,5,213,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="191,38,231,77,227,80,187,42"/>
+<area shape="rect" id="Node000005" href="$classSimpleDualPortRam.html" title=" " alt="" coords="237,5,391,31"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="294,42,254,80,251,77,290,38"/>
+<area shape="rect" id="Node000006" href="$classFifoOutputPipeline.html" title=" " alt="" coords="415,5,557,31"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="434,37,280,81,279,76,433,32"/>
+<area shape="rect" id="Node000007" href="$classJesdSyncFsmRx.html" title=" " alt="" coords="303,79,429,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="369,118,369,152,363,152,363,118"/>
+<area shape="rect" id="Node000008" href="$classJesdAlignFrRepCh.html" title=" " alt="" coords="453,79,589,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="485,112,392,154,390,149,482,107"/>
 </map>

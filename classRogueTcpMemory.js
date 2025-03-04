@@ -1,30 +1,4 @@
 var classRogueTcpMemory =
 [
-    [ "RogueTcpMemory", "classRogueTcpMemory_1_1RogueTcpMemory.html", "classRogueTcpMemory_1_1RogueTcpMemory" ],
-    [ "clock", "classRogueTcpMemory.html#ac7d2714e799fc3b1af36d5ebbc3c3564", null ],
-    [ "reset", "classRogueTcpMemory.html#a108f6801ba4104063b9d5f9286194302", null ],
-    [ "portNum", "classRogueTcpMemory.html#a5938c9847041a8486d2643891a360bcc", null ],
-    [ "araddr", "classRogueTcpMemory.html#a36384ef6de955367ed5b018cae311d77", null ],
-    [ "arprot", "classRogueTcpMemory.html#a949967598dfff5ae5952b7bbbc437965", null ],
-    [ "arvalid", "classRogueTcpMemory.html#a76d0b35213a9b7fa16371db22679dc93", null ],
-    [ "rready", "classRogueTcpMemory.html#a30021585addf6cd17b9266b72d14213c", null ],
-    [ "arready", "classRogueTcpMemory.html#a44a446c0bd5aa4c29eadf32aa2d550ec", null ],
-    [ "rdata", "classRogueTcpMemory.html#a776b51ffa2a7baf5fbfe4601085026ba", null ],
-    [ "rresp", "classRogueTcpMemory.html#ad753b018b9a758d60cb2894c08003ee5", null ],
-    [ "rvalid", "classRogueTcpMemory.html#a90424095177f1e82b3165c172d1e165a", null ],
-    [ "awaddr", "classRogueTcpMemory.html#acf7e131d85bce8a345c53b31c21872fe", null ],
-    [ "awprot", "classRogueTcpMemory.html#ada12dbed7d65d624cca57f5941de3d78", null ],
-    [ "awvalid", "classRogueTcpMemory.html#a64f321629286a11b08894256dbe13ed3", null ],
-    [ "wdata", "classRogueTcpMemory.html#a005dd241332fd69526cb385c705106a2", null ],
-    [ "wstrb", "classRogueTcpMemory.html#a9f5472a9024c462e704185960b13add3", null ],
-    [ "wvalid", "classRogueTcpMemory.html#aa1e5b69a9ceb8771da3dcce6bfaa7c52", null ],
-    [ "bready", "classRogueTcpMemory.html#a5ebff46bb7f68459eda5f395abe37835", null ],
-    [ "awready", "classRogueTcpMemory.html#a5e962b614060d05ce9829105c9afb05a", null ],
-    [ "wready", "classRogueTcpMemory.html#ad084747caa829384983b9ec5ebd0b0e0", null ],
-    [ "bresp", "classRogueTcpMemory.html#a9424ab09037749283bd0ef940dc4a68e", null ],
-    [ "bvalid", "classRogueTcpMemory.html#a73a8e3ddb8a4451caf3131ecde422f90", null ],
-    [ "ieee", "classRogueTcpMemory.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classRogueTcpMemory.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classRogueTcpMemory.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classRogueTcpMemory.html#a598da929e807d58939b47499e8bc9fa8", null ]
+    [ "RogueTcpMemory.RogueTcpMemory", "classRogueTcpMemory_1_1RogueTcpMemory.html", null ]
 ];

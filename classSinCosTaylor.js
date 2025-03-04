@@ -1,29 +1,4 @@
 var classSinCosTaylor =
 [
-    [ "SinCosTaylor.rtl", "classSinCosTaylor_1_1rtl.html", "classSinCosTaylor_1_1rtl" ],
-    [ "TPD_G", "classSinCosTaylor.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "XIL_DEVICE_G", "classSinCosTaylor.html#a2d5ae27b1435832559ea71a9a2d1ecd5", null ],
-    [ "FULL_RANGE_G", "classSinCosTaylor.html#a76f07a773f9642f4871441480b3da001", null ],
-    [ "MEMORY_TYPE_G", "classSinCosTaylor.html#a9e7ed5ac5b0e17768010cf27a043e692", null ],
-    [ "REG_IN_G", "classSinCosTaylor.html#a324ad1162f39060b4c61a55cdda2d6c2", null ],
-    [ "USER_WIDTH_G", "classSinCosTaylor.html#a6d30deffbb39398c10188a863a29649a", null ],
-    [ "PHASE_WIDTH_G", "classSinCosTaylor.html#a35a0aab50802e98303e2021bd20f33c1", null ],
-    [ "INT_PHASE_WIDTH_G", "classSinCosTaylor.html#a87ed22806255e7ba8fdf4b31a45a9e92", null ],
-    [ "clk", "classSinCosTaylor.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSinCosTaylor.html#a8921738510fc3eaa5567eecb772dfe99", null ],
-    [ "validIn", "classSinCosTaylor.html#a3d2087cab82b7024f265adc3b4eb626f", null ],
-    [ "userIn", "classSinCosTaylor.html#a24c97410898cfa439fd633594dab3ba7", null ],
-    [ "phaseIn", "classSinCosTaylor.html#ae80f1b1d047ca72efc0600e7adb4a9dd", null ],
-    [ "validOut", "classSinCosTaylor.html#ad212deec02d3a320256bf0ed7481eb84", null ],
-    [ "userOut", "classSinCosTaylor.html#a0a3c6427de12a22aca3e0df94ad3d456", null ],
-    [ "sinCosOut", "classSinCosTaylor.html#afd50f5245570245e4eea32137a3918fe", null ],
-    [ "ieee", "classSinCosTaylor.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSinCosTaylor.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classSinCosTaylor.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "math_real", "classSinCosTaylor.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
-    [ "fixed_pkg", "classSinCosTaylor.html#aad86249c80e8c1e7ee1c4748aba748e3", null ],
-    [ "fixed_float_types", "classSinCosTaylor.html#a824691d871b9db6a0485012e2e32bd88", null ],
-    [ "surf", "classSinCosTaylor.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSinCosTaylor.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "ComplexFixedPkg", "classSinCosTaylor.html#ae50983f250d092f3dc06e91e3b7ffc41", null ]
+    [ "SinCosTaylor.rtl", "classSinCosTaylor_1_1rtl.html", null ]
 ];

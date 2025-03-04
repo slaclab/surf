@@ -1,30 +1,4 @@
 var classPgp2bTx =
 [
-    [ "Pgp2bTx", "classPgp2bTx_1_1Pgp2bTx.html", "classPgp2bTx_1_1Pgp2bTx" ],
-    [ "TPD_G", "classPgp2bTx.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "TX_LANE_CNT_G", "classPgp2bTx.html#a18d4958581eddba7599f956bd969597b", null ],
-    [ "VC_INTERLEAVE_G", "classPgp2bTx.html#aa99b71a603e863d450f3bf09f72d5fd2", null ],
-    [ "PAYLOAD_CNT_TOP_G", "classPgp2bTx.html#ae515b74c8453344f8b4401b634aed80e", null ],
-    [ "NUM_VC_EN_G", "classPgp2bTx.html#a84b72fbeedb473191235d5c53ed76ff7", null ],
-    [ "pgpTxClkEn", "classPgp2bTx.html#a7a1212be3c540b077cfbaddd7b4f471f", null ],
-    [ "pgpTxClk", "classPgp2bTx.html#a13f62656d0009f976ba3373127963357", null ],
-    [ "pgpTxClkRst", "classPgp2bTx.html#a93851bbf1c087b1540566c97ad03b1e3", null ],
-    [ "pgpTxIn", "classPgp2bTx.html#a962d42daf83e52c03186385bd63df3eb", null ],
-    [ "pgpTxOut", "classPgp2bTx.html#a87de15dd42171011fdd0335ca4158b14", null ],
-    [ "locLinkReady", "classPgp2bTx.html#ad1c8697d255c1aa07f7d4449735ec8cd", null ],
-    [ "pgpTxMasters", "classPgp2bTx.html#a47c1c4c71d93cfa32c1344bd46a2becc", null ],
-    [ "pgpTxSlaves", "classPgp2bTx.html#a907cd7bbb6b4ccd995d9606182cc8c79", null ],
-    [ "locFifoStatus", "classPgp2bTx.html#a3de7056a1b38e8b8641bd3416ace2afa", null ],
-    [ "remFifoStatus", "classPgp2bTx.html#aa0855cfca448d8a2865e7be00091d21c", null ],
-    [ "phyTxLanesOut", "classPgp2bTx.html#ac4912ecbfa36fba3c6b925a5c28a92c6", null ],
-    [ "phyTxReady", "classPgp2bTx.html#a86b61696c5f03d8f8faafcba280828e8", null ],
-    [ "ieee", "classPgp2bTx.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classPgp2bTx.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classPgp2bTx.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classPgp2bTx.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classPgp2bTx.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classPgp2bTx.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Pgp2bPkg", "classPgp2bTx.html#af22dbf60bec6f633c7d35bf9c0940817", null ],
-    [ "AxiStreamPkg", "classPgp2bTx.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classPgp2bTx.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]
+    [ "Pgp2bTx.Pgp2bTx", "classPgp2bTx_1_1Pgp2bTx.html", null ]
 ];

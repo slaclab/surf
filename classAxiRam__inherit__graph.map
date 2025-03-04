@@ -1,8 +1,15 @@
 <map id="AxiRam" name="AxiRam">
-<area shape="rect" id="node1" title=" " alt="" coords="280,80,353,107"/>
-<area shape="rect" id="node5" href="$classAxiRamTb.html" title=" " alt="" coords="213,155,303,181"/>
-<area shape="rect" id="node6" href="$classSrpV3AxiTb.html" title=" " alt="" coords="327,155,424,181"/>
-<area shape="rect" id="node2" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,32"/>
-<area shape="rect" id="node3" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,32"/>
-<area shape="rect" id="node4" href="$classSimpleDualPortRam.html" title=" " alt="" coords="445,5,599,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="280,79,353,104"/>
+<area shape="rect" id="Node000005" href="$classAxiRamTb.html" title=" " alt="" coords="140,152,229,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="285,113,208,154,205,149,282,108"/>
+<area shape="rect" id="Node000006" href="$classAxiRingBufferTb.html" title=" " alt="" coords="253,152,380,177"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="319,118,319,152,314,152,314,118"/>
+<area shape="rect" id="Node000007" href="$classSrpV3AxiTb.html" title=" " alt="" coords="404,152,501,177"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="352,108,432,149,429,154,349,113"/>
+<area shape="rect" id="Node000002" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,32,282,76,280,81,144,37"/>
+<area shape="rect" id="Node000003" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="319,44,319,79,314,79,314,44"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="445,5,599,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="477,38,351,81,349,76,475,33"/>
 </map>

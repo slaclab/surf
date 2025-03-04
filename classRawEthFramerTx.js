@@ -1,26 +1,4 @@
 var classRawEthFramerTx =
 [
-    [ "rtl", "classRawEthFramerTx_1_1rtl.html", "classRawEthFramerTx_1_1rtl" ],
-    [ "TPD_G", "classRawEthFramerTx.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "ETH_TYPE_G", "classRawEthFramerTx.html#a30ec7b3b9873ebcdf5947de26ccf173b", null ],
-    [ "localMac", "classRawEthFramerTx.html#aad5e2025a9973e3d747252fcd095b146", null ],
-    [ "remoteMac", "classRawEthFramerTx.html#a962beda2ab4fc4f02de274e61c246d10", null ],
-    [ "tDest", "classRawEthFramerTx.html#ab7e9cc7b53251a567e269eb5445c42c7", null ],
-    [ "req", "classRawEthFramerTx.html#adbd1d88e0189b8aacf8677f9136e43f5", null ],
-    [ "ack", "classRawEthFramerTx.html#a7b9de69264120358cc32cd699b572189", null ],
-    [ "ibMacMaster", "classRawEthFramerTx.html#a81af859a65b99426bcdb45c4b7c7d1b9", null ],
-    [ "ibMacSlave", "classRawEthFramerTx.html#a38a1c7167e49c781648c56da81f91ed9", null ],
-    [ "obAppMaster", "classRawEthFramerTx.html#ae27d4942a64f82ce8ff29ac73f4dd2d0", null ],
-    [ "obAppSlave", "classRawEthFramerTx.html#a5a8bfa5dcad5842f28948ccbcdb43227", null ],
-    [ "clk", "classRawEthFramerTx.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classRawEthFramerTx.html#a789cd8b86f0aac91d6f0acff63b7088a", null ],
-    [ "ieee", "classRawEthFramerTx.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classRawEthFramerTx.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classRawEthFramerTx.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classRawEthFramerTx.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classRawEthFramerTx.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classRawEthFramerTx.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classRawEthFramerTx.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classRawEthFramerTx.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "RawEthFramerPkg", "classRawEthFramerTx.html#a8e68e010cf114115d6d1be23ae644404", null ]
+    [ "RawEthFramerTx.rtl", "classRawEthFramerTx_1_1rtl.html", null ]
 ];

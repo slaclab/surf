@@ -1,5 +1,7 @@
 <map id="Pgp2fcAlignmentChecker" name="Pgp2fcAlignmentChecker">
-<area shape="rect" id="node1" title=" " alt="" coords="5,155,191,181"/>
-<area shape="rect" id="node2" href="$classRstSync.html" title=" " alt="" coords="61,80,135,107"/>
-<area shape="rect" id="node3" href="$classSynchronizer.html" title=" " alt="" coords="45,5,151,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,191,177"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="61,79,135,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,118,101,152,95,152,95,118"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="45,5,151,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,44,101,79,95,79,95,44"/>
 </map>

@@ -1,31 +1,4 @@
 var classSsiCmdMaster =
 [
-    [ "SsiCmdMaster.rtl", "classSsiCmdMaster_1_1rtl.html", "classSsiCmdMaster_1_1rtl" ],
-    [ "TPD_G", "classSsiCmdMaster.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classSsiCmdMaster.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "SLAVE_READY_EN_G", "classSsiCmdMaster.html#a2d70adc1c152b8a238cee66df53db9c9", null ],
-    [ "MEMORY_TYPE_G", "classSsiCmdMaster.html#a789b3d1367f7c2431d32ea8d8fbda01d", null ],
-    [ "GEN_SYNC_FIFO_G", "classSsiCmdMaster.html#a82faab35c71e3fb9ecc35a9f657fc397", null ],
-    [ "CASCADE_SIZE_G", "classSsiCmdMaster.html#a31a355d906cee42ab616166f8c148e6f", null ],
-    [ "FIFO_ADDR_WIDTH_G", "classSsiCmdMaster.html#ae7b26856f669be80e8be35d1897b340d", null ],
-    [ "FIFO_FIXED_THRESH_G", "classSsiCmdMaster.html#a4f9ee2aeaddcc8d62ed0c6783729071f", null ],
-    [ "FIFO_PAUSE_THRESH_G", "classSsiCmdMaster.html#af8f7a7125eb943d9ab8e822358681fca", null ],
-    [ "AXI_STREAM_CONFIG_G", "classSsiCmdMaster.html#a7ef302466c6893932a850d89f934e8cf", null ],
-    [ "axisClk", "classSsiCmdMaster.html#a349f7bd21af748e087092a89a5fdc1a9", null ],
-    [ "axisRst", "classSsiCmdMaster.html#a03bcdbbc5e8297a1ad60e76a90b25b8f", null ],
-    [ "sAxisMaster", "classSsiCmdMaster.html#ab3957a6492b84f9bdb996a789151584e", null ],
-    [ "sAxisSlave", "classSsiCmdMaster.html#afbb043b74a7f8cbca93ff3d11a715e6f", null ],
-    [ "sAxisCtrl", "classSsiCmdMaster.html#adef1df44881e19a037e692217098e7e5", null ],
-    [ "cmdClk", "classSsiCmdMaster.html#ab056424ba2a8dade6b990eec03693f33", null ],
-    [ "cmdRst", "classSsiCmdMaster.html#a3b6cd3b70f0ae909414482d27c7599ea", null ],
-    [ "cmdMaster", "classSsiCmdMaster.html#a6c7c2c07437aa1319e55d7837d2a0932", null ],
-    [ "ieee", "classSsiCmdMaster.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSsiCmdMaster.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSsiCmdMaster.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSsiCmdMaster.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSsiCmdMaster.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSsiCmdMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classSsiCmdMaster.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classSsiCmdMaster.html#a8b54e22b2a07048034b61d5e4ba396e3", null ],
-    [ "SsiCmdMasterPkg", "classSsiCmdMaster.html#a18dc1d62ff093745f12807b0b3a3cf77", null ]
+    [ "SsiCmdMaster.rtl", "classSsiCmdMaster_1_1rtl.html", null ]
 ];

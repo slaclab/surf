@@ -1,25 +1,4 @@
 var classSugoiManagerRx7Series =
 [
-    [ "SugoiManagerRx7Series.mapping", "classSugoiManagerRx7Series_1_1mapping.html", "classSugoiManagerRx7Series_1_1mapping" ],
-    [ "TPD_G", "classSugoiManagerRx7Series.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DIFF_PAIR_G", "classSugoiManagerRx7Series.html#a5cd9e782e983a3ef1a3f5d1479fb22c5", null ],
-    [ "DEVICE_FAMILY_G", "classSugoiManagerRx7Series.html#afc051661248d850a4d29ce3cdc8b5b99", null ],
-    [ "IODELAY_GROUP_G", "classSugoiManagerRx7Series.html#a8af78dcb8fff516ade6df9ab1ef9540f", null ],
-    [ "REF_FREQ_G", "classSugoiManagerRx7Series.html#a692ea4dce361060d845c41fae8e0dd8b", null ],
-    [ "clk", "classSugoiManagerRx7Series.html#ad07fa28313b5c632d04fd105e17ea215", null ],
-    [ "rst", "classSugoiManagerRx7Series.html#a8921738510fc3eaa5567eecb772dfe99", null ],
-    [ "rxP", "classSugoiManagerRx7Series.html#a8043a7cf00c26eb88b27c2f379597764", null ],
-    [ "rxN", "classSugoiManagerRx7Series.html#aa34e6d589ad550740c072b992ba475af", null ],
-    [ "dlyLoad", "classSugoiManagerRx7Series.html#a742614a834c8553d859158eb39e81512", null ],
-    [ "dlyCfg", "classSugoiManagerRx7Series.html#a4110fd8ae9f28cc7c361daa7dcf5e2e9", null ],
-    [ "inv", "classSugoiManagerRx7Series.html#a11efd68d236017d13edfe6d6ce201051", null ],
-    [ "rx", "classSugoiManagerRx7Series.html#a90da307f1223fcb55a6b5bc141ed7070", null ],
-    [ "ieee", "classSugoiManagerRx7Series.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSugoiManagerRx7Series.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSugoiManagerRx7Series.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSugoiManagerRx7Series.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSugoiManagerRx7Series.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSugoiManagerRx7Series.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "unisim", "classSugoiManagerRx7Series.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classSugoiManagerRx7Series.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "SugoiManagerRx7Series.mapping", "classSugoiManagerRx7Series_1_1mapping.html", null ]
 ];

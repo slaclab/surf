@@ -1,30 +1,4 @@
 var classAxiMonAxiL =
 [
-    [ "mapping", "classAxiMonAxiL_1_1mapping.html", "classAxiMonAxiL_1_1mapping" ],
-    [ "TPD_G", "classAxiMonAxiL.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "COMMON_CLK_G", "classAxiMonAxiL.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "AXI_CLK_FREQ_G", "classAxiMonAxiL.html#a79f1a2665e15ca5f4f57a72bc50ed859", null ],
-    [ "AXI_NUM_SLOTS_G", "classAxiMonAxiL.html#a91eae90a91bd2d209494669cef7ac44d", null ],
-    [ "AXI_CONFIG_G", "classAxiMonAxiL.html#a4b8cc687be8cf49c633e3992397c1112", null ],
-    [ "axiClk", "classAxiMonAxiL.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiMonAxiL.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiWriteMasters", "classAxiMonAxiL.html#ae66be87556d4e035ca0ee5a783ca4da5", null ],
-    [ "axiWriteSlaves", "classAxiMonAxiL.html#a9f6f76c14ae96d0e2f70515516e1287f", null ],
-    [ "axiReadMasters", "classAxiMonAxiL.html#afc29f36e76eff3ae0011e8d46b293267", null ],
-    [ "axiReadSlaves", "classAxiMonAxiL.html#aa2b1bb26d337bfd3a8f9425d48abf6e4", null ],
-    [ "axilClk", "classAxiMonAxiL.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classAxiMonAxiL.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "sAxilWriteMaster", "classAxiMonAxiL.html#a0d5e979080f135b0d0537a2d337b414b", null ],
-    [ "sAxilWriteSlave", "classAxiMonAxiL.html#a698648825e1bc380a9868ad8f9487062", null ],
-    [ "sAxilReadMaster", "classAxiMonAxiL.html#a48ba6b20ab8d354225b61179d7102e8b", null ],
-    [ "sAxilReadSlave", "classAxiMonAxiL.html#a785a6909860777c8c366fd47986b564e", null ],
-    [ "ieee", "classAxiMonAxiL.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiMonAxiL.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classAxiMonAxiL.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classAxiMonAxiL.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classAxiMonAxiL.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiMonAxiL.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classAxiMonAxiL.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "AxiLitePkg", "classAxiMonAxiL.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiPkg", "classAxiMonAxiL.html#a2265afb78be50b98531f22e9da258a54", null ]
+    [ "AxiMonAxiL.mapping", "classAxiMonAxiL_1_1mapping.html", null ]
 ];

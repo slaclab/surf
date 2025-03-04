@@ -1,27 +1,4 @@
 var classLeapXcvrCore =
 [
-    [ "rtl", "classLeapXcvrCore_1_1rtl.html", "classLeapXcvrCore_1_1rtl" ],
-    [ "TPD_G", "classLeapXcvrCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "I2C_BASE_ADDR_G", "classLeapXcvrCore.html#a143c444f14b092a511712365a430a400", null ],
-    [ "I2C_SCL_FREQ_G", "classLeapXcvrCore.html#aca6b9d0b4ebd6f11c0455b3b8c31060a", null ],
-    [ "I2C_MIN_PULSE_G", "classLeapXcvrCore.html#a99a13de643e08234d5db9127e1f5cfbd", null ],
-    [ "AXIL_CLK_FREQ_G", "classLeapXcvrCore.html#a1b61d1e484610b74c52c5083abea426f", null ],
-    [ "i2ci", "classLeapXcvrCore.html#a208793c438355a4d1c72fb1ec6702091", null ],
-    [ "i2co", "classLeapXcvrCore.html#aec1b76c1945a1caf975ecf3346a3668d", null ],
-    [ "intL", "classLeapXcvrCore.html#a9217baa4eb8f16652cf69ee07fa2b3be", null ],
-    [ "rstL", "classLeapXcvrCore.html#a038c0ecbf078e731cba620b65be8a9d9", null ],
-    [ "axilReadMaster", "classLeapXcvrCore.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classLeapXcvrCore.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classLeapXcvrCore.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classLeapXcvrCore.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "axilClk", "classLeapXcvrCore.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classLeapXcvrCore.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "ieee", "classLeapXcvrCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classLeapXcvrCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classLeapXcvrCore.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classLeapXcvrCore.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classLeapXcvrCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classLeapXcvrCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classLeapXcvrCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "I2cPkg", "classLeapXcvrCore.html#a3345a70e845069bf678d5aa1733529b6", null ]
+    [ "LeapXcvrCore.rtl", "classLeapXcvrCore_1_1rtl.html", null ]
 ];

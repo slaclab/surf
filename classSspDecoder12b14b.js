@@ -1,30 +1,4 @@
 var classSspDecoder12b14b =
 [
-    [ "SspDecoder12b14b.rtl", "classSspDecoder12b14b_1_1rtl.html", "classSspDecoder12b14b_1_1rtl" ],
-    [ "TPD_G", "classSspDecoder12b14b.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_POLARITY_G", "classSspDecoder12b14b.html#a7b640ec62d16a3d85e7b3acd99dccfe4", null ],
-    [ "RST_ASYNC_G", "classSspDecoder12b14b.html#ae8817c0f916c48f6139465bb25295269", null ],
-    [ "BRK_FRAME_ON_ERROR_G", "classSspDecoder12b14b.html#a8703301477e5cb3e51a3701e3c17e968", null ],
-    [ "clk", "classSspDecoder12b14b.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSspDecoder12b14b.html#ac2534a1f3b8e6e34ba81e3ba59a9c097", null ],
-    [ "validIn", "classSspDecoder12b14b.html#acdc9c7d923bf1fb10bfb9f11e08d7344", null ],
-    [ "gearboxAligned", "classSspDecoder12b14b.html#a7517de419216991f328aa96443d1f046", null ],
-    [ "dataIn", "classSspDecoder12b14b.html#ae57bb347c4ef3add48ae8a4ebda87e48", null ],
-    [ "validOut", "classSspDecoder12b14b.html#ad212deec02d3a320256bf0ed7481eb84", null ],
-    [ "dataOut", "classSspDecoder12b14b.html#ad4fca02e6f7c5b2be5d7c76d7d8b4070", null ],
-    [ "errorOut", "classSspDecoder12b14b.html#a3c8a7be3674d7e0c878108dc743836a6", null ],
-    [ "sof", "classSspDecoder12b14b.html#acff4238ad0e07f99be3fc3360564dd1e", null ],
-    [ "eof", "classSspDecoder12b14b.html#a1b0feff11be83dcd55cf4d05caea1916", null ],
-    [ "eofe", "classSspDecoder12b14b.html#a5c053ee3c9113d5206b24461b987c8e3", null ],
-    [ "idleCode", "classSspDecoder12b14b.html#ac1cd0dd2eb6d236278fd7d688ab8c2f0", null ],
-    [ "validDec", "classSspDecoder12b14b.html#ad96615ce0673aff3e9cd40dd0687287c", null ],
-    [ "codeError", "classSspDecoder12b14b.html#aab5ceb6f6c8acd1e99ba1acd758d5d85", null ],
-    [ "dispError", "classSspDecoder12b14b.html#ad6159f35004a8aa68ed0c4f634c3ca0c", null ],
-    [ "ieee", "classSspDecoder12b14b.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSspDecoder12b14b.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "STD_LOGIC_UNSIGNED", "classSspDecoder12b14b.html#a241c3e72dd8024cc8ae831b1b2aed7db", null ],
-    [ "STD_LOGIC_ARITH", "classSspDecoder12b14b.html#a5d8c1f7c620a51582be96d2a58d40293", null ],
-    [ "surf", "classSspDecoder12b14b.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSspDecoder12b14b.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "Code12b14bPkg", "classSspDecoder12b14b.html#a0018217e3290ee7b5068acba73d48d26", null ]
+    [ "SspDecoder12b14b.rtl", "classSspDecoder12b14b_1_1rtl.html", null ]
 ];

@@ -1,12 +1,24 @@
 <map id="EventFrameSequencerTb" name="EventFrameSequencerTb">
-<area shape="rect" id="node1" title=" " alt="" coords="613,132,797,159"/>
-<area shape="rect" id="node2" href="$classSlaveAxiStreamIpIntegrator.html" title=" " alt="" coords="357,5,559,32"/>
-<area shape="rect" id="node3" href="$classRstSync.html" title=" " alt="" coords="194,56,269,83"/>
-<area shape="rect" id="node5" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="353,56,563,83"/>
-<area shape="rect" id="node6" href="$classSlaveAxiLiteIpIntegrator.html" title=" " alt="" coords="369,107,547,133"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="5,56,112,83"/>
-<area shape="rect" id="node7" href="$classAxiLiteCrossbar.html" title=" " alt="" coords="396,157,520,184"/>
-<area shape="rect" id="node8" href="$classEventFrameSequencerMux.html" title=" " alt="" coords="360,208,556,235"/>
-<area shape="rect" id="node9" href="$classAxiStreamPipeline.html" title=" " alt="" coords="160,233,303,260"/>
-<area shape="rect" id="node10" href="$classEventFrameSequencerDemux.html" title=" " alt="" coords="351,259,565,285"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="613,129,797,155"/>
+<area shape="rect" id="Node000002" href="$classSlaveAxiStreamIpIntegrator.html" title=" " alt="" coords="357,5,559,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="548,32,566,40,604,60,639,84,692,127,689,131,636,88,601,65,564,44,546,37"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="194,55,269,80"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="282,54,398,28,399,33,283,59"/>
+<area shape="rect" id="Node000005" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="353,55,563,80"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="283,65,352,65,352,70,283,70"/>
+<area shape="rect" id="Node000006" href="$classSlaveAxiLiteIpIntegrator.html" title=" " alt="" coords="369,104,547,129"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="283,76,399,101,398,107,282,81"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="5,55,112,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="126,65,194,65,194,70,126,70"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="536,81,566,89,673,127,672,132,565,94,534,86"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="562,125,614,130,613,135,561,130"/>
+<area shape="rect" id="Node000007" href="$classAxiLiteCrossbar.html" title=" " alt="" coords="396,153,520,179"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="534,156,613,148,613,154,534,161"/>
+<area shape="rect" id="Node000008" href="$classEventFrameSequencerMux.html" title=" " alt="" coords="360,203,556,228"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="530,197,565,187,669,152,671,157,566,193,531,202"/>
+<area shape="rect" id="Node000009" href="$classAxiStreamPipeline.html" title=" " alt="" coords="160,227,303,252"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="316,228,360,223,360,228,317,233"/>
+<area shape="rect" id="Node000010" href="$classEventFrameSequencerDemux.html" title=" " alt="" coords="351,252,565,277"/>
+<area shape="poly" id="edge12_Node000010_Node000009" title=" " alt="" coords="317,246,351,250,350,255,316,251"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="545,246,564,238,601,218,636,195,689,153,692,157,639,199,604,223,566,243,547,251"/>
 </map>

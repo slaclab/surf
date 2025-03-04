@@ -1,25 +1,4 @@
 var classSfixedAccumulator =
 [
-    [ "SfixedAccumulator.rtl", "classSfixedAccumulator_1_1rtl.html", "classSfixedAccumulator_1_1rtl" ],
-    [ "TPD_G", "classSfixedAccumulator.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "XIL_DEVICE_G", "classSfixedAccumulator.html#a2d5ae27b1435832559ea71a9a2d1ecd5", null ],
-    [ "ILEAVE_CHAN_G", "classSfixedAccumulator.html#a5e845aa2d8840ece33396d1354ade716", null ],
-    [ "USER_WIDTH_G", "classSfixedAccumulator.html#a6d30deffbb39398c10188a863a29649a", null ],
-    [ "REG_IN_G", "classSfixedAccumulator.html#a324ad1162f39060b4c61a55cdda2d6c2", null ],
-    [ "REG_OUT_G", "classSfixedAccumulator.html#acaeeaec962a74ce7d65f4e7dea17cd7a", null ],
-    [ "clk", "classSfixedAccumulator.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSfixedAccumulator.html#a8921738510fc3eaa5567eecb772dfe99", null ],
-    [ "validIn", "classSfixedAccumulator.html#a3d2087cab82b7024f265adc3b4eb626f", null ],
-    [ "userIn", "classSfixedAccumulator.html#a24c97410898cfa439fd633594dab3ba7", null ],
-    [ "din", "classSfixedAccumulator.html#aaa04b1f58c231b4ac5ba10bc5f76d1ff", null ],
-    [ "validOut", "classSfixedAccumulator.html#ad212deec02d3a320256bf0ed7481eb84", null ],
-    [ "userOut", "classSfixedAccumulator.html#a0a3c6427de12a22aca3e0df94ad3d456", null ],
-    [ "dout", "classSfixedAccumulator.html#a93106d98ddf4b608eda7fb1b0ab9dabd", null ],
-    [ "ieee", "classSfixedAccumulator.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSfixedAccumulator.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classSfixedAccumulator.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "fixed_pkg", "classSfixedAccumulator.html#aad86249c80e8c1e7ee1c4748aba748e3", null ],
-    [ "fixed_float_types", "classSfixedAccumulator.html#a824691d871b9db6a0485012e2e32bd88", null ],
-    [ "surf", "classSfixedAccumulator.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSfixedAccumulator.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "SfixedAccumulator.rtl", "classSfixedAccumulator_1_1rtl.html", null ]
 ];

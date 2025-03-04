@@ -1,5 +1,8 @@
 <map id="HtspTx" name="HtspTx">
-<area shape="rect" id="node1" title=" " alt="" coords="43,155,111,181"/>
-<area shape="rect" id="node2" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,5,148,32"/>
-<area shape="rect" id="node3" href="$classAxiStreamMux.html" title=" " alt="" coords="67,80,185,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="43,152,111,177"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,5,148,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,44,58,79,57,99,61,119,73,151,68,153,56,120,52,99,53,78,63,43"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamMux.html" title=" " alt="" coords="67,79,185,104"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="95,41,120,77,116,80,90,44"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="112,117,87,153,82,150,108,114"/>
 </map>

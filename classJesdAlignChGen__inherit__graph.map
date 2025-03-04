@@ -1,7 +1,11 @@
 <map id="JesdAlignChGen" name="JesdAlignChGen">
-<area shape="rect" id="node1" title=" " alt="" coords="54,5,179,32"/>
-<area shape="rect" id="node2" href="$classJesdTxLane.html" title=" " alt="" coords="69,80,165,107"/>
-<area shape="rect" id="node3" href="$classJesd204bTx.html" title=" " alt="" coords="5,155,103,181"/>
-<area shape="rect" id="node5" href="$classScramblerTb.html" title=" " alt="" coords="127,155,231,181"/>
-<area shape="rect" id="node4" href="$classJesd204bTb.html" title=" " alt="" coords="5,229,103,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,5,179,31"/>
+<area shape="rect" id="Node000002" href="$classJesdTxLane.html" title=" " alt="" coords="69,79,165,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,44,119,79,114,79,114,44"/>
+<area shape="rect" id="Node000003" href="$classJesd204bTx.html" title=" " alt="" coords="5,152,103,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,116,66,154,62,150,95,113"/>
+<area shape="rect" id="Node000005" href="$classScramblerTb.html" title=" " alt="" coords="127,152,231,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="138,113,171,150,167,154,134,116"/>
+<area shape="rect" id="Node000004" href="$classJesd204bTb.html" title=" " alt="" coords="5,225,103,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="57,191,57,225,51,225,51,191"/>
 </map>

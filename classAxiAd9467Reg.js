@@ -1,27 +1,4 @@
 var classAxiAd9467Reg =
 [
-    [ "rtl", "classAxiAd9467Reg_1_1rtl.html", "classAxiAd9467Reg_1_1rtl" ],
-    [ "TPD_G", "classAxiAd9467Reg.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DEMUX_INIT_G", "classAxiAd9467Reg.html#aaefb524b591fc1f6214806e1685e7eb6", null ],
-    [ "DELAY_INIT_G", "classAxiAd9467Reg.html#af83ef121c3ef2c5ed85c5fa547529806", null ],
-    [ "STATUS_CNT_WIDTH_G", "classAxiAd9467Reg.html#a97c9475180efd2e99c23c2ce89b2bbe5", null ],
-    [ "axiClk", "classAxiAd9467Reg.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiAd9467Reg.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiReadMaster", "classAxiAd9467Reg.html#a1d63971a652e14fcce650dc83a10748b", null ],
-    [ "axiReadSlave", "classAxiAd9467Reg.html#ae9544f9e76e04ca0e738e7711a3521e1", null ],
-    [ "axiWriteMaster", "classAxiAd9467Reg.html#a32ecafc2c76c2f2b6b4acf7491053c0c", null ],
-    [ "axiWriteSlave", "classAxiAd9467Reg.html#a5a0a1d44f5be50fd974bf6f143a2cb60", null ],
-    [ "status", "classAxiAd9467Reg.html#a34562277c23382f05d038dbd3ef00706", null ],
-    [ "config", "classAxiAd9467Reg.html#a5a93b03be3dad613224fe016ca0de345", null ],
-    [ "adcClk", "classAxiAd9467Reg.html#a614d64248936dbd67a599fc97225b306", null ],
-    [ "adcRst", "classAxiAd9467Reg.html#a42fd74e09574c28e5d55938243b1721d", null ],
-    [ "refClk200MHz", "classAxiAd9467Reg.html#a5d206f22498eae09ab697cb6ddaa11e1", null ],
-    [ "ieee", "classAxiAd9467Reg.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiAd9467Reg.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiAd9467Reg.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiAd9467Reg.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiAd9467Reg.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiAd9467Reg.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiAd9467Reg.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiAd9467Pkg", "classAxiAd9467Reg.html#ac781ddb975155a24a80c03af77271170", null ]
+    [ "AxiAd9467Reg.rtl", "classAxiAd9467Reg_1_1rtl.html", null ]
 ];

@@ -1,8 +1,13 @@
 <map id="CoaXPressRxWordPacker" name="CoaXPressRxWordPacker">
-<area shape="rect" id="node1" title=" " alt="" coords="119,5,301,32"/>
-<area shape="rect" id="node2" href="$classCoaXPressRxHsFsm.html" title=" " alt="" coords="133,80,287,107"/>
-<area shape="rect" id="node3" href="$classCoaXPressRx.html" title=" " alt="" coords="156,155,264,181"/>
-<area shape="rect" id="node4" href="$classCoaXPressCore.html" title=" " alt="" coords="149,229,271,256"/>
-<area shape="rect" id="node5" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,304,199,331"/>
-<area shape="rect" id="node6" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,304,416,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="119,5,301,31"/>
+<area shape="rect" id="Node000002" href="$classCoaXPressRxHsFsm.html" title=" " alt="" coords="133,79,287,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,44,213,79,207,79,207,44"/>
+<area shape="rect" id="Node000003" href="$classCoaXPressRx.html" title=" " alt="" coords="156,152,264,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="213,118,213,152,207,152,207,118"/>
+<area shape="rect" id="Node000004" href="$classCoaXPressCore.html" title=" " alt="" coords="149,225,271,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="213,191,213,225,207,225,207,191"/>
+<area shape="rect" id="Node000005" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,299,199,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="183,260,121,301,118,296,180,256"/>
+<area shape="rect" id="Node000006" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,299,416,324"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="240,256,303,296,300,301,238,260"/>
 </map>

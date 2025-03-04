@@ -1,8 +1,13 @@
 <map id="ClinkUartThrottle" name="ClinkUartThrottle">
-<area shape="rect" id="node1" title=" " alt="" coords="100,5,235,32"/>
-<area shape="rect" id="node2" href="$classClinkUart.html" title=" " alt="" coords="126,80,209,107"/>
-<area shape="rect" id="node3" href="$classClinkCtrl.html" title=" " alt="" coords="5,155,84,181"/>
-<area shape="rect" id="node5" href="$classClinkFramerTb.html" title=" " alt="" coords="109,155,226,181"/>
-<area shape="rect" id="node6" href="$classClinkUartTb.html" title=" " alt="" coords="250,155,349,181"/>
-<area shape="rect" id="node4" href="$classClinkTop.html" title=" " alt="" coords="6,229,83,256"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,235,31"/>
+<area shape="rect" id="Node000002" href="$classClinkUart.html" title=" " alt="" coords="126,79,209,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,44,170,79,165,79,165,44"/>
+<area shape="rect" id="Node000003" href="$classClinkCtrl.html" title=" " alt="" coords="5,152,84,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="137,113,66,154,63,149,135,108"/>
+<area shape="rect" id="Node000005" href="$classClinkFramerTb.html" title=" " alt="" coords="109,152,226,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="170,118,170,152,165,152,165,118"/>
+<area shape="rect" id="Node000006" href="$classClinkUartTb.html" title=" " alt="" coords="250,152,349,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="202,108,279,149,276,154,199,113"/>
+<area shape="rect" id="Node000004" href="$classClinkTop.html" title=" " alt="" coords="6,225,83,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="47,191,47,225,42,225,42,191"/>
 </map>

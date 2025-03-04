@@ -1,9 +1,15 @@
 <map id="AxiLiteMasterProxy" name="AxiLiteMasterProxy">
-<area shape="rect" id="node1" title=" " alt="" coords="148,80,297,107"/>
-<area shape="rect" id="node3" href="$classAxiI2cEeprom.html" title=" " alt="" coords="5,155,117,181"/>
-<area shape="rect" id="node4" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="141,155,304,181"/>
-<area shape="rect" id="node7" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="328,155,499,181"/>
-<area shape="rect" id="node2" href="$classAxiLiteMaster.html" title=" " alt="" coords="167,5,279,32"/>
-<area shape="rect" id="node5" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="157,229,289,256"/>
-<area shape="rect" id="node6" href="$classSff8472.html" title=" " alt="" coords="187,304,258,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="148,79,297,104"/>
+<area shape="rect" id="Node000003" href="$classAxiI2cEeprom.html" title=" " alt="" coords="5,152,117,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,112,89,154,87,149,183,107"/>
+<area shape="rect" id="Node000004" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="141,152,304,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="225,118,225,152,220,152,220,118"/>
+<area shape="rect" id="Node000007" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="328,152,499,177"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="267,106,383,149,381,154,265,111"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteMaster.html" title=" " alt="" coords="167,5,279,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,44,225,79,220,79,220,44"/>
+<area shape="rect" id="Node000005" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="157,225,289,251"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="225,191,225,225,220,225,220,191"/>
+<area shape="rect" id="Node000006" href="$classSff8472.html" title=" " alt="" coords="187,299,258,324"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="225,264,225,299,220,299,220,264"/>
 </map>

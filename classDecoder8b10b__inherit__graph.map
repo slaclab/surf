@@ -1,33 +1,64 @@
 <map id="Decoder8b10b" name="Decoder8b10b">
-<area shape="rect" id="node1" title=" " alt="" coords="5,183,121,209"/>
-<area shape="rect" id="node2" href="$classLineCode8b10bTb.html" title=" " alt="" coords="183,5,322,32"/>
-<area shape="rect" id="node3" href="$classSspDecoder8b10b.html" title=" " alt="" coords="183,56,322,83"/>
-<area shape="rect" id="node12" href="$classSugoiManagerCore.html" title=" " alt="" coords="180,107,325,133"/>
-<area shape="rect" id="node14" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="169,157,336,184"/>
-<area shape="rect" id="node16" href="$classPgpParallelSimModel.html" title=" " alt="" coords="173,208,332,235"/>
-<area shape="rect" id="node17" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="181,259,325,285"/>
-<area shape="rect" id="node19" href="$classPgp2bGtp7FixedLat.html" title=" " alt="" coords="179,309,326,336"/>
-<area shape="rect" id="node21" href="$classPgp2bGtx7Fixedlat.html" title=" " alt="" coords="181,360,325,387"/>
-<area shape="rect" id="node25" href="$classPgp2fcGtp7.html" title=" " alt="" coords="204,411,301,437"/>
-<area shape="rect" id="node27" href="$classSaltRxLvds.html" title=" " alt="" coords="205,461,300,488"/>
-<area shape="rect" id="node30" href="$classGtp16FixedLatCore.html" title=" " alt="" coords="180,512,325,539"/>
-<area shape="rect" id="node31" href="$classGtpDualFixedLatCore.html" title=" " alt="" coords="173,563,332,589"/>
-<area shape="rect" id="node4" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="408,5,563,32"/>
-<area shape="rect" id="node5" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="409,56,562,83"/>
-<area shape="rect" id="node6" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="387,107,583,133"/>
-<area shape="rect" id="node7" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="658,30,871,71"/>
-<area shape="rect" id="node8" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="658,95,871,137"/>
-<area shape="rect" id="node9" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="635,161,895,188"/>
-<area shape="rect" id="node10" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="943,136,1219,163"/>
-<area shape="rect" id="node11" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="983,187,1178,213"/>
-<area shape="rect" id="node13" href="$classSugoiTopTb.html" title=" " alt="" coords="717,212,813,239"/>
-<area shape="rect" id="node15" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="385,208,586,235"/>
-<area shape="rect" id="node18" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="384,259,587,285"/>
-<area shape="rect" id="node20" href="$classPgp2bGtp7FixedLatWrapper.html" title=" " alt="" coords="384,309,587,336"/>
-<area shape="rect" id="node22" href="$classPgp2bGtx7FixedLatWrapper.html" title=" " alt="" coords="384,360,587,387"/>
-<area shape="rect" id="node23" href="$classPgp2bGtx7FixedLatTb.html" title=" " alt="" coords="683,335,846,361"/>
-<area shape="rect" id="node24" href="$classPgp2bGtx7FixedLatWrapperTb.html" title=" " alt="" coords="655,385,874,412"/>
-<area shape="rect" id="node26" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="409,411,561,437"/>
-<area shape="rect" id="node28" href="$classSaltCore.html" title=" " alt="" coords="447,461,524,488"/>
-<area shape="rect" id="node29" href="$classSaltCoreTb.html" title=" " alt="" coords="718,461,811,488"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,329,121,355"/>
+<area shape="rect" id="Node000002" href="$classLineCode8b10bTb.html" title=" " alt="" coords="183,55,322,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,314,75,266,94,206,124,143,144,115,168,89,185,78,188,82,171,93,148,118,128,146,99,208,81,268,71,316"/>
+<area shape="rect" id="Node000003" href="$classSspDecoder8b10b.html" title=" " alt="" coords="183,104,322,129"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="70,315,83,278,104,233,132,187,168,147,201,127,204,132,171,151,136,190,108,236,88,280,75,317"/>
+<area shape="rect" id="Node000012" href="$classSugoiManagerCore.html" title=" " alt="" coords="413,155,558,180"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="72,315,86,285,107,250,134,217,168,190,197,176,229,166,293,154,356,151,412,154,412,159,356,156,294,159,230,171,199,181,171,195,138,221,111,253,91,288,77,318"/>
+<area shape="rect" id="Node000014" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="169,205,336,231"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="81,317,119,277,168,240,194,228,196,233,171,244,122,281,85,320"/>
+<area shape="rect" id="Node000016" href="$classPgpParallelSimModel.html" title=" " alt="" coords="173,255,332,280"/>
+<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="99,320,168,289,202,278,204,283,170,294,102,325"/>
+<area shape="rect" id="Node000017" href="$classPgp2bGth7Fixedlat.html" title=" " alt="" coords="181,304,325,329"/>
+<area shape="poly" id="edge17_Node000001_Node000017" title=" " alt="" coords="135,330,180,324,181,329,135,335"/>
+<area shape="rect" id="Node000019" href="$classPgp2bGtp7FixedLat.html" title=" " alt="" coords="179,353,326,379"/>
+<area shape="poly" id="edge19_Node000001_Node000019" title=" " alt="" coords="136,348,179,354,179,359,135,354"/>
+<area shape="rect" id="Node000021" href="$classPgp2bGtx7Fixedlat.html" title=" " alt="" coords="181,403,325,428"/>
+<area shape="poly" id="edge21_Node000001_Node000021" title=" " alt="" coords="103,358,170,388,207,400,205,405,168,392,101,363"/>
+<area shape="rect" id="Node000025" href="$classPgp2fcGtp7.html" title=" " alt="" coords="204,452,301,477"/>
+<area shape="poly" id="edge25_Node000001_Node000025" title=" " alt="" coords="86,363,123,401,171,437,205,451,203,456,168,442,119,405,82,367"/>
+<area shape="rect" id="Node000027" href="$classSaltRxLvds.html" title=" " alt="" coords="205,501,300,527"/>
+<area shape="poly" id="edge27_Node000001_Node000027" title=" " alt="" coords="78,366,114,427,140,460,171,488,206,504,204,509,168,492,136,464,109,430,73,368"/>
+<area shape="rect" id="Node000030" href="$classGtp16FixedLatCore.html" title=" " alt="" coords="180,551,325,576"/>
+<area shape="poly" id="edge30_Node000001_Node000030" title=" " alt="" coords="74,367,86,405,106,451,134,498,171,537,190,548,187,553,168,541,130,501,102,454,81,407,69,369"/>
+<area shape="rect" id="Node000031" href="$classGtpDualFixedLatCore.html" title=" " alt="" coords="173,600,332,625"/>
+<area shape="poly" id="edge31_Node000001_Node000031" title=" " alt="" coords="71,368,81,415,99,474,129,535,148,562,171,587,188,598,185,602,168,591,144,566,124,538,94,476,76,417,66,369"/>
+<area shape="rect" id="Node000004" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="408,5,563,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="320,96,335,89,349,77,358,65,367,52,383,40,409,28,411,33,385,44,371,56,362,68,353,81,337,94,323,101"/>
+<area shape="rect" id="Node000005" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="409,55,562,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="326,99,424,77,425,83,327,104"/>
+<area shape="rect" id="Node000006" href="$classSspLowSpeedDecoderLane.html" title=" " alt="" coords="387,104,583,129"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="336,114,387,114,387,119,336,119"/>
+<area shape="rect" id="Node000007" href="$classSspLowSpeedDecoder10b12bWrapper.html" title=" " alt="" coords="658,27,871,67"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="550,98,634,77,682,65,683,70,635,82,551,103"/>
+<area shape="rect" id="Node000008" href="$classSspLowSpeedDecoder12b14bWrapper.html" title=" " alt="" coords="658,91,871,131"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="597,112,658,111,658,116,597,117"/>
+<area shape="rect" id="Node000009" href="$classSspLowSpeedDecoder8b10bWrapper.html" title=" " alt="" coords="635,156,895,181"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="568,129,696,153,695,159,567,135"/>
+<area shape="rect" id="Node000010" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="943,132,1219,157"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="908,155,942,152,943,158,908,160"/>
+<area shape="rect" id="Node000011" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="983,181,1178,207"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="909,178,983,184,983,189,908,183"/>
+<area shape="rect" id="Node000013" href="$classSugoiTopTb.html" title=" " alt="" coords="717,205,813,231"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="570,180,717,207,716,212,569,185"/>
+<area shape="rect" id="Node000015" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="385,205,586,231"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="350,215,385,215,385,221,350,221"/>
+<area shape="poly" id="edge15_Node000015_Node000013" title=" " alt="" coords="600,215,717,215,717,221,600,221"/>
+<area shape="rect" id="Node000018" href="$classPgp2bGth7FixedLatWrapper.html" title=" " alt="" coords="384,304,587,329"/>
+<area shape="poly" id="edge18_Node000017_Node000018" title=" " alt="" coords="338,314,384,314,384,319,338,319"/>
+<area shape="rect" id="Node000020" href="$classPgp2bGtp7FixedLatWrapper.html" title=" " alt="" coords="384,353,587,379"/>
+<area shape="poly" id="edge20_Node000019_Node000020" title=" " alt="" coords="340,363,384,363,384,369,340,369"/>
+<area shape="rect" id="Node000022" href="$classPgp2bGtx7FixedLatWrapper.html" title=" " alt="" coords="384,403,587,428"/>
+<area shape="poly" id="edge22_Node000021_Node000022" title=" " alt="" coords="338,413,384,413,384,418,338,418"/>
+<area shape="rect" id="Node000023" href="$classPgp2bGtx7FixedLatTb.html" title=" " alt="" coords="683,377,846,403"/>
+<area shape="poly" id="edge23_Node000022_Node000023" title=" " alt="" coords="600,402,683,395,684,400,601,408"/>
+<area shape="rect" id="Node000024" href="$classPgp2bGtx7FixedLatWrapperTb.html" title=" " alt="" coords="655,427,874,452"/>
+<area shape="poly" id="edge24_Node000022_Node000024" title=" " alt="" coords="601,423,655,427,655,433,600,428"/>
+<area shape="rect" id="Node000026" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="409,452,561,477"/>
+<area shape="poly" id="edge26_Node000025_Node000026" title=" " alt="" coords="315,462,409,462,409,467,315,467"/>
+<area shape="rect" id="Node000028" href="$classSaltCore.html" title=" " alt="" coords="447,501,524,527"/>
+<area shape="poly" id="edge28_Node000027_Node000028" title=" " alt="" coords="314,511,447,511,447,517,314,517"/>
+<area shape="rect" id="Node000029" href="$classSaltCoreTb.html" title=" " alt="" coords="718,501,811,527"/>
+<area shape="poly" id="edge29_Node000028_Node000029" title=" " alt="" coords="538,511,718,511,718,517,538,517"/>
 </map>

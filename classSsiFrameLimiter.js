@@ -1,32 +1,4 @@
 var classSsiFrameLimiter =
 [
-    [ "SsiFrameLimiter.rtl", "classSsiFrameLimiter_1_1rtl.html", "classSsiFrameLimiter_1_1rtl" ],
-    [ "TPD_G", "classSsiFrameLimiter.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_ASYNC_G", "classSsiFrameLimiter.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "EN_TIMEOUT_G", "classSsiFrameLimiter.html#af946eea8e5f67097c17cd3fe4eb2de3a", null ],
-    [ "MAXIS_CLK_FREQ_G", "classSsiFrameLimiter.html#a6e293c76d39b33e34da4291c9dbd9483", null ],
-    [ "TIMEOUT_G", "classSsiFrameLimiter.html#af7ab9d9e5b66e6a7fecdc5a3cdc10104", null ],
-    [ "FRAME_LIMIT_G", "classSsiFrameLimiter.html#a4b24278e575eb9e550ad5a39359d03e7", null ],
-    [ "COMMON_CLK_G", "classSsiFrameLimiter.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "SLAVE_FIFO_G", "classSsiFrameLimiter.html#a14219a96fd9c9794aa25cba169354bb4", null ],
-    [ "MASTER_FIFO_G", "classSsiFrameLimiter.html#ab071d5ae58499641ff4348b5e37f238f", null ],
-    [ "SLAVE_READY_EN_G", "classSsiFrameLimiter.html#ad99068d18bf705556401fd63f301eade", null ],
-    [ "SLAVE_AXI_CONFIG_G", "classSsiFrameLimiter.html#a8012136b1c3cc20da6c0451e06c47701", null ],
-    [ "MASTER_AXI_CONFIG_G", "classSsiFrameLimiter.html#acb32b29bba5639b73f5764e61b2450e6", null ],
-    [ "sAxisClk", "classSsiFrameLimiter.html#a0f214248a2fbec9cce0f8491e571905e", null ],
-    [ "sAxisRst", "classSsiFrameLimiter.html#a26406048f968fcf75d601b8954f81cce", null ],
-    [ "sAxisMaster", "classSsiFrameLimiter.html#ab3957a6492b84f9bdb996a789151584e", null ],
-    [ "sAxisSlave", "classSsiFrameLimiter.html#afbb043b74a7f8cbca93ff3d11a715e6f", null ],
-    [ "mAxisClk", "classSsiFrameLimiter.html#ae0b70ef2412f74472e1f3d29a37df068", null ],
-    [ "mAxisRst", "classSsiFrameLimiter.html#a291aba3da8fd969c97a3612c1d3cf019", null ],
-    [ "mAxisMaster", "classSsiFrameLimiter.html#ab0b1799978ac7ea47ecb67ad6e5bb413", null ],
-    [ "mAxisSlave", "classSsiFrameLimiter.html#a3522ef3ee8a7e64d95785f540e794c63", null ],
-    [ "ieee", "classSsiFrameLimiter.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSsiFrameLimiter.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classSsiFrameLimiter.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classSsiFrameLimiter.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classSsiFrameLimiter.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSsiFrameLimiter.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiStreamPkg", "classSsiFrameLimiter.html#a776f7d1c3e4102d6af8db8ec00c215ce", null ],
-    [ "SsiPkg", "classSsiFrameLimiter.html#a8b54e22b2a07048034b61d5e4ba396e3", null ]
+    [ "SsiFrameLimiter.rtl", "classSsiFrameLimiter_1_1rtl.html", null ]
 ];

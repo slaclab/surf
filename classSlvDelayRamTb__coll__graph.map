@@ -1,5 +1,7 @@
 <map id="SlvDelayRamTb" name="SlvDelayRamTb">
-<area shape="rect" id="node1" title=" " alt="" coords="30,80,157,107"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="5,5,69,32"/>
-<area shape="rect" id="node3" href="$classSlvDelayRam.html" title=" " alt="" coords="94,5,205,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="30,79,157,104"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,5,69,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="57,40,86,77,82,80,53,43"/>
+<area shape="rect" id="Node000003" href="$classSlvDelayRam.html" title=" " alt="" coords="94,5,205,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="134,43,104,80,100,77,129,40"/>
 </map>

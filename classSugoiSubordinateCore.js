@@ -1,26 +1,4 @@
 var classSugoiSubordinateCore =
 [
-    [ "SugoiSubordinateCore.mapping", "classSugoiSubordinateCore_1_1mapping.html", "classSugoiSubordinateCore_1_1mapping" ],
-    [ "TPD_G", "classSugoiSubordinateCore.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_POLARITY_G", "classSugoiSubordinateCore.html#a3d301a13733d1d4ba2f381139f040901", null ],
-    [ "RST_ASYNC_G", "classSugoiSubordinateCore.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "pwrOnRst", "classSugoiSubordinateCore.html#aa834bf496e6cdb38e706b5a5b0cffaa2", null ],
-    [ "clk", "classSugoiSubordinateCore.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classSugoiSubordinateCore.html#a3afe5767d75fdc30f671cbf40dcb4e1a", null ],
-    [ "rstL", "classSugoiSubordinateCore.html#a038c0ecbf078e731cba620b65be8a9d9", null ],
-    [ "rx", "classSugoiSubordinateCore.html#ac976eff36db7c6391255910276834155", null ],
-    [ "tx", "classSugoiSubordinateCore.html#adcf2fb09c1d1d21aebfc96d36600665c", null ],
-    [ "linkup", "classSugoiSubordinateCore.html#ad984ccf609187e928ec01a0cf182b2db", null ],
-    [ "opCode", "classSugoiSubordinateCore.html#a2b7ee52cda3c7225795fb2ec6d8002dd", null ],
-    [ "axilReadMaster", "classSugoiSubordinateCore.html#a549baa7af92a3eee218a5760e0fdc91f", null ],
-    [ "axilReadSlave", "classSugoiSubordinateCore.html#ab8e7db0980d28e68432861da9749be36", null ],
-    [ "axilWriteMaster", "classSugoiSubordinateCore.html#ad303548bffce070882fa91cb793ec80a", null ],
-    [ "axilWriteSlave", "classSugoiSubordinateCore.html#ae6f7075501ec47d190059be94819ac8e", null ],
-    [ "ieee", "classSugoiSubordinateCore.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSugoiSubordinateCore.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classSugoiSubordinateCore.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classSugoiSubordinateCore.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classSugoiSubordinateCore.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSugoiSubordinateCore.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classSugoiSubordinateCore.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "SugoiSubordinateCore.mapping", "classSugoiSubordinateCore_1_1mapping.html", null ]
 ];

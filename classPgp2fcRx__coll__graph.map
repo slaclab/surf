@@ -1,7 +1,11 @@
 <map id="Pgp2fcRx" name="Pgp2fcRx">
-<area shape="rect" id="node1" title=" " alt="" coords="149,155,232,181"/>
-<area shape="rect" id="node2" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="5,80,112,107"/>
-<area shape="rect" id="node3" href="$classCRC7Rtl.html" title=" " alt="" coords="21,5,96,32"/>
-<area shape="rect" id="node4" href="$classPgp2fcRxCell.html" title=" " alt="" coords="137,80,245,107"/>
-<area shape="rect" id="node5" href="$classCRC32Rtl.html" title=" " alt="" coords="269,80,352,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="149,152,232,177"/>
+<area shape="rect" id="Node000002" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="5,79,112,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,108,170,149,168,154,90,113"/>
+<area shape="rect" id="Node000003" href="$classCRC7Rtl.html" title=" " alt="" coords="21,5,96,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
+<area shape="rect" id="Node000004" href="$classPgp2fcRxCell.html" title=" " alt="" coords="137,79,245,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="193,118,193,152,188,152,188,118"/>
+<area shape="rect" id="Node000005" href="$classCRC32Rtl.html" title=" " alt="" coords="269,79,352,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="281,113,212,154,209,149,278,109"/>
 </map>

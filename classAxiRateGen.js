@@ -1,27 +1,4 @@
 var classAxiRateGen =
 [
-    [ "rtl", "classAxiRateGen_1_1rtl.html", "classAxiRateGen_1_1rtl" ],
-    [ "TPD_G", "classAxiRateGen.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "COMMON_CLK_G", "classAxiRateGen.html#a059e39587aed6e8045b14097e92edc3f", null ],
-    [ "AXI_CONFIG_G", "classAxiRateGen.html#a4b8cc687be8cf49c633e3992397c1112", null ],
-    [ "axiClk", "classAxiRateGen.html#a4a2f476a4fc068ebeebed7cecdfb9823", null ],
-    [ "axiRst", "classAxiRateGen.html#a9864bc09ab85023bbf6c4fbe526d60be", null ],
-    [ "axiWriteMaster", "classAxiRateGen.html#a96eea107eb773614dc9b7d96ce547531", null ],
-    [ "axiWriteSlave", "classAxiRateGen.html#a11bf342655a4db34d657908b5f1ade8b", null ],
-    [ "axiReadMaster", "classAxiRateGen.html#a4ac970fe2528bee94f0cedb9f54894a4", null ],
-    [ "axiReadSlave", "classAxiRateGen.html#a088b1d0b32951c6ac03e22bdd0499700", null ],
-    [ "axilClk", "classAxiRateGen.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classAxiRateGen.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "sAxilReadMaster", "classAxiRateGen.html#a48ba6b20ab8d354225b61179d7102e8b", null ],
-    [ "sAxilReadSlave", "classAxiRateGen.html#a785a6909860777c8c366fd47986b564e", null ],
-    [ "sAxilWriteMaster", "classAxiRateGen.html#a0d5e979080f135b0d0537a2d337b414b", null ],
-    [ "sAxilWriteSlave", "classAxiRateGen.html#a698648825e1bc380a9868ad8f9487062", null ],
-    [ "ieee", "classAxiRateGen.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiRateGen.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classAxiRateGen.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classAxiRateGen.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "surf", "classAxiRateGen.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiRateGen.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAxiRateGen.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ],
-    [ "AxiPkg", "classAxiRateGen.html#a2265afb78be50b98531f22e9da258a54", null ]
+    [ "AxiRateGen.rtl", "classAxiRateGen_1_1rtl.html", null ]
 ];

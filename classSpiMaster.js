@@ -1,32 +1,4 @@
 var classSpiMaster =
 [
-    [ "SpiMaster.rtl", "classSpiMaster_1_1rtl.html", "classSpiMaster_1_1rtl" ],
-    [ "TPD_G", "classSpiMaster.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NUM_CHIPS_G", "classSpiMaster.html#a26f26fa85fa95bf91f061877365fb178", null ],
-    [ "DATA_SIZE_G", "classSpiMaster.html#aee1909677abde6081b1faf464cd1db56", null ],
-    [ "CPHA_G", "classSpiMaster.html#ab7f033f4844533617025eaf6acaf6d4d", null ],
-    [ "CPOL_G", "classSpiMaster.html#a11d3ded2f6d0251ceab6a8dc81d02038", null ],
-    [ "CLK_PERIOD_G", "classSpiMaster.html#a3d9cb0253cdebfd7c38dc4459bde8b6f", null ],
-    [ "SPI_SCLK_PERIOD_G", "classSpiMaster.html#a17514cc329ac97b10570102d10ea5492", null ],
-    [ "clk", "classSpiMaster.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "sRst", "classSpiMaster.html#a8da2e783731141bf916791d573521133", null ],
-    [ "freeRunClk", "classSpiMaster.html#a0d37772d3f28aca20f1c962aba59a365", null ],
-    [ "chipSel", "classSpiMaster.html#af8928900ab074e0c5d83f0656ce4676e", null ],
-    [ "wrEn", "classSpiMaster.html#a313295f79f9b95852e4a9d5c4be00f8e", null ],
-    [ "wrData", "classSpiMaster.html#a8fc6f95d28dba05b7824070fdbb534f6", null ],
-    [ "dataSize", "classSpiMaster.html#a600bb3f6df23039eb1446f9758b657ee", null ],
-    [ "rdEn", "classSpiMaster.html#a2e5858b7c30531c6c9b4c32e185c9724", null ],
-    [ "rdData", "classSpiMaster.html#af290d5119be2459c1644e61430b8fb29", null ],
-    [ "shiftCount", "classSpiMaster.html#a4aaad8666a37f91291d05dbd713ee037", null ],
-    [ "spiCsL", "classSpiMaster.html#a5ead5c50a1765f0d250fbebf3e00b186", null ],
-    [ "spiSclk", "classSpiMaster.html#a0d9f1ffd73fcb5c1e1266dcc6fdd6988", null ],
-    [ "spiSdi", "classSpiMaster.html#a1ab5d8523d282f7c5cf04264bcec0f7b", null ],
-    [ "spiSdo", "classSpiMaster.html#a083f16a098eae016dcc59074ed55b998", null ],
-    [ "ieee", "classSpiMaster.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classSpiMaster.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classSpiMaster.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classSpiMaster.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "math_real", "classSpiMaster.html#acb415f2e3abd505b8338da5b5bf9e2fb", null ],
-    [ "surf", "classSpiMaster.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classSpiMaster.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "SpiMaster.rtl", "classSpiMaster_1_1rtl.html", null ]
 ];

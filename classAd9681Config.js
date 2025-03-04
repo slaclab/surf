@@ -1,27 +1,4 @@
 var classAd9681Config =
 [
-    [ "rtl", "classAd9681Config_1_1rtl.html", "classAd9681Config_1_1rtl" ],
-    [ "TPD_G", "classAd9681Config.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "NUM_CHIPS_G", "classAd9681Config.html#a2ed09e9673f7ac37dbbfc782397fe97f", null ],
-    [ "SCLK_PERIOD_G", "classAd9681Config.html#aded87e6f87c03c5b8b0d8408c2bf51ea", null ],
-    [ "AXIL_CLK_PERIOD_G", "classAd9681Config.html#a8939b8499fa3de5d99f0f57a89e779a6", null ],
-    [ "axilClk", "classAd9681Config.html#a358342a257561441dc9ee49e990917ec", null ],
-    [ "axilRst", "classAd9681Config.html#afb9447c132931ea91c6d31f9b8cd5fc9", null ],
-    [ "axilReadMaster", "classAd9681Config.html#a0e3cca179ac52e5a5b64a695f70be636", null ],
-    [ "axilReadSlave", "classAd9681Config.html#a5fc8bb52f5ab001c5dd3c310728ac1d4", null ],
-    [ "axilWriteMaster", "classAd9681Config.html#a7cf00e22e4b80858310109b6289a950d", null ],
-    [ "axilWriteSlave", "classAd9681Config.html#a78554bc6d7e733f03c398be30b649509", null ],
-    [ "adcPdwn", "classAd9681Config.html#a830aee654e718659f8a8fb12ab02038a", null ],
-    [ "adcSclk", "classAd9681Config.html#ae8ce88b161d3bc2f8a9fe18c43c7f01f", null ],
-    [ "adcSdio", "classAd9681Config.html#a720c29b2f09b3f1ec1880d9fc821f4fd", null ],
-    [ "adcCsb", "classAd9681Config.html#aff515d330f44404f32c668dab23348ca", null ],
-    [ "ieee", "classAd9681Config.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAd9681Config.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_arith", "classAd9681Config.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "std_logic_unsigned", "classAd9681Config.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "UNISIM", "classAd9681Config.html#afd13b50585152f6756d196bf3f1c52ac", null ],
-    [ "VCOMPONENTS", "classAd9681Config.html#af7dabcc6b22cfac21d9188de6b952c14", null ],
-    [ "surf", "classAd9681Config.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAd9681Config.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLitePkg", "classAd9681Config.html#af98a1f0df20cf0e5f0fdb9f5999ad782", null ]
+    [ "Ad9681Config.rtl", "classAd9681Config_1_1rtl.html", null ]
 ];

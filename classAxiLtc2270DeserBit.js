@@ -1,25 +1,4 @@
 var classAxiLtc2270DeserBit =
 [
-    [ "rtl", "classAxiLtc2270DeserBit_1_1rtl.html", "classAxiLtc2270DeserBit_1_1rtl" ],
-    [ "TPD_G", "classAxiLtc2270DeserBit.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "DELAY_INIT_G", "classAxiLtc2270DeserBit.html#a9cc4436261be504d5b08e5fd6cf8d15e", null ],
-    [ "IODELAY_GROUP_G", "classAxiLtc2270DeserBit.html#a943c95fb2d175ee60b75d08aea94cad6", null ],
-    [ "dataP", "classAxiLtc2270DeserBit.html#a3764b3cd1ee85b283455e9b992ec7cf1", null ],
-    [ "dataN", "classAxiLtc2270DeserBit.html#a26edede889b5dac33aaffd3cc2a68dde", null ],
-    [ "Q1", "classAxiLtc2270DeserBit.html#a37aa278bfe90cf7b4e70a2a310e7b8d0", null ],
-    [ "Q2", "classAxiLtc2270DeserBit.html#a1aaacf17856d3e4e886c26e89596f49b", null ],
-    [ "delayInLoad", "classAxiLtc2270DeserBit.html#a4471b0129a74da91b1495899bd1c2d46", null ],
-    [ "delayInData", "classAxiLtc2270DeserBit.html#a0d061a56560ceaf0a4adb67eecdafd75", null ],
-    [ "delayOutData", "classAxiLtc2270DeserBit.html#a993f37b1093204df096eb48a6d7d6d64", null ],
-    [ "clk", "classAxiLtc2270DeserBit.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "refClk200MHz", "classAxiLtc2270DeserBit.html#a5d206f22498eae09ab697cb6ddaa11e1", null ],
-    [ "ieee", "classAxiLtc2270DeserBit.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classAxiLtc2270DeserBit.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "std_logic_unsigned", "classAxiLtc2270DeserBit.html#a598da929e807d58939b47499e8bc9fa8", null ],
-    [ "std_logic_arith", "classAxiLtc2270DeserBit.html#a0f5ecc6613f63d07f7963a97b1b26095", null ],
-    [ "surf", "classAxiLtc2270DeserBit.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classAxiLtc2270DeserBit.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ],
-    [ "AxiLtc2270Pkg", "classAxiLtc2270DeserBit.html#a8bd24b8e72ad7880e41098e9d905fa40", null ],
-    [ "unisim", "classAxiLtc2270DeserBit.html#a962f1c6a2adaac3e10a6f7fa3d111e01", null ],
-    [ "vcomponents", "classAxiLtc2270DeserBit.html#aa1cb22e959d47364391e5eb4ef86927c", null ]
+    [ "AxiLtc2270DeserBit.rtl", "classAxiLtc2270DeserBit_1_1rtl.html", null ]
 ];

@@ -1,4 +1,5 @@
 <map id="ClinkReg" name="ClinkReg">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,85,32"/>
-<area shape="rect" id="node2" href="$classClinkTop.html" title=" " alt="" coords="7,80,84,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,85,31"/>
+<area shape="rect" id="Node000002" href="$classClinkTop.html" title=" " alt="" coords="7,79,84,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="48,44,48,79,43,79,43,44"/>
 </map>

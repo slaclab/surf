@@ -1,19 +1,44 @@
 <map id="AxiVersionTb" name="AxiVersionTb">
-<area shape="rect" id="node1" title=" " alt="" coords="255,453,361,480"/>
-<area shape="rect" id="node2" href="$classClkRst.html" title=" " alt="" coords="225,379,289,405"/>
-<area shape="rect" id="node3" href="$classAxiVersion.html" title=" " alt="" coords="313,379,404,405"/>
-<area shape="rect" id="node4" href="$classDeviceDna.html" title=" " alt="" coords="185,229,279,256"/>
-<area shape="rect" id="node5" href="$classDeviceDna7Series.html" title=" " alt="" coords="189,155,331,181"/>
-<area shape="rect" id="node6" href="$classRstSync.html" title=" " alt="" coords="539,80,613,107"/>
-<area shape="rect" id="node9" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="5,155,165,181"/>
-<area shape="rect" id="node13" href="$classIprog7Series.html" title=" " alt="" coords="438,229,541,256"/>
-<area shape="rect" id="node16" href="$classIprogUltraScale.html" title=" " alt="" coords="565,229,688,256"/>
-<area shape="rect" id="node17" href="$classSynchronizerOneShot.html" title=" " alt="" coords="665,155,826,181"/>
-<area shape="rect" id="node7" href="$classSynchronizer.html" title=" " alt="" coords="588,5,695,32"/>
-<area shape="rect" id="node15" href="$classSynchronizerEdge.html" title=" " alt="" coords="637,80,776,107"/>
-<area shape="rect" id="node8" href="$classSynchronizerVector.html" title=" " alt="" coords="268,80,415,107"/>
-<area shape="rect" id="node14" href="$classIprog7SeriesCore.html" title=" " alt="" coords="355,155,488,181"/>
-<area shape="rect" id="node10" href="$classDS2411Core.html" title=" " alt="" coords="307,304,410,331"/>
-<area shape="rect" id="node11" href="$classIoBufWrapper.html" title=" " alt="" coords="303,229,414,256"/>
-<area shape="rect" id="node12" href="$classIprog.html" title=" " alt="" coords="462,304,517,331"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="255,445,361,471"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="225,372,289,397"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="276,407,302,444,298,447,272,410"/>
+<area shape="rect" id="Node000003" href="$classAxiVersion.html" title=" " alt="" coords="313,372,404,397"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="344,410,318,447,314,444,340,407"/>
+<area shape="rect" id="Node000004" href="$classDeviceDna.html" title=" " alt="" coords="185,225,279,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="249,261,297,322,347,370,343,374,293,326,245,264"/>
+<area shape="rect" id="Node000005" href="$classDeviceDna7Series.html" title=" " alt="" coords="189,152,331,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="253,191,239,226,234,224,248,189"/>
+<area shape="rect" id="Node000006" href="$classRstSync.html" title=" " alt="" coords="539,79,613,104"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="526,107,312,155,310,149,525,101"/>
+<area shape="rect" id="Node000009" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="5,152,165,177"/>
+<area shape="poly" id="edge9_Node000009_Node000006" title=" " alt="" coords="525,103,164,155,164,149,524,97"/>
+<area shape="rect" id="Node000013" href="$classIprog7Series.html" title=" " alt="" coords="438,225,541,251"/>
+<area shape="poly" id="edge15_Node000013_Node000006" title=" " alt="" coords="564,117,499,226,494,224,560,115"/>
+<area shape="rect" id="Node000016" href="$classIprogUltraScale.html" title=" " alt="" coords="565,225,688,251"/>
+<area shape="poly" id="edge21_Node000016_Node000006" title=" " alt="" coords="587,116,625,224,620,226,582,118"/>
+<area shape="rect" id="Node000017" href="$classSynchronizerOneShot.html" title=" " alt="" coords="665,152,826,177"/>
+<area shape="poly" id="edge23_Node000017_Node000006" title=" " alt="" coords="617,107,719,149,717,154,615,112"/>
+<area shape="rect" id="Node000007" href="$classSynchronizer.html" title=" " alt="" coords="588,5,695,31"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="623,43,589,80,585,77,619,39"/>
+<area shape="rect" id="Node000015" href="$classSynchronizerEdge.html" title=" " alt="" coords="637,79,776,104"/>
+<area shape="poly" id="edge19_Node000015_Node000007" title=" " alt="" coords="663,39,698,77,694,80,659,43"/>
+<area shape="rect" id="Node000008" href="$classSynchronizerVector.html" title=" " alt="" coords="268,79,415,104"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="320,115,275,154,272,150,316,111"/>
+<area shape="poly" id="edge10_Node000009_Node000008" title=" " alt="" coords="288,110,127,154,126,149,287,105"/>
+<area shape="rect" id="Node000014" href="$classIprog7SeriesCore.html" title=" " alt="" coords="355,152,488,177"/>
+<area shape="poly" id="edge17_Node000014_Node000008" title=" " alt="" coords="366,111,410,150,406,154,362,115"/>
+<area shape="poly" id="edge25_Node000016_Node000008" title=" " alt="" coords="393,106,446,125,501,150,565,188,614,223,611,227,562,193,499,154,444,130,392,111"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="122,181,209,223,207,228,120,186"/>
+<area shape="rect" id="Node000010" href="$classDS2411Core.html" title=" " alt="" coords="307,299,410,324"/>
+<area shape="poly" id="edge11_Node000003_Node000010" title=" " alt="" coords="361,338,361,372,356,372,356,338"/>
+<area shape="rect" id="Node000011" href="$classIoBufWrapper.html" title=" " alt="" coords="303,225,414,251"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="361,264,361,299,356,299,356,264"/>
+<area shape="rect" id="Node000012" href="$classIprog.html" title=" " alt="" coords="462,299,517,324"/>
+<area shape="poly" id="edge13_Node000003_Node000012" title=" " alt="" coords="457,333,381,374,379,369,455,328"/>
+<area shape="poly" id="edge14_Node000012_Node000013" title=" " alt="" coords="492,264,492,299,487,299,487,264"/>
+<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="444,185,480,223,476,227,440,189"/>
+<area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="648,110,468,154,467,149,647,105"/>
+<area shape="poly" id="edge24_Node000017_Node000015" title=" " alt="" coords="722,115,741,151,737,153,717,118"/>
+<area shape="poly" id="edge20_Node000012_Node000016" title=" " alt="" coords="594,259,513,301,511,296,591,254"/>
+<area shape="poly" id="edge22_Node000016_Node000017" title=" " alt="" coords="716,187,647,227,645,223,713,182"/>
 </map>

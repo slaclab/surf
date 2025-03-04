@@ -1,15 +1,29 @@
 <map id="Pgp2bLane" name="Pgp2bLane">
-<area shape="rect" id="node1" title=" " alt="" coords="384,259,477,285"/>
-<area shape="rect" id="node2" href="$classPgp2bTx.html" title=" " alt="" coords="229,183,307,209"/>
-<area shape="rect" id="node3" href="$classSynchronizerVector.html" title=" " alt="" coords="5,107,152,133"/>
-<area shape="rect" id="node4" href="$classSynchronizer.html" title=" " alt="" coords="25,157,132,184"/>
-<area shape="rect" id="node5" href="$classPgp2bTxPhy.html" title=" " alt="" coords="27,208,130,235"/>
-<area shape="rect" id="node6" href="$classPgp2bTxSched.html" title=" " alt="" coords="20,5,137,32"/>
-<area shape="rect" id="node7" href="$classPgp2bTxCell.html" title=" " alt="" coords="27,56,130,83"/>
-<area shape="rect" id="node8" href="$classAxiStreamPipeline.html" title=" " alt="" coords="7,259,150,285"/>
-<area shape="rect" id="node13" href="$classAxiStreamDeMux.html" title=" " alt="" coords="200,259,336,285"/>
-<area shape="rect" id="node9" href="$classCRC32Rtl.html" title=" " alt="" coords="37,309,120,336"/>
-<area shape="rect" id="node10" href="$classPgp2bRx.html" title=" " alt="" coords="229,335,307,361"/>
-<area shape="rect" id="node11" href="$classPgp2bRxPhy.html" title=" " alt="" coords="27,411,130,437"/>
-<area shape="rect" id="node12" href="$classPgp2bRxCell.html" title=" " alt="" coords="27,360,131,387"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="384,252,477,277"/>
+<area shape="rect" id="Node000002" href="$classPgp2bTx.html" title=" " alt="" coords="229,179,307,204"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="311,207,402,249,400,254,309,212"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerVector.html" title=" " alt="" coords="5,104,152,129"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="134,131,153,138,241,176,239,181,151,143,132,136"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="25,153,132,179"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="146,172,229,183,228,189,146,178"/>
+<area shape="rect" id="Node000005" href="$classPgp2bTxPhy.html" title=" " alt="" coords="27,203,130,228"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="143,205,228,194,229,199,144,210"/>
+<area shape="rect" id="Node000006" href="$classPgp2bTxSched.html" title=" " alt="" coords="20,5,137,31"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="145,34,154,40,191,73,223,112,263,177,258,180,218,115,187,77,150,44,142,39"/>
+<area shape="rect" id="Node000007" href="$classPgp2bTxCell.html" title=" " alt="" coords="27,55,130,80"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="141,83,153,89,185,110,214,134,257,177,253,180,211,138,182,114,151,94,139,88"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamPipeline.html" title=" " alt="" coords="7,252,150,277"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="129,245,151,237,237,202,239,207,153,242,131,250"/>
+<area shape="rect" id="Node000013" href="$classAxiStreamDeMux.html" title=" " alt="" coords="200,252,336,277"/>
+<area shape="poly" id="edge14_Node000013_Node000008" title=" " alt="" coords="164,262,200,262,200,267,164,267"/>
+<area shape="rect" id="Node000009" href="$classCRC32Rtl.html" title=" " alt="" coords="37,301,120,327"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="132,296,151,286,165,275,175,264,198,237,245,202,248,206,202,241,179,267,169,279,153,291,134,301"/>
+<area shape="rect" id="Node000010" href="$classPgp2bRx.html" title=" " alt="" coords="229,325,307,351"/>
+<area shape="poly" id="edge12_Node000010_Node000009" title=" " alt="" coords="134,318,229,330,228,336,133,324"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="309,317,400,275,402,280,311,322"/>
+<area shape="rect" id="Node000011" href="$classPgp2bRxPhy.html" title=" " alt="" coords="27,400,130,425"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="132,393,151,386,239,348,241,353,153,391,134,398"/>
+<area shape="rect" id="Node000012" href="$classPgp2bRxCell.html" title=" " alt="" coords="27,351,131,376"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="144,352,228,341,229,346,145,357"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="350,262,384,262,384,267,350,267"/>
 </map>

@@ -1,30 +1,4 @@
 var classDspComparator =
 [
-    [ "rtl", "classDspComparator_1_1rtl.html", "classDspComparator_1_1rtl" ],
-    [ "TPD_G", "classDspComparator.html#a59467ecbd6f1ac4678f88367afa9f2bd", null ],
-    [ "RST_POLARITY_G", "classDspComparator.html#a3d301a13733d1d4ba2f381139f040901", null ],
-    [ "RST_ASYNC_G", "classDspComparator.html#a82f4f9493d2d56d68fbb620c935dfd8e", null ],
-    [ "USE_DSP_G", "classDspComparator.html#a1bc8ef84d5ef5c36940cdf68bda2a5c0", null ],
-    [ "PIPE_STAGES_G", "classDspComparator.html#a1f456933ce31692e029a548b4d88cecc", null ],
-    [ "WIDTH_G", "classDspComparator.html#a4ef6de02cc7a3fe92245a83c8ffe387c", null ],
-    [ "clk", "classDspComparator.html#adeb222493482dfe91c36a7a02710329c", null ],
-    [ "rst", "classDspComparator.html#ae00058ebc9e4dc2fcd1e9c95a8ed8128", null ],
-    [ "ibValid", "classDspComparator.html#a7d8b59266599cf28d78f15cd4653b38b", null ],
-    [ "ibReady", "classDspComparator.html#a530bfef514f6938cdb23c942e2b4ccfc", null ],
-    [ "ain", "classDspComparator.html#af962a67d550fe853bd6103986decc2f5", null ],
-    [ "bin", "classDspComparator.html#a1ca4ec3fffd523a0b0ab5b1971159045", null ],
-    [ "obValid", "classDspComparator.html#aa00f3ff3b8acecae53a260b4f66cb0d7", null ],
-    [ "obReady", "classDspComparator.html#af88561974a01d1363f53f1488cb08f94", null ],
-    [ "aout", "classDspComparator.html#a960617089fd009589318f3a0ceea222e", null ],
-    [ "bout", "classDspComparator.html#ae9153ffa3581d4df299829454f7c8b90", null ],
-    [ "eq", "classDspComparator.html#a8751960501950c379fe27989681798e6", null ],
-    [ "gt", "classDspComparator.html#a55f061a3c13a145a47ee0a564e85056b", null ],
-    [ "gtEq", "classDspComparator.html#a95e12ebccbebec6f7e59dc2001482d7d", null ],
-    [ "ls", "classDspComparator.html#a5f77ab7cc61f010db2318e901d90206f", null ],
-    [ "lsEq", "classDspComparator.html#a54f5a8ab287b883c9a799b08ada03921", null ],
-    [ "ieee", "classDspComparator.html#a0a6af6eef40212dbaf130d57ce711256", null ],
-    [ "std_logic_1164", "classDspComparator.html#acd03516902501cd1c7296a98e22c6fcb", null ],
-    [ "numeric_std", "classDspComparator.html#a2edc34402b573437d5f25fa90ba4013e", null ],
-    [ "surf", "classDspComparator.html#acabf3ea45bb9ea54f778c194fc238b6d", null ],
-    [ "StdRtlPkg", "classDspComparator.html#af2fe75efbe0a68c3fb806bb88b1a81ba", null ]
+    [ "DspComparator.rtl", "classDspComparator_1_1rtl.html", null ]
 ];

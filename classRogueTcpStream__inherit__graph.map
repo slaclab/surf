@@ -1,21 +1,39 @@
 <map id="RogueTcpStream" name="RogueTcpStream">
-<area shape="rect" id="node1" title=" " alt="" coords="5,208,136,235"/>
-<area shape="rect" id="node2" href="$classRogueTcpStreamWrap.html" title=" " alt="" coords="184,208,349,235"/>
-<area shape="rect" id="node3" href="$classstream__tb.html" title=" " alt="" coords="419,107,507,133"/>
-<area shape="rect" id="node4" href="$classRoguePgp3Sim.html" title=" " alt="" coords="403,157,523,184"/>
-<area shape="rect" id="node10" href="$classRoguePgp4Sim.html" title=" " alt="" coords="403,208,523,235"/>
-<area shape="rect" id="node15" href="$classRogueHtspSim.html" title=" " alt="" coords="404,259,523,285"/>
-<area shape="rect" id="node18" href="$classRoguePgp2bSim.html" title=" " alt="" coords="399,309,527,336"/>
-<area shape="rect" id="node19" href="$classRoguePgp2fcSim.html" title=" " alt="" coords="397,360,529,387"/>
-<area shape="rect" id="node5" href="$classPgp3GthUsWrapper.html" title=" " alt="" coords="577,5,727,32"/>
-<area shape="rect" id="node6" href="$classPgp3Gtp7Wrapper.html" title=" " alt="" coords="582,56,722,83"/>
-<area shape="rect" id="node8" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="582,107,722,133"/>
-<area shape="rect" id="node9" href="$classPgp3GtyUsWrapper.html" title=" " alt="" coords="577,157,727,184"/>
-<area shape="rect" id="node7" href="$classPgp3Gtp7Tb.html" title=" " alt="" coords="788,56,889,83"/>
-<area shape="rect" id="node11" href="$classPgp4GthUsWrapper.html" title=" " alt="" coords="577,208,727,235"/>
-<area shape="rect" id="node12" href="$classPgp4Gtp7Wrapper.html" title=" " alt="" coords="582,259,722,285"/>
-<area shape="rect" id="node13" href="$classPgp4Gtx7Wrapper.html" title=" " alt="" coords="582,309,722,336"/>
-<area shape="rect" id="node14" href="$classPgp4GtyUsWrapper.html" title=" " alt="" coords="577,360,727,387"/>
-<area shape="rect" id="node16" href="$classHtspCaui4Gty.html" title=" " alt="" coords="596,411,708,437"/>
-<area shape="rect" id="node17" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="775,411,903,437"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,277,136,303"/>
+<area shape="rect" id="Node000002" href="$classRogueTcpStreamWrap.html" title=" " alt="" coords="184,277,349,303"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,287,184,287,184,293,150,293"/>
+<area shape="rect" id="Node000003" href="$classstream__tb.html" title=" " alt="" coords="419,80,507,105"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="278,264,324,191,357,150,396,115,418,102,420,107,399,119,361,154,328,194,283,266"/>
+<area shape="rect" id="Node000004" href="$classRoguePgp3Sim.html" title=" " alt="" coords="403,129,523,155"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="294,267,443,153,447,157,298,271"/>
+<area shape="rect" id="Node000010" href="$classRoguePgp4Sim.html" title=" " alt="" coords="403,252,523,277"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="363,275,402,270,403,275,364,280"/>
+<area shape="rect" id="Node000015" href="$classRogueHtspSim.html" title=" " alt="" coords="404,301,523,327"/>
+<area shape="poly" id="edge14_Node000002_Node000015" title=" " alt="" coords="363,299,404,304,404,309,363,304"/>
+<area shape="rect" id="Node000018" href="$classRoguePgp2bSim.html" title=" " alt="" coords="399,351,527,376"/>
+<area shape="poly" id="edge17_Node000002_Node000018" title=" " alt="" coords="315,305,429,348,427,353,314,310"/>
+<area shape="rect" id="Node000019" href="$classRoguePgp2fcSim.html" title=" " alt="" coords="397,400,529,425"/>
+<area shape="poly" id="edge18_Node000002_Node000019" title=" " alt="" coords="294,310,341,347,399,385,425,397,423,402,396,390,338,351,291,314"/>
+<area shape="rect" id="Node000005" href="$classPgp3GthUsWrapper.html" title=" " alt="" coords="577,5,727,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="519,121,528,115,543,96,551,78,559,59,576,40,595,29,598,33,579,44,563,62,556,80,548,99,531,119,522,125"/>
+<area shape="rect" id="Node000006" href="$classPgp3Gtp7Wrapper.html" title=" " alt="" coords="582,55,722,80"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="511,122,528,114,576,89,607,78,608,83,578,94,530,119,513,127"/>
+<area shape="rect" id="Node000008" href="$classPgp3Gtx7Wrapper.html" title=" " alt="" coords="582,104,722,129"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="536,130,581,123,582,129,537,135"/>
+<area shape="rect" id="Node000009" href="$classPgp3GtyUsWrapper.html" title=" " alt="" coords="577,153,727,179"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="537,149,577,154,577,159,537,154"/>
+<area shape="rect" id="Node000007" href="$classPgp3Gtp7Tb.html" title=" " alt="" coords="788,55,889,80"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="736,65,787,65,787,70,736,70"/>
+<area shape="rect" id="Node000011" href="$classPgp4GthUsWrapper.html" title=" " alt="" coords="577,203,727,228"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="525,246,602,226,603,231,526,251"/>
+<area shape="rect" id="Node000012" href="$classPgp4Gtp7Wrapper.html" title=" " alt="" coords="582,252,722,277"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="537,262,582,262,582,267,537,267"/>
+<area shape="rect" id="Node000013" href="$classPgp4Gtx7Wrapper.html" title=" " alt="" coords="582,301,722,327"/>
+<area shape="poly" id="edge12_Node000010_Node000013" title=" " alt="" coords="526,278,603,299,602,304,525,283"/>
+<area shape="rect" id="Node000014" href="$classPgp4GtyUsWrapper.html" title=" " alt="" coords="577,351,727,376"/>
+<area shape="poly" id="edge13_Node000010_Node000014" title=" " alt="" coords="521,281,531,286,546,299,555,312,564,324,579,336,605,348,602,353,576,340,561,328,551,315,542,303,528,291,518,285"/>
+<area shape="rect" id="Node000016" href="$classHtspCaui4Gty.html" title=" " alt="" coords="596,400,708,425"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="521,330,531,336,546,349,555,361,564,373,579,385,605,398,602,402,576,390,561,377,551,364,542,352,528,340,518,335"/>
+<area shape="rect" id="Node000017" href="$classHtspCaui4GtyTb.html" title=" " alt="" coords="775,400,903,425"/>
+<area shape="poly" id="edge16_Node000016_Node000017" title=" " alt="" coords="722,410,774,410,774,415,722,415"/>
 </map>

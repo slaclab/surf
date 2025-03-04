@@ -1,5 +1,7 @@
 <map id="sfixedMult" name="sfixedMult">
-<area shape="rect" id="node1" title=" " alt="" coords="13,5,103,32"/>
-<area shape="rect" id="node2" href="$classSinCosTaylor.html" title=" " alt="" coords="5,80,111,107"/>
-<area shape="rect" id="node3" href="$classSinCosLutTb.html" title=" " alt="" coords="7,155,109,181"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="13,5,103,31"/>
+<area shape="rect" id="Node000002" href="$classSinCosTaylor.html" title=" " alt="" coords="5,79,111,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="61,44,61,79,55,79,55,44"/>
+<area shape="rect" id="Node000003" href="$classSinCosLutTb.html" title=" " alt="" coords="7,152,109,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,118,61,152,55,152,55,118"/>
 </map>
