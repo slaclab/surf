@@ -22,11 +22,11 @@ use surf.StdRtlPkg.all;
 package PrbsPkg is
 
    -- Randomizers based on the ITU-T O.150 Standard
-   function getPrbs1xTap (input : slv; tap0 : natural) return slv;
-   function getPrbs2xTap (input : slv; tap0, tap1 : natural) return slv;
-   function getPrbs3xTap (input : slv; tap0, tap1, tap2 : natural) return slv;
-	function getPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv;
-	function getGaloisPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv;
+   function getPrbs1xTap (input       : slv; tap0 : natural) return slv;
+   function getPrbs2xTap (input       : slv; tap0, tap1 : natural) return slv;
+   function getPrbs3xTap (input       : slv; tap0, tap1, tap2 : natural) return slv;
+   function getPrbs4xTap (input       : slv; tap0, tap1, tap2, tap3 : natural) return slv;
+   function getGaloisPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv;
 
    -- Randomizer based LTC2270 IC
    function getXorRand (input : slv; tap : natural) return slv;  -- NOTE: same function for encoding and decoding
@@ -135,13 +135,13 @@ package body PrbsPkg is
       for i in 0 to (input'left-1) loop
          retVar(i) := input(i+1);
       end loop;
-		retVar(retVar'left) := '0';
+      retVar(retVar'left) := '0';
 
-		for i in 0 to (input'left) loop
-			if (i = tap0 or i = tap1 or i = tap2 or i = tap3) then
-				retVar(i) := retVar(i) xor input(0);
-			end if;
-		end loop;
+      for i in 0 to (input'left) loop
+         if (i = tap0 or i = tap1 or i = tap2 or i = tap3) then
+            retVar(i) := retVar(i) xor input(0);
+         end if;
+      end loop;
 
       --return the result
       return retVar;

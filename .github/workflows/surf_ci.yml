@@ -22,7 +22,7 @@ jobs:
 
   test_and_document:
     name: Test And Generate Documentation
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
 
       # This step checks out a copy of your repository.
@@ -32,22 +32,29 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install make python3 python3-pip tclsh
+          sudo apt-get install make python3 python3-pip tclsh ghdl
           sudo apt-get install doxygen doxygen-doc doxygen-latex doxygen-gui graphviz
           python -m pip install --upgrade pip
           pip install -r pip_requirements.txt
           git clone https://github.com/slaclab/ruckus.git
           pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: Check for trailing whitespace
+      - name: Check for trailing whitespace and tabs
         run: |
-          if grep -rnI '[[:blank:]]$' --include=\*.{vhd,v,tcl,py} .; then
+          # Check for trailing whitespace
+          if grep -rnI '[[:blank:]]$' --include=\*.{vhd,tcl,py} .; then
             echo "Error: Trailing whitespace found in the repository!"
+            exit 1
+          fi
+          
+          # Check for tab characters instead of spaces
+          if grep -rnI $'\t' --include=\*.{vhd,tcl,py} .; then
+            echo "Error: Tab characters found in the repository! Please use spaces for indentation."
             exit 1
           fi
 
@@ -62,10 +69,8 @@ jobs:
 
       - name: VHDL Regression Testing
         run: |
-          ./ghdl-build.sh > /dev/null 2>&1
           make MODULES=$PWD
           python -m pytest --cov -v tests/
-          rm -rf ghdl-build
 
 #      # Code Coverage
 #      - name: Code Coverage

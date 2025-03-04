@@ -436,9 +436,9 @@ begin
    end process;
 
    -- Fast Control logic
-   process (pgpRxClk, pgpRxClkRst)
+   process (intRxLinkReady, pgpRxClk, pgpRxClkRst)
    begin
-      if pgpRxClkRst = '1' then
+      if pgpRxClkRst = '1' or intRxLinkReady = '0' then
          intFcValid    <= '0'             after TPD_G;
          intFcBusy     <= '0'             after TPD_G;
          intFcError    <= '0'             after TPD_G;
