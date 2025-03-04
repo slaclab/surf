@@ -28,59 +28,59 @@ class AxiLiteRingBuffer(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = 'blen',
+            name         = 'BufferLength',
             description  = 'Length of ring buffer',
             offset       = 0x00,
             bitSize      = 20,
             bitOffset    = 0x00,
             base         = pr.UInt,
-            mode         = 'RW'
+            mode         = 'RO'
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'clear',
+        self.add(pr.RemoteCommand(
+            name         = 'ClearBuffer',
             description  = 'Clear buffer',
-            offset       = 0x03,
+            offset       = 0x00,
             bitSize      = 1,
-            bitOffset    = 0x06,
-            base         = pr.UInt,
+            bitOffset    = 30,
+            function = pr.Command.toggle
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'BufEn',
+            description  = 'Enable buffer',
+            offset       = 0x00,
+            bitSize      = 1,
+            bitOffset    = 31,
+            base         = pr.Bool,
             mode         = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'enable',
-            description  = 'Enable buffer',
-            offset       = 0x03,
-            bitSize      = 1,
-            bitOffset    = 0x07,
-            base         = pr.UInt,
-            mode         = 'RW',
-        ))
-
-        self.addRemoteVariables(
             name         = 'data',
             description  = 'Buffer values',
             offset       = 0x4,
             bitSize      = 32,
             bitOffset    = 0x00,
+            valueBits    = 32,
+            valueStride  = 32,
             base         = pr.UInt,
             mode         = 'RO',
-            number       = 0x3ff,
-            stride       = 4,
+            numValues    = 0x3ff,
             hidden       = True,
-        )
+        ))
 
         @self.command()
         def Dump():
             mask  = (1<<self._datawidth)-1
             # cmask = (self._datawidth+3)/4
-            len_  = self.blen.get()
+            len_  = self.BufferLength.get()
             if len_ > 512:
                 len_ = 256
 
             buff = []
             for i in range(len_):
-                buff.append( self.data[i].get() & mask )
+                buff.append( self.data.get(index=i) & mask )
 
             fmt = '{:0%d'%(self._datawidth/4)+'x} '
             for i in range(len_):

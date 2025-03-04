@@ -77,6 +77,7 @@ entity GigEthGtyUltraScaleWrapper is
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
+      gtClkOut            : out sl;
       -- Copy of internal MMCM reference clock and Reset
       refClkOut           : out sl;
       refRstOut           : out sl;
@@ -122,7 +123,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => gtClk,
-         O     => open);
+         O     => gtClkOut);
 
    BUFG_GT_Inst : BUFG_GT
       port map (

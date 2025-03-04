@@ -130,7 +130,7 @@ architecture rtl of Pgp3GtyUs is
          connectivity  => X"FFFF"),
       DRP_AXIL_INDEX_C => (
          baseAddr      => AXIL_BASE_ADDR_G + X"1000",
-         addrBits      => 11,
+         addrBits      => 12,
          connectivity  => X"FFFF"));
 
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
