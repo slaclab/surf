@@ -90,30 +90,30 @@ use surf.AxiStreamPkg.all;
 
 entity AxisToJtagCore is
    generic (
-      TPD_G            : time                  := 1 ns;
-      AXIS_WIDTH_G     : positive              := 4;     -- bytes
-      LEN_POS0_G       : natural               := 0;
-      LEN_POSN_G       : natural               := 17;
-      CLK_DIV2_G       : positive              := 8;     -- half-period of TCK in axisClk cycles
-      TLAST_IGNORE_G   : boolean               := false  -- don't wait for TLAST on input
-   );
+      TPD_G          : time     := 1 ns;
+      AXIS_WIDTH_G   : positive := 4;   -- bytes
+      LEN_POS0_G     : natural  := 0;
+      LEN_POSN_G     : natural  := 17;
+      CLK_DIV2_G     : positive := 8;   -- half-period of TCK in axisClk cycles
+      TLAST_IGNORE_G : boolean  := false  -- don't wait for TLAST on input
+      );
    port (
-      axisClk          : in sl;
-      axisRst          : in sl;
+      axisClk : in sl;
+      axisRst : in sl;
 
-      mAxisTmsTdi      : in  AxiStreamMasterType;
-      sAxisTmsTdi      : out AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+      mAxisTmsTdi : in  AxiStreamMasterType;
+      sAxisTmsTdi : out AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
 
-      mAxisTdo         : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-      sAxisTdo         : in  AxiStreamSlaveType;
+      mAxisTdo : out AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      sAxisTdo : in  AxiStreamSlaveType;
 
-      running          : out sl;
+      running : out sl;
 
-      tck              : out sl;
-      tdi              : out sl;
-      tms              : out sl;
-      tdo              : in  sl
-   );
+      tck : out sl;
+      tdi : out sl;
+      tms : out sl;
+      tdo : in  sl
+      );
 end entity AxisToJtagCore;
 
 architecture AxisToJtagCoreImpl of AxisToJtagCore is
@@ -121,130 +121,131 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
 
    type StateType is (IDLE_S, GET_TMS_S, GET_TDI_S, SHIFT_S, ALIGN_S, DISCARD_S);
 
-   constant AXIS_BW_C       : positive  := 8*AXIS_WIDTH_G;
+   constant AXIS_BW_C : positive := 8*AXIS_WIDTH_G;
 
    type RegType is record
-      state      : StateType;
-      tdi        : slv(AXIS_BW_C - 1 downto 0);
-      tms        : slv(AXIS_BW_C - 1 downto 0);
-      tdo        : slv(AXIS_BW_C - 1 downto 0);
-      nBits      : natural range 0 to AXIS_BW_C - 1;
-      nBitsTot   : slv(LEN_POSN_G - LEN_POS0_G downto 0);
-      tdiValid   : sl;
-      sReady     : sl;
-      tdoValid   : sl;
-      tdoPass    : sl;
-      last       : boolean;
-      tLastSeen  : boolean;
-      iCnt       : slv(1 downto 0);
-      oCnt       : slv(1 downto 0);
-      tLast      : sl;
-      running    : sl;
+      state     : StateType;
+      tdi       : slv(AXIS_BW_C - 1 downto 0);
+      tms       : slv(AXIS_BW_C - 1 downto 0);
+      tdo       : slv(AXIS_BW_C - 1 downto 0);
+      nBits     : natural range 0 to AXIS_BW_C - 1;
+      nBitsTot  : slv(LEN_POSN_G - LEN_POS0_G downto 0);
+      tdiValid  : sl;
+      sReady    : sl;
+      tdoValid  : sl;
+      tdoPass   : sl;
+      last      : boolean;
+      tLastSeen : boolean;
+      iCnt      : slv(1 downto 0);
+      oCnt      : slv(1 downto 0);
+      tLast     : sl;
+      running   : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state      => IDLE_S,
-      tdi        => (others => '0'),
-      tms        => (others => '0'),
-      tdo        => (others => '0'),
-      nBits      => 0,
-      nBitsTot   => (others => '0'),
-      tdiValid   => '0',
-      sReady     => '1',
-      tdoValid   => '0',
-      tdoPass    => '1',
-      last       => false,
-      tLastSeen  => false,
-      iCnt       => (others => '0'),
-      oCnt       => (others => '0'),
-      tLast      => '0',
-      running    => '0'
-   );
+      state     => IDLE_S,
+      tdi       => (others => '0'),
+      tms       => (others => '0'),
+      tdo       => (others => '0'),
+      nBits     => 0,
+      nBitsTot  => (others => '0'),
+      tdiValid  => '0',
+      sReady    => '1',
+      tdoValid  => '0',
+      tdoPass   => '1',
+      last      => false,
+      tLastSeen => false,
+      iCnt      => (others => '0'),
+      oCnt      => (others => '0'),
+      tLast     => '0',
+      running   => '0'
+      );
 
-   signal tdoData     : slv(AXIS_BW_C - 1 downto 0);
+   signal tdoData : slv(AXIS_BW_C - 1 downto 0);
 
-   signal r           : RegType := REG_INIT_C;
+   signal r : RegType := REG_INIT_C;
 
-   signal rin         : RegType;
+   signal rin : RegType;
 
    signal tdiReady    : sl;
    signal tdoValidLoc : sl;
    signal tdoValid    : sl;
 
-   signal tdoReady    : sl;
+   signal tdoReady : sl;
 
 begin
-   running                                   <= r.running;
+   running <= r.running;
 
-   sAxisTmsTdi.tReady                        <= r.sReady;
+   sAxisTmsTdi.tReady <= r.sReady;
 
-   tdoValid                                  <= r.tdoValid and r.tdoPass;
+   tdoValid <= r.tdoValid and r.tdoPass;
 
-   GEN_PAD_TKEEP : if (mAxisTdo.tKeep'left > AXIS_WIDTH_G) generate -- silence critical warning
-      mAxisTdo.tKeep(mAxisTdo.tKeep'left - 1 downto AXIS_WIDTH_G) <= ( others => '0' );
+   GEN_PAD_TKEEP : if (mAxisTdo.tKeep'left > AXIS_WIDTH_G) generate  -- silence critical warning
+      mAxisTdo.tKeep(mAxisTdo.tKeep'left - 1 downto AXIS_WIDTH_G) <= (others => '0');
    end generate;
-   mAxisTdo.tKeep(AXIS_WIDTH_G - 1 downto 0) <= ( others => '1' );
+   mAxisTdo.tKeep(AXIS_WIDTH_G - 1 downto 0) <= (others => '1');
    mAxisTdo.tValid                           <= tdoValid;
    mAxisTdo.tLast                            <= r.tLast;
-   mAxisTdo.tData(AXIS_BW_C    - 1 downto 0) <= r.tdo;
+   mAxisTdo.tData(AXIS_BW_C - 1 downto 0)    <= r.tdo;
 
-   tdoReady <= not r.tdoValid or ( sAxisTdo.tReady and r.tdoPass );
+   tdoReady <= not r.tdoValid or (sAxisTdo.tReady and r.tdoPass);
 
    U_Jtag : entity surf.JtagSerDesCore
       generic map (
-         TPD_G         => TPD_G,
-         WIDTH_G       => AXIS_BW_C,
-         CLK_DIV2_G    => CLK_DIV2_G
-      )
+         TPD_G      => TPD_G,
+         WIDTH_G    => AXIS_BW_C,
+         CLK_DIV2_G => CLK_DIV2_G
+         )
       port map (
-         clk           => axisClk,
-         rst           => axisRst,
+         clk => axisClk,
+         rst => axisRst,
 
-         numBits       => r.nBits,
+         numBits => r.nBits,
 
-         dataInTms     => r.tms,
-         dataInTdi     => r.tdi,
-         dataInValid   => r.tdiValid,
-         dataInReady   => tdiReady,
+         dataInTms   => r.tms,
+         dataInTdi   => r.tdi,
+         dataInValid => r.tdiValid,
+         dataInReady => tdiReady,
 
-         dataOutReady  => tdoReady,
-         dataOutValid  => tdoValidLoc,
-         dataOut       => tdoData,
+         dataOutReady => tdoReady,
+         dataOutValid => tdoValidLoc,
+         dataOut      => tdoData,
 
-         tck           => tck,
-         tms           => tms,
-         tdi           => tdi,
-         tdo           => tdo
-      );
+         tck => tck,
+         tms => tms,
+         tdi => tdi,
+         tdo => tdo
+         );
 
-   P_COMB : process( r, tdiReady, tdoValid, tdoData, tdoValidLoc, tdoReady, mAxisTmsTdi, sAxisTdo )
+   P_COMB : process(mAxisTmsTdi, r, sAxisTdo, tdiReady, tdoData, tdoReady,
+                    tdoValid, tdoValidLoc)
       variable v : RegType;
    begin
 
       v := r;
 
-      case ( r.state ) is
+      case (r.state) is
          when IDLE_S =>
             v.last      := false;
             v.tLastSeen := false;
-            v.iCnt      := ( others => '0' );
-            v.oCnt      := ( others => '0' );
+            v.iCnt      := (others => '0');
+            v.oCnt      := (others => '0');
             v.tLast     := '0';
             v.tdoPass   := '1';
             v.sReady    := '1';
-            if ( (r.sReady and mAxisTmsTdi.tValid) = '1' ) then
+            if ((r.sReady and mAxisTmsTdi.tValid) = '1') then
                -- first word is bit count (minus one)
-               if ( mAxisTmsTdi.tLast /= '1' ) then
+               if (mAxisTmsTdi.tLast /= '1') then
                   v.nBitsTot := mAxisTmsTdi.tData(LEN_POSN_G downto LEN_POS0_G);
                   v.state    := GET_TMS_S;
                end if;
             end if;
 
          when GET_TMS_S =>
-            if ( (r.sReady and mAxisTmsTdi.tValid) = '1' ) then
-               if ( mAxisTmsTdi.tLast = '1' ) then
+            if ((r.sReady and mAxisTmsTdi.tValid) = '1') then
+               if (mAxisTmsTdi.tLast = '1') then
                   -- not enough data for this beat; abort
-                  if ( v.iCnt /= v.oCnt ) then
+                  if (v.iCnt /= v.oCnt) then
                      -- wait for outstanding transaction
                      v.last      := true;
                      v.tLastSeen := true;
@@ -252,31 +253,31 @@ begin
                      v.state     := ALIGN_S;
                   else
                      -- nothing outstanding -- go back to idle state
-                     v.state    := IDLE_S;
+                     v.state := IDLE_S;
                   end if;
                else
-                  v.tms      := mAxisTmsTdi.tData(AXIS_BW_C - 1 downto 0);
-                  v.state    := GET_TDI_S;
-                  v.iCnt     := slv(unsigned(r.iCnt) + 1);
-                  v.running  := '1';
-                  if ( unsigned(r.nBitsTot) >= AXIS_BW_C ) then
+                  v.tms     := mAxisTmsTdi.tData(AXIS_BW_C - 1 downto 0);
+                  v.state   := GET_TDI_S;
+                  v.iCnt    := slv(unsigned(r.iCnt) + 1);
+                  v.running := '1';
+                  if (unsigned(r.nBitsTot) >= AXIS_BW_C) then
                      v.nBits    := AXIS_BW_C - 1;
                      v.nBitsTot := slv(unsigned(r.nBitsTot) - unsigned(toSlv(AXIS_BW_C, v.nBitsTot'length)));
                   else
-                     v.last     := true;
-                     v.nBits    := to_integer(unsigned(r.nBitsTot));
+                     v.last  := true;
+                     v.nBits := to_integer(unsigned(r.nBitsTot));
                   end if;
                end if;
             end if;
 
          when GET_TDI_S =>
-            if ( (r.sReady and mAxisTmsTdi.tValid) = '1' ) then
-               if ( mAxisTmsTdi.tLast = '1' ) then
+            if ((r.sReady and mAxisTmsTdi.tValid) = '1') then
+               if (mAxisTmsTdi.tLast = '1') then
                   v.tLastSeen := true;
-                  if ( not r.last ) then
+                  if (not r.last) then
                      -- premature end; still do this word...
-                     v.nBitsTot  := toSlv( r.nBits, v.nBitsTot'length );
-                     v.last      := true;
+                     v.nBitsTot := toSlv(r.nBits, v.nBitsTot'length);
+                     v.last     := true;
                   end if;
                end if;
                v.tdi      := mAxisTmsTdi.tData(AXIS_BW_C - 1 downto 0);
@@ -285,67 +286,67 @@ begin
                v.state    := SHIFT_S;
             end if;
 
-         when SHIFT_S   =>
-            if ( (tdiReady and r.tdiValid) = '1' ) then
+         when SHIFT_S =>
+            if ((tdiReady and r.tdiValid) = '1') then
                v.tdiValid := '0';
-               if ( not r.last ) then
-                  v.state   := GET_TMS_S;
-                  v.sReady  := '1';
+               if (not r.last) then
+                  v.state  := GET_TMS_S;
+                  v.sReady := '1';
                end if;
             end if;
 
          when ALIGN_S =>
-            if ( r.nBits = AXIS_BW_C - 1 ) then
-               v.tLast   := '1';
-               if ( ( r.tdoValid and sAxisTdo.tReady ) = '1' ) then
+            if (r.nBits = AXIS_BW_C - 1) then
+               v.tLast := '1';
+               if ((r.tdoValid and sAxisTdo.tReady) = '1') then
                   v.state := DISCARD_S;
                end if;
             else
-               v.tdo   := ( '0' & r.tdo( r.tdo'left downto 1 ) );
+               v.tdo   := ('0' & r.tdo(r.tdo'left downto 1));
                v.nBits := r.nBits + 1;
             end if;
 
          -- discard stuff after requested number of bits
          when DISCARD_S =>
-            if ( r.tLastSeen or TLAST_IGNORE_G ) then
+            if (r.tLastSeen or TLAST_IGNORE_G) then
                v.tdoPass := '1';
             else
-               v.sReady  := '1';
-               if ( (r.sReady and mAxisTmsTdi.tValid) = '1' ) then
-                  if ( mAxisTmsTdi.tLast = '1' ) then
+               v.sReady := '1';
+               if ((r.sReady and mAxisTmsTdi.tValid) = '1') then
+                  if (mAxisTmsTdi.tLast = '1') then
                      v.tLastSeen := true;
                      v.tdoPass   := '1';
                      v.sReady    := '0';
                   end if;
                end if;
-			end if;
+            end if;
       end case;
 
-      if ( (tdoValid and sAxisTdo.tReady) = '1' ) then
-         if ( r.tLast = '1' ) then
+      if ((tdoValid and sAxisTdo.tReady) = '1') then
+         if (r.tLast = '1') then
             v.running := '0';
             v.state   := IDLE_S;
          end if;
          v.tdoValid := '0';
       end if;
-      if ( ( tdoValidLoc and tdoReady ) = '1' ) then
+      if ((tdoValidLoc and tdoReady) = '1') then
          v.tdo      := tdoData;
          v.tdoValid := '1';
          v.oCnt     := slv(unsigned(r.oCnt) + 1);
-         if ( r.last and v.oCnt = r.iCnt ) then
-            v.tdoPass  := '0';
-            v.state    := ALIGN_S;
+         if (r.last and v.oCnt = r.iCnt) then
+            v.tdoPass := '0';
+            v.state   := ALIGN_S;
          end if;
       end if;
 
-      rin   <= v;
+      rin <= v;
 
    end process P_COMB;
 
-   P_SEQ : process( axisClk )
+   P_SEQ : process(axisClk)
    begin
-      if ( rising_edge( axisClk ) ) then
-         if ( axisRst /= '0' ) then
+      if (rising_edge(axisClk)) then
+         if (axisRst /= '0') then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;

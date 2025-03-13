@@ -31,40 +31,40 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 package i2coc is
-  component i2c_master_byte_ctrl is
-    generic (filter : integer; dynfilt : integer);
-    port (
-     clk    : in std_logic;
-     rst    : in std_logic;   -- active high reset
-     nReset : in std_logic;   -- asynchornous active low reset
-                              -- (not used in GRLIB)
-     ena    : in std_logic; -- core enable signal
+   component i2c_master_byte_ctrl is
+      generic (filter : integer; dynfilt : integer);
+      port (
+         clk    : in std_logic;
+         rst    : in std_logic;         -- active high reset
+         nReset : in std_logic;         -- asynchornous active low reset
+         -- (not used in GRLIB)
+         ena    : in std_logic;         -- core enable signal
 
-     clk_cnt : in std_logic_vector(15 downto 0);	-- 4x SCL
+         clk_cnt : in std_logic_vector(15 downto 0);  -- 4x SCL
 
-     -- input signals
-     start,
-     stop,
-     read,
-     write,
-     ack_in : std_logic;
-     din    : in std_logic_vector(7 downto 0);
-     filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
+         -- input signals
+         start,
+         stop,
+         read,
+         write,
+         ack_in :    std_logic;
+         din    : in std_logic_vector(7 downto 0);
+         filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
 
-     -- output signals
-     cmd_ack  : out std_logic;
-     ack_out  : out std_logic;
-     i2c_busy : out std_logic;
-     i2c_al   : out std_logic;
-     dout     : out std_logic_vector(7 downto 0);
+         -- output signals
+         cmd_ack  : out std_logic;
+         ack_out  : out std_logic;
+         i2c_busy : out std_logic;
+         i2c_al   : out std_logic;
+         dout     : out std_logic_vector(7 downto 0);
 
-     -- i2c lines
-     scl_i   : in std_logic;  -- i2c clock line input
-     scl_o   : out std_logic; -- i2c clock line output
-     scl_oen : out std_logic; -- i2c clock line output enable, active low
-     sda_i   : in std_logic;  -- i2c data line input
-     sda_o   : out std_logic; -- i2c data line output
-     sda_oen : out std_logic  -- i2c data line output enable, active low
-     );
-  end component i2c_master_byte_ctrl;
+         -- i2c lines
+         scl_i   : in  std_logic;       -- i2c clock line input
+         scl_o   : out std_logic;       -- i2c clock line output
+         scl_oen : out std_logic;  -- i2c clock line output enable, active low
+         sda_i   : in  std_logic;       -- i2c data line input
+         sda_o   : out std_logic;       -- i2c data line output
+         sda_oen : out std_logic   -- i2c data line output enable, active low
+         );
+   end component i2c_master_byte_ctrl;
 end;
