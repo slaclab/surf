@@ -139,6 +139,8 @@ package I2cPkg is
       txData  => (others => '0'),
       rxAck   => '0');
 
+   type I2cSlaveInArray is array (natural range <>) of I2cSlaveInType;
+
    type I2cSlaveOutType is record
       rxActive : sl;
       rxValid  : sl;
@@ -155,6 +157,8 @@ package I2cPkg is
       txActive => '0',
       txAck    => '0',
       nack     => '0');
+
+   type I2cSlaveOutArray is array (natural range <>) of I2cSlaveOutType;
 
    -------------------------------------------------------------------------------------------------
    -- AXI Bridge Generic Type, stick here for now
