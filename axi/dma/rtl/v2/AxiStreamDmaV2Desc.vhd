@@ -145,6 +145,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffWrCache : slv(3 downto 0);
       enableCnt   : slv(7 downto 0);
       idBuffThold : Slv32Array(7 downto 0);
+      wrTimout    : slv(15 downto 0);
 
       -- FIFOs
       fifoDin        : slv(31 downto 0);
@@ -222,6 +223,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffWrCache     => (others => '0'),
       enableCnt       => (others => '0'),
       idBuffThold     => (others => (others => '0')),
+      wrTimout        => x"FFFF",
       -- FIFOs
       fifoDin         => (others => '0'),
       wrFifoWr        => (others => '0'),
@@ -486,6 +488,8 @@ begin
 
       axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
 
+      axiSlaveRegister(regCon, x"088", 0, v.wrTimout);
+
       for i in 0 to 7 loop
          axiSlaveRegister(regCon, toSlv(144 + i*4, 12), 0, v.idBuffThold(i));  -- 0x090 - 0xAC
          axiSlaveRegisterR(regCon, toSlv(176 + i*4, 12), 0, r.idBuffCount(i));  -- 0x0B0 - 0xCC
@@ -583,6 +587,7 @@ begin
             v.dmaWrDescAck(i).dropEn  := r.dropEn;
             v.dmaWrDescAck(i).contEn  := r.contEn;
             v.dmaWrDescAck(i).maxSize := r.maxSize;
+            v.dmaWrDescAck(i).timeout := r.wrTimout;
 
             v.dmaWrDescAck(i).buffId(27 downto 0) := wrFifoDout(27 downto 0);
 
