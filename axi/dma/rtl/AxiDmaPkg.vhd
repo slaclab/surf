@@ -244,7 +244,7 @@ package AxiDmaPkg is
       result     => (others=>'0'),
       dest       => (others=>'0'),
       id         => (others=>'0'),
-      timout     => x"FFFF"
+      timout     => x"0000FFFF"
    );
 
    type AxiWriteDmaDescRetArray is array (natural range<>) of AxiWriteDmaDescRetType;
