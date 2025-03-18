@@ -231,6 +231,7 @@ package AxiDmaPkg is
       result     : slv(2  downto 0);
       dest       : slv(7  downto 0);
       id         : slv(7  downto 0); -- TID
+      timout     : slv(31 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_DESC_RET_INIT_C : AxiWriteDmaDescRetType := (
@@ -242,7 +243,8 @@ package AxiDmaPkg is
       continue   => '0',
       result     => (others=>'0'),
       dest       => (others=>'0'),
-      id         => (others=>'0')
+      id         => (others=>'0'),
+      timout     => x"FFFF"
    );
 
    type AxiWriteDmaDescRetArray is array (natural range<>) of AxiWriteDmaDescRetType;
