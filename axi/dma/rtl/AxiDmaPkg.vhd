@@ -194,6 +194,7 @@ package AxiDmaPkg is
       maxSize    : slv(31 downto 0);
       contEn     : sl;
       buffId     : slv(31 downto 0);
+      timout     : slv(31 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_DESC_ACK_INIT_C : AxiWriteDmaDescAckType := (
@@ -204,7 +205,8 @@ package AxiDmaPkg is
       dropEn     => '0',
       maxSize    => (others=>'0'),
       contEn     => '0',
-      buffId     => (others=>'0')
+      buffId     => (others=>'0'),
+      timout     => x"0000FFFF"
    );
 
    type AxiWriteDmaDescAckArray is array (natural range<>) of AxiWriteDmaDescAckType;
