@@ -145,6 +145,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffWrCache : slv(3 downto 0);
       enableCnt   : slv(7 downto 0);
       idBuffThold : Slv32Array(7 downto 0);
+      wrTimout    : slv(31 downto 0);
 
       -- FIFOs
       fifoDin        : slv(31 downto 0);
@@ -222,6 +223,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffWrCache     => (others => '0'),
       enableCnt       => (others => '0'),
       idBuffThold     => (others => (others => '0')),
+      wrTimout        => x"0000FFFF",
       -- FIFOs
       fifoDin         => (others => '0'),
       wrFifoWr        => (others => '0'),
@@ -433,7 +435,7 @@ begin
       axiSlaveRegister(regCon, x"000", 0, v.enable);
       axiSlaveRegisterR(regCon, x"000", 8, r.enableCnt);  -- Count the number of times enable transitions from 0->1
       axiSlaveRegisterR(regCon, x"000", 16, '1');  -- Legacy DESC_128_EN_C constant (always 0x1 now)
-      axiSlaveRegisterR(regCon, x"000", 24, toSlv(4, 8));  -- Version Number for aes-stream-driver to case on
+      axiSlaveRegisterR(regCon, x"000", 24, toSlv(5, 8));  -- Version Number for aes-stream-driver to case on
       axiSlaveRegister(regCon, x"004", 0, v.intEnable);
       axiSlaveRegister(regCon, x"008", 0, v.contEn);
       axiSlaveRegister(regCon, x"00C", 0, v.dropEn);
@@ -485,6 +487,8 @@ begin
       axiSlaveRegister(regCon, x"080", 0, v.forceInt);
 
       axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
+
+      axiSlaveRegister(regCon, x"088", 0, v.wrTimout);
 
       for i in 0 to 7 loop
          axiSlaveRegister(regCon, toSlv(144 + i*4, 12), 0, v.idBuffThold(i));  -- 0x090 - 0xAC
@@ -583,6 +587,7 @@ begin
             v.dmaWrDescAck(i).dropEn  := r.dropEn;
             v.dmaWrDescAck(i).contEn  := r.contEn;
             v.dmaWrDescAck(i).maxSize := r.maxSize;
+            v.dmaWrDescAck(i).timeout := r.wrTimout;
 
             v.dmaWrDescAck(i).buffId(27 downto 0) := wrFifoDout(27 downto 0);
 
