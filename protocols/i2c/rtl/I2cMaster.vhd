@@ -284,6 +284,7 @@ begin
                end if;
                if (r.tenbit = '0') and (i2cMasterIn.busReq = '1') then
                   v.i2cMasterOut.busAck := '1';
+                  v.byteCtrlIn.stop     := '1';
                   v.state               := WAIT_TXN_REQ_S;
                end if;
             end if;
