@@ -291,6 +291,7 @@ begin
 
 
          when READ_S =>
+            v.timer := r. timer + 1;            
             if (r.i2cMasterOut.rdValid = '0') then  -- Previous byte has been ack'd
                v.byteCtrlIn.read  := '1';
                -- If last byte of txn send nack.
@@ -322,6 +323,7 @@ begin
 
          when WRITE_S =>
             -- Write the next byte
+            v.timer := r. timer + 1;
             if (i2cMasterIn.wrValid = '1' and r.i2cMasterOut.wrAck = '0') then
                v.byteCtrlIn.write := '1';
                -- Send stop on last byte if enabled (else repeated start will occur on next txn).
@@ -361,6 +363,7 @@ begin
       if (byteCtrlOut.al = '1') then
          -- Return error back to next layer
          v.state                 := WAIT_TXN_REQ_S;
+         v.byteCtrlIn.stop       := '1';
          v.i2cMasterOut.txnError := '1';
          v.i2cMasterOut.rdValid  := '1';
          v.i2cMasterOut.rdData   := I2C_ARBITRATION_LOST_ERROR_C;
@@ -370,6 +373,7 @@ begin
       if (r.timer = TIMEOUT_C) then
          -- Return error back to next layer
          v.state                 := WAIT_TXN_REQ_S;
+         v.byteCtrlIn.stop       := '1';
          v.i2cMasterOut.txnError := '1';
          v.i2cMasterOut.rdValid  := '1';
          v.i2cMasterOut.rdData   := I2C_TIMEOUT_ERROR_C;
