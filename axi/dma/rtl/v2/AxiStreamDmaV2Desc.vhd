@@ -587,7 +587,7 @@ begin
             v.dmaWrDescAck(i).dropEn  := r.dropEn;
             v.dmaWrDescAck(i).contEn  := r.contEn;
             v.dmaWrDescAck(i).maxSize := r.maxSize;
-            v.dmaWrDescAck(i).timeout := r.wrTimout;
+            v.dmaWrDescAck(i).timout := r.wrTimout;
 
             v.dmaWrDescAck(i).buffId(27 downto 0) := wrFifoDout(27 downto 0);
 
