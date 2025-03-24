@@ -271,7 +271,7 @@ begin
                v.dmaWrTrack.metaAddr   := dmaWrDescAck.metaAddr;
                v.dmaWrTrack.address    := dmaWrDescAck.address;
                v.dmaWrTrack.maxSize    := dmaWrDescAck.maxSize;
-               v.dmaWrTrack.timout     := dmaWrDescAck.timout;
+               v.dmaWrTrack.timeout     := dmaWrDescAck.timeout;
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
@@ -474,7 +474,7 @@ begin
                   v.dmaWrDescRet.valid := '1';
                   v.state := IDLE_S;
                -- Check for ACK timeout
-               elsif (r.stCount = r.dmaWrTrack.timout) then
+               elsif (r.stCount = r.dmaWrTrack.timeout) then
                   -- Set the flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
                   v.dmaWrDescRet.valid := '1';
