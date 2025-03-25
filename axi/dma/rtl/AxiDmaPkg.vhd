@@ -342,7 +342,7 @@ package AxiDmaPkg is
    type AxiReadDmaDescRetType is record
       valid      : sl;
       buffId     : slv(31 downto 0);
-      result     : slv(3  downto 0);
+      result     : slv(2  downto 0);
    end record;
 
    constant AXI_READ_DMA_DESC_RET_INIT_C : AxiReadDmaDescRetType := (
