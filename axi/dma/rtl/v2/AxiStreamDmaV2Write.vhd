@@ -82,6 +82,7 @@ architecture rtl of AxiStreamDmaV2Write is
       reqCount      : slv(31 downto 0);
       ackCount      : slv(31 downto 0);
       stCount       : slv(31 downto 0);
+      timeoutCnt    : slv(31 downto 0);
       awlen         : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
       axiLen        : AxiLenType;
       wMaster       : AxiWriteMasterType;
@@ -100,6 +101,7 @@ architecture rtl of AxiStreamDmaV2Write is
       reqCount      => (others => '0'),
       ackCount      => (others => '0'),
       stCount       => (others => '0'),
+      timeoutCnt    => (others => '0'),
       awlen         => (others => '0'),
       axiLen        => AXI_LEN_INIT_C,
       wMaster       => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
@@ -465,6 +467,7 @@ begin
                v.dmaWrDescRet.id        := r.dmaWrTrack.id;
                v.dmaWrDescRet.lastUser  := r.lastUser;
                v.dmaWrDescRet.continue  := r.continue;
+               v.dmaWrDescRet.result(3) := '0';
                v.dmaWrDescRet.result(2) := r.dmaWrTrack.overflow;
                v.dmaWrDescRet.result(1 downto 0) := r.result;
                -- Init record
@@ -478,6 +481,7 @@ begin
                   -- Set the flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
                   v.dmaWrDescRet.valid := '1';
+                  v.dmaWrDescRet.result(3) := '1';
                   v.reqCount := (others => '0');
                   v.ackCount := (others => '0');
                   v.state    := IDLE_S;
