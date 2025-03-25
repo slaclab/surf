@@ -698,9 +698,9 @@ begin
             v.axiWriteMaster.wdata(31 downto 24)   := dmaWrDescRet(descIndex).firstUser;
             v.axiWriteMaster.wdata(23 downto 16)   := dmaWrDescRet(descIndex).lastUser;
             v.axiWriteMaster.wdata(15 downto 8)    := dmaWrDescRet(descIndex).id;
-            v.axiWriteMaster.wdata(7 downto 4)     := (others => '0');
-            v.axiWriteMaster.wdata(3)              := dmaWrDescRet(descIndex).continue;
-            v.axiWriteMaster.wdata(2 downto 0)     := dmaWrDescRet(descIndex).result;
+            v.axiWriteMaster.wdata(7 downto 5)     := (others => '0');
+            v.axiWriteMaster.wdata(4)              := dmaWrDescRet(descIndex).continue;
+            v.axiWriteMaster.wdata(3 downto 0)     := dmaWrDescRet(descIndex).result;
 
             v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
 
