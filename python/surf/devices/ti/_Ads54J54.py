@@ -11,7 +11,6 @@
 import time
 
 import pyrogue as pr
-import surf.devices.ti
 
 class Ads54J54(pr.Device):
     def __init__(self, **kwargs):
