@@ -194,6 +194,7 @@ package AxiDmaPkg is
       maxSize    : slv(31 downto 0);
       contEn     : sl;
       buffId     : slv(31 downto 0);
+      timeout    : slv(31 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_DESC_ACK_INIT_C : AxiWriteDmaDescAckType := (
@@ -204,7 +205,8 @@ package AxiDmaPkg is
       dropEn     => '0',
       maxSize    => (others=>'0'),
       contEn     => '0',
-      buffId     => (others=>'0')
+      buffId     => (others=>'0'),
+      timeout    => x"0000FFFF"
    );
 
    type AxiWriteDmaDescAckArray is array (natural range<>) of AxiWriteDmaDescAckType;
@@ -226,7 +228,7 @@ package AxiDmaPkg is
       lastUser   : slv(7  downto 0);
       size       : slv(31 downto 0);
       continue   : sl;
-      result     : slv(2  downto 0);
+      result     : slv(3  downto 0);
       dest       : slv(7  downto 0);
       id         : slv(7  downto 0); -- TID
    end record;
@@ -269,6 +271,7 @@ package AxiDmaPkg is
       id         : slv(7  downto 0); -- TID
       buffId     : slv(31 downto 0);
       overflow   : sl;
+      timeout    : slv(31 downto 0);
    end record;
 
    constant AXI_WRITE_DMA_TRACK_INIT_C : AxiWriteDmaTrackType := (
@@ -284,7 +287,8 @@ package AxiDmaPkg is
       dropEn     => '0',
       id         => (others=>'0'),
       buffId     => (others=>'0'),
-      overflow   => '0'
+      overflow   => '0',
+      timeout    => x"0000FFFF"
    );
 
    type AxiWriteDmaTrackArray is array (natural range<>) of AxiWriteDmaTrackType;

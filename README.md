@@ -1,5 +1,7 @@
 # SURF
 
+[DOE Code](https://www.osti.gov/doecode/biblio/8176)
+
 SLAC Ultimate RTL Framework
 
 <!--- ########################################################################################### -->
