@@ -253,6 +253,26 @@ class RssiCore(pr.Device):
         # ))
 
         self.add(pr.RemoteVariable(
+            name         = 'LocalBusy',
+            description  = 'Local Busy flag.  Asserts when AppFifoOut_INST FIFO has 1 or more SEGMENTs filled',
+            offset       = 0x40,
+            bitSize      = 1,
+            bitOffset    = 7,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RemoteBusy',
+            description  = 'Current status of the remote busy flag',
+            offset       = 0x40,
+            bitSize      = 1,
+            bitOffset    = 8,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'ValidCnt',
             description  = 'Number of valid segments [31:0]',
             offset       = 0x44,

@@ -48,7 +48,7 @@ entity RssiMonitor is
       CLK_FREQUENCY_G     : real     := 100.0E6;
       SERVER_G            : boolean  := true;
       WINDOW_ADDR_SIZE_G  : positive := 7;
-      STATUS_WIDTH_G      : positive := 6;
+      STATUS_WIDTH_G      : positive := 8;
       CNT_WIDTH_G         : positive := 32;
       RETRANSMIT_ENABLE_G : boolean := true
       --
@@ -60,8 +60,8 @@ entity RssiMonitor is
       -- Connection FSM indicating active connection
       connActive_i : in  sl;
 
-      -- RX Buffer Full
-      rxBuffBusy_i : in  sl;
+      -- Local Busy Flag
+      localBusy_i  : in  sl;
 
       -- Timeout and counter values
       rssiParam_i  : in  RssiParamType;
@@ -131,7 +131,6 @@ architecture rtl of RssiMonitor is
       nullToutCnt : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
       sndNull     : sl;
       nullTout    : sl;
-      rxBuffBusy  : sl;
 
       -- Ack packet cumulative/timeout
       ackToutCnt  : slv(rssiParam_i.cumulAckTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0);
@@ -162,7 +161,6 @@ architecture rtl of RssiMonitor is
       nullToutCnt => (others=>'0'),
       sndnull     => '0',
       nullTout    => '0',
-      rxBuffBusy  => '0',
 
       -- Ack packet cumulative/timeout
       ackToutCnt  => (others=>'0'),
@@ -192,8 +190,10 @@ begin
    s_status(3) <= lenErr_i;
    s_status(4) <= peerConnTout_i;
    s_status(5) <= paramReject_i;
+   s_status(6) <= localBusy_i;
+   s_status(7) <= rxFlags_i.busy; -- Remote busy
 
-   comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, rxDrop_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, rxBuffBusy_i,
+   comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, rxDrop_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, localBusy_i,
                    connActive_i, rxLastSeqN_i, rxWindowSize_i, txBufferEmpty_i, s_status) is
       variable v : RegType;
    begin
@@ -324,9 +324,6 @@ begin
 
    end if;
 
-   -- Check a delayed copy
-   v.rxBuffBusy := rxBuffBusy_i;
-
    -- /////////////////////////////////////////////////////////
    ------------------------------------------------------------
    -- Acknowledgment cumulative/timeout
@@ -356,7 +353,7 @@ begin
       (rxLastSeqN_i - r.lastAckSeqN) = 0
    ) then
       v.ackToutCnt := (others=>'0');
-   elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0   and (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i) or (rxBuffBusy_i = '1') then
+   elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0   and (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i) or (localBusy_i = '1') then
       if (r.ackToutCnt /= MAX_ACK_TOUT_CNT_C) then
          v.ackToutCnt := r.ackToutCnt+1;
       end if;

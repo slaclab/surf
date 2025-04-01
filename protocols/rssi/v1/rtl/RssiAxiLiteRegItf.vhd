@@ -135,7 +135,7 @@ entity RssiAxiLiteRegItf is
       connState_i  : in slv(3 downto 0);
       frameRate_i  : in Slv32Array(1 downto 0);
       bandwidth_i  : in Slv64Array(1 downto 0);
-      status_i     : in slv(6 downto 0);
+      status_i     : in slv(8 downto 0);
       dropCnt_i    : in slv(31 downto 0);
       validCnt_i   : in slv(31 downto 0);
       resendCnt_i  : in slv(31 downto 0);
