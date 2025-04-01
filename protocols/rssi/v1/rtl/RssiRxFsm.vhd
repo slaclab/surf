@@ -62,9 +62,6 @@ entity RssiRxFsm is
       clk_i      : in  sl;
       rst_i      : in  sl;
 
-      -- RX Buffer Full
-      rxBuffBusy_o : out sl;
-
       -- Connection FSM indicating active connection
       connActive_i   : in  sl;
 
@@ -155,7 +152,6 @@ architecture rtl of RssiRxFsm is
 
       -- Resception buffer window
       windowArray  : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);
-      pending      : slv(WINDOW_ADDR_SIZE_G  downto 0);
 
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------
@@ -216,7 +212,6 @@ architecture rtl of RssiRxFsm is
 
       -- Rx buffer window
       windowArray => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
-      pending     => (others => '0'),
 
       -- Transport side FSM (Receive and check segments)
       -----------------------------------------------------------
@@ -573,7 +568,6 @@ begin
                v.inOrderSeqN  := r.rxSeqN;
                v.rxBufferAddr := (others => '0');
                v.windowArray  := REG_INIT_C.windowArray;
-               v.pending      := (others => '0');
 
             -- Check if next valid SEQn is received. If yes:
             -- 1. increment the in order SEQn
@@ -596,10 +590,6 @@ begin
                   v.rxBufferAddr := r.rxBufferAddr +1;
                else
                   v.rxBufferAddr := (others => '0');
-               end if;
-               --
-               if v.pending < rxWindowSize_i then
-                  v.pending := v.pending + 1;
                end if;
                --
             else
@@ -769,10 +759,6 @@ begin
                v.txBufferAddr := (others => '0');
             end if;
             --
-            if v.pending /= 0 then
-               v.pending := v.pending - 1;
-            end if;
-            --
 
             v.windowArray(conv_integer(r.txBufferAddr)).occupied := '0'; -- Release buffer
 
@@ -823,11 +809,6 @@ begin
       chksumStrobe_o <= r.chkStb;
       chksumLength_o <= r.chkLen;
       rxParam_o      <= r.rxParam;
-      if (r.pending > 1) then
-         rxBuffBusy_o <= '1';
-      else
-         rxBuffBusy_o <= '0';
-      end if;
 
       -- Application side SSI output
       appSsiMaster_o <= r.appSsiMaster;
