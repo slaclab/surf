@@ -21,6 +21,8 @@
 --    statusReg_o(5) : Connection to peer timed out
 --    statusReg_o(6) : Client rejected the connection (parameters out of range)
 --                     Server proposed new parameters (parameters out of range)
+--    statusReg_o(7) : Local busy
+--    statusReg_o(8) : Remote busy
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -35,7 +37,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -137,8 +138,9 @@ architecture rtl of RssiMonitor is
       lastAckSeqN : slv(7 downto 0);
       sndAck      : sl;
 
-      -- For detecting rising edge on connActive
+      -- For detecting rising edge
       connActiveD1 : sl;
+      localBusyD1  : sl;
 
       --
       status      : slv(STATUS_WIDTH_G - 1 downto 0);
@@ -167,8 +169,9 @@ architecture rtl of RssiMonitor is
       lastAckSeqN => (others=>'0'),
       sndAck      => '0',
 
-      -- For detecting rising edge on connActive
+      -- For detecting rising edge
       connActiveD1  => '0',
+      localBusyD1   => '0',
 
       -- Statuses
       status      => (others=>'0'),
@@ -199,8 +202,9 @@ begin
    begin
       v := r;
 
-      -- DFF the connActive for rising edge detection
+      -- DFF for rising edge detection
       v.connActiveD1 := connActive_i;
+      v.localBusyD1  := localBusy_i;
 
       -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
@@ -378,6 +382,11 @@ begin
 
    -- Null segment ACK as soon as NUL received
    elsif (rxValid_i = '1' and rxFlags_i.nul  = '1') then
+      v.sndAck := '1';
+   end if;
+
+   -- Send a ACK if there is a local busy event
+   if (localBusy_i = '1' and r.localBusyD1 = '0') then
       v.sndAck := '1';
    end if;
 
