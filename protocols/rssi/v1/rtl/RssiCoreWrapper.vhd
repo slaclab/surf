@@ -92,7 +92,7 @@ entity RssiCoreWrapper is
       axilWriteMaster   : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave    : out AxiLiteWriteSlaveType;
       -- Internal statuses
-      statusReg_o       : out slv(6 downto 0));
+      statusReg_o       : out slv(8 downto 0));
 end entity RssiCoreWrapper;
 
 architecture mapping of RssiCoreWrapper is
@@ -109,7 +109,7 @@ architecture mapping of RssiCoreWrapper is
    signal txMasters : AxiStreamMasterArray(APP_STREAMS_G-1 downto 0);
    signal txSlaves  : AxiStreamSlaveArray(APP_STREAMS_G-1 downto 0);
 
-   signal statusReg        : slv(6 downto 0);
+   signal statusReg        : slv(8 downto 0);
    signal rssiNotConnected : sl;
    signal rssiConnected    : sl;
 
