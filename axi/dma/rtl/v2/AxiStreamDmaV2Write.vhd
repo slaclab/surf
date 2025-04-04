@@ -412,9 +412,9 @@ begin
                   -- Frame is done. Go to return. Otherwise go to idle.
                   if r.dmaWrTrack.inUse = '0' then
                      if r.dmaWrTrack.metaEnable = '1' then
-                        v.state := META_S;
-                     else
                         v.state := RETURN_S;
+--                     else
+--                        v.state := RETURN_S;
                      end if;
                   else
                      v.state := IDLE_S;
