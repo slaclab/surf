@@ -70,6 +70,7 @@ architecture rtl of AxiStreamDmaV2Write is
       ADDR_S,
       MOVE_S,
       PAD_S,
+      METAADDR_S,
       META_S,
       RETURN_S,
       DUMP_S);
@@ -90,7 +91,6 @@ architecture rtl of AxiStreamDmaV2Write is
       state         : StateType;
       lastUser      : slv(7 downto 0);
       continue      : sl;
-      bresp          : sl; 
       dmaWrIdle     : sl;
    end record RegType;
 
@@ -110,7 +110,6 @@ architecture rtl of AxiStreamDmaV2Write is
       state         => RESET_S,
       lastUser      => (others=>'0'),
       continue      => '0',
-      bresp          => '0',
       dmaWrIdle     => '0');
 
    signal r             : RegType := REG_INIT_C;
@@ -145,7 +144,7 @@ begin
 
    -- Pause when enabled
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
-
+             
    -- State machine
    comb : process (axiRst, axiWriteSlave, dmaWrDescAck, dmaWrDescRetAck,
                    intAxisMaster, trackData, pause, r, axiCache) is
@@ -374,7 +373,7 @@ begin
                      -- Pad write if transaction is not done, return will following PAD because inUse = 0
                      if r.awlen = 0 then
                         if r.dmaWrTrack.metaEnable = '1' then
-                           v.state := META_S;
+                           v.state := METAADDR_S;
                         else
                            v.state := RETURN_S;
                         end if;
@@ -415,7 +414,7 @@ begin
                   -- Frame is done. Go to return. Otherwise go to idle.
                   if r.dmaWrTrack.inUse = '0' then
                      if r.dmaWrTrack.metaEnable = '1' then
-                        v.state := META_S;
+                        v.state := METAADDR_S;
                      else
                         v.state := RETURN_S;
                      end if;
@@ -428,22 +427,28 @@ begin
                end if;
             end if;
          ----------------------------------------------------------------------
-         when META_S =>
-            -- -- Wait for memory bus response
-            if (axiWriteSlave.bvalid = '1') then
-            -- Wair for existing transactions to complete
+         when METAADDR_S =>
+            -- Address can be sent
             if v.wMaster.wvalid = '0' and v.wMaster.awvalid = '0' then
-
                -- Init
                v.wMaster := axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000");
 
                -- Write address channel
                v.wMaster.awaddr := r.dmaWrTrack.metaAddr;
+               v.wMaster.awvalid := '1';
                v.wMaster.awlen  := x"00";  -- Single transaction
                
                -- Increment the counter
                v.reqCount := r.reqCount + 1;
                
+               v.state          := META_S;
+            end if;
+
+         ----------------------------------------------------------------------
+         when META_S =>
+            -- We are able to push meta data
+            if v.wMaster.wvalid = '0' then
+
                -- Write data channel
                v.wMaster.wlast := '1';
 
@@ -458,10 +463,8 @@ begin
 
                v.wMaster.wstrb := resize(x"FF", 128);
 
-               v.wMaster.awvalid := '1';
                v.wMaster.wvalid  := '1';
                v.state           := RETURN_S;
-            end if;
             end if;
          ----------------------------------------------------------------------
          when RETURN_S =>
@@ -514,7 +517,7 @@ begin
                   if intAxisMaster.tLast = '1' then
                      v.dmaWrTrack.inUse := '0';
                      if r.dmaWrTrack.metaEnable = '1' then
-                        v.state := META_S;
+                        v.state := METAADDR_S;
                      else
                         v.state := RETURN_S;
                      end if;
