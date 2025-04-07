@@ -90,6 +90,7 @@ architecture rtl of AxiStreamDmaV2Write is
       state         : StateType;
       lastUser      : slv(7 downto 0);
       continue      : sl;
+      bresp          : sl; 
       dmaWrIdle     : sl;
    end record RegType;
 
@@ -109,6 +110,7 @@ architecture rtl of AxiStreamDmaV2Write is
       state         => RESET_S,
       lastUser      => (others=>'0'),
       continue      => '0',
+      bresp          => '0',
       dmaWrIdle     => '0');
 
    signal r             : RegType := REG_INIT_C;
@@ -172,6 +174,7 @@ begin
       if (axiWriteSlave.bvalid = '1') and (ACK_WAIT_BVALID_G = true) then
          -- Increment the counter
          v.ackCount := r.ackCount + 1;
+         
          -- Check for error response
          if (axiWriteSlave.bresp /= "00") and (r.result = 0) then
             -- Latch the response value
@@ -412,9 +415,9 @@ begin
                   -- Frame is done. Go to return. Otherwise go to idle.
                   if r.dmaWrTrack.inUse = '0' then
                      if r.dmaWrTrack.metaEnable = '1' then
+                        v.state := META_S;
+                     else
                         v.state := RETURN_S;
---                     else
---                        v.state := RETURN_S;
                      end if;
                   else
                      v.state := IDLE_S;
@@ -426,7 +429,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when META_S =>
-
+            -- -- Wait for memory bus response
+            if (axiWriteSlave.bvalid = '1') then
             -- Wair for existing transactions to complete
             if v.wMaster.wvalid = '0' and v.wMaster.awvalid = '0' then
 
@@ -436,7 +440,10 @@ begin
                -- Write address channel
                v.wMaster.awaddr := r.dmaWrTrack.metaAddr;
                v.wMaster.awlen  := x"00";  -- Single transaction
-
+               
+               -- Increment the counter
+               v.reqCount := r.reqCount + 1;
+               
                -- Write data channel
                v.wMaster.wlast := '1';
 
@@ -454,6 +461,7 @@ begin
                v.wMaster.awvalid := '1';
                v.wMaster.wvalid  := '1';
                v.state           := RETURN_S;
+            end if;
             end if;
          ----------------------------------------------------------------------
          when RETURN_S =>
