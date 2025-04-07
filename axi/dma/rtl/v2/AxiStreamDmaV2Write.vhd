@@ -399,7 +399,7 @@ begin
                v.stCount := r.stCount + 1;
             end if;
          ----------------------------------------------------------------------
-         when PAD_S =>
+         when PAD_S => 
             v.stCount := (others=>'0');
             -- We are able to push more data
             if v.wMaster.wvalid = '0' then
