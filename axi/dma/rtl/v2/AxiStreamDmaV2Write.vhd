@@ -399,7 +399,7 @@ begin
                v.stCount := r.stCount + 1;
             end if;
          ----------------------------------------------------------------------
-         when PAD_S => 
+         when PAD_S =>
             v.stCount := (others=>'0');
             -- We are able to push more data
             if v.wMaster.wvalid = '0' then
@@ -439,10 +439,10 @@ begin
 
                -- Write data channel
                v.wMaster.wlast := '1';
-               
+
                -- Increment the counter
                v.reqCount := r.reqCount + 1;
-               
+
                -- Descriptor data, 64-bits
                v.wMaster.wdata(63 downto 32)   := r.dmaWrTrack.size;
                v.wMaster.wdata(31 downto 24)   := r.dmaWrTrack.firstUser;
