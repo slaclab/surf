@@ -81,7 +81,8 @@ architecture rtl of AxiStreamDmaV2Write is
       result        : slv(1  downto 0);
       reqCount      : slv(31 downto 0);
       ackCount      : slv(31 downto 0);
-      stCount       : slv(15 downto 0);
+      stCount       : slv(31 downto 0);
+      timeoutCnt    : slv(31 downto 0);
       awlen         : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
       axiLen        : AxiLenType;
       wMaster       : AxiWriteMasterType;
@@ -100,6 +101,7 @@ architecture rtl of AxiStreamDmaV2Write is
       reqCount      => (others => '0'),
       ackCount      => (others => '0'),
       stCount       => (others => '0'),
+      timeoutCnt    => (others => '0'),
       awlen         => (others => '0'),
       axiLen        => AXI_LEN_INIT_C,
       wMaster       => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
@@ -271,6 +273,7 @@ begin
                v.dmaWrTrack.metaAddr   := dmaWrDescAck.metaAddr;
                v.dmaWrTrack.address    := dmaWrDescAck.address;
                v.dmaWrTrack.maxSize    := dmaWrDescAck.maxSize;
+               v.dmaWrTrack.timeout     := dmaWrDescAck.timeout;
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
@@ -437,6 +440,9 @@ begin
                -- Write data channel
                v.wMaster.wlast := '1';
 
+               -- Increment the counter
+               v.reqCount := r.reqCount + 1;
+
                -- Descriptor data, 64-bits
                v.wMaster.wdata(63 downto 32)   := r.dmaWrTrack.size;
                v.wMaster.wdata(31 downto 24)   := r.dmaWrTrack.firstUser;
@@ -464,6 +470,7 @@ begin
                v.dmaWrDescRet.id        := r.dmaWrTrack.id;
                v.dmaWrDescRet.lastUser  := r.lastUser;
                v.dmaWrDescRet.continue  := r.continue;
+               v.dmaWrDescRet.result(3) := '0';
                v.dmaWrDescRet.result(2) := r.dmaWrTrack.overflow;
                v.dmaWrDescRet.result(1 downto 0) := r.result;
                -- Init record
@@ -473,10 +480,11 @@ begin
                   v.dmaWrDescRet.valid := '1';
                   v.state := IDLE_S;
                -- Check for ACK timeout
-               elsif (r.stCount = x"FFFF") then
+               elsif (r.stCount = r.dmaWrTrack.timeout) then
                   -- Set the flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
                   v.dmaWrDescRet.valid := '1';
+                  v.dmaWrDescRet.result(3) := '1';
                   v.reqCount := (others => '0');
                   v.ackCount := (others => '0');
                   v.state    := IDLE_S;

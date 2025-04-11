@@ -145,6 +145,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffWrCache : slv(3 downto 0);
       enableCnt   : slv(7 downto 0);
       idBuffThold : Slv32Array(7 downto 0);
+      wrTimeout    : slv(31 downto 0);
 
       -- FIFOs
       fifoDin        : slv(31 downto 0);
@@ -222,6 +223,7 @@ architecture rtl of AxiStreamDmaV2Desc is
       buffWrCache     => (others => '0'),
       enableCnt       => (others => '0'),
       idBuffThold     => (others => (others => '0')),
+      wrTimeout        => x"0000FFFF",
       -- FIFOs
       fifoDin         => (others => '0'),
       wrFifoWr        => (others => '0'),
@@ -433,7 +435,7 @@ begin
       axiSlaveRegister(regCon, x"000", 0, v.enable);
       axiSlaveRegisterR(regCon, x"000", 8, r.enableCnt);  -- Count the number of times enable transitions from 0->1
       axiSlaveRegisterR(regCon, x"000", 16, '1');  -- Legacy DESC_128_EN_C constant (always 0x1 now)
-      axiSlaveRegisterR(regCon, x"000", 24, toSlv(4, 8));  -- Version Number for aes-stream-driver to case on
+      axiSlaveRegisterR(regCon, x"000", 24, toSlv(5, 8));  -- Version Number for aes-stream-driver to case on
       axiSlaveRegister(regCon, x"004", 0, v.intEnable);
       axiSlaveRegister(regCon, x"008", 0, v.contEn);
       axiSlaveRegister(regCon, x"00C", 0, v.dropEn);
@@ -485,6 +487,8 @@ begin
       axiSlaveRegister(regCon, x"080", 0, v.forceInt);
 
       axiSlaveRegister(regCon, x"084", 0, v.intHoldoff);
+
+      axiSlaveRegister(regCon, x"088", 0, v.wrTimeout);
 
       for i in 0 to 7 loop
          axiSlaveRegister(regCon, toSlv(144 + i*4, 12), 0, v.idBuffThold(i));  -- 0x090 - 0xAC
@@ -583,6 +587,7 @@ begin
             v.dmaWrDescAck(i).dropEn  := r.dropEn;
             v.dmaWrDescAck(i).contEn  := r.contEn;
             v.dmaWrDescAck(i).maxSize := r.maxSize;
+            v.dmaWrDescAck(i).timeout := r.wrTimeout;
 
             v.dmaWrDescAck(i).buffId(27 downto 0) := wrFifoDout(27 downto 0);
 
@@ -693,9 +698,10 @@ begin
             v.axiWriteMaster.wdata(31 downto 24)   := dmaWrDescRet(descIndex).firstUser;
             v.axiWriteMaster.wdata(23 downto 16)   := dmaWrDescRet(descIndex).lastUser;
             v.axiWriteMaster.wdata(15 downto 8)    := dmaWrDescRet(descIndex).id;
-            v.axiWriteMaster.wdata(7 downto 4)     := (others => '0');
+            v.axiWriteMaster.wdata(7 downto 5)     := (others => '0');
+            v.axiWriteMaster.wdata(4)              := dmaWrDescRet(descIndex).result(3);
             v.axiWriteMaster.wdata(3)              := dmaWrDescRet(descIndex).continue;
-            v.axiWriteMaster.wdata(2 downto 0)     := dmaWrDescRet(descIndex).result;
+            v.axiWriteMaster.wdata(2 downto 0)     := dmaWrDescRet(descIndex).result(2 downto 0);
 
             v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
 
