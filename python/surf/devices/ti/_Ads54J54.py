@@ -11,20 +11,25 @@
 import time
 
 import pyrogue as pr
+import rogue
 
 class Ads54J54(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        for i in range(0x6C+1):
-            self.add(pr.RemoteVariable(
-                name         = f'Reg_0x{i:02X}',
-                offset       = (4*i),
-                bitSize      = 16,
-                mode         = 'WO' if (i==0) else 'RW',
-                overlapEn    = True,
-                hidden       = True,
-            ))
+        # Allow array variables to be set from yaml by a dict of index/value pairs add in rogue v6.6.0
+        rogue.Version.minVersion('6.6.0')
+        self.add(pr.RemoteVariable(
+            name        = 'Reg',
+            offset      = 0x00,
+            mode        = 'RW',
+            numValues   = 0x6D,
+            valueBits   = 16,
+            valueStride = 32,
+            verify      = False,
+            hidden      = True,
+            overlapEn   = True,
+        ))
 
         ######################################################
         # Figure 72. Register Address 0, Reset 0x0000, Hex = 0
@@ -898,15 +903,15 @@ class Ads54J54(pr.Device):
 
         @self.command(name= "Init", description  = "Device Initiation after the YAML configuration load")
         def Init():
-            self.Reg_0x44.set(0x0074)
-            self.Reg_0x47.set(0x0074)
-            self.Reg_0x4C.set(0x4000)
-            self.Reg_0x50.set(0x0800)
-            self.Reg_0x51.set(0x0074)
-            self.Reg_0x54.set(0x0074)
-            self.Reg_0x59.set(0x4000)
-            self.Reg_0x5D.set(0x0800)
-            self.Reg_0x0D.set(0x0202)
-            self.Reg_0x0D.set(0x0303)
+            self.Reg.set(index=0x44, value=0x0074)
+            self.Reg.set(index=0x47, value=0x0074)
+            self.Reg.set(index=0x4C, value=0x4000)
+            self.Reg.set(index=0x50, value=0x0800)
+            self.Reg.set(index=0x51, value=0x0074)
+            self.Reg.set(index=0x54, value=0x0074)
+            self.Reg.set(index=0x59, value=0x4000)
+            self.Reg.set(index=0x5D, value=0x0800)
+            self.Reg.set(index=0x0D, value=0x0202)
+            self.Reg.set(index=0x0D, value=0x0303)
             time.sleep(0.001)
-            self.Reg_0x0D.set(0x0101)
+            self.Reg.set(index=0x0D, value=0x0101)
