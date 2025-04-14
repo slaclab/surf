@@ -89,9 +89,12 @@ entity RssiConnFsm is
       txBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
       txWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
 
+      -- Debug
+      connState_o : out slv(3 downto 0);
+
       -- Status signals
-      peerTout_o       : out sl;
-      paramReject_o    : out sl
+      peerTout_o    : out sl;
+      paramReject_o : out sl
    );
 end entity RssiConnFsm;
 
@@ -131,7 +134,8 @@ architecture rtl of RssiConnFsm is
       resendCntr     : integer range 0 to MAX_RETRANS_CNT_G+1;
 
       ---
-      state       : StateType;
+      state     : StateType;
+      connState : slv(3 downto 0);
 
    end record RegType;
 
@@ -154,8 +158,8 @@ architecture rtl of RssiConnFsm is
       txWindowSize=> 1,
 
       ---
-      state  => CLOSED_S
-
+      state     => CLOSED_S,
+      connState => (others => '0')
    );
 
    signal r   : RegType := REG_INIT_C;
@@ -181,6 +185,7 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when CLOSED_S =>
+            v.connState := x"0";
 
             -- Initialize parameters
             v := REG_INIT_C;
@@ -200,6 +205,7 @@ begin
          --  Accept parameters from server or close connection
          ----------------------------------------------------------------------
          when SEND_SYN_S =>
+            v.connState := x"1";
 
             v.connActive   := '0';
             v.closed       := '0';
@@ -220,6 +226,7 @@ begin
 
          ----------------------------------------------------------------------
          when WAIT_SYN_S =>
+            v.connState := x"2";
 
             v.connActive   := '0';
             v.sndSyn       := '0';
@@ -280,7 +287,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SEND_ACK_S =>
-            --
+            v.connState := x"3";
+
             v.connActive   := '0';
             v.sndSyn       := '0';
             v.sndAck       := '1';
@@ -305,7 +313,8 @@ begin
          --         If not valid propose new parameters.
          ----------------------------------------------------------------------
           when LISTEN_S =>
-            --
+            v.connState := x"4";
+
             v.connActive   := '0';
             v.closed       := '0';
             v.sndSyn       := '0';
@@ -360,6 +369,7 @@ begin
             end if;
          ---------------------------------------------------------------------
          when SEND_SYN_ACK_S =>
+            v.connState := x"5";
 
             v.connActive   := '0';
             v.closed       := '0';
@@ -378,6 +388,7 @@ begin
             end if;
 
          when WAIT_ACK_S =>
+            v.connState := x"6";
 
             v.connActive   := '0';
             v.sndSyn       := '0';
@@ -412,7 +423,8 @@ begin
          --
          ----------------------------------------------------------------------
          when OPEN_S =>
-            --
+            v.connState := x"7";
+
             v.connActive   := '1';
             v.sndSyn       := '0';
             v.sndAck       := '0';
@@ -438,7 +450,8 @@ begin
          -- - Go to Closed
          ----------------------------------------------------------------------
          when SEND_RST_S =>
-            --
+            v.connState := x"8";
+
             v.connActive   := r.connActive;
             v.sndSyn       := '0';
             v.sndAck       := '0';
@@ -488,8 +501,9 @@ begin
    rxWindowSize_o <= r.txWindowSize;
    txBufferSize_o <= r.txBufferSize;
    txWindowSize_o <= r.txWindowSize;
-   closed_o <= r.closed;
+   closed_o       <= r.closed;
    --
+   connState_o   <= r.connState;
    peerTout_o    <= r.peerTout;
    paramReject_o <= r.paramReject;
    ---------------------------------------------------------------------

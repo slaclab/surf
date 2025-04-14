@@ -81,7 +81,8 @@ architecture rtl of AxiStreamDmaV2Write is
       result        : slv(1  downto 0);
       reqCount      : slv(31 downto 0);
       ackCount      : slv(31 downto 0);
-      stCount       : slv(15 downto 0);
+      stCount       : slv(31 downto 0);
+      timeoutCnt    : slv(31 downto 0);
       awlen         : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
       axiLen        : AxiLenType;
       wMaster       : AxiWriteMasterType;
@@ -100,6 +101,7 @@ architecture rtl of AxiStreamDmaV2Write is
       reqCount      => (others => '0'),
       ackCount      => (others => '0'),
       stCount       => (others => '0'),
+      timeoutCnt    => (others => '0'),
       awlen         => (others => '0'),
       axiLen        => AXI_LEN_INIT_C,
       wMaster       => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
@@ -271,6 +273,7 @@ begin
                v.dmaWrTrack.metaAddr   := dmaWrDescAck.metaAddr;
                v.dmaWrTrack.address    := dmaWrDescAck.address;
                v.dmaWrTrack.maxSize    := dmaWrDescAck.maxSize;
+               v.dmaWrTrack.timeout     := dmaWrDescAck.timeout;
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
@@ -443,7 +446,7 @@ begin
                v.wMaster.wdata(23 downto 16)   := r.lastUser;
                v.wMaster.wdata(15 downto 4)    := (others => '0');
                v.wMaster.wdata(3)              := r.continue;
-               v.wMaster.wdata(2)              := '0';
+               v.wMaster.wdata(2)              := r.dmaWrTrack.overflow;
                v.wMaster.wdata(1 downto 0)     := r.result;
 
                v.wMaster.wstrb := resize(x"FF", 128);
@@ -464,6 +467,7 @@ begin
                v.dmaWrDescRet.id        := r.dmaWrTrack.id;
                v.dmaWrDescRet.lastUser  := r.lastUser;
                v.dmaWrDescRet.continue  := r.continue;
+               v.dmaWrDescRet.result(3) := '0';
                v.dmaWrDescRet.result(2) := r.dmaWrTrack.overflow;
                v.dmaWrDescRet.result(1 downto 0) := r.result;
                -- Init record
@@ -473,10 +477,11 @@ begin
                   v.dmaWrDescRet.valid := '1';
                   v.state := IDLE_S;
                -- Check for ACK timeout
-               elsif (r.stCount = x"FFFF") then
+               elsif (r.stCount = r.dmaWrTrack.timeout) then
                   -- Set the flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
                   v.dmaWrDescRet.valid := '1';
+                  v.dmaWrDescRet.result(3) := '1';
                   v.reqCount := (others => '0');
                   v.ackCount := (others => '0');
                   v.state    := IDLE_S;
@@ -500,7 +505,11 @@ begin
                   -- -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      v.dmaWrTrack.inUse := '0';
-                     v.state := RETURN_S;
+                     if r.dmaWrTrack.metaEnable = '1' then
+                        v.state := META_S;
+                     else
+                        v.state := RETURN_S;
+                     end if;
                   end if;
                end if;
             end if;

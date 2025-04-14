@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 
 package AxiStreamPkg is
 
-   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 512;  -- Units of bits
+   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 1024;  -- Units of bits
    constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8);  -- Units of bytes
 
    type AxiStreamMasterType is record

@@ -102,7 +102,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
         self.add(pr.RemoteVariable(
             name         = "State",
             description  = "current state of FSM (for debugging)",
-            offset       =  0xFF8,
+            offset       =  0xFF4,
             bitSize      =  1,
             bitOffset    =  8,
             mode         = "RO",

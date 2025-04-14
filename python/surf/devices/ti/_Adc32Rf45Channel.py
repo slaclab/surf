@@ -22,20 +22,19 @@ class Adc32Rf45Channel(pr.Device):
         #######################
         # Paging base addresses
         #######################
-        offsetCorrector = offset + (0x1 << 14)  # 0x04000
-        digitalGain     = offset + (0x2 << 14)  # 0x08000
-        mainDigital     = offset + (0x3 << 14)  # 0x0C000
-        jesdDigital     = offset + (0x4 << 14)  # 0x10000
-        decFilter       = offset + (0x5 << 14)  # 0x14000
-        pwrDet          = offset + (0x6 << 14)  # 0x18000
+        offsetCorrector = (0x1 << 14)  # CHA: 0x04000, CHB: 0x24000
+        digitalGain     = (0x2 << 14)  # CHA: 0x08000, CHB: 0x28000
+        mainDigital     = (0x3 << 14)  # CHA: 0x0C000, CHB: 0x2C000
+        jesdDigital     = (0x4 << 14)  # CHA: 0x10000, CHB: 0x30000
+        decFilter       = (0x5 << 14)  # CHA: 0x14000, CHB: 0x34000
+        pwrDet          = (0x6 << 14)  # CHA: 0x18000, CHB: 0x38000
 
         ##################
         # Offset Corr Page
         ##################
         self.add(pr.RemoteVariable(name='OffsetCorrector',
-                                   offset       = offsetCorrector, # 0x04000 - 0x041FF
+                                   offset       = offsetCorrector, # 0x04000 - 0x041FF, 512 Bytes
                                    base         = pr.UInt,
-                                   bitSize      = 32*0x80, # 512 Bytes
                                    bitOffset    = 0,
                                    numValues    = 0x80,
                                    valueBits    = 32,
@@ -129,11 +128,10 @@ class Adc32Rf45Channel(pr.Device):
         # Main Digital Page
         ###################
         self.add(pr.RemoteVariable(name='MainDigital',
-                                   offset       = mainDigital, # 0x0C000 - 0x0C1FF
+                                   offset       = mainDigital, # 0x0C000 - 0x0C3FF, 1024 Bytes
                                    base         = pr.UInt,
-                                   bitSize      = 32*0x80, # 512 Bytes
                                    bitOffset    = 0,
-                                   numValues    = 0x80,
+                                   numValues    = 0x100,
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
@@ -170,9 +168,8 @@ class Adc32Rf45Channel(pr.Device):
         # JESD DIGITAL PAGE
         ###################
         self.add(pr.RemoteVariable(name='JesdDigital',
-                                   offset       = jesdDigital, # 0x10000 - 0x101FF
+                                   offset       = jesdDigital, # 0x10000 - 0x101FF, 512 Bytes
                                    base         = pr.UInt,
-                                   bitSize      = 32*0x80, # 512 Bytes
                                    bitOffset    = 0,
                                    numValues    = 0x80,
                                    valueBits    = 32,
