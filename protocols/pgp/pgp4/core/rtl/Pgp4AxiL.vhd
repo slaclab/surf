@@ -52,6 +52,9 @@ entity Pgp4AxiL is
       txDiffCtrl      : out slv(4 downto 0);
       txPreCursor     : out slv(4 downto 0);
       txPostCursor    : out slv(4 downto 0);
+      phyRxEyeRst     : out sl;
+      phyRxPmaRst     : out sl;
+      phyRxPmaRstDone : in  sl;
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -80,6 +83,8 @@ architecture mapping of Pgp4AxiL is
       txDiffCtrl     : slv(4 downto 0);
       txPreCursor    : slv(4 downto 0);
       txPostCursor   : slv(4 downto 0);
+      phyRxEyeRst    : sl;
+      phyRxPmaRst    : sl;
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
    end record RegType;
@@ -95,6 +100,8 @@ architecture mapping of Pgp4AxiL is
       txDiffCtrl     => (others => '1'),
       txPreCursor    => "00111",
       txPostCursor   => "00111",
+      phyRxEyeRst    => '1',
+      phyRxPmaRst    => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
 
@@ -184,27 +191,34 @@ begin
       axiSlaveRegisterR(axilEp, x"004", 8, toSlv(NUM_VC_G, 8));
       axiSlaveRegisterR(axilEp, x"004", 16, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"004", 24, toSlv(ERROR_CNT_WIDTH_G, 8));
+      
+      axiSlaveRegisterR (axilEp, x"00C", 31, phyRxPmaRstDone);
 
       if (WRITE_EN_G) then
          axiSlaveRegister (axilEp, x"008", 0, v.skpInterval);
          axiSlaveRegister (axilEp, x"00C", 0, v.loopback);
          axiSlaveRegister (axilEp, x"00C", 3, v.flowCntlDis);
          axiSlaveRegister (axilEp, x"00C", 4, v.txDisable);
-         axiSlaveRegister (axilEp, x"00C", 5, v.resetTx);
+         axiSlaveRegister (axilEp, x"00C", 5, v.resetRx);
          axiSlaveRegister (axilEp, x"00C", 6, v.resetTx);
          axiSlaveRegister (axilEp, x"00C", 8, v.txDiffCtrl);
          axiSlaveRegister (axilEp, x"00C", 16, v.txPreCursor);
-         axiSlaveRegister (axilEp, x"00C", 24, v.txPostCursor);
+         axiSlaveRegister (axilEp, x"00C", 22, v.txPostCursor);
+         axiSlaveRegister (axilEp, x"00C", 29, v.phyRxEyeRst);
+         axiSlaveRegister (axilEp, x"00C", 30, v.phyRxPmaRst);
+         
       else
          axiSlaveRegisterR(axilEp, x"008", 0, r.skpInterval);
          axiSlaveRegisterR(axilEp, x"00C", 0, r.loopback);
          axiSlaveRegisterR(axilEp, x"00C", 3, r.flowCntlDis);
          axiSlaveRegisterR(axilEp, x"00C", 4, r.txDisable);
-         axiSlaveRegisterR(axilEp, x"00C", 5, r.resetTx);
+         axiSlaveRegisterR(axilEp, x"00C", 5, r.resetRx);
          axiSlaveRegisterR(axilEp, x"00C", 6, r.resetTx);
          axiSlaveRegisterR(axilEp, x"00C", 8, r.txDiffCtrl);
          axiSlaveRegisterR(axilEp, x"00C", 16, r.txPreCursor);
          axiSlaveRegisterR(axilEp, x"00C", 24, r.txPostCursor);
+         axiSlaveRegisterR(axilEp, x"00C", 31, r.phyRxEyeRst);
+         
       end if;
 
       ----------------------------------------------------------------------------------------------
@@ -263,6 +277,8 @@ begin
       txDiffCtrl     <= r.txDiffCtrl;
       txPreCursor    <= r.txPreCursor;
       txPostCursor   <= r.txPostCursor;
+      phyRxEyeRst    <= r.phyRxEyeRst;
+      phyRxPmaRst    <= r.phyRxPmaRst;
 
       -- Reset
       if (RST_ASYNC_G = false and axilRst = '1') then

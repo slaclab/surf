@@ -13,8 +13,8 @@ if { $::env(VIVADO_VERSION) >= 2020.1 } {
    loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GthUsIp12G/Pgp3GthUsIp12G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp12G/Pgp3GthUsIp12G.xci"
 
-   loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.dcp"
-   # loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.xci"
+   #loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.dcp"
+    loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp10G/Pgp3GthUsIp10G.xci"
 
    loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GthUsIp6G/Pgp3GthUsIp6G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp6G/Pgp3GthUsIp6G.xci"

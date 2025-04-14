@@ -76,6 +76,9 @@ entity Pgp4Core is
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
       phyRxSlip     : out sl := '0';
+      phyRxEyeRst   : out sl := '1';
+      phyRxPmaRst   : out sl;
+      phyRxPmaRstDone : in  sl;
 
       -- Debug Interface
       loopback     : out slv(2 downto 0);
@@ -193,6 +196,9 @@ begin
             txDiffCtrl      => txDiffCtrl,       -- [out]
             txPreCursor     => txPreCursor,      -- [out]
             txPostCursor    => txPostCursor,     -- [out]
+            phyRxEyeRst     => phyRxEyeRst,      -- [out]
+            phyRxPmaRst     => phyRxPmaRst,
+            phyRxPmaRstDone => phyRxPmaRstDone,
             axilClk         => axilClk,          -- [in]
             axilRst         => axilRst,          -- [in]
             axilReadMaster  => axilReadMaster,   -- [in]
@@ -207,6 +213,7 @@ begin
       txDiffCtrl   <= (others => '1');
       txPreCursor  <= "00111";
       txPostCursor <= "00111";
+      phyRxEyeRst  <= '0';
    end generate NO_PGP_MON;
 
    loopback <= pgpRxInInt.loopback;

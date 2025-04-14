@@ -43,6 +43,9 @@ entity Pgp3GthUsIpWrapper is
       gtTxN          : out sl;
       -- Rx ports
       rxReset        : in  sl;
+      rxEyeRst       : in  sl;
+      rxPmaRst       : in  sl;
+      rxPmaRstDone   : out sl;
       rxUsrClkActive : out sl;
       rxResetDone    : out sl;
       rxUsrClk       : out sl;
@@ -138,7 +141,9 @@ architecture mapping of Pgp3GthUsIpWrapper is
          rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
          rxstartofseq_out                   : out std_logic_vector(1 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         eyescanreset_in                    : in  std_logic_vector(0 downto 0);
+         rxpmareset_in                      : in  std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -381,8 +386,10 @@ begin
             rxprgdivresetdone_out(0)              => dummy9,
             rxstartofseq_out(1)                   => dummy2,
             rxstartofseq_out(0)                   => rxStartOfSeq,
-            txpmaresetdone_out(0)                 => dummy10,
-            txprgdivresetdone_out(0)              => dummy11);
+            txpmaresetdone_out(0)                 => rxPmaRstDone,
+            txprgdivresetdone_out(0)              => dummy11,
+            eyescanreset_in(0)                    => rxEyeRst,
+            rxpmareset_in(0)                      => rxPmaRst);
    end generate GEN_10G;
 
    GEN_6G : if (RATE_G = "6.25Gbps") generate

@@ -113,6 +113,8 @@ architecture rtl of Pgp4GtyUs is
    signal phyRxData     : slv(63 downto 0);
    signal phyRxStartSeq : sl;
    signal phyRxSlip     : sl;
+   signal phyRxPmaRst   : sl;
+   signal phyRxPmaRstDone : sl;
 
 
    -- PgpTx Signals
@@ -133,7 +135,7 @@ architecture rtl of Pgp4GtyUs is
          connectivity  => X"FFFF"),
       DRP_AXIL_INDEX_C => (
          baseAddr      => AXIL_BASE_ADDR_G + X"1000",
-         addrBits      => 11,
+         addrBits      => 12,
          connectivity  => X"FFFF"));
 
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
@@ -145,7 +147,8 @@ architecture rtl of Pgp4GtyUs is
    signal txDiffCtrl   : slv(4 downto 0);
    signal txPreCursor  : slv(4 downto 0);
    signal txPostCursor : slv(4 downto 0);
-
+   signal phyRxEyeRst  : sl;
+   
 begin
 
    assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
@@ -244,6 +247,9 @@ begin
          phyRxData       => phyRxData,                           -- [in]
          phyRxStartSeq   => phyRxStartSeq,                       -- [in]
          phyRxSlip       => phyRxSlip,                           -- [out]
+         phyRxEyeRst     => phyRxEyeRst,                         -- [out]
+         phyRxPmaRst     => phyRxPmaRst,
+         phyRxPmaRstDone => phyRxPmaRstDone,
          -- Debug Interface
          loopback        => loopback,                            -- [out]
          txDiffCtrl      => txDiffCtrl,                          -- [out]
@@ -279,6 +285,9 @@ begin
          gtTxP           => pgpGtTxP,                            -- [out]
          gtTxN           => pgpGtTxN,                            -- [out]
          rxReset         => phyRxInit,                           -- [in]
+         rxEyeRst        => phyRxEyeRst,                         -- [in]
+         rxPmaRst        => phyRxPmaRst,
+         rxPmaRstDone    => phyRxPmaRstDone,
          rxUsrClkActive  => open,                                -- [out]
          rxResetDone     => phyRxActive,                         -- [out]
          rxUsrClk        => open,                                -- [out]

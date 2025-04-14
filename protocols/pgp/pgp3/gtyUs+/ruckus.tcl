@@ -8,13 +8,13 @@ if { $::env(VIVADO_VERSION) >= 2020.1 } {
    loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
    loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GtyUsIp15G/Pgp3GtyUsIp15G.dcp"
-   # loadIpCore -path "$::DIR_PATH/ip/Pgp3GtyUsIp15G/Pgp3GtyUsIp15G.xci"
+   #loadIpCore -path "$::DIR_PATH/ip/Pgp3GtyUsIp15G/Pgp3GtyUsIp15G.xci"
 
    loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GtyUsIp12G/Pgp3GtyUsIp12G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3GtyUsIp12G/Pgp3GtyUsIp12G.xci"
 
-   loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GtyUsIp10G/Pgp3GtyUsIp10G.dcp"
-   # loadIpCore -path "$::DIR_PATH/ip/Pgp3GtyUsIp10G/Pgp3GtyUsIp10G.xci"
+   #loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GtyUsIp10G/Pgp3GtyUsIp10G.dcp"
+   loadIpCore -path "$::DIR_PATH/ip/Pgp3GtyUsIp10G/Pgp3GtyUsIp10G.xci"
 
    loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GtyUsIp6G/Pgp3GtyUsIp6G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3GtyUsIp6G/Pgp3GtyUsIp6G.xci"

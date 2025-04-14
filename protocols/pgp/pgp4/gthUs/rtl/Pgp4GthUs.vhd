@@ -114,8 +114,10 @@ architecture rtl of Pgp4GthUs is
    signal phyRxData     : slv(63 downto 0);
    signal phyRxStartSeq : sl;
    signal phyRxSlip     : sl;
-
-
+   signal phyRxPmaRst   : sl;
+   signal phyRxPmaRstDone : sl;
+   signal phyRxEyeRst  : sl;
+   
    -- PgpTx Signals
    signal gtTxUserReset : sl;
    signal phyTxActive   : sl;
@@ -244,7 +246,10 @@ begin
          phyRxHeader     => phyRxHeader,                         -- [in]
          phyRxData       => phyRxData,                           -- [in]
          phyRxStartSeq   => phyRxStartSeq,                       -- [in]
-         phyRxSlip       => phyRxSlip,                           -- [out]
+         phyRxSlip       => phyRxSlip,                           -- [out]                  -- [out]
+         phyRxEyeRst     => phyRxEyeRst,                         -- [out]
+         phyRxPmaRst     => phyRxPmaRst,
+         phyRxPmaRstDone => phyRxPmaRstDone,
          -- Debug Interface
          loopback        => loopback,                            -- [out]
          txDiffCtrl      => txDiffCtrl,                          -- [out]
@@ -284,7 +289,10 @@ begin
          rxResetDone     => phyRxActive,                         -- [out]
          rxUsrClk        => open,                                -- [out]
          rxUsrClk2       => phyRxClk,                            -- [out]
-         rxUsrClkRst     => phyRxRst,                            -- [out]
+         rxUsrClkRst     => phyRxRst,                            -- [out]                   -- [in]
+         rxEyeRst        => phyRxEyeRst,                         -- [in]
+         rxPmaRst        => phyRxPmaRst,
+         rxPmaRstDone    => phyRxPmaRstDone,
          rxData          => phyRxData,                           -- [out]
          rxDataValid     => phyRxValid,                          -- [out]
          rxHeader        => phyRxHeader,                         -- [out]
