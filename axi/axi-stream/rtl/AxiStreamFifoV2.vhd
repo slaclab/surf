@@ -142,7 +142,7 @@ architecture rtl of AxiStreamFifoV2 is
    signal fifoDin         : slv(FIFO_BITS_C-1 downto 0);
    signal fifoWrite       : sl;
    signal fifoWriteLast   : sl;
-   signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
+   signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0) := (others=>'0');
    signal fifoWrCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoRdCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoAFull       : sl;
@@ -227,10 +227,9 @@ begin
    fifoDin       <= toSlv(fifoWriteMaster, FIFO_CONFIG_C);
    fifoWrite     <= fifoWriteMaster.tValid and fifoReady;
    fifoWriteLast <= fifoWriteMaster.tValid and fifoReady and fifoWriteMaster.tLast;
-   fifoWriteUser <= ite(FIFO_USER_BITS_C > 0,
-                        resize(axiStreamGetUserField(FIFO_CONFIG_C, fifoWriteMaster, -1), FIFO_USER_BITS_C),
-                        "0");
-
+   GET_WR_USER : if (FIFO_USER_BITS_C > 0) generate
+      fifoWriteUser <= resize(axiStreamGetUserField(FIFO_CONFIG_C, fifoWriteMaster, -1), FIFO_USER_BITS_C);
+   end generate;
    fifoWriteSlave.tReady <= fifoReady;
 
    U_Fifo : entity surf.FifoCascade
