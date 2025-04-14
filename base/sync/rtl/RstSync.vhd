@@ -24,12 +24,12 @@ use surf.StdRtlPkg.all;
 
 entity RstSync is
    generic (
-      TPD_G           : time                             := 1 ns;  -- Simulation FF output delay
-      IN_POLARITY_G   : std_logic                        := '1';  -- 0 for active low rst, 1 for high
-      OUT_POLARITY_G  : std_logic                        := '1';
-      BYPASS_SYNC_G   : boolean                          := false;  -- Bypass Synchronizer module for synchronous data configuration
-      RELEASE_DELAY_G : integer range 3 to positive'high := 3;  -- Delay between deassertion of async and sync resets
-      OUT_REG_RST_G   : boolean                          := true);  -- Apply async reset to final reg stage
+      TPD_G           : time                       := 1 ns;  -- Simulation FF output delay
+      IN_POLARITY_G   : std_logic                  := '1';  -- 0 for active low rst, 1 for high
+      OUT_POLARITY_G  : std_logic                  := '1';
+      BYPASS_SYNC_G   : boolean                    := false;  -- Bypass Synchronizer module for synchronous data configuration
+      RELEASE_DELAY_G : integer range 3 to (2**24) := 3;  -- Delay between deassertion of async and sync resets
+      OUT_REG_RST_G   : boolean                    := true);  -- Apply async reset to final reg stage
    port (
       clk      : in  sl;
       asyncRst : in  sl;
