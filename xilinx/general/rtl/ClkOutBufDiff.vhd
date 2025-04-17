@@ -42,7 +42,7 @@ architecture rtl of ClkOutBufDiff is
 
 begin
 
-   assert (XIL_DEVICE_G = "7SERIES" or XIL_DEVICE_G = "ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS")
+   assert (XIL_DEVICE_G = "7SERIES" or XIL_DEVICE_G = "ULTRASCALE" or XIL_DEVICE_G = "ULTRASCALE_PLUS")
       report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
 
    rst <= rstIn when(RST_POLARITY_G = '1') else not(rstIn);

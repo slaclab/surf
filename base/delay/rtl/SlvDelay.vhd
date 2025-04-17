@@ -27,7 +27,7 @@ entity SlvDelay is
       RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       SRL_EN_G       : boolean  := false;  -- Allow an SRL to be inferred. Disables reset.
       DELAY_G        : natural  := 1;  --number of clock cycle delays. MAX delay stages when using
-                                     --delay input
+      --delay input
       REG_OUTPUT_G   : boolean  := false;  -- For use with Dynamic SRLs, adds extra delay register on output
       WIDTH_G        : positive := 1;
       INIT_G         : slv      := "0");

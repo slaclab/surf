@@ -43,7 +43,7 @@ architecture rtl of Srl16Delay is
 
 begin
 
-   assert (XIL_DEVICE_G = "7SERIES" or XIL_DEVICE_G = "ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS")
+   assert (XIL_DEVICE_G = "7SERIES" or XIL_DEVICE_G = "ULTRASCALE" or XIL_DEVICE_G = "ULTRASCALE_PLUS")
       report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
