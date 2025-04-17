@@ -113,7 +113,8 @@ begin
          addrb => r.rdAddr(2 downto 0),
          doutb => rdData);
 
-   comb : process (ack, ibMacSlave, localMac, obAppMaster, r, rdData, remoteMac, rst) is
+   comb : process (ack, ibMacSlave, localMac, obAppMaster, r, rdData,
+                   remoteMac, rst) is
       variable v     : RegType;
       variable i     : natural;
       variable tKeep : slv(15 downto 0);
@@ -128,7 +129,7 @@ begin
          v.ibMacMaster.tValid := '0';
          v.ibMacMaster.tLast  := '0';
          v.ibMacMaster.tUser  := (others => '0');
-         v.ibMacMaster.tKeep  := resize(x"00FF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
+         v.ibMacMaster.tKeep  := resize(x"00FF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
 
       -- Update variables
@@ -174,7 +175,7 @@ begin
                      end if;
                   end loop;
                   -- Update the min. ETH Byte counter
-                  v.minByteCnt := 16 + getTKeep(tKeep,RAW_ETH_CONFIG_INIT_C);           -- include header offset
+                  v.minByteCnt := 16 + getTKeep(tKeep, RAW_ETH_CONFIG_INIT_C);  -- include header offset
                   -- Check for tLast
                   if obAppMaster.tLast = '1' then
                      -- Set EOF
@@ -221,11 +222,11 @@ begin
                   if tKeep(i) = '1' then
                      v.wrData(7+(8*i) downto (8*i)) := obAppMaster.tData(7+(8*i) downto (8*i));
                   else
-                     v.wrData(7+(8*i) downto (8*i)) := x"00";     -- zero padding
+                     v.wrData(7+(8*i) downto (8*i)) := x"00";  -- zero padding
                   end if;
                end loop;
                -- Update the min. ETH Byte counter
-               v.minByteCnt := r.minByteCnt + getTKeep(tKeep,RAW_ETH_CONFIG_INIT_C);
+               v.minByteCnt := r.minByteCnt + getTKeep(tKeep, RAW_ETH_CONFIG_INIT_C);
                -- Check for tLast
                if obAppMaster.tLast = '1' then
                   -- Set EOF

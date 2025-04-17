@@ -190,7 +190,7 @@ begin
                v.txMaster.tKeep              := resize(x"3FF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
             when others =>
                -- Stop
-               v.wrdCnt := r.wrdCnt;
+               v.wrdCnt          := r.wrdCnt;
                v.txMaster.tValid := '0';
          ----------------------------------------------------------------------
          end case;

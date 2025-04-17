@@ -25,11 +25,11 @@ use surf.AxiStreamPkg.all;
 
 entity RawEthFramerWrapper is
    generic (
-      TPD_G            : time             := 1 ns;
-      ETH_TYPE_G       : slv(15 downto 0) := x"0010");  --  0x1000 (big-Endian configuration)
+      TPD_G      : time             := 1 ns;
+      ETH_TYPE_G : slv(15 downto 0) := x"0010");  --  0x1000 (big-Endian configuration)
    port (
       -- Local Configurations
-      localMac        : in  slv(47 downto 0);          --  big-Endian configuration
+      localMac        : in  slv(47 downto 0);     --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster     : in  AxiStreamMasterType;
       obMacSlave      : out AxiStreamSlaveType;

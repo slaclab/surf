@@ -154,17 +154,17 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)            -- 64-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)  -- 64-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macObMaster,                     -- 128-bit AXI stream interface
+         sAxisMaster => macObMaster,    -- 128-bit AXI stream interface
          sAxisSlave  => macObSlave,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macMaster,                       -- 64-bit AXI stream interface
+         mAxisMaster => macMaster,      -- 64-bit AXI stream interface
          mAxisSlave  => macSlave);
 
    -- Generate read
@@ -238,7 +238,8 @@ begin
    end process;
 
    -- State machine
-   process (curState, ethRst, exportWordCnt, intError, macMaster, phyReady, stateCount)
+   process (curState, ethRst, exportWordCnt, intError, macMaster, phyReady,
+            stateCount)
    begin
 
       -- Init

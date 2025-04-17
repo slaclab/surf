@@ -124,7 +124,7 @@ begin
    ethConfig.tcpCsumEn <= '0';
    ethConfig.udpCsumEn <= '0';
 
-   comb : process (r, rst, rxMaster, txSlave) is
+   comb : process (ethStatus, r, rst, rxMaster, txSlave) is
       variable v        : RegType;
       variable rxEofIdx : slv(7 downto 0);
    begin

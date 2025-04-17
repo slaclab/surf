@@ -91,17 +91,17 @@ begin
          obMacPrimMaster => rxMaster,
          obMacPrimSlave  => rxSlave,
          -- Ethernet Interface
-         ethClk    => clk,
-         ethRst    => rst,
-         ethConfig => ethConfig,
-         phyReady  => phyReady,
+         ethClk          => clk,
+         ethRst          => rst,
+         ethConfig       => ethConfig,
+         phyReady        => phyReady,
          -- XGMII PHY Interface
-         xgmiiRxd => phyRxD,
-         xgmiiRxc => phyRxC,
-         xgmiiTxd => phyTxD,
-         xgmiiTxc => phyTxC);
+         xgmiiRxd        => phyRxD,
+         xgmiiRxc        => phyRxC,
+         xgmiiTxd        => phyTxD,
+         xgmiiTxc        => phyTxC);
 
-   ethConfig.macAddress  <= x"010300564400";
+   ethConfig.macAddress <= x"010300564400";
 
    -- Only doing RAW Ethernet communication
    ethConfig.ipCsumEn  <= '1';
