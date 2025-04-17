@@ -31,28 +31,28 @@ architecture test of CfixedMultAddTb is
 
    signal clk : std_logic := '0';
    signal rst : std_logic := '1';
-   signal run : boolean := true;
-   signal cnt : integer := 0;
+   signal run : boolean   := true;
+   signal cnt : integer   := 0;
 
-   signal a : cfixed(re(1 downto -25), im(1 downto -25)) := (others => (others => '0'));
-   signal b : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
-   signal c : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
-   signal y : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
-   signal aVld : std_logic := '1';
-   signal bVld : std_logic := '1';
-   signal cVld : std_logic := '0';
-   signal yVld : std_logic := '0';
+   signal a    : cfixed(re(1 downto -25), im(1 downto -25)) := (others => (others => '0'));
+   signal b    : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
+   signal c    : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
+   signal y    : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
+   signal aVld : std_logic                                  := '1';
+   signal bVld : std_logic                                  := '1';
+   signal cVld : std_logic                                  := '0';
+   signal yVld : std_logic                                  := '0';
 
-   signal aIn       : complex := (re => 0.00, im => 0.00);
-   signal bIn       : complex := (re => 0.00, im => 0.00);
-   signal cIn       : complex := (re => 0.00, im => 0.00);
+   signal aIn : complex := (re => 0.00, im => 0.00);
+   signal bIn : complex := (re => 0.00, im => 0.00);
+   signal cIn : complex := (re => 0.00, im => 0.00);
 
-   signal yExpected : complexArray(9 downto 0) := (others => (re => 0.00, im=>0.00));
-   signal yE        : complex := (re => 0.00, im => 0.00);
+   signal yExpected : complexArray(9 downto 0) := (others => (re => 0.00, im => 0.00));
+   signal yE        : complex                  := (re     => 0.00, im => 0.00);
 
-   signal yOut    : COMPLEX;
-   signal yError  : REAL;
-   signal maxError : REAL := 0.0;
+   signal yOut     : COMPLEX;
+   signal yError   : real;
+   signal maxError : real := 0.0;
 
 begin
 
@@ -72,15 +72,15 @@ begin
       end if;
    end process p_clk;
 
-   p_cnt : process ( clk ) is
+   p_cnt : process (clk) is
       variable s1 : integer := 981;
       variable s2 : integer := 12541;
       variable s3 : integer := 2745;
       variable s4 : integer := 442;
 
       impure function rand_complex(min_val, max_val : real) return complex is
-         variable re : real := 0.0;
-         variable im : real := 0.0;
+         variable re : real    := 0.0;
+         variable im : real    := 0.0;
          variable c  : complex := (re => 0.0, im => 0.0);
       begin
          uniform(s1, s2, re);
@@ -93,19 +93,19 @@ begin
       if rising_edge(clk) then
          case cnt is
             when 10 =>
-               rst   <= '0';
+               rst <= '0';
             when 11 to RUN_CNT_C-1 =>
-               aVld <= '1';
-               bVld <= '1';
-               cVld <= '1';
-               aIn  <= rand_complex(-0.5, 0.5);
-               bIn  <= rand_complex(-0.5, 0.5);
-               cIn  <= rand_complex(-0.5, 0.5);
-               a     <= to_cfixed(aIn, a);
-               b     <= to_cfixed(bIn, b);
-               c     <= to_cfixed(cIn, c);
+               aVld                  <= '1';
+               bVld                  <= '1';
+               cVld                  <= '1';
+               aIn                   <= rand_complex(-0.5, 0.5);
+               bIn                   <= rand_complex(-0.5, 0.5);
+               cIn                   <= rand_complex(-0.5, 0.5);
+               a                     <= to_cfixed(aIn, a);
+               b                     <= to_cfixed(bIn, b);
+               c                     <= to_cfixed(cIn, c);
                yExpected(9 downto 1) <= yExpected(8 downto 0);
-               yExpected(0) <=  aIn * bIn + cIn;
+               yExpected(0)          <= aIn * bIn + cIn;
             when RUN_CNT_C =>
                run <= false;
                report CR & LF & CR & LF &
@@ -117,16 +117,16 @@ begin
 
          case cnt is
             when 11 to RUN_CNT_C =>
-               yError  <= abs(yOut - yE);
+               yError   <= abs(yOut - yE);
                maxError <= maximum(yError, maxError);
-               --assert (yError < ERROR_TOL_C) and (yVld = '1')
-               --   report CR & LF & CR & LF &
-               --   "**** Test FAILED **** " & CR & LF &
-               --   "abs(error) is " & real'image(yError) &
-               --   CR & LF
-               --  severity failure;
+            --assert (yError < ERROR_TOL_C) and (yVld = '1')
+            --   report CR & LF & CR & LF &
+            --   "**** Test FAILED **** " & CR & LF &
+            --   "abs(error) is " & real'image(yError) &
+            --   CR & LF
+            --  severity failure;
             when others =>
-        end case;
+         end case;
 
          cnt <= cnt + 1;
       end if;
@@ -136,15 +136,15 @@ begin
       generic map (
          CIN_REG_G => 2)
       port map (
-         clk   => clk,
-         rst   => rst,
-         a     => a,
+         clk  => clk,
+         rst  => rst,
+         a    => a,
          aVld => aVld,
-         b     => b,
+         b    => b,
          bVld => aVld,
-         c     => c,
+         c    => c,
          cVld => cVld,
-         y     => y,
+         y    => y,
          yVld => yVld);
 
 

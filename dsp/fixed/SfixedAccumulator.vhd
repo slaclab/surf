@@ -30,36 +30,36 @@ entity SfixedAccumulator is
       REG_IN_G      : boolean := true;
       REG_OUT_G     : boolean := true);
    port (
-      clk       : in  sl;
-      rst       : in  sl := '0';
+      clk      : in  sl;
+      rst      : in  sl                             := '0';
       -- inputs
-      validIn   : in  sl := '0';
-      userIn    : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
-      din       : in  sfixed;
+      validIn  : in  sl                             := '0';
+      userIn   : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
+      din      : in  sfixed;
       -- outputs
-      validOut  : out sl;
-      userOut   : out slv(USER_WIDTH_G - 1 downto 0);
-      dout      : out sfixed);
+      validOut : out sl;
+      userOut  : out slv(USER_WIDTH_G - 1 downto 0);
+      dout     : out sfixed);
 end entity SfixedAccumulator;
 
 architecture rtl of SfixedAccumulator is
 
-   constant TOT_LATENCY_C  : integer := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
+   constant TOT_LATENCY_C        : integer                   := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
    constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
    constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
 
    type RegType is record
-       rst     : sl;
-       dinR    : sfixed(din'range);
-       doutR   : sfixed(dout'range);
-       sum    : sfixed(dout'range);
+      rst   : sl;
+      dinR  : sfixed(din'range);
+      doutR : sfixed(dout'range);
+      sum   : sfixed(dout'range);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      rst     => '0',
-      dinR    => (others => '0'),
-      doutR   => (others => '0'),
-      sum     => (others => '0'));
+      rst   => '0',
+      dinR  => (others => '0'),
+      doutR => (others => '0'),
+      sum   => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -72,7 +72,7 @@ architecture rtl of SfixedAccumulator is
 
 begin
 
-   userDelayIn(userDelayIn'high) <= validIn;
+   userDelayIn(userDelayIn'high)                            <= validIn;
    userDelayIn(userDelayIn'high - 1 downto userDelayIn'low) <= userIn;
 
    validOut <= userDelayOut(userDelayOut'high);
@@ -114,14 +114,14 @@ begin
 
    end generate GEN_N_CHAN;
 
-   comb : process(din, sumDly, rst, r) is
-      variable v   : RegType;
+   comb : process(din, r, rst, sumDly) is
+      variable v : RegType;
    begin
 
       v := r;
 
-      v.rst   := rst;
-      v.dinR  := din;
+      v.rst  := rst;
+      v.dinR := din;
 
       v.doutR := r.sum;
 

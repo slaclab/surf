@@ -31,16 +31,16 @@ entity CfixedAccumulator is
       REG_IN_G      : boolean := true;
       REG_OUT_G     : boolean := true);
    port (
-      clk       : in  sl;
-      rst       : in  sl := '0';
+      clk      : in  sl;
+      rst      : in  sl                             := '0';
       -- inputs
-      validIn   : in  sl := '0';
-      userIn    : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
-      din       : in  cfixed;
+      validIn  : in  sl                             := '0';
+      userIn   : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
+      din      : in  cfixed;
       -- outputs
-      validOut  : out sl;
-      userOut   : out slv(USER_WIDTH_G - 1 downto 0);
-      dout      : out cfixed);
+      validOut : out sl;
+      userOut  : out slv(USER_WIDTH_G - 1 downto 0);
+      dout     : out cfixed);
 end entity CfixedAccumulator;
 
 architecture rtl of CfixedAccumulator is
@@ -55,16 +55,16 @@ begin
          REG_IN_G      => REG_IN_G,
          REG_OUT_G     => REG_OUT_G)
       port map (
-         clk           => clk,
-         rst           => rst,
+         clk      => clk,
+         rst      => rst,
          -- inputs
-         validIn       => validIn,
-         userIn        => userIn,
-         din           => din.re,
+         validIn  => validIn,
+         userIn   => userIn,
+         din      => din.re,
          -- outputs
-         validOut      => validOut,
-         userOut       => userOut,
-         dout          => dout.re);
+         validOut => validOut,
+         userOut  => userOut,
+         dout     => dout.re);
 
    U_IMAG_ACCUM : entity surf.SfixedAccumulator
       generic map (
@@ -74,15 +74,15 @@ begin
          REG_IN_G      => REG_IN_G,
          REG_OUT_G     => REG_OUT_G)
       port map (
-         clk           => clk,
-         rst           => rst,
+         clk      => clk,
+         rst      => rst,
          -- inputs
-         validIn       => validIn,
-         userIn        => userIn,
-         din           => din.im,
+         validIn  => validIn,
+         userIn   => userIn,
+         din      => din.im,
          -- outputs
-         validOut      => open,
-         userOut       => open,
-         dout          => dout.im);
+         validOut => open,
+         userOut  => open,
+         dout     => dout.im);
 
 end architecture rtl;

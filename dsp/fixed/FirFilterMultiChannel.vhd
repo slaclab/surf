@@ -24,12 +24,12 @@ use surf.AxiStreamPkg.all;
 entity FirFilterMultiChannel is
    generic (
       TPD_G          : time         := 1 ns;
-      COMMON_CLK_G   : boolean      := false;     -- True if axisClk and axiClk are the same
-      NUM_TAPS_G     : positive;                  -- Number of filter taps
-      NUM_CHANNELS_G : positive;                  -- Number of data channels
-      PARALLEL_G     : positive;                  -- Number of parallel channel processing
-      DATA_WIDTH_G   : positive;                  -- Number of bits per data word
-      COEFF_WIDTH_G  : positive range 1 to 32;    -- Number of bits per coefficient
+      COMMON_CLK_G   : boolean      := false;  -- True if axisClk and axiClk are the same
+      NUM_TAPS_G     : positive;        -- Number of filter taps
+      NUM_CHANNELS_G : positive;        -- Number of data channels
+      PARALLEL_G     : positive;  -- Number of parallel channel processing
+      DATA_WIDTH_G   : positive;        -- Number of bits per data word
+      COEFF_WIDTH_G  : positive range 1 to 32;  -- Number of bits per coefficient
       COEFFICIENTS_G : IntegerArray := (0 => 0);  -- Initial coefficients
       MEMORY_TYPE_G  : string       := "distributed";
       SYNTH_MODE_G   : string       := "inferred");
@@ -201,7 +201,8 @@ begin
 
    end generate;
 
-   comb : process (axiWrAddr, axiWrData, axiWrValid, axisRst, cascout, mAxisSlave, r, sAxisMaster) is
+   comb : process (axiWrAddr, axiWrData, axiWrValid, axisRst, cascout,
+                   mAxisSlave, r, sAxisMaster) is
       variable v : RegType;
    begin
       -- Latch the current value
