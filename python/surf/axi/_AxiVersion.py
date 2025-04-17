@@ -264,6 +264,10 @@ class AxiVersion(pr.Device):
             linkedGet = parseBuildStamp,
             variable = self.BuildStamp))
 
+        self.add(pr.LocalCommand(
+            name     = 'PrintStatus',
+            function = self.getStatus,
+        ))
 
     def hardReset(self):
         print(f'{self.path} hard reset called')
@@ -274,21 +278,26 @@ class AxiVersion(pr.Device):
     def countReset(self):
         print(f'{self.path} count reset called')
 
-    def printStatus(self):
+    def getStatus(self):
         try:
+            status_lines = []
             gitHash = self.GitHash.get()
-            print("Path         = {}".format(self.path))
-            print("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
-            print("UpTime       = {}".format(self.UpTime.get()))
-            if (gitHash != 0):
-                print("GitHash      = {:040x}".format(self.GitHash.get()))
+            status_lines.append("Path         = {}".format(self.path))
+            status_lines.append("FwVersion    = {}".format(hex(self.FpgaVersion.get())))
+            status_lines.append("UpTime       = {}".format(self.UpTime.get()))
+            if gitHash != 0:
+                status_lines.append("GitHash      = {:040x}".format(gitHash))
             else:
-                print("GitHash      = dirty (uncommitted code)")
-            print("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
-            print("FwTarget     = {}".format(self.ImageName.get()))      # Read buildstamp here
-            print("BuildEnv     = {}".format(self.BuildEnv.value()))
-            print("BuildServer  = {}".format(self.BuildServer.value()))
-            print("BuildDate    = {}".format(self.BuildDate.value()))
-            print("Builder      = {}".format(self.Builder.value()))
+                status_lines.append("GitHash      = dirty (uncommitted code)")
+            status_lines.append("XilinxDnaId  = {}".format(hex(self.DeviceDna.get())))
+            status_lines.append("FwTarget     = {}".format(self.ImageName.get()))
+            status_lines.append("BuildEnv     = {}".format(self.BuildEnv.value()))
+            status_lines.append("BuildServer  = {}".format(self.BuildServer.value()))
+            status_lines.append("BuildDate    = {}".format(self.BuildDate.value()))
+            status_lines.append("Builder      = {}".format(self.Builder.value()))
+            return "\n".join(status_lines)
         except Exception:
-            print("Failed to get %s status" % self)
+            return "Failed to get %s status" % self
+
+    def printStatus(self):
+        print(self.getStatus())
