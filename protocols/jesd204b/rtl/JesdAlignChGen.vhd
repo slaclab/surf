@@ -56,7 +56,7 @@ entity JesdAlignChGen is
       dataValid_i : in sl;
 
       -- Invert ADC data
-      inv_i     : in sl:='0';
+      inv_i : in sl := '0';
 
       --
       sampleData_i : in slv(GT_WORD_SIZE_C*8-1 downto 0);
@@ -100,8 +100,8 @@ architecture rtl of JesdAlignChGen is
 begin
 
 
-   comb : process (r, rst, sampleData_i, dataValid_i, enable_i, lmfc_i, scrEnable_i,
-                   inv_i) is
+   comb : process (dataValid_i, enable_i, inv_i, lmfc_i, r, rst, sampleData_i,
+                   scrEnable_i) is
       variable v            : RegType;
       variable v_sampleData : slv(sampleData_o'range);
       variable v_sampleK    : slv(sampleK_o'range);
@@ -116,8 +116,8 @@ begin
 
       -- Invert Data if enabled
       if (inv_i = '1') then
-      -- Invert sample data
-         v.sampleDataInv :=  invData(r.sampleDataReg, F_G, GT_WORD_SIZE_C);
+         -- Invert sample data
+         v.sampleDataInv := invData(r.sampleDataReg, F_G, GT_WORD_SIZE_C);
 
          -- +1 correction (https://jira.slac.stanford.edu/browse/ESLMPS-94)
          for i in F_G-1 downto 0 loop
@@ -125,7 +125,7 @@ begin
          end loop;
 
       else
-         v.sampleDataInv :=  r.sampleDataReg;
+         v.sampleDataInv := r.sampleDataReg;
       end if;
 
       -- Scramble Data if enabled
@@ -164,7 +164,7 @@ begin
             else
                if (v_twoWordBuff((F_G*8)+7 downto (F_G*8)) = v_twoWordBuff(7 downto 0)) then
                   v_twoWordBuff(7 downto 0) := A_CHAR_C;
-                  v_twoCharBuff(0) := '1';
+                  v_twoCharBuff(0)          := '1';
                end if;
             end if;
          end if;
@@ -173,7 +173,7 @@ begin
          for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
             if scrEnable_i = '1' then
                if (v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) = F_CHAR_C and
-                  v_twoCharBuff((i*F_G+F_G)) = '0')
+                   v_twoCharBuff((i*F_G+F_G)) = '0')
                then
                   v_twoCharBuff(i*F_G) := '1';
                end if;

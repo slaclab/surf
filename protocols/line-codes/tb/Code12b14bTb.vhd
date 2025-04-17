@@ -71,7 +71,7 @@ architecture sim of Code12b14bTb is
    signal decCodeError : sl;                       -- [out]
    signal decDispError : sl;                       -- [out]
 
-   signal dlyDataOut : slv(11 downto 0);
+   signal dlyDataOut  : slv(11 downto 0);
    signal dlyDataKOut : sl;
 
 begin

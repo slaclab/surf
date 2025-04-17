@@ -92,9 +92,9 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin     <= v;
-      dataOut <= r.dataOut;
-      dispOut <= r.dispOut;
+      rin      <= v;
+      dataOut  <= r.dataOut;
+      dispOut  <= r.dispOut;
       validOut <= r.validOut;
    end process comb;
 

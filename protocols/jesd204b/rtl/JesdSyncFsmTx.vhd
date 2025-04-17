@@ -26,43 +26,43 @@ use surf.Jesd204bPkg.all;
 
 entity JesdSyncFsmTx is
    generic (
-      TPD_G       : time     := 1 ns;
+      TPD_G : time := 1 ns;
       --JESD204B class (0 and 1 supported)
 
       -- Number of multi-frames in ILA sequence (4-255)
       NUM_ILAS_MF_G : positive := 4);
    port (
       -- Clocks and Resets
-      clk            : in  sl;
-      rst            : in  sl;
+      clk : in sl;
+      rst : in sl;
 
       -- JESD subclass selection: '0' or '1'(default)
-      subClass_i     : in sl;
+      subClass_i : in sl;
 
       -- Enable the module
-      enable_i       : in  sl;
+      enable_i : in sl;
 
       -- Local multi frame clock
-      lmfc_i         : in  sl;
+      lmfc_i : in sl;
 
       -- Synchronization request
-      nSync_i        : in  sl;
+      nSync_i : in sl;
 
       -- GT is ready to transmit data after reset
-      gtTxReady_i    : in  sl;
+      gtTxReady_i : in sl;
 
       -- SYSREF for subclass 1 fixed latency
-      sysRef_i       : in  sl;
+      sysRef_i : in sl;
 
       -- Synchronization process is complete start sending data
-      dataValid_o    : out sl;
+      dataValid_o : out sl;
 
       -- sysref received
-      sysref_o       : out   sl;
+      sysref_o : out sl;
 
       -- Initial lane synchronization sequence indicator
-      ila_o          : out sl
-   );
+      ila_o : out sl
+      );
 end JesdSyncFsmTx;
 
 architecture rtl of JesdSyncFsmTx is
@@ -72,29 +72,29 @@ architecture rtl of JesdSyncFsmTx is
       SYNC_S,
       ILA_S,
       DATA_S
-   );
+      );
 
    type RegType is record
       -- Synchronous FSM control outputs
-      dataValid   : sl;
-      ila         : sl;
-      sysref      : sl;
+      dataValid : sl;
+      ila       : sl;
+      sysref    : sl;
       -- Count
-      cnt         : slv(7 downto 0);
+      cnt       : slv(7 downto 0);
 
       -- Status Machine
-      state       : StateType;
+      state : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dataValid    => '0',
-      ila          => '0',
-      sysref       => '0',
-      cnt          =>  (others => '0'),
+      dataValid => '0',
+      ila       => '0',
+      sysref    => '0',
+      cnt       => (others => '0'),
 
       -- Status Machine
-      state        => IDLE_S
-   );
+      state => IDLE_S
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -102,7 +102,8 @@ architecture rtl of JesdSyncFsmTx is
 begin
 
    -- State machine
-   comb : process (rst, r, enable_i, lmfc_i, nSync_i, gtTxReady_i, sysRef_i, subClass_i) is
+   comb : process (enable_i, gtTxReady_i, lmfc_i, nSync_i, r, rst, subClass_i,
+                   sysRef_i) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -120,13 +121,13 @@ begin
             v.sysref    := '0';
 
             -- Next state condition (depending on subclass)
-            if  subClass_i = '1' then
-               if  sysRef_i = '1' and enable_i = '1' and gtTxReady_i = '1' then
-                  v.state    := SYNC_S;
+            if subClass_i = '1' then
+               if sysRef_i = '1' and enable_i = '1' and gtTxReady_i = '1' then
+                  v.state := SYNC_S;
                end if;
             else
-               if  enable_i = '1' and gtTxReady_i = '1' then
-                  v.state    := SYNC_S;
+               if enable_i = '1' and gtTxReady_i = '1' then
+                  v.state := SYNC_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -139,10 +140,10 @@ begin
             v.sysref    := '1';
 
             -- Next state condition
-            if  nSync_i = '1' and lmfc_i = '1' then
-               v.state   := ILA_S;
+            if nSync_i = '1' and lmfc_i = '1' then
+               v.state := ILA_S;
             elsif enable_i = '0' then
-               v.state   := IDLE_S;
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when ILA_S =>
@@ -159,23 +160,23 @@ begin
 
             -- Next state condition
             -- After NUM_ILAS_MF_G LMFC clocks the ILA sequence ends and relevant ADC data is being received.
-            if  v.cnt = NUM_ILAS_MF_G then
-               v.state   := DATA_S;
+            if v.cnt = NUM_ILAS_MF_G then
+               v.state := DATA_S;
             elsif nSync_i = '0' or enable_i = '0' then
-               v.state   := IDLE_S;
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
 
             -- Outputs
-            v.cnt       := r.cnt+GT_WORD_SIZE_C; -- two or four data bytes sent in parallel
+            v.cnt       := r.cnt+GT_WORD_SIZE_C;  -- two or four data bytes sent in parallel
             v.dataValid := '1';
             v.ila       := '0';
             v.sysref    := '1';
 
             -- Next state condition
-            if  nSync_i = '0' or enable_i = '0' or gtTxReady_i = '0' then
-               v.state   := IDLE_S;
+            if nSync_i = '0' or enable_i = '0' or gtTxReady_i = '0' then
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when others =>
@@ -187,7 +188,7 @@ begin
             v.sysref    := '0';
 
             -- Next state condition
-            v.state   := IDLE_S;
+            v.state := IDLE_S;
       ----------------------------------------------------------------------
       end case;
 

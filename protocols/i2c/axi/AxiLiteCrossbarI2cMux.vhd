@@ -86,7 +86,7 @@ architecture mapping of AxiLiteCrossbarI2cMux is
       busReq      => '0',
       endianness  => DEVICE_MAP_C.endianness,
       repeatStart => DEVICE_MAP_C.repeatStart,
-      wrDataOnRd => '0');
+      wrDataOnRd  => '0');
 
    type StateType is (
       IDLE_S,

@@ -40,16 +40,16 @@ entity GLinkGtx7FixedLat is
       -- MGT Settings
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0000010000000";  -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
       -- RX Equalizer Attributes
-      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
+      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";      -- Set by wizard
       RX_CM_TRIM_G          : bit_vector := "010";
       RX_DFE_LPM_CFG_G      : bit_vector := x"0954";
       RXDFELFOVRDEN_G       : sl         := '1';
-      RXDFEXYDEN_G          : sl         := '1';                     -- This should always be 1
+      RXDFEXYDEN_G          : sl         := '1';  -- This should always be 1
       -- Configure PLL sources
       TX_PLL_G              : string     := "QPLL";
       RX_PLL_G              : string     := "CPLL");
@@ -67,7 +67,7 @@ entity GLinkGtx7FixedLat is
       gLinkRxClkEn     : in  sl := '1';
       gLinkRxRst       : in  sl := '0';
       -- MGT Clocking
-      gLinkTxRefClk    : in  sl;                                    -- G-Link TX clock reference
+      gLinkTxRefClk    : in  sl;        -- G-Link TX clock reference
       stableClk        : in  sl;
       gtCPllRefClk     : in  sl := '0';
       gtCPllLock       : out sl;
@@ -81,7 +81,7 @@ entity GLinkGtx7FixedLat is
       loopback         : in  slv(2 downto 0);
       txPowerDown      : in  sl;
       rxPowerDown      : in  sl;
-      rxClkDebug       : out sl;                                    -- debug only
+      rxClkDebug       : out sl;        -- debug only
       -- MGT Serial IO
       gtTxP            : out sl;
       gtTxN            : out sl;
@@ -320,18 +320,18 @@ begin
          rxUserResetIn    => rxUserReset,      -- Sync'd in Gtx7RxRst.vhd
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
-         rxSlideIn        => '0',              -- Slide is controlled internally
+         rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxDataReversed,
-         rxCharIsKOut     => open,             -- Not using gt rx 8b10b
-         rxDecErrOut      => open,             -- Not using gt rx 8b10b
-         rxDispErrOut     => open,             -- Not using gt rx 8b10b
+         rxCharIsKOut     => open,      -- Not using gt rx 8b10b
+         rxDecErrOut      => open,      -- Not using gt rx 8b10b
+         rxDispErrOut     => open,      -- Not using gt rx 8b10b
          rxPolarityIn     => '0',
          rxBufStatusOut   => open,
          txOutClkOut      => open,
          txUsrClkIn       => txClk,
          txUsrClk2In      => txClk,
-         txUserRdyOut     => open,             -- Not sure what to do with this
-         txMmcmResetOut   => open,             -- No Tx MMCM in Fixed Latency mode
+         txUserRdyOut     => open,      -- Not sure what to do with this
+         txMmcmResetOut   => open,      -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => '1',
          txUserResetIn    => txUserReset,
          txResetDoneOut   => gtTxRstDone,

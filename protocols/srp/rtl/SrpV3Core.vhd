@@ -40,8 +40,8 @@ entity SrpV3Core is
       AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       UNALIGNED_ACCESS_G  : boolean                 := false;
       BYTE_ACCESS_G       : boolean                 := false;
-      WRITE_EN_G          : boolean                 := true;       -- Write ops enabled
-      READ_EN_G           : boolean                 := true        -- Read ops enabled
+      WRITE_EN_G          : boolean                 := true;  -- Write ops enabled
+      READ_EN_G           : boolean                 := true  -- Read ops enabled
       );
    port (
       -- AXIS Slave Interface (sAxisClk domain)
@@ -208,7 +208,8 @@ begin
             dataOut => rxCtrl.overflow);
    end generate;
 
-   comb : process (r, rxCtrl, rxMaster, srpAck, srpRdMasterInt, srpRst, srpWrSlaveInt, txSlave) is
+   comb : process (r, rxCtrl, rxMaster, srpAck, srpRdMasterInt, srpRst,
+                   srpWrSlaveInt, txSlave) is
       variable v : RegType;
    begin
       -- Latch the current value

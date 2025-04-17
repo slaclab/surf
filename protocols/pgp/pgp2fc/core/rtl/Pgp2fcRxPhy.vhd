@@ -49,7 +49,7 @@ entity Pgp2fcRxPhy is
       fcError : out sl := '0';
 
       -- Sideband data
-      pgpRemLinkReady : out sl              := '0';              -- Far end side has link
+      pgpRemLinkReady : out sl              := '0';  -- Far end side has link
       pgpRemData      : out slv(7 downto 0) := (others => '0');  -- Far end side User Data
 
       -- Cell Receive Interface
@@ -63,11 +63,11 @@ entity Pgp2fcRxPhy is
 
       -- Physical Interface Signals
       phyRxData    : in  slv(15 downto 0);  -- PHY receive data
-      phyRxDataK   : in  slv(1 downto 0);   -- PHY receive data is K character
-      phyRxDispErr : in  slv(1 downto 0);   -- PHY receive data has disparity error
-      phyRxDecErr  : in  slv(1 downto 0);   -- PHY receive data not in table
-      phyRxReady   : in  sl;                -- PHY receive interface is ready
-      phyRxInit    : out sl                 -- PHY receive interface init;
+      phyRxDataK   : in  slv(1 downto 0);  -- PHY receive data is K character
+      phyRxDispErr : in  slv(1 downto 0);  -- PHY receive data has disparity error
+      phyRxDecErr  : in  slv(1 downto 0);  -- PHY receive data not in table
+      phyRxReady   : in  sl;            -- PHY receive interface is ready
+      phyRxInit    : out sl             -- PHY receive interface init;
       );
 
 end Pgp2fcRxPhy;
@@ -231,8 +231,8 @@ begin
 
 
 -- Link control state machine
-   process (curState, stateCnt, ltsCnt, rxDetectLts, rxDetectLtsOk,
-            rxDetectInvert, phyRxReady, dly1RxDecErr, dly1RxDispErr)
+   process (curState, dly1RxDecErr, dly1RxDispErr, ltsCnt, phyRxReady,
+            rxDetectInvert, rxDetectLts, rxDetectLtsOk, stateCnt)
    begin
       case curState is
 
@@ -588,7 +588,8 @@ begin
    end process;
 
    -- Ordered Set Detection
-   process (dly1RxDataK, dly1RxData, dly0RxDataK, dly0RxData, dly0RxDispErr, dly0RxDecErr, dly1RxDispErr, dly1RxDecErr)
+   process (dly0RxData, dly0RxDataK, dly0RxDecErr, dly0RxDispErr, dly1RxData,
+            dly1RxDataK, dly1RxDecErr, dly1RxDispErr)
    begin
 
       -- Skip errored decodes

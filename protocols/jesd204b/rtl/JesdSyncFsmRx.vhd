@@ -27,7 +27,7 @@ use surf.Jesd204bPkg.all;
 
 entity JesdSyncFsmRx is
    generic (
-      TPD_G: time    := 1 ns;
+      TPD_G : time := 1 ns;
 
       -- Number of bytes in a frame
       F_G : positive := 2;
@@ -37,65 +37,65 @@ entity JesdSyncFsmRx is
 
       -- Number of multi-frames in ILA sequence (4-255)
       NUM_ILAS_MF_G : positive := 4
-   );
+      );
    port (
       -- Clocks and Resets
-      clk            : in    sl;
-      rst            : in    sl;
+      clk : in sl;
+      rst : in sl;
 
       -- Enable the module
-      enable_i       : in    sl;
-      gtReady_i      : in    sl;
+      enable_i  : in sl;
+      gtReady_i : in sl;
 
       -- JESD subclass selection: '0' or '1'(default)
       subClass_i : in sl;
 
       -- SYSREF for subcalss 1 fixed latency
-      sysRef_i       : in    sl;
+      sysRef_i : in sl;
 
       -- Data and character inputs from GT (transceivers)
-      dataRx_i       : in    slv((GT_WORD_SIZE_C*8)-1 downto 0);
-      chariskRx_i    : in    slv(GT_WORD_SIZE_C-1 downto 0);
+      dataRx_i    : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      chariskRx_i : in slv(GT_WORD_SIZE_C-1 downto 0);
 
       -- Local multi frame clock
-      lmfc_i         : in    sl;
+      lmfc_i : in sl;
 
       -- One or more RX modules requested synchronization
-      nSyncAny_i     : in    sl;
-      nSyncAnyD1_i   : in    sl;
+      nSyncAny_i   : in sl;
+      nSyncAnyD1_i : in sl;
 
       -- Combined link errors
-      linkErr_i      : in    sl;
+      linkErr_i : in sl;
 
-   -- Synchronous FSM control outputs
+      -- Synchronous FSM control outputs
 
       -- Synchronization request
-      nSync_o        : out   sl;
+      nSync_o : out sl;
 
       -- Elastic buffer latency in clock cycles
-      buffLatency_o      : out   slv(7 downto 0);
+      buffLatency_o : out slv(7 downto 0);
 
       -- Read enable for Rx Buffer.
       -- Holds buffers between first data and LMFC
-      readBuff_o     : out   sl;
+      readBuff_o : out sl;
 
       -- First non comma (K) character detected.
       -- To indicate when to realign sample within the dataRx.
-      alignFrame_o   : out   sl;
+      alignFrame_o : out sl;
 
       -- Ila frames are being received
-      ila_o          : out   sl;
+      ila_o : out sl;
 
       -- K detected
-      kDetected_o    : out   sl;
+      kDetected_o : out sl;
 
       -- sysref received
-      sysref_o       : out   sl;
+      sysref_o : out sl;
 
       -- Synchronisation process is complete and data is valid
-      dataValid_o    : out   sl
+      dataValid_o : out sl
 
-    );
+      );
 end JesdSyncFsmRx;
 
 architecture rtl of JesdSyncFsmRx is
@@ -108,26 +108,26 @@ architecture rtl of JesdSyncFsmRx is
       ALIGN_S,
       ILA_S,
       DATA_S
-   );
+      );
 
    type RegType is record
       -- Synchronous FSM control outputs
-      kDetectRegD1: sl;
-      kDetectRegD2: sl;
-      kDetectRegD3: sl;
+      kDetectRegD1 : sl;
+      kDetectRegD2 : sl;
+      kDetectRegD3 : sl;
 
-      linkErr     : sl;
-      nSync       : sl;
-      readBuff    : sl;
-      alignFrame  : sl;
-      Ila         : sl;
-      dataValid   : sl;
-      sysref      : sl;
-      cnt         : slv(7 downto 0);
-     cntLatency  : slv(7 downto 0);
+      linkErr    : sl;
+      nSync      : sl;
+      readBuff   : sl;
+      alignFrame : sl;
+      Ila        : sl;
+      dataValid  : sl;
+      sysref     : sl;
+      cnt        : slv(7 downto 0);
+      cntLatency : slv(7 downto 0);
 
       -- Status Machine
-      state       : StateType;
+      state : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -135,19 +135,19 @@ architecture rtl of JesdSyncFsmRx is
       kDetectRegD2 => '0',
       kDetectRegD3 => '0',
 
-      linkErr      => '0',
-      nSync        => '0',
-      readBuff     => '0',
-      alignFrame   => '0',
-      Ila          => '0',
-      dataValid    => '0',
-      sysref       => '0',
-      cnt          =>  (others => '0'),
-      cntLatency   =>  (others => '0'),
+      linkErr    => '0',
+      nSync      => '0',
+      readBuff   => '0',
+      alignFrame => '0',
+      Ila        => '0',
+      dataValid  => '0',
+      sysref     => '0',
+      cnt        => (others => '0'),
+      cntLatency => (others => '0'),
 
       -- Status Machine
-      state        => IDLE_S
-   );
+      state => IDLE_S
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -158,11 +158,13 @@ architecture rtl of JesdSyncFsmRx is
 begin
 
    s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);
-      -- Comma detected if detected in three consecutive clock cycles
+   -- Comma detected if detected in three consecutive clock cycles
    s_kStable   <= s_kDetected and r.kDetectRegD1 and r.kDetectRegD2 and r.kDetectRegD3;
 
    -- State machine
-   comb : process (rst, r, enable_i,sysRef_i, dataRx_i,subClass_i, chariskRx_i, lmfc_i, nSyncAnyD1_i, nSyncAny_i, linkErr_i, gtReady_i, s_kDetected, s_kStable) is
+   comb : process (chariskRx_i, dataRx_i, enable_i, gtReady_i, linkErr_i,
+                   lmfc_i, nSyncAnyD1_i, nSyncAny_i, r, rst, s_kDetected,
+                   s_kStable, subClass_i, sysRef_i) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -173,7 +175,7 @@ begin
       v.kDetectRegD2 := r.kDetectRegD1;
       v.kDetectRegD3 := r.kDetectRegD2;
       --
-      v.linkErr := linkErr_i;
+      v.linkErr      := linkErr_i;
 
       -- State Machine
       case r.state is
@@ -190,13 +192,13 @@ begin
             v.cntLatency := (others => '0');
 
             -- Next state condition (depending on subclass)
-            if  subClass_i = '1' then
-               if  sysRef_i = '1' and enable_i = '1' and nSyncAnyD1_i = '0' and gtReady_i = '1' and s_kStable = '1' then
-                  v.state    := SYSREF_S;
+            if subClass_i = '1' then
+               if sysRef_i = '1' and enable_i = '1' and nSyncAnyD1_i = '0' and gtReady_i = '1' and s_kStable = '1' then
+                  v.state := SYSREF_S;
                end if;
             else
-               if  enable_i = '1' and gtReady_i = '1' and s_kStable = '1' then
-                  v.state    := SYSREF_S;
+               if enable_i = '1' and gtReady_i = '1' and s_kStable = '1' then
+                  v.state := SYSREF_S;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -212,10 +214,10 @@ begin
             v.cntLatency := (others => '0');
 
             -- Next state condition
-            if  s_kDetected = '1' and lmfc_i = '1' then
-               v.state   := SYNC_S;
+            if s_kDetected = '1' and lmfc_i = '1' then
+               v.state := SYNC_S;
             elsif enable_i = '0' then
-               v.state   := IDLE_S;
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when SYNC_S =>
@@ -230,12 +232,12 @@ begin
             v.cntLatency := (others => '0');
 
             -- Next state condition
-            if  s_kDetected = '0' then
-               v.state   := HOLD_S;
-               -- v.readBuff   := '0'; -- TODO this signal has to be applied one c-c earlier for simulation
-                                       -- But in hardware that is not the case. This should be investigated.
+            if s_kDetected = '0' then
+               v.state := HOLD_S;
+            -- v.readBuff   := '0'; -- TODO this signal has to be applied one c-c earlier for simulation
+            -- But in hardware that is not the case. This should be investigated.
             elsif enable_i = '0' then
-               v.state   := IDLE_S;
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when HOLD_S =>
@@ -250,10 +252,10 @@ begin
             v.cntLatency := r.cntLatency + 1;
 
             -- Next state condition
-            if  lmfc_i = '1' then
-               v.state   := ALIGN_S;
+            if lmfc_i = '1' then
+               v.state := ALIGN_S;
             elsif enable_i = '0' then
-               v.state   := IDLE_S;
+               v.state := IDLE_S;
             end if;
 
          ----------------------------------------------------------------------
@@ -272,11 +274,11 @@ begin
             v.cnt := (others => '0');
 
             -- Next state condition
-            v.state   := ILA_S;
+            v.state := ILA_S;
 
          ----------------------------------------------------------------------
          when ILA_S =>
-                     -- Outputs
+            -- Outputs
             v.nSync      := '1';
             v.readBuff   := '1';
             v.alignFrame := '0';
@@ -292,10 +294,10 @@ begin
 
             -- Next state condition
             -- After NUM_ILAS_MF_G LMFC clocks the ILA sequence ends and relevant ADC data is being received.
-            if  r.cnt = NUM_ILAS_MF_G then
-               v.state   := DATA_S;
+            if r.cnt = NUM_ILAS_MF_G then
+               v.state := DATA_S;
             elsif enable_i = '0' or s_kStable = '1' then
-               v.state   := IDLE_S;
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
@@ -309,8 +311,8 @@ begin
             v.cntLatency := r.cntLatency;
 
             -- Next state condition
-            if  nSyncAny_i = '0' or r.linkErr = '1' or enable_i = '0' or s_kStable = '1' or gtReady_i = '0' then
-               v.state   := IDLE_S;
+            if nSyncAny_i = '0' or r.linkErr = '1' or enable_i = '0' or s_kStable = '1' or gtReady_i = '0' then
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when others =>
@@ -324,7 +326,7 @@ begin
             v.cntLatency := (others => '0');
 
             -- Next state condition
-            v.state   := IDLE_S;
+            v.state := IDLE_S;
       ----------------------------------------------------------------------
       end case;
 
@@ -346,12 +348,12 @@ begin
    end process seq;
 
    -- Output assignment
-   nSync_o      <= r.nSync;
-   readBuff_o   <= r.readBuff;
-   alignFrame_o <= r.alignFrame;
-   Ila_o        <= r.Ila;
-   dataValid_o  <= r.dataValid;
-   kDetected_o  <= s_kStable;
-   sysref_o     <= r.sysref;
-   buffLatency_o<= r.cntLatency;
+   nSync_o       <= r.nSync;
+   readBuff_o    <= r.readBuff;
+   alignFrame_o  <= r.alignFrame;
+   Ila_o         <= r.Ila;
+   dataValid_o   <= r.dataValid;
+   kDetected_o   <= s_kStable;
+   sysref_o      <= r.sysref;
+   buffLatency_o <= r.cntLatency;
 end rtl;

@@ -41,17 +41,17 @@ entity Pgp2bGth7VarLatWrapper is
       TXOUT_DIV_G       : natural              := 2;
       RX_CLK25_DIV_G    : natural              := 7;
       TX_CLK25_DIV_G    : natural              := 7;
-      RX_OS_CFG_G       : bit_vector           := "0000010000000";           -- Set by wizard
+      RX_OS_CFG_G       : bit_vector           := "0000010000000";  -- Set by wizard
       RXCDR_CFG_G       : bit_vector           := x"0002007FE1000C2200018";  -- Set by wizard
-      RXDFEXYDEN_G      : sl                   := '1';                       -- Set by wizard
+      RXDFEXYDEN_G      : sl                   := '1';   -- Set by wizard
       -- PGP Settings
       VC_INTERLEAVE_G   : integer              := 0;  -- No interleave Frames
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;                      -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true);                     -- Enable RX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- Clocks and Reset
       pgpClk          : in  sl;

@@ -55,101 +55,101 @@ use surf.MdioPkg.all;
 
 entity MdioSeqCore is
    generic (
-      TPD_G               : time                            := 1 ns;
+      TPD_G       : time                            := 1 ns;
       -- half-period of MDC in clk cycles
-      DIV_G               : natural range 1 to natural'high := 1;
+      DIV_G       : natural range 1 to natural'high := 1;
       -- see above...
-      MDIO_PROG_G         : MdioProgramArray
-   );
+      MDIO_PROG_G : MdioProgramArray
+      );
    port (
       -- clock and reset
-      clk                 : in    sl;
-      rst                 : in    sl;
+      clk : in sl;
+      rst : in sl;
 
       -- programming interface;
-      trg                 : in    sl;               -- assert trg for ONE clock
-      pc                  : in    natural;
-      rs                  : out   sl;               -- read back data valid
-      din                 : out   slv(15 downto 0); -- read back data - valid during 'rs'
-      don                 : out   sl;               -- program completed
+      trg : in  sl;                     -- assert trg for ONE clock
+      pc  : in  natural;
+      rs  : out sl;                     -- read back data valid
+      din : out slv(15 downto 0);       -- read back data - valid during 'rs'
+      don : out sl;                     -- program completed
 
       -- MDIO interface
-      mdc                 : out   sl;
-      mdTri               : out   sl;
-      mdo                 : out   sl;
-      mdi                 : in    sl
-   );
+      mdc   : out sl;
+      mdTri : out sl;
+      mdo   : out sl;
+      mdi   : in  sl
+      );
 end entity MdioSeqCore;
 
 architecture MdioSeqCoreImpl of MdioSeqCore is
 
-   type StateType is ( IDLE, TRIG, PROG );
+   type StateType is (IDLE, TRIG, PROG);
 
    type RegType is record
-      state   : StateType;
-      inst    : MdioInstType;
-      pc      : natural;
-      trg     : sl;
+      state : StateType;
+      inst  : MdioInstType;
+      pc    : natural;
+      trg   : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
-      state   => IDLE,
-      inst    => mdioReadInst(0,0,true),
-      pc      =>  0,
-      trg     => '0'
-   );
+      state => IDLE,
+      inst  => mdioReadInst(0, 0, true),
+      pc    => 0,
+      trg   => '0'
+      );
 
-   signal r       : RegType := REG_INIT_C;
-   signal rin     : RegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    signal oneDone : sl;
 
 begin
 
-   don    <= oneDone and r.inst.lst;
-   rs     <= oneDone and r.inst.cmd.rdNotWr;
+   don <= oneDone and r.inst.lst;
+   rs  <= oneDone and r.inst.cmd.rdNotWr;
 
    U_MdioCore : entity surf.MdioCore
       generic map (
-         TPD_G      => TPD_G,
-         DIV_G      => DIV_G
-      )
+         TPD_G => TPD_G,
+         DIV_G => DIV_G
+         )
       port map (
-         clk        => clk,
-         rst        => rst,
+         clk => clk,
+         rst => rst,
 
-         trg        => r.trg,
-         cmd        => r.inst.cmd,
-         din        => din,
-         don        => oneDone,
+         trg => r.trg,
+         cmd => r.inst.cmd,
+         din => din,
+         don => oneDone,
 
-         mdc        => mdc,
-         mdTri      => mdTri,
-         mdi        => mdi,
-         mdo        => mdo
-      );
+         mdc   => mdc,
+         mdTri => mdTri,
+         mdi   => mdi,
+         mdo   => mdo
+         );
 
-   COMB : process(r, trg, pc, oneDone)
+   COMB : process(oneDone, pc, r, trg)
       variable v : RegType;
    begin
-      v        := r;
+      v := r;
 
       case (r.state) is
 
          when IDLE =>
-            if ( trg /= '0' ) then
+            if (trg /= '0') then
                v.state := TRIG;
                v.pc    := pc;
             end if;
 
          when TRIG =>
             v.trg   := '1';
-            v.inst  := MDIO_PROG_G( r.pc );
+            v.inst  := MDIO_PROG_G(r.pc);
             v.state := PROG;
 
          when PROG =>
-            if ( oneDone /= '0' ) then
-               if ( r.inst.lst /= '0' ) then
+            if (oneDone /= '0') then
+               if (r.inst.lst /= '0') then
                   v.state := IDLE;
                else
                   v.pc    := r.pc + 1;
@@ -164,10 +164,10 @@ begin
 
    end process COMB;
 
-   SEQ  : process( clk )
+   SEQ : process(clk)
    begin
-      if ( rising_edge( clk ) ) then
-         if ( rst /= '0' ) then
+      if (rising_edge(clk)) then
+         if (rst /= '0') then
             r <= REG_INIT_C;
          else
             r <= rin after TPD_G;

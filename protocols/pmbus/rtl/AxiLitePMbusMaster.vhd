@@ -26,11 +26,11 @@ use unisim.vcomponents.all;
 
 entity AxiLitePMbusMaster is
    generic (
-      TPD_G            : time            := 1 ns;
-      I2C_ADDR_G       : slv(6 downto 0) := "1010000";
-      I2C_SCL_FREQ_G   : real            := 100.0E+3;   -- units of Hz
-      I2C_MIN_PULSE_G  : real            := 100.0E-9;   -- units of seconds
-      AXI_CLK_FREQ_G   : real            := 156.25E+6);  -- units of Hz
+      TPD_G           : time            := 1 ns;
+      I2C_ADDR_G      : slv(6 downto 0) := "1010000";
+      I2C_SCL_FREQ_G  : real            := 100.0E+3;    -- units of Hz
+      I2C_MIN_PULSE_G : real            := 100.0E-9;    -- units of seconds
+      AXI_CLK_FREQ_G  : real            := 156.25E+6);  -- units of Hz
    port (
       -- PMbus Ports
       scl             : inout sl;
@@ -54,11 +54,11 @@ begin
 
    U_Core : entity surf.AxiLitePMbusMasterCore
       generic map (
-         TPD_G            => TPD_G,
-         I2C_ADDR_G       => I2C_ADDR_G,
-         I2C_SCL_FREQ_G   => I2C_SCL_FREQ_G,
-         I2C_MIN_PULSE_G  => I2C_MIN_PULSE_G,
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
+         TPD_G           => TPD_G,
+         I2C_ADDR_G      => I2C_ADDR_G,
+         I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
+         I2C_MIN_PULSE_G => I2C_MIN_PULSE_G,
+         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G)
       port map (
          -- I2C Interface
          i2ci            => i2ci,
@@ -75,15 +75,15 @@ begin
    IOBUF_SCL : entity surf.IoBufWrapper
       port map (
          O  => i2ci.scl,                -- Buffer output
-         IO => scl,                     -- Buffer inout port (connect directly to top-level port)
+         IO => scl,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.scl,                -- Buffer input
-         T  => i2co.scloen);            -- 3-state enable input, high=input, low=output
+         T  => i2co.scloen);  -- 3-state enable input, high=input, low=output
 
    IOBUF_SDA : entity surf.IoBufWrapper
       port map (
          O  => i2ci.sda,                -- Buffer output
-         IO => sda,                     -- Buffer inout port (connect directly to top-level port)
+         IO => sda,  -- Buffer inout port (connect directly to top-level port)
          I  => i2co.sda,                -- Buffer input
-         T  => i2co.sdaoen);            -- 3-state enable input, high=input, low=output
+         T  => i2co.sdaoen);  -- 3-state enable input, high=input, low=output
 
 end mapping;

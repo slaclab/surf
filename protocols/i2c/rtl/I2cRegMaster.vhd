@@ -120,7 +120,7 @@ begin
          i2ci         => i2ci,
          i2co         => i2co);
 
-   comb : process (regIn, i2cMasterOut, r, srst) is
+   comb : process (i2cMasterOut, r, regIn, srst) is
       variable v            : RegType;
       variable addrIndexVar : integer;
       variable dataIndexVar : integer;
@@ -197,7 +197,7 @@ begin
                      v.state := REG_ACK_S;
                   else
                      -- Handle wrDataOnRead case
-                     v.state     := READ_TXN_S;
+                     v.state := READ_TXN_S;
                   end if;
 
                end if;
@@ -209,7 +209,7 @@ begin
             v.i2cMasterIn.txnReq := '1';
             v.i2cMasterIn.op     := '0';
             v.i2cMasterIn.stop   := '1';  -- i2c stop after all bytes are read
-            v.byteCount := (others => '0');
+            v.byteCount          := (others => '0');
             v.state              := READ_S;
 
          when READ_S =>
@@ -269,7 +269,7 @@ begin
       -- Internal signals
       i2cMasterIn.enable   <= '1';
       i2cMasterIn.prescale <= slv(to_unsigned(PRESCALE_G, 16));  -- Now unused
-      i2cMasterIn.filter   <= (others => '0');                   -- Not using dynamic filtering
+      i2cMasterIn.filter   <= (others => '0');  -- Not using dynamic filtering
       i2cMasterIn.addr     <= regIn.i2cAddr;
       i2cMasterIn.tenbit   <= regIn.tenbit;
       i2cMasterIn.txnReq   <= r.i2cMasterIn.txnReq;
@@ -285,7 +285,7 @@ begin
 
    end process comb;
 
-   seq : process (clk, arst) is
+   seq : process (arst, clk) is
    begin
       if (arst = '1') then
          r <= REG_INIT_C after TPD_G;

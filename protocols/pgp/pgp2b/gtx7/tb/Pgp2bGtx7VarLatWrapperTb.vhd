@@ -56,38 +56,38 @@ architecture tb of Pgp2bGtx7VarLatWrapperTb is
    constant RX_ENABLE_G        : boolean                 := true;
 
    -- component ports
-   signal extRst          : sl;                                                      -- [in]
-   signal pgpClk          : sl;                                                      -- [out]
-   signal pgpRst          : sl;                                                      -- [out]
-   signal stableClk       : sl;                                                      -- [out]
-   signal pgpTxIn         : Pgp2bTxInType;                                           -- [in]
-   signal pgpTxOut        : Pgp2bTxOutType;                                          -- [out]
-   signal pgpRxIn         : Pgp2bRxInType;                                           -- [in]
-   signal pgpRxOut        : Pgp2bRxOutType;                                          -- [out]
-   signal pgpTxMasters    : AxiStreamMasterArray(3 downto 0);                        -- [in]
-   signal pgpTxSlaves     : AxiStreamSlaveArray(3 downto 0);                         -- [out]
-   signal pgpRxMasters    : AxiStreamMasterArray(3 downto 0);                        -- [out]
-   signal pgpRxCtrl       : AxiStreamCtrlArray(3 downto 0);                          -- [in]
-   signal gtClkP          : sl;                                                      -- [in]
-   signal gtClkN          : sl;                                                      -- [in]
-   signal gtTxP           : sl;                                                      -- [out]
-   signal gtTxN           : sl;                                                      -- [out]
-   signal gtRxP           : sl;                                                      -- [in]
-   signal gtRxN           : sl;                                                      -- [in]
-   signal txPreCursor     : slv(4 downto 0)        := (others => '0');               -- [in]
-   signal txPostCursor    : slv(4 downto 0)        := (others => '0');               -- [in]
-   signal txDiffCtrl      : slv(3 downto 0)        := "1000";                        -- [in]
-   signal axilClk         : sl                     := '0';                           -- [in]
-   signal axilRst         : sl                     := '0';                           -- [in]
-   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;   -- [in]
-   signal axilReadSlave   : AxiLiteReadSlaveType;                                    -- [out]
+   signal extRst          : sl;         -- [in]
+   signal pgpClk          : sl;         -- [out]
+   signal pgpRst          : sl;         -- [out]
+   signal stableClk       : sl;         -- [out]
+   signal pgpTxIn         : Pgp2bTxInType;                     -- [in]
+   signal pgpTxOut        : Pgp2bTxOutType;                    -- [out]
+   signal pgpRxIn         : Pgp2bRxInType;                     -- [in]
+   signal pgpRxOut        : Pgp2bRxOutType;                    -- [out]
+   signal pgpTxMasters    : AxiStreamMasterArray(3 downto 0);  -- [in]
+   signal pgpTxSlaves     : AxiStreamSlaveArray(3 downto 0);   -- [out]
+   signal pgpRxMasters    : AxiStreamMasterArray(3 downto 0);  -- [out]
+   signal pgpRxCtrl       : AxiStreamCtrlArray(3 downto 0);    -- [in]
+   signal gtClkP          : sl;         -- [in]
+   signal gtClkN          : sl;         -- [in]
+   signal gtTxP           : sl;         -- [out]
+   signal gtTxN           : sl;         -- [out]
+   signal gtRxP           : sl;         -- [in]
+   signal gtRxN           : sl;         -- [in]
+   signal txPreCursor     : slv(4 downto 0)        := (others => '0');  -- [in]
+   signal txPostCursor    : slv(4 downto 0)        := (others => '0');  -- [in]
+   signal txDiffCtrl      : slv(3 downto 0)        := "1000";  -- [in]
+   signal axilClk         : sl                     := '0';     -- [in]
+   signal axilRst         : sl                     := '0';     -- [in]
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [in]
+   signal axilReadSlave   : AxiLiteReadSlaveType;              -- [out]
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [in]
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;                                   -- [out]
+   signal axilWriteSlave  : AxiLiteWriteSlaveType;             -- [out]
 
 begin
 
    -- component instantiation
-   U_Pgp2bGtx7VarLatWrapper: entity surf.Pgp2bGtx7VarLatWrapper
+   U_Pgp2bGtx7VarLatWrapper : entity surf.Pgp2bGtx7VarLatWrapper
       generic map (
          TPD_G              => TPD_G,
          CLKIN_PERIOD_G     => CLKIN_PERIOD_G,

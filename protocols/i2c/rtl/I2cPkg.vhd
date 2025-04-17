@@ -218,10 +218,10 @@ package I2cPkg is
          -- i2c lines
          scl_i   : in  std_logic;       -- i2c clock line input
          scl_o   : out std_logic;       -- i2c clock line output
-         scl_oen : out std_logic;       -- i2c clock line output enable, active low
+         scl_oen : out std_logic;  -- i2c clock line output enable, active low
          sda_i   : in  std_logic;       -- i2c data line input
          sda_o   : out std_logic;       -- i2c data line output
-         sda_oen : out std_logic        -- i2c data line output enable, active low
+         sda_oen : out std_logic   -- i2c data line output enable, active low
          );
    end component i2c_master_byte_ctrl;
 

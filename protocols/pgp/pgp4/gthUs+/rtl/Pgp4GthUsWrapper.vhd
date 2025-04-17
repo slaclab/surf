@@ -48,7 +48,7 @@ entity Pgp4GthUsWrapper is
       RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
       PGP_TX_ENABLE_G             : boolean                     := true;
       TX_CELL_WORDS_MAX_G         : integer                     := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_MUX_MODE_G               : string                      := "INDEXED";      -- Or "ROUTED"
+      TX_MUX_MODE_G               : string                      := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
@@ -181,7 +181,7 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity surf.Pgp3GthUsQpll -- Same IP core for both PGPv3 and PGPv4
+      U_QPLL : entity surf.Pgp3GthUsQpll  -- Same IP core for both PGPv3 and PGPv4
          generic map (
             TPD_G    => TPD_G,
             RATE_G   => RATE_G,
@@ -192,12 +192,12 @@ begin
             stableRst       => stableRst,                            -- [in]
             -- QPLL Clocking
             pgpRefClk       => pgpRefClk,                            -- [in]
-            qpllLock        => qpllLock,                             -- [out]
-            qpllClk         => qpllClk,                              -- [out]
+            qpllLock        => qpllLock,  -- [out]
+            qpllClk         => qpllClk,   -- [out]
             qpllRefclk      => qpllRefclk,                           -- [out]
-            qpllRst         => qpllRst,                              -- [in]
-            axilClk         => axilClk,                              -- [in]
-            axilRst         => axilRst,                              -- [in]
+            qpllRst         => qpllRst,   -- [in]
+            axilClk         => axilClk,   -- [in]
+            axilRst         => axilRst,   -- [in]
             axilReadMaster  => axilReadMasters(QPLL_AXIL_INDEX_C),   -- [in]
             axilReadSlave   => axilReadSlaves(QPLL_AXIL_INDEX_C),    -- [out]
             axilWriteMaster => axilWriteMasters(QPLL_AXIL_INDEX_C),  -- [in]

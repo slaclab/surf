@@ -217,10 +217,11 @@ begin
    s_WrAddr <= conv_integer(axilWriteMaster.awaddr(9 downto 2));
 
    comb : process (axiRst_i, axilReadMaster, axilWriteMaster, bandwidth_i,
-                   connState_i, frameRate_i, negRssiParam, r, rxAppState_i,
-                   rxTspState_i, s_RdAddr, s_WrAddr, s_dropCnt, s_reconCnt,
-                   s_resendCnt, s_status, s_validCnt, txAckState_i,
-                   txAppState_i, txTspState_i) is
+                   connState_i, frameRate_i, negRssiParam, r, rxAckN_i,
+                   rxAppState_i, rxLastSeqN_i, rxSeqN_i, rxTspState_i,
+                   s_RdAddr, s_WrAddr, s_dropCnt, s_reconCnt, s_resendCnt,
+                   s_status, s_validCnt, txAckState_i, txAppState_i,
+                   txLastAckN_i, txTspState_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);

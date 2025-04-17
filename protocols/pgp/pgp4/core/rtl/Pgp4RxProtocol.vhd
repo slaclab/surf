@@ -32,7 +32,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4RxProtocol is
    generic (
       TPD_G          : time                  := 1 ns;
-      RST_POLARITY_G : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean               := false;
       NUM_VC_G       : integer range 1 to 16 := 4);
    port (

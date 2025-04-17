@@ -15,7 +15,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -26,67 +26,67 @@ use surf.Pgp2fcPkg.all;
 
 entity Pgp2fcRxCell is
    generic (
-      TPD_G             : time                 := 1 ns;
-      EN_SHORT_CELLS_G  : integer              := 1; -- Enable short non-EOF cells
-      PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
-   );
+      TPD_G             : time    := 1 ns;
+      EN_SHORT_CELLS_G  : integer := 1;  -- Enable short non-EOF cells
+      PAYLOAD_CNT_TOP_G : integer := 7   -- Top bit for payload counter
+      );
    port (
 
       -- System clock, reset & control
-      pgpRxClkEn        : in  sl := '1';                        -- Master clock Enable
-      pgpRxClk          : in  sl;                               -- Master clock
-      pgpRxClkRst       : in  sl;                               -- Synchronous reset input
+      pgpRxClkEn  : in sl := '1';       -- Master clock Enable
+      pgpRxClk    : in sl;              -- Master clock
+      pgpRxClkRst : in sl;              -- Synchronous reset input
 
       -- Link flush
-      pgpRxFlush        : in  sl;                               -- Flush the link
+      pgpRxFlush : in sl;               -- Flush the link
 
       -- Link is ready
-      pgpRxLinkReady    : in  sl;                               -- Local side has link
+      pgpRxLinkReady : in sl;           -- Local side has link
 
       -- Cell Error, one pulse per error
-      pgpRxCellError    : out sl;                               -- A cell error has occured
+      pgpRxCellError : out sl;          -- A cell error has occured
 
       -- Interface to PHY Logic
-      cellRxPause       : in  sl;                               -- Cell data pause
-      cellRxSOC         : in  sl;                               -- Cell data start of cell
-      cellRxSOF         : in  sl;                               -- Cell data start of frame
-      cellRxEOC         : in  sl;                               -- Cell data end of cell
-      cellRxEOF         : in  sl;                               -- Cell data end of frame
-      cellRxEOFE        : in  sl;                               -- Cell data end of frame error
-      cellRxData        : in  slv(15 downto 0);                 -- Cell data data
+      cellRxPause : in sl;                -- Cell data pause
+      cellRxSOC   : in sl;                -- Cell data start of cell
+      cellRxSOF   : in sl;                -- Cell data start of frame
+      cellRxEOC   : in sl;                -- Cell data end of cell
+      cellRxEOF   : in sl;                -- Cell data end of frame
+      cellRxEOFE  : in sl;                -- Cell data end of frame error
+      cellRxData  : in slv(15 downto 0);  -- Cell data data
 
       -- Common Frame Receive Interface For All VCs
-      vcFrameRxSOF      : out sl;                               -- PGP frame data start of frame
-      vcFrameRxEOF      : out sl;                               -- PGP frame data end of frame
-      vcFrameRxEOFE     : out sl;                               -- PGP frame data error
-      vcFrameRxData     : out slv(15 downto 0);                 -- PGP frame data
+      vcFrameRxSOF  : out sl;                -- PGP frame data start of frame
+      vcFrameRxEOF  : out sl;                -- PGP frame data end of frame
+      vcFrameRxEOFE : out sl;                -- PGP frame data error
+      vcFrameRxData : out slv(15 downto 0);  -- PGP frame data
 
       -- Frame Receive Interface, VC 0
-      vc0FrameRxValid   : out sl;                               -- PGP frame data is valid
-      vc0RemAlmostFull  : out sl;                               -- Remote buffer almost full
-      vc0RemOverflow    : out sl;                               -- Remote buffer overflow
+      vc0FrameRxValid  : out sl;        -- PGP frame data is valid
+      vc0RemAlmostFull : out sl;        -- Remote buffer almost full
+      vc0RemOverflow   : out sl;        -- Remote buffer overflow
 
       -- Frame Receive Interface, VC 1
-      vc1FrameRxValid   : out sl;                               -- PGP frame data is valid
-      vc1RemAlmostFull  : out sl;                               -- Remote buffer almost full
-      vc1RemOverflow    : out sl;                               -- Remote buffer overflow
+      vc1FrameRxValid  : out sl;        -- PGP frame data is valid
+      vc1RemAlmostFull : out sl;        -- Remote buffer almost full
+      vc1RemOverflow   : out sl;        -- Remote buffer overflow
 
       -- Frame Receive Interface, VC 2
-      vc2FrameRxValid   : out sl;                               -- PGP frame data is valid
-      vc2RemAlmostFull  : out sl;                               -- Remote buffer almost full
-      vc2RemOverflow    : out sl;                               -- Remote buffer overflow
+      vc2FrameRxValid  : out sl;        -- PGP frame data is valid
+      vc2RemAlmostFull : out sl;        -- Remote buffer almost full
+      vc2RemOverflow   : out sl;        -- Remote buffer overflow
 
       -- Frame Receive Interface, VC 3
-      vc3FrameRxValid   : out sl;                               -- PGP frame data is valid
-      vc3RemAlmostFull  : out sl;                               -- Remote buffer almost full
-      vc3RemOverflow    : out sl;                               -- Remote buffer overflow
+      vc3FrameRxValid  : out sl;        -- PGP frame data is valid
+      vc3RemAlmostFull : out sl;        -- Remote buffer almost full
+      vc3RemOverflow   : out sl;        -- Remote buffer overflow
 
       -- Receive CRC Interface
-      crcRxIn           : out slv(15 downto 0);                 -- Receive data for CRC
-      crcRxInit         : out sl;                               -- Receive CRC value init
-      crcRxValid        : out sl;                               -- Receive data for CRC is valid
-      crcRxOut          : in  slv(31 downto 0)                  -- Receive calculated CRC value
-   );
+      crcRxIn    : out slv(15 downto 0);  -- Receive data for CRC
+      crcRxInit  : out sl;                -- Receive CRC value init
+      crcRxValid : out sl;                -- Receive data for CRC is valid
+      crcRxOut   : in  slv(31 downto 0)   -- Receive calculated CRC value
+      );
 
 end Pgp2fcRxCell;
 
@@ -95,217 +95,218 @@ end Pgp2fcRxCell;
 architecture Pgp2fcRxCell of Pgp2fcRxCell is
 
    -- Local Signals
-   signal dly0SOC           : sl;
-   signal dly0SOF           : sl;
-   signal dly0EOC           : sl;
-   signal dly0EOF           : sl;
-   signal dly0EOFE          : sl;
-   signal dly0Data          : slv(15 downto 0);
-   signal dly1SOC           : sl;
-   signal dly1SOF           : sl;
-   signal dly1EOC           : sl;
-   signal dly1EOF           : sl;
-   signal dly1EOFE          : sl;
-   signal dly1Data          : slv(15 downto 0);
-   signal dly2SOC           : sl;
-   signal dly2SOF           : sl;
-   signal dly2EOC           : sl;
-   signal dly2EOF           : sl;
-   signal dly2EOFE          : sl;
-   signal dly2Data          : slv(15 downto 0);
-   signal dly3SOC           : sl;
-   signal dly3SOF           : sl;
-   signal dly3EOC           : sl;
-   signal dly3EOF           : sl;
-   signal dly3EOFE          : sl;
-   signal dly3Data          : slv(15 downto 0);
-   signal dly4SOC           : sl;
-   signal dly4SOF           : sl;
-   signal dly4EOC           : sl;
-   signal dly4EOF           : sl;
-   signal dly4EOFE          : sl;
-   signal dly4Data          : slv(15 downto 0);
-   signal dly5SOC           : sl;
-   signal dly5SOF           : sl;
-   signal dly5EOC           : sl;
-   signal dly5EOF           : sl;
-   signal dly5EOFE          : sl;
-   signal dly5Data          : slv(15 downto 0);
-   signal dly6SOC           : sl;
-   signal dly6SOF           : sl;
-   signal dly6EOC           : sl;
-   signal dly6EOF           : sl;
-   signal dly6EOFE          : sl;
-   signal dly6Data          : slv(15 downto 0);
-   signal dly7SOC           : sl;
-   signal dly7SOF           : sl;
-   signal dly7EOC           : sl;
-   signal dly7EOF           : sl;
-   signal dly7EOFE          : sl;
-   signal dly7Data          : slv(15 downto 0);
-   signal intCrcRxValid     : sl;
-   signal crcNotZero        : sl;
-   signal linkDownCnt       : slv(4 downto 0);
-   signal compSOC           : sl;
-   signal compData          : slv(15 downto 0);
-   signal detSOC            : sl;
-   signal detSOF            : sl;
-   signal outData           : slv(15 downto 0);
-   signal detEOC            : sl;
-   signal detEOF            : sl;
-   signal detEOFE           : sl;
-   signal inCellEn          : sl;
-   signal nxtCellEn         : sl;
-   signal inCellSerErr      : sl;
-   signal inCellSOF         : sl;
-   signal inCellEOC         : sl;
-   signal inCellEOF         : sl;
-   signal inCellEOFE        : sl;
-   signal inCellCnt         : slv(PAYLOAD_CNT_TOP_G downto 0);
-   signal vcInFrame         : slv(3 downto 0);
-   signal currVc            : slv(1 downto 0);
-   signal serErr            : sl;
-   signal vc0Serial         : slv(5 downto 0);
-   signal vc0Valid          : sl;
-   signal vc1Serial         : slv(5 downto 0);
-   signal vc1Valid          : sl;
-   signal vc2Serial         : slv(5 downto 0);
-   signal vc2Valid          : sl;
-   signal vc3Serial         : slv(5 downto 0);
-   signal vc3Valid          : sl;
-   signal abortVc           : slv(1 downto 0);
-   signal abortEn           : sl;
-   signal intCellError      : sl;
-   signal dlyCellError      : sl;
+   signal dly0SOC       : sl;
+   signal dly0SOF       : sl;
+   signal dly0EOC       : sl;
+   signal dly0EOF       : sl;
+   signal dly0EOFE      : sl;
+   signal dly0Data      : slv(15 downto 0);
+   signal dly1SOC       : sl;
+   signal dly1SOF       : sl;
+   signal dly1EOC       : sl;
+   signal dly1EOF       : sl;
+   signal dly1EOFE      : sl;
+   signal dly1Data      : slv(15 downto 0);
+   signal dly2SOC       : sl;
+   signal dly2SOF       : sl;
+   signal dly2EOC       : sl;
+   signal dly2EOF       : sl;
+   signal dly2EOFE      : sl;
+   signal dly2Data      : slv(15 downto 0);
+   signal dly3SOC       : sl;
+   signal dly3SOF       : sl;
+   signal dly3EOC       : sl;
+   signal dly3EOF       : sl;
+   signal dly3EOFE      : sl;
+   signal dly3Data      : slv(15 downto 0);
+   signal dly4SOC       : sl;
+   signal dly4SOF       : sl;
+   signal dly4EOC       : sl;
+   signal dly4EOF       : sl;
+   signal dly4EOFE      : sl;
+   signal dly4Data      : slv(15 downto 0);
+   signal dly5SOC       : sl;
+   signal dly5SOF       : sl;
+   signal dly5EOC       : sl;
+   signal dly5EOF       : sl;
+   signal dly5EOFE      : sl;
+   signal dly5Data      : slv(15 downto 0);
+   signal dly6SOC       : sl;
+   signal dly6SOF       : sl;
+   signal dly6EOC       : sl;
+   signal dly6EOF       : sl;
+   signal dly6EOFE      : sl;
+   signal dly6Data      : slv(15 downto 0);
+   signal dly7SOC       : sl;
+   signal dly7SOF       : sl;
+   signal dly7EOC       : sl;
+   signal dly7EOF       : sl;
+   signal dly7EOFE      : sl;
+   signal dly7Data      : slv(15 downto 0);
+   signal intCrcRxValid : sl;
+   signal crcNotZero    : sl;
+   signal linkDownCnt   : slv(4 downto 0);
+   signal compSOC       : sl;
+   signal compData      : slv(15 downto 0);
+   signal detSOC        : sl;
+   signal detSOF        : sl;
+   signal outData       : slv(15 downto 0);
+   signal detEOC        : sl;
+   signal detEOF        : sl;
+   signal detEOFE       : sl;
+   signal inCellEn      : sl;
+   signal nxtCellEn     : sl;
+   signal inCellSerErr  : sl;
+   signal inCellSOF     : sl;
+   signal inCellEOC     : sl;
+   signal inCellEOF     : sl;
+   signal inCellEOFE    : sl;
+   signal inCellCnt     : slv(PAYLOAD_CNT_TOP_G downto 0);
+   signal vcInFrame     : slv(3 downto 0);
+   signal currVc        : slv(1 downto 0);
+   signal serErr        : sl;
+   signal vc0Serial     : slv(5 downto 0);
+   signal vc0Valid      : sl;
+   signal vc1Serial     : slv(5 downto 0);
+   signal vc1Valid      : sl;
+   signal vc2Serial     : slv(5 downto 0);
+   signal vc2Valid      : sl;
+   signal vc3Serial     : slv(5 downto 0);
+   signal vc3Valid      : sl;
+   signal abortVc       : slv(1 downto 0);
+   signal abortEn       : sl;
+   signal intCellError  : sl;
+   signal dlyCellError  : sl;
 
 begin
 
    -- Delay stages to line up data with CRC calculation
-   process ( pgpRxClk ) begin
+   process (pgpRxClk)
+   begin
       if rising_edge(pgpRxClk) then
          if pgpRxClkRst = '1' then
-            dly0SOC       <= '0'           after TPD_G;
-            dly0SOF       <= '0'           after TPD_G;
-            dly0EOC       <= '0'           after TPD_G;
-            dly0EOF       <= '0'           after TPD_G;
-            dly0EOFE      <= '0'           after TPD_G;
-            dly0Data      <= (others=>'0') after TPD_G;
-            dly1SOC       <= '0'           after TPD_G;
-            dly1SOF       <= '0'           after TPD_G;
-            dly1EOC       <= '0'           after TPD_G;
-            dly1EOF       <= '0'           after TPD_G;
-            dly1EOFE      <= '0'           after TPD_G;
-            dly1Data      <= (others=>'0') after TPD_G;
-            dly2SOC       <= '0'           after TPD_G;
-            dly2SOF       <= '0'           after TPD_G;
-            dly2EOC       <= '0'           after TPD_G;
-            dly2EOF       <= '0'           after TPD_G;
-            dly2EOFE      <= '0'           after TPD_G;
-            dly2Data      <= (others=>'0') after TPD_G;
-            dly3SOC       <= '0'           after TPD_G;
-            dly3SOF       <= '0'           after TPD_G;
-            dly3EOC       <= '0'           after TPD_G;
-            dly3EOF       <= '0'           after TPD_G;
-            dly3EOFE      <= '0'           after TPD_G;
-            dly3Data      <= (others=>'0') after TPD_G;
-            dly4SOC       <= '0'           after TPD_G;
-            dly4SOF       <= '0'           after TPD_G;
-            dly4EOC       <= '0'           after TPD_G;
-            dly4EOF       <= '0'           after TPD_G;
-            dly4EOFE      <= '0'           after TPD_G;
-            dly4Data      <= (others=>'0') after TPD_G;
-            dly5SOC       <= '0'           after TPD_G;
-            dly5SOF       <= '0'           after TPD_G;
-            dly5EOC       <= '0'           after TPD_G;
-            dly5EOF       <= '0'           after TPD_G;
-            dly5EOFE      <= '0'           after TPD_G;
-            dly5Data      <= (others=>'0') after TPD_G;
-            dly6SOC       <= '0'           after TPD_G;
-            dly6SOF       <= '0'           after TPD_G;
-            dly6EOC       <= '0'           after TPD_G;
-            dly6EOF       <= '0'           after TPD_G;
-            dly6EOFE      <= '0'           after TPD_G;
-            dly6Data      <= (others=>'0') after TPD_G;
-            dly7SOC       <= '0'           after TPD_G;
-            dly7SOF       <= '0'           after TPD_G;
-            dly7EOC       <= '0'           after TPD_G;
-            dly7EOF       <= '0'           after TPD_G;
-            dly7EOFE      <= '0'           after TPD_G;
-            dly7Data      <= (others=>'0') after TPD_G;
-            intCrcRxValid <= '0'           after TPD_G;
+            dly0SOC       <= '0'             after TPD_G;
+            dly0SOF       <= '0'             after TPD_G;
+            dly0EOC       <= '0'             after TPD_G;
+            dly0EOF       <= '0'             after TPD_G;
+            dly0EOFE      <= '0'             after TPD_G;
+            dly0Data      <= (others => '0') after TPD_G;
+            dly1SOC       <= '0'             after TPD_G;
+            dly1SOF       <= '0'             after TPD_G;
+            dly1EOC       <= '0'             after TPD_G;
+            dly1EOF       <= '0'             after TPD_G;
+            dly1EOFE      <= '0'             after TPD_G;
+            dly1Data      <= (others => '0') after TPD_G;
+            dly2SOC       <= '0'             after TPD_G;
+            dly2SOF       <= '0'             after TPD_G;
+            dly2EOC       <= '0'             after TPD_G;
+            dly2EOF       <= '0'             after TPD_G;
+            dly2EOFE      <= '0'             after TPD_G;
+            dly2Data      <= (others => '0') after TPD_G;
+            dly3SOC       <= '0'             after TPD_G;
+            dly3SOF       <= '0'             after TPD_G;
+            dly3EOC       <= '0'             after TPD_G;
+            dly3EOF       <= '0'             after TPD_G;
+            dly3EOFE      <= '0'             after TPD_G;
+            dly3Data      <= (others => '0') after TPD_G;
+            dly4SOC       <= '0'             after TPD_G;
+            dly4SOF       <= '0'             after TPD_G;
+            dly4EOC       <= '0'             after TPD_G;
+            dly4EOF       <= '0'             after TPD_G;
+            dly4EOFE      <= '0'             after TPD_G;
+            dly4Data      <= (others => '0') after TPD_G;
+            dly5SOC       <= '0'             after TPD_G;
+            dly5SOF       <= '0'             after TPD_G;
+            dly5EOC       <= '0'             after TPD_G;
+            dly5EOF       <= '0'             after TPD_G;
+            dly5EOFE      <= '0'             after TPD_G;
+            dly5Data      <= (others => '0') after TPD_G;
+            dly6SOC       <= '0'             after TPD_G;
+            dly6SOF       <= '0'             after TPD_G;
+            dly6EOC       <= '0'             after TPD_G;
+            dly6EOF       <= '0'             after TPD_G;
+            dly6EOFE      <= '0'             after TPD_G;
+            dly6Data      <= (others => '0') after TPD_G;
+            dly7SOC       <= '0'             after TPD_G;
+            dly7SOF       <= '0'             after TPD_G;
+            dly7EOC       <= '0'             after TPD_G;
+            dly7EOF       <= '0'             after TPD_G;
+            dly7EOFE      <= '0'             after TPD_G;
+            dly7Data      <= (others => '0') after TPD_G;
+            intCrcRxValid <= '0'             after TPD_G;
          elsif pgpRxClkEn = '1' then
             -- Shift when not paused
             if cellRxPause = '0' then
 
                -- Delay stage 0
-               dly0SOC   <= cellRxSOC    after TPD_G;
-               dly0SOF   <= cellRxSOF    after TPD_G;
-               dly0EOC   <= cellRxEOC    after TPD_G;
-               dly0EOF   <= cellRxEOF    after TPD_G;
-               dly0EOFE  <= cellRxEOFE   after TPD_G;
-               dly0Data  <= cellRxData   after TPD_G;
+               dly0SOC  <= cellRxSOC  after TPD_G;
+               dly0SOF  <= cellRxSOF  after TPD_G;
+               dly0EOC  <= cellRxEOC  after TPD_G;
+               dly0EOF  <= cellRxEOF  after TPD_G;
+               dly0EOFE <= cellRxEOFE after TPD_G;
+               dly0Data <= cellRxData after TPD_G;
 
                -- Delay stage 1
-               dly1SOC   <= dly0SOC     after TPD_G;
-               dly1SOF   <= dly0SOF     after TPD_G;
-               dly1EOC   <= dly0EOC     after TPD_G;
-               dly1EOF   <= dly0EOF     after TPD_G;
-               dly1EOFE  <= dly0EOFE    after TPD_G;
-               dly1Data  <= dly0Data    after TPD_G;
+               dly1SOC  <= dly0SOC  after TPD_G;
+               dly1SOF  <= dly0SOF  after TPD_G;
+               dly1EOC  <= dly0EOC  after TPD_G;
+               dly1EOF  <= dly0EOF  after TPD_G;
+               dly1EOFE <= dly0EOFE after TPD_G;
+               dly1Data <= dly0Data after TPD_G;
 
                -- Delay stage 2
-               dly2SOC   <= dly1SOC     after TPD_G;
-               dly2SOF   <= dly1SOF     after TPD_G;
-               dly2EOC   <= dly1EOC     after TPD_G;
-               dly2EOF   <= dly1EOF     after TPD_G;
-               dly2EOFE  <= dly1EOFE    after TPD_G;
-               dly2Data  <= dly1Data    after TPD_G;
+               dly2SOC  <= dly1SOC  after TPD_G;
+               dly2SOF  <= dly1SOF  after TPD_G;
+               dly2EOC  <= dly1EOC  after TPD_G;
+               dly2EOF  <= dly1EOF  after TPD_G;
+               dly2EOFE <= dly1EOFE after TPD_G;
+               dly2Data <= dly1Data after TPD_G;
 
                -- Delay stage 3
-               dly3SOC   <= dly2SOC     after TPD_G;
-               dly3SOF   <= dly2SOF     after TPD_G;
-               dly3EOC   <= dly2EOC     after TPD_G;
-               dly3EOF   <= dly2EOF     after TPD_G;
-               dly3EOFE  <= dly2EOFE    after TPD_G;
-               dly3Data  <= dly2Data    after TPD_G;
+               dly3SOC  <= dly2SOC  after TPD_G;
+               dly3SOF  <= dly2SOF  after TPD_G;
+               dly3EOC  <= dly2EOC  after TPD_G;
+               dly3EOF  <= dly2EOF  after TPD_G;
+               dly3EOFE <= dly2EOFE after TPD_G;
+               dly3Data <= dly2Data after TPD_G;
 
                -- Delay stage 4
-               dly4SOC   <= dly3SOC     after TPD_G;
-               dly4SOF   <= dly3SOF     after TPD_G;
-               dly4EOC   <= dly3EOC     after TPD_G;
-               dly4EOF   <= dly3EOF     after TPD_G;
-               dly4EOFE  <= dly3EOFE    after TPD_G;
-               dly4Data  <= dly3Data    after TPD_G;
+               dly4SOC  <= dly3SOC  after TPD_G;
+               dly4SOF  <= dly3SOF  after TPD_G;
+               dly4EOC  <= dly3EOC  after TPD_G;
+               dly4EOF  <= dly3EOF  after TPD_G;
+               dly4EOFE <= dly3EOFE after TPD_G;
+               dly4Data <= dly3Data after TPD_G;
 
                -- Delay stage 5
-               dly5SOC   <= dly4SOC     after TPD_G;
-               dly5SOF   <= dly4SOF     after TPD_G;
-               dly5EOC   <= dly4EOC     after TPD_G;
-               dly5EOF   <= dly4EOF     after TPD_G;
-               dly5EOFE  <= dly4EOFE    after TPD_G;
-               dly5Data  <= dly4Data    after TPD_G;
+               dly5SOC  <= dly4SOC  after TPD_G;
+               dly5SOF  <= dly4SOF  after TPD_G;
+               dly5EOC  <= dly4EOC  after TPD_G;
+               dly5EOF  <= dly4EOF  after TPD_G;
+               dly5EOFE <= dly4EOFE after TPD_G;
+               dly5Data <= dly4Data after TPD_G;
 
                -- Delay stage 6
-               dly6SOC   <= dly5SOC     after TPD_G;
-               dly6SOF   <= dly5SOF     after TPD_G;
-               dly6EOC   <= dly5EOC     after TPD_G;
-               dly6EOF   <= dly5EOF     after TPD_G;
-               dly6EOFE  <= dly5EOFE    after TPD_G;
-               dly6Data  <= dly5Data    after TPD_G;
+               dly6SOC  <= dly5SOC  after TPD_G;
+               dly6SOF  <= dly5SOF  after TPD_G;
+               dly6EOC  <= dly5EOC  after TPD_G;
+               dly6EOF  <= dly5EOF  after TPD_G;
+               dly6EOFE <= dly5EOFE after TPD_G;
+               dly6Data <= dly5Data after TPD_G;
 
                -- Delay stage 7
-               dly7SOC   <= dly6SOC     after TPD_G;
-               dly7SOF   <= dly6SOF     after TPD_G;
-               dly7EOC   <= dly6EOC     after TPD_G;
-               dly7EOF   <= dly6EOF     after TPD_G;
-               dly7EOFE  <= dly6EOFE    after TPD_G;
-               dly7Data  <= dly6Data    after TPD_G;
+               dly7SOC  <= dly6SOC  after TPD_G;
+               dly7SOF  <= dly6SOF  after TPD_G;
+               dly7EOC  <= dly6EOC  after TPD_G;
+               dly7EOF  <= dly6EOF  after TPD_G;
+               dly7EOFE <= dly6EOFE after TPD_G;
+               dly7Data <= dly6Data after TPD_G;
 
                -- CRC Enable & partial flag
                if cellRxSOC = '1' then
-                 intCrcRxValid <= '1' after TPD_G;
+                  intCrcRxValid <= '1' after TPD_G;
                elsif cellRxEOC = '1' then
-                 intCrcRxValid <= '0' after TPD_G;
+                  intCrcRxValid <= '0' after TPD_G;
                end if;
             end if;
          end if;
@@ -315,9 +316,10 @@ begin
 
 
    -- CRC Data Output, SOC field overwritten with zeros
-   process ( dly0SOC, dly0Data ) begin
+   process (dly0Data, dly0SOC)
+   begin
       if dly0SOC = '1' then
-         crcRxIn(7 downto 0) <= (others=>'0');
+         crcRxIn(7 downto 0) <= (others => '0');
       else
          crcRxIn(7 downto 0) <= dly0Data(7 downto 0);
       end if;
@@ -326,8 +328,8 @@ begin
 
 
    -- Output to CRC engine
-   crcRxInit    <= dly0SOC;
-   crcRxValid   <= intCrcRxValid and not cellRxPause;
+   crcRxInit  <= dly0SOC;
+   crcRxValid <= intCrcRxValid and not cellRxPause;
 
 
    -- Choose tap positions in delay chain
@@ -337,43 +339,44 @@ begin
    compData <= dly6Data;
 
    -- SOC detect position,
-   detSOC   <= dly7SOC;
-   detSOF   <= dly7SOF;
-   outData  <= dly7Data;
+   detSOC  <= dly7SOC;
+   detSOF  <= dly7SOF;
+   outData <= dly7Data;
 
    -- EOC detect position
-   detEOC   <= dly3EOC;
-   detEOF   <= dly3EOF;
-   detEOFE  <= dly3EOFE;
+   detEOC  <= dly3EOC;
+   detEOF  <= dly3EOF;
+   detEOFE <= dly3EOFE;
 
 
    -- Detect current VC, check cell serial number
-   process ( pgpRxClk ) begin
+   process (pgpRxClk)
+   begin
       if rising_edge(pgpRxClk) then
          if pgpRxClkRst = '1' then
-            currVc    <= (others=>'0') after TPD_G;
-            serErr    <= '0'           after TPD_G;
-            vc0Serial <= (others=>'0') after TPD_G;
-            vc0Valid  <= '0'           after TPD_G;
-            vc1Serial <= (others=>'0') after TPD_G;
-            vc1Valid  <= '0'           after TPD_G;
-            vc2Serial <= (others=>'0') after TPD_G;
-            vc2Valid  <= '0'           after TPD_G;
-            vc3Serial <= (others=>'0') after TPD_G;
-            vc3Valid  <= '0'           after TPD_G;
+            currVc    <= (others => '0') after TPD_G;
+            serErr    <= '0'             after TPD_G;
+            vc0Serial <= (others => '0') after TPD_G;
+            vc0Valid  <= '0'             after TPD_G;
+            vc1Serial <= (others => '0') after TPD_G;
+            vc1Valid  <= '0'             after TPD_G;
+            vc2Serial <= (others => '0') after TPD_G;
+            vc2Valid  <= '0'             after TPD_G;
+            vc3Serial <= (others => '0') after TPD_G;
+            vc3Valid  <= '0'             after TPD_G;
          elsif pgpRxClkEn = '1' then
             -- Link is down, init counts
             if pgpRxLinkReady = '0' then
-               currVc    <= (others=>'0') after TPD_G;
-               serErr    <= '0'           after TPD_G;
-               vc0Serial <= (others=>'0') after TPD_G;
-               vc0Valid  <= '0'           after TPD_G;
-               vc1Serial <= (others=>'0') after TPD_G;
-               vc1Valid  <= '0'           after TPD_G;
-               vc2Serial <= (others=>'0') after TPD_G;
-               vc2Valid  <= '0'           after TPD_G;
-               vc3Serial <= (others=>'0') after TPD_G;
-               vc3Valid  <= '0'           after TPD_G;
+               currVc    <= (others => '0') after TPD_G;
+               serErr    <= '0'             after TPD_G;
+               vc0Serial <= (others => '0') after TPD_G;
+               vc0Valid  <= '0'             after TPD_G;
+               vc1Serial <= (others => '0') after TPD_G;
+               vc1Valid  <= '0'             after TPD_G;
+               vc2Serial <= (others => '0') after TPD_G;
+               vc2Valid  <= '0'             after TPD_G;
+               vc3Serial <= (others => '0') after TPD_G;
+               vc3Valid  <= '0'             after TPD_G;
 
             -- Pipeline enable
             elsif cellRxPause = '0' then
@@ -444,27 +447,28 @@ begin
 
 
    -- Receive cell tracking
-   process ( pgpRxClk ) begin
+   process (pgpRxClk)
+   begin
       if rising_edge(pgpRxClk) then
          if pgpRxClkRst = '1' then
-            crcNotZero        <= '0'           after TPD_G;
-            linkDownCnt       <= (others=>'0') after TPD_G;
-            inCellEn          <= '0'           after TPD_G;
-            inCellSerErr      <= '0'           after TPD_G;
-            inCellSOF         <= '0'           after TPD_G;
-            inCellEOC         <= '0'           after TPD_G;
-            inCellEOF         <= '0'           after TPD_G;
-            inCellEOFE        <= '0'           after TPD_G;
-            inCellCnt         <= (others=>'0') after TPD_G;
-            abortEn           <= '0'           after TPD_G;
-            abortVc           <= (others=>'0') after TPD_G;
-            intCellError      <= '0'           after TPD_G;
-            dlyCellError      <= '0'           after TPD_G;
-            pgpRxCellError    <= '0'           after TPD_G;
-            vcInFrame         <= (others=>'0') after TPD_G;
+            crcNotZero     <= '0'             after TPD_G;
+            linkDownCnt    <= (others => '0') after TPD_G;
+            inCellEn       <= '0'             after TPD_G;
+            inCellSerErr   <= '0'             after TPD_G;
+            inCellSOF      <= '0'             after TPD_G;
+            inCellEOC      <= '0'             after TPD_G;
+            inCellEOF      <= '0'             after TPD_G;
+            inCellEOFE     <= '0'             after TPD_G;
+            inCellCnt      <= (others => '0') after TPD_G;
+            abortEn        <= '0'             after TPD_G;
+            abortVc        <= (others => '0') after TPD_G;
+            intCellError   <= '0'             after TPD_G;
+            dlyCellError   <= '0'             after TPD_G;
+            pgpRxCellError <= '0'             after TPD_G;
+            vcInFrame      <= (others => '0') after TPD_G;
          elsif pgpRxClkEn = '1' then
             -- Cell error edge generation
-            dlyCellError   <= intCellError after TPD_G;
+            dlyCellError   <= intCellError                      after TPD_G;
             pgpRxCellError <= intCellError and not dlyCellError after TPD_G;
 
             -- CRC Error
@@ -476,7 +480,7 @@ begin
 
             -- Link down counter
             if pgpRxLinkReady = '1' then
-               linkDownCnt <= (others=>'0') after TPD_G;
+               linkDownCnt <= (others => '0') after TPD_G;
             elsif linkDownCnt(4) = '0' then
                linkDownCnt <= linkDownCnt + 1 after TPD_G;
             end if;
@@ -486,7 +490,7 @@ begin
                if inCellEn = '1' then
                   inCellCnt <= inCellCnt - 1 after TPD_G;
                else
-                  inCellCnt <= (others=>'1') after TPD_G;
+                  inCellCnt <= (others => '1') after TPD_G;
                end if;
             end if;
 
@@ -498,7 +502,7 @@ begin
 
                   -- VC is active
                   if vcInFrame(conv_integer(linkDownCnt(3 downto 2))) = '1' then
-                     abortEn <= '1' after TPD_G;
+                     abortEn                                          <= '1' after TPD_G;
                      vcInFrame(conv_integer(linkDownCnt(3 downto 2))) <= '0' after TPD_G;
                   else
                      abortEn <= '0' after TPD_G;
@@ -523,12 +527,12 @@ begin
             else
 
                -- Clear abort flags
-               abortVc <= (others=>'0') after TPD_G;
-               abortEn <= '0'           after TPD_G;
+               abortVc <= (others => '0') after TPD_G;
+               abortEn <= '0'             after TPD_G;
 
                -- Link flush set
                if pgpRxFlush = '1' then
-                  vcInFrame <= (others=>'0') after TPD_G;
+                  vcInFrame <= (others => '0') after TPD_G;
 
                -- Pipeline enable
                elsif cellRxPause = '0' then
@@ -575,8 +579,8 @@ begin
 
                   -- End of cell, check for short cell case
                   if detEOC = '1' and (inCellEn = '1' or nxtCellEn = '1') then
-                     inCellEOC    <= '1'                                   after TPD_G;
-                     intCellError <= inCellSerErr or crcNotZero            after TPD_G;
+                     inCellEOC    <= '1'                        after TPD_G;
+                     intCellError <= inCellSerErr or crcNotZero after TPD_G;
 
                      -- Cell is too short
                      if detEOF = '0' and inCellCnt /= 1 and EN_SHORT_CELLS_G = 0 then
@@ -584,7 +588,7 @@ begin
                         inCellEOFE   <= '1' after TPD_G;
                         intCellError <= '1' after TPD_G;
                      else
-                        inCellEOF    <= detEOF  or inCellSerErr or crcNotZero after TPD_G;
+                        inCellEOF    <= detEOF or inCellSerErr or crcNotZero  after TPD_G;
                         inCellEOFE   <= detEOFE or inCellSerErr or crcNotZero after TPD_G;
                         intCellError <= inCellSerErr or crcNotZero            after TPD_G;
                      end if;
@@ -615,17 +619,18 @@ begin
 
 
    -- Data Output
-   process ( pgpRxClk ) begin
+   process (pgpRxClk)
+   begin
       if rising_edge(pgpRxClk) then
          if pgpRxClkRst = '1' then
-            vcFrameRxData   <= (others=>'0') after TPD_G;
-            vcFrameRxSOF    <= '0'           after TPD_G;
-            vcFrameRxEOF    <= '0'           after TPD_G;
-            vcFrameRxEOFE   <= '0'           after TPD_G;
-            vc0FrameRxValid <= '0'           after TPD_G;
-            vc1FrameRxValid <= '0'           after TPD_G;
-            vc2FrameRxValid <= '0'           after TPD_G;
-            vc3FrameRxValid <= '0'           after TPD_G;
+            vcFrameRxData   <= (others => '0') after TPD_G;
+            vcFrameRxSOF    <= '0'             after TPD_G;
+            vcFrameRxEOF    <= '0'             after TPD_G;
+            vcFrameRxEOFE   <= '0'             after TPD_G;
+            vc0FrameRxValid <= '0'             after TPD_G;
+            vc1FrameRxValid <= '0'             after TPD_G;
+            vc2FrameRxValid <= '0'             after TPD_G;
+            vc3FrameRxValid <= '0'             after TPD_G;
          elsif pgpRxClkEn = '1' then
             -- Data abort is enabled
             if abortEn = '1' then
@@ -653,9 +658,9 @@ begin
                end case;
 
                -- Abort output
-               vcFrameRxSOF   <= '0' after TPD_G;
-               vcFrameRxEOF   <= '1' after TPD_G;
-               vcFrameRxEOFE  <= '1' after TPD_G;
+               vcFrameRxSOF  <= '0' after TPD_G;
+               vcFrameRxEOF  <= '1' after TPD_G;
+               vcFrameRxEOFE <= '1' after TPD_G;
 
             -- Pipeline is enabled
             elsif cellRxPause = '0' and inCellEn = '1' then
@@ -683,10 +688,10 @@ begin
                end case;
 
                -- Data output
-               vcFrameRxData  <= outData    after TPD_G;
-               vcFrameRxSOF   <= inCellSOF  after TPD_G;
-               vcFrameRxEOF   <= inCellEOF  after TPD_G;
-               vcFrameRxEOFE  <= inCellEOFE after TPD_G;
+               vcFrameRxData <= outData    after TPD_G;
+               vcFrameRxSOF  <= inCellSOF  after TPD_G;
+               vcFrameRxEOF  <= inCellEOF  after TPD_G;
+               vcFrameRxEOFE <= inCellEOFE after TPD_G;
 
             -- Paused or no data
             else
@@ -701,7 +706,8 @@ begin
 
 
    -- Update buffer status on successfull cell reception
-   process ( pgpRxClk ) begin
+   process (pgpRxClk)
+   begin
       if rising_edge(pgpRxClk) then
          if pgpRxClkRst = '1' then
             vc0RemAlmostFull <= '1' after TPD_G;

@@ -23,26 +23,26 @@ use surf.StdRtlPkg.all;
 
 package SaciMasterPkg is
 
-  constant SACI_WRITE_C      : sl       := '1';
-  constant SACI_READ_C       : sl       := '0';
-  constant SACI_NUM_SLAVES_C : positive := 4;
-  constant SACI_CHIP_WIDTH_C : natural  := log2(SACI_NUM_SLAVES_C);
+   constant SACI_WRITE_C      : sl       := '1';
+   constant SACI_READ_C       : sl       := '0';
+   constant SACI_NUM_SLAVES_C : positive := 4;
+   constant SACI_CHIP_WIDTH_C : natural  := log2(SACI_NUM_SLAVES_C);
 
-  type SaciMasterInType is record
-    req    : sl;
-    reset  : sl;
-    chip   : slv(SACI_CHIP_WIDTH_C-1 downto 0);
-    op     : sl;
-    cmd    : slv(6 downto 0);
-    addr   : slv(11 downto 0);
-    wrData : slv(31 downto 0);
-  end record SaciMasterInType;
+   type SaciMasterInType is record
+      req    : sl;
+      reset  : sl;
+      chip   : slv(SACI_CHIP_WIDTH_C-1 downto 0);
+      op     : sl;
+      cmd    : slv(6 downto 0);
+      addr   : slv(11 downto 0);
+      wrData : slv(31 downto 0);
+   end record SaciMasterInType;
 
-  type SaciMasterOutType is record
-    ack    : sl;
-    fail   : sl;
-    rdData : slv(31 downto 0);
-  end record SaciMasterOutType;
+   type SaciMasterOutType is record
+      ack    : sl;
+      fail   : sl;
+      rdData : slv(31 downto 0);
+   end record SaciMasterOutType;
 
    constant SACI_MASTER_IN_INIT_C : SaciMasterInType := (
       req    => '0',

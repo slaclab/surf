@@ -31,7 +31,7 @@ entity Encoder12b14b is
       FLOW_CTRL_EN_G : boolean := false);
    port (
       clk      : in  sl;
-      clkEn    : in  sl              := '1';                 -- Optional Clock Enable
+      clkEn    : in  sl              := '1';  -- Optional Clock Enable
       rst      : in  sl              := not RST_POLARITY_G;  -- Optional Reset
       validIn  : in  sl              := '1';
       readyIn  : out sl;
@@ -98,7 +98,7 @@ begin
       end if;
 
       -- Combinatorial outputs before the reset
-      readyIn  <= v.readyIn;
+      readyIn <= v.readyIn;
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then

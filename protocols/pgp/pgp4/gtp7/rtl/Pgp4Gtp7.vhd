@@ -86,10 +86,10 @@ entity Pgp4Gtp7 is
       pgpClk          : out sl;
       pgpClkRst       : out sl;
       -- Non VC Rx Signals
-      pgpRxIn         : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
+      pgpRxIn         : in  Pgp4RxInType           := PGP4_RX_IN_INIT_C;
       pgpRxOut        : out Pgp4RxOutType;
       -- Non VC Tx Signals
-      pgpTxIn         : in  Pgp4TxInType := PGP4_TX_IN_INIT_C;
+      pgpTxIn         : in  Pgp4TxInType           := PGP4_TX_IN_INIT_C;
       pgpTxOut        : out Pgp4TxOutType;
       -- Frame Transmit Interface
       pgpTxMasters    : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
@@ -282,7 +282,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3Gtp7IpWrapper : entity surf.Pgp3Gtp7IpWrapper -- Same IP core for both PGPv3 and PGPv4
+   U_Pgp3Gtp7IpWrapper : entity surf.Pgp3Gtp7IpWrapper  -- Same IP core for both PGPv3 and PGPv4
       generic map (
          TPD_G            => TPD_G,
          CLKIN_PERIOD_G   => CLKIN_PERIOD_G,

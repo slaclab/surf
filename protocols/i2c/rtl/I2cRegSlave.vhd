@@ -113,7 +113,7 @@ begin
          i2ci        => i2ci,
          i2co        => i2co);
 
-   comb : process (rdData, r, i2cSlaveOut, sRst) is
+   comb : process (i2cSlaveOut, r, rdData, sRst) is
       variable v            : RegType;
       variable byteCntVar   : integer;
       variable addrIndexVar : integer;
@@ -256,7 +256,7 @@ begin
 
    end process comb;
 
-   seq : process (clk, aRst) is
+   seq : process (aRst, clk) is
    begin
       if (aRst = '1') then
          r <= REG_INIT_C after TPD_G;

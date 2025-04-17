@@ -265,7 +265,7 @@ begin
          rdClk                 => axilClk,
          rdRst                 => axilRst);
 
-   U_RxErrorIrqEn : process (r.autoStatus)
+   U_RxErrorIrqEn : process (r)
    begin
       rxErrorIrqEn     <= (others => '0');
       rxErrorIrqEn(1)  <= r.autoStatus;
@@ -553,7 +553,8 @@ begin
    end process;
 
    -- Async
-   process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxStatusSync,
+            txStatusSync) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin

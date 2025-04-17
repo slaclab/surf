@@ -68,17 +68,17 @@ architecture Pgp2fcRx of Pgp2fcRx is
    signal cellRxData       : slv(15 downto 0);
    signal intRxLinkReady   : sl;
    signal crcRxIn          : slv(15 downto 0);  -- Receive data for CRC
-   signal crcRxInit        : sl;                -- Receive CRC value init
-   signal crcRxValid       : sl;                -- Receive data for CRC is valid
+   signal crcRxInit        : sl;        -- Receive CRC value init
+   signal crcRxValid       : sl;        -- Receive data for CRC is valid
    signal crcRxOut         : slv(31 downto 0);
    signal crcRxOutAdjust   : slv(31 downto 0);
    signal crcRxRst         : sl;
    signal crcRxInAdjust    : slv(31 downto 0);
    signal crcRxWidthAdjust : slv(2 downto 0);
    signal intPhyRxData     : slv(15 downto 0);  -- PHY receive data
-   signal intPhyRxDataK    : slv(1 downto 0);   -- PHY receive data is K character
-   signal intPhyRxDispErr  : slv(1 downto 0);   -- PHY receive data has disparity error
-   signal intPhyRxDecErr   : slv(1 downto 0);   -- PHY receive data not in table
+   signal intPhyRxDataK    : slv(1 downto 0);  -- PHY receive data is K character
+   signal intPhyRxDispErr  : slv(1 downto 0);  -- PHY receive data has disparity error
+   signal intPhyRxDecErr   : slv(1 downto 0);  -- PHY receive data not in table
    signal intRxVcValid     : slv(3 downto 0);
    signal intRxSof         : sl;
    signal intRxEof         : sl;

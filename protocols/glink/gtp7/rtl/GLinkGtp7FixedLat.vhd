@@ -35,13 +35,13 @@ entity GLinkGtp7FixedLat is
       -- MGT Settings
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;                         -- Set by wizard
-      PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;                -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;                -- Set by wizard
+      PMA_RSV_G             : bit_vector := x"00000333";      -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0001111110000";  -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit        := '1';                       -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit        := '0';                       -- Set by wizard
+      RXLPM_INCM_CFG_G      : bit        := '1';              -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit        := '0';              -- Set by wizard
       -- Configure PLL sources
       TX_PLL_G              : string     := "PLL0";
       RX_PLL_G              : string     := "PLL1");
@@ -57,7 +57,7 @@ entity GLinkGtp7FixedLat is
       gLinkRxClk       : in  sl;
       gLinkRxClkEn     : in  sl := '1';
       -- MGT Clocking
-      gLinkTxRefClk    : in  sl;                                       -- G-Link TX clock reference
+      gLinkTxRefClk    : in  sl;        -- G-Link TX clock reference
       stableClk        : in  sl;
       gtQPllRefClk     : in  slv(1 downto 0);
       gtQPllClk        : in  slv(1 downto 0);
@@ -283,18 +283,18 @@ begin
          rxUserResetIn    => rxRst,
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
-         rxSlideIn        => '0',              -- Slide is controlled internally
+         rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxDataReversed,
-         rxCharIsKOut     => open,             -- Not using gt rx 8b10b
-         rxDecErrOut      => open,             -- Not using gt rx 8b10b
-         rxDispErrOut     => open,             -- Not using gt rx 8b10b
+         rxCharIsKOut     => open,      -- Not using gt rx 8b10b
+         rxDecErrOut      => open,      -- Not using gt rx 8b10b
+         rxDispErrOut     => open,      -- Not using gt rx 8b10b
          rxPolarityIn     => '0',
          rxBufStatusOut   => open,
          txOutClkOut      => open,
          txUsrClkIn       => txClk,
          txUsrClk2In      => txClk,
-         txUserRdyOut     => open,             -- Not sure what to do with this
-         txMmcmResetOut   => open,             -- No Tx MMCM in Fixed Latency mode
+         txUserRdyOut     => open,      -- Not sure what to do with this
+         txMmcmResetOut   => open,      -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => '1',
          txUserResetIn    => gLinkTxSync.linkRst,
          txResetDoneOut   => gtTxRstDone,

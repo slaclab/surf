@@ -113,23 +113,24 @@ begin
             DATA_WIDTH_G  => DATA_SIZE_G,
             ADDR_WIDTH_G  => ADDRESS_SIZE_G)
          port map (
-            clka  => axiClk,                                                     -- [in]
-            ena   => '1',                                                        -- [in]
-            wea   => r.wrEn,                                                     -- [in]
-            rsta  => axiRst,                                                     -- [in]
+            clka  => axiClk,            -- [in]
+            ena   => '1',               -- [in]
+            wea   => r.wrEn,            -- [in]
+            rsta  => axiRst,            -- [in]
             addra => r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G),  -- [in]
-            dina  => r.wrData(DATA_SIZE_G-1 downto 0),                           -- [in]
-            douta => memData,                                                    -- [out]
-            clkb  => axiClk,                                                     -- [in]
-            enb   => '1',                                                        -- [in]
-            rstb  => axiRst,                                                     -- [in]
-            addrb => shadowAddr,                                                 -- [in]
-            doutb => shadowData);                                                -- [out]
+            dina  => r.wrData(DATA_SIZE_G-1 downto 0),  -- [in]
+            douta => memData,           -- [out]
+            clkb  => axiClk,            -- [in]
+            enb   => '1',               -- [in]
+            rstb  => axiRst,            -- [in]
+            addrb => shadowAddr,        -- [in]
+            doutb => shadowData);       -- [out]
 
    end generate SHADOW_RAM_GEN;
 
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData, rdEn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData,
+                   rdEn) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin

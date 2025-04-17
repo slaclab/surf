@@ -181,7 +181,7 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity surf.Pgp3GthUsQpll -- Same IP core for both PGPv3 and PGPv4
+      U_QPLL : entity surf.Pgp3GthUsQpll  -- Same IP core for both PGPv3 and PGPv4
          generic map (
             TPD_G             => TPD_G,
             RATE_G            => RATE_G,
@@ -194,12 +194,12 @@ begin
             stableRst       => stableRst,                            -- [in]
             -- QPLL Clocking
             pgpRefClk       => pgpRefClk,                            -- [in]
-            qpllLock        => qpllLock,                             -- [out]
-            qpllClk         => qpllClk,                              -- [out]
+            qpllLock        => qpllLock,  -- [out]
+            qpllClk         => qpllClk,   -- [out]
             qpllRefclk      => qpllRefclk,                           -- [out]
-            qpllRst         => qpllRst,                              -- [in]
-            axilClk         => axilClk,                              -- [in]
-            axilRst         => axilRst,                              -- [in]
+            qpllRst         => qpllRst,   -- [in]
+            axilClk         => axilClk,   -- [in]
+            axilRst         => axilRst,   -- [in]
             axilReadMaster  => axilReadMasters(QPLL_AXIL_INDEX_C),   -- [in]
             axilReadSlave   => axilReadSlaves(QPLL_AXIL_INDEX_C),    -- [out]
             axilWriteMaster => axilWriteMasters(QPLL_AXIL_INDEX_C),  -- [in]

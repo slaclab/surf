@@ -151,8 +151,8 @@ begin
 
    assert ((PRBS_SEED_SIZE_G = 32) or (PRBS_SEED_SIZE_G = 64) or (PRBS_SEED_SIZE_G = 128) or (PRBS_SEED_SIZE_G = 256) or (PRBS_SEED_SIZE_G = 512)) report "PRBS_SEED_SIZE_G must be either [32,64,128,256,512]" severity failure;
 
-   comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst, packetLength, r, tDest, tId,
-                   trig, txCtrl, txSlave) is
+   comb : process (axilReadMaster, axilWriteMaster, forceEofe, locRst,
+                   packetLength, r, tDest, tId, trig, txCtrl, txSlave) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -334,7 +334,7 @@ begin
 
       -- Check for counter reset
       if (r.cntRst = '1') then
-         v.frameCnt := (others=>'0');
+         v.frameCnt := (others => '0');
       end if;
 
       -- Reset

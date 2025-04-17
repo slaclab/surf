@@ -71,8 +71,8 @@ entity Pgp2bGtx7VarLat is
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;                -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true);               -- Enable RX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"

@@ -145,7 +145,8 @@ begin
          saciCmd  => saciCmd,           -- [out]
          saciRsp  => saciRsp);          -- [in]
 
-   comb : process (ack, asicRstL, axilReadMaster, axilRst, axilWriteMaster, fail, r, rdData, saciBusGr) is
+   comb : process (ack, asicRstL, axilReadMaster, axilRst, axilWriteMaster,
+                   fail, r, rdData, saciBusGr) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable resp       : slv(1 downto 0);
@@ -170,17 +171,17 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Reset the timer
-            v.saciRst := '0';
-            v.timer   := 0;
+            v.saciRst    := '0';
+            v.timer      := 0;
             v.saciBusReq := '0';
             if (saciBusGr = '1') and (asicRstL = '1') then
                -- Check for a write request
                if (axilStatus.writeEnable = '1') then
                   v.saciBusReq := '1';
                   -- SACI Commands
-                  v.req  := '1';
-                  v.op   := '1';
-                  v.chip := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
+                  v.req        := '1';
+                  v.op         := '1';
+                  v.chip       := axilWriteMaster.awaddr(22+CHIP_BITS_C-1 downto 22);
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
@@ -193,9 +194,9 @@ begin
                elsif (axilStatus.readEnable = '1') then
                   v.saciBusReq := '1';
                   -- SACI Commands
-                  v.req  := '1';
-                  v.op   := '0';
-                  v.chip := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
+                  v.req        := '1';
+                  v.op         := '0';
+                  v.chip       := axilReadMaster.araddr(22+CHIP_BITS_C-1 downto 22);
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;

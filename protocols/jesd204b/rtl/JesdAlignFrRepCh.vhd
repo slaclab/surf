@@ -67,8 +67,8 @@ entity JesdAlignFrRepCh is
       sampleDataValid_o : out sl;
 
       -- Alignment and sync position errors
-      alignErr_o    : out sl;           -- Invalid or misaligned character in the data
-      positionErr_o : out sl            -- Invalid (comma) position received at time of alignment
+      alignErr_o    : out sl;  -- Invalid or misaligned character in the data
+      positionErr_o : out sl  -- Invalid (comma) position received at time of alignment
       );
 end entity JesdAlignFrRepCh;
 
@@ -77,33 +77,33 @@ architecture rtl of JesdAlignFrRepCh is
    constant SAMPLES_IN_WORD_C : positive := (GT_WORD_SIZE_C/F_G);
 
    type RegType is record
-      dataRxD1      : slv(dataRx_i'range);
-      chariskRxD1   : slv(chariskRx_i'range);
-      dataAlignedD1 : slv(dataRx_i'range);
-      charAlignedD1 : slv(chariskRx_i'range);
-      scrData       : slv(sampleData_o'range);
-      scrDataValid  : sl;
-      lfsr          : slv((GT_WORD_SIZE_C*8)-1 downto 0);
-      descrData     : slv((GT_WORD_SIZE_C*8)-1 downto 0);
-      descrDataValid: sl;
-      sampleData    : slv(sampleData_o'range);
-      dataValid     : sl;
-      position      : slv(chariskRx_i'range);
+      dataRxD1       : slv(dataRx_i'range);
+      chariskRxD1    : slv(chariskRx_i'range);
+      dataAlignedD1  : slv(dataRx_i'range);
+      charAlignedD1  : slv(chariskRx_i'range);
+      scrData        : slv(sampleData_o'range);
+      scrDataValid   : sl;
+      lfsr           : slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      descrData      : slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      descrDataValid : sl;
+      sampleData     : slv(sampleData_o'range);
+      dataValid      : sl;
+      position       : slv(chariskRx_i'range);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dataRxD1      => (others => '0'),
-      chariskRxD1   => (others => '0'),
-      dataAlignedD1 => (others => '0'),
-      charAlignedD1 => (others => '0'),
-      scrData       => (others => '0'),
-      lfsr          => (others => '0'),
-      descrData     => (others => '0'),
-      scrDataValid  => '0',
-      sampleData    => (others => '0'),
-      descrDataValid  => '0',
-      dataValid     => '0',
-      position      => intToSlv(1, GT_WORD_SIZE_C)  -- Initialize at "0001" or "01"
+      dataRxD1       => (others => '0'),
+      chariskRxD1    => (others => '0'),
+      dataAlignedD1  => (others => '0'),
+      charAlignedD1  => (others => '0'),
+      scrData        => (others => '0'),
+      lfsr           => (others => '0'),
+      descrData      => (others => '0'),
+      scrDataValid   => '0',
+      sampleData     => (others => '0'),
+      descrDataValid => '0',
+      dataValid      => '0',
+      position       => intToSlv(1, GT_WORD_SIZE_C)  -- Initialize at "0001" or "01"
       );
 
    signal r   : RegType := REG_INIT_C;
@@ -117,7 +117,8 @@ begin
    -- v.position = (others => '1')
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
-   comb : process (r, rst, chariskRx_i, dataRx_i, alignFrame_i, dataValid_i, replEnable_i, scrEnable_i) is
+   comb : process (alignFrame_i, chariskRx_i, dataRx_i, dataValid_i, r,
+                   replEnable_i, rst, scrEnable_i) is
       variable v : RegType;
 
       -- Alignment error. Invalid data received at time of alignment
@@ -199,21 +200,21 @@ begin
       end if;
 
       -- Register data before scrambling
-      v.scrData := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
-      v.scrDataValid  := dataValid_i;
+      v.scrData        := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
+      v.scrDataValid   := dataValid_i;
       v.descrDataValid := r.scrDataValid;
 
       -- Descramble data put data into descrambler MSB first
       -- Start descrambling when data is enabled
       if (scrEnable_i = '1' and r.scrDataValid = '1') then
          for i in (GT_WORD_SIZE_C*8)-1 downto 0 loop
-            v.lfsr := v.lfsr(v.lfsr'left-1 downto v.lfsr'right) & r.scrData(i);
+            v.lfsr         := v.lfsr(v.lfsr'left-1 downto v.lfsr'right) & r.scrData(i);
             --
             v.descrData(i) := r.scrData(i);
             for j in JESD_PRBS_TAPS_C'range loop
-               v.descrData(i)  := v.descrData(i) xor v.lfsr(JESD_PRBS_TAPS_C(j));
+               v.descrData(i) := v.descrData(i) xor v.lfsr(JESD_PRBS_TAPS_C(j));
             end loop;
-            --
+         --
          end loop;
       else
          v.descrData := r.scrData;
@@ -222,17 +223,17 @@ begin
       -- Register sample data before output (Prevent timing issues! Adds one clock cycle to latency!)
       if (scrEnable_i = '1') then
          -- 3 c-c latency
-         v.sampleData   := r.descrData;
-         v.dataValid    := r.descrDataValid;
+         v.sampleData := r.descrData;
+         v.dataValid  := r.descrDataValid;
       else
          -- 1 c-c latency
-         v.sampleData   := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
-         v.dataValid    := dataValid_i;
+         v.sampleData := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
+         v.dataValid  := dataValid_i;
       end if;
 
       -- Combinatorial outputs before the reset
-      positionErr_o     <= v_positionErr;
-      alignErr_o        <= v_alignErr;
+      positionErr_o <= v_positionErr;
+      alignErr_o    <= v_alignErr;
 
       if (rst = '1') then
          v := REG_INIT_C;

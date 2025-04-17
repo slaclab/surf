@@ -47,49 +47,49 @@ entity Pgp2fcGtyUltra is
       NUM_VC_EN_G         : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk        : in  sl;                        -- GT needs a stable clock to "boot up"
-      stableRst        : in  sl;
-      gtRefClk         : in  sl;
-      gtFabricRefClk   : in  sl;
-      gtUserRefClk     : in  sl;
+      stableClk         : in  sl;       -- GT needs a stable clock to "boot up"
+      stableRst         : in  sl;
+      gtRefClk          : in  sl;
+      gtFabricRefClk    : in  sl;
+      gtUserRefClk      : in  sl;
       -- Gt Serial IO
-      pgpGtTxP         : out sl;
-      pgpGtTxN         : out sl;
-      pgpGtRxP         : in  sl;
-      pgpGtRxN         : in  sl;
+      pgpGtTxP          : out sl;
+      pgpGtTxN          : out sl;
+      pgpGtRxP          : in  sl;
+      pgpGtRxN          : in  sl;
       -- Tx Clocking
-      pgpTxReset       : in  sl;
-      pgpTxResetDone   : out sl;
-      pgpTxOutClk      : out sl;                        -- recovered clock
-      pgpTxClk         : in  sl;
-      pgpTxMmcmLocked  : in  sl;
+      pgpTxReset        : in  sl;
+      pgpTxResetDone    : out sl;
+      pgpTxOutClk       : out sl;       -- recovered clock
+      pgpTxClk          : in  sl;
+      pgpTxMmcmLocked   : in  sl;
       -- Rx clocking
-      pgpRxReset       : in  sl;
-      pgpRxResetDone   : out sl;
+      pgpRxReset        : in  sl;
+      pgpRxResetDone    : out sl;
       pgpRxPmaResetDone : out sl;
-      pgpRxOutClk      : out sl;                        -- recovered clock
-      pgpRxClk         : in  sl;
-      pgpRxMmcmLocked  : in  sl;
+      pgpRxOutClk       : out sl;       -- recovered clock
+      pgpRxClk          : in  sl;
+      pgpRxMmcmLocked   : in  sl;
       -- Non VC Rx Signals
-      pgpRxIn          : in  Pgp2fcRxInType;
-      pgpRxOut         : out Pgp2fcRxOutType;
+      pgpRxIn           : in  Pgp2fcRxInType;
+      pgpRxOut          : out Pgp2fcRxOutType;
       -- Non VC Tx Signals
-      pgpTxIn          : in  Pgp2fcTxInType;
-      pgpTxOut         : out Pgp2fcTxOutType;
+      pgpTxIn           : in  Pgp2fcTxInType;
+      pgpTxOut          : out Pgp2fcTxOutType;
       -- Frame Transmit Interface - 1 Lane, Array of 4 VCs
-      pgpTxMasters     : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-      pgpTxSlaves      : out AxiStreamSlaveArray(3 downto 0);
+      pgpTxMasters      : in  AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+      pgpTxSlaves       : out AxiStreamSlaveArray(3 downto 0);
       -- Frame Receive Interface - 1 Lane, Array of 4 VCs
-      pgpRxMasters     : out AxiStreamMasterArray(3 downto 0);
-      pgpRxMasterMuxed : out AxiStreamMasterType;
-      pgpRxCtrl        : in  AxiStreamCtrlArray(3 downto 0);
+      pgpRxMasters      : out AxiStreamMasterArray(3 downto 0);
+      pgpRxMasterMuxed  : out AxiStreamMasterType;
+      pgpRxCtrl         : in  AxiStreamCtrlArray(3 downto 0);
       -- AXI-Lite DRP interface
-      axilClk          : in  sl                               := '0';
-      axilRst          : in  sl                               := '0';
-      axilReadMaster   : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave    : out AxiLiteReadSlaveType;
-      axilWriteMaster  : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave   : out AxiLiteWriteSlaveType);
+      axilClk           : in  sl                               := '0';
+      axilRst           : in  sl                               := '0';
+      axilReadMaster    : in  AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave     : out AxiLiteReadSlaveType;
+      axilWriteMaster   : in  AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave    : out AxiLiteWriteSlaveType);
 end Pgp2fcGtyUltra;
 
 architecture mapping of Pgp2fcGtyUltra is
@@ -121,9 +121,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetGt,                          -- [in]
-         clk    => stableClk,                                -- [in]
-         rstOut => resetGtSync);                             -- [out]
+         arst   => pgpTxIn.resetGt,     -- [in]
+         clk    => stableClk,           -- [in]
+         rstOut => resetGtSync);        -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
 
@@ -131,9 +131,9 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => stableClk,                               -- [in]
-         dataIn  => phyRxInit,                               -- [in]
-         dataOut => phyRxInitSync);                          -- [out]
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => phyRxInitSync);     -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst
@@ -141,9 +141,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpRxIn.resetRx,                          -- [in]
-         clk    => stableClk,                                -- [in]
-         rstOut => resetRxSync);                             -- [out]
+         arst   => pgpRxIn.resetRx,     -- [in]
+         clk    => stableClk,           -- [in]
+         rstOut => resetRxSync);        -- [out]
 
    gtRxUserReset <= phyRxInitSync or resetRxSync;
 
@@ -152,9 +152,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetTx,                          -- [in]
-         clk    => stableClk,                                -- [in]
-         rstOut => gtTxUserReset);                           -- [out]
+         arst   => pgpTxIn.resetTx,     -- [in]
+         clk    => stableClk,           -- [in]
+         rstOut => gtTxUserReset);      -- [out]
 
    U_Pgp2fcLane : entity surf.Pgp2fcLane
       generic map (

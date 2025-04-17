@@ -35,9 +35,9 @@ end entity Encoder12b14bTb;
 architecture sim of Encoder12b14bTb is
 
    -- component generics
-   constant TPD_G          : time     := 1 ns;
-   constant RST_POLARITY_G : sl       := '1';
-   constant RST_ASYNC_G    : boolean  := false;
+   constant TPD_G          : time    := 1 ns;
+   constant RST_POLARITY_G : sl      := '1';
+   constant RST_ASYNC_G    : boolean := false;
 
    -- component ports
    signal clk      : sl;                        -- [in]
