@@ -57,7 +57,7 @@ architecture behavioral of Ad9681 is
    -------------------------------------------------------------------------------------------------
    -- Config and Sampling constant and signals
    -------------------------------------------------------------------------------------------------
-   constant PN_SHORT_TAPS_C : NaturalArray     := (0 => 4, 1 => 8);    -- X9+X5+1
+   constant PN_SHORT_TAPS_C : NaturalArray     := (0 => 4, 1 => 8);  -- X9+X5+1
    constant PN_SHORT_INIT_C : slv(8 downto 0)  := "011011111";
    constant PN_LONG_TAPS_C  : NaturalArray     := (0 => 16, 1 => 22);  -- X23+X18+1
    constant PN_LONG_INIT_C  : slv(22 downto 0) := "01001101110000000101000";
@@ -374,7 +374,7 @@ begin
 --                v.channelConfigEn(7 downto 4) := wrData(3 downto 0);
 --             end if;
 
-         when X"05" =>                                               -- device_index_1
+         when X"05" =>                  -- device_index_1
             v.rdData(3 downto 0) := r.channelConfigEn(3 downto 0);
             v.rdData(4)          := r.channelConfigEn(8);
             v.rdData(5)          := r.channelConfigEn(9);

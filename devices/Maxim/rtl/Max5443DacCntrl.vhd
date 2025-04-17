@@ -12,7 +12,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -20,22 +20,22 @@ use ieee.std_logic_unsigned.all;
 entity Max5443DacCntrl is
    generic (
       TPD_G : time := 1 ns
-   );
+      );
    port (
 
       -- Master system clock
-      sysClk          : in  std_logic;
-      sysClkRst       : in  std_logic;
+      sysClk    : in std_logic;
+      sysClkRst : in std_logic;
 
       -- DAC Data
-      dacData         : in  std_logic_vector(15 downto 0);
+      dacData : in std_logic_vector(15 downto 0);
 
       -- DAC Control Signals
-      dacDin          : out std_logic;
-      dacSclk         : out std_logic;
-      dacCsL          : out std_logic;
-      dacClrL         : out std_logic
-   );
+      dacDin  : out std_logic;
+      dacSclk : out std_logic;
+      dacCsL  : out std_logic;
+      dacClrL : out std_logic
+      );
 end Max5443DacCntrl;
 
 
@@ -44,7 +44,7 @@ architecture rtl of Max5443DacCntrl is
 
    -- Local Signals
    signal intData   : std_logic_vector(15 downto 0);
-   signal intCnt    : std_logic_vector(2  downto 0);
+   signal intCnt    : std_logic_vector(2 downto 0);
    signal intClk    : std_logic;
    signal intClkEn  : std_logic;
    signal intBitRst : std_logic;
@@ -55,26 +55,27 @@ architecture rtl of Max5443DacCntrl is
    signal dacStrobe : std_logic;
 
    -- State Machine
-   constant ST_IDLE      : std_logic_vector(1 downto 0) := "01";
-   constant ST_WAIT      : std_logic_vector(1 downto 0) := "10";
-   constant ST_SHIFT     : std_logic_vector(1 downto 0) := "11";
-   signal   curState     : std_logic_vector(1 downto 0);
-   signal   nxtState     : std_logic_vector(1 downto 0);
+   constant ST_IDLE  : std_logic_vector(1 downto 0) := "01";
+   constant ST_WAIT  : std_logic_vector(1 downto 0) := "10";
+   constant ST_SHIFT : std_logic_vector(1 downto 0) := "11";
+   signal curState   : std_logic_vector(1 downto 0);
+   signal nxtState   : std_logic_vector(1 downto 0);
 
 begin
 
    -- Clear
 -- dacClrL <= '0' when sysClkRst = '1' else 'Z'; --Original
-   dacClrL <= '0' when sysClkRst = '1' else '1'; --Kurtis change: clrL is pulled low on the ePix analog card
+   dacClrL <= '0' when sysClkRst = '1' else '1';  --Kurtis change: clrL is pulled low on the ePix analog card
 
    -- Modified so that strobe is internally generated when input data changes.
-   process ( sysClk ) begin
+   process (sysClk)
+   begin
       if rising_edge(sysClk) then
          if (sysClkRst = '1') then
             intData   <= (others => '0') after TPD_G;
-            dacStrobe <= '0' after TPD_G;
+            dacStrobe <= '0'             after TPD_G;
          elsif (intData /= dacData) then
-            dacStrobe <= '1' after TPD_G;
+            dacStrobe <= '1'     after TPD_G;
             intData   <= dacData after TPD_G;
          else
             dacStrobe <= '0' after TPD_G;
@@ -83,19 +84,20 @@ begin
    end process;
 
    -- Generate clock and enable signal
-   process ( sysClk, sysClkRst ) begin
+   process (sysClk, sysClkRst)
+   begin
       if sysClkRst = '1' then
-         intClk   <= '0'           after TPD_G;
-         intCnt   <= (others=>'0') after TPD_G;
-         intClkEn <= '0'           after TPD_G;
+         intClk   <= '0'             after TPD_G;
+         intCnt   <= (others => '0') after TPD_G;
+         intClkEn <= '0'             after TPD_G;
       elsif rising_edge(sysClk) then
          if intCnt = 7 then
-            intCnt   <= (others=>'0') after TPD_G;
-            intClk   <= not intClk    after TPD_G;
-            intClkEn <= intClk        after TPD_G;
+            intCnt   <= (others => '0') after TPD_G;
+            intClk   <= not intClk      after TPD_G;
+            intClkEn <= intClk          after TPD_G;
          else
-            intCnt   <= intCnt + 1    after TPD_G;
-            intClkEn <= '0'           after TPD_G;
+            intCnt   <= intCnt + 1 after TPD_G;
+            intClkEn <= '0'        after TPD_G;
          end if;
       end if;
    end process;
@@ -105,15 +107,16 @@ begin
    dacSclk <= '0' when curState = ST_IDLE else intClk;  --Kurtis change: clock gated off when not in use
 
    -- State machine
-   process ( sysClk, sysClkRst ) begin
+   process (sysClk, sysClkRst)
+   begin
       if sysClkRst = '1' then
-         intBit   <= (others=>'1') after TPD_G;
-         curState <= ST_IDLE       after TPD_G;
+         intBit   <= (others => '1') after TPD_G;
+         curState <= ST_IDLE         after TPD_G;
       elsif rising_edge(sysClk) then
 
          -- Bit counter
          if intBitRst = '1' then
-            intBit <= (others=>'1') after TPD_G;
+            intBit <= (others => '1') after TPD_G;
          elsif intBitEn = '1' then
             intBit <= intBit - 1 after TPD_G;
          end if;
@@ -128,8 +131,9 @@ begin
    end process;
 
    -- State machine
-   process ( curState, intBit, dacStrobe, intClkEn, intData ) begin
-      case ( curState ) is
+   process (curState, dacStrobe, intBit, intClkEn, intData)
+   begin
+      case (curState) is
 
          -- IDLE
          when ST_IDLE =>

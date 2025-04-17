@@ -70,9 +70,9 @@ begin
    IOBUF_inst : entity surf.IoBufWrapper
       port map (
          O  => sdo,                     -- Buffer output
-         IO => adcSdio,                 -- Buffer inout port (connect directly to top-level port)
+         IO => adcSdio,  -- Buffer inout port (connect directly to top-level port)
          I  => sdi,                     -- Buffer input
-         T  => inEn);                   -- 3-state enable input, high=input, low=output
+         T  => inEn);    -- 3-state enable input, high=input, low=output
 
    process(axiClk)
    begin

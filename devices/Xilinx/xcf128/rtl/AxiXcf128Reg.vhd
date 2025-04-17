@@ -25,8 +25,8 @@ use surf.AxiXcf128Pkg.all;
 
 entity AxiXcf128Reg is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6);  -- units of Hz
+      TPD_G          : time := 1 ns;
+      AXI_CLK_FREQ_G : real := 200.0E+6);  -- units of Hz
    port (
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -124,7 +124,7 @@ begin
          end if;
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Check the read address
          if axiReadMaster.araddr(3 downto 2) = 0 then
             -- Get the write data bus

@@ -97,7 +97,7 @@ architecture rtl of Ad9249Config is
 
 begin
 
-   comb : process (axilRst, axilReadMaster, axilWriteMaster, r, rdData, rdEn) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, r, rdData, rdEn) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -120,19 +120,19 @@ begin
                v.wrData(22 downto 21) := "00";    -- Number of bytes (1)
                v.wrData(20 downto 17) := "0000";  -- Unused address bits
                v.wrData(16 downto 8)  := axilWriteMaster.awaddr(10 downto 2);  -- Address
-               v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);    -- Data
+               v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);  -- Data
                v.chipSel              := axilWriteMaster.awaddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
             end if;
 
             if (axilEp.axiStatus.readEnable = '1' and axilReadMaster.araddr(PWDN_ADDR_BIT_C) = '0') then
-               v.wrData(23)           := '1';              -- read bit
-               v.wrData(22 downto 21) := "00";             -- Number of bytes (1)
-               v.wrData(20 downto 17) := "0000";           -- Unused address bits
+               v.wrData(23)           := '1';     -- read bit
+               v.wrData(22 downto 21) := "00";    -- Number of bytes (1)
+               v.wrData(20 downto 17) := "0000";  -- Unused address bits
                v.wrData(16 downto 8)  := axilReadMaster.araddr(10 downto 2);  -- Address
                v.wrData(7 downto 0)   := (others => '1');  -- Make bus float to Z so slave can
-                                                           -- drive during data segment
+                                        -- drive during data segment
                v.chipSel              := axilReadMaster.araddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank Select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;

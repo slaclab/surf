@@ -119,7 +119,8 @@ architecture rtl of Ad9249ConfigNoPullup is
 begin
 
 
-   comb : process (adcAck, adcRdData, axilReadMaster, axilRst, axilWriteMaster, r) is
+   comb : process (adcAck, adcRdData, axilReadMaster, axilRst, axilWriteMaster,
+                   r) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
    begin
@@ -130,11 +131,11 @@ begin
       -- Any other address is forwarded to the chip via SPI
       if (axilStatus.writeEnable = '1') then
          if (axilWriteMaster.awaddr(PWDN_ADDR_BIT_C) = '0') then
-            v.wrData(23)           := '0';                                  -- Write bit
-            v.wrData(22 downto 21) := "00";                                 -- Number of bytes (1)
-            v.wrData(20 downto 17) := "0000";                               -- Unused address bits
+            v.wrData(23)           := '0';     -- Write bit
+            v.wrData(22 downto 21) := "00";    -- Number of bytes (1)
+            v.wrData(20 downto 17) := "0000";  -- Unused address bits
             v.wrData(16 downto 8)  := axilWriteMaster.awaddr(10 downto 2);  -- Address
-            v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);    -- Data
+            v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);  -- Data
             v.chipSel              := axilWriteMaster.awaddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank select
             v.adcWrReq             := '1';
          elsif (axilWriteMaster.awaddr(PWDN_ADDR_BIT_C downto 0) = PWDN_ADDR_C) then
@@ -147,9 +148,9 @@ begin
 
       if (axilStatus.readEnable = '1') then
          if (axilReadMaster.araddr(PWDN_ADDR_BIT_C) = '0') then
-            v.wrData(23)           := '1';                                 -- read bit
-            v.wrData(22 downto 21) := "00";                                -- Number of bytes (1)
-            v.wrData(20 downto 17) := "0000";                              -- Unused address bits
+            v.wrData(23)           := '1';     -- read bit
+            v.wrData(22 downto 21) := "00";    -- Number of bytes (1)
+            v.wrData(20 downto 17) := "0000";  -- Unused address bits
             v.wrData(16 downto 8)  := axilReadMaster.araddr(10 downto 2);  -- Address
             v.wrData(7 downto 0)   := (others => '0');
             v.chipSel              := axilReadMaster.araddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank Select
@@ -328,7 +329,7 @@ begin
 
 
    -- State machine control
-   process (curState, adcWrReq, adcRdReq, shiftCntEn)
+   process (adcRdReq, adcWrReq, curState, shiftCntEn)
    begin
       case curState is
 

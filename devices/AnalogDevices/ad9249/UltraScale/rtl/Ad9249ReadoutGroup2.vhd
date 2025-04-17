@@ -289,8 +289,9 @@ begin
 -------------------------------------------------------------------------------------------------
 -- AXIL Interface
 -------------------------------------------------------------------------------------------------
-   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelay,
-                       debugDataTmp, debugDataValid, errorDetCount, lockedFallCount, lockedSync) is
+   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst,
+                       axilWriteMaster, curDelay, debugDataTmp, debugDataValid,
+                       errorDetCount, lockedFallCount, lockedSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin

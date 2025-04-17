@@ -26,23 +26,23 @@ use surf.AxiStreamPkg.all;
 
 entity StreamPatternTester is
    generic (
-      TPD_G             : time := 1 ns;
-      NUM_CHANNELS_G    : integer range 1 to 128 := 8
-   );
+      TPD_G          : time                   := 1 ns;
+      NUM_CHANNELS_G : integer range 1 to 128 := 8
+      );
    port (
       -- Master system clock
-      clk               : in  std_logic;
-      rst               : in  std_logic;
+      clk : in std_logic;
+      rst : in std_logic;
 
       -- ADC data stream inputs
-      adcStreams        : in  AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0);
+      adcStreams : in AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0);
 
       -- Axi Interface
-      axilWriteMaster   : in  AxiLiteWriteMasterType;
-      axilWriteSlave    : out AxiLiteWriteSlaveType;
-      axilReadMaster    : in  AxiLiteReadMasterType;
-      axilReadSlave     : out AxiLiteReadSlaveType
-   );
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType
+      );
 end StreamPatternTester;
 
 
@@ -66,32 +66,33 @@ architecture RTL of StreamPatternTester is
    constant AXIL_REG_INIT_C : AxilRegType := (
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      testChannel    => (others=>'0'),
-      testPattern    => (others=>'0'),
-      testDataMask   => (others=>'0'),
-      testSamples    => (others=>'0'),
-      testTimeout    => (others=>'0'),
+      testChannel    => (others => '0'),
+      testPattern    => (others => '0'),
+      testDataMask   => (others => '0'),
+      testSamples    => (others => '0'),
+      testTimeout    => (others => '0'),
       testRequest    => '0'
-   );
+      );
 
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
 
-   signal dataMux       : std_logic_vector(31 downto 0);
-   signal dataValidMux  : std_logic;
-   signal testCnt       : unsigned(31 downto 0);
-   signal testDone      : std_logic;
-   signal testPassed    : std_logic;
-   signal testFailed    : std_logic;
-   signal passCnt       : unsigned(31 downto 0);
-   signal timeoutCnt    : unsigned(31 downto 0);
+   signal dataMux      : std_logic_vector(31 downto 0);
+   signal dataValidMux : std_logic;
+   signal testCnt      : unsigned(31 downto 0);
+   signal testDone     : std_logic;
+   signal testPassed   : std_logic;
+   signal testFailed   : std_logic;
+   signal passCnt      : unsigned(31 downto 0);
+   signal timeoutCnt   : unsigned(31 downto 0);
 
 begin
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (axilR, axilReadMaster, rst, axilWriteMaster, testPassed, testFailed) is
+   axilComb : process (axilR, axilReadMaster, axilWriteMaster, rst, testFailed,
+                       testPassed) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -133,30 +134,30 @@ begin
 
    dataValidMux <= adcStreams(to_integer(unsigned(axilR.testChannel))).tValid;
 
-   maskGen: for i in 0 to 31 generate
+   maskGen : for i in 0 to 31 generate
       dataMux(i) <= adcStreams(to_integer(unsigned(axilR.testChannel))).tData(i) and axilR.testDataMask(i);
    end generate maskGen;
 
 
 
-   testProc: process ( clk )
+   testProc : process (clk)
    begin
 
       -- test samples counter
       if rising_edge(clk) then
          if rst = '1' or axilR.testRequest = '1' then
-            testCnt <= (others=>'0')      after TPD_G;
+            testCnt <= (others => '0') after TPD_G;
          elsif dataValidMux = '1' and testDone = '0' then
-            testCnt <= testCnt + 1        after TPD_G;
+            testCnt <= testCnt + 1 after TPD_G;
          end if;
       end if;
 
       -- comparison passed counter
       if rising_edge(clk) then
          if rst = '1' or axilR.testRequest = '1' then
-            passCnt <= (others=>'0')      after TPD_G;
+            passCnt <= (others => '0') after TPD_G;
          elsif dataMux = axilR.testPattern and dataValidMux = '1' and testDone = '0' then
-            passCnt <= passCnt + 1        after TPD_G;
+            passCnt <= passCnt + 1 after TPD_G;
          end if;
       end if;
 
@@ -165,15 +166,15 @@ begin
          if rst = '1' or axilR.testRequest = '1' or dataValidMux = '1' then
             timeoutCnt <= unsigned(axilR.testTimeout) after TPD_G;
          elsif timeoutCnt > 0 then
-            timeoutCnt <= timeoutCnt - 1        after TPD_G;
+            timeoutCnt <= timeoutCnt - 1 after TPD_G;
          end if;
       end if;
 
    end process;
 
-   testDone <= '1' when (testCnt >= unsigned(axilR.testSamples) or timeoutCnt = 0) and axilR.testRequest = '0' else '0';
-   testPassed <= '1' when testDone = '1' and passCnt = unsigned(axilR.testSamples) else '0';
-   testFailed <= '1' when testDone = '1' and passCnt < unsigned(axilR.testSamples) else '0';
+   testDone   <= '1' when (testCnt >= unsigned(axilR.testSamples) or timeoutCnt = 0) and axilR.testRequest = '0' else '0';
+   testPassed <= '1' when testDone = '1' and passCnt = unsigned(axilR.testSamples)                               else '0';
+   testFailed <= '1' when testDone = '1' and passCnt < unsigned(axilR.testSamples)                               else '0';
 
 end RTL;
 

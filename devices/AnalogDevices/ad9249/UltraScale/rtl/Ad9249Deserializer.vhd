@@ -102,7 +102,7 @@ begin
          O  => sDataPadP,               -- 1-bit output: Buffer output
          OB => sDataPadN,
          I  => sDataP,  -- 1-bit input: Diff_p buffer input (connect directly to top-level port)
-         IB => sDataN   -- 1-bit input: Diff_n buffer input (connect directly to top-level port)
+         IB => sDataN  -- 1-bit input: Diff_n buffer input (connect directly to top-level port)
          );
    -- Optionally invert the pad input
    sData_i <= sDataPadP when ADC_INVERT_CH_G = '0' else sDataPadN;
@@ -111,9 +111,9 @@ begin
    ----------------------------------------------------------------------------
    U_IDELAYE3_0 : entity surf.Idelaye3Wrapper
       generic map (
-         CASCADE          => CASCADE_C,   -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
-         DELAY_FORMAT     => "COUNT",   -- Units of the DELAY_VALUE (COUNT, TIME)
-         DELAY_SRC        => "IDATAIN",   -- Delay input (DATAIN, IDATAIN)
+         CASCADE          => CASCADE_C,  -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+         DELAY_FORMAT     => "COUNT",  -- Units of the DELAY_VALUE (COUNT, TIME)
+         DELAY_SRC        => "IDATAIN",  -- Delay input (DATAIN, IDATAIN)
          DELAY_TYPE       => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
          DELAY_VALUE      => conv_integer(DEFAULT_DELAY_G),  -- Input delay value setting
          IS_CLK_INVERTED  => '0',       -- Optional inversion for CLK
@@ -125,20 +125,20 @@ begin
        -- SYNC)
          )
       port map (
-         CASC_IN     => '0',      -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+         CASC_IN     => '0',  -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
          CASC_OUT    => cascOut,  -- 1-bit output: Cascade delay output to ODELAY input cascade
          CASC_RETURN => cascRet,  -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
          CNTVALUEOUT => masterCntValue1,  -- 9-bit output: Counter value output
          DATAOUT     => sData_d,        -- 1-bit output: Delayed data output
-         CE          => '0',            -- 1-bit input: Active high enable increment/decrement input
+         CE          => '0',  -- 1-bit input: Active high enable increment/decrement input
          CLK         => dClkDiv4,       -- 1-bit input: Clock input
          CNTVALUEIN  => delay,          -- 9-bit input: Counter value input
-         DATAIN      => '1',            -- 1-bit input: Data input from the logic
-         EN_VTC      => '0',            -- 1-bit input: Keep delay constant over VT
-         IDATAIN     => sData_i,        -- 1-bit input: Data input from the IOBUF
-         INC         => '0',            -- 1-bit input: Increment / Decrement tap delay input
+         DATAIN      => '1',  -- 1-bit input: Data input from the logic
+         EN_VTC      => '0',  -- 1-bit input: Keep delay constant over VT
+         IDATAIN     => sData_i,  -- 1-bit input: Data input from the IOBUF
+         INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
          LOAD        => loadDelay,      -- 1-bit input: Load DELAY_VALUE input
-         RST         => dRstDiv4        -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+         RST         => dRstDiv4  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
          );
 
    G_IdelayCascade : if IDELAY_CASCADE_G = true generate
@@ -158,16 +158,16 @@ begin
             UPDATE_MODE      => "ASYNC")  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
          port map (
             CASC_IN     => cascOut,  -- 1-bit input: Cascade delay input from slave IDELAY CASCADE_OUT
-            CASC_OUT    => open,     -- 1-bit output: Cascade delay output to IDELAY input cascade
+            CASC_OUT    => open,  -- 1-bit output: Cascade delay output to IDELAY input cascade
             CASC_RETURN => '0',  -- 1-bit input: Cascade delay returning from slave IDELAY DATAOUT
             ODATAIN     => '0',         -- 1-bit input: Data input
-            DATAOUT     => cascRet,     -- 1-bit output: Delayed data from ODATAIN input port
+            DATAOUT     => cascRet,  -- 1-bit output: Delayed data from ODATAIN input port
             CLK         => dClkDiv4,    -- 1-bit input: Clock input
-            EN_VTC      => '0',         -- 1-bit input: Keep delay constant over VT
-            INC         => '0',         -- 1-bit input: Increment / Decrement tap delay input
-            CE          => '0',         -- 1-bit input: Active high enable increment/decrement input
+            EN_VTC      => '0',  -- 1-bit input: Keep delay constant over VT
+            INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
+            CE          => '0',  -- 1-bit input: Active high enable increment/decrement input
             LOAD        => loadDelay,   -- 1-bit input: Load DELAY_VALUE input
-            RST         => dRstDiv4,    -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+            RST         => dRstDiv4,  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
             CNTVALUEIN  => delay,       -- 9-bit input: Counter value input
             CNTVALUEOUT => masterCntValue2);  -- 9-bit output: Counter value output
 
@@ -200,10 +200,10 @@ begin
          Q               => masterData,     -- bit registered output
          CLK             => dClk,       -- 1-bit input: High-speed clock
          CLKDIV          => dClkDiv4,   -- 1-bit input: Divided Clock
-         CLK_B           => dClk,       -- 1-bit input: Inversion of High-speed clock CLK
+         CLK_B           => dClk,  -- 1-bit input: Inversion of High-speed clock CLK
          D               => sData_d,    -- 1-bit input: Serial Data Input
          FIFO_RD_CLK     => '1',        -- 1-bit input: FIFO read clock
-         FIFO_RD_EN      => '1',        -- 1-bit input: Enables reading the FIFO when asserted
+         FIFO_RD_EN      => '1',  -- 1-bit input: Enables reading the FIFO when asserted
          RST             => dRstDiv4    -- 1-bit input: Asynchronous Reset
          );
 
@@ -217,7 +217,7 @@ begin
       port map (
          clk         => dClkDiv4,
          rst         => dRstDiv4,
-         slip        => bitSlip,        -- bitslip by the Microblaze alignment code
+         slip        => bitSlip,  -- bitslip by the Microblaze alignment code
          -- Slave Interface
          slaveValid  => '1',
          slaveData   => masterData,
