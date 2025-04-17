@@ -108,8 +108,8 @@ begin
          risingEdge  => gtTxPhAlignDoneEdge,
          fallingEdge => open);
 
-   comb : process (r, gtTxDlySResetDoneSync, gtTxPhInitDoneSync, gtTxPhAlignDoneSync, gtTxPhAlignDoneEdge,
-                   resetPhAlignment, runPhAlignment) is
+   comb : process (gtTxDlySResetDoneSync, gtTxPhAlignDoneEdge,
+                   gtTxPhInitDoneSync, r, resetPhAlignment, runPhAlignment) is
       variable v : RegType;
    begin
       v := r;
@@ -141,7 +141,7 @@ begin
                v.gtTxPhAlign := '0';
                v.gtTxDlyEn   := '1';
 --               v.state       := WAIT_PH_ALIGN_DONE_2_S;
-               v.state := DONE_S;
+               v.state       := DONE_S;
             end if;
 
          when WAIT_PH_ALIGN_DONE_2_S =>

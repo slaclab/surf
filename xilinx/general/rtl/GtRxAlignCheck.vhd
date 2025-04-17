@@ -28,7 +28,7 @@ entity GtRxAlignCheck is
       SIMULATION_G   : boolean := false;
       LOCK_VALUE_G   : integer := 16;
       MASK_VALUE_G   : integer := 126;
-      GT_TYPE_G      : string  := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
+      GT_TYPE_G      : string  := "GTHE3";  -- or GTYE3, GTHE4, GTYE4
       AXI_CLK_FREQ_G : real    := 156.25e6;
       DRP_ADDR_G     : slv(31 downto 0));
    port (
@@ -123,9 +123,9 @@ begin
    U_refClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
-         REFRESH_RATE_G => 1.0,         -- Units of Hz
-         CNT_WIDTH_G    => 32)          -- Counters' width
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,  -- Units of Hz
+         REFRESH_RATE_G => 1.0,             -- Units of Hz
+         CNT_WIDTH_G    => 32)              -- Counters' width
       port map (
          -- Frequency Measurement and Monitoring Outputs (locClk domain)
          freqOut => refClkFreq,
@@ -137,9 +137,9 @@ begin
    U_txClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
-         REFRESH_RATE_G => 1.0,         -- Units of Hz
-         CNT_WIDTH_G    => 32)          -- Counters' width
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,  -- Units of Hz
+         REFRESH_RATE_G => 1.0,             -- Units of Hz
+         CNT_WIDTH_G    => 32)              -- Counters' width
       port map (
          -- Frequency Measurement and Monitoring Outputs (locClk domain)
          freqOut => txClkFreq,
@@ -151,9 +151,9 @@ begin
    U_rxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
-         REFRESH_RATE_G => 1.0,         -- Units of Hz
-         CNT_WIDTH_G    => 32)          -- Counters' width
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,  -- Units of Hz
+         REFRESH_RATE_G => 1.0,             -- Units of Hz
+         CNT_WIDTH_G    => 32)              -- Counters' width
       port map (
          -- Frequency Measurement and Monitoring Outputs (locClk domain)
          freqOut => rxClkFreq,
@@ -162,8 +162,8 @@ begin
          locClk  => axilClk,
          refClk  => axilClk);
 
-   comb : process (ack, axilRst, r, resetDone, resetErr, resetIn, rxClkFreq,
-           sAxilReadMaster, sAxilWriteMaster, txClkFreq, refClkFreq) is
+   comb : process (ack, axilRst, r, refClkFreq, resetDone, resetErr, resetIn,
+                   rxClkFreq, sAxilReadMaster, sAxilWriteMaster, txClkFreq) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
       variable i      : natural;
@@ -187,17 +187,17 @@ begin
       for i in 0 to r.sample'length-1 loop
          axiSlaveRegisterR(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), r.sample(i));
       end loop;
-      axiSlaveRegister (axilEp, x"100", 0,  v.tgt);
-      axiSlaveRegister (axilEp, x"100", 8,  v.mask);
+      axiSlaveRegister (axilEp, x"100", 0, v.tgt);
+      axiSlaveRegister (axilEp, x"100", 8, v.mask);
       axiSlaveRegister (axilEp, x"100", 16, v.rstlen);
-      axiSlaveRegisterR(axilEp, x"104", 0,  r.last);
-      axiSlaveRegisterR(axilEp, x"108", 0,  txClkFreq);
-      axiSlaveRegisterR(axilEp, x"10C", 0,  rxClkFreq);
-      axiSlaveRegisterR(axilEp, x"110", 0,  r.locked);
-      axiSlaveRegister (axilEp, x"114", 0,  v.override);
-      axiSlaveRegister (axilEp, x"118", 0,  v.rstRetryCnt);
-      axiSlaveRegisterR(axilEp, x"11C", 0,  r.retryCnt);
-      axiSlaveRegisterR(axilEp, x"120", 0,  refClkFreq);
+      axiSlaveRegisterR(axilEp, x"104", 0, r.last);
+      axiSlaveRegisterR(axilEp, x"108", 0, txClkFreq);
+      axiSlaveRegisterR(axilEp, x"10C", 0, rxClkFreq);
+      axiSlaveRegisterR(axilEp, x"110", 0, r.locked);
+      axiSlaveRegister (axilEp, x"114", 0, v.override);
+      axiSlaveRegister (axilEp, x"118", 0, v.rstRetryCnt);
+      axiSlaveRegisterR(axilEp, x"11C", 0, r.retryCnt);
+      axiSlaveRegisterR(axilEp, x"120", 0, refClkFreq);
 
 
       -- Close out the transaction
@@ -208,7 +208,7 @@ begin
          ----------------------------------------------------------------------
          when RESET_S =>
             -- Set the flag
-            v.rst    := '1';
+            v.rst := '1';
             -- Check the counter
             if (r.rstcnt = r.rstlen) then
                -- Wait for the reset transition
@@ -246,8 +246,8 @@ begin
                -- Save the last byte alignment check
                v.last        := ack.rdData(15 downto 0);
                -- Check the byte alignment
-               if ( (((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7))
-               or  v.override = '1') then
+               if ((((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7))
+                   or v.override = '1') then
                   -- Next state
                   v.state := LOCKED_S;
                else
@@ -281,7 +281,7 @@ begin
       end if;
 
       -- Increment the reset retry counter (if triggered internally)
-      if    (r.rstRetryCnt = '1') then
+      if (r.rstRetryCnt = '1') then
          -- Reset clause first
          v.retryCnt := (others => '0');
       elsif (v.rst = '1' and r.rst = '0' and resetIn = '0' and resetErr = '0') then

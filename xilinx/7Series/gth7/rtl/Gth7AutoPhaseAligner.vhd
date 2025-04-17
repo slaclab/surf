@@ -74,24 +74,24 @@
 --*****************************************************************************
 
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
 
 entity Gth7AutoPhaseAligner is
-  Generic(
-           GT_TYPE                  : string  := "GTX"
+   generic(
+      GT_TYPE : string := "GTX"
+      );
+
+   port (STABLE_CLOCK         : in  std_logic;  --Stable Clock, either a stable clock from the PCB
+                                                --or reference-clock present at startup.
+         RUN_PHALIGNMENT      : in  std_logic;  --Signal from the main Reset-FSM to run the auto phase-alignment procedure
+         PHASE_ALIGNMENT_DONE : out std_logic := '0';  -- Auto phase-alignment performed sucessfully
+         PHALIGNDONE          : in  std_logic;  --\ Phase-alignment signals from and to the
+         DLYSRESET            : out std_logic;  -- |transceiver.
+         DLYSRESETDONE        : in  std_logic;  --/
+         RECCLKSTABLE         : in  std_logic   --/on the RX-side.
+
          );
-
-    Port ( STABLE_CLOCK             : in  STD_LOGIC;              --Stable Clock, either a stable clock from the PCB
-                                                                  --or reference-clock present at startup.
-           RUN_PHALIGNMENT          : in  STD_LOGIC;              --Signal from the main Reset-FSM to run the auto phase-alignment procedure
-           PHASE_ALIGNMENT_DONE     : out STD_LOGIC := '0';       -- Auto phase-alignment performed sucessfully
-           PHALIGNDONE              : in  STD_LOGIC;              --\ Phase-alignment signals from and to the
-           DLYSRESET                : out STD_LOGIC;              -- |transceiver.
-           DLYSRESETDONE            : in  STD_LOGIC;              --/
-           RECCLKSTABLE             : in  STD_LOGIC               --/on the RX-side.
-
-           );
 end Gth7AutoPhaseAligner;
 
 architecture RTL of Gth7AutoPhaseAligner is
@@ -107,17 +107,17 @@ architecture RTL of Gth7AutoPhaseAligner is
 --          );
 --   end component;
 
-  type phase_align_auto_fsm is(
-    INIT, WAIT_PHRST_DONE, COUNT_PHALIGN_DONE, PHALIGN_DONE
-    );
+   type phase_align_auto_fsm is(
+      INIT, WAIT_PHRST_DONE, COUNT_PHALIGN_DONE, PHALIGN_DONE
+      );
 
-  signal phalign_state       : phase_align_auto_fsm := INIT;
-  signal phaligndone_prev     : std_logic := '0';
-  signal phaligndone_ris_edge : std_logic;
+   signal phalign_state        : phase_align_auto_fsm := INIT;
+   signal phaligndone_prev     : std_logic            := '0';
+   signal phaligndone_ris_edge : std_logic;
 
-  signal count_phalign_edges   : integer range 0 to 3:= 0;
-  signal phaligndone_sync      : std_logic := '0';
-  signal dlysresetdone_sync    : std_logic := '0';
+   signal count_phalign_edges : integer range 0 to 3 := 0;
+   signal phaligndone_sync    : std_logic            := '0';
+   signal dlysresetdone_sync  : std_logic            := '0';
 
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of
@@ -126,82 +126,82 @@ architecture RTL of Gth7AutoPhaseAligner is
 
 begin
 
- sync_PHALIGNDONE : entity surf.Synchronizer
-  port map
-         (
-            clk             =>  STABLE_CLOCK,
-            dataIn         =>  PHALIGNDONE,
-            dataOut        =>  phaligndone_sync
+   sync_PHALIGNDONE : entity surf.Synchronizer
+      port map
+      (
+         clk     => STABLE_CLOCK,
+         dataIn  => PHALIGNDONE,
+         dataOut => phaligndone_sync
          );
 
-  sync_DLYSRESETDONE : entity surf.Synchronizer
-  port map
-         (
-            clk             =>  STABLE_CLOCK,
-            dataIn         =>  DLYSRESETDONE,
-            dataOut        =>  dlysresetdone_sync
+   sync_DLYSRESETDONE : entity surf.Synchronizer
+      port map
+      (
+         clk     => STABLE_CLOCK,
+         dataIn  => DLYSRESETDONE,
+         dataOut => dlysresetdone_sync
          );
 
 
-  process(STABLE_CLOCK)
-  begin
-    if rising_edge(STABLE_CLOCK) then
-      phaligndone_prev <= phaligndone_sync;
-    end if;
-  end process;
-  phaligndone_ris_edge <= '1' when (phaligndone_prev = '0') and (phaligndone_sync = '1') else '0';
-
-  process(STABLE_CLOCK)
-  begin
-    if rising_edge(STABLE_CLOCK) then
-      if RUN_PHALIGNMENT = '0' or RECCLKSTABLE = '0' then
-        DLYSRESET           <= '0';
-        count_phalign_edges   <= 0;
-        PHASE_ALIGNMENT_DONE  <= '0';
-        phalign_state      <= INIT;
-      else
-        if phaligndone_ris_edge = '1' then
-          if count_phalign_edges < 3 then
-            count_phalign_edges <= count_phalign_edges + 1;
-          end if;
-        end if;
-
-        DLYSRESET         <= '0';
-
-        case phalign_state is
-          when INIT =>
-            PHASE_ALIGNMENT_DONE <= '0';
-            if RUN_PHALIGNMENT = '1' and RECCLKSTABLE = '1' then
-              --DLYSRESET is toggled to '1'
-              DLYSRESET  <= '1';
-              phalign_state <= WAIT_PHRST_DONE;
-            end if;
-
-          when WAIT_PHRST_DONE =>
-            if dlysresetdone_sync = '1' then
-              phalign_state <= COUNT_PHALIGN_DONE;
-            end if;
-            --No timeout-check here as that is done in the main FSM
-
-          when COUNT_PHALIGN_DONE =>
-            if ((GT_TYPE = "GTX" and count_phalign_edges = 2) or ((GT_TYPE = "GTH" or GT_TYPE = "GTP") and phaligndone_ris_edge = '1')) then
-              --For GTX: Only on the second edge of the PHALIGNDONE-signal the
-              --         phase-alignment is completed
-              --For GTH, GTP: TXSYNCDONE indicates the completion of Phase Alignment
-
-              phalign_state <= PHALIGN_DONE;
-            end if;
-
-          when PHALIGN_DONE =>
-            PHASE_ALIGNMENT_DONE <= '1';
-
-          when OTHERS =>
-            phalign_state      <= INIT;
-
-        end case;
+   process(STABLE_CLOCK)
+   begin
+      if rising_edge(STABLE_CLOCK) then
+         phaligndone_prev <= phaligndone_sync;
       end if;
-    end if;
-  end process;
+   end process;
+   phaligndone_ris_edge <= '1' when (phaligndone_prev = '0') and (phaligndone_sync = '1') else '0';
+
+   process(STABLE_CLOCK)
+   begin
+      if rising_edge(STABLE_CLOCK) then
+         if RUN_PHALIGNMENT = '0' or RECCLKSTABLE = '0' then
+            DLYSRESET            <= '0';
+            count_phalign_edges  <= 0;
+            PHASE_ALIGNMENT_DONE <= '0';
+            phalign_state        <= INIT;
+         else
+            if phaligndone_ris_edge = '1' then
+               if count_phalign_edges < 3 then
+                  count_phalign_edges <= count_phalign_edges + 1;
+               end if;
+            end if;
+
+            DLYSRESET <= '0';
+
+            case phalign_state is
+               when INIT =>
+                  PHASE_ALIGNMENT_DONE <= '0';
+                  if RUN_PHALIGNMENT = '1' and RECCLKSTABLE = '1' then
+                     --DLYSRESET is toggled to '1'
+                     DLYSRESET     <= '1';
+                     phalign_state <= WAIT_PHRST_DONE;
+                  end if;
+
+               when WAIT_PHRST_DONE =>
+                  if dlysresetdone_sync = '1' then
+                     phalign_state <= COUNT_PHALIGN_DONE;
+                  end if;
+                  --No timeout-check here as that is done in the main FSM
+
+               when COUNT_PHALIGN_DONE =>
+                  if ((GT_TYPE = "GTX" and count_phalign_edges = 2) or ((GT_TYPE = "GTH" or GT_TYPE = "GTP") and phaligndone_ris_edge = '1')) then
+                     --For GTX: Only on the second edge of the PHALIGNDONE-signal the
+                     --         phase-alignment is completed
+                     --For GTH, GTP: TXSYNCDONE indicates the completion of Phase Alignment
+
+                     phalign_state <= PHALIGN_DONE;
+                  end if;
+
+               when PHALIGN_DONE =>
+                  PHASE_ALIGNMENT_DONE <= '1';
+
+               when others =>
+                  phalign_state <= INIT;
+
+            end case;
+         end if;
+      end if;
+   end process;
 
 end RTL;
 

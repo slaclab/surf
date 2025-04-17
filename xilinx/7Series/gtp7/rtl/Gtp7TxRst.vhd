@@ -106,7 +106,7 @@ entity Gtp7TxRst is
       PHALIGNMENT_DONE  : in  std_logic;
 
       RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                        -- Retries it took to get the transceiver up and running
+                                                                                                   -- Retries it took to get the transceiver up and running
       );
 end Gtp7TxRst;
 
@@ -133,9 +133,9 @@ architecture RTL of Gtp7TxRst is
    constant WAIT_MAX          : integer := WAIT_CYCLES + 10;  -- 500 ns plus some additional margin
 
    constant WAIT_TIMEOUT_2ms   : integer := 2000000 / STABLE_CLOCK_PERIOD;  --  2 ms time-out
-   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;   --100 us time-out
-   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;   --100 us time-out
-   constant WAIT_1us_cycles    : integer := 1000 / STABLE_CLOCK_PERIOD;     --1 us time-out
+   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;  --100 us time-out
+   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;  --100 us time-out
+   constant WAIT_1us_cycles    : integer := 1000 / STABLE_CLOCK_PERIOD;  --1 us time-out
    constant WAIT_1us           : integer := WAIT_1us_cycles+ 10;  -- 1us plus some additional margin
 
    signal soft_reset_sync : std_logic;
@@ -387,7 +387,7 @@ begin
       end if;
    end process;
 
-   process(qPllTxSelect,PLL0REFCLKLOST,PLL1REFCLKLOST)
+   process(PLL0REFCLKLOST, PLL1REFCLKLOST, qPllTxSelect)
    begin
       if DYNAMIC_QPLL_G then
          if qPllTxSelect = "00" then
@@ -534,8 +534,8 @@ begin
                      else
                         retry_counter_int <= retry_counter_int + 1;
                      end if;
-                     reset_time_out <= '1'; -- Need to reset time outs again or we'll always end up back here
-                     tx_state <= ASSERT_ALL_RESETS;
+                     reset_time_out <= '1';  -- Need to reset time outs again or we'll always end up back here
+                     tx_state       <= ASSERT_ALL_RESETS;
                   end if;
 
                when RELEASE_MMCM_RESET =>

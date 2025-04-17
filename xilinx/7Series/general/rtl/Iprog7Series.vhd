@@ -34,7 +34,7 @@ entity Iprog7Series is
       clk         : in sl;
       rst         : in sl;
       slowClk     : in sl               := '0';
-      start       : in sl;              -- Should be asserted and held until reboot
+      start       : in sl;  -- Should be asserted and held until reboot
       bootAddress : in slv(31 downto 0) := X"00000000");
 end Iprog7Series;
 
@@ -97,10 +97,10 @@ begin
          ICAP_WIDTH        => "X32",  -- Specifies the input and output data width to be used with the ICAPE2 Possible values: (X8,X16 or X32)
          SIM_CFG_FILE_NAME => "NONE")  -- Specifies the Raw Bitstream (RBT) file to be parsed by the simulation model
       port map (
-         O     => open,                 -- 32-bit output: Configuration data output bus
+         O     => open,   -- 32-bit output: Configuration data output bus
          CLK   => icapClk,              -- 1-bit input: Clock Input
          CSIB  => icapCsl,              -- 1-bit input: Active-Low ICAP Enable
-         I     => icapI,                -- 32-bit input: Configuration data input bus
+         I     => icapI,  -- 32-bit input: Configuration data input bus
          RDWRB => icapRnw);             -- 1-bit input: Read/Write Select input
 
 
