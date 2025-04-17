@@ -29,8 +29,8 @@ entity AxiStreamFlushTb is end AxiStreamFlushTb;
 architecture testbed of AxiStreamFlushTb is
 
    -- Constants
-   constant FAST_CLK_PERIOD_C  : time             := 5 ns;
-   constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
+   constant FAST_CLK_PERIOD_C : time := 5 ns;
+   constant TPD_C             : time := FAST_CLK_PERIOD_C/4;
 
    -- PRBS Configuration
    constant PRBS_SEED_SIZE_C : natural      := 32;
@@ -49,8 +49,8 @@ architecture testbed of AxiStreamFlushTb is
    signal ibMaster : AxiStreamMasterType;
    signal ibCtrl   : AxiStreamCtrlType;
 
-   signal flushEn  : sl;
-   signal count    : integer range 0 to 254;
+   signal flushEn : sl;
+   signal count   : integer range 0 to 254;
 
 begin
 
@@ -60,7 +60,7 @@ begin
    ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => fastClk,
@@ -87,13 +87,13 @@ begin
          locClk       => fastClk,
          locRst       => fastRst,
          trig         => '1',
-         packetLength => toSlv(100,32),
+         packetLength => toSlv(100, 32),
          forceEofe    => '0',
          busy         => open,
          tDest        => (others => '0'),
          tId          => (others => '0'));
 
-   U_Flush: entity surf.AxiStreamFlush
+   U_Flush : entity surf.AxiStreamFlush
       generic map (
          TPD_G         => TPD_C,
          AXIS_CONFIG_G => AXI_STREAM_CONFIG_C,

@@ -23,36 +23,36 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteRamSyncStatusVector is
    generic (
-      TPD_G           : time                   := 1 ns;  -- Simulation FF output delay
+      TPD_G          : time                   := 1 ns;  -- Simulation FF output delay
       --------------------------
       -- AxiDualPortRam Generics
       --------------------------
-      SYNTH_MODE_G    : string                 := "inferred";
-      MEMORY_TYPE_G   : string                 := "block";
-      READ_LATENCY_G  : natural range 0 to 3   := 3;
+      SYNTH_MODE_G   : string                 := "inferred";
+      MEMORY_TYPE_G  : string                 := "block";
+      READ_LATENCY_G : natural range 0 to 3   := 3;
       ----------------------------
       -- SyncStatusVector Generics
       ----------------------------
-      RST_POLARITY_G  : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean                := false;  -- true if reset is asynchronous, false if reset is synchronous
-      COMMON_CLK_G    : boolean                := false;  -- True if wrClk and rdClk are the same clock
-      IN_POLARITY_G   : slv                    := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
-      OUT_POLARITY_G  : sl                     := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
-      SYNTH_CNT_G     : slv                    := "1";  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
-      CNT_RST_EDGE_G  : boolean                := true;  -- true if counter reset should be edge detected, else level detected
-      CNT_WIDTH_G     : positive range 1 to 32 := 32;   -- Counters' width
-      WIDTH_G         : positive);      -- Status vector width
+      RST_POLARITY_G : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean                := false;  -- true if reset is asynchronous, false if reset is synchronous
+      COMMON_CLK_G   : boolean                := false;  -- True if wrClk and rdClk are the same clock
+      IN_POLARITY_G  : slv                    := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
+      OUT_POLARITY_G : sl                     := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
+      SYNTH_CNT_G    : slv                    := "1";  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
+      CNT_RST_EDGE_G : boolean                := true;  -- true if counter reset should be edge detected, else level detected
+      CNT_WIDTH_G    : positive range 1 to 32 := 32;   -- Counters' width
+      WIDTH_G        : positive);       -- Status vector width
    port (
       ---------------------------------------------
       -- Inbound Status bit Signals (wrClk domain)
       ---------------------------------------------
       wrClk           : in  sl;
       wrRst           : in  sl                      := '0';
-      statusIn        : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
+      statusIn        : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'
       ---------------------------------------------
       -- Outbound Status/control Signals (axilClk domain)
       ---------------------------------------------
-      statusOut       : out slv(WIDTH_G-1 downto 0);  -- Synced data
+      statusOut       : out slv(WIDTH_G-1 downto 0);   -- Synced data
       cntRstIn        : in  sl                      := '0';
       rollOverEnIn    : in  slv(WIDTH_G-1 downto 0) := (others => '0');  -- No roll over for all counters by default
       ---------------------

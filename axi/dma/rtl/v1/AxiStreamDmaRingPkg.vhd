@@ -102,7 +102,8 @@ package body AxiStreamDmaRingPkg is
       buf      : integer range 0 to 63 := 0;
       high     : sl                    := '0')
       return slv
-   is begin
+   is
+   begin
       return getBufferAddr(baseAddr, busIndex, toSlv(buf, 6), high);
    end function;
 

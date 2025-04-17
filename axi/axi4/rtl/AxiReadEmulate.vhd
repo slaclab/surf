@@ -25,10 +25,10 @@ use surf.AxiPkg.all;
 
 entity AxiReadEmulate is
    generic (
-      TPD_G        : time          := 1 ns;
-      LATENCY_G    : natural       := 31;
+      TPD_G        : time    := 1 ns;
+      LATENCY_G    : natural := 31;
       AXI_CONFIG_G : AxiConfigType;
-      SIM_DEBUG_G  : boolean       := false);
+      SIM_DEBUG_G  : boolean := false);
    port (
       -- Clock/Reset
       axiClk        : in  sl;
@@ -82,7 +82,7 @@ begin
          mAxiReadSlave  => intReadSlave);
 
    comb : process (axiRst, intReadMaster, r) is
-      variable v    : RegType;
+      variable v : RegType;
    begin
       -- Latch the current value
       v := r;
@@ -138,7 +138,7 @@ begin
                      v.latency := LATENCY_G;
                   end if;
                   -- Next state
-                  v.state        := IDLE_S;
+                  v.state := IDLE_S;
                else
                   v.iMaster.arlen := r.iMaster.arlen - 1;
                end if;

@@ -32,45 +32,45 @@ entity AxiLiteMasterProxy is
       RST_ASYNC_G : boolean := false);
    port (
       -- Clocks and Resets
-      axiClk          : in    sl;
-      axiRst          : in    sl;
+      axiClk          : in  sl;
+      axiRst          : in  sl;
       -- AXI-Lite Register Interface
-      sAxiReadMaster  : in    AxiLiteReadMasterType;
-      sAxiReadSlave   : out   AxiLiteReadSlaveType;
-      sAxiWriteMaster : in    AxiLiteWriteMasterType;
-      sAxiWriteSlave  : out   AxiLiteWriteSlaveType;
+      sAxiReadMaster  : in  AxiLiteReadMasterType;
+      sAxiReadSlave   : out AxiLiteReadSlaveType;
+      sAxiWriteMaster : in  AxiLiteWriteMasterType;
+      sAxiWriteSlave  : out AxiLiteWriteSlaveType;
       -- AXI-Lite Register Interface
-      mAxiReadMaster  : out   AxiLiteReadMasterType;
-      mAxiReadSlave   : in    AxiLiteReadSlaveType;
-      mAxiWriteMaster : out   AxiLiteWriteMasterType;
-      mAxiWriteSlave  : in    AxiLiteWriteSlaveType );
+      mAxiReadMaster  : out AxiLiteReadMasterType;
+      mAxiReadSlave   : in  AxiLiteReadSlaveType;
+      mAxiWriteMaster : out AxiLiteWriteMasterType;
+      mAxiWriteSlave  : in  AxiLiteWriteSlaveType);
 end AxiLiteMasterProxy;
 
 architecture mapping of AxiLiteMasterProxy is
 
-   type StateType is ( READY_S, ACK_S );
+   type StateType is (READY_S, ACK_S);
 
    type RegType is record
-      sAxiWriteSlave  : AxiLiteWriteSlaveType;
-      sAxiReadSlave   : AxiLiteReadSlaveType;
-      req             : AxiLiteReqType;
-      state           : StateType;
-      rnw             : sl;
-      done            : sl;
-      resp            : slv(1 downto 0);
-      addr            : slv(31 downto 0);
-      data            : slv(31 downto 0);
+      sAxiWriteSlave : AxiLiteWriteSlaveType;
+      sAxiReadSlave  : AxiLiteReadSlaveType;
+      req            : AxiLiteReqType;
+      state          : StateType;
+      rnw            : sl;
+      done           : sl;
+      resp           : slv(1 downto 0);
+      addr           : slv(31 downto 0);
+      data           : slv(31 downto 0);
    end record;
    constant REG_INIT_C : RegType := (
-      sAxiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
-      sAxiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
-      req             => AXI_LITE_REQ_INIT_C,
-      state           => READY_S,
-      rnw             => '0',
-      done            => '1',
-      resp            => "00",
-      addr            => (others=>'0'),
-      data            => (others=>'0') );
+      sAxiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      sAxiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      req            => AXI_LITE_REQ_INIT_C,
+      state          => READY_S,
+      rnw            => '0',
+      done           => '1',
+      resp           => "00",
+      addr           => (others => '0'),
+      data           => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -96,11 +96,11 @@ begin
 
       axiSlaveRegister (axilEp, X"00", 0, v.rnw);
       axiSlaveRegisterR(axilEp, X"04", 0, r.done);
-      axiSlaveRegisterR(axilEp,  X"04", 1, r.resp);
-      axiSlaveRegister (axilEp,  X"08", 0, v.addr);
-      axiSlaveRegister (axilEp,  X"0C", 0, v.data);
+      axiSlaveRegisterR(axilEp, X"04", 1, r.resp);
+      axiSlaveRegister (axilEp, X"08", 0, v.addr);
+      axiSlaveRegister (axilEp, X"0C", 0, v.data);
       newCmd := '0';
-      axiWrDetect     (axilEp,  X"00", newcmd);
+      axiWrDetect (axilEp, X"00", newcmd);
 
       -- Close out the transaction
       axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_OK_C);
@@ -128,7 +128,7 @@ begin
                v.data        := ack.rdData;
                v.resp        := ack.resp;
                -- Next state
-               v.state := READY_S;
+               v.state       := READY_S;
             end if;
       end case;
 

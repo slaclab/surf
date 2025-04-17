@@ -36,18 +36,18 @@ architecture tb of AxiLiteAsyncTb is
    constant PIPE_STAGES_G   : integer range 0 to 16 := 0;
 
    -- component ports
-   signal sAxiClk          : sl;        -- [in]
-   signal sAxiClkRst       : sl;        -- [in]
+   signal sAxiClk         : sl;         -- [in]
+   signal sAxiClkRst      : sl;         -- [in]
    signal sAxiReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [in]
    signal sAxiReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;  -- [out]
    signal sAxiWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [in]
    signal sAxiWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;  -- [out]
-   signal mAxiClk          : sl;        -- [in]
-   signal mAxiClkRst       : sl;        -- [in]
-   signal mAxiReadMaster   : AxiLiteReadMasterType               := AXI_LITE_READ_MASTER_INIT_C;  -- [out]
-   signal mAxiReadSlave    : AxiLiteReadSlaveType                := AXI_LITE_READ_SLAVE_INIT_C;  -- [in]
-   signal mAxiWriteMaster  : AxiLiteWriteMasterType              := AXI_LITE_WRITE_MASTER_INIT_C;  -- [out]
-   signal mAxiWriteSlave   : AxiLiteWriteSlaveType               := AXI_LITE_WRITE_SLAVE_INIT_C;  -- [in]
+   signal mAxiClk         : sl;         -- [in]
+   signal mAxiClkRst      : sl;         -- [in]
+   signal mAxiReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [out]
+   signal mAxiReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;  -- [in]
+   signal mAxiWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [out]
+   signal mAxiWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;  -- [in]
 
    signal intAxiReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [out]
    signal intAxiReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;  -- [in]
@@ -68,8 +68,8 @@ begin
                connectivity => (others => '1'))),
          DEBUG_G            => true)
       port map (
-         axiClk           => sAxiClk,             -- [in]
-         axiClkRst        => sAxiClkRst,          -- [in]
+         axiClk              => sAxiClk,            -- [in]
+         axiClkRst           => sAxiClkRst,         -- [in]
          sAxiWriteMasters(0) => sAxiWriteMaster,    -- [in]
          sAxiWriteSlaves(0)  => sAxiWriteSlave,     -- [out]
          sAxiReadMasters(0)  => sAxiReadMaster,     -- [in]
@@ -86,18 +86,18 @@ begin
          NUM_ADDR_BITS_G => NUM_ADDR_BITS_G,
          PIPE_STAGES_G   => PIPE_STAGES_G)
       port map (
-         sAxiClk         => sAxiClk,                -- [in]
-         sAxiClkRst      => sAxiClkRst,             -- [in]
+         sAxiClk         => sAxiClk,            -- [in]
+         sAxiClkRst      => sAxiClkRst,         -- [in]
          sAxiReadMaster  => intAxiReadMaster,   -- [in]
          sAxiReadSlave   => intAxiReadSlave,    -- [out]
          sAxiWriteMaster => intAxiWriteMaster,  -- [in]
          sAxiWriteSlave  => intAxiWriteSlave,   -- [out]
-         mAxiClk         => mAxiClk,                -- [in]
-         mAxiClkRst      => mAxiClkRst,             -- [in]
-         mAxiReadMaster  => mAxiReadMaster,         -- [out]
-         mAxiReadSlave   => mAxiReadSlave,          -- [in]
-         mAxiWriteMaster => mAxiWriteMaster,        -- [out]
-         mAxiWriteSlave  => mAxiWriteSlave);        -- [in]
+         mAxiClk         => mAxiClk,            -- [in]
+         mAxiClkRst      => mAxiClkRst,         -- [in]
+         mAxiReadMaster  => mAxiReadMaster,     -- [out]
+         mAxiReadSlave   => mAxiReadSlave,      -- [in]
+         mAxiWriteMaster => mAxiWriteMaster,    -- [out]
+         mAxiWriteSlave  => mAxiWriteSlave);    -- [in]
 
    U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
       generic map (

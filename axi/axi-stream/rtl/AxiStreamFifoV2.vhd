@@ -34,9 +34,9 @@ entity AxiStreamFifoV2 is
       SLAVE_READY_EN_G  : boolean               := true;
 
       -- Valid threshold should always be 1 when using interleaved tdest
-      VALID_THOLD_G       : integer range 0 to (2**24) := 1;      -- =1 = normal operation
-                                                                  -- =0 = only when frame ready
-                                                                  -- >1 = only when frame ready or # entries
+      VALID_THOLD_G       : integer range 0 to (2**24) := 1;  -- =1 = normal operation
+                                        -- =0 = only when frame ready
+                                                              -- >1 = only when frame ready or # entries
       VALID_BURST_MODE_G  : boolean                    := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
       GEN_SYNC_FIFO_G     : boolean                    := false;
@@ -142,7 +142,7 @@ architecture rtl of AxiStreamFifoV2 is
    signal fifoDin         : slv(FIFO_BITS_C-1 downto 0);
    signal fifoWrite       : sl;
    signal fifoWriteLast   : sl;
-   signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0) := (others=>'0');
+   signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0) := (others => '0');
    signal fifoWrCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoRdCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
    signal fifoAFull       : sl;
@@ -202,7 +202,7 @@ begin
    -------------------------
 
    -- Pause generation
-   process (fifoPFullVec, sAxisClk, sAxisRst, fifoWrCount, fifoPauseThresh) is
+   process (fifoPFullVec, fifoPauseThresh, fifoWrCount, sAxisClk, sAxisRst) is
    begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
@@ -239,7 +239,7 @@ begin
          LAST_STAGE_ASYNC_G => true,
          PIPE_STAGES_G      => INT_PIPE_STAGES_G,
          RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => false, -- Synchronous reset might be required here
+         RST_ASYNC_G        => false,  -- Synchronous reset might be required here
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          FWFT_EN_G          => true,
          SYNTH_MODE_G       => SYNTH_MODE_G,
@@ -276,7 +276,7 @@ begin
             LAST_STAGE_ASYNC_G => true,
             PIPE_STAGES_G      => INT_PIPE_STAGES_G,
             RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => false, -- Synchronous reset might be required here
+            RST_ASYNC_G        => false,  -- Synchronous reset might be required here
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G      => "distributed",
             FWFT_EN_G          => true,
@@ -298,7 +298,7 @@ begin
 
       U_PreFillMode : if ((VALID_BURST_MODE_G = false) or (VALID_THOLD_G = 0)) generate
 
-         process (mAxisClk, mAxisRst, fifoReadLast, fifoValidInt) is
+         process (fifoReadLast, fifoValidInt, mAxisClk, mAxisRst) is
          begin
             if (RST_ASYNC_G) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
                fifoInFrame <= '0' after TPD_G;

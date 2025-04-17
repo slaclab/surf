@@ -99,7 +99,7 @@ begin
    U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => axiClk,
@@ -216,7 +216,7 @@ begin
                   v.failed(2) := '1';
                end if;
                -- Increment the byte counter
-               v.byteCnt := r.byteCnt + getTKeep(axisMaster.tKeep,AXIS_CONFIG_C);
+               v.byteCnt := r.byteCnt + getTKeep(axisMaster.tKeep, AXIS_CONFIG_C);
                -- Check for EOF
                if (axisMaster.tLast = '1') then
                   -- Check the firstUser

@@ -29,27 +29,27 @@ entity AxiReadPathFifo is
       TPD_G : time := 1 ns;
 
       -- General FIFO configurations
-      GEN_SYNC_FIFO_G          : boolean                    := false;
+      GEN_SYNC_FIFO_G : boolean := false;
 
       -- Bit Optimizations
-      ADDR_LSB_G               : natural range 0 to 63 := 0;
-      ID_FIXED_EN_G            : boolean := false;
-      SIZE_FIXED_EN_G          : boolean := false;
-      BURST_FIXED_EN_G         : boolean := false;
-      LEN_FIXED_EN_G           : boolean := false;
-      LOCK_FIXED_EN_G          : boolean := false;
-      PROT_FIXED_EN_G          : boolean := false;
-      CACHE_FIXED_EN_G         : boolean := false;
+      ADDR_LSB_G       : natural range 0 to 63 := 0;
+      ID_FIXED_EN_G    : boolean               := false;
+      SIZE_FIXED_EN_G  : boolean               := false;
+      BURST_FIXED_EN_G : boolean               := false;
+      LEN_FIXED_EN_G   : boolean               := false;
+      LOCK_FIXED_EN_G  : boolean               := false;
+      PROT_FIXED_EN_G  : boolean               := false;
+      CACHE_FIXED_EN_G : boolean               := false;
 
       -- Address FIFO Config
-      ADDR_MEMORY_TYPE_G       : string                     := "block";
-      ADDR_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
-      ADDR_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
+      ADDR_MEMORY_TYPE_G     : string                     := "block";
+      ADDR_CASCADE_SIZE_G    : integer range 1 to (2**24) := 1;
+      ADDR_FIFO_ADDR_WIDTH_G : integer range 4 to 48      := 9;
 
       -- Data FIFO Config
-      DATA_MEMORY_TYPE_G       : string                     := "block";
-      DATA_CASCADE_SIZE_G      : integer range 1 to (2**24) := 1;
-      DATA_FIFO_ADDR_WIDTH_G   : integer range 4 to 48      := 9;
+      DATA_MEMORY_TYPE_G     : string                     := "block";
+      DATA_CASCADE_SIZE_G    : integer range 1 to (2**24) := 1;
+      DATA_FIFO_ADDR_WIDTH_G : integer range 4 to 48      := 9;
 
       -- BUS Config
       AXI_CONFIG_G : AxiConfigType);
@@ -71,18 +71,18 @@ end AxiReadPathFifo;
 architecture rtl of AxiReadPathFifo is
 
    constant ADDR_BITS_C  : integer := AXI_CONFIG_G.ADDR_WIDTH_C - ADDR_LSB_G;
-   constant ID_BITS_C    : integer := ite(ID_FIXED_EN_G,0,AXI_CONFIG_G.ID_BITS_C);
-   constant LEN_BITS_C   : integer := ite(LEN_FIXED_EN_G,0,AXI_CONFIG_G.LEN_BITS_C);
-   constant SIZE_BITS_C  : integer := ite(SIZE_FIXED_EN_G,0,3);
-   constant BURST_BITS_C : integer := ite(BURST_FIXED_EN_G,0,2);
-   constant LOCK_BITS_C  : integer := ite(LOCK_FIXED_EN_G,0,2);
-   constant PROT_BITS_C  : integer := ite(PROT_FIXED_EN_G,0,3);
-   constant CACHE_BITS_C : integer := ite(CACHE_FIXED_EN_G,0,4);
+   constant ID_BITS_C    : integer := ite(ID_FIXED_EN_G, 0, AXI_CONFIG_G.ID_BITS_C);
+   constant LEN_BITS_C   : integer := ite(LEN_FIXED_EN_G, 0, AXI_CONFIG_G.LEN_BITS_C);
+   constant SIZE_BITS_C  : integer := ite(SIZE_FIXED_EN_G, 0, 3);
+   constant BURST_BITS_C : integer := ite(BURST_FIXED_EN_G, 0, 2);
+   constant LOCK_BITS_C  : integer := ite(LOCK_FIXED_EN_G, 0, 2);
+   constant PROT_BITS_C  : integer := ite(PROT_FIXED_EN_G, 0, 3);
+   constant CACHE_BITS_C : integer := ite(CACHE_FIXED_EN_G, 0, 4);
    constant DATA_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C*8;
    constant STRB_BITS_C  : integer := AXI_CONFIG_G.DATA_BYTES_C;
    constant RESP_BITS_C  : integer := 2;
 
-   constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C  + ID_BITS_C   + LEN_BITS_C  + SIZE_BITS_C +
+   constant ADDR_FIFO_SIZE_C : integer := ADDR_BITS_C + ID_BITS_C + LEN_BITS_C + SIZE_BITS_C +
                                           BURST_BITS_C + LOCK_BITS_C + PROT_BITS_C + CACHE_BITS_C;
 
    constant DATA_FIFO_SIZE_C : integer := 1 + DATA_BITS_C + RESP_BITS_C + ID_BITS_C;
@@ -94,41 +94,41 @@ architecture rtl of AxiReadPathFifo is
    begin
 
       retValue(ADDR_BITS_C-1 downto 0) := din.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto ADDR_LSB_G);
-      i := ADDR_BITS_C;
+      i                                := ADDR_BITS_C;
 
       if ID_FIXED_EN_G = false then
          retValue((ID_BITS_C+i)-1 downto i) := din.arid(ID_BITS_C-1 downto 0);
-         i := i + ID_BITS_C;
+         i                                  := i + ID_BITS_C;
       end if;
 
       if LEN_FIXED_EN_G = false then
          retValue((LEN_BITS_C+i)-1 downto i) := din.arlen(LEN_BITS_C-1 downto 0);
-         i := i + LEN_BITS_C;
+         i                                   := i + LEN_BITS_C;
       end if;
 
       if SIZE_FIXED_EN_G = false then
          retValue((SIZE_BITS_C+i)-1 downto i) := din.arsize(SIZE_BITS_C-1 downto 0);
-         i := i + SIZE_BITS_C;
+         i                                    := i + SIZE_BITS_C;
       end if;
 
       if BURST_FIXED_EN_G = false then
          retValue((BURST_BITS_C+i)-1 downto i) := din.arburst(BURST_BITS_C-1 downto 0);
-         i := i + BURST_BITS_C;
+         i                                     := i + BURST_BITS_C;
       end if;
 
       if LOCK_FIXED_EN_G = false then
          retValue((LOCK_BITS_C+i)-1 downto i) := din.arlock(LOCK_BITS_C-1 downto 0);
-         i := i + LOCK_BITS_C;
+         i                                    := i + LOCK_BITS_C;
       end if;
 
       if PROT_FIXED_EN_G = false then
          retValue((PROT_BITS_C+i)-1 downto i) := din.arprot(PROT_BITS_C-1 downto 0);
-         i := i + PROT_BITS_C;
+         i                                    := i + PROT_BITS_C;
       end if;
 
       if CACHE_FIXED_EN_G = false then
          retValue((CACHE_BITS_C+i)-1 downto i) := din.arcache(CACHE_BITS_C-1 downto 0);
-         i := i + CACHE_BITS_C;
+         i                                     := i + CACHE_BITS_C;
       end if;
 
       return(retValue);
@@ -139,71 +139,71 @@ architecture rtl of AxiReadPathFifo is
    procedure slvToAddr (din    : in    slv(ADDR_FIFO_SIZE_C-1 downto 0);
                         valid  : in    sl;
                         slave  : in    AxiReadMasterType;
-                        master : inout AxiReadMasterType ) is
-      variable i   : integer;
+                        master : inout AxiReadMasterType) is
+      variable i : integer;
    begin
 
       -- Set valid,
       master.arvalid := valid;
 
-      master.araddr := (others=>'0');
+      master.araddr                                                := (others => '0');
       master.araddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto ADDR_LSB_G) := din(ADDR_BITS_C-1 downto 0);
-      i := ADDR_BITS_C;
+      i                                                            := ADDR_BITS_C;
 
       if ID_FIXED_EN_G then
          master.arid := slave.arid;
       else
-         master.arid := (others=>'0');
+         master.arid                       := (others => '0');
          master.arid(ID_BITS_C-1 downto 0) := din((ID_BITS_C+i)-1 downto i);
-         i := i + ID_BITS_C;
+         i                                 := i + ID_BITS_C;
       end if;
 
       if LEN_FIXED_EN_G then
          master.arlen := slave.arlen;
       else
-         master.arlen := (others=>'0');
+         master.arlen                        := (others => '0');
          master.arlen(LEN_BITS_C-1 downto 0) := din((LEN_BITS_C+i)-1 downto i);
-         i := i + LEN_BITS_C;
+         i                                   := i + LEN_BITS_C;
       end if;
 
       if SIZE_FIXED_EN_G then
          master.arsize := slave.arsize;
       else
-         master.arsize := (others=>'0');
+         master.arsize                         := (others => '0');
          master.arsize(SIZE_BITS_C-1 downto 0) := din((SIZE_BITS_C+i)-1 downto i);
-         i := i + SIZE_BITS_C;
+         i                                     := i + SIZE_BITS_C;
       end if;
 
       if BURST_FIXED_EN_G then
          master.arburst := slave.arburst;
       else
-         master.arburst := (others=>'0');
+         master.arburst                          := (others => '0');
          master.arburst(BURST_BITS_C-1 downto 0) := din((BURST_BITS_C+i)-1 downto i);
-         i := i + BURST_BITS_C;
+         i                                       := i + BURST_BITS_C;
       end if;
 
       if LOCK_FIXED_EN_G then
          master.arlock := slave.arlock;
       else
-         master.arlock := (others=>'0');
+         master.arlock                         := (others => '0');
          master.arlock(LOCK_BITS_C-1 downto 0) := din((LOCK_BITS_C+i)-1 downto i);
-         i := i + LOCK_BITS_C;
+         i                                     := i + LOCK_BITS_C;
       end if;
 
       if PROT_FIXED_EN_G then
-         master.arprot := (others=>'0');
+         master.arprot := (others => '0');
          master.arprot := slave.arprot;
       else
          master.arprot(PROT_BITS_C-1 downto 0) := din((PROT_BITS_C+i)-1 downto i);
-         i := i + PROT_BITS_C;
+         i                                     := i + PROT_BITS_C;
       end if;
 
       if CACHE_FIXED_EN_G then
-         master.arcache := (others=>'0');
+         master.arcache := (others => '0');
          master.arcache := slave.arcache;
       else
          master.arcache(CACHE_BITS_C-1 downto 0) := din((CACHE_BITS_C+i)-1 downto i);
-         i := i + CACHE_BITS_C;
+         i                                       := i + CACHE_BITS_C;
       end if;
 
    end procedure;
@@ -215,18 +215,18 @@ architecture rtl of AxiReadPathFifo is
    begin
 
       retValue(0) := din.rlast;
-      i := 1;
+      i           := 1;
 
       retValue((DATA_BITS_C+i)-1 downto i) := din.rdata(DATA_BITS_C-1 downto 0);
-      i := i + DATA_BITS_C;
+      i                                    := i + DATA_BITS_C;
 
       if ID_FIXED_EN_G = false then
          retValue((ID_BITS_C+i)-1 downto i) := din.rid(ID_BITS_C-1 downto 0);
-         i := i + ID_BITS_C;
+         i                                  := i + ID_BITS_C;
       end if;
 
       retValue((RESP_BITS_C+i)-1 downto i) := din.rresp;
-      i := RESP_BITS_C;
+      i                                    := RESP_BITS_C;
 
       return(retValue);
 
@@ -236,44 +236,44 @@ architecture rtl of AxiReadPathFifo is
    procedure slvToData (din    : in    slv(DATA_FIFO_SIZE_C-1 downto 0);
                         valid  : in    sl;
                         master : in    AxiReadMasterType;
-                        slave  : inout AxiReadSlaveType ) is
-      variable i   : integer;
+                        slave  : inout AxiReadSlaveType) is
+      variable i : integer;
    begin
 
       -- Set valid,
       slave.rvalid := valid;
       slave.rlast  := din(0);
-      i := 1;
+      i            := 1;
 
-      slave.rdata := (others=>'0');
+      slave.rdata                         := (others => '0');
       slave.rdata(DATA_BITS_C-1 downto 0) := din((DATA_BITS_C+i)-1 downto i);
-      i := i + DATA_BITS_C;
+      i                                   := i + DATA_BITS_C;
 
       if ID_FIXED_EN_G then
          slave.rid := master.arid;
       else
-         slave.rid := (others=>'0');
+         slave.rid                       := (others => '0');
          slave.rid(ID_BITS_C-1 downto 0) := din((ID_BITS_C+i)-1 downto i);
-         i := i + ID_BITS_C;
+         i                               := i + ID_BITS_C;
       end if;
 
       slave.rresp := din((RESP_BITS_C+i)-1 downto i);
-      i := RESP_BITS_C;
+      i           := RESP_BITS_C;
 
    end procedure;
 
-   signal addrFifoWrite    : sl;
-   signal addrFifoDin      : slv(ADDR_FIFO_SIZE_C-1 downto 0);
-   signal addrFifoDout     : slv(ADDR_FIFO_SIZE_C-1 downto 0);
-   signal addrFifoValid    : sl;
-   signal addrFifoAFull    : sl;
-   signal addrFifoRead     : sl;
-   signal dataFifoWrite    : sl;
-   signal dataFifoDin      : slv(DATA_FIFO_SIZE_C-1 downto 0);
-   signal dataFifoDout     : slv(DATA_FIFO_SIZE_C-1 downto 0);
-   signal dataFifoValid    : sl;
-   signal dataFifoAFull    : sl;
-   signal dataFifoRead     : sl;
+   signal addrFifoWrite : sl;
+   signal addrFifoDin   : slv(ADDR_FIFO_SIZE_C-1 downto 0);
+   signal addrFifoDout  : slv(ADDR_FIFO_SIZE_C-1 downto 0);
+   signal addrFifoValid : sl;
+   signal addrFifoAFull : sl;
+   signal addrFifoRead  : sl;
+   signal dataFifoWrite : sl;
+   signal dataFifoDin   : slv(DATA_FIFO_SIZE_C-1 downto 0);
+   signal dataFifoDout  : slv(DATA_FIFO_SIZE_C-1 downto 0);
+   signal dataFifoValid : sl;
+   signal dataFifoAFull : sl;
+   signal dataFifoRead  : sl;
 
 begin
 
@@ -382,9 +382,8 @@ begin
    -- Fifo Outputs
    -------------------------
 
-   process ( sAxiReadMaster, mAxiReadSlave,
-             addrFifoDout, addrFifoAFull, addrFifoValid,
-             dataFifoDout, dataFifoAFull, dataFifoValid ) is
+   process (addrFifoAFull, addrFifoDout, addrFifoValid, dataFifoAFull,
+            dataFifoDout, dataFifoValid, sAxiReadMaster) is
 
       variable imAxiReadMaster : AxiReadMasterType;
       variable isAxiReadSlave  : AxiReadSlaveType;
