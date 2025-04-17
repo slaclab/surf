@@ -26,7 +26,8 @@ architecture glbl of glbl is
    signal GTS  : std_logic;
    signal PRLD : std_logic;
 begin
-   process begin
+   process
+   begin
       GTS <= '0';
       GSR <= '1';
       wait for 100 ns;

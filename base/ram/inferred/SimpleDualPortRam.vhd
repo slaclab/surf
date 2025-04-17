@@ -59,7 +59,7 @@ architecture rtl of SimpleDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
+   constant XST_BRAM_STYLE_C : string := MEMORY_TYPE_G;
 
    -- Shared memory
    type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);

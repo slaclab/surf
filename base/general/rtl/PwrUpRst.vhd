@@ -39,7 +39,7 @@ end PwrUpRst;
 architecture rtl of PwrUpRst is
 
    constant CNT_SIZE_C : natural := ite(SIM_SPEEDUP_G, 127, DURATION_G);
-   signal   rstSync,
+   signal rstSync,
       rst : sl := OUT_POLARITY_G;
    signal cnt : natural range 0 to DURATION_G := 0;
 

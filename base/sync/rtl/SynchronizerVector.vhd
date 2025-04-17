@@ -21,8 +21,8 @@ use surf.StdRtlPkg.all;
 entity SynchronizerVector is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
-      OUT_POLARITY_G : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
       RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
       STAGES_G       : positive := 2;
       BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration
@@ -97,7 +97,7 @@ begin
 
    GEN : if (BYPASS_SYNC_G = false) generate
 
-      comb : process (crossDomainSyncReg, dataIn, rst) is
+      comb : process (crossDomainSyncReg, dataIn) is
       begin
          for i in WIDTH_G-1 downto 0 loop
             rin(i) <= crossDomainSyncReg(i)(STAGES_G-2 downto 0) & dataIn(i);

@@ -33,7 +33,7 @@ architecture testbed of SlvDelayRamTb is
    constant DELAY_C     : integer := MAX_DELAY_C;
 
    constant DO_REG_C      : boolean := true;
-   constant MEMORY_TYPE_C : string := "block";
+   constant MEMORY_TYPE_C : string  := "block";
 
    -- may save a bit if MAX_DELAY is just over pow2 ex 514 elements only needs 9 bits
    constant MAX_COUNT_BITS_C : integer := log2(MAX_DELAY_C - ite(DO_REG_C, 2, 1));
@@ -44,10 +44,10 @@ architecture testbed of SlvDelayRamTb is
    type countDelayType is array(MAX_DELAY_C - 1 downto 0) of integer range 0 to (2**WIDTH_C - 1);
 
    type RegType is record
-      passed         : sl;
-      failed         : sl;
-      count          : integer range 0 to (2**WIDTH_C - 1);
-      countDelay     : countDelayType;
+      passed     : sl;
+      failed     : sl;
+      count      : integer range 0 to (2**WIDTH_C - 1);
+      countDelay : countDelayType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -95,16 +95,16 @@ begin
          DELAY_G       => MAX_DELAY_C,
          WIDTH_G       => WIDTH_C)
       port map (
-         clk     => clk,
+         clk      => clk,
          maxCount => maxCount,
-         din     => din,
-         dout    => dout);
+         din      => din,
+         dout     => dout);
 
    -------------------------------------------------
    -- FSM to sweep through all possible combination
    ------------------------------------------------
    comb : process (dout, r, rst) is
-      variable v    : RegType;
+      variable v          : RegType;
       variable countDelay : integer;
    begin
       -- Latch the current value
@@ -114,7 +114,7 @@ begin
 
       v.count := r.count + 1;
 
-      v.countDelay(0) := r.count;
+      v.countDelay(0)                        := r.count;
       v.countDelay(MAX_DELAY_C - 1 downto 1) := r.countDelay(MAX_DELAY_C - 2 downto 0);
 
       -- test for failure

@@ -34,14 +34,14 @@ entity CRC32Rtl is
       RST_ASYNC_G : boolean          := false;
       CRC_INIT    : slv(31 downto 0) := x"FFFFFFFF");
    port (
-      CRCOUT       : out slv(31 downto 0);         -- CRC output
-      CRCCLK       : in  sl;     -- system clock
-      CRCCLKEN     : in  sl                     := '1';  -- system clock enable
-      CRCDATAVALID : in  sl;     -- indicate that new data arrived and CRC can be computed
+      CRCOUT       : out slv(31 downto 0);  -- CRC output
+      CRCCLK       : in  sl;            -- system clock
+      CRCCLKEN     : in  sl               := '1';  -- system clock enable
+      CRCDATAVALID : in  sl;  -- indicate that new data arrived and CRC can be computed
       CRCDATAWIDTH : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
-      CRCIN        : in  slv(31 downto 0);         -- input data for CRC calculation
+      CRCIN        : in  slv(31 downto 0);  -- input data for CRC calculation
       CRCINIT      : in  slv(31 downto 0) := CRC_INIT;
-      CRCRESET     : in  sl);    -- to set CRC logic to value in crc_cNIT
+      CRCRESET     : in  sl);  -- to set CRC logic to value in crc_cNIT
 end CRC32Rtl;
 
 architecture rtl of CRC32Rtl is
@@ -102,7 +102,7 @@ begin
       end if;
    end process;
 
-   CRCP : process (CRCCLK, CRCRESET)
+   CRCP : process (CRCCLK, CRCINIT, CRCRESET)
    begin
       if (RST_ASYNC_G and CRCRESET = '1') then
          crc <= CRCINIT after TPD_G;

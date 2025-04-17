@@ -22,9 +22,9 @@ package StdRtlPkg is
    -- Useful for pre compiler
    constant IN_SIMULATION_C : boolean := false
 -- pragma translate_off
-   or true
+                                         or true
 -- pragma translate_on
-   ;
+;
    constant IN_SYNTHESIS_C : boolean := not(IN_SIMULATION_C);
 
    -- Typing std_logic(_vector) is annoying
@@ -33,21 +33,21 @@ package StdRtlPkg is
 
    -- Declare arrays of built in types
    --type SlvArray     is array (natural range <>) of slv;   -- not supported in VCS yet (14APRIL2014 -- LLR)
-   type IntegerArray  is array (natural range <>) of integer;
-   type NaturalArray  is array (natural range <>) of natural;
+   type IntegerArray is array (natural range <>) of integer;
+   type NaturalArray is array (natural range <>) of natural;
    type PositiveArray is array (natural range <>) of positive;
-   type RealArray     is array (natural range <>) of real;
-   type TimeArray     is array (natural range <>) of time;
-   type BooleanArray  is array (natural range <>) of boolean;
+   type RealArray is array (natural range <>) of real;
+   type TimeArray is array (natural range <>) of time;
+   type BooleanArray is array (natural range <>) of boolean;
 
    -- Declare vector arrays of built in types
    --type SlvVectorArray     is array (natural range<>, natural range<>) of slv;   -- not supported in VCS yet (14APRIL2014 -- LLR)
-   type IntegerVectorArray  is array (natural range<>, natural range<>) of integer;
-   type NaturalVectorArray  is array (natural range<>, natural range<>) of natural;
+   type IntegerVectorArray is array (natural range<>, natural range<>) of integer;
+   type NaturalVectorArray is array (natural range<>, natural range<>) of natural;
    type PositiveVectorArray is array (natural range<>, natural range<>) of positive;
-   type RealVectorArray     is array (natural range<>, natural range<>) of real;
-   type TimeVectorArray     is array (natural range<>, natural range<>) of time;
-   type BooleanVectorArray  is array (natural range<>, natural range<>) of boolean;
+   type RealVectorArray is array (natural range<>, natural range<>) of real;
+   type TimeVectorArray is array (natural range<>, natural range<>) of time;
+   type BooleanVectorArray is array (natural range<>, natural range<>) of boolean;
 
    -- Create an arbitrary sized slv with all bits set high or low
    function slvAll (size  : positive; value : sl) return slv;
@@ -58,11 +58,11 @@ package StdRtlPkg is
    function isPowerOf2 (number       : natural) return boolean;
    function isPowerOf2 (vector       : slv) return boolean;
    function log2 (constant number    : integer) return natural;
-   function logB (base : natural; number : natural) return natural;
+   function logB (base               : natural; number : natural) return natural;
    function bitSize (constant number : natural) return positive;
    function bitReverse (a            : slv) return slv;
-   function wordCount (number : positive; wordSize : positive := 8) return natural;
-   function endianSwap(vector : slv) return slv;
+   function wordCount (number        : positive; wordSize : positive := 8) return natural;
+   function endianSwap(vector        : slv) return slv;
 
    -- Similar to python's range() function
    function list (constant start, size, step : integer) return IntegerArray;
@@ -72,12 +72,12 @@ package StdRtlPkg is
    function genmux(s, v : slv) return sl;
 
    -- This should be unnecessary in VHDL 2008
-   function toBoolean (logic : sl) return boolean;
-   function toSl (bool       : boolean) return sl;
-   function toString (bool   : boolean) return string;
-   function toBoolean (str   : string) return boolean;
-   function toSlv(bools      : BooleanArray) return slv;
-   function toBooleanArray (vec : slv)      return BooleanArray;
+   function toBoolean (logic    : sl) return boolean;
+   function toSl (bool          : boolean) return sl;
+   function toString (bool      : boolean) return string;
+   function toBoolean (str      : string) return boolean;
+   function toSlv(bools         : BooleanArray) return slv;
+   function toBooleanArray (vec : slv) return BooleanArray;
 
    -- Unary reduction operators, also unnecessary in VHDL 2008
    function uOr (vec  : slv) return sl;
@@ -95,7 +95,7 @@ package StdRtlPkg is
 
    -- Functions for counting the number of '1' in a slv bus
    function onesCountU (vec : slv) return unsigned;
-   function onesCount (vec : slv) return slv;
+   function onesCount (vec  : slv) return slv;
 
    -- Gray Code functions
    function grayEncode (vec : unsigned) return unsigned;
@@ -107,11 +107,11 @@ package StdRtlPkg is
    function lfsrShift (lfsr : slv; constant taps : NaturalArray; input : sl := '0') return slv;
 
    function maximum (left, right : integer) return integer;
-   function maximum (a : IntegerArray) return integer;
+   function maximum (a           : IntegerArray) return integer;
    function minimum (left, right : integer) return integer;
-   function minimum (a : IntegerArray) return integer;
-   function sort    (a : IntegerArray) return IntegerArray;
-   function median  (a : IntegerArray) return integer;
+   function minimum (a           : IntegerArray) return integer;
+   function sort (a              : IntegerArray) return IntegerArray;
+   function median (a            : IntegerArray) return integer;
 
    -- One line if-then-else functions. Useful for assigning constants based on generics.
    function ite(i : boolean; t : boolean; e : boolean) return boolean;
@@ -129,10 +129,10 @@ package StdRtlPkg is
    function toSlv(ARG : integer; SIZE : integer) return slv;
 
    -- gets real multiplication and division with integers
-   function "*" (L    : integer; R : real) return real;
-   function "*" (L    : real; R : integer) return real;
-   function "/" (L    : integer; R : real) return real;
-   function "/" (L    : real; R : integer) return real;
+   function "*" (L : integer; R : real) return real;
+   function "*" (L : real; R : integer) return real;
+   function "/" (L : integer; R : real) return real;
+   function "/" (L : real; R : integer) return real;
 
    function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
 
@@ -140,20 +140,20 @@ package StdRtlPkg is
    function getTimeRatio (T1, T2 : time) return natural;  --not supported by Vivado
    function getTimeRatio (T1, T2 : real) return natural;
 
-   procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    slv);
-   procedure assignSlv    (i : inout integer; vector : inout slv; value  : in    sl);
-   procedure assignRecord (i : inout integer; vector : in    slv; value  : inout slv);
-   procedure assignRecord (i : inout integer; vector : in    slv; value  : inout sl);
+   procedure assignSlv (i    : inout integer; vector : inout slv; value : in slv);
+   procedure assignSlv (i    : inout integer; vector : inout slv; value : in sl);
+   procedure assignRecord (i : inout integer; vector : in slv; value : inout slv);
+   procedure assignRecord (i : inout integer; vector : in slv; value : inout sl);
 
    -- Resize vector types, either by trimming or padding upper indicies
-   function resize (vec : slv; newSize : integer; pad : sl := '0') return slv;
+   function resize (vec : slv; newSize : integer; pad : sl           := '0') return slv;
    function resize (str : string; newSize : integer; pad : character := nul) return string;
 
-  -- Match Functions
-  function StdMatch (L, R: std_ulogic) return boolean;
-  function StdMatch (L, R: unsigned) return boolean;
-  function StdMatch (L, R: signed) return boolean;
-  function StdMatch (L, R: slv) return boolean;
+   -- Match Functions
+   function StdMatch (L, R : std_ulogic) return boolean;
+   function StdMatch (L, R : unsigned) return boolean;
+   function StdMatch (L, R : signed) return boolean;
+   function StdMatch (L, R : slv) return boolean;
 
    -- Some synthesis tools wont accept unit types
    -- pragma translate_off
@@ -701,12 +701,12 @@ package StdRtlPkg is
       gitHash     : slv(159 downto 0);
    end record;
    function toBuildInfo (din : slv) return BuildInfoRetType;
-   function toSlv (      din : BuildInfoRetType) return BuildInfoType;
+   function toSlv (din       : BuildInfoRetType) return BuildInfoType;
 
    constant BUILD_INFO_DEFAULT_C : BuildInfoRetType := (
-      buildString =>  (others => (others => '0')),
-      fwVersion => X"00000000",
-      gitHash => (others => '0'));
+      buildString => (others => (others => '0')),
+      fwVersion   => X"00000000",
+      gitHash     => (others => '0'));
 
    constant BUILD_INFO_DEFAULT_SLV_C : BuildInfoType := (others => '0');
 
@@ -776,7 +776,7 @@ package body StdRtlPkg is
    end function logB;
 
    -- Find number of bits needed to store a number
-   function bitSize (constant number : natural ) return positive is
+   function bitSize (constant number : natural) return positive is
    begin
       if (number = 0 or number = 1) then
          return 1;
@@ -812,8 +812,8 @@ package body StdRtlPkg is
 
    function endianSwap (vector : slv) return slv is
       constant BYTES_C : natural := wordCount(number => vector'length, wordSize => 8);
-      variable inp : slv(BYTES_C*8-1 downto 0);
-      variable ret : slv(BYTES_C*8-1 downto 0);
+      variable inp     : slv(BYTES_C*8-1 downto 0);
+      variable ret     : slv(BYTES_C*8-1 downto 0);
    begin
       inp := resize(vector, BYTES_C*8);
 
@@ -864,7 +864,7 @@ package body StdRtlPkg is
       end if;
    end function toBoolean;
 
-   function toSlv (      bools : BooleanArray)      return slv is
+   function toSlv (bools : BooleanArray) return slv is
       variable ret : slv(bools'range) := (others => '0');
    begin
       for i in ret'range loop
@@ -873,7 +873,7 @@ package body StdRtlPkg is
       return ret;
    end function toSlv;
 
-   function toBooleanArray (vec : slv)  return BooleanArray is
+   function toBooleanArray (vec : slv) return BooleanArray is
       variable ret : BooleanArray(vec'range);
    begin
       for i in vec'range loop
@@ -987,7 +987,7 @@ package body StdRtlPkg is
    -- New Non-recursive onesCount Function
    function onesCountU (vec : slv)
       return unsigned is
-      variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0,bitSize(vec'length));
+      variable retVar : unsigned((bitSize(vec'length)-1) downto 0) := to_unsigned(0, bitSize(vec'length));
    begin
       for i in vec'range loop
          if vec(i) = '1' then
@@ -1221,15 +1221,15 @@ package body StdRtlPkg is
       a : IntegerArray)
       return IntegerArray is
       variable sorted : IntegerArray(a'range) := a;
-      variable key : Integer;
-      variable j   : Integer;
+      variable key    : integer;
+      variable j      : integer;
    begin
       for i in (a'low + 1) to a'high loop
          key := sorted(i);
          j   := i - 1;
-         while ( (j >= a'low) and (sorted(j) > key) ) loop
+         while ((j >= a'low) and (sorted(j) > key)) loop
             sorted(j + 1) := sorted(j);
-            j := j - 1;
+            j             := j - 1;
          end loop;
          sorted(j + 1) := key;
       end loop;
@@ -1241,9 +1241,9 @@ package body StdRtlPkg is
       a : IntegerArray)
       return integer is
       variable sorted : integerArray(a'range);
-      variable med    : Integer;
+      variable med    : integer;
    begin
-      med := (a'high + a'low) / 2;
+      med    := (a'high + a'low) / 2;
       sorted := sort(a);
       return sorted(med);
    end function median;
@@ -1265,7 +1265,7 @@ package body StdRtlPkg is
    -------------------------------------------------------------------------------------------------
    -- Multiply and divide reals and integer
    -------------------------------------------------------------------------------------------------
-   function "*" (L : real; R : integer)      return real is
+   function "*" (L : real; R : integer) return real is
    begin
       return real(L*real(R));
    end function "*";
@@ -1348,9 +1348,9 @@ package body StdRtlPkg is
    -----------------------------
    -- Mux a SlVectorArray into an SLV
    -----------------------------
-   function muxSlVectorArray (vec : SlVectorArray;
-      addr            : natural;
-      allowOutOfRange : boolean := false)
+   function muxSlVectorArray (vec             : SlVectorArray;
+                              addr            : natural;
+                              allowOutOfRange : boolean := false)
       return slv is
       variable retVar : slv(vec'range(2));
    begin
@@ -1372,8 +1372,8 @@ package body StdRtlPkg is
    is
       variable low : integer;
    begin
-      low := i;
-      i   := i+value'length;
+      low                    := i;
+      i                      := i+value'length;
       vector(i-1 downto low) := value;
    end procedure assignSlv;
 
@@ -1384,7 +1384,7 @@ package body StdRtlPkg is
    is
    begin
       vector(i) := value;
-      i := i+1;
+      i         := i+1;
    end procedure assignSlv;
 
    procedure assignRecord (
@@ -1394,8 +1394,8 @@ package body StdRtlPkg is
    is
       variable low : integer;
    begin
-      low := i;
-      i   := i+value'length;
+      low   := i;
+      i     := i+value'length;
       value := vector(i-1 downto low);
    end procedure assignRecord;
 
@@ -1406,59 +1406,59 @@ package body StdRtlPkg is
    is
    begin
       value := vector(i);
-      i   := i+1;
+      i     := i+1;
    end procedure assignRecord;
 
    -- Resize an SLV, either by trimming or padding upper bits
-   function resize ( vec : slv; newSize : integer; pad : sl:='0') return slv is
+   function resize (vec : slv; newSize : integer; pad : sl := '0') return slv is
       variable ret : slv(newSize-1 downto 0);
       variable tmp : slv(vec'length-1 downto 0);
-      variable top    : integer;
+      variable top : integer;
    begin
-      ret := (others => pad);
-      tmp := vec;                       -- handles ranges that arent x:0
-      top := minimum( newSize, vec'length) - 1;
+      ret               := (others => pad);
+      tmp               := vec;         -- handles ranges that arent x:0
+      top               := minimum(newSize, vec'length) - 1;
       ret(top downto 0) := tmp(top downto 0);
       return ret;
    end function;
 
-   function resize (str : string; newSize : integer ; pad : character := nul) return string is
+   function resize (str : string; newSize : integer; pad : character := nul) return string is
       variable ret : string(1 to newSize);
       variable tmp : string(1 to str'length);
       variable top : integer;
    begin
-      ret := (others => pad);
-      tmp := str;
-      top := minimum( newSize, str'length);
+      ret           := (others => pad);
+      tmp           := str;
+      top           := minimum(newSize, str'length);
       ret(1 to top) := tmp(1 to top);
       return ret;
    end function resize;
 
    -- Match Functions
-   function StdMatch (L, R: std_ulogic) return boolean is
+   function StdMatch (L, R : std_ulogic) return boolean is
    begin
-      return std_match(L,R);
+      return std_match(L, R);
    end function StdMatch;
 
-   function StdMatch (L, R: unsigned) return boolean is
+   function StdMatch (L, R : unsigned) return boolean is
    begin
-      return std_match(L,R);
+      return std_match(L, R);
    end function StdMatch;
 
-   function StdMatch (L, R: signed) return boolean is
+   function StdMatch (L, R : signed) return boolean is
    begin
-      return std_match(L,R);
+      return std_match(L, R);
    end function StdMatch;
 
-   function StdMatch (L, R: slv) return boolean is
+   function StdMatch (L, R : slv) return boolean is
    begin
-      return std_match(L,R);
+      return std_match(L, R);
    end function StdMatch;
 
 
    function toBuildInfo (din : slv) return BuildInfoRetType is
       variable ret : BuildInfoRetType;
-      --variable i   : natural;
+   --variable i   : natural;
    begin
       for i in 0 to 255 loop
          ret.buildString(i/4)(8*(i mod 4)+7 downto 8*(i mod 4)) := din(2047-(8*i) downto 2040-(8*i));
