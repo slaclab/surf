@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -44,8 +43,10 @@ end EthMacRxImportXlgmii;
 architecture rtl of EthMacRxImportXlgmii is
 
 begin
+
    -- Place holder for future code
    macIbMaster <= AXI_STREAM_MASTER_INIT_C;
    rxCountEn   <= '0';
    rxCrcError  <= '0';
+
 end rtl;

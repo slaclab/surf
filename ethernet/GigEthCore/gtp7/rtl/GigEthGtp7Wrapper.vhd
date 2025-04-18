@@ -272,4 +272,5 @@ begin
 
       end generate GEN_LANE;
    end generate REAL_ETH_GEN;
+
 end mapping;

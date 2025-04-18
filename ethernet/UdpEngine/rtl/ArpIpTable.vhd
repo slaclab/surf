@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Top-Level UDP/DHCP Module
+-- Description: ARP IP/MAC Table Module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -17,12 +17,10 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity ArpIpTable is
-
    generic (
       TPD_G          : time                    := 1 ns;
       CLK_FREQ_G     : real                    := 156.25E+06;
@@ -51,24 +49,23 @@ end entity ArpIpTable;
 architecture rtl of ArpIpTable is
 
    -- Write stuff
-   type wRegType is record
+   type WrRegType is record
       ipLutTable  : Slv32Array(ENTRIES_G-1 downto 0);
       macLutTable : Slv48Array(ENTRIES_G-1 downto 0);
       fifoRdEn    : sl;
       overwrite   : boolean;
       entryCount  : slv(7 downto 0);
-   end record wRegType;
+   end record WrRegType;
 
-   constant W_REG_INIT_C : wRegType := (
+   constant WR_REG_INIT_C : WrRegType := (
       ipLutTable  => (others => (others => '0')),
       macLutTable => (others => (others => '0')),
       fifoRdEn    => '0',
       overwrite   => false,
-      entryCount  => (others => '0')
-      );
+      entryCount  => (others => '0'));
 
-   signal wR   : wRegType := W_REG_INIT_C;
-   signal wRin : wRegType;
+   signal wR   : WrRegType := WR_REG_INIT_C;
+   signal wRin : WrRegType;
 
    -- Read Stuff
    signal matchArray : slv(ENTRIES_G-1 downto 0);
@@ -79,29 +76,26 @@ architecture rtl of ArpIpTable is
    type ExpStateType is (
       IDLE_S,
       MONITOR_S,
-      EXPIRE_S
-      );
+      EXPIRE_S);
    type ExpStateArray is array (natural range <>) of ExpStateType;
 
-   type eRegType is record
+   type ExpRegType is record
       timerEn    : sl;
       state      : ExpStateArray(ENTRIES_G-1 downto 0);
       timer      : natural range 0 to (TIMER_1_SEC_C-1);
       arpTimers  : TimerArray(ENTRIES_G-1 downto 0);
       arbRequest : slv(ENTRIES_G-1 downto 0);
-   end record eRegType;
+   end record ExpRegType;
 
-   constant E_REG_INIT_C : eRegType :=
-      (
-         timerEn    => '0',
-         state      => (others => IDLE_S),
-         timer      => 0,
-         arpTimers  => (others => 0),
-         arbRequest => (others => '0')
-         );
+   constant EXP_REG_INIT_C : ExpRegType := (
+      timerEn    => '0',
+      state      => (others => IDLE_S),
+      timer      => 0,
+      arpTimers  => (others => 0),
+      arbRequest => (others => '0'));
 
-   signal eR   : eRegType := E_REG_INIT_C;
-   signal eRin : eRegType;
+   signal eR   : ExpRegType := EXP_REG_INIT_C;
+   signal eRin : ExpRegType;
 
    -- Arbiter
    signal arbSelected        : slv(bitSize(ENTRIES_G-1)-1 downto 0);
@@ -113,12 +107,12 @@ architecture rtl of ArpIpTable is
    signal fifoValid : sl;
    signal fifoEmpty : sl;
 
-begin  -- architecture rtl
+begin
 
    -- Write process comb
    wrComb : process (arbSelected, arbValid, fifoData, fifoEmpty, fifoValid,
                      ipWrAddr, ipWrEn, macWrAddr, macWrEn, rst, wR) is
-      variable v        : wRegType;
+      variable v        : WrRegType;
       variable wrAddInt : integer;
    begin
       -- Latch the current value
@@ -169,7 +163,7 @@ begin  -- architecture rtl
 
       -- Reset
       if (rst = '1') then
-         v := W_REG_INIT_C;
+         v := WR_REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
@@ -233,7 +227,7 @@ begin  -- architecture rtl
    -- Expiration process
    expComb : process (arbSelected, arbValid, clientRemoteDetIp,
                       clientRemoteDetValid, eR, rst, wR) is
-      variable v : eRegType;
+      variable v : ExpRegType;
    begin  -- process expComb
       -- Latch the current value
       v := eR;
@@ -301,7 +295,7 @@ begin  -- architecture rtl
 
       -- Reset
       if (rst = '1') then
-         v := E_REG_INIT_C;
+         v := EXP_REG_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle

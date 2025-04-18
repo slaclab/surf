@@ -126,18 +126,18 @@ begin
       severity error;
 
    comb : process (pipeAxisSlave, r, sAxisMaster, sSideBand) is
-      variable v          : RegType;
-      variable ibM        : AxiStreamMasterType;
-      variable ibSide     : slv(SIDE_BAND_WIDTH_G-1 downto 0);
-      variable idx        : integer;    -- index version of counter
-      variable idx_resize : integer;    -- index version of counter
-      variable byteCnt    : integer;  -- Number of valid bytes in incoming bus
-      variable bytes      : integer;    -- byte version of counter
+      variable v         : RegType;
+      variable ibM       : AxiStreamMasterType;
+      variable ibSide    : slv(SIDE_BAND_WIDTH_G-1 downto 0);
+      variable idx       : integer;     -- index version of counter
+      variable idxResize : integer;     -- index version of counter
+      variable byteCnt   : integer;  -- Number of valid bytes in incoming bus
+      variable bytes     : integer;     -- byte version of counter
    begin
-      v          := r;
-      idx        := conv_integer(r.count);
-      idx_resize := COUNT_C - 1 - idx;
-      bytes      := (idx+1) * MST_BYTES_C;
+      v         := r;
+      idx       := conv_integer(r.count);
+      idxResize := COUNT_C - 1 - idx;
+      bytes     := (idx+1) * MST_BYTES_C;
       if (SLAVE_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
          byteCnt := conv_integer(sAxisMaster.tKeep(bitSize(SLAVE_AXI_CONFIG_G.TDATA_BYTES_C)-1 downto 0));
       else
@@ -190,16 +190,16 @@ begin
                   v.obMaster.tData((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ChangeEndian(ibM.tData((SLV_BYTES_C*8)-1 downto 0));
                   v.obMaster.tKeep((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := ReverseBits(ibM.tKeep(SLV_BYTES_C-1 downto 0));
                else
-                  v.obMaster.tData((SLV_BYTES_C*8*idx_resize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx_resize)) := ChangeEndian(ibM.tData((SLV_BYTES_C*8)-1 downto 0));
-                  v.obMaster.tKeep((SLV_BYTES_C*idx_resize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx_resize))         := ReverseBits(ibM.tKeep(SLV_BYTES_C-1 downto 0));
+                  v.obMaster.tData((SLV_BYTES_C*8*idxResize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idxResize)) := ChangeEndian(ibM.tData((SLV_BYTES_C*8)-1 downto 0));
+                  v.obMaster.tKeep((SLV_BYTES_C*idxResize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idxResize))         := ReverseBits(ibM.tKeep(SLV_BYTES_C-1 downto 0));
                end if;
             else
                if LITTLE_ENDIAN_G then
                   v.obMaster.tData((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ibM.tData((SLV_BYTES_C*8)-1 downto 0);
                   v.obMaster.tKeep((SLV_BYTES_C*idx)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx))         := ibM.tKeep(SLV_BYTES_C-1 downto 0);
                else
-                  v.obMaster.tData((SLV_BYTES_C*8*idx_resize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx_resize)) := ibM.tData((SLV_BYTES_C*8)-1 downto 0);
-                  v.obMaster.tKeep((SLV_BYTES_C*idx_resize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idx_resize))         := ibM.tKeep(SLV_BYTES_C-1 downto 0);
+                  v.obMaster.tData((SLV_BYTES_C*8*idxResize)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idxResize)) := ibM.tData((SLV_BYTES_C*8)-1 downto 0);
+                  v.obMaster.tKeep((SLV_BYTES_C*idxResize)+(SLV_BYTES_C-1) downto (SLV_BYTES_C*idxResize))         := ibM.tKeep(SLV_BYTES_C-1 downto 0);
                end if;
             end if;
             v.obMaster.tUser((SLV_BYTES_C*8*idx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*idx)) := ibM.tUser((SLV_BYTES_C*8)-1 downto 0);
@@ -230,16 +230,16 @@ begin
                   v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ChangeEndian(ibM.tData((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx)));
                   v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ReverseBits(ibM.tKeep((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx)));
                else
-                  v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ChangeEndian(ibM.tData((MST_BYTES_C*8*idx_resize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx_resize)));
-                  v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ReverseBits(ibM.tKeep((MST_BYTES_C*idx_resize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx_resize)));
+                  v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ChangeEndian(ibM.tData((MST_BYTES_C*8*idxResize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idxResize)));
+                  v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ReverseBits(ibM.tKeep((MST_BYTES_C*idxResize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idxResize)));
                end if;
             else
                if LITTLE_ENDIAN_G then
                   v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ibM.tData((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx));
                   v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ibM.tKeep((MST_BYTES_C*idx)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx));
                else
-                  v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ibM.tData((MST_BYTES_C*8*idx_resize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx_resize));
-                  v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ibM.tKeep((MST_BYTES_C*idx_resize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idx_resize));
+                  v.obMaster.tData((MST_BYTES_C*8)-1 downto 0) := ibM.tData((MST_BYTES_C*8*idxResize)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idxResize));
+                  v.obMaster.tKeep(MST_BYTES_C-1 downto 0)     := ibM.tKeep((MST_BYTES_C*idxResize)+(MST_BYTES_C-1) downto (MST_BYTES_C*idxResize));
                end if;
             end if;
             v.obMaster.tUser((MST_BYTES_C*8)-1 downto 0) := ibM.tUser((MST_BYTES_C*8*idx)+((MST_BYTES_C*8)-1) downto (MST_BYTES_C*8*idx));

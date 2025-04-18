@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.EthCrc32Pkg.all;
@@ -143,7 +142,7 @@ begin
 
       -- Calculate CRC in parallel - implementation used depends on the byte width in use.
       if (r.valid = '1') then
-         case(r.byteWidth) is
+         case (r.byteWidth) is
             ---------------------------------------------------------------------------------------------------------------
             when x"0" =>                -- 1 Byte (8-bits)
                if (USE_DSP_G) then

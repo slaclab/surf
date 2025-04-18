@@ -112,7 +112,7 @@ begin
    begin
       wait for CLK_PERIOD_C;
       wait until rst = '0';
-      phyRxC <= x"ff";
+      phyRxC <= x"FF";
       phyRxD <= x"0707_0707_0707_0707";
       wait for 289*CLK_PERIOD_C + TPD_G;
 
@@ -133,113 +133,113 @@ begin
       --wait for CLK_PERIOD_C;
 
       phyRxC <= x"01";
-      phyRxD <= x"d5555555555555fb";
+      phyRxD <= x"D5555555555555FB";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"1de4010300564400";
+      phyRxD <= x"1DE4010300564400";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"0045000801616d2d";
+      phyRxD <= x"0045000801616D2D";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"1140004076241c04";
+      phyRxD <= x"1140004076241C04";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"a8c00102a8c0ff8c";
+      phyRxD <= x"A8C00102A8C0FF8C";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"08040020839b0a02";
+      phyRxD <= x"08040020839B0A02";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"004b00000053f81a";
+      phyRxD <= x"004B00000053F81A";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"aa55aa55aa550400";
+      phyRxD <= x"AA55AA55AA550400";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"aa55_aa55_aa55_aa55";
+      phyRxD <= x"AA55_AA55_AA55_AA55";
       wait for 126*CLK_PERIOD_C;
-      phyRxC <= x"c0";
-      phyRxD <= x"07fd90a35716aa55";
+      phyRxC <= x"C0";
+      phyRxD <= x"07FD90A35716AA55";
       wait for CLK_PERIOD_C;
 
       -- Insert 3 idle cycles
-      phyRxC <= x"ff";
+      phyRxC <= x"FF";
       phyRxD <= x"0707_0707_0707_0707";
       wait for 20*CLK_PERIOD_C;
 
       -------------------------------------------------------------------------
       -- Packet #2
       -------------------------------------------------------------------------
-      phyRxC <= x"1f";
-      phyRxD <= x"555555fb07070707";
+      phyRxC <= x"1F";
+      phyRxD <= x"555555FB07070707";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"00564400d5555555";
+      phyRxD <= x"00564400D5555555";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"01616d2d1de40103";
+      phyRxD <= x"01616D2D1DE40103";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"77241c0400450008";
+      phyRxD <= x"77241C0400450008";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"a8c0fe8c11400040";
+      phyRxD <= x"A8C0FE8C11400040";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"839b0a02a8c00102";
+      phyRxD <= x"839B0A02A8C00102";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"0053f81908040020";
+      phyRxD <= x"0053F81908040020";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"aa550400004c0000";
+      phyRxD <= x"AA550400004C0000";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"aa55_aa55_aa55_aa55";
+      phyRxD <= x"AA55_AA55_AA55_AA55";
       wait for 126*CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"0623aa55aa55aa55";
+      phyRxD <= x"0623AA55AA55AA55";
       wait for CLK_PERIOD_C;
-      phyRxC <= x"fc";
-      phyRxD <= x"0707070707fd91da";
+      phyRxC <= x"FC";
+      phyRxD <= x"0707070707FD91DA";
       wait for CLK_PERIOD_C;
 
       -------------------------------------------------------------------------
       -- Packet #3 - Immediately after previous
       -------------------------------------------------------------------------
       phyRxC <= x"01";
-      phyRxD <= x"d5555555555555fb";
+      phyRxD <= x"D5555555555555FB";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"1de4010300564400";
+      phyRxD <= x"1DE4010300564400";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"0045000801616d2d";
+      phyRxD <= x"0045000801616D2D";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"1140004078241c04";
+      phyRxD <= x"1140004078241C04";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"a8c00102a8c0fd8c";
+      phyRxD <= x"A8C00102A8C0FD8C";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"08040020839b0a02";
+      phyRxD <= x"08040020839B0A02";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"004d00000053f818";
+      phyRxD <= x"004D00000053F818";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"aa55aa55aa550400";
+      phyRxD <= x"AA55AA55AA550400";
       wait for CLK_PERIOD_C;
       phyRxC <= x"00";
-      phyRxD <= x"aa55_aa55_aa55_aa55";
+      phyRxD <= x"AA55_AA55_AA55_AA55";
       wait for 126*CLK_PERIOD_C;
-      phyRxC <= x"c0";
-      phyRxD <= x"07fd5e081389aa55";
+      phyRxC <= x"C0";
+      phyRxD <= x"07FD5E081389AA55";
       wait for CLK_PERIOD_C;
 
-      phyRxC <= x"ff";
+      phyRxC <= x"FF";
       phyRxD <= x"0707_0707_0707_0707";
 
    end process;
