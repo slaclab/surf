@@ -24,22 +24,22 @@ use surf.StdRtlPkg.all;
 -- See UG579 p. 62 == 3:2 compressor followed by 2 input adder
 
 entity add3 is
-  generic (
+   generic (
       TPD_G        : time    := 1 ns;
-      XIL_DEVICE_G : string  := "ULTRASCALE_PLUS"; -- used with USE_CSA3_G
-      USE_CSA3_G   : boolean := false; -- Use CSA3 primitive instantiation
+      XIL_DEVICE_G : string  := "ULTRASCALE_PLUS";  -- used with USE_CSA3_G
+      USE_CSA3_G   : boolean := false;  -- Use CSA3 primitive instantiation
       REG_IN_G     : boolean := false;
       REG_OUT_G    : boolean := true;
       NEGATIVE_A_G : boolean := false;
       NEGATIVE_B_G : boolean := false;
       EXTRA_MSB_G  : integer := 2);
-  port (
+   port (
       clk : in  sl;
       rst : in  sl := '0';
       a   : in  sfixed;
       b   : in  sfixed;
       c   : in  sfixed;
-      y   : out sfixed);   -- y = +/- a +/- a + C
+      y   : out sfixed);                -- y = +/- a +/- a + C
 end add3;
 
 architecture rtl of add3 is
@@ -56,7 +56,7 @@ begin
          1 => b'high,
          2 => c'high);
 
-      constant LOW_ARRAY_C  : IntegerArray(2 downto 0) := (
+      constant LOW_ARRAY_C : IntegerArray(2 downto 0) := (
          0 => a'low,
          1 => b'low,
          2 => c'low);
@@ -82,64 +82,64 @@ begin
 
    begin
 
-      comb : process( a, b, c, r ) is
-          variable v   : RegType;
-          variable sum : sfixed(HIGH_BIT_C downto LOW_BIT_C);
+      comb : process(a, b, c, r) is
+         variable v   : RegType;
+         variable sum : sfixed(HIGH_BIT_C downto LOW_BIT_C);
       begin
 
-          v     := r;
+         v := r;
 
-          v.a   := a;
-          v.b   := b;
-          v.c   := c;
+         v.a := a;
+         v.b := b;
+         v.c := c;
 
-          if REG_IN_G then
-             sum := resize(r.c, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             IF NEGATIVE_A_G then
-                sum := resize(sum - r.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             else
-                sum := resize(sum + r.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             end if;
-             IF NEGATIVE_B_G then
-                sum := resize(sum - r.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             else
-                sum := resize(sum + r.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             end if;
-          else
-             sum := resize(v.c, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             IF NEGATIVE_A_G then
-                sum := resize(sum - v.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             else
-                sum := resize(sum + v.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             end if;
-             IF NEGATIVE_B_G then
-                sum := resize(sum - v.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             else
-                sum := resize(sum + v.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
-             end if;
-          end if;
+         if REG_IN_G then
+            sum := resize(r.c, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            if NEGATIVE_A_G then
+               sum := resize(sum - r.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            else
+               sum := resize(sum + r.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            end if;
+            if NEGATIVE_B_G then
+               sum := resize(sum - r.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            else
+               sum := resize(sum + r.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            end if;
+         else
+            sum := resize(v.c, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            if NEGATIVE_A_G then
+               sum := resize(sum - v.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            else
+               sum := resize(sum + v.a, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            end if;
+            if NEGATIVE_B_G then
+               sum := resize(sum - v.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            else
+               sum := resize(sum + v.b, sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+            end if;
+         end if;
 
-          v.sum := resize(sum, v.sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
+         v.sum := resize(sum, v.sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
 
-          rin <= v;
+         rin <= v;
 
-          if REG_OUT_G then
-              y <= r.sum;
-          else
-              y <= v.sum;
-          end if;
+         if REG_OUT_G then
+            y <= r.sum;
+         else
+            y <= v.sum;
+         end if;
 
       end process comb;
 
-      seq : process ( clk ) is
+      seq : process (clk) is
       begin
-          if rising_edge(clk) then
-             if rst = '1' then
-                r <= REG_INIT_C after TPD_G;
-             else
-                r <= rin after TPD_G;
-             end if;
-          end if;
+         if rising_edge(clk) then
+            if rst = '1' then
+               r <= REG_INIT_C after TPD_G;
+            else
+               r <= rin after TPD_G;
+            end if;
+         end if;
       end process seq;
 
    end generate GEN_BEHAV;
@@ -147,7 +147,7 @@ begin
    GEN_CSA3 : if USE_CSA3_G = true generate
       CSA3 : entity surf.csa3
          generic map (
-            TPD_G => TPD_G,
+            TPD_G        => TPD_G,
             XIL_DEVICE_G => XIL_DEVICE_G,
             REG_IN_G     => REG_IN_G,
             REG_OUT_G    => REG_OUT_G,
@@ -155,12 +155,12 @@ begin
             NEGATIVE_B_G => NEGATIVE_B_G,
             EXTRA_MSB_G  => EXTRA_MSB_G)
          port map (
-            clk   => clk,
-            rst   => rst,
-            a     => a,
-            b     => b,
-            c     => c,
-            y     => y);
+            clk => clk,
+            rst => rst,
+            a   => a,
+            b   => b,
+            c   => c,
+            y   => y);
    end generate GEN_CSA3;
 
 end rtl;

@@ -24,11 +24,11 @@ package Ad9681Pkg is
    -- Interface to AD9681 chip
    -- Chip has two Serial outputs
    type Ad9681SerialType is record
-      fClkP : slv(1 downto 0);                       -- Frame clock
+      fClkP : slv(1 downto 0);          -- Frame clock
       fClkN : slv(1 downto 0);
-      dClkP : slv(1 downto 0);                       -- Data clock
+      dClkP : slv(1 downto 0);          -- Data clock
       dClkN : slv(1 downto 0);
-      chP   : slv8Array(1 downto 0);          -- Serial Data channels
+      chP   : slv8Array(1 downto 0);    -- Serial Data channels
       chN   : slv8Array(1 downto 0);
    end record;
 

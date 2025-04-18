@@ -45,48 +45,48 @@ use surf.Jesd204bPkg.all;
 
 entity JesdTxLane is
    generic (
-      TPD_G       : time      := 1 ns;
-      F_G         : positive  := 2;
-      K_G         : positive  := 32
-   );
+      TPD_G : time     := 1 ns;
+      F_G   : positive := 2;
+      K_G   : positive := 32
+      );
    port (
 
       -- JESD
       -- Clocks and Resets
-      devClk_i       : in  sl;
-      devRst_i       : in  sl;
+      devClk_i : in sl;
+      devRst_i : in sl;
 
       -- JESD subclass selection: '0' or '1'(default)
       subClass_i : in sl;
 
       -- Control register
-      enable_i       : in  sl;
-      replEnable_i   : in  sl;
-      scrEnable_i    : in sl;
-      inv_i          : in sl;
+      enable_i     : in sl;
+      replEnable_i : in sl;
+      scrEnable_i  : in sl;
+      inv_i        : in sl;
 
       -- Local multi frame clock
-      lmfc_i         : in  sl;
+      lmfc_i : in sl;
 
       -- Synchronization request input
-      nSync_i        : in  sl;
+      nSync_i : in sl;
 
       -- GT is ready to transmit data after reset
-      gtTxReady_i    : in  sl;
+      gtTxReady_i : in sl;
 
       -- SYSREF for subclass 1 fixed latency
-      sysRef_i       : in    sl;
+      sysRef_i : in sl;
 
       -- Status of the transmitter
-      status_o       : out slv(TX_STAT_WIDTH_C-1 downto 0);
-      dacReady_o     : out sl;
+      status_o   : out slv(TX_STAT_WIDTH_C-1 downto 0);
+      dacReady_o : out sl;
 
       -- Sample data input
-      sampleData_i  : in  slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      sampleData_i : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
 
       -- Data and character output and GT signals
-      r_jesdGtTx     : out jesdGtTxLaneType
-   );
+      r_jesdGtTx : out jesdGtTxLaneType
+      );
 end JesdTxLane;
 
 architecture rtl of JesdTxLane is
@@ -94,51 +94,51 @@ architecture rtl of JesdTxLane is
    -- Internal signals
 
    -- Control signals from FSM
-   signal s_dataValid  : sl;
-   signal s_ila        : sl;
-   signal s_refDetected: sl;
+   signal s_dataValid   : sl;
+   signal s_ila         : sl;
+   signal s_refDetected : sl;
 
    -- Data-path
-   signal s_sampleDataMux  : slv(r_jesdGtTx.data'range);
-   signal s_sampleKMux     : slv(r_jesdGtTx.dataK'range);
-   signal s_ilaDataMux     : slv(r_jesdGtTx.data'range);
-   signal s_ilaKMux        : slv(r_jesdGtTx.dataK'range);
-   signal s_commaDataMux   : slv(r_jesdGtTx.data'range);
-   signal s_commaKMux      : slv(r_jesdGtTx.dataK'range);
+   signal s_sampleDataMux : slv(r_jesdGtTx.data'range);
+   signal s_sampleKMux    : slv(r_jesdGtTx.dataK'range);
+   signal s_ilaDataMux    : slv(r_jesdGtTx.data'range);
+   signal s_ilaKMux       : slv(r_jesdGtTx.dataK'range);
+   signal s_commaDataMux  : slv(r_jesdGtTx.data'range);
+   signal s_commaKMux     : slv(r_jesdGtTx.dataK'range);
 
-   signal s_data_sel       : slv(1 downto 0);
+   signal s_data_sel : slv(1 downto 0);
 
 begin
 
    -- Synchronization FSM
    syncFSM_INST : entity surf.JesdSyncFsmTx
       generic map (
-      TPD_G         => TPD_G,
-      NUM_ILAS_MF_G => 4)
+         TPD_G         => TPD_G,
+         NUM_ILAS_MF_G => 4)
       port map (
-         clk          => devClk_i,
-         rst          => devRst_i,
-         subClass_i   => subClass_i,
-         enable_i     => enable_i,
-         gtTxReady_i  => gtTxReady_i,
-         lmfc_i       => lmfc_i,
-         nSync_i      => nSync_i,
-         sysRef_i     => sysRef_i,
-         dataValid_o  => s_dataValid,
-         sysref_o     => s_refDetected,
-         ila_o        => s_ila
-      );
+         clk         => devClk_i,
+         rst         => devRst_i,
+         subClass_i  => subClass_i,
+         enable_i    => enable_i,
+         gtTxReady_i => gtTxReady_i,
+         lmfc_i      => lmfc_i,
+         nSync_i     => nSync_i,
+         sysRef_i    => sysRef_i,
+         dataValid_o => s_dataValid,
+         sysref_o    => s_refDetected,
+         ila_o       => s_ila
+         );
 
    ----------------------------------------------------
    -- Comma character generation
    COMMA_GEN : for i in GT_WORD_SIZE_C-1 downto 0 generate
       s_commaDataMux(i*8+7 downto i*8) <= K_CHAR_C;
-      s_commaKMux(i)    <= '1';
+      s_commaKMux(i)                   <= '1';
    end generate COMMA_GEN;
 
    ----------------------------------------------------
    -- Initial Synchronization Data Sequence (ILAS)
-   ilasGen_INST: entity surf.JesdIlasGen
+   ilasGen_INST : entity surf.JesdIlasGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -153,7 +153,7 @@ begin
 
    ----------------------------------------------------
    -- Sample data with added synchronization characters TODO
-   AlignChGen_INST: entity surf.JesdAlignChGen
+   AlignChGen_INST : entity surf.JesdAlignChGen
       generic map (
          TPD_G => TPD_G,
          F_G   => F_G)
@@ -174,19 +174,19 @@ begin
    s_data_sel <= s_dataValid & s_ila;
 
    with s_data_sel select
-   r_jesdGtTx.dataK     <= s_commaKMux    when "00",
-                           s_ilaKMux      when "01",
-                           s_sampleKMux   when "10",
-                           s_commaKMux    when others;
+      r_jesdGtTx.dataK <= s_commaKMux when "00",
+      s_ilaKMux                       when "01",
+      s_sampleKMux                    when "10",
+      s_commaKMux                     when others;
 
    with s_data_sel select
-   r_jesdGtTx.data      <= s_commaDataMux       when "00",
-                           s_ilaDataMux         when "01",
-                           s_sampleDataMux      when "10",
-                           s_commaDataMux       when others;
+      r_jesdGtTx.data <= s_commaDataMux when "00",
+      s_ilaDataMux                      when "01",
+      s_sampleDataMux                   when "10",
+      s_commaDataMux                    when others;
 
    -- Output assignment
    status_o   <= s_refDetected & enable_i & nSync_i & s_ila & s_dataValid & gtTxReady_i;
    dacReady_o <= s_dataValid;
- --------------------------------------------
+--------------------------------------------
 end rtl;

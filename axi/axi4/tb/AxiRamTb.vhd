@@ -88,7 +88,7 @@ begin
          ------------------------------
          -- BRAM
          ------------------------------
-         MEMORY_TYPE_G => "block",
+         MEMORY_TYPE_G  => "block",
          READ_LATENCY_G => 2,
          ------------------------------
          AXI_CONFIG_G   => AXI_CONFIG_C)

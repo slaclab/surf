@@ -95,7 +95,7 @@ architecture rtl of Gtp16FixedLatCore is
    -- Rx Signals
    --------------------------------------------------------------------------------------------------
    -- Clocking
-   signal gtpRxRecClk       : sl;       -- Raw rxrecclk from GTP, not square, needs DCM or PLL
+   signal gtpRxRecClk       : sl;  -- Raw rxrecclk from GTP, not square, needs DCM or PLL
    signal gtpRxRecClkBufG   : sl;
    signal rxRecClkPllOut0   : sl;       -- 1 byte clock
    signal rxRecClkPllOut1   : sl;       -- 2 byte clock

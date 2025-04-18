@@ -30,9 +30,9 @@ use surf.AxiStreamPacketizer2Pkg.all;
 entity Pgp3Rx is
 
    generic (
-      TPD_G              : time                  := 1 ns;
-      NUM_VC_G           : integer range 1 to 16 := 4;
-      ALIGN_SLIP_WAIT_G  : integer               := 32);
+      TPD_G             : time                  := 1 ns;
+      NUM_VC_G          : integer range 1 to 16 := 4;
+      ALIGN_SLIP_WAIT_G : integer               := 32);
    port (
       -- User Transmit interface
       pgpRxClk     : in  sl;
@@ -40,7 +40,7 @@ entity Pgp3Rx is
       pgpRxIn      : in  Pgp3RxInType := PGP3_RX_IN_INIT_C;
       pgpRxOut     : out Pgp3RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0); -- Unused
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);  -- Unused
 
       -- Status of local receive fifos
       remRxFifoCtrl  : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -99,8 +99,8 @@ begin
    -- Gearbox aligner
    U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner
       generic map (
-         TPD_G        => TPD_G,
-         SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
+         TPD_G       => TPD_G,
+         SLIP_WAIT_G => ALIGN_SLIP_WAIT_G)
       port map (
          clk           => phyRxClk,         -- [in]
          rst           => phyRxRst,         -- [in]

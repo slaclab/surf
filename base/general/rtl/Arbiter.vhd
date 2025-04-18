@@ -58,9 +58,9 @@ architecture rtl of Arbiter is
 begin
 
    comb : process (r, req, rst) is
-      variable v    : RegType;
+      variable v : RegType;
    begin
-      v    := r;
+      v := r;
 
       if (req(conv_integer(r.lastSelected)) = '0' or r.valid = '0') then
          arbitrate(req, r.lastSelected, v.lastSelected, v.valid, v.ack);

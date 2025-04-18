@@ -83,8 +83,8 @@ architecture rtl of AxiAd5780Ser is
 
 begin
 
-   comb : process (binaryOffset, dacData, dacRst, dacTriState, halfSckPeriod, opGnd, r, rbuf,
-                   sdoDisable) is
+   comb : process (binaryOffset, dacData, dacRst, dacTriState, halfSckPeriod,
+                   opGnd, r, rbuf, sdoDisable) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -128,14 +128,14 @@ begin
                   -- Reset the counter
                   v.cnt               := (others => '0');
                   -- Configure the DAC
-                  v.reg(23 downto 20) := "0010";       -- CTRL_REG: write to control register
+                  v.reg(23 downto 20) := "0010";  -- CTRL_REG: write to control register
                   v.reg(19 downto 6)  := (others => '0');  -- Reserved: reserved should be set to zero
                   -- Configuration bits
                   v.reg(5)            := sdoDisable;   -- SDODIS: disable SDO
-                  v.reg(4)            := binaryOffset;     -- BIN/2sC: use 2's complement
+                  v.reg(4)            := binaryOffset;  -- BIN/2sC: use 2's complement
                   v.reg(3)            := dacTriState;  -- DACTRI: put DAC into normal operating mode
-                  v.reg(2)            := opGnd;        -- OPGND: put DAC into normal operating mode
-                  v.reg(1)            := rbuf;         -- RBUF: Unity-Gain Configuration
+                  v.reg(2)            := opGnd;  -- OPGND: put DAC into normal operating mode
+                  v.reg(1)            := rbuf;  -- RBUF: Unity-Gain Configuration
                   v.reg(0)            := '0';  -- Reserved: reserved should be set to zero
                   -- Set the chip select flag
                   v.csL               := '0';

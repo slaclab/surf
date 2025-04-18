@@ -21,13 +21,13 @@ use surf.StdRtlPkg.all;
 entity SynchronizerOneShotVector is
    generic (
       TPD_G          : time     := 1 ns;   -- Simulation FF output delay
-      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
       BYPASS_SYNC_G  : boolean  := false;  -- Bypass RstSync module for synchronous data configuration
-      OUT_DELAY_G    : positive := 3;   -- Delay between deassertion of async and sync resets
-      IN_POLARITY_G  : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
-      OUT_POLARITY_G : slv      := "1";    -- 0 for active LOW, 1 for active HIGH
-      PULSE_WIDTH_G  : positive := 1;   -- one-shot pulse width duration (units of clk cycles)
+      OUT_DELAY_G    : positive := 3;  -- Delay between deassertion of async and sync resets
+      IN_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH
+      OUT_POLARITY_G : slv      := "1";  -- 0 for active LOW, 1 for active HIGH
+      PULSE_WIDTH_G  : positive := 1;  -- one-shot pulse width duration (units of clk cycles)
       WIDTH_G        : positive := 16);
    port (
       clk     : in  sl;                 -- Clock to be SYNC'd to

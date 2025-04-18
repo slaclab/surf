@@ -82,44 +82,44 @@ entity Gtp7RxRst is
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
       RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
       TX_PLL0_USED           : boolean               := false;  -- the TX and RX Reset FSMs must
-      RX_PLL0_USED           : boolean               := false   -- share these two generic values
+      RX_PLL0_USED           : boolean               := false  -- share these two generic values
       );
    port (
-         qPllRxSelect             : in  std_logic_vector(1 downto 0);
-         qPllTxSelect             : in  std_logic_vector(1 downto 0);
-         STABLE_CLOCK             : in  std_logic;  --Stable Clock, either a stable clock from the PCB
-                                                    --or reference-clock present at startup.
-         RXUSERCLK                : in  std_logic;  --RXUSERCLK as used in the design
-         SOFT_RESET               : in  std_logic;  --User Reset, can be pulled any time
-         RXPMARESETDONE           : in  std_logic;
-         RXOUTCLK                 : in  std_logic;
-         PLL0REFCLKLOST           : in  std_logic;  --PLL0 Reference-clock for the GT is lost
-         PLL1REFCLKLOST           : in  std_logic;  --PLL1 Reference-clock for the GT is lost
-         PLL0LOCK                 : in  std_logic;  --Lock Detect from the PLL0 of the GT
-         PLL1LOCK                 : in  std_logic;  --Lock Detect from the PLL1 of the GT
-         RXRESETDONE              : in  std_logic;
-         MMCM_LOCK                : in  std_logic;
-         RECCLK_STABLE            : in  std_logic;
-         RECCLK_MONITOR_RESTART   : in  std_logic                                            := '0';
-         DATA_VALID               : in  std_logic;
-         TXUSERRDY                : in  std_logic;  --TXUSERRDY from GT
-         DONT_RESET_ON_DATA_ERROR : in  std_logic                                            := '0';
-         GTRXRESET                : out std_logic                                            := '0';
-         MMCM_RESET               : out std_logic                                            := '1';
-         PLL0_RESET               : out std_logic                                            := '0';  --Reset PLL0 (only if RX uses PLL0)
-         PLL1_RESET               : out std_logic                                            := '0';  --Reset PLL1 (only if RX uses PLL1)
-         RX_FSM_RESET_DONE        : out std_logic;  --Reset-sequence has sucessfully been finished.
-         RXUSERRDY                : out std_logic                                            := '0';
-         RUN_PHALIGNMENT          : out std_logic;
-         PHALIGNMENT_DONE         : in  std_logic;
-         RESET_PHALIGNMENT        : out std_logic                                            := '0';
-         RXDFEAGCHOLD             : out std_logic                                            := '0';
-         RXDFELFHOLD              : out std_logic                                            := '0';
-         RXLPMLFHOLD              : out std_logic                                            := '0';
-         RXLPMHFHOLD              : out std_logic                                            := '0';
-         RETRY_COUNTER            : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                        -- Retries it took to get the transceiver up and running
-         );
+      qPllRxSelect             : in  std_logic_vector(1 downto 0);
+      qPllTxSelect             : in  std_logic_vector(1 downto 0);
+      STABLE_CLOCK             : in  std_logic;  --Stable Clock, either a stable clock from the PCB
+                                                 --or reference-clock present at startup.
+      RXUSERCLK                : in  std_logic;  --RXUSERCLK as used in the design
+      SOFT_RESET               : in  std_logic;  --User Reset, can be pulled any time
+      RXPMARESETDONE           : in  std_logic;
+      RXOUTCLK                 : in  std_logic;
+      PLL0REFCLKLOST           : in  std_logic;  --PLL0 Reference-clock for the GT is lost
+      PLL1REFCLKLOST           : in  std_logic;  --PLL1 Reference-clock for the GT is lost
+      PLL0LOCK                 : in  std_logic;  --Lock Detect from the PLL0 of the GT
+      PLL1LOCK                 : in  std_logic;  --Lock Detect from the PLL1 of the GT
+      RXRESETDONE              : in  std_logic;
+      MMCM_LOCK                : in  std_logic;
+      RECCLK_STABLE            : in  std_logic;
+      RECCLK_MONITOR_RESTART   : in  std_logic                                            := '0';
+      DATA_VALID               : in  std_logic;
+      TXUSERRDY                : in  std_logic;  --TXUSERRDY from GT
+      DONT_RESET_ON_DATA_ERROR : in  std_logic                                            := '0';
+      GTRXRESET                : out std_logic                                            := '0';
+      MMCM_RESET               : out std_logic                                            := '1';
+      PLL0_RESET               : out std_logic                                            := '0';  --Reset PLL0 (only if RX uses PLL0)
+      PLL1_RESET               : out std_logic                                            := '0';  --Reset PLL1 (only if RX uses PLL1)
+      RX_FSM_RESET_DONE        : out std_logic;  --Reset-sequence has sucessfully been finished.
+      RXUSERRDY                : out std_logic                                            := '0';
+      RUN_PHALIGNMENT          : out std_logic;
+      PHALIGNMENT_DONE         : in  std_logic;
+      RESET_PHALIGNMENT        : out std_logic                                            := '0';
+      RXDFEAGCHOLD             : out std_logic                                            := '0';
+      RXDFELFHOLD              : out std_logic                                            := '0';
+      RXLPMLFHOLD              : out std_logic                                            := '0';
+      RXLPMHFHOLD              : out std_logic                                            := '0';
+      RETRY_COUNTER            : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
+                                                 -- Retries it took to get the transceiver up and running
+      );
 end Gtp7RxRst;
 
 --Interdependencies:
@@ -142,11 +142,11 @@ architecture RTL of Gtp7RxRst is
    constant STARTUP_DELAY      : integer := 500;  --AR43482: Transceiver needs to wait for 500 ns after configuration
    constant WAIT_CYCLES        : integer := STARTUP_DELAY / STABLE_CLOCK_PERIOD;  -- Number of Clock-Cycles to wait after configuration
    constant WAIT_MAX           : integer := WAIT_CYCLES + 10;  -- 500 ns plus some additional margin
-   constant WAIT_TIMEOUT_2ms   : integer := 3000000 / STABLE_CLOCK_PERIOD;        --  2 ms time-out
-   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;         --100 us time-out
-   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;         --500 us time-out
-   constant WAIT_TIMEOUT_1us   : integer := 1000 / STABLE_CLOCK_PERIOD;           --1 us time-out
-   constant WAIT_TIMEOUT_100us : integer := 100000 / STABLE_CLOCK_PERIOD;         --100 us time-out
+   constant WAIT_TIMEOUT_2ms   : integer := 3000000 / STABLE_CLOCK_PERIOD;  --  2 ms time-out
+   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;  --100 us time-out
+   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;  --500 us time-out
+   constant WAIT_TIMEOUT_1us   : integer := 1000 / STABLE_CLOCK_PERIOD;  --1 us time-out
+   constant WAIT_TIMEOUT_100us : integer := 100000 / STABLE_CLOCK_PERIOD;  --100 us time-out
    constant WAIT_TIME_ADAPT    : integer := (37000000 /integer(3.125))/STABLE_CLOCK_PERIOD;
 
    signal soft_reset_sync : std_logic;
@@ -488,7 +488,7 @@ begin
    end process;
 
 
-   process(qPllRxSelect,PLL0REFCLKLOST,PLL1REFCLKLOST)
+   process(PLL0REFCLKLOST, PLL1REFCLKLOST, qPllRxSelect)
    begin
       if DYNAMIC_QPLL_G then
          if qPllRxSelect = "00" then
@@ -605,9 +605,9 @@ begin
                   check_tlock_max         <= '0';
                   recclk_mon_count_reset  <= '1';
                   if DYNAMIC_QPLL_G then
-                     if ((qPllRxSelect = "00")  and (qPllTxSelect /= "00") and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
-                        ((qPllRxSelect /= "00") and (qPllTxSelect = "00")  and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') or
-                        ((qPllRxSelect = "00")  and (qPllTxSelect = "00")  and (PLL0REFCLKLOST = '0')) or
+                     if ((qPllRxSelect = "00") and (qPllTxSelect /= "00") and (PLL0REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        ((qPllRxSelect /= "00") and (qPllTxSelect = "00") and (PLL1REFCLKLOST = '0') and pll_reset_asserted = '1') or
+                        ((qPllRxSelect = "00") and (qPllTxSelect = "00") and (PLL0REFCLKLOST = '0')) or
                         ((qPllRxSelect /= "00") and (qPllTxSelect /= "00") and (PLL1REFCLKLOST = '0')) then
                         rx_state       <= RELEASE_PLL_RESET;
                         reset_time_out <= '1';
@@ -629,8 +629,8 @@ begin
                   reset_time_out     <= '0';
 
                   if DYNAMIC_QPLL_G then
-                     if ((qPllRxSelect = "00")  and (qPllTxSelect /= "00") and (pll0lock_ris_edge = '1')) or
-                        ((qPllRxSelect /= "00") and (qPllTxSelect = "00")  and (pll1lock_ris_edge = '1')) then
+                     if ((qPllRxSelect = "00") and (qPllTxSelect /= "00") and (pll0lock_ris_edge = '1')) or
+                        ((qPllRxSelect /= "00") and (qPllTxSelect = "00") and (pll1lock_ris_edge = '1')) then
                         rx_state               <= VERIFY_RECCLK_STABLE;
                         reset_time_out         <= '1';
                         recclk_mon_count_reset <= '0';

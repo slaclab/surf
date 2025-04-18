@@ -30,10 +30,10 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtp7Qpll is
    generic (
-      TPD_G         : time           := 1 ns;
-      EN_DRP_G      : boolean        := true;
-      REFCLK_FREQ_G : real           := 250.0E+6;
-      RATE_G        : string         := "6.25Gbps");  -- or "3.125Gbps"
+      TPD_G         : time    := 1 ns;
+      EN_DRP_G      : boolean := true;
+      REFCLK_FREQ_G : real    := 250.0E+6;
+      RATE_G        : string  := "6.25Gbps");  -- or "3.125Gbps"
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"

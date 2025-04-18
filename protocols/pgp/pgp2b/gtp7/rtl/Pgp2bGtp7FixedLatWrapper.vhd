@@ -32,7 +32,7 @@ use unisim.vcomponents.all;
 entity Pgp2bGtp7FixedLatWrapper is
    generic (
       TPD_G                   : time                 := 1 ns;
-      COMMON_CLK_G            : boolean              := false;-- set true if (stableClk = axilClk)
+      COMMON_CLK_G            : boolean              := false;  -- set true if (stableClk = axilClk)
       SIM_GTRESET_SPEEDUP_G   : boolean              := false;
       SIM_VERSION_G           : string               := "2.0";
       SIMULATION_G            : boolean              := false;
@@ -44,8 +44,8 @@ entity Pgp2bGtp7FixedLatWrapper is
       EXT_RST_POLARITY_G      : sl                   := '1';
       TX_POLARITY_G           : sl                   := '0';
       RX_POLARITY_G           : sl                   := '0';
-      TX_ENABLE_G             : boolean              := true;           -- Enable TX direction
-      RX_ENABLE_G             : boolean              := true;           -- Enable RX direction
+      TX_ENABLE_G             : boolean              := true;  -- Enable TX direction
+      RX_ENABLE_G             : boolean              := true;  -- Enable RX direction
       -- CM Configurations
       TX_CM_EN_G              : boolean              := true;
       TX_CM_TYPE_G            : string               := "MMCM";
@@ -61,13 +61,13 @@ entity Pgp2bGtp7FixedLatWrapper is
       RX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
       -- MGT Configurations
       PMA_RSV_G               : bit_vector           := x"00018480";
-      RX_OS_CFG_G             : bit_vector           := "0000010000000";           -- Set by wizard
+      RX_OS_CFG_G             : bit_vector           := "0000010000000";  -- Set by wizard
       RXCDR_CFG_G             : bit_vector           := x"00003000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G            : sl                   := '0';            -- Set by wizard
+      RXDFEXYDEN_G            : sl                   := '0';   -- Set by wizard
       -- PLL and clock configurations
       STABLE_CLK_SRC_G        : string               := "stableClkIn";  -- or "gtClk0" or "gtClk1"
       TX_REFCLK_SRC_G         : string               := "gtClk0";
-      TX_USER_CLK_SRC_G       : string               := "txRefClk";     -- Could be txOutClk instead
+      TX_USER_CLK_SRC_G       : string               := "txRefClk";  -- Could be txOutClk instead
       RX_REFCLK_SRC_G         : string               := "gtClk0";
       TX_PLL_CFG_G            : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);
       RX_PLL_CFG_G            : Gtp7QPllCfgType      := getGtp7QPllCfg(156.25e6, 3.125e9);

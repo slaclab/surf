@@ -114,7 +114,7 @@ begin
          axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Decode address and assign read data
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"80" =>

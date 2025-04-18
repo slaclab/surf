@@ -142,7 +142,8 @@ begin
 
 
    -- Scheduler state machine
-   process (curState, arbValid, arbVc, currVc, schTxAck, vcInFrame, currValid, vcTimeout)
+   process (arbValid, arbVc, curState, currValid, currVc, schTxAck, vcInFrame,
+            vcTimeout)
    begin
       case curState is
 

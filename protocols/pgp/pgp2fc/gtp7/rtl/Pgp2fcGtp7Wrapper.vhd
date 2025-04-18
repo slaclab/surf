@@ -38,15 +38,15 @@ entity Pgp2fcGtp7Wrapper is
       SIMULATION_G            : boolean                := false;
       -- PGP Settings
       FC_WORDS_G              : integer range 1 to 8   := 1;
-      VC_INTERLEAVE_G         : integer                := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G       : integer                := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G         : integer                := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G       : integer                := 7;  -- Top bit for payload counter
       NUM_VC_EN_G             : integer range 1 to 4   := 4;
       AXIL_BASE_ADDR_G        : slv(31 downto 0)       := (others => '0');
       EXT_RST_POLARITY_G      : sl                     := '1';
       TX_POLARITY_G           : sl                     := '0';
       RX_POLARITY_G           : sl                     := '0';
-      TX_ENABLE_G             : boolean                := true;   -- Enable TX direction
-      RX_ENABLE_G             : boolean                := true;   -- Enable RX direction
+      TX_ENABLE_G             : boolean                := true;  -- Enable TX direction
+      RX_ENABLE_G             : boolean                := true;  -- Enable RX direction
       -- CM Configurations
       TX_CM_EN_G              : boolean                := true;
       TX_CM_TYPE_G            : string                 := "MMCM";
@@ -70,7 +70,7 @@ entity Pgp2fcGtp7Wrapper is
       PMA_RSV_G               : bit_vector             := x"00018480";
       RX_OS_CFG_G             : bit_vector             := "0000010000000";  -- Set by wizard
       RXCDR_CFG_G             : bit_vector             := x"00003000023ff40200020";  -- Set by wizard
-      RXDFEXYDEN_G            : sl                     := '0';    -- Set by wizard
+      RXDFEXYDEN_G            : sl                     := '0';  -- Set by wizard
       -- PLL and clock configurations
       STABLE_CLK_SRC_G        : string                 := "stableClkIn";  -- or "gtClk0" or "gtClk1"
       TX_REFCLK_SRC_G         : string                 := "gtClk0";

@@ -157,8 +157,8 @@ begin
          TDEST_MASK_G  => "00000000",
          AXIS_CONFIG_G => BYTE_AXIS_CFG_C)
       port map (
-         axisClk     => pgpClk,          -- [in]
-         axisRst     => pgpClkRst,       -- [in]
+         axisClk     => pgpClk,            -- [in]
+         axisRst     => pgpClkRst,         -- [in]
          sAxisMaster => txByteAxisMaster,  -- [in]
          sAxisSlave  => txByteAxisSlave,   -- [out]
          mAxisMaster => rxByteAxisMaster,  -- [out]

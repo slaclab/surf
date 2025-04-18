@@ -37,7 +37,7 @@ entity SaciMaster2 is
       sysRst : in sl;
 
       -- Optional ASIC Global Reset
-      asicRstL : in  sl := '1';
+      asicRstL : in sl := '1';
 
       -- Request interface
       req    : in  sl;
@@ -129,15 +129,16 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Main logic
    -------------------------------------------------------------------------------------------------
-   comb : process (addr, asicRstL, chip, cmd, op, r, req, saciRspSync, sysRst, wrData) is
+   comb : process (addr, asicRstL, chip, cmd, op, r, req, saciRspSync, sysRst,
+                   wrData) is
       variable v        : RegType;
       variable rspIndex : integer;
    begin
       v := r;
 
       -- Default values
-      v.ack        := '0';
-      rspIndex     := ite(SACI_RSP_BUSSED_G, 0, conv_integer(chip));
+      v.ack    := '0';
+      rspIndex := ite(SACI_RSP_BUSSED_G, 0, conv_integer(chip));
 
       -- Run the saciClk
       v.clkCount := r.clkCount + 1;
@@ -172,7 +173,7 @@ begin
             v.shiftCount := (others => '0');
             v.saciSelL   := (others => '1');
             -- Hold clock inactive while idle else there is a ASIC reset
-            if (not SACI_CLK_FREERUN_G) and (r.asicRstL(31)='1') then
+            if (not SACI_CLK_FREERUN_G) and (r.asicRstL(31) = '1') then
                v.saciClk  := '0';
                v.clkCount := (others => '0');
             end if;

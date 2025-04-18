@@ -25,11 +25,11 @@ use surf.AxiPkg.all;
 
 entity AxiMemTester is
    generic (
-      TPD_G            : time                     := 1 ns;
-      START_ADDR_G     : slv                      := X"00000000";
-      STOP_ADDR_G      : slv                      := X"FFFFFFFF";
-      BURST_LEN_G      : positive range 1 to 4096 := 4096;
-      AXI_CONFIG_G     : AxiConfigType);
+      TPD_G        : time                     := 1 ns;
+      START_ADDR_G : slv                      := X"00000000";
+      STOP_ADDR_G  : slv                      := X"FFFFFFFF";
+      BURST_LEN_G  : positive range 1 to 4096 := 4096;
+      AXI_CONFIG_G : AxiConfigType);
    port (
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -57,12 +57,12 @@ architecture rtl of AxiMemTester is
    constant STOP_C       : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_ADDR_G(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
    constant STOP_ADDR_C  : slv(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := STOP_C(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 12) & x"000";
 
-   constant DATA_BITS_C       : natural         := 8*AXI_CONFIG_G.DATA_BYTES_C;
-   constant AXI_LEN_C         : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
+   constant DATA_BITS_C : natural         := 8*AXI_CONFIG_G.DATA_BYTES_C;
+   constant AXI_LEN_C   : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_LEN_G);
 
    constant PRBS_TAPS_C : NaturalArray := (0 => (DATA_BITS_C-1), 1 => (DATA_BITS_C/2), 2 => (DATA_BITS_C/4));
 
-   constant DATA_SYNC_BITS_C : natural := ite(DATA_BITS_C<1024, DATA_BITS_C, 1024);
+   constant DATA_SYNC_BITS_C : natural := ite(DATA_BITS_C < 1024, DATA_BITS_C, 1024);
 
    function GenSeed return slv is
       variable retVar : slv(DATA_BITS_C-1 downto 0);
@@ -129,19 +129,19 @@ architecture rtl of AxiMemTester is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal startSync : sl;
-   signal busy   : sl;
-   signal done   : sl;
-   signal error  : sl;
-   signal wTimer : slv(31 downto 0);
-   signal rTimer : slv(31 downto 0);
-   signal wErrResp   : sl;
-   signal rErrResp   : sl;
-   signal rErrData   : sl;
-   signal rDataIn       : slv(DATA_SYNC_BITS_C-1 downto 0);
-   signal rPatternIn    : slv(DATA_SYNC_BITS_C-1 downto 0);
-   signal rDataOut      : slv(1023 downto 0);
-   signal rPatternOut   : slv(1023 downto 0);
+   signal startSync   : sl;
+   signal busy        : sl;
+   signal done        : sl;
+   signal error       : sl;
+   signal wTimer      : slv(31 downto 0);
+   signal rTimer      : slv(31 downto 0);
+   signal wErrResp    : sl;
+   signal rErrResp    : sl;
+   signal rErrData    : sl;
+   signal rDataIn     : slv(DATA_SYNC_BITS_C-1 downto 0);
+   signal rPatternIn  : slv(DATA_SYNC_BITS_C-1 downto 0);
+   signal rDataOut    : slv(1023 downto 0);
+   signal rPatternOut : slv(1023 downto 0);
 
    type RegLiteType is record
       memReady       : sl;
@@ -281,7 +281,7 @@ begin
          when READ_DATA_S =>
             if (v.axiReadMaster.arvalid = '0') and (axiReadSlave.rvalid = '1') then
                -- Save data for AXIL access
-               v.rData := axiReadSlave.rdata(DATA_BITS_C-1 downto 0);
+               v.rData    := axiReadSlave.rdata(DATA_BITS_C-1 downto 0);
                v.rPattern := r.randomData(DATA_BITS_C-1 downto 0);
                -- Compare the data
                if r.randomData(DATA_BITS_C-1 downto 0) /= axiReadSlave.rdata(DATA_BITS_C-1 downto 0) then
@@ -383,8 +383,8 @@ begin
 
    U_SyncBits : entity surf.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         WIDTH_G  => 7)
+         TPD_G   => TPD_G,
+         WIDTH_G => 7)
       port map (
          clk        => axilClk,
          dataIn(0)  => r.done,
@@ -429,8 +429,8 @@ begin
    rDataIn <= r.rData(DATA_SYNC_BITS_C-1 downto 0);
    U_rData : entity surf.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         WIDTH_G  => DATA_SYNC_BITS_C)
+         TPD_G   => TPD_G,
+         WIDTH_G => DATA_SYNC_BITS_C)
       port map (
          clk     => axilClk,
          dataIn  => rDataIn,
@@ -439,15 +439,16 @@ begin
    rPatternIn <= r.rPattern(DATA_SYNC_BITS_C-1 downto 0);
    U_rPattern : entity surf.SynchronizerVector
       generic map (
-         TPD_G    => TPD_G,
-         WIDTH_G  => DATA_SYNC_BITS_C)
+         TPD_G   => TPD_G,
+         WIDTH_G => DATA_SYNC_BITS_C)
       port map (
          clk     => axilClk,
          dataIn  => rPatternIn,
          dataOut => rPatternOut(DATA_SYNC_BITS_C-1 downto 0));
 
-   combLite : process (axilReadMaster, axilRst, axilWriteMaster, done, error, busy, startSync,
-                       rLite, rTimer, wTimer, wErrResp, rErrResp, rErrData, rDataOut, rPatternOut) is
+   combLite : process (axilReadMaster, axilRst, axilWriteMaster, busy, done,
+                       error, rDataOut, rErrData, rErrResp, rLite, rPatternOut,
+                       rTimer, startSync, wErrResp, wTimer) is
       variable v      : RegLiteType;
       variable regCon : AxiLiteEndPointType;
    begin
@@ -482,8 +483,8 @@ begin
       axiSlaveRegisterR(regCon, x"12C", 1, rErrResp);
       axiSlaveRegisterR(regCon, x"12C", 2, rErrData);
       for i in 0 to 31 loop
-         axiSlaveRegisterR(regCon, x"130"+toSlv(i*4,12), 0, rDataOut(31+i*32 downto 0+i*32));
-         axiSlaveRegisterR(regCon, x"1B0"+toSlv(i*4,12), 0, rPatternOut(31+i*32 downto 0+i*32));
+         axiSlaveRegisterR(regCon, x"130"+toSlv(i*4, 12), 0, rDataOut(31+i*32 downto 0+i*32));
+         axiSlaveRegisterR(regCon, x"1B0"+toSlv(i*4, 12), 0, rPatternOut(31+i*32 downto 0+i*32));
       end loop;
 
       -- Closeout the transaction

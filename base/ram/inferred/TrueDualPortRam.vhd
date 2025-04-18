@@ -62,7 +62,7 @@ architecture rtl of TrueDualPortRam is
 
    -- Set byte width to word width if byte writes not enabled
    -- Otherwise block ram parity bits wont be utilized
-   constant BYTE_WIDTH_C : natural := ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G);
+   constant BYTE_WIDTH_C      : natural := ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G);
    constant NUM_BYTES_C       : natural := wordCount(DATA_WIDTH_G, BYTE_WIDTH_C);
    constant FULL_DATA_WIDTH_C : natural := NUM_BYTES_C*BYTE_WIDTH_C;
 
@@ -85,7 +85,7 @@ architecture rtl of TrueDualPortRam is
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
-   attribute keep        : boolean;           --"keep" is same for XST and Altera
+   attribute keep        : boolean;     --"keep" is same for XST and Altera
    attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
 
    -- Attribute for Synplicity Synthesizer

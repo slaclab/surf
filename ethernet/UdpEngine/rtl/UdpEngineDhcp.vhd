@@ -313,9 +313,9 @@ begin
                      -- Check for DHCP Discover
                      if r.dhcpReq = '0' then
                         v.txMaster.tData(7 downto 0)   := toSlv(53, 8);  -- code = DHCP Message Type
-                        v.txMaster.tData(15 downto 8)  := x"01";      -- len = 1 byte
-                        v.txMaster.tData(23 downto 16) := x"01";      -- DHCP Discover = 0x1
-                        v.txMaster.tData(31 downto 24) := x"FF";      -- Endmark
+                        v.txMaster.tData(15 downto 8)  := x"01";  -- len = 1 byte
+                        v.txMaster.tData(23 downto 16) := x"01";  -- DHCP Discover = 0x1
+                        v.txMaster.tData(31 downto 24) := x"FF";  -- Endmark
                         v.txMaster.tLast               := '1';
                         -- Start the communication timer
                         v.commCnt                      := COMM_TIMEOUT_C;
@@ -325,13 +325,13 @@ begin
                         v.state                        := IDLE_S;
                      else
                         v.txMaster.tData(7 downto 0)   := toSlv(53, 8);  -- code = DHCP Message Type
-                        v.txMaster.tData(15 downto 8)  := x"01";      -- len = 1 byte
-                        v.txMaster.tData(23 downto 16) := x"03";      -- DHCP request = 0x3
+                        v.txMaster.tData(15 downto 8)  := x"01";  -- len = 1 byte
+                        v.txMaster.tData(23 downto 16) := x"03";  -- DHCP request = 0x3
                      end if;
                   -- Requested IP address[15:0]
                   when 61 =>
                      v.txMaster.tData(7 downto 0)   := toSlv(50, 8);  -- code = Requested IP address
-                     v.txMaster.tData(15 downto 8)  := x"04";         -- len = 4 byte
+                     v.txMaster.tData(15 downto 8)  := x"04";  -- len = 4 byte
                      v.txMaster.tData(31 downto 16) := r.yiaddr(15 downto 0);  -- YIADDR[15:0]
                   -- Requested IP address[32:16]
                   when 62 =>
@@ -339,13 +339,13 @@ begin
                   -- Server Identifier[15:0]
                   when 63 =>
                      v.txMaster.tData(7 downto 0)   := toSlv(54, 8);  -- code = Server Identifier
-                     v.txMaster.tData(15 downto 8)  := x"04";         -- len = 4 byte
+                     v.txMaster.tData(15 downto 8)  := x"04";  -- len = 4 byte
                      v.txMaster.tData(31 downto 16) := r.siaddr(15 downto 0);  -- SIADDR[15:0]
                   -- Server Identifier[32:16]
                   when 64 =>
                      v.txMaster.tData(15 downto 0) := r.siaddr(31 downto 16);  -- SIADDR[31:16]
                   when 65 =>
-                     v.txMaster.tData(7 downto 0)  := x"FF";          -- Endmark
+                     v.txMaster.tData(7 downto 0)  := x"FF";   -- Endmark
                      v.txMaster.tKeep(15 downto 0) := x"0001";
                      v.txMaster.tLast              := '1';
                      -- Start the communication timer
@@ -458,7 +458,7 @@ begin
                         v.decode := CODE_S;
                      end if;
                      -- Check the Code
-                     if (r.opCode = 53) then                          -- Note: Assuming zero padding
+                     if (r.opCode = 53) then  -- Note: Assuming zero padding
                         -- Check for DHCP Message Type
 
                         if (r.len = 1) then

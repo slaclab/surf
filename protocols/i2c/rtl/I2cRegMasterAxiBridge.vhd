@@ -26,8 +26,8 @@ use surf.I2cPkg.all;
 entity I2cRegMasterAxiBridge is
 
    generic (
-      TPD_G            : time                   := 1 ns;
-      DEVICE_MAP_G     : I2cAxiLiteDevArray     := I2C_AXIL_DEV_ARRAY_DEFAULT_C);
+      TPD_G        : time               := 1 ns;
+      DEVICE_MAP_G : I2cAxiLiteDevArray := I2C_AXIL_DEV_ARRAY_DEFAULT_C);
    port (
       axiClk : in sl;
       axiRst : in sl;
@@ -83,7 +83,7 @@ architecture rtl of I2cRegMasterAxiBridge is
    constant REG_INIT_C : RegType := (
       axiReadSlave   => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
-      i2cSelectOut   => (others=>'0'),
+      i2cSelectOut   => (others => '0'),
       i2cRegMasterIn => I2C_REG_MASTER_IN_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
@@ -129,31 +129,31 @@ begin
 
       if (axiStatus.writeEnable = '1') then
 
-            -- I2C Address Space
-            -- Decode i2c device address and send command to I2cRegMaster
-            devInt := conv_integer(axiWriteMaster.awaddr(I2C_DEV_AXI_ADDR_RANGE_C));
+         -- I2C Address Space
+         -- Decode i2c device address and send command to I2cRegMaster
+         devInt := conv_integer(axiWriteMaster.awaddr(I2C_DEV_AXI_ADDR_RANGE_C));
 
-            v.i2cRegMasterIn        := setI2cRegMaster(devInt, WRITE_C);
-            v.i2cRegMasterIn.regOp  := '1';  -- Write
-            v.i2cRegMasterIn.regReq := '1';
-            v.i2cSelectOut(devInt)  := '1';
+         v.i2cRegMasterIn        := setI2cRegMaster(devInt, WRITE_C);
+         v.i2cRegMasterIn.regOp  := '1';  -- Write
+         v.i2cRegMasterIn.regReq := '1';
+         v.i2cSelectOut(devInt)  := '1';
 
       elsif (axiStatus.readEnable = '1') then
-            -- I2C Address Space
-            -- Decode i2c device address and send command to I2cRegMaster
-            devInt := conv_integer(axiReadMaster.araddr(I2C_DEV_AXI_ADDR_RANGE_C));
+         -- I2C Address Space
+         -- Decode i2c device address and send command to I2cRegMaster
+         devInt := conv_integer(axiReadMaster.araddr(I2C_DEV_AXI_ADDR_RANGE_C));
 
-            -- Send transaction to I2cRegMaster
-            v.i2cRegMasterIn        := setI2cRegMaster(devInt, READ_C);
-            v.i2cRegMasterIn.regOp  := '0';  -- Read
-            v.i2cRegMasterIn.regReq := '1';
-            v.i2cSelectOut(devInt)  := '1';
+         -- Send transaction to I2cRegMaster
+         v.i2cRegMasterIn        := setI2cRegMaster(devInt, READ_C);
+         v.i2cRegMasterIn.regOp  := '0';  -- Read
+         v.i2cRegMasterIn.regReq := '1';
+         v.i2cSelectOut(devInt)  := '1';
 
       end if;
 
       if (i2cRegMasterOut.regAck = '1' and r.i2cRegMasterIn.regReq = '1') then
          v.i2cRegMasterIn.regReq := '0';
-         v.i2cSelectOut          := (others=>'0');
+         v.i2cSelectOut          := (others => '0');
          axiResp                 := ite(i2cRegMasterOut.regFail = '1', AXI_RESP_SLVERR_C, AXI_RESP_OK_C);
          if (r.i2cRegMasterIn.regOp = '1') then
             axiSlaveWriteResponse(v.axiWriteSlave, axiResp);
@@ -171,7 +171,7 @@ begin
       -- Reset
       ----------------------------------------------------------------------------------------------
       if (axiRst = '1') then
-         v               := REG_INIT_C;
+         v := REG_INIT_C;
       end if;
 
       rin <= v;

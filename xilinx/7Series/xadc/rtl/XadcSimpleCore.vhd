@@ -33,17 +33,17 @@ entity XadcSimpleCore is
 
       -- Global XADC configurations
       SEQUENCER_MODE_G : string                 := "DEFAULT";  -- SINGLE_PASS, CONTINUOUS, SINGLE_CHANNEL,
-                                                               -- SIMULTANEOUS, INDEPENDENT
+                                        -- SIMULTANEOUS, INDEPENDENT
       SAMPLING_MODE_G  : string                 := "CONTINUOUS";  -- or "EVENT-DRIVEN"
-      MUX_EN_G         : boolean                := false;      -- Enable external multiplexer
+      MUX_EN_G         : boolean                := false;  -- Enable external multiplexer
       ADCCLK_RATIO_G   : integer range 2 to 255 := 7;
       SAMPLE_AVG_G     : slv(1 downto 0)        := "11";  -- No averaging, 16  64 or 256 samples
       COEF_AVG_EN_G    : boolean                := true;  -- Enable averaging for calibration coefficients
 
       -- Configurations for single channel operation
       SING_ADC_CH_SEL_G : slv(4 downto 0) := "00000";  -- Only valid for single channel or ext
-      SING_ACQ_EN_G     : boolean         := false;    -- Extra settling time in single channel mode
-      SING_BIPOLAR_G    : boolean         := false;    -- false: unipolar, true: bipolar
+      SING_ACQ_EN_G     : boolean         := false;  -- Extra settling time in single channel mode
+      SING_BIPOLAR_G    : boolean         := false;  -- false: unipolar, true: bipolar
 
       -- Alarm configuration
       OVERTEMP_AUTO_SHDN_G : boolean := true;

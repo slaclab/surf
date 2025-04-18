@@ -26,7 +26,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamDeMux is
    generic (
       TPD_G          : time                   := 1 ns;
-      RST_POLARITY_G : sl                     := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean                := false;
       NUM_MASTERS_G  : integer range 1 to 256 := 12;
       MODE_G         : string                 := "INDEXED";  -- Or "ROUTED" Or "DYNAMIC"
@@ -81,7 +81,8 @@ begin
       " must equal NUM_MASTERS_G: " & integer'image(NUM_MASTERS_G)
       severity error;
 
-   comb : process (axisRst, dynamicRouteDests, dynamicRouteMasks, pipeAxisSlaves, r, sAxisMaster) is
+   comb : process (axisRst, dynamicRouteDests, dynamicRouteMasks,
+                   pipeAxisSlaves, r, sAxisMaster) is
       variable v   : RegType;
       variable idx : natural;
       variable i   : natural;

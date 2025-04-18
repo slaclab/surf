@@ -20,11 +20,11 @@ use surf.StdRtlPkg.all;
 
 entity SyncTrigRateVector is
    generic (
-      TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      TPD_G          : time     := 1 ns;   -- Simulation FF output delay
       RST_ASYNC_G    : boolean  := false;
-      COMMON_CLK_G   : boolean  := false;     -- true if locClk & refClk are the same clock
+      COMMON_CLK_G   : boolean  := false;  -- true if locClk & refClk are the same clock
       ONE_SHOT_G     : boolean  := false;
-      IN_POLARITY_G  : slv      := "1";   -- 0 for active LOW, 1 for active HIGH
+      IN_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH
       REF_CLK_FREQ_G : real     := 200.0E+6;  -- units of Hz
       REFRESH_RATE_G : real     := 1.0E+0;    -- units of Hz
       CNT_WIDTH_G    : positive := 32;  -- Counters' width

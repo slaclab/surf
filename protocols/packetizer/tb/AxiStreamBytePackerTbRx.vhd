@@ -24,16 +24,16 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamBytePackerTbRx is
    generic (
-      TPD_G         : time                := 1 ns;
-      BYTE_SIZE_C   : positive            := 1;
+      TPD_G         : time     := 1 ns;
+      BYTE_SIZE_C   : positive := 1;
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
-      axiClk       : in  sl;
-      axiRst       : in  sl;
+      axiClk      : in  sl;
+      axiRst      : in  sl;
       -- Outbound frame
-      sAxisMaster  : in  AxiStreamMasterType;
-      fail         : out sl);
+      sAxisMaster : in  AxiStreamMasterType;
+      fail        : out sl);
 end AxiStreamBytePackerTbRx;
 
 architecture rtl of AxiStreamBytePackerTbRx is
@@ -54,7 +54,7 @@ architecture rtl of AxiStreamBytePackerTbRx is
 
 begin
 
-   comb : process (r, axiRst, sAxisMaster ) is
+   comb : process (axiRst, r, sAxisMaster) is
       variable v     : RegType;
       variable inTop : integer;
    begin
@@ -62,10 +62,10 @@ begin
 
       if sAxisMaster.tValid = '1' then
 
-         inTop := getTKeep(sAxisMaster.tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0),AXIS_CONFIG_G)-1;
+         inTop := getTKeep(sAxisMaster.tKeep(AXIS_CONFIG_G.TDATA_BYTES_C-1 downto 0), AXIS_CONFIG_G)-1;
 
          for i in 0 to inTop loop
-            if sAxisMaster.tData(i*8+7 downto i*8) /= toSlv(v.byteCount,8) then
+            if sAxisMaster.tData(i*8+7 downto i*8) /= toSlv(v.byteCount, 8) then
                v.fail := '1';
             end if;
             v.byteCount := v.byteCount + 1;
@@ -75,7 +75,7 @@ begin
             if v.byteCount /= (r.frameCount+1)*BYTE_SIZE_C then
                v.fail := '1';
             end if;
-            v.byteCount := 0;
+            v.byteCount  := 0;
             v.frameCount := r.frameCount + 1;
          end if;
       end if;

@@ -25,7 +25,7 @@ use surf.StdRtlPkg.all;
 entity Scrambler is
    generic (
       TPD_G             : time         := 1 ns;
-      RST_POLARITY_G    : sl           := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G    : sl           := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G       : boolean      := false;
       DIRECTION_G       : string       := "SCRAMBLER";  -- or DESCRAMBLER
       DATA_WIDTH_G      : integer      := 64;

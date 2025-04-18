@@ -101,322 +101,322 @@ begin
 
    GEN_ASYNC : if (COMMON_CLK_G = false) generate
 
-   -- Synchronize each reset across to the other clock domain
-   LOC_S2M_RstSync : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         OUT_REG_RST_G => false)
-      port map (
-         clk      => mAxiClk,
-         asyncRst => sAxiClkRst,
-         syncRst  => s2mRst);
+      -- Synchronize each reset across to the other clock domain
+      LOC_S2M_RstSync : entity surf.RstSync
+         generic map (
+            TPD_G         => TPD_G,
+            OUT_REG_RST_G => false)
+         port map (
+            clk      => mAxiClk,
+            asyncRst => sAxiClkRst,
+            syncRst  => s2mRst);
 
-   LOC_M2S_RstSync : entity surf.RstSync
-      generic map (
-         TPD_G         => TPD_G,
-         OUT_REG_RST_G => false)
-      port map (
-         clk      => sAxiClk,
-         asyncRst => mAxiClkRst,
-         syncRst  => m2sRst);
+      LOC_M2S_RstSync : entity surf.RstSync
+         generic map (
+            TPD_G         => TPD_G,
+            OUT_REG_RST_G => false)
+         port map (
+            clk      => sAxiClk,
+            asyncRst => mAxiClkRst,
+            syncRst  => m2sRst);
 
-   ------------------------------------
-   -- Read: Slave to Master
-   ------------------------------------
+      ------------------------------------
+      -- Read: Slave to Master
+      ------------------------------------
 
-   -- Read Slave To Master FIFO
-   U_ReadSlaveToMastFifo : entity surf.FifoASync
-      generic map (
-         TPD_G          => TPD_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         RST_POLARITY_G => '1',
-         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
-         FWFT_EN_G      => true,
-         SYNC_STAGES_G  => 3,
-         PIPE_STAGES_G  => PIPE_STAGES_G,
-         DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
-         ADDR_WIDTH_G   => 4,
-         INIT_G         => "0",
-         FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1)
-      port map (
-         rst           => s2mRst,
-         wr_clk        => sAxiClk,
-         wr_en         => readSlaveToMastWrite,
-         din           => readSlaveTomastDin,
-         wr_data_count => open,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => readSlaveToMastFull,
-         not_full      => open,
-         rd_clk        => mAxiClk,
-         rd_en         => readSlaveToMastRead,
-         dout          => readSlaveTomastDout,
-         rd_data_count => open,
-         valid         => readSlaveToMastValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open
-         );
+      -- Read Slave To Master FIFO
+      U_ReadSlaveToMastFifo : entity surf.FifoASync
+         generic map (
+            TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            RST_POLARITY_G => '1',
+            MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
+            FWFT_EN_G      => true,
+            SYNC_STAGES_G  => 3,
+            PIPE_STAGES_G  => PIPE_STAGES_G,
+            DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
+            ADDR_WIDTH_G   => 4,
+            INIT_G         => "0",
+            FULL_THRES_G   => 15,
+            EMPTY_THRES_G  => 1)
+         port map (
+            rst           => s2mRst,
+            wr_clk        => sAxiClk,
+            wr_en         => readSlaveToMastWrite,
+            din           => readSlaveTomastDin,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => readSlaveToMastFull,
+            not_full      => open,
+            rd_clk        => mAxiClk,
+            rd_en         => readSlaveToMastRead,
+            dout          => readSlaveTomastDout,
+            rd_data_count => open,
+            valid         => readSlaveToMastValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open
+            );
 
-   -- Data In
-   readSlaveToMastDin(2 downto 0)                 <= sAxiReadMaster.arprot;
-   readSlaveToMastDin(NUM_ADDR_BITS_G+2 downto 3) <= sAxiReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0);
+      -- Data In
+      readSlaveToMastDin(2 downto 0)                 <= sAxiReadMaster.arprot;
+      readSlaveToMastDin(NUM_ADDR_BITS_G+2 downto 3) <= sAxiReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0);
 
-   -- Write control and ready generation
-   sAxiReadSlave.arready <= ite(m2sRst = '0', not readSlaveToMastFull, '1');
-   readSlaveToMastWrite  <= sAxiReadMaster.arvalid and (not readSlaveToMastFull);
+      -- Write control and ready generation
+      sAxiReadSlave.arready <= ite(m2sRst = '0', not readSlaveToMastFull, '1');
+      readSlaveToMastWrite  <= sAxiReadMaster.arvalid and (not readSlaveToMastFull);
 
-   -- Data Out
-   mAxiReadMaster.arprot <= readSlaveToMastDout(2 downto 0);
+      -- Data Out
+      mAxiReadMaster.arprot <= readSlaveToMastDout(2 downto 0);
 
-   process (readSlaveToMastDout)
-   begin
-      mAxiReadMaster.araddr <= (others => '0');
-      mAxiReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0) <= readSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
-   end process;
+      process (readSlaveToMastDout)
+      begin
+         mAxiReadMaster.araddr                             <= (others => '0');
+         mAxiReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0) <= readSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
+      end process;
 
-   -- Read control and valid
-   mAxiReadMaster.arvalid <= readSlaveToMastValid;
-   readSlaveToMastRead    <= mAxiReadSlave.arready;
+      -- Read control and valid
+      mAxiReadMaster.arvalid <= readSlaveToMastValid;
+      readSlaveToMastRead    <= mAxiReadSlave.arready;
 
-   ------------------------------------
-   -- Read: Master To Slave
-   ------------------------------------
+      ------------------------------------
+      -- Read: Master To Slave
+      ------------------------------------
 
-   -- Read Master To Slave FIFO
-   U_ReadMastToSlaveFifo : entity surf.FifoASync
-      generic map (
-         TPD_G          => TPD_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         RST_POLARITY_G => '1',
-         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
-         FWFT_EN_G      => true,
-         SYNC_STAGES_G  => 3,
-         PIPE_STAGES_G  => PIPE_STAGES_G,
-         DATA_WIDTH_G   => 34,
-         ADDR_WIDTH_G   => 4,
-         INIT_G         => "0",
-         FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1)
-      port map (
-         rst           => m2sRst,
-         wr_clk        => mAxiClk,
-         wr_en         => readMastToSlaveWrite,
-         din           => readMastToSlaveDin,
-         wr_data_count => open,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => readMastToSlaveFull,
-         not_full      => open,
-         rd_clk        => sAxiClk,
-         rd_en         => readMastToSlaveRead,
-         dout          => readMastToSlaveDout,
-         rd_data_count => open,
-         valid         => readMastToSlaveValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open
-         );
+      -- Read Master To Slave FIFO
+      U_ReadMastToSlaveFifo : entity surf.FifoASync
+         generic map (
+            TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            RST_POLARITY_G => '1',
+            MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
+            FWFT_EN_G      => true,
+            SYNC_STAGES_G  => 3,
+            PIPE_STAGES_G  => PIPE_STAGES_G,
+            DATA_WIDTH_G   => 34,
+            ADDR_WIDTH_G   => 4,
+            INIT_G         => "0",
+            FULL_THRES_G   => 15,
+            EMPTY_THRES_G  => 1)
+         port map (
+            rst           => m2sRst,
+            wr_clk        => mAxiClk,
+            wr_en         => readMastToSlaveWrite,
+            din           => readMastToSlaveDin,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => readMastToSlaveFull,
+            not_full      => open,
+            rd_clk        => sAxiClk,
+            rd_en         => readMastToSlaveRead,
+            dout          => readMastToSlaveDout,
+            rd_data_count => open,
+            valid         => readMastToSlaveValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open
+            );
 
-   -- Data In
-   readMastToSlaveDin(1 downto 0)  <= mAxiReadSlave.rresp;
-   readMastToSlaveDin(33 downto 2) <= mAxiReadSlave.rdata;
+      -- Data In
+      readMastToSlaveDin(1 downto 0)  <= mAxiReadSlave.rresp;
+      readMastToSlaveDin(33 downto 2) <= mAxiReadSlave.rdata;
 
-   -- Write control and ready generation
-   mAxiReadMaster.rready <= ite(mAxiClkRst = '0', not readMastToSlaveFull, '1');
-   readMastToSlaveWrite  <= mAxiReadSlave.rvalid and (not readMastToSlaveFull);
+      -- Write control and ready generation
+      mAxiReadMaster.rready <= ite(mAxiClkRst = '0', not readMastToSlaveFull, '1');
+      readMastToSlaveWrite  <= mAxiReadSlave.rvalid and (not readMastToSlaveFull);
 
-   -- Data Out
-   sAxiReadSlave.rresp <= ite(m2sRst = '0', readMastToSlaveDout(1 downto 0), AXI_ERROR_RESP_G);
-   sAxiReadSlave.rdata <= readMastToSlaveDout(33 downto 2);
+      -- Data Out
+      sAxiReadSlave.rresp <= ite(m2sRst = '0', readMastToSlaveDout(1 downto 0), AXI_ERROR_RESP_G);
+      sAxiReadSlave.rdata <= readMastToSlaveDout(33 downto 2);
 
-   -- Read control and valid
-   sAxiReadSlave.rvalid <= ite(m2sRst = '0', readMastToSlaveValid, '1');
-   readMastToSlaveRead  <= sAxiReadMaster.rready;
+      -- Read control and valid
+      sAxiReadSlave.rvalid <= ite(m2sRst = '0', readMastToSlaveValid, '1');
+      readMastToSlaveRead  <= sAxiReadMaster.rready;
 
-   ------------------------------------
-   -- Write Addr : Slave To Master
-   ------------------------------------
+      ------------------------------------
+      -- Write Addr : Slave To Master
+      ------------------------------------
 
-   -- Write Addr Master To Slave FIFO
-   U_WriteAddrSlaveToMastFifo : entity surf.FifoASync
-      generic map (
-         TPD_G          => TPD_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         RST_POLARITY_G => '1',
-         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
-         FWFT_EN_G      => true,
-         SYNC_STAGES_G  => 3,
-         PIPE_STAGES_G  => PIPE_STAGES_G,
-         DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
-         ADDR_WIDTH_G   => 4,
-         INIT_G         => "0",
-         FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1)
-      port map (
-         rst           => s2mRst,
-         wr_clk        => sAxiClk,
-         wr_en         => writeAddrSlaveToMastWrite,
-         din           => writeAddrSlaveToMastDin,
-         wr_data_count => open,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => writeAddrSlaveToMastFull,
-         not_full      => open,
-         rd_clk        => mAxiClk,
-         rd_en         => writeAddrSlaveToMastRead,
-         dout          => writeAddrSlaveToMastDout,
-         rd_data_count => open,
-         valid         => writeAddrSlaveToMastValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open
-         );
+      -- Write Addr Master To Slave FIFO
+      U_WriteAddrSlaveToMastFifo : entity surf.FifoASync
+         generic map (
+            TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            RST_POLARITY_G => '1',
+            MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
+            FWFT_EN_G      => true,
+            SYNC_STAGES_G  => 3,
+            PIPE_STAGES_G  => PIPE_STAGES_G,
+            DATA_WIDTH_G   => NUM_ADDR_BITS_G+3,
+            ADDR_WIDTH_G   => 4,
+            INIT_G         => "0",
+            FULL_THRES_G   => 15,
+            EMPTY_THRES_G  => 1)
+         port map (
+            rst           => s2mRst,
+            wr_clk        => sAxiClk,
+            wr_en         => writeAddrSlaveToMastWrite,
+            din           => writeAddrSlaveToMastDin,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => writeAddrSlaveToMastFull,
+            not_full      => open,
+            rd_clk        => mAxiClk,
+            rd_en         => writeAddrSlaveToMastRead,
+            dout          => writeAddrSlaveToMastDout,
+            rd_data_count => open,
+            valid         => writeAddrSlaveToMastValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open
+            );
 
-   -- Data In
-   writeAddrSlaveToMastDin(2 downto 0)                 <= sAxiWriteMaster.awprot;
-   writeAddrSlaveToMastDin(NUM_ADDR_BITS_G+2 downto 3) <= sAxiWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0);
+      -- Data In
+      writeAddrSlaveToMastDin(2 downto 0)                 <= sAxiWriteMaster.awprot;
+      writeAddrSlaveToMastDin(NUM_ADDR_BITS_G+2 downto 3) <= sAxiWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0);
 
-   -- Write control and ready generation
-   sAxiWriteSlave.awready    <= ite(m2sRst = '0', not writeAddrSlaveToMastFull, '1');
-   writeAddrSlaveToMastWrite <= sAxiWriteMaster.awvalid and (not writeAddrSlaveToMastFull);
+      -- Write control and ready generation
+      sAxiWriteSlave.awready    <= ite(m2sRst = '0', not writeAddrSlaveToMastFull, '1');
+      writeAddrSlaveToMastWrite <= sAxiWriteMaster.awvalid and (not writeAddrSlaveToMastFull);
 
-   -- Data Out
-   mAxiWriteMaster.awprot <= writeAddrSlaveToMastDout(2 downto 0);
+      -- Data Out
+      mAxiWriteMaster.awprot <= writeAddrSlaveToMastDout(2 downto 0);
 
-   process (writeAddrSlaveToMastDout)
-   begin
-      mAxiWriteMaster.awaddr <= (others => '0');
-      mAxiWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0) <= writeAddrSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
-   end process;
+      process (writeAddrSlaveToMastDout)
+      begin
+         mAxiWriteMaster.awaddr                             <= (others => '0');
+         mAxiWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0) <= writeAddrSlaveToMastDout(NUM_ADDR_BITS_G+2 downto 3);
+      end process;
 
-   -- Read control and valid
-   mAxiWriteMaster.awvalid  <= writeAddrSlaveToMastValid;
-   writeAddrSlaveToMastRead <= mAxiWriteSlave.awready;
+      -- Read control and valid
+      mAxiWriteMaster.awvalid  <= writeAddrSlaveToMastValid;
+      writeAddrSlaveToMastRead <= mAxiWriteSlave.awready;
 
-   ------------------------------------
-   -- Write Data : Slave to Master
-   ------------------------------------
+      ------------------------------------
+      -- Write Data : Slave to Master
+      ------------------------------------
 
-   -- Write Data Slave To Master FIFO
-   U_WriteDataSlaveToMastFifo : entity surf.FifoASync
-      generic map (
-         TPD_G          => TPD_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         RST_POLARITY_G => '1',
-         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
-         FWFT_EN_G      => true,
-         SYNC_STAGES_G  => 3,
-         PIPE_STAGES_G  => PIPE_STAGES_G,
-         DATA_WIDTH_G   => 36,
-         ADDR_WIDTH_G   => 4,
-         INIT_G         => "0",
-         FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1)
-      port map (
-         rst           => s2mRst,
-         wr_clk        => sAxiClk,
-         wr_en         => writeDataSlaveToMastWrite,
-         din           => writeDataSlaveTomastDin,
-         wr_data_count => open,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => writeDataSlaveToMastFull,
-         not_full      => open,
-         rd_clk        => mAxiClk,
-         rd_en         => writeDataSlaveToMastRead,
-         dout          => writeDataSlaveTomastDout,
-         rd_data_count => open,
-         valid         => writeDataSlaveToMastValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open
-         );
+      -- Write Data Slave To Master FIFO
+      U_WriteDataSlaveToMastFifo : entity surf.FifoASync
+         generic map (
+            TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            RST_POLARITY_G => '1',
+            MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
+            FWFT_EN_G      => true,
+            SYNC_STAGES_G  => 3,
+            PIPE_STAGES_G  => PIPE_STAGES_G,
+            DATA_WIDTH_G   => 36,
+            ADDR_WIDTH_G   => 4,
+            INIT_G         => "0",
+            FULL_THRES_G   => 15,
+            EMPTY_THRES_G  => 1)
+         port map (
+            rst           => s2mRst,
+            wr_clk        => sAxiClk,
+            wr_en         => writeDataSlaveToMastWrite,
+            din           => writeDataSlaveTomastDin,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => writeDataSlaveToMastFull,
+            not_full      => open,
+            rd_clk        => mAxiClk,
+            rd_en         => writeDataSlaveToMastRead,
+            dout          => writeDataSlaveTomastDout,
+            rd_data_count => open,
+            valid         => writeDataSlaveToMastValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open
+            );
 
-   -- Data In
-   writeDataSlaveToMastDin(3 downto 0)  <= sAxiWriteMaster.wstrb;
-   writeDataSlaveToMastDin(35 downto 4) <= sAxiWriteMaster.wdata;
+      -- Data In
+      writeDataSlaveToMastDin(3 downto 0)  <= sAxiWriteMaster.wstrb;
+      writeDataSlaveToMastDin(35 downto 4) <= sAxiWriteMaster.wdata;
 
-   -- Write control and ready generation
-   sAxiWriteSlave.wready     <= ite(m2sRst = '0', not writeDataSlaveToMastFull, '1');
-   writeDataSlaveToMastWrite <= sAxiWriteMaster.wvalid and (not writeDataSlaveToMastFull);
+      -- Write control and ready generation
+      sAxiWriteSlave.wready     <= ite(m2sRst = '0', not writeDataSlaveToMastFull, '1');
+      writeDataSlaveToMastWrite <= sAxiWriteMaster.wvalid and (not writeDataSlaveToMastFull);
 
-   -- Data Out
-   mAxiWriteMaster.wstrb <= writeDataSlaveToMastDout(3 downto 0);
-   mAxiWriteMaster.wdata <= writeDataSlaveToMastDout(35 downto 4);
+      -- Data Out
+      mAxiWriteMaster.wstrb <= writeDataSlaveToMastDout(3 downto 0);
+      mAxiWriteMaster.wdata <= writeDataSlaveToMastDout(35 downto 4);
 
-   -- Read control and valid
-   mAxiWriteMaster.wvalid   <= writeDataSlaveToMastValid;
-   writeDataSlaveToMastRead <= mAxiWriteSlave.wready;
+      -- Read control and valid
+      mAxiWriteMaster.wvalid   <= writeDataSlaveToMastValid;
+      writeDataSlaveToMastRead <= mAxiWriteSlave.wready;
 
-   ------------------------------------
-   -- Write: Status Master To Slave
-   ------------------------------------
+      ------------------------------------
+      -- Write: Status Master To Slave
+      ------------------------------------
 
-   -- Write Status Master To Slave FIFO
-   U_WriteMastToSlaveFifo : entity surf.FifoASync
-      generic map (
-         TPD_G          => TPD_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         RST_POLARITY_G => '1',
-         MEMORY_TYPE_G  => "distributed", -- Use Dist Ram
-         FWFT_EN_G      => true,
-         SYNC_STAGES_G  => 3,
-         PIPE_STAGES_G  => PIPE_STAGES_G,
-         DATA_WIDTH_G   => 2,
-         ADDR_WIDTH_G   => 4,
-         INIT_G         => "0",
-         FULL_THRES_G   => 15,
-         EMPTY_THRES_G  => 1)
-      port map (
-         rst           => m2sRst,
-         wr_clk        => mAxiClk,
-         wr_en         => writeMastToSlaveWrite,
-         din           => writeMastToSlaveDin,
-         wr_data_count => open,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => writeMastToSlaveFull,
-         not_full      => open,
-         rd_clk        => sAxiClk,
-         rd_en         => writeMastToSlaveRead,
-         dout          => writeMastToSlaveDout,
-         rd_data_count => open,
-         valid         => writeMastToSlaveValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open
-         );
+      -- Write Status Master To Slave FIFO
+      U_WriteMastToSlaveFifo : entity surf.FifoASync
+         generic map (
+            TPD_G          => TPD_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            RST_POLARITY_G => '1',
+            MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
+            FWFT_EN_G      => true,
+            SYNC_STAGES_G  => 3,
+            PIPE_STAGES_G  => PIPE_STAGES_G,
+            DATA_WIDTH_G   => 2,
+            ADDR_WIDTH_G   => 4,
+            INIT_G         => "0",
+            FULL_THRES_G   => 15,
+            EMPTY_THRES_G  => 1)
+         port map (
+            rst           => m2sRst,
+            wr_clk        => mAxiClk,
+            wr_en         => writeMastToSlaveWrite,
+            din           => writeMastToSlaveDin,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => writeMastToSlaveFull,
+            not_full      => open,
+            rd_clk        => sAxiClk,
+            rd_en         => writeMastToSlaveRead,
+            dout          => writeMastToSlaveDout,
+            rd_data_count => open,
+            valid         => writeMastToSlaveValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open
+            );
 
-   -- Data In
-   writeMastToSlaveDin <= mAxiWriteSlave.bresp;
+      -- Data In
+      writeMastToSlaveDin <= mAxiWriteSlave.bresp;
 
-   -- Write control and ready generation
-   mAxiWriteMaster.bready <= not writeMastToSlaveFull;
-   writeMastToSlaveWrite  <= mAxiWriteSlave.bvalid and (not writeMastToSlaveFull);
+      -- Write control and ready generation
+      mAxiWriteMaster.bready <= not writeMastToSlaveFull;
+      writeMastToSlaveWrite  <= mAxiWriteSlave.bvalid and (not writeMastToSlaveFull);
 
-   -- Data Out
-   sAxiWriteSlave.bresp <= ite(m2sRst = '0', writeMastToSlaveDout, AXI_ERROR_RESP_G);
+      -- Data Out
+      sAxiWriteSlave.bresp <= ite(m2sRst = '0', writeMastToSlaveDout, AXI_ERROR_RESP_G);
 
-   -- Read control and valid
-   sAxiWriteSlave.bvalid <= ite(m2sRst = '0', writeMastToSlaveValid, '1');
-   writeMastToSlaveRead  <= sAxiWriteMaster.bready;
+      -- Read control and valid
+      sAxiWriteSlave.bvalid <= ite(m2sRst = '0', writeMastToSlaveValid, '1');
+      writeMastToSlaveRead  <= sAxiWriteMaster.bready;
 
    end generate;
 

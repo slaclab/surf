@@ -97,7 +97,7 @@ begin
    ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 200 ns)   -- Hold reset for this long)
       port map (
          clkP => fastClk,
@@ -108,7 +108,7 @@ begin
    ClkRst_Slow : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 200 ns)   -- Hold reset for this long)
       port map (
          clkP => slowClk,
@@ -242,20 +242,20 @@ begin
       SsiPrbsRx_Inst : entity surf.SsiPrbsRx
          generic map (
             -- General Configurations
-            TPD_G                      => TPD_C,
-            STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
+            TPD_G                     => TPD_C,
+            STATUS_CNT_WIDTH_G        => STATUS_CNT_WIDTH_C,
             -- FIFO Configurations
-            MEMORY_TYPE_G              => MEMORY_TYPE_C,
-            GEN_SYNC_FIFO_G            => true,
-            CASCADE_SIZE_G             => CASCADE_SIZE_C,
-            FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
-            FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
+            MEMORY_TYPE_G             => MEMORY_TYPE_C,
+            GEN_SYNC_FIFO_G           => true,
+            CASCADE_SIZE_G            => CASCADE_SIZE_C,
+            FIFO_ADDR_WIDTH_G         => FIFO_ADDR_WIDTH_C,
+            FIFO_PAUSE_THRESH_G       => FIFO_PAUSE_THRESH_C,
             -- PRBS Configurations
-            PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
-            PRBS_TAPS_G                => PRBS_TAPS_C,
+            PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
+            PRBS_TAPS_G               => PRBS_TAPS_C,
             -- AXI Stream Configurations
-            SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
-            SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C)
+            SLAVE_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C,
+            SLAVE_AXI_PIPE_STAGES_G   => AXI_PIPE_STAGES_C)
          port map (
             -- Streaming RX Data Interface (sAxisClk domain)
             sAxisClk       => slowClk,

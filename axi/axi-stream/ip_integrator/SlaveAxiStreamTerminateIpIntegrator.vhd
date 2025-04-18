@@ -36,15 +36,15 @@ entity SlaveAxiStreamTerminateIpIntegrator is
       TDATA_NUM_BYTES : natural range 1 to 128 := 1);
    port (
       -- IP Integrator AXI Stream Interface
-      S_AXIS_TVALID  : in  std_logic                                        := '0';
-      S_AXIS_TDATA   : in  std_logic_vector((8*TDATA_NUM_BYTES)-1 downto 0) := (others => '0');
-      S_AXIS_TSTRB   : in  std_logic_vector(TDATA_NUM_BYTES-1 downto 0)     := (others => '0');
-      S_AXIS_TKEEP   : in  std_logic_vector(TDATA_NUM_BYTES-1 downto 0)     := (others => '0');
-      S_AXIS_TLAST   : in  std_logic                                        := '0';
-      S_AXIS_TDEST   : in  std_logic_vector(TDEST_WIDTH-1 downto 0)         := (others => '0');
-      S_AXIS_TID     : in  std_logic_vector(TID_WIDTH-1 downto 0)           := (others => '0');
-      S_AXIS_TUSER   : in  std_logic_vector(TUSER_WIDTH-1 downto 0)         := (others => '0');
-      S_AXIS_TREADY  : out std_logic);
+      S_AXIS_TVALID : in  std_logic                                        := '0';
+      S_AXIS_TDATA  : in  std_logic_vector((8*TDATA_NUM_BYTES)-1 downto 0) := (others => '0');
+      S_AXIS_TSTRB  : in  std_logic_vector(TDATA_NUM_BYTES-1 downto 0)     := (others => '0');
+      S_AXIS_TKEEP  : in  std_logic_vector(TDATA_NUM_BYTES-1 downto 0)     := (others => '0');
+      S_AXIS_TLAST  : in  std_logic                                        := '0';
+      S_AXIS_TDEST  : in  std_logic_vector(TDEST_WIDTH-1 downto 0)         := (others => '0');
+      S_AXIS_TID    : in  std_logic_vector(TID_WIDTH-1 downto 0)           := (others => '0');
+      S_AXIS_TUSER  : in  std_logic_vector(TUSER_WIDTH-1 downto 0)         := (others => '0');
+      S_AXIS_TREADY : out std_logic);
 end SlaveAxiStreamTerminateIpIntegrator;
 
 architecture mapping of SlaveAxiStreamTerminateIpIntegrator is
@@ -63,19 +63,19 @@ begin
          TDATA_NUM_BYTES => TDATA_NUM_BYTES)
       port map (
          -- IP Integrator AXI Stream Interface
-         S_AXIS_TVALID  => S_AXIS_TVALID,
-         S_AXIS_TDATA   => S_AXIS_TDATA,
-         S_AXIS_TSTRB   => S_AXIS_TSTRB,
-         S_AXIS_TKEEP   => S_AXIS_TKEEP,
-         S_AXIS_TLAST   => S_AXIS_TLAST,
-         S_AXIS_TDEST   => S_AXIS_TDEST,
-         S_AXIS_TID     => S_AXIS_TID,
-         S_AXIS_TUSER   => S_AXIS_TUSER,
-         S_AXIS_TREADY  => S_AXIS_TREADY,
+         S_AXIS_TVALID => S_AXIS_TVALID,
+         S_AXIS_TDATA  => S_AXIS_TDATA,
+         S_AXIS_TSTRB  => S_AXIS_TSTRB,
+         S_AXIS_TKEEP  => S_AXIS_TKEEP,
+         S_AXIS_TLAST  => S_AXIS_TLAST,
+         S_AXIS_TDEST  => S_AXIS_TDEST,
+         S_AXIS_TID    => S_AXIS_TID,
+         S_AXIS_TUSER  => S_AXIS_TUSER,
+         S_AXIS_TREADY => S_AXIS_TREADY,
          -- SURF AXI Stream Interface
-         axisClk        => open,
-         axisRst        => open,
-         axisMaster     => open,
-         axisSlave      => AXI_STREAM_SLAVE_FORCE_C);
+         axisClk       => open,
+         axisRst       => open,
+         axisMaster    => open,
+         axisSlave     => AXI_STREAM_SLAVE_FORCE_C);
 
 end mapping;

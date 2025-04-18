@@ -48,26 +48,26 @@ entity Pgp2bRxPhy is
       pgpRxOpCode   : out slv(7 downto 0);  -- Opcode receive value
 
       -- Sideband data
-      pgpRemLinkReady : out sl              := '0';              -- Far end side has link
+      pgpRemLinkReady : out sl              := '0';  -- Far end side has link
       pgpRemData      : out slv(7 downto 0) := (others => '0');  -- Far end side User Data
 
       -- Cell Receive Interfac e
-      cellRxPause : out sl;                                -- Cell data pause
-      cellRxSOC   : out sl;                                -- Cell data start of cell
-      cellRxSOF   : out sl;                                -- Cell data start of frame
-      cellRxEOC   : out sl;                                -- Cell data end of cell
-      cellRxEOF   : out sl;                                -- Cell data end of frame
-      cellRxEOFE  : out sl;                                -- Cell data end of frame error
+      cellRxPause : out sl;             -- Cell data pause
+      cellRxSOC   : out sl;             -- Cell data start of cell
+      cellRxSOF   : out sl;             -- Cell data start of frame
+      cellRxEOC   : out sl;             -- Cell data end of cell
+      cellRxEOF   : out sl;             -- Cell data end of frame
+      cellRxEOFE  : out sl;             -- Cell data end of frame error
       cellRxData  : out slv(RX_LANE_CNT_G*16-1 downto 0);  -- Cell data data
 
       -- Physical Interface Signals
-      phyRxPolarity : out slv(RX_LANE_CNT_G-1 downto 0);     -- PHY receive signal polarity
+      phyRxPolarity : out slv(RX_LANE_CNT_G-1 downto 0);  -- PHY receive signal polarity
       phyRxData     : in  slv(RX_LANE_CNT_G*16-1 downto 0);  -- PHY receive data
-      phyRxDataK    : in  slv(RX_LANE_CNT_G*2-1 downto 0);   -- PHY receive data is K character
-      phyRxDispErr  : in  slv(RX_LANE_CNT_G*2-1 downto 0);   -- PHY receive data has disparity error
-      phyRxDecErr   : in  slv(RX_LANE_CNT_G*2-1 downto 0);   -- PHY receive data not in table
-      phyRxReady    : in  sl;                                -- PHY receive interface is ready
-      phyRxInit     : out sl                                 -- PHY receive interface init;
+      phyRxDataK    : in  slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data is K character
+      phyRxDispErr  : in  slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data has disparity error
+      phyRxDecErr   : in  slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data not in table
+      phyRxReady    : in  sl;           -- PHY receive interface is ready
+      phyRxInit     : out sl            -- PHY receive interface init;
       );
 
 end Pgp2bRxPhy;
@@ -227,8 +227,8 @@ begin
 
 
 -- Link control state machine
-   process (curState, stateCnt, ltsCnt, rxDetectLts, rxDetectLtsOk,
-            rxDetectInvert, intRxPolarity, phyRxReady, dly1RxDecErr, dly1RxDispErr)
+   process (curState, dly1RxDecErr, dly1RxDispErr, ltsCnt, phyRxReady,
+            rxDetectInvert, rxDetectLts, rxDetectLtsOk, stateCnt)
    begin
       case curState is
 
@@ -561,7 +561,8 @@ begin
    GEN_LANES : for i in 0 to (RX_LANE_CNT_G-1) generate
 
       -- Ordered Set Detection
-      process (dly1RxDataK, dly1RxData, dly0RxDataK, dly0RxData, dly0RxDispErr, dly0RxDecErr, dly1RxDispErr, dly1RxDecErr)
+      process (dly0RxData, dly0RxDataK, dly0RxDecErr, dly0RxDispErr,
+               dly1RxData, dly1RxDataK, dly1RxDecErr, dly1RxDispErr)
       begin
 
          -- Skip errored decodes

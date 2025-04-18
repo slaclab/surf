@@ -27,43 +27,43 @@ use surf.StdRtlPkg.all;
 
 entity RssiChksum is
    generic (
-      TPD_G          : time     := 1 ns;
+      TPD_G        : time     := 1 ns;
       --
-      DATA_WIDTH_G   : positive := 64;
-      CSUM_WIDTH_G   : positive := 16
-   );
+      DATA_WIDTH_G : positive := 64;
+      CSUM_WIDTH_G : positive := 16
+      );
    port (
-      clk_i      : in  sl;
-      rst_i      : in  sl;
+      clk_i : in sl;
+      rst_i : in sl;
 
       -- Enables and initializes the calculations.
       -- enable_i <= '1' enables the calculation.
       --                 the checksum value holds as long as enabled.
       -- enable_i <= '0' initializes the calculation.
-      enable_i   : in  sl;
+      enable_i : in sl;
 
       -- Has to indicate valid data and defines the number of calculation clock cycles.
-      strobe_i   : in  sl;
+      strobe_i : in sl;
 
       -- Length of checksumed data
-      length_i   : in positive;
+      length_i : in positive;
 
       -- Initial value of the sum
       -- Calculation: init_i = (others=>'0')
       -- Validation:  init_i = Checksum value
-      init_i : in  slv(CSUM_WIDTH_G-1 downto 0);
+      init_i : in slv(CSUM_WIDTH_G-1 downto 0);
 
       -- Fixed to 2 octets (standard specification)
-      data_i  : in  slv(DATA_WIDTH_G-1 downto 0);
+      data_i : in slv(DATA_WIDTH_G-1 downto 0);
 
       -- Direct out 1 c-c delay
-      chksum_o  : out slv(CSUM_WIDTH_G-1 downto 0);
+      chksum_o : out slv(CSUM_WIDTH_G-1 downto 0);
 
       -- Indicates when the module is ready and the checksum is valid
       valid_o : out sl;
       -- Indicates if the calculated checksum is ok (valid upon valid_o='1')
       check_o : out sl
-   );
+      );
 end entity RssiChksum;
 
 architecture rtl of RssiChksum is
@@ -78,11 +78,11 @@ architecture rtl of RssiChksum is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      sum      => (others=>'0'),
-      chksum   => (others=>'0'),
-      lenCnt   => 0,
-      valid    => '0'
-   );
+      sum    => (others => '0'),
+      chksum => (others => '0'),
+      lenCnt => 0,
+      valid  => '0'
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -94,28 +94,29 @@ architecture rtl of RssiChksum is
 begin
    -- TODO make it generic
    --data_i((CSUM_WIDTH_G-1)+(CSUM_WIDTH_G*I) downto CSUM_WIDTH_G*I);
-   s_dataWordSum <=   "00"& data_i(63 downto 48) +
-                            data_i(47 downto 32) +
-                            data_i(31 downto 16) +
-                            data_i(15 downto 0);
+   s_dataWordSum <= "00"& data_i(63 downto 48) +
+                    data_i(47 downto 32) +
+                    data_i(31 downto 16) +
+                    data_i(15 downto 0);
 
 
 
-   comb : process (r, rst_i, enable_i, init_i, data_i, strobe_i, length_i, s_dataWordSum) is
+   comb : process (enable_i, init_i, length_i, r, rst_i, s_dataWordSum,
+                   strobe_i) is
       variable v : RegType;
    begin
       v := r;
 
       -- Cumulative sum of the data_i while enabled
-      if ( enable_i = '0')   then
+      if (enable_i = '0') then
          v.sum    := ("00000" & init_i);
          v.lenCnt := 0;
          v.valid  := '0';
-      elsif ( r.lenCnt >= length_i)   then
+      elsif (r.lenCnt >= length_i) then
          v.sum    := r.sum;
          v.lenCnt := r.lenCnt;
          v.valid  := '1';
-      elsif ( strobe_i = '1')  then
+      elsif (strobe_i = '1') then
          -- Add new word sum
          v.sum    := r.sum + s_dataWordSum;
          v.lenCnt := r.lenCnt +1;
@@ -127,7 +128,7 @@ begin
       end if;
 
       -- Add the sum carry bits
-      v.chksum  := '0' & r.sum(CSUM_WIDTH_G-1 downto 0)  +  r.sum(CSUM_WIDTH_G+4 downto CSUM_WIDTH_G);
+      v.chksum                          := '0' & r.sum(CSUM_WIDTH_G-1 downto 0) + r.sum(CSUM_WIDTH_G+4 downto CSUM_WIDTH_G);
       -- Add the checksum carry bit
       v.chksum(CSUM_WIDTH_G-1 downto 0) := v.chksum(CSUM_WIDTH_G-1 downto 0) + v.chksum(CSUM_WIDTH_G);
 
@@ -140,7 +141,7 @@ begin
       end if;
 
       rin <= v;
-      -----------------------------------------------------------
+   -----------------------------------------------------------
    end process comb;
 
    seq : process (clk_i) is
@@ -151,7 +152,7 @@ begin
    end process seq;
    ---------------------------------------------------------------------
    -- Output assignment
-   valid_o  <= r.valid;
-   check_o  <= '1' when (not r.chksum(CSUM_WIDTH_G-1 downto 0)) = (r.chksum'range => '0') else '0';
-   ---------------------------------------------------------------------
+   valid_o <= r.valid;
+   check_o <= '1' when (not r.chksum(CSUM_WIDTH_G-1 downto 0)) = (r.chksum'range => '0') else '0';
+---------------------------------------------------------------------
 end architecture rtl;

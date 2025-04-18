@@ -18,42 +18,42 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity RogueTcpMemory is port (
-      clock        : in    std_logic;
-      reset        : in    std_logic;
-      portNum      : in    std_logic_vector(15 downto 0);
+   clock   : in std_logic;
+   reset   : in std_logic;
+   portNum : in std_logic_vector(15 downto 0);
 
-      -- axiReadMaster
-      araddr       : out   std_logic_vector(31 downto 0);
-      arprot       : out   std_logic_vector(2 downto 0);
-      arvalid      : out   std_logic;
-      rready       : out   std_logic;
+   -- axiReadMaster
+   araddr  : out std_logic_vector(31 downto 0);
+   arprot  : out std_logic_vector(2 downto 0);
+   arvalid : out std_logic;
+   rready  : out std_logic;
 
-      -- axiReadSlave
-      arready      : in    std_logic;
-      rdata        : in    std_logic_vector(31 downto 0);
-      rresp        : in    std_logic_vector(1 downto 0);
-      rvalid       : in    std_logic;
+   -- axiReadSlave
+   arready : in std_logic;
+   rdata   : in std_logic_vector(31 downto 0);
+   rresp   : in std_logic_vector(1 downto 0);
+   rvalid  : in std_logic;
 
-      -- axiWriteMaster
-      awaddr       : out   std_logic_vector(31 downto 0);
-      awprot       : out   std_logic_vector(2 downto 0);
-      awvalid      : out   std_logic;
-      wdata        : out   std_logic_vector(31 downto 0);
-      wstrb        : out   std_logic_vector(3 downto 0);
-      wvalid       : out   std_logic;
-      bready       : out   std_logic;
+   -- axiWriteMaster
+   awaddr  : out std_logic_vector(31 downto 0);
+   awprot  : out std_logic_vector(2 downto 0);
+   awvalid : out std_logic;
+   wdata   : out std_logic_vector(31 downto 0);
+   wstrb   : out std_logic_vector(3 downto 0);
+   wvalid  : out std_logic;
+   bready  : out std_logic;
 
-      -- axiWriteSlave
-      awready      : in    std_logic;
-      wready       : in    std_logic;
-      bresp        : in    std_logic_vector(1 downto 0);
-      bvalid       : in    std_logic
+   -- axiWriteSlave
+   awready : in std_logic;
+   wready  : in std_logic;
+   bresp   : in std_logic_vector(1 downto 0);
+   bvalid  : in std_logic
    );
 end RogueTcpMemory;
 
 -- Define architecture
 architecture RogueTcpMemory of RogueTcpMemory is
-   Attribute FOREIGN of RogueTcpMemory: architecture is
+   attribute FOREIGN of RogueTcpMemory : architecture is
       "vhpi:AxiSim:VhpiGenericElab:RogueTcpMemoryInit:RogueTcpMemory";
 begin
 end RogueTcpMemory;

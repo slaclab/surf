@@ -42,7 +42,7 @@ entity Gtp7RxFixedLatPhaseAligner is
       COMMA_3_G   : slv             := "XXXXXXXXXXXXXXXXXXXX");
    port (
       rxUsrClk             : in  sl;
-      rxRunPhAlignment     : in  sl;    -- From RxRst, active low reset, not clocked by rxUsrClk
+      rxRunPhAlignment     : in  sl;  -- From RxRst, active low reset, not clocked by rxUsrClk
       rxData               : in  slv(WORD_SIZE_G-1 downto 0);  -- Encoded raw rx data
       rxReset              : out sl;
       rxSlide              : out sl;    -- RXSLIDE input to GTX

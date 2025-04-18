@@ -83,7 +83,7 @@ begin
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1 us)   -- Hold reset for this long)
+         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
       port map (
          clkP => refClk128,
          rst  => refRst128);
@@ -227,10 +227,10 @@ begin
          axilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
          axilWriteSlave  => open);
 
-   rxMaster.tValid              <= sspValid(0);
-   rxMaster.tData(15 downto 0)  <= sspData(0);
-   rxMaster.tUser(SSI_SOF_C)    <= sspSof(0);
-   rxMaster.tLast               <= sspEof(0);
+   rxMaster.tValid             <= sspValid(0);
+   rxMaster.tData(15 downto 0) <= sspData(0);
+   rxMaster.tUser(SSI_SOF_C)   <= sspSof(0);
+   rxMaster.tLast              <= sspEof(0);
 
    U_SsiPrbsRx : entity surf.SsiPrbsRx
       generic map (

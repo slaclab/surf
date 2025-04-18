@@ -36,37 +36,37 @@ entity AxiStreamBytePacker is
       MASTER_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
-      axiClk       : in  sl;
-      axiRst       : in  sl;
+      axiClk      : in  sl;
+      axiRst      : in  sl;
       -- Inbound frame
-      sAxisMaster  : in  AxiStreamMasterType;
+      sAxisMaster : in  AxiStreamMasterType;
       -- Outbound frame
-      mAxisMaster  : out AxiStreamMasterType);
+      mAxisMaster : out AxiStreamMasterType);
 end AxiStreamBytePacker;
 
 architecture rtl of AxiStreamBytePacker is
 
-   constant SLV_TUSER_BITS_C : natural := ite(SLAVE_CONFIG_G.TUSER_BITS_C/=0,SLAVE_CONFIG_G.TUSER_BITS_C,1);
+   constant SLV_TUSER_BITS_C : natural := ite(SLAVE_CONFIG_G.TUSER_BITS_C /= 0, SLAVE_CONFIG_G.TUSER_BITS_C, 1);
 
    constant MAX_IN_BYTE_C  : integer := SLAVE_CONFIG_G.TDATA_BYTES_C-1;
    constant MAX_OUT_BYTE_C : integer := MASTER_CONFIG_G.TDATA_BYTES_C-1;
 
    type RegType is record
-      byteCount  : integer range 0 to MAX_OUT_BYTE_C;
-      inTop      : integer range 0 to MAX_IN_BYTE_C;
-      inMaster   : AxiStreamMasterType;
-      curMaster  : AxiStreamMasterType;
-      nxtMaster  : AxiStreamMasterType;
-      outMaster  : AxiStreamMasterType;
+      byteCount : integer range 0 to MAX_OUT_BYTE_C;
+      inTop     : integer range 0 to MAX_IN_BYTE_C;
+      inMaster  : AxiStreamMasterType;
+      curMaster : AxiStreamMasterType;
+      nxtMaster : AxiStreamMasterType;
+      outMaster : AxiStreamMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      byteCount  => 0,
-      inTop      => 0,
-      inMaster   => AXI_STREAM_MASTER_INIT_C,
-      curMaster  => AXI_STREAM_MASTER_INIT_C,
-      nxtMaster  => AXI_STREAM_MASTER_INIT_C,
-      outMaster  => AXI_STREAM_MASTER_INIT_C);
+      byteCount => 0,
+      inTop     => 0,
+      inMaster  => AXI_STREAM_MASTER_INIT_C,
+      curMaster => AXI_STREAM_MASTER_INIT_C,
+      nxtMaster => AXI_STREAM_MASTER_INIT_C,
+      outMaster => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -76,7 +76,7 @@ architecture rtl of AxiStreamBytePacker is
 
 begin
 
-   comb : process (r, axiRst, sAxisMaster ) is
+   comb : process (axiRst, r, sAxisMaster) is
       variable v     : RegType;
       variable valid : sl;
       variable last  : sl;
@@ -87,14 +87,14 @@ begin
 
       -- Register input and compute size
       v.inMaster := sAxisMaster;
-      v.inTop    := getTKeep(sAxisMaster.tKeep(MAX_IN_BYTE_C downto 0),SLAVE_CONFIG_G)-1;
+      v.inTop    := getTKeep(sAxisMaster.tKeep(MAX_IN_BYTE_C downto 0), SLAVE_CONFIG_G)-1;
 
       -- Pending output from current
       if r.curMaster.tValid = '1' then
-         v.outMaster := r.curMaster;
-         v.curMaster := r.nxtMaster;
-         v.nxtMaster := AXI_STREAM_MASTER_INIT_C;
-         v.nxtMaster.tKeep := (others=>'0');
+         v.outMaster       := r.curMaster;
+         v.curMaster       := r.nxtMaster;
+         v.nxtMaster       := AXI_STREAM_MASTER_INIT_C;
+         v.nxtMaster.tKeep := (others => '0');
       else
          v.outMaster := AXI_STREAM_MASTER_INIT_C;
       end if;
@@ -107,32 +107,32 @@ begin
             if i <= r.inTop then
 
                -- Extract values for each iteration
-               last  := r.inMaster.tLast and toSl(i=r.inTop);
+               last  := r.inMaster.tLast and toSl(i = r.inTop);
                valid := toSl(v.byteCount = MAX_OUT_BYTE_C) or last;
-               user  := axiStreamGetUserField ( SLAVE_CONFIG_G, r.inMaster, i );
+               user  := axiStreamGetUserField (SLAVE_CONFIG_G, r.inMaster, i);
                data  := r.inMaster.tData(i*8+7 downto i*8);
 
                -- Still filling current data
                if v.curMaster.tValid = '0' then
 
                   v.curMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := data;
-                  v.curMaster.tKeep(v.byteCount) := '1';
-                  v.curMaster.tValid := valid;
-                  v.curMaster.tLast  := last;
+                  v.curMaster.tKeep(v.byteCount)                          := '1';
+                  v.curMaster.tValid                                      := valid;
+                  v.curMaster.tLast                                       := last;
 
                   -- Copy user field
-                  axiStreamSetUserField( MASTER_CONFIG_G, v.curMaster, user, v.ByteCount);
+                  axiStreamSetUserField(MASTER_CONFIG_G, v.curMaster, user, v.ByteCount);
 
                -- Filling next data
                elsif v.nxtMaster.tValid = '0' then
 
                   v.nxtMaster.tData(v.byteCount*8+7 downto v.byteCount*8) := data;
-                  v.nxtMaster.tKeep(v.byteCount) := '1';
-                  v.nxtMaster.tValid := valid;
-                  v.nxtMaster.tLast  := last;
+                  v.nxtMaster.tKeep(v.byteCount)                          := '1';
+                  v.nxtMaster.tValid                                      := valid;
+                  v.nxtMaster.tLast                                       := last;
 
                   -- Copy user field
-                  axiStreamSetUserField( MASTER_CONFIG_G, v.nxtMaster, user, v.ByteCount);
+                  axiStreamSetUserField(MASTER_CONFIG_G, v.nxtMaster, user, v.ByteCount);
 
                end if;
 
@@ -147,9 +147,9 @@ begin
 
       -- Reset
       if (RST_ASYNC_G = false and axiRst = '1') then
-         v := REG_INIT_C;
-         v.curMaster.tKeep := (others=>'0');
-         v.nxtMaster.tKeep := (others=>'0');
+         v                 := REG_INIT_C;
+         v.curMaster.tKeep := (others => '0');
+         v.nxtMaster.tKeep := (others => '0');
       end if;
 
       rin <= v;

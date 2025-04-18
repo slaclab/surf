@@ -118,18 +118,18 @@ begin
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,            --  8-bit AXI stream interface
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  8-bit AXI stream interface
          MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macMaster,                       -- 8-bit AXI stream interface
+         sAxisMaster => macMaster,      -- 8-bit AXI stream interface
          sAxisSlave  => open,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macIbMaster,                     -- 128-bit AXI stream interface
+         mAxisMaster => macIbMaster,    -- 128-bit AXI stream interface
          mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
    comb : process (crcIn, crcOut, ethClkEn, ethRst, gmiiRxDv, gmiiRxEr,

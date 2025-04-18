@@ -105,8 +105,8 @@ begin
    -- Delay nsync input (for 1 to 16 c-c) to
    nsyncDly_INST : entity surf.SlvDelay
       generic map (
-         TPD_G    => TPD_G,
-          DELAY_G => 16)
+         TPD_G   => TPD_G,
+         DELAY_G => 16)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,

@@ -24,17 +24,17 @@ use surf.StdRtlPkg.all;
 
 package MdioPkg is
 
-   subtype PhyAddrType is slv( 4 downto 0);
-   subtype RegAddrType is slv( 4 downto 0);
+   subtype PhyAddrType is slv(4 downto 0);
+   subtype RegAddrType is slv(4 downto 0);
 
    -- A command to be submitted to the MdioCore.
    -- Use the 'mdioReadCommand()/mdioWriteCommand() convenience
    -- functions to initialize/create a MdioCommandType object.
    type MdioCommandType is record
-      rdNotWr      : sl;                 -- 'direction': read vs. write
-      phyAddr      : PhyAddrType;        -- phy to be addressed by this command
-      regAddr      : RegAddrType;        -- register address
-      dataOut      : slv( 15 downto 0 ); -- for a read command dataOut MUST be set to x"FFFF"
+      rdNotWr : sl;                     -- 'direction': read vs. write
+      phyAddr : PhyAddrType;            -- phy to be addressed by this command
+      regAddr : RegAddrType;            -- register address
+      dataOut : slv(15 downto 0);  -- for a read command dataOut MUST be set to x"FFFF"
    end record MdioCommandType;
 
    constant MDIO_CMD_INIT_C : MdioCommandType :=
@@ -43,20 +43,20 @@ package MdioPkg is
          phyAddr => (others => '0'),
          regAddr => (others => '0'),
          dataOut => (others => '1')
-      );
+         );
 
    -- create a READ command
    function mdioReadCommand(
       phyAddr : in natural;
       regAddr : in natural
-   ) return MdioCommandType;
+      ) return MdioCommandType;
 
    -- create a WRITE command
    function mdioWriteCommand(
       phyAddr : in natural;
       regAddr : in natural;
       dataOut : in slv(15 downto 0)
-   ) return MdioCommandType;
+      ) return MdioCommandType;
 
    -- An mdio instruction. This record is intended to
    -- be used as an element in a MdioProgramArray which
@@ -75,7 +75,7 @@ package MdioPkg is
       phyAddr : in natural;
       regAddr : in natural;
       theLast : in boolean := false
-   ) return MdioInstType;
+      ) return MdioInstType;
 
    -- create/initialize a WRITE instruction. 'theLast' must
    -- be set to 'true' if this instruction is the last one
@@ -85,7 +85,7 @@ package MdioPkg is
       regAddr : in natural;
       dataOut : in slv(15 downto 0);
       theLast : in boolean := false
-   ) return MdioInstType;
+      ) return MdioInstType;
 
    -- A sequence of instructions. The 'MdioSeqCore' module
    -- processes a sequence of commands up to and including one
@@ -119,7 +119,7 @@ package MdioPkg is
    -- calculate the number of read transactions in a sequence
    function mdioProgNumReadTransactions(
       prog : in MdioProgramArray
-   ) return natural;
+      ) return natural;
 
 end package MdioPkg;
 
@@ -128,12 +128,12 @@ package body MdioPkg is
    function mdioReadCommand(
       phyAddr : in natural;
       regAddr : in natural
-   ) return MdioCommandType is
-   variable rval : MdioCommandType;
+      ) return MdioCommandType is
+      variable rval : MdioCommandType;
    begin
       rval.rdNotWr := '1';
-      rval.regAddr := toSlv( regAddr, rval.regAddr'length );
-      rval.phyAddr := toSlv( phyAddr, rval.phyAddr'length );
+      rval.regAddr := toSlv(regAddr, rval.regAddr'length);
+      rval.phyAddr := toSlv(phyAddr, rval.phyAddr'length);
       rval.dataOut := (others => '1');
       return rval;
    end function mdioReadCommand;
@@ -142,12 +142,12 @@ package body MdioPkg is
       phyAddr : in natural;
       regAddr : in natural;
       dataOut : in slv(15 downto 0)
-   ) return MdioCommandType is
-   variable rval : MdioCommandType;
+      ) return MdioCommandType is
+      variable rval : MdioCommandType;
    begin
       rval.rdNotWr := '0';
-      rval.regAddr := toSlv( regAddr, rval.regAddr'length );
-      rval.phyAddr := toSlv( phyAddr, rval.phyAddr'length );
+      rval.regAddr := toSlv(regAddr, rval.regAddr'length);
+      rval.phyAddr := toSlv(phyAddr, rval.phyAddr'length);
       rval.dataOut := dataOut;
       return rval;
    end function mdioWriteCommand;
@@ -156,11 +156,11 @@ package body MdioPkg is
       phyAddr : in natural;
       regAddr : in natural;
       theLast : in boolean := false
-   ) return MdioInstType is
-   variable rval : MdioInstType;
+      ) return MdioInstType is
+      variable rval : MdioInstType;
    begin
       rval.cmd := mdioReadCommand(phyAddr, regAddr);
-      rval.lst := ite( theLast, '1', '0' );
+      rval.lst := ite(theLast, '1', '0');
       return rval;
    end function mdioReadInst;
 
@@ -169,17 +169,17 @@ package body MdioPkg is
       regAddr : in natural;
       dataOut : in slv(15 downto 0);
       theLast : in boolean := false
-   ) return MdioInstType is
-   variable rval : MdioInstType;
+      ) return MdioInstType is
+      variable rval : MdioInstType;
    begin
       rval.cmd := mdioWriteCommand(phyAddr, regAddr, dataOut);
-      rval.lst := ite( theLast, '1', '0' );
+      rval.lst := ite(theLast, '1', '0');
       return rval;
    end function mdioWriteInst;
 
    function mdioProgNumReadTransactions(
       prog : in MdioProgramArray
-   ) return natural is
+      ) return natural is
       variable n : natural := 0;
       variable i : natural;
    begin

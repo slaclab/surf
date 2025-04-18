@@ -114,7 +114,7 @@ package body Gtx7CfgPkg is
       variable found  : boolean;
       variable ret    : Gtx7CPllCfgType;
    begin
-      found              := false;
+      found := false;
       -- Walk through all possible configs and look for one that works
       dloop : for d in CPLL_OUT_DIV_VALIDS_C'range loop
          mloop : for m in CPLL_REFCLK_DIV_VALIDS_C'range loop
@@ -133,7 +133,7 @@ package body Gtx7CfgPkg is
                      ret.OUT_DIV_G         := CPLL_OUT_DIV_VALIDS_C(d);
                      ret.CLK25_DIV_G       := integer(refClkFreq / 25.0E6);
 
-                     found                 := true;
+                     found := true;
 
 --                     report "Found GTX config: " & lf &
 --                        "refClkFreq:        " & real'image(refClkFreq) & lf &
@@ -164,15 +164,15 @@ package body Gtx7CfgPkg is
       variable ret : bit_vector(9 downto 0) := (others => '0');
    begin
       case (fbdivInt) is
-         when 16        => ret := "0000100000";
-         when 20        => ret := "0000110000";
-         when 32        => ret := "0001100000";
-         when 40        => ret := "0010000000";
-         when 64        => ret := "0011100000";
-         when 66        => ret := "0101000000";
-         when 80        => ret := "0100100000";
-         when 100       => ret := "0101110000";
-         when others    => ret := "0000000000"; --Added others ulegat
+         when 16     => ret := "0000100000";
+         when 20     => ret := "0000110000";
+         when 32     => ret := "0001100000";
+         when 40     => ret := "0010000000";
+         when 64     => ret := "0011100000";
+         when 66     => ret := "0101000000";
+         when 80     => ret := "0100100000";
+         when 100    => ret := "0101110000";
+         when others => ret := "0000000000";  --Added others ulegat
       end case;
       return ret;
    end function getQPllFbdiv;
@@ -188,7 +188,7 @@ package body Gtx7CfgPkg is
       variable rate   : real;
       variable found  : boolean;
    begin
-      found              := false;
+      found := false;
       -- Walk through all possible configs and look for one that works
       dloop : for d in QPLL_OUT_DIV_VALIDS_C'range loop
          mloop : for m in QPLL_REFCLK_DIV_VALIDS_C'range loop
@@ -209,13 +209,13 @@ package body Gtx7CfgPkg is
 --                  "rate: " &   real'image(rate) & lf
 --                  severity note;
 
-               if ( rate = lineRate) then
+               if (rate = lineRate) then
                   if (vcoClk >= QPLL_LOWER_BAND_LOW_C and vcoClk <= QPLL_LOWER_BAND_HIGH_C) then
                      ret.QPLL_CFG_G := QPLL_CFG_VCO_LOWER_C;
-                     found := true;
+                     found          := true;
                   elsif (vcoClk >= QPLL_UPPER_BAND_LOW_C and vcoClk <= QPLL_UPPER_BAND_HIGH_C) then
                      ret.QPLL_CFG_G := QPLL_CFG_VCO_UPPER_C;
-                     found := true;
+                     found          := true;
                   end if;
 
                   if (found) then

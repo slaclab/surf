@@ -26,35 +26,35 @@ use surf.AxiLitePkg.all;
 
 entity SaciPrepRdout is
    generic (
-      TPD_G              : time             := 1 ns;
-      MASK_REG_ADDR_G    : slv(31 downto 0) := x"00000034";
-      MASK_REG_READ_G    : boolean          := true;
-      SACI_BASE_ADDR_G   : slv(31 downto 0) := x"02000000";
-      SACI_NUM_CHIPS_G   : natural range 1 to 4 := 4
-   );
+      TPD_G            : time                 := 1 ns;
+      MASK_REG_ADDR_G  : slv(31 downto 0)     := x"00000034";
+      MASK_REG_READ_G  : boolean              := true;
+      SACI_BASE_ADDR_G : slv(31 downto 0)     := x"02000000";
+      SACI_NUM_CHIPS_G : natural range 1 to 4 := 4
+      );
    port (
-      axilClk           : in  sl;
-      axilRst           : in  sl;
+      axilClk : in sl;
+      axilRst : in sl;
 
       -- Prepare for readout req/ack
-      prepRdoutReq      : in  sl;
-      prepRdoutAck      : out sl;
+      prepRdoutReq : in  sl;
+      prepRdoutAck : out sl;
 
       -- Optional AXI lite slave port for status readout
-      sAxilWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      sAxilWriteSlave   : out AxiLiteWriteSlaveType;
-      sAxilReadMaster   : in  AxiLiteReadMasterType := AXI_LITE_READ_MASTER_INIT_C;
-      sAxilReadSlave    : out AxiLiteReadSlaveType;
+      sAxilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      sAxilWriteSlave  : out AxiLiteWriteSlaveType;
+      sAxilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      sAxilReadSlave   : out AxiLiteReadSlaveType;
 
       -- AXI lite master port for command issue
-      mAxilWriteMaster  : out AxiLiteWriteMasterType;
-      mAxilWriteSlave   : in  AxiLiteWriteSlaveType;
-      mAxilReadMaster   : out AxiLiteReadMasterType;
-      mAxilReadSlave    : in  AxiLiteReadSlaveType;
+      mAxilWriteMaster : out AxiLiteWriteMasterType;
+      mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
+      mAxilReadMaster  : out AxiLiteReadMasterType;
+      mAxilReadSlave   : in  AxiLiteReadSlaveType;
 
       -- optianally provide ASIC mask
-      asicMask          : in slv(SACI_NUM_CHIPS_G-1 downto 0) := (others=>'0')
-   );
+      asicMask : in slv(SACI_NUM_CHIPS_G-1 downto 0) := (others => '0')
+      );
 
 end SaciPrepRdout;
 
@@ -79,19 +79,19 @@ architecture rtl of SaciPrepRdout is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      asicMask          => (others=>'0'),
-      state             => S_IDLE_C,
-      timer             => (others => '1'),
-      asicCnt           =>  0,
-      rdTimeout         => (others=>'0'),
-      rdFail            => (others=>'0'),
-      wrTimeout         => (others=>'0'),
-      wrFail            => (others=>'0'),
-      prepRdoutAck      => '0',
-      mAxilWriteMaster  => AXI_LITE_WRITE_MASTER_INIT_C,
-      mAxilReadMaster   => AXI_LITE_READ_MASTER_INIT_C,
-      sAxilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
-      sAxilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C);
+      asicMask         => (others => '0'),
+      state            => S_IDLE_C,
+      timer            => (others => '1'),
+      asicCnt          => 0,
+      rdTimeout        => (others => '0'),
+      rdFail           => (others => '0'),
+      wrTimeout        => (others => '0'),
+      wrFail           => (others => '0'),
+      prepRdoutAck     => '0',
+      mAxilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
+      mAxilReadMaster  => AXI_LITE_READ_MASTER_INIT_C,
+      sAxilWriteSlave  => AXI_LITE_WRITE_SLAVE_INIT_C,
+      sAxilReadSlave   => AXI_LITE_READ_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -103,9 +103,10 @@ architecture rtl of SaciPrepRdout is
 
 begin
 
-   comb : process (axilRst, sAxilReadMaster, sAxilWriteMaster, mAxilReadSlave, mAxilWriteSlave, r, prepRdoutReq, asicMask) is
-      variable v        : RegType;
-      variable regCon   : AxiLiteEndPointType;
+   comb : process (asicMask, axilRst, mAxilReadSlave, mAxilWriteSlave,
+                   prepRdoutReq, r, sAxilReadMaster, sAxilWriteMaster) is
+      variable v      : RegType;
+      variable regCon : AxiLiteEndPointType;
    begin
       v := r;
 
@@ -124,18 +125,18 @@ begin
       -- SACI command is issued via the AXI lite master bus
       case(r.state) is
          when S_IDLE_C =>
-            v.mAxilWriteMaster   := AXI_LITE_WRITE_MASTER_INIT_C;
-            v.mAxilReadMaster    := AXI_LITE_READ_MASTER_INIT_C;
-            v.asicCnt            :=  0;
-            v.prepRdoutAck       := '0';
+            v.mAxilWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
+            v.mAxilReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
+            v.asicCnt          := 0;
+            v.prepRdoutAck     := '0';
 
             -- If we see a multi-pixel write request, handle it
             if (prepRdoutReq = '1') then
                if MASK_REG_READ_G = true then
-                  v.state     := S_READ_C;
+                  v.state := S_READ_C;
                else
-                  v.asicMask  := asicMask;
-                  v.state     := S_IS_ASIC_C;
+                  v.asicMask := asicMask;
+                  v.state    := S_IS_ASIC_C;
                end if;
             end if;
 
@@ -160,7 +161,7 @@ begin
             end if;
             if mAxilReadSlave.rvalid = '1' then
                v.mAxilReadMaster.rready := '0';
-               v.asicMask := mAxilReadSlave.rdata(SACI_NUM_CHIPS_G-1 downto 0);
+               v.asicMask               := mAxilReadSlave.rdata(SACI_NUM_CHIPS_G-1 downto 0);
 
                if mAxilReadSlave.rresp /= AXI_RESP_OK_C then
                   v.rdFail := r.rdFail + 1;
@@ -189,9 +190,9 @@ begin
                v.prepRdoutAck := '1';
                v.state        := S_IDLE_C;
             elsif (r.asicMask(r.asicCnt) = '1') then
-               v.state        := S_WRITE_C;
+               v.state := S_WRITE_C;
             else
-               v.asicCnt      := r.asicCnt + 1;
+               v.asicCnt := r.asicCnt + 1;
             end if;
 
          -- Prepare Write Transactions
@@ -199,9 +200,9 @@ begin
             -- Prepare for readout: CMD = 0, ADDR = 0, DATA = 0
             v.mAxilWriteMaster.awaddr := SACI_BASE_ADDR_G + asicBaseAddr(r.asicCnt);
             v.mAxilWriteMaster.wdata  := x"00000000";
-            v.mAxilWriteMaster.awprot  := (others => '0');
-            v.mAxilWriteMaster.wstrb   := (others => '1');
-            v.timer                    := (others => '1');
+            v.mAxilWriteMaster.awprot := (others => '0');
+            v.mAxilWriteMaster.wstrb  := (others => '1');
+            v.timer                   := (others => '1');
 
             v.mAxilWriteMaster.awvalid := '1';
             v.mAxilWriteMaster.wvalid  := '1';
@@ -239,8 +240,8 @@ begin
             if v.mAxilWriteMaster.awvalid = '0' and
                v.mAxilWriteMaster.wvalid = '0' and
                v.mAxilWriteMaster.bready = '0' then
-               v.asicCnt  := r.asicCnt + 1;
-               v.state    := S_IS_ASIC_C;
+               v.asicCnt := r.asicCnt + 1;
+               v.state   := S_IS_ASIC_C;
             end if;
 
       end case;
@@ -251,12 +252,12 @@ begin
 
       rin <= v;
 
-      sAxilWriteSlave   <= r.sAxilWriteSlave;
-      sAxilReadSlave    <= r.sAxilReadSlave;
-      mAxilWriteMaster  <= r.mAxilWriteMaster;
-      mAxilReadMaster   <= r.mAxilReadMaster;
+      sAxilWriteSlave  <= r.sAxilWriteSlave;
+      sAxilReadSlave   <= r.sAxilReadSlave;
+      mAxilWriteMaster <= r.mAxilWriteMaster;
+      mAxilReadMaster  <= r.mAxilReadMaster;
 
-      prepRdoutAck      <= r.prepRdoutAck;
+      prepRdoutAck <= r.prepRdoutAck;
 
    end process comb;
 

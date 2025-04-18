@@ -159,8 +159,8 @@ begin
    --------------------------
    -- Main AXI-Stream process
    --------------------------
-   dataComb : process (axilBufferClear, axilBufferEnable, bufferClear, bufferEnable, dataR, dataRst,
-                       dataValid, dataValue) is
+   dataComb : process (axilBufferClear, axilBufferEnable, bufferClear,
+                       bufferEnable, dataR, dataRst, dataValid, dataValue) is
       variable v      : DataRegType;
       variable enable : sl;
       variable clear  : sl;
@@ -260,8 +260,9 @@ begin
    ------------------------
    -- Main AXI-Lite process
    ------------------------
-   axiComb : process (axilFirstAddr, axilLength, axilR, axilRamRdData, axilReadMaster, axilRst,
-                      axilWriteMaster, extBufferClear, extBufferEnable) is
+   axiComb : process (axilFirstAddr, axilLength, axilR, axilRamRdData,
+                      axilReadMaster, axilRst, axilWriteMaster, extBufferClear,
+                      extBufferEnable) is
       variable v            : AxilRegType;
       variable axilStatus   : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -286,7 +287,7 @@ begin
          -- Check for an out of 32 bit aligned address
          axiWriteResp := ite(axilWriteMaster.awaddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Check for first mapped address access (which is the control register)
-         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0)  and (EXT_CTRL_ONLY_G = false) then
+         if (axilWriteMaster.awaddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) and (EXT_CTRL_ONLY_G = false) then
             v.bufferEnable := axilWriteMaster.wdata(31);
             v.bufferClear  := axilWriteMaster.wdata(30);
          else
@@ -300,7 +301,7 @@ begin
       -- Check for read request
       if (axilStatus.readEnable = '1') then
          -- Check for an out of 32 bit aligned address
-         axiReadResp           := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axiReadResp := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Control register mapped at address 0
          if (axilReadMaster.araddr(RAM_ADDR_WIDTH_G+2-1 downto 2) = 0) and (EXT_CTRL_ONLY_G = false) then
             v.axilReadSlave.rdata(31)                          := axilR.bufferEnable;

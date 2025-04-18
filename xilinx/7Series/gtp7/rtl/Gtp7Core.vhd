@@ -39,13 +39,13 @@ entity Gtp7Core is
       -- TX/RX Settings --
       RXOUT_DIV_G      : integer    := 2;
       TXOUT_DIV_G      : integer    := 2;
-      RX_CLK25_DIV_G   : integer    := 5;                         -- Set by wizard
-      TX_CLK25_DIV_G   : integer    := 5;                         -- Set by wizard
-      PMA_RSV_G        : bit_vector := x"00000333";               -- Set by wizard
-      RX_OS_CFG_G      : bit_vector := "0001111110000";           -- Set by wizard
+      RX_CLK25_DIV_G   : integer    := 5;                -- Set by wizard
+      TX_CLK25_DIV_G   : integer    := 5;                -- Set by wizard
+      PMA_RSV_G        : bit_vector := x"00000333";      -- Set by wizard
+      RX_OS_CFG_G      : bit_vector := "0001111110000";  -- Set by wizard
       RXCDR_CFG_G      : bit_vector := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G : bit        := '1';                       -- Set by wizard
-      RXLPM_IPCM_CFG_G : bit        := '0';                       -- Set by wizard
+      RXLPM_INCM_CFG_G : bit        := '1';              -- Set by wizard
+      RXLPM_IPCM_CFG_G : bit        := '0';              -- Set by wizard
 
       -- Configure PLL sources
       TX_PLL_G : string := "PLL0";
@@ -65,15 +65,15 @@ entity Gtp7Core is
       -- Configure Buffer usage
       TX_BUF_EN_G        : boolean := true;
       TX_OUTCLK_SRC_G    : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
-      TX_DLY_BYPASS_G    : sl      := '1';          -- 1 for bypass, 0 for delay
+      TX_DLY_BYPASS_G    : sl      := '1';  -- 1 for bypass, 0 for delay
       TX_PHASE_ALIGN_G   : string  := "AUTO";       -- Or "MANUAL" or "NONE"
       TX_BUF_ADDR_MODE_G : string  := "FAST";       -- Or "FULL"
 
       RX_BUF_EN_G        : boolean := true;
       RX_OUTCLK_SRC_G    : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
       RX_USRCLK_SRC_G    : string  := "RXOUTCLK";   -- or "TXOUTCLK"
-      RX_DLY_BYPASS_G    : sl      := '1';          -- 1 for bypass, 0 for delay
-      RX_DDIEN_G         : sl      := '0';          -- Supposed to be '1' when bypassing rx buffer
+      RX_DLY_BYPASS_G    : sl      := '1';  -- 1 for bypass, 0 for delay
+      RX_DDIEN_G         : sl      := '0';  -- Supposed to be '1' when bypassing rx buffer
       RX_BUF_ADDR_MODE_G : string  := "FAST";
 
       -- Configure RX comma alignment
@@ -145,17 +145,17 @@ entity Gtp7Core is
       FTS_LANE_DESKEW_CFG_G    : bit_vector := "1111";
       FTS_LANE_DESKEW_EN_G     : string     := "FALSE");
    port (
-      stableClkIn : in sl;              -- Freerunning clock needed to drive reset logic
+      stableClkIn : in sl;  -- Freerunning clock needed to drive reset logic
 
-      qPllRxSelect     : in  slv(1 downto 0)  := "00";
-      qPllTxSelect     : in  slv(1 downto 0)  := "00";
+      qPllRxSelect     : in  slv(1 downto 0) := "00";
+      qPllTxSelect     : in  slv(1 downto 0) := "00";
       qPllRefClkIn     : in  slv(1 downto 0);
       qPllClkIn        : in  slv(1 downto 0);
       qPllLockIn       : in  slv(1 downto 0);
       qPllRefClkLostIn : in  slv(1 downto 0);
       qPllResetOut     : out slv(1 downto 0);
-      gtRxRefClkBufg   : in  sl := '0';  -- In fixed latency mode, need BUF'd version of gt rx
-                                         -- reference clock to check if recovered clock is stable
+      gtRxRefClkBufg   : in  sl              := '0';  -- In fixed latency mode, need BUF'd version of gt rx
+                                                      -- reference clock to check if recovered clock is stable
 
       -- Serial IO
       gtTxP : out sl;
@@ -277,15 +277,15 @@ architecture rtl of Gtp7Core is
    -- Signals
    --------------------------------------------------------------------------------------------------
 
-   signal rxPllSel  : slv(1 downto 0);
-   signal txPllSel  : slv(1 downto 0);
+   signal rxPllSel : slv(1 downto 0);
+   signal txPllSel : slv(1 downto 0);
 
    ----------------------------
    -- Rx Signals
    signal rxOutClk     : sl;
    signal rxOutClkBufg : sl;
 
-   signal rxPllResets     : slv(1 downto 0);
+   signal rxPllResets : slv(1 downto 0);
 
    signal gtRxReset    : sl;            -- GT GTRXRESET
    signal rxResetDone  : sl;            -- GT RXRESETDONE
@@ -326,7 +326,7 @@ architecture rtl of Gtp7Core is
    -- Tx Signals
    signal txOutClk : sl;
 
-   signal txPllResets     : slv(1 downto 0);
+   signal txPllResets : slv(1 downto 0);
 
    signal gtTxReset    : sl;            -- GT GTTXRESET
    signal txResetDone  : sl;            -- GT TXRESETDONE
@@ -433,7 +433,7 @@ begin
       generic map (
          TPD_G                  => TPD_G,
          DYNAMIC_QPLL_G         => DYNAMIC_QPLL_G,
-         SIMULATION_G => SIMULATION_G,
+         SIMULATION_G           => SIMULATION_G,
          STABLE_CLOCK_PERIOD    => getTimeRatio(STABLE_CLOCK_PERIOD_G, 1.0E-9),
          RETRY_COUNTER_BITWIDTH => 8,
          TX_PLL0_USED           => TX_PLL0_USED_C,
@@ -450,22 +450,22 @@ begin
          PLL1REFCLKLOST         => qPllRefClkLostIn(1),
          PLL0LOCK               => qPllLockIn(0),
          PLL1LOCK               => qPllLockIn(1),
-         RXRESETDONE            => rxResetDone,           -- From GT
+         RXRESETDONE            => rxResetDone,    -- From GT
          MMCM_LOCK              => rxMmcmLockedIn,
-         RECCLK_STABLE          => rxRecClkStable,        -- Asserted after 50,000 UI as per DS183
+         RECCLK_STABLE          => rxRecClkStable,  -- Asserted after 50,000 UI as per DS183
          RECCLK_MONITOR_RESTART => rxRecClkMonitorRestart,
-         DATA_VALID             => rxDataValidIn,         -- From external decoder if used
-         TXUSERRDY              => rxRstTxUserRdy,        -- Need to know when txUserRdy
-         GTRXRESET              => gtRxReset,             -- To GT
+         DATA_VALID             => rxDataValidIn,  -- From external decoder if used
+         TXUSERRDY              => rxRstTxUserRdy,  -- Need to know when txUserRdy
+         GTRXRESET              => gtRxReset,      -- To GT
          MMCM_RESET             => rxMmcmResetOut,
          PLL0_RESET             => rxPllResets(0),
          PLL1_RESET             => rxPllResets(1),
          RX_FSM_RESET_DONE      => rxFsmResetDone,
-         RXUSERRDY              => rxUserRdyInt,          -- To GT
-         RUN_PHALIGNMENT        => rxRunPhaseAlignment,   -- To Phase Alignment module
+         RXUSERRDY              => rxUserRdyInt,   -- To GT
+         RUN_PHALIGNMENT        => rxRunPhaseAlignment,  -- To Phase Alignment module
          PHALIGNMENT_DONE       => rxPhaseAlignmentDone,  -- From Phase Alignment module
-         RESET_PHALIGNMENT      => open,                  -- For manual phase align
-         RXDFEAGCHOLD           => rxDfeAgcHold,          -- Explore using these later
+         RESET_PHALIGNMENT      => open,           -- For manual phase align
+         RXDFEAGCHOLD           => rxDfeAgcHold,   -- Explore using these later
          RXDFELFHOLD            => rxDfeLfHold,
          RXLPMLFHOLD            => rxLpmLfHold,
          RXLPMHFHOLD            => rxLpmHfHold,
@@ -551,7 +551,7 @@ begin
             DLYSRESET            => rxDlySReset,           -- To gt
             DLYSRESETDONE        => rxDlySResetDone,       -- From gt
             RECCLKSTABLE         => rxRecClkStable);
-      rxSlide      <= rxSlideIn;                           -- User controlled rxSlide
+      rxSlide      <= rxSlideIn;        -- User controlled rxSlide
       rxAlignReset <= '0';
    end generate;
 
@@ -644,7 +644,7 @@ begin
          RUN_PHALIGNMENT   => txRunPhaseAlignment,
          RESET_PHALIGNMENT => txResetPhaseAlignment,  -- Used for manual alignment
          PHALIGNMENT_DONE  => txPhaseAlignmentDone,
-         RETRY_COUNTER     => open);                  -- Might be interesting to look at
+         RETRY_COUNTER     => open);    -- Might be interesting to look at
 
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
@@ -800,7 +800,7 @@ begin
          RX_CM_SEL                  => ("11"),
          RX_CM_TRIM                 => ("1010"),
          RX_DEBUG_CFG               => ("00000000000000"),
-         RX_OS_CFG                  => RX_OS_CFG_G,                   -- From wizard
+         RX_OS_CFG                  => RX_OS_CFG_G,        -- From wizard
          TERM_RCAL_CFG              => ("100001000010000"),
          TERM_RCAL_OVRD             => ("000"),
          TST_RSV                    => (x"00000000"),
@@ -810,7 +810,7 @@ begin
          ---------------------------PCI Express Attributes----------------------------
          PCS_PCIE_EN                => ("FALSE"),
          ---------------------------PCS Attributes----------------------------
-         PCS_RSVD_ATTR              => (x"000000000000"),             -- From wizard
+         PCS_RSVD_ATTR              => (x"000000000000"),  -- From wizard
          -------------RX Buffer Attributes------------
          RXBUF_ADDR_MODE            => RX_BUF_ADDR_MODE_G,
          RXBUF_EIDLE_HI_CNT         => ("1000"),
@@ -835,7 +835,7 @@ begin
          RX_DDI_SEL                 => ("000000"),
          RX_DEFER_RESET_BUF_EN      => ("TRUE"),
          -----------------------CDR Attributes-------------------------
-         RXCDR_CFG                  => RXCDR_CFG_G,                   -- From wizard
+         RXCDR_CFG                  => RXCDR_CFG_G,        -- From wizard
          RXCDR_FR_RESET_ON_EIDLE    => ('0'),
          RXCDR_HOLD_DURING_EIDLE    => ('0'),
          RXCDR_PH_RESET_ON_EIDLE    => ('0'),
@@ -955,8 +955,8 @@ begin
          RXLPM_HF_CFG2              => ("01010"),
          RXLPM_HF_CFG3              => ("0000"),
          RXLPM_HOLD_DURING_EIDLE    => ('0'),
-         RXLPM_INCM_CFG             => RXLPM_INCM_CFG_G,              -- From wizard
-         RXLPM_IPCM_CFG             => RXLPM_IPCM_CFG_G,              -- From wizard
+         RXLPM_INCM_CFG             => RXLPM_INCM_CFG_G,   -- From wizard
+         RXLPM_IPCM_CFG             => RXLPM_IPCM_CFG_G,   -- From wizard
          RXLPM_LF_CFG               => ("000000001111110000"),
          RXLPM_LF_CFG2              => ("01010"),
          RXLPM_OSINT_CFG            => ("000"),
@@ -1106,7 +1106,7 @@ begin
          RXBYTEISALIGNED      => open,
          RXBYTEREALIGN        => open,
          RXCOMMADET           => open,
-         RXCOMMADETEN         => toSl(RX_ALIGN_MODE_G /= "NONE"),     -- Enables RXSLIDE
+         RXCOMMADETEN         => toSl(RX_ALIGN_MODE_G /= "NONE"),  -- Enables RXSLIDE
          RXMCOMMAALIGNEN      => toSl(ALIGN_MCOMMA_EN_G = '1' and (RX_ALIGN_MODE_G = "GT")),
          RXPCOMMAALIGNEN      => toSl(ALIGN_PCOMMA_EN_G = '1' and (RX_ALIGN_MODE_G = "GT")),
          RXSLIDE              => rxSlide,

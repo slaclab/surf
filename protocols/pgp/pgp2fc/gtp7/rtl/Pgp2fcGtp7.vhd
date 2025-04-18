@@ -38,15 +38,15 @@ entity Pgp2fcGtp7 is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "2.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
+      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;  --units of seconds
       REF_CLK_FREQ_G        : real       := 125.0E6;
       -- TX/RX Settings - Defaults to 2.5 Gbps operation
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
       RX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
       TX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
-      PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
+      PMA_RSV_G             : bit_vector := x"00000333";      -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0001111110000";  -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit        := '1';    -- Set by wizard
       RXLPM_IPCM_CFG_G      : bit        := '0';    -- Set by wizard
@@ -64,24 +64,24 @@ entity Pgp2fcGtp7 is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       FC_WORDS_G        : integer range 1 to 8 := 1;
-      VC_INTERLEAVE_G   : integer              := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G   : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       qPllRxSelect     : in  slv(1 downto 0) := "00";
       qPllTxSelect     : in  slv(1 downto 0) := "00";
-      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";     -- Signals from QPLLs
+      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";    -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
       gtQPllReset      : out slv(1 downto 0);
-      gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
+      gtRxRefClkBufg   : in  sl;  -- gtrefclk driving rx side, fed through clock buffer
       gtTxOutClk       : out sl;
 
       -- Gt Serial IO
@@ -100,7 +100,7 @@ entity Pgp2fcGtp7 is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -353,11 +353,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
-         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,   -- Use for rxRecClkReset???
          rxDataValidIn    => '1',       -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
@@ -370,7 +370,7 @@ begin
          txUsrClkIn       => gtTxUsrClk,
          txUsrClk2In      => gtTxUsrClk,
          txUserRdyOut     => open,      -- Not sure what to do with this
-         txMmcmResetOut   => pgpTxMmcmReset,               -- No Tx MMCM in Fixed Latency mode
+         txMmcmResetOut   => pgpTxMmcmReset,  -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => pgpTxMmcmLocked,
          txUserResetIn    => pgpTxReset,
          txResetDoneOut   => gtTxResetDone,

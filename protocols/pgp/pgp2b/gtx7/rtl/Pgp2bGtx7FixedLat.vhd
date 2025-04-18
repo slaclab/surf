@@ -38,7 +38,7 @@ entity Pgp2bGtx7Fixedlat is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "4.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;                 --units of seconds
+      STABLE_CLOCK_PERIOD_G : real       := 8.0E-9;  --units of seconds
       -- CPLL Settings - Defaults to 2.5 Gbps operation
       CPLL_REFCLK_SEL_G     : bit_vector := "001";
       CPLL_FBDIV_G          : integer    := 4;
@@ -50,10 +50,10 @@ entity Pgp2bGtx7Fixedlat is
       TX_CLK25_DIV_G        : integer    := 5;
       -- Low level GTX RX settings
       PMA_RSV_G             : bit_vector := x"00018480";
-      RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0000010000000";  -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
       RXDFEXYDEN_G          : sl         := '0';    -- Set by wizard
-      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
+      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";      -- Set by wizard
       RX_EQUALIZER_G        : string     := "DFE";  -- Or "LPM"
       -- Allow TX to run in var lat mode by altering these generics
       TX_BUF_EN_G           : boolean    := false;
@@ -66,24 +66,24 @@ entity Pgp2bGtx7Fixedlat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G   : integer              := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G   : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl := '0';                   -- Drives CPLL if used
+      gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
       gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl := '0';                   -- Signals from QPLL if used
+      gtQPllRefClk     : in  sl := '0';  -- Signals from QPLL if used
       gtQPllClk        : in  sl := '0';
       gtQPllLock       : in  sl := '0';
       gtQPllRefClkLost : in  sl := '0';
       gtQPllReset      : out sl;
-      gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
+      gtRxRefClkBufg   : in  sl;  -- gtrefclk driving rx side, fed through clock buffer
       gtTxOutClk       : out sl;
 
       -- Gt Serial IO
@@ -102,7 +102,7 @@ entity Pgp2bGtx7Fixedlat is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -154,13 +154,13 @@ architecture rtl of Pgp2bGtx7Fixedlat is
    signal pgpRxResetInt : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
-   signal dataValid     : sl;                              -- no decode or disparity errors
-   signal dataValidTmp  : sl;                              -- no decode or disparity errors
-   signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
+   signal gtRxData      : slv(19 downto 0);  -- Feed to 8B10B decoder
+   signal dataValid     : sl;           -- no decode or disparity errors
+   signal dataValidTmp  : sl;           -- no decode or disparity errors
+   signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);  -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
-   signal phyRxReady    : sl;                              -- To RxRst
-   signal phyRxInit     : sl;                              -- To RxRst
+   signal phyRxReady    : sl;           -- To RxRst
+   signal phyRxInit     : sl;           -- To RxRst
 
    --------------------------------------------------------------------------------------------------
    -- Tx Signals
@@ -217,7 +217,7 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => phyRxInit       -- Ignore phyRxInit, rx will reset on its own
+         phyRxInit        => phyRxInit  -- Ignore phyRxInit, rx will reset on its own
          );
 
    -------------------------------------------------------------------------------------------------
@@ -359,11 +359,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
-         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,   -- Use for rxRecClkReset???
          rxDataValidIn    => '1',       -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
@@ -376,7 +376,7 @@ begin
          txUsrClkIn       => gtTxUsrClk,
          txUsrClk2In      => gtTxUsrClk,
          txUserRdyOut     => open,      -- Not sure what to do with this
-         txMmcmResetOut   => pgpTxMmcmReset,               -- No Tx MMCM in Fixed Latency mode
+         txMmcmResetOut   => pgpTxMmcmReset,  -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => pgpTxMmcmLocked,
          txUserResetIn    => pgpTxReset,
          txResetDoneOut   => gtTxResetDone,

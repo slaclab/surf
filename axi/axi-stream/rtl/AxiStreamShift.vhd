@@ -166,7 +166,8 @@ begin
 
    GEN_SHIFT : if (BYP_SHIFT_G = false) generate
 
-      comb : process (axiShiftCnt, axiShiftDir, axiStart, axisRst, pipeAxisSlave, r, sAxisMaster) is
+      comb : process (axiShiftCnt, axiShiftDir, axiStart, axisRst,
+                      pipeAxisSlave, r, sAxisMaster) is
          variable v       : RegType;
          variable sMaster : AxiStreamMasterType;
       begin

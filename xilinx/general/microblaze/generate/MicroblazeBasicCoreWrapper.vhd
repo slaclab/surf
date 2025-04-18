@@ -25,7 +25,7 @@ entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
       AXIL_RESP_G     : boolean := false;
-      AXIL_ADDR_MSB_G : boolean := false;   -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_ADDR_MSB_G : boolean := false;  -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
       AXIL_ADDR_SEL_G : boolean := false);
    port (
       -- Master AXI-Lite Interface
@@ -85,10 +85,10 @@ architecture mapping of MicroblazeBasicCoreWrapper is
          reset            : in  std_logic);
    end component MicroblazeBasicCore;
 
-   signal awaddr : slv(31 downto 0);
-   signal araddr : slv(31 downto 0);
-   signal bresp  : slv(1 downto 0);
-   signal rresp  : slv(1 downto 0);
+   signal awaddr   : slv(31 downto 0);
+   signal araddr   : slv(31 downto 0);
+   signal bresp    : slv(1 downto 0);
+   signal rresp    : slv(1 downto 0);
    signal addr_sel : sl;
 
    signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;

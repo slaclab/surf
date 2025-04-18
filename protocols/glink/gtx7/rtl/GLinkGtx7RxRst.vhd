@@ -53,7 +53,7 @@ entity GLinkGtx7RxRst is
       RXLPMHFHOLD            : out std_logic;
 
       RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                        -- Retries it took to get the transceiver up and running
+                                                                                                   -- Retries it took to get the transceiver up and running
       );
 end GLinkGtx7RxRst;
 
@@ -81,10 +81,10 @@ architecture RTL of GLinkGtx7RxRst is
    constant WAIT_MAX          : integer := WAIT_CYCLES + 10;  -- 500 ns plus some additional margin
 
    constant WAIT_TIMEOUT_2ms   : integer := 3000000 / STABLE_CLOCK_PERIOD;  --  2 ms time-out
-   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;   --100 us time-out
-   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;   --500 us time-out
-   constant WAIT_TIMEOUT_1us   : integer := 1000 / STABLE_CLOCK_PERIOD;     --1 us time-out
-   constant WAIT_TIMEOUT_100us : integer := 100000 / STABLE_CLOCK_PERIOD;   --100 us time-out
+   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;  --100 us time-out
+   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;  --500 us time-out
+   constant WAIT_TIMEOUT_1us   : integer := 1000 / STABLE_CLOCK_PERIOD;  --1 us time-out
+   constant WAIT_TIMEOUT_100us : integer := 100000 / STABLE_CLOCK_PERIOD;  --100 us time-out
    constant WAIT_TIME_ADAPT    : integer := (37000000 /integer(3.125))/STABLE_CLOCK_PERIOD;
 
    signal soft_reset_sync : std_logic;
@@ -136,7 +136,7 @@ architecture RTL of GLinkGtx7RxRst is
    signal plllock_sync          : std_logic := '0';
    signal phalignment_done_sync : std_logic := '0';
 
-  signal fsmCnt : std_logic_vector(15 downto 0);
+   signal fsmCnt : std_logic_vector(15 downto 0);
 
    attribute KEEP_HIERARCHY : string;
    attribute KEEP_HIERARCHY of
@@ -251,7 +251,7 @@ begin
    end process;
 
 
-   mmcm_lock_wait : process(RXUSERCLK, MMCM_LOCK)
+   mmcm_lock_wait : process(MMCM_LOCK, RXUSERCLK)
    begin
       --The lock-signal from the MMCM is not immediately used but
       --enabling a counter. Only when the counter hits its maximum,
@@ -296,10 +296,10 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => STABLE_CLOCK,
-         dataIn  => SOFT_RESET,
-         dataOut => soft_reset_sync,
-         risingEdge => soft_reset_rise,
+         clk         => STABLE_CLOCK,
+         dataIn      => SOFT_RESET,
+         dataOut     => soft_reset_sync,
+         risingEdge  => soft_reset_rise,
          fallingEdge => soft_reset_fall);
 
    Synchronizer_RXRESETDONE : entity surf.Synchronizer
@@ -419,7 +419,7 @@ begin
             RXDFELFHOLD             <= '0';
             RXLPMLFHOLD             <= '0';
             RXLPMHFHOLD             <= '0';
-            fsmCnt                  <= (others=>'0');
+            fsmCnt                  <= (others => '0');
 
          else
 
@@ -582,13 +582,13 @@ begin
                   reset_time_out <= '0';
 
                   if (time_out_100us = '1' and (data_valid_sync = '0') and reset_time_out = '0') then
-                     fsmCnt                <= (others=>'0');
+                     fsmCnt                <= (others => '0');
                      rx_state              <= ASSERT_ALL_RESETS;
                      rx_fsm_reset_done_int <= '0';
-                 elsif fsmCnt = x"FFFF" then
-                    fsmCnt                <= (others=>'0');
-                    rx_state              <= ASSERT_ALL_RESETS;
-                    rx_fsm_reset_done_int <= '0';
+                  elsif fsmCnt = x"FFFF" then
+                     fsmCnt                <= (others => '0');
+                     rx_state              <= ASSERT_ALL_RESETS;
+                     rx_fsm_reset_done_int <= '0';
                   elsif (data_valid_sync = '1') then
                      fsmCnt                <= fsmCnt + 1;
                      rx_state              <= FSM_DONE;
@@ -612,9 +612,9 @@ begin
                         RXDFELFHOLD  <= '1';
                      else
                         RXDFEAGCHOLD <= '0';
-                        RXDFELFHOLD <= '0';
-                        RXLPMHFHOLD <= '0';
-                        RXLPMLFHOLD <= '0';
+                        RXDFELFHOLD  <= '0';
+                        RXLPMHFHOLD  <= '0';
+                        RXLPMLFHOLD  <= '0';
                      end if;
                   end if;
 

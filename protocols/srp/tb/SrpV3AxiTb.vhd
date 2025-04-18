@@ -281,7 +281,7 @@ begin
                   v.txMaster.tLast := '1';
 
                   -- Update next REQ_MSG opcode
-                  v.opCode := x"00";     -- 0x0=Non-Posted Read
+                  v.opCode := x"00";    -- 0x0=Non-Posted Read
 
                   -- Increment the TID
                   v.tid := r.tid + 1;

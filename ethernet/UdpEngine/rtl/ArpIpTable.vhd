@@ -191,7 +191,7 @@ begin  -- architecture rtl
    end generate;
 
    -- Encode the position based on the match_array
-   process(matchArray, pos, wr.macLutTable)
+   process(matchArray, pos, wr)
       variable ipFound      : sl := '0';
       variable posI         : integer;
       variable foundMacAddr : slv(47 downto 0);

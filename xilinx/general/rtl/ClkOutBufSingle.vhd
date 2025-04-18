@@ -24,14 +24,14 @@ use UNISIM.VCOMPONENTS.all;
 entity ClkOutBufSingle is
    generic (
       TPD_G          : time    := 1 ns;
-      XIL_DEVICE_G   : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
+      XIL_DEVICE_G   : string  := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
       RST_POLARITY_G : sl      := '1';
       INVERT_G       : boolean := false);
    port (
       rstIn  : in  sl := not RST_POLARITY_G;  -- Optional reset
-      outEnL : in  sl := '0';                 -- optional tristate (0 = enabled, 1 = high z output)
+      outEnL : in  sl := '0';  -- optional tristate (0 = enabled, 1 = high z output)
       clkIn  : in  sl;
-      clkOut : out sl);                       -- Single ended output buffer
+      clkOut : out sl);                 -- Single ended output buffer
 end ClkOutBufSingle;
 
 architecture rtl of ClkOutBufSingle is
@@ -41,7 +41,7 @@ architecture rtl of ClkOutBufSingle is
 
 begin
 
-   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS")
+   assert (XIL_DEVICE_G = "7SERIES" or XIL_DEVICE_G = "ULTRASCALE" or XIL_DEVICE_G = "ULTRASCALE_PLUS")
       report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
 
    rst <= rstIn when(RST_POLARITY_G = '1') else not(rstIn);

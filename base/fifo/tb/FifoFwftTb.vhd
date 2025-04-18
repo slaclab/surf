@@ -129,7 +129,7 @@ begin
    ClkRst_Write : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => WRITE_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => wrClk,
@@ -140,7 +140,7 @@ begin
    ClkRst_Read : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => READ_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => rdClk,

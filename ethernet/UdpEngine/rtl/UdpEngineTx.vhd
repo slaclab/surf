@@ -111,8 +111,9 @@ architecture rtl of UdpEngineTx is
 
 begin
 
-   comb : process (ibMasters, localIp, localMac, obDhcpMaster, r, remoteIp,
-                   remoteMac, remotePort, rst, txSlave) is
+   comb : process (arpTabFound, arpTabIpAddr, arpTabMacAddr, ibMasters,
+                   localIp, localMac, obDhcpMaster, r, remoteIp, remoteMac,
+                   remotePort, rst, txSlave) is
       variable v       : RegType;
       variable arpPosV : Slv8Array(SIZE_G-1 downto 0);
       variable i       : natural;
@@ -133,11 +134,11 @@ begin
       for i in SIZE_G-1 downto 0 loop
          -- Check if link is up
          if (localMac /= 0) and         -- Non-zero local MAC address
-                       (localIp /= 0) and       -- Non-zero local IP address
-                       (PORT_G(i) /= 0) and     -- Non-zero local UDP port
-                       (remoteMac(i) /= 0) and  -- Non-zero remote MAC address
-                       (remoteIp(i) /= 0) and   -- Non-zero remote IP address
-                       (remotePort(i) /= 0) then  -- Non-zero remote UDP port
+                           (localIp /= 0) and      -- Non-zero local IP address
+                           (PORT_G(i) /= 0) and    -- Non-zero local UDP port
+                           (remoteMac(i) /= 0) and  -- Non-zero remote MAC address
+                           (remoteIp(i) /= 0) and  -- Non-zero remote IP address
+                           (remotePort(i) /= 0) then  -- Non-zero remote UDP port
             -- Link Up
             v.linkUp(i) := '1';
          else

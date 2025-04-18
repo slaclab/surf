@@ -33,7 +33,7 @@ entity GigEthGth7Wrapper is
       NUM_LANE_G         : natural range 1 to 4             := 1;
       JUMBO_G            : boolean                          := true;
       PAUSE_EN_G         : boolean                          := true;
-      ROCEV2_EN_G         : boolean                         := false;
+      ROCEV2_EN_G        : boolean                          := false;
       -- Clocking Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
@@ -167,14 +167,14 @@ begin
 
       U_GigEthGth7 : entity surf.GigEthGth7
          generic map (
-            TPD_G           => TPD_G,
-            JUMBO_G         => JUMBO_G,
-            PAUSE_EN_G      => PAUSE_EN_G,
-            ROCEV2_EN_G     => ROCEV2_EN_G,
+            TPD_G         => TPD_G,
+            JUMBO_G       => JUMBO_G,
+            PAUSE_EN_G    => PAUSE_EN_G,
+            ROCEV2_EN_G   => ROCEV2_EN_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G    => EN_AXI_REG_G,
+            EN_AXI_REG_G  => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

@@ -113,9 +113,9 @@ begin
 
    U_Filter : entity surf.AxiLiteWriteFilter
       generic map (
-         TPD_G            => TPD_G,
-         FILTER_SIZE_G    => 1,
-         FILTER_ADDR_G    => (0 => x"000001A0"))
+         TPD_G         => TPD_G,
+         FILTER_SIZE_G => 1,
+         FILTER_ADDR_G => (0 => x"000001A0"))
       port map (
          -- Clock and reset
          axilClk          => axilClk,
@@ -131,12 +131,12 @@ begin
 
    U_Mem : entity surf.AxiDualPortRam
       generic map (
-         TPD_G            => TPD_G,
-         AXI_WR_EN_G      => true,
-         SYS_WR_EN_G      => false,
-         COMMON_CLK_G     => false,
-         ADDR_WIDTH_G     => 9,
-         DATA_WIDTH_G     => 32)
+         TPD_G        => TPD_G,
+         AXI_WR_EN_G  => true,
+         SYS_WR_EN_G  => false,
+         COMMON_CLK_G => false,
+         ADDR_WIDTH_G => 9,
+         DATA_WIDTH_G => 32)
       port map (
          -- AXI-Lite Interface
          axiClk         => axilClk,

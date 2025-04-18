@@ -56,9 +56,9 @@ entity Pgp2bAxi is
       statusSend : out sl;
 
       -- Debug Interface (axilClk domain)
-      txDiffCtrl      : out slv(4 downto 0);
-      txPreCursor     : out slv(4 downto 0);
-      txPostCursor    : out slv(4 downto 0);
+      txDiffCtrl   : out slv(4 downto 0);
+      txPreCursor  : out slv(4 downto 0);
+      txPostCursor : out slv(4 downto 0);
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
@@ -264,7 +264,7 @@ begin
          rdClk                 => axilClk,
          rdRst                 => axilRst);
 
-   U_RxErrorIrqEn : process (r.autoStatus)
+   U_RxErrorIrqEn : process (r)
    begin
       rxErrorIrqEn     <= (others => '0');
       rxErrorIrqEn(1)  <= r.autoStatus;
@@ -547,7 +547,8 @@ begin
    end process;
 
    -- Async
-   process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxStatusSync,
+            txStatusSync) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin

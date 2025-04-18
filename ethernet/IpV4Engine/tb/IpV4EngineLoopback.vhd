@@ -83,8 +83,8 @@ architecture rtl of IpV4EngineLoopback is
 
 begin
 
-   comb : process (arpAckMaster, arpReqSlave, ibProtocolMaster, obProtocolSlave, r, remoteIp, rst,
-                   start) is
+   comb : process (arpAckMaster, arpReqSlave, ibProtocolMaster,
+                   obProtocolSlave, r, remoteIp, rst, start) is
       variable v : RegType;
    begin
       -- Latch the current value

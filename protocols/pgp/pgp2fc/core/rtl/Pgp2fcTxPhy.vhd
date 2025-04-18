@@ -47,7 +47,7 @@ entity Pgp2fcTxPhy is
       -- Fast control interface
       fcValid : in  sl;  -- Latch fcWord and send it out, will cause pgpBusy to assert
       fcWord  : in  slv(16*FC_WORDS_G-1 downto 0);  -- Control word to send
-      fcSent  : out sl := '0';          -- Asserted when a fast control word is sent out
+      fcSent  : out sl := '0';  -- Asserted when a fast control word is sent out
 
       -- Sideband data
       pgpLocLinkReady : in sl;               -- Far end side has link
@@ -165,8 +165,9 @@ begin
 
 
    -- Link control state machine
-   process (curState, holdState, fcValid, fcWordCount, fcData, fcDataK, intTxLinkReady, cellTxEOC,
-            ltsAData, ltsADataK, ltsBData, ltsBDataK, cellData, cellDataK)
+   process (cellData, cellDataK, cellTxEOC, curState, fcData, fcDataK, fcValid,
+            fcWordCount, holdState, intTxLinkReady, ltsAData, ltsADataK,
+            ltsBData, ltsBDataK)
    begin
 
       case curState is
@@ -298,7 +299,7 @@ begin
    cellDataK(1) <= '0';
 
    -- Fast Control data packaging
-   fcComb : process(fcWord, fcWordLatch, fcWordCount, crcOut)
+   fcComb : process(crcOut, fcWordCount, fcWordLatch)
    begin
       if (fcWordCount = 0) then
          -- First word
@@ -322,7 +323,7 @@ begin
    end process;
 
    crcRst <= '1' when fcWordCount = FC_WORDS_G else '0';
-   crcEn  <= '1' when curState    = ST_FC_C    else '0';
+   crcEn  <= '1' when curState = ST_FC_C       else '0';
 
    U_Crc7 : entity surf.CRC7Rtl
       port map (

@@ -82,8 +82,8 @@ architecture Pgp2fcTx of Pgp2fcTx is
    signal intPhyTxData     : slv(15 downto 0);
    signal intPhyTxDataK    : slv(1 downto 0);
    signal crcTxIn          : slv(15 downto 0);  -- Transmit data for CRC
-   signal crcTxInit        : sl;                -- Transmit CRC value init
-   signal crcTxValid       : sl;                -- Transmit data for CRC is valid
+   signal crcTxInit        : sl;        -- Transmit CRC value init
+   signal crcTxValid       : sl;        -- Transmit data for CRC is valid
    signal crcTxOut         : slv(31 downto 0);  -- Transmit calculated CRC value
    signal crcTxOutAdjust   : slv(31 downto 0);  -- Transmit calculated CRC value
    signal crcTxRst         : sl;

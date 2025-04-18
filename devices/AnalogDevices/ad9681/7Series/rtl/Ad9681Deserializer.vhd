@@ -87,7 +87,7 @@ begin
          DYN_CLK_INV_EN    => "FALSE",
          NUM_CE            => 1,
          OFB_USED          => "FALSE",
-         IOBDELAY          => "IFD",    -- Use input at DDLY to output the data on Q1-Q6
+         IOBDELAY          => "IFD",  -- Use input at DDLY to output the data on Q1-Q6
          SERDES_MODE       => "MASTER")
       port map (
          Q1           => oData(0),
@@ -100,11 +100,11 @@ begin
          Q8           => oData(7),
          SHIFTOUT1    => open,          -- Cascade connection to Slave ISERDES
          SHIFTOUT2    => open,          -- Cascade connection to Slave ISERDES
-         BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any
+         BITSLIP      => slip,  -- 1-bit Invoke Bitslip. This can be used with any
          -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input
-         CLK          => clkIo,         -- Fast Source Synchronous SERDES clock from BUFIO
+         CLK          => clkIo,  -- Fast Source Synchronous SERDES clock from BUFIO
          CLKB         => clkIoInv,      -- Locally inverted clock
          CLKDIV       => clkR,          -- Slow clock driven by BUFR
          CLKDIVP      => '0',

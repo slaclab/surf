@@ -77,7 +77,7 @@ begin
 
 
    -- Clock in serial input on falling edge
-   fall : process (saciClk, rstInL) is
+   fall : process (rstInL, saciClk) is
    begin
       if (rstInL = '0') then
          saciCmdFall <= '0' after TPD_G;
@@ -87,7 +87,7 @@ begin
    end process fall;
 
 
-   seq : process (saciClk, rstInL) is
+   seq : process (rstInL, saciClk) is
    begin
       if (rstInL = '0') then
          r.shiftReg <= (others => '0') after TPD_G;
@@ -99,7 +99,7 @@ begin
       end if;
    end process seq;
 
-   comb : process (r, saciCmdFall, ack, rdData, saciSelL) is
+   comb : process (ack, r, rdData, saciCmdFall) is
       variable v : RegType;
    begin
       v := r;

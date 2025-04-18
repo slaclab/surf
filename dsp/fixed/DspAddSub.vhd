@@ -110,7 +110,7 @@ begin
       rin <= v;
 
       -- Outputs
-      p       <= std_logic_vector(r.p);
+      p <= std_logic_vector(r.p);
 
    end process comb;
 

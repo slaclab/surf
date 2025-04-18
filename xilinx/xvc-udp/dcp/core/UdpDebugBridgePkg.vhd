@@ -35,11 +35,11 @@ use surf.EthMacPkg.all;
 
 package UdpDebugBridgePkg is
 
-   constant XVC_MEM_SIZE_C    : natural  := 1450/2; -- non-jumbo MTU; mem must hold max. reply = max request/2
-   constant XVC_TCLK_FREQ_C   : real     := 15.0E+6;
-   constant XVC_AXIS_WIDTH_C  : positive range 4 to 16 := EMAC_AXIS_CONFIG_C.TDATA_BYTES_C;
+   constant XVC_MEM_SIZE_C   : natural                := 1450/2;  -- non-jumbo MTU; mem must hold max. reply = max request/2
+   constant XVC_TCLK_FREQ_C  : real                   := 15.0E+6;
+   constant XVC_AXIS_WIDTH_C : positive range 4 to 16 := EMAC_AXIS_CONFIG_C.TDATA_BYTES_C;
 
-   constant XVC_MEM_DEPTH_C   : natural range 0 to 65535 :=  XVC_MEM_SIZE_C/XVC_AXIS_WIDTH_C;
-   constant XVC_MEM_STYLE_C   : string  := "auto";
+   constant XVC_MEM_DEPTH_C : natural range 0 to 65535 := XVC_MEM_SIZE_C/XVC_AXIS_WIDTH_C;
+   constant XVC_MEM_STYLE_C : string                   := "auto";
 
 end package UdpDebugBridgePkg;

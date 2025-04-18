@@ -96,8 +96,8 @@ begin
       wait for 1 us;
 
       for i in 0 to 2**10-1 loop
-         encDataIn       := conv_std_logic_vector(i, 10);
-         encDispIn       := '0';
+         encDataIn := conv_std_logic_vector(i, 10);
+         encDispIn := '0';
          encode10b12b(encDataIn, encDataKIn, encDispIn, encDataout, encDispOut);
          decode10b12b(encDataOut, encDispIn, decDataOut, decDataKOut, decDispOut, decCodeError, decDispError);
          assert (encDataIn = decDataOut) report "encDataIn /= decDataOut" severity failure;
@@ -122,9 +122,9 @@ begin
       wait for 1 ns;
 
       for i in 0 to 31 loop
-         encDataIn       := conv_std_logic_vector(i, 5) & conv_std_logic_vector(28, 5);
-         encDataKIn      := '1';
-         encDispIn       := '0';
+         encDataIn  := conv_std_logic_vector(i, 5) & conv_std_logic_vector(28, 5);
+         encDataKIn := '1';
+         encDispIn  := '0';
          encode10b12b(encDataIn, encDataKIn, encDispIn, encDataout, encDispOut);
          decode10b12b(encDataOut, encDispIn, decDataOut, decDataKOut, decDispOut, decCodeError, decDispError);
          assert (encDataIn = decDataOut) report "encDataIn /= decDataOut" severity failure;

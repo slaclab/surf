@@ -189,7 +189,8 @@ begin
    -- Master State Machine
    -------------------------------------
 
-   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave, mFifoAxisCtrl, r, sFifoAxisMaster) is
+   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave,
+                   mFifoAxisCtrl, r, sFifoAxisMaster) is
       variable v : RegType;
    begin
       v := r;

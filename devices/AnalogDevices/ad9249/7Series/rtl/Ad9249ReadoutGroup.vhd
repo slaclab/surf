@@ -95,7 +95,7 @@ architecture rtl of Ad9249ReadoutGroup is
       invert         => '0',
       curDelayFrame  => (others => '0'),
       curDelayData   => (others => (others => '0'))
-   );
+      );
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
@@ -149,7 +149,7 @@ architecture rtl of Ad9249ReadoutGroup is
    signal debugDataOut   : slv(NUM_CHANNELS_G*16-1 downto 0);
    signal debugDataTmp   : slv16Array(NUM_CHANNELS_G-1 downto 0);
 
-   signal invertSync    : sl;
+   signal invertSync : sl;
 
 begin
    -------------------------------------------------------------------------------------------------
@@ -207,15 +207,17 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       curDelayFrame, debugDataTmp, debugDataValid, lockedFallCount, lockedSync) is
+   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst,
+                       axilWriteMaster, curDelayData, curDelayFrame,
+                       debugDataTmp, debugDataValid, lockedFallCount,
+                       lockedSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       v := axilR;
 
-      v.dataDelaySet        := (others => '0');
-      v.frameDelaySet       := '0';
+      v.dataDelaySet  := (others => '0');
+      v.frameDelaySet := '0';
 
       v.curDelayFrame := curDelayFrame;
       v.curDelayData  := curDelayData;

@@ -241,7 +241,7 @@ begin
                next_state <= wait_wr_done2;
             end if;
 
-         when others=>
+         when others =>
             next_state <= idle;
 
       end case;
@@ -284,7 +284,7 @@ begin
             end if;
 
          --assert reset and write to 16-bit mode
-         when wr_16=>
+         when wr_16 =>
             gtrxreset_i <= '1';
             drpen_o     <= '1';
             drpwe_o     <= '1';

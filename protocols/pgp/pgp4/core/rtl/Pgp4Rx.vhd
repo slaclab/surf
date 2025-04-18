@@ -28,13 +28,13 @@ use surf.AxiStreamPacketizer2Pkg.all;
 
 entity Pgp4Rx is
    generic (
-      TPD_G              : time                  := 1 ns;
-      RST_POLARITY_G     : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G        : boolean               := false;
-      NUM_VC_G           : integer range 1 to 16 := 4;
-      SKIP_EN_G          : boolean               := true;  -- TRUE for Elastic Buffer
-      LITE_EN_G          : boolean               := false; -- TRUE: Lite does NOT support SOC/EOC
-      ALIGN_SLIP_WAIT_G  : integer               := 32);
+      TPD_G             : time                  := 1 ns;
+      RST_POLARITY_G    : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean               := false;
+      NUM_VC_G          : integer range 1 to 16 := 4;
+      SKIP_EN_G         : boolean               := true;  -- TRUE for Elastic Buffer
+      LITE_EN_G         : boolean               := false;  -- TRUE: Lite does NOT support SOC/EOC
+      ALIGN_SLIP_WAIT_G : integer               := 32);
    port (
       -- User Transmit interface
       pgpRxClk     : in  sl;
@@ -42,7 +42,7 @@ entity Pgp4Rx is
       pgpRxIn      : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
       pgpRxOut     : out Pgp4RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0); -- Unused
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);  -- Unused
 
       -- Status of local receive fifos
       remRxFifoCtrl  : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -98,19 +98,19 @@ begin
    remRxFifoCtrl  <= remRxFifoCtrlInt;
 
    -- Gearbox aligner
-   U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner -- Same RX gearbox aligner as PGPv3
+   U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner  -- Same RX gearbox aligner as PGPv3
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          SLIP_WAIT_G    => ALIGN_SLIP_WAIT_G)
       port map (
-         clk           => phyRxClk,         -- [in]
-         rst           => phyRxRst,         -- [in]
-         rxHeader      => phyRxHeader,      -- [in]
-         rxHeaderValid => phyRxValid,       -- [in]
-         slip          => phyRxSlip,        -- [out]
-         locked        => gearboxAligned);  -- [out]
+         clk           => phyRxClk,     -- [in]
+         rst           => phyRxRst,     -- [in]
+         rxHeader      => phyRxHeader,  -- [in]
+         rxHeaderValid => phyRxValid,   -- [in]
+         slip          => phyRxSlip,    -- [out]
+         locked        => gearboxAligned);                      -- [out]
 
    -- Unscramble the data for 64b66b
    unscramblerValid <= gearboxAligned and phyRxValid;
@@ -195,18 +195,18 @@ begin
          MEMORY_TYPE_G       => "distributed",
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP4_CRC_POLY_C,
-         SEQ_CNT_SIZE_G      => ite(LITE_EN_G,0,12),-- ZERO: Pgp4TxLite does NOT support SOC/EOC
-         TDEST_BITS_G        => ite(NUM_VC_G=1,0,bitSize(NUM_VC_G)),
+         SEQ_CNT_SIZE_G      => ite(LITE_EN_G, 0, 12),  -- ZERO: Pgp4TxLite does NOT support SOC/EOC
+         TDEST_BITS_G        => ite(NUM_VC_G = 1, 0, bitSize(NUM_VC_G)),
          INPUT_PIPE_STAGES_G => 1)
       port map (
-         axisClk     => pgpRxClk,                -- [in]
-         axisRst     => pgpRxRst,                -- [in]
-         linkGood    => locRxLinkReadyInt,       -- [in]
-         debug       => depacketizerDebug,       -- [out]
-         sAxisMaster => pgpRawRxMaster,          -- [in]
-         sAxisSlave  => pgpRawRxSlave,           -- [out]
-         mAxisMaster => depacketizedAxisMaster,  -- [out]
-         mAxisSlave  => depacketizedAxisSlave);  -- [in]
+         axisClk     => pgpRxClk,       -- [in]
+         axisRst     => pgpRxRst,       -- [in]
+         linkGood    => locRxLinkReadyInt,              -- [in]
+         debug       => depacketizerDebug,              -- [out]
+         sAxisMaster => pgpRawRxMaster,                 -- [in]
+         sAxisSlave  => pgpRawRxSlave,  -- [out]
+         mAxisMaster => depacketizedAxisMaster,         -- [out]
+         mAxisSlave  => depacketizedAxisSlave);         -- [in]
 
    GEN_DEMUX : if (NUM_VC_G > 1) generate
       -- Demultiplex the depacketized streams
@@ -234,10 +234,10 @@ begin
       depacketizedAxisSlave <= AXI_STREAM_SLAVE_FORCE_C;
    end generate NO_DEMUX;
 
-   pgpRxOut.phyRxActive    <= phyRxActive;
-   pgpRxOut.linkReady      <= pgpRxOutProtocol.linkReady;
-   pgpRxOut.frameRx        <= depacketizerDebug.eof;
-   pgpRxOut.frameRxErr     <= depacketizerDebug.eofe;
+   pgpRxOut.phyRxActive <= phyRxActive;
+   pgpRxOut.linkReady   <= pgpRxOutProtocol.linkReady;
+   pgpRxOut.frameRx     <= depacketizerDebug.eof;
+   pgpRxOut.frameRxErr  <= depacketizerDebug.eofe;
 
    pgpRxOut.cellError        <= depacketizerDebug.packetError;
    pgpRxOut.cellSofError     <= depacketizerDebug.sofError;

@@ -68,7 +68,7 @@ architecture rtl of Pgp3RxProtocol is
       protRxPhyInit  : sl;
       remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       remRxLinkReady : sl;
-      locRxLinkReady : sl;              -- This might come from aligner instead?
+      locRxLinkReady : sl;  -- This might come from aligner instead?
       version        : slv(2 downto 0);
    end record RegType;
 
@@ -101,8 +101,8 @@ begin
          dataOut     => phyRxActiveSync,       -- [out]
          fallingEdge => phyRxActiveSyncFall);  -- [out]
 
-   comb : process (pgpRxIn, pgpRxRst, phyRxActiveSync, phyRxActiveSyncFall, protRxData,
-                   protRxHeader, protRxValid, r) is
+   comb : process (pgpRxIn, pgpRxRst, phyRxActiveSync, phyRxActiveSyncFall,
+                   protRxData, protRxHeader, protRxValid, r) is
       variable v              : RegType;
       variable linkInfo       : slv(39 downto 0);
       variable btf            : slv(7 downto 0);

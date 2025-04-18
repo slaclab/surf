@@ -233,8 +233,9 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelayData,
-                       curDelayFrame, debugData, debugDataValid, lockedFallCount, lockedSync, adcClkRst) is
+   axilComb : process (adcClkRst, adcFrameSync, axilR, axilReadMaster, axilRst,
+                       axilWriteMaster, curDelayData, curDelayFrame, debugData,
+                       debugDataValid, lockedFallCount, lockedSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -473,7 +474,8 @@ begin
    -------------------------------------------------------------------------------------------------
    -- ADC Bit Clocked Logic
    -------------------------------------------------------------------------------------------------
-   adcComb : process (adcData, adcDataValid, adcFrame, adcFrameValid, adcR, invertSync) is
+   adcComb : process (adcData, adcDataValid, adcFrame, adcFrameValid, adcR,
+                      invertSync) is
       variable v : AdcRegType;
    begin
       v := adcR;

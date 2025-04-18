@@ -31,37 +31,37 @@ use surf.SsiPkg.all;
 entity SsiFifo is
    generic (
       -- General Configurations
-      TPD_G                  : time                := 1 ns;
-      RST_ASYNC_G            : boolean             := false;
-      INT_PIPE_STAGES_G      : natural             := 0;  -- Internal FIFO setting
-      PIPE_STAGES_G          : natural             := 1;
-      SLAVE_READY_EN_G       : boolean             := true;
+      TPD_G                  : time     := 1 ns;
+      RST_ASYNC_G            : boolean  := false;
+      INT_PIPE_STAGES_G      : natural  := 0;      -- Internal FIFO setting
+      PIPE_STAGES_G          : natural  := 1;
+      SLAVE_READY_EN_G       : boolean  := true;
       -- Valid threshold should always be 1 when using interleaved TDEST
       --       =1 = normal operation
       --       =0 = only when frame ready
       --       >1 = only when frame ready or # entries
-      VALID_THOLD_G          : natural             := 1;
-      VALID_BURST_MODE_G     : boolean             := false;  -- only used in VALID_THOLD_G>1
+      VALID_THOLD_G          : natural  := 1;
+      VALID_BURST_MODE_G     : boolean  := false;  -- only used in VALID_THOLD_G>1
       -- FIFO configurations
-      GEN_SYNC_FIFO_G        : boolean             := false;
-      FIFO_ADDR_WIDTH_G      : positive            := 9;
-      FIFO_FIXED_THRESH_G    : boolean             := true;
-      FIFO_PAUSE_THRESH_G    : positive            := 1;
-      SYNTH_MODE_G           : string              := "inferred";
-      MEMORY_TYPE_G          : string              := "block";
+      GEN_SYNC_FIFO_G        : boolean  := false;
+      FIFO_ADDR_WIDTH_G      : positive := 9;
+      FIFO_FIXED_THRESH_G    : boolean  := true;
+      FIFO_PAUSE_THRESH_G    : positive := 1;
+      SYNTH_MODE_G           : string   := "inferred";
+      MEMORY_TYPE_G          : string   := "block";
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
       -- CUSOTM uses passed FIFO_DATA_WIDTH_G
-      INT_WIDTH_SELECT_G     : string              := "WIDE";
-      INT_DATA_WIDTH_G       : positive            := 16;
+      INT_WIDTH_SELECT_G     : string   := "WIDE";
+      INT_DATA_WIDTH_G       : positive := 16;
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast transaction can be smaller.
       --       Set to 0 for same size as primary FIFO (default)
       --       Set >4 for custom size.
       --       Use at own risk. Overflow of tLast FIFO is not checked
-      LAST_FIFO_ADDR_WIDTH_G : natural             := 0;
+      LAST_FIFO_ADDR_WIDTH_G : natural  := 0;
       -- Index = 0 is output, index = n is input
-      CASCADE_PAUSE_SEL_G    : natural             := 0;
-      CASCADE_SIZE_G         : positive            := 1;
+      CASCADE_PAUSE_SEL_G    : natural  := 0;
+      CASCADE_SIZE_G         : positive := 1;
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G     : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G    : AxiStreamConfigType);

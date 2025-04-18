@@ -15,7 +15,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -26,89 +26,89 @@ use surf.Pgp2fcPkg.all;
 
 entity Pgp2fcTxCell is
    generic (
-      TPD_G             : time                 := 1 ns;
-      PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
-   );
+      TPD_G             : time    := 1 ns;
+      PAYLOAD_CNT_TOP_G : integer := 7  -- Top bit for payload counter
+      );
    port (
 
       -- System clock, reset & control
-      pgpTxClkEn        : in  sl := '1';                        -- Master clock Enable
-      pgpTxClk          : in  sl;                               -- Master clock
-      pgpTxClkRst       : in  sl;                               -- Synchronous reset input
+      pgpTxClkEn  : in sl := '1';       -- Master clock Enable
+      pgpTxClk    : in sl;              -- Master clock
+      pgpTxClkRst : in sl;              -- Synchronous reset input
 
       -- Link is ready
-      pgpTxLinkReady    : in  sl;                               -- Local side has link
+      pgpTxLinkReady : in sl;           -- Local side has link
 
       -- Phy is busy
-      pgpTxBusy         : in  sl;
+      pgpTxBusy : in sl;
 
       -- Phy Transmit Interface
-      cellTxSOC         : out sl;                               -- Cell data start of cell
-      cellTxSOF         : out sl;                               -- Cell data start of frame
-      cellTxEOC         : out sl;                               -- Cell data end of cell
-      cellTxEOF         : out sl;                               -- Cell data end of frame
-      cellTxEOFE        : out sl;                               -- Cell data end of frame error
-      cellTxData        : out slv(15 downto 0);                 -- Cell data data
+      cellTxSOC  : out sl;                -- Cell data start of cell
+      cellTxSOF  : out sl;                -- Cell data start of frame
+      cellTxEOC  : out sl;                -- Cell data end of cell
+      cellTxEOF  : out sl;                -- Cell data end of frame
+      cellTxEOFE : out sl;                -- Cell data end of frame error
+      cellTxData : out slv(15 downto 0);  -- Cell data data
 
       -- Transmit Scheduler Interface
-      schTxSOF          : out sl;                               -- Cell contained SOF
-      schTxEOF          : out sl;                               -- Cell contained EOF
-      schTxIdle         : in  sl;                               -- Force IDLE transmit
-      schTxReq          : in  sl;                               -- Cell transmit request
-      schTxAck          : out sl;                               -- Cell transmit acknowledge
-      schTxTimeout      : in  sl;                               -- Cell transmit timeout
-      schTxDataVc       : in  slv(1 downto 0);                  -- Cell transmit virtual channel
+      schTxSOF     : out sl;               -- Cell contained SOF
+      schTxEOF     : out sl;               -- Cell contained EOF
+      schTxIdle    : in  sl;               -- Force IDLE transmit
+      schTxReq     : in  sl;               -- Cell transmit request
+      schTxAck     : out sl;               -- Cell transmit acknowledge
+      schTxTimeout : in  sl;               -- Cell transmit timeout
+      schTxDataVc  : in  slv(1 downto 0);  -- Cell transmit virtual channel
 
       -- Frame Transmit Interface, VC 0
-      vc0FrameTxValid   : in  sl;                               -- User frame data is valid
-      vc0FrameTxReady   : out sl;                               -- PGP is ready
-      vc0FrameTxSOF     : in  sl;                               -- User frame data start of frame
-      vc0FrameTxEOF     : in  sl;                               -- User frame data end of frame
-      vc0FrameTxEOFE    : in  sl;                               -- User frame data error
-      vc0FrameTxData    : in  slv(15 downto 0);                 -- User frame data
-      vc0LocAlmostFull  : in  sl;                               -- Local buffer almost full
-      vc0LocOverflow    : in  sl;                               -- Local buffer full
-      vc0RemAlmostFull  : in  sl;                               -- Remote buffer almost full
+      vc0FrameTxValid  : in  sl;        -- User frame data is valid
+      vc0FrameTxReady  : out sl;        -- PGP is ready
+      vc0FrameTxSOF    : in  sl;        -- User frame data start of frame
+      vc0FrameTxEOF    : in  sl;        -- User frame data end of frame
+      vc0FrameTxEOFE   : in  sl;        -- User frame data error
+      vc0FrameTxData   : in  slv(15 downto 0);  -- User frame data
+      vc0LocAlmostFull : in  sl;        -- Local buffer almost full
+      vc0LocOverflow   : in  sl;        -- Local buffer full
+      vc0RemAlmostFull : in  sl;        -- Remote buffer almost full
 
       -- Frame Transmit Interface, VC 1
-      vc1FrameTxValid   : in  sl;                               -- User frame data is valid
-      vc1FrameTxReady   : out sl;                               -- PGP is ready
-      vc1FrameTxSOF     : in  sl;                               -- User frame data start of frame
-      vc1FrameTxEOF     : in  sl;                               -- User frame data end of frame
-      vc1FrameTxEOFE    : in  sl;                               -- User frame data error
-      vc1FrameTxData    : in  slv(15 downto 0);                 -- User frame data
-      vc1LocAlmostFull  : in  sl;                               -- Local buffer almost full
-      vc1LocOverflow    : in  sl;                               -- Local buffer full
-      vc1RemAlmostFull  : in  sl;                               -- Remote buffer almost full
+      vc1FrameTxValid  : in  sl;        -- User frame data is valid
+      vc1FrameTxReady  : out sl;        -- PGP is ready
+      vc1FrameTxSOF    : in  sl;        -- User frame data start of frame
+      vc1FrameTxEOF    : in  sl;        -- User frame data end of frame
+      vc1FrameTxEOFE   : in  sl;        -- User frame data error
+      vc1FrameTxData   : in  slv(15 downto 0);  -- User frame data
+      vc1LocAlmostFull : in  sl;        -- Local buffer almost full
+      vc1LocOverflow   : in  sl;        -- Local buffer full
+      vc1RemAlmostFull : in  sl;        -- Remote buffer almost full
 
       -- Frame Transmit Interface, VC 2
-      vc2FrameTxValid   : in  sl;                               -- User frame data is valid
-      vc2FrameTxReady   : out sl;                               -- PGP is ready
-      vc2FrameTxSOF     : in  sl;                               -- User frame data start of frame
-      vc2FrameTxEOF     : in  sl;                               -- User frame data end of frame
-      vc2FrameTxEOFE    : in  sl;                               -- User frame data error
-      vc2FrameTxData    : in  slv(15 downto 0);                 -- User frame data
-      vc2LocAlmostFull  : in  sl;                               -- Local buffer almost full
-      vc2LocOverflow    : in  sl;                               -- Local buffer full
-      vc2RemAlmostFull  : in  sl;                               -- Remote buffer almost full
+      vc2FrameTxValid  : in  sl;        -- User frame data is valid
+      vc2FrameTxReady  : out sl;        -- PGP is ready
+      vc2FrameTxSOF    : in  sl;        -- User frame data start of frame
+      vc2FrameTxEOF    : in  sl;        -- User frame data end of frame
+      vc2FrameTxEOFE   : in  sl;        -- User frame data error
+      vc2FrameTxData   : in  slv(15 downto 0);  -- User frame data
+      vc2LocAlmostFull : in  sl;        -- Local buffer almost full
+      vc2LocOverflow   : in  sl;        -- Local buffer full
+      vc2RemAlmostFull : in  sl;        -- Remote buffer almost full
 
       -- Frame Transmit Interface, VC 3
-      vc3FrameTxValid   : in  sl;                               -- User frame data is valid
-      vc3FrameTxReady   : out sl;                               -- PGP is ready
-      vc3FrameTxSOF     : in  sl;                               -- User frame data start of frame
-      vc3FrameTxEOF     : in  sl;                               -- User frame data end of frame
-      vc3FrameTxEOFE    : in  sl;                               -- User frame data error
-      vc3FrameTxData    : in  slv(15 downto 0);                 -- User frame data
-      vc3LocAlmostFull  : in  sl;                               -- Local buffer almost full
-      vc3LocOverflow    : in  sl;                               -- Local buffer full
-      vc3RemAlmostFull  : in  sl;                               -- Remote buffer almost full
+      vc3FrameTxValid  : in  sl;        -- User frame data is valid
+      vc3FrameTxReady  : out sl;        -- PGP is ready
+      vc3FrameTxSOF    : in  sl;        -- User frame data start of frame
+      vc3FrameTxEOF    : in  sl;        -- User frame data end of frame
+      vc3FrameTxEOFE   : in  sl;        -- User frame data error
+      vc3FrameTxData   : in  slv(15 downto 0);  -- User frame data
+      vc3LocAlmostFull : in  sl;        -- Local buffer almost full
+      vc3LocOverflow   : in  sl;        -- Local buffer full
+      vc3RemAlmostFull : in  sl;        -- Remote buffer almost full
 
       -- Transmit CRC Interface
-      crcTxIn           : out slv(15 downto 0);                 -- Transmit data for CRC
-      crcTxInit         : out sl;                               -- Transmit CRC value init
-      crcTxValid        : out sl;                               -- Transmit data for CRC is valid
-      crcTxOut          : in  slv(31 downto 0)                  -- Transmit calculated CRC value
-   );
+      crcTxIn    : out slv(15 downto 0);  -- Transmit data for CRC
+      crcTxInit  : out sl;                -- Transmit CRC value init
+      crcTxValid : out sl;                -- Transmit data for CRC is valid
+      crcTxOut   : in  slv(31 downto 0)   -- Transmit calculated CRC value
+      );
 
 end Pgp2fcTxCell;
 
@@ -161,14 +161,14 @@ architecture Pgp2fcTxCell of Pgp2fcTxCell is
    signal intOverflow      : slv(3 downto 0)  := (others => '0');
 
    -- Transmit Data Marker
-   constant TX_DATA_C   : slv(2 downto 0) := "000";
-   constant TX_SOC_C    : slv(2 downto 0) := "001";
-   constant TX_SOF_C    : slv(2 downto 0) := "010";
-   constant TX_EOC_C    : slv(2 downto 0) := "011";
-   constant TX_EOF_C    : slv(2 downto 0) := "100";
-   constant TX_EOFE_C   : slv(2 downto 0) := "101";
-   constant TX_CRCA_C   : slv(2 downto 0) := "110";
-   constant TX_CRCB_C   : slv(2 downto 0) := "111";
+   constant TX_DATA_C : slv(2 downto 0) := "000";
+   constant TX_SOC_C  : slv(2 downto 0) := "001";
+   constant TX_SOF_C  : slv(2 downto 0) := "010";
+   constant TX_EOC_C  : slv(2 downto 0) := "011";
+   constant TX_EOF_C  : slv(2 downto 0) := "100";
+   constant TX_EOFE_C : slv(2 downto 0) := "101";
+   constant TX_CRCA_C : slv(2 downto 0) := "110";
+   constant TX_CRCB_C : slv(2 downto 0) := "111";
 
    -- Transmit states
    type FSM_STATE is (
@@ -179,51 +179,55 @@ architecture Pgp2fcTxCell of Pgp2fcTxCell is
       ST_CRCA_C,
       ST_CRCB_C,
       ST_EOC_C
-   );
-   signal   curState    : FSM_STATE := ST_IDLE_C;
-   signal   nxtState    : FSM_STATE;
+      );
+   signal curState : FSM_STATE := ST_IDLE_C;
+   signal nxtState : FSM_STATE;
 begin
 
 
    -- Mux incoming data
-   process ( vc0FrameTxValid, vc0FrameTxSOF, vc0FrameTxEOF, vc0FrameTxEOFE, vc0FrameTxData, vc0RemAlmostFull,
-             vc1FrameTxValid, vc1FrameTxSOF, vc1FrameTxEOF, vc1FrameTxEOFE, vc1FrameTxData, Vc1RemAlmostFull,
-             vc2FrameTxValid, vc2FrameTxSOF, vc2FrameTxEOF, vc2FrameTxEOFE, vc2FrameTxData, Vc2RemAlmostFull,
-             vc3FrameTxValid, vc3FrameTxSOF, vc3FrameTxEOF, vc3FrameTxEOFE, vc3FrameTxData, Vc3RemAlmostFull,
-             vc0Serial, vc1Serial, vc2Serial, vc3Serial, schTxDataVc ) begin
+   process (schTxDataVc, vc0FrameTxData, vc0FrameTxEOF, vc0FrameTxEOFE,
+            vc0FrameTxSOF, vc0FrameTxValid, vc0RemAlmostFull, vc0Serial,
+            vc1FrameTxData, vc1FrameTxEOF, vc1FrameTxEOFE, vc1FrameTxSOF,
+            vc1FrameTxValid, vc1RemAlmostFull, vc1Serial, vc2FrameTxData,
+            vc2FrameTxEOF, vc2FrameTxEOFE, vc2FrameTxSOF, vc2FrameTxValid,
+            vc2RemAlmostFull, vc2Serial, vc3FrameTxData, vc3FrameTxEOF,
+            vc3FrameTxEOFE, vc3FrameTxSOF, vc3FrameTxValid, vc3RemAlmostFull,
+            vc3Serial)
+   begin
       case schTxDataVc is
          when "00" =>
-            muxFrameTxValid <= vc0FrameTxValid;
-            muxFrameTxSOF   <= vc0FrameTxSOF;
-            muxFrameTxEOF   <= vc0FrameTxEOF;
-            muxFrameTxEOFE  <= vc0FrameTxEOFE;
-            muxFrameTxData  <= vc0FrameTxData;
+            muxFrameTxValid  <= vc0FrameTxValid;
+            muxFrameTxSOF    <= vc0FrameTxSOF;
+            muxFrameTxEOF    <= vc0FrameTxEOF;
+            muxFrameTxEOFE   <= vc0FrameTxEOFE;
+            muxFrameTxData   <= vc0FrameTxData;
             muxRemAlmostFull <= vc0RemAlmostFull;
-            muxSerial       <= vc0Serial;
+            muxSerial        <= vc0Serial;
          when "01" =>
-            muxFrameTxValid <= vc1FrameTxValid;
-            muxFrameTxSOF   <= vc1FrameTxSOF;
-            muxFrameTxEOF   <= vc1FrameTxEOF;
-            muxFrameTxEOFE  <= vc1FrameTxEOFE;
-            muxFrameTxData  <= vc1FrameTxData;
+            muxFrameTxValid  <= vc1FrameTxValid;
+            muxFrameTxSOF    <= vc1FrameTxSOF;
+            muxFrameTxEOF    <= vc1FrameTxEOF;
+            muxFrameTxEOFE   <= vc1FrameTxEOFE;
+            muxFrameTxData   <= vc1FrameTxData;
             muxRemAlmostFull <= vc1RemAlmostFull;
-            muxSerial       <= vc1Serial;
+            muxSerial        <= vc1Serial;
          when "10" =>
-            muxFrameTxValid <= vc2FrameTxValid;
-            muxFrameTxSOF   <= vc2FrameTxSOF;
-            muxFrameTxEOF   <= vc2FrameTxEOF;
-            muxFrameTxEOFE  <= vc2FrameTxEOFE;
-            muxFrameTxData  <= vc2FrameTxData;
+            muxFrameTxValid  <= vc2FrameTxValid;
+            muxFrameTxSOF    <= vc2FrameTxSOF;
+            muxFrameTxEOF    <= vc2FrameTxEOF;
+            muxFrameTxEOFE   <= vc2FrameTxEOFE;
+            muxFrameTxData   <= vc2FrameTxData;
             muxRemAlmostFull <= vc2RemAlmostFull;
-            muxSerial       <= vc2Serial;
+            muxSerial        <= vc2Serial;
          when others =>
-            muxFrameTxValid <= vc3FrameTxValid;
-            muxFrameTxSOF   <= vc3FrameTxSOF;
-            muxFrameTxEOF   <= vc3FrameTxEOF;
-            muxFrameTxEOFE  <= vc3FrameTxEOFE;
-            muxFrameTxData  <= vc3FrameTxData;
+            muxFrameTxValid  <= vc3FrameTxValid;
+            muxFrameTxSOF    <= vc3FrameTxSOF;
+            muxFrameTxEOF    <= vc3FrameTxEOF;
+            muxFrameTxEOFE   <= vc3FrameTxEOFE;
+            muxFrameTxData   <= vc3FrameTxData;
             muxRemAlmostFull <= vc3RemAlmostFull;
-            muxSerial       <= vc3Serial;
+            muxSerial        <= vc3Serial;
       end case;
    end process;
 
@@ -232,50 +236,51 @@ begin
    -- SOF, vc number and serial number
    socWord(15 downto 14) <= schTxDataVc;
    socWord(13 downto 8)  <= muxSerial;
-   socWord(7  downto 0)  <= (others=>'0');
+   socWord(7 downto 0)   <= (others => '0');
 
    -- EOF, buffer status
    eocWord(15 downto 12) <= intOverflow;
    eocWord(11 downto 8)  <= vc3LocAlmostFull & vc2LocAlmostFull & vc1LocAlmostFull & vc0LocAlmostFull;
-   eocWord(7  downto 0)  <= (others=>'0');
+   eocWord(7 downto 0)   <= (others => '0');
 
 
    -- Simple state machine to control transmission of data frames
-   process ( pgpTxClk ) begin
+   process (pgpTxClk)
+   begin
       if rising_edge(pgpTxClk) then
          if pgpTxClkRst = '1' then
-            curState         <= ST_IDLE_C     after TPD_G;
-            cellCnt          <= (others=>'0') after TPD_G;
-            int0FrameTxReady <= '0'           after TPD_G;
-            int1FrameTxReady <= '0'           after TPD_G;
-            int2FrameTxReady <= '0'           after TPD_G;
-            int3FrameTxReady <= '0'           after TPD_G;
-            intTimeout       <= '0'           after TPD_G;
-            schTxSOF         <= '0'           after TPD_G;
-            schTxEOF         <= '0'           after TPD_G;
-            schTxAck         <= '0'           after TPD_G;
-            vc0Serial        <= (others=>'0') after TPD_G;
-            vc1Serial        <= (others=>'0') after TPD_G;
-            vc2Serial        <= (others=>'0') after TPD_G;
-            vc3Serial        <= (others=>'0') after TPD_G;
-            curTypeLast      <= (others=>'0') after TPD_G;
-            intOverflow      <= (others=>'0') after TPD_G;
+            curState         <= ST_IDLE_C       after TPD_G;
+            cellCnt          <= (others => '0') after TPD_G;
+            int0FrameTxReady <= '0'             after TPD_G;
+            int1FrameTxReady <= '0'             after TPD_G;
+            int2FrameTxReady <= '0'             after TPD_G;
+            int3FrameTxReady <= '0'             after TPD_G;
+            intTimeout       <= '0'             after TPD_G;
+            schTxSOF         <= '0'             after TPD_G;
+            schTxEOF         <= '0'             after TPD_G;
+            schTxAck         <= '0'             after TPD_G;
+            vc0Serial        <= (others => '0') after TPD_G;
+            vc1Serial        <= (others => '0') after TPD_G;
+            vc2Serial        <= (others => '0') after TPD_G;
+            vc3Serial        <= (others => '0') after TPD_G;
+            curTypeLast      <= (others => '0') after TPD_G;
+            intOverflow      <= (others => '0') after TPD_G;
          elsif pgpTxClkEn = '1' then
 
             if pgpTxLinkReady = '0' then
                curState <= ST_IDLE_C after TPD_G;
 
-               vc0Serial <= (others=>'0') after TPD_G;
-               vc1Serial <= (others=>'0') after TPD_G;
-               vc2Serial <= (others=>'0') after TPD_G;
-               vc3Serial <= (others=>'0') after TPD_G;
+               vc0Serial <= (others => '0') after TPD_G;
+               vc1Serial <= (others => '0') after TPD_G;
+               vc2Serial <= (others => '0') after TPD_G;
+               vc3Serial <= (others => '0') after TPD_G;
             elsif pgpTxBusy = '0' then
                -- State control
                curState <= nxtState after TPD_G;
 
                -- Payload Counter
                if cellCntRst = '1' then
-                  cellCnt <= (others=>'1') after TPD_G;
+                  cellCnt <= (others => '1') after TPD_G;
                elsif cellCnt /= 0 then
                   cellCnt <= cellCnt - 1 after TPD_G;
                end if;
@@ -365,9 +370,10 @@ begin
 
 
    -- Async state control
-   process ( curState, schTxIdle, schTxReq, intTimeout, cellCnt, eocWord, socWord, curTypeLast,
-            muxFrameTxValid, muxFrameTxSOF, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxData,
-            muxRemAlmostFull ) begin
+   process (cellCnt, curState, curTypeLast, eocWord, intTimeout,
+            muxFrameTxData, muxFrameTxEOF, muxFrameTxEOFE, muxFrameTxSOF,
+            muxFrameTxValid, muxRemAlmostFull, schTxIdle, schTxReq, socWord)
+   begin
       case curState is
 
          -- Idle
@@ -375,12 +381,12 @@ begin
             cellCntRst      <= '1';
             nxtFrameTxReady <= '0';
             nxtType         <= TX_DATA_C;
-            nxtData         <= (others=>'0');
+            nxtData         <= (others => '0');
             nxtTxSOF        <= '0';
             nxtTxEOF        <= '0';
             nxtTxAck        <= '0';
             serialCntEn     <= '0';
-            nxtTypeLast     <= (others=>'0');
+            nxtTypeLast     <= (others => '0');
 
             -- Idle request
             if schTxIdle = '1' then
@@ -403,7 +409,7 @@ begin
             nxtTxAck        <= '1';
             serialCntEn     <= '0';
             nxtData         <= eocWord;
-            nxtTypeLast     <= (others=>'0');
+            nxtTypeLast     <= (others => '0');
 
             -- Go back to idle
             nxtState <= ST_IDLE_C;
@@ -416,7 +422,7 @@ begin
             nxtTxAck        <= '0';
             serialCntEn     <= '0';
             nxtData         <= socWord;
-            nxtTypeLast     <= (others=>'0');
+            nxtTypeLast     <= (others => '0');
 
             -- Determine type
             if intTimeout = '1' then
@@ -435,12 +441,12 @@ begin
 
          -- Send data
          when ST_DATA_C =>
-            cellCntRst   <= '0';
-            nxtTxEOF     <= '0';
-            nxtTxSOF     <= '0';
-            nxtTxAck     <= '0';
-            serialCntEn  <= '0';
-            nxtData      <= muxFrameTxData;
+            cellCntRst  <= '0';
+            nxtTxEOF    <= '0';
+            nxtTxSOF    <= '0';
+            nxtTxAck    <= '0';
+            serialCntEn <= '0';
+            nxtData     <= muxFrameTxData;
 
             -- Timeout frame, force EOFE
             if intTimeout = '1' then
@@ -499,7 +505,7 @@ begin
             nxtTxSOF        <= '0';
             nxtTxAck        <= '0';
             serialCntEn     <= '0';
-            nxtData         <= (others=>'0');
+            nxtData         <= (others => '0');
             nxtType         <= TX_CRCA_C;
             nxtTypeLast     <= curTypeLast;
             nxtFrameTxReady <= '0';
@@ -513,7 +519,7 @@ begin
             nxtTxSOF        <= '0';
             nxtTxAck        <= '0';
             serialCntEn     <= '0';
-            nxtData         <= (others=>'0');
+            nxtData         <= (others => '0');
             nxtType         <= TX_CRCB_C;
             nxtTypeLast     <= curTypeLast;
             nxtFrameTxReady <= '0';
@@ -545,9 +551,9 @@ begin
             nxtTxSOF        <= '0';
             nxtTxAck        <= '0';
             serialCntEn     <= '0';
-            nxtData         <= (others=>'0');
-            nxtType         <= (others=>'0');
-            nxtTypeLast     <= (others=>'0');
+            nxtData         <= (others => '0');
+            nxtType         <= (others => '0');
+            nxtTypeLast     <= (others => '0');
             nxtFrameTxReady <= '0';
             nxtState        <= ST_IDLE_C;
       end case;
@@ -555,39 +561,40 @@ begin
 
 
    -- Delay chain to allow CRC data to catch up.
-   process ( pgpTxClk ) begin
+   process (pgpTxClk)
+   begin
       if rising_edge(pgpTxClk) then
          if pgpTxClkRst = '1' then
-            dly0Data         <= (others=>'0');
-            dly0Type         <= (others=>'0');
-            dly1Data         <= (others=>'0');
-            dly1Type         <= (others=>'0');
-            dly2Data         <= (others=>'0');
-            dly2Type         <= (others=>'0');
-            dly3Data         <= (others=>'0');
-            dly3Type         <= (others=>'0');
-            dly4Data         <= (others=>'0');
-            dly4Type         <= (others=>'0');
+            dly0Data <= (others => '0');
+            dly0Type <= (others => '0');
+            dly1Data <= (others => '0');
+            dly1Type <= (others => '0');
+            dly2Data <= (others => '0');
+            dly2Type <= (others => '0');
+            dly3Data <= (others => '0');
+            dly3Type <= (others => '0');
+            dly4Data <= (others => '0');
+            dly4Type <= (others => '0');
          elsif pgpTxClkEn = '1' and pgpTxBusy = '0' then
             -- Delay stage 1
-            dly0Data  <= nxtData after TPD_G;
-            dly0Type  <= nxtType after TPD_G;
+            dly0Data <= nxtData after TPD_G;
+            dly0Type <= nxtType after TPD_G;
 
             -- Delay stage 2
-            dly1Data  <= dly0Data after TPD_G;
-            dly1Type  <= dly0Type after TPD_G;
+            dly1Data <= dly0Data after TPD_G;
+            dly1Type <= dly0Type after TPD_G;
 
             -- Delay stage 3
-            dly2Data  <= dly1Data after TPD_G;
-            dly2Type  <= dly1Type after TPD_G;
+            dly2Data <= dly1Data after TPD_G;
+            dly2Type <= dly1Type after TPD_G;
 
             -- Delay stage 3
-            dly3Data  <= dly2Data after TPD_G;
-            dly3Type  <= dly2Type after TPD_G;
+            dly3Data <= dly2Data after TPD_G;
+            dly3Type <= dly2Type after TPD_G;
 
             -- Delay stage 3
-            dly4Data  <= dly3Data after TPD_G;
-            dly4Type  <= dly3Type after TPD_G;
+            dly4Data <= dly3Data after TPD_G;
+            dly4Type <= dly3Type after TPD_G;
          end if;
       end if;
    end process;
@@ -595,93 +602,94 @@ begin
 
    -- Output to CRC engine
    -- TODO: This might need a delay too!
-   crcTxIn      <= dly0Data;
-   crcTxInit    <= '1' when (dly0Type = TX_SOC_C or dly0Type = TX_SOF_C) else '0';
-   crcTxValid   <= '1' when (dly0Type = TX_SOC_C or dly0Type = TX_SOF_C or dly0Type = TX_DATA_C) and pgpTxBusy = '0' else '0';
+   crcTxIn    <= dly0Data;
+   crcTxInit  <= '1' when (dly0Type = TX_SOC_C or dly0Type = TX_SOF_C)                                             else '0';
+   crcTxValid <= '1' when (dly0Type = TX_SOC_C or dly0Type = TX_SOF_C or dly0Type = TX_DATA_C) and pgpTxBusy = '0' else '0';
 
 
    -- CRC Data, Single lane, split into two 16-bit values
-   crcWordA(7  downto 0) <= crcTxOut(31 downto 24);
+   crcWordA(7 downto 0)  <= crcTxOut(31 downto 24);
    crcWordA(15 downto 8) <= crcTxOut(23 downto 16);
-   crcWordB(7  downto 0) <= crcTxOut(15 downto  8);
-   crcWordB(15 downto 8) <= crcTxOut(7  downto  0);
+   crcWordB(7 downto 0)  <= crcTxOut(15 downto 8);
+   crcWordB(15 downto 8) <= crcTxOut(7 downto 0);
 
    -- Output stage
-   process ( pgpTxClk ) begin
+   process (pgpTxClk)
+   begin
       if rising_edge(pgpTxClk) then
          if pgpTxClkRst = '1' then
-            cellTxSOC    <= '0'           after TPD_G;
-            cellTxSOF    <= '0'           after TPD_G;
-            cellTxEOC    <= '0'           after TPD_G;
-            cellTxEOF    <= '0'           after TPD_G;
-            cellTxEOFE   <= '0'           after TPD_G;
-            cellTxData   <= (others=>'0') after TPD_G;
+            cellTxSOC  <= '0'             after TPD_G;
+            cellTxSOF  <= '0'             after TPD_G;
+            cellTxEOC  <= '0'             after TPD_G;
+            cellTxEOF  <= '0'             after TPD_G;
+            cellTxEOFE <= '0'             after TPD_G;
+            cellTxData <= (others => '0') after TPD_G;
          elsif pgpTxClkEn = '1' and pgpTxBusy = '0' then
             -- Which data type
             case dly2Type is
                when TX_DATA_C =>
-                  cellTxSOC    <= '0'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '0'           after TPD_G;
-                  cellTxEOF    <= '0'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= dly2Data      after TPD_G;
+                  cellTxSOC  <= '0'      after TPD_G;
+                  cellTxSOF  <= '0'      after TPD_G;
+                  cellTxEOC  <= '0'      after TPD_G;
+                  cellTxEOF  <= '0'      after TPD_G;
+                  cellTxEOFE <= '0'      after TPD_G;
+                  cellTxData <= dly2Data after TPD_G;
                when TX_SOC_C =>
-                  cellTxSOC    <= '1'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '0'           after TPD_G;
-                  cellTxEOF    <= '0'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= dly2Data      after TPD_G;
+                  cellTxSOC  <= '1'      after TPD_G;
+                  cellTxSOF  <= '0'      after TPD_G;
+                  cellTxEOC  <= '0'      after TPD_G;
+                  cellTxEOF  <= '0'      after TPD_G;
+                  cellTxEOFE <= '0'      after TPD_G;
+                  cellTxData <= dly2Data after TPD_G;
                when TX_SOF_C =>
-                  cellTxSOC    <= '1'           after TPD_G;
-                  cellTxSOF    <= '1'           after TPD_G;
-                  cellTxEOC    <= '0'           after TPD_G;
-                  cellTxEOF    <= '0'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= dly2Data      after TPD_G;
+                  cellTxSOC  <= '1'      after TPD_G;
+                  cellTxSOF  <= '1'      after TPD_G;
+                  cellTxEOC  <= '0'      after TPD_G;
+                  cellTxEOF  <= '0'      after TPD_G;
+                  cellTxEOFE <= '0'      after TPD_G;
+                  cellTxData <= dly2Data after TPD_G;
                when TX_CRCA_C =>
-                  cellTxSOC    <= '0'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '0'           after TPD_G;
-                  cellTxEOF    <= '0'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= crcWordA      after TPD_G;
+                  cellTxSOC  <= '0'      after TPD_G;
+                  cellTxSOF  <= '0'      after TPD_G;
+                  cellTxEOC  <= '0'      after TPD_G;
+                  cellTxEOF  <= '0'      after TPD_G;
+                  cellTxEOFE <= '0'      after TPD_G;
+                  cellTxData <= crcWordA after TPD_G;
                when TX_CRCB_C =>
-                  cellTxSOC    <= '0'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '0'           after TPD_G;
-                  cellTxEOF    <= '0'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= crcWordB      after TPD_G;
+                  cellTxSOC  <= '0'      after TPD_G;
+                  cellTxSOF  <= '0'      after TPD_G;
+                  cellTxEOC  <= '0'      after TPD_G;
+                  cellTxEOF  <= '0'      after TPD_G;
+                  cellTxEOFE <= '0'      after TPD_G;
+                  cellTxData <= crcWordB after TPD_G;
                when TX_EOC_C =>
-                  cellTxSOC    <= '0'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '1'           after TPD_G;
-                  cellTxEOF    <= '0'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= dly2Data      after TPD_G;
+                  cellTxSOC  <= '0'      after TPD_G;
+                  cellTxSOF  <= '0'      after TPD_G;
+                  cellTxEOC  <= '1'      after TPD_G;
+                  cellTxEOF  <= '0'      after TPD_G;
+                  cellTxEOFE <= '0'      after TPD_G;
+                  cellTxData <= dly2Data after TPD_G;
                when TX_EOF_C =>
-                  cellTxSOC    <= '0'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '1'           after TPD_G;
-                  cellTxEOF    <= '1'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= dly2Data      after TPD_G;
+                  cellTxSOC  <= '0'      after TPD_G;
+                  cellTxSOF  <= '0'      after TPD_G;
+                  cellTxEOC  <= '1'      after TPD_G;
+                  cellTxEOF  <= '1'      after TPD_G;
+                  cellTxEOFE <= '0'      after TPD_G;
+                  cellTxData <= dly2Data after TPD_G;
                when TX_EOFE_C =>
-                  cellTxSOC    <= '0'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '1'           after TPD_G;
-                  cellTxEOF    <= '1'           after TPD_G;
-                  cellTxEOFE   <= '1'           after TPD_G;
-                  cellTxData   <= dly2Data      after TPD_G;
+                  cellTxSOC  <= '0'      after TPD_G;
+                  cellTxSOF  <= '0'      after TPD_G;
+                  cellTxEOC  <= '1'      after TPD_G;
+                  cellTxEOF  <= '1'      after TPD_G;
+                  cellTxEOFE <= '1'      after TPD_G;
+                  cellTxData <= dly2Data after TPD_G;
                when others =>
-                  cellTxSOC    <= '0'           after TPD_G;
-                  cellTxSOF    <= '0'           after TPD_G;
-                  cellTxEOC    <= '0'           after TPD_G;
-                  cellTxEOF    <= '0'           after TPD_G;
-                  cellTxEOFE   <= '0'           after TPD_G;
-                  cellTxData   <= (others=>'0') after TPD_G;
+                  cellTxSOC  <= '0'             after TPD_G;
+                  cellTxSOF  <= '0'             after TPD_G;
+                  cellTxEOC  <= '0'             after TPD_G;
+                  cellTxEOF  <= '0'             after TPD_G;
+                  cellTxEOFE <= '0'             after TPD_G;
+                  cellTxData <= (others => '0') after TPD_G;
             end case;
          end if;
       end if;
