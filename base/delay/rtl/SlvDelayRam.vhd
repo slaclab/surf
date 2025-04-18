@@ -49,8 +49,8 @@ architecture rtl of SlvDelayRam is
 
    constant INIT_C : slv(WIDTH_G-1 downto 0) := slvZero(WIDTH_G);
 
-   type mem_type is array (DELAY_G - 1 - ite(DO_REG_G, 2, 1) downto 0) of slv(WIDTH_G - 1 downto 0);
-   signal mem : mem_type := (others => (others => '0'));
+   type MemType is array (DELAY_G - 1 - ite(DO_REG_G, 2, 1) downto 0) of slv(WIDTH_G - 1 downto 0);
+   signal mem : MemType := (others => (others => '0'));
 
    type RegType is record
       addr     : integer range 0 to DELAY_G - ite(DO_REG_G, 2, 1);

@@ -12,9 +12,9 @@
 -- the terms contained in the LICENSE.txt file.
 ------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 package StdRtlPkg is
@@ -798,7 +798,7 @@ package body StdRtlPkg is
          resultVar(i) := aa(i);
       end loop;
       return resultVar;
-   end;
+   end function bitReverse;
 
    function wordCount (number : positive; wordSize : positive := 8) return natural is
       variable ret : natural;
@@ -895,7 +895,7 @@ package body StdRtlPkg is
       i      := to_integer(unsigned(v));
       res(i) := '1';
       return res;
-   end;
+   end function decode;
 
    -- generic multiplexer
    function genmux(s, v : slv) return sl is
@@ -906,7 +906,7 @@ package body StdRtlPkg is
       i   := 0;
       i   := to_integer(unsigned(s));
       return res(i);
-   end;
+   end function genmux;
 
    ---------------------------------------------------------------------------------------------------------------------
    -- Unary reduction operators
@@ -1181,7 +1181,7 @@ package body StdRtlPkg is
       if left > right then return left;
       else return right;
       end if;
-   end maximum;
+   end function maximum;
 
    function maximum (
       a : IntegerArray)
@@ -1201,7 +1201,7 @@ package body StdRtlPkg is
       if left < right then return left;
       else return right;
       end if;
-   end minimum;
+   end function minimum;
 
    function minimum (
       a : IntegerArray)
@@ -1247,6 +1247,7 @@ package body StdRtlPkg is
       sorted := sort(a);
       return sorted(med);
    end function median;
+
    -----------------------------
    -- conv_std_logic_vector functions
    -- without calling the STD_LOGIC_ARITH library
@@ -1255,11 +1256,11 @@ package body StdRtlPkg is
    -- convert an integer to an STD_LOGIC_VECTOR
    function toSlv(ARG : integer; SIZE : integer) return slv is
    begin
-      if (arg < 0) then
+      if (ARG < 0) then
          return slv(to_unsigned(0, SIZE));
       end if;
       return slv(to_unsigned(ARG, SIZE));
-   end;
+   end function toSlv;
 
 
    -------------------------------------------------------------------------------------------------
@@ -1338,12 +1339,14 @@ package body StdRtlPkg is
    ---------------------------------------------------------------------------------------------------------------------
    -- Convert a frequency to a period (time).
    ---------------------------------------------------------------------------------------------------------------------
-   -- pragma translate_off
+-- pragma translate_off
+
    function toTime(f : frequency) return time is
    begin
       return(1.0 sec / (f/Hz));
    end function;
-   --pragma translate_on
+
+--pragma translate_on
 
    -----------------------------
    -- Mux a SlVectorArray into an SLV

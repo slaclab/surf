@@ -15,17 +15,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
-----------------------------------------------------------------------------------------------------
-
 entity SynchronizerOneShotTb is
-
 end entity SynchronizerOneShotTb;
-
-----------------------------------------------------------------------------------------------------
 
 architecture sim of SynchronizerOneShotTb is
 
@@ -62,7 +56,6 @@ begin
          dataIn  => dataIn,             -- [in]
          dataOut => dataOut);           -- [out]
 
-
    U_ClkRst_1 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 5 ns,
@@ -85,5 +78,3 @@ begin
          rst => dataIn);
 
 end architecture sim;
-
-----------------------------------------------------------------------------------------------------

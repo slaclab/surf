@@ -39,7 +39,7 @@ architecture rtl of SynchronizerVector is
 
    type RegArray is array (WIDTH_G-1 downto 0) of slv(STAGES_G-1 downto 0);
 
-   function FillVectorArray (INPUT : slv)
+   function fillVectorArray (INPUT : slv)
       return RegArray is
       variable retVar : RegArray := (others => (others => '0'));
    begin
@@ -53,9 +53,9 @@ architecture rtl of SynchronizerVector is
          end loop;
       end if;
       return retVar;
-   end function FillVectorArray;
+   end function fillVectorArray;
 
-   constant INIT_C : RegArray := FillVectorArray(INIT_G);
+   constant INIT_C : RegArray := fillVectorArray(INIT_G);
 
    signal crossDomainSyncReg : RegArray := INIT_C;
    signal rin                : RegArray;

@@ -17,16 +17,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity HeartbeatTb is end HeartbeatTb;
 
 architecture testbed of HeartbeatTb is
+
    signal clkIn  : slv(2 downto 0);
    signal clkOut : slv(2 downto 0);
+
 begin
+
    CLK_0 : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => 4 ns,

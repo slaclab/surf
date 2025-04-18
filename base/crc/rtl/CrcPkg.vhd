@@ -22,8 +22,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -113,6 +113,7 @@ package body CrcPkg is
    function crcByteLookup (inByte : slv; constant poly : slv) return slv is
       variable retVar : slv(poly'range) := (others => '0');
    begin
+
       assert (inByte'high-inByte'low = 7) report "crcByteLookup() - input must be byte-sized" severity failure;
 
       if (inByte'ascending) then

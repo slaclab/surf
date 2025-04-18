@@ -104,13 +104,13 @@ architecture testbed of FifoFwftTb is
          MEMORY_TYPE_G   => "block"));
 
    -- Signals
-   signal wrClk,
-      rst,
-      rdClk : sl;
+   signal wrClk : sl;
+   signal rst   : sl;
+   signal rdClk : sl;
 
-   signal failed,
-      passed,
-      subRdClk : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
+   signal failed   : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
+   signal passed   : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
+   signal subRdClk : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
 
 begin
 

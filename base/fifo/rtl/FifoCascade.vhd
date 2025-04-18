@@ -75,11 +75,13 @@ architecture mapping of FifoCascade is
 
    type FifoDataType is array (CASCADE_SIZE_C downto 0) of slv((DATA_WIDTH_G-1) downto 0);
 
-   signal progFull,
-      cascadeClk : sl;
-   signal readJump,
-      validJump,
-      AFullJump : slv(CASCADE_SIZE_C downto 0);
+   signal progFull   : sl;
+   signal cascadeClk : sl;
+
+   signal readJump  : slv(CASCADE_SIZE_C downto 0);
+   signal validJump : slv(CASCADE_SIZE_C downto 0);
+   signal AFullJump : slv(CASCADE_SIZE_C downto 0);
+
    signal dataJump : FifoDataType;
 
 begin
