@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -42,8 +41,7 @@ entity AxiAds42lb69Reg is
       adcClk         : in  sl;
       adcRst         : in  sl;
       axiClk         : in  sl;
-      axiRst         : in  sl
-      );
+      axiRst         : in  sl);
 end AxiAds42lb69Reg;
 
 architecture rtl of AxiAds42lb69Reg is
@@ -82,8 +80,6 @@ architecture rtl of AxiAds42lb69Reg is
    signal regIn : AxiAds42lb69StatusType := AXI_ADS42LB69_STATUS_INIT_C;
 
 begin
-
-
 
    -------------------------------
    -- Configuration Register

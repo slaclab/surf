@@ -17,19 +17,17 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-library UNISIM;
-use UNISIM.vcomponents.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249Serializer is
-
    port (
-      clk    : in sl;                   -- Serial High speed clock
-      clkDiv : in sl;                   -- Parallel low speed clock
-      rst    : in sl;                   -- Reset
-
-      iData : in  slv(13 downto 0);
-      oData : out sl);
-
+      clk    : in  sl;                  -- Serial High speed clock
+      clkDiv : in  sl;                  -- Parallel low speed clock
+      rst    : in  sl;                  -- Reset
+      iData  : in  slv(13 downto 0);
+      oData  : out sl);
 end entity Ad9249Serializer;
 
 architecture rtl of Ad9249Serializer is
@@ -41,10 +39,9 @@ begin
 
    oserdese2_master : OSERDESE2
       generic map (
-         DATA_RATE_OQ => "DDR",
-         DATA_RATE_TQ => "SDR",
-         DATA_WIDTH   => 14,
-
+         DATA_RATE_OQ   => "DDR",
+         DATA_RATE_TQ   => "SDR",
+         DATA_WIDTH     => 14,
          TRISTATE_WIDTH => 1,
          SERDES_MODE    => "MASTER")
       port map (

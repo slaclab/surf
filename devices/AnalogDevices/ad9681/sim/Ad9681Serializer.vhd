@@ -17,11 +17,11 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-library UNISIM;
-use UNISIM.vcomponents.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9681Serializer is
-
    port (
       clk    : in sl;                   -- Serial High speed clock
       clkDiv : in sl;                   -- Parallel low speed clock
@@ -29,7 +29,6 @@ entity Ad9681Serializer is
 
       iData : in  slv(7 downto 0);
       oData : out sl);
-
 end entity Ad9681Serializer;
 
 architecture rtl of Ad9681Serializer is
@@ -71,6 +70,5 @@ begin
          TFB       => open,
          TCE       => '0',
          RST       => rst);
-
 
 end architecture rtl;

@@ -69,4 +69,4 @@ package AxiXcf128Pkg is
       '1',
       (others => '1'));
 
-end package;
+end package AxiXcf128Pkg;

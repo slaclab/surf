@@ -20,15 +20,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9249Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249ReadoutGroup is
    generic (
@@ -61,7 +60,6 @@ entity Ad9249ReadoutGroup is
       (others => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C))));
 end Ad9249ReadoutGroup;
 
--- Define architecture
 architecture rtl of Ad9249ReadoutGroup is
 
    -------------------------------------------------------------------------------------------------
@@ -152,6 +150,7 @@ architecture rtl of Ad9249ReadoutGroup is
    signal invertSync : sl;
 
 begin
+
    -------------------------------------------------------------------------------------------------
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------

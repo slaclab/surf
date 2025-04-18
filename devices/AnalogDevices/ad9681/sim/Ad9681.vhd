@@ -25,8 +25,8 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9681 is
 
@@ -49,7 +49,6 @@ entity Ad9681 is
       sclk : in    sl;
       sdio : inout sl;
       csb  : in    sl);
-
 end entity Ad9681;
 
 architecture behavioral of Ad9681 is

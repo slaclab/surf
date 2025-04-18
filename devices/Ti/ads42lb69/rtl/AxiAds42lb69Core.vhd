@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -33,8 +32,7 @@ entity AxiAds42lb69Core is
       DMODE_INIT_G    : slv(1 downto 0)                         := "00";
       DELAY_INIT_G    : Slv9VectorArray(1 downto 0, 7 downto 0) := (others => (others => (others => '0')));
       IODELAY_GROUP_G : string                                  := "AXI_ADS42LB69_IODELAY_GRP";
-      XIL_DEVICE_G    : string                                  := "7SERIES"
-      );
+      XIL_DEVICE_G    : string                                  := "7SERIES");
    port (
       -- ADC Ports
       adcIn          : in  AxiAds42lb69InType;

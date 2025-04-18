@@ -17,21 +17,20 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9681Config is
 
    generic (
       TPD_G             : time     := 1 ns;
       NUM_CHIPS_G       : positive := 1;
-      SCLK_PERIOD_G     : real     := 1.0e-6;
-      AXIL_CLK_PERIOD_G : real     := 8.0e-9);
+      SCLK_PERIOD_G     : real     := 1.0E-6;
+      AXIL_CLK_PERIOD_G : real     := 8.0E-9);
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -44,10 +43,7 @@ entity Ad9681Config is
       adcPdwn : out   slv(NUM_CHIPS_G-1 downto 0);
       adcSclk : out   sl;
       adcSdio : inout sl;
-      adcCsb  : out   slv(NUM_CHIPS_G-1 downto 0)
-
-      );
-
+      adcCsb  : out   slv(NUM_CHIPS_G-1 downto 0));
 end entity Ad9681Config;
 
 architecture rtl of Ad9681Config is

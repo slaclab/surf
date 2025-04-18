@@ -22,8 +22,8 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity SgmiiDp83867LvdsUltraScale is
    generic (

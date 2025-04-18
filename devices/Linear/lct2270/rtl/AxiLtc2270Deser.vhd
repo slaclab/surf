@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLtc2270Pkg.all;
@@ -57,16 +56,19 @@ end AxiLtc2270Deser;
 
 architecture rtl of AxiLtc2270Deser is
 
-   signal adcInClk,
-      adcClock : sl;
+   signal adcInClk : sl;
+   signal adcClock : sl;
+
    signal dmux : slv(1 downto 0);
-   signal adcDataPs,
-      adcDataNs,
-      adcDataP,
-      adcDataN,
-      adcDataNd,
-      adcDmuxA,
-      adcDmuxB : Slv8Array(0 to 1);
+
+   signal adcDataPs : Slv8Array(0 to 1);
+   signal adcDataNs : Slv8Array(0 to 1);
+   signal adcDataP  : Slv8Array(0 to 1);
+   signal adcDataN  : Slv8Array(0 to 1);
+   signal adcDataNd : Slv8Array(0 to 1);
+   signal adcDmuxA  : Slv8Array(0 to 1);
+   signal adcDmuxB  : Slv8Array(0 to 1);
+
    signal data : Slv16Array(0 to 1);
 
    attribute IODELAY_GROUP                    : string;
