@@ -78,7 +78,7 @@ begin
       variable s3 : integer := 2745;
       variable s4 : integer := 442;
 
-      impure function rand_complex(min_val, max_val : real) return complex is
+      impure function randComplex(min_val, max_val : real) return complex is
          variable re : real    := 0.0;
          variable im : real    := 0.0;
          variable c  : complex := (re => 0.0, im => 0.0);
@@ -88,7 +88,8 @@ begin
          c.re := re * (max_val - min_val) + min_val;
          c.im := im * (max_val - min_val) + min_val;
          return c;
-      end function rand_complex;
+      end function randComplex;
+
    begin
       if rising_edge(clk) then
          case cnt is
@@ -98,9 +99,9 @@ begin
                aVld                  <= '1';
                bVld                  <= '1';
                cVld                  <= '1';
-               aIn                   <= rand_complex(-0.5, 0.5);
-               bIn                   <= rand_complex(-0.5, 0.5);
-               cIn                   <= rand_complex(-0.5, 0.5);
+               aIn                   <= randComplex(-0.5, 0.5);
+               bIn                   <= randComplex(-0.5, 0.5);
+               cIn                   <= randComplex(-0.5, 0.5);
                a                     <= to_cfixed(aIn, a);
                b                     <= to_cfixed(bIn, b);
                c                     <= to_cfixed(cIn, c);
@@ -132,7 +133,7 @@ begin
       end if;
    end process p_cnt;
 
-   U_DUT : entity surf.cfixedMultAdd
+   U_DUT : entity surf.CfixedMultAdd
       generic map (
          CIN_REG_G => 2)
       port map (

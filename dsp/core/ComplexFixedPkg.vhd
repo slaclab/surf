@@ -29,15 +29,15 @@ package ComplexFixedPkg is
    type sfixedArray is array(natural range <>) of sfixed;
    type cfixedArray is array(natural range<>) of cfixed;
 
-   type realArray is array(natural range<>) of real;
-   type complexArray is array(natural range <>) of complex;
+   type RealArray is array(natural range<>) of real;
+   type ComplexArray is array(natural range <>) of complex;
 
    function to_cfixed (R, I : real; CTYP : cfixed) return cfixed;
    function to_cfixed (CIN  : COMPLEX; CTYP : cfixed) return cfixed;
    function to_cfixed (R, I : sfixed) return cfixed;
 
-   function to_cfixedArray(CIN : complexArray; CTYP : cfixed) return cfixedArray;
-   function to_sfixedArray(SIN : realArray; STYP : sfixed) return sfixedArray;
+   function to_cfixedArray(CIN : ComplexArray; CTYP : cfixed) return cfixedArray;
+   function to_sfixedArray(SIN : RealArray; STYP : sfixed) return sfixedArray;
 
    function resize(CIN                     : cfixed;
                    CTYP                    : cfixed;
@@ -192,14 +192,14 @@ package body ComplexFixedPkg is
    function to_cfixed (R, I : real; CTYP : cfixed) return cfixed is
    begin
       return to_cfixed(to_sfixed(R, CTYP.RE), to_sfixed(I, CTYP.IM));
-   end to_cfixed;
+   end function to_cfixed;
 
    function to_cfixed (CIN : COMPLEX; CTYP : cfixed) return cfixed is
    begin
       return to_cfixed(to_sfixed(CIN.RE, CTYP.RE), to_sfixed(CIN.IM, CTYP.IM));
-   end to_cfixed;
+   end function to_cfixed;
 
-   function to_cfixedArray (CIN : complexArray; CTYP : cfixed) return cfixedArray is
+   function to_cfixedArray (CIN : ComplexArray; CTYP : cfixed) return cfixedArray is
       variable ret : cfixedArray(CIN'range)(re(CTYP.re'range), im(CTYP.im'range));
    begin
       for i in CIN'range loop
@@ -208,7 +208,7 @@ package body ComplexFixedPkg is
       return ret;
    end function to_cfixedArray;
 
-   function to_sfixedArray(SIN : realArray; STYP : sfixed) return sfixedArray is
+   function to_sfixedArray(SIN : RealArray; STYP : sfixed) return sfixedArray is
       variable ret : sfixedArray(SIN'range)(STYP'range);
    begin
       for i in SIN'range loop

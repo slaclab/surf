@@ -14,7 +14,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-
 use ieee.fixed_float_types.all;
 use ieee.float_pkg.all;
 
@@ -27,20 +26,20 @@ package DspPkg is
 
    -- Useful constants
    constant FP16_ZERO_C    : float16 := x"0000";
-   constant FP16_NEG_ONE_C : float16 := x"bC00";
+   constant FP16_NEG_ONE_C : float16 := x"BC00";
    constant FP16_POS_ONE_C : float16 := x"3C00";
 
    constant FP32_ZERO_C    : float32 := x"00000000";
-   constant FP32_NEG_ONE_C : float32 := x"bf800000";
-   constant FP32_POS_ONE_C : float32 := x"3f800000";
+   constant FP32_NEG_ONE_C : float32 := x"BF800000";
+   constant FP32_POS_ONE_C : float32 := x"3F800000";
 
    constant FP64_ZERO_C    : float64 := x"0000000000000000";
-   constant FP64_NEG_ONE_C : float64 := x"bff0000000000000";
-   constant FP64_POS_ONE_C : float64 := x"3ff0000000000000";
+   constant FP64_NEG_ONE_C : float64 := x"BFF0000000000000";
+   constant FP64_POS_ONE_C : float64 := x"3FF0000000000000";
 
    constant FP128_ZERO_C    : float128 := x"00000000000000000000000000000000";
-   constant FP128_NEG_ONE_C : float128 := x"bfff0000000000000000000000000000";
-   constant FP128_POS_ONE_C : float128 := x"3fff0000000000000000000000000000";
+   constant FP128_NEG_ONE_C : float128 := x"BFFF0000000000000000000000000000";
+   constant FP128_POS_ONE_C : float128 := x"3FFF0000000000000000000000000000";
 
 end package DspPkg;
 
