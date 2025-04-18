@@ -100,7 +100,7 @@ begin
       axiSlaveRegister (axilEp, X"08", 0, v.addr);
       axiSlaveRegister (axilEp, X"0C", 0, v.data);
       newCmd := '0';
-      axiWrDetect (axilEp, X"00", newcmd);
+      axiWrDetect (axilEp, X"00", newCmd);
 
       -- Close out the transaction
       axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_OK_C);

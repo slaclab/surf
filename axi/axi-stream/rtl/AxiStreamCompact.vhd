@@ -12,19 +12,17 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
--- use ieee.std_logic_arith.all;
 use ieee.numeric_std.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
 entity AxiStreamCompact is
-
    generic (
       TPD_G               : time    := 1 ns;
       RST_ASYNC_G         : boolean := false;
@@ -47,8 +45,7 @@ architecture rtl of AxiStreamCompact is
 
    function getTKeepMin (
       tKeep      : slv;
-      axisConfig : AxiStreamConfigType
-      )
+      axisConfig : AxiStreamConfigType)
       return natural is
       variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       variable i         : natural;
@@ -63,8 +60,7 @@ architecture rtl of AxiStreamCompact is
 
    function getTKeepMax (
       tKeep      : slv;
-      axisConfig : AxiStreamConfigType
-      )
+      axisConfig : AxiStreamConfigType)
       return natural is
       variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       variable i         : natural;
@@ -97,8 +93,7 @@ architecture rtl of AxiStreamCompact is
       tLastDet    => false,
       tLastOnNext => false,
       tUserSet    => false,
-      fullBus     => false
-      );
+      fullBus     => false);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;

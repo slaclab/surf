@@ -17,24 +17,26 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity RogueSideBand is port (
-   clock   : in std_logic;
-   reset   : in std_logic;
-   portNum : in std_logic_vector(15 downto 0);
+entity RogueSideBand is
+   port (
+      clock   : in std_logic;
+      reset   : in std_logic;
+      portNum : in std_logic_vector(15 downto 0);
 
-   txOpCode   : in  std_logic_vector(7 downto 0);
-   txOpCodeEn : in  std_logic;
-   txRemData  : in  std_logic_vector(7 downto 0);
-   rxOpCode   : out std_logic_vector(7 downto 0);
-   rxOpCodeEn : out std_logic;
-   rxRemData  : out std_logic_vector(7 downto 0)
-   );
+      txOpCode   : in  std_logic_vector(7 downto 0);
+      txOpCodeEn : in  std_logic;
+      txRemData  : in  std_logic_vector(7 downto 0);
+      rxOpCode   : out std_logic_vector(7 downto 0);
+      rxOpCodeEn : out std_logic;
+      rxRemData  : out std_logic_vector(7 downto 0));
 end RogueSideBand;
 
 -- Define architecture
 architecture RogueSideBand of RogueSideBand is
+
    attribute FOREIGN of RogueSideBand : architecture is
       "vhpi:AxiSim:VhpiGenericElab:RogueSideBandInit:RogueSideBand";
-begin
-end RogueSideBand;
 
+begin
+
+end RogueSideBand;

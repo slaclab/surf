@@ -135,7 +135,7 @@ architecture rtl of AxiStreamDmaV2Fifo is
       return(desc);
    end function;
 
-   type stateType is (
+   type StateType is (
       RESET_S,
       INIT_S,
       IDLE_S);

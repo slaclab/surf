@@ -26,8 +26,7 @@ use surf.AxiPkg.all;
 entity AxiReadPathMux is
    generic (
       TPD_G        : time                  := 1 ns;
-      NUM_SLAVES_G : integer range 1 to 32 := 4
-      );
+      NUM_SLAVES_G : integer range 1 to 32 := 4);
    port (
 
       -- Clock and reset
@@ -40,8 +39,7 @@ entity AxiReadPathMux is
 
       -- Master
       mAxiReadMaster : out AxiReadMasterType;
-      mAxiReadSlave  : in  AxiReadSlaveType
-      );
+      mAxiReadSlave  : in  AxiReadSlaveType);
 end AxiReadPathMux;
 
 architecture structure of AxiReadPathMux is
@@ -70,8 +68,7 @@ architecture structure of AxiReadPathMux is
       addrAckNum => (others => '0'),
       addrValid  => '0',
       slaves     => (others => AXI_READ_SLAVE_INIT_C),
-      master     => AXI_READ_MASTER_INIT_C
-      );
+      master     => AXI_READ_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -178,7 +175,7 @@ begin
       -- Bypass if single slave
       if NUM_SLAVES_G = 1 then
          sAxiReadSlaves(0) <= mAxiReadSlave;
-         mAxiReadMaster    <= sAxiReadmasters(0);
+         mAxiReadMaster    <= sAxiReadMasters(0);
       else
          -- Output data
          sAxiReadSlaves <= r.slaves;

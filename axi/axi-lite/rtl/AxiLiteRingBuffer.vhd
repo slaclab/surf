@@ -255,7 +255,7 @@ begin
          clk     => axilClk,
          rst     => axilRst,
          dataIn  => bufferClear,
-         dataOut => extbufferClear);
+         dataOut => extBufferClear);
 
    ------------------------
    -- Main AXI-Lite process

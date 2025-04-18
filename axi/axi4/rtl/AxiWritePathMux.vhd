@@ -27,8 +27,7 @@ use surf.AxiPkg.all;
 entity AxiWritePathMux is
    generic (
       TPD_G        : time                  := 1 ns;
-      NUM_SLAVES_G : integer range 1 to 32 := 4
-      );
+      NUM_SLAVES_G : integer range 1 to 32 := 4);
    port (
 
       -- Clock and reset
@@ -41,8 +40,7 @@ entity AxiWritePathMux is
 
       -- Master
       mAxiWriteMaster : out AxiWriteMasterType;
-      mAxiWriteSlave  : in  AxiWriteSlaveType
-      );
+      mAxiWriteSlave  : in  AxiWriteSlaveType);
 end AxiWritePathMux;
 
 architecture structure of AxiWritePathMux is
@@ -79,8 +77,7 @@ architecture structure of AxiWritePathMux is
       dataState  => S_IDLE_C,
       dataAckNum => (others => '0'),
       slaves     => (others => AXI_WRITE_SLAVE_INIT_C),
-      master     => AXI_WRITE_MASTER_INIT_C
-      );
+      master     => AXI_WRITE_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -258,7 +255,7 @@ begin
       -- Bypass if single slave
       if NUM_SLAVES_G = 1 then
          sAxiWriteSlaves(0) <= mAxiWriteSlave;
-         mAxiWriteMaster    <= sAxiWritemasters(0);
+         mAxiWriteMaster    <= sAxiWriteMasters(0);
       else
          -- Output data
          sAxiWriteSlaves <= r.slaves;

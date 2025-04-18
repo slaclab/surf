@@ -96,29 +96,29 @@ begin
             ADDR_WIDTH_G       => PUSH_ADDR_WIDTH_G,
             INIT_G             => "0",
             FULL_THRES_G       => 1,
-            EMPTY_THRES_G      => 1
-            ) port map (
-               rst           => pushFifoRst(i),
-               wr_clk        => axiClk,
-               wr_en         => ipushFifoWrite(i),
-               din           => ipushFifoDin,
-               wr_data_count => open,
-               wr_ack        => open,
-               overflow      => open,
-               prog_full     => open,
-               almost_full   => ipushFifoAFull(i),
-               full          => ipushFifoFull(i),
-               not_full      => open,
-               rd_clk        => pushFifoClk(i),
-               rd_en         => pushFifoRead(i),
-               dout          => pushFifoDout(i),
-               rd_data_count => open,
-               valid         => pushFifoValid(i),
-               underflow     => open,
-               prog_empty    => open,
-               almost_empty  => open,
-               empty         => open
-               );
+            EMPTY_THRES_G      => 1)
+         port map (
+            rst           => pushFifoRst(i),
+            wr_clk        => axiClk,
+            wr_en         => ipushFifoWrite(i),
+            din           => ipushFifoDin,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => ipushFifoAFull(i),
+            full          => ipushFifoFull(i),
+            not_full      => open,
+            rd_clk        => pushFifoClk(i),
+            rd_en         => pushFifoRead(i),
+            dout          => pushFifoDout(i),
+            rd_data_count => open,
+            valid         => pushFifoValid(i),
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open
+            );
 
       pushFifoAFull(i) <= ipushFifoAFull(i);
    end generate;

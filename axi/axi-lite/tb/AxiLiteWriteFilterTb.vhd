@@ -22,6 +22,7 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteWriteFilterTb is
 end entity AxiLiteWriteFilterTb;
+
 architecture tb of AxiLiteWriteFilterTb is
 
    constant CLK_PERIOD_C : time := 10 ns;

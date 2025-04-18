@@ -110,7 +110,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       WAIT_S);
 
    type RegType is record
-
       -- Write descriptor interface
       dmaWrDescAck    : AxiWriteDmaDescAckArray(CHAN_COUNT_G-1 downto 0);
       dmaWrDescRetAck : slv(CHAN_COUNT_G-1 downto 0);
@@ -189,7 +188,6 @@ architecture rtl of AxiStreamDmaV2Desc is
       idBuffDec : slv(7 downto 0);
 
       buffGrpPause : slv(7 downto 0);
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
