@@ -42,7 +42,8 @@ architecture rtl of GtpTxPhaseAligner is
       gtpTxPmaSetPhase     : std_logic;
    end record RegType;
 
-   signal r, rin : RegType;
+   signal r   : RegType;
+   signal rin : RegType;
 
 begin
 

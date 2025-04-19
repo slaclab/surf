@@ -53,7 +53,8 @@ architecture rtl of GtpRxCommaAligner is
       aligned         : std_logic;
    end record RegType;
 
-   signal r, rin : RegType;
+   signal r   : RegType;
+   signal rin : RegType;
 
 begin
 

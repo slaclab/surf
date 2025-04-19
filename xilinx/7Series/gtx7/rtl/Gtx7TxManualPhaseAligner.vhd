@@ -67,7 +67,8 @@ architecture rtl of Gtx7TxManualPhaseAligner is
       gtTxPhAlign        => '0',
       gtTxDlyEn          => '0');
 
-   signal r, rin : RegType := REG_RESET_C;
+   signal r   : RegType := REG_RESET_C;
+   signal rin : RegType;
 
    signal gtTxDlySResetDoneSync : sl;
    signal gtTxPhInitDoneSync    : sl;

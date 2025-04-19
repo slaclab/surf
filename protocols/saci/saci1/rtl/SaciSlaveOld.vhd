@@ -67,7 +67,8 @@ architecture rtl of SaciSlaveOld is
       saciRsp        : sl;
    end record RegType;
 
-   signal r, rin      : RegType;
+   signal r           : RegType;
+   signal rin         : RegType;
    signal saciCmdFall : sl;
 
    procedure shiftInLeft (

@@ -58,7 +58,8 @@ architecture rtl of SaciSlave is
       readL    : sl;
    end record RegType;
 
-   signal r, rin      : RegType;
+   signal r           : RegType;
+   signal rin         : RegType;
    signal saciCmdFall : sl;
 
    procedure shiftInLeft (

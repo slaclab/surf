@@ -78,7 +78,8 @@ architecture rtl of SaciMasterSync is
       saciMasterOut : SaciMasterOutType;
    end record RegType;
 
-   signal r, rin      : RegType;
+   signal r           : RegType;
+   signal rin         : RegType;
    signal saciRspFall : sl;
 
    signal saciClkCnt     : unsigned(31 downto 0);

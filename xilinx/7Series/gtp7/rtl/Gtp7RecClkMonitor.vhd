@@ -130,8 +130,8 @@ entity Gtp7RecClkMonitor is
       CLOCK_PULSES             : integer := 5000;
       EXAMPLE_SIMULATION       : integer := 0);  --The simulation-only constructs are not used but the
                                         --full HW-circuitry gets simulated.
-                                      --NOTE OF CARE: This can extend the necessary simulation-
-                                      --time to beyond 600 ?s (six-hundred, sic!)
+   --NOTE OF CARE: This can extend the necessary simulation-
+   --time to beyond 600 ?s (six-hundred, sic!)
    port (
       GT_RST        : in  std_logic;
       REF_CLK       : in  std_logic;
