@@ -24,10 +24,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
-use surf.jesd204bpkg.all;
+use surf.Jesd204bpkg.all;
 
 entity JesdLmfcGen is
    generic (
@@ -44,8 +43,7 @@ entity JesdLmfcGen is
 
       -- Outs
       sysrefRe_o : out sl;
-      lmfc_o     : out sl
-      );
+      lmfc_o     : out sl);
 end entity JesdLmfcGen;
 
 architecture rtl of JesdLmfcGen is
@@ -64,8 +62,7 @@ architecture rtl of JesdLmfcGen is
       sysrefD1 => '0',
       cnt      => (others => '0'),
       lmfc     => '0',
-      sysrefRe => '0'
-      );
+      sysrefRe => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -99,6 +96,10 @@ begin
          v.lmfc := '0';
       end if;
 
+      -- Output assignment
+      lmfc_o     <= r.lmfc;
+      sysrefRe_o <= r.sysrefRe;
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
@@ -114,8 +115,4 @@ begin
       end if;
    end process seq;
 
-   -- Output assignment
-   lmfc_o     <= r.lmfc;
-   sysrefRe_o <= r.sysrefRe;
----------------------------------------
 end architecture rtl;

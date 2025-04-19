@@ -20,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
@@ -35,10 +34,8 @@ entity Pgp2bLane is
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true   -- Enable RX direction
-      );
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
-
       ---------------------------------
       -- Transmitter Interface
       ---------------------------------
@@ -84,13 +81,9 @@ entity Pgp2bLane is
       phyRxLanesOut : out Pgp2bRxPhyLaneOutArray(0 to LANE_CNT_G-1);
       phyRxLanesIn  : in  Pgp2bRxPhyLaneInArray(0 to LANE_CNT_G-1) := (others => PGP2B_RX_PHY_LANE_IN_INIT_C);
       phyRxReady    : in  sl                                       := '0';
-      phyRxInit     : out sl
-      );
-
+      phyRxInit     : out sl);
 end Pgp2bLane;
 
-
--- Define architecture
 architecture Pgp2bLane of Pgp2bLane is
 
    -- Local Signals
@@ -113,21 +106,20 @@ begin
             TX_LANE_CNT_G     => LANE_CNT_G,
             VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
             PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
-            NUM_VC_EN_G       => NUM_VC_EN_G
-            ) port map (
-               pgpTxClkEn    => pgpTxClkEn,
-               pgpTxClk      => pgpTxClk,
-               pgpTxClkRst   => pgpTxClkRst,
-               pgpTxIn       => pgpTxIn,
-               pgpTxOut      => pgpTxOut,
-               locLinkReady  => intRxOut.linkReady,
-               pgpTxMasters  => pgpTxMasters,
-               pgpTxSlaves   => pgpTxSlaves,
-               locFifoStatus => pgpRxCtrl,
-               remFifoStatus => remFifoStatus,
-               phyTxLanesOut => phyTxLanesOut,
-               phyTxReady    => phyTxReady
-               );
+            NUM_VC_EN_G       => NUM_VC_EN_G)
+         port map (
+            pgpTxClkEn    => pgpTxClkEn,
+            pgpTxClk      => pgpTxClk,
+            pgpTxClkRst   => pgpTxClkRst,
+            pgpTxIn       => pgpTxIn,
+            pgpTxOut      => pgpTxOut,
+            locLinkReady  => intRxOut.linkReady,
+            pgpTxMasters  => pgpTxMasters,
+            pgpTxSlaves   => pgpTxSlaves,
+            locFifoStatus => pgpRxCtrl,
+            remFifoStatus => remFifoStatus,
+            phyTxLanesOut => phyTxLanesOut,
+            phyTxReady    => phyTxReady);
    end generate;
 
    U_TxDisGen : if TX_ENABLE_G = false generate
@@ -148,34 +140,32 @@ begin
          generic map (
             TPD_G             => TPD_G,
             RX_LANE_CNT_G     => LANE_CNT_G,
-            PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G
-            ) port map (
-               pgpRxClkEn    => pgpRxClkEn,
-               pgpRxClk      => pgpRxClk,
-               pgpRxClkRst   => pgpRxClkRst,
-               pgpRxIn       => pgpRxIn,
-               pgpRxOut      => intRxOut,
-               pgpRxMaster   => intRxMaster,
-               remFifoStatus => remFifoStatus,
-               phyRxLanesOut => phyRxLanesOut,
-               phyRxLanesIn  => phyRxLanesIn,
-               phyRxReady    => phyRxReady,
-               phyRxInit     => phyRxInit
-               );
+            PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G)
+         port map (
+            pgpRxClkEn    => pgpRxClkEn,
+            pgpRxClk      => pgpRxClk,
+            pgpRxClkRst   => pgpRxClkRst,
+            pgpRxIn       => pgpRxIn,
+            pgpRxOut      => intRxOut,
+            pgpRxMaster   => intRxMaster,
+            remFifoStatus => remFifoStatus,
+            phyRxLanesOut => phyRxLanesOut,
+            phyRxLanesIn  => phyRxLanesIn,
+            phyRxReady    => phyRxReady,
+            phyRxInit     => phyRxInit);
 
       -- Demux
       U_RxDeMux : entity surf.AxiStreamDeMux
          generic map (
             TPD_G         => TPD_G,
-            NUM_MASTERS_G => 4
-            ) port map (
-               axisClk      => pgpRxClk,
-               axisRst      => pgpRxClkRst,
-               sAxisMaster  => intRxMaster,
-               sAxisSlave   => open,
-               mAxisMasters => pgpRxMasters,
-               mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C)
-               );
+            NUM_MASTERS_G => 4)
+         port map (
+            axisClk      => pgpRxClk,
+            axisRst      => pgpRxClkRst,
+            sAxisMaster  => intRxMaster,
+            sAxisSlave   => open,
+            mAxisMasters => pgpRxMasters,
+            mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));
 
    end generate;
 
@@ -193,4 +183,3 @@ begin
    pgpRxOut         <= intRxOut;
 
 end Pgp2bLane;
-

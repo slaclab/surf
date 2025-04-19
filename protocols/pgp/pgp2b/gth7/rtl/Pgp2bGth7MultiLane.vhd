@@ -18,15 +18,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2bGth7MultiLane is
    generic (
@@ -129,8 +128,8 @@ entity Pgp2bGth7MultiLane is
       axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));
 end Pgp2bGth7MultiLane;
 
--- Define architecture
 architecture rtl of Pgp2bGth7MultiLane is
+
    --------------------------------------------------------------------------------------------------
    -- Constants
    --------------------------------------------------------------------------------------------------

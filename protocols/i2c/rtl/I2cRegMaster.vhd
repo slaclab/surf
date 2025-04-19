@@ -19,13 +19,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.I2cPkg.all;
 
 entity I2cRegMaster is
-
    generic (
       TPD_G                : time                      := 1 ns;
       OUTPUT_EN_POLARITY_G : integer range 0 to 1      := 0;
@@ -39,7 +37,6 @@ entity I2cRegMaster is
       regOut : out I2cRegMasterOutType;
       i2ci   : in  i2c_in_type;
       i2co   : out i2c_out_type);
-
 end entity I2cRegMaster;
 
 architecture rtl of I2cRegMaster is
@@ -293,7 +290,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-
 
 end architecture rtl;

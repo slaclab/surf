@@ -17,20 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Code12b14bPkg.all;
 use surf.TextUtilPkg.all;
 
-
-----------------------------------------------------------------------------------------------------
-
 entity Encoder12b14bTb is
-
 end entity Encoder12b14bTb;
-
-----------------------------------------------------------------------------------------------------
 
 architecture sim of Encoder12b14bTb is
 
@@ -214,9 +207,4 @@ begin
 
 --   end process monitor;
 
-
-
-
 end architecture sim;
-
-----------------------------------------------------------------------------------------------------

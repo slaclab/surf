@@ -69,7 +69,7 @@ entity Pgp2fcGtp7Wrapper is
       -- MGT Configurations
       PMA_RSV_G               : bit_vector             := x"00018480";
       RX_OS_CFG_G             : bit_vector             := "0000010000000";  -- Set by wizard
-      RXCDR_CFG_G             : bit_vector             := x"00003000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G             : bit_vector             := x"00003000023FF40200020";  -- Set by wizard
       RXDFEXYDEN_G            : sl                     := '0';  -- Set by wizard
       -- PLL and clock configurations
       STABLE_CLK_SRC_G        : string                 := "stableClkIn";  -- or "gtClk0" or "gtClk1"
@@ -79,8 +79,8 @@ entity Pgp2fcGtp7Wrapper is
       TX_OUTCLK_SRC_G         : string                 := "PLLREFCLK";
       TX_PHASE_ALIGN_G        : string                 := "MANUAL";
       RX_REFCLK_SRC_G         : string                 := "gtClk0";
-      TX_PLL_CFG_G            : Gtp7QPllCfgType        := getGtp7QPllCfg(156.25e6, 3.125e9);
-      RX_PLL_CFG_G            : Gtp7QPllCfgType        := getGtp7QPllCfg(156.25e6, 3.125e9);
+      TX_PLL_CFG_G            : Gtp7QPllCfgType        := getGtp7QPllCfg(156.25E+6, 3.125E+9);
+      RX_PLL_CFG_G            : Gtp7QPllCfgType        := getGtp7QPllCfg(156.25E+6, 3.125E+9);
       DYNAMIC_QPLL_G          : boolean                := false;
       TX_PLL_G                : string                 := "PLL0";
       RX_PLL_G                : string                 := "PLL0");

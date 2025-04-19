@@ -27,10 +27,8 @@ use surf.Pgp2bPkg.all;
 entity Pgp2bRxPhy is
    generic (
       TPD_G         : time                 := 1 ns;
-      RX_LANE_CNT_G : integer range 1 to 2 := 1  -- Number of receive lanes, 1-2
-      );
+      RX_LANE_CNT_G : integer range 1 to 2 := 1);  -- Number of receive lanes, 1-2
    port (
-
       -- System clock, reset & control
       pgpRxClkEn  : in sl := '1';       -- Master clock Enable
       pgpRxClk    : in sl;              -- Master clock
@@ -67,13 +65,9 @@ entity Pgp2bRxPhy is
       phyRxDispErr  : in  slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data has disparity error
       phyRxDecErr   : in  slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data not in table
       phyRxReady    : in  sl;           -- PHY receive interface is ready
-      phyRxInit     : out sl            -- PHY receive interface init;
-      );
-
+      phyRxInit     : out sl);          -- PHY receive interface init;
 end Pgp2bRxPhy;
 
-
--- Define architecture
 architecture Pgp2bRxPhy of Pgp2bRxPhy is
 
    -- Local Signals
@@ -655,4 +649,3 @@ begin
    end generate;
 
 end Pgp2bRxPhy;
-

@@ -30,10 +30,8 @@ entity Pgp2bRx is
    generic (
       TPD_G             : time                 := 1 ns;
       RX_LANE_CNT_G     : integer range 1 to 2 := 1;  -- Number of receive lanes, 1-2
-      PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
-      );
+      PAYLOAD_CNT_TOP_G : integer              := 7);  -- Top bit for payload counter
    port (
-
       -- System clock, reset & control
       pgpRxClkEn  : in sl := '1';       -- Master clock enable
       pgpRxClk    : in sl;              -- Master clock
@@ -51,11 +49,9 @@ entity Pgp2bRx is
       phyRxLanesOut : out Pgp2bRxPhyLaneOutArray(0 to RX_LANE_CNT_G-1);
       phyRxLanesIn  : in  Pgp2bRxPhyLaneInArray(0 to RX_LANE_CNT_G-1);
       phyRxReady    : in  sl;
-      phyRxInit     : out sl
-      );
+      phyRxInit     : out sl);
 end Pgp2bRx;
 
--- Define architecture
 architecture Pgp2bRx of Pgp2bRx is
 
    -- Local Signals
@@ -88,11 +84,10 @@ architecture Pgp2bRx of Pgp2bRx is
    signal pause            : slv(3 downto 0);
    signal overflow         : slv(3 downto 0);
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      U_Pgp2bRxPhy,
-      U_Pgp2bRxCell,
-      Rx_CRC : label is "TRUE";
+   attribute KEEP_HIERARCHY                  : string;
+   attribute KEEP_HIERARCHY of U_Pgp2bRxPhy  : label is "TRUE";
+   attribute KEEP_HIERARCHY of U_Pgp2bRxCell : label is "TRUE";
+   attribute KEEP_HIERARCHY of Rx_CRC        : label is "TRUE";
 
 begin
 
@@ -120,34 +115,32 @@ begin
    U_Pgp2bRxPhy : entity surf.Pgp2bRxPhy
       generic map (
          TPD_G         => TPD_G,
-         RX_LANE_CNT_G => RX_LANE_CNT_G
-         ) port map (
-            pgpRxClkEn      => pgpRxClkEn,
-            pgpRxClk        => pgpRxClk,
-            pgpRxClkRst     => pgpRxClkRst,
-            pgpRxLinkReady  => intRxLinkReady,
-            pgpRxLinkDown   => pgpRxOut.linkDown,
-            pgpRxLinkError  => pgpRxOut.linkError,
-            pgpRxOpCodeEn   => pgpRxOut.opCodeEn,
-            pgpRxOpCode     => pgpRxOut.opCode,
-            pgpRemLinkReady => pgpRxOut.remLinkReady,
-            pgpRemData      => pgpRxOut.remLinkData,
-            cellRxPause     => cellRxPause,
-            cellRxSOC       => cellRxSOC,
-            cellRxSOF       => cellRxSOF,
-            cellRxEOC       => cellRxEOC,
-            cellRxEOF       => cellRxEOF,
-            cellRxEOFE      => cellRxEOFE,
-            cellRxData      => cellRxData,
-            phyRxPolarity   => intPhyRxPolarity(RX_LANE_CNT_G-1 downto 0),
-            phyRxData       => intPhyRxData,
-            phyRxDataK      => intPhyRxDataK,
-            phyRxDispErr    => intPhyRxDispErr,
-            phyRxDecErr     => intPhyRxDecErr,
-            phyRxReady      => phyRxReady,
-            phyRxInit       => phyRxInit
-            );
-
+         RX_LANE_CNT_G => RX_LANE_CNT_G)
+      port map (
+         pgpRxClkEn      => pgpRxClkEn,
+         pgpRxClk        => pgpRxClk,
+         pgpRxClkRst     => pgpRxClkRst,
+         pgpRxLinkReady  => intRxLinkReady,
+         pgpRxLinkDown   => pgpRxOut.linkDown,
+         pgpRxLinkError  => pgpRxOut.linkError,
+         pgpRxOpCodeEn   => pgpRxOut.opCodeEn,
+         pgpRxOpCode     => pgpRxOut.opCode,
+         pgpRemLinkReady => pgpRxOut.remLinkReady,
+         pgpRemData      => pgpRxOut.remLinkData,
+         cellRxPause     => cellRxPause,
+         cellRxSOC       => cellRxSOC,
+         cellRxSOF       => cellRxSOF,
+         cellRxEOC       => cellRxEOC,
+         cellRxEOF       => cellRxEOF,
+         cellRxEOFE      => cellRxEOFE,
+         cellRxData      => cellRxData,
+         phyRxPolarity   => intPhyRxPolarity(RX_LANE_CNT_G-1 downto 0),
+         phyRxData       => intPhyRxData,
+         phyRxDataK      => intPhyRxDataK,
+         phyRxDispErr    => intPhyRxDispErr,
+         phyRxDecErr     => intPhyRxDecErr,
+         phyRxReady      => phyRxReady,
+         phyRxInit       => phyRxInit);
 
    -- Cell Receiver
    U_Pgp2bRxCell : entity surf.Pgp2bRxCell
@@ -155,43 +148,41 @@ begin
          TPD_G             => TPD_G,
          RX_LANE_CNT_G     => RX_LANE_CNT_G,
          EN_SHORT_CELLS_G  => 1,
-         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G
-         ) port map (
-            pgpRxClkEn       => pgpRxClkEn,
-            pgpRxClk         => pgpRxClk,
-            pgpRxClkRst      => pgpRxClkRst,
-            pgpRxFlush       => pgpRxIn.flush,
-            pgpRxLinkReady   => intRxLinkReady,
-            pgpRxCellError   => pgpRxOut.cellError,
-            cellRxPause      => cellRxPause,
-            cellRxSOC        => cellRxSOC,
-            cellRxSOF        => cellRxSOF,
-            cellRxEOC        => cellRxEOC,
-            cellRxEOF        => cellRxEOF,
-            cellRxEOFE       => cellRxEOFE,
-            cellRxData       => cellRxData,
-            vcFrameRxSOF     => intRxSof,
-            vcFrameRxEOF     => intRxEof,
-            vcFrameRxEOFE    => intRxEofe,
-            vcFrameRxData    => intRxData,
-            vc0FrameRxValid  => intRxVcValid(0),
-            vc0RemAlmostFull => pause(0),
-            vc0RemOverflow   => overflow(0),
-            vc1FrameRxValid  => intRxVcValid(1),
-            vc1RemAlmostFull => pause(1),
-            vc1RemOverflow   => overflow(1),
-            vc2FrameRxValid  => intRxVcValid(2),
-            vc2RemAlmostFull => pause(2),
-            vc2RemOverflow   => overflow(2),
-            vc3FrameRxValid  => intRxVcValid(3),
-            vc3RemAlmostFull => pause(3),
-            vc3RemOverflow   => overflow(3),
-            crcRxIn          => crcRxIn,
-            crcRxInit        => crcRxInit,
-            crcRxValid       => crcRxValid,
-            crcRxOut         => crcRxOutAdjust
-            );
-
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G)
+      port map (
+         pgpRxClkEn       => pgpRxClkEn,
+         pgpRxClk         => pgpRxClk,
+         pgpRxClkRst      => pgpRxClkRst,
+         pgpRxFlush       => pgpRxIn.flush,
+         pgpRxLinkReady   => intRxLinkReady,
+         pgpRxCellError   => pgpRxOut.cellError,
+         cellRxPause      => cellRxPause,
+         cellRxSOC        => cellRxSOC,
+         cellRxSOF        => cellRxSOF,
+         cellRxEOC        => cellRxEOC,
+         cellRxEOF        => cellRxEOF,
+         cellRxEOFE       => cellRxEOFE,
+         cellRxData       => cellRxData,
+         vcFrameRxSOF     => intRxSof,
+         vcFrameRxEOF     => intRxEof,
+         vcFrameRxEOFE    => intRxEofe,
+         vcFrameRxData    => intRxData,
+         vc0FrameRxValid  => intRxVcValid(0),
+         vc0RemAlmostFull => pause(0),
+         vc0RemOverflow   => overflow(0),
+         vc1FrameRxValid  => intRxVcValid(1),
+         vc1RemAlmostFull => pause(1),
+         vc1RemOverflow   => overflow(1),
+         vc2FrameRxValid  => intRxVcValid(2),
+         vc2RemAlmostFull => pause(2),
+         vc2RemOverflow   => overflow(2),
+         vc3FrameRxValid  => intRxVcValid(3),
+         vc3RemAlmostFull => pause(3),
+         vc3RemOverflow   => overflow(3),
+         crcRxIn          => crcRxIn,
+         crcRxInit        => crcRxInit,
+         crcRxValid       => crcRxValid,
+         crcRxOut         => crcRxOutAdjust);
 
    -- Pass FIFO status
    process (overflow, pause)
@@ -284,8 +275,6 @@ begin
          CRCDATAVALID => crcRxValid,
          CRCDATAWIDTH => crcRxWidthAdjust,
          CRCIN        => crcRxInAdjust,
-         CRCRESET     => crcRxRst
-         );
+         CRCRESET     => crcRxRst);
 
 end Pgp2bRx;
-

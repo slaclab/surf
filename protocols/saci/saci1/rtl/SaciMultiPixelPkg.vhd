@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -45,8 +44,7 @@ package SaciMultiPixelPkg is
       bankFlag   => (others => '0'),
       calRowFlag => '0',
       calBotFlag => '0',
-      req        => '0'
-      );
+      req        => '0');
 
    function asicBaseAddr (asic : natural) return slv;
 
@@ -64,24 +62,27 @@ package SaciMultiPixelPkg is
    constant EPIXS_COLS_PER_ROW     : integer := 10;
    constant EPIX100A_ROWS_PER_ASIC : integer := 352;
 
-   procedure globalToLocalPixel(signal globalRow   : in    slv;
-                                signal globalCol   : in    slv;
-                                signal calRowFlag  : in    sl;
-                                signal calBotFlag  : in    sl;
-                                signal inputData   : in    Slv16Array;
-                                variable localAsic : inout slv;
-                                variable localRow  : inout slv;
-                                variable localCol  : inout slv;
-                                variable localData : inout Slv16Array);
-   procedure globalToLocalPixelEpix100A(signal globalRow   : in    slv;
-                                        signal globalCol   : in    slv;
-                                        signal calRowFlag  : in    sl;
-                                        signal calBotFlag  : in    sl;
-                                        signal inputData   : in    Slv16Array;
-                                        variable localAsic : inout slv;
-                                        variable localRow  : inout slv;
-                                        variable localCol  : inout slv;
-                                        variable localData : inout Slv16Array);
+   procedure globalToLocalPixel(
+      signal globalRow   : in    slv;
+      signal globalCol   : in    slv;
+      signal calRowFlag  : in    sl;
+      signal calBotFlag  : in    sl;
+      signal inputData   : in    Slv16Array;
+      variable localAsic : inout slv;
+      variable localRow  : inout slv;
+      variable localCol  : inout slv;
+      variable localData : inout Slv16Array);
+
+   procedure globalToLocalPixelEpix100A(
+      signal globalRow   : in    slv;
+      signal globalCol   : in    slv;
+      signal calRowFlag  : in    sl;
+      signal calBotFlag  : in    sl;
+      signal inputData   : in    Slv16Array;
+      variable localAsic : inout slv;
+      variable localRow  : inout slv;
+      variable localCol  : inout slv;
+      variable localData : inout Slv16Array);
 
 end SaciMultiPixelPkg;
 

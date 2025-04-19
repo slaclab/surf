@@ -22,6 +22,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.ClinkPkg.all;
 use surf.AxiStreamPkg.all;
+
 library unisim;
 use unisim.vcomponents.all;
 
@@ -58,11 +59,13 @@ entity ClinkCtrl is
 end ClinkCtrl;
 
 architecture rtl of ClinkCtrl is
+
    signal intCtrl   : slv(3 downto 0);
    signal cblOut    : slv(4 downto 0);
    signal cblIn     : slv(4 downto 0);
    signal cblDirIn  : slv(4 downto 0);
    signal cblSerOut : sl;
+
 begin
 
    -------------------------------

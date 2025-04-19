@@ -42,7 +42,7 @@ architecture tb of Pgp2bGtx7VarLatWrapperTb is
    constant RX_CLK25_DIV_G     : natural                 := 5;
    constant TX_CLK25_DIV_G     : natural                 := 5;
    constant RX_OS_CFG_G        : bit_vector              := "0000010000000";
-   constant RXCDR_CFG_G        : bit_vector              := x"03000023ff40200020";
+   constant RXCDR_CFG_G        : bit_vector              := x"03000023FF40200020";
    constant RXDFEXYDEN_G       : sl                      := '1';
    constant RX_DFE_KL_CFG2_G   : bit_vector              := x"301148AC";
    constant TX_BUF_EN_G        : boolean                 := true;

@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -28,9 +27,9 @@ use surf.SaciMasterPkg.all;
 entity AxiLiteSaciMaster is
    generic (
       TPD_G              : time     := 1 ns;
-      AXIL_CLK_PERIOD_G  : real     := 8.0e-9;  -- In units of seconds
+      AXIL_CLK_PERIOD_G  : real     := 8.0E-9;  -- In units of seconds
       AXIL_TIMEOUT_G     : real     := 1.0E-3;  -- In units of seconds
-      SACI_CLK_PERIOD_G  : real     := 1.0e-6;  -- In units of seconds
+      SACI_CLK_PERIOD_G  : real     := 1.0E-6;  -- In units of seconds
       SACI_CLK_FREERUN_G : boolean  := false;
       SACI_NUM_CHIPS_G   : positive := 1;
       SACI_RSP_BUSSED_G  : boolean  := false);
@@ -77,7 +76,6 @@ architecture rtl of AxiLiteSaciMaster is
       timer          : integer range 0 to TIMEOUT_C;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (

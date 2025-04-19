@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.GlinkPkg.all;
@@ -71,7 +70,6 @@ entity GLinkGtp7FixedLat is
       gtTxN            : out sl;
       gtRxP            : in  sl;
       gtRxN            : in  sl);
-
 end GLinkGtp7FixedLat;
 
 architecture rtl of GLinkGtp7FixedLat is
@@ -80,22 +78,24 @@ architecture rtl of GLinkGtp7FixedLat is
    constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(1) & GLINK_CONTROL_WORD_C));  -- FF1A
    constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(2) & GLINK_CONTROL_WORD_C));  -- FF1B
 
-   signal txFifoValid,
-      rxFifoValid,
-      rxRecClk,
-      rxClk,
-      rxRst,
-      txClk,
-      gtTxRstDone,
-      gtRxRstDone,
-      gtTxRst,
-      gtRxRst,
-      dataValid : sl := '0';
-   signal txFifoDout,
-      gtTxData,
-      gtRxData,
-      gtTxDataReversed,
-      gtRxDataReversed : slv(19 downto 0) := (others => '0');
+   signal txFifoValid : sl := '0';
+   signal rxFifoValid : sl := '0';
+   signal rxRecClk    : sl := '0';
+   signal rxClk       : sl := '0';
+   signal rxRst       : sl := '0';
+   signal txClk       : sl := '0';
+   signal gtTxRstDone : sl := '0';
+   signal gtRxRstDone : sl := '0';
+   signal gtTxRst     : sl := '0';
+   signal gtRxRst     : sl := '0';
+   signal dataValid   : sl := '0';
+
+   signal txFifoDout       : slv(19 downto 0) := (others => '0');
+   signal gtTxData         : slv(19 downto 0) := (others => '0');
+   signal gtRxData         : slv(19 downto 0) := (others => '0');
+   signal gtTxDataReversed : slv(19 downto 0) := (others => '0');
+   signal gtRxDataReversed : slv(19 downto 0) := (others => '0');
+
    signal rxFifoDout  : slv(23 downto 0);
    signal gLinkTxSync : GLinkTxType;
    signal gLinkRxSync : GLinkRxType;
@@ -302,4 +302,5 @@ begin
          txCharIsKIn      => (others => '0'),  -- Not using gt rx 8b10b
          txBufStatusOut   => open,
          loopbackIn       => loopback);
+
 end rtl;

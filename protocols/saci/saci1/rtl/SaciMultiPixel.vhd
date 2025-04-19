@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -30,8 +29,7 @@ entity SaciMultiPixel is
       TPD_G            : time                 := 1 ns;
       MASK_REG_ADDR_G  : slv(31 downto 0)     := x"00000034";
       SACI_BASE_ADDR_G : slv(31 downto 0)     := x"02000000";
-      SACI_NUM_CHIPS_G : natural range 1 to 4 := 4
-      );
+      SACI_NUM_CHIPS_G : natural range 1 to 4 := 4);
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -46,15 +44,14 @@ entity SaciMultiPixel is
       mAxilWriteMaster : out AxiLiteWriteMasterType;
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType;
       mAxilReadMaster  : out AxiLiteReadMasterType;
-      mAxilReadSlave   : in  AxiLiteReadSlaveType
-      );
-
+      mAxilReadSlave   : in  AxiLiteReadSlaveType);
 end SaciMultiPixel;
 
 architecture rtl of SaciMultiPixel is
 
-   type StateType is (S_IDLE_C, S_IS_ASIC_C, S_WRITE_C, S_WRITE_AXI_C,
-                      S_READ_C, S_READ_AXI_C, S_DONE_OK_C, S_DONE_FAIL_C);
+   type StateType is (
+      S_IDLE_C, S_IS_ASIC_C, S_WRITE_C, S_WRITE_AXI_C,
+      S_READ_C, S_READ_AXI_C, S_DONE_OK_C, S_DONE_FAIL_C);
 
    type RegType is record
       globalMultiPix   : MultiPixelWriteType;
@@ -161,7 +158,7 @@ begin
 
       -- State machine for SACI mediation
       -- SACI is accessed via the AXI lite master bus
-      case(r.state) is
+      case (r.state) is
          when S_IDLE_C =>
             v.mAxilWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
             v.mAxilReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
@@ -354,4 +351,3 @@ begin
    end process seq;
 
 end rtl;
-

@@ -38,7 +38,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
@@ -47,10 +46,8 @@ entity JesdTxLane is
    generic (
       TPD_G : time     := 1 ns;
       F_G   : positive := 2;
-      K_G   : positive := 32
-      );
+      K_G   : positive := 32);
    port (
-
       -- JESD
       -- Clocks and Resets
       devClk_i : in sl;
@@ -85,13 +82,10 @@ entity JesdTxLane is
       sampleData_i : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
 
       -- Data and character output and GT signals
-      r_jesdGtTx : out jesdGtTxLaneType
-      );
+      r_jesdGtTx : out jesdGtTxLaneType);
 end JesdTxLane;
 
 architecture rtl of JesdTxLane is
-
-   -- Internal signals
 
    -- Control signals from FSM
    signal s_dataValid   : sl;
@@ -126,8 +120,7 @@ begin
          sysRef_i    => sysRef_i,
          dataValid_o => s_dataValid,
          sysref_o    => s_refDetected,
-         ila_o       => s_ila
-         );
+         ila_o       => s_ila);
 
    ----------------------------------------------------
    -- Comma character generation
@@ -188,5 +181,5 @@ begin
    -- Output assignment
    status_o   <= s_refDetected & enable_i & nSync_i & s_ila & s_dataValid & gtTxReady_i;
    dacReady_o <= s_dataValid;
---------------------------------------------
+
 end rtl;

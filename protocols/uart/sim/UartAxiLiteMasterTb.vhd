@@ -35,7 +35,7 @@ architecture sim of UartAxiLiteMasterTb is
 
    -- component generics
    constant TPD_G             : time                  := 1 ns;
-   constant CLK_FREQ_G        : real                  := 125.0e6;
+   constant CLK_FREQ_G        : real                  := 125.0E+6;
    constant BAUD_RATE_G       : integer               := 115200;
    constant MEMORY_TYPE_G     : string                := "distributed";
    constant FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5;

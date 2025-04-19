@@ -48,7 +48,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.MdioPkg.all;
@@ -59,8 +58,7 @@ entity MdioSeqCore is
       -- half-period of MDC in clk cycles
       DIV_G       : natural range 1 to natural'high := 1;
       -- see above...
-      MDIO_PROG_G : MdioProgramArray
-      );
+      MDIO_PROG_G : MdioProgramArray);
    port (
       -- clock and reset
       clk : in sl;
@@ -77,8 +75,7 @@ entity MdioSeqCore is
       mdc   : out sl;
       mdTri : out sl;
       mdo   : out sl;
-      mdi   : in  sl
-      );
+      mdi   : in  sl);
 end entity MdioSeqCore;
 
 architecture MdioSeqCoreImpl of MdioSeqCore is
@@ -96,8 +93,7 @@ architecture MdioSeqCoreImpl of MdioSeqCore is
       state => IDLE,
       inst  => mdioReadInst(0, 0, true),
       pc    => 0,
-      trg   => '0'
-      );
+      trg   => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -112,8 +108,7 @@ begin
    U_MdioCore : entity surf.MdioCore
       generic map (
          TPD_G => TPD_G,
-         DIV_G => DIV_G
-         )
+         DIV_G => DIV_G)
       port map (
          clk => clk,
          rst => rst,
@@ -126,8 +121,7 @@ begin
          mdc   => mdc,
          mdTri => mdTri,
          mdi   => mdi,
-         mdo   => mdo
-         );
+         mdo   => mdo);
 
    COMB : process(oneDone, pc, r, trg)
       variable v : RegType;

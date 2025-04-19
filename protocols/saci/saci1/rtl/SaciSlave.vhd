@@ -14,18 +14,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.std_logic_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SaciSlave is
-
    generic (
       TPD_G : time := 1 ns);
-
    port (
       rstL : in sl;                     -- ASIC global reset
 
@@ -47,7 +45,6 @@ entity SaciSlave is
       addr   : out slv(11 downto 0);
       wrData : out slv(31 downto 0);
       rdData : in  slv(31 downto 0));
-
 end entity SaciSlave;
 
 architecture rtl of SaciSlave is
@@ -161,6 +158,4 @@ begin
 
    end process comb;
 
-
 end architecture rtl;
-

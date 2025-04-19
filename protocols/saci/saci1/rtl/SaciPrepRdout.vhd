@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -30,8 +29,7 @@ entity SaciPrepRdout is
       MASK_REG_ADDR_G  : slv(31 downto 0)     := x"00000034";
       MASK_REG_READ_G  : boolean              := true;
       SACI_BASE_ADDR_G : slv(31 downto 0)     := x"02000000";
-      SACI_NUM_CHIPS_G : natural range 1 to 4 := 4
-      );
+      SACI_NUM_CHIPS_G : natural range 1 to 4 := 4);
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -53,9 +51,7 @@ entity SaciPrepRdout is
       mAxilReadSlave   : in  AxiLiteReadSlaveType;
 
       -- optianally provide ASIC mask
-      asicMask : in slv(SACI_NUM_CHIPS_G-1 downto 0) := (others => '0')
-      );
-
+      asicMask : in slv(SACI_NUM_CHIPS_G-1 downto 0) := (others => '0'));
 end SaciPrepRdout;
 
 architecture rtl of SaciPrepRdout is
@@ -123,7 +119,7 @@ begin
 
       -- State machine for SACI mediation
       -- SACI command is issued via the AXI lite master bus
-      case(r.state) is
+      case (r.state) is
          when S_IDLE_C =>
             v.mAxilWriteMaster := AXI_LITE_WRITE_MASTER_INIT_C;
             v.mAxilReadMaster  := AXI_LITE_READ_MASTER_INIT_C;
@@ -269,4 +265,3 @@ begin
    end process seq;
 
 end rtl;
-

@@ -18,15 +18,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2bGtx7MultiLane is
    generic (
@@ -50,7 +49,7 @@ entity Pgp2bGtx7MultiLane is
 
       PMA_RSV_G    : bit_vector := x"00018480";
       RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G  : bit_vector := x"03000023FF40200020";  -- Set by wizard
       RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
 
       -- RX Equalizer Attributes
@@ -132,8 +131,8 @@ entity Pgp2bGtx7MultiLane is
       axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));
 end Pgp2bGtx7MultiLane;
 
--- Define architecture
 architecture rtl of Pgp2bGtx7MultiLane is
+
    --------------------------------------------------------------------------------------------------
    -- Constants
    --------------------------------------------------------------------------------------------------
@@ -411,4 +410,5 @@ begin
             drpDo           => drpDo(i));
 
    end generate GTX7_CORE_GEN;
+
 end rtl;

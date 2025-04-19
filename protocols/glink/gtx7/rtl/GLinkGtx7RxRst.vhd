@@ -18,13 +18,12 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity GLinkGtx7RxRst is
-   generic(
+   generic (
       TPD_G                  : time                  := 1 ns;
       EXAMPLE_SIMULATION     : integer               := 0;
       GT_TYPE                : string                := "GTX";
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
-      RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8
-      );
+      RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8);
    port (
       lpmMode                : in  std_logic;
       STABLE_CLOCK           : in  std_logic;  --Stable Clock, either a stable clock from the PCB
@@ -52,9 +51,7 @@ entity GLinkGtx7RxRst is
       RXLPMLFHOLD            : out std_logic;
       RXLPMHFHOLD            : out std_logic;
 
-      RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                                                                                   -- Retries it took to get the transceiver up and running
-      );
+      RETRY_COUNTER : out std_logic_vector(RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0'));  -- Number of Retries it took to get the transceiver up and running
 end GLinkGtx7RxRst;
 
 --Interdependencies:
@@ -65,15 +62,14 @@ end GLinkGtx7RxRst;
 --   => signal which PLL has been reset
 -- *
 
-
-
 architecture RTL of GLinkGtx7RxRst is
-   type rx_rst_fsm_type is(
+
+   type RxRstFsmType is (
       INIT, ASSERT_ALL_RESETS, RELEASE_PLL_RESET, VERIFY_RECCLK_STABLE,
       RELEASE_MMCM_RESET, WAIT_RESET_DONE, DO_PHASE_ALIGNMENT,
       MONITOR_DATA_VALID, FSM_DONE);
 
-   signal rx_state : rx_rst_fsm_type := INIT;
+   signal rx_state : RxRstFsmType := INIT;
 
    constant MMCM_LOCK_CNT_MAX : integer := 1024;
    constant STARTUP_DELAY     : integer := 500;  --AR43482: Transceiver needs to wait for 500 ns after configuration
@@ -138,17 +134,16 @@ architecture RTL of GLinkGtx7RxRst is
 
    signal fsmCnt : std_logic_vector(15 downto 0);
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      Synchronizer_run_phase_alignment,
-      Synchronizer_fsm_reset_done,
-      Synchronizer_SOFT_RESET,
-      Synchronizer_RXRESETDONE,
-      Synchronizer_time_out_wait_bypass,
-      Synchronizer_mmcm_lock_reclocked,
-      Synchronizer_data_valid,
-      Synchronizer_PLLLOCK,
-      Synchronizer_PHALIGNMENT_DONE : label is "TRUE";
+   attribute KEEP_HIERARCHY                                      : string;
+   attribute KEEP_HIERARCHY of Synchronizer_run_phase_alignment  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_fsm_reset_done       : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_SOFT_RESET           : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_RXRESETDONE          : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_time_out_wait_bypass : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_mmcm_lock_reclocked  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_data_valid           : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PLLLOCK              : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PHALIGNMENT_DONE     : label is "TRUE";
 
 begin
 

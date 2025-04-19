@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.GlinkPkg.all;
@@ -24,23 +23,23 @@ entity GLinkGtx7FixedLatTb is end GLinkGtx7FixedLatTb;
 
 architecture testbed of GLinkGtx7FixedLatTb is
 
-   signal gtClk,
-      stableClock,
-      stableRst,
-      txClock,
-      txRst,
-      rxClock,
-      rxRecClk,
-      pllRefClk,
-      gtCPllRefClk,
-      gtCPllLock,
-      qPllOutClk,
-      qPllOutRefClk,
-      qPllLock,
-      pllLockDetClk,
-      qPllRefClkLost,
-      qPllReset,
-      gtQPllReset : sl := '0';
+   signal gtClk          : sl := '0';
+   signal stableClock    : sl := '0';
+   signal stableRst      : sl := '0';
+   signal txClock        : sl := '0';
+   signal txRst          : sl := '0';
+   signal rxClock        : sl := '0';
+   signal rxRecClk       : sl := '0';
+   signal pllRefClk      : sl := '0';
+   signal gtCPllRefClk   : sl := '0';
+   signal gtCPllLock     : sl := '0';
+   signal qPllOutClk     : sl := '0';
+   signal qPllOutRefClk  : sl := '0';
+   signal qPllLock       : sl := '0';
+   signal pllLockDetClk  : sl := '0';
+   signal qPllRefClkLost : sl := '0';
+   signal qPllReset      : sl := '0';
+   signal gtQPllReset    : sl := '0';
 
    signal gLinkTx : GLinkTxType := GLINK_TX_INIT_C;
    signal gLinkRx : GLinkRxType := GLINK_RX_INIT_C;

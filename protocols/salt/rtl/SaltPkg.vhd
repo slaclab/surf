@@ -52,4 +52,4 @@ package SaltPkg is
    constant PREAMBLE_C : slv(31 downto 0) := x"55555555";
    constant SFD_C      : slv(31 downto 0) := x"D5555555";
 
-end package;
+end package SaltPkg;

@@ -437,5 +437,4 @@ package body Code10b12bPkg is
 
    end procedure decode10b12b;
 
-
 end package body Code10b12bPkg;

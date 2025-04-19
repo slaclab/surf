@@ -23,7 +23,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -737,7 +736,7 @@ begin
                end if;
             end if;
             -- Check if transaction is done
-            if (v.mAxilWriteMaster.awvalid = '0') and(v.mAxilWriteMaster.wvalid = '0') and (v.mAxilWriteMaster.bready = '0') then
+            if (v.mAxilWriteMaster.awvalid = '0') and (v.mAxilWriteMaster.wvalid = '0') and (v.mAxilWriteMaster.bready = '0') then
                -- Check for memory bus error
                if v.memResp /= 0 then
                   -- Next State

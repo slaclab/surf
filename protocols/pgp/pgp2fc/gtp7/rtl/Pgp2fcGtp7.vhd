@@ -17,15 +17,14 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2fcPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2fcGtp7 is
    generic (
@@ -39,7 +38,7 @@ entity Pgp2fcGtp7 is
       SIM_VERSION_G         : string     := "2.0";
       SIMULATION_G          : boolean    := false;
       STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;  --units of seconds
-      REF_CLK_FREQ_G        : real       := 125.0E6;
+      REF_CLK_FREQ_G        : real       := 125.0E+6;
       -- TX/RX Settings - Defaults to 2.5 Gbps operation
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
@@ -133,11 +132,8 @@ entity Pgp2fcGtp7 is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-
 end Pgp2fcGtp7;
 
-
--- Define architecture
 architecture rtl of Pgp2fcGtp7 is
 
    --------------------------------------------------------------------------------------------------
@@ -330,12 +326,11 @@ begin
          FIXED_ALIGN_COMMA_0_G => "----------0101111100",  -- Normal Comma
          FIXED_ALIGN_COMMA_1_G => "----------1010000011",  -- Inverted Comma
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
-         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX"   -- Unused
+         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused
 --         RX_DISPERR_SEQ_MATCH_G => RX_DISPERR_SEQ_MATCH_G,
 --         DEC_MCOMMA_DETECT_G    => DEC_MCOMMA_DETECT_G,
 --         DEC_PCOMMA_DETECT_G    => DEC_PCOMMA_DETECT_G,
 --         DEC_VALID_COMMA_ONLY_G => DEC_VALID_COMMA_ONLY_G
-         )
       port map (
          stableClkIn      => stableClk,
          qPllRxSelect     => qPllRxSelect,

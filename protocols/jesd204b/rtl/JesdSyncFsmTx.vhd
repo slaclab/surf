@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
@@ -61,18 +60,16 @@ entity JesdSyncFsmTx is
       sysref_o : out sl;
 
       -- Initial lane synchronization sequence indicator
-      ila_o : out sl
-      );
+      ila_o : out sl);
 end JesdSyncFsmTx;
 
 architecture rtl of JesdSyncFsmTx is
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       SYNC_S,
       ILA_S,
-      DATA_S
-      );
+      DATA_S);
 
    type RegType is record
       -- Synchronous FSM control outputs
@@ -93,8 +90,7 @@ architecture rtl of JesdSyncFsmTx is
       cnt       => (others => '0'),
 
       -- Status Machine
-      state => IDLE_S
-      );
+      state => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -192,6 +188,11 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      -- Output assignment
+      dataValid_o <= r.dataValid;
+      ila_o       <= r.ila;
+      sysref_o    <= r.sysref;
+
       -- Synchronous Reset
       if rst = '1' then
          v := REG_INIT_C;
@@ -209,9 +210,4 @@ begin
       end if;
    end process seq;
 
-   -- Output assignment
-   dataValid_o <= r.dataValid;
-   ila_o       <= r.ila;
-   sysref_o    <= r.sysref;
-----------------------------------------------
 end rtl;

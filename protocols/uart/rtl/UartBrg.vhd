@@ -15,21 +15,18 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity UartBrg is
-
    generic (
-      CLK_FREQ_G   : real    := 125.0E6;  -- Default 125 MHz
+      CLK_FREQ_G   : real    := 125.0E+6;  -- Default 125 MHz
       BAUD_RATE_G  : integer := 115200;   -- Default 115.2 kbps
       MULTIPLIER_G : integer := 16);
    port (
       clk       : in  sl;
       rst       : in  sl;
       baudClkEn : out sl);
-
 end entity UartBrg;
 
 architecture rtl of UartBrg is
@@ -46,7 +43,7 @@ architecture rtl of UartBrg is
       baudClkEn => '0');
 
    signal r   : RegType := REG_INIT_C;
-   signal rin : Regtype;
+   signal rin : RegType;
 
 begin
 
@@ -76,6 +73,5 @@ begin
          r <= rin;
       end if;
    end process;
-
 
 end architecture rtl;

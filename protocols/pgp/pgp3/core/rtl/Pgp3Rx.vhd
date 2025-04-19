@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -28,7 +27,6 @@ use surf.Pgp3Pkg.all;
 use surf.AxiStreamPacketizer2Pkg.all;
 
 entity Pgp3Rx is
-
    generic (
       TPD_G             : time                  := 1 ns;
       NUM_VC_G          : integer range 1 to 16 := 4;
@@ -57,9 +55,6 @@ entity Pgp3Rx is
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
       phyRxSlip     : out sl);
-
-
-
 end entity Pgp3Rx;
 
 architecture rtl of Pgp3Rx is
@@ -91,6 +86,7 @@ architecture rtl of Pgp3Rx is
    signal remRxFifoCtrlInt  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
 begin
+
    phyRxInit      <= phyRxInitInt;
    locRxLinkReady <= locRxLinkReadyInt;
    remRxLinkReady <= remRxLinkReadyInt;

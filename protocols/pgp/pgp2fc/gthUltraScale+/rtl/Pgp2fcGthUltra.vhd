@@ -18,15 +18,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp2fcPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2fcGthUltra is
    generic (
@@ -38,7 +37,7 @@ entity Pgp2fcGthUltra is
       FC_WORDS_G          : integer range 1 to 8 := 1;
       TX_POLARITY_G       : sl                   := '0';
       RX_POLARITY_G       : sl                   := '0';
-      AXI_CLK_FREQ_G      : real                 := 125.0e6;
+      AXI_CLK_FREQ_G      : real                 := 125.0E+6;
       AXI_BASE_ADDR_G     : slv(31 downto 0)     := (others => '0');
       TX_ENABLE_G         : boolean              := true;
       RX_ENABLE_G         : boolean              := true;

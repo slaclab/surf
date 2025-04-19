@@ -76,33 +76,38 @@ architecture rtl of Pgp2fcAlignmentController is
    signal axiReq : AxiLiteReqType := ('0', '1', COMMA_ALIGN_LATENCY_ADDR_C, (others => '0'));
    signal axiAck : AxiLiteAckType;
 
-   signal intSlide, intSlideR : sl;
-   signal intPhaseReq         : sl;
+   signal intSlide    : sl;
+   signal intSlideR   : sl;
+   signal intPhaseReq : sl;
 
-   signal stabWindow          : slv(7 downto 0);
-   signal stabWindowGood      : sl;
-   signal stabCounter         : slv(7 downto 0);
-   constant stabSensitivity   : slv(7 downto 0) := x"F0";
-   signal stabGood, stabGoodX : sl;
+   signal stabWindow        : slv(7 downto 0);
+   signal stabWindowGood    : sl;
+   signal stabCounter       : slv(7 downto 0);
+   constant stabSensitivity : slv(7 downto 0) := x"F0";
+   signal stabGood          : sl;
+   signal stabGoodX         : sl;
 
    signal intCommaLat     : slv(15 downto 0);
    signal intCommaLatDone : sl;
 
-   type COMMALAT_FSM is (ST_REQ, ST_ACK);
-   signal commaLatState : COMMALAT_FSM := ST_REQ;
+   type CommaLatStateType is (ST_REQ, ST_ACK);
+   signal commaLatState : CommaLatStateType := ST_REQ;
 
-   signal intReset                         : sl;
-   signal intAlignSlide, intAlignSlidePrev : sl;
-   signal intRxSlide                       : sl;
-   signal intRxSlideDone, intRxSlideDoneX  : sl;
+   signal intReset          : sl;
+   signal intAlignSlide     : sl;
+   signal intAlignSlidePrev : sl;
+   signal intRxSlide        : sl;
+   signal intRxSlideDone    : sl;
+   signal intRxSlideDoneX   : sl;
 
-   type RXSLIDE_FSM is (ST_WAIT, ST_SLIDE);
-   signal slideFsmState : RXSLIDE_FSM := ST_WAIT;
+   type SlideFsmStateType is (ST_WAIT, ST_SLIDE);
+   signal slideFsmState : SlideFsmStateType := ST_WAIT;
 
    signal slideFsmCounter : integer range 0 to 63 := 63;
 
-   type AUTOALIGN_FSM is (ST_LOCKED, ST_SLIDE, ST_WAIT_SLIDE, ST_PHASE, ST_WAIT_PHASE, ST_RESET, ST_WAIT_READY);
-   signal autoAlignState      : AUTOALIGN_FSM   := ST_WAIT_READY;
+   type AutoAlignStateType is (ST_LOCKED, ST_SLIDE, ST_WAIT_SLIDE, ST_PHASE, ST_WAIT_PHASE, ST_RESET, ST_WAIT_READY);
+   signal autoAlignState : AutoAlignStateType := ST_WAIT_READY;
+
    signal autoAlignTimeout    : slv(9 downto 0);
    constant TIMEOUT_MAX       : slv(9 downto 0) := (others => '1');
    signal autoAlignRetryCount : slv(4 downto 0);

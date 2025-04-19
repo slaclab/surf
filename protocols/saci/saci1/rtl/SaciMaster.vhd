@@ -14,21 +14,18 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.std_logic_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
 use surf.SaciMasterPkg.all;
 
 entity SaciMaster is
-
    generic (
       TPD_G                 : time    := 1 ns;
       SYNCHRONIZE_CONTROL_G : boolean := true);
-
    port (
       clk : in sl;                      -- Main clock
       rst : in sl;
@@ -42,7 +39,6 @@ entity SaciMaster is
       -- Parallel interface
       saciMasterIn  : in  SaciMasterInType;
       saciMasterOut : out SaciMasterOutType);
-
 end entity SaciMaster;
 
 architecture rtl of SaciMaster is
@@ -124,13 +120,14 @@ architecture rtl of SaciMaster is
       saciMasterOut : SaciMasterOutType;
    end record RegType;
 
-   signal r, rin      : RegType;
+   signal r   : RegType;
+   signal rin : RegType;
+
    signal saciRspFall : sl;
 
 begin
 
-   saciClk <= '0' when r.state = IDLE_S and r.reqSync.sync = '0' else
-              clk;
+   saciClk <= '0' when r.state = IDLE_S and r.reqSync.sync = '0' else clk;
 
    --------------------------------------------------------------------------------------------------
    -- Capture serial input on falling edge of clock

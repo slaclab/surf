@@ -15,8 +15,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -29,17 +29,18 @@ entity Pgp2fcAlignmentChecker is
       clk    : in  sl;
       rst    : in  sl := '0';
       rxLane : in  Pgp2fcRxPhyLaneInType;
-      error  : out sl
-      );
+      error  : out sl);
 end Pgp2fcAlignmentChecker;
 
 architecture Behavioral of Pgp2fcAlignmentChecker is
-   signal syncRst : sl;
 
+   signal syncRst    : sl;
    signal dispErrors : sl;
    signal decErrors  : sl;
    signal wrongAlign : sl;
+
 begin
+
    U_Rst : entity surf.RstSync
       generic map (
          RELEASE_DELAY_G => 3)

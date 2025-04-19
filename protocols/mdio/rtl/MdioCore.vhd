@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.MdioPkg.all;
@@ -27,8 +26,7 @@ entity MdioCore is
    generic (
       TPD_G : time                            := 1 ns;
       -- half-period of MDC in clk cycles; MDC is a subharmonic of clk
-      DIV_G : natural range 1 to natural'high := 1
-      );
+      DIV_G : natural range 1 to natural'high := 1);
    port (
       -- clock and reset
       clk : in sl;
@@ -44,8 +42,7 @@ entity MdioCore is
       mdc   : out sl;
       mdo   : out sl;
       mdTri : out sl;
-      mdi   : in  sl
-      );
+      mdi   : in  sl);
 end entity MdioCore;
 
 architecture MdioCoreImpl of MdioCore is
@@ -73,8 +70,7 @@ architecture MdioCoreImpl of MdioCore is
       tri     => '1',
       mdc     => '0',
       don     => '0',
-      state   => IDLE
-      );
+      state   => IDLE);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;

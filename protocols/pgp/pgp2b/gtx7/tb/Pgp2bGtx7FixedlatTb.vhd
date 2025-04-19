@@ -44,14 +44,14 @@ architecture tb of Pgp2bGtx7FixedLatTb is
    constant RX_CM_CLKFBOUT_MULT_F_G : real                 := 8.000;
    constant RX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
    constant RX_OS_CFG_G             : bit_vector           := "0000010000000";
-   constant RXCDR_CFG_G             : bit_vector           := x"03000023ff40200020";
+   constant RXCDR_CFG_G             : bit_vector           := x"03000023FF40200020";
    constant RXDFEXYDEN_G            : sl                   := '0';
    constant RX_DFE_KL_CFG2_G        : bit_vector           := x"3008E56A";
    constant STABLE_CLK_SRC_G        : string               := "stableClkIn";
    constant TX_REFCLK_SRC_G         : string               := "gtClk0";
    constant RX_REFCLK_SRC_G         : string               := "gtClk1";
-   constant CPLL_CFG_G              : Gtx7CPllCfgType      := getGtx7CPllCfg(125.0E6, 2.5E9);
-   constant QPLL_CFG_G              : Gtx7QPllCfgType      := getGtx7QPllCfg(125.0e6, 2.5e9);
+   constant CPLL_CFG_G              : Gtx7CPllCfgType      := getGtx7CPllCfg(125.0E+6, 2.5E+9);
+   constant QPLL_CFG_G              : Gtx7QPllCfgType      := getGtx7QPllCfg(125.0E+6, 2.5E+9);
    constant TX_PLL_G                : string               := "QPLL";
    constant RX_PLL_G                : string               := "CPLL";
 

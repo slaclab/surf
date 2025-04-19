@@ -170,7 +170,7 @@ begin
                    rxValid) is
       variable v        : RegType;
       variable i        : natural;
-      variable RnW      : sl;
+      variable rNotW    : sl;
       variable devIdx   : natural;
       variable addr     : slv(31 downto 0);
       variable axilResp : slv(1 downto 0);
@@ -385,20 +385,20 @@ begin
 
       -- Update the variables
       axilResp := (others => '0');
-      RnW      := '0';
+      rNotW    := '0';
       addr     := (others => '0');
       devIdx   := 0;
 
       -- Check for Read TXN
       if (axilEp.axiStatus.readEnable = '1') then
-         RnW                              := '1';
+         rNotW                            := '1';
          addr(NUM_ADDR_BITS_G-1 downto 0) := axilReadMaster.araddr(NUM_ADDR_BITS_G-1 downto 0);
          devIdx                           := conv_integer(axilReadMaster.araddr(3+NUM_ADDR_BITS_G downto NUM_ADDR_BITS_G));
       end if;
 
       -- Check for Write TXN
       if (axilEp.axiStatus.writeEnable = '1') then
-         RnW                              := '0';
+         rNotW                            := '0';
          addr(NUM_ADDR_BITS_G-1 downto 0) := axilWriteMaster.awaddr(NUM_ADDR_BITS_G-1 downto 0);
          devIdx                           := conv_integer(axilWriteMaster.awaddr(3+NUM_ADDR_BITS_G downto NUM_ADDR_BITS_G));
       end if;
@@ -452,7 +452,7 @@ begin
 
                -- Setup the request message
                v.txMsg(0)  := CODE_SOF_C;
-               v.txMsg(1)  := toSlv(devIdx, 4) & RnW & SUGOI_VERSION_C;  --  Header
+               v.txMsg(1)  := toSlv(devIdx, 4) & rNotW & SUGOI_VERSION_C;  --  Header
                v.txMsg(2)  := addr(31 downto 24);
                v.txMsg(3)  := addr(23 downto 16);
                v.txMsg(4)  := addr(15 downto 8);

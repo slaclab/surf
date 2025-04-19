@@ -30,7 +30,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
@@ -67,12 +66,12 @@ entity JesdAlignFrRepCh is
       sampleDataValid_o : out sl;
 
       -- Alignment and sync position errors
-      alignErr_o    : out sl;  -- Invalid or misaligned character in the data
-      positionErr_o : out sl  -- Invalid (comma) position received at time of alignment
-      );
+      alignErr_o    : out sl;   -- Invalid or misaligned character in the data
+      positionErr_o : out sl);  -- Invalid (comma) position received at time of alignment
 end entity JesdAlignFrRepCh;
 
 architecture rtl of JesdAlignFrRepCh is
+
    -- How many samples is in a GT word
    constant SAMPLES_IN_WORD_C : positive := (GT_WORD_SIZE_C/F_G);
 
@@ -103,14 +102,13 @@ architecture rtl of JesdAlignFrRepCh is
       sampleData     => (others => '0'),
       descrDataValid => '0',
       dataValid      => '0',
-      position       => intToSlv(1, GT_WORD_SIZE_C)  -- Initialize at "0001" or "01"
-      );
+      position       => intToSlv(1, GT_WORD_SIZE_C));  -- Initialize at "0001" or "01"
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-
 begin
+
    -- Buffer two GT words (Sequential logic)
    -- Register the alignment position when alignFrame_i pulse
    -- Incorrect alignment (non valid data word received) will result in
@@ -122,16 +120,17 @@ begin
       variable v : RegType;
 
       -- Alignment error. Invalid data received at time of alignment
-      variable v_positionErr   : sl;
-      variable v_alignErr      : sl;
-      variable v_twoWordbuff   : slv((GT_WORD_SIZE_C*16)-1 downto 0);
-      variable v_twoCharBuff   : slv((GT_WORD_SIZE_C*2) -1 downto 0);
-      variable v_twoWordbuffAl : slv((GT_WORD_SIZE_C*16)-1 downto 0);
-      variable v_twoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1 downto 0);
-      variable v_dataaligned   : slv(dataRx_i'range);
-      variable v_charAligned   : slv(chariskRx_i'range);
+      variable vPositionErr   : sl;
+      variable vAlignErr      : sl;
+      variable vTwoWordbuff   : slv((GT_WORD_SIZE_C*16)-1 downto 0);
+      variable vTwoCharBuff   : slv((GT_WORD_SIZE_C*2) -1 downto 0);
+      variable vTwoWordbuffAl : slv((GT_WORD_SIZE_C*16)-1 downto 0);
+      variable vTwoCharBuffAl : slv((GT_WORD_SIZE_C*2) -1 downto 0);
+      variable vDataaligned   : slv(dataRx_i'range);
+      variable vCharAligned   : slv(chariskRx_i'range);
 
    begin
+
       v := r;
 
       -- Buffer data and char one clock cycle
@@ -139,8 +138,8 @@ begin
       v.chariskRxD1 := chariskRx_i;
 
       -- Buffer aligned data
-      v.dataAlignedD1 := v_dataAligned;
-      v.charAlignedD1 := v_charAligned;
+      v.dataAlignedD1 := vDataaligned;
+      v.charAlignedD1 := vCharAligned;
 
       -- Register the alignment
       if (alignFrame_i = '1') then
@@ -150,39 +149,39 @@ begin
       -- Align samples (Combinatorial logic)
 
       -- Check position error (if position vector "1111" is returned)
-      v_positionErr := ite(allBits (r.position, '1'), '1', '0');
+      vPositionErr := ite(allBits (r.position, '1'), '1', '0');
 
       -- Byte swap and combine the two consecutive GT words
-      v_twoWordBuff := byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);
-      v_twoCharBuff := bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
+      vTwoWordbuff := byteSwapSlv(r.dataRxD1, GT_WORD_SIZE_C) & byteSwapSlv(dataRx_i, GT_WORD_SIZE_C);
+      vTwoCharBuff := bitReverse(r.chariskRxD1) & bitReverse(chariskRx_i);
 
       -- Align the bytes within the words
-      v_dataAligned := JesdDataAlign(v_twoWordBuff, r.position, GT_WORD_SIZE_C);
-      v_charAligned := JesdCharAlign(v_twoCharBuff, r.position, GT_WORD_SIZE_C);
+      vDataaligned := JesdDataAlign(vTwoWordbuff, r.position, GT_WORD_SIZE_C);
+      vCharAligned := JesdCharAlign(vTwoCharBuff, r.position, GT_WORD_SIZE_C);
 
       -- Buffer aligned word and replace the alignment characters with the data
-      v_twoWordBuffAl := r.dataAlignedD1 & v_dataAligned;
-      v_twoCharBuffAl := r.charAlignedD1 & v_charAligned;
-      v_alignErr      := '0';
+      vTwoWordbuffAl := r.dataAlignedD1 & vDataaligned;
+      vTwoCharBuffAl := r.charAlignedD1 & vCharAligned;
+      vAlignErr      := '0';
 
       -- Replace the control characters in the data with valid data
       if(replEnable_i = '1' and dataValid_i = '1') then
          for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
             -- If the A_CHAR_C or F_CHAR_C characters detected in the stream
-            if (v_twoCharBuffAl(i*F_G) = '1' and
-                (v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = A_CHAR_C or
-                 v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = F_CHAR_C)
+            if (vTwoCharBuffAl(i*F_G) = '1' and
+                (vTwoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = A_CHAR_C or
+                 vTwoWordBuffAl((i*F_G*8+7) downto i*F_G*8) = F_CHAR_C)
                 ) then
                -- If scrambling disabled
                -- Replace the character in the data with the data value from previous frame
                if (scrEnable_i = '0') then
-                  v_twoWordBuffAl((i*F_G*8+7) downto i*F_G*8) := v_twoWordBuffAl((i*F_G*8+8*F_G)+7 downto (i*F_G*8+8*F_G));
-                  v_twoCharBuffAl(i*F_G)                      := '0';
+                  vTwoWordbuffAl((i*F_G*8+7) downto i*F_G*8) := vTwoWordBuffAl((i*F_G*8+8*F_G)+7 downto (i*F_G*8+8*F_G));
+                  vTwoCharBuffAl(i*F_G)                      := '0';
                -- If scrambling enabled
                -- The data value equals char value and only the char flags are cleared
                else
-                  v_twoWordBuffAl        := v_twoWordBuffAl;
-                  v_twoCharBuffAl(i*F_G) := '0';
+                  vTwoWordbuffAl        := vTwoWordbuffAl;
+                  vTwoCharBuffAl(i*F_G) := '0';
                end if;
             end if;
          end loop;
@@ -193,14 +192,14 @@ begin
       -- have been received.
       if(replEnable_i = '1' and dataValid_i = '1') then
          for i in (GT_WORD_SIZE_C-1) downto 0 loop
-            if (v_twoCharBuffAl(i) = '1') then
-               v_alignErr := '1';
+            if (vTwoCharBuffAl(i) = '1') then
+               vAlignErr := '1';
             end if;
          end loop;
       end if;
 
       -- Register data before scrambling
-      v.scrData        := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
+      v.scrData        := vTwoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
       v.scrDataValid   := dataValid_i;
       v.descrDataValid := r.scrDataValid;
 
@@ -227,13 +226,13 @@ begin
          v.dataValid  := r.descrDataValid;
       else
          -- 1 c-c latency
-         v.sampleData := v_twoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
+         v.sampleData := vTwoWordBuffAl((GT_WORD_SIZE_C*8)-1 downto 0);
          v.dataValid  := dataValid_i;
       end if;
 
       -- Combinatorial outputs before the reset
-      positionErr_o <= v_positionErr;
-      alignErr_o    <= v_alignErr;
+      positionErr_o <= vPositionErr;
+      alignErr_o    <= vAlignErr;
 
       if (rst = '1') then
          v := REG_INIT_C;
