@@ -12,9 +12,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -177,4 +176,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
 end architecture rtl;

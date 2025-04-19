@@ -17,25 +17,21 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 
 entity AxiStreamSelector is
    generic (
-      TPD_G : time := 1 ns
-      );
+      TPD_G : time := 1 ns);
    port (
       clk : in  sl;
       rst : in  sl;
       sel : in  sl;
       mIb : in  AxiStreamMasterArray(1 downto 0);
       sIb : out AxiStreamSlaveArray (1 downto 0);
-
       mOb : out AxiStreamMasterType;
-      sOb : in  AxiStreamSlaveType
-      );
+      sOb : in  AxiStreamSlaveType);
 end entity AxiStreamSelector;
 
 architecture AxiStreamSelectorImpl of AxiStreamSelector is
@@ -45,11 +41,11 @@ architecture AxiStreamSelectorImpl of AxiStreamSelector is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      streamBuf => AXI_STREAM_MASTER_INIT_C
-      );
+      streamBuf => AXI_STREAM_MASTER_INIT_C);
 
-   signal r      : RegType := REG_INIT_C;
-   signal rin    : RegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    signal rdyLoc : sl;
 
 begin

@@ -15,15 +15,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Gtp7Core is
-
    generic (
       TPD_G : time := 1 ns;
 
@@ -987,8 +985,7 @@ begin
          TXSYNC_MULTILANE           => ('0'),
          TXSYNC_OVRD                => ('1'),
          TXSYNC_SKIP_DA             => ('0'))
-      port map
-      (
+      port map (
          --------------------------------- CPLL Ports -------------------------------
          GTRSVD               => "0000000000000000",
          PCSRSVDIN            => "0000000000000000",

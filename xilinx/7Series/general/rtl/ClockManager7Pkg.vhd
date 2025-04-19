@@ -21,11 +21,11 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 package ClockManager7Pkg is
+
    type ClockManager7CfgType is record
       CLKIN_PERIOD_G         : real;
       DIVCLK_DIVIDE_G        : integer range 1 to 106;

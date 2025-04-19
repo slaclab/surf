@@ -12,8 +12,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -67,7 +67,8 @@ architecture rtl of Gtp7TxManualPhaseAligner is
       gtTxPhAlign        => '0',
       gtTxDlyEn          => '0');
 
-   signal r, rin : RegType := REG_RESET_C;
+   signal r   : RegType := REG_RESET_C;
+   signal rin : RegType;
 
    signal gtTxDlySResetDoneSync : sl;
    signal gtTxPhInitDoneSync    : sl;
@@ -170,4 +171,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
 end architecture rtl;

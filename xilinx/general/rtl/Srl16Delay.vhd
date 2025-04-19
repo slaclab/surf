@@ -12,15 +12,14 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
 library ieee;
 use ieee.std_logic_1164.all;
 
-library UNISIM;
-use UNISIM.VComponents.all;
-
 library surf;
 use surf.StdRtlPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Srl16Delay is
    generic (
@@ -49,7 +48,7 @@ begin
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       BIT_DELAY : for i in WIDTH_G-1 downto 0 generate
          -- https://www.element14.com/community/groups/fpga-group/blog/2018/09/04/the-art-of-fpga-design-post-9
-         attribute rloc of shift_reg : label is "X0Y"&integer'image(i/8);
+         attribute rloc of shift_reg : label is "X0Y" & integer'image(i/8);
       begin
          shift_reg : SRL16E
             generic map (
@@ -69,7 +68,7 @@ begin
    GEN_ULTRASCALE : if (XIL_DEVICE_G = "ULTRASCALE") or (XIL_DEVICE_G = "ULTRASCALE_PLUS") generate
       BIT_DELAY : for i in WIDTH_G-1 downto 0 generate
          -- https://www.element14.com/community/groups/fpga-group/blog/2018/09/04/the-art-of-fpga-design-post-9
-         attribute rloc of shift_reg : label is "X0Y"&integer'image(i/16);
+         attribute rloc of shift_reg : label is "X0Y" & integer'image(i/16);
       begin
          shift_reg : SRL16E
             generic map (

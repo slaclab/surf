@@ -26,6 +26,7 @@ entity JtagSerDesCoreTb is
 end entity JtagSerDesCoreTb;
 
 architecture JtagSerDesCoreTbImpl of JtagSerDesCoreTb is
+
    constant W_C : positive := 4;
    constant D_C : positive := 2;
 
@@ -222,8 +223,7 @@ begin
    U_DUT : entity surf.JtagSerDesCore
       generic map (
          WIDTH_G    => W_C,
-         CLK_DIV2_G => D_C
-         )
+         CLK_DIV2_G => D_C)
       port map (
          clk => clk,
          rst => rst,
@@ -241,6 +241,6 @@ begin
          tck => tck,
          tdi => tdi,
          tms => tms,
-         tdo => tdo
-         );
+         tdo => tdo);
+
 end architecture JtagSerDesCoreTbImpl;

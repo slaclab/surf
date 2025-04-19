@@ -16,7 +16,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -27,8 +26,7 @@ entity JtagSerDesCore is
    generic (
       TPD_G      : time     := 1 ns;
       WIDTH_G    : positive := 32;
-      CLK_DIV2_G : positive := 8
-      );
+      CLK_DIV2_G : positive := 8);
    port (
       clk : in sl;
       rst : in sl;
@@ -47,8 +45,7 @@ entity JtagSerDesCore is
       tck : out sl;
       tdi : out sl;
       tms : out sl;
-      tdo : in  sl
-      );
+      tdo : in  sl);
 end entity JtagSerDesCore;
 
 architecture JtagSerDesCoreImpl of JtagSerDesCore is
@@ -78,8 +75,7 @@ architecture JtagSerDesCoreImpl of JtagSerDesCore is
       lastBit => false,
       oValid  => '0',
       iReady  => '1',
-      state   => IDLE_S
-      );
+      state   => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;

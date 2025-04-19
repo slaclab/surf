@@ -12,8 +12,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -74,11 +74,10 @@ architecture rtl of Gth7TxManualPhaseAligner is
    signal gtTxPhAlignDoneSync   : sl;
    signal gtTxPhAlignDoneEdge   : sl;
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      TX_DLY_S_RESET_DONE_SYNC,
-      TX_PH_INIT_DONE_SYNC,
-      TX_PH_ALIGN_DONE_SYNC : label is "TRUE";
+   attribute KEEP_HIERARCHY                             : string;
+   attribute KEEP_HIERARCHY of TX_DLY_S_RESET_DONE_SYNC : label is "TRUE";
+   attribute KEEP_HIERARCHY of TX_PH_INIT_DONE_SYNC     : label is "TRUE";
+   attribute KEEP_HIERARCHY of TX_PH_ALIGN_DONE_SYNC    : label is "TRUE";
 
 begin
 
@@ -176,4 +175,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
 end architecture rtl;

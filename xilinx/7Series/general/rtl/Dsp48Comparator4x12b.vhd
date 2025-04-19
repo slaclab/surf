@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -45,8 +44,9 @@ architecture mapping of Dsp48Comparator4x12b is
    signal A        : slv(29 downto 0);
    signal B        : slv(17 downto 0);
    signal C        : slv(47 downto 0);
-   signal reset,
-      rstDly : sl;
+
+   signal reset  : sl;
+   signal rstDly : sl;
 
 begin
 
@@ -183,4 +183,5 @@ begin
          RSTD           => reset,  -- 1-bit input: Reset input for DREG and ADREG
          RSTM           => reset,       -- 1-bit input: Reset input for MREG
          RSTP           => reset);      -- 1-bit input: Reset input for PREG
+
 end mapping;

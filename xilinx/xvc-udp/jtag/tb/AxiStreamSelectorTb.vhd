@@ -17,7 +17,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -215,8 +214,7 @@ begin
 
    U_DUT : entity surf.AxiStreamSelector
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk => clk,
          rst => rst,
@@ -224,8 +222,6 @@ begin
          mIb => mTx,
          sIb => sTx,
          mOb => mRx,
-         sOb => sRx
-         );
+         sOb => sRx);
 
 end architecture AxiStreamSelectorTbImpl;
-

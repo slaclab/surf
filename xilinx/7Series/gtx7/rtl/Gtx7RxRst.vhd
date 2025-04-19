@@ -75,14 +75,13 @@ use ieee.std_logic_unsigned.all;
 library surf;
 
 entity Gtx7RxRst is
-   generic(
+   generic (
       TPD_G                  : time                  := 1 ns;
       EXAMPLE_SIMULATION     : integer               := 0;
       GT_TYPE                : string                := "GTX";
       EQ_MODE                : string                := "DFE";  --RX Equalisation Mode; set to DFE or LPM
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
-      RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8
-      );
+      RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8);
    port (
       STABLE_CLOCK           : in  std_logic;  --Stable Clock, either a stable clock from the PCB
                                                --or reference-clock present at startup.
@@ -109,9 +108,7 @@ entity Gtx7RxRst is
       RXLPMLFHOLD            : out std_logic;
       RXLPMHFHOLD            : out std_logic;
 
-      RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                                                                                   -- Retries it took to get the transceiver up and running
-      );
+      RETRY_COUNTER : out std_logic_vector(RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0'));  -- Number of Retries it took to get the transceiver up and running
 end Gtx7RxRst;
 
 --Interdependencies:
@@ -122,15 +119,14 @@ end Gtx7RxRst;
 --   => signal which PLL has been reset
 -- *
 
-
-
 architecture RTL of Gtx7RxRst is
-   type rx_rst_fsm_type is(
+
+   type RxRstFsmType is (
       INIT, ASSERT_ALL_RESETS, RELEASE_PLL_RESET, VERIFY_RECCLK_STABLE,
       RELEASE_MMCM_RESET, WAIT_RESET_DONE, DO_PHASE_ALIGNMENT,
       MONITOR_DATA_VALID, FSM_DONE);
 
-   signal rx_state : rx_rst_fsm_type := INIT;
+   signal rx_state : RxRstFsmType := INIT;
 
    constant MMCM_LOCK_CNT_MAX : integer := 1024;
    constant STARTUP_DELAY     : integer := 500;  --AR43482: Transceiver needs to wait for 500 ns after configuration
@@ -195,25 +191,24 @@ architecture RTL of Gtx7RxRst is
 
    signal fsmCnt : std_logic_vector(15 downto 0);
 
-   attribute dont_touch : string;
-   attribute dont_touch of rx_state,
-      reset_time_out,
-      recclk_mon_restart_count,
-      retry_counter_int,
-      time_out_wait_bypass_s3,
-      data_valid_sync : signal is "TRUE";
+   attribute dont_touch                             : string;
+   attribute dont_touch of rx_state                 : signal is "TRUE";
+   attribute dont_touch of reset_time_out           : signal is "TRUE";
+   attribute dont_touch of recclk_mon_restart_count : signal is "TRUE";
+   attribute dont_touch of retry_counter_int        : signal is "TRUE";
+   attribute dont_touch of time_out_wait_bypass_s3  : signal is "TRUE";
+   attribute dont_touch of data_valid_sync          : signal is "TRUE";
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      Synchronizer_run_phase_alignment,
-      Synchronizer_fsm_reset_done,
-      Synchronizer_SOFT_RESET,
-      Synchronizer_RXRESETDONE,
-      Synchronizer_time_out_wait_bypass,
-      Synchronizer_mmcm_lock_reclocked,
-      Synchronizer_data_valid,
-      Synchronizer_PLLLOCK,
-      Synchronizer_PHALIGNMENT_DONE : label is "TRUE";
+   attribute KEEP_HIERARCHY                                      : string;
+   attribute KEEP_HIERARCHY of Synchronizer_run_phase_alignment  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_fsm_reset_done       : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_SOFT_RESET           : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_RXRESETDONE          : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_time_out_wait_bypass : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_mmcm_lock_reclocked  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_data_valid           : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PLLLOCK              : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PHALIGNMENT_DONE     : label is "TRUE";
 
 begin
 

@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -337,10 +336,10 @@ architecture rtl of Gth7Core is
    signal txDlyEn              : sl;    -- GT TXDLYEN
 
    -- Tx Data Signals
-   signal txDataFull : slv(63 downto 0) := (others => '0');
-   signal txCharIsKFull,
-      txCharDispMode,
-      txCharDispVal : slv(7 downto 0) := (others => '0');
+   signal txDataFull     : slv(63 downto 0) := (others => '0');
+   signal txCharIsKFull  : slv(7 downto 0)  := (others => '0');
+   signal txCharDispMode : slv(7 downto 0)  := (others => '0');
+   signal txCharDispVal  : slv(7 downto 0)  := (others => '0');
 
    -- DRP Signals
    signal drpMuxAddr : slv(8 downto 0);

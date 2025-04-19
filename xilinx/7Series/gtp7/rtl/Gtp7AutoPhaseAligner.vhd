@@ -73,27 +73,24 @@
 
 --*****************************************************************************
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library surf;
 
 entity Gtp7AutoPhaseAligner is
-   generic(
-      GT_TYPE : string := "GTX"
-      );
-
-   port (STABLE_CLOCK         : in  std_logic;  --Stable Clock, either a stable clock from the PCB
-                                                --or reference-clock present at startup.
-         RUN_PHALIGNMENT      : in  std_logic;  --Signal from the main Reset-FSM to run the auto phase-alignment procedure
-         PHASE_ALIGNMENT_DONE : out std_logic := '0';  -- Auto phase-alignment performed sucessfully
-         PHALIGNDONE          : in  std_logic;  --\ Phase-alignment signals from and to the
-         DLYSRESET            : out std_logic;  -- |transceiver.
-         DLYSRESETDONE        : in  std_logic;  --/
-         RECCLKSTABLE         : in  std_logic   --/on the RX-side.
-
-         );
+   generic (
+      GT_TYPE : string := "GTX");
+   port (
+      STABLE_CLOCK         : in  std_logic;  --Stable Clock, either a stable clock from the PCB
+                                             --or reference-clock present at startup.
+      RUN_PHALIGNMENT      : in  std_logic;  --Signal from the main Reset-FSM to run the auto phase-alignment procedure
+      PHASE_ALIGNMENT_DONE : out std_logic := '0';  -- Auto phase-alignment performed sucessfully
+      PHALIGNDONE          : in  std_logic;  --\ Phase-alignment signals from and to the
+      DLYSRESET            : out std_logic;  -- |transceiver.
+      DLYSRESETDONE        : in  std_logic;  --/
+      RECCLKSTABLE         : in  std_logic);        --/on the RX-side.
 end Gtp7AutoPhaseAligner;
 
 architecture RTL of Gtp7AutoPhaseAligner is
@@ -109,12 +106,10 @@ architecture RTL of Gtp7AutoPhaseAligner is
 --          );
 --   end component;
 
-   type phase_align_auto_fsm is(
-      INIT, WAIT_PHRST_DONE, COUNT_PHALIGN_DONE, PHALIGN_DONE
-      );
+   type PhaseAlignFsmType is (INIT, WAIT_PHRST_DONE, COUNT_PHALIGN_DONE, PHALIGN_DONE);
 
-   signal phalign_state        : phase_align_auto_fsm := INIT;
-   signal phaligndone_prev     : std_logic            := '0';
+   signal phalign_state        : PhaseAlignFsmType := INIT;
+   signal phaligndone_prev     : std_logic         := '0';
    signal phaligndone_ris_edge : std_logic;
 
    signal count_phalign_edges : integer range 0 to 3 := 0;
@@ -124,21 +119,16 @@ architecture RTL of Gtp7AutoPhaseAligner is
 begin
 
    sync_PHALIGNDONE : entity surf.Synchronizer
-      port map
-      (
+      port map (
          clk     => STABLE_CLOCK,
          dataIn  => PHALIGNDONE,
-         dataOut => phaligndone_sync
-         );
+         dataOut => phaligndone_sync);
 
    sync_DLYSRESETDONE : entity surf.Synchronizer
-      port map
-      (
+      port map (
          clk     => STABLE_CLOCK,
          dataIn  => DLYSRESETDONE,
-         dataOut => dlysresetdone_sync
-         );
-
+         dataOut => dlysresetdone_sync);
 
    process(STABLE_CLOCK)
    begin

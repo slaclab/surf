@@ -16,15 +16,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.math_real.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Gtx7Core is
-
    generic (
       TPD_G : time := 1 ns;
 
@@ -50,7 +48,7 @@ entity Gtx7Core is
       PMA_RSV_G   : bit_vector := X"00018480";  -- Use X"00018480" when RXPLL=CPLL
                                                 -- Use X"001E7080" when RXPLL=QPLL and QPLL > 6.6GHz
       RX_OS_CFG_G : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G : bit_vector := x"03000023FF40200020";  -- Set by wizard
 
 
       -- Configure PLL sources
@@ -155,9 +153,7 @@ entity Gtx7Core is
       RX_CM_TRIM_G     : bit_vector := "010";
       RX_DFE_LPM_CFG_G : bit_vector := x"0954";
       RXDFELFOVRDEN_G  : sl         := '1';
-      RXDFEXYDEN_G     : sl         := '1'           -- This should always be 1
-      );
-
+      RXDFEXYDEN_G     : sl         := '1');         -- This should always be 1
    port (
       stableClkIn : in sl;  -- Freerunning clock needed to drive reset logic
 
@@ -239,7 +235,6 @@ entity Gtx7Core is
       drpAddr        : in  slv(8 downto 0)  := "000000000";
       drpDi          : in  slv(15 downto 0) := X"0000";
       drpDo          : out slv(15 downto 0));
-
 end entity Gtx7Core;
 
 architecture rtl of Gtx7Core is
@@ -741,9 +736,7 @@ begin
    -- GTX Instantiation
    --------------------------------------------------------------------------------------------------
    gtxe2_i : GTXE2_CHANNEL
-      generic map
-      (
-
+      generic map (
          --_______________________ Simulation-Only Attributes ___________________
 
          SIM_RECEIVER_DETECT_PASS => ("TRUE"),
@@ -1012,12 +1005,8 @@ begin
          RX_DFE_XYD_CFG => ("0000000000000"),
 
          -------------------------TX Configurable Driver Attributes--------------------------
-         TX_PREDRIVER_MODE => ('0')
-
-
-         )
-      port map
-      (
+         TX_PREDRIVER_MODE => ('0'))
+      port map (
          ---------------------------------- Channel ---------------------------------
          CFGRESET         => '0',
          CLKRSVD          => "0000",
@@ -1283,9 +1272,6 @@ begin
          TXCOMFINISH      => open,
          TXCOMINIT        => '0',
          TXCOMSAS         => '0',
-         TXCOMWAKE        => '0'
-
-         );
-
+         TXCOMWAKE        => '0');
 
 end architecture rtl;
