@@ -65,7 +65,7 @@ entity Pgp2fcRxPhy is
       phyRxDispErr : in  slv(1 downto 0);  -- PHY receive data has disparity error
       phyRxDecErr  : in  slv(1 downto 0);  -- PHY receive data not in table
       phyRxReady   : in  sl;            -- PHY receive interface is ready
-      phyRxInit    : out sl);             -- PHY receive interface init;
+      phyRxInit    : out sl);           -- PHY receive interface init;
 end Pgp2fcRxPhy;
 
 architecture Pgp2fcRxPhy of Pgp2fcRxPhy is

@@ -56,7 +56,7 @@ entity Pgp2bTxPhy is
       -- Physical Interface Signals
       phyTxData  : out slv(TX_LANE_CNT_G*16-1 downto 0);  -- PHY receive data
       phyTxDataK : out slv(TX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data is K character
-      phyTxReady : in  sl);               -- PHY receive interface is ready
+      phyTxReady : in  sl);             -- PHY receive interface is ready
 end Pgp2bTxPhy;
 
 architecture Pgp2bTxPhy of Pgp2bTxPhy is

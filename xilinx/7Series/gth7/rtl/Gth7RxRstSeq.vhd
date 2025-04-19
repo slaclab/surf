@@ -252,7 +252,7 @@ begin
 -- RX_DATA_WIDTH is located at addr x"0011", [13 downto 11]
 -- encoding is this : /16 = x "2", /20 = x"3", /32 = x"4", /40 = x"5"
       gtrxreset_i  <= '0';
-      drpaddr_o    <= '0' & x"11";       -- 000010001
+      drpaddr_o    <= '0' & x"11";      -- 000010001
       drpen_o      <= '0';
       drpwe_o      <= '0';
       drpdi_o      <= x"0000";

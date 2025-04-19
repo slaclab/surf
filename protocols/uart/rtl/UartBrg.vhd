@@ -21,7 +21,7 @@ use surf.StdRtlPkg.all;
 entity UartBrg is
    generic (
       CLK_FREQ_G   : real    := 125.0E+6;  -- Default 125 MHz
-      BAUD_RATE_G  : integer := 115200;   -- Default 115.2 kbps
+      BAUD_RATE_G  : integer := 115200;    -- Default 115.2 kbps
       MULTIPLIER_G : integer := 16);
    port (
       clk       : in  sl;

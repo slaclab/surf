@@ -14,6 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Define excluded files using an array
 EXCLUDE_FILES=()
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../base/fifo/rtl/xilinx/FifoXpm.vhd" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/stdlib.vhd" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/orig" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../base/vhdl-libs" -type f -name "*.vhd")
