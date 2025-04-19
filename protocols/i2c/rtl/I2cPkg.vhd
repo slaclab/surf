@@ -1,16 +1,27 @@
--------------------------------------------------------------------------------
--- Company    : SLAC National Accelerator Laboratory
--------------------------------------------------------------------------------
--- Description: I2C VHDL Package
--------------------------------------------------------------------------------
--- This file is part of 'SLAC Firmware Standard Library'.
--- It is subject to the license terms in the LICENSE.txt file found in the
--- top-level directory of this distribution and at:
---    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
--- No part of 'SLAC Firmware Standard Library', including this file,
--- may be copied, modified, propagated, or distributed except according to
--- the terms contained in the LICENSE.txt file.
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--  This file is a part of the GRLIB VHDL IP LIBRARY
+--  Copyright (C) 2003 - 2008, Gaisler Research
+--  Copyright (C) 2008 - 2012, Aeroflex Gaisler
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 2 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with this program; if not, write to the Free Software
+--  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-----------------------------------------------------------------------------
+-- Package:     i2c
+-- File:        i2c.vhd
+-- Author:      Jiri Gaisler - Gaisler Research
+-- Description: I2C interface package
+------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -177,7 +188,7 @@ package I2cPkg is
 
    --------------------------------------------------------------------------------------------------
    -- Opencores i2c
-   component i2c_master_byte_ctrl
+   component i2c_master_byte_ctrl is
       generic (
          FILTER  : integer;
          DYNFILT : integer);
@@ -197,7 +208,7 @@ package I2cPkg is
          write  : in std_logic;
          ack_in : in std_logic;
          din    : in std_logic_vector(7 downto 0);
-         filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
+         filt   : in std_logic_vector((FILTER-1)*DYNFILT downto 0);
 
          -- output signals
          cmd_ack  : out std_logic;
@@ -213,7 +224,7 @@ package I2cPkg is
          sda_i   : in  std_logic;       -- i2c data line input
          sda_o   : out std_logic;       -- i2c data line output
          sda_oen : out std_logic);  -- i2c data line output enable, active low
-   end component;
+   end component i2c_master_byte_ctrl;
 
 end package I2cPkg;
 

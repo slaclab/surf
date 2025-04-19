@@ -211,6 +211,7 @@ rule:
     case: 'PascalCase'
     case_exceptions:
       - 'mkAxiSTransportLayer'
+      - 'i2c_master_byte_ctrl'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-017
   component_017:
