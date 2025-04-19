@@ -24,6 +24,10 @@ rule:
   # Alias Declaration Rules
   ##############################################################################################################
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/alias_declaration_rules.html#alias-declaration-502
+  alias_declaration_502:
+    disable: true
+
   ##############################################################################################################
   # Architecture Rules
   ##############################################################################################################
@@ -67,6 +71,14 @@ rule:
   architecture_029:
     disable: true # emacs doesn't always align comments in this fashion
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/architecture_rules.html#architecture-400
+  architecture_400:
+    disable: true # emacs doesn't always align comments in this fashion
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/architecture_rules.html#architecture-601
+  architecture_601:
+    disable: true
+
   ##############################################################################################################
   # Array Constraint Rules
   ##############################################################################################################
@@ -74,6 +86,14 @@ rule:
   ##############################################################################################################
   # Assert Rules
   ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/assert_rules.html#assert-002
+  assert_002:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/assert_rules.html#assert-003
+  assert_003:
+    disable: true
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/assert_rules.html#assert-004
   assert_004:
@@ -178,14 +198,47 @@ rule:
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-008
   component_008:
     case: 'PascalCase'
+    case_exceptions:
+      - 'mkCrcRawAxiStreamCustomSend'
+      - 'mkCrcRawAxiStreamCustomRecv'
+      - 'mkAxiSTransportLayer'
+      - 'XauiGth7Core_block'
+      - 'XauiGtx7Core_block'
+      - 'i2c_master_byte_ctrl'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-012
   component_012:
     case: 'PascalCase'
+    case_exceptions:
+      - 'mkAxiSTransportLayer'
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-017
+  component_017:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-019
+  component_019:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-020
+  component_020:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-021
+  component_021:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-022
+  component_022:
+    disable: true
 
   ##############################################################################################################
   # Concurrent Rules
   ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/concurrent_rules.html#concurrent-003
+  concurrent_003:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/concurrent_rules.html#concurrent-006
   concurrent_006:
@@ -193,6 +246,14 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/concurrent_rules.html#concurrent-008
   concurrent_008:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/concurrent_rules.html#concurrent-009
+  concurrent_009:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/concurrent_rules.html#concurrent-011
+  concurrent_011:
     disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   ##############################################################################################################
@@ -209,6 +270,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/conditional_waveforms_rules.html#conditional-waveforms-101
   conditional_waveforms_101:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/conditional_waveforms_rules.html#conditional-waveforms-102
+  conditional_waveforms_102:
     disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   ##############################################################################################################
@@ -349,9 +414,20 @@ rule:
   function_008:
     disable: true # emacs doesn't always align functions in this fashion
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/function_rules.html#function-015
+  function_015:
+    disable: true # emacs doesn't always align functions in this fashion
+
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/function_rules.html#function-017
   function_017:
-    case: 'relaxedCamelCase'
+    # case: 'relaxedCamelCase'
+    # case_exceptions:
+      # - 'StdMatch'
+      # - 'to_cfixed'
+      # - 'to_cfixedArray'
+      # - 'to_sfixedArray'
+      # - 'to_slv'
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/function_rules.html#function-019
   function_019:
@@ -367,7 +443,14 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/function_rules.html#function-506
   function_506:
-    case: 'camelCase'
+    # case: 'camelCase'
+    # case_exceptions:
+      # - 'StdMatch'
+      # - 'to_cfixed'
+      # - 'to_cfixedArray'
+      # - 'to_sfixedArray'
+      # - 'to_slv'
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/function_rules.html#function-507
   function_507:
@@ -535,6 +618,85 @@ rule:
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-009
   instantiation_009:
     case: 'PascalCase'
+    case_exceptions:
+      - 'xpm_fifo_async'
+      - 'xpm_fifo_sync'
+      - 'xpm_memory_tdpram'
+      - 'xpm_memory_sdpram'
+      - 'dcfifo'
+      - 'scfifo'
+      - 'RAM32X1S'
+      - 'RAM64X1S'
+      - 'RAM128X1S'
+      - 'RAM256X1S'
+      - 'RAM512X1S'
+      - 'IBUF'
+      - 'IBUFDS'
+      - 'IBUFGDS'
+      - 'IBUFDS_DIFF_OUT'
+      - 'IBUFDS_GTE2'
+      - 'IBUFDS_GTE3'
+      - 'IBUFDS_GTE4'
+      - 'IDELAYE2'
+      - 'IDELAYE3'
+      - 'IDELAYCTRL'
+      - 'IDDR'
+      - 'IDDRE1'
+      - 'ISERDESE2'
+      - 'ISERDESE3'
+      - 'ODDR'
+      - 'ODDRE1'
+      - 'OSERDESE2'
+      - 'OSERDESE3'
+      - 'ODELAYE2'
+      - 'ODELAYE3'
+      - 'OBUFDS'
+      - 'OBUFT'
+      - 'OBUFTDS'
+      - 'IOBUF'
+      - 'IOBUFDS'
+      - 'MMCME2_ADV'
+      - 'MMCME3_ADV'
+      - 'MMCME4_ADV'
+      - 'PLL_BASE'
+      - 'PLLE2_ADV'
+      - 'PLLE3_ADV'
+      - 'PLLE4_ADV'
+      - 'BUFG'
+      - 'BUFG_GT'
+      - 'BUFGMUX_CTRL'
+      - 'BUFH'
+      - 'BUFR'
+      - 'BUFIO'
+      - 'BUFGCE_DIV'
+      - 'GTP_DUAL'
+      - 'GTPE2_CHANNEL'
+      - 'GTXE2_CHANNEL'
+      - 'GTHE2_CHANNEL'
+      - 'GTHE3_CHANNEL'
+      - 'GTHE4_CHANNEL'
+      - 'GTYE4_CHANNEL'
+      - 'GTPE2_COMMON'
+      - 'GTXE2_COMMON'
+      - 'GTHE2_COMMON'
+      - 'GTHE3_COMMON'
+      - 'GTHE4_COMMON'
+      - 'GTYE4_COMMON'
+      - 'SRL16E'
+      - 'LUT6_2'
+      - 'CARRY8'
+      - 'ICAPE2'
+      - 'ICAPE3'
+      - 'FRAME_ECCE2'
+      - 'XADC'
+      - 'DNA_PORT'
+      - 'DNA_PORTE2'
+      - 'DSP48E1'
+      - 'mkCrcRawAxiStreamCustomSend'
+      - 'mkCrcRawAxiStreamCustomRecv'
+      - 'mkAxiSTransportLayer'
+      - 'XauiGth7Core_block'
+      - 'XauiGtx7Core_block'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-010
   instantiation_010:
@@ -546,12 +708,23 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-028
   instantiation_028:
-    case: 'PascalCase'
-    prefix_exceptions: ['ieee']
+    # case: 'PascalCase'
+    # case_exceptions:
+      # - 'sfixedDelay'
+      # - 'cfixedDelay'
+      # - 'sfixedMult'
+      # - 'add3'
+      # - 'csa3'
+      # - 'CRC7Rtl'
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-029
   instantiation_029:
     disable: true # emacs doesn't always align comments in this fashion
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-033
+  instantiation_033:
+    disable: true
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-034
   instantiation_034:
@@ -560,8 +733,18 @@ rule:
   ##############################################################################################################
   # Length Rules
   ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/length_rules.html#length-001
   length_001 :
-     length : 180
+     length : 1000
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/length_rules.html#length-002
+  length_002 :
+     length : 10000
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/length_rules.html#length-003
+  length_003 :
+     length : 10000
 
   ##############################################################################################################
   # Library Rules
@@ -615,6 +798,10 @@ rule:
   package_019:
     disable: true
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/package_rules.html#package-400
+  package_400:
+     disable: true # emacs doesn't always align comments in this fashion
+
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/package_rules.html#package-401
   package_401:
      disable: true # emacs doesn't always align comments in this fashion
@@ -658,6 +845,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/port_rules.html#port-014
   port_014:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/port_rules.html#port-015
+  port_015:
     disable: true
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/port_rules.html#port-022
@@ -714,6 +905,10 @@ rule:
   procedure_014:
     disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/procedure_rules.html#procedure-100
+  procedure_100:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/procedure_rules.html#procedure-200
   procedure_200:
     disable: true # TODO: disabled for now but maybe we should consider enforcing this
@@ -742,6 +937,18 @@ rule:
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/procedure_rules.html#procedure-509
   procedure_509:
     # case: 'camelCase'
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  ##############################################################################################################
+  # Procedure Call Rules
+  ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/procedure_call_rules.html#procedure-call-400
+  procedure_call_400:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/procedure_call_rules.html#procedure-call-502
+  procedure_call_502:
     disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   ##############################################################################################################
@@ -788,7 +995,8 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/process_rules.html#process-022
   process_022:
-    style: 'no_blank_line'
+    # style: 'no_blank_line'
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/process_rules.html#process-023
   process_023:
@@ -800,6 +1008,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/process_rules.html#process-027
   process_027:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/process_rules.html#process-031
+  process_031:
     disable: true
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/process_rules.html#process-034
@@ -830,9 +1042,37 @@ rule:
   report_statement_002:
     disable: true
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/report_statement_rules.html#report-statement-400
+  report_statement_400:
+    disable: true
+
+  ##############################################################################################################
+  # Selected Assignment Rules
+  ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/selected_assignment_rules.html#selected-assignment-003
+  selected_assignment_003:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/selected_assignment_rules.html#selected-assignment-005
+  selected_assignment_005:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/selected_assignment_rules.html#selected-assignment-106
+  selected_assignment_106:
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
   ##############################################################################################################
   # Sequential Rules
   ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/sequential_rules.html#sequential-004
+  sequential_004:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/sequential_rules.html#sequential-007
+  sequential_007:
+    disable: true
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/sequential_rules.html#sequential-008
   sequential_008:
@@ -853,7 +1093,12 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/signal_rules.html#signal-014
   signal_014:
-    case: 'camelCase'
+    # case: 'camelCase'
+    disable: true # TODO: disabled for now but maybe we should consider enforcing this
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/signal_rules.html#signal-400
+  signal_400:
+    disable: true
 
   ##############################################################################################################
   # Subprogram Body Rules
@@ -903,6 +1148,15 @@ rule:
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/type_rules.html#type-004
   type_004:
     case: 'PascalCase'
+    case_exceptions:
+      - 'frequency'
+      - 'cfixed'
+      - 'sfixedArray'
+      - 'cfixedArray'
+      - 'i2c_in_type'
+      - 'i2c_in_array'
+      - 'i2c_out_type'
+      - 'i2c_out_array'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/type_rules.html#type-008
   type_008:
@@ -947,8 +1201,15 @@ rule:
       - 'std_logic_1164'
       - 'std_logic_unsigned'
       - 'std_logic_arith'
+      - 'std_logic_misc'
       - 'math_real'
-      - 'NUMERIC_STD'
+      - 'math_complex'
+      - 'fixed_pkg'
+      - 'fixed_float_types'
+      - 'float_pkg'
+      - 'numeric_std'
+      - 'textio'
+      - 'vcomponents'
 
   ##############################################################################################################
   # Variable Rules
@@ -957,14 +1218,28 @@ rule:
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_rules.html#variable-004
   variable_004:
     case: 'camelCase'
+    case_exceptions:
+      - 'RE'
+      - 'IM'
+      - 'RIM'
+      - 'LIM'
+      - 'RIM'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_rules.html#variable-007
   variable_007:
     disable: true
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_rules.html#variable-011
+  variable_011:
+    disable: true
+
   ##############################################################################################################
   # Variable Assignment Rules
   ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_assignment_rules.html#variable-assignment-001
+  variable_assignment_001:
+    disable: true
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_assignment_rules.html#variable-assignment-004
   variable_assignment_004:
@@ -972,6 +1247,14 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_assignment_rules.html#variable-assignment-007
   variable_assignment_007:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_assignment_rules.html#variable-assignment-401
+  variable_assignment_401:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_assignment_rules.html#variable-assignment-008
+  variable_assignment_008:
     disable: true
 
   ##############################################################################################################

@@ -17,9 +17,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Define excluded files using an array
 EXCLUDE_FILES=()
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../base/vhdl-libs" -type f -name "*.vhd")
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../ethernet/EthMacCore/rtl/EthCrc32Pkg.vhd" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/stdlib.vhd" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/orig" -type f -name "*.vhd")
-while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../base/vhdl-libs" -type f -name "*.vhd")
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/i2c_master_byte_ctrl.vhd" -type f -name "*.vhd")
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/i2c_master_bit_ctrl.vhd" -type f -name "*.vhd")
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/I2cMaster.vhd" -type f -name "*.vhd")
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/I2cSlave.vhd" -type f -name "*.vhd")
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../xilinx/xvc-udp/dcp" -type f -name "*.vhd")
 
 # Build a lookup table using associative array
 declare -A EXCLUDE_MAP
@@ -39,8 +45,7 @@ done < <(find "$SCRIPT_DIR/../" -type f -name "*.vhd")
 
 # Run vsg on all included files at once
 if [[ ${#INCLUDED_FILES[@]} -gt 0 ]]; then
-    # vsg -f "${INCLUDED_FILES[@]}" --configuration "$SCRIPT_DIR/../vsg-linter.yml"
-    echo "${INCLUDED_FILES[@]}"
+    vsg -f "${INCLUDED_FILES[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml"
 else
     echo "No files to lint."
 fi
