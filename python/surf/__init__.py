@@ -7,4 +7,5 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+import rogue
 rogue.Version.minVersion('6.1.0')

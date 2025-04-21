@@ -40,6 +40,38 @@ class AxiStreamRingBuffer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = 'TrigState',
+            description  = 'Current state of the trigger FSM',
+            offset       = 0x0,
+            bitSize      = 2,
+            bitOffset    = 28,
+            mode         = 'RO',
+            pollInterval = 1,
+            # hidden       = True,
+            enum         = {
+                0: 'IDLE_S',
+                1: 'ARMED_S',
+                2: 'WAIT_S',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'DataState',
+            description  = 'Current state of the trigger FSM',
+            offset       = 0x0,
+            bitSize      = 2,
+            bitOffset    = 30,
+            mode         = 'RO',
+            pollInterval = 1,
+            # hidden       = True,
+            enum         = {
+                0: 'IDLE_S',
+                1: 'MOVE_S',
+                2: 'CLEARED_S',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'TrigCnt',
             description  = 'current value of the trigger counter',
             offset       = 0x4,
