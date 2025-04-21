@@ -158,7 +158,6 @@ class PhantomS991(pr.Device):
             offset       = 0x8070,
             base         = pr.UIntBE,
             mode         = 'RW',
-            base         = pr.Bool,
         ))
 
         self.add(pr.RemoteVariable(
