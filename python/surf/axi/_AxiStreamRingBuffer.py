@@ -47,7 +47,7 @@ class AxiStreamRingBuffer(pr.Device):
             bitOffset    = 28,
             mode         = 'RO',
             pollInterval = 1,
-            # hidden       = True,
+            hidden       = True,
             enum         = {
                 0: 'IDLE_S',
                 1: 'ARMED_S',
@@ -63,7 +63,7 @@ class AxiStreamRingBuffer(pr.Device):
             bitOffset    = 30,
             mode         = 'RO',
             pollInterval = 1,
-            # hidden       = True,
+            hidden       = True,
             enum         = {
                 0: 'IDLE_S',
                 1: 'MOVE_S',
