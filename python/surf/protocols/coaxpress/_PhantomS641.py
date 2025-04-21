@@ -170,7 +170,7 @@ class PhantomS991(pr.Device):
             minimum      = 0,
             maximum      = 2560,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'OffsetYReg',
             description  = 'This feature represents the OffsetY',
@@ -179,7 +179,7 @@ class PhantomS991(pr.Device):
             mode         = 'RW',
             minimum      = 0,
             maximum      = 1600,
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'ActiveWidthReg',
@@ -195,15 +195,15 @@ class PhantomS991(pr.Device):
             offset       = 0x8088,
             base         = pr.UIntBE,
             mode         = 'RO',
-        ))        
-        
+        ))
+
         self.add(pr.RemoteVariable(
             name         = 'MROISpecialReg',
             description  = 'Additional MultiROI Helper Registers',
             offset       = 0x84FC,
             base         = pr.UIntBE,
             mode         = 'RO',
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'RegionIDValueReg',
@@ -219,7 +219,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8500,
             base         = pr.UIntBE,
             mode         = 'RO',
-        ))   
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'WindowYTOPReg',
@@ -227,7 +227,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8504,
             base         = pr.UIntBE,
             mode         = 'RO',
-        )) 
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'WindowYBOTReg',
@@ -235,7 +235,7 @@ class PhantomS991(pr.Device):
             offset       = 0x8508,
             base         = pr.UIntBE,
             mode         = 'RO',
-        ))         
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'AcquisitionModeReg',
@@ -336,7 +336,7 @@ class PhantomS991(pr.Device):
                 2: 'Continuous',
             },
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'ExposureAutoCompensationReg',
             description  = 'Sets the auto exposure compensation factor',
@@ -345,7 +345,7 @@ class PhantomS991(pr.Device):
             mode         = 'RW',
             minimum      = -2,
             maximum      = 2,
-        ))      
+        ))
 
         self.add(pr.RemoteVariable(
             name         = 'ExposureAutoModeReg',
@@ -774,7 +774,7 @@ class PhantomS991(pr.Device):
             mode         = 'RW',
             hidden       = True,
         ))
-        
+
         self.add(pr.RemoteVariable(
             name         = 'DeviceFeaturesMaskReg',
             description  = 'Device Features, set by loader - LSB to MSB: shtr, eos, mroi, ffc',
@@ -782,4 +782,4 @@ class PhantomS991(pr.Device):
             base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
-        ))        
+        ))
