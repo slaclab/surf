@@ -35,7 +35,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DeviceIPAddress',
-            description  = 'Category for Device information and control.',
+            description  = 'This feature provides the static IP address of the device',
             offset       = 0x8300,
             base         = pr.String,
             bitSize      = 8*32,
@@ -45,7 +45,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DeviceNetmask',
-            description  = 'Category for Device information and control.',
+            description  = 'This feature provides the Netmask address of the device',
             offset       = 0x8320,
             base         = pr.String,
             bitSize      = 8*32,
@@ -188,7 +188,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'pFrameRateReg',
-            description  = 'Frame rate in Hz.',
+            description  = 'Frame rate in Hz',
             offset       = 0x80C0,
             base         = pr.UIntBE,
             mode         = 'RW',
@@ -200,7 +200,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'pFrameRateRegMax',
-            description  = 'Frame rate in Hz.',
+            description  = 'Maximum value for pFrameRateReg',
             offset       = 0x80C4,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -222,7 +222,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'pExposureTimeRegMax',
-            description  = 'Sets the Exposure time (in microseconds). This controls the duration where the photosensitive cells are exposed to light.',
+            description  = 'Maximum value for ExposureTimeReg',
             offset       = 0x80CC,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -370,7 +370,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LensApertureMinReg',
-            description  = '',
+            description  = 'Minimum value for LensApertureReg',
             offset       = 0x81A4,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -378,7 +378,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LensApertureMaxReg',
-            description  = '',
+            description  = 'Maximum value for LensApertureReg',
             offset       = 0x81A8,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -477,7 +477,7 @@ class PhantomS991(pr.Device):
             mode         = 'RW',
             enum         = {
                 0: 'Off',
-                1: 'Once',
+                1: 'On',
             },
         ))
 
@@ -511,15 +511,15 @@ class PhantomS991(pr.Device):
                 bitOffset    = 24-(i*8),
                 mode         = 'RW',
                 enum         = {
-                    0:  'eventin',
-                    3:  'memgate',
-                    6:  'userin',
-                    16: 'strobe',
-                    17: 'triggerout',
-                    18: 'ready',
-                    21: 'swtrigger',
-                    22: 'tcout',
-                    31: 'userout',
+                    0:  'EventIn',
+                    3:  'MemGate',
+                    6:  'UserIn',
+                    16: 'Strobe',
+                    17: 'TriggerOut',
+                    18: 'Ready',
+                    21: 'SWTrigger',
+                    22: 'TimecodeOut',
+                    31: 'UserOut',
                 },
             ))
 
@@ -585,7 +585,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'UserSerialTxReg',
-            description  = '',
+            description  = 'FOR User Serial Rx/Tx',
             offset       = 0x8148,
             base         = pr.UIntBE,
             mode         = 'RW',
@@ -594,7 +594,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'UserSerialRxReg',
-            description  = '',
+            description  = 'FOR User Serial Rx/Tx',
             offset       = 0x8154,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -603,7 +603,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'UserSerialBaudRateReg',
-            description  = '',
+            description  = 'FOR User Serial Rx/Tx',
             offset       = 0x8164,
             base         = pr.UIntBE,
             mode         = 'RW',
@@ -612,7 +612,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'FactorySerialTxReg',
-            description  = '',
+            description  = 'FOR Factory Serial Rx/Tx',
             offset       = 0x8140,
             base         = pr.UIntBE,
             mode         = 'RW',
@@ -621,7 +621,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'FactorySerialRxReg',
-            description  = '',
+            description  = 'FOR Factory Serial Rx/Tx',
             offset       = 0x8144,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -630,7 +630,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'FactorySerialUpdateReg',
-            description  = '',
+            description  = 'FOR Factory Serial Rx/Tx',
             offset       = 0x8130,
             base         = pr.UIntBE,
             mode         = 'RW',
