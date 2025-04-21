@@ -10,7 +10,7 @@
 
 import pyrogue as pr
 
-class PhantomS991(pr.Device):
+class PhantomS641(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         #############################################################
