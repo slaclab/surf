@@ -179,10 +179,10 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
 
             if (self.enable.get()):
                 matrixCfg = np.genfromtxt(path, dtype=np.int32, delimiter=',')
-                if matrixCfg.shape == (self.numCol, self.numRow):
+                if matrixCfg.shape == (self.numRow, self.numCol):
                     for i in range (self.numRow):
                         self._PixData[i].set(np.array(matrixCfg[i],np.uint32))
                 else:
-                    click.secho( f'.CSV file must be {self.numCol} X {self.numRow} pixels')
+                    click.secho( f'.CSV file must be {self.numCol} X {self.numRow} (cols X rows) pixels')
             else:
                 click.secho( "Warning: ASIC enable is set to False!")
