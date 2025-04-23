@@ -118,22 +118,20 @@
 
 --*******************************************************************************
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 entity Gth7RecClkMonitor is
-   generic(
+   generic (
       COUNTER_UPPER_VALUE      : integer := 20;  --ppm counter. For 2^20 cntr.
       GCLK_COUNTER_UPPER_VALUE : integer := 20;  --ppm counter. For 2^20 cntr.
       CLOCK_PULSES             : integer := 5000;
-      EXAMPLE_SIMULATION       : integer := 0  --The simulation-only constructs are not used but the
+      EXAMPLE_SIMULATION       : integer := 0);  --The simulation-only constructs are not used but the
                                         --full HW-circuitry gets simulated.
-                                               --NOTE OF CARE: This can extend the necessary simulation-
-                                               --time to beyond 600 ?s (six-hundred, sic!)
-
-      );
+   --NOTE OF CARE: This can extend the necessary simulation-
+   --time to beyond 600 ?s (six-hundred, sic!)
    port (
       GT_RST        : in  std_logic;
       REF_CLK       : in  std_logic;
@@ -143,33 +141,31 @@ entity Gth7RecClkMonitor is
       -- it can be tied high as the PLL-LK has already been
       -- verified in the previous state.
       RECCLK_STABLE : out std_logic;
-      EXEC_RESTART  : out std_logic
-      );
+      EXEC_RESTART  : out std_logic);
 end entity Gth7RecClkMonitor;
-
 
 architecture RTL of Gth7RecClkMonitor is
 
 --------------------------------------------------------------------------------
 -- Declaration of wires/regs
 --------------------------------------------------------------------------------
-   type FSM is (WAIT_FOR_LOCK, REFCLK_EVENT, CALC_PPM_DIFF, CHECK_SIGN, COMP_CNTR, RESTART);
-   signal state : FSM;
+   type StateType is (WAIT_FOR_LOCK, REFCLK_EVENT, CALC_PPM_DIFF, CHECK_SIGN, COMP_CNTR, RESTART);
+   signal state : StateType;
 
 
    attribute syn_keep                       : boolean;
-   signal ref_clk_cnt                       : std_logic_vector (COUNTER_UPPER_VALUE-1 downto 0);
-   signal rec_clk0_cnt                      : std_logic_vector (COUNTER_UPPER_VALUE-1 downto 0) := (others => '0');
-   signal rec_clk0_msb                      : std_logic_vector (2 downto 1);
-   signal ref_clk_msb                       : std_logic_vector (2 downto 1);
+   signal ref_clk_cnt                       : std_logic_vector(COUNTER_UPPER_VALUE-1 downto 0);
+   signal rec_clk0_cnt                      : std_logic_vector(COUNTER_UPPER_VALUE-1 downto 0) := (others => '0');
+   signal rec_clk0_msb                      : std_logic_vector(2 downto 1);
+   signal ref_clk_msb                       : std_logic_vector(2 downto 1);
    signal rec_clk_0_msb_meta                : std_logic;
    attribute syn_keep of rec_clk_0_msb_meta : signal is true;
    signal ref_clk_msb_meta                  : std_logic;
    attribute syn_keep of ref_clk_msb_meta   : signal is true;
 
-   signal sys_clk_counter            : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto 0);
-   signal rec_clk0_compare_cnt_latch : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto 0);
-   signal ref_clk_compare_cnt_latch  : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto 0);
+   signal sys_clk_counter            : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
+   signal rec_clk0_compare_cnt_latch : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
+   signal ref_clk_compare_cnt_latch  : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
 
    signal g_clk_rst_meta                    : std_logic;
    attribute syn_keep of g_clk_rst_meta     : signal is true;
@@ -186,13 +182,13 @@ architecture RTL of Gth7RecClkMonitor is
    signal reset_logic_ref_sync                 : std_logic;
 
    signal rec_clk0_edge_event : std_logic;
-   signal ref_clk_edge_event  : std_logic_vector (1 downto 0);
+   signal ref_clk_edge_event  : std_logic_vector(1 downto 0);
 
-   signal ppm0 : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto 0);
+   signal ppm0 : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
 
    signal recclk_stable0  : std_logic;
-   signal reset_logic     : std_logic_vector (3 downto 0);
-   signal ref_clk_edge_rt : std_logic_vector (1 downto 0);
+   signal reset_logic     : std_logic_vector(3 downto 0);
+   signal ref_clk_edge_rt : std_logic_vector(1 downto 0);
 
    signal g_clk_rst          : std_logic;
    signal gt_pll_locked      : std_logic;
@@ -223,6 +219,7 @@ architecture RTL of Gth7RecClkMonitor is
 --------------------------------------------------------------------------------
 -- Main Logic
 --------------------------------------------------------------------------------
+
 begin
 
    HW_circuitry : if not simulation or (EXAMPLE_SIMULATION = 0) generate
@@ -284,7 +281,7 @@ begin
 --required.
 --------------------------------------------------------------------------------
 
--- Synchronize reset to global Clock domain
+      -- Synchronize reset to global Clock domain
       process (SYSTEM_CLK)
       begin
          if rising_edge(SYSTEM_CLK) then
@@ -300,7 +297,7 @@ begin
       gt_pll_locked <= gt_pll_locked_sync;
 
 
--- Main FSM
+      -- Main FSM
       process (SYSTEM_CLK)
       begin
          if rising_edge(SYSTEM_CLK) then
@@ -371,17 +368,17 @@ begin
                ref_clk_compare_cnt_latch  <= (others => '0');
                ref_clk_edge_rt            <= "00";
             else
-               if ((rec_clk0_edge = '1') and(rec_clk0_edge_event = '0')) then
+               if ((rec_clk0_edge = '1') and (rec_clk0_edge_event = '0')) then
                   rec_clk0_edge_event        <= '1';
                   rec_clk0_compare_cnt_latch <= sys_clk_counter;
                end if;
                if (ref_clk_edge = '1') then
-                  ref_clk_edge_event <= ref_clk_edge_event(0)&'1';
+                  ref_clk_edge_event <= ref_clk_edge_event(0) & '1';
                   --only latch it the first time around
                   if (ref_clk_edge_event(0) = '0') then
                      ref_clk_compare_cnt_latch <= sys_clk_counter;
                   end if;
-                  ref_clk_edge_rt <= ref_clk_edge_rt(0) &ref_clk_edge;
+                  ref_clk_edge_rt <= ref_clk_edge_rt(0) & ref_clk_edge;
                   --take the 2's complement number after we latched it
                   if ((ref_clk_edge_event = "01") and (ref_clk_edge_rt = "01")) then
                      ref_clk_compare_cnt_latch <= not ref_clk_compare_cnt_latch +1;
@@ -413,17 +410,17 @@ begin
                ref_clk_msb        <= "00";
             else  -- double flop msb count bit to system clock domain
                rec_clk_0_msb_meta <= rec_clk0_cnt(COUNTER_UPPER_VALUE-1);
-               rec_clk0_msb       <= rec_clk0_msb(1)&rec_clk_0_msb_meta;
+               rec_clk0_msb       <= rec_clk0_msb(1) & rec_clk_0_msb_meta;
 
                ref_clk_msb_meta <= ref_clk_cnt(COUNTER_UPPER_VALUE-1);
-               ref_clk_msb      <= ref_clk_msb(1)&ref_clk_msb_meta;
+               ref_clk_msb      <= ref_clk_msb(1) & ref_clk_msb_meta;
             end if;
          end if;
       end process;
 
 --falling edge detect
-      rec_clk0_edge <= '1' when ((rec_clk0_msb(2) = '1')and (rec_clk0_msb(1) = '0')) else '0';
-      ref_clk_edge  <= '1' when ((ref_clk_msb(2) = '1')and (ref_clk_msb(1) = '0'))   else '0';
+      rec_clk0_edge <= '1' when ((rec_clk0_msb(2) = '1') and (rec_clk0_msb(1) = '0')) else '0';
+      ref_clk_edge  <= '1' when ((ref_clk_msb(2) = '1') and (ref_clk_msb(1) = '0'))   else '0';
 
 -- Manage counter reset/restart
       process (SYSTEM_CLK)

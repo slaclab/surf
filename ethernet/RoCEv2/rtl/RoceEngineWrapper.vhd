@@ -58,7 +58,7 @@ end RoceEngineWrapper;
 
 architecture mapping of RoceEngineWrapper is
 
-   component mkAxiSTransportLayer is
+   component mkAxiSTransportLayer
       port (
          CLK                        : in  std_logic;
          RST_N                      : in  std_logic;
@@ -125,7 +125,7 @@ architecture mapping of RoceEngineWrapper is
          s_dma_read_is_resp_err     : in  std_logic;
          s_dma_read_data_stream     : in  std_logic_vector(289 downto 0);
          s_dma_read_ready           : out std_logic);
-   end component mkAxiSTransportLayer;
+   end component;
 
    signal roceRstN               : sl;
    signal obUdpRoceMaster_tValid : sl;

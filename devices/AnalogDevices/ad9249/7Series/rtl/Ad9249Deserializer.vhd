@@ -12,17 +12,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
 library ieee;
 use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-library UNISIM;
-use UNISIM.vcomponents.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249Deserializer is
-
    generic (
       TPD_G             : time := 1 ns;
       IODELAY_GROUP_G   : string;
@@ -41,7 +40,6 @@ entity Ad9249Deserializer is
 
       iData : in  sl;
       oData : out slv(13 downto 0));
-
 end entity Ad9249Deserializer;
 
 architecture rtl of Ad9249Deserializer is
@@ -63,8 +61,7 @@ begin
          IDELAY_TYPE           => "VAR_LOAD",
          IDELAY_VALUE          => 0,    -- Here
          REFCLK_FREQUENCY      => IDELAYCTRL_FREQ_G,
-         SIGNAL_PATTERN        => "DATA"
-         )
+         SIGNAL_PATTERN        => "DATA")
       port map (
          C           => sysClk,
          REGRST      => '0',
@@ -88,7 +85,7 @@ begin
          DYN_CLK_INV_EN    => "FALSE",
          NUM_CE            => 1,
          OFB_USED          => "FALSE",
-         IOBDELAY          => "IFD",    -- Use input at DDLY to output the data on Q1-Q6
+         IOBDELAY          => "IFD",  -- Use input at DDLY to output the data on Q1-Q6
          SERDES_MODE       => "MASTER")
       port map (
          Q1           => oData(0),
@@ -101,11 +98,11 @@ begin
          Q8           => oData(7),
          SHIFTOUT1    => shift1,        -- Cascade connection to Slave ISERDES
          SHIFTOUT2    => shift2,        -- Cascade connection to Slave ISERDES
-         BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any
-                                    -- DATA_WIDTH, cascaded or not.
+         BITSLIP      => slip,  -- 1-bit Invoke Bitslip. This can be used with any
+         -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input
-         CLK          => clkIo,         -- Fast Source Synchronous SERDES clock from BUFIO
+         CLK          => clkIo,  -- Fast Source Synchronous SERDES clock from BUFIO
          CLKB         => clkIoInv,      -- Locally inverted clock
          CLKDIV       => clkR,          -- Slow clock driven by BUFR
          CLKDIVP      => '0',
@@ -131,7 +128,7 @@ begin
          DYN_CLK_INV_EN    => "FALSE",
          NUM_CE            => 1,
          OFB_USED          => "FALSE",
-         IOBDELAY          => "IFD",    -- Use input at DDLY to output the data on Q1-Q6
+         IOBDELAY          => "IFD",  -- Use input at DDLY to output the data on Q1-Q6
          SERDES_MODE       => "SLAVE")
       port map (
          Q1           => open,
@@ -144,17 +141,17 @@ begin
          Q8           => oData(13),
          SHIFTOUT1    => open,
          SHIFTOUT2    => open,
-         SHIFTIN1     => shift1,        -- Cascade connections from Master ISERDES
-         SHIFTIN2     => shift2,        -- Cascade connections from Master ISERDES
-         BITSLIP      => slip,          -- 1-bit Invoke Bitslip. This can be used with any
-                                    -- DATA_WIDTH, cascaded or not.
+         SHIFTIN1     => shift1,  -- Cascade connections from Master ISERDES
+         SHIFTIN2     => shift2,  -- Cascade connections from Master ISERDES
+         BITSLIP      => slip,  -- 1-bit Invoke Bitslip. This can be used with any
+         -- DATA_WIDTH, cascaded or not.
          CE1          => '1',           -- 1-bit Clock enable input
          CE2          => '1',           -- 1-bit Clock enable input
          CLK          => clkIo,         -- Fast source synchronous serdes clock
          CLKB         => clkIoInv,      -- locally inverted clock
          CLKDIV       => clkR,          -- Slow clock driven by BUFR.
          CLKDIVP      => '0',
-         D            => '0',           -- Slave ISERDES module. No need to connect D, DDLY
+         D            => '0',  -- Slave ISERDES module. No need to connect D, DDLY
          DDLY         => '0',
          RST          => rst,           -- 1-bit Asynchronous reset only.
          -- unused connections

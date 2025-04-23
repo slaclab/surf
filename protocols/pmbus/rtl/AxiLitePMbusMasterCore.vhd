@@ -175,7 +175,7 @@ begin
          srst   => axilRst);
 
    comb : process (axilReadMaster, axilRst, axilWriteMaster, r, regOut) is
-      variable v          : regType;
+      variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
       variable axilResp   : slv(1 downto 0);
       variable wrIdx      : natural;

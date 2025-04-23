@@ -116,9 +116,9 @@ begin
    begin
       IDELAYCTRL_Inst : IDELAYCTRL
          port map (
-            RDY    => delayOut.rdy,        -- 1-bit output: Ready output
-            REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
-            RST    => refRst200MHz);       -- 1-bit input: Active high reset input
+            RDY    => delayOut.rdy,     -- 1-bit output: Ready output
+            REFCLK => refClk200MHz,     -- 1-bit input: Reference clock input
+            RST    => refRst200MHz);    -- 1-bit input: Active high reset input
 
    end generate;
 

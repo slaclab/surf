@@ -56,7 +56,7 @@ architecture rtl of EthMacTxExportGmii is
       TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
       TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
-   type StateType is(
+   type StateType is (
       IDLE_S,
       TX_PREAMBLE_S,
       TX_DATA_S,

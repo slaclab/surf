@@ -63,7 +63,7 @@ architecture rtl of ClinkUartThrottle is
       mUartMaster => AXI_STREAM_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
-   signal rin : Regtype;
+   signal rin : RegType;
 
 begin
 

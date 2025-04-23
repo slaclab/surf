@@ -25,7 +25,7 @@ entity MicroblazeBasicCoreWrapper is
    generic (
       TPD_G           : time    := 1 ns;
       AXIL_RESP_G     : boolean := false;
-      AXIL_ADDR_MSB_G : boolean := false;   -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
+      AXIL_ADDR_MSB_G : boolean := false;  -- false = [0x00000000:0x7FFFFFFF], true = [0x80000000:0xFFFFFFFF]
       AXIL_ADDR_SEL_G : boolean := false);
    port (
       -- Master AXI-Lite Interface
@@ -51,32 +51,32 @@ architecture mapping of MicroblazeBasicCoreWrapper is
 
    component MicroblazeBasicCore is
       port (
-         INTERRUPT        : in  std_logic_vector (7 downto 0);
+         INTERRUPT        : in  std_logic_vector(7 downto 0);
          GPIO_0_OUT       : out std_logic;
-         M0_AXIS_tdata    : out std_logic_vector (31 downto 0);
+         M0_AXIS_tdata    : out std_logic_vector(31 downto 0);
          M0_AXIS_tlast    : out std_logic;
          M0_AXIS_tready   : in  std_logic;
          M0_AXIS_tvalid   : out std_logic;
-         M_AXI_DP_araddr  : out std_logic_vector (31 downto 0);
-         M_AXI_DP_arprot  : out std_logic_vector (2 downto 0);
-         M_AXI_DP_arready : in  std_logic_vector (0 to 0);
-         M_AXI_DP_arvalid : out std_logic_vector (0 to 0);
-         M_AXI_DP_awaddr  : out std_logic_vector (31 downto 0);
-         M_AXI_DP_awprot  : out std_logic_vector (2 downto 0);
-         M_AXI_DP_awready : in  std_logic_vector (0 to 0);
-         M_AXI_DP_awvalid : out std_logic_vector (0 to 0);
-         M_AXI_DP_bready  : out std_logic_vector (0 to 0);
-         M_AXI_DP_bresp   : in  std_logic_vector (1 downto 0);
-         M_AXI_DP_bvalid  : in  std_logic_vector (0 to 0);
-         M_AXI_DP_rdata   : in  std_logic_vector (31 downto 0);
-         M_AXI_DP_rready  : out std_logic_vector (0 to 0);
-         M_AXI_DP_rresp   : in  std_logic_vector (1 downto 0);
-         M_AXI_DP_rvalid  : in  std_logic_vector (0 to 0);
-         M_AXI_DP_wdata   : out std_logic_vector (31 downto 0);
-         M_AXI_DP_wready  : in  std_logic_vector (0 to 0);
-         M_AXI_DP_wstrb   : out std_logic_vector (3 downto 0);
-         M_AXI_DP_wvalid  : out std_logic_vector (0 to 0);
-         S0_AXIS_tdata    : in  std_logic_vector (31 downto 0);
+         M_AXI_DP_araddr  : out std_logic_vector(31 downto 0);
+         M_AXI_DP_arprot  : out std_logic_vector(2 downto 0);
+         M_AXI_DP_arready : in  std_logic_vector(0 to 0);
+         M_AXI_DP_arvalid : out std_logic_vector(0 to 0);
+         M_AXI_DP_awaddr  : out std_logic_vector(31 downto 0);
+         M_AXI_DP_awprot  : out std_logic_vector(2 downto 0);
+         M_AXI_DP_awready : in  std_logic_vector(0 to 0);
+         M_AXI_DP_awvalid : out std_logic_vector(0 to 0);
+         M_AXI_DP_bready  : out std_logic_vector(0 to 0);
+         M_AXI_DP_bresp   : in  std_logic_vector(1 downto 0);
+         M_AXI_DP_bvalid  : in  std_logic_vector(0 to 0);
+         M_AXI_DP_rdata   : in  std_logic_vector(31 downto 0);
+         M_AXI_DP_rready  : out std_logic_vector(0 to 0);
+         M_AXI_DP_rresp   : in  std_logic_vector(1 downto 0);
+         M_AXI_DP_rvalid  : in  std_logic_vector(0 to 0);
+         M_AXI_DP_wdata   : out std_logic_vector(31 downto 0);
+         M_AXI_DP_wready  : in  std_logic_vector(0 to 0);
+         M_AXI_DP_wstrb   : out std_logic_vector(3 downto 0);
+         M_AXI_DP_wvalid  : out std_logic_vector(0 to 0);
+         S0_AXIS_tdata    : in  std_logic_vector(31 downto 0);
          S0_AXIS_tlast    : in  std_logic;
          S0_AXIS_tready   : out std_logic;
          S0_AXIS_tvalid   : in  std_logic;
@@ -85,10 +85,10 @@ architecture mapping of MicroblazeBasicCoreWrapper is
          reset            : in  std_logic);
    end component MicroblazeBasicCore;
 
-   signal awaddr : slv(31 downto 0);
-   signal araddr : slv(31 downto 0);
-   signal bresp  : slv(1 downto 0);
-   signal rresp  : slv(1 downto 0);
+   signal awaddr   : slv(31 downto 0);
+   signal araddr   : slv(31 downto 0);
+   signal bresp    : slv(1 downto 0);
+   signal rresp    : slv(1 downto 0);
    signal addr_sel : sl;
 
    signal txMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;

@@ -441,7 +441,7 @@ begin
          dina  => r.ramDin,
          -- Port B
          clkb  => axiClk,
-         rstb  => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
+         rstb  => '0',  -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
          addrb => r.raddr,
          doutb => ramDout);
 

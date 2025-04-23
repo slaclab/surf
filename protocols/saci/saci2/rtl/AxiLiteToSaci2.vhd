@@ -26,9 +26,9 @@ use surf.AxiLitePkg.all;
 entity AxiLiteToSaci2 is
    generic (
       TPD_G              : time                  := 1 ns;
-      AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;  -- In units of seconds
+      AXIL_CLK_PERIOD_G  : real                  := 8.0E-9;  -- In units of seconds
       AXIL_TIMEOUT_G     : real                  := 1.0E-3;  -- In units of seconds
-      SACI_CLK_PERIOD_G  : real                  := 1.0e-6;  -- In units of seconds
+      SACI_CLK_PERIOD_G  : real                  := 1.0E-6;  -- In units of seconds
       SACI_CLK_FREERUN_G : boolean               := false;
       SACI_ADDR_BITS_G   : integer range 2 to 30 := 24;
       SACI_NUM_CHIPS_G   : positive              := 1;

@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiAd9467Pkg.all;
@@ -48,13 +47,13 @@ end AxiAd9467Deser;
 
 architecture rtl of AxiAd9467Deser is
 
-   signal adcDataPs,
-      adcDataNs,
-      adcDataP,
-      adcDataN,
-      adcDataNd,
-      adcDmuxA,
-      adcDmuxB : slv(7 downto 0) := (others => '0');
+   signal adcDataPs : slv(7 downto 0) := (others => '0');
+   signal adcDataNs : slv(7 downto 0) := (others => '0');
+   signal adcDataP  : slv(7 downto 0) := (others => '0');
+   signal adcDataN  : slv(7 downto 0) := (others => '0');
+   signal adcDataNd : slv(7 downto 0) := (others => '0');
+   signal adcDmuxA  : slv(7 downto 0) := (others => '0');
+   signal adcDmuxB  : slv(7 downto 0) := (others => '0');
 
    attribute IODELAY_GROUP                    : string;
    attribute IODELAY_GROUP of IDELAYCTRL_Inst : label is IODELAY_GROUP_G;
@@ -72,7 +71,7 @@ begin
    IDELAYCTRL_Inst : IDELAYCTRL
       port map (
          RDY    => delayOut.rdy,        -- 1-bit output: Ready output
-         REFCLK => refClk200MHz,        -- 1-bit input: Reference clock input
+         REFCLK => refClk200Mhz,        -- 1-bit input: Reference clock input
          RST    => delayIn.rst);        -- 1-bit input: Active high reset input
 
    GEN_DAT :
@@ -89,13 +88,13 @@ begin
             dataN        => adcDataInN(i),
             Q1           => adcDataPs(i),
             Q2           => adcDataNs(i),
-            -- IO_Delay (refClk200MHz domain)
+            -- IO_Delay (refClk200Mhz domain)
             delayInLoad  => delayIn.load,
             delayInData  => delayIn.data(i),
             delayOutData => delayOut.data(i),
             -- Clocks
             clk          => adcClk,
-            refClk200MHz => refClk200MHz);
+            refClk200Mhz => refClk200Mhz);
 
    end generate GEN_DAT;
 

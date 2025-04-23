@@ -104,13 +104,13 @@ architecture testbed of FifoFwftTb is
          MEMORY_TYPE_G   => "block"));
 
    -- Signals
-   signal wrClk,
-      rst,
-      rdClk : sl;
+   signal wrClk : sl;
+   signal rst   : sl;
+   signal rdClk : sl;
 
-   signal failed,
-      passed,
-      subRdClk : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
+   signal failed   : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
+   signal passed   : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
+   signal subRdClk : slv(0 to CONFIG_TEST_SIZE_C) := (others => '0');
 
 begin
 
@@ -129,7 +129,7 @@ begin
    ClkRst_Write : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => WRITE_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => wrClk,
@@ -140,7 +140,7 @@ begin
    ClkRst_Read : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => READ_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => rdClk,

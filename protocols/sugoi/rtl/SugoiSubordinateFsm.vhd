@@ -248,7 +248,7 @@ begin
          ----------------------------------------------------------------------
          when RX_SOF_S =>
             -- Wait for SOF
-            if (rxValid = '1')and (rxDataK = '1') and (rxData = CODE_SOF_C)then
+            if (rxValid = '1') and (rxDataK = '1') and (rxData = CODE_SOF_C)then
                -- Next state
                v.state := RX_HEADER_S;
             end if;
@@ -292,7 +292,7 @@ begin
          ----------------------------------------------------------------------
          when RX_ADDR_S =>
             -- Wait for non-control word
-            if (rxValid = '1')and (rxDataK = '0') then
+            if (rxValid = '1') and (rxDataK = '0') then
 
                -- Update the RX/TX checksums
                v.rxXsum := r.rxXsum + rxData;
@@ -322,7 +322,7 @@ begin
          ----------------------------------------------------------------------
          when RX_DATA_S =>
             -- Wait for non-control word
-            if (rxValid = '1')and (rxDataK = '0') then
+            if (rxValid = '1') and (rxDataK = '0') then
 
                -- Send IDLE char
                v.txValid := '1';
@@ -349,7 +349,7 @@ begin
          ----------------------------------------------------------------------
          when RX_FOOTER_S =>
             -- Wait for non-control word
-            if (rxValid = '1')and (rxDataK = '0') then
+            if (rxValid = '1') and (rxDataK = '0') then
 
                -- Send IDLE char
                v.txValid := '1';
@@ -375,7 +375,7 @@ begin
          ----------------------------------------------------------------------
          when RX_XSUM_S =>
             -- Wait for non-control word
-            if (rxValid = '1')and (rxDataK = '0') then
+            if (rxValid = '1') and (rxDataK = '0') then
 
                -- Send IDLE char
                v.txValid := '1';
@@ -400,7 +400,7 @@ begin
          ----------------------------------------------------------------------
          when RX_EOF_S =>
             -- Wait for EOF
-            if (rxValid = '1')and (rxDataK = '1') and (rxData = CODE_EOF_C)then
+            if (rxValid = '1') and (rxDataK = '1') and (rxData = CODE_EOF_C)then
 
                -- Send IDLE char
                v.txValid := '1';
@@ -435,7 +435,7 @@ begin
          ----------------------------------------------------------------------
          when WR_TXN_S =>
             -- Check if write transaction is done
-            if (r.axilWriteMaster.awvalid = '0') and(r.axilWriteMaster.wvalid = '0') and (r.axilWriteMaster.bready = '0') then
+            if (r.axilWriteMaster.awvalid = '0') and (r.axilWriteMaster.wvalid = '0') and (r.axilWriteMaster.bready = '0') then
                -- Next state
                v.state := TX_DATA_S;
             end if;

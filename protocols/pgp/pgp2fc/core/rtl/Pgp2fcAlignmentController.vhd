@@ -26,10 +26,10 @@ use surf.Pgp2fcPkg.all;
 
 entity Pgp2fcAlignmentController is
    generic (
-      TPD_G          : time   := 1 ns;
-      GT_TYPE_G      : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
+      TPD_G          : time             := 1 ns;
+      GT_TYPE_G      : string           := "GTHE3";  -- or GTYE3, GTHE4, GTYE4
       DRP_ADDR_G     : slv(31 downto 0) := x"00000000";
-      TARGET_PHASE_G : sl := '0');
+      TARGET_PHASE_G : sl               := '0');
    port (
       -- Control
       stableClk : in sl;
@@ -37,15 +37,15 @@ entity Pgp2fcAlignmentController is
 
       -- Link stability interface
       linkAligned         : out sl;
-      linkAlignOverride   : in sl := '0';
-      linkAlignSlide      : in sl := '0';
+      linkAlignOverride   : in  sl := '0';
+      linkAlignSlide      : in  sl := '0';
       linkAlignSlideDone  : out sl;
-      linkAlignPhaseReq   : in sl := '0';
+      linkAlignPhaseReq   : in  sl := '0';
       linkAlignPhase      : out sl;
       linkAlignPhaseValid : out sl;
 
       -- Link alignment block interface
-      protocolError       : in sl;
+      protocolError : in sl;
 
       -- GT interface
       rxClk   : in  sl;
@@ -54,10 +54,10 @@ entity Pgp2fcAlignmentController is
       rxReady : in  sl;
 
       -- DRP AXI interface
-      axilClk          : in  sl := '0';
-      axilRst          : in  sl := '0';
+      axilClk          : in  sl                    := '0';
+      axilRst          : in  sl                    := '0';
       mAxilReadMaster  : out AxiLiteReadMasterType;
-      mAxilReadSlave   : in  AxiLiteReadSlaveType := AXI_LITE_READ_SLAVE_INIT_C;
+      mAxilReadSlave   : in  AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
       mAxilWriteMaster : out AxiLiteWriteMasterType;
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_INIT_C);
 end entity Pgp2fcAlignmentController;
@@ -73,42 +73,47 @@ architecture rtl of Pgp2fcAlignmentController is
    constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite((GT_TYPE_G = "GTHE3"), x"0000_0540", x"0000_0940");
    constant COMMA_ALIGN_LATENCY_ADDR_C   : slv(31 downto 0) := (DRP_ADDR_G + COMMA_ALIGN_LATENCY_OFFSET_C);
 
-   signal axiReq : AxiLiteReqType := ('0', '1', COMMA_ALIGN_LATENCY_ADDR_C, (others=>'0'));
+   signal axiReq : AxiLiteReqType := ('0', '1', COMMA_ALIGN_LATENCY_ADDR_C, (others => '0'));
    signal axiAck : AxiLiteAckType;
 
-   signal intSlide, intSlideR : sl;
+   signal intSlide    : sl;
+   signal intSlideR   : sl;
    signal intPhaseReq : sl;
 
-   signal stabWindow : slv(7 downto 0);
-   signal stabWindowGood : sl;
-   signal stabCounter : slv(7 downto 0);
+   signal stabWindow        : slv(7 downto 0);
+   signal stabWindowGood    : sl;
+   signal stabCounter       : slv(7 downto 0);
    constant stabSensitivity : slv(7 downto 0) := x"F0";
-   signal stabGood, stabGoodX : sl;
+   signal stabGood          : sl;
+   signal stabGoodX         : sl;
 
-   signal intCommaLat : slv(15 downto 0);
+   signal intCommaLat     : slv(15 downto 0);
    signal intCommaLatDone : sl;
 
-   type COMMALAT_FSM is (ST_REQ, ST_ACK);
-   signal commaLatState : COMMALAT_FSM := ST_REQ;
+   type CommaLatStateType is (ST_REQ, ST_ACK);
+   signal commaLatState : CommaLatStateType := ST_REQ;
 
-   signal intReset : sl;
-   signal intAlignSlide, intAlignSlidePrev : sl;
-   signal intRxSlide : sl;
-   signal intRxSlideDone, intRxSlideDoneX : sl;
+   signal intReset          : sl;
+   signal intAlignSlide     : sl;
+   signal intAlignSlidePrev : sl;
+   signal intRxSlide        : sl;
+   signal intRxSlideDone    : sl;
+   signal intRxSlideDoneX   : sl;
 
-   type RXSLIDE_FSM is (ST_WAIT, ST_SLIDE);
-   signal slideFsmState : RXSLIDE_FSM := ST_WAIT;
+   type SlideFsmStateType is (ST_WAIT, ST_SLIDE);
+   signal slideFsmState : SlideFsmStateType := ST_WAIT;
 
    signal slideFsmCounter : integer range 0 to 63 := 63;
 
-   type AUTOALIGN_FSM is (ST_LOCKED, ST_SLIDE, ST_WAIT_SLIDE, ST_PHASE, ST_WAIT_PHASE, ST_RESET, ST_WAIT_READY);
-   signal autoAlignState : AUTOALIGN_FSM := ST_WAIT_READY;
-   signal autoAlignTimeout : slv(9 downto 0);
-   constant TIMEOUT_MAX : slv(9 downto 0) := (others => '1');
-   signal autoAlignRetryCount : slv(4 downto 0);
-   constant RETRY_MAX : slv(4 downto 0) := toSlv(20, 5); -- 20
+   type AutoAlignStateType is (ST_LOCKED, ST_SLIDE, ST_WAIT_SLIDE, ST_PHASE, ST_WAIT_PHASE, ST_RESET, ST_WAIT_READY);
+   signal autoAlignState : AutoAlignStateType := ST_WAIT_READY;
 
-   signal autoAlignSlide : sl;
+   signal autoAlignTimeout    : slv(9 downto 0);
+   constant TIMEOUT_MAX       : slv(9 downto 0) := (others => '1');
+   signal autoAlignRetryCount : slv(4 downto 0);
+   constant RETRY_MAX         : slv(4 downto 0) := toSlv(20, 5);  -- 20
+
+   signal autoAlignSlide    : sl;
    signal autoAlignPhaseReq : sl;
 
    signal intReadyX : sl;
@@ -122,41 +127,42 @@ architecture rtl of Pgp2fcAlignmentController is
 begin
 
    -- Wiring for when overriding takes place
-   intSlide <= linkAlignSlide when linkAlignOverride = '1' else autoAlignSlide;
+   intSlide    <= linkAlignSlide    when linkAlignOverride = '1' else autoAlignSlide;
    intPhaseReq <= linkAlignPhaseReq when linkAlignOverride = '1' else autoAlignPhaseReq;
 
    intSlideR <= intSlide when rising_edge(axilClk);
 
-   linkAligned <= stabGoodX;
-   linkAlignSlideDone <= intRxSlideDoneX;
-   linkAlignPhase <= intCommaLat(0);
+   linkAligned         <= stabGoodX;
+   linkAlignSlideDone  <= intRxSlideDoneX;
+   linkAlignPhase      <= intCommaLat(0);
    linkAlignPhaseValid <= intCommaLatDone;
 
    -- RX Slide logic, runs in rxClk domain, needs clock crossing
    U_Reset_Sync : entity surf.RstSync
-   generic map (
-      RELEASE_DELAY_G => 5)
-   port map (
-      clk => rxClk,
-      asyncRst => stableRst,
-      syncRst => intReset);
+      generic map (
+         RELEASE_DELAY_G => 5)
+      port map (
+         clk      => rxClk,
+         asyncRst => stableRst,
+         syncRst  => intReset);
 
    U_linkAlignSlide_Sync : entity surf.Synchronizer
-   port map (
-      clk => rxClk,
-      dataIn => intSlideR,
-      dataOut => intAlignSlide);
+      port map (
+         clk     => rxClk,
+         dataIn  => intSlideR,
+         dataOut => intAlignSlide);
 
    -- RX Slide State machine
-   process (rxClk) begin
+   process (rxClk)
+   begin
       if (rising_edge(rxClk)) then
          if (intReset = '1') then
-            intRxSlide <= '0';
-            intRxSlideDone <= '0';
-            slideFsmState <= ST_WAIT;
+            intRxSlide      <= '0';
+            intRxSlideDone  <= '0';
+            slideFsmState   <= ST_WAIT;
             slideFsmCounter <= 63;
          else
-            intRxSlide <= '0';
+            intRxSlide     <= '0';
             intRxSlideDone <= '0';
 
             intAlignSlidePrev <= intAlignSlide;
@@ -166,7 +172,7 @@ begin
                   if (slideFsmCounter = 0) then
                      intRxSlideDone <= '1';
                      if (intAlignSlide = '1' and intAlignSlidePrev = '0') then
-                        slideFsmState <= ST_SLIDE;
+                        slideFsmState   <= ST_SLIDE;
                         slideFsmCounter <= 63;
                      end if;
                   else
@@ -176,15 +182,15 @@ begin
                   end if;
 
                when ST_SLIDE =>
-                  intRxSlide <= '1';
+                  intRxSlide      <= '1';
                   slideFsmCounter <= slideFsmCounter - 1;
                   if (slideFsmCounter = 62) then
-                     slideFsmState <= ST_WAIT;
+                     slideFsmState   <= ST_WAIT;
                      slideFsmCounter <= 63;
                   end if;
 
                when others =>
-                  slideFsmState <= ST_WAIT;
+                  slideFsmState   <= ST_WAIT;
                   slideFsmCounter <= 63;
             end case;
          end if;
@@ -194,18 +200,19 @@ begin
    rxSlide <= intRxSlide;
 
    U_linkAlignSlideDone_Sync : entity surf.Synchronizer
-   port map (
-      clk => stableClk,
-      dataIn => intRxSlideDone,
-      dataOut => intRxSlideDoneX);
+      port map (
+         clk     => stableClk,
+         dataIn  => intRxSlideDone,
+         dataOut => intRxSlideDoneX);
 
    -- Phase detection using the DRP interface (axilClk domain)
-   process (axilClk) begin
+   process (axilClk)
+   begin
       if (rising_edge(axilClk)) then
          if (stableRst = '1') then
             intCommaLatDone <= '0';
             axiReq.request  <= '0';
-            intCommaLat  <= (others => '0');
+            intCommaLat     <= (others => '0');
             commaLatState   <= ST_REQ;
          else
             case commaLatState is
@@ -213,7 +220,7 @@ begin
                   if (intPhaseReq = '1') then
                      intCommaLatDone <= '0';
                      axiReq.request  <= '1';
-                     intCommaLat  <= (others => '0');
+                     intCommaLat     <= (others => '0');
                      commaLatState   <= ST_ACK;
                   end if;
 
@@ -221,14 +228,14 @@ begin
                   if (axiAck.done = '1') then
                      intCommaLatDone <= '1';
                      axiReq.request  <= '0';
-                     intCommaLat  <= axiAck.rdData(15 downto 0);
+                     intCommaLat     <= axiAck.rdData(15 downto 0);
                      commaLatState   <= ST_REQ;
                   end if;
 
                when others =>
                   intCommaLatDone <= '0';
                   axiReq.request  <= '0';
-                  intCommaLat  <= (others => '0');
+                  intCommaLat     <= (others => '0');
                   commaLatState   <= ST_REQ;
             end case;
          end if;
@@ -236,26 +243,27 @@ begin
    end process;
 
    U_AxiLiteMaster : entity surf.AxiLiteMaster
-   generic map (
-      TPD_G => TPD_G)
-   port map (
-      req             => axiReq,
-      ack             => axiAck,
-      axilClk         => axilClk,
-      axilRst         => axilRst,
-      axilWriteMaster => mAxilWriteMaster,
-      axilWriteSlave  => mAxilWriteSlave,
-      axilReadMaster  => mAxilReadMaster,
-      axilReadSlave   => mAxilReadSlave);
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         req             => axiReq,
+         ack             => axiAck,
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilWriteMaster => mAxilWriteMaster,
+         axilWriteSlave  => mAxilWriteSlave,
+         axilReadMaster  => mAxilReadMaster,
+         axilReadSlave   => mAxilReadSlave);
 
    -- Protocol link stability checker (rxClk domain)
-   process (rxClk) begin
+   process (rxClk)
+   begin
       if (rising_edge(rxClk)) then
          if (intReset = '1') then
-            stabWindow <= (others => '0');
+            stabWindow     <= (others => '0');
             stabWindowGood <= '0';
-            stabCounter <= (others => '1'); -- Start in bad stability state
-            stabGood <= '0';
+            stabCounter    <= (others => '1');  -- Start in bad stability state
+            stabGood       <= '0';
          else
             stabWindowGood <= '0';
 
@@ -286,34 +294,35 @@ begin
    end process;
 
    U_stabGood_Sync : entity surf.Synchronizer
-   port map (
-      clk => stableClk,
-      dataIn => stabGood,
-      dataOut => stabGoodX);
+      port map (
+         clk     => stableClk,
+         dataIn  => stabGood,
+         dataOut => stabGoodX);
 
    U_rxReady_Sync : entity surf.Synchronizer
-   port map (
-      clk => stableClk,
-      dataIn => rxReady,
-      dataOut => intReadyX);
+      port map (
+         clk     => stableClk,
+         dataIn  => rxReady,
+         dataOut => intReadyX);
 
    -- Automatic alignment state-machine (axilClk domain)
-   process (axilClk) begin
+   process (axilClk)
+   begin
       if (rising_edge(axilClk)) then
          if (stableRst = '1' or linkAlignOverride = '1') then
-            autoAlignState <= ST_WAIT_READY;
-            autoAlignTimeout <= (others => '0');
+            autoAlignState      <= ST_WAIT_READY;
+            autoAlignTimeout    <= (others => '0');
             autoAlignRetryCount <= (others => '0');
-            autoAlignSlide <= '0';
-            autoAlignPhaseReq <= '0';
-            rxReset <= '0';
+            autoAlignSlide      <= '0';
+            autoAlignPhaseReq   <= '0';
+            rxReset             <= '0';
          else
             -- Defaults
-            autoAlignTimeout <= (others => '0');
+            autoAlignTimeout    <= (others => '0');
             autoAlignRetryCount <= (others => '0');
-            autoAlignSlide <= '0';
-            autoAlignPhaseReq <= '0';
-            rxReset <= '0';
+            autoAlignSlide      <= '0';
+            autoAlignPhaseReq   <= '0';
+            rxReset             <= '0';
 
             case autoAlignState is
                when ST_LOCKED =>
@@ -324,9 +333,9 @@ begin
                   end if;
 
                when ST_SLIDE =>
-                  autoAlignSlide <= '1';
+                  autoAlignSlide      <= '1';
                   autoAlignRetryCount <= autoAlignRetryCount + 1;
-                  autoAlignState <= ST_WAIT_SLIDE;
+                  autoAlignState      <= ST_WAIT_SLIDE;
 
                when ST_WAIT_SLIDE =>
                   -- This assumes slide will work and we
@@ -337,14 +346,14 @@ begin
                      -- Retry to slide
                      if (autoAlignRetryCount = RETRY_MAX) then
                         -- Max number of RXSLIDES done
-                        rxReset <= '1';
+                        rxReset        <= '1';
                         autoAlignState <= ST_RESET;
                      else
                         autoAlignState <= ST_SLIDE;
                      end if;
                   elsif (stabGoodX = '1') then
                      -- Protocol stable, check phase
-                     autoAlignState <= ST_PHASE;
+                     autoAlignState    <= ST_PHASE;
                      autoAlignPhaseReq <= '1';
                   end if;
 
@@ -358,14 +367,14 @@ begin
 
                   if (autoAlignTimeout = TIMEOUT_MAX) then
                      -- Some issue with DRP, reset
-                     rxReset <= '1';
+                     rxReset        <= '1';
                      autoAlignState <= ST_RESET;
                   elsif (intCommaLatDone = '1') then
                      if (intCommaLat(0) = TARGET_PHASE_G) then
                         autoAlignState <= ST_LOCKED;
                      else
                         -- Wrong phase, only fixed by a reset
-                        rxReset <= '1';
+                        rxReset        <= '1';
                         autoAlignState <= ST_RESET;
                      end if;
                   end if;
@@ -385,11 +394,11 @@ begin
                   end if;
 
                when others =>
-                  autoAlignState <= ST_WAIT_READY;
-                  autoAlignTimeout <= (others => '0');
+                  autoAlignState      <= ST_WAIT_READY;
+                  autoAlignTimeout    <= (others => '0');
                   autoAlignRetryCount <= (others => '0');
-                  autoAlignSlide <= '0';
-                  autoAlignPhaseReq <= '0';
+                  autoAlignSlide      <= '0';
+                  autoAlignPhaseReq   <= '0';
             end case;
          end if;
       end if;

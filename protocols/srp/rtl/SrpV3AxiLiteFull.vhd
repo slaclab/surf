@@ -102,12 +102,12 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         axiClk          => axilClk,          -- [in]
-         axiClkRst       => axilRst,          -- [in]
-         axiReadMaster   => axiReadMaster,    -- [in]
-         axiReadSlave    => axiReadSlave,     -- [out]
-         axiWriteMaster  => axiWriteMaster,   -- [in]
-         axiWriteSlave   => axiWriteSlave,    -- [out]
+         axiClk          => axilClk,           -- [in]
+         axiClkRst       => axilRst,           -- [in]
+         axiReadMaster   => axiReadMaster,     -- [in]
+         axiReadSlave    => axiReadSlave,      -- [out]
+         axiWriteMaster  => axiWriteMaster,    -- [in]
+         axiWriteSlave   => axiWriteSlave,     -- [out]
          axilReadMaster  => mAxilReadMaster,   -- [out]
          axilReadSlave   => mAxilReadSlave,    -- [in]
          axilWriteMaster => mAxilWriteMaster,  -- [out]

@@ -47,17 +47,17 @@ architecture mapping of Sff8472 is
 
    constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 1) := (
       0              => MakeI2cAxiLiteDevType(
-         i2cAddress  => "1010000",      -- Configuration PROM
-         dataSize    => 8,              -- in units of bits
-         addrSize    => 8,              -- in units of bits
-         endianness  => '0',            -- Little endian
-         repeatStart => '0'),           -- Repeat start
+         i2cAddress  => "1010000",              -- Configuration PROM
+         dataSize    => 8,                      -- in units of bits
+         addrSize    => 8,                      -- in units of bits
+         endianness  => '0',                    -- Little endian
+         repeatStart => '0'),                   -- Repeat start
       1              => MakeI2cAxiLiteDevType(  -- Enhanced interface
-         i2cAddress  => "1010001",      -- Diagnostic Monitoring
-         dataSize    => 8,              -- in units of bits
-         addrSize    => 8,              -- in units of bits
-         endianness  => '0',            -- Little endian
-         repeatStart => '0'));          -- Repeat Start
+         i2cAddress  => "1010001",              -- Diagnostic Monitoring
+         dataSize    => 8,                      -- in units of bits
+         addrSize    => 8,                      -- in units of bits
+         endianness  => '0',                    -- Little endian
+         repeatStart => '0'));                  -- Repeat Start
 
 begin
 

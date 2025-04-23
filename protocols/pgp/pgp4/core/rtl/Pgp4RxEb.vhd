@@ -26,14 +26,14 @@ use surf.Pgp4Pkg.all;
 entity Pgp4RxEb is
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean := false);
    port (
-      phyRxClk    : in sl;
-      phyRxRst    : in sl;
-      phyRxValid  : in sl;
-      phyRxData   : in slv(63 downto 0);  -- Unscrambled data from the PHY
-      phyRxHeader : in slv(1 downto 0);
+      phyRxClk    : in  sl;
+      phyRxRst    : in  sl;
+      phyRxValid  : in  sl;
+      phyRxData   : in  slv(63 downto 0);  -- Unscrambled data from the PHY
+      phyRxHeader : in  slv(1 downto 0);
       -- User Transmit interface
       pgpRxClk    : in  sl;
       pgpRxRst    : in  sl;
@@ -73,7 +73,7 @@ architecture rtl of Pgp4RxEb is
 begin
 
    comb : process (phyRxData, phyRxHeader, phyRxRst, phyRxValid, r) is
-      variable v        : RegType;
+      variable v : RegType;
    begin
       -- Latch the current value
       v := r;
@@ -94,7 +94,7 @@ begin
          if (phyRxData(PGP4_K_CODE_CRC_FIELD_C) /= pgp4KCodeCrc(phyRxData)) then
 
             -- Don't write words into the FIFO
-            v.fifoWrEn  := '0';
+            v.fifoWrEn := '0';
 
             -- Set the error flag
             v.linkError := '1';
@@ -102,7 +102,7 @@ begin
          elsif (phyRxData(PGP4_BTF_FIELD_C) = PGP4_SKP_C) then
 
             -- Don't write SKP words into the FIFO
-            v.fifoWrEn    := '0';
+            v.fifoWrEn := '0';
 
             -- Save the remote data bus
             v.dataValid   := '1';
@@ -178,17 +178,17 @@ begin
          TPD_G       => TPD_G,
          RST_ASYNC_G => RST_ASYNC_G)
       port map (
-         clk      => pgpRxClk,
-         dataIn   => overflowInt,
-         dataOut  => overflow);
+         clk     => pgpRxClk,
+         dataIn  => overflowInt,
+         dataOut => overflow);
 
    U_linkError : entity surf.SynchronizerOneShot
       generic map (
          TPD_G       => TPD_G,
          RST_ASYNC_G => RST_ASYNC_G)
       port map (
-         clk      => pgpRxClk,
-         dataIn   => r.linkError,
-         dataOut  => linkError);
+         clk     => pgpRxClk,
+         dataIn  => r.linkError,
+         dataOut => linkError);
 
 end architecture rtl;

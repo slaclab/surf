@@ -35,14 +35,14 @@ package SsiPkg is
    constant SSI_TSTRB_EN_C   : boolean  := false;
 
    constant SSI_MASTER_FORCE_EOFE_C : AxiStreamMasterType := (
-      tValid => '1',                                   -- Force
+      tValid => '1',                    -- Force
       tData  => (others => '0'),
       tStrb  => (others => '1'),
       tKeep  => (others => '1'),
-      tLast  => '1',                                   -- EOF
+      tLast  => '1',                    -- EOF
       tDest  => (others => '0'),
       tId    => (others => '0'),
-      tUser  => (others => '1'));  -- EOFE
+      tUser  => (others => '1'));       -- EOFE
 
    -------------------------------------------------------------------------------------------------
    -- Build an SSI configuration
@@ -51,9 +51,9 @@ package SsiPkg is
       dataBytes : positive;
       tKeepMode : TKeepModeType         := TKEEP_COMP_C;
       tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
-      tDestBits : natural  range 0 to 8 := SSI_TDEST_BITS_C;
+      tDestBits : natural range 0 to 8  := SSI_TDEST_BITS_C;
       tUserBits : positive range 2 to 8 := SSI_TUSER_BITS_C;
-      tIdBits   : natural  range 0 to 8 := SSI_TID_BITS_C)
+      tIdBits   : natural range 0 to 8  := SSI_TID_BITS_C)
       return AxiStreamConfigType;
 
    -- A default SSI config is useful to have
@@ -150,9 +150,9 @@ package body SsiPkg is
       dataBytes : positive;
       tKeepMode : TKeepModeType         := TKEEP_COMP_C;
       tUserMode : TUserModeType         := TUSER_FIRST_LAST_C;
-      tDestBits : natural  range 0 to 8 := SSI_TDEST_BITS_C;
+      tDestBits : natural range 0 to 8  := SSI_TDEST_BITS_C;
       tUserBits : positive range 2 to 8 := SSI_TUSER_BITS_C;
-      tIdBits   : natural  range 0 to 8 := SSI_TID_BITS_C)
+      tIdBits   : natural range 0 to 8  := SSI_TID_BITS_C)
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin

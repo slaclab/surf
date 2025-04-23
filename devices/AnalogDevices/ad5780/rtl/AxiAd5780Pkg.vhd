@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -74,4 +73,4 @@ package AxiAd5780Pkg is
       '0',
       (others => '0'));
 
-end package;
+end package AxiAd5780Pkg;

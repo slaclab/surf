@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -478,7 +477,7 @@ begin
 
             -- Detect good CRC, only on FIFO reads
             if crcShift1 = '1' then
-               if crcOut = X"1cdf4421" then
+               if crcOut = X"1CDF4421" then
                   crcGood <= '1' after TPD_G;
                else
                   crcGood <= '0' after TPD_G;

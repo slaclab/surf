@@ -26,25 +26,25 @@ use surf.StdRtlPkg.all;
 entity sfixedPreAddMultAdd is
    generic (
       TPD_G                : time                      := 1 ns;
-      ADD_A_G              : boolean                   := true; -- (D+A)*B+C
+      ADD_A_G              : boolean                   := true;  -- (D+A)*B+C
       LATENCY_G            : natural range 4 to 100    := 4;
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
-      clk     : in  sl;
+      clk  : in  sl;
       -- rst may cause issues inferring DSP48
-      rst     : in  sl := '0';
-      a       : in  sfixed;
-      aVld    : in  sl := '0';
-      d       : in  sfixed;
-      dVld    : in  sl := '0';
-      b       : in  sfixed;
-      bVld    : in  sl := '0';
-      c       : in  sfixed;
-      cVld    : in  sl := '0';
+      rst  : in  sl := '0';
+      a    : in  sfixed;
+      aVld : in  sl := '0';
+      d    : in  sfixed;
+      dVld : in  sl := '0';
+      b    : in  sfixed;
+      bVld : in  sl := '0';
+      c    : in  sfixed;
+      cVld : in  sl := '0';
       -- outputs
-      y       : out sfixed;
-      yVld    : out sl);
+      y    : out sfixed;
+      yVld : out sl);
 end entity sfixedPreAddMultAdd;
 
 architecture rtl of sfixedPreAddMultAdd is
@@ -63,7 +63,7 @@ architecture rtl of sfixedPreAddMultAdd is
       creg   : sfixed(c'range);
       crreg  : sfixed(c'range);
       crrreg : sfixed(c'range);
-      preAdd : sfixed(PRE_ADD_HIGH_C downto PRE_ADD_LOW_C); -- 1 bit growth here
+      preAdd : sfixed(PRE_ADD_HIGH_C downto PRE_ADD_LOW_C);  -- 1 bit growth here
       mreg   : sfixed(PRE_ADD_HIGH_C + b'high + 1 downto PRE_ADD_LOW_C + b'low);
       preg   : sfixedArray(LATENCY_G-1 downto 3)(y'range);
       vld    : slv(LATENCY_G-1 downto 0);
@@ -87,7 +87,7 @@ architecture rtl of sfixedPreAddMultAdd is
 
 begin
 
-   comb : process( a, d, b, c, aVld, dVld, bVld, cVld, r ) is
+   comb : process(a, aVld, b, bVld, c, cVld, d, dVld, r) is
       variable v : RegType;
    begin
       -- latch current value
@@ -101,8 +101,8 @@ begin
       v.crreg  := r.creg;
       v.crrreg := r.crreg;
 
-      v.vld(0) := aVld and dVld and bVld and cVld;
-      v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
+      v.vld(0)                    := aVld and dVld and bVld and cVld;
+      v.vld(LATENCY_G-1 downto 1) := r.vld(LATENCY_G-2 downto 0);
 
 
       if ADD_A_G then
@@ -117,12 +117,12 @@ begin
       v.preg(LATENCY_G-1 downto 4) := r.preg(LATENCY_G-2 downto 3);
 
       -- register for next cycle
-      rin  <= v;
+      rin <= v;
 
       -- registered outputs
-      yVld    <= r.vld(LATENCY_G-1);
+      yVld <= r.vld(LATENCY_G-1);
       --y       <= resize(r.preg(LATENCY_G-1), y, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G);
-      y       <= r.preg(LATENCY_G-1);
+      y    <= r.preg(LATENCY_G-1);
 
    end process comb;
 

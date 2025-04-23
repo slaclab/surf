@@ -63,11 +63,11 @@ end entity cfixedMult;
 architecture rtl of cfixedMult is
 
    constant C_HIGH_BIT_C : integer := a.re'high + b.re'high + 1;
-   constant C_LOW_BIT_C  : integer := a.re'low  + b.re'low;
+   constant C_LOW_BIT_C  : integer := a.re'low + b.re'low;
 
-   signal c    : cfixed( re(C_HIGH_BIT_C downto C_LOW_BIT_C), im(C_HIGH_BIT_C downto C_LOW_BIT_C)) := (
-         re => (others => '0'),
-         im => (others => '0'));
+   signal c : cfixed(re(C_HIGH_BIT_C downto C_LOW_BIT_C), im(C_HIGH_BIT_C downto C_LOW_BIT_C)) := (
+      re => (others => '0'),
+      im => (others => '0'));
 
    signal cVld : sl := '1';
 

@@ -17,21 +17,19 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity Ad9249Config is
+library unisim;
+use unisim.vcomponents.all;
 
+entity Ad9249Config is
    generic (
       TPD_G             : time     := 1 ns;
       NUM_CHIPS_G       : positive := 1;
-      SCLK_PERIOD_G     : real     := 1.0e-6;
-      AXIL_CLK_PERIOD_G : real     := 8.0e-9);
+      SCLK_PERIOD_G     : real     := 1.0E-6;
+      AXIL_CLK_PERIOD_G : real     := 8.0E-9);
    port (
       axilClk : in sl;
       axilRst : in sl;
@@ -44,10 +42,7 @@ entity Ad9249Config is
       adcPdwn : out   slv(NUM_CHIPS_G-1 downto 0);
       adcSclk : out   sl;
       adcSdio : inout sl;
-      adcCsb  : out   slv(NUM_CHIPS_G*2-1 downto 0)
-
-      );
-
+      adcCsb  : out   slv(NUM_CHIPS_G*2-1 downto 0));
 end entity Ad9249Config;
 
 architecture rtl of Ad9249Config is
@@ -97,7 +92,7 @@ architecture rtl of Ad9249Config is
 
 begin
 
-   comb : process (axilRst, axilReadMaster, axilWriteMaster, r, rdData, rdEn) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, r, rdData, rdEn) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -120,19 +115,19 @@ begin
                v.wrData(22 downto 21) := "00";    -- Number of bytes (1)
                v.wrData(20 downto 17) := "0000";  -- Unused address bits
                v.wrData(16 downto 8)  := axilWriteMaster.awaddr(10 downto 2);  -- Address
-               v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);    -- Data
+               v.wrData(7 downto 0)   := axilWriteMaster.wdata(7 downto 0);  -- Data
                v.chipSel              := axilWriteMaster.awaddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;
             end if;
 
             if (axilEp.axiStatus.readEnable = '1' and axilReadMaster.araddr(PWDN_ADDR_BIT_C) = '0') then
-               v.wrData(23)           := '1';              -- read bit
-               v.wrData(22 downto 21) := "00";             -- Number of bytes (1)
-               v.wrData(20 downto 17) := "0000";           -- Unused address bits
+               v.wrData(23)           := '1';     -- read bit
+               v.wrData(22 downto 21) := "00";    -- Number of bytes (1)
+               v.wrData(20 downto 17) := "0000";  -- Unused address bits
                v.wrData(16 downto 8)  := axilReadMaster.araddr(10 downto 2);  -- Address
                v.wrData(7 downto 0)   := (others => '1');  -- Make bus float to Z so slave can
-                                                           -- drive during data segment
+                                        -- drive during data segment
                v.chipSel              := axilReadMaster.araddr(11+CHIP_SEL_WIDTH_C-1 downto 11);  -- Bank Select
                v.wrEn                 := '1';
                v.state                := WAIT_CYCLE_S;

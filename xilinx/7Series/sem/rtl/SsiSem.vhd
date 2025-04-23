@@ -28,9 +28,9 @@ use surf.SemPkg.all;
 
 entity SsiSem is
    generic (
-      TPD_G               : time                := 1 ns;
-      COMMON_AXIL_CLK_G   : boolean             := false;
-      COMMON_AXIS_CLK_G   : boolean             := false;
+      TPD_G               : time    := 1 ns;
+      COMMON_AXIL_CLK_G   : boolean := false;
+      COMMON_AXIS_CLK_G   : boolean := false;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
@@ -144,8 +144,8 @@ begin
    -------------------------------------
    U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
-         TPD_G            => TPD_G,
-         COMMON_CLK_G     => COMMON_AXIL_CLK_G)
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => COMMON_AXIL_CLK_G)
       port map (
          sAxiClk         => axilClk,
          sAxiClkRst      => axilRst,

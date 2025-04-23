@@ -48,33 +48,33 @@ entity AxiLiteFifoPop is
       VALID_POLARITY_G   : sl                         := '0');
    port (
       -- AXI Interface (axiClk)
-      axiClk             : in  sl;
-      axiClkRst          : in  sl;
-      axiReadMaster      : in  AxiLiteReadMasterType;
-      axiReadSlave       : out AxiLiteReadSlaveType;
-      axiWriteMaster     : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axiWriteSlave      : out AxiLiteWriteSlaveType;
-      popFifoValid       : out slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoAEmpty      : out slv(POP_FIFO_COUNT_G-1 downto 0);
-      loopFifoValid      : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
-      loopFifoAEmpty     : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
-      loopFifoAFull      : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
+      axiClk         : in  sl;
+      axiClkRst      : in  sl;
+      axiReadMaster  : in  AxiLiteReadMasterType;
+      axiReadSlave   : out AxiLiteReadSlaveType;
+      axiWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axiWriteSlave  : out AxiLiteWriteSlaveType;
+      popFifoValid   : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoAEmpty  : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      loopFifoValid  : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
+      loopFifoAEmpty : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
+      loopFifoAFull  : out slv(LOOP_FIFO_COUNT_G-1 downto 0);
       -- POP FIFO Write Interface (popFifoClk)
-      popFifoClk         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoRst         : in  slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoWrite       : in  slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoDin         : in  Slv32Array(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoFull        : out slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoAFull       : out slv(POP_FIFO_COUNT_G-1 downto 0);
-      popFifoPFull       : out slv(POP_FIFO_COUNT_G-1 downto 0));
+      popFifoClk     : in  slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoRst     : in  slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoWrite   : in  slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoDin     : in  Slv32Array(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoFull    : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoAFull   : out slv(POP_FIFO_COUNT_G-1 downto 0);
+      popFifoPFull   : out slv(POP_FIFO_COUNT_G-1 downto 0));
 end AxiLiteFifoPop;
 
 architecture structure of AxiLiteFifoPop is
 
-   constant POP_SIZE_C    : integer := bitSize(POP_FIFO_COUNT_G-1);
-   constant POP_COUNT_C   : integer := 2**POP_SIZE_C;
-   constant LOOP_SIZE_C   : integer := bitSize(LOOP_FIFO_COUNT_G-1);
-   constant LOOP_COUNT_C  : integer := 2**LOOP_SIZE_C;
+   constant POP_SIZE_C   : integer := bitSize(POP_FIFO_COUNT_G-1);
+   constant POP_COUNT_C  : integer := 2**POP_SIZE_C;
+   constant LOOP_SIZE_C  : integer := bitSize(LOOP_FIFO_COUNT_G-1);
+   constant LOOP_COUNT_C : integer := 2**LOOP_SIZE_C;
 
    -- Local Signals
    signal ipopFifoValid  : slv(POP_COUNT_C-1 downto 0);
@@ -102,7 +102,7 @@ architecture structure of AxiLiteFifoPop is
       popFifoRead   => (others => '0'),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C
-   );
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -134,8 +134,8 @@ begin
             ADDR_WIDTH_G       => POP_ADDR_WIDTH_G,
             INIT_G             => "0",
             FULL_THRES_G       => POP_FULL_THRES_G,
-            EMPTY_THRES_G      => 1
-         ) port map (
+            EMPTY_THRES_G      => 1)
+         port map (
             rst           => popFifoRst(i),
             wr_clk        => popFifoClk(i),
             wr_en         => popFifoWrite(i),
@@ -156,14 +156,14 @@ begin
             prog_empty    => open,
             almost_empty  => popFifoAEmpty(i),
             empty         => open
-      );
+            );
 
       popFifoValid(i) <= ipopFifoValid(i);
    end generate;
 
    U_ReadUnused : if POP_FIFO_COUNT_G /= POP_COUNT_C generate
-      ipopFifoValid(POP_COUNT_C-1 downto POP_FIFO_COUNT_G) <= (others=>'0');
-      ipopFifoDout(POP_COUNT_C-1 downto POP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
+      ipopFifoValid(POP_COUNT_C-1 downto POP_FIFO_COUNT_G) <= (others => '0');
+      ipopFifoDout(POP_COUNT_C-1 downto POP_FIFO_COUNT_G)  <= (others => (others => '0'));
    end generate;
 
 
@@ -187,8 +187,8 @@ begin
                ADDR_WIDTH_G       => LOOP_ADDR_WIDTH_G,
                INIT_G             => "0",
                FULL_THRES_G       => 1,
-               EMPTY_THRES_G      => 1
-            ) port map (
+               EMPTY_THRES_G      => 1)
+            port map (
                rst           => axiClkRst,
                wr_clk        => axiClk,
                wr_en         => iloopFifoWrite(i),
@@ -209,23 +209,23 @@ begin
                prog_empty    => open,
                almost_empty  => loopFifoAEmpty(i),
                empty         => open
-         );
+               );
          loopFifoValid(i) <= iloopFifoValid(i);
 
       end generate;
    end generate;
 
    U_LoopDis : if LOOP_FIFO_EN_G = false generate
-      loopFifoAFull(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others=>'0');
-      iloopFifoDout(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others=>(others=>'0'));
-      iloopFifoValid(LOOP_FIFO_COUNT_G-1 downto 0) <= (others=>'0');
-      loopFifoValid(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others=>'0');
-      loopFifoAEmpty(LOOP_FIFO_COUNT_G-1 downto 0) <= (others=>'0');
+      loopFifoAFull(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others => '0');
+      iloopFifoDout(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others => (others => '0'));
+      iloopFifoValid(LOOP_FIFO_COUNT_G-1 downto 0) <= (others => '0');
+      loopFifoValid(LOOP_FIFO_COUNT_G-1 downto 0)  <= (others => '0');
+      loopFifoAEmpty(LOOP_FIFO_COUNT_G-1 downto 0) <= (others => '0');
    end generate;
 
    U_LoopUnused : if LOOP_FIFO_COUNT_G /= LOOP_COUNT_C generate
-      iloopFifoValid(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G) <= (others=>'0');
-      iloopFifoDout(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G)  <= (others=>(others=>'0'));
+      iloopFifoValid(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G) <= (others => '0');
+      iloopFifoDout(LOOP_COUNT_C-1 downto LOOP_FIFO_COUNT_G)  <= (others => (others => '0'));
    end generate;
 
 
@@ -233,15 +233,16 @@ begin
    -- AXI Lite
    -----------------------------------------
 
-   comb : process (r, axiClkRst, axiReadMaster, axiWriteMaster, ipopFifoDout, ipopFifoValid, iloopFifoDout, iloopFifoValid ) is
+   comb : process (axiClkRst, axiReadMaster, axiWriteMaster, iloopFifoDout,
+                   iloopFifoValid, ipopFifoDout, ipopFifoValid, r) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
       v := r;
 
-      v.popFifoRead   := (others=>'0');
-      v.loopFifoRead  := (others=>'0');
-      v.loopFifoWrite := (others=>'0');
+      v.popFifoRead   := (others => '0');
+      v.loopFifoRead  := (others => '0');
+      v.loopFifoWrite := (others => '0');
 
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 

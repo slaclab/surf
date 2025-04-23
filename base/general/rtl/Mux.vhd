@@ -16,13 +16,13 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.NUMERIC_STD.all;
+use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 
 entity Mux is
-   generic(
+   generic (
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G    : boolean  := false;
@@ -30,7 +30,7 @@ entity Mux is
       REG_SEL_G      : boolean  := true;
       REG_DOUT_G     : boolean  := true;
       SEL_WIDTH_G    : positive := 5);
-   port(
+   port (
       clk  : in  sl;
       rst  : in  sl := not(RST_POLARITY_G);
       sel  : in  slv(SEL_WIDTH_G-1 downto 0);

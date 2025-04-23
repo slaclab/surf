@@ -125,7 +125,9 @@ architecture rtl of AxiStreamRingBuffer is
       axilWriteSlave : AxiLiteWriteSlaveType;
       txMaster       : AxiStreamMasterType;
       dataState      : DataStateType;
+      dataStateIdx   : slv(1 downto 0);
       trigState      : TrigStateType;
+      trigStateIdx   : slv(1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -140,7 +142,9 @@ architecture rtl of AxiStreamRingBuffer is
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       txMaster       => axiStreamMasterInit(AXIS_CONFIG_C),
       dataState      => IDLE_S,
-      trigState      => IDLE_S);
+      dataStateIdx   => (others => '0'),
+      trigState      => IDLE_S,
+      trigStateIdx   => (others => '0'));
 
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
@@ -398,6 +402,8 @@ begin
 
       axiSlaveRegisterR(axilEp, x"0", 0, bufferLength);
       axiSlaveRegisterR(axilEp, x"0", 20, toSlv(RAM_ADDR_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"0", 28, axilR.trigStateIdx);
+      axiSlaveRegisterR(axilEp, x"0", 30, axilR.dataStateIdx);
       axiSlaveRegisterR(axilEp, x"4", 0, axilR.trigCnt);
       axiSlaveRegister (axilEp, x"8", 0, v.trigCnt);
       axiSlaveRegister (axilEp, x"C", 0, v.continuous);
@@ -412,6 +418,8 @@ begin
       case axilR.trigState is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            v.trigStateIdx := "00";
+
             -- Check for software trigger request
             if ((axilR.trigCnt /= 0) or (axilR.continuous = '1')) and (axilR.dataState = IDLE_S) then
 
@@ -427,6 +435,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when ARMED_S =>
+            v.trigStateIdx := "01";
+
             -- Check if armed
             if (armed = '1') then
                -- Set the trigger
@@ -436,6 +446,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WAIT_S =>
+            v.trigStateIdx := "10";
             null;
       ----------------------------------------------------------------------
       end case;
@@ -457,6 +468,8 @@ begin
       case axilR.dataState is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            v.dataStateIdx := "00";
+
             -- Reset the counter
             v.wordCnt := (others => '0');
 
@@ -467,6 +480,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
+            v.dataStateIdx := "01";
+
             -- Reset the flag
             v.softTrig := '0';
 
@@ -505,6 +520,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CLEARED_S =>
+            v.dataStateIdx := "10";
+
             -- Reset the flag
             v.softTrig := '0';
 

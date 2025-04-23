@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiDac7654Pkg.all;
@@ -59,13 +58,15 @@ architecture rtl of AxiDac7654Spi is
       HANDSHAKE_S);
 
    signal state : StateType := RST_S;
-   signal ack,
-      cs,
-      sck,
-      sdi,
-      load,
-      ldac,
-      rst : sl := '0';
+
+   signal ack  : sl := '0';
+   signal cs   : sl := '0';
+   signal sck  : sl := '0';
+   signal sdi  : sl := '0';
+   signal load : sl := '0';
+   signal ldac : sl := '0';
+   signal rst  : sl := '0';
+
    signal ch   : slv(1 downto 0)              := (others => '0');
    signal pntr : natural range 0 to 23        := 0;
    signal cnt  : natural range 0 to MAX_CNT_C := 0;
@@ -100,7 +101,7 @@ begin
                ----------------------------------------------------------------------
                when RST_S =>
                   cnt <= cnt + 1 after TPD_G;
-                  if cnt = getTimeRatio(19.2E-9, AXI_CLK_PERIOD_C) then   -- 19.2ns wait
+                  if cnt = getTimeRatio(19.2E-9, AXI_CLK_PERIOD_C) then  -- 19.2ns wait
                      rst   <= '1'    after TPD_G;
                      cnt   <= 0      after TPD_G;
                      state <= IDLE_S after TPD_G;
@@ -124,7 +125,7 @@ begin
                      sdi <= '0' after TPD_G;
                   end if;
                   cnt <= cnt + 1 after TPD_G;
-                  if cnt = getTimeRatio(32.0E-9, AXI_CLK_PERIOD_C) then   -- 32ns wait
+                  if cnt = getTimeRatio(32.0E-9, AXI_CLK_PERIOD_C) then  -- 32ns wait
                      cnt   <= 0          after TPD_G;
                      state <= SCK_HIGH_S after TPD_G;
                   end if;
@@ -132,7 +133,7 @@ begin
                when SCK_HIGH_S =>
                   sck <= '1'     after TPD_G;
                   cnt <= cnt + 1 after TPD_G;
-                  if cnt = getTimeRatio(32.0E-9, AXI_CLK_PERIOD_C) then   -- 32ns wait
+                  if cnt = getTimeRatio(32.0E-9, AXI_CLK_PERIOD_C) then  -- 32ns wait
                      cnt  <= 0        after TPD_G;
                      pntr <= pntr + 1 after TPD_G;
                      if pntr = 23 then
@@ -146,7 +147,7 @@ begin
                ----------------------------------------------------------------------
                when TLD2_WAIT_S =>  --required settling time between rising edge of SCK and falling of LOAD
                   cnt <= cnt + 1 after TPD_G;
-                  if cnt = getTimeRatio(12.8E-9, AXI_CLK_PERIOD_C) then   -- 12.8ns wait
+                  if cnt = getTimeRatio(12.8E-9, AXI_CLK_PERIOD_C) then  -- 12.8ns wait
                      cnt   <= 0      after TPD_G;
                      state <= LOAD_S after TPD_G;
                   end if;
@@ -154,7 +155,7 @@ begin
                when LOAD_S =>
                   load <= '0'     after TPD_G;
                   cnt  <= cnt + 1 after TPD_G;
-                  if cnt = getTimeRatio(51.2E-9, AXI_CLK_PERIOD_C) then   -- 51.2ns wait
+                  if cnt = getTimeRatio(51.2E-9, AXI_CLK_PERIOD_C) then  -- 51.2ns wait
                      load  <= '1'    after TPD_G;
                      cnt   <= 0      after TPD_G;
                      state <= LDAC_S after TPD_G;
@@ -187,4 +188,5 @@ begin
          end if;
       end if;
    end process;
+
 end rtl;

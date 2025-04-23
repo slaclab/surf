@@ -26,16 +26,16 @@ use surf.SsiPkg.all;
 
 entity SsiFrameLimiter is
    generic (
-      TPD_G               : time                := 1 ns;
-      RST_ASYNC_G         : boolean             := false;
-      EN_TIMEOUT_G        : boolean             := true;
-      MAXIS_CLK_FREQ_G    : real                := 156.25E+06;  -- In units of Hz
-      TIMEOUT_G           : real                := 1.0E-3;  -- In units of seconds
-      FRAME_LIMIT_G       : positive            := 1024;  -- In units of MASTER_AXI_CONFIG_G.TDATA_BYTES_C
-      COMMON_CLK_G        : boolean             := false;  -- True if sAxisClk and mAxisClk are the same clock
-      SLAVE_FIFO_G        : boolean             := false;
-      MASTER_FIFO_G       : boolean             := false;
-      SLAVE_READY_EN_G    : boolean             := true;
+      TPD_G               : time     := 1 ns;
+      RST_ASYNC_G         : boolean  := false;
+      EN_TIMEOUT_G        : boolean  := true;
+      MAXIS_CLK_FREQ_G    : real     := 156.25E+06;  -- In units of Hz
+      TIMEOUT_G           : real     := 1.0E-3;      -- In units of seconds
+      FRAME_LIMIT_G       : positive := 1024;  -- In units of MASTER_AXI_CONFIG_G.TDATA_BYTES_C
+      COMMON_CLK_G        : boolean  := false;  -- True if sAxisClk and mAxisClk are the same clock
+      SLAVE_FIFO_G        : boolean  := false;
+      MASTER_FIFO_G       : boolean  := false;
+      SLAVE_READY_EN_G    : boolean  := true;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
@@ -55,7 +55,7 @@ architecture rtl of SsiFrameLimiter is
 
    constant TIMEOUT_C : natural := getTimeRatio(MAXIS_CLK_FREQ_G * TIMEOUT_G, 1.0);
 
-   constant SLAVE_FIFO_C : boolean := ite ( SLAVE_FIFO_G or (COMMON_CLK_G=false) or (SLAVE_READY_EN_G = false), true, false);
+   constant SLAVE_FIFO_C : boolean := ite (SLAVE_FIFO_G or (COMMON_CLK_G = false) or (SLAVE_READY_EN_G = false), true, false);
 
    type StateType is (
       IDLE_S,

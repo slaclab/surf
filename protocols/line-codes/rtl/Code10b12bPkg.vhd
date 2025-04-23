@@ -318,7 +318,7 @@ package body Code10b12bPkg is
       variable highWordValid : sl;
       variable inputDisp     : integer;
       variable runDisp       : integer;
-      variable k28Disp : integer;
+      variable k28Disp       : integer;
    begin
 
 --      print("------------");
@@ -373,7 +373,7 @@ package body Code10b12bPkg is
       if ((lowWordIn = K_CODE_TABLE_C(28).out6b) or
           (lowWordIn = not(K_CODE_TABLE_C(28).out6b))) then
 
-         lowWordOut   := conv_std_logic_vector(28, 5);
+         lowWordOut := conv_std_logic_vector(28, 5);
          if (lowWordIn = K_CODE_TABLE_C(28).out6b) then
             k28Disp := K_CODE_TABLE_C(28).outDisp;
          else
@@ -436,6 +436,5 @@ package body Code10b12bPkg is
       dataOut(9 downto 5) := highWordOut;
 
    end procedure decode10b12b;
-
 
 end package body Code10b12bPkg;

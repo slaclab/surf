@@ -55,12 +55,12 @@ entity Pgp3Tx is
       remRxLinkReady : in sl;
 
       -- PHY interface
-      phyTxActive   : in  sl;
-      phyTxReady    : in  sl;
-      phyTxValid    : out sl;
-      phyTxStart    : out sl;
-      phyTxData     : out slv(63 downto 0);
-      phyTxHeader   : out slv(1 downto 0));
+      phyTxActive : in  sl;
+      phyTxReady  : in  sl;
+      phyTxValid  : out sl;
+      phyTxStart  : out sl;
+      phyTxData   : out slv(63 downto 0);
+      phyTxHeader : out slv(1 downto 0));
 
 end entity Pgp3Tx;
 
@@ -80,12 +80,12 @@ architecture rtl of Pgp3Tx is
    signal packetizedTxMaster : AxiStreamMasterType;
    signal packetizedTxSlave  : AxiStreamSlaveType;
 
-   signal phyTxActiveL   : sl;
-   signal protTxValid    : sl;
-   signal protTxReady    : sl;
-   signal protTxStart    : sl;
-   signal protTxData     : slv(63 downto 0);
-   signal protTxHeader   : slv(1 downto 0);
+   signal phyTxActiveL : sl;
+   signal protTxValid  : sl;
+   signal protTxReady  : sl;
+   signal protTxStart  : sl;
+   signal protTxData   : slv(63 downto 0);
+   signal protTxHeader : slv(1 downto 0);
 
 begin
 
@@ -117,27 +117,27 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk     => pgpTxClk,                              -- [in]
-         rst     => pgpTxRst,                              -- [in]
-         dataIn  => locRxLinkReady,                        -- [in]
-         dataOut => syncLocRxLinkReady);                   -- [out]
+         clk     => pgpTxClk,                           -- [in]
+         rst     => pgpTxRst,                           -- [in]
+         dataIn  => locRxLinkReady,                     -- [in]
+         dataOut => syncLocRxLinkReady);                -- [out]
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
       U_Synchronizer_pause : entity surf.Synchronizer
          generic map (
             TPD_G => TPD_G)
          port map (
-            clk     => pgpTxClk,                              -- [in]
-            rst     => pgpTxRst,                              -- [in]
-            dataIn  => locRxFifoCtrl(i).pause,                -- [in]
-            dataOut => syncLocRxFifoCtrl(i).pause);           -- [out]
+            clk     => pgpTxClk,                        -- [in]
+            rst     => pgpTxRst,                        -- [in]
+            dataIn  => locRxFifoCtrl(i).pause,          -- [in]
+            dataOut => syncLocRxFifoCtrl(i).pause);     -- [out]
       U_Synchronizer_overflow : entity surf.SynchronizerOneShot
          generic map (
             TPD_G => TPD_G)
          port map (
-            clk     => pgpTxClk,                              -- [in]
-            rst     => pgpTxRst,                              -- [in]
-            dataIn  => locRxFifoCtrl(i).overflow,             -- [in]
-            dataOut => syncLocRxFifoCtrl(i).overflow);        -- [out]
+            clk     => pgpTxClk,                        -- [in]
+            rst     => pgpTxRst,                        -- [in]
+            dataIn  => locRxFifoCtrl(i).overflow,       -- [in]
+            dataOut => syncLocRxFifoCtrl(i).overflow);  -- [out]
    end generate;
 
    -- Use synchronized remote status to disable channels from mux selection
@@ -202,8 +202,8 @@ begin
    -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
    U_Pgp3TxProtocol_1 : entity surf.Pgp3TxProtocol
       generic map (
-         TPD_G            => TPD_G,
-         NUM_VC_G         => NUM_VC_G)
+         TPD_G    => TPD_G,
+         NUM_VC_G => NUM_VC_G)
       port map (
          pgpTxClk       => pgpTxClk,            -- [in]
          pgpTxRst       => pgpTxRst,            -- [in]
@@ -230,20 +230,20 @@ begin
          SIDEBAND_WIDTH_G => 3,
          TAPS_G           => PGP3_SCRAMBLER_TAPS_C)
       port map (
-         clk                        => pgpTxClk,        -- [in]
-         rst                        => phyTxActiveL,    -- [in]
+         clk                        => pgpTxClk,      -- [in]
+         rst                        => phyTxActiveL,  -- [in]
          -- Input Interface
-         inputValid                 => protTxValid,     -- [in]
-         inputReady                 => protTxReady,     -- [out]
-         inputData                  => protTxData,      -- [in]
-         inputSideband(1 downto 0)  => protTxHeader,    -- [in]
-         inputSideband(2)           => protTxStart,     -- [in]
+         inputValid                 => protTxValid,   -- [in]
+         inputReady                 => protTxReady,   -- [out]
+         inputData                  => protTxData,    -- [in]
+         inputSideband(1 downto 0)  => protTxHeader,  -- [in]
+         inputSideband(2)           => protTxStart,   -- [in]
          -- Output Interface
-         outputValid                => phyTxValid,      -- [out]
-         outputReady                => phyTxReady,      -- [in]
-         outputData                 => phyTxData,       -- [out]
-         outputSideband(1 downto 0) => phyTxHeader,     -- [out]
-         outputSideband(2)          => phyTxStart);     -- [out]
+         outputValid                => phyTxValid,    -- [out]
+         outputReady                => phyTxReady,    -- [in]
+         outputData                 => phyTxData,     -- [out]
+         outputSideband(1 downto 0) => phyTxHeader,   -- [out]
+         outputSideband(2)          => phyTxStart);   -- [out]
 
    phyTxActiveL <= not(phyTxActive);
 

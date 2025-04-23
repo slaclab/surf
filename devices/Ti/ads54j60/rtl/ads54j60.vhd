@@ -24,9 +24,9 @@ use surf.AxiLitePkg.all;
 
 entity ads54j60 is
    generic (
-      TPD_G             : time            := 1 ns;
-      CLK_PERIOD_G      : real            := (1.0/156.25E+6);
-      SPI_SCLK_PERIOD_G : real            := 1.0E-6);
+      TPD_G             : time := 1 ns;
+      CLK_PERIOD_G      : real := (1.0/156.25E+6);
+      SPI_SCLK_PERIOD_G : real := 1.0E-6);
    port (
       -- Clock and Reset
       axiClk         : in  sl;

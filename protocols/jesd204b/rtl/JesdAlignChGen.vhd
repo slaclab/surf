@@ -30,10 +30,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
-use surf.jesd204bpkg.all;
+use surf.Jesd204bpkg.all;
 
 entity JesdAlignChGen is
    generic (
@@ -56,15 +55,14 @@ entity JesdAlignChGen is
       dataValid_i : in sl;
 
       -- Invert ADC data
-      inv_i     : in sl:='0';
+      inv_i : in sl := '0';
 
       --
       sampleData_i : in slv(GT_WORD_SIZE_C*8-1 downto 0);
 
       -- Outs
       sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0);
-      sampleK_o    : out slv(GT_WORD_SIZE_C-1 downto 0)
-      );
+      sampleK_o    : out slv(GT_WORD_SIZE_C-1 downto 0));
 end entity JesdAlignChGen;
 
 architecture rtl of JesdAlignChGen is
@@ -90,24 +88,21 @@ architecture rtl of JesdAlignChGen is
       sampleDataD2  => (others => '0'),
       sampleKD1     => (others => '0'),
       lfsr          => (others => '0'),
-      lmfcD1        => '0'
-      );
+      lmfcD1        => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
---
 begin
 
+   comb : process (dataValid_i, enable_i, inv_i, lmfc_i, r, rst, sampleData_i,
+                   scrEnable_i) is
+      variable v           : RegType;
+      variable vSampleData : slv(sampleData_o'range);
+      variable vSampleK    : slv(sampleK_o'range);
 
-   comb : process (r, rst, sampleData_i, dataValid_i, enable_i, lmfc_i, scrEnable_i,
-                   inv_i) is
-      variable v            : RegType;
-      variable v_sampleData : slv(sampleData_o'range);
-      variable v_sampleK    : slv(sampleK_o'range);
-
-      variable v_twoWordBuff : slv((2*GT_WORD_SIZE_C*8)-1 downto 0);
-      variable v_twoCharBuff : slv((2*GT_WORD_SIZE_C) -1 downto 0);
+      variable vTwoWordBuff : slv((2*GT_WORD_SIZE_C*8)-1 downto 0);
+      variable vTwoCharBuff : slv((2*GT_WORD_SIZE_C) -1 downto 0);
    begin
       v := r;
 
@@ -116,8 +111,8 @@ begin
 
       -- Invert Data if enabled
       if (inv_i = '1') then
-      -- Invert sample data
-         v.sampleDataInv :=  invData(r.sampleDataReg, F_G, GT_WORD_SIZE_C);
+         -- Invert sample data
+         v.sampleDataInv := invData(r.sampleDataReg, F_G, GT_WORD_SIZE_C);
 
          -- +1 correction (https://jira.slac.stanford.edu/browse/ESLMPS-94)
          for i in F_G-1 downto 0 loop
@@ -125,7 +120,7 @@ begin
          end loop;
 
       else
-         v.sampleDataInv :=  r.sampleDataReg;
+         v.sampleDataInv := r.sampleDataReg;
       end if;
 
       -- Scramble Data if enabled
@@ -150,21 +145,21 @@ begin
       v.lmfcD1 := lmfc_i;
 
       -- Combinatorial logic
-      v_twoWordBuff := r.sampleDataD2 & r.sampleDataD1;
-      v_twoCharBuff := r.sampleKD1 & (sampleK_o'range => '0');
+      vTwoWordBuff := r.sampleDataD2 & r.sampleDataD1;
+      vTwoCharBuff := r.sampleKD1 & (sampleK_o'range => '0');
 
       --
       if enable_i = '1' and dataValid_i = '1' then
          -- Replace with A character at the end of the multi-frame
          if r.lmfcD1 = '1' then
             if scrEnable_i = '1' then
-               if (v_twoWordBuff(7 downto 0) = A_CHAR_C) then
-                  v_twoCharBuff(0) := '1';
+               if (vTwoWordBuff(7 downto 0) = A_CHAR_C) then
+                  vTwoCharBuff(0) := '1';
                end if;
             else
-               if (v_twoWordBuff((F_G*8)+7 downto (F_G*8)) = v_twoWordBuff(7 downto 0)) then
-                  v_twoWordBuff(7 downto 0) := A_CHAR_C;
-                  v_twoCharBuff(0) := '1';
+               if (vTwoWordBuff((F_G*8)+7 downto (F_G*8)) = vTwoWordBuff(7 downto 0)) then
+                  vTwoWordBuff(7 downto 0) := A_CHAR_C;
+                  vTwoCharBuff(0)          := '1';
                end if;
             end if;
          end if;
@@ -172,17 +167,17 @@ begin
          -- Replace with F character
          for i in (SAMPLES_IN_WORD_C-1) downto 0 loop
             if scrEnable_i = '1' then
-               if (v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) = F_CHAR_C and
-                  v_twoCharBuff((i*F_G+F_G)) = '0')
+               if (vTwoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) = F_CHAR_C and
+                   vTwoCharBuff((i*F_G+F_G)) = '0')
                then
-                  v_twoCharBuff(i*F_G) := '1';
+                  vTwoCharBuff(i*F_G) := '1';
                end if;
             else
-               if (v_twoWordBuff((i*F_G*8)+(F_G*8)+7 downto (i*F_G*8)+(F_G*8)) = v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) and
-                   v_twoCharBuff((i*F_G+F_G)) = '0')
+               if (vTwoWordBuff((i*F_G*8)+(F_G*8)+7 downto (i*F_G*8)+(F_G*8)) = vTwoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) and
+                   vTwoCharBuff((i*F_G+F_G)) = '0')
                then
-                  v_twoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) := F_CHAR_C;
-                  v_twoCharBuff(i*F_G)                        := '1';
+                  vTwoWordBuff((i*F_G*8)+7 downto (i*F_G*8)) := F_CHAR_C;
+                  vTwoCharBuff(i*F_G)                        := '1';
                end if;
             end if;
          end loop;
@@ -193,13 +188,13 @@ begin
       end if;
 
       -- Buffer char for one clock cycle
-      v.sampleKD1 := v_twoCharBuff((GT_WORD_SIZE_C)-1 downto 0);
+      v.sampleKD1 := vTwoCharBuff((GT_WORD_SIZE_C)-1 downto 0);
 
       rin <= v;
 
       -- Output assignment
-      sampleData_o <= byteSwapSlv(v_twoWordBuff((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);
-      sampleK_o    <= bitReverse(v_twoCharBuff((GT_WORD_SIZE_C)-1 downto 0));
+      sampleData_o <= byteSwapSlv(vTwoWordBuff((GT_WORD_SIZE_C*8)-1 downto 0), GT_WORD_SIZE_C);
+      sampleK_o    <= bitReverse(vTwoCharBuff((GT_WORD_SIZE_C)-1 downto 0));
 
    end process comb;
 
@@ -209,7 +204,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
----------------------------------------
-
 
 end architecture rtl;

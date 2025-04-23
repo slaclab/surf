@@ -24,10 +24,10 @@ entity FirFilterSingleChannel is
    generic (
       TPD_G            : time         := 1 ns;
       COMMON_CLK_G     : boolean      := false;
-      NUM_TAPS_G       : positive;                   -- Number of filter taps
+      NUM_TAPS_G       : positive;      -- Number of filter taps
       SIDEBAND_WIDTH_G : natural      := 0;
-      DATA_WIDTH_G     : positive;                   -- Number of bits per data word
-      COEFF_WIDTH_G    : positive range 1 to 32;     -- Number of bits per coefficient word
+      DATA_WIDTH_G     : positive;      -- Number of bits per data word
+      COEFF_WIDTH_G    : positive range 1 to 32;  -- Number of bits per coefficient word
       COEFFICIENTS_G   : IntegerArray := (0 => 0));  -- Tap Coefficients Init Constants
    port (
       -- Clock and Reset
@@ -132,7 +132,8 @@ begin
          axiWrAddr      => axiWrAddr,        -- [out]
          axiWrData      => axiWrData);       -- [out]
 
-   comb : process (axiWrAddr, axiWrData, axiWrValid, cascout, ibValid, obReady, r, rst, sbIn) is
+   comb : process (axiWrAddr, axiWrData, axiWrValid, cascout, ibValid, obReady,
+                   r, rst, sbIn) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin

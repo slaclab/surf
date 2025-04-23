@@ -25,14 +25,14 @@ use surf.AxiPkg.all;
 
 entity AxiWriteEmulate is
    generic (
-      TPD_G        : time          := 1 ns;
-      LATENCY_G    : natural       := 31;
+      TPD_G        : time    := 1 ns;
+      LATENCY_G    : natural := 31;
       AXI_CONFIG_G : AxiConfigType;
-      SIM_DEBUG_G  : boolean       := false);
+      SIM_DEBUG_G  : boolean := false);
    port (
       -- Clock/Reset
-      axiClk        : in  sl;
-      axiRst        : in  sl;
+      axiClk         : in  sl;
+      axiRst         : in  sl;
       -- AXI Interface
       axiWriteMaster : in  AxiWriteMasterType;
       axiWriteSlave  : out AxiWriteSlaveType);
@@ -56,7 +56,7 @@ architecture structure of AxiWriteEmulate is
 
    constant REG_INIT_C : RegType := (
       latency => 0,
-      cnt     => (others=>'0'),
+      cnt     => (others => '0'),
       state   => IDLE_S,
       iMaster => AXI_WRITE_MASTER_INIT_C,
       iSlave  => AXI_WRITE_SLAVE_INIT_C);
@@ -96,7 +96,7 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            v.cnt     := (others=>'0');
+            v.cnt     := (others => '0');
             v.latency := 0;
             -- Check for a memory request
             if intWriteMaster.awvalid = '1' then
@@ -105,16 +105,16 @@ begin
                -- Accept the data
                v.iSlave.awready := '1';
                -- Next state
-               v.state          := DATA_s;
+               v.state          := DATA_S;
             end if;
          ----------------------------------------------------------------------
-         when DATA_s =>
+         when DATA_S =>
             -- Check for data
             if intWriteMaster.wvalid = '1' then
                -- Write data channel
                v.iSlave.wready := '1';
                -- Increment counter
-               v.cnt := r.cnt + AXI_CONFIG_G.DATA_BYTES_C;
+               v.cnt           := r.cnt + AXI_CONFIG_G.DATA_BYTES_C;
                -- Show data
                print(SIM_DEBUG_G, "AxiWriteEmulate( addr:" & hstr(r.iMaster.awaddr+r.cnt) & ", data: " & hstr(intWriteMaster.wdata(AXI_CONFIG_G.DATA_BYTES_C-1 downto 0)) & ")");
                -- Detect last
@@ -132,10 +132,10 @@ begin
                v.latency := r.latency + 1;
             end if;
          ----------------------------------------------------------------------
-         when RESP_s =>
-            v.iSlave.bresp := (others=>'0');
-            v.iSlave.bvalid  := '1';
-            v.iSlave.bid     := r.iMaster.awid;
+         when RESP_S =>
+            v.iSlave.bresp  := (others => '0');
+            v.iSlave.bvalid := '1';
+            v.iSlave.bid    := r.iMaster.awid;
             if intWriteMaster.bready = '1' then
                v.state := IDLE_S;
             end if;

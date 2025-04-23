@@ -26,17 +26,17 @@ entity SyncClockFreq is
       TPD_G             : time     := 1 ns;  -- Simulation FF output delay
       RST_ASYNC_G       : boolean  := false;
       USE_DSP_G         : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
-      REF_CLK_FREQ_G    : real     := 200.0E+6;       -- Reference Clock frequency, units of Hz
-      REFRESH_RATE_G    : real     := 1.0E+3;         -- Refresh rate, units of Hz
-      CLK_LOWER_LIMIT_G : real     := 159.0E+6;       -- Lower Limit for clock lock, units of Hz
-      CLK_UPPER_LIMIT_G : real     := 161.0E+6;       -- Lower Limit for clock lock, units of Hz
+      REF_CLK_FREQ_G    : real     := 200.0E+6;  -- Reference Clock frequency, units of Hz
+      REFRESH_RATE_G    : real     := 1.0E+3;    -- Refresh rate, units of Hz
+      CLK_LOWER_LIMIT_G : real     := 159.0E+6;  -- Lower Limit for clock lock, units of Hz
+      CLK_UPPER_LIMIT_G : real     := 161.0E+6;  -- Lower Limit for clock lock, units of Hz
       COMMON_CLK_G      : boolean  := false;  -- Set to true if (locClk = refClk) to save resources else false
       CNT_WIDTH_G       : positive := 32);   -- Counters' width
    port (
       -- Frequency Measurement and Monitoring Outputs (locClk domain)
       freqOut     : out slv(CNT_WIDTH_G-1 downto 0);  -- units of Hz
       freqUpdated : out sl;
-      locked      : out sl;             -- '1' CLK_LOWER_LIMIT_G < clkIn < CLK_UPPER_LIMIT_G
+      locked      : out sl;  -- '1' CLK_LOWER_LIMIT_G < clkIn < CLK_UPPER_LIMIT_G
       tooFast     : out sl;             -- '1' when clkIn > CLK_UPPER_LIMIT_G
       tooSlow     : out sl;             -- '1' when clkIn < CLK_LOWER_LIMIT_G
       -- Clocks

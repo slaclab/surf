@@ -7,3 +7,4 @@ coverage
 pytest
 pytest-cov
 cpplint
+vsg

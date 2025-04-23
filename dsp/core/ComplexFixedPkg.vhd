@@ -27,45 +27,45 @@ package ComplexFixedPkg is
    end record cfixed;
 
    type sfixedArray is array(natural range <>) of sfixed;
-   type cfixedArray is array(natural range<>)  of cfixed;
+   type cfixedArray is array(natural range<>) of cfixed;
 
-   type realArray is array(natural range<>) of real;
-   type complexArray is array(natural range <>) of complex;
+   type RealArray is array(natural range<>) of real;
+   type ComplexArray is array(natural range <>) of complex;
 
-   function to_cfixed (R, I : REAL; CTYP : cfixed) return cfixed;
-   function to_cfixed (CIN : COMPLEX; CTYP : cfixed) return cfixed;
+   function to_cfixed (R, I : real; CTYP : cfixed) return cfixed;
+   function to_cfixed (CIN  : COMPLEX; CTYP : cfixed) return cfixed;
    function to_cfixed (R, I : sfixed) return cfixed;
 
-   function to_cfixedArray( CIN : complexArray; CTYP : cfixed ) return cfixedArray;
-   function to_sfixedArray( SIN : realArray; STYP : sfixed) return sfixedArray;
+   function to_cfixedArray(CIN : ComplexArray; CTYP : cfixed) return cfixedArray;
+   function to_sfixedArray(SIN : RealArray; STYP : sfixed) return sfixedArray;
 
-   function resize(CIN  : cfixed;
-                   CTYP : cfixed;
+   function resize(CIN                     : cfixed;
+                   CTYP                    : cfixed;
                    constant overflow_style : fixed_overflow_style_type;
                    constant round_style    : fixed_round_style_type)
-                   return cfixed;
+      return cfixed;
 
-   function to_slv (ARG : cfixed) return std_logic_vector;
+   function to_slv (ARG   : cfixed) return std_logic_vector;
    function to_cfixed(VEC : std_logic_vector; CTYP : cfixed) return cfixed;
 
    function conj (ARG : cfixed) return cfixed;
    function swap (ARG : cfixed) return cfixed;
 
-   function "="  (L, R : cfixed) return boolean;
+   function "=" (L, R  : cfixed) return boolean;
    function "/=" (L, R : cfixed) return boolean;
 
-   function "-" (ARG : cfixed) return cfixed;
+   function "-" (ARG  : cfixed) return cfixed;
    function "-" (L, R : cfixed) return cfixed;
-   function "-" (L : cfixed; R : sfixed) return cfixed;
-   function "-" (L : sfixed;  R : cfixed) return cfixed;
+   function "-" (L    : cfixed; R : sfixed) return cfixed;
+   function "-" (L    : sfixed; R : cfixed) return cfixed;
 
    function "+" (L, R : cfixed) return cfixed;
-   function "+" (L : cfixed; R : sfixed) return cfixed;
-   function "+" (L : sfixed;  R : cfixed) return cfixed;
+   function "+" (L    : cfixed; R : sfixed) return cfixed;
+   function "+" (L    : sfixed; R : cfixed) return cfixed;
 
    function "*" (L, R : cfixed) return cfixed;
-   function "*" (L : cfixed; R : sfixed) return cfixed;
-   function "*" (L : sfixed;  R : cfixed) return cfixed;
+   function "*" (L    : cfixed; R : sfixed) return cfixed;
+   function "*" (L    : sfixed; R : cfixed) return cfixed;
 
 end package ComplexFixedPkg;
 
@@ -78,49 +78,49 @@ package body ComplexFixedPkg is
       return ret;
    end function to_cfixed;
 
-   function resize(CIN  : cfixed;
-                   CTYP : cfixed;
+   function resize(CIN                     : cfixed;
+                   CTYP                    : cfixed;
                    constant overflow_style : fixed_overflow_style_type;
                    constant round_style    : fixed_round_style_type)
-                   return cfixed is
-       variable ret : cfixed(re(CTYP.re'range), im(CTYP.im'range));
+      return cfixed is
+      variable ret : cfixed(re(CTYP.re'range), im(CTYP.im'range));
    begin
-       ret.RE := resize(CIN.re, CTYP.re, overflow_style, round_style);
-       ret.IM := resize(CIN.im, CTYP.im, overflow_style, round_style);
-       return ret;
+      ret.RE := resize(CIN.re, CTYP.re, overflow_style, round_style);
+      ret.IM := resize(CIN.im, CTYP.im, overflow_style, round_style);
+      return ret;
    end function resize;
 
    function to_slv(ARG : cfixed) return std_logic_vector is
       variable vec : std_logic_vector(ARG.re'length + ARG.im'length - 1 downto 0);
    begin
-       vec(ARG.im'length - 1 downto 0) := to_slv(ARG.im);
-       vec(ARG.re'length + ARG.im'length - 1 downto ARG.im'length) :=
-           to_slv(ARG.re);
-       return vec;
+      vec(ARG.im'length - 1 downto 0) := to_slv(ARG.im);
+      vec(ARG.re'length + ARG.im'length - 1 downto ARG.im'length) :=
+         to_slv(ARG.re);
+      return vec;
    end function to_slv;
 
    function to_cfixed(vec : std_logic_vector; CTYP : cfixed) return cfixed is
-       variable ret : cfixed(re(CTYP.RE'range), im(CTYP.IM'range));
-       --variable ret : CTYP'subtype;
+      variable ret : cfixed(re(CTYP.RE'range), im(CTYP.IM'range));
+   --variable ret : CTYP'subtype;
    begin
-       ret.IM := to_sfixed(vec(CTYP.IM'length - 1 downto 0), CTYP.IM);
-       ret.RE := to_sfixed(vec(CTYP.IM'length + CTYP.RE'length - 1 downto CTYP.IM'length), CTYP.RE);
-       return ret;
+      ret.IM := to_sfixed(vec(CTYP.IM'length - 1 downto 0), CTYP.IM);
+      ret.RE := to_sfixed(vec(CTYP.IM'length + CTYP.RE'length - 1 downto CTYP.IM'length), CTYP.RE);
+      return ret;
    end function to_cfixed;
 
    function "=" (L, R : cfixed) return boolean is
    begin
-       return ( (L.RE = R.RE) and (L.IM = R.IM) );
+      return ((L.RE = R.RE) and (L.IM = R.IM));
    end function "=";
 
    function "/=" (L, R : cfixed) return boolean is
    begin
-       return not( L = R );
+      return not(L = R);
    end function "/=";
 
    function conj (ARG : cfixed) return cfixed is
-       variable RE : sfixed(ARG.RE'left + 1 downto ARG.RE'low);
-       variable IM : sfixed(ARG.IM'left + 1 downto ARG.IM'low);
+      variable RE : sfixed(ARG.RE'left + 1 downto ARG.RE'low);
+      variable IM : sfixed(ARG.IM'left + 1 downto ARG.IM'low);
    begin
       RE := resize(ARG.RE, RE);
       IM := -ARG.IM;
@@ -129,7 +129,7 @@ package body ComplexFixedPkg is
 
    function swap (ARG : cfixed) return cfixed is
    begin
-       return to_cfixed(ARG.IM, ARG.RE);
+      return to_cfixed(ARG.IM, ARG.RE);
    end function swap;
 
    function "-" (ARG : cfixed) return cfixed is
@@ -173,9 +173,9 @@ package body ComplexFixedPkg is
       return R + L;
    end function "+";
 
-  function "*" (L, R : cfixed) return cfixed is
+   function "*" (L, R : cfixed) return cfixed is
    begin
-      return to_cfixed( L.RE * R.RE - L.IM * R.IM, L.RE * R.IM + L.IM * R.RE );
+      return to_cfixed(L.RE * R.RE - L.IM * R.IM, L.RE * R.IM + L.IM * R.RE);
    end function "*";
 
    function "*" (L : cfixed; R : sfixed) return cfixed is
@@ -189,30 +189,30 @@ package body ComplexFixedPkg is
       return R*L;
    end function "*";
 
-   function to_cfixed (R, I : REAL; CTYP : cfixed) return cfixed is
+   function to_cfixed (R, I : real; CTYP : cfixed) return cfixed is
    begin
       return to_cfixed(to_sfixed(R, CTYP.RE), to_sfixed(I, CTYP.IM));
-   end to_cfixed;
+   end function to_cfixed;
 
    function to_cfixed (CIN : COMPLEX; CTYP : cfixed) return cfixed is
    begin
       return to_cfixed(to_sfixed(CIN.RE, CTYP.RE), to_sfixed(CIN.IM, CTYP.IM));
-   end to_cfixed;
+   end function to_cfixed;
 
-   function to_cfixedArray ( CIN : complexArray; CTYP : cfixed ) return cfixedArray is
-       variable ret : cfixedArray(CIN'range)(re(CTYP.re'range), im(CTYP.im'range));
+   function to_cfixedArray (CIN : ComplexArray; CTYP : cfixed) return cfixedArray is
+      variable ret : cfixedArray(CIN'range)(re(CTYP.re'range), im(CTYP.im'range));
    begin
-       for i in CIN'range loop
-           ret(i) := to_cfixed(CIN(i), CTYP);
-       end loop;
-       return ret;
+      for i in CIN'range loop
+         ret(i) := to_cfixed(CIN(i), CTYP);
+      end loop;
+      return ret;
    end function to_cfixedArray;
 
-   function to_sfixedArray( SIN : realArray; STYP : sfixed) return sfixedArray is
+   function to_sfixedArray(SIN : RealArray; STYP : sfixed) return sfixedArray is
       variable ret : sfixedArray(SIN'range)(STYP'range);
    begin
       for i in SIN'range loop
-          ret(i) := to_sfixed(SIN(i), STYP);
+         ret(i) := to_sfixed(SIN(i), STYP);
       end loop;
       return ret;
    end function to_sfixedArray;

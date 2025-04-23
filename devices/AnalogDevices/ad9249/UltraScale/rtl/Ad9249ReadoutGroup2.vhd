@@ -20,15 +20,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9249Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249ReadoutGroup2 is
    generic (
@@ -58,12 +57,9 @@ entity Ad9249ReadoutGroup2 is
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) := (others => axiStreamMasterInit(AD9249_AXIS_CFG_G)));
-
 end Ad9249ReadoutGroup2;
 
--- Define architecture
 architecture rtl of Ad9249ReadoutGroup2 is
-
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -155,6 +151,7 @@ architecture rtl of Ad9249ReadoutGroup2 is
 
 
 begin
+
    -------------------------------------------------------------------------------------------------
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------
@@ -289,8 +286,9 @@ begin
 -------------------------------------------------------------------------------------------------
 -- AXIL Interface
 -------------------------------------------------------------------------------------------------
-   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelay,
-                       debugDataTmp, debugDataValid, errorDetCount, lockedFallCount, lockedSync) is
+   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst,
+                       axilWriteMaster, curDelay, debugDataTmp, debugDataValid,
+                       errorDetCount, lockedFallCount, lockedSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin

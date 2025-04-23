@@ -1,6 +1,9 @@
 # Load RUCKUS environment and library
 source $::env(RUCKUS_PROC_TCL)
 
+# Must be exactly Vivado v2018.3
+if { [VersionCheck 2018.3 "mustBeExact"] < 0 } {exit -1}
+
 # Load submodules' code and constraints
 loadRuckusTcl $::env(MODULES)/surf
 loadRuckusTcl $::DIR_PATH/../../jtag

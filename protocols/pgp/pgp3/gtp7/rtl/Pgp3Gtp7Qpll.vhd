@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -30,10 +29,10 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtp7Qpll is
    generic (
-      TPD_G         : time           := 1 ns;
-      EN_DRP_G      : boolean        := true;
-      REFCLK_FREQ_G : real           := 250.0E+6;
-      RATE_G        : string         := "6.25Gbps");  -- or "3.125Gbps"
+      TPD_G         : time    := 1 ns;
+      EN_DRP_G      : boolean := true;
+      REFCLK_FREQ_G : real    := 250.0E+6;
+      RATE_G        : string  := "6.25Gbps");  -- or "3.125Gbps"
    port (
       -- Stable Clock and Reset
       stableClk       : in  sl;         -- GT needs a stable clock to "boot up"
@@ -75,6 +74,7 @@ architecture mapping of Pgp3Gtp7Qpll is
          return -1;
       end if;
    end function;
+
    constant FBDIV_IN_C : positive := GenQpllFbDiv;
 
    constant FBDIV_45_IN_C : positive := 5;
@@ -89,6 +89,7 @@ architecture mapping of Pgp3Gtp7Qpll is
          return -1;
       end if;
    end function;
+
    constant REFCLK_DIV_IN_C : positive := GenQpllRefDiv;
 
    signal qPllRefClk     : slv(1 downto 0);

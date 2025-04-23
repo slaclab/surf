@@ -68,7 +68,8 @@ begin
 
    U_FiltEnGen : if (FILT_EN_G = true) generate
 
-      comb : process (dropOnPause, ethRst, filtEnable, mAxisCtrl, macAddress, r, sAxisMaster) is
+      comb : process (dropOnPause, ethRst, filtEnable, mAxisCtrl, macAddress,
+                      r, sAxisMaster) is
          variable v : RegType;
       begin
          -- Latch the current value
@@ -94,8 +95,8 @@ begin
                      end if;
                   -- Local match, broadcast or multicast
                   elsif (filtEnable = '0') or
-                     (sAxisMaster.tData(47 downto 0) = macAddress) or         -- Local
-                     (sAxisMaster.tData(0) = '1') or                          -- Multicast
+                     (sAxisMaster.tData(47 downto 0) = macAddress) or  -- Local
+                     (sAxisMaster.tData(0) = '1') or  -- Multicast
                      (sAxisMaster.tData(47 downto 0) = x"FFFFFFFFFFFF") then  -- Broadcast
                      -- Check for no EOF
                      if (sAxisMaster.tLast = '0') then

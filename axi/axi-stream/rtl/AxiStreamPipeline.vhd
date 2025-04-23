@@ -23,9 +23,9 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamPipeline is
    generic (
       TPD_G             : time     := 1 ns;
-      RST_POLARITY_G    : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G    : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G       : boolean  := false;
-      SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
+      SIDE_BAND_WIDTH_G : positive := 1;    -- General purpose sideband
       PIPE_STAGES_G     : natural  := 0);
    port (
       -- Clock and Reset

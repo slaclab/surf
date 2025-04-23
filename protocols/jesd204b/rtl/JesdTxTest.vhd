@@ -19,17 +19,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
 entity JesdTxTest is
    generic (
-      TPD_G : time := 1 ns
-      );
+      TPD_G : time := 1 ns);
    port (
-
       -- JESD
       -- Clocks and Resets
       devClk_i : in sl;
@@ -54,11 +51,8 @@ entity JesdTxTest is
       txDataValid_o : out sl;
 
       -- Data and character output and GT signals (simple generated)
-      r_jesdGtRx : out jesdGtRxLaneType
-
-      );
+      r_jesdGtRx : out jesdGtRxLaneType);
 end JesdTxTest;
-
 
 architecture rtl of JesdTxTest is
 
@@ -70,8 +64,7 @@ architecture rtl of JesdTxTest is
 
    constant REG_INIT_C : RegType := (
       dataD1  => (others => '0'),
-      dataKD1 => (others => '0')
-      );
+      dataKD1 => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -105,8 +98,8 @@ begin
    -- Delay nsync input (for 1 to 16 c-c) to
    nsyncDly_INST : entity surf.SlvDelay
       generic map (
-         TPD_G    => TPD_G,
-          DELAY_G => 16)
+         TPD_G   => TPD_G,
+         DELAY_G => 16)
       port map (
          clk     => devClk_i,
          rst     => devRst_i,
@@ -127,8 +120,7 @@ begin
          testCntr_o  => s_testCntr,
          dataValid_o => s_dataValid,
          align_o     => s_align,
-         subClass_i  => subClass_i
-         );
+         subClass_i  => subClass_i);
 
    comb : process (devRst_i, r, s_data, s_dataK) is
       variable v : RegType;
@@ -217,5 +209,5 @@ begin
 
    -- Output assignment
    txDataValid_o <= s_dataValid;
---------------------------------------------
+
 end rtl;

@@ -21,19 +21,19 @@ use surf.StdRtlPkg.all;
 entity SynchronizerEdge is
    generic (
       TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
-      OUT_POLARITY_G : sl       := '1';    -- 0 for active LOW, 1 for active HIGH
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH
       RST_ASYNC_G    : boolean  := false;  -- Reset is asynchronous
       BYPASS_SYNC_G  : boolean  := false;  -- Bypass Synchronizer module for synchronous data configuration
       STAGES_G       : positive := 3;
       INIT_G         : slv      := "0");
    port (
-      clk         : in  sl;                        -- clock to be SYNC'd to
+      clk         : in  sl;             -- clock to be SYNC'd to
       rst         : in  sl := not RST_POLARITY_G;  -- Optional reset
-      dataIn      : in  sl;                        -- Data to be 'synced'
-      dataOut     : out sl;                        -- synced data
-      risingEdge  : out sl;                        -- Rising edge detected
-      fallingEdge : out sl);                       -- Falling edge detected
+      dataIn      : in  sl;             -- Data to be 'synced'
+      dataOut     : out sl;             -- synced data
+      risingEdge  : out sl;             -- Rising edge detected
+      fallingEdge : out sl);            -- Falling edge detected
 end SynchronizerEdge;
 
 architecture rtl of SynchronizerEdge is

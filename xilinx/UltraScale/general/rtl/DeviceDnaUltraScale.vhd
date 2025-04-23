@@ -63,11 +63,11 @@ architecture rtl of DeviceDnaUltraScale is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dnaDout  : sl;
-   signal divClk   : sl;
-   signal locClk   : sl;
-   signal locRst   : sl;
-   signal dnaRead  : sl;
+   signal dnaDout : sl;
+   signal divClk  : sl;
+   signal locClk  : sl;
+   signal locRst  : sl;
+   signal dnaRead : sl;
 
 begin
 
@@ -98,7 +98,7 @@ begin
       v := r;
 
       -- Reset the strobing signals
-      v.dnaRead  := '0';
+      v.dnaRead := '0';
 
       -- State Machine
       case (r.state) is
@@ -125,7 +125,7 @@ begin
          ----------------------------------------------------------------------
          when DONE_S =>
             -- Set the valid bit
-            v.dnaValid := '1';
+            v.dnaValid               := '1';
             -- The two LSBs and two MSBs have fixed values
             v.dnaValue(1 downto 0)   := "01";
             v.dnaValue(95 downto 94) := "01";
@@ -133,7 +133,7 @@ begin
       end case;
 
       -- Outputs
-      dnaRead  <= v.dnaRead;
+      dnaRead <= v.dnaRead;
 
       -- Synchronous Reset
       if locRst = '1' then

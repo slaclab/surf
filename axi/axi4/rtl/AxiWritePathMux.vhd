@@ -27,8 +27,7 @@ use surf.AxiPkg.all;
 entity AxiWritePathMux is
    generic (
       TPD_G        : time                  := 1 ns;
-      NUM_SLAVES_G : integer range 1 to 32 := 4
-      );
+      NUM_SLAVES_G : integer range 1 to 32 := 4);
    port (
 
       -- Clock and reset
@@ -40,9 +39,8 @@ entity AxiWritePathMux is
       sAxiWriteSlaves  : out AxiWriteSlaveArray(NUM_SLAVES_G-1 downto 0);
 
       -- Master
-      mAxiWriteMaster  : out AxiWriteMasterType;
-      mAxiWriteSlave   : in  AxiWriteSlaveType
-      );
+      mAxiWriteMaster : out AxiWriteMasterType;
+      mAxiWriteSlave  : in  AxiWriteSlaveType);
 end AxiWritePathMux;
 
 architecture structure of AxiWritePathMux is
@@ -79,15 +77,14 @@ architecture structure of AxiWritePathMux is
       dataState  => S_IDLE_C,
       dataAckNum => (others => '0'),
       slaves     => (others => AXI_WRITE_SLAVE_INIT_C),
-      master     => AXI_WRITE_MASTER_INIT_C
-      );
+      master     => AXI_WRITE_MASTER_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (axiRst, r, sAxiWriteMasters, mAxiWriteSlave) is
+   comb : process (axiRst, mAxiWriteSlave, r, sAxiWriteMasters) is
       variable v            : RegType;
       variable addrRequests : slv(ARB_BITS_C-1 downto 0);
       variable selAddr      : AxiWriteMasterType;
@@ -105,13 +102,13 @@ begin
       end loop;
 
       -- Select address source
-      selAddr       := sAxiWriteMasters(conv_integer(r.addrAckNum));
-      selAddr.awid  := (others => '0');
+      selAddr      := sAxiWriteMasters(conv_integer(r.addrAckNum));
+      selAddr.awid := (others => '0');
 
       selAddr.awid(DEST_SIZE_C-1 downto 0) := r.addrAckNum;
 
       -- Format requests
-      addrRequests := (others=>'0');
+      addrRequests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
          addrRequests(i) := sAxiWriteMasters(i).awvalid;
       end loop;
@@ -175,12 +172,12 @@ begin
 
       -- Init Slave Ready
       for i in 0 to (NUM_SLAVES_G-1) loop
-         v.slaves(i).wready  := '0';
+         v.slaves(i).wready := '0';
       end loop;
 
       -- Select data source
-      selData      := sAxiWriteMasters(conv_integer(r.dataAckNum));
-      selData.wid  := (others => '0');
+      selData     := sAxiWriteMasters(conv_integer(r.dataAckNum));
+      selData.wid := (others => '0');
 
       selData.wid(DEST_SIZE_C-1 downto 0) := r.dataAckNum;
 
@@ -200,7 +197,7 @@ begin
 
          -- Move a frame until tLast
          when S_MOVE_C =>
-            v.dataAck  := '0';
+            v.dataAck := '0';
 
             -- Advance pipeline
             if r.master.wvalid = '0' or mAxiWriteSlave.wready = '1' then
@@ -250,7 +247,7 @@ begin
          v.slaves(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bresp  := mAxiWriteSlave.bresp;
          v.slaves(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bvalid := mAxiWriteSlave.bvalid;
          v.slaves(conv_integer(mAxiWriteSlave.bid(DEST_SIZE_C-1 downto 0))).bid    := mAxiWriteSlave.bid;
-         v.master.bready := '1';
+         v.master.bready                                                           := '1';
       else
          v.master.bready := '0';
       end if;
@@ -258,7 +255,7 @@ begin
       -- Bypass if single slave
       if NUM_SLAVES_G = 1 then
          sAxiWriteSlaves(0) <= mAxiWriteSlave;
-         mAxiWriteMaster    <= sAxiWritemasters(0);
+         mAxiWriteMaster    <= sAxiWriteMasters(0);
       else
          -- Output data
          sAxiWriteSlaves <= r.slaves;
@@ -267,8 +264,8 @@ begin
          -- Combinatorial outputs before the reset
          -- Readies are direct
          for i in 0 to (NUM_SLAVES_G-1) loop
-           sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
-           sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
+            sAxiWriteSlaves(i).awready <= v.slaves(i).awready;
+            sAxiWriteSlaves(i).wready  <= v.slaves(i).wready;
          end loop;
          mAxiWriteMaster.bready <= v.master.bready;
       end if;
