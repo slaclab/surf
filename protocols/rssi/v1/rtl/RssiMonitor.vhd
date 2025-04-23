@@ -45,30 +45,30 @@ use surf.RssiPkg.all;
 entity RssiMonitor is
    generic (
       TPD_G               : time     := 1 ns;
-      TIMEOUT_UNIT_G      : real     := 1.0E-6; -- us
+      TIMEOUT_UNIT_G      : real     := 1.0E-6;  -- us
       CLK_FREQUENCY_G     : real     := 100.0E6;
       SERVER_G            : boolean  := true;
       WINDOW_ADDR_SIZE_G  : positive := 7;
       STATUS_WIDTH_G      : positive := 8;
       CNT_WIDTH_G         : positive := 32;
-      RETRANSMIT_ENABLE_G : boolean := true
-      --
-   );
+      RETRANSMIT_ENABLE_G : boolean  := true
+    --
+      );
    port (
-      clk_i      : in  sl;
-      rst_i      : in  sl;
+      clk_i : in sl;
+      rst_i : in sl;
 
       -- Connection FSM indicating active connection
-      connActive_i : in  sl;
+      connActive_i : in sl;
 
       -- Local Busy Flag
-      localBusy_i  : in  sl;
+      localBusy_i : in sl;
 
       -- Timeout and counter values
-      rssiParam_i  : in  RssiParamType;
+      rssiParam_i : in RssiParamType;
 
       -- Flags from Rx module
-      rxFlags_i    : in FlagsType;
+      rxFlags_i : in FlagsType;
 
       --
       rxLastSeqN_i   : in slv(7 downto 0);
@@ -78,14 +78,14 @@ entity RssiMonitor is
       txBufferEmpty_i : in sl;
 
       -- Valid received packet
-      rxValid_i      : in sl;
-      rxDrop_i       : in sl;
+      rxValid_i : in sl;
+      rxDrop_i  : in sl;
 
       --
-      ackHeadSt_i    : in sl;
-      rstHeadSt_i    : in sl;
-      dataHeadSt_i   : in sl;
-      nullHeadSt_i   : in sl;
+      ackHeadSt_i  : in sl;
+      rstHeadSt_i  : in sl;
+      dataHeadSt_i : in sl;
+      nullHeadSt_i : in sl;
 
       -- Internal Errors and Timeouts
       lenErr_i       : in sl;
@@ -94,31 +94,31 @@ entity RssiMonitor is
       paramReject_i  : in sl;
 
       -- Packet transmission requests
-      sndResend_o     : out  sl;
-      sndNull_o       : out  sl;
-      sndAck_o        : out  sl;
+      sndResend_o : out sl;
+      sndNull_o   : out sl;
+      sndAck_o    : out sl;
 
       -- Connection close request
-      closeRq_o    : out  sl;
+      closeRq_o : out sl;
 
       -- Internal statuses
-      statusReg_o : out slv(STATUS_WIDTH_G  downto 0);
-      dropCnt_o   : out slv(CNT_WIDTH_G-1  downto 0);
-      validCnt_o  : out slv(CNT_WIDTH_G-1  downto 0);
-      resendCnt_o : out slv(CNT_WIDTH_G-1  downto 0);
-      reconCnt_o  : out slv(CNT_WIDTH_G-1  downto 0)
-   );
+      statusReg_o : out slv(STATUS_WIDTH_G downto 0);
+      dropCnt_o   : out slv(CNT_WIDTH_G-1 downto 0);
+      validCnt_o  : out slv(CNT_WIDTH_G-1 downto 0);
+      resendCnt_o : out slv(CNT_WIDTH_G-1 downto 0);
+      reconCnt_o  : out slv(CNT_WIDTH_G-1 downto 0)
+      );
 end entity RssiMonitor;
 
 architecture rtl of RssiMonitor is
 
-   constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
+   constant SAMPLES_PER_TIME_C      : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
    constant SAMPLES_PER_TIME_DIV3_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G)/3;
 
-   constant MAX_TOUT_CNT_C     : slv(rssiParam_i.retransTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0) := (others=>'1');
-   constant MAX_RETRANS_CNT_C  : slv(rssiParam_i.maxRetrans'left + bitSize(SAMPLES_PER_TIME_C) downto 0)  := (others=>'1');
-   constant MAX_NULL_CNT_C     : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0) := (others=>'1');
-   constant MAX_ACK_TOUT_CNT_C : slv(rssiParam_i.cumulAckTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0) := (others=>'1');
+   constant MAX_TOUT_CNT_C     : slv(rssiParam_i.retransTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0)  := (others => '1');
+   constant MAX_RETRANS_CNT_C  : slv(rssiParam_i.maxRetrans'left + bitSize(SAMPLES_PER_TIME_C) downto 0)   := (others => '1');
+   constant MAX_NULL_CNT_C     : slv(rssiParam_i.nullSegTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0)  := (others => '1');
+   constant MAX_ACK_TOUT_CNT_C : slv(rssiParam_i.cumulAckTout'left + bitSize(SAMPLES_PER_TIME_C) downto 0) := (others => '1');
 
    type RegType is record
       -- Retransmission
@@ -143,48 +143,48 @@ architecture rtl of RssiMonitor is
       localBusyD1  : sl;
 
       --
-      status      : slv(STATUS_WIDTH_G - 1 downto 0);
-      validCnt    : slv(CNT_WIDTH_G - 1 downto 0);
-      dropCnt     : slv(CNT_WIDTH_G - 1 downto 0);
-      reconCnt    : slv(CNT_WIDTH_G - 1 downto 0);
-      resendCnt   : slv(CNT_WIDTH_G - 1 downto 0);
+      status    : slv(STATUS_WIDTH_G - 1 downto 0);
+      validCnt  : slv(CNT_WIDTH_G - 1 downto 0);
+      dropCnt   : slv(CNT_WIDTH_G - 1 downto 0);
+      reconCnt  : slv(CNT_WIDTH_G - 1 downto 0);
+      resendCnt : slv(CNT_WIDTH_G - 1 downto 0);
    --
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       -- Retransmission
-      retransToutCnt    => (others=>'0'),
-      sndResend         => '0',
-      sndResendD1       => '0',
-      retransCnt        => (others=>'0'),
-      retransMax        => '0',
+      retransToutCnt => (others => '0'),
+      sndResend      => '0',
+      sndResendD1    => '0',
+      retransCnt     => (others => '0'),
+      retransMax     => '0',
 
       -- Null packet send/timeout
-      nullToutCnt => (others=>'0'),
+      nullToutCnt => (others => '0'),
       sndnull     => '0',
       nullTout    => '0',
 
       -- Ack packet cumulative/timeout
-      ackToutCnt  => (others=>'0'),
-      lastAckSeqN => (others=>'0'),
+      ackToutCnt  => (others => '0'),
+      lastAckSeqN => (others => '0'),
       sndAck      => '0',
 
       -- For detecting rising edge
-      connActiveD1  => '0',
-      localBusyD1   => '0',
+      connActiveD1 => '0',
+      localBusyD1  => '0',
 
       -- Statuses
-      status      => (others=>'0'),
-      validCnt    => (others=>'0'),
-      dropCnt     => (others=>'0'),
-      reconCnt    => (others=>'0'),
-      resendCnt   => (others=>'0')
-   );
+      status    => (others => '0'),
+      validCnt  => (others => '0'),
+      dropCnt   => (others => '0'),
+      reconCnt  => (others => '0'),
+      resendCnt => (others => '0')
+      );
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r        : RegType := REG_INIT_C;
+   signal rin      : RegType;
    signal s_status : slv(STATUS_WIDTH_G - 1 downto 0);
-   --
+--
 begin
    -- Status assignment
    s_status(0) <= r.retransMax and r.sndResend and not r.sndResendD1;
@@ -194,10 +194,12 @@ begin
    s_status(4) <= peerConnTout_i;
    s_status(5) <= paramReject_i;
    s_status(6) <= localBusy_i;
-   s_status(7) <= rxFlags_i.busy; -- Remote busy
+   s_status(7) <= rxFlags_i.busy;       -- Remote busy
 
-   comb : process (r, rst_i, rxFlags_i, rssiParam_i, rxValid_i, rxDrop_i, dataHeadSt_i, rstHeadSt_i, nullHeadSt_i, ackHeadSt_i, localBusy_i,
-                   connActive_i, rxLastSeqN_i, rxWindowSize_i, txBufferEmpty_i, s_status) is
+   comb : process (ackHeadSt_i, connActive_i, dataHeadSt_i, localBusy_i,
+                   nullHeadSt_i, r, rssiParam_i, rstHeadSt_i, rst_i, rxDrop_i,
+                   rxFlags_i, rxLastSeqN_i, rxValid_i, rxWindowSize_i,
+                   s_status, txBufferEmpty_i) is
       variable v : RegType;
    begin
       v := r;
@@ -214,15 +216,15 @@ begin
 
       -- Retransmission Timeout counter
       if (connActive_i = '0' or
-          r.sndResend  = '1' or
+          r.sndResend = '1' or
           rxFlags_i.busy = '1' or
           dataHeadSt_i = '1' or
-          rstHeadSt_i  = '1' or
+          rstHeadSt_i = '1' or
           nullHeadSt_i = '1' or
           txBufferEmpty_i = '1' or
-          RETRANSMIT_ENABLE_G = false -- Disable retransmissions
-      ) then
-         v.retransToutCnt := (others=>'0');
+          RETRANSMIT_ENABLE_G = false   -- Disable retransmissions
+          ) then
+         v.retransToutCnt := (others => '0');
       elsif (r.retransToutCnt /= MAX_TOUT_CNT_C) then
          v.retransToutCnt := r.retransToutCnt+1;
       end if;
@@ -231,12 +233,12 @@ begin
       if (connActive_i = '0' or
           rxFlags_i.busy = '1' or
           dataHeadSt_i = '1' or
-          rstHeadSt_i  = '1' or
+          rstHeadSt_i = '1' or
           nullHeadSt_i = '1' or
           txBufferEmpty_i = '1'
-      ) then
+          ) then
          v.sndResend := '0';
-      elsif (r.retransToutCnt >= (conv_integer(rssiParam_i.retransTout)*SAMPLES_PER_TIME_C) ) then
+      elsif (r.retransToutCnt >= (conv_integer(rssiParam_i.retransTout)*SAMPLES_PER_TIME_C)) then
          v.sndResend := '1';
 
       end if;
@@ -244,18 +246,18 @@ begin
       -- Pipeline sndResend for edge detection
       v.sndResendD1 := r.sndResend;
 
-   -- /////////////////////////////////////////////////////////
-   ------------------------------------------------------------
-   -- Retransmission counter
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////
+      -- /////////////////////////////////////////////////////////
+      ------------------------------------------------------------
+      -- Retransmission counter
+      ------------------------------------------------------------
+      -- /////////////////////////////////////////////////////////
       -- Counter of consecutive retransmissions
       -- Reset when connection is broken or a valid ACK is received
       if (connActive_i = '0' or
-         (rxValid_i = '1' and rxFlags_i.ack = '1')
-      ) then
-         v.retransCnt := (others=>'0');
-      elsif (r.sndResend  = '1' and r.sndResendD1  = '0') then -- Rising edge
+          (rxValid_i = '1' and rxFlags_i.ack = '1')
+          ) then
+         v.retransCnt := (others => '0');
+      elsif (r.sndResend = '1' and r.sndResendD1 = '0') then  -- Rising edge
          if (r.retransCnt /= MAX_RETRANS_CNT_C) then
             v.retransCnt := r.retransCnt+1;
          end if;
@@ -263,178 +265,178 @@ begin
 
       -- Retransmission exceeded close connection request SRFF
       if (connActive_i = '0' or
-         (rxValid_i = '1' and rxFlags_i.ack = '1')
-      ) then
+          (rxValid_i = '1' and rxFlags_i.ack = '1')
+          ) then
          v.retransMax := '0';
       elsif (r.retransCnt >= rssiParam_i.maxRetrans) then
          v.retransMax := '1';
       end if;
 
-   -- /////////////////////////////////////////////////////////
-   ------------------------------------------------------------
-   -- Null Segment transmit/timeout
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////
+      -- /////////////////////////////////////////////////////////
+      ------------------------------------------------------------
+      -- Null Segment transmit/timeout
+      ------------------------------------------------------------
+      -- /////////////////////////////////////////////////////////
 
-   -- Null Segment transmission (Client)
-   if (SERVER_G = false) then
-      -- Null transmission counter
-      if (connActive_i = '0' or
-          dataHeadSt_i = '1' or
-          rstHeadSt_i  = '1' or
-          nullHeadSt_i = '1' or
-          ackHeadSt_i  = '1' or
-          RETRANSMIT_ENABLE_G = false -- Disable null packet transmission
-      ) then
-         v.nullToutCnt := (others=>'0');
-      elsif (r.nullToutCnt /= MAX_NULL_CNT_C) then
-         v.nullToutCnt := r.nullToutCnt+1;
-      end if;
+      -- Null Segment transmission (Client)
+      if (SERVER_G = false) then
+         -- Null transmission counter
+         if (connActive_i = '0' or
+             dataHeadSt_i = '1' or
+             rstHeadSt_i = '1' or
+             nullHeadSt_i = '1' or
+             ackHeadSt_i = '1' or
+             RETRANSMIT_ENABLE_G = false  -- Disable null packet transmission
+             ) then
+            v.nullToutCnt := (others => '0');
+         elsif (r.nullToutCnt /= MAX_NULL_CNT_C) then
+            v.nullToutCnt := r.nullToutCnt+1;
+         end if;
 
-      -- Null request SRFF
-      if (connActive_i = '0' or
-          dataHeadSt_i = '1' or
-          rstHeadSt_i  = '1' or
-          nullHeadSt_i = '1') then
-          v.sndNull := '0';
-      elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_DIV3_C)  ) then -- send null segments if timeout/2 reached
-         v.sndNull := '1';
-      end if;
+         -- Null request SRFF
+         if (connActive_i = '0' or
+             dataHeadSt_i = '1' or
+             rstHeadSt_i = '1' or
+             nullHeadSt_i = '1') then
+            v.sndNull := '0';
+         elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_DIV3_C)) then  -- send null segments if timeout/2 reached
+            v.sndNull := '1';
+         end if;
 
-      -- Timeout not applicable
-      v.nullTout := '0';
-
-   -- Null timeout (Server)
-   else
-      -- Null timeout counter
-      if (connActive_i = '0' or
-         (rxValid_i = '1' and rxFlags_i.data = '1') or
-         (rxValid_i = '1' and rxFlags_i.nul  = '1') or
-         (rxValid_i = '1' and rxFlags_i.ack  = '1') or
-         (rxValid_i = '1' and rxFlags_i.busy = '1') or
-         RETRANSMIT_ENABLE_G = false -- Disable null timeout
-      ) then
-         v.nullToutCnt := (others=>'0');
-      else
-         v.nullToutCnt := r.nullToutCnt+1;
-      end if;
-
-      -- Null timeout SRFF
-      if (connActive_i = '0') then
+         -- Timeout not applicable
          v.nullTout := '0';
-      elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_C)  ) then
-         v.nullTout := '1';
+
+      -- Null timeout (Server)
+      else
+         -- Null timeout counter
+         if (connActive_i = '0' or
+             (rxValid_i = '1' and rxFlags_i.data = '1') or
+             (rxValid_i = '1' and rxFlags_i.nul = '1') or
+             (rxValid_i = '1' and rxFlags_i.ack = '1') or
+             (rxValid_i = '1' and rxFlags_i.busy = '1') or
+             RETRANSMIT_ENABLE_G = false  -- Disable null timeout
+             ) then
+            v.nullToutCnt := (others => '0');
+         else
+            v.nullToutCnt := r.nullToutCnt+1;
+         end if;
+
+         -- Null timeout SRFF
+         if (connActive_i = '0') then
+            v.nullTout := '0';
+         elsif (r.nullToutCnt >= (conv_integer(rssiParam_i.nullSegTout) * SAMPLES_PER_TIME_C)) then
+            v.nullTout := '1';
+         end if;
+
       end if;
 
-   end if;
+      -- /////////////////////////////////////////////////////////
+      ------------------------------------------------------------
+      -- Acknowledgment cumulative/timeout
+      ------------------------------------------------------------
+      -- /////////////////////////////////////////////////////////
 
-   -- /////////////////////////////////////////////////////////
-   ------------------------------------------------------------
-   -- Acknowledgment cumulative/timeout
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////
-
-   -- Ack seqN registering when it is sent
-   if (connActive_i = '0') then
-      v.lastAckSeqN := rxLastSeqN_i;
-   elsif (
-      ackHeadSt_i  = '1' or
-      dataHeadSt_i = '1' or
-      rstHeadSt_i  = '1' or
-      nullHeadSt_i = '1'
-   ) then
-      v.lastAckSeqN := rxLastSeqN_i;
-   else
-      v.lastAckSeqN := r.lastAckSeqN;
-   end if;
-
-   -- Timeout counter
-   if (connActive_i = '0' or
-       ackHeadSt_i  = '1' or
-       dataHeadSt_i = '1' or
-       rstHeadSt_i  = '1' or
-       nullHeadSt_i = '1' or
-      (rxLastSeqN_i - r.lastAckSeqN) = 0
-   ) then
-      v.ackToutCnt := (others=>'0');
-   elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0   and (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i) or (localBusy_i = '1') then
-      if (r.ackToutCnt /= MAX_ACK_TOUT_CNT_C) then
-         v.ackToutCnt := r.ackToutCnt+1;
+      -- Ack seqN registering when it is sent
+      if (connActive_i = '0') then
+         v.lastAckSeqN := rxLastSeqN_i;
+      elsif (
+         ackHeadSt_i = '1' or
+         dataHeadSt_i = '1' or
+         rstHeadSt_i = '1' or
+         nullHeadSt_i = '1'
+         ) then
+         v.lastAckSeqN := rxLastSeqN_i;
+      else
+         v.lastAckSeqN := r.lastAckSeqN;
       end if;
-   end if;
 
-   -- Ack packet request SRFF
-   if (connActive_i  = '0' or
-       ackHeadSt_i   = '1' or
-       dataHeadSt_i  = '1' or
-       nullHeadSt_i  = '1' or
-       rstHeadSt_i   = '1'
-   ) then
-      v.sndAck := '0';
+      -- Timeout counter
+      if (connActive_i = '0' or
+          ackHeadSt_i = '1' or
+          dataHeadSt_i = '1' or
+          rstHeadSt_i = '1' or
+          nullHeadSt_i = '1' or
+          (rxLastSeqN_i - r.lastAckSeqN) = 0
+          ) then
+         v.ackToutCnt := (others => '0');
+      elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0 and (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i) or (localBusy_i = '1') then
+         if (r.ackToutCnt /= MAX_ACK_TOUT_CNT_C) then
+            v.ackToutCnt := r.ackToutCnt+1;
+         end if;
+      end if;
 
-   -- Timeout acknowledgment request
-   elsif (r.ackToutCnt >= (conv_integer(rssiParam_i.cumulAckTout)* SAMPLES_PER_TIME_C)) then
-      v.sndAck := '1';
+      -- Ack packet request SRFF
+      if (connActive_i = '0' or
+          ackHeadSt_i = '1' or
+          dataHeadSt_i = '1' or
+          nullHeadSt_i = '1' or
+          rstHeadSt_i = '1'
+          ) then
+         v.sndAck := '0';
 
-   -- Cumulative acknowledgment request
-   elsif ((rxLastSeqN_i - r.lastAckSeqN) >= rssiParam_i.maxCumAck) then
-      v.sndAck := '1';
+      -- Timeout acknowledgment request
+      elsif (r.ackToutCnt >= (conv_integer(rssiParam_i.cumulAckTout)* SAMPLES_PER_TIME_C)) then
+         v.sndAck := '1';
 
-   -- Null segment ACK as soon as NUL received
-   elsif (rxValid_i = '1' and rxFlags_i.nul  = '1') then
-      v.sndAck := '1';
-   end if;
+      -- Cumulative acknowledgment request
+      elsif ((rxLastSeqN_i - r.lastAckSeqN) >= rssiParam_i.maxCumAck) then
+         v.sndAck := '1';
 
-   -- Send a ACK if there is a local busy event
-   if (localBusy_i = '1' and r.localBusyD1 = '0') then
-      v.sndAck := '1';
-   end if;
+      -- Null segment ACK as soon as NUL received
+      elsif (rxValid_i = '1' and rxFlags_i.nul = '1') then
+         v.sndAck := '1';
+      end if;
 
-   -- /////////////////////////////////////////////////////////
-   ------------------------------------------------------------
-   -- Status register and valid and drop counters
-   ------------------------------------------------------------
-   -- /////////////////////////////////////////////////////////
+      -- Send a ACK if there is a local busy event
+      if (localBusy_i = '1' and r.localBusyD1 = '0') then
+         v.sndAck := '1';
+      end if;
 
-   -- Register statuses until new connection is established
-   if (connActive_i = '1' and r.connActiveD1 = '0') then
-      v.status := (others=>'0');
-   elsif (s_status /= (s_status'range => '0') ) then
-      v.status := r.status or s_status;
-   end if;
+      -- /////////////////////////////////////////////////////////
+      ------------------------------------------------------------
+      -- Status register and valid and drop counters
+      ------------------------------------------------------------
+      -- /////////////////////////////////////////////////////////
 
-   -- Count valid packets
-   if (connActive_i = '1' and r.connActiveD1 = '0') then
-      v.validCnt := (others=>'0');
-   elsif (rxValid_i = '1') then
-      v.validCnt := r.validCnt+1;
-   end if;
+      -- Register statuses until new connection is established
+      if (connActive_i = '1' and r.connActiveD1 = '0') then
+         v.status := (others => '0');
+      elsif (s_status /= (s_status'range => '0')) then
+         v.status := r.status or s_status;
+      end if;
 
-   -- Count dropped packets
-   if (connActive_i = '1' and r.connActiveD1 = '0') then
-      v.dropCnt := (others=>'0');
-   elsif (rxDrop_i = '1') then
-      v.dropCnt := r.dropCnt+1;
-   end if;
+      -- Count valid packets
+      if (connActive_i = '1' and r.connActiveD1 = '0') then
+         v.validCnt := (others => '0');
+      elsif (rxValid_i = '1') then
+         v.validCnt := r.validCnt+1;
+      end if;
 
-   -- Count all retransmissions within the active connection
-   if (connActive_i = '1' and r.connActiveD1 = '0') then
-      v.resendCnt := (others=>'0');
-   elsif (r.sndResend  = '1' and r.sndResendD1  = '0') then -- Rising edge
-      v.resendCnt := r.resendCnt+1;
-   end if;
+      -- Count dropped packets
+      if (connActive_i = '1' and r.connActiveD1 = '0') then
+         v.dropCnt := (others => '0');
+      elsif (rxDrop_i = '1') then
+         v.dropCnt := r.dropCnt+1;
+      end if;
 
-   -- Count all reconnections from reset
-   if (connActive_i = '1' and r.connActiveD1 = '0') then
-      v.reconCnt := r.reconCnt+1;
-   end if;
+      -- Count all retransmissions within the active connection
+      if (connActive_i = '1' and r.connActiveD1 = '0') then
+         v.resendCnt := (others => '0');
+      elsif (r.sndResend = '1' and r.sndResendD1 = '0') then  -- Rising edge
+         v.resendCnt := r.resendCnt+1;
+      end if;
 
-   -- /////////////////////////////////////////////////////////
-   if (rst_i = '1') then
-      v := REG_INIT_C;
-   end if;
+      -- Count all reconnections from reset
+      if (connActive_i = '1' and r.connActiveD1 = '0') then
+         v.reconCnt := r.reconCnt+1;
+      end if;
 
-   rin <= v;
+      -- /////////////////////////////////////////////////////////
+      if (rst_i = '1') then
+         v := REG_INIT_C;
+      end if;
+
+      rin <= v;
    -----------------------------------------------------------
    end process comb;
 
@@ -445,17 +447,17 @@ begin
       end if;
    end process seq;
    ---------------------------------------------------------------------
-   sndResend_o <= r.sndResend and not r.retransMax; -- Request retransmission if max retransmissions not reached
+   sndResend_o <= r.sndResend and not r.retransMax;  -- Request retransmission if max retransmissions not reached
    sndNull_o   <= r.sndNull;
    sndAck_o    <= r.sndAck;
-   closeRq_o   <= (r.retransMax and r.sndResend and not r.sndResendD1) or -- Close connection when exceeded resend is requested
-                  r.nullTout or  -- Close connection when null timeouts
-                  ackErr_i or    -- Close if acknowledgment error occurs
-                  lenErr_i;   -- Close if SSI input frame length error occurs
+   closeRq_o   <= (r.retransMax and r.sndResend and not r.sndResendD1) or  -- Close connection when exceeded resend is requested
+                r.nullTout or           -- Close connection when null timeouts
+                ackErr_i or             -- Close if acknowledgment error occurs
+                lenErr_i;      -- Close if SSI input frame length error occurs
    statusReg_o <= r.status & connActive_i;
    dropCnt_o   <= r.dropCnt;
    validCnt_o  <= r.validCnt;
    resendCnt_o <= r.resendCnt;
    reconCnt_o  <= r.reconCnt;
-   ---------------------------------------------------------------------
+---------------------------------------------------------------------
 end architecture rtl;

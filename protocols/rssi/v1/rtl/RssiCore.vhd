@@ -78,7 +78,7 @@ entity RssiCore is
       HEADER_CHKSUM_EN_G : boolean  := true;
 
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8;     -- <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8;  -- <=(2**WINDOW_ADDR_SIZE_G)
       MAX_SEG_SIZE_G     : positive                 := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
 
       -- RSSI Timeouts
@@ -130,7 +130,7 @@ architecture rtl of RssiCore is
    constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
 
    -- Busy Flags
-   signal s_localBusy  : sl;
+   signal s_localBusy : sl;
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -263,7 +263,7 @@ architecture rtl of RssiCore is
    -- Axi Lite registers
    signal s_openRqReg       : sl;
    signal s_closeRqReg      : sl;
-   signal s_modeReg         : sl;       -- '0': Use internal parameters from generics
+   signal s_modeReg         : sl;  -- '0': Use internal parameters from generics
    -- '1': Use parameters from Axil
    signal s_initSeqNReg     : slv(7 downto 0);
    signal s_appRssiParamReg : RssiParamType;
@@ -367,8 +367,9 @@ begin
    -- Parameter assignment
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
-   combParamAssign : process (closeRq_i, openRq_i, s_appRssiParamReg, s_closeRqReg, s_initSeqNReg,
-                              s_intCloseRq, s_modeReg, s_openRqReg) is
+   combParamAssign : process (closeRq_i, openRq_i, s_appRssiParamReg,
+                              s_closeRqReg, s_initSeqNReg, s_intCloseRq,
+                              s_modeReg, s_openRqReg) is
    begin
       if (s_modeReg = '0') then
          -- Use external requests
@@ -642,7 +643,7 @@ begin
          synHeadSt_o  => s_synHeadSt,
          ackHeadSt_o  => s_ackHeadSt,
          dataHeadSt_o => s_dataHeadSt,
-         dataSt_o     => open,          -- may be used in the future otherwise remove
+         dataSt_o     => open,  -- may be used in the future otherwise remove
          rstHeadSt_o  => s_rstHeadSt,
          nullHeadSt_o => s_nullHeadSt,
 
@@ -907,7 +908,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
-         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,          -- Enough to store 2 segments
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
@@ -939,7 +940,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
-         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,          -- Enough to store 2 segments
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",

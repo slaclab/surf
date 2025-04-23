@@ -29,51 +29,51 @@ use surf.RssiPkg.all;
 
 entity RssiConnFsm is
    generic (
-      TPD_G        : time     := 1 ns;
-      SERVER_G     : boolean  := true;
+      TPD_G               : time     := 1 ns;
+      SERVER_G            : boolean  := true;
       --
-      TIMEOUT_UNIT_G      : real     := 1.0E-6; -- us
+      TIMEOUT_UNIT_G      : real     := 1.0E-6;  -- us
       CLK_FREQUENCY_G     : real     := 100.0E6;
       -- Time the module waits for the response until it retransmits SYN segment
       RETRANS_TOUT_G      : positive := 50;
       MAX_RETRANS_CNT_G   : positive := 2;
       --
       WINDOW_ADDR_SIZE_G  : positive := 3;
-      SEGMENT_ADDR_SIZE_G  : positive := 7  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-   );
+      SEGMENT_ADDR_SIZE_G : positive := 7  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
+      );
    port (
-      clk_i      : in  sl;
-      rst_i      : in  sl;
+      clk_i : in sl;
+      rst_i : in sl;
 
       -- Connection request (open/close)
-      connRq_i    : in  sl;
-      closeRq_i   : in  sl;
+      connRq_i  : in sl;
+      closeRq_i : in sl;
 
       -- Parameters received from peer (Server)
-      rxRssiParam_i  : in  RssiParamType;
+      rxRssiParam_i : in RssiParamType;
 
       -- Parameters set by high level App or generic (Client)
-      appRssiParam_i  : in  RssiParamType;
+      appRssiParam_i : in RssiParamType;
 
       -- Negotiated parameters
-      rssiParam_o  : out  RssiParamType;
+      rssiParam_o : out RssiParamType;
 
       -- Flags from Rx module
-      rxFlags_i    : in FlagsType;
+      rxFlags_i : in FlagsType;
 
       -- Valid received packet
-      rxValid_i     : in sl;
+      rxValid_i : in sl;
 
-      synHeadSt_i   : in sl;
-      ackHeadSt_i   : in sl;
-      rstHeadSt_i   : in sl;
+      synHeadSt_i : in sl;
+      ackHeadSt_i : in sl;
+      rstHeadSt_i : in sl;
 
       --
       -- Connection FSM indicating active connection
       connActive_o : out sl;
 
       -- FSM in closed state (indicating when to initialize seqN)
-      closed_o  : out  sl;
+      closed_o : out sl;
 
       --
       sndSyn_o : out sl;
@@ -83,11 +83,11 @@ entity RssiConnFsm is
       --
 
       -- Window size and buffer size different for Rx and Tx
-      rxBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
-      rxWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
+      rxBufferSize_o : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
+      rxWindowSize_o : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       --
-      txBufferSize_o   : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
-      txWindowSize_o   : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
+      txBufferSize_o : out integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
+      txWindowSize_o : out integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
 
       -- Debug
       connState_o : out slv(3 downto 0);
@@ -95,7 +95,7 @@ entity RssiConnFsm is
       -- Status signals
       peerTout_o    : out sl;
       paramReject_o : out sl
-   );
+      );
 end entity RssiConnFsm;
 
 architecture rtl of RssiConnFsm is
@@ -112,7 +112,7 @@ architecture rtl of RssiConnFsm is
       WAIT_ACK_S,
       SEND_RST_S,
       OPEN_S
-   );
+      );
 
    type RegType is record
       connActive  : sl;
@@ -124,14 +124,14 @@ architecture rtl of RssiConnFsm is
       peerTout    : sl;
       paramReject : sl;
 
-      rssiParam   : RssiParamType;
+      rssiParam : RssiParamType;
 
       --
-      txBufferSize   : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
-      txWindowSize   : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
+      txBufferSize : integer range 1 to 2 ** (SEGMENT_ADDR_SIZE_G);
+      txWindowSize : integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       --
-      timeoutCntr    : integer range 0 to RETRANS_TOUT_G * SAMPLES_PER_TIME_C;
-      resendCntr     : integer range 0 to MAX_RETRANS_CNT_G+1;
+      timeoutCntr  : integer range 0 to RETRANS_TOUT_G * SAMPLES_PER_TIME_C;
+      resendCntr   : integer range 0 to MAX_RETRANS_CNT_G+1;
 
       ---
       state     : StateType;
@@ -149,18 +149,18 @@ architecture rtl of RssiConnFsm is
       peerTout    => '0',
       paramReject => '0',
 
-      rssiParam   => RSSI_PARAM_INIT_C,
+      rssiParam => RSSI_PARAM_INIT_C,
 
-      timeoutCntr => 0,
-      resendCntr  => 0,
+      timeoutCntr  => 0,
+      resendCntr   => 0,
       --
-      txBufferSize=> 1,
-      txWindowSize=> 1,
+      txBufferSize => 1,
+      txWindowSize => 1,
 
       ---
       state     => CLOSED_S,
       connState => (others => '0')
-   );
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -169,13 +169,14 @@ architecture rtl of RssiConnFsm is
 
 begin
 
-   comb : process (r, rst_i, connRq_i, rxRssiParam_i, synHeadSt_i, rxFlags_i,
-                   ackHeadSt_i, rstHeadSt_i, appRssiParam_i, rxValid_i, closeRq_i) is
+   comb : process (ackHeadSt_i, appRssiParam_i, closeRq_i, connRq_i, r,
+                   rstHeadSt_i, rst_i, rxFlags_i, rxRssiParam_i, rxValid_i,
+                   synHeadSt_i) is
       variable v : RegType;
    begin
       v := r;
 
- -- /////////////////////////////////////////////////////////
+      -- /////////////////////////////////////////////////////////
       ------------------------------------------------------------
       -- Connection FSM
       -- Synchronization and parameter negotiation
@@ -194,9 +195,9 @@ begin
             -- Initiated by high level App and depends on whether it is a
             -- server or client.
             if (connRq_i = '1' and SERVER_G = true) then
-               v.state    := LISTEN_S;  -- Server Passive open
+               v.state := LISTEN_S;     -- Server Passive open
             elsif (connRq_i = '1' and SERVER_G = false) then
-               v.state    := SEND_SYN_S;-- Client Active open
+               v.state := SEND_SYN_S;   -- Client Active open
             end if;
          ----------------------------------------------------------------------
          -- Client
@@ -207,44 +208,44 @@ begin
          when SEND_SYN_S =>
             v.connState := x"1";
 
-            v.connActive   := '0';
-            v.closed       := '0';
-            v.sndSyn       := '1';
-            v.sndAck       := '0';
-            v.sndRst       := '0';
-            v.txAckF       := '0';
-            v.peerTout     := '0';
-            v.paramReject  := '0';
-            v.timeoutCntr  :=  0;
+            v.connActive  := '0';
+            v.closed      := '0';
+            v.sndSyn      := '1';
+            v.sndAck      := '0';
+            v.sndRst      := '0';
+            v.txAckF      := '0';
+            v.peerTout    := '0';
+            v.paramReject := '0';
+            v.timeoutCntr := 0;
 
             -- Send the Client proposed parameters
-            v.rssiParam    := appRssiParam_i;
+            v.rssiParam := appRssiParam_i;
 
             if (synHeadSt_i = '1') then
-               v.state    := WAIT_SYN_S;
+               v.state := WAIT_SYN_S;
             end if;
 
          ----------------------------------------------------------------------
          when WAIT_SYN_S =>
             v.connState := x"2";
 
-            v.connActive   := '0';
-            v.sndSyn       := '0';
-            v.sndAck       := '0';
-            v.sndRst       := '0';
-            v.txAckF       := '0';
-            v.timeoutCntr  := r.timeoutCntr + 1;
+            v.connActive  := '0';
+            v.sndSyn      := '0';
+            v.sndAck      := '0';
+            v.sndRst      := '0';
+            v.txAckF      := '0';
+            v.timeoutCntr := r.timeoutCntr + 1;
             --
             if (rxValid_i = '1' and rxFlags_i.syn = '1' and rxFlags_i.ack = '1') then
                -- Check parameters
                if (
-                  rxRssiParam_i.version    = appRssiParam_i.version      and -- Version match
-                  rxRssiParam_i.chksumEn   = appRssiParam_i.chksumEn     and -- Checksum match
-                  rxRssiParam_i.timeoutUnit= appRssiParam_i.timeoutUnit      -- Timeout unit match
-               ) then
+                  rxRssiParam_i.version = appRssiParam_i.version and  -- Version match
+                  rxRssiParam_i.chksumEn = appRssiParam_i.chksumEn and  -- Checksum match
+                  rxRssiParam_i.timeoutUnit = appRssiParam_i.timeoutUnit  -- Timeout unit match
+                  ) then
 
                   -- Accept the parameters from the server
-                  v.rssiParam    := rxRssiParam_i;
+                  v.rssiParam := rxRssiParam_i;
 
                   -- Autoneg the maxOutsSeg
                   if (rxRssiParam_i.maxOutsSeg > appRssiParam_i.maxOutsSeg) then
@@ -257,10 +258,10 @@ begin
 
                   -- Autoneg the maxSegSize
                   if (rxRssiParam_i.maxSegSize > appRssiParam_i.maxSegSize) then
-                     v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                     v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
                      v.rssiParam.maxSegSize := appRssiParam_i.maxSegSize;
                   else
-                     v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                     v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
                      v.rssiParam.maxSegSize := rxRssiParam_i.maxSegSize;
                   end if;
 
@@ -268,37 +269,37 @@ begin
                   v.state := SEND_ACK_S;
                else
                   -- Reject parameters and reset the connection
-                  v.paramReject  := '1';
-                  v.rssiParam := r.rssiParam;
+                  v.paramReject := '1';
+                  v.rssiParam   := r.rssiParam;
                   --
-                  v.state := SEND_RST_S;
+                  v.state       := SEND_RST_S;
                end if;
             elsif (rxValid_i = '1' and rxFlags_i.rst = '1') then
                v.state := CLOSED_S;
             elsif (r.timeoutCntr = RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
                if (r.resendCntr >= MAX_RETRANS_CNT_G) then
                   v.peerTout := '1';
-                  v.state := CLOSED_S;
+                  v.state    := CLOSED_S;
                else
-                  v.closed   := '1'; -- Signal closed to reset seqN (Resend SYN with the initial seqN)
+                  v.closed     := '1';  -- Signal closed to reset seqN (Resend SYN with the initial seqN)
                   v.resendCntr := r.resendCntr + 1;
-                  v.state    := SEND_SYN_S;
+                  v.state      := SEND_SYN_S;
                end if;
             end if;
          ----------------------------------------------------------------------
          when SEND_ACK_S =>
             v.connState := x"3";
 
-            v.connActive   := '0';
-            v.sndSyn       := '0';
-            v.sndAck       := '1';
-            v.sndRst       := '0';
-            v.txAckF       := '1';
-            v.timeoutCntr  :=  0;
-            v.resendCntr   :=  0;
-            v.paramReject  := '0';
+            v.connActive  := '0';
+            v.sndSyn      := '0';
+            v.sndAck      := '1';
+            v.sndRst      := '0';
+            v.txAckF      := '1';
+            v.timeoutCntr := 0;
+            v.resendCntr  := 0;
+            v.paramReject := '0';
             --
-            v.rssiParam := r.rssiParam;
+            v.rssiParam   := r.rssiParam;
 
             --
             if (ackHeadSt_i = '1') then
@@ -312,22 +313,22 @@ begin
          --         If valid accept parameters,
          --         If not valid propose new parameters.
          ----------------------------------------------------------------------
-          when LISTEN_S =>
+         when LISTEN_S =>
             v.connState := x"4";
 
-            v.connActive   := '0';
-            v.closed       := '0';
-            v.sndSyn       := '0';
-            v.sndAck       := '0';
-            v.sndRst       := '0';
-            v.txAckF       := '0';
-            v.peerTout     := '0';
-            v.timeoutCntr  :=  0;
+            v.connActive  := '0';
+            v.closed      := '0';
+            v.sndSyn      := '0';
+            v.sndAck      := '0';
+            v.sndRst      := '0';
+            v.txAckF      := '0';
+            v.peerTout    := '0';
+            v.timeoutCntr := 0;
             --
             if (rxValid_i = '1' and rxFlags_i.syn = '1') then
 
                -- Accept the parameters from the client
-               v.rssiParam    := rxRssiParam_i;
+               v.rssiParam := rxRssiParam_i;
 
                -- Autoneg the maxOutsSeg
                if (rxRssiParam_i.maxOutsSeg > appRssiParam_i.maxOutsSeg) then
@@ -340,29 +341,29 @@ begin
 
                -- Autoneg the maxSegSize
                if (rxRssiParam_i.maxSegSize > appRssiParam_i.maxSegSize) then
-                  v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                  v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
                   v.rssiParam.maxSegSize := appRssiParam_i.maxSegSize;
                else
-                  v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3)); -- Divide by 8
+                  v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
                   v.rssiParam.maxSegSize := rxRssiParam_i.maxSegSize;
                end if;
 
                --
-               v.paramReject  := '0';
+               v.paramReject := '0';
 
                -- Check parameters that have to match
                if (
-                  rxRssiParam_i.version    /= appRssiParam_i.version      or   -- Version equality
-                  rxRssiParam_i.chksumEn   /= appRssiParam_i.chksumEn     or   -- Checksum match
-                  rxRssiParam_i.timeoutUnit/= appRssiParam_i.timeoutUnit       -- Timeout unit match
-               ) then
+                  rxRssiParam_i.version /= appRssiParam_i.version or  -- Version equality
+                  rxRssiParam_i.chksumEn /= appRssiParam_i.chksumEn or  -- Checksum match
+                  rxRssiParam_i.timeoutUnit /= appRssiParam_i.timeoutUnit  -- Timeout unit match
+                  ) then
 
                   -- Propose different parameters (overwrite)
                   v.rssiParam.version     := appRssiParam_i.version;
                   v.rssiParam.timeoutUnit := appRssiParam_i.timeoutUnit;
                   v.rssiParam.chksumEn    := appRssiParam_i.chksumEn;
                   --
-                  v.paramReject  := '1';
+                  v.paramReject           := '1';
                end if;
                -- Go to ACK state
                v.state := SEND_SYN_ACK_S;
@@ -371,36 +372,36 @@ begin
          when SEND_SYN_ACK_S =>
             v.connState := x"5";
 
-            v.connActive   := '0';
-            v.closed       := '0';
-            v.sndSyn       := '1';
-            v.sndAck       := '0';
-            v.sndRst       := '0';
-            v.txAckF       := '1';
-            v.paramReject  := '0';
-            v.timeoutCntr  :=  0;
+            v.connActive  := '0';
+            v.closed      := '0';
+            v.sndSyn      := '1';
+            v.sndAck      := '0';
+            v.sndRst      := '0';
+            v.txAckF      := '1';
+            v.paramReject := '0';
+            v.timeoutCntr := 0;
 
             -- Send the Server parameters
-            v.rssiParam    := r.rssiParam;
+            v.rssiParam := r.rssiParam;
 
             if (synHeadSt_i = '1') then
-               v.state    := WAIT_ACK_S;
+               v.state := WAIT_ACK_S;
             end if;
 
          when WAIT_ACK_S =>
             v.connState := x"6";
 
-            v.connActive   := '0';
-            v.sndSyn       := '0';
-            v.sndAck       := '0';
-            v.sndRst       := '0';
-            v.txAckF       := '0';
-            v.paramReject  := '0';
+            v.connActive  := '0';
+            v.sndSyn      := '0';
+            v.sndAck      := '0';
+            v.sndRst      := '0';
+            v.txAckF      := '0';
+            v.paramReject := '0';
             --
-            v.timeoutCntr  := r.timeoutCntr+1;
+            v.timeoutCntr := r.timeoutCntr+1;
 
             --
-            v.rssiParam    := r.rssiParam;
+            v.rssiParam := r.rssiParam;
 
             if (rxValid_i = '1' and rxFlags_i.ack = '1') then
                v.state := OPEN_S;
@@ -409,11 +410,11 @@ begin
             elsif (r.timeoutCntr = RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
                if (r.resendCntr >= MAX_RETRANS_CNT_G) then
                   v.peerTout := '1';
-                  v.state := CLOSED_S;
+                  v.state    := CLOSED_S;
                else
-                  v.closed   := '1'; -- Signal closed to reset seqN (Resend SYN with the initial seqN)
+                  v.closed     := '1';  -- Signal closed to reset seqN (Resend SYN with the initial seqN)
                   v.resendCntr := r.resendCntr + 1;
-                  v.state    := SEND_SYN_ACK_S;
+                  v.state      := SEND_SYN_ACK_S;
                end if;
             end if;
 
@@ -425,17 +426,17 @@ begin
          when OPEN_S =>
             v.connState := x"7";
 
-            v.connActive   := '1';
-            v.sndSyn       := '0';
-            v.sndAck       := '0';
-            v.sndRst       := '0';
-            v.txAckF       := '1';
-            v.paramReject  := '0';
+            v.connActive  := '1';
+            v.sndSyn      := '0';
+            v.sndAck      := '0';
+            v.sndRst      := '0';
+            v.txAckF      := '1';
+            v.paramReject := '0';
             --
-            v.timeoutCntr  :=  0;
-            v.resendCntr   :=  0;
+            v.timeoutCntr := 0;
+            v.resendCntr  := 0;
             --
-            v.rssiParam := r.rssiParam;
+            v.rssiParam   := r.rssiParam;
 
             --
             if (rxValid_i = '1' and rxFlags_i.rst = '1') then
@@ -452,14 +453,14 @@ begin
          when SEND_RST_S =>
             v.connState := x"8";
 
-            v.connActive   := r.connActive;
-            v.sndSyn       := '0';
-            v.sndAck       := '0';
-            v.sndRst       := '1';
-            v.txAckF       := '0';
-            v.paramReject  := '0';
+            v.connActive  := r.connActive;
+            v.sndSyn      := '0';
+            v.sndAck      := '0';
+            v.sndRst      := '1';
+            v.txAckF      := '0';
+            v.paramReject := '0';
             --
-            v.rssiParam := r.rssiParam;
+            v.rssiParam   := r.rssiParam;
 
             --
             if (rstHeadSt_i = '1') then
@@ -468,7 +469,7 @@ begin
 
          ----------------------------------------------------------------------
          when others =>
-            v   := REG_INIT_C;
+            v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 
@@ -477,7 +478,7 @@ begin
       end if;
 
       rin <= v;
-      -----------------------------------------------------------
+   -----------------------------------------------------------
    end process comb;
 
    seq : process (clk_i) is
@@ -503,8 +504,8 @@ begin
    txWindowSize_o <= r.txWindowSize;
    closed_o       <= r.closed;
    --
-   connState_o   <= r.connState;
-   peerTout_o    <= r.peerTout;
-   paramReject_o <= r.paramReject;
-   ---------------------------------------------------------------------
+   connState_o    <= r.connState;
+   peerTout_o     <= r.peerTout;
+   paramReject_o  <= r.paramReject;
+---------------------------------------------------------------------
 end architecture rtl;

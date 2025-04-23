@@ -31,12 +31,12 @@ entity RssiCoreWrapper is
    generic (
       TPD_G                 : time         := 1 ns;
       CLK_FREQUENCY_G       : real         := 156.25E+6;  -- In units of Hz
-      TIMEOUT_UNIT_G        : real         := 1.0E-3;     -- In units of seconds
+      TIMEOUT_UNIT_G        : real         := 1.0E-3;    -- In units of seconds
       SERVER_G              : boolean      := true;  -- Module is server or client
       RETRANSMIT_ENABLE_G   : boolean      := true;  -- Enable/Disable retransmissions in tx module
       WINDOW_ADDR_SIZE_G    : positive     := 3;  -- 2^WINDOW_ADDR_SIZE_G  = Max number of segments in buffer
       SEGMENT_ADDR_SIZE_G   : positive     := 7;  -- Unused (legacy generic)
-      BYPASS_CHUNKER_G      : boolean      := false;      -- Bypass the AXIS chunker layer
+      BYPASS_CHUNKER_G      : boolean      := false;  -- Bypass the AXIS chunker layer
       PIPE_STAGES_G         : natural      := 0;
       APP_STREAMS_G         : positive     := 1;
       APP_STREAM_ROUTES_G   : Slv8Array    := (0 => "--------");
@@ -46,7 +46,7 @@ entity RssiCoreWrapper is
       BYP_RX_BUFFER_G       : boolean      := false;
       SYNTH_MODE_G          : string       := "inferred";
       MEMORY_TYPE_G         : string       := "block";
-      ILEAVE_ON_NOTVALID_G  : boolean      := false;      -- Unused (legacy generic)
+      ILEAVE_ON_NOTVALID_G  : boolean      := false;  -- Unused (legacy generic)
       -- AXIS Configurations
       APP_AXIS_CONFIG_G     : AxiStreamConfigArray;
       TSP_AXIS_CONFIG_G     : AxiStreamConfigType;
