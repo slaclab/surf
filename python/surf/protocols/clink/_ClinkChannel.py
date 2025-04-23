@@ -332,7 +332,7 @@ class ClinkChannel(pr.Device):
                 ))
 
             elif localSerial:
-                raise ValueError('Invalid camType (%s)' % (camType) )
+                raise ValueError( f'Invalid camType ({camType})' )
         ##############################################################################
 
     def hardReset(self):

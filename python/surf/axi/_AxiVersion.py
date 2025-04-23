@@ -297,7 +297,7 @@ class AxiVersion(pr.Device):
             status_lines.append("Builder      = {}".format(self.Builder.value()))
             return "\n".join(status_lines)
         except Exception:
-            return "Failed to get %s status" % self
+            return f'Failed to get {self} status'
 
     def printStatus(self):
         print(self.getStatus())

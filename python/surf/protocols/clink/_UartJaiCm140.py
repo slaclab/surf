@@ -18,7 +18,7 @@ import surf.protocols.clink as clink
 
 class UartJaiCm140Tx(clink.ClinkSerialTx):
     def sendString(self,st):
-        print(self._path+': SendString: %s' % st )
+        print( f'{self._path}: SendString: {st}' )
         ba = bytearray((len(st)+2)*4)
         i = 0
         for c in st:
