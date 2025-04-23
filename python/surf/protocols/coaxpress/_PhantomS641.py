@@ -10,7 +10,7 @@
 
 import pyrogue as pr
 
-class PhantomS991(pr.Device):
+class PhantomS641(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         #############################################################
@@ -139,10 +139,8 @@ class PhantomS991(pr.Device):
             mode         = 'RW',
             enum         = {
                 0: 'LiveImage',
-                1: 'OffsetTableRolling',
-                2: 'GainTableAtRolling',
-                3: 'OffsetTableGlobal',
-                4: 'GainTableAtGlobal',
+                1: 'OffsetTableGlobal',
+                2: 'GainTableAtGlobal',
             },
         ))
 
@@ -152,6 +150,90 @@ class PhantomS991(pr.Device):
             offset       = 0x8124,
             base         = pr.UIntBE,
             mode         = 'WO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MultiROIEnableReg',
+            description  = 'Enable multiple region of interest mode',
+            offset       = 0x8070,
+            base         = pr.UIntBE,
+            mode         = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'OffsetXReg',
+            description  = 'This feature represents the OffsetX',
+            offset       = 0x8078,
+            base         = pr.UIntBE,
+            mode         = 'RW',
+            minimum      = 0,
+            maximum      = 2560,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'OffsetYReg',
+            description  = 'This feature represents the OffsetY',
+            offset       = 0x807C,
+            base         = pr.UIntBE,
+            mode         = 'RW',
+            minimum      = 0,
+            maximum      = 1600,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ActiveWidthReg',
+            description  = 'This value represents the Active Width of the Sensor',
+            offset       = 0x8084,
+            base         = pr.UIntBE,
+            mode         = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ActiveHeightReg',
+            description  = 'This value represents the Active Height of the Sensor',
+            offset       = 0x8088,
+            base         = pr.UIntBE,
+            mode         = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'MROISpecialReg',
+            description  = 'Additional MultiROI Helper Registers',
+            offset       = 0x84FC,
+            base         = pr.UIntBE,
+            mode         = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RegionIDValueReg',
+            description  = 'Additional MultiROI Helper Registers',
+            offset       = 0x8080,
+            base         = pr.UIntBE,
+            mode         = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'WindowXReg',
+            description  = 'Additional MultiROI Helper Registers',
+            offset       = 0x8500,
+            base         = pr.UIntBE,
+            mode         = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'WindowYTOPReg',
+            description  = 'Additional MultiROI Helper Registers',
+            offset       = 0x8504,
+            base         = pr.UIntBE,
+            mode         = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'WindowYBOTReg',
+            description  = 'Additional MultiROI Helper Registers',
+            offset       = 0x8508,
+            base         = pr.UIntBE,
+            mode         = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
@@ -192,7 +274,7 @@ class PhantomS991(pr.Device):
             offset       = 0x80C0,
             base         = pr.UIntBE,
             mode         = 'RW',
-            minimum      = 30,
+            minimum      = 24,
             units        = 'Hz',
             disp         = '{:d}',
             # pollInterval = 1,
@@ -215,7 +297,7 @@ class PhantomS991(pr.Device):
             offset       = 0x80C8,
             base         = pr.UIntBE,
             mode         = 'RW',
-            minimum      = 5,
+            minimum      = 1,
             units        = '\u03BCs',
             disp         = '{:d}',
         ))
@@ -231,24 +313,62 @@ class PhantomS991(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'SensorShutterModeReg',
-            description  = 'Select Global or Rolling shutter mode.',
-            offset       = 0x817C,
+            name         = 'EDRTimeReg',
+            description  = 'Sets the EDR time (in microseconds). This controls the EDR reset of the sensor',
+            offset       = 0x80D0,
+            base         = pr.UIntBE,
+            mode         = 'RW',
+            minimum      = 0,
+            units        = '\u03BCs',
+            disp         = '{:d}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ExposureAutoReg',
+            description  = 'Selects auto exposure type',
+            offset       = 0x80B4,
             base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
-                0: 'Rolling',
-                1: 'Global',
+                0: 'Off',
+                1: 'Once',
+                2: 'Continuous',
             },
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'FeaturesReg',
-            description  = '',
-            offset       = 0x80EC,
+            name         = 'ExposureAutoCompensationReg',
+            description  = 'Sets the auto exposure compensation factor',
+            offset       = 0x80B8,
+            base         = pr.IntBE,
+            mode         = 'RW',
+            minimum      = -2,
+            maximum      = 2,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ExposureAutoModeReg',
+            description  = 'Selects auto exposure mode',
+            offset       = 0x80BC,
             base         = pr.UIntBE,
-            mode         = 'RO',
-            hidden       = True,
+            mode         = 'RW',
+            enum         = {
+                0: 'Undefined',
+                1: 'Average',
+                2: 'Spot',
+                3: 'CenterWeighted',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'SensorShutterModeReg',
+            description  = 'Specifies the shutter mode of the device',
+            offset       = 0x817C,
+            base         = pr.UIntBE,
+            mode         = 'RW',
+            enum         = {
+                0: 'Global',
+            },
         ))
 
         self.add(pr.RemoteVariable(
@@ -481,6 +601,18 @@ class PhantomS991(pr.Device):
             },
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'FlatFieldCorrectionReg',
+            description  = 'Turn Flat Field Correction on/off',
+            offset       = 0x81B8,
+            base         = pr.UIntBE,
+            mode         = 'RW',
+            enum         = {
+                0: 'Off',
+                1: 'On',
+            },
+        ))
+
         self.add(pr.RemoteCommand(
             name         = 'GainBlackLevelResetReg',
             description  = 'Set camera gain and black level to default.',
@@ -573,13 +705,18 @@ class PhantomS991(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DeviceTapGeometryReg',
-            description  = 'This device tap geometry feature describes the geometrical properties characterizing the taps of a camera as presented at the output of the device.',
-            offset       = 0x800C,
+            name         = 'ComplianceTestReg',
+            description  = 'Bootstrap Compliance Test',
+            offset       = 0x8210,
             base         = pr.UIntBE,
             mode         = 'RW',
             enum         = {
-                0: 'Geometry_1X_1Y',
+                0:          'Disable',
+                0x00010028: 'ComplianceTest1G',
+                0x00010030: 'ComplianceTest2G',
+                0x00010038: 'ComplianceTest3G',
+                0x00010040: 'ComplianceTest5G',
+                0x00010048: 'ComplianceTest6G',
             },
         ))
 
@@ -632,6 +769,15 @@ class PhantomS991(pr.Device):
             name         = 'FactorySerialUpdateReg',
             description  = 'FOR Factory Serial Rx/Tx',
             offset       = 0x8130,
+            base         = pr.UIntBE,
+            mode         = 'RW',
+            hidden       = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'DeviceFeaturesMaskReg',
+            description  = 'Device Features, set by loader - LSB to MSB: shtr, eos, mroi, ffc',
+            offset       = 0x81BC,
             base         = pr.UIntBE,
             mode         = 'RW',
             hidden       = True,
