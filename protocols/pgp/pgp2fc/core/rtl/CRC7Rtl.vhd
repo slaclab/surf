@@ -19,16 +19,16 @@ entity CRC7Rtl is
    port (
       rst       : in  std_logic;
       clk       : in  std_logic;
-      data_in   : in  std_logic_vector (15 downto 0);
+      data_in   : in  std_logic_vector(15 downto 0);
       crc_en    : in  std_logic;
-      crc_out   : out std_logic_vector (7 downto 0);  -- Unregistered output
-      crc_out_r : out std_logic_vector (7 downto 0));
+      crc_out   : out std_logic_vector(7 downto 0);  -- Unregistered output
+      crc_out_r : out std_logic_vector(7 downto 0));
 end CRC7Rtl;
 
 architecture imp_crc of CRC7Rtl is
 
-   signal lfsr_q : std_logic_vector (7 downto 0) := (others => '0');
-   signal lfsr_c : std_logic_vector (7 downto 0) := (others => '0');
+   signal lfsr_q : std_logic_vector(7 downto 0) := (others => '0');
+   signal lfsr_c : std_logic_vector(7 downto 0) := (others => '0');
 
 begin
 

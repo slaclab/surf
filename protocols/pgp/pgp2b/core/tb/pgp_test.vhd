@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
@@ -29,7 +28,6 @@ use surf.SsiPkg.all;
 
 entity pgp_test is end pgp_test;
 
--- Define architecture
 architecture pgp_test of pgp_test is
 
    signal locClk          : sl;
@@ -76,8 +74,7 @@ architecture pgp_test of pgp_test is
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
       TUSER_BITS_C  => 4,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C
-      );
+      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
 begin
 
@@ -162,21 +159,19 @@ begin
             FIFO_ADDR_WIDTH_G          => 9,
             FIFO_PAUSE_THRESH_G        => 256,  -- Almost full at 1/2 capacity
             MASTER_AXI_STREAM_CONFIG_G => RCEG3_AXIS_DMA_CONFIG_G,
-            MASTER_AXI_PIPE_STAGES_G   => 0
-            ) port map (
-
-               mAxisClk     => locClk,
-               mAxisRst     => locClkRst,
-               mAxisSlave   => iprbsTxSlaves(i),
-               mAxisMaster  => iprbsTxMasters(i),
-               locClk       => locClk,
-               locRst       => locClkRst,
-               trig         => txEnable(i),
-               packetLength => txLength(i),
-               busy         => txBusy(i),
-               tDest        => conv_std_logic_vector(i, 8),
-               tId          => (others => '0')
-               );
+            MASTER_AXI_PIPE_STAGES_G   => 0)
+         port map (
+            mAxisClk     => locClk,
+            mAxisRst     => locClkRst,
+            mAxisSlave   => iprbsTxSlaves(i),
+            mAxisMaster  => iprbsTxMasters(i),
+            locClk       => locClk,
+            locRst       => locClkRst,
+            trig         => txEnable(i),
+            packetLength => txLength(i),
+            busy         => txBusy(i),
+            tDest        => conv_std_logic_vector(i, 8),
+            tId          => (others => '0'));
 
       U_TxFifo : entity surf.AxiStreamFifoV2
          generic map (
@@ -211,15 +206,14 @@ begin
    U_PgpTxMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G         => 1 ns,
-         NUM_MASTERS_G => 4
-         ) port map (
-            axisClk      => locClk,
-            axisRst      => locClkRst,
-            sAxisMaster  => lprbsTxMasters(0),
-            sAxisSlave   => lprbsTxSlaves(0),
-            mAxisMasters => prbsTxMasters,
-            mAxisSlaves  => prbsTxSlaves
-            );
+         NUM_MASTERS_G => 4)
+      port map (
+         axisClk      => locClk,
+         axisRst      => locClkRst,
+         sAxisMaster  => lprbsTxMasters(0),
+         sAxisSlave   => lprbsTxSlaves(0),
+         mAxisMasters => prbsTxMasters,
+         mAxisSlaves  => prbsTxSlaves);
 
 
    U_Pgp : entity surf.Pgp2bLane
@@ -230,29 +224,27 @@ begin
          PAYLOAD_CNT_TOP_G => 7,
          NUM_VC_EN_G       => 4,
          TX_ENABLE_G       => true,
-         RX_ENABLE_G       => true
-         ) port map (
-            pgpTxClk         => locClk,
-            pgpTxClkRst      => locClkRst,
-            pgpTxIn          => pgpTxIn,
-            pgpTxOut         => pgpTxOut,
-            pgpTxMasters     => prbsTxMasters,
-            pgpTxSlaves      => prbsTxSlaves,
-            phyTxLanesOut    => phyTxLanesOut,
-            phyTxReady       => '1',
-            pgpRxClk         => locClk,
-            pgpRxClkRst      => locClkRst,
-            pgpRxIn          => pgpRxIn,
-            pgpRxOut         => pgpRxOut,
-            pgpRxMasters     => prbsRxMasters,
-            pgpRxMasterMuxed => open,
-            pgpRxCtrl        => prbsRxCtrl,
-            phyRxLanesOut    => phyRxLanesOut,
-            phyRxLanesIn     => phyRxLanesIn,
-            phyRxReady       => '1',
-            phyRxInit        => open
-            );
-
+         RX_ENABLE_G       => true)
+      port map (
+         pgpTxClk         => locClk,
+         pgpTxClkRst      => locClkRst,
+         pgpTxIn          => pgpTxIn,
+         pgpTxOut         => pgpTxOut,
+         pgpTxMasters     => prbsTxMasters,
+         pgpTxSlaves      => prbsTxSlaves,
+         phyTxLanesOut    => phyTxLanesOut,
+         phyTxReady       => '1',
+         pgpRxClk         => locClk,
+         pgpRxClkRst      => locClkRst,
+         pgpRxIn          => pgpRxIn,
+         pgpRxOut         => pgpRxOut,
+         pgpRxMasters     => prbsRxMasters,
+         pgpRxMasterMuxed => open,
+         pgpRxCtrl        => prbsRxCtrl,
+         phyRxLanesOut    => phyRxLanesOut,
+         phyRxLanesIn     => phyRxLanesIn,
+         phyRxReady       => '1',
+         phyRxInit        => open);
 
    phyRxLanesIn(0).data    <= phyTxLanesOut(0).data;
    phyRxLanesIn(0).dataK   <= phyTxLanesOut(0).dataK;
@@ -285,19 +277,19 @@ begin
             FIFO_PAUSE_THRESH_G => 511,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => SSI_PGP2B_CONFIG_C,
-            MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C
-            ) port map (
-               -- Slave Port
-               sAxisClk    => locClk,
-               sAxisRst    => locClkRst,
-               sAxisMaster => prbsRxMasters(i),
-               sAxisSlave  => prbsRxSlaves(i),
-               sAxisCtrl   => prbsRxCtrl(i),
-               -- Master Port
-               mAxisClk    => slowClk,
-               mAxisRst    => slowClkRst,
-               mAxisMaster => iprbsRxMasters(i),
-               mAxisSlave  => iprbsRxSlaves(i));
+            MASTER_AXI_CONFIG_G => SSI_PGP2B_CONFIG_C)
+         port map (
+            -- Slave Port
+            sAxisClk    => locClk,
+            sAxisRst    => locClkRst,
+            sAxisMaster => prbsRxMasters(i),
+            sAxisSlave  => prbsRxSlaves(i),
+            sAxisCtrl   => prbsRxCtrl(i),
+            -- Master Port
+            mAxisClk    => slowClk,
+            mAxisRst    => slowClkRst,
+            mAxisMaster => iprbsRxMasters(i),
+            mAxisSlave  => iprbsRxSlaves(i));
 
       U_SsiPrbsRx : entity surf.SsiPrbsRx
          generic map (
@@ -313,35 +305,33 @@ begin
             SLAVE_AXI_STREAM_CONFIG_G  => SSI_PGP2B_CONFIG_C,
             SLAVE_AXI_PIPE_STAGES_G    => 0,
             MASTER_AXI_STREAM_CONFIG_G => SSI_PGP2B_CONFIG_C,
-            MASTER_AXI_PIPE_STAGES_G   => 0
-            ) port map (
-               sAxisClk        => slowClk,
-               sAxisRst        => slowClkRst,
-               sAxisMaster     => iprbsRxMasters(i),
-               sAxisSlave      => iprbsRxSlaves(i),
-               sAxisCtrl       => iprbsRxCtrl(i),
-               mAxisClk        => slowClk,
-               mAxisRst        => slowClkRst,
-               mAxisMaster     => open,
-               mAxisSlave      => AXI_STREAM_SLAVE_FORCE_C,
-               axiClk          => '0',
-               axiRst          => '0',
-               axiReadMaster   => AXI_LITE_READ_MASTER_INIT_C,
-               axiReadSlave    => open,
-               axiWriteMaster  => AXI_LITE_WRITE_MASTER_INIT_C,
-               axiWriteSlave   => open,
-               updatedResults  => updatedResults(i),
-               busy            => open,
-               errMissedPacket => errMissedPacket(i),
-               errLength       => errLength(i),
-               errDataBus      => errDataBus(i),
-               errEofe         => errEofe(i),
-               errWordCnt      => errWordCnt(i),
-               errbitCnt       => errbitCnt(i),
-               packetRate      => packetRate(i),
-               packetLength    => packetLength(i)
-               );
+            MASTER_AXI_PIPE_STAGES_G   => 0)
+         port map (
+            sAxisClk        => slowClk,
+            sAxisRst        => slowClkRst,
+            sAxisMaster     => iprbsRxMasters(i),
+            sAxisSlave      => iprbsRxSlaves(i),
+            sAxisCtrl       => iprbsRxCtrl(i),
+            mAxisClk        => slowClk,
+            mAxisRst        => slowClkRst,
+            mAxisMaster     => open,
+            mAxisSlave      => AXI_STREAM_SLAVE_FORCE_C,
+            axiClk          => '0',
+            axiRst          => '0',
+            axiReadMaster   => AXI_LITE_READ_MASTER_INIT_C,
+            axiReadSlave    => open,
+            axiWriteMaster  => AXI_LITE_WRITE_MASTER_INIT_C,
+            axiWriteSlave   => open,
+            updatedResults  => updatedResults(i),
+            busy            => open,
+            errMissedPacket => errMissedPacket(i),
+            errLength       => errLength(i),
+            errDataBus      => errDataBus(i),
+            errEofe         => errEofe(i),
+            errWordCnt      => errWordCnt(i),
+            errbitCnt       => errbitCnt(i),
+            packetRate      => packetRate(i),
+            packetLength    => packetLength(i));
    end generate;
 
 end pgp_test;
-

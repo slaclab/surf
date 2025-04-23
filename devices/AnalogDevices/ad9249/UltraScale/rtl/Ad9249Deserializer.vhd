@@ -20,15 +20,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9249Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249Deserializer is
    generic (
@@ -54,11 +53,9 @@ entity Ad9249Deserializer is
       delayValueOut : out slv(8 downto 0);
       bitSlip       : in  sl;                -- dClkDiv4 domain
       adcData       : out slv(13 downto 0);  -- dClkDiv4 domain
-      adcValid      : out sl                 -- dClkDiv4 domain
-      );
+      adcValid      : out sl);               -- dClkDiv4 domain
 end Ad9249Deserializer;
 
--- Define architecture
 architecture rtl of Ad9249Deserializer is
 
    attribute keep : string;
@@ -93,19 +90,18 @@ begin
    -------------------------------------------------------------------------------------------------
 
    -- input sData buffer
-   --
    U_IBUFDS_sData : IBUFDS_DIFF_OUT
       generic map (
-         DQS_BIAS => "FALSE"            -- (FALSE, TRUE)
-         )
+         DQS_BIAS => "FALSE")           -- (FALSE, TRUE)
       port map (
          O  => sDataPadP,               -- 1-bit output: Buffer output
          OB => sDataPadN,
          I  => sDataP,  -- 1-bit input: Diff_p buffer input (connect directly to top-level port)
-         IB => sDataN  -- 1-bit input: Diff_n buffer input (connect directly to top-level port)
-         );
+         IB => sDataN);  -- 1-bit input: Diff_n buffer input (connect directly to top-level port)
+
    -- Optionally invert the pad input
    sData_i <= sDataPadP when ADC_INVERT_CH_G = '0' else sDataPadN;
+
    ----------------------------------------------------------------------------
    -- idelay3
    ----------------------------------------------------------------------------
@@ -121,9 +117,7 @@ begin
          REFCLK_FREQUENCY => IDELAYCTRL_FREQ_G,  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
          SIM_DEVICE       => SIM_DEVICE_G,  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
          -- ULTRASCALE_PLUS_ES2)
-         UPDATE_MODE      => "ASYNC"  -- Determines when updates to the delay will take effect (ASYNC, MANUAL,
-       -- SYNC)
-         )
+         UPDATE_MODE      => "ASYNC")  -- Determines when updates to the delay will take effect (ASYNC, MANUAL,
       port map (
          CASC_IN     => '0',  -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
          CASC_OUT    => cascOut,  -- 1-bit output: Cascade delay output to ODELAY input cascade
@@ -138,8 +132,7 @@ begin
          IDATAIN     => sData_i,  -- 1-bit input: Data input from the IOBUF
          INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
          LOAD        => loadDelay,      -- 1-bit input: Load DELAY_VALUE input
-         RST         => dRstDiv4  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
-         );
+         RST         => dRstDiv4);  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
 
    G_IdelayCascade : if IDELAY_CASCADE_G = true generate
       signal masterCntValue : slv(9 downto 0);
@@ -192,28 +185,25 @@ begin
          IS_CLK_B_INVERTED => '1',      -- Optional inversion for CLK_B
          IS_CLK_INVERTED   => '0',      -- Optional inversion for CLK
          IS_RST_INVERTED   => '0',      -- Optional inversion for RST
-         SIM_DEVICE        => SIM_DEVICE_G  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
-         )
+         SIM_DEVICE        => SIM_DEVICE_G)  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1,
       port map (
          FIFO_EMPTY      => open,       -- 1-bit output: FIFO empty flag
          INTERNAL_DIVCLK => open,  -- 1-bit output: Internally divided down clock used when FIFO is
-         Q               => masterData,     -- bit registered output
+         Q               => masterData,      -- bit registered output
          CLK             => dClk,       -- 1-bit input: High-speed clock
          CLKDIV          => dClkDiv4,   -- 1-bit input: Divided Clock
          CLK_B           => dClk,  -- 1-bit input: Inversion of High-speed clock CLK
          D               => sData_d,    -- 1-bit input: Serial Data Input
          FIFO_RD_CLK     => '1',        -- 1-bit input: FIFO read clock
          FIFO_RD_EN      => '1',  -- 1-bit input: Enables reading the FIFO when asserted
-         RST             => dRstDiv4    -- 1-bit input: Asynchronous Reset
-         );
+         RST             => dRstDiv4);  -- 1-bit input: Asynchronous Reset
 
    U_Gearbox : entity surf.Gearbox
       generic map (
          TPD_G                => TPD_G,
          SLAVE_WIDTH_G        => 8,
          MASTER_WIDTH_G       => 14,
-         MASTER_BIT_REVERSE_G => toBoolean(BIT_REV_G)
-         )
+         MASTER_BIT_REVERSE_G => toBoolean(BIT_REV_G))
       port map (
          clk         => dClkDiv4,
          rst         => dRstDiv4,
@@ -227,4 +217,3 @@ begin
          masterReady => '1');
 
 end rtl;
-

@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiDac7654Pkg.all;
@@ -59,13 +58,15 @@ architecture rtl of AxiDac7654Spi is
       HANDSHAKE_S);
 
    signal state : StateType := RST_S;
-   signal ack,
-      cs,
-      sck,
-      sdi,
-      load,
-      ldac,
-      rst : sl := '0';
+
+   signal ack  : sl := '0';
+   signal cs   : sl := '0';
+   signal sck  : sl := '0';
+   signal sdi  : sl := '0';
+   signal load : sl := '0';
+   signal ldac : sl := '0';
+   signal rst  : sl := '0';
+
    signal ch   : slv(1 downto 0)              := (others => '0');
    signal pntr : natural range 0 to 23        := 0;
    signal cnt  : natural range 0 to MAX_CNT_C := 0;
@@ -187,4 +188,5 @@ begin
          end if;
       end if;
    end process;
+
 end rtl;

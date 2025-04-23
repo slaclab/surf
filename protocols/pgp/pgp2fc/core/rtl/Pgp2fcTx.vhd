@@ -32,10 +32,8 @@ entity Pgp2fcTx is
       FC_WORDS_G        : integer range 1 to 8 := 1;
       VC_INTERLEAVE_G   : integer              := 1;  -- Interleave Frames
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
-      NUM_VC_EN_G       : integer range 1 to 4 := 4
-      );
+      NUM_VC_EN_G       : integer range 1 to 4 := 4);
    port (
-
       -- System clock, reset & control
       pgpTxClkEn  : in sl := '1';       -- Master clock enable
       pgpTxClk    : in sl;              -- Master clock
@@ -54,13 +52,9 @@ entity Pgp2fcTx is
 
       -- Phy interface
       phyTxLaneOut : out Pgp2fcTxPhyLaneOutType;
-      phyTxReady   : in  sl
-      );
-
+      phyTxReady   : in  sl);
 end Pgp2fcTx;
 
-
--- Define architecture
 architecture Pgp2fcTx of Pgp2fcTx is
 
    -- Local Signals

@@ -46,16 +46,20 @@ end CRC32Rtl;
 
 architecture rtl of CRC32Rtl is
 
-   -- Local Signals
-   signal data             : slv(31 downto 0);
-   signal crc              : slv(31 downto 0);
-   signal CRCDATAVALID_d   : sl;
-   signal CRCDATAWIDTH_d   : slv(2 downto 0);
-   constant Polyval        : slv(31 downto 0) := X"04C11DB7";
-   type fb_array is array (32 downto 0) of slv(31 downto 0);
-   signal MSBVect, TempXOR : fb_array;
+   constant Polyval : slv(31 downto 0) := X"04C11DB7";
+
+   type FbArray is array (32 downto 0) of slv(31 downto 0);
+
+   signal data           : slv(31 downto 0);
+   signal crc            : slv(31 downto 0);
+   signal CRCDATAVALID_d : sl;
+   signal CRCDATAWIDTH_d : slv(2 downto 0);
+
+   signal MSBVect : FbArray;
+   signal TempXOR : FbArray;
 
 begin
+
    TempXOR(0) <= crc xor data;
 
    MS0 : for i in 0 to 31 generate
@@ -128,5 +132,5 @@ begin
                  & crc(16) & crc(17) & crc(18) & crc(19) & crc(20) & crc(21) & crc(22) & crc(23)
                  & crc(8) & crc(9) & crc(10) & crc(11) & crc(12) & crc(13) & crc(14) & crc(15)
                  & crc(0) & crc(1) & crc(2) & crc(3) & crc(4) & crc(5) & crc(6) & crc(7));
-end rtl;
 
+end rtl;

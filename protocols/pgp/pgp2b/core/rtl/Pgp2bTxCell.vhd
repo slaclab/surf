@@ -28,10 +28,8 @@ entity Pgp2bTxCell is
    generic (
       TPD_G             : time                 := 1 ns;
       TX_LANE_CNT_G     : integer range 1 to 2 := 1;  -- Number of bonded lanes, 1-2
-      PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
-      );
+      PAYLOAD_CNT_TOP_G : integer              := 7);  -- Top bit for payload counter
    port (
-
       -- System clock, reset & control
       pgpTxClkEn  : in sl := '1';       -- Master clock Enable
       pgpTxClk    : in sl;              -- Master clock
@@ -105,13 +103,9 @@ entity Pgp2bTxCell is
       crcTxIn    : out slv(TX_LANE_CNT_G*16-1 downto 0);  -- Transmit data for CRC
       crcTxInit  : out sl;              -- Transmit CRC value init
       crcTxValid : out sl;              -- Transmit data for CRC is valid
-      crcTxOut   : in  slv(31 downto 0)  -- Transmit calculated CRC value
-      );
-
+      crcTxOut   : in  slv(31 downto 0));  -- Transmit calculated CRC value
 end Pgp2bTxCell;
 
-
--- Define architecture
 architecture Pgp2bTxCell of Pgp2bTxCell is
 
    -- Local Signals
@@ -180,7 +174,6 @@ architecture Pgp2bTxCell of Pgp2bTxCell is
    signal nxtState     : slv(2 downto 0);
 
 begin
-
 
    -- Mux incoming data
    process (schTxDataVc, vc0FrameTxData, vc0FrameTxEOF, vc0FrameTxEOFE,
@@ -715,4 +708,3 @@ begin
    end process;
 
 end Pgp2bTxCell;
-

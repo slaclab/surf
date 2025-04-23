@@ -330,6 +330,7 @@ begin
             v.debug.eop    := '1';
          end if;
       end procedure doTail;
+
    begin
       -- Latch the current value
       v := r;

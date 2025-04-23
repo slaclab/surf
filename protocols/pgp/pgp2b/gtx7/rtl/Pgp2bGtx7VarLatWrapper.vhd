@@ -66,7 +66,7 @@ entity Pgp2bGtx7VarLatWrapper is
       RX_CLK25_DIV_G        : natural                 := 5;
       TX_CLK25_DIV_G        : natural                 := 5;
       RX_OS_CFG_G           : bit_vector              := "0000010000000";
-      RXCDR_CFG_G           : bit_vector              := x"03000023ff40200020";
+      RXCDR_CFG_G           : bit_vector              := x"03000023FF40200020";
       RXDFEXYDEN_G          : sl                      := '1';
       RX_DFE_KL_CFG2_G      : bit_vector              := x"301148AC";
       -- PGP Settings

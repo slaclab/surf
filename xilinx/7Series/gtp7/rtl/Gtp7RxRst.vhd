@@ -75,15 +75,14 @@ use ieee.std_logic_unsigned.all;
 library surf;
 
 entity Gtp7RxRst is
-   generic(
+   generic (
       TPD_G                  : time                  := 1 ns;
       DYNAMIC_QPLL_G         : boolean               := false;
       SIMULATION_G           : boolean               := false;
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
       RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
       TX_PLL0_USED           : boolean               := false;  -- the TX and RX Reset FSMs must
-      RX_PLL0_USED           : boolean               := false  -- share these two generic values
-      );
+      RX_PLL0_USED           : boolean               := false);  -- share these two generic values
    port (
       qPllRxSelect             : in  std_logic_vector(1 downto 0);
       qPllTxSelect             : in  std_logic_vector(1 downto 0);
@@ -100,26 +99,24 @@ entity Gtp7RxRst is
       RXRESETDONE              : in  std_logic;
       MMCM_LOCK                : in  std_logic;
       RECCLK_STABLE            : in  std_logic;
-      RECCLK_MONITOR_RESTART   : in  std_logic                                            := '0';
+      RECCLK_MONITOR_RESTART   : in  std_logic                                           := '0';
       DATA_VALID               : in  std_logic;
       TXUSERRDY                : in  std_logic;  --TXUSERRDY from GT
-      DONT_RESET_ON_DATA_ERROR : in  std_logic                                            := '0';
-      GTRXRESET                : out std_logic                                            := '0';
-      MMCM_RESET               : out std_logic                                            := '1';
-      PLL0_RESET               : out std_logic                                            := '0';  --Reset PLL0 (only if RX uses PLL0)
-      PLL1_RESET               : out std_logic                                            := '0';  --Reset PLL1 (only if RX uses PLL1)
+      DONT_RESET_ON_DATA_ERROR : in  std_logic                                           := '0';
+      GTRXRESET                : out std_logic                                           := '0';
+      MMCM_RESET               : out std_logic                                           := '1';
+      PLL0_RESET               : out std_logic                                           := '0';  --Reset PLL0 (only if RX uses PLL0)
+      PLL1_RESET               : out std_logic                                           := '0';  --Reset PLL1 (only if RX uses PLL1)
       RX_FSM_RESET_DONE        : out std_logic;  --Reset-sequence has sucessfully been finished.
-      RXUSERRDY                : out std_logic                                            := '0';
+      RXUSERRDY                : out std_logic                                           := '0';
       RUN_PHALIGNMENT          : out std_logic;
       PHALIGNMENT_DONE         : in  std_logic;
-      RESET_PHALIGNMENT        : out std_logic                                            := '0';
-      RXDFEAGCHOLD             : out std_logic                                            := '0';
-      RXDFELFHOLD              : out std_logic                                            := '0';
-      RXLPMLFHOLD              : out std_logic                                            := '0';
-      RXLPMHFHOLD              : out std_logic                                            := '0';
-      RETRY_COUNTER            : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                                 -- Retries it took to get the transceiver up and running
-      );
+      RESET_PHALIGNMENT        : out std_logic                                           := '0';
+      RXDFEAGCHOLD             : out std_logic                                           := '0';
+      RXDFELFHOLD              : out std_logic                                           := '0';
+      RXLPMLFHOLD              : out std_logic                                           := '0';
+      RXLPMHFHOLD              : out std_logic                                           := '0';
+      RETRY_COUNTER            : out std_logic_vector(RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0'));  -- Number of Retries it took to get the transceiver up and running
 end Gtp7RxRst;
 
 --Interdependencies:
@@ -131,12 +128,13 @@ end Gtp7RxRst;
 -- *
 
 architecture RTL of Gtp7RxRst is
-   type rx_rst_fsm_type is(
+
+   type RxRstFsmType is (
       INIT, ASSERT_ALL_RESETS, RELEASE_PLL_RESET, VERIFY_RECCLK_STABLE,
       RELEASE_MMCM_RESET, WAIT_RESET_DONE, DO_PHASE_ALIGNMENT,
       MONITOR_DATA_VALID, FSM_DONE);
 
-   signal rx_state : rx_rst_fsm_type := INIT;
+   signal rx_state : RxRstFsmType := INIT;
 
    constant MMCM_LOCK_CNT_MAX  : integer := 1024;
    constant STARTUP_DELAY      : integer := 500;  --AR43482: Transceiver needs to wait for 500 ns after configuration

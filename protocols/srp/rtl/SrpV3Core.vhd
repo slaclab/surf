@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -41,8 +40,7 @@ entity SrpV3Core is
       UNALIGNED_ACCESS_G  : boolean                 := false;
       BYTE_ACCESS_G       : boolean                 := false;
       WRITE_EN_G          : boolean                 := true;  -- Write ops enabled
-      READ_EN_G           : boolean                 := true  -- Read ops enabled
-      );
+      READ_EN_G           : boolean                 := true);  -- Read ops enabled
    port (
       -- AXIS Slave Interface (sAxisClk domain)
       sAxisClk    : in  sl;

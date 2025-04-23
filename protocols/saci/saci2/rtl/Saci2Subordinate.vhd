@@ -14,18 +14,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.std_logic_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 
 entity Saci2Subordinate is
-
    generic (
       TPD_G : time := 1 ns);
-
    port (
       rstL : in sl;                     -- ASIC global reset
 
@@ -46,7 +44,6 @@ entity Saci2Subordinate is
       addr   : out slv(29 downto 0);
       wrData : out slv(31 downto 0);
       rdData : in  slv(31 downto 0));
-
 end entity Saci2Subordinate;
 
 architecture rtl of Saci2Subordinate is
@@ -60,7 +57,8 @@ architecture rtl of Saci2Subordinate is
       readL    : sl;
    end record RegType;
 
-   signal r, rin      : RegType;
+   signal r           : RegType;
+   signal rin         : RegType;
    signal saciCmdFall : sl;
 
    procedure shiftInLeft (
@@ -159,6 +157,4 @@ begin
 
    end process comb;
 
-
 end architecture rtl;
-

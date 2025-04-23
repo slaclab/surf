@@ -189,7 +189,9 @@ package I2cPkg is
    --------------------------------------------------------------------------------------------------
    -- Opencores i2c
    component i2c_master_byte_ctrl is
-      generic (filter : integer; dynfilt : integer);
+      generic (
+         FILTER  : integer;
+         DYNFILT : integer);
       port (
          clk    : in std_logic;
          rst    : in std_logic;         -- active high reset
@@ -206,7 +208,7 @@ package I2cPkg is
          write  : in std_logic;
          ack_in : in std_logic;
          din    : in std_logic_vector(7 downto 0);
-         filt   : in std_logic_vector((filter-1)*dynfilt downto 0);
+         filt   : in std_logic_vector((FILTER-1)*DYNFILT downto 0);
 
          -- output signals
          cmd_ack  : out std_logic;
@@ -218,16 +220,13 @@ package I2cPkg is
          -- i2c lines
          scl_i   : in  std_logic;       -- i2c clock line input
          scl_o   : out std_logic;       -- i2c clock line output
-         scl_oen : out std_logic;  -- i2c clock line output enable, active low
+         scl_oen : out std_logic;   -- i2c clock line output enable, active low
          sda_i   : in  std_logic;       -- i2c data line input
          sda_o   : out std_logic;       -- i2c data line output
-         sda_oen : out std_logic   -- i2c data line output enable, active low
-         );
+         sda_oen : out std_logic);  -- i2c data line output enable, active low
    end component i2c_master_byte_ctrl;
 
-
-
-end;
+end package I2cPkg;
 
 package body I2cPkg is
 

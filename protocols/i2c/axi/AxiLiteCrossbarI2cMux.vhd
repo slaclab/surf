@@ -162,7 +162,7 @@ begin
 
    comb : process (ack, axilReadMaster, axilRst, axilWriteMaster,
                    i2cRegMasterOut, r) is
-      variable v          : regType;
+      variable v          : RegType;
       variable wrIdx      : integer;
       variable rdIdx      : integer;
       variable axilStatus : AxiLiteStatusType;

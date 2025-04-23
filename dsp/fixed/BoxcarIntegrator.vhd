@@ -96,7 +96,7 @@ begin
 
    SIGNED_DATA : if (SIGNED_G = true) generate
       ramDoutE <= signed(ramDout(DATA_WIDTH_G-1) & ramDout);
-      ibDataE  <= signed(ibDataE(DATA_WIDTH_G-1)& r.ibData);
+      ibDataE  <= signed(ibDataE(DATA_WIDTH_G-1) & r.ibData);
    end generate;
 
    U_RAM : entity surf.SimpleDualPortRam

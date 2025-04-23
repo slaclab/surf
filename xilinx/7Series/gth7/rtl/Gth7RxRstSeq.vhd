@@ -69,39 +69,37 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity Gth7RxRstSeq is
-   generic(
+   generic (
       TPD_G : time := 1 ns);
    port (
       RST_IN         : in  std_logic;
       GTRXRESET_IN   : in  std_logic;
       RXPMARESETDONE : in  std_logic;
       GTRXRESET_OUT  : out std_logic;
-
-      DRPCLK      : in  std_logic;
-      DRPADDR     : out std_logic_vector(8 downto 0);
-      DRPDO       : in  std_logic_vector(15 downto 0);
-      DRPDI       : out std_logic_vector(15 downto 0);
-      DRPRDY      : in  std_logic;
-      DRPEN       : out std_logic;
-      DRPWE       : out std_logic;
-      DRP_OP_DONE : out std_logic
-      );
+      DRPCLK         : in  std_logic;
+      DRPADDR        : out std_logic_vector(8 downto 0);
+      DRPDO          : in  std_logic_vector(15 downto 0);
+      DRPDI          : out std_logic_vector(15 downto 0);
+      DRPRDY         : in  std_logic;
+      DRPEN          : out std_logic;
+      DRPWE          : out std_logic;
+      DRP_OP_DONE    : out std_logic);
 end Gth7RxRstSeq;
 
 architecture Behavioral of Gth7RxRstSeq is
 
-   type state_type is (
-      idle,
-      drp_rd,
-      wait_rd_data,
-      wr_16,
-      wait_wr_done1,
-      wait_pmareset,
-      wr_20,
-      wait_wr_done2);
+   type StateType is (
+      IDLE,
+      DRP_RD,
+      WAIT_RD_DATA,
+      WR_16,
+      WAIT_WR_DONE1,
+      WAIT_PMARESET,
+      WR_20,
+      WAIT_WR_DONE2);
 
-   signal state                : state_type := idle;
-   signal next_state           : state_type := idle;
+   signal state                : StateType := IDLE;
+   signal next_state           : StateType := IDLE;
    signal gtrxreset_s          : std_logic;
    signal gtrxreset_ss         : std_logic;
    signal rxpmaresetdone_ss    : std_logic;
@@ -111,7 +109,7 @@ architecture Behavioral of Gth7RxRstSeq is
    signal original_rd_data     : std_logic_vector(15 downto 0);
    signal pmarstdone_fall_edge : std_logic;
    signal gtrxreset_i          : std_logic;
-   signal flag                 : std_logic  := '0';
+   signal flag                 : std_logic := '0';
    signal gtrxreset_o          : std_logic;
    signal drpen_o              : std_logic;
    signal drpwe_o              : std_logic;
@@ -159,7 +157,7 @@ begin
    begin
       if rising_edge(DRPCLK) then
          if (RST = '1') then
-            state              <= idle    after TPD_G;
+            state              <= IDLE    after TPD_G;
             gtrxreset_s        <= '0'     after TPD_G;
             gtrxreset_ss       <= '0'     after TPD_G;
             rxpmaresetdone_sss <= '0'     after TPD_G;
@@ -182,7 +180,7 @@ begin
          if (GTRXRESET = '1') then
             drp_op_done_o <= '0' after TPD_G;
          else
-            if (state = wait_wr_done2 and DRPRDY = '1') then
+            if (state = WAIT_WR_DONE2 and DRPRDY = '1') then
                drp_op_done_o <= '1' after TPD_G;
             else
                drp_op_done_o <= drp_op_done_o after TPD_G;
@@ -197,52 +195,52 @@ begin
    begin
       case state is
 
-         when idle =>
+         when IDLE =>
             if (gtrxreset_ss = '1') then
-               next_state <= drp_rd;
+               next_state <= DRP_RD;
             else
-               next_state <= idle;
+               next_state <= IDLE;
             end if;
 
-         when drp_rd =>
-            next_state <= wait_rd_data;
+         when DRP_RD =>
+            next_state <= WAIT_RD_DATA;
 
-         when wait_rd_data =>
+         when WAIT_RD_DATA =>
             if (DRPRDY = '1')then
-               next_state <= wr_16;
+               next_state <= WR_16;
             else
-               next_state <= wait_rd_data;
+               next_state <= WAIT_RD_DATA;
             end if;
 
-         when wr_16 =>
-            next_state <= wait_wr_done1;
+         when WR_16 =>
+            next_state <= WAIT_WR_DONE1;
 
-         when wait_wr_done1 =>
+         when WAIT_WR_DONE1 =>
             if (DRPRDY = '1') then
-               next_state <= wait_pmareset;
+               next_state <= WAIT_PMARESET;
             else
-               next_state <= wait_wr_done1;
+               next_state <= WAIT_WR_DONE1;
             end if;
 
-         when wait_pmareset =>
+         when WAIT_PMARESET =>
             if (pmarstdone_fall_edge = '1') then
-               next_state <= wr_20;
+               next_state <= WR_20;
             else
-               next_state <= wait_pmareset;
+               next_state <= WAIT_PMARESET;
             end if;
 
-         when wr_20 =>
-            next_state <= wait_wr_done2;
+         when WR_20 =>
+            next_state <= WAIT_WR_DONE2;
 
-         when wait_wr_done2 =>
+         when WAIT_WR_DONE2 =>
             if (DRPRDY = '1') then
-               next_state <= idle;
+               next_state <= IDLE;
             else
-               next_state <= wait_wr_done2;
+               next_state <= WAIT_WR_DONE2;
             end if;
 
          when others =>
-            next_state <= idle;
+            next_state <= IDLE;
 
       end case;
    end process;
@@ -254,7 +252,7 @@ begin
 -- RX_DATA_WIDTH is located at addr x"0011", [13 downto 11]
 -- encoding is this : /16 = x "2", /20 = x"3", /32 = x"4", /40 = x"5"
       gtrxreset_i  <= '0';
-      drpaddr_o    <= '0'& x"11";       -- 000010001
+      drpaddr_o    <= '0' & x"11";      -- 000010001
       drpen_o      <= '0';
       drpwe_o      <= '0';
       drpdi_o      <= x"0000";
@@ -263,17 +261,17 @@ begin
       case state is
 
          --do nothing to DRP or reset
-         when idle =>
+         when IDLE =>
             null;
 
          --assert reset and issue rd
-         when drp_rd =>
+         when DRP_RD =>
             gtrxreset_i <= '1';
             drpen_o     <= '1';
             drpwe_o     <= '0';
 
          --assert reset and wait to load rd data
-         when wait_rd_data =>
+         when WAIT_RD_DATA =>
             gtrxreset_i <= '1';
             if (DRPRDY = '1' and flag = '0') then
                next_rd_data <= DRPDO;
@@ -284,7 +282,7 @@ begin
             end if;
 
          --assert reset and write to 16-bit mode
-         when wr_16 =>
+         when WR_16 =>
             gtrxreset_i <= '1';
             drpen_o     <= '1';
             drpwe_o     <= '1';
@@ -292,11 +290,11 @@ begin
             drpdi_o     <= rd_data(15 downto 12) & '0' & rd_data(10 downto 0);
 
          --keep asserting reset until write to 16-bit mode is complete
-         when wait_wr_done1 =>
+         when WAIT_WR_DONE1 =>
             gtrxreset_i <= '1';
 
          --deassert reset and no DRP access until 2nd pmareset
-         when wait_pmareset =>
+         when WAIT_PMARESET =>
             if (gtrxreset_ss = '1') then
                gtrxreset_i <= '1';
             else
@@ -304,13 +302,13 @@ begin
             end if;
 
          --write to 20-bit mode
-         when wr_20 =>
+         when WR_20 =>
             drpen_o <= '1';
             drpwe_o <= '1';
             drpdi_o <= rd_data(15 downto 0);  --restore user setting per prev read
 
          --wait to complete write to 20-bit mode
-         when wait_wr_done2 =>
+         when WAIT_WR_DONE2 =>
             null;
 
          when others =>
@@ -322,12 +320,12 @@ begin
    process (DRPCLK)
    begin
       if rising_edge(DRPCLK) then
-         if(state = wr_16 or state = wait_pmareset or state = wr_20 or state = wait_wr_done1) then
+         if(state = WR_16 or state = WAIT_PMARESET or state = WR_20 or state = WAIT_WR_DONE1) then
             flag <= '1' after TPD_G;
-         elsif(state = wait_wr_done2) then
+         elsif(state = WAIT_WR_DONE2) then
             flag <= '0' after TPD_G;
          end if;
-         if(state = wait_rd_data and DRPRDY = '1' and flag = '0') then
+         if(state = WAIT_RD_DATA and DRPRDY = '1' and flag = '0') then
             original_rd_data <= DRPDO after TPD_G;
          end if;
       end if;

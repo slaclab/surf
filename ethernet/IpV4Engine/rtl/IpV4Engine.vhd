@@ -59,7 +59,7 @@ architecture mapping of IpV4Engine is
 
    constant PROTOCOL_SIZE_C : positive := ite(IGMP_G, PROTOCOL_SIZE_G+2, PROTOCOL_SIZE_G+1);
 
-   function GenIPv4List (foo : Slv8Array(PROTOCOL_SIZE_G-1 downto 0)) return Slv8Array is
+   function genIPv4List (foo : Slv8Array(PROTOCOL_SIZE_G-1 downto 0)) return Slv8Array is
       variable retVar : Slv8Array(PROTOCOL_SIZE_C-1 downto 0);
       variable i      : natural;
    begin
@@ -72,7 +72,8 @@ architecture mapping of IpV4Engine is
       end if;
       return retVar;
    end function;
-   constant PROTOCOL_C : Slv8Array(PROTOCOL_SIZE_C-1 downto 0) := GenIPv4List(PROTOCOL_G);
+
+   constant PROTOCOL_C : Slv8Array(PROTOCOL_SIZE_C-1 downto 0) := genIPv4List(PROTOCOL_G);
 
    signal ibArpMaster : AxiStreamMasterType;
    signal ibArpSlave  : AxiStreamSlaveType;

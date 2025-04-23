@@ -23,8 +23,7 @@ entity AxiAd5541Core is
    generic (
       TPD_G             : time := 1 ns;
       AXIL_CLK_PERIOD_G : real := 1/(200.0E+6);  -- In units of s, default 200 MHz
-      SPI_SCLK_PERIOD_G : real := 1/(1.0E+6)  -- In units of s, default 1 MHz
-      );
+      SPI_SCLK_PERIOD_G : real := 1/(1.0E+6));  -- In units of s, default 1 MHz
    port (
       -- DAC Ports
       dacSclk        : out sl;
@@ -37,12 +36,13 @@ entity AxiAd5541Core is
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
-      axiWriteSlave  : out AxiLiteWriteSlaveType
-      );
+      axiWriteSlave  : out AxiLiteWriteSlaveType);
 end AxiAd5541Core;
 
 architecture mapping of AxiAd5541Core is
+
 begin
+
    U_AxiSpiMaster : entity surf.AxiSpiMaster
       generic map (
          TPD_G             => TPD_G,
@@ -51,8 +51,7 @@ begin
          DATA_SIZE_G       => 16,
          MODE_G            => "WO",     -- "WO" (write only)
          CLK_PERIOD_G      => AXIL_CLK_PERIOD_G,
-         SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G
-         )
+         SPI_SCLK_PERIOD_G => SPI_SCLK_PERIOD_G)
       port map (
          -- AXI-Lite Register Interface
          axiClk         => axiClk,
@@ -65,8 +64,7 @@ begin
          coreSclk       => dacSclk,
          coreSDin       => '0',
          coreSDout      => dacSdi,
-         coreCsb        => dacCsL
-         );
+         coreCsb        => dacCsL);
 
    -- The LDAC_L signal of the DAC is tied low to load the data to the DAC on the rising edge of the CS_L
    dacLdacL <= '0';

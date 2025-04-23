@@ -17,20 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Code10b12bPkg.all;
 use surf.TextUtilPkg.all;
 
-
-----------------------------------------------------------------------------------------------------
-
 entity Code10b12bTb is
-
 end entity Code10b12bTb;
-
-----------------------------------------------------------------------------------------------------
 
 architecture sim of Code10b12bTb is
 
@@ -52,7 +45,7 @@ architecture sim of Code10b12bTb is
 --    signal started         : boolean := false;
 --    shared variable runVar : integer := 0;
 --    signal run             : integer := 0;
---    signal lastEncDataOut  : slv(11 downto 0);
+--    signal lastencDataOut  : slv(11 downto 0);
 
 --    signal encDispInInt    : DisparityType;
 --    signal encDispOutInt   : DisparityType;
@@ -98,7 +91,7 @@ begin
       for i in 0 to 2**10-1 loop
          encDataIn := conv_std_logic_vector(i, 10);
          encDispIn := '0';
-         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataout, encDispOut);
+         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataOut, encDispOut);
          decode10b12b(encDataOut, encDispIn, decDataOut, decDataKOut, decDispOut, decCodeError, decDispError);
          assert (encDataIn = decDataOut) report "encDataIn /= decDataOut" severity failure;
          assert (encDataKIn = decDataKOut) report "encDataKIn /= decDataKOut" severity failure;
@@ -108,7 +101,7 @@ begin
          wait for 1 ns;
 
          encDispIn := '1';
-         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataout, encDispOut);
+         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataOut, encDispOut);
          decode10b12b(encDataOut, encDispIn, decDataOut, decDataKOut, decDispOut, decCodeError, decDispError);
          assert (encDataIn = decDataOut) report "encDataIn /= decDataOut" severity failure;
          assert (encDataKIn = decDataKOut) report "encDataKIn /= decDataKOut" severity failure;
@@ -125,7 +118,7 @@ begin
          encDataIn  := conv_std_logic_vector(i, 5) & conv_std_logic_vector(28, 5);
          encDataKIn := '1';
          encDispIn  := '0';
-         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataout, encDispOut);
+         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataOut, encDispOut);
          decode10b12b(encDataOut, encDispIn, decDataOut, decDataKOut, decDispOut, decCodeError, decDispError);
          assert (encDataIn = decDataOut) report "encDataIn /= decDataOut" severity failure;
          assert (encDataKIn = decDataKOut) report "encDataKIn /= decDataKOut" severity failure;
@@ -135,7 +128,7 @@ begin
          wait for 1 ns;
 
          encDispIn := '1';
-         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataout, encDispOut);
+         encode10b12b(encDataIn, encDataKIn, encDispIn, encDataOut, encDispOut);
          decode10b12b(encDataOut, encDispIn, decDataOut, decDataKOut, decDispOut, decCodeError, decDispError);
          assert (encDataIn = decDataOut) report "encDataIn /= decDataOut" severity failure;
          assert (encDataKIn = decDataKOut) report "encDataKIn /= decDataKOut" severity failure;

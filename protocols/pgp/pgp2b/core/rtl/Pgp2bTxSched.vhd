@@ -28,14 +28,12 @@ entity Pgp2bTxSched is
    generic (
       TPD_G           : time                 := 1 ns;
       VC_INTERLEAVE_G : integer              := 1;  -- Interleave Frames
-      NUM_VC_EN_G     : integer range 1 to 4 := 4
-      );
+      NUM_VC_EN_G     : integer range 1 to 4 := 4);
    port (
-
       -- System clock, reset & control
-      pgpTxClkEn  : in sl := '1';       -- Master clock Enable
-      pgpTxClk    : in sl;              -- Master clock
-      pgpTxClkRst : in sl;              -- Synchronous reset input
+      pgpTxClkEn  : in sl := '1';                   -- Master clock Enable
+      pgpTxClk    : in sl;                          -- Master clock
+      pgpTxClkRst : in sl;                          -- Synchronous reset input
 
       -- Link flush
       pgpTxFlush : in sl;               -- Flush the link
@@ -62,13 +60,9 @@ entity Pgp2bTxSched is
       vc0RemAlmostFull : in sl;         -- Remote flow control
       vc1RemAlmostFull : in sl;         -- Remote flow control
       vc2RemAlmostFull : in sl;         -- Remote flow control
-      vc3RemAlmostFull : in sl          -- Remote flow control
-      );
-
+      vc3RemAlmostFull : in sl);        -- Remote flow control
 end Pgp2bTxSched;
 
-
--- Define architecture
 architecture Pgp2bTxSched of Pgp2bTxSched is
 
    -- Local Signals
@@ -108,7 +102,6 @@ begin
    schTxIdle    <= intTxIdle;
    schTxDataVc  <= currVc;
    schTxTimeout <= intTxTimeout;
-
 
    -- State transition logic
    process (pgpTxClk)
@@ -383,4 +376,3 @@ begin
    end process;
 
 end Pgp2bTxSched;
-

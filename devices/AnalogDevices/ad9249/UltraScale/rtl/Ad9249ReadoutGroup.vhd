@@ -20,15 +20,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9249Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249ReadoutGroup is
    generic (
@@ -73,11 +72,9 @@ entity Ad9249ReadoutGroup is
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
       (others                                                      => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
       -- optional ready to allow evenout samples readout in adcStreamClk
-      adcReady     : in  slv(NUM_CHANNELS_G-1 downto 0) := (others => '1')
-      );
+      adcReady     : in  slv(NUM_CHANNELS_G-1 downto 0) := (others => '1'));
 end Ad9249ReadoutGroup;
 
--- Define architecture
 architecture rtl of Ad9249ReadoutGroup is
 
    attribute keep : string;
@@ -110,8 +107,7 @@ architecture rtl of Ad9249ReadoutGroup is
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
       lockedCountRst => '0',
-      invert         => '0'
-      );
+      invert         => '0');
 
    signal lockedSync      : sl;
    signal lockedFallCount : slv(15 downto 0);
@@ -139,8 +135,7 @@ architecture rtl of Ad9249ReadoutGroup is
       --delayValue     => (others => '0'),
       locked       => '0',
       fifoWrData   => (others => (others => '0')),
-      fifoWrDataEn => (others => '0')
-      );
+      fifoWrDataEn => (others => '0'));
 
    signal adcR   : AdcRegType := ADC_REG_INIT_C;
    signal adcRin : AdcRegType;
@@ -176,6 +171,7 @@ architecture rtl of Ad9249ReadoutGroup is
    signal invertSync : sl;
 
 begin
+
    -------------------------------------------------------------------------------------------------
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------
@@ -197,8 +193,7 @@ begin
          cntOut     => lockedFallCount,
          rdClk      => axilClk,
          rdRst      => axilRst,
-         cntRst     => axilR.lockedCountRst
-         );
+         cntRst     => axilR.lockedCountRst);
 
    Synchronizer_1 : entity surf.Synchronizer
       generic map (
@@ -320,13 +315,11 @@ begin
 
       AdcClk_I_Ibufds : IBUFDS
          generic map (
-            DQS_BIAS => "FALSE"
-            )
+            DQS_BIAS => "FALSE")
          port map (
             I  => adcSerial.dClkP,
             IB => adcSerial.dClkN,
-            O  => adcDclk
-            );
+            O  => adcDclk);
 
       ------------------------------------------
       -- Generate clocks from ADC incoming clock
@@ -350,8 +343,7 @@ begin
             CLKFBOUT_MULT_G    => 5,
             CLKOUT0_DIVIDE_F_G => 1.0,
             CLKOUT0_DIVIDE_G   => 2,
-            CLKOUT1_DIVIDE_G   => 8
-            )
+            CLKOUT1_DIVIDE_G   => 8)
          port map(
             clkIn     => adcDclk,
             rstIn     => '0',
@@ -359,8 +351,7 @@ begin
             clkOut(1) => adcBitClkDiv4,
             rstOut(0) => adcBitRst,
             rstOut(1) => adcBitRstDiv4,
-            locked    => open
-            );
+            locked    => open);
 
    end generate G_MMCM;
 
@@ -398,8 +389,7 @@ begin
          delayValueOut => curDelayFrame,
          bitSlip       => adcR.slip,
          adcData       => adcFrame,
-         adcValid      => adcFrameValid
-         );
+         adcValid      => adcFrameValid);
 
    U_FrmDlyFifo : entity surf.SynchronizerFifo
       generic map (
@@ -448,9 +438,7 @@ begin
             delayValueOut => curDelayData(i),
             bitSlip       => adcR.slip,
             adcData       => adcData(i),
-            adcValid      => adcDataValid(i)
-            );
-
+            adcValid      => adcDataValid(i));
 
       U_DataDlyFifo : entity surf.SynchronizerFifo
          generic map (
@@ -500,8 +488,6 @@ begin
          v.count := adcR.count + 1;
       end if;
 
-
-
       ----------------------------------------------------------------------------------------------
       -- Look for Frame rising edges and write data to fifos
       ----------------------------------------------------------------------------------------------
@@ -540,17 +526,14 @@ begin
 
    RstSync_1 : entity surf.RstSync
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk      => adcBitClkDiv4,
          asyncRst => adcClkRst,
-         syncRst  => adcClkRstSync
-         );
+         syncRst  => adcClkRstSync);
 
    -- synchronize data cross-clocks
    G_FIFO_SYNC : for i in NUM_CHANNELS_G-1 downto 0 generate
-
 
       U_DataFifo : entity surf.SynchronizerFifo
          generic map (
@@ -565,8 +548,7 @@ begin
             rd_clk => adcStreamClk,
             rd_en  => fifoDataRdEn(i),
             valid  => fifoDataValid(i),
-            dout   => adcStreams(i).tdata(15 downto 0)
-            );
+            dout   => adcStreams(i).tdata(15 downto 0));
 
       fifoDataRdEn(i)      <= adcReady(i) and fifoDataValid(i);
       adcStreams(i).tDest  <= toSlv(i, 8);
@@ -585,11 +567,8 @@ begin
             rd_clk => axilClk,
             rd_en  => debugDataValid(i),
             valid  => debugDataValid(i),
-            dout   => debugData(i)
-            );
+            dout   => debugData(i));
 
    end generate;
 
-
 end rtl;
-

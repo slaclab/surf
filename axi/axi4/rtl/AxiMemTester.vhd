@@ -64,7 +64,7 @@ architecture rtl of AxiMemTester is
 
    constant DATA_SYNC_BITS_C : natural := ite(DATA_BITS_C < 1024, DATA_BITS_C, 1024);
 
-   function GenSeed return slv is
+   function genSeed return slv is
       variable retVar : slv(DATA_BITS_C-1 downto 0);
    begin
       for i in AXI_CONFIG_G.DATA_BYTES_C-1 downto 0 loop
@@ -73,7 +73,7 @@ architecture rtl of AxiMemTester is
       return retVar;
    end function;
 
-   constant PRBS_SEED_C : slv(DATA_BITS_C-1 downto 0) := GenSeed;
+   constant PRBS_SEED_C : slv(DATA_BITS_C-1 downto 0) := genSeed;
 
    type StateType is (
       IDLE_S,

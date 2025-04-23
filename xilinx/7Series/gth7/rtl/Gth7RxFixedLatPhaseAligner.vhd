@@ -26,12 +26,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity Gth7RxFixedLatPhaseAligner is
-
    generic (
       TPD_G       : time            := 1 ns;
       WORD_SIZE_G : integer         := 20;
@@ -47,7 +45,6 @@ entity Gth7RxFixedLatPhaseAligner is
       rxReset              : out sl;
       rxSlide              : out sl;    -- RXSLIDE input to GTX
       rxPhaseAlignmentDone : out sl);   -- Alignment has been achieved.
-
 end entity Gth7RxFixedLatPhaseAligner;
 
 architecture rtl of Gth7RxFixedLatPhaseAligner is
@@ -65,29 +62,28 @@ architecture rtl of Gth7RxFixedLatPhaseAligner is
       rxReset              : sl;
       rxSlide              : sl;        -- Output
       rxPhaseAlignmentDone : sl;        --Output
-
    end record RegType;
 
-   constant REG_RESET_C : RegType :=
-      (state                => SEARCH_S,
-       alignmentValue       => 0,
-       last                 => (others => '0'),
-       slideCount           => (others => '0'),
-       slideWaitCounter     => (others => '0'),
-       rxReset              => '0',
-       rxSlide              => '0',
-       rxPhaseAlignmentDone => '0');
+   constant REG_RESET_C : RegType := (
+      state                => SEARCH_S,
+      alignmentValue       => 0,
+      last                 => (others => '0'),
+      slideCount           => (others => '0'),
+      slideWaitCounter     => (others => '0'),
+      rxReset              => '0',
+      rxSlide              => '0',
+      rxPhaseAlignmentDone => '0');
 
-   signal r, rin : RegType := REG_RESET_C;
+   signal r   : RegType := REG_RESET_C;
+   signal rin : RegType;
 
    signal rxRunPhAlignmentSync : sl;
 
    attribute dont_touch      : string;
    attribute dont_touch of r : signal is "TRUE";
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      RstSync_1 : label is "TRUE";
+   attribute KEEP_HIERARCHY              : string;
+   attribute KEEP_HIERARCHY of RstSync_1 : label is "TRUE";
 
 begin
 

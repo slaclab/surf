@@ -22,7 +22,6 @@ use surf.StdRtlPkg.all;
 use surf.Code10b12bPkg.all;
 
 entity Encoder10b12b is
-
    generic (
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '0';
@@ -41,7 +40,6 @@ entity Encoder10b12b is
       readyOut : in  sl := '1';
       dataOut  : out slv(11 downto 0);
       dispOut  : out sl);
-
 end entity Encoder10b12b;
 
 architecture rtl of Encoder10b12b is

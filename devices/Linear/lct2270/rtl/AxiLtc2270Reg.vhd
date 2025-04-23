@@ -107,8 +107,8 @@ architecture rtl of AxiLtc2270Reg is
    signal regIn  : AxiLtc2270StatusType := AXI_LTC2270_STATUS_INIT_C;
    signal regOut : AxiLtc2270ConfigType := AXI_LTC2270_CONFIG_INIT_C;
 
-   signal cntRst,
-      sdo : sl;
+   signal cntRst : sl;
+   signal sdo    : sl;
 
 begin
 

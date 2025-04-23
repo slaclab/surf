@@ -17,15 +17,14 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2bGtx7Fixedlat is
    generic (
@@ -51,7 +50,7 @@ entity Pgp2bGtx7Fixedlat is
       -- Low level GTX RX settings
       PMA_RSV_G             : bit_vector := x"00018480";
       RX_OS_CFG_G           : bit_vector := "0000010000000";  -- Set by wizard
-      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G           : bit_vector := x"03000023FF40200020";  -- Set by wizard
       RXDFEXYDEN_G          : sl         := '0';    -- Set by wizard
       RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";      -- Set by wizard
       RX_EQUALIZER_G        : string     := "DFE";  -- Or "LPM"
@@ -134,11 +133,8 @@ entity Pgp2bGtx7Fixedlat is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-
 end Pgp2bGtx7Fixedlat;
 
-
--- Define architecture
 architecture rtl of Pgp2bGtx7Fixedlat is
 
    --------------------------------------------------------------------------------------------------
@@ -217,8 +213,7 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => phyRxInit  -- Ignore phyRxInit, rx will reset on its own
-         );
+         phyRxInit        => phyRxInit);  -- Ignore phyRxInit, rx will reset on its own
 
    -------------------------------------------------------------------------------------------------
    -- Oneshot the phy init because clock may drop out and leave it stuck high
@@ -271,7 +266,6 @@ begin
          rxHeaderValid => '1',             -- [in]
          slip          => open,            -- [out]
          locked        => dataValid);      -- [out]
-
 
    pgpRxRecClkRst <= gtRxResetDoneL;
 
@@ -336,12 +330,11 @@ begin
          FIXED_ALIGN_COMMA_0_G => "----------0101111100",  -- Normal Comma
          FIXED_ALIGN_COMMA_1_G => "----------1010000011",  -- Inverted Comma
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
-         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX"   -- Unused
+         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused
 --         RX_DISPERR_SEQ_MATCH_G => RX_DISPERR_SEQ_MATCH_G,
 --         DEC_MCOMMA_DETECT_G    => DEC_MCOMMA_DETECT_G,
 --         DEC_PCOMMA_DETECT_G    => DEC_PCOMMA_DETECT_G,
 --         DEC_VALID_COMMA_ONLY_G => DEC_VALID_COMMA_ONLY_G
-         )
       port map (
          stableClkIn      => stableClk,
          cPllRefClkIn     => gtCPllRefClk,

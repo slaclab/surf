@@ -18,12 +18,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.TextUtilPkg.all;
-
 
 -- use this module if a reliable stream is available (reliable network to host)
 
@@ -63,8 +61,6 @@ architecture AxisToJtagTbImpl of AxisToJtagTb is
    signal rl : sl;
    signal rr : sl;
 
-
-
 begin
 
    tr <= sAxisTdi.tReady;
@@ -85,78 +81,79 @@ begin
       variable txid : slv(7 downto 0) := x"00";
 
       procedure send(xin : in Word; del : in natural := 0) is
-         variable v_td : Word;
-         variable v_tv : sl;
-         variable v_tl : sl;
+         variable vTd : Word;
+         variable vTv : sl;
+         variable vTl : sl;
       begin
-         v_td := td;
-         v    := txstage;
-         v_tv := tv;
-         v_tl := tl;
+         vTd := td;
+         v   := txstage;
+         vTv := tv;
+         vTl := tl;
          if (tv = '0') then
-            cnt                := 0;
-            v_td               := xin;
-            v_td(27 downto 20) := txid;
-            txid               := slv(unsigned(txid) + 1);
-            v_tv               := '1';
+            cnt               := 0;
+            vTd               := xin;
+            vTd(27 downto 20) := txid;
+            txid              := slv(unsigned(txid) + 1);
+            vTv               := '1';
             if del = 0 then
-               v_tl := '1';
+               vTl := '1';
             else
-               v_tl := '0';
+               vTl := '0';
             end if;
          elsif (tr = '1') then
             if (tl = '1') then
-               v_tv := '0';
-               v    := txstage + 1;
+               vTv := '0';
+               v   := txstage + 1;
             else
                cnt := cnt + 1;
                if (cnt = del) then
-                  v_tl := '1';
+                  vTl := '1';
                end if;
             end if;
          end if;
-         td <= v_td after TPD_C;
-         tv <= v_tv after TPD_C;
-         tl <= v_tl after TPD_C;
+         td <= vTd after TPD_C;
+         tv <= vTv after TPD_C;
+         tl <= vTl after TPD_C;
       end procedure send;
 
       procedure sendVec(xin : in WordArray) is
-         variable v_td : Word;
-         variable v_tv : sl;
-         variable v_tl : sl;
+         variable vTd : Word;
+         variable vTv : sl;
+         variable vTl : sl;
       begin
-         v    := txstage;
-         v_td := td;
-         v_tv := tv;
-         v_tl := tl;
+         v   := txstage;
+         vTd := td;
+         vTv := tv;
+         vTl := tl;
          if (tv = '0') then
-            cnt                := 0;
-            v_td               := xin(cnt);
-            v_td(27 downto 20) := txid;
-            txid               := slv(unsigned(txid) + 1);
-            cnt                := cnt + 1;
+            cnt               := 0;
+            vTd               := xin(cnt);
+            vTd(27 downto 20) := txid;
+            txid              := slv(unsigned(txid) + 1);
+            cnt               := cnt + 1;
             if (cnt = xin'length) then
-               v_tl := '1';
+               vTl := '1';
             else
-               v_tl := '0';
+               vTl := '0';
             end if;
-            v_tv := '1';
+            vTv := '1';
          elsif (tr = '1') then
             if (tl = '1') then
-               v_tv := '0';
-               v    := txstage + 1;
+               vTv := '0';
+               v   := txstage + 1;
             else
-               v_td := xin(cnt);
-               cnt  := cnt + 1;
+               vTd := xin(cnt);
+               cnt := cnt + 1;
                if (cnt = xin'length) then
-                  v_tl := '1';
+                  vTl := '1';
                end if;
             end if;
          end if;
-         td <= v_td after TPD_C;
-         tv <= v_tv after TPD_C;
-         tl <= v_tl after TPD_C;
+         td <= vTd after TPD_C;
+         tv <= vTv after TPD_C;
+         tl <= vTl after TPD_C;
       end procedure sendVec;
+
    begin
       if (rising_edge(clk)) then
          v := txstage + 1;
@@ -261,14 +258,14 @@ begin
             if (rd /= val) then
                print("rcvVec - mismatch at " & str(cnt) & "; expected " & hstr(val) & " but got: " & hstr(rd));
             end if;
-            assert(rd = val) severity failure;
+            assert (rd = val) severity failure;
             cnt := cnt + 1;
             if (cnt = exp'length) then
-               assert(rl = '1') severity failure;
+               assert (rl = '1') severity failure;
                v  := rxstage + 1;
                rr <= '0' after TPD_C;
             else
-               assert(rl = '0') severity failure;
+               assert (rl = '0') severity failure;
             end if;
          end if;
       end procedure rcvVec;
@@ -346,8 +343,7 @@ begin
    U_DUT : entity surf.AxisToJtag
       generic map (
          TPD_G       => TPD_C,
-         MEM_DEPTH_G => 4
-         )
+         MEM_DEPTH_G => 4)
       port map (
          axisClk => clk,
          axisRst => rst,
@@ -359,7 +355,6 @@ begin
          sAxisTdo => sAxisTdo,
 
          tdi => loopback,
-         tdo => loopback
-         );
+         tdo => loopback);
 
 end architecture AxisToJtagTbImpl;

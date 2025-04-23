@@ -105,10 +105,10 @@ begin
                -- Accept the data
                v.iSlave.awready := '1';
                -- Next state
-               v.state          := DATA_s;
+               v.state          := DATA_S;
             end if;
          ----------------------------------------------------------------------
-         when DATA_s =>
+         when DATA_S =>
             -- Check for data
             if intWriteMaster.wvalid = '1' then
                -- Write data channel
@@ -132,7 +132,7 @@ begin
                v.latency := r.latency + 1;
             end if;
          ----------------------------------------------------------------------
-         when RESP_s =>
+         when RESP_S =>
             v.iSlave.bresp  := (others => '0');
             v.iSlave.bvalid := '1';
             v.iSlave.bid    := r.iMaster.awid;

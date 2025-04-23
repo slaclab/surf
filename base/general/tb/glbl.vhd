@@ -21,11 +21,14 @@ entity glbl is
 end glbl;
 
 architecture glbl of glbl is
+
    signal GR   : std_logic;
    signal GSR  : std_logic;
    signal GTS  : std_logic;
    signal PRLD : std_logic;
+
 begin
+
    process
    begin
       GTS <= '0';
@@ -35,4 +38,5 @@ begin
       GSR <= '0';
       wait;
    end process;
+
 end glbl;

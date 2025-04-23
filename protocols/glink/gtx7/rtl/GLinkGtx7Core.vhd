@@ -15,15 +15,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity GLinkGtx7Core is
-
    generic (
       TPD_G : time := 1 ns;
 
@@ -49,7 +47,7 @@ entity GLinkGtx7Core is
       PMA_RSV_G   : bit_vector := X"00018480";  -- Use X"00018480" when RXPLL=CPLL
                                                 -- Use X"001E7080" when RXPLL=QPLL and QPLL > 6.6GHz
       RX_OS_CFG_G : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G : bit_vector := x"03000023FF40200020";  -- Set by wizard
 
 
       -- Configure PLL sources
@@ -153,9 +151,7 @@ entity GLinkGtx7Core is
       RX_CM_TRIM_G     : bit_vector := "010";
       RX_DFE_LPM_CFG_G : bit_vector := x"0954";
       RXDFELFOVRDEN_G  : sl         := '1';
-      RXDFEXYDEN_G     : sl         := '1'           -- This should always be 1
-      );
-
+      RXDFEXYDEN_G     : sl         := '1');         -- This should always be 1
    port (
       lpmMode     : in sl;
       stableClkIn : in sl;  -- Freerunning clock needed to drive reset logic
@@ -226,7 +222,6 @@ entity GLinkGtx7Core is
       txPowerDown : in slv(1 downto 0) := "00";
       rxPowerDown : in slv(1 downto 0) := "00";
       loopbackIn  : in slv(2 downto 0) := "000");
-
 end entity GLinkGtx7Core;
 
 architecture rtl of GLinkGtx7Core is
@@ -360,9 +355,10 @@ architecture rtl of GLinkGtx7Core is
 
    -- Tx Data Signals
    signal txDataFull : slv(63 downto 0) := (others => '0');
-   signal txCharIsKFull,
-      txCharDispMode,
-      txCharDispVal : slv(7 downto 0) := (others => '0');
+
+   signal txCharIsKFull  : slv(7 downto 0) := (others => '0');
+   signal txCharDispMode : slv(7 downto 0) := (others => '0');
+   signal txCharDispVal  : slv(7 downto 0) := (others => '0');
 
 --    attribute KEEP_HIERARCHY : string;
 --    attribute KEEP_HIERARCHY of
@@ -724,8 +720,7 @@ begin
    -- GTX Instantiation
    --------------------------------------------------------------------------------------------------
    gtxe2_i : GTXE2_CHANNEL
-      generic map
-      (
+      generic map (
 
          --_______________________ Simulation-Only Attributes ___________________
 
@@ -995,12 +990,8 @@ begin
          RX_DFE_XYD_CFG => ("0000000000000"),
 
          -------------------------TX Configurable Driver Attributes--------------------------
-         TX_PREDRIVER_MODE => ('0')
-
-
-         )
-      port map
-      (
+         TX_PREDRIVER_MODE => ('0'))
+      port map (
          ---------------------------------- Channel ---------------------------------
          CFGRESET         => '0',
          CLKRSVD          => "0000",
@@ -1265,9 +1256,6 @@ begin
          TXCOMFINISH      => open,
          TXCOMINIT        => '0',
          TXCOMSAS         => '0',
-         TXCOMWAKE        => '0'
-
-         );
-
+         TXCOMWAKE        => '0');
 
 end architecture rtl;

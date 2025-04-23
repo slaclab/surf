@@ -8,6 +8,16 @@
 --    updated link status and speed. This modules uses the MdioSeqCore
 --    sequencer core.
 -------------------------------------------------------------------------------
+-- This module processes two simple sequences of MDIO commands:
+--
+-- 1. An initialization sequence upon startup and after reset
+-- 2. A 'IRQ handler sequence' as a response to a phyIrq.
+--    This handler sequence usually contains read transactions
+--    which determine the new link status. The first
+--    NUM_HDLR_ARGS_G replies to such read transactions are
+--    stored and passed back to the user in the 'args' array for
+--    further processing by the user.
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -21,20 +31,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.MdioPkg.all;
-
--- This module processes two simple sequences of MDIO commands:
---
--- 1. An initialization sequence upon startup and after reset
--- 2. A 'IRQ handler sequence' as a response to a phyIrq.
---    This handler sequence usually contains read transactions
---    which determine the new link status. The first
---    NUM_HDLR_ARGS_G replies to such read transactions are
---    stored and passed back to the user in the 'args' array for
---    further processing by the user.
 
 entity MdioLinkIrqHandler is
    generic (
@@ -45,8 +44,7 @@ entity MdioLinkIrqHandler is
       PROG_INIT_G     : MdioProgramArray;
       PROG_HDLR_G     : MdioProgramArray;
       -- number of readback values the PROG_HDLR_G sequence reads.
-      NUM_HDLR_ARGS_G : natural
-      );
+      NUM_HDLR_ARGS_G : natural);
    port (
       -- clock and reset
       clk : in sl;
@@ -67,8 +65,7 @@ entity MdioLinkIrqHandler is
       mdi   : in  sl;
 
       -- phy interrupt (link status change)
-      phyIrq : in sl
-      );
+      phyIrq : in sl);
 end entity MdioLinkIrqHandler;
 
 architecture MdioLinkIrqHandlerImpl of MdioLinkIrqHandler is
@@ -99,14 +96,9 @@ architecture MdioLinkIrqHandlerImpl of MdioLinkIrqHandler is
       rbp       => 0,
       trg       => '0',
       initDone  => '0',
-      hdlrDone  => '0'
-      );
+      hdlrDone  => '0');
 
-   constant MDIO_PROG_C : MdioProgramArray :=
-      (
-         PROG_INIT_G &
-         PROG_HDLR_G
-         );
+   constant MDIO_PROG_C : MdioProgramArray := (PROG_INIT_G & PROG_HDLR_G);
 
    signal r        : RegType := REG_INIT_C;
    signal rin      : RegType;
@@ -130,8 +122,7 @@ begin
       generic map (
          TPD_G       => TPD_G,
          DIV_G       => DIV_G,
-         MDIO_PROG_G => MDIO_PROG_C
-         )
+         MDIO_PROG_G => MDIO_PROG_C)
       port map (
          clk => clk,
          rst => rst,
@@ -145,8 +136,7 @@ begin
          mdc   => mdc,
          mdTri => mdTri,
          mdi   => mdi,
-         mdo   => mdo
-         );
+         mdo   => mdo);
 
    COMB : process(mdioData, mdioDone, mdioRead, phyIrq, r)
       variable v : RegType;

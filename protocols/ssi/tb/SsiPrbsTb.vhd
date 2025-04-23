@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -71,20 +70,22 @@ architecture testbed of SsiPrbsTb is
    constant AXI_PIPE_STAGES_C   : natural             := 1;
 
    -- Signals
-   signal fastClk,
-      slowClk,
-      errMissedPacket,
-      errLength,
-      errDataBus,
-      errEofe,
-      passed,
-      failed,
-      updated : sl := '0';
-   signal fastRst,
-      slowRst : sl := '1';
-   signal errWordCnt,
-      errbitCnt,
-      cnt : slv(31 downto 0);
+   signal fastClk         : sl := '0';
+   signal slowClk         : sl := '0';
+   signal errMissedPacket : sl := '0';
+   signal errLength       : sl := '0';
+   signal errDataBus      : sl := '0';
+   signal errEofe         : sl := '0';
+   signal passed          : sl := '0';
+   signal failed          : sl := '0';
+   signal updated         : sl := '0';
+
+   signal fastRst : sl := '1';
+   signal slowRst : sl := '1';
+
+   signal errWordCnt : slv(31 downto 0);
+   signal errbitCnt  : slv(31 downto 0);
+   signal cnt        : slv(31 downto 0);
 
    signal axisMaster : AxiStreamMasterType;
    signal axisSlave  : AxiStreamSlaveType;

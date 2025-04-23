@@ -75,7 +75,8 @@ architecture rtl of Gtp7RxFixedLatPhaseAligner is
        rxSlide              => '0',
        rxPhaseAlignmentDone => '0');
 
-   signal r, rin : RegType := REG_RESET_C;
+   signal r   : RegType := REG_RESET_C;
+   signal rin : RegType;
 
    signal rxRunPhAlignmentSync : sl;
 

@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -27,8 +26,7 @@ use surf.AxiStreamPkg.all;
 entity StreamPatternTester is
    generic (
       TPD_G          : time                   := 1 ns;
-      NUM_CHANNELS_G : integer range 1 to 128 := 8
-      );
+      NUM_CHANNELS_G : integer range 1 to 128 := 8);
    port (
       -- Master system clock
       clk : in std_logic;
@@ -41,13 +39,10 @@ entity StreamPatternTester is
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
       axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType
-      );
+      axilReadSlave   : out AxiLiteReadSlaveType);
 end StreamPatternTester;
 
-
--- Define architecture
-architecture RTL of StreamPatternTester is
+architecture rtl of StreamPatternTester is
 
    -------------------------------------------------------------------------------------------------
    -- AXIL Registers
@@ -176,5 +171,4 @@ begin
    testPassed <= '1' when testDone = '1' and passCnt = unsigned(axilR.testSamples)                               else '0';
    testFailed <= '1' when testDone = '1' and passCnt < unsigned(axilR.testSamples)                               else '0';
 
-end RTL;
-
+end rtl;

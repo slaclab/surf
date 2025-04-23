@@ -21,12 +21,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249Group is
-
    generic (
       TPD_G            : time    := 1 ns;
       CLK_PERIOD_G     : time    := 24 ns;
@@ -34,7 +32,6 @@ entity Ad9249Group is
       CLKFBOUT_MULT_G  : integer := 49;
       CLK_DCO_DIVIDE_G : integer := 7;
       CLK_FCO_DIVIDE_G : integer := 49);
-
    port (
       clk : in sl;
 
@@ -50,7 +47,6 @@ entity Ad9249Group is
       sclk : in    sl;
       sdio : inout sl;
       csb  : in    sl);
-
 end entity Ad9249Group;
 
 architecture behavioral of Ad9249Group is

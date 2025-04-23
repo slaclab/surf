@@ -15,12 +15,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity SaltDelayCtrl is
    generic (

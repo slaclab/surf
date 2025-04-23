@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -44,6 +43,7 @@ architecture AxisToJtagStubTbImpl of AxisToJtagStubTb is
    signal rxs : natural := 0;
 
 begin
+
    process
    begin
       if (run) then
@@ -165,7 +165,6 @@ begin
          sAxisReq => sAxisReq,
 
          mAxisTdo => mAxisRep,
-         sAxisTdo => sAxisRep
-         );
+         sAxisTdo => sAxisRep);
 
 end architecture AxisToJtagStubTbImpl;

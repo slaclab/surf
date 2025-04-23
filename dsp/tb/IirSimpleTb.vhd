@@ -131,7 +131,7 @@ begin
 
       variable rn : real;
 
-      impure function rand_n(min_val, max_val : real) return real is
+      impure function randNum(min_val, max_val : real) return real is
          variable re : real := 0.0;
          variable im : real := 0.0;
          variable r  : real := 0.0;
@@ -139,7 +139,7 @@ begin
          uniform(s1, s2, r);
          r := r * (max_val - min_val) + min_val;
          return r;
-      end function rand_n;
+      end function randNum;
 
    begin
 
@@ -156,7 +156,7 @@ begin
 
             v.cnt := r.cnt + 1;
             if (r.cnt mod ILEAVE_C) = 0 then
-               rn         := rand_n(-0.5, 0.5);
+               rn         := randNum(-0.5, 0.5);
                v.userIn   := (others => '1');
                v.validIn  := '1';
                -- compute expected value

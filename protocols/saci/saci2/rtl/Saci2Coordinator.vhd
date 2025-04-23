@@ -14,8 +14,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.std_logic_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
@@ -23,11 +23,10 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity Saci2Coordinator is
-
    generic (
       TPD_G              : time     := 1 ns;
-      SYS_CLK_PERIOD_G   : real     := 8.0e-9;
-      SACI_CLK_PERIOD_G  : real     := 1.0e-6;
+      SYS_CLK_PERIOD_G   : real     := 8.0E-9;
+      SACI_CLK_PERIOD_G  : real     := 1.0E-6;
       SACI_CLK_FREERUN_G : boolean  := false;
       SACI_NUM_CHIPS_G   : positive := 1;
       SACI_RSP_BUSSED_G  : boolean  := false);
@@ -54,8 +53,6 @@ entity Saci2Coordinator is
       saciSelL : out slv(SACI_NUM_CHIPS_G-1 downto 0);
       saciCmd  : out sl;
       saciRsp  : in  slv(ite(SACI_RSP_BUSSED_G, 0, SACI_NUM_CHIPS_G-1) downto 0));
-
-
 end entity Saci2Coordinator;
 
 architecture rtl of Saci2Coordinator is
@@ -284,6 +281,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
 
 end architecture rtl;

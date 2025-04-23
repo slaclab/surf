@@ -21,8 +21,8 @@ use ieee.fixed_float_types.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VComponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
 -- Manually instantie LUT6_2 and CARRY8 blocks for optimized 3 input adder
 -- See UG579 p. 62 == 3:2 compressor followed by 2 input adder

@@ -355,8 +355,7 @@ begin
          ADDR_WIDTH_G       => ADDR_FIFO_ADDR_WIDTH_G,
          INIT_G             => "0",
          FULL_THRES_G       => 1,
-         EMPTY_THRES_G      => 1
-         )
+         EMPTY_THRES_G      => 1)
       port map (
          rst           => sAxiRst,
          wr_clk        => sAxiClk,
@@ -377,8 +376,7 @@ begin
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
-         empty         => open
-         );
+         empty         => open);
 
    U_DataFifo : entity surf.FifoCascade
       generic map (
@@ -395,8 +393,7 @@ begin
          ADDR_WIDTH_G       => DATA_FIFO_ADDR_WIDTH_G,
          INIT_G             => "0",
          FULL_THRES_G       => DATA_FIFO_PAUSE_THRESH_G,
-         EMPTY_THRES_G      => 1
-         )
+         EMPTY_THRES_G      => 1)
       port map (
          rst           => sAxiRst,
          wr_clk        => sAxiClk,
@@ -417,8 +414,7 @@ begin
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
-         empty         => open
-         );
+         empty         => open);
 
    U_RespFifo : entity surf.FifoCascade
       generic map (
@@ -435,8 +431,7 @@ begin
          ADDR_WIDTH_G       => RESP_FIFO_ADDR_WIDTH_G,
          INIT_G             => "0",
          FULL_THRES_G       => 1,
-         EMPTY_THRES_G      => 1
-         )
+         EMPTY_THRES_G      => 1)
       port map (
          rst           => sAxiRst,
          wr_clk        => mAxiClk,
@@ -457,9 +452,7 @@ begin
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
-         empty         => open
-         );
-
+         empty         => open);
 
    -------------------------
    -- Fifo Inputs
@@ -511,4 +504,3 @@ begin
    end process;
 
 end rtl;
-

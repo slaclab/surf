@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -108,36 +107,35 @@ end Pgp2bGth7FixedLatWrapper;
 
 architecture rtl of Pgp2bGth7FixedLatWrapper is
 
-   signal gtClk,
-      gtClkDiv2,
-      stableClock,
-      stableRst,
-      locked,
-      clkIn1,
-      clkOut0,
-      clkOut1,
-      clkFbIn,
-      clkFbOut,
-      txClock,
-      txRst,
-      rxClock,
-      rxRecClk,
-      pllRefClk,
-      gtCPllRefClk,
-      gtCPllLock,
-      qPllOutClk,
-      qPllOutRefClk,
-      qPllLock,
-      pllLockDetClk,
-      qPllRefClkLost,
-      qPllReset,
-      gtQPllReset : sl := '0';
+   signal gtClk          : sl := '0';
+   signal gtClkDiv2      : sl := '0';
+   signal stableClock    : sl := '0';
+   signal stableRst      : sl := '0';
+   signal locked         : sl := '0';
+   signal clkIn1         : sl := '0';
+   signal clkOut0        : sl := '0';
+   signal clkOut1        : sl := '0';
+   signal clkFbIn        : sl := '0';
+   signal clkFbOut       : sl := '0';
+   signal txClock        : sl := '0';
+   signal txRst          : sl := '0';
+   signal rxClock        : sl := '0';
+   signal rxRecClk       : sl := '0';
+   signal pllRefClk      : sl := '0';
+   signal gtCPllRefClk   : sl := '0';
+   signal gtCPllLock     : sl := '0';
+   signal qPllOutClk     : sl := '0';
+   signal qPllOutRefClk  : sl := '0';
+   signal qPllLock       : sl := '0';
+   signal pllLockDetClk  : sl := '0';
+   signal qPllRefClkLost : sl := '0';
+   signal qPllReset      : sl := '0';
+   signal gtQPllReset    : sl := '0';
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      PwrUpRst_Inst,
-      QPllCore_1,
-      Pgp2bGth7Fixedlat_Inst : label is "TRUE";
+   attribute KEEP_HIERARCHY                           : string;
+   attribute KEEP_HIERARCHY of PwrUpRst_Inst          : label is "TRUE";
+   attribute KEEP_HIERARCHY of QPllCore_1             : label is "TRUE";
+   attribute KEEP_HIERARCHY of Pgp2bGth7Fixedlat_Inst : label is "TRUE";
 
 begin
 
@@ -345,4 +343,5 @@ begin
          axilReadSlave    => axilReadSlave,
          axilWriteMaster  => axilWriteMaster,
          axilWriteSlave   => axilWriteSlave);
+
 end rtl;

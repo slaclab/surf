@@ -17,13 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
 entity ScramblerTb is
-end entity;
+end entity ScramblerTb;
 
 architecture testbed of ScramblerTb is
 

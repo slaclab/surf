@@ -17,15 +17,14 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2bGtp7FixedLat is
    generic (
@@ -132,11 +131,8 @@ entity Pgp2bGtp7FixedLat is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-
 end Pgp2bGtp7FixedLat;
 
-
--- Define architecture
 architecture rtl of Pgp2bGtp7FixedLat is
 
    --------------------------------------------------------------------------------------------------
@@ -216,8 +212,7 @@ begin
          phyRxLanesOut    => phyRxLanesOut,
          phyRxLanesIn     => phyRxLanesIn,
          phyRxReady       => gtRxResetDone,
-         phyRxInit        => phyRxInit  -- Ignore phyRxInit, rx will reset on its own
-         );
+         phyRxInit        => phyRxInit);  -- Ignore phyRxInit, rx will reset on its own
 
    -------------------------------------------------------------------------------------------------
    -- Oneshot the phy init because clock may drop out and leave it stuck high
@@ -331,12 +326,11 @@ begin
          FIXED_ALIGN_COMMA_0_G => "----------0101111100",  -- Normal Comma
          FIXED_ALIGN_COMMA_1_G => "----------1010000011",  -- Inverted Comma
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
-         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX"   -- Unused
+         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused
 --         RX_DISPERR_SEQ_MATCH_G => RX_DISPERR_SEQ_MATCH_G,
 --         DEC_MCOMMA_DETECT_G    => DEC_MCOMMA_DETECT_G,
 --         DEC_PCOMMA_DETECT_G    => DEC_PCOMMA_DETECT_G,
 --         DEC_VALID_COMMA_ONLY_G => DEC_VALID_COMMA_ONLY_G
-         )
       port map (
          stableClkIn      => stableClk,
          qPllRxSelect     => qPllRxSelect,
@@ -434,4 +428,3 @@ begin
    end generate;
 
 end rtl;
-

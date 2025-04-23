@@ -52,11 +52,13 @@ architecture rtl of AxiAd9467Spi is
       HANDSHAKE_S);
 
    signal state : StateType := IDLE_S;
-   signal cs,
-      sck,
-      sdi,
-      sdo,
-      inEn : sl := '0';
+
+   signal cs   : sl := '0';
+   signal sck  : sl := '0';
+   signal sdi  : sl := '0';
+   signal sdo  : sl := '0';
+   signal inEn : sl := '0';
+
    signal r    : AxiAd9467SpiOutType;
    signal pntr : slv(7 downto 0)              := (others => '0');
    signal cnt  : natural range 0 to MAX_CNT_C := 0;

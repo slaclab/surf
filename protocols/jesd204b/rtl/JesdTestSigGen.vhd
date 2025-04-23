@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
@@ -45,8 +44,7 @@ entity JesdTestSigGen is
       sampleData_i : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
 
       -- Test signal
-      testSig_o : out sl
-      );
+      testSig_o : out sl);
 end entity JesdTestSigGen;
 
 architecture rtl of JesdTestSigGen is
@@ -56,11 +54,11 @@ architecture rtl of JesdTestSigGen is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      sig => '0'
-      );
+      sig => '0');
 
-   signal r              : RegType := REG_INIT_C;
-   signal rin            : RegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    signal s_sampleDataBr : slv(sampleData_i'range);
 
 begin
@@ -102,6 +100,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
----------------------------------------------------------------------
----------------------------------------------------------------------
+
 end architecture rtl;

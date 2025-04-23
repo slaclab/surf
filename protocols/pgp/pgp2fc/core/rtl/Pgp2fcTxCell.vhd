@@ -27,14 +27,12 @@ use surf.Pgp2fcPkg.all;
 entity Pgp2fcTxCell is
    generic (
       TPD_G             : time    := 1 ns;
-      PAYLOAD_CNT_TOP_G : integer := 7  -- Top bit for payload counter
-      );
+      PAYLOAD_CNT_TOP_G : integer := 7);  -- Top bit for payload counter
    port (
-
       -- System clock, reset & control
-      pgpTxClkEn  : in sl := '1';       -- Master clock Enable
-      pgpTxClk    : in sl;              -- Master clock
-      pgpTxClkRst : in sl;              -- Synchronous reset input
+      pgpTxClkEn  : in sl := '1';         -- Master clock Enable
+      pgpTxClk    : in sl;                -- Master clock
+      pgpTxClkRst : in sl;                -- Synchronous reset input
 
       -- Link is ready
       pgpTxLinkReady : in sl;           -- Local side has link
@@ -104,16 +102,12 @@ entity Pgp2fcTxCell is
       vc3RemAlmostFull : in  sl;        -- Remote buffer almost full
 
       -- Transmit CRC Interface
-      crcTxIn    : out slv(15 downto 0);  -- Transmit data for CRC
-      crcTxInit  : out sl;                -- Transmit CRC value init
-      crcTxValid : out sl;                -- Transmit data for CRC is valid
-      crcTxOut   : in  slv(31 downto 0)   -- Transmit calculated CRC value
-      );
-
+      crcTxIn    : out slv(15 downto 0);   -- Transmit data for CRC
+      crcTxInit  : out sl;                 -- Transmit CRC value init
+      crcTxValid : out sl;                 -- Transmit data for CRC is valid
+      crcTxOut   : in  slv(31 downto 0));  -- Transmit calculated CRC value
 end Pgp2fcTxCell;
 
-
--- Define architecture
 architecture Pgp2fcTxCell of Pgp2fcTxCell is
 
    -- Local Signals
@@ -171,17 +165,18 @@ architecture Pgp2fcTxCell of Pgp2fcTxCell is
    constant TX_CRCB_C : slv(2 downto 0) := "111";
 
    -- Transmit states
-   type FSM_STATE is (
-      ST_IDLE_C,
-      ST_EMPTY_C,
-      ST_SOC_C,
-      ST_DATA_C,
-      ST_CRCA_C,
-      ST_CRCB_C,
-      ST_EOC_C
-      );
-   signal curState : FSM_STATE := ST_IDLE_C;
-   signal nxtState : FSM_STATE;
+   type StateType is (
+      IDLE_S,
+      EMPTY_S,
+      SOC_S,
+      DATA_S,
+      CRCA_S,
+      CRCB_S,
+      EOC_S);
+
+   signal curState : StateType := IDLE_S;
+   signal nxtState : StateType;
+
 begin
 
 
@@ -249,7 +244,7 @@ begin
    begin
       if rising_edge(pgpTxClk) then
          if pgpTxClkRst = '1' then
-            curState         <= ST_IDLE_C       after TPD_G;
+            curState         <= IDLE_S          after TPD_G;
             cellCnt          <= (others => '0') after TPD_G;
             int0FrameTxReady <= '0'             after TPD_G;
             int1FrameTxReady <= '0'             after TPD_G;
@@ -268,7 +263,7 @@ begin
          elsif pgpTxClkEn = '1' then
 
             if pgpTxLinkReady = '0' then
-               curState <= ST_IDLE_C after TPD_G;
+               curState <= IDLE_S after TPD_G;
 
                vc0Serial <= (others => '0') after TPD_G;
                vc1Serial <= (others => '0') after TPD_G;
@@ -335,25 +330,25 @@ begin
                -- Overflow Latch Until Send
                if vc0LocOverflow = '1' then
                   intOverflow(0) <= '1' after TPD_G;
-               elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               elsif curState = EMPTY_S or curState = EOC_S then
                   intOverflow(0) <= '0' after TPD_G;
                end if;
 
                if vc1LocOverflow = '1' then
                   intOverflow(1) <= '1' after TPD_G;
-               elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               elsif curState = EMPTY_S or curState = EOC_S then
                   intOverflow(1) <= '0' after TPD_G;
                end if;
 
                if vc2LocOverflow = '1' then
                   intOverflow(2) <= '1' after TPD_G;
-               elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               elsif curState = EMPTY_S or curState = EOC_S then
                   intOverflow(2) <= '0' after TPD_G;
                end if;
 
                if vc3LocOverflow = '1' then
                   intOverflow(3) <= '1' after TPD_G;
-               elsif curState = ST_EMPTY_C or curState = ST_EOC_C then
+               elsif curState = EMPTY_S or curState = EOC_S then
                   intOverflow(3) <= '0' after TPD_G;
                end if;
             end if;
@@ -377,7 +372,7 @@ begin
       case curState is
 
          -- Idle
-         when ST_IDLE_C =>
+         when IDLE_S =>
             cellCntRst      <= '1';
             nxtFrameTxReady <= '0';
             nxtType         <= TX_DATA_C;
@@ -390,17 +385,17 @@ begin
 
             -- Idle request
             if schTxIdle = '1' then
-               nxtState <= ST_EMPTY_C;
+               nxtState <= EMPTY_S;
 
             -- Cell transmit request
             elsif schTxReq = '1' then
-               nxtState <= ST_SOC_C;
+               nxtState <= SOC_S;
             else
                nxtState <= curState;
             end if;
 
          -- Send empty cell
-         when ST_EMPTY_C =>
+         when EMPTY_S =>
             cellCntRst      <= '1';
             nxtFrameTxReady <= '0';
             nxtType         <= TX_EOC_C;
@@ -412,10 +407,10 @@ begin
             nxtTypeLast     <= (others => '0');
 
             -- Go back to idle
-            nxtState <= ST_IDLE_C;
+            nxtState <= IDLE_S;
 
          -- Send first charactor of cell, assert ready
-         when ST_SOC_C =>
+         when SOC_S =>
             cellCntRst      <= '1';
             nxtFrameTxReady <= not intTimeout;
             nxtTxEOF        <= '0';
@@ -437,10 +432,10 @@ begin
             end if;
 
             -- Move on to normal data
-            nxtState <= ST_DATA_C;
+            nxtState <= DATA_S;
 
          -- Send data
-         when ST_DATA_C =>
+         when DATA_S =>
             cellCntRst  <= '0';
             nxtTxEOF    <= '0';
             nxtTxSOF    <= '0';
@@ -452,7 +447,7 @@ begin
             if intTimeout = '1' then
                nxtType         <= TX_DATA_C;
                nxtTypeLast     <= TX_EOFE_C;
-               nxtState        <= ST_CRCA_C;
+               nxtState        <= CRCA_S;
                nxtFrameTxReady <= '0';
 
             -- Valid is de-asserted
@@ -461,32 +456,32 @@ begin
                nxtFrameTxReady <= '0';
                nxtType         <= TX_CRCA_C;
 
-               nxtState <= ST_CRCB_C;
+               nxtState <= CRCB_S;
             else
                nxtType <= TX_DATA_C;
 
                -- EOFE is asserted
                if muxFrameTxEOFE = '1' then
                   nxtTypeLast     <= TX_EOFE_C;
-                  nxtState        <= ST_CRCA_C;
+                  nxtState        <= CRCA_S;
                   nxtFrameTxReady <= '0';
 
                -- EOF is asserted
                elsif muxFrameTxEOF = '1' then
                   nxtTypeLast     <= TX_EOF_C;
-                  nxtState        <= ST_CRCA_C;
+                  nxtState        <= CRCA_S;
                   nxtFrameTxReady <= '0';
 
                -- Pause is asserted
                elsif muxRemAlmostFull = '1' then
                   nxtTypeLast     <= TX_EOC_C;
-                  nxtState        <= ST_CRCA_C;
+                  nxtState        <= CRCA_S;
                   nxtFrameTxReady <= '0';
 
                -- Cell size reached
                elsif cellCnt = 0 then
                   nxtTypeLast     <= TX_EOC_C;
-                  nxtState        <= ST_CRCA_C;
+                  nxtState        <= CRCA_S;
                   nxtFrameTxReady <= '0';
 
                -- Keep sending cell data
@@ -499,7 +494,7 @@ begin
             end if;
 
          -- Send CRC A
-         when ST_CRCA_C =>
+         when CRCA_S =>
             cellCntRst      <= '1';
             nxtTxEOF        <= '0';
             nxtTxSOF        <= '0';
@@ -510,10 +505,10 @@ begin
             nxtTypeLast     <= curTypeLast;
             nxtFrameTxReady <= '0';
 
-            nxtState <= ST_CRCB_C;
+            nxtState <= CRCB_S;
 
          -- Send CRC B
-         when ST_CRCB_C =>
+         when CRCB_S =>
             cellCntRst      <= '1';
             nxtTxEOF        <= '0';
             nxtTxSOF        <= '0';
@@ -523,10 +518,10 @@ begin
             nxtType         <= TX_CRCB_C;
             nxtTypeLast     <= curTypeLast;
             nxtFrameTxReady <= '0';
-            nxtState        <= ST_EOC_C;
+            nxtState        <= EOC_S;
 
          -- Send End of Cell
-         when ST_EOC_C =>
+         when EOC_S =>
             cellCntRst      <= '1';
             nxtTxSOF        <= '0';
             nxtTxAck        <= '1';
@@ -535,7 +530,7 @@ begin
             nxtType         <= curTypeLast;
             nxtTypeLast     <= curTypeLast;
             nxtFrameTxReady <= '0';
-            nxtState        <= ST_IDLE_C;
+            nxtState        <= IDLE_S;
 
             -- EOF?
             if curTypeLast /= TX_EOC_C then
@@ -555,7 +550,7 @@ begin
             nxtType         <= (others => '0');
             nxtTypeLast     <= (others => '0');
             nxtFrameTxReady <= '0';
-            nxtState        <= ST_IDLE_C;
+            nxtState        <= IDLE_S;
       end case;
    end process;
 

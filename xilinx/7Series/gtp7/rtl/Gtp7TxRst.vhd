@@ -67,20 +67,19 @@
 
 --*****************************************************************************
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library surf;
 
 entity Gtp7TxRst is
-   generic(
+   generic (
       TPD_G                  : time                  := 1 ns;
       DYNAMIC_QPLL_G         : boolean               := false;
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
       RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8;
-      TX_PLL0_USED           : boolean               := false  -- the TX Reset FSMs must
-      );
+      TX_PLL0_USED           : boolean               := false);  -- the TX Reset FSMs must
    port (
       qPllTxSelect      : in  std_logic_vector(1 downto 0);
       STABLE_CLOCK      : in  std_logic;  --Stable Clock, either a stable clock from the PCB
@@ -105,9 +104,7 @@ entity Gtp7TxRst is
       RESET_PHALIGNMENT : out std_logic := '0';
       PHALIGNMENT_DONE  : in  std_logic;
 
-      RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                                                                                   -- Retries it took to get the transceiver up and running
-      );
+      RETRY_COUNTER : out std_logic_vector(RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0'));  -- Number of Retries it took to get the transceiver up and running
 end Gtp7TxRst;
 
 --Interdependencies:
@@ -120,12 +117,12 @@ end Gtp7TxRst;
 
 architecture RTL of Gtp7TxRst is
 
-   type tx_rst_fsm_type is(
+   type TxRstFsmType is (
       INIT, ASSERT_ALL_RESETS, RELEASE_PLL_RESET,
       RELEASE_MMCM_RESET, WAIT_RESET_DONE, DO_PHASE_ALIGNMENT,
       RESET_FSM_DONE);
 
-   signal tx_state : tx_rst_fsm_type := INIT;
+   signal tx_state : TxRstFsmType := INIT;
 
    constant MMCM_LOCK_CNT_MAX : integer := 1024;
    constant STARTUP_DELAY     : integer := 500;  --AR43482: Transceiver needs to wait for 500 ns after configuration
@@ -190,6 +187,7 @@ architecture RTL of Gtp7TxRst is
    signal pll1lock_ris_edge : std_logic := '0';
 
 begin
+
    --Alias section, signals used within this module mapped to output ports:
    RETRY_COUNTER     <= std_logic_vector(TO_UNSIGNED(retry_counter_int, RETRY_COUNTER_BITWIDTH));
    RUN_PHALIGNMENT   <= run_phase_alignment_int;

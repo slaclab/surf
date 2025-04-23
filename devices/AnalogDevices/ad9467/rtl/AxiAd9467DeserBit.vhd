@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -46,8 +45,8 @@ end AxiAd9467DeserBit;
 
 architecture rtl of AxiAd9467DeserBit is
 
-   signal data,
-      dataDly : sl;
+   signal data    : sl;
+   signal dataDly : sl;
 
    attribute IODELAY_GROUP                  : string;
    attribute IODELAY_GROUP of IDELAYE2_inst : label is IODELAY_GROUP_G;

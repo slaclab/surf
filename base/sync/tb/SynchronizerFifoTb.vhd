@@ -17,14 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SynchronizerFifoTb is end SynchronizerFifoTb;
 
 architecture testbed of SynchronizerFifoTb is
+
    type TestClkType is array(4 downto 0) of time;
+
    constant WRITE_CLK_ARRAY_C : TestClkType := (
       5 ns,
       20 ns,
@@ -75,7 +76,9 @@ architecture testbed of SynchronizerFifoTb is
    signal rst     : sl := '0';
    signal initRst : sl := '0';
    signal reset   : sl := '0';
+
 begin
+
 --*********************************************************************************--
    WR_CLK_Inst : entity surf.ClkRst
       generic map (

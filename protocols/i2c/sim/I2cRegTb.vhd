@@ -19,14 +19,14 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.i2cPkg.all;
-use surf.i2cRegMasterPkg.all;
+use surf.I2cPkg.all;
+use surf.I2cRegMasterPkg.all;
 
-entity i2cRegTb is
+entity I2cRegTb is
 
-end entity i2cRegTb;
+end entity I2cRegTb;
 
-architecture tb of i2cRegTb is
+architecture tb of I2cRegTb is
 
    constant TPD_C : time := 1 ns;
 
@@ -63,7 +63,7 @@ begin
          rstL => open);
 
    -- Instantiate Master
-   i2cRegMaster_1 : entity surf.i2cRegMaster
+   i2cRegMaster_1 : entity surf.I2cRegMaster
       generic map (
          TPD_G                => TPD_C,
          OUTPUT_EN_POLARITY_G => 0,
@@ -105,7 +105,7 @@ begin
 --          rst  => slaveRst(i*4+j),
 --          rstL => open);
 
---      i2cRamSlave_1 : entity surf.i2cRamSlave
+--      i2cRamSlave_1 : entity surf.I2cRamSlave
 --        generic map (
 --          TPD_G        => TPD_C,
 --          I2C_ADDR_G   => (i*4+j)*4+9,
@@ -136,7 +136,7 @@ begin
          rst  => slaveRst(0),
          rstL => open);
 
-   i2cRamSlave_1 : entity surf.i2cRamSlave
+   i2cRamSlave_1 : entity surf.I2cRamSlave
       generic map (
          TPD_G        => TPD_C,
          I2C_ADDR_G   => 85,

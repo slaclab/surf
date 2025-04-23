@@ -12,17 +12,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
 library ieee;
 use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-library UNISIM;
-use UNISIM.vcomponents.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9681Deserializer is
-
    generic (
       TPD_G             : time    := 1 ns;
       DEFAULT_DELAY_G   : natural := 0;
@@ -42,7 +41,6 @@ entity Ad9681Deserializer is
 
       iData : in  sl;
       oData : out slv(7 downto 0));
-
 end entity Ad9681Deserializer;
 
 architecture rtl of Ad9681Deserializer is
@@ -62,8 +60,7 @@ begin
          IDELAY_TYPE           => "VAR_LOAD",
          IDELAY_VALUE          => DEFAULT_DELAY_G,  -- Here
          REFCLK_FREQUENCY      => IDELAYCTRL_FREQ_G,
-         SIGNAL_PATTERN        => "DATA"
-         )
+         SIGNAL_PATTERN        => "DATA")
       port map (
          C           => sysClk,
          REGRST      => '0',
@@ -120,6 +117,5 @@ begin
          OCLK         => '0',
          OCLKB        => '0',
          O            => open);         -- unregistered output of ISERDESE1
-
 
 end architecture rtl;

@@ -21,7 +21,6 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -129,7 +128,7 @@ begin
    assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G < 7))
       report "ClockManager7: Cannot have 7 clocks if TYPE_G is PLL" severity failure;
 
-   assert(TYPE_G = "MMCM" or TYPE_G = "PLL")
+   assert (TYPE_G = "MMCM" or TYPE_G = "PLL")
       report "ClockManger7: TYPE_G must be either MMCM or PLL" severity failure;
 
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';

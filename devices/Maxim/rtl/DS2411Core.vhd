@@ -17,12 +17,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity DS2411Core is
    generic (
@@ -45,6 +44,7 @@ entity DS2411Core is
 end DS2411Core;
 
 architecture rtl of DS2411Core is
+
    type StateType is (
       ST_START,
       ST_RESET,
@@ -53,16 +53,19 @@ architecture rtl of DS2411Core is
       ST_PAUSE,
       ST_READ,
       ST_DONE);
-   signal curState,
-      nxtState : StateType := ST_START;
 
-   signal setOutLow,
-      fdValidSet,
-      iFdSerDin,
-      bitSet,
-      bitCntEn : sl := '0';
-   signal bitCntRst,
-      timeCntRst : sl := '1';
+   signal curState : StateType := ST_START;
+   signal nxtState : StateType := ST_START;
+
+   signal setOutLow  : sl := '0';
+   signal fdValidSet : sl := '0';
+   signal iFdSerDin  : sl := '0';
+   signal bitSet     : sl := '0';
+   signal bitCntEn   : sl := '0';
+
+   signal bitCntRst  : sl := '1';
+   signal timeCntRst : sl := '1';
+
    signal timeCnt      : slv(31 downto 0) := (others => '0');
    signal bitCnt       : slv(5 downto 0)  := (others => '0');
    signal setOutLowInv : sl;
@@ -329,4 +332,5 @@ begin
          end case;
       end process;
    end generate;
+
 end rtl;

@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -49,7 +48,7 @@ architecture rtl of AxiSy56040Reg is
    constant PULSE_FREQ_C  : real    := 1.0 / PULSE_WIDTH_C;  -- units of Hz
    constant MAX_CNT_C     : natural := getTimeRatio(AXI_CLK_FREQ_G, PULSE_FREQ_C);
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       SETUP_S,
       LOAD_S,

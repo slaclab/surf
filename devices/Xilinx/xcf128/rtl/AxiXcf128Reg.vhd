@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -45,7 +44,7 @@ architecture rtl of AxiXcf128Reg is
 
    constant MAX_CNT_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, 10.0E+6))-1;
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       CMD_LOW_S,
       CMD_HIGH_S,

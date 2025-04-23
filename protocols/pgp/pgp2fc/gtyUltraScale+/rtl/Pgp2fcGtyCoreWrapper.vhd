@@ -32,7 +32,7 @@ entity Pgp2fcGtyCoreWrapper is
       SIMULATION_G        : boolean          := false;
       SEL_FABRIC_REFCLK_G : boolean          := false;
       USE_ALIGN_CHECK_G   : boolean          := true;
-      AXI_CLK_FREQ_G      : real             := 125.0e6;
+      AXI_CLK_FREQ_G      : real             := 125.0E+6;
       AXI_BASE_ADDR_G     : slv(31 downto 0) := (others => '0'));
    port (
       stableClk : in sl;
@@ -86,84 +86,84 @@ architecture mapping of Pgp2fcGtyCoreWrapper is
 
    component Pgp2fcGtyCore
       port (
-         gtwiz_userclk_tx_reset_in          : in  std_logic_vector (0 downto 0);
-         gtwiz_userclk_tx_active_in         : in  std_logic_vector (0 downto 0);
-         gtwiz_userclk_rx_active_in         : in  std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_tx_reset_in       : in  std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_tx_start_user_in  : in  std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_tx_done_out       : out std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_tx_error_out      : out std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_rx_reset_in       : in  std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_rx_start_user_in  : in  std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_rx_done_out       : out std_logic_vector (0 downto 0);
-         gtwiz_buffbypass_rx_error_out      : out std_logic_vector (0 downto 0);
-         gtwiz_reset_clk_freerun_in         : in  std_logic_vector (0 downto 0);
-         gtwiz_reset_all_in                 : in  std_logic_vector (0 downto 0);
-         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector (0 downto 0);
-         gtwiz_reset_tx_datapath_in         : in  std_logic_vector (0 downto 0);
-         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector (0 downto 0);
-         gtwiz_reset_rx_datapath_in         : in  std_logic_vector (0 downto 0);
-         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector (0 downto 0);
-         gtwiz_reset_tx_done_out            : out std_logic_vector (0 downto 0);
-         gtwiz_reset_rx_done_out            : out std_logic_vector (0 downto 0);
-         gtwiz_userdata_tx_in               : in  std_logic_vector (15 downto 0);
-         gtwiz_userdata_rx_out              : out std_logic_vector (15 downto 0);
-         cpllrefclksel_in                   : in  std_logic_vector (2 downto 0);
-         cplllockdetclk_in                  : in  std_logic_vector (0 downto 0);
-         cplllocken_in                      : in  std_logic_vector (0 downto 0);
-         drpaddr_in                         : in  std_logic_vector (9 downto 0);
-         drpclk_in                          : in  std_logic_vector (0 downto 0);
-         drpdi_in                           : in  std_logic_vector (15 downto 0);
-         drpen_in                           : in  std_logic_vector (0 downto 0);
-         drpwe_in                           : in  std_logic_vector (0 downto 0);
-         gtgrefclk_in                       : in  std_logic_vector (0 downto 0);
-         gtrefclk0_in                       : in  std_logic_vector (0 downto 0);
-         gtyrxn_in                          : in  std_logic_vector (0 downto 0);
-         gtyrxp_in                          : in  std_logic_vector (0 downto 0);
-         loopback_in                        : in  std_logic_vector (2 downto 0);
-         rx8b10ben_in                       : in  std_logic_vector (0 downto 0);
-         rxcdrreset_in                      : in  std_logic_vector (0 downto 0);
-         rxcommadeten_in                    : in  std_logic_vector (0 downto 0);
-         rxmcommaalignen_in                 : in  std_logic_vector (0 downto 0);
-         rxpcommaalignen_in                 : in  std_logic_vector (0 downto 0);
-         rxpcsreset_in                      : in  std_logic_vector (0 downto 0);
-         rxpmareset_in                      : in  std_logic_vector (0 downto 0);
-         rxpolarity_in                      : in  std_logic_vector (0 downto 0);
-         rxusrclk_in                        : in  std_logic_vector (0 downto 0);
-         rxusrclk2_in                       : in  std_logic_vector (0 downto 0);
-         tx8b10ben_in                       : in  std_logic_vector (0 downto 0);
-         txctrl0_in                         : in  std_logic_vector (15 downto 0);
-         txctrl1_in                         : in  std_logic_vector (15 downto 0);
-         txctrl2_in                         : in  std_logic_vector (7 downto 0);
-         txpcsreset_in                      : in  std_logic_vector (0 downto 0);
-         txpmareset_in                      : in  std_logic_vector (0 downto 0);
-         txpolarity_in                      : in  std_logic_vector (0 downto 0);
-         txusrclk_in                        : in  std_logic_vector (0 downto 0);
-         txusrclk2_in                       : in  std_logic_vector (0 downto 0);
-         cpllfbclklost_out                  : out std_logic_vector (0 downto 0);
-         cplllock_out                       : out std_logic_vector (0 downto 0);
-         cpllrefclklost_out                 : out std_logic_vector (0 downto 0);
-         drpdo_out                          : out std_logic_vector (15 downto 0);
-         drprdy_out                         : out std_logic_vector (0 downto 0);
-         gtpowergood_out                    : out std_logic_vector (0 downto 0);
-         gtytxn_out                         : out std_logic_vector (0 downto 0);
-         gtytxp_out                         : out std_logic_vector (0 downto 0);
-         rxbyteisaligned_out                : out std_logic_vector (0 downto 0);
-         rxbyterealign_out                  : out std_logic_vector (0 downto 0);
-         rxcommadet_out                     : out std_logic_vector (0 downto 0);
-         rxctrl0_out                        : out std_logic_vector (15 downto 0);
-         rxctrl1_out                        : out std_logic_vector (15 downto 0);
-         rxctrl2_out                        : out std_logic_vector (7 downto 0);
-         rxctrl3_out                        : out std_logic_vector (7 downto 0);
-         rxdlysresetdone_out                : out std_logic_vector (0 downto 0);
-         rxoutclk_out                       : out std_logic_vector (0 downto 0);
-         rxphaligndone_out                  : out std_logic_vector (0 downto 0);
-         rxpmaresetdone_out                 : out std_logic_vector (0 downto 0);
-         rxresetdone_out                    : out std_logic_vector (0 downto 0);
-         rxsyncdone_out                     : out std_logic_vector (0 downto 0);
-         txoutclk_out                       : out std_logic_vector (0 downto 0);
-         txpmaresetdone_out                 : out std_logic_vector (0 downto 0);
-         txresetdone_out                    : out std_logic_vector (0 downto 0));
+         gtwiz_userclk_tx_reset_in          : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_tx_active_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_userclk_rx_active_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_reset_in       : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_start_user_in  : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_done_out       : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_tx_error_out      : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_reset_in       : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_start_user_in  : in  std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_done_out       : out std_logic_vector(0 downto 0);
+         gtwiz_buffbypass_rx_error_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_clk_freerun_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_all_in                 : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_pll_and_datapath_in : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_datapath_in         : in  std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_cdr_stable_out      : out std_logic_vector(0 downto 0);
+         gtwiz_reset_tx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_reset_rx_done_out            : out std_logic_vector(0 downto 0);
+         gtwiz_userdata_tx_in               : in  std_logic_vector(15 downto 0);
+         gtwiz_userdata_rx_out              : out std_logic_vector(15 downto 0);
+         cpllrefclksel_in                   : in  std_logic_vector(2 downto 0);
+         cplllockdetclk_in                  : in  std_logic_vector(0 downto 0);
+         cplllocken_in                      : in  std_logic_vector(0 downto 0);
+         drpaddr_in                         : in  std_logic_vector(9 downto 0);
+         drpclk_in                          : in  std_logic_vector(0 downto 0);
+         drpdi_in                           : in  std_logic_vector(15 downto 0);
+         drpen_in                           : in  std_logic_vector(0 downto 0);
+         drpwe_in                           : in  std_logic_vector(0 downto 0);
+         gtgrefclk_in                       : in  std_logic_vector(0 downto 0);
+         gtrefclk0_in                       : in  std_logic_vector(0 downto 0);
+         gtyrxn_in                          : in  std_logic_vector(0 downto 0);
+         gtyrxp_in                          : in  std_logic_vector(0 downto 0);
+         loopback_in                        : in  std_logic_vector(2 downto 0);
+         rx8b10ben_in                       : in  std_logic_vector(0 downto 0);
+         rxcdrreset_in                      : in  std_logic_vector(0 downto 0);
+         rxcommadeten_in                    : in  std_logic_vector(0 downto 0);
+         rxmcommaalignen_in                 : in  std_logic_vector(0 downto 0);
+         rxpcommaalignen_in                 : in  std_logic_vector(0 downto 0);
+         rxpcsreset_in                      : in  std_logic_vector(0 downto 0);
+         rxpmareset_in                      : in  std_logic_vector(0 downto 0);
+         rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         rxusrclk_in                        : in  std_logic_vector(0 downto 0);
+         rxusrclk2_in                       : in  std_logic_vector(0 downto 0);
+         tx8b10ben_in                       : in  std_logic_vector(0 downto 0);
+         txctrl0_in                         : in  std_logic_vector(15 downto 0);
+         txctrl1_in                         : in  std_logic_vector(15 downto 0);
+         txctrl2_in                         : in  std_logic_vector(7 downto 0);
+         txpcsreset_in                      : in  std_logic_vector(0 downto 0);
+         txpmareset_in                      : in  std_logic_vector(0 downto 0);
+         txpolarity_in                      : in  std_logic_vector(0 downto 0);
+         txusrclk_in                        : in  std_logic_vector(0 downto 0);
+         txusrclk2_in                       : in  std_logic_vector(0 downto 0);
+         cpllfbclklost_out                  : out std_logic_vector(0 downto 0);
+         cplllock_out                       : out std_logic_vector(0 downto 0);
+         cpllrefclklost_out                 : out std_logic_vector(0 downto 0);
+         drpdo_out                          : out std_logic_vector(15 downto 0);
+         drprdy_out                         : out std_logic_vector(0 downto 0);
+         gtpowergood_out                    : out std_logic_vector(0 downto 0);
+         gtytxn_out                         : out std_logic_vector(0 downto 0);
+         gtytxp_out                         : out std_logic_vector(0 downto 0);
+         rxbyteisaligned_out                : out std_logic_vector(0 downto 0);
+         rxbyterealign_out                  : out std_logic_vector(0 downto 0);
+         rxcommadet_out                     : out std_logic_vector(0 downto 0);
+         rxctrl0_out                        : out std_logic_vector(15 downto 0);
+         rxctrl1_out                        : out std_logic_vector(15 downto 0);
+         rxctrl2_out                        : out std_logic_vector(7 downto 0);
+         rxctrl3_out                        : out std_logic_vector(7 downto 0);
+         rxdlysresetdone_out                : out std_logic_vector(0 downto 0);
+         rxoutclk_out                       : out std_logic_vector(0 downto 0);
+         rxphaligndone_out                  : out std_logic_vector(0 downto 0);
+         rxpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         rxresetdone_out                    : out std_logic_vector(0 downto 0);
+         rxsyncdone_out                     : out std_logic_vector(0 downto 0);
+         txoutclk_out                       : out std_logic_vector(0 downto 0);
+         txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
+         txresetdone_out                    : out std_logic_vector(0 downto 0));
    end component;
 
    constant AXI_CROSSBAR_MASTERS_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := (
@@ -454,15 +454,19 @@ begin
    rxOutClk <= rxOutClkB;
 
    U_RstSyncTx : entity surf.RstSync
-      generic map (TPD_G => TPD_G)
-      port map (clk      => gtUserRefClk,
-                asyncRst => txReset,
-                syncRst  => buffBypassTxReset);
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => gtUserRefClk,
+         asyncRst => txReset,
+         syncRst  => buffBypassTxReset);
 
    U_RstSyncRx : entity surf.RstSync
-      generic map (TPD_G => TPD_G)
-      port map (clk      => rxUsrClk,
-                asyncRst => rstSyncRxIn,
-                syncRst  => buffBypassRxReset);
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => rxUsrClk,
+         asyncRst => rstSyncRxIn,
+         syncRst  => buffBypassRxReset);
 
 end architecture mapping;

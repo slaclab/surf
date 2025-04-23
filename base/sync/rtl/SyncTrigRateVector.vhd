@@ -45,7 +45,7 @@ architecture mapping of SyncTrigRateVector is
 
    type MyVectorArray is array (WIDTH_G-1 downto 0) of sl;
 
-   function FillVectorArray (INPUT : slv)
+   function fillVectorArray (INPUT : slv)
       return MyVectorArray is
       variable retVar : MyVectorArray := (others => '1');
    begin
@@ -57,9 +57,9 @@ architecture mapping of SyncTrigRateVector is
          end loop;
       end if;
       return retVar;
-   end function FillVectorArray;
+   end function fillVectorArray;
 
-   constant IN_POLARITY_C : MyVectorArray := FillVectorArray(IN_POLARITY_G);
+   constant IN_POLARITY_C : MyVectorArray := fillVectorArray(IN_POLARITY_G);
 
    type MySlvArray is array (WIDTH_G-1 downto 0) of slv(CNT_WIDTH_G-1 downto 0);
    signal trigRate : MySlvArray;

@@ -20,13 +20,8 @@ use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 use surf.AxiLitePkg.all;
 
-----------------------------------------------------------------------------------------------------
-
 entity AxiLiteAsyncTb is
-
 end entity AxiLiteAsyncTb;
-
-----------------------------------------------------------------------------------------------------
 
 architecture tb of AxiLiteAsyncTb is
 
@@ -53,6 +48,7 @@ architecture tb of AxiLiteAsyncTb is
    signal intAxiReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;  -- [in]
    signal intAxiWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [out]
    signal intAxiWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;  -- [in]
+
 begin
 
    U_AxiLiteCrossbar_1 : entity surf.AxiLiteCrossbar

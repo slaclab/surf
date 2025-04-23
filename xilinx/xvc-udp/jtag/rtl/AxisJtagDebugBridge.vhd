@@ -20,13 +20,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxisToJtagPkg.all;
 
 -- Connect AxisToJtag to a debug bridge IP (convenience wrapper)
+
 entity AxisJtagDebugBridge is
    generic (
       TPD_G        : time                     := 1 ns;
@@ -34,8 +34,7 @@ entity AxisJtagDebugBridge is
       AXIS_WIDTH_G : positive range 4 to 16   := 4;  -- bytes
       CLK_DIV2_G   : positive                 := 4;  -- half-period of TCK in axisClk cycles
       MEM_DEPTH_G  : natural range 0 to 65535 := 4;  -- size of buffer memory (0 for none)
-      MEM_STYLE_G  : string                   := "auto"  -- 'auto', 'block' or 'distributed'
-      );
+      MEM_STYLE_G  : string                   := "auto");  -- 'auto', 'block' or 'distributed'
    port (
       axisClk : in sl;
       axisRst : in sl;
@@ -44,8 +43,7 @@ entity AxisJtagDebugBridge is
       sAxisReq : out AxiStreamSlaveType;
 
       mAxisTdo : out AxiStreamMasterType;
-      sAxisTdo : in  AxiStreamSlaveType
-      );
+      sAxisTdo : in  AxiStreamSlaveType);
 end entity AxisJtagDebugBridge;
 
 architecture AxisJtagDebugBridgeImpl of AxisJtagDebugBridge is
@@ -63,11 +61,13 @@ architecture AxisJtagDebugBridgeImpl of AxisJtagDebugBridge is
          jtag_tdi : in  std_logic;
          jtag_tdo : out std_logic;
          jtag_tms : in  std_logic;
-         jtag_tck : in  std_logic
-         );
+         jtag_tck : in  std_logic);
    end component DebugBridgeJtag;
 
-   signal tck, tdi, tms, tdo : sl;
+   signal tck : sl;
+   signal tdi : sl;
+   signal tms : sl;
+   signal tdo : sl;
 
 begin
 
@@ -78,8 +78,7 @@ begin
          AXIS_FREQ_G  => AXIS_FREQ_G,
          CLK_DIV2_G   => CLK_DIV2_G,
          MEM_DEPTH_G  => MEM_DEPTH_G,
-         MEM_STYLE_G  => MEM_STYLE_G
-         )
+         MEM_STYLE_G  => MEM_STYLE_G)
       port map (
          axisClk => axisClk,
          axisRst => axisRst,
@@ -93,16 +92,14 @@ begin
          tck => tck,
          tms => tms,
          tdi => tdi,
-         tdo => tdo
-         );
+         tdo => tdo);
 
    U_JTAG_BSCAN : component DebugBridgeJtag
       port map (
          jtag_tdi => tdi,
          jtag_tdo => tdo,
          jtag_tms => tms,
-         jtag_tck => tck
-         );
+         jtag_tck => tck);
 
 end architecture AxisJtagDebugBridgeImpl;
 
@@ -121,8 +118,7 @@ architecture AxisJtagDebugBridgeStub of AxisJtagDebugBridge is
       state    => READY_S,
       repValid => '0',
       repData  => (others => '0'),
-      reqReady => '1'
-      );
+      reqReady => '1');
 
    signal mReply : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sReq   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;

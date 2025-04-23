@@ -14,18 +14,16 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.std_logic_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SaciSlaveOld is
-
    generic (
       TPD_G : time := 1 ns);
-
    port (
       rstL : in sl;                     -- ASIC global reset
 
@@ -47,17 +45,17 @@ entity SaciSlaveOld is
       addr   : out slv(11 downto 0);
       wrData : out slv(31 downto 0);
       rdData : in  slv(31 downto 0));
-
 end entity SaciSlaveOld;
 
 architecture rtl of SaciSlaveOld is
 
-   type StateType is (IDLE_S,
-                      SHIFT_HEADER_IN_S,
-                      SHIFT_DATA_IN_S,
-                      EXEC_S,
-                      SHIFT_HEADER_OUT_S,
-                      SHIFT_DATA_OUT_S);
+   type StateType is (
+      IDLE_S,
+      SHIFT_HEADER_IN_S,
+      SHIFT_DATA_IN_S,
+      EXEC_S,
+      SHIFT_HEADER_OUT_S,
+      SHIFT_DATA_OUT_S);
 
    type RegType is record
       headerShiftReg : slv(20 downto 0);
@@ -69,7 +67,8 @@ architecture rtl of SaciSlaveOld is
       saciRsp        : sl;
    end record RegType;
 
-   signal r, rin      : RegType;
+   signal r           : RegType;
+   signal rin         : RegType;
    signal saciCmdFall : sl;
 
    procedure shiftInLeft (
@@ -89,7 +88,6 @@ begin
    -- Chip select also functions as async reset
    rstOutL <= rstL and not saciSelL;
 
-
    -- Clock in serial input on falling edge
    fall : process (rstInL, saciClk) is
    begin
@@ -99,7 +97,6 @@ begin
          saciCmdFall <= saciCmd after TPD_G;
       end if;
    end process fall;
-
 
    seq : process (rstInL, saciClk) is
    begin
@@ -228,4 +225,3 @@ begin
 --  saciRsp <= r.saciRsp      when saciSelL = '0'    else 'Z';
 
 end architecture rtl;
-

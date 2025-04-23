@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -79,4 +78,4 @@ package AxiAds42lb69Pkg is
       adcData  => (others => x"0000"),
       delayOut => AXI_ADS42LB69_DELAY_OUT_INIT_C);
 
-end package;
+end package AxiAds42lb69Pkg;

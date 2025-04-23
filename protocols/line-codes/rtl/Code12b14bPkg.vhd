@@ -19,11 +19,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 --use surf.TextUtilPkg.all;
-
 
 package Code12b14bPkg is
 
@@ -531,7 +529,7 @@ package body Code12b14bPkg is
          dispOut := toSlv(blockDispIn + tmpDisp);
       end if;
 
-   end;
+   end procedure encode12b14b;
 
    procedure decode12b14b (
       constant CODES_C : in    EncodeTableType;

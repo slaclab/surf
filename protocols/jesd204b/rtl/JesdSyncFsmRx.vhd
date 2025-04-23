@@ -20,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
@@ -36,8 +35,7 @@ entity JesdSyncFsmRx is
       K_G : positive := 32;
 
       -- Number of multi-frames in ILA sequence (4-255)
-      NUM_ILAS_MF_G : positive := 4
-      );
+      NUM_ILAS_MF_G : positive := 4);
    port (
       -- Clocks and Resets
       clk : in sl;
@@ -93,22 +91,19 @@ entity JesdSyncFsmRx is
       sysref_o : out sl;
 
       -- Synchronisation process is complete and data is valid
-      dataValid_o : out sl
-
-      );
+      dataValid_o : out sl);
 end JesdSyncFsmRx;
 
 architecture rtl of JesdSyncFsmRx is
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       SYSREF_S,
       SYNC_S,
       HOLD_S,
       ALIGN_S,
       ILA_S,
-      DATA_S
-      );
+      DATA_S);
 
    type RegType is record
       -- Synchronous FSM control outputs
@@ -146,8 +141,7 @@ architecture rtl of JesdSyncFsmRx is
       cntLatency => (others => '0'),
 
       -- Status Machine
-      state => IDLE_S
-      );
+      state => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -356,4 +350,5 @@ begin
    kDetected_o   <= s_kStable;
    sysref_o      <= r.sysref;
    buffLatency_o <= r.cntLatency;
+
 end rtl;

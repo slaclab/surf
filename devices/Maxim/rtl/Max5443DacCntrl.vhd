@@ -19,10 +19,8 @@ use ieee.std_logic_unsigned.all;
 
 entity Max5443DacCntrl is
    generic (
-      TPD_G : time := 1 ns
-      );
+      TPD_G : time := 1 ns);
    port (
-
       -- Master system clock
       sysClk    : in std_logic;
       sysClkRst : in std_logic;
@@ -34,12 +32,9 @@ entity Max5443DacCntrl is
       dacDin  : out std_logic;
       dacSclk : out std_logic;
       dacCsL  : out std_logic;
-      dacClrL : out std_logic
-      );
+      dacClrL : out std_logic);
 end Max5443DacCntrl;
 
-
--- Define architecture
 architecture rtl of Max5443DacCntrl is
 
    -- Local Signals

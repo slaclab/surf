@@ -107,14 +107,14 @@ begin
                   -- Accept the data
                   v.iSlave.arready := '1';
                   -- Next state
-                  v.state          := DATA_s;
+                  v.state          := DATA_S;
                end if;
             else
                -- Increment the counter
                v.latency := r.latency + 1;
             end if;
          ----------------------------------------------------------------------
-         when DATA_s =>
+         when DATA_S =>
             -- Check if ready to move data
             if intReadMaster.rready = '1' then
                -- Move the data

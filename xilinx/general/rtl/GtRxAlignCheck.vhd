@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -29,7 +28,7 @@ entity GtRxAlignCheck is
       LOCK_VALUE_G   : integer := 16;
       MASK_VALUE_G   : integer := 126;
       GT_TYPE_G      : string  := "GTHE3";  -- or GTYE3, GTHE4, GTYE4
-      AXI_CLK_FREQ_G : real    := 156.25e6;
+      AXI_CLK_FREQ_G : real    := 156.25E+6;
       DRP_ADDR_G     : slv(31 downto 0));
    port (
       -- Clock Monitoring

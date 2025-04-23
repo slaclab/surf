@@ -14,15 +14,14 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.std_logic_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SaciSlaveRam is
-
    port (
       saciClkOut : in  sl;
       exec       : in  sl;
@@ -32,7 +31,6 @@ entity SaciSlaveRam is
       addr       : in  slv(11 downto 0);
       wrData     : in  slv(31 downto 0);
       rdData     : out slv(31 downto 0) := (others => '0'));
-
 end entity SaciSlaveRam;
 
 architecture rtl of SaciSlaveRam is

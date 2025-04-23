@@ -29,10 +29,8 @@ entity Pgp2bRxCell is
       TPD_G             : time                 := 1 ns;
       RX_LANE_CNT_G     : integer range 1 to 2 := 1;  -- Number of receive lanes, 1-2
       EN_SHORT_CELLS_G  : integer              := 1;  -- Enable short non-EOF cells
-      PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
-      );
+      PAYLOAD_CNT_TOP_G : integer              := 7);  -- Top bit for payload counter
    port (
-
       -- System clock, reset & control
       pgpRxClkEn  : in sl := '1';       -- Master clock Enable
       pgpRxClk    : in sl;              -- Master clock
@@ -86,13 +84,9 @@ entity Pgp2bRxCell is
       crcRxIn    : out slv(RX_LANE_CNT_G*16-1 downto 0);  -- Receive data for CRC
       crcRxInit  : out sl;              -- Receive CRC value init
       crcRxValid : out sl;              -- Receive data for CRC is valid
-      crcRxOut   : in  slv(31 downto 0)  -- Receive calculated CRC value
-      );
-
+      crcRxOut   : in  slv(31 downto 0));  -- Receive calculated CRC value
 end Pgp2bRxCell;
 
-
--- Define architecture
 architecture Pgp2bRxCell of Pgp2bRxCell is
 
    -- Local Signals
@@ -750,4 +744,3 @@ begin
    end process;
 
 end Pgp2bRxCell;
-

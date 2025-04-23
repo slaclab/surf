@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -65,7 +64,7 @@ architecture AxisToJtagCoreTbImpl of AxisToJtagCoreTb is
    signal txData : WordArray(0 to 6) := (
       x"0021",
       x"0000",
-      x"dead",
+      x"DEAD",
       x"0000",
       x"3210",
       x"0000",
@@ -179,8 +178,7 @@ begin
    U_DUT : entity surf.AxisToJtagCore
       generic map (
          AXIS_WIDTH_G => W_C,
-         CLK_DIV2_G   => 2
-         )
+         CLK_DIV2_G   => 2)
       port map (
          axisClk     => clk,
          axisRst     => rst,
@@ -192,8 +190,6 @@ begin
          tck => tck,
          tdi => tdi,
          tdo => tdo,
-         tms => open
-         );
+         tms => open);
 
 end architecture AxisToJtagCoreTbImpl;
-

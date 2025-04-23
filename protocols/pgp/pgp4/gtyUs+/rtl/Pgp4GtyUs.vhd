@@ -25,8 +25,8 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp4Pkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp4GtyUs is
    generic (

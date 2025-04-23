@@ -24,13 +24,12 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.jesd204bpkg.all;
+use surf.Jesd204bpkg.all;
 
 entity JesdTestStreamTx is
    generic (
       TPD_G : time     := 1 ns;
-      F_G   : positive := 2
-      );
+      F_G   : positive := 2);
    port (
       clk : in sl;
       rst : in sl;
@@ -52,8 +51,7 @@ entity JesdTestStreamTx is
       -- Sample data containing test signal
       sampleData_o : out slv(GT_WORD_SIZE_C*8-1 downto 0);
       -- Digital out pulse for latency debug
-      pulse_o      : out sl
-      );
+      pulse_o      : out sl);
 end entity JesdTestStreamTx;
 
 architecture rtl of JesdTestStreamTx is
@@ -75,12 +73,11 @@ architecture rtl of JesdTestStreamTx is
       rampCnt   => (others => '0'),
       testData  => (others => '0'),
       inc       => '1',
-      sign      => '0'
-      );
+      sign      => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
---
+
 begin
 
    comb : process (enable_i, negAmplitude_i, posAmplitude_i, r, rampStep_i,
@@ -162,6 +159,11 @@ begin
          v.typeDly := type_i;
       end if;
 
+      -- Digital square waveform out
+      pulse_o      <= r.sign;
+      -- Output data assignment
+      sampleData_o <= r.testData;
+
       if (rst = '1') then
          v := REG_INIT_C;
       end if;
@@ -177,9 +179,4 @@ begin
       end if;
    end process seq;
 
-   -- Digital square waveform out
-   pulse_o      <= r.sign;
-   -- Output data assignment
-   sampleData_o <= r.testData;
----------------------------------------
 end architecture rtl;

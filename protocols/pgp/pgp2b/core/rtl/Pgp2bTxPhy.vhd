@@ -27,10 +27,8 @@ use surf.Pgp2bPkg.all;
 entity Pgp2bTxPhy is
    generic (
       TPD_G         : time                 := 1 ns;
-      TX_LANE_CNT_G : integer range 1 to 2 := 1  -- Number of receive lanes, 1-2
-      );
+      TX_LANE_CNT_G : integer range 1 to 2 := 1);  -- Number of receive lanes, 1-2
    port (
-
       -- System clock, reset & control
       pgpTxClkEn  : in sl := '1';       -- Master clock Enable
       pgpTxClk    : in sl;              -- Master clock
@@ -58,13 +56,9 @@ entity Pgp2bTxPhy is
       -- Physical Interface Signals
       phyTxData  : out slv(TX_LANE_CNT_G*16-1 downto 0);  -- PHY receive data
       phyTxDataK : out slv(TX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data is K character
-      phyTxReady : in  sl               -- PHY receive interface is ready
-      );
-
+      phyTxReady : in  sl);             -- PHY receive interface is ready
 end Pgp2bTxPhy;
 
-
--- Define architecture
 architecture Pgp2bTxPhy of Pgp2bTxPhy is
 
    -- Local Signals
@@ -397,4 +391,3 @@ begin
    phyTxDataK <= intTxDataK;
 
 end Pgp2bTxPhy;
-

@@ -18,10 +18,10 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.i2cPkg.all;
+use surf.I2cPkg.all;
 use surf.TextUtilPkg.all;
 
-package i2cRegMasterPkg is
+package I2cRegMasterPkg is
 
    procedure writeI2cReg (
       signal clk    : in  sl;
@@ -63,9 +63,9 @@ package i2cRegMasterPkg is
       endianness    : in  sl;
       debug         : in  boolean := false);
 
-end package i2cRegMasterPkg;
+end package I2cRegMasterPkg;
 
-package body i2cRegMasterPkg is
+package body I2cRegMasterPkg is
 
    procedure writeI2cReg (
       signal clk    : in  sl;
@@ -271,4 +271,4 @@ package body i2cRegMasterPkg is
 
    end procedure;
 
-end package body i2cRegMasterPkg;
+end package body I2cRegMasterPkg;

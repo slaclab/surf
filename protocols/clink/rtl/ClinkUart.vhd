@@ -64,7 +64,7 @@ architecture rtl of ClinkUart is
       baudClkEn => '0');
 
    signal r   : RegType := REG_INIT_C;
-   signal rin : Regtype;
+   signal rin : RegType;
 
    signal rdData  : slv(7 downto 0);
    signal rdValid : sl;

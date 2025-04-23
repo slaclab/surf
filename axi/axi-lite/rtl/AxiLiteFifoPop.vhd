@@ -134,29 +134,29 @@ begin
             ADDR_WIDTH_G       => POP_ADDR_WIDTH_G,
             INIT_G             => "0",
             FULL_THRES_G       => POP_FULL_THRES_G,
-            EMPTY_THRES_G      => 1
-            ) port map (
-               rst           => popFifoRst(i),
-               wr_clk        => popFifoClk(i),
-               wr_en         => popFifoWrite(i),
-               din           => popFifoDin(i),
-               wr_data_count => open,
-               wr_ack        => open,
-               overflow      => open,
-               prog_full     => popFifoPFull(i),
-               almost_full   => popFifoAFull(i),
-               full          => popFifoFull(i),
-               not_full      => open,
-               rd_clk        => axiClk,
-               rd_en         => ipopFifoRead(i),
-               dout          => ipopFifoDout(i),
-               rd_data_count => open,
-               valid         => ipopFifoValid(i),
-               underflow     => open,
-               prog_empty    => open,
-               almost_empty  => popFifoAEmpty(i),
-               empty         => open
-               );
+            EMPTY_THRES_G      => 1)
+         port map (
+            rst           => popFifoRst(i),
+            wr_clk        => popFifoClk(i),
+            wr_en         => popFifoWrite(i),
+            din           => popFifoDin(i),
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => popFifoPFull(i),
+            almost_full   => popFifoAFull(i),
+            full          => popFifoFull(i),
+            not_full      => open,
+            rd_clk        => axiClk,
+            rd_en         => ipopFifoRead(i),
+            dout          => ipopFifoDout(i),
+            rd_data_count => open,
+            valid         => ipopFifoValid(i),
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => popFifoAEmpty(i),
+            empty         => open
+            );
 
       popFifoValid(i) <= ipopFifoValid(i);
    end generate;
@@ -187,29 +187,29 @@ begin
                ADDR_WIDTH_G       => LOOP_ADDR_WIDTH_G,
                INIT_G             => "0",
                FULL_THRES_G       => 1,
-               EMPTY_THRES_G      => 1
-               ) port map (
-                  rst           => axiClkRst,
-                  wr_clk        => axiClk,
-                  wr_en         => iloopFifoWrite(i),
-                  din           => iloopFifoDin,
-                  wr_data_count => open,
-                  wr_ack        => open,
-                  overflow      => open,
-                  prog_full     => open,
-                  almost_full   => loopFifoAFull(i),
-                  full          => open,
-                  not_full      => open,
-                  rd_clk        => axiClk,
-                  rd_en         => iloopFifoRead(i),
-                  dout          => iloopFifoDout(i),
-                  rd_data_count => open,
-                  valid         => iloopFifoValid(i),
-                  underflow     => open,
-                  prog_empty    => open,
-                  almost_empty  => loopFifoAEmpty(i),
-                  empty         => open
-                  );
+               EMPTY_THRES_G      => 1)
+            port map (
+               rst           => axiClkRst,
+               wr_clk        => axiClk,
+               wr_en         => iloopFifoWrite(i),
+               din           => iloopFifoDin,
+               wr_data_count => open,
+               wr_ack        => open,
+               overflow      => open,
+               prog_full     => open,
+               almost_full   => loopFifoAFull(i),
+               full          => open,
+               not_full      => open,
+               rd_clk        => axiClk,
+               rd_en         => iloopFifoRead(i),
+               dout          => iloopFifoDout(i),
+               rd_data_count => open,
+               valid         => iloopFifoValid(i),
+               underflow     => open,
+               prog_empty    => open,
+               almost_empty  => loopFifoAEmpty(i),
+               empty         => open
+               );
          loopFifoValid(i) <= iloopFifoValid(i);
 
       end generate;

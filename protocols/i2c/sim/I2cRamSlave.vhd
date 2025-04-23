@@ -18,30 +18,25 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.i2cPkg.all;
+use surf.I2cPkg.all;
 
-entity i2cRamSlave is
-
+entity I2cRamSlave is
    generic (
-      TPD_G : time := 1 ns;
-
-      I2C_ADDR_G : integer range 0 to 1023 := 0;
-      TENBIT_G   : integer range 0 to 1    := 0;
-      FILTER_G   : integer range 2 to 512  := 4;
-
-      ADDR_SIZE_G  : positive             := 2;
-      DATA_SIZE_G  : positive             := 2;
-      ENDIANNESS_G : integer range 0 to 1 := 0);
-
+      TPD_G        : time                    := 1 ns;
+      I2C_ADDR_G   : integer range 0 to 1023 := 0;
+      TENBIT_G     : integer range 0 to 1    := 0;
+      FILTER_G     : integer range 2 to 512  := 4;
+      ADDR_SIZE_G  : positive                := 2;
+      DATA_SIZE_G  : positive                := 2;
+      ENDIANNESS_G : integer range 0 to 1    := 0);
    port (
       clk    : in    sl;
       rst    : in    sl;
       i2cSda : inout sl;
       i2cScl : inout sl);
+end entity I2cRamSlave;
 
-end entity i2cRamSlave;
-
-architecture rtl of i2cRamSlave is
+architecture rtl of I2cRamSlave is
 
    type RamType is array (0 to 2**(8*ADDR_SIZE_G)-1) of slv(8*DATA_SIZE_G-1 downto 0);
 
@@ -85,6 +80,7 @@ begin
          end if;
       end if;
    end process ram_proc;
+
    rdData <= ram(to_integer(unsigned(addr)));
 
    i2cSda   <= i2co.sda when i2co.sdaoen = '0' else 'Z';

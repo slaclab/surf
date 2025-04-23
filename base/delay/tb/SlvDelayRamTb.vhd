@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -41,13 +40,13 @@ architecture testbed of SlvDelayRamTb is
    -- delay = maxCount + ite(DO_REG_G, 3, 2);
    constant MAX_COUNT_C : integer := DELAY_C - ite(DO_REG_C, 3, 2);
 
-   type countDelayType is array(MAX_DELAY_C - 1 downto 0) of integer range 0 to (2**WIDTH_C - 1);
+   type CountDelayType is array(MAX_DELAY_C - 1 downto 0) of integer range 0 to (2**WIDTH_C - 1);
 
    type RegType is record
       passed     : sl;
       failed     : sl;
       count      : integer range 0 to (2**WIDTH_C - 1);
-      countDelay : countDelayType;
+      countDelay : CountDelayType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
