@@ -267,6 +267,7 @@ class AxiVersion(pr.Device):
         self.add(pr.LocalCommand(
             name     = 'PrintStatus',
             function = self.getStatus,
+            hidden   = True, # Indended for use in VirtualClient
         ))
 
     def hardReset(self):

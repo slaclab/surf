@@ -130,7 +130,7 @@ class AxiMicronP30(pr.Device):
 
     def _LoadMcsFile(self,arg):
 
-        click.secho(('%s.LoadMcsFile: %s' % (self.path,arg) ), fg='green')
+        click.secho( f'{self.path}.LoadMcsFile: {arg}', fg='green')
         self._progDone = False
 
         # Start time measurement for profiling
@@ -154,7 +154,7 @@ class AxiMicronP30(pr.Device):
         # End time measurement for profiling
         end = time.time()
         elapsed = end - start
-        click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
+        click.secho( f'LoadMcsFile() took {datetime.timedelta(seconds=int(elapsed))} to program the PROM', fg='green')
 
         # Add a power cycle reminder
         self._progDone = True
@@ -297,7 +297,7 @@ class AxiMicronP30(pr.Device):
                     prom = dataArray[(i&0x1FF)>>1]
                     # Compare PROM to file
                     if (data != prom):
-                        click.secho(("\nAddr = 0x%x: MCS = 0x%x != PROM = 0x%x" % (addr,data,prom)), fg='red')
+                        click.secho(f'\nAddr = 0x{addr:x}: MCS = 0x{data:x} != PROM = 0x{prom:x}', fg='red')
                         raise surf.misc.McsException('verifyProm() Failed\n\n')
             # Close the status bar
             bar.update(self._mcs.size)
