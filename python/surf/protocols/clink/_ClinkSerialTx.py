@@ -30,7 +30,7 @@ class ClinkSerialTx(rogue.interfaces.stream.Master):
         self._sendFrame(frame)
 
     def sendString(self,st):
-        print(self._path+': SendString: %s' % st )
+        print( f'{self._path}: SendString: {st}' )
         ba = bytearray((len(st)+1)*4)
         i = 0
         for c in st:

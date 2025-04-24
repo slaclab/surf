@@ -152,7 +152,7 @@ class Ltc2270(pr.Device):
         for i in range(2):
             for j in range(8):
                 self.add(pr.RemoteVariable(
-                    name        = ('adcData[%01i][%01i]' % (i,j)),
+                    name        = f'adcData[{i:01}][{j:01}]',
                     offset      = ((0x60 + (8*i)+j)*4),
                     description = '',
                     bitSize     = 16,
@@ -174,7 +174,7 @@ class Ltc2270(pr.Device):
         for i in range(2):
             for j in range(8):
                 self.add(pr.RemoteVariable(
-                    name        = ('delayData[%01i][%01i]' % (i,j)),
+                    name        = f'delayData[{i:01}][{j:01}]',
                     offset      = ((0x80 + (8*i)+j)*4),
                     description = '',
                     bitSize     = 5,
