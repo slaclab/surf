@@ -120,7 +120,7 @@ entity RssiCore is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Internal statuses
-      statusReg_o : out slv(6 downto 0);
+      statusReg_o : out slv(8 downto 0);
 
       maxSegSize_o : out slv(15 downto 0));
 end entity RssiCore;
@@ -129,7 +129,8 @@ architecture rtl of RssiCore is
 
    constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
 
-   signal s_rxBuffBusy : sl;
+   -- Busy Flags
+   signal s_localBusy : sl;
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -218,6 +219,7 @@ architecture rtl of RssiCore is
    signal s_mAppAxisMaster : AxiStreamMasterType;
    signal s_mAppAxisSlave  : AxiStreamSlaveType;
    signal s_mAppAxisCtrl   : AxiStreamCtrlType;
+   signal s_mAppfifoWrCnt  : slv(SEGMENT_ADDR_SIZE_G downto 0);
 
    -- SSI Application side
    signal s_sAppSsiMaster : SsiMasterType;
@@ -521,7 +523,7 @@ begin
          rst_i        => rst_i,
          connActive_i => s_connActive,
 
-         rxBuffBusy_i    => s_rxBuffBusy,
+         localBusy_i     => s_localBusy,
          rssiParam_i     => s_rssiParam,
          rxFlags_i       => s_rxFlags,
          rxValid_i       => s_rxValidSeg,
@@ -573,7 +575,7 @@ begin
          dataHeadSt_i => s_dataHeadSt,
          nullHeadSt_i => s_nullHeadSt,
          ackHeadSt_i  => s_ackHeadSt,
-         busyHeadSt_i => s_rxBuffBusy,
+         busyHeadSt_i => s_localBusy,
 
          ack_i          => s_txAckF,    -- Connected to ConnectFSM
          txSeqN_i       => s_txSeqN,
@@ -762,7 +764,6 @@ begin
       port map (
          clk_i          => clk_i,
          rst_i          => rst_i,
-         rxBuffBusy_o   => s_rxBuffBusy,
          connActive_i   => s_connActive,
          rxWindowSize_i => s_rxWindowSize,
          rxBufferSize_i => s_rxBufferSize,
@@ -887,6 +888,8 @@ begin
    -- SSI Application side
    s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mAppSsiMaster);
    s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mAppAxisSlave, s_mAppAxisCtrl);
+   s_localBusy      <= s_mAppfifoWrCnt(SEGMENT_ADDR_SIZE_G);
+
    -- SSI Transport side
    s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mTspSsiMaster);
    s_mTspSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mTspAxisSlave, s_mTspAxisCtrl);
@@ -918,6 +921,7 @@ begin
          sAxisMaster => s_mAppAxisMaster,
          sAxisSlave  => s_mAppAxisSlave,
          sAxisCtrl   => s_mAppAxisCtrl,
+         fifoWrCnt   => s_mAppfifoWrCnt,
          --
          mAxisClk    => clk_i,
          mAxisRst    => s_rstFifo,
