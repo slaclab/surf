@@ -1,4 +1,4 @@
 var classStreamPatternTester =
 [
-    [ "StreamPatternTester.RTL", "classStreamPatternTester_1_1RTL.html", null ]
+    [ "StreamPatternTester.rtl", "classStreamPatternTester_1_1rtl.html", null ]
 ];

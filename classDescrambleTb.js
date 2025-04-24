@@ -1,4 +1,4 @@
 var classDescrambleTb =
 [
-    [ "DescrambleTb.Bhv", "classDescrambleTb_1_1Bhv.html", null ]
+    [ "DescrambleTb.testbed", "classDescrambleTb_1_1testbed.html", null ]
 ];

@@ -1,5 +1,9 @@
 var NAVTREEINDEX6 =
 {
+"classTenGigEthGtyUltraScaleRst.html":[0,0,766],
+"classTenGigEthGtyUltraScaleRst_1_1rtl.html":[0,0,766,0],
+"classTenGigEthGtyUltraScaleWrapper.html":[0,0,767],
+"classTenGigEthGtyUltraScaleWrapper_1_1mapping.html":[0,0,767,0],
 "classTenGigEthGtyUltraScale_1_1mapping.html":[0,0,764,0],
 "classTenGigEthReg.html":[0,0,768],
 "classTenGigEthReg_1_1rtl.html":[0,0,768,0],
@@ -96,10 +100,6 @@ var NAVTREEINDEX6 =
 "classfifo__tb_1_1fifo__tb.html":[0,0,295,0],
 "classglbl.html":[0,0,329],
 "classglbl_1_1glbl.html":[0,0,329,0],
-"classi2cRamSlave.html":[0,0,391],
-"classi2cRamSlave_1_1rtl.html":[0,0,391,0],
-"classi2cRegTb.html":[0,0,396],
-"classi2cRegTb_1_1tb.html":[0,0,396,0],
 "classi2c__master__bit__ctrl.html":[0,0,388],
 "classi2c__master__bit__ctrl_1_1structural.html":[0,0,388,0],
 "classi2c__master__byte__ctrl.html":[0,0,389],

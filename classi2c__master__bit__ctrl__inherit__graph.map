@@ -12,7 +12,7 @@
 <area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="614,166,650,126,673,106,699,89,725,78,727,83,701,94,677,110,654,130,618,169"/>
 <area shape="rect" id="Node000010" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="707,104,878,129"/>
 <area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="631,170,699,138,735,127,737,132,701,143,634,174"/>
-<area shape="rect" id="Node000011" href="$classi2cRegTb.html" title=" " alt="" coords="751,153,834,179"/>
+<area shape="rect" id="Node000011" href="$classI2cRegTb.html" title=" " alt="" coords="751,153,834,179"/>
 <area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="666,180,751,169,751,174,666,185"/>
 <area shape="rect" id="Node000012" href="$classLeapXcvrCore.html" title=" " alt="" coords="737,203,849,228"/>
 <area shape="poly" id="edge11_Node000004_Node000012" title=" " alt="" coords="666,197,737,206,736,211,665,202"/>

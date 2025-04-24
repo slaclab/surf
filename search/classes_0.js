@@ -25,7 +25,7 @@ var searchData=
   ['_5fhammingeccpkg_22',['_HammingEccPkg',['../class__HammingEccPkg.html',1,'']]],
   ['_5fi2cmuxpkg_23',['_I2cMuxPkg',['../class__I2cMuxPkg.html',1,'']]],
   ['_5fi2cpkg_24',['_I2cPkg',['../class__I2cPkg.html',1,'']]],
-  ['_5fi2cregmasterpkg_25',['_i2cRegMasterPkg',['../class__i2cRegMasterPkg.html',1,'']]],
+  ['_5fi2cregmasterpkg_25',['_I2cRegMasterPkg',['../class__I2cRegMasterPkg.html',1,'']]],
   ['_5fjesd204bpkg_26',['_Jesd204bPkg',['../class__Jesd204bPkg.html',1,'']]],
   ['_5fmdiopkg_27',['_MdioPkg',['../class__MdioPkg.html',1,'']]],
   ['_5fpgp3pkg_28',['_Pgp3Pkg',['../class__Pgp3Pkg.html',1,'']]],

@@ -30,9 +30,9 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="classi2cRamSlave.html" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="classI2cRamSlave.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="80,-74 0,-74 0,-55 80,-55 80,-74"/>
-<text text-anchor="middle" x="40" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">i2cRamSlave</text>
+<text text-anchor="middle" x="40" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">I2cRamSlave</text>
 </a>
 </g>
 </g>
@@ -66,9 +66,9 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="classi2cRegTb.html" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="classI2cRegTb.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="71,-19 9,-19 9,0 71,0 71,-19"/>
-<text text-anchor="middle" x="40" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">i2cRegTb</text>
+<text text-anchor="middle" x="40" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">I2cRegTb</text>
 </a>
 </g>
 </g>

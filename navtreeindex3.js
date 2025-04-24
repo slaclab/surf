@@ -12,6 +12,8 @@ var NAVTREEINDEX3 =
 "classHtspTx_1_1rtl.html":[0,0,387,0],
 "classI2cMaster.html":[0,0,390],
 "classI2cMaster_1_1rtl.html":[0,0,390,0],
+"classI2cRamSlave.html":[0,0,391],
+"classI2cRamSlave_1_1rtl.html":[0,0,391,0],
 "classI2cRegMaster.html":[0,0,392],
 "classI2cRegMasterAxiBridge.html":[0,0,393],
 "classI2cRegMasterAxiBridge_1_1rtl.html":[0,0,393,0],
@@ -20,6 +22,8 @@ var NAVTREEINDEX3 =
 "classI2cRegMaster_1_1rtl.html":[0,0,392,0],
 "classI2cRegSlave.html":[0,0,395],
 "classI2cRegSlave_1_1rtl.html":[0,0,395,0],
+"classI2cRegTb.html":[0,0,396],
+"classI2cRegTb_1_1tb.html":[0,0,396,0],
 "classI2cSlave.html":[0,0,397],
 "classI2cSlave_1_1rtl.html":[0,0,397,0],
 "classIcmpEngine.html":[0,0,398],
@@ -245,9 +249,5 @@ var NAVTREEINDEX3 =
 "classPgp2fcRxPhy_1_1Pgp2fcRxPhy.html":[0,0,509,0],
 "classPgp2fcRx_1_1Pgp2fcRx.html":[0,0,507,0],
 "classPgp2fcTx.html":[0,0,510],
-"classPgp2fcTxCell.html":[0,0,511],
-"classPgp2fcTxCell_1_1Pgp2fcTxCell.html":[0,0,511,0],
-"classPgp2fcTxPhy.html":[0,0,512],
-"classPgp2fcTxPhy_1_1Pgp2fcTxPhy.html":[0,0,512,0],
-"classPgp2fcTxSched.html":[0,0,513]
+"classPgp2fcTxCell.html":[0,0,511]
 };

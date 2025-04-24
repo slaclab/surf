@@ -995,7 +995,7 @@ var hierarchy =
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "I2cRegMaster", "classI2cRegMaster.html", null ],
-      [ "i2cRamSlave", "classi2cRamSlave.html", [
+      [ "I2cRamSlave", "classI2cRamSlave.html", [
         [ "I2cRegSlave", "classI2cRegSlave.html", [
           [ "I2cSlave", "classI2cSlave.html", null ]
         ] ]

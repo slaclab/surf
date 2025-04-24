@@ -39,9 +39,9 @@ var NAVTREEINDEX =
 "classAxiStreamFlush_1_1rtl.html",
 "classEncoder8b10b.html",
 "classHtspCaui4GtyTb_1_1testbed.html",
-"classPgp2fcTxSched_1_1Pgp2fcTxSched.html",
-"classScramblerTb_1_1testbed.html",
-"classTenGigEthGtyUltraScale_1_1mapping.html"
+"classPgp2fcTxCell_1_1Pgp2fcTxCell.html",
+"classSc18Is602Core_1_1rtl.html",
+"classTenGigEthGtyUltraScaleRst.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

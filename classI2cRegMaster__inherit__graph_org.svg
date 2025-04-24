@@ -74,9 +74,9 @@
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="classi2cRegTb.html" target="_top" xlink:title=" ">
+<g id="a_Node000011"><a xlink:href="classI2cRegTb.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="621.5,-167 559.5,-167 559.5,-148 621.5,-148 621.5,-167"/>
-<text text-anchor="middle" x="590.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">i2cRegTb</text>
+<text text-anchor="middle" x="590.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">I2cRegTb</text>
 </a>
 </g>
 </g>

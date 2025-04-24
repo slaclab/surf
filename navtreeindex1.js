@@ -216,7 +216,7 @@ var NAVTREEINDEX1 =
 "classDelaye3PatchFsm.html":[0,0,236],
 "classDelaye3PatchFsm_1_1rtl.html":[0,0,236,0],
 "classDescrambleTb.html":[0,0,237],
-"classDescrambleTb_1_1Bhv.html":[0,0,237,0],
+"classDescrambleTb_1_1testbed.html":[0,0,237,0],
 "classDeviceDna.html":[0,0,238],
 "classDeviceDna7Series.html":[0,0,239],
 "classDeviceDna7Series_1_1rtl.html":[0,0,239,0],
