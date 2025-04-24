@@ -21,14 +21,14 @@ use surf.StdRtlPkg.all;
 
 entity sfixedDelay is
    generic (
-      TPD_G          : time      := 1 ns;
-      XIL_DEVICE_G   : string    := "ULTRASCALE_PLUS";
-      USER_WIDTH_G   : integer   := 0;
-      DELAY_STYLE_G  : string    := "srl_reg"; -- "reg", "srl", "srl_reg", "reg_srl", "reg_srl_reg" or "block"
-      DELAY_G        : integer   := 256);
+      TPD_G         : time    := 1 ns;
+      XIL_DEVICE_G  : string  := "ULTRASCALE_PLUS";
+      USER_WIDTH_G  : integer := 0;
+      DELAY_STYLE_G : string  := "srl_reg";  -- "reg", "srl", "srl_reg", "reg_srl", "reg_srl_reg" or "block"
+      DELAY_G       : integer := 256);
    port (
       clk      : in  sl;
-      validIn  : in  sl := '0';
+      validIn  : in  sl                           := '0';
       userIn   : in  slv(USER_WIDTH_G-1 downto 0) := (others => '0');
       din      : in  sfixed;
       validOut : out sl;
@@ -45,9 +45,9 @@ architecture rtl of sfixedDelay is
 
 begin
 
-   slvDelayIn(slvDelayIn'high)                                            <= validIn;
-   slvDelayIn(slvDelayIn'high - 1 downto slvDelayIn'high - USER_WIDTH_G)  <= userIn;
-   slvDelayIn(slvDelayIn'high - USER_WIDTH_G - 1 downto 0)                <= to_slv(din);
+   slvDelayIn(slvDelayIn'high)                                           <= validIn;
+   slvDelayIn(slvDelayIn'high - 1 downto slvDelayIn'high - USER_WIDTH_G) <= userIn;
+   slvDelayIn(slvDelayIn'high - USER_WIDTH_G - 1 downto 0)               <= to_slv(din);
 
    validOut <= slvDelayOut(slvDelayOut'high);
    userOut  <= slvDelayOut(slvDelayIn'high - 1 downto slvDelayIn'high - USER_WIDTH_G);

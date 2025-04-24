@@ -21,63 +21,62 @@ use ieee.math_real.all;
 library unisim;
 use unisim.vcomponents.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity ClockManager7 is
    generic (
-      TPD_G                  : time                             := 1 ns;
-      SIMULATION_G           : boolean                          := false;
-      TYPE_G                 : string                           := "MMCM";  -- or "PLL"
-      INPUT_BUFG_G           : boolean                          := true;
-      FB_BUFG_G              : boolean                          := true;
-      OUTPUT_BUFG_G          : boolean                          := true;
-      RST_IN_POLARITY_G      : sl                               := '1';     -- '0' for active low
+      TPD_G                  : time                       := 1 ns;
+      SIMULATION_G           : boolean                    := false;
+      TYPE_G                 : string                     := "MMCM";  -- or "PLL"
+      INPUT_BUFG_G           : boolean                    := true;
+      FB_BUFG_G              : boolean                    := true;
+      OUTPUT_BUFG_G          : boolean                    := true;
+      RST_IN_POLARITY_G      : sl                         := '1';  -- '0' for active low
       NUM_CLOCKS_G           : integer range 1 to 7;
       -- MMCM attributes
-      BANDWIDTH_G            : string                           := "OPTIMIZED";
-      CLKIN_PERIOD_G         : real                             := 10.0;    -- Input period in ns );
-      DIVCLK_DIVIDE_G        : integer range 1 to 106           := 1;
-      CLKFBOUT_MULT_F_G      : real range 1.0 to 64.0           := 1.0;
-      CLKFBOUT_MULT_G        : integer range 2 to 64            := 5;
-      CLKOUT0_DIVIDE_F_G     : real range 1.0 to 128.0          := 1.0;
-      CLKOUT0_DIVIDE_G       : integer range 1 to 128           := 1;
-      CLKOUT1_DIVIDE_G       : integer range 1 to 128           := 1;
-      CLKOUT2_DIVIDE_G       : integer range 1 to 128           := 1;
-      CLKOUT3_DIVIDE_G       : integer range 1 to 128           := 1;
-      CLKOUT4_DIVIDE_G       : integer range 1 to 128           := 1;
-      CLKOUT5_DIVIDE_G       : integer range 1 to 128           := 1;
-      CLKOUT6_DIVIDE_G       : integer range 1 to 128           := 1;
-      CLKOUT0_PHASE_G        : real range -360.0 to 360.0       := 0.0;
-      CLKOUT1_PHASE_G        : real range -360.0 to 360.0       := 0.0;
-      CLKOUT2_PHASE_G        : real range -360.0 to 360.0       := 0.0;
-      CLKOUT3_PHASE_G        : real range -360.0 to 360.0       := 0.0;
-      CLKOUT4_PHASE_G        : real range -360.0 to 360.0       := 0.0;
-      CLKOUT5_PHASE_G        : real range -360.0 to 360.0       := 0.0;
-      CLKOUT6_PHASE_G        : real range -360.0 to 360.0       := 0.0;
-      CLKOUT0_DUTY_CYCLE_G   : real range 0.01 to 0.99          := 0.5;
-      CLKOUT1_DUTY_CYCLE_G   : real range 0.01 to 0.99          := 0.5;
-      CLKOUT2_DUTY_CYCLE_G   : real range 0.01 to 0.99          := 0.5;
-      CLKOUT3_DUTY_CYCLE_G   : real range 0.01 to 0.99          := 0.5;
-      CLKOUT4_DUTY_CYCLE_G   : real range 0.01 to 0.99          := 0.5;
-      CLKOUT5_DUTY_CYCLE_G   : real range 0.01 to 0.99          := 0.5;
-      CLKOUT6_DUTY_CYCLE_G   : real range 0.01 to 0.99          := 0.5;
-      CLKOUT0_RST_HOLD_G     : integer range 3 to positive'high := 3;
-      CLKOUT1_RST_HOLD_G     : integer range 3 to positive'high := 3;
-      CLKOUT2_RST_HOLD_G     : integer range 3 to positive'high := 3;
-      CLKOUT3_RST_HOLD_G     : integer range 3 to positive'high := 3;
-      CLKOUT4_RST_HOLD_G     : integer range 3 to positive'high := 3;
-      CLKOUT5_RST_HOLD_G     : integer range 3 to positive'high := 3;
-      CLKOUT6_RST_HOLD_G     : integer range 3 to positive'high := 3;
-      CLKOUT0_RST_POLARITY_G : sl                               := '1';
-      CLKOUT1_RST_POLARITY_G : sl                               := '1';
-      CLKOUT2_RST_POLARITY_G : sl                               := '1';
-      CLKOUT3_RST_POLARITY_G : sl                               := '1';
-      CLKOUT4_RST_POLARITY_G : sl                               := '1';
-      CLKOUT5_RST_POLARITY_G : sl                               := '1';
-      CLKOUT6_RST_POLARITY_G : sl                               := '1');
+      BANDWIDTH_G            : string                     := "OPTIMIZED";
+      CLKIN_PERIOD_G         : real                       := 10.0;  -- Input period in ns );
+      DIVCLK_DIVIDE_G        : integer range 1 to 106     := 1;
+      CLKFBOUT_MULT_F_G      : real range 1.0 to 64.0     := 1.0;
+      CLKFBOUT_MULT_G        : integer range 2 to 64      := 5;
+      CLKOUT0_DIVIDE_F_G     : real range 1.0 to 128.0    := 1.0;
+      CLKOUT0_DIVIDE_G       : integer range 1 to 128     := 1;
+      CLKOUT1_DIVIDE_G       : integer range 1 to 128     := 1;
+      CLKOUT2_DIVIDE_G       : integer range 1 to 128     := 1;
+      CLKOUT3_DIVIDE_G       : integer range 1 to 128     := 1;
+      CLKOUT4_DIVIDE_G       : integer range 1 to 128     := 1;
+      CLKOUT5_DIVIDE_G       : integer range 1 to 128     := 1;
+      CLKOUT6_DIVIDE_G       : integer range 1 to 128     := 1;
+      CLKOUT0_PHASE_G        : real range -360.0 to 360.0 := 0.0;
+      CLKOUT1_PHASE_G        : real range -360.0 to 360.0 := 0.0;
+      CLKOUT2_PHASE_G        : real range -360.0 to 360.0 := 0.0;
+      CLKOUT3_PHASE_G        : real range -360.0 to 360.0 := 0.0;
+      CLKOUT4_PHASE_G        : real range -360.0 to 360.0 := 0.0;
+      CLKOUT5_PHASE_G        : real range -360.0 to 360.0 := 0.0;
+      CLKOUT6_PHASE_G        : real range -360.0 to 360.0 := 0.0;
+      CLKOUT0_DUTY_CYCLE_G   : real range 0.01 to 0.99    := 0.5;
+      CLKOUT1_DUTY_CYCLE_G   : real range 0.01 to 0.99    := 0.5;
+      CLKOUT2_DUTY_CYCLE_G   : real range 0.01 to 0.99    := 0.5;
+      CLKOUT3_DUTY_CYCLE_G   : real range 0.01 to 0.99    := 0.5;
+      CLKOUT4_DUTY_CYCLE_G   : real range 0.01 to 0.99    := 0.5;
+      CLKOUT5_DUTY_CYCLE_G   : real range 0.01 to 0.99    := 0.5;
+      CLKOUT6_DUTY_CYCLE_G   : real range 0.01 to 0.99    := 0.5;
+      CLKOUT0_RST_HOLD_G     : integer range 3 to (2**24) := 3;
+      CLKOUT1_RST_HOLD_G     : integer range 3 to (2**24) := 3;
+      CLKOUT2_RST_HOLD_G     : integer range 3 to (2**24) := 3;
+      CLKOUT3_RST_HOLD_G     : integer range 3 to (2**24) := 3;
+      CLKOUT4_RST_HOLD_G     : integer range 3 to (2**24) := 3;
+      CLKOUT5_RST_HOLD_G     : integer range 3 to (2**24) := 3;
+      CLKOUT6_RST_HOLD_G     : integer range 3 to (2**24) := 3;
+      CLKOUT0_RST_POLARITY_G : sl                         := '1';
+      CLKOUT1_RST_POLARITY_G : sl                         := '1';
+      CLKOUT2_RST_POLARITY_G : sl                         := '1';
+      CLKOUT3_RST_POLARITY_G : sl                         := '1';
+      CLKOUT4_RST_POLARITY_G : sl                         := '1';
+      CLKOUT5_RST_POLARITY_G : sl                         := '1';
+      CLKOUT6_RST_POLARITY_G : sl                         := '1');
    port (
       clkIn           : in  sl;
       rstIn           : in  sl                     := '0';
@@ -129,7 +128,7 @@ begin
    assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G < 7))
       report "ClockManager7: Cannot have 7 clocks if TYPE_G is PLL" severity failure;
 
-   assert(TYPE_G = "MMCM" or TYPE_G = "PLL")
+   assert (TYPE_G = "MMCM" or TYPE_G = "PLL")
       report "ClockManger7: TYPE_G must be either MMCM or PLL" severity failure;
 
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';

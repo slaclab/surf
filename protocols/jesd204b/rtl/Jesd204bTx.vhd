@@ -115,14 +115,14 @@ architecture rtl of Jesd204bTx is
    signal s_invertData  : slv(L_G-1 downto 0);
 
    -- JESD subclass selection (from AXI lite register)
-   signal s_subClass      : sl;
+   signal s_subClass     : sl;
    -- User reset (from AXI lite register)
-   signal s_gtReset       : sl;
-   signal s_clearErr      : sl;
-   signal s_sigTypeArr    : Slv2Array(L_G-1 downto 0);
+   signal s_gtReset      : sl;
+   signal s_clearErr     : sl;
+   signal s_sigTypeArr   : Slv2Array(L_G-1 downto 0);
    -- Test signal control
-   signal s_rampStep      : slv(PER_STEP_WIDTH_C-1 downto 0);
-   signal s_squarePeriod  : slv(PER_STEP_WIDTH_C-1 downto 0);
+   signal s_rampStep     : slv(PER_STEP_WIDTH_C-1 downto 0);
+   signal s_squarePeriod : slv(PER_STEP_WIDTH_C-1 downto 0);
 
    signal s_posAmplitude : slv(F_G*8-1 downto 0);
    signal s_negAmplitude : slv(F_G*8-1 downto 0);
@@ -321,7 +321,7 @@ begin
             rst        => devRst_i,
             nSync_i    => s_nSyncSync(i),
             sysref_i   => s_sysrefD,
-            sysrefRe_o => s_sysrefRe(i),      -- Rising-edge of SYSREF OUT
+            sysrefRe_o => s_sysrefRe(i),  -- Rising-edge of SYSREF OUT
             lmfc_o     => s_lmfc(i));
 
       -- JESD Transmitter modules (one module per Lane)

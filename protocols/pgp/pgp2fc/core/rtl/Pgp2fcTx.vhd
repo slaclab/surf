@@ -32,10 +32,8 @@ entity Pgp2fcTx is
       FC_WORDS_G        : integer range 1 to 8 := 1;
       VC_INTERLEAVE_G   : integer              := 1;  -- Interleave Frames
       PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
-      NUM_VC_EN_G       : integer range 1 to 4 := 4
-      );
+      NUM_VC_EN_G       : integer range 1 to 4 := 4);
    port (
-
       -- System clock, reset & control
       pgpTxClkEn  : in sl := '1';       -- Master clock enable
       pgpTxClk    : in sl;              -- Master clock
@@ -54,13 +52,9 @@ entity Pgp2fcTx is
 
       -- Phy interface
       phyTxLaneOut : out Pgp2fcTxPhyLaneOutType;
-      phyTxReady   : in  sl
-      );
-
+      phyTxReady   : in  sl);
 end Pgp2fcTx;
 
-
--- Define architecture
 architecture Pgp2fcTx of Pgp2fcTx is
 
    -- Local Signals
@@ -82,8 +76,8 @@ architecture Pgp2fcTx of Pgp2fcTx is
    signal intPhyTxData     : slv(15 downto 0);
    signal intPhyTxDataK    : slv(1 downto 0);
    signal crcTxIn          : slv(15 downto 0);  -- Transmit data for CRC
-   signal crcTxInit        : sl;                -- Transmit CRC value init
-   signal crcTxValid       : sl;                -- Transmit data for CRC is valid
+   signal crcTxInit        : sl;        -- Transmit CRC value init
+   signal crcTxValid       : sl;        -- Transmit data for CRC is valid
    signal crcTxOut         : slv(31 downto 0);  -- Transmit calculated CRC value
    signal crcTxOutAdjust   : slv(31 downto 0);  -- Transmit calculated CRC value
    signal crcTxRst         : sl;

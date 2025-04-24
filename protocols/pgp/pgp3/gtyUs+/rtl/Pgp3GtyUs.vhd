@@ -25,8 +25,8 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp3Pkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp3GtyUs is
    generic (
@@ -114,10 +114,10 @@ architecture rtl of Pgp3GtyUs is
 
    -- PgpTx Signals
 --   signal gtTxUserReset : sl;
-   signal phyTxActive   : sl;
-   signal phyTxStart    : sl;
-   signal phyTxData     : slv(63 downto 0);
-   signal phyTxHeader   : slv(1 downto 0);
+   signal phyTxActive : sl;
+   signal phyTxStart  : sl;
+   signal phyTxData   : slv(63 downto 0);
+   signal phyTxHeader : slv(1 downto 0);
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;

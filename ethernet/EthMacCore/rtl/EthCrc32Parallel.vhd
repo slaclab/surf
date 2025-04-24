@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.EthCrc32Pkg.all;
@@ -26,7 +25,7 @@ use surf.EthCrc32Pkg.all;
 entity EthCrc32Parallel is
    generic (
       TPD_G        : time                   := 1 ns;
-      USE_DSP_G    : boolean                := false;-- true is not tested yet
+      USE_DSP_G    : boolean                := false;  -- true is not tested yet
       CRC_INIT_G   : slv(31 downto 0)       := x"FFFFFFFF";
       BYTE_WIDTH_G : positive range 1 to 16 := 16);  -- Maximum byte width (1-16 supported)
    port (
@@ -143,7 +142,7 @@ begin
 
       -- Calculate CRC in parallel - implementation used depends on the byte width in use.
       if (r.valid = '1') then
-         case(r.byteWidth) is
+         case (r.byteWidth) is
             ---------------------------------------------------------------------------------------------------------------
             when x"0" =>                -- 1 Byte (8-bits)
                if (USE_DSP_G) then

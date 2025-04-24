@@ -32,15 +32,15 @@ class UartUp900cl12bRx(clink.ClinkSerialRx):
 
         for i in range(0,len(ba),4):
             c = chr(ba[i])
-            #print( "Up900 Rcvd:  %c (0x%02X)" % (c, ba[i]))
+            #print(f'Up900 Rcvd:  {c} (0x{ba[i]:02X})')
 
             if c.isascii() and (c.isalnum() or c.isspace()):
                 self._cur.append(c)
             elif ba[i] in serialMap:
                 self._cur.append(' ' + serialMap[ba[i]])
             else:
-                self._cur.append(' 0x%02X' % ba[i])
-            self._hex.append(' 0x%02X' % ba[i])
+                self._cur.append(f' 0x{ba[i]:02X}')
+            self._hex.append(f' 0x{ba[i]:02X}')
 
             if (ba[i] == 0x01) or (c == '?'):
                 print(self._path+": Got Response: {}".format(''.join(self._cur)))

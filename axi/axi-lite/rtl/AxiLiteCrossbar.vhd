@@ -33,6 +33,7 @@ entity AxiLiteCrossbar is
       MASTERS_CONFIG_G   : AxiLiteCrossbarMasterConfigArray := AXIL_XBAR_CFG_DEFAULT_C;
       DEBUG_G            : boolean                          := false);
    port (
+      -- Clock and Reset
       axiClk    : in sl;
       axiClkRst : in sl;
 
@@ -46,10 +47,7 @@ entity AxiLiteCrossbar is
       mAxiWriteMasters : out AxiLiteWriteMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
       mAxiWriteSlaves  : in  AxiLiteWriteSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0);
       mAxiReadMasters  : out AxiLiteReadMasterArray(NUM_MASTER_SLOTS_G-1 downto 0);
-      mAxiReadSlaves   : in  AxiLiteReadSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0)
-
-      );
-
+      mAxiReadSlaves   : in  AxiLiteReadSlaveArray(NUM_MASTER_SLOTS_G-1 downto 0));
 end entity AxiLiteCrossbar;
 
 architecture rtl of AxiLiteCrossbar is

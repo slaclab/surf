@@ -34,6 +34,7 @@ package PrbsPkg is
 end PrbsPkg;
 
 package body PrbsPkg is
+
 -------------------------------------------------------------------------------
    function getPrbs1xTap (input : slv; tap0 : natural) return slv is
       variable retVar : slv(input'left downto 0) := (others => '0');
@@ -54,7 +55,9 @@ package body PrbsPkg is
       return retVar;
 
    end function;
+
 -------------------------------------------------------------------------------
+
    function getPrbs2xTap (input : slv; tap0, tap1 : natural) return slv is
       variable retVar : slv(input'left downto 0) := (others => '0');
    begin
@@ -75,7 +78,9 @@ package body PrbsPkg is
       return retVar;
 
    end function;
+
 -------------------------------------------------------------------------------
+
    function getPrbs3xTap (input : slv; tap0, tap1, tap2 : natural) return slv is
       variable retVar : slv(input'left downto 0) := (others => '0');
    begin
@@ -97,7 +102,9 @@ package body PrbsPkg is
       return retVar;
 
    end function;
+
 -------------------------------------------------------------------------------
+
    function getPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv is
       variable retVar : slv(input'left downto 0) := (others => '0');
    begin
@@ -120,7 +127,9 @@ package body PrbsPkg is
       return retVar;
 
    end function;
+
 -------------------------------------------------------------------------------
+
    function getGaloisPrbs4xTap (input : slv; tap0, tap1, tap2, tap3 : natural) return slv is
       variable retVar : slv(input'left downto 0) := (others => '0');
    begin
@@ -147,7 +156,9 @@ package body PrbsPkg is
       return retVar;
 
    end function;
+
 -------------------------------------------------------------------------------
+
    function getXorRand (input : slv; tap : natural) return slv is  -- NOTE: same function for encoding and decoding
       variable retVar : slv(input'left downto 0) := (others => '0');
    begin
@@ -168,5 +179,7 @@ package body PrbsPkg is
       return retVar;
 
    end function;
+
 -------------------------------------------------------------------------------
+
 end package body PrbsPkg;

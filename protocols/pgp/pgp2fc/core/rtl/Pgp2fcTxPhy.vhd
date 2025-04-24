@@ -29,10 +29,8 @@ use surf.Pgp2fcPkg.all;
 entity Pgp2fcTxPhy is
    generic (
       TPD_G      : time                 := 1 ns;
-      FC_WORDS_G : integer range 1 to 8 := 1  -- Number of 16-bit words for fast control, max is packet size minus 1
-      );
+      FC_WORDS_G : integer range 1 to 8 := 1);  -- Number of 16-bit words for fast control, max is packet size minus 1
    port (
-
       -- System clock, reset & control
       pgpTxClkEn  : in sl := '1';       -- Master clock Enable
       pgpTxClk    : in sl;              -- Master clock
@@ -47,7 +45,7 @@ entity Pgp2fcTxPhy is
       -- Fast control interface
       fcValid : in  sl;  -- Latch fcWord and send it out, will cause pgpBusy to assert
       fcWord  : in  slv(16*FC_WORDS_G-1 downto 0);  -- Control word to send
-      fcSent  : out sl := '0';          -- Asserted when a fast control word is sent out
+      fcSent  : out sl := '0';  -- Asserted when a fast control word is sent out
 
       -- Sideband data
       pgpLocLinkReady : in sl;               -- Far end side has link
@@ -64,13 +62,9 @@ entity Pgp2fcTxPhy is
       -- Physical Interface Signals
       phyTxData  : out slv(15 downto 0);  -- PHY receive data
       phyTxDataK : out slv(1 downto 0);   -- PHY receive data is K character
-      phyTxReady : in  sl                 -- PHY receive interface is ready
-      );
-
+      phyTxReady : in  sl);               -- PHY receive interface is ready
 end Pgp2fcTxPhy;
 
-
--- Define architecture
 architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
 
    -- Local Signals
@@ -98,7 +92,7 @@ architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
    signal crcOut    : slv(7 downto 0);
 
    -- Physical Link State
-   type fsm_states is (
+   type FsmState is (
       ST_LOCK_C,
       ST_LTS_A_C,
       ST_LTS_B_C,
@@ -106,10 +100,10 @@ architecture Pgp2fcTxPhy of Pgp2fcTxPhy is
       ST_CELL_C,
       ST_EMPTY_C);
 
-   signal curState  : fsm_states := ST_LOCK_C;
-   signal nxtState  : fsm_states;
-   signal pendState : fsm_states;       -- Next state if FC wasn't triggered
-   signal holdState : fsm_states;
+   signal curState  : FsmState := ST_LOCK_C;
+   signal nxtState  : FsmState;
+   signal pendState : FsmState;         -- Next state if FC wasn't triggered
+   signal holdState : FsmState;
 
 begin
 
@@ -165,8 +159,9 @@ begin
 
 
    -- Link control state machine
-   process (curState, holdState, fcValid, fcWordCount, fcData, fcDataK, intTxLinkReady, cellTxEOC,
-            ltsAData, ltsADataK, ltsBData, ltsBDataK, cellData, cellDataK)
+   process (cellData, cellDataK, cellTxEOC, curState, fcData, fcDataK, fcValid,
+            fcWordCount, holdState, intTxLinkReady, ltsAData, ltsADataK,
+            ltsBData, ltsBDataK)
    begin
 
       case curState is
@@ -298,7 +293,7 @@ begin
    cellDataK(1) <= '0';
 
    -- Fast Control data packaging
-   fcComb : process(fcWord, fcWordLatch, fcWordCount, crcOut)
+   fcComb : process(crcOut, fcWordCount, fcWordLatch)
    begin
       if (fcWordCount = 0) then
          -- First word
@@ -322,7 +317,7 @@ begin
    end process;
 
    crcRst <= '1' when fcWordCount = FC_WORDS_G else '0';
-   crcEn  <= '1' when curState    = ST_FC_C    else '0';
+   crcEn  <= '1' when curState = ST_FC_C       else '0';
 
    U_Crc7 : entity surf.CRC7Rtl
       port map (
@@ -330,8 +325,7 @@ begin
          clk     => pgpTxClk,
          data_in => crcDataIn,
          crc_en  => crcEn,
-         crc_out => crcOut
-         );
+         crc_out => crcOut);
 
    -- Outgoing data (1-cycle delay)
    -- TODO: Could a cycle be saved here?
@@ -358,4 +352,3 @@ begin
    phyTxDataK <= intTxDataK;
 
 end Pgp2fcTxPhy;
-

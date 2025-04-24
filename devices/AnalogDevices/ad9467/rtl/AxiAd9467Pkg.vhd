@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -123,4 +122,4 @@ package AxiAd9467Pkg is
       spi   => AXI_AD9467_SPI_IN_INIT_C,
       delay => AXI_AD9467_DELAY_IN_INIT_C);
 
-end package;
+end package AxiAd9467Pkg;

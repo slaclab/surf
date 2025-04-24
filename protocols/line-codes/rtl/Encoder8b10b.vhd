@@ -28,7 +28,7 @@ entity Encoder8b10b is
       NUM_BYTES_G    : positive := 2;
       RST_POLARITY_G : sl       := '0';
       RST_ASYNC_G    : boolean  := true;
-      FLOW_CTRL_EN_G : boolean := false);
+      FLOW_CTRL_EN_G : boolean  := false);
    port (
       clk      : in  sl;
       clkEn    : in  sl := '1';                 -- Optional Clock Enable
@@ -89,7 +89,7 @@ begin
       end if;
 
       -- Combinatorial outputs before the reset
-      readyIn  <= v.readyIn;
+      readyIn <= v.readyIn;
 
       -- Synchronous reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then

@@ -74,7 +74,7 @@ begin
    ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 750 ns)   -- Hold reset for this long)
       port map (
          clkP => fastClk,
@@ -85,7 +85,7 @@ begin
    ClkRst_Slow : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => slowClk,
@@ -183,7 +183,7 @@ begin
             failedDly <= '0' after TPD_C;
          else
             failedDly <= failed after TPD_C;
-            failed    <= '0' after TPD_C;
+            failed    <= '0'    after TPD_C;
             if (mAxisMaster.tValid = '1') and (mAxisMaster.tLast = '1') then
                failed <= ssiGetUserEofe(MASTER_AXI_CONFIG_C, mAxisMaster) after TPD_C;
             end if;

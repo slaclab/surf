@@ -59,7 +59,7 @@ end AxiStreamDmaV2Read;
 architecture rtl of AxiStreamDmaV2Read is
 
    constant DATA_BYTES_C : positive := AXIS_CONFIG_G.TDATA_BYTES_C;
-   constant ADDR_LSB_C   : natural  := ite((DATA_BYTES_C=1),0,bitSize(DATA_BYTES_C-1));
+   constant ADDR_LSB_C   : natural  := ite((DATA_BYTES_C = 1), 0, bitSize(DATA_BYTES_C-1));
    constant PEND_LSB_C   : natural  := bitSize(PEND_THRESH_G-1);
 
    type ReqStateType is (
@@ -211,21 +211,21 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Update the variables
-            v.dmaRdDescReq                                := dmaRdDescReq;
+            v.dmaRdDescReq        := dmaRdDescReq;
             -- Init return
-            v.dmaRdDescRet.valid                          := '0';
-            v.dmaRdDescRet.buffId                         := dmaRdDescReq.buffId;
-            v.dmaRdDescRet.result                         := (others => '0');
+            v.dmaRdDescRet.valid  := '0';
+            v.dmaRdDescRet.buffId := dmaRdDescReq.buffId;
+            v.dmaRdDescRet.result := (others => '0');
             -- Force address alignment
             if (DATA_BYTES_C > 1) then
                v.dmaRdDescReq.address(ADDR_LSB_C-1 downto 0) := (others => '0');
             end if;
             -- Reset the counters
-            v.reqCnt                                      := (others => '0');
-            v.ackCnt                                      := (others => '0');
+            v.reqCnt       := (others => '0');
+            v.ackCnt       := (others => '0');
             -- Reset flags
-            v.pending                                     := false;
-            v.axiLen.valid                                := "00";
+            v.pending      := false;
+            v.axiLen.valid := "00";
             -- Check for DMA request
             if dmaRdDescReq.valid = '1' then
                v.dmaRdDescAck  := '1';
@@ -242,7 +242,7 @@ begin
          ----------------------------------------------------------------------
          when ADDR_S =>
             -- Determine transfer size aligned to 4k boundaries
-            getAxiLenProc(AXI_CONFIG_G, BURST_BYTES_G, r.reqSize, r.dmaRdDescReq.address,r.axiLen,v.axiLen);
+            getAxiLenProc(AXI_CONFIG_G, BURST_BYTES_G, r.reqSize, r.dmaRdDescReq.address, r.axiLen, v.axiLen);
             -- Check if ready to make memory request
             if (r.rMaster.arvalid = '0') and (v.axiLen.valid = "11") then
                -- Set the memory address

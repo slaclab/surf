@@ -27,18 +27,18 @@ use surf.SsiPkg.all;
 
 entity AxiStreamFlush is
    generic (
-      TPD_G         : time                 := 1 ns;
-      RST_ASYNC_G   : boolean              := false;
+      TPD_G         : time    := 1 ns;
+      RST_ASYNC_G   : boolean := false;
       AXIS_CONFIG_G : AxiStreamConfigType;
-      SSI_EN_G      : boolean              := false);
+      SSI_EN_G      : boolean := false);
    port (
 
       -- Clock and reset
-      axisClk     : in  sl;
-      axisRst     : in  sl;
+      axisClk : in sl;
+      axisRst : in sl;
 
       -- Flush enable
-      flushEn     : in  sl;
+      flushEn : in sl;
 
       -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
@@ -51,7 +51,7 @@ end AxiStreamFlush;
 
 architecture rtl of AxiStreamFlush is
 
-   type StateType is ( IDLE_S, MOVE_S, FLUSH_S );
+   type StateType is (IDLE_S, MOVE_S, FLUSH_S);
 
    type RegType is record
       state    : StateType;
@@ -69,7 +69,7 @@ architecture rtl of AxiStreamFlush is
 
 begin
 
-   comb : process (mAxisCtrl, sAxisMaster, axisRst, flushEn, r) is
+   comb : process (axisRst, flushEn, mAxisCtrl, r, sAxisMaster) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -77,7 +77,7 @@ begin
 
       -- Reset strobing signals
       v.ibSlave.tReady := '0';
-      v.obMaster := AXI_STREAM_MASTER_INIT_C;
+      v.obMaster       := AXI_STREAM_MASTER_INIT_C;
 
       case r.state is
 
@@ -99,7 +99,7 @@ begin
          when MOVE_S =>
             v.ibSlave.tReady := not mAxisCtrl.pause;
 
-            v.obMaster := sAxisMaster;
+            v.obMaster        := sAxisMaster;
             v.obMaster.tValid := sAxisMaster.tValid and not mAxisCtrl.pause;
 
             --  Flush is asserted, terminate frame
@@ -109,7 +109,7 @@ begin
 
                -- Set EOFE if enabled
                if SSI_EN_G then
-                  ssiSetUserEofe ( AXIS_CONFIG_G, v.obMaster, '1');
+                  ssiSetUserEofe (AXIS_CONFIG_G, v.obMaster, '1');
                end if;
 
                v.state := FLUSH_S;

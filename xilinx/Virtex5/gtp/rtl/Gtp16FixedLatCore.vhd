@@ -14,11 +14,12 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Gtp16FixedLatCore is
    generic (
@@ -33,10 +34,8 @@ entity Gtp16FixedLatCore is
       -- Recovered clock parameters
       REC_CLK_PERIOD : real    := 4.000;
       REC_PLL_MULT   : integer := 4;
-      REC_PLL_DIV    : integer := 1
-      );
+      REC_PLL_DIV    : integer := 1);
    port (
-
       -- GTP Signals
       gtpClkIn     : in  sl;            -- GTP Reference Clock In
       gtpRefClkOut : out sl;            -- GTP Reference Clock Output
@@ -81,9 +80,7 @@ entity Gtp16FixedLatCore is
 
       -- Tx Data
       gtpTxData  : in slv(15 downto 0);
-      gtpTxDataK : in slv(1 downto 0)
-      );
-
+      gtpTxDataK : in slv(1 downto 0));
 end Gtp16FixedLatCore;
 
 architecture rtl of Gtp16FixedLatCore is
@@ -95,7 +92,7 @@ architecture rtl of Gtp16FixedLatCore is
    -- Rx Signals
    --------------------------------------------------------------------------------------------------
    -- Clocking
-   signal gtpRxRecClk       : sl;       -- Raw rxrecclk from GTP, not square, needs DCM or PLL
+   signal gtpRxRecClk       : sl;  -- Raw rxrecclk from GTP, not square, needs DCM or PLL
    signal gtpRxRecClkBufG   : sl;
    signal rxRecClkPllOut0   : sl;       -- 1 byte clock
    signal rxRecClkPllOut1   : sl;       -- 2 byte clock
@@ -507,11 +504,8 @@ begin
          SATA_MIN_WAKE_1      => 4,
          TRANS_TIME_FROM_P2_1 => x"0060",
          TRANS_TIME_NON_P2_1  => x"0025",
-         TRANS_TIME_TO_P2_1   => x"0100"
-
-         )
+         TRANS_TIME_TO_P2_1   => x"0100")
       port map (
-
          ------------------------ Loopback and Powerdown Ports ----------------------
          LOOPBACK0(0)         => '0',
          LOOPBACK0(1)         => gtpLoopback,
@@ -712,8 +706,6 @@ begin
          TXCOMSTART0          => '0',
          TXCOMSTART1          => '0',
          TXCOMTYPE0           => '0',
-         TXCOMTYPE1           => '0'
-         );
-
+         TXCOMTYPE1           => '0');
 
 end rtl;

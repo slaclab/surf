@@ -27,24 +27,24 @@ use surf.AxiLitePkg.all;
 entity Pgp2bGtp7VarLat is
    generic (
       TPD_G                 : time                 := 1 ns;
-      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
+      COMMON_CLK_G          : boolean              := false;  -- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
       SIM_VERSION_G         : string               := "2.0";
-      STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;                    --units of seconds
+      STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;  --units of seconds
       -- Configure PLL
       RXOUT_DIV_G           : integer              := 2;
       TXOUT_DIV_G           : integer              := 2;
-      RX_CLK25_DIV_G        : integer              := 7;      -- Set by wizard
-      TX_CLK25_DIV_G        : integer              := 7;      -- Set by wizard
-      PMA_RSV_G             : bit_vector           := x"00000333";               -- Set by wizard
-      RX_OS_CFG_G           : bit_vector           := "0001111110000";           -- Set by wizard
+      RX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
+      TX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
+      PMA_RSV_G             : bit_vector           := x"00000333";  -- Set by wizard
+      RX_OS_CFG_G           : bit_vector           := "0001111110000";  -- Set by wizard
       RXCDR_CFG_G           : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit                  := '1';    -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit                  := '0';    -- Set by wizard
+      RXLPM_INCM_CFG_G      : bit                  := '1';   -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit                  := '0';   -- Set by wizard
       DYNAMIC_QPLL_G        : boolean              := false;
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
@@ -57,18 +57,18 @@ entity Pgp2bGtp7VarLat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G       : integer              := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G     : integer              := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G       : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G     : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G           : integer range 1 to 4 := 4;
       TX_POLARITY_G         : sl                   := '0';
       RX_POLARITY_G         : sl                   := '0';
-      TX_ENABLE_G           : boolean              := true;   -- Enable TX direction
+      TX_ENABLE_G           : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G           : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      qPllRxSelect     : in  slv(1 downto 0) := "00";
-      qPllTxSelect     : in  slv(1 downto 0) := "00";
+      qPllRxSelect     : in  slv(1 downto 0)                  := "00";
+      qPllTxSelect     : in  slv(1 downto 0)                  := "00";
       gtQPllOutRefClk  : in  slv(1 downto 0);
       gtQPllOutClk     : in  slv(1 downto 0);
       gtQPllLock       : in  slv(1 downto 0);

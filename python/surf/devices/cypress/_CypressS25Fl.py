@@ -38,7 +38,7 @@ class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
 
     def _LoadMcsFile(self,arg):
 
-        click.secho(('LoadMcsFile: %s' % arg), fg='green')
+        click.secho( f'LoadMcsFile: {arg}', fg='green')
         self._progDone = False
 
         # Start time measurement for profiling
@@ -68,7 +68,7 @@ class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
         # End time measurement for profiling
         end = time.time()
         elapsed = end - start
-        click.secho('LoadMcsFile() took %s to program the PROM' % datetime.timedelta(seconds=int(elapsed)), fg='green')
+        click.secho( f'LoadMcsFile() took {datetime.timedelta(seconds=int(elapsed))} to program the PROM', fg='green')
 
         # Add a power cycle reminder
         self._progDone = True

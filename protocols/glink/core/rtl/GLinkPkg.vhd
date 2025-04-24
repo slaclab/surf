@@ -17,7 +17,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -109,8 +108,7 @@ package GLinkPkg is
 
    -- GLink Word structure
    -- Contains 16 bit W-Field (data) and 4 bit C-Field (control)
-   type GLinkWordType is
-   record
+   type GLinkWordType is record
       w : slv(0 to 15);                 -- W-Field
       c : slv(3 downto 0);              -- C-Field
    end record;

@@ -21,15 +21,15 @@ use ieee.fixed_float_types.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VComponents.all;
+library unisim;
+use unisim.vcomponents.all;
 
 -- Manually instantie LUT6_2 and CARRY8 blocks for optimized 3 input adder
 -- See UG579 p. 62 == 3:2 compressor followed by 2 input adder
 -- see https://www.element14.com/community/groups/fpga-group/blog/2018/10/23/the-art-of-fpga-design-post-16
 
 entity csa3 is
-  generic (
+   generic (
       TPD_G        : time    := 1 ns;
       XIL_DEVICE_G : string  := "ULTRASCALE_PLUS";
       REG_IN_G     : boolean := false;
@@ -37,13 +37,13 @@ entity csa3 is
       NEGATIVE_A_G : boolean := false;
       NEGATIVE_B_G : boolean := false;
       EXTRA_MSB_G  : integer := 2);
-  port (
+   port (
       clk : in  sl;
       rst : in  sl := '0';
       a   : in  sfixed;
       b   : in  sfixed;
       c   : in  sfixed;
-      y   : out sfixed);   -- y = +/- a +/- b + c
+      y   : out sfixed);                -- y = +/- a +/- b + c
 end csa3;
 
 architecture rtl of csa3 is
@@ -56,7 +56,7 @@ architecture rtl of csa3 is
       1 => b'high,
       2 => c'high);
 
-   constant LOW_ARRAY_C  : IntegerArray(2 downto 0) := (
+   constant LOW_ARRAY_C : IntegerArray(2 downto 0) := (
       0 => a'low,
       1 => b'low,
       2 => c'low);
@@ -101,25 +101,25 @@ begin
 
 -- generate loop to instantiate a LUT6_2 for every bit
    GEN_L6 : for i in MED_BIT_C to HIGH_BIT_C generate
-      constant I0 : bit_vector(63 downto 0):=X"AAAAAAAAAAAAAAAA";
-      constant I1 : bit_vector(63 downto 0):=X"CCCCCCCCCCCCCCCC";
-      constant I2 : bit_vector(63 downto 0):=X"F0F0F0F0F0F0F0F0" xor (63 downto 0=>BIT'val(BOOLEAN'pos(NEGATIVE_B_G))); -- this inverts B if NEGATIVE_B
-      constant I3 : bit_vector(63 downto 0):=X"FF00FF00FF00FF00" xor (63 downto 0=>BIT'val(BOOLEAN'pos(NEGATIVE_A_G))); -- this inverts A if NEGATIVE_A_G
-      constant I4 : bit_vector(63 downto 0):=X"FFFF0000FFFF0000";
-      constant I5 : bit_vector(63 downto 0):=X"FFFFFFFF00000000";
+      constant I0 : bit_vector(63 downto 0) := X"AAAAAAAAAAAAAAAA";
+      constant I1 : bit_vector(63 downto 0) := X"CCCCCCCCCCCCCCCC";
+      constant I2 : bit_vector(63 downto 0) := X"F0F0F0F0F0F0F0F0" xor (63 downto 0 => bit'val(boolean'pos(NEGATIVE_B_G)));  -- this inverts B if NEGATIVE_B
+      constant I3 : bit_vector(63 downto 0) := X"FF00FF00FF00FF00" xor (63 downto 0 => bit'val(boolean'pos(NEGATIVE_A_G)));  -- this inverts A if NEGATIVE_A_G
+      constant I4 : bit_vector(63 downto 0) := X"FFFF0000FFFF0000";
+      constant I5 : bit_vector(63 downto 0) := X"FFFFFFFF00000000";
    begin
       l6 : LUT6_2
          generic map (
             INIT => (I5 and (I1 xor I2 xor I3 xor I4)) or (not I5 and ((I2 and I3) or (I3 and I1) or (I1 and I2))))
          port map (
-            I0   => '0',
-            I1   => inputC(i),
-            I2   => inputB(i),
-            I3   => inputA(i),
-            I4   => O5(i-MED_BIT_C),
-            I5   => '1',
-            O5   => O5(i+1-MED_BIT_C),
-            O6   => O6(i-MED_BIT_C));
+            I0 => '0',
+            I1 => inputC(i),
+            I2 => inputB(i),
+            I3 => inputA(i),
+            I4 => O5(i-MED_BIT_C),
+            I5 => '1',
+            O5 => O5(i+1-MED_BIT_C),
+            O6 => O6(i-MED_BIT_C));
    end generate GEN_L6;
 
 -- generate loop to instantiate a CARRY8 for every 8 bits
@@ -128,14 +128,14 @@ begin
    GEN_CARRY8 : for i in 0 to (HIGH_BIT_C - MED_BIT_C)/8 generate
       c8 : CARRY8
          generic map (
-            CARRY_TYPE => "SINGLE_CY8")         -- 8-bit or dual 4-bit carry (DUAL_CY4, SINGLE_CY8)
+            CARRY_TYPE => "SINGLE_CY8")  -- 8-bit or dual 4-bit carry (DUAL_CY4, SINGLE_CY8)
          port map (
-            CI         => CY(8*i),                -- 1-bit input: Lower Carry-In
-            CI_TOP     => '0',                    -- 1-bit input: Upper Carry-In
-            DI         => DI(8*i+7 downto 8*i),   -- 8-bit input: Carry-MUX data in
-            S          => SI(8*i+7 downto 8*i),   -- 8-bit input: Carry-mux select
-            CO         => CY(8*i+8 downto 8*i+1), -- 8-bit output: Carry-out
-            O          =>  O(8*i+7 downto 8*i));  -- 8-bit output: Carry chain XOR data out
+            CI     => CY(8*i),          -- 1-bit input: Lower Carry-In
+            CI_TOP => '0',              -- 1-bit input: Upper Carry-In
+            DI     => DI(8*i+7 downto 8*i),  -- 8-bit input: Carry-MUX data in
+            S      => SI(8*i+7 downto 8*i),  -- 8-bit input: Carry-mux select
+            CO     => CY(8*i+8 downto 8*i+1),  -- 8-bit output: Carry-out
+            O      => O(8*i+7 downto 8*i));  -- 8-bit output: Carry chain XOR data out
    end generate GEN_CARRY8;
 
 -- the upper portion of the result (HIGH_BIT_C downto MED_BIT_C) is given by the adder
@@ -158,15 +158,15 @@ begin
    end generate;
 
 
-  comb : process( a, b, c, inputA, inputB, inputC, sum, r ) is
+   comb : process(a, b, c, inputA, inputB, inputC, r, sum) is
       variable v : RegType;
-  begin
+   begin
 
-      v     := r;
+      v := r;
 
-      v.a   := a;
-      v.b   := b;
-      v.c   := c;
+      v.a := a;
+      v.b := b;
+      v.c := c;
 
       v.sum := resize(sum, v.sum, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
 
@@ -183,15 +183,15 @@ begin
       end if;
 
       if REG_OUT_G then
-          y <= r.sum;
+         y <= r.sum;
       else
-          y <= v.sum;
+         y <= v.sum;
       end if;
 
-  end process comb;
+   end process comb;
 
-  seq : process ( clk ) is
-  begin
+   seq : process (clk) is
+   begin
 
       if rising_edge(clk) then
          if rst = '1' then
@@ -200,6 +200,6 @@ begin
             r <= rin after TPD_G;
          end if;
       end if;
-  end process seq;
+   end process seq;
 
 end rtl;

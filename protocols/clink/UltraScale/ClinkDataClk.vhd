@@ -132,18 +132,18 @@ begin
 
       U_BufIn : BUFG
          port map (
-            I   => clkIn,
-            O   => clkInLoc);
+            I => clkIn,
+            O => clkInLoc);
 
       U_BufFb : BUFG
          port map (
-            I   => clkFbOut,
-            O   => clkFbIn);
+            I => clkFbOut,
+            O => clkFbIn);
 
       U_BufOut : BUFG
          port map (
-            I   => clkOutMmcm(0),
-            O   => clkOutLoc(0));
+            I => clkOutMmcm(0),
+            O => clkOutLoc(0));
 
       U_BufIo : BUFG
          port map (

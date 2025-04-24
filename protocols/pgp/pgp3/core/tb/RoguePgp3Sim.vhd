@@ -98,7 +98,7 @@ begin
             PORT_NUM_G    => (PORT_NUM_G + i*2),
             SSI_EN_G      => true,
             CHAN_COUNT_G  => 1,
-            TDEST_MASK_G  => toSlv(i,8),
+            TDEST_MASK_G  => toSlv(i, 8),
             AXIS_CONFIG_G => PGP3_AXIS_CONFIG_C)
          port map (
             axisClk     => clk,              -- [in]

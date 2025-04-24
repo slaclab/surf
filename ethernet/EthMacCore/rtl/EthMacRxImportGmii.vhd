@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -56,7 +55,7 @@ architecture rtl of EthMacRxImportGmii is
       TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
       TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
-   type StateType is(
+   type StateType is (
       WAIT_SFD_S,
       WAIT_DATA_S,
       GET_DATA_S,
@@ -118,18 +117,18 @@ begin
          CASCADE_SIZE_G      => 1,
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,            --  8-bit AXI stream interface
+         SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  8-bit AXI stream interface
          MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macMaster,                       -- 8-bit AXI stream interface
+         sAxisMaster => macMaster,      -- 8-bit AXI stream interface
          sAxisSlave  => open,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macIbMaster,                     -- 128-bit AXI stream interface
+         mAxisMaster => macIbMaster,    -- 128-bit AXI stream interface
          mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
    comb : process (crcIn, crcOut, ethClkEn, ethRst, gmiiRxDv, gmiiRxEr,

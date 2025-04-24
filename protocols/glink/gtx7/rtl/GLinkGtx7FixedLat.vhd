@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.GlinkPkg.all;
@@ -40,16 +39,16 @@ entity GLinkGtx7FixedLat is
       -- MGT Settings
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
-      RX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
-      TX_CLK25_DIV_G        : integer    := 5;                      -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G           : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
+      TX_CLK25_DIV_G        : integer    := 5;    -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0000010000000";  -- Set by wizard
+      RXCDR_CFG_G           : bit_vector := x"03000023FF40200020";  -- Set by wizard
       -- RX Equalizer Attributes
-      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";            -- Set by wizard
+      RX_DFE_KL_CFG2_G      : bit_vector := x"3008E56A";      -- Set by wizard
       RX_CM_TRIM_G          : bit_vector := "010";
       RX_DFE_LPM_CFG_G      : bit_vector := x"0954";
       RXDFELFOVRDEN_G       : sl         := '1';
-      RXDFEXYDEN_G          : sl         := '1';                     -- This should always be 1
+      RXDFEXYDEN_G          : sl         := '1';  -- This should always be 1
       -- Configure PLL sources
       TX_PLL_G              : string     := "QPLL";
       RX_PLL_G              : string     := "CPLL");
@@ -67,7 +66,7 @@ entity GLinkGtx7FixedLat is
       gLinkRxClkEn     : in  sl := '1';
       gLinkRxRst       : in  sl := '0';
       -- MGT Clocking
-      gLinkTxRefClk    : in  sl;                                    -- G-Link TX clock reference
+      gLinkTxRefClk    : in  sl;        -- G-Link TX clock reference
       stableClk        : in  sl;
       gtCPllRefClk     : in  sl := '0';
       gtCPllLock       : out sl;
@@ -81,7 +80,7 @@ entity GLinkGtx7FixedLat is
       loopback         : in  slv(2 downto 0);
       txPowerDown      : in  sl;
       rxPowerDown      : in  sl;
-      rxClkDebug       : out sl;                                    -- debug only
+      rxClkDebug       : out sl;        -- debug only
       -- MGT Serial IO
       gtTxP            : out sl;
       gtTxN            : out sl;
@@ -96,24 +95,26 @@ architecture rtl of GLinkGtx7FixedLat is
    constant FIXED_ALIGN_COMMA_1_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(1) & GLINK_CONTROL_WORD_C));  -- FF1A
    constant FIXED_ALIGN_COMMA_2_C : slv(19 downto 0) := bitReverse((GLINK_VALID_IDLE_WORDS_C(2) & GLINK_CONTROL_WORD_C));  -- FF1B
 
-   signal txFifoValid,
-      rxFifoValid,
-      rxRecClk,
-      rxClk,
-      rxRst,
-      txClk,
-      txUserReset,
-      rxUserReset,
-      gtTxRstDone,
-      gtRxRstDone,
-      gtTxRst,
-      gtRxRst,
-      dataValid : sl := '0';
-   signal txFifoDout,
-      gtTxData,
-      gtRxData,
-      gtTxDataReversed,
-      gtRxDataReversed : slv(19 downto 0) := (others => '0');
+   signal txFifoValid : sl := '0';
+   signal rxFifoValid : sl := '0';
+   signal rxRecClk    : sl := '0';
+   signal rxClk       : sl := '0';
+   signal rxRst       : sl := '0';
+   signal txClk       : sl := '0';
+   signal txUserReset : sl := '0';
+   signal rxUserReset : sl := '0';
+   signal gtTxRstDone : sl := '0';
+   signal gtRxRstDone : sl := '0';
+   signal gtTxRst     : sl := '0';
+   signal gtRxRst     : sl := '0';
+   signal dataValid   : sl := '0';
+
+   signal txFifoDout       : slv(19 downto 0) := (others => '0');
+   signal gtTxData         : slv(19 downto 0) := (others => '0');
+   signal gtRxData         : slv(19 downto 0) := (others => '0');
+   signal gtTxDataReversed : slv(19 downto 0) := (others => '0');
+   signal gtRxDataReversed : slv(19 downto 0) := (others => '0');
+
    signal rxFifoDout  : slv(23 downto 0);
    signal gLinkTxSync : GLinkTxType;
    signal gLinkRxSync : GLinkRxType;
@@ -320,18 +321,18 @@ begin
          rxUserResetIn    => rxUserReset,      -- Sync'd in Gtx7RxRst.vhd
          rxResetDoneOut   => gtRxRstDone,
          rxDataValidIn    => dataValid,
-         rxSlideIn        => '0',              -- Slide is controlled internally
+         rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxDataReversed,
-         rxCharIsKOut     => open,             -- Not using gt rx 8b10b
-         rxDecErrOut      => open,             -- Not using gt rx 8b10b
-         rxDispErrOut     => open,             -- Not using gt rx 8b10b
+         rxCharIsKOut     => open,      -- Not using gt rx 8b10b
+         rxDecErrOut      => open,      -- Not using gt rx 8b10b
+         rxDispErrOut     => open,      -- Not using gt rx 8b10b
          rxPolarityIn     => '0',
          rxBufStatusOut   => open,
          txOutClkOut      => open,
          txUsrClkIn       => txClk,
          txUsrClk2In      => txClk,
-         txUserRdyOut     => open,             -- Not sure what to do with this
-         txMmcmResetOut   => open,             -- No Tx MMCM in Fixed Latency mode
+         txUserRdyOut     => open,      -- Not sure what to do with this
+         txMmcmResetOut   => open,      -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => '1',
          txUserResetIn    => txUserReset,
          txResetDoneOut   => gtTxRstDone,
@@ -343,4 +344,5 @@ begin
          rxPowerDown(0)   => rxPowerDown,
          rxPowerDown(1)   => rxPowerDown,
          loopbackIn       => loopback);
+
 end rtl;

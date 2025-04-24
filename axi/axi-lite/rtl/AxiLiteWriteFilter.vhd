@@ -23,10 +23,10 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteWriteFilter is
    generic (
-      TPD_G            : time       := 1 ns;
-      RST_ASYNC_G      : boolean    := false;
-      FILTER_SIZE_G    : positive   := 1;  -- Number of filter addresses
-      FILTER_ADDR_G    : Slv32Array := (0 => x"00000000"));  -- Filter addresses that will be allowed through
+      TPD_G         : time       := 1 ns;
+      RST_ASYNC_G   : boolean    := false;
+      FILTER_SIZE_G : positive   := 1;  -- Number of filter addresses
+      FILTER_ADDR_G : Slv32Array := (0 => x"00000000"));  -- Filter addresses that will be allowed through
    port (
       -- Clock and reset
       axilClk          : in  sl;

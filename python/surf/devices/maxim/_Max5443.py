@@ -32,4 +32,4 @@ class Max5443(pr.Device):
     def convtFloat(dev, var):
         value   = var.dependencies[0].get(read=False)
         fpValue = value*(3.0/65536.0)
-        return '%0.3f'%(fpValue)
+        return f'{fpValue:.3f}'

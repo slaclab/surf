@@ -31,7 +31,7 @@ entity Pgp4LiteRxLowSpeed is
       NUM_LANE_G         : positive                := 1;
       STATUS_CNT_WIDTH_G : natural range 1 to 32   := 16;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32   := 8;
-      AXIL_CLK_FREQ_G    : real; -- In units of HZ
+      AXIL_CLK_FREQ_G    : real;        -- In units of HZ
       AXIL_BASE_ADDR_G   : slv(31 downto 0));
    port (
       -- Deserialization Interface (deserClk domain)

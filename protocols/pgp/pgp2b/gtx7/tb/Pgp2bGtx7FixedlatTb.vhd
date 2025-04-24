@@ -44,58 +44,58 @@ architecture tb of Pgp2bGtx7FixedLatTb is
    constant RX_CM_CLKFBOUT_MULT_F_G : real                 := 8.000;
    constant RX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
    constant RX_OS_CFG_G             : bit_vector           := "0000010000000";
-   constant RXCDR_CFG_G             : bit_vector           := x"03000023ff40200020";
+   constant RXCDR_CFG_G             : bit_vector           := x"03000023FF40200020";
    constant RXDFEXYDEN_G            : sl                   := '0';
    constant RX_DFE_KL_CFG2_G        : bit_vector           := x"3008E56A";
    constant STABLE_CLK_SRC_G        : string               := "stableClkIn";
    constant TX_REFCLK_SRC_G         : string               := "gtClk0";
    constant RX_REFCLK_SRC_G         : string               := "gtClk1";
-   constant CPLL_CFG_G              : Gtx7CPllCfgType      := getGtx7CPllCfg(125.0E6, 2.5E9);
-   constant QPLL_CFG_G              : Gtx7QPllCfgType      := getGtx7QPllCfg(125.0e6, 2.5e9);
+   constant CPLL_CFG_G              : Gtx7CPllCfgType      := getGtx7CPllCfg(125.0E+6, 2.5E+9);
+   constant QPLL_CFG_G              : Gtx7QPllCfgType      := getGtx7QPllCfg(125.0E+6, 2.5E+9);
    constant TX_PLL_G                : string               := "QPLL";
    constant RX_PLL_G                : string               := "CPLL";
 
    -- component ports
-   signal stableClkIn      : sl                     := '0';                           -- [in]
-   signal extRst           : sl;                                                      -- [in]
-   signal txPllLock        : sl;                                                      -- [out]
-   signal rxPllLock        : sl;                                                      -- [out]
-   signal pgpTxClkOut      : sl;                                                      -- [out]
-   signal pgpRxClkOut      : sl;                                                      -- [out]
-   signal pgpRxRstOut      : sl;                                                      -- [out]
-   signal stableClkOut     : sl;                                                      -- [out]
-   signal pgpRxIn          : Pgp2bRxInType;                                           -- [in]
-   signal pgpRxOut         : Pgp2bRxOutType;                                          -- [out]
-   signal pgpTxIn          : Pgp2bTxInType;                                           -- [in]
-   signal pgpTxOut         : Pgp2bTxOutType;                                          -- [out]
-   signal pgpTxMasters     : AxiStreamMasterArray(3 downto 0);                        -- [in]
-   signal pgpTxSlaves      : AxiStreamSlaveArray(3 downto 0);                         -- [out]
-   signal pgpRxMasters     : AxiStreamMasterArray(3 downto 0);                        -- [out]
-   signal pgpRxMasterMuxed : AxiStreamMasterType;                                     -- [out]
-   signal pgpRxCtrl        : AxiStreamCtrlArray(3 downto 0);                          -- [in]
-   signal gtgClk           : sl                     := '0';                           -- [in]
-   signal gtClk0P          : sl                     := '0';                           -- [in]
-   signal gtClk0N          : sl                     := '0';                           -- [in]
-   signal gtClk1P          : sl                     := '0';                           -- [in]
-   signal gtClk1N          : sl                     := '0';                           -- [in]
-   signal gtTxP            : sl;                                                      -- [out]
-   signal gtTxN            : sl;                                                      -- [out]
-   signal gtRxP            : sl;                                                      -- [in]
-   signal gtRxN            : sl;                                                      -- [in]
-   signal txPreCursor      : slv(4 downto 0)        := (others => '0');               -- [in]
-   signal txPostCursor     : slv(4 downto 0)        := (others => '0');               -- [in]
-   signal txDiffCtrl       : slv(3 downto 0)        := "1000";                        -- [in]
-   signal axilClk          : sl                     := '0';                           -- [in]
-   signal axilRst          : sl                     := '0';                           -- [in]
-   signal axilReadMaster   : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;   -- [in]
-   signal axilReadSlave    : AxiLiteReadSlaveType;                                    -- [out]
+   signal stableClkIn      : sl                     := '0';     -- [in]
+   signal extRst           : sl;        -- [in]
+   signal txPllLock        : sl;        -- [out]
+   signal rxPllLock        : sl;        -- [out]
+   signal pgpTxClkOut      : sl;        -- [out]
+   signal pgpRxClkOut      : sl;        -- [out]
+   signal pgpRxRstOut      : sl;        -- [out]
+   signal stableClkOut     : sl;        -- [out]
+   signal pgpRxIn          : Pgp2bRxInType;                     -- [in]
+   signal pgpRxOut         : Pgp2bRxOutType;                    -- [out]
+   signal pgpTxIn          : Pgp2bTxInType;                     -- [in]
+   signal pgpTxOut         : Pgp2bTxOutType;                    -- [out]
+   signal pgpTxMasters     : AxiStreamMasterArray(3 downto 0);  -- [in]
+   signal pgpTxSlaves      : AxiStreamSlaveArray(3 downto 0);   -- [out]
+   signal pgpRxMasters     : AxiStreamMasterArray(3 downto 0);  -- [out]
+   signal pgpRxMasterMuxed : AxiStreamMasterType;               -- [out]
+   signal pgpRxCtrl        : AxiStreamCtrlArray(3 downto 0);    -- [in]
+   signal gtgClk           : sl                     := '0';     -- [in]
+   signal gtClk0P          : sl                     := '0';     -- [in]
+   signal gtClk0N          : sl                     := '0';     -- [in]
+   signal gtClk1P          : sl                     := '0';     -- [in]
+   signal gtClk1N          : sl                     := '0';     -- [in]
+   signal gtTxP            : sl;        -- [out]
+   signal gtTxN            : sl;        -- [out]
+   signal gtRxP            : sl;        -- [in]
+   signal gtRxN            : sl;        -- [in]
+   signal txPreCursor      : slv(4 downto 0)        := (others => '0');  -- [in]
+   signal txPostCursor     : slv(4 downto 0)        := (others => '0');  -- [in]
+   signal txDiffCtrl       : slv(3 downto 0)        := "1000";  -- [in]
+   signal axilClk          : sl                     := '0';     -- [in]
+   signal axilRst          : sl                     := '0';     -- [in]
+   signal axilReadMaster   : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [in]
+   signal axilReadSlave    : AxiLiteReadSlaveType;              -- [out]
    signal axilWriteMaster  : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [in]
-   signal axilWriteSlave   : AxiLiteWriteSlaveType;                                   -- [out]
+   signal axilWriteSlave   : AxiLiteWriteSlaveType;             -- [out]
 
 begin
 
    -- component instantiation
-   U_Pgp2bGtx7FixedLatWrapper: entity surf.Pgp2bGtx7FixedLatWrapper
+   U_Pgp2bGtx7FixedLatWrapper : entity surf.Pgp2bGtx7FixedLatWrapper
       generic map (
          VC_INTERLEAVE_G         => VC_INTERLEAVE_G,
          PAYLOAD_CNT_TOP_G       => PAYLOAD_CNT_TOP_G,

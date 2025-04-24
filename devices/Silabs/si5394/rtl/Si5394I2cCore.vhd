@@ -25,8 +25,8 @@ use surf.I2cPkg.all;
 entity Si5394I2cCore is
    generic (
       TPD_G              : time            := 1 ns;
-      MEMORY_INIT_FILE_G : string          := "none";      -- Used to initialization boot ROM
-      I2C_BASE_ADDR_G    : slv(1 downto 0) := "00";        -- A[1:0] pin config
+      MEMORY_INIT_FILE_G : string          := "none";  -- Used to initialization boot ROM
+      I2C_BASE_ADDR_G    : slv(1 downto 0) := "00";    -- A[1:0] pin config
       I2C_SCL_FREQ_G     : real            := 100.0E+3;    -- units of Hz
       I2C_MIN_PULSE_G    : real            := 100.0E-9;    -- units of seconds
       AXIL_CLK_FREQ_G    : real            := 156.25E+6);  -- units of Hz
@@ -423,8 +423,8 @@ begin
       generic map(
          TPD_G          => TPD_G,
          DURATION_G     => getTimeRatio(100.0E-9, (1.0/AXIL_CLK_FREQ_G)),  -- min 100 ns pulse
-         IN_POLARITY_G  => '1',                                            -- active HIGH input
-         OUT_POLARITY_G => '0')                                            -- active LOW output
+         IN_POLARITY_G  => '1',         -- active HIGH input
+         OUT_POLARITY_G => '0')         -- active LOW output
       port map (
          clk    => axilClk,
          arst   => axilRst,

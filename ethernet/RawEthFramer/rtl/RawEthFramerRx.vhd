@@ -102,7 +102,7 @@ begin
          v.ibAppMaster.tValid := '0';
          v.ibAppMaster.tLast  := '0';
          v.ibAppMaster.tUser  := (others => '0');
-         v.ibAppMaster.tKeep  := resize(x"00FF",AXI_STREAM_MAX_TKEEP_WIDTH_C);
+         v.ibAppMaster.tKeep  := resize(x"00FF", AXI_STREAM_MAX_TKEEP_WIDTH_C);
       end if;
 
       -- State Machine

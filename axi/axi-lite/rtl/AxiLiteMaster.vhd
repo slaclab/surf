@@ -41,15 +41,15 @@ architecture rtl of AxiLiteMaster is
    type StateType is (S_IDLE_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_C, S_READ_AXI_C);
 
    type RegType is record
-      ack              : AxiLiteAckType;
-      state            : StateType;
+      ack             : AxiLiteAckType;
+      state           : StateType;
       axilWriteMaster : AxiLiteWriteMasterType;
       axilReadMaster  : AxiLiteReadMasterType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      ack              =>  AXI_LITE_ACK_INIT_C,
-      state            => S_IDLE_C,
+      ack             => AXI_LITE_ACK_INIT_C,
+      state           => S_IDLE_C,
       axilWriteMaster => AXI_LITE_WRITE_MASTER_INIT_C,
       axilReadMaster  => AXI_LITE_READ_MASTER_INIT_C);
 
@@ -62,7 +62,7 @@ begin
    -- Master State Machine
    -------------------------------------
 
-   comb : process (axilRst, axilReadSlave, axilWriteSlave, r, req) is
+   comb : process (axilReadSlave, axilRst, axilWriteSlave, r, req) is
       variable v : RegType;
    begin
       v := r;
@@ -112,8 +112,8 @@ begin
             if axilWriteSlave.bvalid = '1' then
                v.axilWriteMaster.bready := '0';
                v.ack.done               := '1';
-               v.ack.resp                := axilWriteSlave.bresp;
-               v.state                   := S_IDLE_C;
+               v.ack.resp               := axilWriteSlave.bresp;
+               v.state                  := S_IDLE_C;
             end if;
 
          -- Read transaction
@@ -124,7 +124,7 @@ begin
             -- Start AXI transaction
             v.axilReadMaster.arvalid := '1';
             v.axilReadMaster.rready  := '1';
-            v.state                   := S_READ_AXI_C;
+            v.state                  := S_READ_AXI_C;
 
          -- Read AXI
          when S_READ_AXI_C =>
@@ -134,14 +134,14 @@ begin
             end if;
             if axilReadSlave.rvalid = '1' then
                v.axilReadMaster.rready := '0';
-               v.ack.rdData             := axilReadSlave.rdata;
-               v.ack.resp               := axilReadSlave.rresp;
+               v.ack.rdData            := axilReadSlave.rdata;
+               v.ack.resp              := axilReadSlave.rresp;
             end if;
 
             -- Transaction is done
             if v.axilReadMaster.arvalid = '0' and v.axilReadMaster.rready = '0' then
                v.ack.done := '1';
-               v.state     := S_IDLE_C;
+               v.state    := S_IDLE_C;
             end if;
 
       end case;

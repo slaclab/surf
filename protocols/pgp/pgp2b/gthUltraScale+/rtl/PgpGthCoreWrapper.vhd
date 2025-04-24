@@ -24,7 +24,7 @@ use surf.AxiLitePkg.all;
 entity PgpGthCoreWrapper is
 
    generic (
-      TPD_G             : time            := 1 ns);
+      TPD_G : time := 1 ns);
    port (
       stableClk : in  sl;
       stableRst : in  sl;

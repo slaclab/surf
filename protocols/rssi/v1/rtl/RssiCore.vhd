@@ -78,7 +78,7 @@ entity RssiCore is
       HEADER_CHKSUM_EN_G : boolean  := true;
 
       -- Window parameters of receiver module
-      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8;     -- <=(2**WINDOW_ADDR_SIZE_G)
+      MAX_NUM_OUTS_SEG_G : positive range 2 to 1024 := 8;  -- <=(2**WINDOW_ADDR_SIZE_G)
       MAX_SEG_SIZE_G     : positive                 := 1024;  -- <= (2**SEGMENT_ADDR_SIZE_G)*8 Number of bytes
 
       -- RSSI Timeouts
@@ -120,7 +120,7 @@ entity RssiCore is
       axilWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Internal statuses
-      statusReg_o : out slv(6 downto 0);
+      statusReg_o : out slv(8 downto 0);
 
       maxSegSize_o : out slv(15 downto 0));
 end entity RssiCore;
@@ -129,7 +129,8 @@ architecture rtl of RssiCore is
 
    constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
 
-   signal s_rxBuffBusy : sl;
+   -- Busy Flags
+   signal s_localBusy : sl;
 
    -- RSSI Parameters
    signal s_appRssiParam : RssiParamType;
@@ -218,6 +219,7 @@ architecture rtl of RssiCore is
    signal s_mAppAxisMaster : AxiStreamMasterType;
    signal s_mAppAxisSlave  : AxiStreamSlaveType;
    signal s_mAppAxisCtrl   : AxiStreamCtrlType;
+   signal s_mAppfifoWrCnt  : slv(SEGMENT_ADDR_SIZE_G downto 0);
 
    -- SSI Application side
    signal s_sAppSsiMaster : SsiMasterType;
@@ -261,7 +263,7 @@ architecture rtl of RssiCore is
    -- Axi Lite registers
    signal s_openRqReg       : sl;
    signal s_closeRqReg      : sl;
-   signal s_modeReg         : sl;       -- '0': Use internal parameters from generics
+   signal s_modeReg         : sl;  -- '0': Use internal parameters from generics
    -- '1': Use parameters from Axil
    signal s_initSeqNReg     : slv(7 downto 0);
    signal s_appRssiParamReg : RssiParamType;
@@ -365,8 +367,9 @@ begin
    -- Parameter assignment
    ------------------------------------------------------------
    -- /////////////////////////////////////////////////////////
-   combParamAssign : process (closeRq_i, openRq_i, s_appRssiParamReg, s_closeRqReg, s_initSeqNReg,
-                              s_intCloseRq, s_modeReg, s_openRqReg) is
+   combParamAssign : process (closeRq_i, openRq_i, s_appRssiParamReg,
+                              s_closeRqReg, s_initSeqNReg, s_intCloseRq,
+                              s_modeReg, s_openRqReg) is
    begin
       if (s_modeReg = '0') then
          -- Use external requests
@@ -520,7 +523,7 @@ begin
          rst_i        => rst_i,
          connActive_i => s_connActive,
 
-         rxBuffBusy_i    => s_rxBuffBusy,
+         localBusy_i     => s_localBusy,
          rssiParam_i     => s_rssiParam,
          rxFlags_i       => s_rxFlags,
          rxValid_i       => s_rxValidSeg,
@@ -572,7 +575,7 @@ begin
          dataHeadSt_i => s_dataHeadSt,
          nullHeadSt_i => s_nullHeadSt,
          ackHeadSt_i  => s_ackHeadSt,
-         busyHeadSt_i => s_rxBuffBusy,
+         busyHeadSt_i => s_localBusy,
 
          ack_i          => s_txAckF,    -- Connected to ConnectFSM
          txSeqN_i       => s_txSeqN,
@@ -640,7 +643,7 @@ begin
          synHeadSt_o  => s_synHeadSt,
          ackHeadSt_o  => s_ackHeadSt,
          dataHeadSt_o => s_dataHeadSt,
-         dataSt_o     => open,          -- may be used in the future otherwise remove
+         dataSt_o     => open,  -- may be used in the future otherwise remove
          rstHeadSt_o  => s_rstHeadSt,
          nullHeadSt_o => s_nullHeadSt,
 
@@ -761,7 +764,6 @@ begin
       port map (
          clk_i          => clk_i,
          rst_i          => rst_i,
-         rxBuffBusy_o   => s_rxBuffBusy,
          connActive_i   => s_connActive,
          rxWindowSize_i => s_rxWindowSize,
          rxBufferSize_i => s_rxBufferSize,
@@ -886,6 +888,8 @@ begin
    -- SSI Application side
    s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mAppSsiMaster);
    s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mAppAxisSlave, s_mAppAxisCtrl);
+   s_localBusy      <= s_mAppfifoWrCnt(SEGMENT_ADDR_SIZE_G);
+
    -- SSI Transport side
    s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mTspSsiMaster);
    s_mTspSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mTspAxisSlave, s_mTspAxisCtrl);
@@ -904,7 +908,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
-         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,          -- Enough to store 2 segments
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
@@ -917,6 +921,7 @@ begin
          sAxisMaster => s_mAppAxisMaster,
          sAxisSlave  => s_mAppAxisSlave,
          sAxisCtrl   => s_mAppAxisCtrl,
+         fifoWrCnt   => s_mAppfifoWrCnt,
          --
          mAxisClk    => clk_i,
          mAxisRst    => s_rstFifo,
@@ -935,7 +940,7 @@ begin
          GEN_SYNC_FIFO_G     => true,
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
-         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,          -- Enough to store 2 segments
+         FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",

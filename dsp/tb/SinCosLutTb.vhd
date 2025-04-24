@@ -37,17 +37,17 @@ architecture test of SinCosLutTb is
 
    signal clk : std_logic := '0';
    signal rst : std_logic := '1';
-   signal run : boolean := true;
-   signal cnt : integer := 0;
+   signal run : boolean   := true;
+   signal cnt : integer   := 0;
 
-   signal phaseIn   : unsigned(PHASE_WIDTH_C - 1 downto 0) := (others => '0');
-   signal validIn   : sl := '0';
+   signal phaseIn : unsigned(PHASE_WIDTH_C - 1 downto 0) := (others => '0');
+   signal validIn : sl                                   := '0';
 
-   signal dout      : cfixed(re(0 downto -17), im(0 downto -17));
-   signal validOut  : sl := '0';
+   signal dout     : cfixed(re(0 downto -17), im(0 downto -17));
+   signal validOut : sl := '0';
 
-   signal doutRe    : real := 0.0;
-   signal doutIm    : real := 0.0;
+   signal doutRe : real := 0.0;
+   signal doutIm : real := 0.0;
 
 begin
 
@@ -65,8 +65,8 @@ begin
       end if;
    end process p_clk;
 
-   p_cnt : process ( clk ) is
-      file outf      : text open WRITE_MODE is "sincos_out.dat";
+   p_cnt : process (clk) is
+      file outf      : text open write_mode is "sincos_out.dat";
       constant comma : string := ", ";
       variable lin   : line;
    begin

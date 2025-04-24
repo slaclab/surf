@@ -122,8 +122,7 @@ begin
             DATA_WIDTH_G  => SLAVE_WIDTH_G,
             MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
             PIPE_STAGES_G => INPUT_PIPE_STAGES_G,
-            ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G
-            )
+            ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
          port map (
             rst         => asyncFifoRst,     -- [in]
             wr_clk      => slaveClk,         -- [in]

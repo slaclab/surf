@@ -68,7 +68,7 @@ architecture rtl of CoaXPressRxLane is
       STREAM_DATA_S);
 
    type RegType is record
-      errDet  : sl;
+      errDet         : sl;
       -- ACK Interface
       ioAck          : sl;
       eventAck       : sl;
@@ -202,13 +202,13 @@ begin
                      -- Set the flag
                      v.errDet := '1';
                      -- Next State
-                     v.state := IDLE_S;
+                     v.state  := IDLE_S;
                   end if;
                else
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when CTRL_ACK_TAG_S =>
@@ -220,7 +220,7 @@ begin
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when CTRL_ACK_S =>
@@ -286,7 +286,7 @@ begin
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when HEARTBEAT_S =>
@@ -315,7 +315,7 @@ begin
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when STREAM_ID_S =>
@@ -332,7 +332,7 @@ begin
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when PACKET_TAG_S =>
@@ -349,7 +349,7 @@ begin
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when DSIZE_UPPER_S =>
@@ -366,7 +366,7 @@ begin
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when DSIZE_LOWER_S =>
@@ -383,7 +383,7 @@ begin
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when STREAM_DATA_S =>

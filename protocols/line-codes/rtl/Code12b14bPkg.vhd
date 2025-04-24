@@ -19,11 +19,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 --use surf.TextUtilPkg.all;
-
 
 package Code12b14bPkg is
 
@@ -292,10 +290,10 @@ package body Code12b14bPkg is
 
    -- Determine the disparity of a vector
    function getDisparity (vec : slv) return BlockDisparityType is
-      variable ones      : integer;
-      variable zeros     : integer;
-      variable difference: integer;
-      variable disparity : BlockDisparityType;
+      variable ones       : integer;
+      variable zeros      : integer;
+      variable difference : integer;
+      variable disparity  : BlockDisparityType;
    begin
       zeros := 0;
       ones  := 0;
@@ -305,14 +303,14 @@ package body Code12b14bPkg is
          end if;
       end loop;
 
-      ones      := vec'length-zeros;
-      difference:= ones-zeros;
+      ones       := vec'length-zeros;
+      difference := ones-zeros;
       if (difference > 4) then
-        disparity := 4;
+         disparity := 4;
       elsif (difference < -4) then
-        disparity := -4;
+         disparity := -4;
       else
-        disparity :=  difference;
+         disparity := difference;
       end if;
 
       return disparity;
@@ -363,7 +361,7 @@ package body Code12b14bPkg is
       variable dispInt : BlockDisparityType;
    begin
       compliment := '0';
-      dispInt := toBlockDisparityType(prevDisp);
+      dispInt    := toBlockDisparityType(prevDisp);
 
       case prevDisp is
          when "10" =>                   -- -2
@@ -450,8 +448,8 @@ package body Code12b14bPkg is
       variable data6       : slv(5 downto 0);
       variable blockDisp56 : BlockDisparityType;
 
-      variable debug   : boolean := false;
-      variable tmpDisp : integer range -8 to 8;
+      variable debug      : boolean := false;
+      variable tmpDisp    : integer range -8 to 8;
       variable compliment : sl;
    begin
 
@@ -531,7 +529,7 @@ package body Code12b14bPkg is
          dispOut := toSlv(blockDispIn + tmpDisp);
       end if;
 
-   end;
+   end procedure encode12b14b;
 
    procedure decode12b14b (
       constant CODES_C : in    EncodeTableType;

@@ -17,19 +17,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Jesd204bPkg.all;
 
---------------------------------------------------------------------------------
 entity DescrambleTb is
+end entity DescrambleTb;
 
-end entity;
---------------------------------------------------------------------------------
+architecture testbed of DescrambleTb is
 
-architecture Bhv of DescrambleTb is
    -----------------------------
    -- Port Signals
    -----------------------------
@@ -61,10 +58,10 @@ architecture Bhv of DescrambleTb is
    signal s_sysrefRe : sl;
    signal s_lmfc     : sl;
 
-   type dataArrayType is array (0 to 412) of slv(31 downto 0);
-   type charArrayType is array (0 to 412) of slv(3 downto 0);
+   type DataArrayType is array (0 to 412) of slv(31 downto 0);
+   type CharArrayType is array (0 to 412) of slv(3 downto 0);
 
-   signal dataArray : dataArrayType := (
+   signal dataArray : DataArrayType := (
       b"10111100101111001011110010111100",
       b"10111100101111001011110010111100",
       b"10111100101111001011110010111100",
@@ -480,7 +477,7 @@ architecture Bhv of DescrambleTb is
       b"01011011110011011000100001010101");
 
 
-   signal charArray : charArrayType := (
+   signal charArray : CharArrayType := (
       b"1111",
       b"1111",
       b"1111",
@@ -901,7 +898,7 @@ begin  -- architecture Bhv
    DDR_ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 1 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 1 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk_i,
@@ -944,17 +941,14 @@ begin  -- architecture Bhv
          nSync_i    => '1',
          sysref_i   => sysRef_i,
          sysrefRe_o => s_sysrefRe,
-         lmfc_o     => s_lmfc
-         );
+         lmfc_o     => s_lmfc);
 
    StimuliProcess : process
-
-      variable v_data : slv(31 downto 0);
-      variable v_char : slv(3 downto 0);
-
+      variable varData : slv(31 downto 0);
+      variable varChar : slv(3 downto 0);
    begin
 
-      r_jesdGtRx.data    <= x"bcbcbcbc";
+      r_jesdGtRx.data    <= x"BCBCBCBC";
       r_jesdGtRx.dataK   <= (others => '1');
       r_jesdGtRx.dispErr <= (others => '0');
       r_jesdGtRx.decErr  <= (others => '0');
@@ -977,4 +971,4 @@ begin  -- architecture Bhv
 
    end process StimuliProcess;
 
-end architecture Bhv;
+end architecture testbed;

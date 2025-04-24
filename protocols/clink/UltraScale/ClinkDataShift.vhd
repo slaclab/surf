@@ -168,92 +168,92 @@ begin
          valid  => intLd,
          dout   => intDelay(8 downto 4));
 
-      --------------------------------------
-      -- Input Chain
-      --------------------------------------
-      U_InputGen : for i in 0 to 4 generate
-         attribute IODELAY_GROUP of U_Delay : label is "CLINK_CORE";
-      begin
+   --------------------------------------
+   -- Input Chain
+   --------------------------------------
+   U_InputGen : for i in 0 to 4 generate
+      attribute IODELAY_GROUP of U_Delay : label is "CLINK_CORE";
+   begin
 
-         -- Input buffer
-         U_InBuff : IOBUFDS
-            port map(
-               I   => '0',
-               O   => cblIn(i),
-               T   => '1',
-               IO  => cblHalfP(i),
-               IOB => cblHalfM(i));
+      -- Input buffer
+      U_InBuff : IOBUFDS
+         port map(
+            I   => '0',
+            O   => cblIn(i),
+            T   => '1',
+            IO  => cblHalfP(i),
+            IOB => cblHalfM(i));
 
-         -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps
-         -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
-         U_Delay : entity surf.Idelaye3Wrapper
-            generic map (
-               CASCADE          => "NONE",  -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
-               DELAY_FORMAT     => "COUNT",  -- Units of the DELAY_VALUE (COUNT, TIME)
-               DELAY_SRC        => "IDATAIN",  -- Delay input (DATAIN, IDATAIN)
-               DELAY_TYPE       => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
-               DELAY_VALUE      => 0,   -- Input delay value setting
-               IS_CLK_INVERTED  => '0',  -- Optional inversion for CLK
-               IS_RST_INVERTED  => '0',  -- Optional inversion for RST
-               REFCLK_FREQUENCY => 200.0,  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
-               SIM_DEVICE       => XIL_DEVICE_G,  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
-               UPDATE_MODE      => "ASYNC")  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
-            port map (
-               CASC_OUT    => open,  -- 1-bit output: Cascade delay output to ODELAY input cascade
-               CNTVALUEOUT => open,     -- 9-bit output: Counter value output
-               DATAOUT     => cblInDly(i),  -- 1-bit output: Delayed data output
-               CASC_IN     => '0',  -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
-               CASC_RETURN => '0',  -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
-               CE          => '0',  -- 1-bit input: Active high enable increment/decrement input
-               CLK         => dlyClk,   -- 1-bit input: Clock input
-               CNTVALUEIN  => intDelay,  -- 9-bit input: Counter value input
-               DATAIN      => '0',  -- 1-bit input: Data input from the logic
-               EN_VTC      => '0',  -- 1-bit input: Keep delay constant over VT
-               IDATAIN     => cblIn(i),  -- 1-bit input: Data input from the IOBUF
-               INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
-               LOAD        => intLd,    -- 1-bit input: Load DELAY_VALUE input
-               RST         => '0');  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
+      -- Each delay tap = 1/(32 * 2 * 200Mhz) = 78ps
+      -- Input rate = 85Mhz * 7 = 595Mhz = 1.68nS = 21.55 taps
+      U_Delay : entity surf.Idelaye3Wrapper
+         generic map (
+            CASCADE          => "NONE",  -- Cascade setting (MASTER, NONE, SLAVE_END, SLAVE_MIDDLE)
+            DELAY_FORMAT     => "COUNT",  -- Units of the DELAY_VALUE (COUNT, TIME)
+            DELAY_SRC        => "IDATAIN",   -- Delay input (DATAIN, IDATAIN)
+            DELAY_TYPE       => "VAR_LOAD",  -- Set the type of tap delay line (FIXED, VARIABLE, VAR_LOAD)
+            DELAY_VALUE      => 0,      -- Input delay value setting
+            IS_CLK_INVERTED  => '0',    -- Optional inversion for CLK
+            IS_RST_INVERTED  => '0',    -- Optional inversion for RST
+            REFCLK_FREQUENCY => 200.0,  -- IDELAYCTRL clock input frequency in MHz (200.0-2667.0)
+            SIM_DEVICE       => XIL_DEVICE_G,  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
+            UPDATE_MODE      => "ASYNC")  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
+         port map (
+            CASC_OUT    => open,  -- 1-bit output: Cascade delay output to ODELAY input cascade
+            CNTVALUEOUT => open,        -- 9-bit output: Counter value output
+            DATAOUT     => cblInDly(i),  -- 1-bit output: Delayed data output
+            CASC_IN     => '0',  -- 1-bit input: Cascade delay input from slave ODELAY CASCADE_OUT
+            CASC_RETURN => '0',  -- 1-bit input: Cascade delay returning from slave ODELAY DATAOUT
+            CE          => '0',  -- 1-bit input: Active high enable increment/decrement input
+            CLK         => dlyClk,      -- 1-bit input: Clock input
+            CNTVALUEIN  => intDelay,    -- 9-bit input: Counter value input
+            DATAIN      => '0',  -- 1-bit input: Data input from the logic
+            EN_VTC      => '0',  -- 1-bit input: Keep delay constant over VT
+            IDATAIN     => cblIn(i),  -- 1-bit input: Data input from the IOBUF
+            INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
+            LOAD        => intLd,       -- 1-bit input: Load DELAY_VALUE input
+            RST         => '0');  -- 1-bit input: Asynchronous Reset to the DELAY_VALUE
 
-         rawIn(i) <= cblInDly(i);
+      rawIn(i) <= cblInDly(i);
 
-         -- Deserializer
-         U_Serdes : ISERDESE3
-            generic map (
-               DATA_WIDTH        => 8,  -- Parallel data width (4,8)
-               FIFO_ENABLE       => "FALSE",  -- Enables the use of the FIFO
-               FIFO_SYNC_MODE    => "FALSE",  -- Enables the use of internal 2-stage synchronizers on the FIFO
-               IS_CLK_B_INVERTED => '1',      -- Optional inversion for CLK_B
-               IS_CLK_INVERTED   => '0',      -- Optional inversion for CLK
-               IS_RST_INVERTED   => '0',      -- Optional inversion for RST
-               SIM_DEVICE        => XIL_DEVICE_G)  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
-            port map (
-               Q           => serdes(i),      -- 8-bit registered output
-               CLK         => intClk4x,  -- 1-bit input: High-speed clock
-               CLK_B       => intClk4x,  -- 1-bit input: Inversion of High-speed clock CLK (IS_CLK_B_INVERTED='1')
-               CLKDIV      => intClk1x,  -- 1-bit input: Divided Clock
-               D           => cblInDly(i),    -- 1-bit input: Serial Data Input
-               RST         => intRst,   -- 1-bit input: Asynchronous Reset
-               FIFO_RD_CLK => '0',      -- 1-bit input: FIFO read clock
-               FIFO_RD_EN  => '0',  -- 1-bit input: Enables reading the FIFO when asserted
-               FIFO_EMPTY  => open);    -- 1-bit output: FIFO empty flag
+      -- Deserializer
+      U_Serdes : ISERDESE3
+         generic map (
+            DATA_WIDTH        => 8,     -- Parallel data width (4,8)
+            FIFO_ENABLE       => "FALSE",  -- Enables the use of the FIFO
+            FIFO_SYNC_MODE    => "FALSE",  -- Enables the use of internal 2-stage synchronizers on the FIFO
+            IS_CLK_B_INVERTED => '1',   -- Optional inversion for CLK_B
+            IS_CLK_INVERTED   => '0',   -- Optional inversion for CLK
+            IS_RST_INVERTED   => '0',   -- Optional inversion for RST
+            SIM_DEVICE        => XIL_DEVICE_G)  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS, ULTRASCALE_PLUS_ES1, ULTRASCALE_PLUS_ES2)
+         port map (
+            Q           => serdes(i),   -- 8-bit registered output
+            CLK         => intClk4x,    -- 1-bit input: High-speed clock
+            CLK_B       => intClk4x,  -- 1-bit input: Inversion of High-speed clock CLK (IS_CLK_B_INVERTED='1')
+            CLKDIV      => intClk1x,    -- 1-bit input: Divided Clock
+            D           => cblInDly(i),    -- 1-bit input: Serial Data Input
+            RST         => intRst,      -- 1-bit input: Asynchronous Reset
+            FIFO_RD_CLK => '0',         -- 1-bit input: FIFO read clock
+            FIFO_RD_EN  => '0',  -- 1-bit input: Enables reading the FIFO when asserted
+            FIFO_EMPTY  => open);       -- 1-bit output: FIFO empty flag
 
-         U_Gearbox : entity surf.AsyncGearbox
-            generic map (
-               TPD_G          => TPD_G,
-               SLAVE_WIDTH_G  => 8,
-               MASTER_WIDTH_G => 7)
-            port map (
-               slip       => bitslip,
-               -- Slave Port
-               slaveClk   => intClk1x,
-               slaveRst   => '0',
-               slaveData  => serdes(i),
-               -- Master Port
-               masterClk  => intClk,
-               masterRst  => '0',
-               masterData => dataShift(i));
+      U_Gearbox : entity surf.AsyncGearbox
+         generic map (
+            TPD_G          => TPD_G,
+            SLAVE_WIDTH_G  => 8,
+            MASTER_WIDTH_G => 7)
+         port map (
+            slip       => bitslip,
+            -- Slave Port
+            slaveClk   => intClk1x,
+            slaveRst   => '0',
+            slaveData  => serdes(i),
+            -- Master Port
+            masterClk  => intClk,
+            masterRst  => '0',
+            masterData => dataShift(i));
 
-      end generate;
+   end generate;
 
    -------------------------------------------------------
    -- Timing diagram from DS90CR288A data sheet

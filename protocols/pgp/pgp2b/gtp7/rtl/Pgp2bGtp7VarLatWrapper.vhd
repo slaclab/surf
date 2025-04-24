@@ -59,8 +59,8 @@ entity Pgp2bGtp7VarLatWrapper is
       RX_POLARITY_G        : sl                      := '0';
       TX_ENABLE_G          : boolean                 := true;
       RX_ENABLE_G          : boolean                 := true;
-      PAYLOAD_CNT_TOP_G    : integer                 := 7;      -- Top bit for payload counter
-      VC_INTERLEAVE_G      : integer                 := 1;      -- Interleave Frames
+      PAYLOAD_CNT_TOP_G    : integer                 := 7;  -- Top bit for payload counter
+      VC_INTERLEAVE_G      : integer                 := 1;  -- Interleave Frames
       NUM_VC_EN_G          : integer range 1 to 4    := 4);
    port (
       -- Manual Reset

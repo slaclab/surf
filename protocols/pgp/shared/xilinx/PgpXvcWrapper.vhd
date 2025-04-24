@@ -24,7 +24,7 @@ entity PgpXvcWrapper is
    generic (
       TPD_G            : time    := 1 ns;
       SIMULATION_G     : boolean := false;
-      AXIS_CLK_FREQ_G  : real    := 156.25e6;
+      AXIS_CLK_FREQ_G  : real    := 156.25E+6;
       PHY_AXI_CONFIG_G : AxiStreamConfigType);
    port (
       -- Clock and Reset (xvcClk domain)

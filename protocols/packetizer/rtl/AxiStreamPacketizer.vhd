@@ -139,7 +139,7 @@ begin
          mAxisMaster => inputAxisMaster,
          mAxisSlave  => inputAxisSlave);
 
-   comb : process (axisRst, inputAxisMaster, outputAxisSlave, r, maxWords) is
+   comb : process (axisRst, inputAxisMaster, maxWords, outputAxisSlave, r) is
       variable v    : RegType;
       variable fits : boolean;
 

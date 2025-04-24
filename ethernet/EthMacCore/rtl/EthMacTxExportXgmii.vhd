@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -154,17 +153,17 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface
-         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)            -- 64-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => AXI_CONFIG_C)  -- 64-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => macObMaster,                     -- 128-bit AXI stream interface
+         sAxisMaster => macObMaster,    -- 128-bit AXI stream interface
          sAxisSlave  => macObSlave,
          -- Master Port
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => macMaster,                       -- 64-bit AXI stream interface
+         mAxisMaster => macMaster,      -- 64-bit AXI stream interface
          mAxisSlave  => macSlave);
 
    -- Generate read
@@ -238,7 +237,8 @@ begin
    end process;
 
    -- State machine
-   process (curState, ethRst, exportWordCnt, intError, macMaster, phyReady, stateCount)
+   process (curState, ethRst, exportWordCnt, intError, macMaster, phyReady,
+            stateCount)
    begin
 
       -- Init
@@ -400,7 +400,7 @@ begin
 
             -- Input to transmit enable shift register.
             -- Asserted with frameShift0
-            if intAdvance = '1'and frameShift0 = '0' then
+            if intAdvance = '1' and frameShift0 = '0' then
                txEnable0 <= '1' after TPD_G;
 
             -- De-assert following frame shift0,
@@ -469,30 +469,28 @@ begin
          DATA_WIDTH_G    => 72,
          INIT_G          => "0",
          FULL_THRES_G    => 1,
-         EMPTY_THRES_G   => 1
-         ) port map (
-            rst           => ethRst,
-            wr_clk        => ethClk,
-            wr_en         => txEnable0,
-            din           => crcFifoIn,
-            wr_data_count => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            full          => open,
-            not_full      => open,
-            rd_clk        => ethClk,
-            rd_en         => txEnable2,
-            dout          => crcFifoOut,
-            rd_data_count => open,
-            valid         => open,
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open
-            );
-
+         EMPTY_THRES_G   => 1)
+      port map (
+         rst           => ethRst,
+         wr_clk        => ethClk,
+         wr_en         => txEnable0,
+         din           => crcFifoIn,
+         wr_data_count => open,
+         wr_ack        => open,
+         overflow      => open,
+         prog_full     => open,
+         almost_full   => open,
+         full          => open,
+         not_full      => open,
+         rd_clk        => ethClk,
+         rd_en         => txEnable2,
+         dout          => crcFifoOut,
+         rd_data_count => open,
+         valid         => open,
+         underflow     => open,
+         prog_empty    => open,
+         almost_empty  => open,
+         empty         => open);
 
    -- Output Stage to PHY
    process (ethClk)
@@ -607,15 +605,14 @@ begin
    -- CRC
    U_Crc32 : entity surf.Crc32Parallel
       generic map (
-         BYTE_WIDTH_G => 8
-         ) port map (
-            crcOut       => crcOut,
-            crcClk       => ethClk,
-            crcDataValid => crcDataValid,
-            crcDataWidth => crcDataWidth,
-            crcIn        => crcInAdj,
-            crcReset     => crcReset
-            );
+         BYTE_WIDTH_G => 8)
+      port map (
+         crcOut       => crcOut,
+         crcClk       => ethClk,
+         crcDataValid => crcDataValid,
+         crcDataWidth => crcDataWidth,
+         crcIn        => crcInAdj,
+         crcReset     => crcReset);
 
    -- CRC for transmission
    crcTx(31 downto 24) <= crcOut(7 downto 0);

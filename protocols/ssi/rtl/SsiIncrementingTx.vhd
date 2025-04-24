@@ -51,12 +51,12 @@ entity SsiIncrementingTx is
 
       -- Trigger Signal (locClk domain)
       locClk       : in  sl;
-      locRst       : in  sl              := '0';
-      trig         : in  sl              := '1';
+      locRst       : in  sl               := '0';
+      trig         : in  sl               := '1';
       packetLength : in  slv(31 downto 0) := X"FFFFFFFF";
       busy         : out sl;
-      tDest        : in  slv(7 downto 0) := X"00";
-      tId          : in  slv(7 downto 0) := X"00");
+      tDest        : in  slv(7 downto 0)  := X"00";
+      tId          : in  slv(7 downto 0)  := X"00");
 end SsiIncrementingTx;
 
 architecture rtl of SsiIncrementingTx is
@@ -142,27 +142,27 @@ begin
          when SEED_RAND_S =>
             -- Check the status
             --if txAxisSlave.tReady = '1' then
-               -- Send the random seed word
-               v.txAxisMaster.tvalid                             := '1';
-               v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
-               -- Generate the next random data word
-               v.randomData                                      := r.randomData + 1;
-               -- Increment the counter
-               v.eventCnt                                        := r.eventCnt + 1;
-               -- Increment the counter
-               v.dataCnt                                         := r.dataCnt + 1;
+            -- Send the random seed word
+            v.txAxisMaster.tvalid                             := '1';
+            v.txAxisMaster.tData(PRBS_SEED_SIZE_G-1 downto 0) := r.eventCnt;
+            -- Generate the next random data word
+            v.randomData                                      := r.randomData + 1;
+            -- Increment the counter
+            v.eventCnt                                        := r.eventCnt + 1;
+            -- Increment the counter
+            v.dataCnt                                         := r.dataCnt + 1;
 
-               axiStreamSetUserBit(PRBS_SSI_CONFIG_C,v.txAxisMaster,SSI_SOF_C,'1',0);
+            axiStreamSetUserBit(PRBS_SSI_CONFIG_C, v.txAxisMaster, SSI_SOF_C, '1', 0);
 
-               -- Next State
-               v.state                                           := LENGTH_S;
-            --end if;
+            -- Next State
+            v.state := LENGTH_S;
+         --end if;
          ----------------------------------------------------------------------
          when LENGTH_S =>
             -- Check the status
             if txAxisSlave.tReady = '1' then
 
-               axiStreamSetUserBit(PRBS_SSI_CONFIG_C,v.txAxisMaster,SSI_SOF_C,'0',0);
+               axiStreamSetUserBit(PRBS_SSI_CONFIG_C, v.txAxisMaster, SSI_SOF_C, '0', 0);
 
                -- Send the upper packetLength value
                v.txAxisMaster.tvalid             := '1';

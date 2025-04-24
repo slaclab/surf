@@ -263,9 +263,9 @@ package AxiPkg is
 
    type AxiLenType is record
       valid : slv(1 downto 0);
-      max   : natural;        -- valid(0)
-      req   : natural;        -- valid(0)
-      value : slv(7 downto 0);-- valid(1)
+      max   : natural;                  -- valid(0)
+      req   : natural;                  -- valid(0)
+      value : slv(7 downto 0);          -- valid(1)
    end record AxiLenType;
    constant AXI_LEN_INIT_C : AxiLenType := (
       valid => "00",
@@ -274,10 +274,10 @@ package AxiPkg is
       req   => 0);
    procedure getAxiLenProc (
       -- Input
-      axiConfig  : in AxiConfigType;
-      burstBytes : in integer range 1 to 4096 := 4096;
-      totalBytes : in slv;
-      address    : in slv;
+      axiConfig  : in    AxiConfigType;
+      burstBytes : in    integer range 1 to 4096 := 4096;
+      totalBytes : in    slv;
+      address    : in    slv;
       -- Pipelined signals
       r          : in    AxiLenType;
       v          : inout AxiLenType);
@@ -396,10 +396,10 @@ package body AxiPkg is
    -- with meeting timing by breaking apart this long combinatorial chain
    procedure getAxiLenProc (
       -- Input
-      axiConfig  : in AxiConfigType;
-      burstBytes : in integer range 1 to 4096 := 4096;
-      totalBytes : in slv;
-      address    : in slv;
+      axiConfig  : in    AxiConfigType;
+      burstBytes : in    integer range 1 to 4096 := 4096;
+      totalBytes : in    slv;
+      address    : in    slv;
       -- Pipelined signals
       r          : in    AxiLenType;
       v          : inout AxiLenType) is
@@ -446,7 +446,7 @@ package body AxiPkg is
    begin
       tempSlv := (others => '0');
 
-      if (AxiConfig.DATA_BYTES_C>1) then
+      if (AxiConfig.DATA_BYTES_C > 1) then
 
          tempSlv(AxiConfig.LEN_BITS_C+addrLsb downto addrLsb)
             := axiRead.arlen(AxiConfig.LEN_BITS_C-1 downto 0) + toSlv(1, AxiConfig.LEN_BITS_C+1);

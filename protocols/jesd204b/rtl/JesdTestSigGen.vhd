@@ -19,48 +19,46 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
 entity JesdTestSigGen is
    generic (
-      TPD_G        : time       := 1 ns;
+      TPD_G : time := 1 ns;
 
       -- Number of bytes in a frame
       F_G : positive := 2);
    port (
-      clk      : in  sl;
-      rst      : in  sl;
+      clk : in sl;
+      rst : in sl;
 
       -- Enable pulser
-      enable_i   : in  sl;
+      enable_i : in sl;
 
       -- Threshold for Rising edge detection
-      thresoldLow_i  : in  slv((F_G*8)-1 downto 0);
-      thresoldHigh_i : in  slv((F_G*8)-1 downto 0);
+      thresoldLow_i  : in slv((F_G*8)-1 downto 0);
+      thresoldHigh_i : in slv((F_G*8)-1 downto 0);
 
       -- Sample data input
-      sampleData_i  : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
+      sampleData_i : in slv((GT_WORD_SIZE_C*8)-1 downto 0);
 
       -- Test signal
-      testSig_o    : out sl
-   );
+      testSig_o : out sl);
 end entity JesdTestSigGen;
 
 architecture rtl of JesdTestSigGen is
 
    type RegType is record
-      sig         : sl;
+      sig : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      sig              => '0'
-   );
+      sig => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
    signal s_sampleDataBr : slv(sampleData_i'range);
 
 begin
@@ -72,27 +70,28 @@ begin
    -- output a pulse.
    ---------------------------------------------------------------------
    ---------------------------------------------------------------------
-   comb : process (r, rst,s_sampleDataBr, thresoldLow_i, thresoldHigh_i, enable_i) is
+   comb : process (enable_i, r, rst, s_sampleDataBr, thresoldHigh_i,
+                   thresoldLow_i) is
       variable v : RegType;
    begin
       v := r;
 
 --      if (  signed(s_sampleDataBr((F_G*8)-1 downto 0) ) > signed(thresoldHigh_i))   then
-      if (  s_sampleDataBr((F_G*8)-1 downto 0) > thresoldHigh_i)   then
+      if (s_sampleDataBr((F_G*8)-1 downto 0) > thresoldHigh_i) then
          v.sig := '1';
 --      elsif (  signed(s_sampleDataBr((F_G*8)-1 downto 0) ) < signed(thresoldLow_i)) then
-      elsif (  s_sampleDataBr((F_G*8)-1 downto 0) < thresoldLow_i) then
+      elsif (s_sampleDataBr((F_G*8)-1 downto 0) < thresoldLow_i) then
          v.sig := '0';
       end if;
 
-      if (rst = '1' or enable_i='0') then
+      if (rst = '1' or enable_i = '0') then
          v := REG_INIT_C;
       end if;
 
       -- Output assignment
-      rin <= v;
+      rin       <= v;
       testSig_o <= r.sig;
-      -----------------------------------------------------------
+   -----------------------------------------------------------
    end process comb;
 
    seq : process (clk) is
@@ -101,6 +100,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-   ---------------------------------------------------------------------
-   ---------------------------------------------------------------------
+
 end architecture rtl;

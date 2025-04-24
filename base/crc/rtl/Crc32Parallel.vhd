@@ -133,7 +133,7 @@ begin
       -- Calculate CRC in parallel - implementation used depends on the
       -- byte width in use.
       if (valid = '1') then
-         case(byteWidth) is
+         case (byteWidth) is
             when "000" =>
                v.crc := crc32Parallel1Byte(prevCrc, data(BYTE_WIDTH_G*8-1 downto (BYTE_WIDTH_G-1)*8));
             when "001" =>
