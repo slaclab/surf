@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Optical Module SFF-8472 Wrapper (I2C for SFP, QSFP, etc)
+-- Description: Optical Module SFF-8472 Core (I2C for SFP, QSFP, etc)
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -14,36 +14,34 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_unsigned.all;
-use ieee.std_logic_arith.all;
-
 
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
 
-entity Sff8472 is
+entity Sff8472Core is
    generic (
-      TPD_G           : time := 1 ns;
-      I2C_SCL_FREQ_G  : real := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G : real := 100.0E-9;    -- units of seconds
-      AXI_CLK_FREQ_G  : real := 156.25E+6);  -- units of Hz
+      TPD_G           : time    := 1 ns;
+      AXIL_PROXY_G    : boolean := false;
+      I2C_SCL_FREQ_G  : real    := 100.0E+3;    -- units of Hz
+      I2C_MIN_PULSE_G : real    := 100.0E-9;    -- units of seconds
+      AXI_CLK_FREQ_G  : real    := 156.25E+6);  -- units of Hz
    port (
-      -- I2C Ports
-      scl             : inout sl;
-      sda             : inout sl;
-      -- AXI-Lite Register Interface
-      axilReadMaster  : in    AxiLiteReadMasterType;
-      axilReadSlave   : out   AxiLiteReadSlaveType;
-      axilWriteMaster : in    AxiLiteWriteMasterType;
-      axilWriteSlave  : out   AxiLiteWriteSlaveType;
       -- Clocks and Resets
-      axilClk         : in    sl;
-      axilRst         : in    sl);
-end Sff8472;
+      axiClk         : in  sl;
+      axiRst         : in  sl;
+      -- AXI-Lite Register Interface
+      axiReadMaster  : in  AxiLiteReadMasterType;
+      axiReadSlave   : out AxiLiteReadSlaveType;
+      axiWriteMaster : in  AxiLiteWriteMasterType;
+      axiWriteSlave  : out AxiLiteWriteSlaveType;
+      -- I2C Ports
+      i2ci           : in  i2c_in_type;
+      i2co           : out i2c_out_type);
+end Sff8472Core;
 
-architecture mapping of Sff8472 is
+architecture mapping of Sff8472Core is
 
    constant SFF8472_I2C_CONFIG_C : I2cAxiLiteDevArray(0 to 1) := (
       0              => MakeI2cAxiLiteDevType(
@@ -61,24 +59,25 @@ architecture mapping of Sff8472 is
 
 begin
 
-   U_AxiI2C : entity surf.AxiI2cRegMaster
+   U_Core : entity surf.AxiI2cRegMasterCore
       generic map (
          TPD_G           => TPD_G,
+         AXIL_PROXY_G    => AXIL_PROXY_G,
          DEVICE_MAP_G    => SFF8472_I2C_CONFIG_C,
          I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
          I2C_MIN_PULSE_G => I2C_MIN_PULSE_G,
          AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G)
       port map (
-         -- I2C Ports
-         scl            => scl,
-         sda            => sda,
-         -- AXI-Lite Register Interface
-         axiReadMaster  => axilReadMaster,
-         axiReadSlave   => axilReadSlave,
-         axiWriteMaster => axilWriteMaster,
-         axiWriteSlave  => axilWriteSlave,
          -- Clocks and Resets
-         axiClk         => axilClk,
-         axiRst         => axilRst);
+         axiClk         => axiClk,
+         axiRst         => axiRst,
+         -- AXI-Lite Register Interface
+         axiReadMaster  => axiReadMaster,
+         axiReadSlave   => axiReadSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave,
+         -- I2C Ports
+         i2ci           => i2ci,
+         i2co           => i2co);
 
 end mapping;

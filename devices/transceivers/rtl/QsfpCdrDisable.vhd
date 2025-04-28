@@ -24,7 +24,7 @@ use surf.AxiLitePkg.all;
 entity QsfpCdrDisable is
    generic (
       TPD_G             : time     := 1 ns;
-      SIMULATION_G      : boolean;
+      SIMULATION_G      : boolean  := false;
       PERIODIC_UPDATE_G : positive := 30;  -- Units of seconds
       QSFP_BASE_ADDR_G  : Slv32Array;  -- List of the QSFP base address offsets
       AXIL_CLK_FREQ_G   : real);        -- Units of Hz
