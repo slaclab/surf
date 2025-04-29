@@ -24,7 +24,6 @@ use surf.AxiLitePkg.all;
 entity QsfpCdrDisable is
    generic (
       TPD_G             : time     := 1 ns;
-      SIMULATION_G      : boolean  := false;
       PERIODIC_UPDATE_G : positive := 30;  -- Units of seconds
       QSFP_BASE_ADDR_G  : Slv32Array;  -- List of the QSFP base address offsets
       AXIL_CLK_FREQ_G   : real);        -- Units of Hz
@@ -40,9 +39,9 @@ end QsfpCdrDisable;
 
 architecture rtl of QsfpCdrDisable is
 
-   constant TIMEOUT_1SEC_C : positive := ite(SIMULATION_G, 100, getTimeRatio(AXIL_CLK_FREQ_G, 1.0));
+   constant TIMEOUT_1SEC_C : natural := getTimeRatio(AXIL_CLK_FREQ_G, 1.0);
 
-   constant NUM_CH_G : positive := QSFP_BASE_ADDR_G'length;
+   constant NUM_CH_G : natural := QSFP_BASE_ADDR_G'length;
 
    type StateType is (
       IDLE_S,
@@ -52,15 +51,15 @@ architecture rtl of QsfpCdrDisable is
    type RegType is record
       ch    : natural range 0 to NUM_CH_G-1;
       cnt   : natural range 0 to PERIODIC_UPDATE_G-1;
-      timer : natural range 0 to TIMEOUT_1SEC_C;
+      timer : natural range 0 to TIMEOUT_1SEC_C-1;
       req   : AxiLiteReqType;
       state : StateType;
    end record;
 
    constant REG_INIT_C : RegType := (
       ch    => 0,
-      cnt   => 0,
-      timer => 0,
+      cnt   => PERIODIC_UPDATE_G-1,
+      timer => TIMEOUT_1SEC_C-1,
       req   => AXI_LITE_REQ_INIT_C,
       state => IDLE_S);
 
@@ -68,6 +67,10 @@ architecture rtl of QsfpCdrDisable is
    signal rin : RegType;
 
    signal ack : AxiLiteAckType;
+
+   -- attribute dont_touch        : string;
+   -- attribute dont_touch of r   : signal is "TRUE";
+   -- attribute dont_touch of ack : signal is "TRUE";
 
 begin
 
@@ -107,7 +110,7 @@ begin
             if (r.timer = 0) then
 
                -- Re-arm the timer
-               v.timer := TIMEOUT_1SEC_C;
+               v.timer := TIMEOUT_1SEC_C - 1;
 
                -- Check for timeout
                if (r.cnt = 0) then
