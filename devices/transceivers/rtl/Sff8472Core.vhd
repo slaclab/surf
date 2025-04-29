@@ -49,7 +49,7 @@ architecture mapping of Sff8472Core is
          dataSize    => 8,              -- in units of bits
          addrSize    => 8,              -- in units of bits
          endianness  => '0',            -- Little endian
-         repeatStart => '1'),           -- No repeat start
+         repeatStart => '1'),           -- Repeat Start
       1              => MakeI2cAxiLiteDevType(
          i2cAddress  => "1010001",      -- 2 wire address 1010001X (A2h)
          dataSize    => 8,              -- in units of bits
