@@ -1,9 +1,11 @@
 <map id="I2cRegMasterAxiBridge" name="I2cRegMasterAxiBridge">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,180,31"/>
-<area shape="rect" id="Node000002" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="11,79,174,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,44,95,79,90,79,90,44"/>
-<area shape="rect" id="Node000003" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="27,152,159,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,118,95,152,90,152,90,118"/>
-<area shape="rect" id="Node000004" href="$classSff8472.html" title=" " alt="" coords="57,225,128,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="95,191,95,225,90,225,90,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="55,5,229,31"/>
+<area shape="rect" id="Node000002" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="61,79,223,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,44,145,79,139,79,139,44"/>
+<area shape="rect" id="Node000003" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="5,152,137,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,116,85,154,81,150,119,112"/>
+<area shape="rect" id="Node000005" href="$classSff8472Core.html" title=" " alt="" coords="162,152,263,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="165,112,203,150,199,154,161,116"/>
+<area shape="rect" id="Node000004" href="$classSff8472.html" title=" " alt="" coords="36,225,107,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="74,191,74,225,69,225,69,191"/>
 </map>

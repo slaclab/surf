@@ -1489,6 +1489,7 @@ var hierarchy =
         [ "AxiStreamFlush", "classAxiStreamFlush.html", null ],
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
       ] ],
+      [ "AxiLiteMaster", "classAxiLiteMaster.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "UdpEngineWrapper", "classUdpEngineWrapper.html", null ],
       [ "RawEthFramer", "classRawEthFramer.html", [
@@ -1663,6 +1664,7 @@ var hierarchy =
         ] ],
         [ "IoBufWrapper", "classIoBufWrapper.html", null ]
       ] ],
+      [ "AxiI2cRegMasterCore", "classAxiI2cRegMasterCore.html", null ],
       [ "PwrUpRst", "classPwrUpRst.html", null ],
       [ "Sgmii88E1111Mdio", "classSgmii88E1111Mdio.html", [
         [ "MdioLinkIrqHandler", "classMdioLinkIrqHandler.html", [

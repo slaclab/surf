@@ -1,7 +1,9 @@
 <map id="AxiI2cRegMasterCore" name="AxiI2cRegMasterCore">
 <area shape="rect" id="Node000001" title=" " alt="" coords="185,299,348,324"/>
-<area shape="rect" id="Node000009" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="201,372,333,397"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="269,338,269,372,264,372,264,338"/>
+<area shape="rect" id="Node000009" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="130,372,262,397"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="247,336,209,374,206,370,243,332"/>
+<area shape="rect" id="Node000011" href="$classSff8472Core.html" title=" " alt="" coords="287,372,388,397"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="290,332,328,370,324,374,286,336"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="5,225,155,251"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,253,237,296,235,301,122,258"/>
 <area shape="rect" id="Node000003" href="$classAxiLiteMaster.html" title=" " alt="" coords="24,152,136,177"/>
@@ -16,6 +18,6 @@
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="436,118,436,152,431,152,431,118"/>
 <area shape="rect" id="Node000008" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="360,5,507,31"/>
 <area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="436,44,436,79,431,79,431,44"/>
-<area shape="rect" id="Node000010" href="$classSff8472.html" title=" " alt="" coords="231,445,302,471"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="269,411,269,445,264,445,264,411"/>
+<area shape="rect" id="Node000010" href="$classSff8472.html" title=" " alt="" coords="161,445,231,471"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="199,411,199,445,193,445,193,411"/>
 </map>

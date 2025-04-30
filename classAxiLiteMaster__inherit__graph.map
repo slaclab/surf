@@ -1,54 +1,58 @@
 <map id="AxiLiteMaster" name="AxiLiteMaster">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,303,117,328"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,328,117,353"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteMasterProxy.html" title=" " alt="" coords="189,53,339,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="65,288,77,246,96,195,124,142,143,118,164,96,198,76,200,81,167,100,147,121,129,145,101,197,82,248,71,290"/>
-<area shape="rect" id="Node000007" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="413,104,583,129"/>
-<area shape="poly" id="edge12_Node000001_Node000007" title=" " alt="" coords="67,288,80,253,99,212,127,172,164,140,195,124,228,112,297,99,364,97,424,101,423,107,364,102,297,104,229,117,197,129,167,144,131,175,104,215,85,255,72,290"/>
-<area shape="rect" id="Node000008" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="181,155,347,180"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="74,289,110,238,135,212,164,189,188,178,190,183,167,194,139,215,114,242,78,292"/>
-<area shape="rect" id="Node000009" href="$classIpBusToAxiLite.html" title=" " alt="" coords="205,204,323,229"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="86,291,121,264,164,238,204,224,206,229,166,243,124,268,89,295"/>
-<area shape="rect" id="Node000011" href="$classSlvArraytoAxiLite.html" title=" " alt="" coords="197,253,331,279"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="126,297,210,276,212,281,128,302"/>
-<area shape="rect" id="Node000012" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="173,303,355,328"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="131,313,172,313,172,318,131,318"/>
-<area shape="rect" id="Node000013" href="$classSaci2ToAxiLite.html" title=" " alt="" coords="206,352,322,377"/>
-<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="128,329,212,349,210,355,126,334"/>
-<area shape="rect" id="Node000015" href="$classSaciAxiLiteMaster.html" title=" " alt="" coords="195,401,333,427"/>
-<area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="89,335,124,362,166,386,201,399,199,404,164,391,122,366,86,339"/>
-<area shape="rect" id="Node000018" href="$classUartAxiLiteMasterFsm.html" title=" " alt="" coords="180,451,348,476"/>
-<area shape="poly" id="edge18_Node000001_Node000018" title=" " alt="" coords="79,338,115,388,139,414,167,436,193,448,191,453,164,440,135,418,111,392,75,341"/>
-<area shape="rect" id="Node000021" href="$classPgp2fcAlignmentController.html" title=" " alt="" coords="165,500,363,525"/>
-<area shape="poly" id="edge21_Node000001_Node000021" title=" " alt="" coords="73,340,87,374,107,413,133,452,167,485,189,497,187,502,164,489,129,456,102,416,82,376,69,342"/>
-<area shape="rect" id="Node000022" href="$classGtRxAlignCheck.html" title=" " alt="" coords="201,549,327,575"/>
-<area shape="poly" id="edge22_Node000001_Node000022" title=" " alt="" coords="70,341,80,383,99,436,127,489,146,514,167,535,183,545,202,552,200,557,181,550,164,539,142,517,123,492,94,438,75,385,65,342"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="64,313,74,267,92,209,122,149,141,121,164,96,196,76,199,81,167,100,145,124,126,151,97,211,79,268,69,315"/>
+<area shape="rect" id="Node000008" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="413,104,583,129"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="65,314,76,274,95,226,124,178,142,157,164,140,195,122,229,110,300,97,370,96,431,101,430,107,370,101,301,102,231,115,198,127,167,144,146,161,128,181,100,228,81,275,70,315"/>
+<area shape="rect" id="Node000009" href="$classAxiLiteSequencerRam.html" title=" " alt="" coords="181,155,347,180"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="71,314,105,251,132,218,164,189,186,178,188,182,167,194,136,221,110,254,75,317"/>
+<area shape="rect" id="Node000010" href="$classIpBusToAxiLite.html" title=" " alt="" coords="205,204,323,229"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="79,315,115,275,139,255,164,238,204,223,206,228,167,243,142,260,119,279,83,319"/>
+<area shape="rect" id="Node000012" href="$classSlvArraytoAxiLite.html" title=" " alt="" coords="197,253,331,279"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="96,319,164,288,202,276,203,281,166,292,98,324"/>
+<area shape="rect" id="Node000013" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="173,303,355,328"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="131,329,172,324,173,329,132,335"/>
+<area shape="rect" id="Node000014" href="$classSaci2ToAxiLite.html" title=" " alt="" coords="206,352,322,377"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="132,346,206,355,206,361,131,352"/>
+<area shape="rect" id="Node000016" href="$classSaciAxiLiteMaster.html" title=" " alt="" coords="195,401,333,427"/>
+<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="100,357,166,386,207,399,206,404,164,391,97,362"/>
+<area shape="rect" id="Node000019" href="$classUartAxiLiteMasterFsm.html" title=" " alt="" coords="180,451,348,476"/>
+<area shape="poly" id="edge19_Node000001_Node000019" title=" " alt="" coords="83,362,119,400,167,436,197,448,194,453,164,440,116,404,79,366"/>
+<area shape="rect" id="Node000022" href="$classQsfpCdrDisable.html" title=" " alt="" coords="203,500,325,525"/>
+<area shape="poly" id="edge22_Node000001_Node000022" title=" " alt="" coords="76,365,111,426,136,458,167,485,204,502,202,507,164,490,132,462,106,429,71,367"/>
+<area shape="rect" id="Node000023" href="$classPgp2fcAlignmentController.html" title=" " alt="" coords="165,549,363,575"/>
+<area shape="poly" id="edge23_Node000001_Node000023" title=" " alt="" coords="71,366,84,404,103,450,130,496,167,535,189,547,186,552,164,539,126,499,98,452,79,406,66,367"/>
+<area shape="rect" id="Node000024" href="$classGtRxAlignCheck.html" title=" " alt="" coords="201,599,327,624"/>
+<area shape="poly" id="edge24_Node000001_Node000024" title=" " alt="" coords="69,367,78,414,96,473,125,533,144,560,167,584,183,594,201,602,199,607,181,599,164,588,140,564,120,536,91,475,73,415,63,368"/>
 <area shape="rect" id="Node000003" href="$classAxiI2cEeprom.html" title=" " alt="" coords="442,5,554,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="340,48,441,27,442,32,341,53"/>
 <area shape="rect" id="Node000004" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="417,55,579,80"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="353,64,416,64,416,70,353,69"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="337,79,439,101,438,107,336,84"/>
-<area shape="rect" id="Node000005" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="673,55,805,80"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="594,65,673,65,673,70,594,70"/>
-<area shape="rect" id="Node000006" href="$classSff8472.html" title=" " alt="" coords="892,55,963,80"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="819,65,892,65,892,70,819,70"/>
-<area shape="rect" id="Node000010" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="417,204,579,229"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="336,214,417,214,417,219,336,219"/>
-<area shape="rect" id="Node000014" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="432,352,564,377"/>
-<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="336,362,432,362,432,367,336,367"/>
-<area shape="rect" id="Node000016" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="421,401,575,427"/>
-<area shape="poly" id="edge16_Node000015_Node000016" title=" " alt="" coords="347,411,420,411,420,417,347,417"/>
-<area shape="rect" id="Node000017" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="633,401,844,427"/>
-<area shape="poly" id="edge17_Node000016_Node000017" title=" " alt="" coords="589,411,633,411,633,417,589,417"/>
-<area shape="rect" id="Node000019" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="428,451,568,476"/>
-<area shape="poly" id="edge19_Node000018_Node000019" title=" " alt="" coords="362,461,428,461,428,466,362,466"/>
-<area shape="rect" id="Node000020" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="661,451,817,476"/>
-<area shape="poly" id="edge20_Node000019_Node000020" title=" " alt="" coords="582,461,660,461,660,466,582,466"/>
-<area shape="rect" id="Node000023" href="$classPgp2fcGthCoreWrapper.html" title=" " alt="" coords="411,524,585,549"/>
-<area shape="poly" id="edge23_Node000022_Node000023" title=" " alt="" coords="341,551,410,543,411,549,342,556"/>
-<area shape="rect" id="Node000025" href="$classPgp2fcGtyCoreWrapper.html" title=" " alt="" coords="411,573,585,599"/>
-<area shape="poly" id="edge25_Node000022_Node000025" title=" " alt="" coords="342,567,411,574,410,580,341,573"/>
-<area shape="rect" id="Node000024" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="678,524,799,549"/>
-<area shape="poly" id="edge24_Node000023_Node000024" title=" " alt="" coords="599,534,678,534,678,539,599,539"/>
-<area shape="rect" id="Node000026" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="678,573,799,599"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="337,79,439,101,438,107,336,84"/>
+<area shape="rect" id="Node000005" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="673,31,805,56"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="593,55,672,47,673,53,593,61"/>
+<area shape="rect" id="Node000007" href="$classSff8472Core.html" title=" " alt="" coords="688,80,789,105"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="594,75,688,85,687,90,593,80"/>
+<area shape="rect" id="Node000006" href="$classSff8472.html" title=" " alt="" coords="892,31,963,56"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="819,41,892,41,892,46,819,46"/>
+<area shape="rect" id="Node000011" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="417,204,579,229"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="336,214,417,214,417,219,336,219"/>
+<area shape="rect" id="Node000015" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="432,352,564,377"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="336,362,432,362,432,367,336,367"/>
+<area shape="rect" id="Node000017" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="421,401,575,427"/>
+<area shape="poly" id="edge17_Node000016_Node000017" title=" " alt="" coords="347,411,420,411,420,417,347,417"/>
+<area shape="rect" id="Node000018" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="633,401,844,427"/>
+<area shape="poly" id="edge18_Node000017_Node000018" title=" " alt="" coords="589,411,633,411,633,417,589,417"/>
+<area shape="rect" id="Node000020" href="$classUartAxiLiteMaster.html" title=" " alt="" coords="428,451,568,476"/>
+<area shape="poly" id="edge20_Node000019_Node000020" title=" " alt="" coords="362,461,428,461,428,466,362,466"/>
+<area shape="rect" id="Node000021" href="$classUartAxiLiteMasterTb.html" title=" " alt="" coords="661,451,817,476"/>
+<area shape="poly" id="edge21_Node000020_Node000021" title=" " alt="" coords="582,461,660,461,660,466,582,466"/>
+<area shape="rect" id="Node000025" href="$classPgp2fcGthCoreWrapper.html" title=" " alt="" coords="411,573,585,599"/>
+<area shape="poly" id="edge25_Node000024_Node000025" title=" " alt="" coords="341,600,410,593,411,598,342,606"/>
+<area shape="rect" id="Node000027" href="$classPgp2fcGtyCoreWrapper.html" title=" " alt="" coords="411,623,585,648"/>
+<area shape="poly" id="edge27_Node000024_Node000027" title=" " alt="" coords="342,617,411,624,410,629,341,622"/>
+<area shape="rect" id="Node000026" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="678,573,799,599"/>
 <area shape="poly" id="edge26_Node000025_Node000026" title=" " alt="" coords="599,583,678,583,678,589,599,589"/>
+<area shape="rect" id="Node000028" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="678,623,799,648"/>
+<area shape="poly" id="edge28_Node000027_Node000028" title=" " alt="" coords="599,633,678,633,678,638,599,638"/>
 </map>

@@ -4,18 +4,18 @@
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="606,164,641,102,667,69,698,41,723,28,725,33,702,46,671,73,646,105,611,167"/>
 <area shape="rect" id="Node000007" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="711,55,874,80"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="614,166,651,127,699,90,728,78,730,82,701,95,654,131,618,170"/>
-<area shape="rect" id="Node000010" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="707,104,878,129"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="632,170,699,140,738,127,740,132,701,144,634,175"/>
-<area shape="rect" id="Node000011" href="$classI2cRegTb.html" title=" " alt="" coords="751,153,834,179"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="666,180,751,169,751,174,666,185"/>
-<area shape="rect" id="Node000012" href="$classLeapXcvrCore.html" title=" " alt="" coords="737,203,849,228"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="666,197,737,206,736,211,665,202"/>
-<area shape="rect" id="Node000014" href="$classSc18Is602Core.html" title=" " alt="" coords="733,252,852,277"/>
-<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="634,208,701,238,737,249,735,254,699,243,632,213"/>
-<area shape="rect" id="Node000016" href="$classSi5394I2cCore.html" title=" " alt="" coords="735,301,850,327"/>
-<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="618,213,654,252,677,271,701,288,736,302,734,306,699,292,673,275,650,256,614,217"/>
-<area shape="rect" id="Node000018" href="$classAxiLitePMbusMasterCore.html" title=" " alt="" coords="700,351,885,376"/>
-<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="611,215,645,277,671,310,702,337,722,348,720,353,698,342,667,313,641,280,606,218"/>
+<area shape="rect" id="Node000011" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="707,104,878,129"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="632,170,699,140,738,127,740,132,701,144,634,175"/>
+<area shape="rect" id="Node000012" href="$classI2cRegTb.html" title=" " alt="" coords="751,153,834,179"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="666,180,751,169,751,174,666,185"/>
+<area shape="rect" id="Node000013" href="$classLeapXcvrCore.html" title=" " alt="" coords="737,203,849,228"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="666,197,737,206,736,211,665,202"/>
+<area shape="rect" id="Node000015" href="$classSc18Is602Core.html" title=" " alt="" coords="733,252,852,277"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="634,208,701,238,737,249,735,254,699,243,632,213"/>
+<area shape="rect" id="Node000017" href="$classSi5394I2cCore.html" title=" " alt="" coords="735,301,850,327"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="618,213,654,252,677,271,701,288,736,302,734,306,699,292,673,275,650,256,614,217"/>
+<area shape="rect" id="Node000019" href="$classAxiLitePMbusMasterCore.html" title=" " alt="" coords="700,351,885,376"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="611,215,645,277,671,310,702,337,722,348,720,353,698,342,667,313,641,280,606,218"/>
 <area shape="rect" id="Node000002" href="$classI2cMaster.html" title=" " alt="" coords="407,179,493,204"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="507,189,541,189,541,194,507,194"/>
 <area shape="rect" id="Node000003" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="200,179,359,204"/>
@@ -26,14 +26,16 @@
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="878,15,954,15,954,21,878,21"/>
 <area shape="rect" id="Node000008" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="945,55,1077,80"/>
 <area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="888,65,945,65,945,70,888,70"/>
+<area shape="rect" id="Node000010" href="$classSff8472Core.html" title=" " alt="" coords="960,104,1061,129"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="863,80,961,103,959,108,862,86"/>
 <area shape="rect" id="Node000009" href="$classSff8472.html" title=" " alt="" coords="1136,55,1207,80"/>
 <area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="1090,65,1136,65,1136,70,1090,70"/>
-<area shape="rect" id="Node000013" href="$classLeapXcvr.html" title=" " alt="" coords="969,203,1052,228"/>
-<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="863,213,969,213,969,218,863,218"/>
-<area shape="rect" id="Node000015" href="$classSc18Is602.html" title=" " alt="" coords="967,252,1055,277"/>
-<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="866,262,966,262,966,267,866,267"/>
-<area shape="rect" id="Node000017" href="$classSi5394I2c.html" title=" " alt="" coords="968,301,1053,327"/>
-<area shape="poly" id="edge16_Node000016_Node000017" title=" " alt="" coords="863,311,968,311,968,317,863,317"/>
-<area shape="rect" id="Node000019" href="$classAxiLitePMbusMaster.html" title=" " alt="" coords="933,351,1088,376"/>
-<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="899,361,933,361,933,366,899,366"/>
+<area shape="rect" id="Node000014" href="$classLeapXcvr.html" title=" " alt="" coords="969,203,1052,228"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="863,213,969,213,969,218,863,218"/>
+<area shape="rect" id="Node000016" href="$classSc18Is602.html" title=" " alt="" coords="967,252,1055,277"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="866,262,966,262,966,267,866,267"/>
+<area shape="rect" id="Node000018" href="$classSi5394I2c.html" title=" " alt="" coords="968,301,1053,327"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="863,311,968,311,968,317,863,317"/>
+<area shape="rect" id="Node000020" href="$classAxiLitePMbusMaster.html" title=" " alt="" coords="933,351,1088,376"/>
+<area shape="poly" id="edge19_Node000019_Node000020" title=" " alt="" coords="899,361,933,361,933,366,899,366"/>
 </map>
