@@ -281,6 +281,7 @@ begin
                   v.i2cMasterOut.rdValid  := '1';
                   v.i2cMasterOut.rdData   := I2C_INVALID_ADDR_ERROR_C;
                   v.state                 := WAIT_TXN_REQ_S;
+                  v.coreRst               := '1';
                end if;
                if (r.tenbit = '0') and (i2cMasterIn.busReq = '1') then
                   v.i2cMasterOut.busAck := '1';
@@ -350,6 +351,7 @@ begin
                   v.i2cMasterOut.rdValid  := '1';
                   v.i2cMasterOut.rdData   := I2C_WRITE_ACK_ERROR_C;
                   v.state                 := WAIT_TXN_REQ_S;
+                  v.coreRst               := '1';
                end if;
             end if;
 
@@ -363,6 +365,7 @@ begin
          v.i2cMasterOut.txnError := '1';
          v.i2cMasterOut.rdValid  := '1';
          v.i2cMasterOut.rdData   := I2C_ARBITRATION_LOST_ERROR_C;
+         v.coreRst               := '1';
       end if;
 
       -- Always monitor for timeouts.
