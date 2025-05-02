@@ -10,8 +10,7 @@
 
 # dut_tb
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
-from cocotb.result import TestSuccess, TestFailure
+from cocotb.triggers import RisingEdge
 
 # test_HammingEccTb
 from cocotb_test.simulator import run
