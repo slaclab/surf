@@ -289,7 +289,7 @@ begin
       end if;
       if r.passedDly = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       end if;
    end process;
 
