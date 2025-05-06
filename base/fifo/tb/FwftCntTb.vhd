@@ -80,7 +80,7 @@ begin
    begin
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       elsif failed = '1' then
          assert false
             report "Simulation Failed!" severity failure;

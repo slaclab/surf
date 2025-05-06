@@ -228,10 +228,11 @@ begin
    process(failed, passed)
    begin
       if passed = '1' then
-         report CR & LF & CR & LF &
+         assert false
+            report CR & LF & CR & LF &
             "Simulation Passed!" & CR & LF &
             "Max error is " & real'image(r.maxError) &
-            CR & LF & CR & LF;
+            CR & LF & CR & LF severity note;
       elsif failed = '1' then
          assert false
             report CR & LF & CR & LF &

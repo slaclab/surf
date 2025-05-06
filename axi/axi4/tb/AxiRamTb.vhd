@@ -145,7 +145,7 @@ begin
          end if;
          if (memReadyDly = '1') then
             assert false
-               report "Simulation Passed!" severity failure;
+               report "Simulation Passed!" severity note;
          end if;
       end if;
    end process;

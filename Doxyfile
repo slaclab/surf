@@ -832,7 +832,6 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = protocols/i2c/rtl/orig
-EXCLUDE               += base/vhdl-libs
 EXCLUDE               += dsp/logic/DspXor.vhd
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or

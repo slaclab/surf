@@ -200,7 +200,7 @@ begin
       end loop;
 
       -- Simulation Passed
-      assert false report "Simulation Passed!" severity failure;
+      assert false report "Simulation Passed!" severity note;
 
    end process test;
 
