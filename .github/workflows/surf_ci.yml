@@ -74,7 +74,7 @@ jobs:
       - name: VHDL Regression Testing
         run: |
           make MODULES=$PWD
-          python -m pytest --cov -v tests/
+          python -m pytest --cov -v -n auto tests/
 
 #      # Code Coverage
 #      - name: Code Coverage

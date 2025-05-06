@@ -43,9 +43,44 @@ while IFS= read -r vhd_file; do
     fi
 done < <(find "$SCRIPT_DIR/../" -type f -name "*.vhd")
 
-# Run vsg on all included files at once
-if [[ ${#INCLUDED_FILES[@]} -gt 0 ]]; then
-    vsg -f "${INCLUDED_FILES[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml"
+# Determine number of CPU cores available
+if command -v nproc &> /dev/null; then
+    NUM_JOBS=$(nproc)
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    NUM_JOBS=$(sysctl -n hw.ncpu)
 else
-    echo "No files to lint."
+    NUM_JOBS=4  # Fallback default
 fi
+
+echo "Running VSG in parallel with $NUM_JOBS jobs..."
+
+# Create a temporary directory to hold file lists
+TMP_DIR=$(mktemp -d)
+
+# Split included files into chunks
+split_size=$(( (${#INCLUDED_FILES[@]} + NUM_JOBS - 1) / NUM_JOBS ))
+split_file_list=()
+for ((i=0; i<${#INCLUDED_FILES[@]}; i+=split_size)); do
+    chunk=("${INCLUDED_FILES[@]:i:split_size}")
+    filelist="$TMP_DIR/files_$i.txt"
+    printf "%s\n" "${chunk[@]}" > "$filelist"
+    split_file_list+=("$filelist")
+done
+
+# Run vsg in parallel
+pids=()
+for filelist in "${split_file_list[@]}"; do
+    (
+        mapfile -t files < "$filelist"
+        vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml"
+    ) &
+    pids+=($!)
+done
+
+# Wait for all jobs to finish
+for pid in "${pids[@]}"; do
+    wait "$pid"
+done
+
+# Clean up
+rm -rf "$TMP_DIR"

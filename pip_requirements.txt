@@ -6,5 +6,6 @@ coverage
 #codecov
 pytest
 pytest-cov
+pytest-xdist
 cpplint
 vsg
