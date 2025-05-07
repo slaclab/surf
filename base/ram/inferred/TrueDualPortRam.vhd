@@ -62,15 +62,15 @@ architecture rtl of TrueDualPortRam is
 
    -- Set byte width to word width if byte writes not enabled
    -- Otherwise block ram parity bits wont be utilized
-   constant BYTE_WIDTH_C : natural := ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G);
+   constant BYTE_WIDTH_C      : natural := ite(BYTE_WR_EN_G, BYTE_WIDTH_G, DATA_WIDTH_G);
    constant NUM_BYTES_C       : natural := wordCount(DATA_WIDTH_G, BYTE_WIDTH_C);
    constant FULL_DATA_WIDTH_C : natural := NUM_BYTES_C*BYTE_WIDTH_C;
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
    -- Shared memory
-   type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
-   shared variable mem : mem_type := (others => INIT_C);
+   type MemType is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
+   shared variable mem : MemType := (others => INIT_C);
 
    signal doutAInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
    signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
@@ -85,7 +85,7 @@ architecture rtl of TrueDualPortRam is
    attribute ram_extract        : string;
    attribute ram_extract of mem : variable is "TRUE";
 
-   attribute keep        : boolean;           --"keep" is same for XST and Altera
+   attribute keep        : boolean;     --"keep" is same for XST and Altera
    attribute keep of mem : variable is true;  --"keep" is same for XST and Altera
 
    -- Attribute for Synplicity Synthesizer
@@ -282,7 +282,7 @@ begin
          if (RST_ASYNC_G and rsta = RST_POLARITY_G) then
             douta <= (others => '0') after TPD_G;
          elsif (rising_edge(clka)) then
-            if (RST_ASYNC_G = false and rstA = RST_POLARITY_G) then
+            if (RST_ASYNC_G = false and rsta = RST_POLARITY_G) then
                douta <= (others => '0') after TPD_G;
             elsif (regcea = '1') then
                douta <= doutAInt(DATA_WIDTH_G-1 downto 0) after TPD_G;
@@ -301,7 +301,7 @@ begin
          if (RST_ASYNC_G and rstb = RST_POLARITY_G) then
             doutb <= (others => '0') after TPD_G;
          elsif (rising_edge(clkb)) then
-            if (RST_ASYNC_G = false and rstB = RST_POLARITY_G) then
+            if (RST_ASYNC_G = false and rstb = RST_POLARITY_G) then
                doutb <= (others => '0') after TPD_G;
             elsif (regceb = '1') then
                doutb <= doutBInt(DATA_WIDTH_G-1 downto 0) after TPD_G;

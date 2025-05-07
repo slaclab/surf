@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -25,8 +24,8 @@ use surf.AxiXcf128Pkg.all;
 
 entity AxiXcf128Reg is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6);  -- units of Hz
+      TPD_G          : time := 1 ns;
+      AXI_CLK_FREQ_G : real := 200.0E+6);  -- units of Hz
    port (
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -45,7 +44,7 @@ architecture rtl of AxiXcf128Reg is
 
    constant MAX_CNT_C : natural := (getTimeRatio(AXI_CLK_FREQ_G, 10.0E+6))-1;
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       CMD_LOW_S,
       CMD_HIGH_S,
@@ -124,7 +123,7 @@ begin
          end if;
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Check the read address
          if axiReadMaster.araddr(3 downto 2) = 0 then
             -- Get the write data bus

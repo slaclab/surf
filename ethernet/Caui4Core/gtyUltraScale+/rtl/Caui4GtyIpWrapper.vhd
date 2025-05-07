@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -931,7 +930,7 @@ begin
             rx_axis_tvalid                       => rxAxis.tvalid,
             rx_axis_tdata                        => rxAxis.tdata(511 downto 0),
             rx_axis_tlast                        => rxAxis.tlast,
-            rx_axis_tkeep                        => rxAxis.tkeep,
+            rx_axis_tkeep                        => rxAxis.tkeep(63 downto 0),
             rx_axis_tuser                        => rxAxis.tuser(0),
             rx_otn_bip8_0                        => open,
             rx_otn_bip8_1                        => open,
@@ -1160,7 +1159,7 @@ begin
             rx_axis_tvalid                       => rxAxis.tvalid,
             rx_axis_tdata                        => rxAxis.tdata(511 downto 0),
             rx_axis_tlast                        => rxAxis.tlast,
-            rx_axis_tkeep                        => rxAxis.tkeep,
+            rx_axis_tkeep                        => rxAxis.tkeep(63 downto 0),
             rx_axis_tuser                        => rxAxis.tuser(0),
             rx_otn_bip8_0                        => open,
             rx_otn_bip8_1                        => open,

@@ -33,9 +33,9 @@ use surf.Pgp3Pkg.all;
 entity Pgp3TxProtocol is
 
    generic (
-      TPD_G            : time                  := 1 ns;
-      NUM_VC_G         : integer range 1 to 16 := 4;
-      STARTUP_HOLD_G   : integer               := 1000);
+      TPD_G          : time                  := 1 ns;
+      NUM_VC_G       : integer range 1 to 16 := 4;
+      STARTUP_HOLD_G : integer               := 1000);
    port (
       -- User Transmit interface
       pgpTxClk    : in  sl;
@@ -52,12 +52,12 @@ entity Pgp3TxProtocol is
       remRxLinkReady : in sl;
 
       -- Output Interface
-      phyTxActive    : in  sl;
-      protTxReady    : in  sl;
-      protTxValid    : out sl;
-      protTxStart    : out sl;
-      protTxData     : out slv(63 downto 0);
-      protTxHeader   : out slv(1 downto 0));
+      phyTxActive  : in  sl;
+      protTxReady  : in  sl;
+      protTxValid  : out sl;
+      protTxStart  : out sl;
+      protTxData   : out slv(63 downto 0);
+      protTxHeader : out slv(1 downto 0));
 
 end entity Pgp3TxProtocol;
 
@@ -109,8 +109,8 @@ architecture rtl of Pgp3TxProtocol is
 
 begin
 
-   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster, pgpTxRst, phyTxActive,
-                   protTxReady, r, remRxLinkReady) is
+   comb : process (locRxFifoCtrl, locRxLinkReady, pgpTxIn, pgpTxMaster,
+                   pgpTxRst, phyTxActive, protTxReady, r, remRxLinkReady) is
       variable v                  : RegType;
       variable linkInfo           : slv(39 downto 0);
       variable dataEn             : sl;
@@ -259,7 +259,7 @@ begin
          -- SKIP codes override data
          elsif (r.skpCount = r.skpInterval) then
             v.skpCount                           := (others => '0');
-            v.pgpTxSlave.tReady                  := '0';            -- Override any data acceptance.
+            v.pgpTxSlave.tReady                  := '0';  -- Override any data acceptance.
             v.protTxData(PGP3_SKIP_DATA_FIELD_C) := pgpTxIn.locData;
             v.protTxData(PGP3_BTF_FIELD_C)       := PGP3_SKP_C;
             v.protTxHeader                       := PGP3_K_HEADER_C;
@@ -287,20 +287,20 @@ begin
 
          -- Check if TX is disabled
          if (pgpTxIn.disable = '1') then
-            v.linkReady      := '0';
-            v.protTxStart    := '0';
-            v.startupCount   := 0;
-            v.protTxData     := (others => '0');
-            v.protTxHeader   := (others => '0');
+            v.linkReady    := '0';
+            v.protTxStart  := '0';
+            v.startupCount := 0;
+            v.protTxData   := (others => '0');
+            v.protTxHeader := (others => '0');
          end if;
 
       end if;
 
       -- Check if link down
       if (phyTxActive = '0') then
-         v.linkReady      := '0';
-         v.protTxStart    := '0';
-         v.startupCount   := 0;
+         v.linkReady    := '0';
+         v.protTxStart  := '0';
+         v.startupCount := 0;
       end if;
 
       -- Check if need to reset event meta data
@@ -314,10 +314,10 @@ begin
       -- Outputs
       pgpTxSlave <= v.pgpTxSlave;
 
-      protTxData     <= r.protTxData;
-      protTxHeader   <= r.protTxHeader;
-      protTxValid    <= r.protTxValid;
-      protTxStart    <= r.protTxStart;
+      protTxData   <= r.protTxData;
+      protTxHeader <= r.protTxHeader;
+      protTxValid  <= r.protTxValid;
+      protTxStart  <= r.protTxStart;
 
       pgpTxOut.phyTxActive <= phyTxActive;
       pgpTxOut.linkReady   <= r.linkReady;

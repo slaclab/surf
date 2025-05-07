@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
@@ -55,12 +54,11 @@ end JesdSyncFsmTxTest;
 
 architecture rtl of JesdSyncFsmTxTest is
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       SYNC_S,
       ALIGN_S,
-      DATA_S
-      );
+      DATA_S);
 
    type RegType is record
       -- Synchronous FSM control outputs
@@ -78,8 +76,7 @@ architecture rtl of JesdSyncFsmTxTest is
       cnt       => (others => '0'),
 
       -- Status Machine
-      state => IDLE_S
-      );
+      state => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -185,5 +182,5 @@ begin
    testCntr_o  <= r.cnt;
    dataValid_o <= r.dataValid;
    align_o     <= r.align;
-----------------------------------------------
+
 end rtl;

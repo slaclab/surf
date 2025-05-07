@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -76,7 +75,7 @@ architecture rtl of ClinkData is
    constant REG_INIT_C : RegType := (
       state   => RESET_S,
       lastClk => (others => '0'),
-      delay   => toSlv(10,5),
+      delay   => toSlv(10, 5),
       delayLd => '0',
       bitSlip => '0',
       count   => 99,
@@ -282,7 +281,8 @@ begin
          valid  => parValid);
 
    U_Locked : entity surf.Synchronizer
-      generic map (TPD_G => TPD_G)
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clk     => sysClk,
          rst     => sysRst,

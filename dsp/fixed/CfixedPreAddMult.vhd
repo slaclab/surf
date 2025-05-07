@@ -27,33 +27,33 @@ use surf.ComplexFixedPkg.all;
 
 entity CfixedPreAddMult is
    generic (
-      TPD_G            : time                 := 1 ns;
-      REG_IN_G         : boolean              := true;
-      REG_OUT_G        : boolean              := false;
+      TPD_G                : time                      := 1 ns;
+      REG_IN_G             : boolean                   := true;
+      REG_OUT_G            : boolean                   := false;
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
-      clk    : in  sl;
+      clk  : in  sl;
       -- control add/sub
-      add    : in  sl;
+      add  : in  sl;
       -- inputs
-      a      : in  cfixed;
-      aVld   : in  sl := '0';
-      d      : in  cfixed;
-      dVld   : in  sl := '0';
-      b      : in  cfixed;
-      bVld   : in  sl := '0';
-      y      : out cfixed;
-      yVld   : out sl);
+      a    : in  cfixed;
+      aVld : in  sl := '0';
+      d    : in  cfixed;
+      dVld : in  sl := '0';
+      b    : in  cfixed;
+      bVld : in  sl := '0';
+      y    : out cfixed;
+      yVld : out sl);
 end CfixedPreAddMult;
 
 architecture rtl of CfixedPreAddMult is
 
-   constant DELAY_C        : integer := 4 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
+   constant DELAY_C : integer := 4 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
 
-   constant REG_DEPTH_C    : integer := 3;
+   constant REG_DEPTH_C : integer := 3;
 
-   constant AD_W_C         : integer := 27; -- 27 x 18 multiplier for DSP48
+   constant AD_W_C         : integer := 27;  -- 27 x 18 multiplier for DSP48
    constant AD_LOW_C       : integer := minimum(a.re'low, d.re'low);
    constant AD_HIGH_C      : integer := maximum(a.re'high, d.re'high) + 1;
    constant AD_HIGH_CLIP_C : integer := minimum(AD_W_C + AD_LOW_C - 1, AD_HIGH_C);
@@ -71,16 +71,16 @@ architecture rtl of CfixedPreAddMult is
 
 
    type RegType is record
-      areg  : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(a.re'range), im(a.im'range));
-      breg  : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(b.re'range), im(b.im'range));
-      dreg  : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(d.re'range), im(d.im'range)); -- add one extra element so we can index with CIN_REG_G
-      adreg : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(AD_HIGH_C downto AD_LOW_C), im(AD_HIGH_C downto AD_LOW_C)); -- add one extra element so we can index with CIN_REG_G
+      areg                   : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(a.re'range), im(a.im'range));
+      breg                   : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(b.re'range), im(b.im'range));
+      dreg                   : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(d.re'range), im(d.im'range));  -- add one extra element so we can index with CIN_REG_G
+      adreg                  : cfixedArray(REG_DEPTH_C - 1 downto 0)(re(AD_HIGH_C downto AD_LOW_C), im(AD_HIGH_C downto AD_LOW_C));  -- add one extra element so we can index with CIN_REG_G
       -- synthesis tool has trouble inferring DSP pre adder if using std_logic_vector and shift
-      add_r, add_rr : sl;
-      vld   : slv(DELAY_C - 1 downto 0);
+      add_r, add_rr          : sl;
+      vld                    : slv(DELAY_C - 1 downto 0);
       p_rr, p_ii, p_ri, p_ir : sfixed(P_HIGH_C downto P_LOW_C);
       m_rr, m_ii, m_ri, m_ir : sfixed(M_HIGH_C downto M_LOW_C);
-      y         : cfixed(re(y.re'range), im(y.im'range));
+      y                      : cfixed(re(y.re'range), im(y.im'range));
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -107,10 +107,10 @@ architecture rtl of CfixedPreAddMult is
 begin
 
    assert ((a.re'length < 28) and (b.re'length < 19)) or ((a.re'length < 19) and (b.re'length < 28))
-       report "Input data should be less than 18x27 bits" severity failure;
+      report "Input data should be less than 18x27 bits" severity failure;
 
 
-   comb : process( add, a, b, d, aVld, bVld, dVld, r ) is
+   comb : process(a, aVld, add, b, bVld, d, dVld, r, y) is
       variable v : RegType;
    begin
 
@@ -118,28 +118,28 @@ begin
 
       v.vld(0) := aVld and bVld and dVld;
       for i in DELAY_C - 1 downto 1 loop
-          v.vld(i) := r.vld(i-1);
+         v.vld(i) := r.vld(i-1);
       end loop;
 
       -- Input pipeline
       for i in REG_DEPTH_C - 1 downto 1 loop
-          v.areg(i) := r.areg(i-1);
-          v.breg(i) := r.breg(i-1);
-          v.dreg(i) := r.dreg(i-1);
+         v.areg(i) := r.areg(i-1);
+         v.breg(i) := r.breg(i-1);
+         v.dreg(i) := r.dreg(i-1);
       end loop;
 
       if REG_IN_G then
-          v.areg(0) := a;
-          v.breg(0) := b;
-          v.dreg(0) := d;
-          v.add_r   := add;
-          v.add_rr  := r.add_r;
+         v.areg(0) := a;
+         v.breg(0) := b;
+         v.dreg(0) := d;
+         v.add_r   := add;
+         v.add_rr  := r.add_r;
       else
-          -- Skip 1st pipeline stage
-          v.areg(1) := a;
-          v.breg(1) := b;
-          v.dreg(1) := d;
-          v.add_rr  := add;
+         -- Skip 1st pipeline stage
+         v.areg(1) := a;
+         v.breg(1) := b;
+         v.dreg(1) := d;
+         v.add_rr  := add;
       end if;
 
       if v.add_rr = '0' then
@@ -168,8 +168,8 @@ begin
 
       -- resize for output
       v.y := to_cfixed(
-                resize(r.p_rr, y.re, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G),
-                resize(r.p_ri, y.im, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G));
+         resize(r.p_rr, y.re, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G),
+         resize(r.p_ri, y.im, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G));
       rin <= v;
 
       yVld <= r.vld(DELAY_C-1);

@@ -32,7 +32,7 @@ architecture test of IirSimpleTb is
 
    constant IIR_SHIFT_C : integer := 4;
    constant ILEAVE_C    : integer := 7;
-   constant FILT_A_C    : real    := 2**(-real( IIR_SHIFT_C));
+   constant FILT_A_C    : real    := 2**(-real(IIR_SHIFT_C));
 
    signal clk : std_logic := '0';
    signal rst : std_logic := '1';
@@ -44,41 +44,41 @@ architecture test of IirSimpleTb is
       PASSED_S);
 
    type RegType is record
-       cnt      : integer;
-       passed   : sl;
-       failed   : sl;
-       halt     : sl;
-       dinR     : real;
-       doutR    : real;
-       din      : sfixed(0 downto -15);
-       dout     : sfixed(0 downto -15);
-       validIn  : sl;
-       validOut : sl;
-       userIn   : slv(3 downto 0);
-       userOut  : slv(3 downto 0);
-       expected : real;
-       err      : real;
-       maxError : real;
-       state    : StateType;
+      cnt      : integer;
+      passed   : sl;
+      failed   : sl;
+      halt     : sl;
+      dinR     : real;
+      doutR    : real;
+      din      : sfixed(0 downto -15);
+      dout     : sfixed(0 downto -15);
+      validIn  : sl;
+      validOut : sl;
+      userIn   : slv(3 downto 0);
+      userOut  : slv(3 downto 0);
+      expected : real;
+      err      : real;
+      maxError : real;
+      state    : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      cnt       => 0,
-      passed    => '0',
-      failed    => '0',
-      halt      => '0',
-      dinR      => 0.0,
-      doutR     => 0.0,
-      din       => (others => '0'),
-      dout      => (others => '0'),
-      validIn   => '0',
-      validOut  => '0',
-      userIn    => (others => '0'),
-      userOut   => (others => '0'),
-      expected  => 0.0,
-      err       => 0.0,
-      maxError  => 0.0,
-      state     => INIT_S);
+      cnt      => 0,
+      passed   => '0',
+      failed   => '0',
+      halt     => '0',
+      dinR     => 0.0,
+      doutR    => 0.0,
+      din      => (others => '0'),
+      dout     => (others => '0'),
+      validIn  => '0',
+      validOut => '0',
+      userIn   => (others => '0'),
+      userOut  => (others => '0'),
+      expected => 0.0,
+      err      => 0.0,
+      maxError => 0.0,
+      state    => INIT_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -115,23 +115,23 @@ begin
          ILEAVE_CHAN_G => ILEAVE_C,
          USER_WIDTH_G  => r.userIn'length)
       port map (
-         clk       => clk,
-         rst       => rst,
-         validIn   => r.validIn,
-         userIn    => r.userIn,
-         din       => r.din,
-         validOut  => validOut,
-         userOut   => userOut,
-         dout      => dout);
+         clk      => clk,
+         rst      => rst,
+         validIn  => r.validIn,
+         userIn   => r.userIn,
+         din      => r.din,
+         validOut => validOut,
+         userOut  => userOut,
+         dout     => dout);
 
-   comb : process (dout, validOut, userOut, rst, r) is
-      variable v : RegType;
+   comb : process (dout, r, rst, userOut, validOut) is
+      variable v  : RegType;
       variable s1 : integer := 981;
       variable s2 : integer := 12541;
 
       variable rn : real;
 
-      impure function rand_n(min_val, max_val : real) return real is
+      impure function randNum(min_val, max_val : real) return real is
          variable re : real := 0.0;
          variable im : real := 0.0;
          variable r  : real := 0.0;
@@ -139,7 +139,7 @@ begin
          uniform(s1, s2, r);
          r := r * (max_val - min_val) + min_val;
          return r;
-      end function rand_n;
+      end function randNum;
 
    begin
 
@@ -154,11 +154,11 @@ begin
             v.validOut := validOut;
             v.userOut  := userOut;
 
-            v.cnt      := r.cnt + 1;
+            v.cnt := r.cnt + 1;
             if (r.cnt mod ILEAVE_C) = 0 then
-               rn          := rand_n(-0.5, 0.5);
-               v.userIn    := (others => '1');
-               v.validIn   := '1';
+               rn         := randNum(-0.5, 0.5);
+               v.userIn   := (others => '1');
+               v.validIn  := '1';
                -- compute expected value
                v.expected := (FILT_A_C * rn) + (real(1) - FILT_A_C) * r.expected;
             else
@@ -167,13 +167,13 @@ begin
                v.validIn := '0';
             end if;
 
-            v.dinR   := rn;
-            v.din    := to_sfixed(rn, v.din);
+            v.dinR := rn;
+            v.din  := to_sfixed(rn, v.din);
 
             if r.validOut = '1' then
-                v.doutR    := to_real(r.dout);
-                v.err      := abs(v.doutR - r.expected);
-                v.maxError := maximum(r.maxError, v.err);
+               v.doutR    := to_real(r.dout);
+               v.err      := abs(v.doutR - r.expected);
+               v.maxError := maximum(r.maxError, v.err);
             end if;
 
             if r.maxError > ERROR_TOL_C then
@@ -215,16 +215,17 @@ begin
    process(failed, passed)
    begin
       if passed = '1' then
-         report CR & LF & CR & LF &
+         assert false
+            report CR & LF & CR & LF &
             "Simulation Passed!" & CR & LF &
-             "Max error is " & real'image(r.maxError) &
-             CR & LF & CR & LF;
+            "Max error is " & real'image(r.maxError) &
+            CR & LF & CR & LF severity note;
       elsif failed = '1' then
          assert false
             report CR & LF & CR & LF &
-               "Simulation Failed!" & CR & LF &
-                "Max error is " & real'image(r.maxError) &
-                CR & LF & CR & LF severity failure;
+            "Simulation Failed!" & CR & LF &
+            "Max error is " & real'image(r.maxError) &
+            CR & LF & CR & LF severity failure;
       end if;
    end process;
 

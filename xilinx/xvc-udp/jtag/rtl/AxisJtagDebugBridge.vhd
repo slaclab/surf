@@ -20,32 +20,30 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxisToJtagPkg.all;
 
 -- Connect AxisToJtag to a debug bridge IP (convenience wrapper)
+
 entity AxisJtagDebugBridge is
    generic (
-      TPD_G            : time                       := 1 ns;
-      AXIS_FREQ_G      : real                       := 0.0;   -- Hz (for computing TCK period)
-      AXIS_WIDTH_G     : positive range 4 to 16     := 4;     -- bytes
-      CLK_DIV2_G       : positive                   := 4;     -- half-period of TCK in axisClk cycles
-      MEM_DEPTH_G      : natural  range 0 to 65535  := 4;     -- size of buffer memory (0 for none)
-      MEM_STYLE_G      : string                     := "auto" -- 'auto', 'block' or 'distributed'
-   );
+      TPD_G        : time                     := 1 ns;
+      AXIS_FREQ_G  : real                     := 0.0;  -- Hz (for computing TCK period)
+      AXIS_WIDTH_G : positive range 4 to 16   := 4;  -- bytes
+      CLK_DIV2_G   : positive                 := 4;  -- half-period of TCK in axisClk cycles
+      MEM_DEPTH_G  : natural range 0 to 65535 := 4;  -- size of buffer memory (0 for none)
+      MEM_STYLE_G  : string                   := "auto");  -- 'auto', 'block' or 'distributed'
    port (
-      axisClk          : in sl;
-      axisRst          : in sl;
+      axisClk : in sl;
+      axisRst : in sl;
 
-      mAxisReq         : in  AxiStreamMasterType;
-      sAxisReq         : out AxiStreamSlaveType;
+      mAxisReq : in  AxiStreamMasterType;
+      sAxisReq : out AxiStreamSlaveType;
 
-      mAxisTdo         : out AxiStreamMasterType;
-      sAxisTdo         : in  AxiStreamSlaveType
-   );
+      mAxisTdo : out AxiStreamMasterType;
+      sAxisTdo : in  AxiStreamSlaveType);
 end entity AxisJtagDebugBridge;
 
 architecture AxisJtagDebugBridgeImpl of AxisJtagDebugBridge is
@@ -59,15 +57,17 @@ architecture AxisJtagDebugBridgeImpl of AxisJtagDebugBridge is
    --
 
    component DebugBridgeJtag is
-     port (
-       jtag_tdi : in  std_logic;
-       jtag_tdo : out std_logic;
-       jtag_tms : in  std_logic;
-       jtag_tck : in  std_logic
-     );
+      port (
+         jtag_tdi : in  std_logic;
+         jtag_tdo : out std_logic;
+         jtag_tms : in  std_logic;
+         jtag_tck : in  std_logic);
    end component DebugBridgeJtag;
 
-   signal tck, tdi, tms, tdo : sl;
+   signal tck : sl;
+   signal tdi : sl;
+   signal tms : sl;
+   signal tdo : sl;
 
 begin
 
@@ -78,31 +78,28 @@ begin
          AXIS_FREQ_G  => AXIS_FREQ_G,
          CLK_DIV2_G   => CLK_DIV2_G,
          MEM_DEPTH_G  => MEM_DEPTH_G,
-         MEM_STYLE_G  => MEM_STYLE_G
-      )
+         MEM_STYLE_G  => MEM_STYLE_G)
       port map (
-         axisClk      => axisClk,
-         axisRst      => axisRst,
+         axisClk => axisClk,
+         axisRst => axisRst,
 
-         mAxisReq     => mAxisReq,
-         sAxisReq     => sAxisReq,
+         mAxisReq => mAxisReq,
+         sAxisReq => sAxisReq,
 
-         mAxisTdo     => mAxisTdo,
-         sAxisTdo     => sAxisTdo,
+         mAxisTdo => mAxisTdo,
+         sAxisTdo => sAxisTdo,
 
-         tck          => tck,
-         tms          => tms,
-         tdi          => tdi,
-         tdo          => tdo
-      );
+         tck => tck,
+         tms => tms,
+         tdi => tdi,
+         tdo => tdo);
 
    U_JTAG_BSCAN : component DebugBridgeJtag
       port map (
-         jtag_tdi     => tdi,
-         jtag_tdo     => tdo,
-         jtag_tms     => tms,
-         jtag_tck     => tck
-      );
+         jtag_tdi => tdi,
+         jtag_tdo => tdo,
+         jtag_tms => tms,
+         jtag_tck => tck);
 
 end architecture AxisJtagDebugBridgeImpl;
 
@@ -121,14 +118,13 @@ architecture AxisJtagDebugBridgeStub of AxisJtagDebugBridge is
       state    => READY_S,
       repValid => '0',
       repData  => (others => '0'),
-      reqReady => '1'
-   );
+      reqReady => '1');
 
    signal mReply : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sReq   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   signal r      : RegType             := REG_INIT_C;
-   signal rin    : RegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
 begin
 
@@ -137,10 +133,10 @@ begin
    mReply.tLast              <= '1';
    mReply.tData(31 downto 0) <= r.repData;
 
-   sAxisReq                  <= sReq;
-   mAxisTdo                  <= mReply;
+   sAxisReq <= sReq;
+   mAxisTdo <= mReply;
 
-   U_COMB : process(r, mAxisReq, sAxisTdo) is
+   U_COMB : process(mAxisReq, r, sAxisTdo) is
       variable v : RegType;
    begin
       v := r;
@@ -148,17 +144,17 @@ begin
       case (r.state) is
 
          when READY_S =>
-            if ( mAxisReq.tValid = '1' ) then
-               v.repData := ( others => '0' );
-               if ( getVersion( mAxisReq.tData ) /= PRO_VERSN_C ) then
-                  setVersion( PRO_VERSN_C      , v.repData );
-                  setErr    ( ERR_BAD_VERSION_C, v.repData );
-               elsif ( getCommand( mAxisReq.tData ) /= CMD_QUERY_C ) then
-                  setErr    ( ERR_BAD_COMMAND_C, v.repData );
+            if (mAxisReq.tValid = '1') then
+               v.repData := (others => '0');
+               if (getVersion(mAxisReq.tData) /= PRO_VERSN_C) then
+                  setVersion(PRO_VERSN_C, v.repData);
+                  setErr (ERR_BAD_VERSION_C, v.repData);
+               elsif (getCommand(mAxisReq.tData) /= CMD_QUERY_C) then
+                  setErr (ERR_BAD_COMMAND_C, v.repData);
                else
-                  setErr    ( ERR_NOT_PRESENT_C, v.repData );
+                  setErr (ERR_NOT_PRESENT_C, v.repData);
                end if;
-               if ( mAxisReq.tLast = '1' ) then
+               if (mAxisReq.tLast = '1') then
                   v.reqReady := '0';
                end if;
                v.repValid := '1';
@@ -166,12 +162,12 @@ begin
             end if;
 
          when REPLY_S =>
-            if ( (mAxisReq.tValid and mAxisReq.tLast and r.reqReady) = '1' ) then
+            if ((mAxisReq.tValid and mAxisReq.tLast and r.reqReady) = '1') then
                v.reqReady := '0';
             end if;
-            if ( sAxisTdo.tReady = '1' ) then
+            if (sAxisTdo.tReady = '1') then
                v.repValid := '0';
-               if ( v.reqReady = '1' ) then
+               if (v.reqReady = '1') then
                   -- no TLAST seen yet
                   v.state := SKIP_S;
                else
@@ -181,7 +177,7 @@ begin
             end if;
 
          when SKIP_S =>
-            if ( (mAxisReq.tValid and mAxisReq.tLast) = '1' ) then
+            if ((mAxisReq.tValid and mAxisReq.tLast) = '1') then
                v.state := READY_S;
             end if;
 
@@ -191,10 +187,10 @@ begin
 
    end process U_comb;
 
-   U_SEQ : process( axisClk ) is
+   U_SEQ : process(axisClk) is
    begin
-      if ( rising_edge( axisClk ) ) then
-         if ( axisRst /= '0' ) then
+      if (rising_edge(axisClk)) then
+         if (axisRst /= '0') then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;

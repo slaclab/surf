@@ -20,7 +20,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -162,27 +161,27 @@ package AxisToJtagPkg is
    -- bit indices in the header word
 
    -- REQUEST
-   constant LEN_SHIFT_C : natural  :=  0;
+   constant LEN_SHIFT_C : natural  := 0;
    constant LEN_WIDTH_C : positive := 20;
    constant XID_SHIFT_C : natural  := LEN_SHIFT_C + LEN_WIDTH_C;
-   constant XID_WIDTH_C : positive :=  8;
+   constant XID_WIDTH_C : positive := 8;
    constant CMD_SHIFT_C : natural  := XID_SHIFT_C + XID_WIDTH_C;
-   constant CMD_WIDTH_C : positive :=  2;
+   constant CMD_WIDTH_C : positive := 2;
    constant VER_SHIFT_C : natural  := CMD_SHIFT_C + CMD_WIDTH_C;
-   constant VER_WIDTH_C : positive :=  2;
+   constant VER_WIDTH_C : positive := 2;
 
    -- REPLY (query)
-   constant QWL_SHIFT_C : natural  := LEN_SHIFT_C;
-   constant QWL_WIDTH_C : natural  :=  4;
-   constant QMS_SHIFT_C : natural  := QWL_SHIFT_C + QWL_WIDTH_C;
-   constant QMS_WIDTH_C : natural  := 16;
-   constant QPD_SHIFT_C : natural  := QMS_SHIFT_C + QMS_WIDTH_C;
-   constant QPD_WIDTH_C : natural  :=  8;
+   constant QWL_SHIFT_C : natural := LEN_SHIFT_C;
+   constant QWL_WIDTH_C : natural := 4;
+   constant QMS_SHIFT_C : natural := QWL_SHIFT_C + QWL_WIDTH_C;
+   constant QMS_WIDTH_C : natural := 16;
+   constant QPD_SHIFT_C : natural := QMS_SHIFT_C + QMS_WIDTH_C;
+   constant QPD_WIDTH_C : natural := 8;
 
-   subtype LenType  is slv(LEN_WIDTH_C - 1 downto 0);
-   subtype XidType  is slv(XID_WIDTH_C - 1 downto 0);
-   subtype ProType  is slv(VER_WIDTH_C - 1 downto 0);
-   subtype CmdType  is slv(CMD_WIDTH_C - 1 downto 0);
+   subtype LenType is slv(LEN_WIDTH_C - 1 downto 0);
+   subtype XidType is slv(XID_WIDTH_C - 1 downto 0);
+   subtype ProType is slv(VER_WIDTH_C - 1 downto 0);
+   subtype CmdType is slv(CMD_WIDTH_C - 1 downto 0);
 
    -- Protocol Version
    constant PRO_VERSN_C : ProType := "00";
@@ -193,81 +192,53 @@ package AxisToJtagPkg is
    constant CMD_ERROR_C : CmdType := "10";
 
    -- Error codes (CMD_ERROR_C)
-   constant ERR_BAD_VERSION_C : LenType := toSlv( 1, LenType'length );
-   constant ERR_BAD_COMMAND_C : LenType := toSlv( 2, LenType'length );
-   constant ERR_TRUNCATED_C   : LenType := toSlv( 3, LenType'length );
-   constant ERR_NOT_PRESENT_C : LenType := toSlv( 4, LenType'length );
+   constant ERR_BAD_VERSION_C : LenType := toSlv(1, LenType'length);
+   constant ERR_BAD_COMMAND_C : LenType := toSlv(2, LenType'length);
+   constant ERR_TRUNCATED_C   : LenType := toSlv(3, LenType'length);
+   constant ERR_NOT_PRESENT_C : LenType := toSlv(4, LenType'length);
 
-   function getVersion(
-      data       : in slv
-   ) return ProType;
+   function getVersion(data : in slv) return ProType;
 
-   procedure setVersion(
-      version    : in    ProType;
-      data       : inout slv
-   );
+   procedure setVersion(version : in ProType; data : inout slv);
 
-   function getCommand(
-      data       : in slv
-   ) return CmdType;
+   function getCommand(data : in slv) return CmdType;
 
-   function getXid(
-      data       : in slv
-   ) return XidType;
+   function getXid(data : in slv) return XidType;
 
-   function getLen(
-      data       : in slv
-   ) return LenType;
+   function getLen(data : in slv) return LenType;
 
-   procedure setErr(
-      err        : in    LenType;
-      data       : inout slv
-   );
+   procedure setErr(err : in LenType; data : inout slv);
 
 end package AxisToJtagPkg;
 
 package body AxisToJtagPkg is
 
-   function getVersion(
-      data       : in slv
-   ) return ProType is
+   function getVersion(data : in slv) return ProType is
    begin
       return data(VER_SHIFT_C + VER_WIDTH_C - 1 downto VER_SHIFT_C);
    end function getVersion;
 
-   procedure setVersion(
-      version    : in    ProType;
-      data       : inout slv
-   ) is
+   procedure setVersion(version : in ProType; data : inout slv) is
    begin
       data(VER_SHIFT_C + VER_WIDTH_C - 1 downto VER_SHIFT_C) := version;
    end procedure setVersion;
 
-   function getCommand(
-      data       : in slv
-   ) return CmdType is
+   function getCommand(data : in slv) return CmdType is
    begin
       return data(CMD_SHIFT_C + CMD_WIDTH_C - 1 downto CMD_SHIFT_C);
    end function getCommand;
 
-   function getXid(
-      data       : in slv
-   ) return XidType is
+   function getXid(data : in slv) return XidType is
    begin
       return data(XID_SHIFT_C + XID_WIDTH_C - 1 downto XID_SHIFT_C);
    end function getXid;
 
-   function getLen(
-      data       : in slv
-   ) return LenType is
+   function getLen(data : in slv) return LenType is
    begin
       return data(LEN_SHIFT_C + LEN_WIDTH_C - 1 downto LEN_SHIFT_C);
    end function getLen;
 
-   procedure setErr(
-      err        : in    LenType;
-      data       : inout slv
-   ) is
+   procedure setErr(err : in LenType; data : inout slv) is
    begin
       data(CMD_SHIFT_C + CMD_WIDTH_C - 1 downto CMD_SHIFT_C) := CMD_ERROR_C;
       data(LEN_SHIFT_C + LEN_WIDTH_C - 1 downto LEN_SHIFT_C) := err;

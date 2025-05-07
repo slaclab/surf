@@ -19,16 +19,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp3Pkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp3Gtx7 is
    generic (
@@ -120,11 +118,11 @@ architecture rtl of Pgp3Gtx7 is
    signal phyRxSlip     : sl;
 
    -- PgpTx Signals
-   signal phyTxActive   : sl;
-   signal phyTxStart    : sl;
-   signal phyTxDataRdy  : sl;
-   signal phyTxData     : slv(63 downto 0);
-   signal phyTxHeader   : slv(1 downto 0);
+   signal phyTxActive  : sl;
+   signal phyTxStart   : sl;
+   signal phyTxDataRdy : sl;
+   signal phyTxData    : slv(63 downto 0);
+   signal phyTxHeader  : slv(1 downto 0);
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;

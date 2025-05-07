@@ -363,7 +363,7 @@ begin
                   if (DATA_WIDTH_G <= 32) then
                      v.axiWrStrobe := axiWriteMaster.wstrb;
                   else
-                     decAddrInt := conv_integer(axiWriteMaster.awaddr(AXI_DEC_ADDR_RANGE_C));
+                     decAddrInt                                            := conv_integer(axiWriteMaster.awaddr(AXI_DEC_ADDR_RANGE_C));
                      v.axiWrStrobe((decAddrInt+1)*4-1 downto decAddrInt*4) := axiWriteMaster.wstrb;
                   end if;
                end if;

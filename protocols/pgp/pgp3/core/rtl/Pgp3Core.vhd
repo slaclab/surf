@@ -51,12 +51,12 @@ entity Pgp3Core is
       pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
 
       -- Tx PHY interface
-      phyTxActive   : in  sl;
-      phyTxReady    : in  sl;
-      phyTxValid    : out sl;
-      phyTxStart    : out sl;
-      phyTxData     : out slv(63 downto 0);
-      phyTxHeader   : out slv(1 downto 0);
+      phyTxActive : in  sl;
+      phyTxReady  : in  sl;
+      phyTxValid  : out sl;
+      phyTxStart  : out sl;
+      phyTxData   : out slv(63 downto 0);
+      phyTxHeader : out slv(1 downto 0);
 
       -- Rx User interface
       pgpRxClk     : in  sl;
@@ -138,9 +138,9 @@ begin
 
    U_Pgp3Rx_1 : entity surf.Pgp3Rx
       generic map (
-         TPD_G              => TPD_G,
-         NUM_VC_G           => NUM_VC_G,
-         ALIGN_SLIP_WAIT_G  => RX_ALIGN_SLIP_WAIT_G)
+         TPD_G             => TPD_G,
+         NUM_VC_G          => NUM_VC_G,
+         ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
       port map (
          pgpRxClk       => pgpRxClk,        -- [in]
          pgpRxRst       => pgpRxRst,        -- [in]

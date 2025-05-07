@@ -26,7 +26,7 @@ entity SyncStatusVector is
       RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean  := false;  -- true if reset is asynchronous, false if reset is synchronous
       COMMON_CLK_G   : boolean  := false;  -- True if wrClk and rdClk are the same clock
-      SYNC_STAGES_G  : positive := 3;   -- Synchronization stages between statusIn and statusOut
+      SYNC_STAGES_G  : positive := 3;  -- Synchronization stages between statusIn and statusOut
       IN_POLARITY_G  : slv      := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
       USE_DSP_G      : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
@@ -38,11 +38,11 @@ entity SyncStatusVector is
       ---------------------------------------------
       -- Input Status bit Signals (wrClk domain)
       ---------------------------------------------
-      statusIn     : in  slv(WIDTH_G-1 downto 0);                     -- Data to be 'synced'
+      statusIn     : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
       ---------------------------------------------
       -- Output Status bit Signals (rdClk domain)
       ---------------------------------------------
-      statusOut    : out slv(WIDTH_G-1 downto 0);                     -- Synced data
+      statusOut    : out slv(WIDTH_G-1 downto 0);  -- Synced data
       ---------------------------------------------
       -- Status Bit Counters Signals (rdClk domain)
       ---------------------------------------------

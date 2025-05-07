@@ -17,7 +17,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -55,6 +54,7 @@ end AxiMicronN25QCore;
 architecture mapping of AxiMicronN25QCore is
 
 begin
+
    -- Check SPI_CLK_FREQ_G
    -- Note: Max. read frequency is 50 MHz
    assert (SPI_CLK_FREQ_G <= 50.0E+6)

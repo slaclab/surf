@@ -28,32 +28,32 @@ use surf.Pgp4Pkg.all;
 entity Pgp4TxLite is
    generic (
       TPD_G          : time                  := 1 ns;
-      RST_POLARITY_G : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean               := false;
       NUM_VC_G       : integer range 1 to 16 := 1;
       SKIP_EN_G      : boolean               := false;
       FLOW_CTRL_EN_G : boolean               := false);
    port (
       -- Transmit interface
-      pgpTxClk     : in  sl;
-      pgpTxRst     : in  sl;
-      pgpTxIn      : in  Pgp4TxInType := PGP4_TX_IN_INIT_C;
-      pgpTxOut     : out Pgp4TxOutType;
-      pgpTxActive  : in  sl;
-      pgpTxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpTxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      pgpTxClk       : in  sl;
+      pgpTxRst       : in  sl;
+      pgpTxIn        : in  Pgp4TxInType                            := PGP4_TX_IN_INIT_C;
+      pgpTxOut       : out Pgp4TxOutType;
+      pgpTxActive    : in  sl;
+      pgpTxMasters   : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      pgpTxSlaves    : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- Status of receive and remote FIFOs (Asynchronous)
-      locRxFifoCtrl  : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
-      locRxLinkReady : in sl                                      := '1';
-      remRxFifoCtrl  : in AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
-      remRxLinkReady : in sl                                      := '1';
+      locRxFifoCtrl  : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
+      locRxLinkReady : in  sl                                      := '1';
+      remRxFifoCtrl  : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
+      remRxLinkReady : in  sl                                      := '1';
       -- PHY interface
-      phyTxActive : in  sl;
-      phyTxReady  : in  sl;
-      phyTxValid  : out sl;
-      phyTxStart  : out sl;
-      phyTxData   : out slv(63 downto 0);
-      phyTxHeader : out slv(1 downto 0));
+      phyTxActive    : in  sl;
+      phyTxReady     : in  sl;
+      phyTxValid     : out sl;
+      phyTxStart     : out sl;
+      phyTxData      : out slv(63 downto 0);
+      phyTxHeader    : out slv(1 downto 0));
 end entity Pgp4TxLite;
 
 architecture rtl of Pgp4TxLite is
@@ -173,15 +173,15 @@ begin
             ILEAVE_EN_G          => false,
             ILEAVE_ON_NOTVALID_G => false)
          port map (
-            axisClk      => pgpTxClk,       -- [in]
-            axisRst      => pgpTxRst,       -- [in]
-            disableSel   => disableSel,     -- [in]
-            rearbitrate  => '0',            -- [in]
-            ileaveRearb  => (others=>'0'),  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
-            sAxisMasters => pgpTxMasters,   -- [in]
-            sAxisSlaves  => pgpTxSlaves,    -- [out]
-            mAxisMaster  => muxedTxMaster,  -- [out]
-            mAxisSlave   => muxedTxSlave);  -- [in]
+            axisClk      => pgpTxClk,   -- [in]
+            axisRst      => pgpTxRst,   -- [in]
+            disableSel   => disableSel,       -- [in]
+            rearbitrate  => '0',        -- [in]
+            ileaveRearb  => (others => '0'),  -- Cadence Genus doesn't support ite() init - Error   : Could not resolve complex expression. [CDFG-200] [elaborate]
+            sAxisMasters => pgpTxMasters,     -- [in]
+            sAxisSlaves  => pgpTxSlaves,      -- [out]
+            mAxisMaster  => muxedTxMaster,    -- [out]
+            mAxisSlave   => muxedTxSlave);    -- [in]
    end generate GEN_MUX;
 
    NO_MUX : if (NUM_VC_G = 1) and (FLOW_CTRL_EN_G = false) generate

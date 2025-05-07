@@ -281,7 +281,7 @@ begin
                   v.txMaster.tLast := '1';
 
                   -- Update next REQ_MSG opcode
-                  v.opCode := x"00";     -- 0x0=Non-Posted Read
+                  v.opCode := x"00";    -- 0x0=Non-Posted Read
 
                   -- Increment the TID
                   v.tid := r.tid + 1;
@@ -427,7 +427,7 @@ begin
    begin
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       elsif failed = '1' then
          assert false
             report "Simulation Failed!" severity failure;

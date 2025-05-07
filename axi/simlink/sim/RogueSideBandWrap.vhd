@@ -33,8 +33,7 @@ entity RogueSideBandWrap is
       txRemData  : in  slv(7 downto 0);
       rxOpCode   : out slv(7 downto 0);
       rxOpCodeEn : out sl;
-      rxRemData  : out slv(7 downto 0)
-      );
+      rxRemData  : out slv(7 downto 0));
 end RogueSideBandWrap;
 
 -- Define architecture
@@ -55,6 +54,4 @@ begin
          rxOpCodeEn => rxOpCodeEn,
          rxRemData  => rxRemData);
 
-
 end RogueSideBandWrap;
-

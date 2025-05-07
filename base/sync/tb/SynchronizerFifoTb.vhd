@@ -17,14 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity SynchronizerFifoTb is end SynchronizerFifoTb;
 
 architecture testbed of SynchronizerFifoTb is
+
    type TestClkType is array(4 downto 0) of time;
+
    constant WRITE_CLK_ARRAY_C : TestClkType := (
       5 ns,
       20 ns,
@@ -37,14 +38,14 @@ architecture testbed of SynchronizerFifoTb is
       10 ns,
       3.1415926535897932384626433832795 ns,
       10 ns);
-   constant CLK_SEL_C    : integer := 2;  --change this parameter for simulating different clock configurations
-   constant WRITE_CLK_C  : time    := WRITE_CLK_ARRAY_C(CLK_SEL_C);
-   constant READ_CLK_C   : time    := READ_CLK_ARRAY_C(CLK_SEL_C);
-   constant MEMORY_TYPE_G: string  := "block";
-   constant FWFT_EN_C    : boolean := true;
-   constant DATA_WIDTH_C : integer := 8;
-   constant ADDR_WIDTH_C : integer := 2;
-   constant TPD_C        : time    := 1 ns;
+   constant CLK_SEL_C     : integer := 2;  --change this parameter for simulating different clock configurations
+   constant WRITE_CLK_C   : time    := WRITE_CLK_ARRAY_C(CLK_SEL_C);
+   constant READ_CLK_C    : time    := READ_CLK_ARRAY_C(CLK_SEL_C);
+   constant MEMORY_TYPE_G : string  := "block";
+   constant FWFT_EN_C     : boolean := true;
+   constant DATA_WIDTH_C  : integer := 8;
+   constant ADDR_WIDTH_C  : integer := 2;
+   constant TPD_C         : time    := 1 ns;
 
    constant MAX_VALUE_C : slv(DATA_WIDTH_C-1 downto 0) := conv_std_logic_vector((2**8)-1, DATA_WIDTH_C);
 
@@ -75,7 +76,9 @@ architecture testbed of SynchronizerFifoTb is
    signal rst     : sl := '0';
    signal initRst : sl := '0';
    signal reset   : sl := '0';
+
 begin
+
 --*********************************************************************************--
    WR_CLK_Inst : entity surf.ClkRst
       generic map (

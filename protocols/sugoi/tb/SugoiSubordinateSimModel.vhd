@@ -26,8 +26,8 @@ use surf.AxiLitePkg.all;
 library ruckus;
 use ruckus.BuildInfoPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity SugoiSubordinateSimModel is
    generic (

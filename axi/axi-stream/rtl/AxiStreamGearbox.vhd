@@ -27,11 +27,11 @@ entity AxiStreamGearbox is
    generic (
       -- General Configurations
       TPD_G               : time     := 1 ns;
-      RST_POLARITY_G      : sl       := '1'; -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G      : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G         : boolean  := false;
       READY_EN_G          : boolean  := true;
       PIPE_STAGES_G       : natural  := 0;
-      SIDE_BAND_WIDTH_G   : positive := 1;  -- General purpose sideband
+      SIDE_BAND_WIDTH_G   : positive := 1;    -- General purpose sideband
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
@@ -216,7 +216,7 @@ begin
                if (v.writeIndex >= MST_BYTES_C) or (r.tLastDly = '1') then
 
                   -- Set the flags
-                  v.tValid   := '1';
+                  v.tValid         := '1';
                   if (v.writeIndex <= MST_BYTES_C) then
                      v.tLast    := r.tLastDly;
                      v.tLastDly := '0';

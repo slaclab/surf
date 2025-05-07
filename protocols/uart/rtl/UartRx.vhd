@@ -41,8 +41,7 @@ architecture rtl of UartRx is
 
    type StateType is (WAIT_START_BIT_S, WAIT_HALF_S, WAIT_FULL_S, SAMPLE_RX_S, PARITY_S, WAIT_STOP_S, WRITE_OUT_S);
 
-   type RegType is
-   record
+   type RegType is record
       rdValid        : sl;
       rdData         : slv(DATA_WIDTH_G-1 downto 0);
       rxState        : StateType;

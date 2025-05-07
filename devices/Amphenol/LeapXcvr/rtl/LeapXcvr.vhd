@@ -26,9 +26,9 @@ use unisim.vcomponents.all;
 entity LeapXcvr is
    generic (
       TPD_G           : time            := 1 ns;
-      I2C_BASE_ADDR_G : slv(3 downto 0) := "0000";    -- A[3:0] pin config
-      I2C_SCL_FREQ_G  : real            := 100.0E+3;  -- units of Hz
-      I2C_MIN_PULSE_G : real            := 100.0E-9;  -- units of seconds
+      I2C_BASE_ADDR_G : slv(3 downto 0) := "0000";      -- A[3:0] pin config
+      I2C_SCL_FREQ_G  : real            := 100.0E+3;    -- units of Hz
+      I2C_MIN_PULSE_G : real            := 100.0E-9;    -- units of seconds
       AXIL_CLK_FREQ_G : real            := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports

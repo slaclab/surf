@@ -110,7 +110,7 @@ begin
 
    SynchronizerOneShot_1 : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G   => TPD_G)
+         TPD_G => TPD_G)
       port map (
          clk     => icape2Clk,
          rst     => icape2Rst,
@@ -130,16 +130,16 @@ begin
    ICAPE3_Inst : ICAPE3
       generic map (
          DEVICE_ID         => X"03628093",  -- Specifies the pre-programmed Device ID value to be used for simulation purposes
-         ICAP_AUTO_SWITCH  => "DISABLE",    -- Enable switch ICAP using sync word
+         ICAP_AUTO_SWITCH  => "DISABLE",  -- Enable switch ICAP using sync word
          SIM_CFG_FILE_NAME => "NONE")  -- Specifies the Raw Bitstream (RBT) file to be parsed by the simulation model
       port map (
-         AVAIL   => rdy,                -- 1-bit output: Availability status of ICAP
-         O       => open,               -- 32-bit output: Configuration data output bus
+         AVAIL   => rdy,   -- 1-bit output: Availability status of ICAP
+         O       => open,  -- 32-bit output: Configuration data output bus
          PRDONE  => open,  -- 1-bit output: Indicates completion of Partial Reconfiguration
          PRERROR => open,  -- 1-bit output: Indicates Error during Partial Reconfiguration
          CLK     => icape2Clk,          -- 1-bit input: Clock input
          CSIB    => r.csl,              -- 1-bit input: Active-Low ICAP enable
-         I       => r.configData,       -- 32-bit input: Configuration data input bus
+         I       => r.configData,  -- 32-bit input: Configuration data input bus
          RDWRB   => r.rnw);             -- 1-bit input: Read/Write Select input
 
    comb : process (bootAddressSync, icape2Rst, r, rdy, startEdge) is

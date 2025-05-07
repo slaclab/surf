@@ -23,9 +23,9 @@ use surf.AxiSy56040Pkg.all;
 
 entity AxiSy56040Core is
    generic (
-      TPD_G            : time                  := 1 ns;
-      AXI_CLK_FREQ_G   : real                  := 200.0E+6;  -- units of Hz
-      XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
+      TPD_G          : time                  := 1 ns;
+      AXI_CLK_FREQ_G : real                  := 200.0E+6;  -- units of Hz
+      XBAR_DEFAULT_G : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
    port (
       -- XBAR Ports
       xBar           : out AxiSy56040OutType;
@@ -45,9 +45,9 @@ begin
 
    AxiSy56040Reg_Inst : entity surf.AxiSy56040Reg
       generic map (
-         TPD_G            => TPD_G,
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G,
-         XBAR_DEFAULT_G   => XBAR_DEFAULT_G)
+         TPD_G          => TPD_G,
+         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G,
+         XBAR_DEFAULT_G => XBAR_DEFAULT_G)
       port map (
          -- XBAR Ports
          xBarSin        => xBar.sin,

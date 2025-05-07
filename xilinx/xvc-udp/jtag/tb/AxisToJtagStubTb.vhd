@@ -18,7 +18,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -44,9 +43,10 @@ architecture AxisToJtagStubTbImpl of AxisToJtagStubTb is
    signal rxs : natural := 0;
 
 begin
+
    process
    begin
-      if ( run ) then
+      if (run) then
          clk <= not clk;
          wait for 5 ns;
       else
@@ -57,42 +57,42 @@ begin
    U_TX : process(clk) is
       variable stage : natural;
    begin
-      if ( rising_edge(clk) ) then
+      if (rising_edge(clk)) then
 
          stage := ini + 1;
 
          case (stage) is
             when 0 | 1 | 2 | 3 =>
-            when 4             => rst <= '0';
-            when 5             =>
-            when 6             =>
+            when 4 => rst <= '0';
+            when 5 =>
+            when 6 =>
                mAxisReq.tData(31 downto 0) <= (others => '0');
                mAxisReq.tValid             <= '1';
                mAxisReq.tLast              <= '1';
-            when 7             =>
-               if ( sAxisReq.tReady = '0' ) then
+            when 7 =>
+               if (sAxisReq.tReady = '0') then
                   stage := ini;
                else
                   mAxisReq.tValid <= '0';
-               end if; when 8             => when 9             =>
+               end if; when 8                         => when 9 =>
                mAxisReq.tData(31 downto 0) <= (others => '1');
                mAxisReq.tValid             <= '1';
                mAxisReq.tLast              <= '0';
-               if ( sAxisReq.tReady = '0' ) then
+               if (sAxisReq.tReady = '0') then
                   stage := ini;
                end if;
-            when 10            =>
-               if ( sAxisReq.tReady = '0' ) then
+            when 10 =>
+               if (sAxisReq.tReady = '0') then
                   stage := ini;
                end if;
-            when 11            =>
-               if ( sAxisReq.tReady = '0' ) then
+            when 11 =>
+               if (sAxisReq.tReady = '0') then
                   stage := ini;
                else
                   mAxisReq.tLast <= '1';
                end if;
-            when 12            =>
-               if ( sAxisReq.tReady = '0' ) then
+            when 12 =>
+               if (sAxisReq.tReady = '0') then
                   stage := ini;
                else
                   mAxisReq.tValid <= '0';
@@ -107,21 +107,21 @@ begin
    U_RX : process(clk) is
       variable stage : natural;
    begin
-      if ( rising_edge(clk) ) then
+      if (rising_edge(clk)) then
          stage := rxs + 1;
 
          case (rxs) is
             when 0 =>
                sAxisRep.tReady <= '1';
             when 1 =>
-               if ( mAxisRep.tValid = '0' ) then
+               if (mAxisRep.tValid = '0') then
                   stage := rxs;
                else
-                  assert ( mAxisRep.tLast = '1' )
+                  assert (mAxisRep.tLast = '1')
                      report "Reply without TLAST" severity failure;
-                  assert ( getCommand( mAxisRep.tData ) = CMD_ERROR_C )
+                  assert (getCommand(mAxisRep.tData) = CMD_ERROR_C)
                      report "Expected ERROR" severity failure;
-                  assert ( getLen( mAxisRep.tData ) = ERR_NOT_PRESENT_C )
+                  assert (getLen(mAxisRep.tData) = ERR_NOT_PRESENT_C)
                      report "Unexpected error code" severity failure;
                   sAxisRep.tReady <= '0';
                end if;
@@ -131,16 +131,16 @@ begin
 
             when 3 =>
 
-               if ( mAxisRep.tValid = '0' ) then
+               if (mAxisRep.tValid = '0') then
                   stage := rxs;
                else
-                  assert ( mAxisRep.tLast = '1' )
+                  assert (mAxisRep.tLast = '1')
                      report "Reply without TLAST" severity failure;
-                  assert ( getCommand( mAxisRep.tData ) = CMD_ERROR_C )
+                  assert (getCommand(mAxisRep.tData) = CMD_ERROR_C)
                      report "Expected ERROR" severity failure;
-                  assert ( getLen( mAxisRep.tData ) = ERR_BAD_VERSION_C )
+                  assert (getLen(mAxisRep.tData) = ERR_BAD_VERSION_C)
                      report "Unexpected error code" severity failure;
-                  assert ( getVersion( mAxisRep.tData ) = PRO_VERSN_C )
+                  assert (getVersion(mAxisRep.tData) = PRO_VERSN_C)
                      report "Bad version in reply" severity failure;
                   sAxisRep.tReady <= '0';
                end if;
@@ -158,14 +158,13 @@ begin
 
    U_dut : entity surf.AxisJtagDebugBridge(AxisJtagDebugBridgeStub)
       port map (
-         axisClk  => clk,
-         axisRst  => rst,
+         axisClk => clk,
+         axisRst => rst,
 
          mAxisReq => mAxisReq,
          sAxisReq => sAxisReq,
 
          mAxisTdo => mAxisRep,
-         sAxisTdo => sAxisRep
-      );
+         sAxisTdo => sAxisRep);
 
 end architecture AxisToJtagStubTbImpl;

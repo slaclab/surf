@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -28,11 +27,10 @@ use surf.Pgp3Pkg.all;
 use surf.AxiStreamPacketizer2Pkg.all;
 
 entity Pgp3Rx is
-
    generic (
-      TPD_G              : time                  := 1 ns;
-      NUM_VC_G           : integer range 1 to 16 := 4;
-      ALIGN_SLIP_WAIT_G  : integer               := 32);
+      TPD_G             : time                  := 1 ns;
+      NUM_VC_G          : integer range 1 to 16 := 4;
+      ALIGN_SLIP_WAIT_G : integer               := 32);
    port (
       -- User Transmit interface
       pgpRxClk     : in  sl;
@@ -40,7 +38,7 @@ entity Pgp3Rx is
       pgpRxIn      : in  Pgp3RxInType := PGP3_RX_IN_INIT_C;
       pgpRxOut     : out Pgp3RxOutType;
       pgpRxMasters : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0); -- Unused
+      pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);  -- Unused
 
       -- Status of local receive fifos
       remRxFifoCtrl  : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
@@ -57,9 +55,6 @@ entity Pgp3Rx is
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
       phyRxSlip     : out sl);
-
-
-
 end entity Pgp3Rx;
 
 architecture rtl of Pgp3Rx is
@@ -91,6 +86,7 @@ architecture rtl of Pgp3Rx is
    signal remRxFifoCtrlInt  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
 begin
+
    phyRxInit      <= phyRxInitInt;
    locRxLinkReady <= locRxLinkReadyInt;
    remRxLinkReady <= remRxLinkReadyInt;
@@ -99,8 +95,8 @@ begin
    -- Gearbox aligner
    U_Pgp3RxGearboxAligner_1 : entity surf.Pgp3RxGearboxAligner
       generic map (
-         TPD_G        => TPD_G,
-         SLIP_WAIT_G  => ALIGN_SLIP_WAIT_G)
+         TPD_G       => TPD_G,
+         SLIP_WAIT_G => ALIGN_SLIP_WAIT_G)
       port map (
          clk           => phyRxClk,         -- [in]
          rst           => phyRxRst,         -- [in]

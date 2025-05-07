@@ -12,7 +12,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
@@ -37,6 +37,7 @@ entity UartTx is
 end entity UartTx;
 
 architecture RTL of UartTx is
+
    constant PARITY_BITS_C     : integer := ite(PARITY_G = "NONE", 0, 1);
    constant START_BIT_C       : integer := 1;
    constant SHIFT_REG_WIDTH_C : integer := START_BIT_C + DATA_WIDTH_G + PARITY_BITS_C + STOP_BITS_G;

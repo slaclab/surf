@@ -70,7 +70,7 @@ entity XauiGtyUltraScaleWrapper is
       -- MGT Clock Port (156.25MHz or 312.5MHz)
       gtClkP             : in  sl;
       gtClkN             : in  sl;
-      gtClkOut           : out  sl;
+      gtClkOut           : out sl;
       -- MGT Ports
       gtTxP              : out slv(3 downto 0);
       gtTxN              : out slv(3 downto 0);
@@ -137,14 +137,14 @@ begin
    ----------------------
    XauiGtyUltraScale_Inst : entity surf.XauiGtyUltraScale
       generic map (
-         TPD_G           => TPD_G,
-         JUMBO_G         => JUMBO_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         ROCEV2_EN_G     => ROCEV2_EN_G,
+         TPD_G         => TPD_G,
+         JUMBO_G       => JUMBO_G,
+         PAUSE_EN_G    => PAUSE_EN_G,
+         ROCEV2_EN_G   => ROCEV2_EN_G,
          -- AXI-Lite Configurations
-         EN_AXI_REG_G    => EN_AXI_REG_G,
+         EN_AXI_REG_G  => EN_AXI_REG_G,
          -- AXI Streaming Configurations
-         AXIS_CONFIG_G   => AXIS_CONFIG_G)
+         AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Local Configurations
          localMac           => localMac,

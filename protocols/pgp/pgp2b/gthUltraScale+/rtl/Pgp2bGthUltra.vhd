@@ -18,15 +18,14 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp2bPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2bGthUltra is
    generic (
@@ -43,7 +42,7 @@ entity Pgp2bGthUltra is
       NUM_VC_EN_G       : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk        : in  sl;                      -- GT needs a stable clock to "boot up"
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       stableRst        : in  sl;
       gtRefClk         : in  sl;
       -- Gt Serial IO
@@ -54,13 +53,13 @@ entity Pgp2bGthUltra is
       -- Tx Clocking
       pgpTxReset       : in  sl;
       pgpTxResetDone   : out sl;
-      pgpTxOutClk      : out sl;                      -- recovered clock
+      pgpTxOutClk      : out sl;        -- recovered clock
       pgpTxClk         : in  sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
       pgpRxResetDone   : out sl;
-      pgpRxOutClk      : out sl;                      -- recovered clock
+      pgpRxOutClk      : out sl;        -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmLocked  : in  sl;
       -- Non VC Rx Signals
@@ -126,9 +125,9 @@ begin
          TPD_G         => TPD_G,
          PULSE_WIDTH_G => 12500000)
       port map (
-         clk     => stableClk,           -- [in]
-         dataIn  => phyRxInit,           -- [in]
-         dataOut => phyRxInitSync);      -- [out]
+         clk     => stableClk,          -- [in]
+         dataIn  => phyRxInit,          -- [in]
+         dataOut => phyRxInitSync);     -- [out]
 
    -- Sync pgpRxIn.rxReset to stableClk and tie to gtRxUserReset
    U_RstSync_2 : entity surf.PwrUpRst

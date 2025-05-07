@@ -14,7 +14,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -98,4 +97,4 @@ package AxiLtc2270Pkg is
       (others => x"0000"),
       AXI_LTC2270_DELAY_OUT_INIT_C);
 
-end package;
+end package AxiLtc2270Pkg;

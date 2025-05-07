@@ -30,7 +30,7 @@ use surf.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamDepacketizer2 is
    generic (
       TPD_G                : time                  := 1 ns;
-      RST_POLARITY_G       : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G       : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean               := false;
       MEMORY_TYPE_G        : string                := "distributed";
       REG_EN_G             : boolean               := false;
@@ -272,7 +272,7 @@ begin
 
    end generate;
 
-   comb : process (inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem, crcOut,
+   comb : process (inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem,
                    ramPacketActiveOut, ramPacketSeqOut, ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
@@ -330,6 +330,7 @@ begin
             v.debug.eop    := '1';
          end if;
       end procedure doTail;
+
    begin
       -- Latch the current value
       v := r;

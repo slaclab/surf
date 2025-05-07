@@ -66,7 +66,7 @@ end entity cfixedMultAdd;
 
 architecture rtl of cfixedMultAdd is
 
-   constant DELAY_C  : natural := 4 + ite(REG_OUT_G, 1, 0);
+   constant DELAY_C : natural := 4 + ite(REG_OUT_G, 1, 0);
 
    constant M_LOW_C  : integer := a.re'low + b.re'low;
    constant M_HIGH_C : integer := a.re'high + b.re'high + 1;
@@ -80,28 +80,28 @@ architecture rtl of cfixedMultAdd is
    constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
 
    type RegType is record
-      areg : cfixedArray(1 downto 0)(re(a.re'range), im(a.im'range));
-      breg : cfixedArray(1 downto 0)(re(b.re'range), im(b.im'range));
-      creg : cfixedArray(2 downto 0)(re(c.re'range), im(c.im'range)); -- add one extra element so we can index with CIN_REG_G
+      areg                   : cfixedArray(1 downto 0)(re(a.re'range), im(a.im'range));
+      breg                   : cfixedArray(1 downto 0)(re(b.re'range), im(b.im'range));
+      creg                   : cfixedArray(2 downto 0)(re(c.re'range), im(c.im'range));  -- add one extra element so we can index with CIN_REG_G
       p_rr, p_ii, p_ri, p_ir : sfixed(P_HIGH_C downto P_LOW_C);
       m_rr, m_ii, m_ri, m_ir : sfixed(M_HIGH_C downto M_LOW_C);
-      y         : cfixed(re(y.re'range), im(y.im'range));
-      yVld     : slv(DELAY_C-1 downto 0);
+      y                      : cfixed(re(y.re'range), im(y.im'range));
+      yVld                   : slv(DELAY_C-1 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      areg  => (others => (others => (others => '0'))),
-      breg  => (others => (others => (others => '0'))),
-      creg  => (others => (others => (others => '0'))),
-      m_rr  => (others => '0'),
-      m_ii  => (others => '0'),
-      m_ri  => (others => '0'),
-      m_ir  => (others => '0'),
-      p_rr  => (others => '0'),
-      p_ii  => (others => '0'),
-      p_ri  => (others => '0'),
-      p_ir  => (others => '0'),
-      y     => (others => (others => '0')),
+      areg => (others => (others => (others => '0'))),
+      breg => (others => (others => (others => '0'))),
+      creg => (others => (others => (others => '0'))),
+      m_rr => (others => '0'),
+      m_ii => (others => '0'),
+      m_ri => (others => '0'),
+      m_ir => (others => '0'),
+      p_rr => (others => '0'),
+      p_ii => (others => '0'),
+      p_ri => (others => '0'),
+      p_ir => (others => '0'),
+      y    => (others => (others => '0')),
       yVld => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
@@ -110,9 +110,9 @@ architecture rtl of cfixedMultAdd is
 begin
 
    assert ((a.re'length < 28) and (b.re'length < 19)) or ((a.re'length < 19) and (b.re'length < 28))
-       report "Input data should be less than 18x27 bits" severity failure;
+      report "Input data should be less than 18x27 bits" severity failure;
 
-   comb : process( a, b, c, aVld, bVld, cVld, r ) is
+   comb : process(a, aVld, b, bVld, c, cVld, r, y) is
       variable v : RegType;
    begin
 
@@ -160,8 +160,8 @@ begin
 
       -- resize for output
       v.y := to_cfixed(
-          resize(r.p_rr, y.re, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G),
-          resize(r.p_ri, y.im, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G));
+         resize(r.p_rr, y.re, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G),
+         resize(r.p_ri, y.im, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G));
       rin <= v;
 
       -- Outputs

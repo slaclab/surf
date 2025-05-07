@@ -111,6 +111,7 @@ IdentifierDict = {
     0x1C: 'MiniLinkx4',
     0x1D: 'MiniLinkx8',
     0x1E: 'QSFP+',
+    0x1F: 'SFP-DD',
 }
 
 ExtIdentifierDict = {

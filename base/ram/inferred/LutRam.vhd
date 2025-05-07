@@ -97,8 +97,8 @@ architecture rtl of LutRam is
    constant INIT_C : slv(DATA_WIDTH_G-1 downto 0) := ite(INIT_G = "0", slvZero(DATA_WIDTH_G), INIT_G);
 
    -- Shared memory
-   type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
-   signal mem : mem_type := (others => INIT_C);
+   type MemType is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
+   signal mem : MemType := (others => INIT_C);
 
    signal weaByteInt : slv(weaByte'range);
 

@@ -30,7 +30,7 @@ entity Decoder12b14b is
       DEBUG_DISP_G   : boolean := false);
    port (
       clk       : in  sl;
-      clkEn     : in  sl              := '1';                 -- Optional Clock Enable
+      clkEn     : in  sl              := '1';  -- Optional Clock Enable
       rst       : in  sl              := not RST_POLARITY_G;  -- Optional Reset
       validIn   : in  sl              := '1';
       dataIn    : in  slv(13 downto 0);

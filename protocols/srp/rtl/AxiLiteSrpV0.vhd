@@ -178,7 +178,8 @@ begin
    -- Master State Machine
    -------------------------------------
 
-   comb : process (axilRst, r, rxFifoAxisMaster, sAxilReadMaster, sAxilWriteMaster, txFifoAxisSlave) is
+   comb : process (axilRst, r, rxFifoAxisMaster, sAxilReadMaster,
+                   sAxilWriteMaster, txFifoAxisSlave) is
       variable v          : RegType;
       variable axilStatus : AxiLiteStatusType;
    begin

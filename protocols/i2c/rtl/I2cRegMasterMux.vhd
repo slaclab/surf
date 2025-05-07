@@ -69,7 +69,7 @@ begin
       selInt := conv_integer(r.sel);
 
       if (r.locked = '0') then
-         v.sel := r.sel + 1;            -- Increment only if no channel has a lock
+         v.sel := r.sel + 1;  -- Increment only if no channel has a lock
       else
          v.locked := lockReq(selInt);   -- Grant lock if requested
       end if;
@@ -90,10 +90,10 @@ begin
          for i in NUM_INPUTS_C-1 downto 0 loop
             if (regIn(i).regReq = '1' and r.sel /= i) then
                v.regOut(i) := (
-                  regAck => '1',
-                  regFail => '1',
+                  regAck      => '1',
+                  regFail     => '1',
                   regFailCode => "00001111",
-                  regRdData => (others => '0'));
+                  regRdData   => (others => '0'));
             end if;
          end loop;
       end if;

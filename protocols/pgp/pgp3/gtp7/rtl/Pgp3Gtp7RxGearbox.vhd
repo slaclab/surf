@@ -75,8 +75,8 @@ begin
             v.fifoData(65 downto 64) := rxHeader;
             v.fifoData(63 downto 32) := rxData;
          else
-            v.fifoWrite              := '1';
-            v.fifoData(31 downto 0)  := rxData;
+            v.fifoWrite             := '1';
+            v.fifoData(31 downto 0) := rxData;
          end if;
       end if;
 

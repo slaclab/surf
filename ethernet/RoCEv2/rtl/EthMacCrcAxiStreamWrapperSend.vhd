@@ -36,7 +36,7 @@ end EthMacCrcAxiStreamWrapperSend;
 
 architecture rtl of EthMacCrcAxiStreamWrapperSend is
 
-   component mkCrcRawAxiStreamCustomSend is
+   component mkCrcRawAxiStreamCustomSend
       port (
          CLK                : in  std_logic;
          RST_N              : in  std_logic;
@@ -49,7 +49,7 @@ architecture rtl of EthMacCrcAxiStreamWrapperSend is
          m_crc_stream_data  : out std_logic_vector(31 downto 0);
          m_crc_stream_valid : out std_logic;
          m_crc_stream_ready : in  std_logic);
-   end component mkCrcRawAxiStreamCustomSend;
+   end component;
 
    -- BlueRdma
    signal blueRstN         : sl;

@@ -16,7 +16,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -25,30 +24,28 @@ use surf.StdRtlPkg.all;
 
 entity JtagSerDesCore is
    generic (
-      TPD_G        : time     := 1 ns;
-      WIDTH_G      : positive := 32;
-      CLK_DIV2_G   : positive := 8
-   );
+      TPD_G      : time     := 1 ns;
+      WIDTH_G    : positive := 32;
+      CLK_DIV2_G : positive := 8);
    port (
-      clk          : in sl;
-      rst          : in sl;
+      clk : in sl;
+      rst : in sl;
 
-      numBits      : in natural range 0 to WIDTH_G - 1;
+      numBits : in natural range 0 to WIDTH_G - 1;
 
-      dataInTms    : in  slv(WIDTH_G - 1 downto 0);
-      dataInTdi    : in  slv(WIDTH_G - 1 downto 0);
-      dataInValid  : in  sl;
-      dataInReady  : out sl;
+      dataInTms   : in  slv(WIDTH_G - 1 downto 0);
+      dataInTdi   : in  slv(WIDTH_G - 1 downto 0);
+      dataInValid : in  sl;
+      dataInReady : out sl;
 
       dataOut      : out slv(WIDTH_G - 1 downto 0);
       dataOutValid : out sl;
       dataOutReady : in  sl;
 
-      tck          : out sl;
-      tdi          : out sl;
-      tms          : out sl;
-      tdo          : in  sl
-   );
+      tck : out sl;
+      tdi : out sl;
+      tms : out sl;
+      tdo : in  sl);
 end entity JtagSerDesCore;
 
 architecture JtagSerDesCoreImpl of JtagSerDesCore is
@@ -58,9 +55,9 @@ architecture JtagSerDesCoreImpl of JtagSerDesCore is
    type RegType is record
       cnt     : integer range -1 to WIDTH_G - 1;
       div     : natural;
-      tms     : slv(WIDTH_G - 1 downto 0 );
-      tdi     : slv(WIDTH_G - 1 downto 0 );
-      tdo     : slv(WIDTH_G     downto 0 );
+      tms     : slv(WIDTH_G - 1 downto 0);
+      tdi     : slv(WIDTH_G - 1 downto 0);
+      tdo     : slv(WIDTH_G downto 0);
       tck     : sl;
       lastBit : boolean;
       oValid  : sl;
@@ -78,23 +75,23 @@ architecture JtagSerDesCoreImpl of JtagSerDesCore is
       lastBit => false,
       oValid  => '0',
       iReady  => '1',
-      state   => IDLE_S
-   );
+      state   => IDLE_S);
 
-   signal r       : RegType := REG_INIT_C;
-   signal rin     : RegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
 begin
 
-   tck          <= r.tck;
-   tdi          <= r.tdi(0);
-   tms          <= r.tms(0);
+   tck <= r.tck;
+   tdi <= r.tdi(0);
+   tms <= r.tms(0);
 
    dataOutValid <= r.oValid;
    dataInReady  <= r.iReady;
    dataOut      <= r.tdo(WIDTH_G - 1 downto 0);
 
-   P_COMB : process(r, numBits,  dataInTms, dataInTdi, dataInValid, dataOutReady, tdo)
+   P_COMB : process(dataInTdi, dataInTms, dataInValid, dataOutReady, numBits,
+                    r, tdo)
       variable v : RegType;
    begin
       v := r;
@@ -102,7 +99,7 @@ begin
       case (r.state) is
          when IDLE_S =>
             v.oValid := '0';
-            if ( dataInValid /= '0' and r.iReady /= '0' ) then
+            if (dataInValid /= '0' and r.iReady /= '0') then
                v.tms    := dataInTms;
                v.tdi    := dataInTdi;
                v.iReady := '0';
@@ -114,31 +111,31 @@ begin
          when SHIFT_S =>
             v.iReady := '0';
             v.oValid := '0';
-            if ( r.div = 0 ) then
-               if ( r.tck = '0' ) then
+            if (r.div = 0) then
+               if (r.tck = '0') then
                   -- about to raise TCK
-                  v.tdo := ( tdo & r.tdo( r.tdo'left downto 1 ) );
-                  if ( r.lastBit ) then
+                  v.tdo := (tdo & r.tdo(r.tdo'left downto 1));
+                  if (r.lastBit) then
                      -- latch last TDO bit
                      v.lastBit := false;
                      v.oValid  := '1';
-                     if ( r.cnt >= 0 ) then
+                     if (r.cnt >= 0) then
                         -- more words in the pipeline; if receiver is ready
                         -- then we continue shifting - otherwise we must wait
-                        if ( dataOutReady /= '0' ) then
+                        if (dataOutReady /= '0') then
                            -- next clock; continue shifting
-                           v.tck   := '1';
-                           v.div   := CLK_DIV2_G - 1;
+                           v.tck := '1';
+                           v.div := CLK_DIV2_G - 1;
                         else
                            v.state := WAI_S;
                         end if;
                      else
                         -- we are done
-                        if ( dataOutReady /= '0' ) then
+                        if (dataOutReady /= '0') then
                            v.iReady := '1';
                            v.state  := IDLE_S;
                         else
-                           v.state  := WAI_S;
+                           v.state := WAI_S;
                         end if;
                      end if;
                   else
@@ -147,11 +144,11 @@ begin
                   end if;
                else
                   -- falling edge of TCK
-                  v.tms := ( '0' & r.tms(r.tms'left downto 1 ) );
-                  v.tdi := ( '0' & r.tdi(r.tdi'left downto 1 ) );
+                  v.tms := ('0' & r.tms(r.tms'left downto 1));
+                  v.tdi := ('0' & r.tdi(r.tdi'left downto 1));
                   v.cnt := r.cnt - 1;
-                  if ( r.cnt = 0 ) then
-                     if ( dataInValid /= '0' ) then
+                  if (r.cnt = 0) then
+                     if (dataInValid /= '0') then
                         v.tms    := dataInTms;
                         v.tdi    := dataInTdi;
                         v.cnt    := numBits;
@@ -167,12 +164,12 @@ begin
             end if;
 
          when WAI_S =>
-            if ( dataOutReady /= '0' ) then
+            if (dataOutReady /= '0') then
                v.oValid := '0';
-               if ( r.cnt >= 0 ) then
-                  v.tck    := '1';
-                  v.div    := CLK_DIV2_G - 1;
-                  v.state  := SHIFT_S;
+               if (r.cnt >= 0) then
+                  v.tck   := '1';
+                  v.div   := CLK_DIV2_G - 1;
+                  v.state := SHIFT_S;
                else
                   v.iReady := '1';
                   v.state  := IDLE_S;
@@ -185,10 +182,10 @@ begin
 
    end process P_COMB;
 
-   P_SEQ : process(clk )
+   P_SEQ : process(clk)
    begin
-      if ( rising_edge( clk ) ) then
-         if ( rst /= '0' ) then
+      if (rising_edge(clk)) then
+         if (rst /= '0') then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;

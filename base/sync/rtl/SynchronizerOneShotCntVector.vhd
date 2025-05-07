@@ -38,13 +38,13 @@ entity SynchronizerOneShotCntVector is
       -- Write Ports (wrClk domain)
       wrClk      : in  sl;
       wrRst      : in  sl := not RST_POLARITY_G;
-      dataIn     : in  slv(WIDTH_G-1 downto 0);   -- Data to be 'synced'
+      dataIn     : in  slv(WIDTH_G-1 downto 0);  -- Data to be 'synced'
       -- Read Ports (rdClk domain)
       rdClk      : in  sl;              -- clock to be SYNC'd to
       rdRst      : in  sl := not RST_POLARITY_G;
-      rollOverEn : in  slv(WIDTH_G-1 downto 0);   -- '1' allows roll over of the counter
+      rollOverEn : in  slv(WIDTH_G-1 downto 0);  -- '1' allows roll over of the counter
       cntRst     : in  sl := not RST_POLARITY_G;  -- Optional counter reset
-      dataOut    : out slv(WIDTH_G-1 downto 0);   -- Synced data
+      dataOut    : out slv(WIDTH_G-1 downto 0);  -- Synced data
       cntOut     : out SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0));  -- Synced counter
 end SynchronizerOneShotCntVector;
 
@@ -162,7 +162,7 @@ begin
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
-            COMMON_CLK_G   => true,     -- status counter bus synchronization done outside
+            COMMON_CLK_G   => true,  -- status counter bus synchronization done outside
             IN_POLARITY_G  => IN_POLARITY_C(i),
             OUT_POLARITY_G => OUT_POLARITY_C(i),
             USE_DSP_G      => USE_DSP_G,
@@ -175,7 +175,7 @@ begin
             wrRst      => wrRst,
             dataIn     => dataIn(i),
             -- Read Ports (rdClk domain)
-            rdClk      => wrClk,        -- status counter bus synchronization done outside
+            rdClk      => wrClk,  -- status counter bus synchronization done outside
             rdRst      => wrRst,
             rollOverEn => rollOverEnSync(i),
             cntRst     => cntRstSync,

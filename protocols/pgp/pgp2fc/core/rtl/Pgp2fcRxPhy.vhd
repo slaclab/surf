@@ -27,10 +27,8 @@ use surf.Pgp2fcPkg.all;
 entity Pgp2fcRxPhy is
    generic (
       TPD_G      : time                 := 1 ns;
-      FC_WORDS_G : integer range 1 to 8 := 1
-      );
+      FC_WORDS_G : integer range 1 to 8 := 1);
    port (
-
       -- System clock, reset & control
       pgpRxClkEn  : in sl := '1';       -- Master clock Enable
       pgpRxClk    : in sl;              -- Master clock
@@ -49,7 +47,7 @@ entity Pgp2fcRxPhy is
       fcError : out sl := '0';
 
       -- Sideband data
-      pgpRemLinkReady : out sl              := '0';              -- Far end side has link
+      pgpRemLinkReady : out sl              := '0';  -- Far end side has link
       pgpRemData      : out slv(7 downto 0) := (others => '0');  -- Far end side User Data
 
       -- Cell Receive Interface
@@ -63,17 +61,13 @@ entity Pgp2fcRxPhy is
 
       -- Physical Interface Signals
       phyRxData    : in  slv(15 downto 0);  -- PHY receive data
-      phyRxDataK   : in  slv(1 downto 0);   -- PHY receive data is K character
-      phyRxDispErr : in  slv(1 downto 0);   -- PHY receive data has disparity error
-      phyRxDecErr  : in  slv(1 downto 0);   -- PHY receive data not in table
-      phyRxReady   : in  sl;                -- PHY receive interface is ready
-      phyRxInit    : out sl                 -- PHY receive interface init;
-      );
-
+      phyRxDataK   : in  slv(1 downto 0);  -- PHY receive data is K character
+      phyRxDispErr : in  slv(1 downto 0);  -- PHY receive data has disparity error
+      phyRxDecErr  : in  slv(1 downto 0);  -- PHY receive data not in table
+      phyRxReady   : in  sl;            -- PHY receive interface is ready
+      phyRxInit    : out sl);           -- PHY receive interface init;
 end Pgp2fcRxPhy;
 
-
--- Define architecture
 architecture Pgp2fcRxPhy of Pgp2fcRxPhy is
 
    -- Local Signals
@@ -128,15 +122,15 @@ architecture Pgp2fcRxPhy of Pgp2fcRxPhy is
    signal crcOut    : slv(7 downto 0);
 
    -- Physical Link State
-   type FSM_STATE is (
+   type FsmState is (
       ST_RESET_C,
       ST_LOCK_C,
       ST_WAIT_C,
       ST_INVRT_C,
-      ST_READY_C
-      );
-   signal curState : FSM_STATE := ST_LOCK_C;
-   signal nxtState : FSM_STATE;
+      ST_READY_C);
+
+   signal curState : FsmState := ST_LOCK_C;
+   signal nxtState : FsmState;
 
 begin
 
@@ -231,8 +225,8 @@ begin
 
 
 -- Link control state machine
-   process (curState, stateCnt, ltsCnt, rxDetectLts, rxDetectLtsOk,
-            rxDetectInvert, phyRxReady, dly1RxDecErr, dly1RxDispErr)
+   process (curState, dly1RxDecErr, dly1RxDispErr, ltsCnt, phyRxReady,
+            rxDetectInvert, rxDetectLts, rxDetectLtsOk, stateCnt)
    begin
       case curState is
 
@@ -408,7 +402,7 @@ begin
    end process;
 
 
--- Receive data pipeline
+   -- Receive data pipeline
    process (pgpRxClk, pgpRxClkRst)
    begin
       if pgpRxClkRst = '1' then
@@ -588,7 +582,8 @@ begin
    end process;
 
    -- Ordered Set Detection
-   process (dly1RxDataK, dly1RxData, dly0RxDataK, dly0RxData, dly0RxDispErr, dly0RxDecErr, dly1RxDispErr, dly1RxDecErr)
+   process (dly0RxData, dly0RxDataK, dly0RxDecErr, dly0RxDispErr, dly1RxData,
+            dly1RxDataK, dly1RxDecErr, dly1RxDispErr)
    begin
 
       -- Skip errored decodes
@@ -669,4 +664,3 @@ begin
    end process;
 
 end Pgp2fcRxPhy;
-

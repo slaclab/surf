@@ -39,7 +39,7 @@ architecture testbed of EthMacPauseTb is
    constant PRBS_FLOW_CTRL_C : boolean      := true;
 
    constant CLT_MAC_C  : slv(47 downto 0) := x"000000560008";  -- 08:00:56:00:00:00
-   constant CLT_IP_C   : slv(31 downto 0) := x"0A02A8C0";  -- 192.168.2.10
+   constant CLT_IP_C   : slv(31 downto 0) := x"0A02A8C0";      -- 192.168.2.10
    constant CLT_PORT_C : positive         := 8193;
 
    constant SRV_MAC_C      : slv(47 downto 0) := x"010000560008";  -- 08:00:56:00:00:01
@@ -306,7 +306,7 @@ begin
             -- Master Port
             mAxisMaster => open,
             mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
-            -- mAxisSlave  => AXI_STREAM_SLAVE_INIT_C);
+   -- mAxisSlave  => AXI_STREAM_SLAVE_INIT_C);
    end generate;
 
    -----------------
@@ -381,7 +381,7 @@ begin
    begin
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       elsif failed = '1' then
          assert false
             report "Simulation Failed!" severity failure;

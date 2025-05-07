@@ -31,7 +31,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -96,20 +95,18 @@ entity Jesd204bRx is
 
       -- Debug signals
       pulse_o : out slv(L_G-1 downto 0);
-      leds_o  : out slv(1 downto 0)
-      );
+      leds_o  : out slv(1 downto 0));
 end Jesd204bRx;
 
 architecture rtl of Jesd204bRx is
 
--- Register
+   -- Register
    type RegType is record
       nSyncAnyD1 : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      nSyncAnyD1 => '0'
-      );
+      nSyncAnyD1 => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -268,8 +265,7 @@ begin
             clk     => devClk_i,
             rst     => devRst_i,
             dataIn  => sysref_i,
-            dataOut => s_sysrefSync
-            );
+            dataOut => s_sysrefSync);
    end generate;
 
    GEN_SYNC : if (GEN_ASYNC_G = false) generate
@@ -307,8 +303,7 @@ begin
          nSync_i    => r.nSyncAnyD1,
          sysref_i   => s_sysrefD,       -- Delayed SYSREF IN
          sysrefRe_o => s_sysrefRe,      -- Rising-edge of SYSREF OUT
-         lmfc_o     => s_lmfc
-         );
+         lmfc_o     => s_lmfc);
 
    -----------------------------------------------------------
    -- Receiver modules (L_G)
@@ -339,8 +334,7 @@ begin
             nSync_o       => s_nSyncVec(i),
             dataValid_o   => s_dataValidVec(i),
             sampleData_o  => s_sampleDataArr(i),
-            subClass_i    => s_subClass
-            );
+            subClass_i    => s_subClass);
    end generate;
 
    -- Test signal generator
@@ -397,5 +391,4 @@ begin
    sampleDataArr_o <= s_sampleDataArr;
    dataValidVec_o  <= s_dataValidVec;
 
------------------------------------------------------
 end rtl;

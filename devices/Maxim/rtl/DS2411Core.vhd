@@ -17,20 +17,19 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity DS2411Core is
    generic (
       TPD_G        : time             := 1 ns;
       SIMULATION_G : boolean          := false;
       SIM_OUTPUT_G : slv(63 downto 0) := x"0123456789ABCDEF";
-      CLK_PERIOD_G : real             := 6.4E-9;   --units of seconds
-      SMPL_TIME_G  : real             := 13.1E-6); --move sample time
+      CLK_PERIOD_G : real             := 6.4E-9;    --units of seconds
+      SMPL_TIME_G  : real             := 13.1E-6);  --move sample time
    port (
       -- Clock & Reset Signals
       clk       : in    sl;
@@ -45,6 +44,7 @@ entity DS2411Core is
 end DS2411Core;
 
 architecture rtl of DS2411Core is
+
    type StateType is (
       ST_START,
       ST_RESET,
@@ -53,20 +53,23 @@ architecture rtl of DS2411Core is
       ST_PAUSE,
       ST_READ,
       ST_DONE);
-   signal curState,
-      nxtState : StateType := ST_START;
 
-   signal setOutLow,
-      fdValidSet,
-      iFdSerDin,
-      bitSet,
-      bitCntEn : sl := '0';
-   signal bitCntRst,
-      timeCntRst : sl := '1';
+   signal curState : StateType := ST_START;
+   signal nxtState : StateType := ST_START;
+
+   signal setOutLow  : sl := '0';
+   signal fdValidSet : sl := '0';
+   signal iFdSerDin  : sl := '0';
+   signal bitSet     : sl := '0';
+   signal bitCntEn   : sl := '0';
+
+   signal bitCntRst  : sl := '1';
+   signal timeCntRst : sl := '1';
+
    signal timeCnt      : slv(31 downto 0) := (others => '0');
    signal bitCnt       : slv(5 downto 0)  := (others => '0');
    signal setOutLowInv : sl;
-   signal fdSerial     : slv(63 downto 0)  := (others => '0');
+   signal fdSerial     : slv(63 downto 0) := (others => '0');
 
 begin
 
@@ -329,4 +332,5 @@ begin
          end case;
       end process;
    end generate;
+
 end rtl;

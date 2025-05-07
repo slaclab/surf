@@ -96,7 +96,7 @@ begin
 
    SIGNED_DATA : if (SIGNED_G = true) generate
       ramDoutE <= signed(ramDout(DATA_WIDTH_G-1) & ramDout);
-      ibDataE  <= signed(ibDataE(DATA_WIDTH_G-1)& r.ibData);
+      ibDataE  <= signed(ibDataE(DATA_WIDTH_G-1) & r.ibData);
    end generate;
 
    U_RAM : entity surf.SimpleDualPortRam
@@ -114,7 +114,7 @@ begin
          dina  => r.ibData,
          -- Port B
          clkb  => clk,
-         rstb  => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
+         rstb  => '0',  -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
          addrb => rAddr,
          doutb => ramDout);
 

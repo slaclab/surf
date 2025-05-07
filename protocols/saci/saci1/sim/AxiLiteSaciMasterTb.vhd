@@ -34,9 +34,9 @@ architecture sim of AxiLiteSaciMasterTb is
 
    -- component generics
    constant TPD_G              : time                  := 1 ns;
-   constant AXIL_CLK_PERIOD_G  : real                  := 8.0e-9;
+   constant AXIL_CLK_PERIOD_G  : real                  := 8.0E-9;
    constant AXIL_TIMEOUT_G     : real                  := 1.0E-3;
-   constant SACI_CLK_PERIOD_G  : real                  := 1.0e-6;
+   constant SACI_CLK_PERIOD_G  : real                  := 1.0E-6;
    constant SACI_CLK_FREERUN_G : boolean               := false;
    constant SACI_NUM_CHIPS_G   : positive range 1 to 4 := 4;
    constant SACI_RSP_BUSSED_G  : boolean               := false;

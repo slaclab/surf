@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -73,4 +72,4 @@ package AxiDac7654Pkg is
    constant AXI_DAC7654_CONFIG_INIT_C : AxiDac7654ConfigType := (
       spi => AXI_DAC7654_SPI_IN_INIT_C);
 
-end package;
+end package AxiDac7654Pkg;
