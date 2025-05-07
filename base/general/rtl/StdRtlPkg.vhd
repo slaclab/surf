@@ -810,7 +810,7 @@ package body StdRtlPkg is
       return ret;
    end function wordCount;
 
-   function endianSwap (vector : slv, wordSize : positive := 8) return slv is
+   function endianSwap (vector : slv; wordSize : positive := 8) return slv is
       constant WORDS_C : natural := wordCount(number => vector'length, wordSize => wordSize);
       variable inp     : slv(WORDS_C*wordSize-1 downto 0);
       variable ret     : slv(WORDS_C*wordSize-1 downto 0);
