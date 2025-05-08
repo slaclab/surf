@@ -177,6 +177,11 @@ package AxiStreamPkg is
       bitValue   : in    sl;
       bytePos    : in    integer := -1);  -- -1 = last
 
+   procedure axiStreamEndianSwap (
+      axisMaster : inout AxiStreamMasterType;
+      axisConfig : in    AxiStreamConfigType;
+      wordSize   : in    integer := 1);
+
    function ite(i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType;
    function ite(i : boolean; t : AxiStreamMasterType; e : AxiStreamMasterType) return AxiStreamMasterType;
    function ite(i : boolean; t : AxiStreamSlaveType; e : AxiStreamSlaveType) return AxiStreamSlaveType;
@@ -188,6 +193,9 @@ package AxiStreamPkg is
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
    function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural;
+
+   function endianSwap (tData : slv; tKeep : slv; config : AxiStreamConfigType;
+                        wordSize : integer) return slv;
 
 end package AxiStreamPkg;
 
@@ -331,6 +339,19 @@ package body AxiStreamPkg is
 
    end procedure;
 
+   procedure axiStreamEndianSwap (
+      axisMaster : inout AxiStreamMasterType;
+      axisConfig : in    AxiStreamConfigType;
+      wordSize   : in    integer := 1) is
+
+   begin
+
+      axisMaster.tData := endianSwap(axisMaster.tData,
+                                     axisMaster.tKeep,
+                                     axisConfig,
+                                     wordSize);
+   end procedure;
+
    function ite (i : boolean; t : AxiStreamConfigType; e : AxiStreamConfigType) return AxiStreamConfigType is
    begin
       if (i) then return t; else return e; end if;
@@ -415,6 +436,49 @@ package body AxiStreamPkg is
       end if;
       return retVar;
    end function getTKeep;
+
+   -- Function to reverse the words in tData based on tKeep and wordSize;
+   -- Essentially reverses the endianness on a word level;
+   -- bus size and word size are in bytes;
+   -- if wordSize = 1; then reverses per byte;
+   -- if wordSize = 4; then reverses per 32-bits; ...etc.
+   function endianSwap(tData : slv; tKeep : slv; config : AxiStreamConfigType;
+                       wordSize : integer) return slv is
+      constant busSize    : integer := config.TDATA_BYTES_C;
+      variable retWord    : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0');
+      variable tKeepBytes : integer := 0;
+      variable wordIdx    : integer := 0;
+      variable wordCnt    : integer := 0;
+   begin
+
+      assert (busSize mod wordSize = 0)
+         report "[ERROR]: AxiStreamPkg.vhd; The Bus Byte Width (busSize) is *NOT* a multiple of the Word Byte Width (wordSize)! Please check the values of the generics." severity failure;
+
+      -- Override if no byte/word is valid
+      if uOr(tKeep) = '0' then
+         return retWord;
+      end if;
+
+      -- Calculate the number of bytes to reverse based on tKeep
+      tKeepBytes := getTkeep(tKeep(busSize-1 downto 0), config);
+
+      -- Convert to Word Count
+      wordCnt := wordCount(tKeepBytes, wordSize);
+
+      for i in 0 to AXI_STREAM_MAX_TDATA_WIDTH_C / wordSize - 1 loop
+         if wordCnt > 0 then
+            retWord( (wordIdx*wordSize*8)  + ((wordSize*8)-1) downto (wordIdx*wordSize*8) ) :=
+            tData(  ((wordCnt-1)*wordSize*8) + ((wordSize*8)-1) downto ((wordCnt-1)*wordSize*8) );
+
+            wordIdx := wordIdx + 1;
+            wordCnt := wordCnt - 1;
+         else
+            exit;
+         end if;
+      end loop;
+
+      return retWord;
+   end endianSwap;
 
    procedure axiStreamSimSendTxn (
       constant CONFIG_C : in  AxiStreamConfigType;
