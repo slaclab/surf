@@ -123,14 +123,23 @@ entity RssiAxiLiteRegItf is
       negRssiParam_i : in  RssiParamType;
 
       -- Status (RO)
-      frameRate_i : in Slv32Array(1 downto 0);
-      bandwidth_i : in Slv64Array(1 downto 0);
-      status_i    : in slv(6 downto 0);
-      dropCnt_i   : in slv(31 downto 0);
-      validCnt_i  : in slv(31 downto 0);
-      resendCnt_i : in slv(31 downto 0);
-      reconCnt_i  : in slv(31 downto 0)
-      );
+      txLastAckN_i : in slv(7 downto 0);
+      rxSeqN_i     : in slv(7 downto 0);
+      rxAckN_i     : in slv(7 downto 0);
+      rxLastSeqN_i : in slv(7 downto 0);
+      txTspState_i : in slv(7 downto 0);
+      txAppState_i : in slv(3 downto 0);
+      txAckState_i : in slv(3 downto 0);
+      rxTspState_i : in slv(3 downto 0);
+      rxAppState_i : in slv(3 downto 0);
+      connState_i  : in slv(3 downto 0);
+      frameRate_i  : in Slv32Array(1 downto 0);
+      bandwidth_i  : in Slv64Array(1 downto 0);
+      status_i     : in slv(8 downto 0);
+      dropCnt_i    : in slv(31 downto 0);
+      validCnt_i   : in slv(31 downto 0);
+      resendCnt_i  : in slv(31 downto 0);
+      reconCnt_i   : in slv(31 downto 0));
 end RssiAxiLiteRegItf;
 
 architecture rtl of RssiAxiLiteRegItf is
@@ -208,8 +217,11 @@ begin
    s_WrAddr <= conv_integer(axilWriteMaster.awaddr(9 downto 2));
 
    comb : process (axiRst_i, axilReadMaster, axilWriteMaster, bandwidth_i,
-                   frameRate_i, negRssiParam, r, s_RdAddr, s_WrAddr, s_dropCnt,
-                   s_reconCnt, s_resendCnt, s_status, s_validCnt) is
+                   connState_i, frameRate_i, negRssiParam, r, rxAckN_i,
+                   rxAppState_i, rxLastSeqN_i, rxSeqN_i, rxTspState_i,
+                   s_RdAddr, s_WrAddr, s_dropCnt, s_reconCnt, s_resendCnt,
+                   s_status, s_validCnt, txAckState_i, txAppState_i,
+                   txLastAckN_i, txTspState_i) is
       variable v             : RegType;
       variable axilStatus    : AxiLiteStatusType;
       variable axilWriteResp : slv(1 downto 0);
@@ -262,7 +274,7 @@ begin
       end if;
 
       if (axilStatus.readEnable = '1') then
-         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axilReadResp := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          case (s_RdAddr) is
             when 16#00# =>              -- ADDR (0)
                v.axilReadSlave.rdata(4 downto 0) := r.control;
@@ -321,6 +333,18 @@ begin
                v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(31 downto 0);
             when 16#1A# =>
                v.axilReadSlave.rdata(31 downto 0) := bandwidth_i(1)(63 downto 32);
+            when 16#1B# =>
+               v.axilReadSlave.rdata(7 downto 0)   := txTspState_i;
+               v.axilReadSlave.rdata(11 downto 8)  := txAppState_i;
+               v.axilReadSlave.rdata(15 downto 12) := txAckState_i;
+               v.axilReadSlave.rdata(19 downto 16) := rxTspState_i;
+               v.axilReadSlave.rdata(23 downto 20) := rxAppState_i;
+               v.axilReadSlave.rdata(27 downto 24) := connState_i;
+            when 16#1C# =>
+               v.axilReadSlave.rdata(7 downto 0)   := txLastAckN_i;
+               v.axilReadSlave.rdata(15 downto 8)  := rxSeqN_i;
+               v.axilReadSlave.rdata(23 downto 16) := rxAckN_i;
+               v.axilReadSlave.rdata(31 downto 24) := rxLastSeqN_i;
             when others =>
                axilReadResp := AXI_RESP_DECERR_C;
          end case;

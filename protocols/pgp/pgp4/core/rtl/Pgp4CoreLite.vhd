@@ -140,7 +140,7 @@ begin
             RST_ASYNC_G       => RST_ASYNC_G,
             NUM_VC_G          => NUM_VC_G,
             SKIP_EN_G         => SKIP_EN_G,
-            LITE_EN_G         => true, -- TRUE = Pgp4RxLite
+            LITE_EN_G         => true,         -- TRUE = Pgp4RxLite
             ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
          port map (
             pgpRxClk       => pgpRxClk,        -- [in]

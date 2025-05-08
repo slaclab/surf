@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2b: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -17,15 +17,14 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2fcPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2fcGtp7 is
    generic (
@@ -38,15 +37,15 @@ entity Pgp2fcGtp7 is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIM_VERSION_G         : string     := "2.0";
       SIMULATION_G          : boolean    := false;
-      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;                    --units of seconds
-      REF_CLK_FREQ_G        : real       := 125.0E6;
+      STABLE_CLOCK_PERIOD_G : real       := 4.0E-9;  --units of seconds
+      REF_CLK_FREQ_G        : real       := 125.0E+6;
       -- TX/RX Settings - Defaults to 2.5 Gbps operation
       RXOUT_DIV_G           : integer    := 2;
       TXOUT_DIV_G           : integer    := 2;
       RX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
       TX_CLK25_DIV_G        : integer    := 5;      -- Set by wizard
-      PMA_RSV_G             : bit_vector := x"00000333";               -- Set by wizard
-      RX_OS_CFG_G           : bit_vector := "0001111110000";           -- Set by wizard
+      PMA_RSV_G             : bit_vector := x"00000333";      -- Set by wizard
+      RX_OS_CFG_G           : bit_vector := "0001111110000";  -- Set by wizard
       RXCDR_CFG_G           : bit_vector := x"0000107FE206001041010";  -- Set by wizard
       RXLPM_INCM_CFG_G      : bit        := '1';    -- Set by wizard
       RXLPM_IPCM_CFG_G      : bit        := '0';    -- Set by wizard
@@ -64,24 +63,24 @@ entity Pgp2fcGtp7 is
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
       FC_WORDS_G        : integer range 1 to 8 := 1;
-      VC_INTERLEAVE_G   : integer              := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G   : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
       qPllRxSelect     : in  slv(1 downto 0) := "00";
       qPllTxSelect     : in  slv(1 downto 0) := "00";
-      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";     -- Signals from QPLLs
+      gtQPllOutRefClk  : in  slv(1 downto 0) := "00";    -- Signals from QPLLs
       gtQPllOutClk     : in  slv(1 downto 0) := "00";
       gtQPllLock       : in  slv(1 downto 0) := "00";
       gtQPllRefClkLost : in  slv(1 downto 0) := "00";
       gtQPllReset      : out slv(1 downto 0);
-      gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
+      gtRxRefClkBufg   : in  sl;  -- gtrefclk driving rx side, fed through clock buffer
       gtTxOutClk       : out sl;
 
       -- Gt Serial IO
@@ -100,7 +99,7 @@ entity Pgp2fcGtp7 is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -133,11 +132,8 @@ entity Pgp2fcGtp7 is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-
 end Pgp2fcGtp7;
 
-
--- Define architecture
 architecture rtl of Pgp2fcGtp7 is
 
    --------------------------------------------------------------------------------------------------
@@ -330,12 +326,11 @@ begin
          FIXED_ALIGN_COMMA_0_G => "----------0101111100",  -- Normal Comma
          FIXED_ALIGN_COMMA_1_G => "----------1010000011",  -- Inverted Comma
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
-         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX"   -- Unused
+         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused
 --         RX_DISPERR_SEQ_MATCH_G => RX_DISPERR_SEQ_MATCH_G,
 --         DEC_MCOMMA_DETECT_G    => DEC_MCOMMA_DETECT_G,
 --         DEC_PCOMMA_DETECT_G    => DEC_PCOMMA_DETECT_G,
 --         DEC_VALID_COMMA_ONLY_G => DEC_VALID_COMMA_ONLY_G
-         )
       port map (
          stableClkIn      => stableClk,
          qPllRxSelect     => qPllRxSelect,
@@ -353,11 +348,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => gtRxUserReset,
-         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,   -- Use for rxRecClkReset???
          rxDataValidIn    => '1',       -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,
@@ -370,7 +365,7 @@ begin
          txUsrClkIn       => gtTxUsrClk,
          txUsrClk2In      => gtTxUsrClk,
          txUserRdyOut     => open,      -- Not sure what to do with this
-         txMmcmResetOut   => pgpTxMmcmReset,               -- No Tx MMCM in Fixed Latency mode
+         txMmcmResetOut   => pgpTxMmcmReset,  -- No Tx MMCM in Fixed Latency mode
          txMmcmLockedIn   => pgpTxMmcmLocked,
          txUserResetIn    => pgpTxReset,
          txResetDoneOut   => gtTxResetDone,

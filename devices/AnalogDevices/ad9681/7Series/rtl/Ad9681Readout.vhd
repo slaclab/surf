@@ -20,15 +20,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Ad9681Pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9681Readout is
    generic (
@@ -59,14 +58,11 @@ entity Ad9681Readout is
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(7 downto 0) := (others => axiStreamMasterInit(AD9681_AXIS_CFG_G)));
-
 end Ad9681Readout;
 
--- Define architecture
 architecture rtl of Ad9681Readout is
 
    constant NUM_CHANNELS_C : natural := 8;
-
 
    type AdcDataArray is array (natural range <>) of slv8Array(7 downto 0);
    type DelayDataArray is array (natural range <>) of slv5Array(7 downto 0);
@@ -77,8 +73,8 @@ architecture rtl of Ad9681Readout is
    type AxilRegType is record
       axilWriteSlave : AxiLiteWriteSlaveType;
       axilReadSlave  : AxiLiteReadSlaveType;
-      usrDly       : slv5Array(1 downto 0);
-      enUsrDly     : sl;
+      usrDly         : slv5Array(1 downto 0);
+      enUsrDly       : sl;
       freezeDebug    : sl;
       readoutDebug0  : slv16Array(NUM_CHANNELS_C-1 downto 0);
       readoutDebug1  : slv16Array(NUM_CHANNELS_C-1 downto 0);
@@ -92,8 +88,8 @@ architecture rtl of Ad9681Readout is
    constant AXIL_REG_INIT_C : AxilRegType := (
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
-      usrDly       => (others => toSlv(DEFAULT_DELAY_G, 5)),
-      enUsrDly     => '0',
+      usrDly         => (others => toSlv(DEFAULT_DELAY_G, 5)),
+      enUsrDly       => '0',
       freezeDebug    => '0',
       readoutDebug0  => (others => (others => '0')),
       readoutDebug1  => (others => (others => '0')),
@@ -164,8 +160,8 @@ architecture rtl of Ad9681Readout is
    signal errorDetCount   : slv16Array(1 downto 0);
    signal errorDet        : slv(1 downto 0);
 
-
 begin
+
    -------------------------------------------------------------------------------------------------
    -- Synchronize adcR.locked across to axil clock domain and count falling edges on it
    -------------------------------------------------------------------------------------------------
@@ -292,7 +288,7 @@ begin
          port map (
             clk     => adcBitClkR(i),              -- [in]
             rst     => adcBitRst(i),               -- [in]
-            dataIn  => axilR.usrDly(i),          -- [in]
+            dataIn  => axilR.usrDly(i),            -- [in]
             dataOut => usrDlyCfg(i)(8 downto 4));  -- [out]
 
       U_SynchronizerVector_EYE_WIDTH : entity surf.SynchronizerVector
@@ -313,8 +309,9 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst, axilWriteMaster, curDelay,
-                       debugDataTmp, debugDataValid, errorDetCount, lockedFallCount, lockedSync) is
+   axilComb : process (adcFrameSync, axilR, axilReadMaster, axilRst,
+                       axilWriteMaster, curDelay, debugDataTmp, debugDataValid,
+                       errorDetCount, lockedFallCount, lockedSync) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -563,7 +560,7 @@ begin
 
    end generate;
 
-   GLUE_COMB : process (adcData, invertSync, negateSync, locked) is
+   GLUE_COMB : process (adcData, invertSync, locked, negateSync) is
       variable tmp : slv16Array(7 downto 0);
    begin
       for ch in NUM_CHANNELS_C-1 downto 0 loop

@@ -19,16 +19,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp4Pkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp4GthUs is
    generic (
@@ -119,10 +117,10 @@ architecture rtl of Pgp4GthUs is
 
    -- PgpTx Signals
 --   signal gtTxUserReset : sl;
-   signal phyTxActive   : sl;
-   signal phyTxStart    : sl;
-   signal phyTxData     : slv(63 downto 0);
-   signal phyTxHeader   : slv(1 downto 0);
+   signal phyTxActive : sl;
+   signal phyTxStart  : sl;
+   signal phyTxData   : slv(63 downto 0);
+   signal phyTxHeader : slv(1 downto 0);
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;
@@ -135,7 +133,7 @@ architecture rtl of Pgp4GthUs is
          connectivity  => X"FFFF"),
       DRP_AXIL_INDEX_C => (
          baseAddr      => AXIL_BASE_ADDR_G + X"1000",
-         addrBits      => 11,
+         addrBits      => 12,
          connectivity  => X"FFFF"));
 
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
@@ -262,7 +260,7 @@ begin
    --------------------------
    -- Wrapper for GTH IP core
    --------------------------
-   U_Pgp3GthUsIpWrapper_1 : entity surf.Pgp3GthUsIpWrapper -- Same IP core for both PGPv3 and PGPv4
+   U_Pgp3GthUsIpWrapper_1 : entity surf.Pgp3GthUsIpWrapper  -- Same IP core for both PGPv3 and PGPv4
       generic map (
          TPD_G         => TPD_G,
          TX_POLARITY_G => TX_POLARITY_G,
@@ -270,44 +268,44 @@ begin
          RATE_G        => RATE_G,
          EN_DRP_G      => EN_DRP_G)
       port map (
-         stableClk       => stableClk,                           -- [in]
-         stableRst       => stableRst,                           -- [in]
-         qpllLock        => qpllLock,                            -- [in]
-         qpllclk         => qpllclk,                             -- [in]
-         qpllrefclk      => qpllrefclk,                          -- [in]
-         qpllRst         => qpllRst,                             -- [out]
-         gtRxP           => pgpGtRxP,                            -- [in]
-         gtRxN           => pgpGtRxN,                            -- [in]
-         gtTxP           => pgpGtTxP,                            -- [out]
-         gtTxN           => pgpGtTxN,                            -- [out]
-         rxReset         => phyRxInit,                           -- [in]
-         rxUsrClkActive  => open,                                -- [out]
-         rxResetDone     => phyRxActive,                         -- [out]
-         rxUsrClk        => open,                                -- [out]
-         rxUsrClk2       => phyRxClk,                            -- [out]
-         rxUsrClkRst     => phyRxRst,                            -- [out]
-         rxData          => phyRxData,                           -- [out]
-         rxDataValid     => phyRxValid,                          -- [out]
-         rxHeader        => phyRxHeader,                         -- [out]
-         rxHeaderValid   => open,                                -- [out]
-         rxStartOfSeq    => phyRxStartSeq,                       -- [out]
-         rxGearboxSlip   => phyRxSlip,                           -- [in]
-         rxOutClk        => open,                                -- [out]
-         txReset         => '0',                                 -- [in]
-         txUsrClkActive  => open,                                -- [out]
-         txResetDone     => phyTxActive,                         -- [out]
-         txUsrClk        => open,                                -- [out]
-         txUsrClk2       => pgpTxClkInt,                         -- [out]
-         txUsrClkRst     => pgpTxRstInt,                         -- [out]
-         txData          => phyTxData,                           -- [in]
-         txHeader        => phyTxHeader,                         -- [in]
-         txOutClk        => open,                                -- [out]
-         loopback        => loopback,                            -- [in]
-         txDiffCtrl      => txDiffCtrl,                          -- [in]
-         txPreCursor     => txPreCursor,                         -- [in]
-         txPostCursor    => txPostCursor,                        -- [in]
-         axilClk         => axilClk,                             -- [in]
-         axilRst         => axilRst,                             -- [in]
+         stableClk       => stableClk,  -- [in]
+         stableRst       => stableRst,  -- [in]
+         qpllLock        => qpllLock,   -- [in]
+         qpllclk         => qpllclk,    -- [in]
+         qpllrefclk      => qpllrefclk,                     -- [in]
+         qpllRst         => qpllRst,    -- [out]
+         gtRxP           => pgpGtRxP,   -- [in]
+         gtRxN           => pgpGtRxN,   -- [in]
+         gtTxP           => pgpGtTxP,   -- [out]
+         gtTxN           => pgpGtTxN,   -- [out]
+         rxReset         => phyRxInit,  -- [in]
+         rxUsrClkActive  => open,       -- [out]
+         rxResetDone     => phyRxActive,                    -- [out]
+         rxUsrClk        => open,       -- [out]
+         rxUsrClk2       => phyRxClk,   -- [out]
+         rxUsrClkRst     => phyRxRst,   -- [out]
+         rxData          => phyRxData,  -- [out]
+         rxDataValid     => phyRxValid,                     -- [out]
+         rxHeader        => phyRxHeader,                    -- [out]
+         rxHeaderValid   => open,       -- [out]
+         rxStartOfSeq    => phyRxStartSeq,                  -- [out]
+         rxGearboxSlip   => phyRxSlip,  -- [in]
+         rxOutClk        => open,       -- [out]
+         txReset         => '0',        -- [in]
+         txUsrClkActive  => open,       -- [out]
+         txResetDone     => phyTxActive,                    -- [out]
+         txUsrClk        => open,       -- [out]
+         txUsrClk2       => pgpTxClkInt,                    -- [out]
+         txUsrClkRst     => pgpTxRstInt,                    -- [out]
+         txData          => phyTxData,  -- [in]
+         txHeader        => phyTxHeader,                    -- [in]
+         txOutClk        => open,       -- [out]
+         loopback        => loopback,   -- [in]
+         txDiffCtrl      => txDiffCtrl,                     -- [in]
+         txPreCursor     => txPreCursor,                    -- [in]
+         txPostCursor    => txPostCursor,                   -- [in]
+         axilClk         => axilClk,    -- [in]
+         axilRst         => axilRst,    -- [in]
          axilReadMaster  => axilReadMasters(DRP_AXIL_INDEX_C),   -- [in]
          axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C),    -- [out]
          axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C),  -- [in]

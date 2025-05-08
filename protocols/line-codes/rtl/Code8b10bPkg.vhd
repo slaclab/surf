@@ -93,8 +93,8 @@ package body Code8b10bPkg is
       aeqb := (ai and bi) or (not ai and not bi);
       ceqd := (ci and di) or (not ci and not di);
       l22  := (ai and bi and not ci and not di) or
-              (ci and di and not ai and not bi) or
-              (not aeqb and not ceqd);
+             (ci and di and not ai and not bi) or
+             (not aeqb and not ceqd);
       l40 := ai and bi and ci and di;
       l04 := not ai and not bi and not ci and not di;
       l13 := (not aeqb and not ci and not di) or
@@ -110,7 +110,7 @@ package body Code8b10bPkg is
       do := di and not (ai and bi and ci);
       eo := (ei or l13) and not (ei and di and not ci and not bi and not ai);
       io := (l22 and not ei) or
-            (ei and not di and not ci and not (ai and bi)) or   -- D16, D17, D18
+            (ei and not di and not ci and not (ai and bi)) or  -- D16, D17, D18
             (ei and l40) or
             (ki and ei and di and ci and not bi and not ai) or  -- K.28
             (ei and not di and ci and not bi and not ai);
@@ -158,7 +158,7 @@ package body Code8b10bPkg is
       -- K29 is 11101
       -- K30 is 11110 - so K23/27/29/30 are ei and l31
       illegalk := ki and
-                  (ai or bi or not ci or not di or not ei) and        -- not K28.0- > 7
+                  (ai or bi or not ci or not di or not ei) and  -- not K28.0- > 7
                   (not fi or not gi or not hi or not ei or not l31);  -- not K23/27/29/30.7
 
       -- now determine whether to do the complementing
@@ -223,8 +223,8 @@ package body Code8b10bPkg is
       aeqb := (ai and bi) or (not ai and not bi);
       ceqd := (ci and di) or (not ci and not di);
       p22  := (ai and bi and not ci and not di) or
-              (ci and di and not ai and not bi) or
-              (not aeqb and not ceqd);
+             (ci and di and not ai and not bi) or
+             (not aeqb and not ceqd);
       p13 := (not aeqb and not ci and not di) or
              (not ceqd and not ai and not bi);
       p31 := (not aeqb and ci and di) or
@@ -234,11 +234,11 @@ package body Code8b10bPkg is
       p04 := not ai and not bi and not ci and not di;
 
       disp6a  := p31 or (p22 and dispin);  -- pos disp if p22 and was pos, or p31.
-      disp6a2 := p31 and dispin;           -- disp is ++ after 4 bits
-      disp6a0 := p13 and not dispin;       -- -- disp after 4 bits
+      disp6a2 := p31 and dispin;        -- disp is ++ after 4 bits
+      disp6a0 := p13 and not dispin;    -- -- disp after 4 bits
 
       disp6b := (((ei and ii and not disp6a0) or (disp6a and (ei or ii)) or disp6a2 or
-                  (ei and ii and di)) and (ei or ii or di)) ;
+                  (ei and ii and di)) and (ei or ii or di));
 
       -- The 5B/6B decoding special cases where ABCDE not = abcde
 
@@ -295,22 +295,22 @@ package body Code8b10bPkg is
 
       ko := ((ci and di and ei and ii) or (not ci and not di and not ei and not ii) or
              (p13 and not ei and ii and gi and hi and ji) or
-             (p31 and ei and not ii and not gi and not hi and not ji)) ;
+             (p31 and ei and not ii and not gi and not hi and not ji));
 
       alt7 := (fi and not gi and not hi and  -- 1000 cases, where disp6b is 1
                ((dispin and ci and di and not ei and not ii) or ko or
                 (dispin and not ci and di and not ei and not ii))) or
               (not fi and gi and hi and      -- 0111 cases, where disp6b is 0
                ((not dispin and not ci and not di and ei and ii) or ko or
-                (not dispin and ci and not di and ei and ii))) ;
+                (not dispin and ci and not di and ei and ii)));
 
       k28  := (ci and di and ei and ii) or not (ci or di or ei or ii);
       -- k28 with positive disp into fghi - .1, .2, .5, and .6 special cases
       k28p := not (ci or di or ei or ii);
       fo   := (ji and not fi and (hi or not gi or k28p)) or
-              (fi and not ji and (not hi or gi or not k28p)) or
-              (k28p and gi and hi) or
-              (not k28p and not gi and not hi);
+            (fi and not ji and (not hi or gi or not k28p)) or
+            (k28p and gi and hi) or
+            (not k28p and not gi and not hi);
       go := (ji and not fi and (hi or not gi or not k28p)) or
             (fi and not ji and (not hi or gi or k28p)) or
             (not k28p and gi and hi) or
@@ -352,7 +352,7 @@ package body Code8b10bPkg is
                   (not dispin and not disp6p and not fi and not gi) or
                   (not dispin and not ai and not bi and not ci) or
                   (not dispin and not disp6p and disp4n) or
-                  (disp6p and disp4p) or (disp6n and disp4n)) ;
+                  (disp6p and disp4p) or (disp6n and disp4n));
 
    end procedure decode8b10b;
 

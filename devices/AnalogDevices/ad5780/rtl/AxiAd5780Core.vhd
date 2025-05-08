@@ -26,13 +26,13 @@ entity AxiAd5780Core is
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz
+      SPI_CLK_FREQ_G     : real                  := 25.0E+6);  -- units of Hz
    port (
       -- DAC Ports
       dacIn          : in  AxiAd5780InType;
       dacOut         : out AxiAd5780OutType;
       -- DAC Data Interface (axiClk domain)
-      dacData        : in  slv(17 downto 0);               -- 2's complement by default
+      dacData        : in  slv(17 downto 0);  -- 2's complement by default
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;

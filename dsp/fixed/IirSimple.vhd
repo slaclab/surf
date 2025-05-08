@@ -30,22 +30,22 @@ entity IirSimple is
       XIL_DEVICE_G  : string  := "ULTRASCALE_PLUS";
       USE_CSA3_G    : boolean := false;
       BRAM_THRESH_G : integer := 256;
-      IIR_SHIFT_G   : integer := 4;  -- alpha = 2**(-IIR_SHIFT_G)
-      ILEAVE_CHAN_G : integer := 1;  -- Number of interleaved channels
+      IIR_SHIFT_G   : integer := 4;     -- alpha = 2**(-IIR_SHIFT_G)
+      ILEAVE_CHAN_G : integer := 1;     -- Number of interleaved channels
       USER_WIDTH_G  : integer := 0;
       REG_IN_G      : boolean := true;
       REG_OUT_G     : boolean := true);
    port (
-      clk       : in  sl;
-      rst       : in  sl := '0';
+      clk      : in  sl;
+      rst      : in  sl                             := '0';
       -- inputs
-      validIn   : in  sl := '0';
-      userIn    : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
-      din       : in  sfixed;
+      validIn  : in  sl                             := '0';
+      userIn   : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
+      din      : in  sfixed;
       -- outputs
-      validOut  : out sl;
-      userOut   : out slv(USER_WIDTH_G - 1 downto 0);
-      dout      : out sfixed);
+      validOut : out sl;
+      userOut  : out slv(USER_WIDTH_G - 1 downto 0);
+      dout     : out sfixed);
 end entity IirSimple;
 
 architecture rtl of IirSimple is
@@ -54,18 +54,18 @@ architecture rtl of IirSimple is
    constant IIR_DELAY_STYLE_C : string  := ite(IIR_DELAY_C > BRAM_THRESH_G, "block", "srl_reg");
 
    -- Latency for user/valid
-   constant TOT_LATENCY_C  : integer := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
+   constant TOT_LATENCY_C        : integer                   := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
    constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
    constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
 
    type RegType is record
-       din     : sfixed(din'range);
-       dout    : sfixed(dout'range);
+      din  : sfixed(din'range);
+      dout : sfixed(dout'range);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      din     => (others => '0'),
-      dout    => (others => '0'));
+      din  => (others => '0'),
+      dout => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -85,7 +85,7 @@ architecture rtl of IirSimple is
 
 begin
 
-   userDelayIn(userDelayIn'high) <= validIn;
+   userDelayIn(userDelayIn'high)                            <= validIn;
    userDelayIn(userDelayIn'high - 1 downto userDelayIn'low) <= userIn;
 
    validOut <= userDelayOut(userDelayOut'high);
@@ -125,20 +125,20 @@ begin
          NEGATIVE_A_G => false,
          NEGATIVE_B_G => true)
       port map (
-         clk  => clk,
-         rst  => rst,
-         a    => shiftInA,
-         b    => shiftInB,
-         c    => filtDly,
-         y    => filtOut);
+         clk => clk,
+         rst => rst,
+         a   => shiftInA,
+         b   => shiftInB,
+         c   => filtDly,
+         y   => filtOut);
 
    comb : process(din, filtOut, r) is
-      variable v   : RegType;
+      variable v : RegType;
    begin
 
       v := r;
 
-      v.din  := din;
+      v.din := din;
 
       v.dout := resize(filtOut, v.dout, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
 

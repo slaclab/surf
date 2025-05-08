@@ -17,15 +17,14 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2bGth7Fixedlat is
    generic (
@@ -61,24 +60,24 @@ entity Pgp2bGth7Fixedlat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G   : integer              := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G   : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl := '0';                   -- Drives CPLL if used
+      gtCPllRefClk     : in  sl := '0';  -- Drives CPLL if used
       gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl := '0';                   -- Signals from QPLL if used
+      gtQPllRefClk     : in  sl := '0';  -- Signals from QPLL if used
       gtQPllClk        : in  sl := '0';
       gtQPllLock       : in  sl := '0';
       gtQPllRefClkLost : in  sl := '0';
       gtQPllReset      : out sl;
-      gtRxRefClkBufg   : in  sl;        -- gtrefclk driving rx side, fed through clock buffer
+      gtRxRefClkBufg   : in  sl;  -- gtrefclk driving rx side, fed through clock buffer
 
       -- Gt Serial IO
       gtRxN : in  sl;                   -- GT Serial Receive Negative
@@ -94,7 +93,7 @@ entity Pgp2bGth7Fixedlat is
       pgpRxReset      : in  sl;
       pgpRxRecClk     : out sl;         -- rxrecclk basically
       pgpRxRecClkRst  : out sl;         -- Reset for recovered clock
-      pgpRxClk        : in  sl;         -- Run recClk through external MMCM and sent to this input
+      pgpRxClk        : in  sl;  -- Run recClk through external MMCM and sent to this input
       pgpRxMmcmReset  : out sl;
       pgpRxMmcmLocked : in  sl := '1';
 
@@ -126,11 +125,8 @@ entity Pgp2bGth7Fixedlat is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
       axilWriteSlave  : out AxiLiteWriteSlaveType);
-
 end Pgp2bGth7Fixedlat;
 
-
--- Define architecture
 architecture rtl of Pgp2bGth7Fixedlat is
 
    --------------------------------------------------------------------------------------------------
@@ -151,12 +147,12 @@ architecture rtl of Pgp2bGth7Fixedlat is
 --   signal pgpRxReset1    : sl;
 
    -- PgpRx Signals
-   signal gtRxData      : slv(19 downto 0);                -- Feed to 8B10B decoder
-   signal dataValid     : sl;                              -- no decode or disparity errors
-   signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);   -- Output from decoder
+   signal gtRxData      : slv(19 downto 0);  -- Feed to 8B10B decoder
+   signal dataValid     : sl;           -- no decode or disparity errors
+   signal phyRxLanesIn  : Pgp2bRxPhyLaneInArray(0 to 0);  -- Output from decoder
    signal phyRxLanesOut : Pgp2bRxPhyLaneOutArray(0 to 0);  -- Polarity to GT
-   signal phyRxReady    : sl;                              -- To RxRst
-   signal phyRxInit     : sl;                              -- To RxRst
+   signal phyRxReady    : sl;           -- To RxRst
+   signal phyRxInit     : sl;           -- To RxRst
 
    --------------------------------------------------------------------------------------------------
    -- Tx Signals
@@ -202,7 +198,7 @@ begin
          pgpTxMasters     => pgpTxMasters,
          pgpTxSlaves      => pgpTxSlaves,
          phyTxLanesOut    => phyTxLanesOut,
-         phyTxReady       => gtTxResetDone,  --phyTxReady,  -- Use txResetDone
+         phyTxReady       => gtTxResetDone,   --phyTxReady,  -- Use txResetDone
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => gtRxResetDoneL,  -- Hold in reset until gtp rx is up
          pgpRxIn          => pgpRxIn,
@@ -307,12 +303,11 @@ begin
          FIXED_ALIGN_COMMA_0_G => "----------0101111100",  -- Normal Comma
          FIXED_ALIGN_COMMA_1_G => "----------1010000011",  -- Inverted Comma
          FIXED_ALIGN_COMMA_2_G => "XXXXXXXXXXXXXXXXXXXX",  -- Unused
-         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX"   -- Unused
+         FIXED_ALIGN_COMMA_3_G => "XXXXXXXXXXXXXXXXXXXX")  -- Unused
 --         RX_DISPERR_SEQ_MATCH_G => RX_DISPERR_SEQ_MATCH_G,
 --         DEC_MCOMMA_DETECT_G    => DEC_MCOMMA_DETECT_G,
 --         DEC_PCOMMA_DETECT_G    => DEC_PCOMMA_DETECT_G,
 --         DEC_VALID_COMMA_ONLY_G => DEC_VALID_COMMA_ONLY_G
-         )
       port map (
          stableClkIn      => stableClk,
          cPllRefClkIn     => gtCPllRefClk,
@@ -330,11 +325,11 @@ begin
          rxOutClkOut      => pgpRxRecClk,
          rxUsrClkIn       => pgpRxClk,
          rxUsrClk2In      => pgpRxClk,
-         rxUserRdyOut     => open,      -- rx clock locked and stable, but alignment not yet done
+         rxUserRdyOut     => open,  -- rx clock locked and stable, but alignment not yet done
          rxMmcmResetOut   => pgpRxMmcmReset,
          rxMmcmLockedIn   => pgpRxMmcmLocked,
          rxUserResetIn    => pgpRxReset,
-         rxResetDoneOut   => gtRxResetDone,                -- Use for rxRecClkReset???
+         rxResetDoneOut   => gtRxResetDone,  -- Use for rxRecClkReset???
          rxDataValidIn    => dataValid,   -- From 8b10b
          rxSlideIn        => '0',       -- Slide is controlled internally
          rxDataOut        => gtRxData,

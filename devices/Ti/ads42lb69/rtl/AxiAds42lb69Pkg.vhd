@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -43,7 +42,7 @@ package AxiAds42lb69Pkg is
       data : slv(8 downto 0);
    end record;
    constant AXI_ADS42LB69_DELAY_IN_INIT_C : AxiAds42lb69DelayInType := (
-      load => (others =>(others => '0')),
+      load => (others => (others => '0')),
       rst  => '0',
       data => (others => '0'));
 
@@ -79,4 +78,4 @@ package AxiAds42lb69Pkg is
       adcData  => (others => x"0000"),
       delayOut => AXI_ADS42LB69_DELAY_OUT_INIT_C);
 
-end package;
+end package AxiAds42lb69Pkg;

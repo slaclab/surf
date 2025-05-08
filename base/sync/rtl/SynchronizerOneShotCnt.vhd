@@ -22,16 +22,16 @@ use surf.StdRtlPkg.all;
 
 entity SynchronizerOneShotCnt is
    generic (
-      TPD_G           : time     := 1 ns;  -- Simulation FF output delay
-      RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean  := false;  -- true if reset is asynchronous, false if reset is synchronous
-      COMMON_CLK_G    : boolean  := false;  -- True if wrClk and rdClk are the same clock
-      IN_POLARITY_G   : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataIn port)
-      OUT_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataOut port)
-      USE_DSP_G       : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
-      SYNTH_CNT_G     : sl       := '1';  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
-      CNT_RST_EDGE_G  : boolean  := true;  -- true if counter reset should be edge detected, else level detected
-      CNT_WIDTH_G     : positive := 16);
+      TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean  := false;  -- true if reset is asynchronous, false if reset is synchronous
+      COMMON_CLK_G   : boolean  := false;  -- True if wrClk and rdClk are the same clock
+      IN_POLARITY_G  : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataIn port)
+      OUT_POLARITY_G : sl       := '1';  -- 0 for active LOW, 1 for active HIGH (dataOut port)
+      USE_DSP_G      : string   := "no";  -- "no" for no DSP implementation, "yes" to use DSP slices
+      SYNTH_CNT_G    : sl       := '1';  -- Set to 1 for synthesizing counter RTL, '0' to not synthesis the counter
+      CNT_RST_EDGE_G : boolean  := true;  -- true if counter reset should be edge detected, else level detected
+      CNT_WIDTH_G    : positive := 16);
    port (
       -- Write Ports (wrClk domain)
       wrClk      : in  sl;
@@ -75,12 +75,12 @@ begin
 
    SyncOneShot_0 : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         BYPASS_SYNC_G   => COMMON_CLK_G,
-         IN_POLARITY_G   => IN_POLARITY_G,
-         OUT_POLARITY_G  => OUT_POLARITY_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => COMMON_CLK_G,
+         IN_POLARITY_G  => IN_POLARITY_G,
+         OUT_POLARITY_G => OUT_POLARITY_G)
       port map (
          clk     => rdClk,
          rst     => rdRst,
@@ -91,12 +91,12 @@ begin
 
       SyncOneShot_1 : entity surf.SynchronizerOneShot
          generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => RST_POLARITY_G,
-            RST_ASYNC_G     => RST_ASYNC_G,
-            BYPASS_SYNC_G   => COMMON_CLK_G,
-            IN_POLARITY_G   => RST_POLARITY_G,
-            OUT_POLARITY_G  => RST_POLARITY_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => COMMON_CLK_G,
+            IN_POLARITY_G  => RST_POLARITY_G,
+            OUT_POLARITY_G => RST_POLARITY_G)
          port map (
             clk     => wrClk,
             rst     => wrRst,
@@ -206,10 +206,10 @@ begin
 
       SyncFifo_Inst : entity surf.SynchronizerFifo
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            COMMON_CLK_G  => COMMON_CLK_G,
-            DATA_WIDTH_G  => CNT_WIDTH_G)
+            TPD_G        => TPD_G,
+            RST_ASYNC_G  => RST_ASYNC_G,
+            COMMON_CLK_G => COMMON_CLK_G,
+            DATA_WIDTH_G => CNT_WIDTH_G)
          port map (
             -- Asynchronous Reset
             rst    => wrRst,

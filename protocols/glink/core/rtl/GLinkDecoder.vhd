@@ -115,8 +115,8 @@ begin
             -- Set the gLinkRx bus
             v.gLinkRx.isIdle := '0';
             v.gLinkRx.isData := '1';
-            v.gLinkRx.data   := getDataPayload(gLinkWordVar);  -- Bit flip done by function
-            v.gLinkRx.flag   := getFlag(gLinkWordVar);
+            v.gLinkRx.data   := getDataPayload(glinkWordVar);  -- Bit flip done by function
+            v.gLinkRx.flag   := getFlag(glinkWordVar);
             -- Check if FLAG is used for additional error checking
             if FLAGSEL_G then
                -- Set the flag
@@ -127,15 +127,15 @@ begin
                   -- First frame Detected
                   v.gLinkRx.linkUp := '1';
                   -- Latch the flag value
-                  v.toggle         := getFlag(gLinkWordVar);
+                  v.toggle         := getFlag(glinkWordVar);
                else
                   -- Check for flag error
-                  if (r.toggle = getFlag(gLinkWordVar)) then
+                  if (r.toggle = getFlag(glinkWordVar)) then
                      -- Invalid flag detected
                      v.gLinkRx.error := '1';
                   else
                      -- Latch the flag value
-                     v.toggle := getFlag(gLinkWordVar);
+                     v.toggle := getFlag(glinkWordVar);
                   end if;
                end if;
             end if;

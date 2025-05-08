@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2fc: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -15,8 +15,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -24,36 +24,38 @@ use surf.Pgp2fcPkg.all;
 
 entity Pgp2fcAlignmentChecker is
    generic (
-      LATCH_ERROR : boolean := false); -- If true, rst will clear the flag
+      LATCH_ERROR : boolean := false);  -- If true, rst will clear the flag
    port (
       clk    : in  sl;
       rst    : in  sl := '0';
       rxLane : in  Pgp2fcRxPhyLaneInType;
-      error  : out sl
-   );
+      error  : out sl);
 end Pgp2fcAlignmentChecker;
 
 architecture Behavioral of Pgp2fcAlignmentChecker is
-   signal syncRst : sl;
 
+   signal syncRst    : sl;
    signal dispErrors : sl;
-   signal decErrors : sl;
+   signal decErrors  : sl;
    signal wrongAlign : sl;
+
 begin
+
    U_Rst : entity surf.RstSync
-   generic map (
-      RELEASE_DELAY_G => 3)
-   port map (
-      clk => clk,
-      asyncRst => rst,
-      syncRst => syncRst);
+      generic map (
+         RELEASE_DELAY_G => 3)
+      port map (
+         clk      => clk,
+         asyncRst => rst,
+         syncRst  => syncRst);
 
    -- Check for proper raw datastream alignment and validity
    dispErrors <= '1' when rxLane.dispErr /= "00" else '0';
-   decErrors <= '1' when rxLane.decErr /= "00" else '0';
-   wrongAlign <= '1' when rxLane.dataK(1) = '1' else '0';
+   decErrors  <= '1' when rxLane.decErr /= "00"  else '0';
+   wrongAlign <= '1' when rxLane.dataK(1) = '1'  else '0';
 
-   process (clk) begin
+   process (clk)
+   begin
       if (rising_edge(clk)) then
          if (syncRst = '1' and LATCH_ERROR = true) then
             error <= '0';

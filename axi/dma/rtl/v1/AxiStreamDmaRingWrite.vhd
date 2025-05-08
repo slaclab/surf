@@ -39,7 +39,7 @@ entity AxiStreamDmaRingWrite is
       AXI_WRITE_CONFIG_G   : AxiConfigType;
       FORCE_WRAP_ALIGN_G   : boolean                  := false;  -- Force dma to end at endAddr
       BYP_SHIFT_G          : boolean                  := true;  -- Bypass both because we do not want them to back-pressure
-      BYP_CACHE_G          : boolean                  := true); -- Bypass both because we do not want them to back-pressure
+      BYP_CACHE_G          : boolean                  := true);  -- Bypass both because we do not want them to back-pressure
    port (
       -- AXI-Lite Interface for local registers
       axilClk         : in  sl;
@@ -215,7 +215,7 @@ architecture rtl of AxiStreamDmaRingWrite is
          drop          => '0',
          address       => (others => '0'),
          maxSize       => toSlv(BURST_SIZE_BYTES_G, 32),
-         prot          => (others=>'0')),
+         prot          => (others => '0')),
       trigger          => '0',
       softTrigger      => (others => '0'),
       eofe             => '0',
@@ -226,7 +226,7 @@ architecture rtl of AxiStreamDmaRingWrite is
       bufferTriggered  => (others => '0'),
       bufferError      => (others => '0'),
       bufferClear      => (others => '0'),
-      axisStatusMaster => axiStreamMasterInit(INT_STATUS_AXIS_CONFIG_C) );
+      axisStatusMaster => axiStreamMasterInit(INT_STATUS_AXIS_CONFIG_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -244,9 +244,9 @@ architecture rtl of AxiStreamDmaRingWrite is
    signal modeWrAddr   : slv(RAM_ADDR_WIDTH_C-1 downto 0);
    signal modeWrData   : slv(31 downto 0);
 
-   signal statusWe     : sl;
-   signal statusAddr   : slv(RAM_ADDR_WIDTH_C-1 downto 0);
-   signal statusDin    : slv(31 downto 0);
+   signal statusWe   : sl;
+   signal statusAddr : slv(RAM_ADDR_WIDTH_C-1 downto 0);
+   signal statusDin  : slv(31 downto 0);
 
 begin
 
@@ -280,14 +280,14 @@ begin
    -- Start Addresses. AXIL writeable
    U_AxiDualPortRam_Start : entity surf.AxiDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => "inferred",
-         MEMORY_TYPE_G=> "distributed",
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => "inferred",
+         MEMORY_TYPE_G  => "distributed",
          READ_LATENCY_G => 0,
-         AXI_WR_EN_G  => true,
-         SYS_WR_EN_G  => false,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => RAM_DATA_WIDTH_C)
+         AXI_WR_EN_G    => true,
+         SYS_WR_EN_G    => false,
+         ADDR_WIDTH_G   => RAM_ADDR_WIDTH_C,
+         DATA_WIDTH_G   => RAM_DATA_WIDTH_C)
       port map (
          axiClk         => axilClk,
          axiRst         => axilRst,
@@ -303,14 +303,14 @@ begin
    -- End Addresses. AXIL writeable
    U_AxiDualPortRam_End : entity surf.AxiDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => "inferred",
-         MEMORY_TYPE_G=> "distributed",
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => "inferred",
+         MEMORY_TYPE_G  => "distributed",
          READ_LATENCY_G => 0,
-         AXI_WR_EN_G  => true,
-         SYS_WR_EN_G  => false,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => RAM_DATA_WIDTH_C)
+         AXI_WR_EN_G    => true,
+         SYS_WR_EN_G    => false,
+         ADDR_WIDTH_G   => RAM_ADDR_WIDTH_C,
+         DATA_WIDTH_G   => RAM_DATA_WIDTH_C)
       port map (
          axiClk         => axilClk,
          axiRst         => axilRst,
@@ -327,14 +327,14 @@ begin
    -- Next Addresses. System writeable
    U_AxiDualPortRam_Next : entity surf.AxiDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => "inferred",
-         MEMORY_TYPE_G=> "distributed",
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => "inferred",
+         MEMORY_TYPE_G  => "distributed",
          READ_LATENCY_G => 0,
-         AXI_WR_EN_G  => false,
-         SYS_WR_EN_G  => true,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => RAM_DATA_WIDTH_C)
+         AXI_WR_EN_G    => false,
+         SYS_WR_EN_G    => true,
+         ADDR_WIDTH_G   => RAM_ADDR_WIDTH_C,
+         DATA_WIDTH_G   => RAM_DATA_WIDTH_C)
       port map (
          axiClk         => axilClk,
          axiRst         => axilRst,
@@ -351,14 +351,14 @@ begin
 
    U_AxiDualPortRam_Trigger : entity surf.AxiDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => "inferred",
-         MEMORY_TYPE_G=> "distributed",
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => "inferred",
+         MEMORY_TYPE_G  => "distributed",
          READ_LATENCY_G => 0,
-         AXI_WR_EN_G  => false,
-         SYS_WR_EN_G  => true,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => RAM_DATA_WIDTH_C)
+         AXI_WR_EN_G    => false,
+         SYS_WR_EN_G    => true,
+         ADDR_WIDTH_G   => RAM_ADDR_WIDTH_C,
+         DATA_WIDTH_G   => RAM_DATA_WIDTH_C)
       port map (
          axiClk         => axilClk,
          axiRst         => axilRst,
@@ -376,15 +376,15 @@ begin
 
    U_AxiDualPortRam_Mode : entity surf.AxiDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => "inferred",
-         MEMORY_TYPE_G=> "distributed",
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => "inferred",
+         MEMORY_TYPE_G  => "distributed",
          READ_LATENCY_G => 0,
-         AXI_WR_EN_G  => true,
-         SYS_WR_EN_G  => false,
-         COMMON_CLK_G => false,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => 32)
+         AXI_WR_EN_G    => true,
+         SYS_WR_EN_G    => false,
+         COMMON_CLK_G   => false,
+         ADDR_WIDTH_G   => RAM_ADDR_WIDTH_C,
+         DATA_WIDTH_G   => 32)
       port map (
          axiClk         => axilClk,
          axiRst         => axilRst,
@@ -403,15 +403,15 @@ begin
 
    U_AxiDualPortRam_Status : entity surf.AxiDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => "inferred",
-         MEMORY_TYPE_G=> "distributed",
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => "inferred",
+         MEMORY_TYPE_G  => "distributed",
          READ_LATENCY_G => 0,
-         AXI_WR_EN_G  => false,
-         SYS_WR_EN_G  => true,
-         ADDR_WIDTH_G => RAM_ADDR_WIDTH_C,
-         DATA_WIDTH_G => 32,
-         INIT_G       => STATUS_RAM_INIT_C)
+         AXI_WR_EN_G    => false,
+         SYS_WR_EN_G    => true,
+         ADDR_WIDTH_G   => RAM_ADDR_WIDTH_C,
+         DATA_WIDTH_G   => 32,
+         INIT_G         => STATUS_RAM_INIT_C)
       port map (
          axiClk         => axilClk,
          axiRst         => axilRst,
@@ -421,9 +421,9 @@ begin
          axiWriteSlave  => locAxilWriteSlaves(STATUS_AXIL_C),
          clk            => axiClk,
          rst            => axiRst,
-         we             => statusWe,   -- r.ramWe,
-         addr           => statusAddr, -- r.wrRamAddr,
-         din            => statusDin,  -- r.status,
+         we             => statusWe,    -- r.ramWe,
+         addr           => statusAddr,  -- r.wrRamAddr,
+         din            => statusDin,   -- r.status,
          dout           => statusRamDout);
 
    --  Priority is to write the status from the state machine
@@ -438,16 +438,16 @@ begin
          AXI_READY_EN_G    => true,
          AXIS_CONFIG_G     => DATA_AXIS_CONFIG_G,
          AXI_CONFIG_G      => AXI_WRITE_CONFIG_G,
-         AXI_BURST_G       => "01",         -- INCR
-         AXI_CACHE_G       => "0011",       -- Cacheable
+         AXI_BURST_G       => "01",     -- INCR
+         AXI_CACHE_G       => "0011",   -- Cacheable
          ACK_WAIT_BVALID_G => false,
          BYP_SHIFT_G       => BYP_SHIFT_G,  -- Bypass both because we do not want them to back-pressure
          BYP_CACHE_G       => BYP_CACHE_G)  -- Bypass both because we do not want them to back-pressure
       port map (
-         axiClk         => axiClk,          -- [in]
-         axiRst         => axiRst,          -- [in]
-         dmaReq         => r.dmaReq,        -- [in]
-         dmaAck         => dmaAck,          -- [out]
+         axiClk         => axiClk,      -- [in]
+         axiRst         => axiRst,      -- [in]
+         dmaReq         => r.dmaReq,    -- [in]
+         dmaAck         => dmaAck,      -- [out]
          axisMaster     => axisDataMaster,  -- [in]
          axisSlave      => axisDataSlave,   -- [out]
          axiWriteMaster => axiWriteMaster,  -- [out]
@@ -481,9 +481,10 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Main logic
    -------------------------------------------------------------------------------------------------
-   comb : process (axiRst, axisDataMaster, bufferClear, bufferClearEn, dmaAck, endRamDout,
-                   modeRamDout, modeWrAddr, modeWrData, modeWrStrobe, modeWrValid, nextRamDout, r,
-                   startRamDout, statusRamDout, trigRamDout) is
+   comb : process (axiRst, axisDataMaster, bufferClear, bufferClearEn, dmaAck,
+                   endRamDout, modeRamDout, modeWrAddr, modeWrData,
+                   modeWrStrobe, modeWrValid, nextRamDout, r, startRamDout,
+                   statusRamDout, trigRamDout) is
       variable v            : RegType;
       variable axilEndpoint : AxiLiteEndpointType;
       variable endRamSize   : integer;
@@ -516,12 +517,12 @@ begin
       --    Queue the pointer updates until the WAIT_FOR_TVALID
       --
       if (bufferClearEn = '1') then
-         v.statusClearEn    := '1';
-         v.statusClearAddr  := bufferClear;
+         v.statusClearEn                          := '1';
+         v.statusClearAddr                        := bufferClear;
          v.bufferClear(conv_integer(bufferClear)) := '1';
       elsif(modeWrValid = '1' and modeWrData(INIT_C) = '1' and modeWrStrobe(INIT_C/8) = '1') then
-         v.statusClearEn    := '1';
-         v.statusClearAddr  := modeWrAddr;
+         v.statusClearEn                         := '1';
+         v.statusClearAddr                       := modeWrAddr;
          v.bufferClear(conv_integer(modeWrAddr)) := '1';
       end if;
 
@@ -546,23 +547,23 @@ begin
             --  Cannot proceed to the next state if statusRamDout doesn't
             --  reflect the active buffer
             if r.statusClearEn = '0' then
-               v.state     := LATCH_POINTERS_S;
+               v.state := LATCH_POINTERS_S;
             end if;
 
          when LATCH_POINTERS_S =>
             -- Latch pointers
             v.startAddr := startRamDout;   -- Address of start of buffer
-            v.endAddr   := endRamDout;     -- Address of end of buffer
-            v.nextAddr  := nextRamDout;    -- Address of next frame in buffer
-            v.trigAddr  := trigRamDout;    -- Start address of frame where trigger was seen
-            v.mode      := modeRamDout;    -- Number of frames since trigger seen
+            v.endAddr   := endRamDout;  -- Address of end of buffer
+            v.nextAddr  := nextRamDout;  -- Address of next frame in buffer
+            v.trigAddr  := trigRamDout;  -- Start address of frame where trigger was seen
+            v.mode      := modeRamDout;  -- Number of frames since trigger seen
             v.status    := statusRamDout;  -- Number of frames to log after trigger seen
 
             if r.bufferClear(conv_integer(r.activeBuffer)) = '1' then
                v.bufferClear(conv_integer(r.activeBuffer)) := '0';
-               v.trigAddr   := (others=>'1');
-               v.nextAddr   := startRamDout;
-               v.ramWe      := '1';
+               v.trigAddr                                  := (others => '1');
+               v.nextAddr                                  := startRamDout;
+               v.ramWe                                     := '1';
             end if;
 
             -- Assert a new request.
@@ -570,21 +571,21 @@ begin
             -- Writes always start on a BURST_SIZE_BYTES_G boundary, so can drive low dmaReq.address
             -- bits to zero for optimization.
             v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := v.nextAddr;
-            endRamSize := conv_integer(endRamDout - v.nextAddr);
+            endRamSize                                                   := conv_integer(endRamDout - v.nextAddr);
             if FORCE_WRAP_ALIGN_G and endRamSize < BURST_SIZE_BYTES_G then
-              v.dmaReq.maxSize := toSlv(endRamSize, 32);
+               v.dmaReq.maxSize := toSlv(endRamSize, 32);
             else
-              v.dmaReq.maxSize := toSlv(BURST_SIZE_BYTES_G, 32);
+               v.dmaReq.maxSize := toSlv(BURST_SIZE_BYTES_G, 32);
             end if;
             if not ENABLE_UNALIGN_G then
-              v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0)                  := (others => '0');
-              v.dmaReq.drop                                                := v.status(DONE_C);
+               v.dmaReq.address(DMA_ADDR_LOW_C-1 downto 0) := (others => '0');
+               v.dmaReq.drop                               := v.status(DONE_C);
             else
-              --  status(DONE_C) indicates a push, but maybe more than one
-              v.dmaReq.drop                                                := '0';
+               --  status(DONE_C) indicates a push, but maybe more than one
+               v.dmaReq.drop := '0';
             end if;
-            v.dmaReq.request                                             := '1';
-            v.state                                                      := WAIT_DMA_DONE_S;
+            v.dmaReq.request := '1';
+            v.state          := WAIT_DMA_DONE_S;
 
          when WAIT_DMA_DONE_S =>
             -- Wait until DMA transaction is done.

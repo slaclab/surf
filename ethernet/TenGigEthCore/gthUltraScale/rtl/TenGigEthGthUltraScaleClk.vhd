@@ -51,7 +51,7 @@ architecture mapping of TenGigEthGthUltraScaleClk is
    signal coreClock  : sl;
    signal qpllReset  : sl;
 
-   signal dummyBits  : slv(2 downto 0);
+   signal dummyBits : slv(2 downto 0);
 
 begin
 
@@ -79,7 +79,7 @@ begin
          DIV     => "000",
          O       => coreClock);
 
-   refClock  <= gtRefClk    when(EXT_REF_G) else refClk;
+   refClock  <= gtRefClk     when(EXT_REF_G) else refClk;
    coreClk   <= gtRefClkBufg when(EXT_REF_G) else coreClock;
    qpllReset <= qpllRst or coreRst;
 
@@ -122,8 +122,8 @@ begin
          qPllOutRefClk(1)  => dummyBits(1),
          qPllLock(0)       => qPllLock,
          qPllLock(1)       => dummyBits(2),
-         qPllLockDetClk(0) => '0',   -- IP Core ties this to GND (see note below)
-         qPllLockDetClk(1) => '0',   -- IP Core ties this to GND (see note below)
+         qPllLockDetClk(0) => '0',  -- IP Core ties this to GND (see note below)
+         qPllLockDetClk(1) => '0',  -- IP Core ties this to GND (see note below)
          qPllPowerDown(0)  => '0',
          qPllPowerDown(1)  => '1',
          qPllReset(0)      => qpllReset,

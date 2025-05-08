@@ -40,15 +40,13 @@ entity SpiSlave is
 
       wrData : out slv(WORD_SIZE_G-1 downto 0);
       wrStb  : out sl);
-
 end entity SpiSlave;
 
 architecture rtl of SpiSlave is
 
    constant MAX_COUNT_C : integer := WORD_SIZE_G-1;
 
-   type RegType is
-   record
+   type RegType is record
       -- Input sync and edge detection regs
       mosiLast : sl;
       sclkLast : sl;
@@ -109,15 +107,6 @@ begin
          rst     => rst,
          dataIn  => mosi,
          dataOut => mosiSync);
-
-   seq : process (clk) is
-   begin
-      if (rising_edge(clk)) then
-         r <= rin after TPD_G;
-      end if;
-
-   end process seq;
-
 
    comb : process (mosiSync, r, rdData, rdStb, rst, sclkSync, selLSync) is
       variable v : RegType;
@@ -221,5 +210,12 @@ begin
       wrStb  <= r.wrStb;
 
    end process;
+
+   seq : process (clk) is
+   begin
+      if (rising_edge(clk)) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end architecture rtl;

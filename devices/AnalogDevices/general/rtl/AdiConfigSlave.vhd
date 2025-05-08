@@ -102,7 +102,7 @@ begin
 
    sdioRes <= to_x01z(sdio);
    sclkRes <= to_x01z(sclk);
-   csbRes <= to_x01z(csb);
+   csbRes  <= to_x01z(csb);
 
    SynchronizerEdge_SDIO : entity surf.SynchronizerEdge
       generic map (

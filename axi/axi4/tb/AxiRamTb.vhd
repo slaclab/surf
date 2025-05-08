@@ -88,7 +88,7 @@ begin
          ------------------------------
          -- BRAM
          ------------------------------
-         MEMORY_TYPE_G => "block",
+         MEMORY_TYPE_G  => "block",
          READ_LATENCY_G => 2,
          ------------------------------
          AXI_CONFIG_G   => AXI_CONFIG_C)
@@ -145,7 +145,7 @@ begin
          end if;
          if (memReadyDly = '1') then
             assert false
-               report "Simulation Passed!" severity failure;
+               report "Simulation Passed!" severity note;
          end if;
       end if;
    end process;

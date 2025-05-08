@@ -18,7 +18,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -112,7 +111,8 @@ begin
    -- Clock Generation
    --------------------------------------
    U_ClkGen : entity surf.ClinkDataClk
-      generic map (TPD_G => TPD_G)
+      generic map (
+         TPD_G => TPD_G)
       port map (
          clkIn           => rawIn(0),
          rstIn           => clkReset,
@@ -176,8 +176,7 @@ begin
             IDELAY_VALUE          => 0,  -- Input delay tap setting (0-31)
             PIPE_SEL              => "FALSE",  -- Select pipelined mode, FALSE, TRUE
             REFCLK_FREQUENCY      => 200.0,  -- IDELAYCTRL clock input frequency in MHz (190.0-210.0, 290.0-310.0).
-            SIGNAL_PATTERN        => "DATA"  -- DATA, CLOCK input signal
-            )
+            SIGNAL_PATTERN        => "DATA")  -- DATA, CLOCK input signal
          port map (
             CNTVALUEOUT => open,        -- 5-bit output: Counter value output
             DATAOUT     => cblInDly(i),  -- 1-bit output: Delayed data output
@@ -190,8 +189,8 @@ begin
             INC         => '0',  -- 1-bit input: Increment / Decrement tap delay input
             LD          => intLd,       -- 1-bit input: Load IDELAY_VALUE input
             LDPIPEEN    => '0',  -- 1-bit input: Enable PIPELINE register to load data input
-            REGRST      => '0'  -- 1-bit input: Active-high reset tap-delay input
-            );
+            REGRST      => '0');  -- 1-bit input: Active-high reset tap-delay input
+
 
       -- Deserializer
       U_Serdes : ISERDESE2
@@ -204,8 +203,7 @@ begin
             IOBDELAY          => "IFD",    -- NONE, BOTH, IBUF, IFD
             NUM_CE            => 1,     -- Number of clock enables (1,2)
             OFB_USED          => "FALSE",  -- Select OFB path (FALSE, TRUE)
-            SERDES_MODE       => "MASTER"  -- MASTER, SLAVE
-            )
+            SERDES_MODE       => "MASTER")      -- MASTER, SLAVE
          port map (
             Q1           => dataShift(i)(0),
             Q2           => dataShift(i)(1),
@@ -231,8 +229,7 @@ begin
             OCLKB        => '0',
             RST          => intRst,
             SHIFTIN1     => '0',
-            SHIFTIN2     => '0'
-            );
+            SHIFTIN2     => '0');
 
    end generate;
 

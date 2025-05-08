@@ -66,4 +66,3 @@ begin
          bvalid  => axilWriteSlave.bvalid);
 
 end RogueTcpMemoryWrap;
-

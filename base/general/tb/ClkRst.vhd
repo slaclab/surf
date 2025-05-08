@@ -67,9 +67,9 @@ begin
             else
                wait for CLK_HIGH_C;
             end if;
-        else
+         else
             wait;
-        end if;
+         end if;
       end loop;
    end process;
 

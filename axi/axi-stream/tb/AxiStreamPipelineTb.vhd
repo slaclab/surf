@@ -26,12 +26,12 @@ entity AxiStreamPipelineTb is end AxiStreamPipelineTb;
 
 architecture testbed of AxiStreamPipelineTb is
 
-   constant CLK_PERIOD_C  : time              := 4 ns;
-   constant TPD_C         : time              := CLK_PERIOD_C/4;
-   constant PIPE_STAGES_C : natural           := 1;
-   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000019999997E241C000",AXI_STREAM_MAX_TDATA_WIDTH_C);
+   constant CLK_PERIOD_C  : time                                         := 4 ns;
+   constant TPD_C         : time                                         := CLK_PERIOD_C/4;
+   constant PIPE_STAGES_C : natural                                      := 1;
+   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000019999997E241C000", AXI_STREAM_MAX_TDATA_WIDTH_C);
    -- constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000000000000000000FF",AXI_STREAM_MAX_TDATA_WIDTH_C);
-   constant PRBS_TAPS_C   : NaturalArray      := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
+   constant PRBS_TAPS_C   : NaturalArray                                 := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
 
    type RegType is record
       passed      : sl;
@@ -84,7 +84,7 @@ begin
    ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk,
@@ -203,7 +203,7 @@ begin
       end if;
 
       -- Combinatorial outputs before the reset
-      mAxisSlave  <= v.mAxisSlave;
+      mAxisSlave <= v.mAxisSlave;
 
       -- Reset
       if (rst = '1') then
@@ -235,7 +235,7 @@ begin
       end if;
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       end if;
    end process;
 

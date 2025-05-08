@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -48,7 +47,7 @@ end AxiAd9467Reg;
 
 architecture rtl of AxiAd9467Reg is
 
-   function CompressAddressSpace (vec : slv(7 downto 0)) return slv is
+   function compressAddressSpace (vec : slv(7 downto 0)) return slv is
       variable retVar : slv(11 downto 0) := x"0FF";
    begin
       case (vec) is
@@ -156,7 +155,7 @@ begin
             v.config.spi.req  := '1';
             v.config.spi.RnW  := '0';
             v.config.spi.din  := axiWriteMaster.wdata(7 downto 0);
-            v.config.spi.addr := CompressAddressSpace(axiWriteMaster.awaddr(9 downto 2));
+            v.config.spi.addr := compressAddressSpace(axiWriteMaster.awaddr(9 downto 2));
             v.state           := REQ_S;
          else
             -- Decode address and perform write
@@ -203,12 +202,12 @@ begin
          end if;
       elsif (axiStatus.readEnable = '1') and (r.state = IDLE_S) then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          if (axiReadMaster.araddr(9 downto 2) < 15) then
             v.config.spi.req  := '1';
             v.config.spi.RnW  := '1';
             v.config.spi.din  := (others => '0');
-            v.config.spi.addr := CompressAddressSpace(axiReadMaster.araddr(9 downto 2));
+            v.config.spi.addr := compressAddressSpace(axiReadMaster.araddr(9 downto 2));
             v.state           := REQ_S;
          else
             -- Decode address and assign read data

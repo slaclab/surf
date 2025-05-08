@@ -34,7 +34,7 @@ package TenGigEthPkg is
    constant TEN_GIG_ETH_CONFIG_INIT_C : TenGigEthConfig := (
       softRst      => '0',
       macConfig    => ETH_MAC_CONFIG_INIT_C,
-      pma_pmd_type => "111",            --111 = 10GBASE-SR (Wavelength:850 nm & OM3:300m)
+      pma_pmd_type => "111",  --111 = 10GBASE-SR (Wavelength:850 nm & OM3:300m)
       pma_loopback => '0',
       pma_reset    => '0',
       pcs_loopback => '0',

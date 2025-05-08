@@ -22,7 +22,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -31,7 +30,6 @@ use surf.SsiPkg.all;
 use surf.Pgp3Pkg.all;
 
 entity Pgp3RxProtocol is
-
    generic (
       TPD_G    : time                  := 1 ns;
       NUM_VC_G : integer range 1 to 16 := 4);
@@ -55,7 +53,6 @@ entity Pgp3RxProtocol is
       protRxPhyInit : out sl;
       protRxData    : in  slv(63 downto 0);
       protRxHeader  : in  slv(1 downto 0));
-
 end entity Pgp3RxProtocol;
 
 architecture rtl of Pgp3RxProtocol is
@@ -68,7 +65,7 @@ architecture rtl of Pgp3RxProtocol is
       protRxPhyInit  : sl;
       remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
       remRxLinkReady : sl;
-      locRxLinkReady : sl;              -- This might come from aligner instead?
+      locRxLinkReady : sl;  -- This might come from aligner instead?
       version        : slv(2 downto 0);
    end record RegType;
 
@@ -101,8 +98,8 @@ begin
          dataOut     => phyRxActiveSync,       -- [out]
          fallingEdge => phyRxActiveSyncFall);  -- [out]
 
-   comb : process (pgpRxIn, pgpRxRst, phyRxActiveSync, phyRxActiveSyncFall, protRxData,
-                   protRxHeader, protRxValid, r) is
+   comb : process (pgpRxIn, pgpRxRst, phyRxActiveSync, phyRxActiveSyncFall,
+                   protRxData, protRxHeader, protRxValid, r) is
       variable v              : RegType;
       variable linkInfo       : slv(39 downto 0);
       variable btf            : slv(7 downto 0);
@@ -266,4 +263,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
 end architecture rtl;

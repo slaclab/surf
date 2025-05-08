@@ -15,7 +15,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-LIBRARY ieee;
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
@@ -29,33 +29,29 @@ use surf.SsiPkg.all;
 entity Pgp2bRx is
    generic (
       TPD_G             : time                 := 1 ns;
-      RX_LANE_CNT_G     : integer range 1 to 2 := 1; -- Number of receive lanes, 1-2
-      PAYLOAD_CNT_TOP_G : integer              := 7  -- Top bit for payload counter
-   );
+      RX_LANE_CNT_G     : integer range 1 to 2 := 1;  -- Number of receive lanes, 1-2
+      PAYLOAD_CNT_TOP_G : integer              := 7);  -- Top bit for payload counter
    port (
-
       -- System clock, reset & control
-      pgpRxClkEn       : in  sl := '1'; -- Master clock enable
-      pgpRxClk         : in  sl;        -- Master clock
-      pgpRxClkRst      : in  sl;        -- Synchronous reset input
+      pgpRxClkEn  : in sl := '1';       -- Master clock enable
+      pgpRxClk    : in sl;              -- Master clock
+      pgpRxClkRst : in sl;              -- Synchronous reset input
 
       -- Non-VC related IO
-      pgpRxIn          : in  Pgp2bRxInType;
-      pgpRxOut         : out Pgp2bRxOutType;
+      pgpRxIn  : in  Pgp2bRxInType;
+      pgpRxOut : out Pgp2bRxOutType;
 
       -- VC Output
-      pgpRxMaster      : out AxiStreamMasterType;
-      remFifoStatus    : out AxiStreamCtrlArray(3 downto 0);
+      pgpRxMaster   : out AxiStreamMasterType;
+      remFifoStatus : out AxiStreamCtrlArray(3 downto 0);
 
       -- PHY interface
-      phyRxLanesOut    : out Pgp2bRxPhyLaneOutArray(0 to RX_LANE_CNT_G-1);
-      phyRxLanesIn     : in  Pgp2bRxPhyLaneInArray(0 to RX_LANE_CNT_G-1);
-      phyRxReady       : in  sl;
-      phyRxInit        : out sl
-   );
+      phyRxLanesOut : out Pgp2bRxPhyLaneOutArray(0 to RX_LANE_CNT_G-1);
+      phyRxLanesIn  : in  Pgp2bRxPhyLaneInArray(0 to RX_LANE_CNT_G-1);
+      phyRxReady    : in  sl;
+      phyRxInit     : out sl);
 end Pgp2bRx;
 
--- Define architecture
 architecture Pgp2bRx of Pgp2bRx is
 
    -- Local Signals
@@ -67,16 +63,16 @@ architecture Pgp2bRx of Pgp2bRx is
    signal cellRxEOFE       : sl;
    signal cellRxData       : slv(RX_LANE_CNT_G*16-1 downto 0);
    signal intRxLinkReady   : sl;
-   signal crcRxIn          : slv(RX_LANE_CNT_G*16-1 downto 0); -- Receive data for CRC
-   signal crcRxInit        : sl;                                 -- Receive CRC value init
-   signal crcRxValid       : sl;                                 -- Receive data for CRC is valid
+   signal crcRxIn          : slv(RX_LANE_CNT_G*16-1 downto 0);  -- Receive data for CRC
+   signal crcRxInit        : sl;        -- Receive CRC value init
+   signal crcRxValid       : sl;        -- Receive data for CRC is valid
    signal crcRxOut         : slv(31 downto 0);
    signal crcRxOutAdjust   : slv(31 downto 0);
    signal crcRxRst         : sl;
    signal crcRxInAdjust    : slv(31 downto 0);
    signal crcRxWidthAdjust : slv(2 downto 0);
-   signal intPhyRxPolarity : slv(1 downto 0) := (others=>'0');    -- PHY receive signal polarity
-   signal intPhyRxData     : slv(RX_LANE_CNT_G*16-1 downto 0); -- PHY receive data
+   signal intPhyRxPolarity : slv(1 downto 0) := (others => '0');  -- PHY receive signal polarity
+   signal intPhyRxData     : slv(RX_LANE_CNT_G*16-1 downto 0);  -- PHY receive data
    signal intPhyRxDataK    : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data is K character
    signal intPhyRxDispErr  : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data has disparity error
    signal intPhyRxDecErr   : slv(RX_LANE_CNT_G*2-1 downto 0);  -- PHY receive data not in table
@@ -88,11 +84,10 @@ architecture Pgp2bRx of Pgp2bRx is
    signal pause            : slv(3 downto 0);
    signal overflow         : slv(3 downto 0);
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      U_Pgp2bRxPhy,
-      U_Pgp2bRxCell,
-      Rx_CRC : label is "TRUE";
+   attribute KEEP_HIERARCHY                  : string;
+   attribute KEEP_HIERARCHY of U_Pgp2bRxPhy  : label is "TRUE";
+   attribute KEEP_HIERARCHY of U_Pgp2bRxCell : label is "TRUE";
+   attribute KEEP_HIERARCHY of Rx_CRC        : label is "TRUE";
 
 begin
 
@@ -104,7 +99,7 @@ begin
    pgpRxOut.remPause     <= pause;
 
    -- Interface connection
-   wrap : process ( intPhyRxPolarity, phyRxLanesIn) is
+   wrap : process (intPhyRxPolarity, phyRxLanesIn) is
    begin
       for i in 0 to RX_LANE_CNT_G-1 loop
          phyRxLanesOut(i).polarity         <= intPhyRxPolarity(i);
@@ -117,46 +112,44 @@ begin
 
 
    -- PHY Logic
-   U_Pgp2bRxPhy: entity surf.Pgp2bRxPhy
+   U_Pgp2bRxPhy : entity surf.Pgp2bRxPhy
       generic map (
-         TPD_G            => TPD_G,
-         RX_LANE_CNT_G    => RX_LANE_CNT_G
-      ) port map (
-         pgpRxClkEn       => pgpRxClkEn,
-         pgpRxClk         => pgpRxClk,
-         pgpRxClkRst      => pgpRxClkRst,
-         pgpRxLinkReady   => intRxLinkReady,
-         pgpRxLinkDown    => pgpRxOut.linkDown,
-         pgpRxLinkError   => pgpRxOut.linkError,
-         pgpRxOpCodeEn    => pgpRxOut.opCodeEn,
-         pgpRxOpCode      => pgpRxOut.opCode,
-         pgpRemLinkReady  => pgpRxOut.remLinkReady,
-         pgpRemData       => pgpRxOut.remLinkData,
-         cellRxPause      => cellRxPause,
-         cellRxSOC        => cellRxSOC,
-         cellRxSOF        => cellRxSOF,
-         cellRxEOC        => cellRxEOC,
-         cellRxEOF        => cellRxEOF,
-         cellRxEOFE       => cellRxEOFE,
-         cellRxData       => cellRxData,
-         phyRxPolarity    => intPhyRxPolarity(RX_LANE_CNT_G-1 downto 0),
-         phyRxData        => intPhyRxData,
-         phyRxDataK       => intPhyRxDataK,
-         phyRxDispErr     => intPhyRxDispErr,
-         phyRxDecErr      => intPhyRxDecErr,
-         phyRxReady       => phyRxReady,
-         phyRxInit        => phyRxInit
-      );
-
+         TPD_G         => TPD_G,
+         RX_LANE_CNT_G => RX_LANE_CNT_G)
+      port map (
+         pgpRxClkEn      => pgpRxClkEn,
+         pgpRxClk        => pgpRxClk,
+         pgpRxClkRst     => pgpRxClkRst,
+         pgpRxLinkReady  => intRxLinkReady,
+         pgpRxLinkDown   => pgpRxOut.linkDown,
+         pgpRxLinkError  => pgpRxOut.linkError,
+         pgpRxOpCodeEn   => pgpRxOut.opCodeEn,
+         pgpRxOpCode     => pgpRxOut.opCode,
+         pgpRemLinkReady => pgpRxOut.remLinkReady,
+         pgpRemData      => pgpRxOut.remLinkData,
+         cellRxPause     => cellRxPause,
+         cellRxSOC       => cellRxSOC,
+         cellRxSOF       => cellRxSOF,
+         cellRxEOC       => cellRxEOC,
+         cellRxEOF       => cellRxEOF,
+         cellRxEOFE      => cellRxEOFE,
+         cellRxData      => cellRxData,
+         phyRxPolarity   => intPhyRxPolarity(RX_LANE_CNT_G-1 downto 0),
+         phyRxData       => intPhyRxData,
+         phyRxDataK      => intPhyRxDataK,
+         phyRxDispErr    => intPhyRxDispErr,
+         phyRxDecErr     => intPhyRxDecErr,
+         phyRxReady      => phyRxReady,
+         phyRxInit       => phyRxInit);
 
    -- Cell Receiver
-   U_Pgp2bRxCell: entity surf.Pgp2bRxCell
+   U_Pgp2bRxCell : entity surf.Pgp2bRxCell
       generic map (
-         TPD_G                => TPD_G,
-         RX_LANE_CNT_G        => RX_LANE_CNT_G,
-         EN_SHORT_CELLS_G     => 1,
-         PAYLOAD_CNT_TOP_G    => PAYLOAD_CNT_TOP_G
-      ) port map (
+         TPD_G             => TPD_G,
+         RX_LANE_CNT_G     => RX_LANE_CNT_G,
+         EN_SHORT_CELLS_G  => 1,
+         PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G)
+      port map (
          pgpRxClkEn       => pgpRxClkEn,
          pgpRxClk         => pgpRxClk,
          pgpRxClkRst      => pgpRxClkRst,
@@ -189,12 +182,11 @@ begin
          crcRxIn          => crcRxIn,
          crcRxInit        => crcRxInit,
          crcRxValid       => crcRxValid,
-         crcRxOut         => crcRxOutAdjust
-      );
-
+         crcRxOut         => crcRxOutAdjust);
 
    -- Pass FIFO status
-   process ( overflow, pause ) begin
+   process (overflow, pause)
+   begin
       for i in 0 to 3 loop
          pgpRxOut.remOverFlow(i)   <= overflow(i);
          remFifoStatus(i).overflow <= overflow(i);
@@ -203,22 +195,22 @@ begin
    end process;
 
    -- Generate valid/vc
-   process ( pgpRxClk ) is
+   process (pgpRxClk) is
       variable intMaster : AxiStreamMasterType;
    begin
-      if rising_edge (pgpRxClk ) then
+      if rising_edge (pgpRxClk) then
          intMaster := AXI_STREAM_MASTER_INIT_C;
 
          if pgpRxClkEn = '1' then
 
             intMaster.tData((RX_LANE_CNT_G*16)-1 downto 0) := intRxData;
-            intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
-            intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others=>'1');
+            intMaster.tStrb(RX_LANE_CNT_G-1 downto 0)      := (others => '1');
+            intMaster.tKeep(RX_LANE_CNT_G-1 downto 0)      := (others => '1');
 
             intMaster.tLast := intRxEof;
 
-            axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_EOFE_C,intRxEofe);
-            axiStreamSetUserBit(SSI_PGP2B_CONFIG_C,intMaster,SSI_SOF_C,intRxSof,0);
+            axiStreamSetUserBit(SSI_PGP2B_CONFIG_C, intMaster, SSI_EOFE_C, intRxEofe);
+            axiStreamSetUserBit(SSI_PGP2B_CONFIG_C, intMaster, SSI_SOF_C, intRxSof, 0);
 
             pgpRxOut.frameRx    <= uOr(intRxVcValid) and intRxEof and (not intRxEofe) after TPD_G;
             pgpRxOut.frameRxErr <= uOr(intRxVcValid) and intRxEof and intRxEofe       after TPD_G;
@@ -238,18 +230,18 @@ begin
                   intMaster.tValid            := '1';
                   intMaster.tDest(3 downto 0) := "0011";
                when others =>
-                  intMaster.tValid            := '0';
+                  intMaster.tValid := '0';
             end case;
 
          end if;
 
          if pgpRxClkRst = '1' then
-            intMaster := AXI_STREAM_MASTER_INIT_C;
+            intMaster           := AXI_STREAM_MASTER_INIT_C;
             pgpRxOut.frameRx    <= '0' after TPD_G;
             pgpRxOut.frameRxErr <= '0' after TPD_G;
          else
 
-         pgpRxMaster <= intMaster after TPD_G;
+            pgpRxMaster <= intMaster after TPD_G;
 
          end if;
       end if;
@@ -283,8 +275,6 @@ begin
          CRCDATAVALID => crcRxValid,
          CRCDATAWIDTH => crcRxWidthAdjust,
          CRCIN        => crcRxInAdjust,
-         CRCRESET     => crcRxRst
-      );
+         CRCRESET     => crcRxRst);
 
 end Pgp2bRx;
-

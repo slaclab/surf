@@ -13,4 +13,5 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/XauiCore"
    loadRuckusTcl "$::DIR_PATH/XlauiCore"
    loadRuckusTcl "$::DIR_PATH/Caui4Core"
+   loadRuckusTcl "$::DIR_PATH/RoCEv2"
 }

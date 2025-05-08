@@ -93,8 +93,8 @@ begin
       v := r;
 
       -- typecast from slv to signed
-      a := signed(resize(ain,WIDTH_G+1));
-      b := signed(resize(bin,WIDTH_G+1));
+      a := signed(resize(ain, WIDTH_G+1));
+      b := signed(resize(bin, WIDTH_G+1));
 
       -- Flow Control
       v.ibReady := '0';

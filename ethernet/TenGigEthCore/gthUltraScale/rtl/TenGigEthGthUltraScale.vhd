@@ -25,13 +25,14 @@ use surf.EthMacPkg.all;
 
 entity TenGigEthGthUltraScale is
    generic (
-      TPD_G           : time                := 1 ns;
-      JUMBO_G         : boolean             := true;
-      PAUSE_EN_G      : boolean             := true;
+      TPD_G         : time                := 1 ns;
+      JUMBO_G       : boolean             := true;
+      PAUSE_EN_G    : boolean             := true;
+      ROCEV2_EN_G   : boolean             := false;
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G  : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -105,36 +106,36 @@ architecture mapping of TenGigEthGthUltraScale is
          gt_txprbsforceerr    : in  std_logic;
          gt_txpolarity        : in  std_logic;
          gt_rxpolarity        : in  std_logic;
-         gt_rxrate            : in  std_logic_vector (2 downto 0);
-         gt_txoutclksel       : in  std_logic_vector (2 downto 0);
+         gt_rxrate            : in  std_logic_vector(2 downto 0);
+         gt_txoutclksel       : in  std_logic_vector(2 downto 0);
          gt_txpcsreset        : in  std_logic;
          gt_txpmareset        : in  std_logic;
          gt_rxpmareset        : in  std_logic;
          gt_rxdfelpmreset     : in  std_logic;
-         gt_txprecursor       : in  std_logic_vector (4 downto 0);
-         gt_txpostcursor      : in  std_logic_vector (4 downto 0);
-         gt_txdiffctrl        : in  std_logic_vector (3 downto 0);
+         gt_txprecursor       : in  std_logic_vector(4 downto 0);
+         gt_txpostcursor      : in  std_logic_vector(4 downto 0);
+         gt_txdiffctrl        : in  std_logic_vector(3 downto 0);
          gt_rxlpmen           : in  std_logic;
-         gt_pcsrsvdin         : in  std_logic_vector (15 downto 0);
+         gt_pcsrsvdin         : in  std_logic_vector(15 downto 0);
          gt_eyescandataerror  : out std_logic;
-         gt_txbufstatus       : out std_logic_vector (1 downto 0);
+         gt_txbufstatus       : out std_logic_vector(1 downto 0);
          gt_txresetdone       : out std_logic;
          gt_rxpmaresetdone    : out std_logic;
          gt_rxresetdone       : out std_logic;
-         gt_rxbufstatus       : out std_logic_vector (2 downto 0);
+         gt_rxbufstatus       : out std_logic_vector(2 downto 0);
          gt_rxprbserr         : out std_logic;
-         gt_dmonitorout       : out std_logic_vector (16 downto 0);
-         xgmii_txd            : in  std_logic_vector (63 downto 0);
-         xgmii_txc            : in  std_logic_vector (7 downto 0);
-         xgmii_rxd            : out std_logic_vector (63 downto 0);
-         xgmii_rxc            : out std_logic_vector (7 downto 0);
+         gt_dmonitorout       : out std_logic_vector(16 downto 0);
+         xgmii_txd            : in  std_logic_vector(63 downto 0);
+         xgmii_txc            : in  std_logic_vector(7 downto 0);
+         xgmii_rxd            : out std_logic_vector(63 downto 0);
+         xgmii_rxc            : out std_logic_vector(7 downto 0);
          txp                  : out std_logic;
          txn                  : out std_logic;
          rxp                  : in  std_logic;
          rxn                  : in  std_logic;
-         configuration_vector : in  std_logic_vector (535 downto 0);
-         status_vector        : out std_logic_vector (447 downto 0);
-         core_status          : out std_logic_vector (7 downto 0);
+         configuration_vector : in  std_logic_vector(535 downto 0);
+         status_vector        : out std_logic_vector(447 downto 0);
+         core_status          : out std_logic_vector(7 downto 0);
          tx_resetdone         : out std_logic;
          rx_resetdone         : out std_logic;
          signal_detect        : in  std_logic;
@@ -143,17 +144,17 @@ architecture mapping of TenGigEthGthUltraScale is
          drp_gnt              : in  std_logic;
          core_to_gt_drpen     : out std_logic;
          core_to_gt_drpwe     : out std_logic;
-         core_to_gt_drpaddr   : out std_logic_vector (15 downto 0);
-         core_to_gt_drpdi     : out std_logic_vector (15 downto 0);
+         core_to_gt_drpaddr   : out std_logic_vector(15 downto 0);
+         core_to_gt_drpdi     : out std_logic_vector(15 downto 0);
          core_to_gt_drprdy    : in  std_logic;
-         core_to_gt_drpdo     : in  std_logic_vector (15 downto 0);
+         core_to_gt_drpdo     : in  std_logic_vector(15 downto 0);
          gt_drpen             : in  std_logic;
          gt_drpwe             : in  std_logic;
-         gt_drpaddr           : in  std_logic_vector (15 downto 0);
-         gt_drpdi             : in  std_logic_vector (15 downto 0);
+         gt_drpaddr           : in  std_logic_vector(15 downto 0);
+         gt_drpdi             : in  std_logic_vector(15 downto 0);
          gt_drprdy            : out std_logic;
-         gt_drpdo             : out std_logic_vector (15 downto 0);
-         pma_pmd_type         : in  std_logic_vector (2 downto 0);
+         gt_drpdo             : out std_logic_vector(15 downto 0);
+         pma_pmd_type         : in  std_logic_vector(2 downto 0);
          tx_disable           : out std_logic
          );
    end component;
@@ -254,11 +255,12 @@ begin
    --------------------
    U_MAC : entity surf.EthMacTop
       generic map (
-         TPD_G           => TPD_G,
-         JUMBO_G         => JUMBO_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         PHY_TYPE_G      => "XGMII",
-         PRIM_CONFIG_G   => AXIS_CONFIG_G)
+         TPD_G         => TPD_G,
+         JUMBO_G       => JUMBO_G,
+         PAUSE_EN_G    => PAUSE_EN_G,
+         ROCEV2_EN_G   => ROCEV2_EN_G,
+         PHY_TYPE_G    => "XGMII",
+         PRIM_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Primary Interface
          primClk         => dmaClk,

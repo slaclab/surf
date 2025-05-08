@@ -27,7 +27,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamMux is
    generic (
       TPD_G                : time                    := 1 ns;
-      RST_POLARITY_G       : sl                      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G       : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean                 := false;
       PIPE_STAGES_G        : integer range 0 to 16   := 0;
       NUM_SLAVES_G         : integer range 1 to 256  := 4;
@@ -203,8 +203,8 @@ begin
 
    end process PRIORITY_CONTROL;
 
-   comb : process (axisRst, ileaveRearb, intDisableSel, pipeAxisSlave, r, rearbitrate,
-                   sAxisMastersTmp) is
+   comb : process (axisRst, ileaveRearb, intDisableSel, pipeAxisSlave, r,
+                   rearbitrate, sAxisMastersTmp) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;

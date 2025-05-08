@@ -38,16 +38,16 @@ entity FirAverage is
       REG_IN_G      : boolean := true;
       REG_OUT_G     : boolean := true);
    port (
-      clk       : in  sl;
-      rst       : in  sl := '0';
+      clk      : in  sl;
+      rst      : in  sl                             := '0';
       -- inputs
-      validIn   : in  sl := '0';
-      userIn    : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
-      din       : in  sfixed;
+      validIn  : in  sl                             := '0';
+      userIn   : in  slv(USER_WIDTH_G - 1 downto 0) := (others => '0');
+      din      : in  sfixed;
       -- outputs
-      validOut  : out sl;
-      userOut   : out slv(USER_WIDTH_G - 1 downto 0);
-      dout      : out sfixed);
+      validOut : out sl;
+      userOut  : out slv(USER_WIDTH_G - 1 downto 0);
+      dout     : out sfixed);
 end entity FirAverage;
 
 architecture rtl of FirAverage is
@@ -61,18 +61,18 @@ architecture rtl of FirAverage is
    constant ACCUM_DELAY_STYLE_C : string  := ite(ACCUM_DELAY_C > BRAM_THRESH_G, "block", "srl_reg");
 
    -- Latency for user/valid
-   constant TOT_LATENCY_C  : integer := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
+   constant TOT_LATENCY_C        : integer                   := 1 + ite(REG_IN_G, 1, 0) + ite(REG_OUT_G, 1, 0);
    constant INT_OVERFLOW_STYLE_C : fixed_overflow_style_type := fixed_wrap;
    constant INT_ROUNDING_STYLE_C : fixed_round_style_type    := fixed_truncate;
 
    type RegType is record
-       din     : sfixed(din'range);
-       dout    : sfixed(dout'range);
+      din  : sfixed(din'range);
+      dout : sfixed(dout'range);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      din     => (others => '0'),
-      dout    => (others => '0'));
+      din  => (others => '0'),
+      dout => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -81,8 +81,8 @@ architecture rtl of FirAverage is
    signal dinIntDelay : sfixed(din'range);
    signal doutInt     : sfixed(dout'range);
 
-   signal filtOut : sfixed(din'high + BIT_GROWTH_C downto din'low);
-   signal filtDly : sfixed(din'high + BIT_GROWTH_C downto din'low);
+   signal filtOut      : sfixed(din'high + BIT_GROWTH_C downto din'low);
+   signal filtDly      : sfixed(din'high + BIT_GROWTH_C downto din'low);
    signal filtOutShift : sfixed(din'high downto din'low - BIT_GROWTH_C);
 
    -- add 1 bit so we can delay valid and user together
@@ -91,7 +91,7 @@ architecture rtl of FirAverage is
 
 begin
 
-   userDelayIn(userDelayIn'high) <= validIn;
+   userDelayIn(userDelayIn'high)                            <= validIn;
    userDelayIn(userDelayIn'high - 1 downto userDelayIn'low) <= userIn;
 
    validOut <= userDelayOut(userDelayOut'high);
@@ -142,20 +142,20 @@ begin
          NEGATIVE_A_G => false,
          NEGATIVE_B_G => true)
       port map (
-         clk  => clk,
-         rst  => rst,
-         a    => dinInt,
-         b    => dinIntDelay,
-         c    => filtDly,
-         y    => filtOut);
+         clk => clk,
+         rst => rst,
+         a   => dinInt,
+         b   => dinIntDelay,
+         c   => filtDly,
+         y   => filtOut);
 
    comb : process(din, filtOutShift, r) is
-      variable v   : RegType;
+      variable v : RegType;
    begin
 
       v := r;
 
-      v.din  := din;
+      v.din := din;
 
       v.dout := resize(filtOutShift, v.dout, INT_OVERFLOW_STYLE_C, INT_ROUNDING_STYLE_C);
 

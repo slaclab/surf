@@ -30,21 +30,21 @@ use surf.SsiPkg.all;
 
 entity AxiStreamDmaFifo is
    generic (
-      TPD_G              : time                := 1 ns;
-      START_AFTER_RST_G  : sl                  := '1';  -- '1' still start the DMA REQs after RST; '0' will wait for AXI-Lite to start this
-      DROP_ERR_FRAME_G   : sl                  := '1';  -- '1' will drop the AXIS if error detect
-      SOF_INSERT_G       : sl                  := '1';  -- Inserts SsiPkg's SOF bit
-      PEND_THRESH_G      : natural             := 0;   -- In units of bytes
+      TPD_G              : time             := 1 ns;
+      START_AFTER_RST_G  : sl               := '1';  -- '1' still start the DMA REQs after RST; '0' will wait for AXI-Lite to start this
+      DROP_ERR_FRAME_G   : sl               := '1';  -- '1' will drop the AXIS if error detect
+      SOF_INSERT_G       : sl               := '1';  -- Inserts SsiPkg's SOF bit
+      PEND_THRESH_G      : natural          := 0;   -- In units of bytes
       -- FIFO Configuration
-      MAX_FRAME_WIDTH_G  : positive            := 14;  -- Maximum AXI Stream frame size (units of address bits)
-      AXI_BUFFER_WIDTH_G : positive            := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
+      MAX_FRAME_WIDTH_G  : positive         := 14;  -- Maximum AXI Stream frame size (units of address bits)
+      AXI_BUFFER_WIDTH_G : positive         := 28;  -- Total AXI Memory for FIFO buffering (units of address bits)
       -- AXI Stream Configurations
       AXIS_CONFIG_G      : AxiStreamConfigType;
       -- AXI4 Configurations
-      AXI_BASE_ADDR_G    : slv(63 downto 0)    := x"0000_0000_0000_0000";  -- Memory Base Address Offset
+      AXI_BASE_ADDR_G    : slv(63 downto 0) := x"0000_0000_0000_0000";  -- Memory Base Address Offset
       AXI_CONFIG_G       : AxiConfigType;
-      AXI_BURST_G        : slv(1 downto 0)     := "01";
-      AXI_CACHE_G        : slv(3 downto 0)     := "1111");
+      AXI_BURST_G        : slv(1 downto 0)  := "01";
+      AXI_CACHE_G        : slv(3 downto 0)  := "1111");
    port (
       -- Clock and Reset
       axiClk          : in  sl;

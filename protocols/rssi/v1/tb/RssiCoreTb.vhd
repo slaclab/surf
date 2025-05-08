@@ -97,7 +97,7 @@ architecture testbed of RssiCoreTb is
    signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
-   signal statusReg : slv(6 downto 0);
+   signal statusReg : slv(8 downto 0);
 
 begin
 

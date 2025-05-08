@@ -39,6 +39,7 @@ entity GigEthGtyUltraScaleWrapper is
       MEMORY_TYPE_G      : string                           := "ultra";
       JUMBO_G            : boolean                          := true;
       PAUSE_EN_G         : boolean                          := true;
+      ROCEV2_EN_G        : boolean                          := false;
       -- Clocking Configurations
       USE_GTREFCLK_G     : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       CLKIN_PERIOD_G     : real                             := 8.0;
@@ -76,6 +77,7 @@ entity GigEthGtyUltraScaleWrapper is
       gtRefClk            : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
+      gtClkOut            : out sl;
       -- Copy of internal MMCM reference clock and Reset
       refClkOut           : out sl;
       refRstOut           : out sl;
@@ -121,7 +123,7 @@ begin
          IB    => gtClkN,
          CEB   => '0',
          ODIV2 => gtClk,
-         O     => open);
+         O     => gtClkOut);
 
    BUFG_GT_Inst : BUFG_GT
       port map (
@@ -189,6 +191,7 @@ begin
             MEMORY_TYPE_G     => MEMORY_TYPE_G,
             JUMBO_G           => JUMBO_G,
             PAUSE_EN_G        => PAUSE_EN_G,
+            ROCEV2_EN_G       => ROCEV2_EN_G,
             -- AXI-Lite Configurations
             EN_AXI_REG_G      => EN_AXI_REG_G,
             -- AXI Streaming Configurations

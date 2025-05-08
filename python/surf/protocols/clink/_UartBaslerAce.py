@@ -72,7 +72,7 @@ class UartBaslerAceTx(rogue.interfaces.stream.Master):
         dbgstring = ''
         for i in range(13):
             dbgstring += '0x{0:0{1}X},'.format(ba[4*i],2)
-        print ( self._path+': SendString: %s' % dbgstring[:-1] )
+        print( f'{self._path}: SendString: {dbgstring[:-1]}' )
 
         # Send the byte array
         frame = self._reqFrame(len(ba),True)

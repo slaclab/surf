@@ -136,7 +136,7 @@ package EthMacPkg is
 
    function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array;
 
-   procedure GetEthMacCsum (
+   procedure getEthMacCsum (
       -- Input
       udpDet  : in    sl;
       last    : in    sl;
@@ -173,7 +173,7 @@ package body EthMacPkg is
       return retVar;
    end function;
 
-   procedure GetEthMacCsum (
+   procedure getEthMacCsum (
       -- Input
       udpDet  : in    sl;
       last    : in    sl;

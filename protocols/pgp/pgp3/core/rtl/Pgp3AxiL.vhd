@@ -16,9 +16,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -57,9 +56,9 @@ entity Pgp3AxiL is
       phyRxClk : in sl;
 
       -- Debug Interface (axilClk domain)
-      txDiffCtrl        : out  slv(4 downto 0);
-      txPreCursor       : out  slv(4 downto 0);
-      txPostCursor      : out  slv(4 downto 0);
+      txDiffCtrl   : out slv(4 downto 0);
+      txPreCursor  : out slv(4 downto 0);
+      txPostCursor : out slv(4 downto 0);
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
@@ -253,7 +252,7 @@ begin
          rdRst                  => axilRst
          );
 
-   U_RxErrorIrqEn : process (r.autoStatus)
+   U_RxErrorIrqEn : process (r)
    begin
       rxErrorIrqEn     <= (others => '0');
       rxErrorIrqEn(1)  <= r.autoStatus;
@@ -580,7 +579,8 @@ begin
    end process;
 
    -- Async
-   process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxStatusSync,
+            txStatusSync) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -676,8 +676,8 @@ begin
       axiSlaveRegisterR(axilEp, X"0A4", 0, txStatusSync.txOpCodeDataLast);
       axiSlaveRegisterR(axilEp, X"0A4", 56, txStatusSync.txOpCodeNumberLast);
 
-      axiSlaveRegister (axilEp, X"0AC", 0,  v.txDiffCtrl);
-      axiSlaveRegister (axilEp, X"0AC", 8,  v.txPreCursor);
+      axiSlaveRegister (axilEp, X"0AC", 0, v.txDiffCtrl);
+      axiSlaveRegister (axilEp, X"0AC", 8, v.txPreCursor);
       axiSlaveRegister (axilEp, X"0AC", 16, v.txPostCursor);
 
       for i in 0 to 15 loop

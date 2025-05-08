@@ -74,7 +74,6 @@ entity SsiAxiLiteMaster is
       -- AXI Stream IO Config
       AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
-
       -- Streaming Slave (Rx) Interface (sAxisClk domain)
       sAxisClk    : in  sl;
       sAxisRst    : in  sl := '0';
@@ -94,9 +93,7 @@ entity SsiAxiLiteMaster is
       mAxiLiteWriteMaster : out AxiLiteWriteMasterType;
       mAxiLiteWriteSlave  : in  AxiLiteWriteSlaveType;
       mAxiLiteReadMaster  : out AxiLiteReadMasterType;
-      mAxiLiteReadSlave   : in  AxiLiteReadSlaveType
-      );
-
+      mAxiLiteReadSlave   : in  AxiLiteReadSlaveType);
 end SsiAxiLiteMaster;
 
 architecture rtl of SsiAxiLiteMaster is
@@ -110,8 +107,9 @@ architecture rtl of SsiAxiLiteMaster is
    signal mFifoAxisSlave  : AxiStreamSlaveType;
    signal mFifoAxisCtrl   : AxiStreamCtrlType;
 
-   type StateType is (S_IDLE_C, S_ADDR_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_SIZE_C,
-                      S_READ_C, S_READ_AXI_C, S_STATUS_C, S_DUMP_C);
+   type StateType is (
+      S_IDLE_C, S_ADDR_C, S_WRITE_C, S_WRITE_AXI_C, S_READ_SIZE_C,
+      S_READ_C, S_READ_AXI_C, S_STATUS_C, S_DUMP_C);
 
    type RegType is record
       echo    : slv(31 downto 0);
@@ -127,7 +125,6 @@ architecture rtl of SsiAxiLiteMaster is
       mAxiLiteReadMaster  : AxiLiteReadMasterType;
       sFifoAxisSlave      : AxiStreamSlaveType;
       mFifoAxisMaster     : AxiStreamMasterType;
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -189,7 +186,8 @@ begin
    -- Master State Machine
    -------------------------------------
 
-   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave, mFifoAxisCtrl, r, sFifoAxisMaster) is
+   comb : process (axiLiteRst, mAxiLiteReadSlave, mAxiLiteWriteSlave,
+                   mFifoAxisCtrl, r, sFifoAxisMaster) is
       variable v : RegType;
    begin
       v := r;

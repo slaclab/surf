@@ -131,7 +131,8 @@ begin
    end generate SHADOW_RAM_GEN;
 
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData, rdEn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData,
+                   rdEn) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin

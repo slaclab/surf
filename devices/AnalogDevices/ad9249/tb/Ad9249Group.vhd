@@ -21,12 +21,10 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
+library unisim;
+use unisim.vcomponents.all;
 
 entity Ad9249Group is
-
    generic (
       TPD_G            : time    := 1 ns;
       CLK_PERIOD_G     : time    := 24 ns;
@@ -34,7 +32,6 @@ entity Ad9249Group is
       CLKFBOUT_MULT_G  : integer := 49;
       CLK_DCO_DIVIDE_G : integer := 7;
       CLK_FCO_DIVIDE_G : integer := 49);
-
    port (
       clk : in sl;
 
@@ -50,7 +47,6 @@ entity Ad9249Group is
       sclk : in    sl;
       sdio : inout sl;
       csb  : in    sl);
-
 end entity Ad9249Group;
 
 architecture behavioral of Ad9249Group is
@@ -60,7 +56,7 @@ architecture behavioral of Ad9249Group is
    -------------------------------------------------------------------------------------------------
    -- Config and Sampling constant and signals
    -------------------------------------------------------------------------------------------------
-   constant PN_SHORT_TAPS_C : NaturalArray     := (0 => 4, 1 => 8);    -- X9+X5+1
+   constant PN_SHORT_TAPS_C : NaturalArray     := (0 => 4, 1 => 8);  -- X9+X5+1
    constant PN_SHORT_INIT_C : slv(8 downto 0)  := "011011111";
    constant PN_LONG_TAPS_C  : NaturalArray     := (0 => 16, 1 => 22);  -- X23+X18+1
    constant PN_LONG_INIT_C  : slv(22 downto 0) := "01001101110000000101000";
@@ -230,31 +226,31 @@ begin
    -- Use a clock manager to create the serial clock
    -- There's probably a better way but this works.
    -------------------------------------------------------------------------------------------------
-      U_CtrlClockManager7 : entity surf.ClockManager7
-         generic map (
-            TPD_G            => TPD_G,
-            TYPE_G           => "PLL",
-            INPUT_BUFG_G     => false,
-            FB_BUFG_G        => true,
-            NUM_CLOCKS_G     => 4,
-            BANDWIDTH_G      => "HIGH",
-            CLKIN_PERIOD_G   => CLK_PERIOD_C,
-            DIVCLK_DIVIDE_G  => DIVCLK_DIVIDE_G,
-            CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
-            CLKOUT0_DIVIDE_G => CLK_FCO_DIVIDE_G,
-            CLKOUT1_DIVIDE_G => CLK_DCO_DIVIDE_G,
-            CLKOUT2_DIVIDE_G => CLK_DCO_DIVIDE_G,
-            CLKOUT2_PHASE_G  => 90.0,
-            CLKOUT3_DIVIDE_G => CLK_FCO_DIVIDE_G,
-            CLKOUT3_PHASE_G  => 257.143)
-         port map (
-            clkIn     => clk,
-            rstIn     => pllRst,
-            clkOut(0) => fClk,
-            clkOut(1) => dClk,
-            clkOut(2) => dco,
-            clkOut(3) => fco,
-            locked    => locked);
+   U_CtrlClockManager7 : entity surf.ClockManager7
+      generic map (
+         TPD_G            => TPD_G,
+         TYPE_G           => "PLL",
+         INPUT_BUFG_G     => false,
+         FB_BUFG_G        => true,
+         NUM_CLOCKS_G     => 4,
+         BANDWIDTH_G      => "HIGH",
+         CLKIN_PERIOD_G   => CLK_PERIOD_C,
+         DIVCLK_DIVIDE_G  => DIVCLK_DIVIDE_G,
+         CLKFBOUT_MULT_G  => CLKFBOUT_MULT_G,
+         CLKOUT0_DIVIDE_G => CLK_FCO_DIVIDE_G,
+         CLKOUT1_DIVIDE_G => CLK_DCO_DIVIDE_G,
+         CLKOUT2_DIVIDE_G => CLK_DCO_DIVIDE_G,
+         CLKOUT2_PHASE_G  => 90.0,
+         CLKOUT3_DIVIDE_G => CLK_FCO_DIVIDE_G,
+         CLKOUT3_PHASE_G  => 257.143)
+      port map (
+         clkIn     => clk,
+         rstIn     => pllRst,
+         clkOut(0) => fClk,
+         clkOut(1) => dClk,
+         clkOut(2) => dco,
+         clkOut(3) => fco,
+         locked    => locked);
 
 
 
@@ -290,7 +286,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- Configuration register logic
    -------------------------------------------------------------------------------------------------
-   comb : process (addr, r, vin, wrData, wrEn) is
+   comb : process (addr, r, wrData, wrEn) is
       variable v             : ConfigRegType;
       variable activeChannel : ChannelConfigType;
       variable zero          : slv(13 downto 0) := (others => '0');
@@ -532,7 +528,7 @@ begin
       end if;
    end process seq;
 
-   adcComb : process (adcR) is
+   adcComb : process (adcR, r, vin) is
       variable v : AdcRegType := ADC_REG_INIT_C;
    begin
       v        := adcR;

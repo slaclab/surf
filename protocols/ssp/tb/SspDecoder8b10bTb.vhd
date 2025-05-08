@@ -57,23 +57,20 @@ begin
    -- encoded data gen
    Stimuli : entity surf.SspEncoder8b10b
       generic map (
-         RST_POLARITY_G => '1'
-         )
+         RST_POLARITY_G => '1')
       port map (
          clk     => clkDiv2,
          rst     => rst,
          valid   => dataValidEnc,
          dataIn  => dataInEnc,
-         dataOut => dataOutEnc
-         );
+         dataOut => dataOutEnc);
 
    -- async fifo for validIn simulation
    Fifo : entity surf.FifoCascade
       generic map (
          GEN_SYNC_FIFO_G => false,
          FWFT_EN_G       => true,
-         DATA_WIDTH_G    => 20
-         )
+         DATA_WIDTH_G    => 20)
       port map (
          -- Resets
          rst    => rst,
@@ -84,14 +81,12 @@ begin
          rd_clk => clk,
          rd_en  => validIn,
          dout   => dataIn,
-         valid  => validIn
-         );
+         valid  => validIn);
 
-   -- unit under test
-   UUT : entity surf.SspDecoder8b10b
+   -- Design Under Test
+   U_DUT : entity surf.SspDecoder8b10b
       generic map (
-         RST_POLARITY_G => '1'
-         )
+         RST_POLARITY_G => '1')
       port map (
          clk      => clk,
          rst      => rst,
@@ -101,8 +96,7 @@ begin
          validOut => validOut,
          sof      => sof,
          eof      => eof,
-         eofe     => eofe
-         );
+         eofe     => eofe);
 
    -- clock generation
    clk     <= not clk     after 10 ns;
@@ -177,7 +171,4 @@ begin
       wait;
    end process WaveGen_Proc;
 
-
-
 end architecture sim;
-

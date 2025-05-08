@@ -85,7 +85,7 @@ class McsReader():
 
                     # Check for "start code"
                     if line[0] != ':':
-                        click.secho( ('\nMissing start code. Line[%d]: {:%s}' % (i,line)), fg='red')
+                        click.secho( f'\nMissing start code. Line[{i}]: ({line})', fg='red')
                         raise McsException('McsReader.open(): failed')
                     else:
 

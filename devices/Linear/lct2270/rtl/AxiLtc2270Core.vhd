@@ -37,7 +37,7 @@ entity AxiLtc2270Core is
       adcInOut       : inout AxiLtc2270InOutType;
       -- ADC signals (axiClk domain)
       adcValid       : out   slv(0 to 1);
-      adcData        : out   Slv16Array(0 to 1);                         --2's complement
+      adcData        : out   Slv16Array(0 to 1);  --2's complement
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  : in    AxiLiteReadMasterType;
       axiReadSlave   : out   AxiLiteReadSlaveType;
@@ -46,7 +46,7 @@ entity AxiLtc2270Core is
       -- Clocks and Resets
       axiClk         : in    sl;
       axiRst         : in    sl;
-      adcClk         : in    sl;                                         -- up to 20 MHz
+      adcClk         : in    sl;        -- up to 20 MHz
       refclk200MHz   : in    sl);
 end AxiLtc2270Core;
 

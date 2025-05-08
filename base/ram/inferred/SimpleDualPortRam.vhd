@@ -59,11 +59,11 @@ architecture rtl of SimpleDualPortRam is
 
    constant INIT_C : slv(FULL_DATA_WIDTH_C-1 downto 0) := ite(INIT_G = "0", slvZero(FULL_DATA_WIDTH_C), INIT_G);
 
-   constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
+   constant XST_BRAM_STYLE_C : string := MEMORY_TYPE_G;
 
    -- Shared memory
-   type mem_type is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
-   shared variable mem : mem_type := (others => INIT_C);
+   type MemType is array ((2**ADDR_WIDTH_G)-1 downto 0) of slv(FULL_DATA_WIDTH_C-1 downto 0);
+   shared variable mem : MemType := (others => INIT_C);
 
    signal doutBInt : slv(FULL_DATA_WIDTH_C-1 downto 0) := (others => '0');
 
@@ -106,10 +106,10 @@ begin
    process(clkb, rstb)
    begin
       if (RST_ASYNC_G and rstb = RST_POLARITY_G) then
-         doutbInt <= INIT_C after TPD_G;
+         doutBInt <= INIT_C after TPD_G;
       elsif rising_edge(clkb) then
          if (RST_ASYNC_G = false and rstb = RST_POLARITY_G) then
-            doutbInt <= INIT_C after TPD_G;
+            doutBInt <= INIT_C after TPD_G;
          elsif enb = '1' then
             doutBInt <= mem(conv_integer(addrb)) after TPD_G;
          end if;

@@ -26,7 +26,7 @@ class ClockManager(pr.Device):
         elif (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
             numClkOut = 7
         else:
-            raise ValueError('ClockManager: Invalid type (%s)' % (type) )
+            raise ValueError( f'ClockManager: Invalid type ({type})' )
 
         # Determine if UltraScale or not
         UltraScale = False if (type == 'MMCME2') or (type == 'PLLE2') else True

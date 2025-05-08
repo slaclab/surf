@@ -74,12 +74,12 @@ package body ArbiterPkg is
       ack          : out   slv) is
    begin
 --      print("arbitrate(" & str(req'length));-- & ", " & str(lastSelected'length) & ", " str(nextSelected'length) & ", " & ")");
-      valid          := uOr(req);
+      valid := uOr(req);
       if (valid = '1') then
-         nextSelected   := priorityEncode(req, to_integer(unsigned(lastSelected)+1) mod req'length);
-         ack := decode(slv(nextSelected))(req'range);
+         nextSelected := priorityEncode(req, to_integer(unsigned(lastSelected)+1) mod req'length);
+         ack          := decode(slv(nextSelected))(req'range);
       else
-         nextSelected := lastSelected;
+         nextSelected   := lastSelected;
          ack(ack'range) := (others => '0');
       end if;
    end procedure arbitrate;
