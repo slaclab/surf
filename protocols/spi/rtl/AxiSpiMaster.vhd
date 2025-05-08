@@ -57,7 +57,7 @@ entity AxiSpiMaster is
       -- Copy of the shadow memory (SHADOW_EN_G=true)
       -- Same width as ADDRESS_SIZE_G if NUM_CHIPS_G=1
       -- Else ADDRESS_SIZE_G+log2(NUM_CHIPS_G)
-      shadowAddr     : in  slv(ite(NUM_CHIPS_G = 1, 0, log2(SPI_NUM_CHIPS_G))+ADDRESS_SIZE_G-1 downto 0) := (others => '0');
+      shadowAddr     : in  slv(ite(SPI_NUM_CHIPS_G = 1, 0, log2(SPI_NUM_CHIPS_G))+ADDRESS_SIZE_G-1 downto 0) := (others => '0');
       shadowData     : out slv(DATA_SIZE_G-1 downto 0)                                                   := (others => '0');
       -- SPI Interface
       coreSclk       : out sl;
